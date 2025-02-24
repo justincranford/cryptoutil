@@ -14,7 +14,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	telemetryService := telemetry.Init(ctx, startTime, "main")
+	telemetryService := telemetry.Init(ctx, startTime, "main", false, true)
 	defer telemetry.Shutdown(telemetryService)
 
 	keygen.DoKeyPoolsExample(ctx, telemetryService)

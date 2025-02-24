@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	telemetryService := telemetry.Init(ctx, startTime, "asn1_test")
+	telemetryService := telemetry.Init(ctx, startTime, "asn1_test", false, false)
 	telemetry.Shutdown(telemetryService)
 	slogger = telemetryService.Slogger
 

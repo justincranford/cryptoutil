@@ -60,11 +60,11 @@ type Service struct {
 	TracesProvider  *trace.TracerProvider
 }
 
-func Init(ctx context.Context, startTime time.Time, scope string) *Service {
-	slogger, logsProvider := InitLogger(ctx, false, scope)
+func Init(ctx context.Context, startTime time.Time, scope string, enableOtel, enableStdout bool) *Service {
+	slogger, logsProvider := InitLogger(ctx, enableOtel, scope)
 	slogger.Info("Start", "uptime", time.Since(startTime).Seconds())
-	metricsProvider := InitMetrics(ctx, false, true)
-	tracesProvider := InitTraces(ctx, false, true)
+	metricsProvider := InitMetrics(ctx, enableOtel, enableStdout)
+	tracesProvider := InitTraces(ctx, enableOtel, enableStdout)
 	return &Service{startTime: startTime, Slogger: slogger, LogsProvider: logsProvider, MetricsProvider: metricsProvider, TracesProvider: tracesProvider}
 }
 
