@@ -96,7 +96,7 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 }
 
 func TestPemEncodeDecodeECDH(t *testing.T) {
-	t.Skip("https://github.com/golang/go/issues/71919")
+	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
 	keyPairOriginal, err := ecdh.P256().GenerateKey(rand.Reader)
 	assert.NoError(t, err)
 	privateKeyOriginal := keyPairOriginal

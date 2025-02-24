@@ -34,7 +34,7 @@ var ecdsaTestCurves = []struct {
 }
 
 func TestEncodeDecodeECDH(t *testing.T) {
-	t.Skip("https://github.com/golang/go/issues/71919")
+	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
 	for _, curve := range ecdhTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
 			original, err := curve.Curve.GenerateKey(rand.Reader)
