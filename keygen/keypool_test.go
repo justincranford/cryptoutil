@@ -7,12 +7,9 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
-	"log/slog"
 	"os"
 	"testing"
 	"time"
-
-	"go.opentelemetry.io/otel/sdk/log"
 
 	"cryptoutil/telemetry"
 
@@ -27,8 +24,8 @@ const (
 )
 
 var (
-	ctx     context.Context
-	slogger *slog.Logger
+	ctx              context.Context
+	telemetryService *telemetry.Service
 )
 
 func TestMain(m *testing.M) {
@@ -36,16 +33,15 @@ func TestMain(m *testing.M) {
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	var loggerProvider *log.LoggerProvider
-	slogger, loggerProvider = telemetry.InitLogger(ctx, false, "keypool_test")
-	telemetry.Shutdown(slogger, nil, nil, loggerProvider)
+	telemetryService = telemetry.Init(ctx)
+	telemetry.Shutdown(telemetryService)
 
 	rc := m.Run()
 	os.Exit(rc)
 }
 
 func TestPoolRSA(t *testing.T) {
-	pool := NewKeyPool(ctx, slogger, "RSA", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateRSAKeyPair(2048))
+	pool := NewKeyPool(ctx, telemetryService, "RSA", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateRSAKeyPair(2048))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
@@ -56,7 +52,7 @@ func TestPoolRSA(t *testing.T) {
 }
 
 func TestPoolEcDSA(t *testing.T) {
-	pool := NewKeyPool(ctx, slogger, "EC", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateECDSAKeyPair(elliptic.P256()))
+	pool := NewKeyPool(ctx, telemetryService, "EC", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateECDSAKeyPair(elliptic.P256()))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
@@ -67,7 +63,7 @@ func TestPoolEcDSA(t *testing.T) {
 }
 
 func TestPoolEcDH(t *testing.T) {
-	pool := NewKeyPool(ctx, slogger, "EC", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateECDHKeyPair(ecdh.P256()))
+	pool := NewKeyPool(ctx, telemetryService, "EC", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateECDHKeyPair(ecdh.P256()))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
@@ -78,7 +74,7 @@ func TestPoolEcDH(t *testing.T) {
 }
 
 func TestPoolEdDSA(t *testing.T) {
-	pool := NewKeyPool(ctx, slogger, "ED", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateEDKeyPair("Ed25519"))
+	pool := NewKeyPool(ctx, telemetryService, "ED", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateEDKeyPair("Ed25519"))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
@@ -89,7 +85,7 @@ func TestPoolEdDSA(t *testing.T) {
 }
 
 func TestPoolAES(t *testing.T) {
-	pool := NewKeyPool(ctx, slogger, "AES", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateAESKey(128))
+	pool := NewKeyPool(ctx, telemetryService, "AES", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateAESKey(128))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
@@ -100,7 +96,7 @@ func TestPoolAES(t *testing.T) {
 }
 
 func TestPoolHMAC(t *testing.T) {
-	pool := NewKeyPool(ctx, slogger, "AES", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateAESKey(128))
+	pool := NewKeyPool(ctx, telemetryService, "AES", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateAESKey(128))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {

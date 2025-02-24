@@ -2,9 +2,10 @@ package keygen
 
 import (
 	"context"
-	"log/slog"
 	"sync"
 	"time"
+
+	"cryptoutil/telemetry"
 )
 
 const (
@@ -13,7 +14,7 @@ const (
 )
 
 type KeyPool struct {
-	slogger          *slog.Logger
+	telemetryService *telemetry.Service
 	startTime        time.Time
 	name             string
 	ctx              context.Context
@@ -30,10 +31,10 @@ type KeyPool struct {
 	getCounter       int
 }
 
-func NewKeyPool(ctx context.Context, slogger *slog.Logger, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) *KeyPool {
+func NewKeyPool(ctx context.Context, telemetryService *telemetry.Service, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) *KeyPool {
 	wrappedCtx, cancelFunction := context.WithCancel(ctx)
 	pool := &KeyPool{
-		slogger:          slogger,
+		telemetryService: telemetryService,
 		startTime:        time.Now(),
 		name:             name,
 		ctx:              wrappedCtx,
@@ -60,12 +61,12 @@ func (pool *KeyPool) shutdownWorker() {
 		startTime := time.Now()
 		select {
 		case <-pool.ctx.Done():
-			pool.slogger.Info("cancelled", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Info("cancelled", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 			return
 		default:
 			reachedLimit, _ := pool.checkPoolLimits(false)
 			if reachedLimit {
-				pool.slogger.Info("limit", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+				pool.telemetryService.Slogger.Info("limit", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 				return
 			}
 			time.Sleep(time.Second)
@@ -79,20 +80,20 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 		startTime := time.Now()
 		select {
 		case <-pool.ctx.Done():
-			pool.slogger.Info("cancelled", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Info("cancelled", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		default:
 			reachedLimit, generateCounter := pool.checkPoolLimits(true)
 			if reachedLimit {
-				pool.slogger.Info("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+				pool.telemetryService.Slogger.Info("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 				return
 			}
 			key, err := pool.generateFunction()
 			if err != nil {
-				pool.slogger.Error("failed", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds(), "error", err)
+				pool.telemetryService.Slogger.Error("failed", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds(), "error", err)
 				return
 			}
-			pool.slogger.Info("ok", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Info("ok", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 			pool.keyChannel <- key
 		}
 	}
@@ -106,7 +107,7 @@ func (pool *KeyPool) Get() Key {
 	getCounter := pool.getCounter
 	pool.guardCounters.Unlock()
 	defer func() {
-		pool.slogger.Info("ok", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
+		pool.telemetryService.Slogger.Info("ok", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
 	}()
 	return key
 }
@@ -128,11 +129,11 @@ func (pool *KeyPool) Close() {
 
 	if pool.cancelFunction == nil {
 		defer func() {
-			pool.slogger.Warn("already closed", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Warn("already closed", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 		}()
 	} else {
 		defer func() {
-			pool.slogger.Info("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Info("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 		}()
 		pool.cancelFunction()
 		pool.cancelFunction = nil

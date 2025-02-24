@@ -14,8 +14,6 @@ import (
 	"os"
 	"testing"
 
-	"go.opentelemetry.io/otel/sdk/log"
-
 	"cryptoutil/telemetry"
 
 	"github.com/stretchr/testify/assert"
@@ -31,9 +29,9 @@ func TestMain(m *testing.M) {
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	var loggerProvider *log.LoggerProvider
-	slogger, loggerProvider = telemetry.InitLogger(ctx, false, "asn1_test")
-	telemetry.Shutdown(slogger, nil, nil, loggerProvider)
+	telemetryService := telemetry.Init(ctx)
+	telemetry.Shutdown(telemetryService)
+	slogger = telemetryService.Slogger
 
 	rc := m.Run()
 	os.Exit(rc)

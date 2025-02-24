@@ -14,14 +14,14 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	slogger, logsProvider, metricsProvider, tracesProvider := telemetry.Init(ctx)
-	slogger.Info("Start", "uptime", time.Since(startTime).Seconds())
+	telemetryService := telemetry.Init(ctx)
+	telemetryService.Slogger.Info("Start", "uptime", time.Since(startTime).Seconds())
 	defer func() {
-		slogger.Info("Stop", "uptime", time.Since(startTime).Seconds())
+		telemetryService.Slogger.Info("Stop", "uptime", time.Since(startTime).Seconds())
 	}()
-	defer telemetry.Shutdown(slogger, tracesProvider, metricsProvider, logsProvider)
+	defer telemetry.Shutdown(telemetryService)
 
-	keygen.DoKeyPoolsExample(ctx, slogger)
-	telemetry.DoMetricExample(ctx, slogger, metricsProvider)
-	telemetry.DoTraceExample(ctx, slogger, tracesProvider)
+	keygen.DoKeyPoolsExample(ctx, telemetryService)
+	telemetry.DoMetricExample(ctx, telemetryService)
+	telemetry.DoTraceExample(ctx, telemetryService)
 }

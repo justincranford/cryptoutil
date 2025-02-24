@@ -3,7 +3,6 @@ package telemetry
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"math/rand/v2"
 	"time"
 
@@ -37,8 +36,8 @@ func InitMetrics(ctx context.Context, enableOtel bool, enableStdout bool) *metri
 	return metric.NewMeterProvider(metricsOptions...)
 }
 
-func DoMetricExample(ctx context.Context, slogger *slog.Logger, metricsProvider *metric.MeterProvider) {
-	exampleMetricsScope := metricsProvider.Meter("example-scope")
+func DoMetricExample(ctx context.Context, telemetryService *Service) {
+	exampleMetricsScope := telemetryService.MetricsProvider.Meter("example-scope")
 
 	exampleMetricCounter, err := exampleMetricsScope.Float64UpDownCounter("example-counter")
 	if err == nil {
@@ -46,7 +45,7 @@ func DoMetricExample(ctx context.Context, slogger *slog.Logger, metricsProvider 
 		exampleMetricCounter.Add(ctx, -2)
 		exampleMetricCounter.Add(ctx, 4)
 	} else {
-		slogger.Error("metric failed", "error", fmt.Errorf("metric error: %w", err))
+		telemetryService.Slogger.Error("metric failed", "error", fmt.Errorf("metric error: %w", err))
 	}
 
 	exampleMetricHistogram, err := exampleMetricsScope.Int64Histogram("example-histogram")
@@ -55,6 +54,6 @@ func DoMetricExample(ctx context.Context, slogger *slog.Logger, metricsProvider 
 		exampleMetricHistogram.Record(ctx, rand.Int64N(100))
 		exampleMetricHistogram.Record(ctx, rand.Int64N(100))
 	} else {
-		slogger.Error("metric failed", "error", fmt.Errorf("metric error: %w", err))
+		telemetryService.Slogger.Error("metric failed", "error", fmt.Errorf("metric error: %w", err))
 	}
 }

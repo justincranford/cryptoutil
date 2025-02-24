@@ -3,12 +3,13 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
-	"log/slog"
-	"os"
 )
 
 const (
@@ -47,28 +48,35 @@ var otelMetricsTracesAttributes = []attribute.KeyValue{
 	{Key: LogAttrVersionKey, Value: attribute.StringValue(LogAttrVersionValue)},
 }
 
-func Init(ctx context.Context) (*slog.Logger, *log.LoggerProvider, *metric.MeterProvider, *trace.TracerProvider) {
+type Service struct {
+	Slogger         *slog.Logger
+	LogsProvider    *log.LoggerProvider
+	MetricsProvider *metric.MeterProvider
+	TracesProvider  *trace.TracerProvider
+}
+
+func Init(ctx context.Context) *Service {
 	slogger, logsProvider := InitLogger(ctx, false, "main")
 	metricsProvider := InitMetrics(ctx, false, true)
 	tracesProvider := InitTraces(ctx, false, true)
-	return slogger, logsProvider, metricsProvider, tracesProvider
+	return &Service{Slogger: slogger, LogsProvider: logsProvider, MetricsProvider: metricsProvider, TracesProvider: tracesProvider}
 }
 
-func Shutdown(slogger *slog.Logger, tracesProvider *trace.TracerProvider, metricsProvider *metric.MeterProvider, logsProvider *log.LoggerProvider) {
+func Shutdown(service *Service) {
 	func() {
-		if tracesProvider != nil {
-			if err := tracesProvider.Shutdown(context.Background()); err != nil {
-				slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown failed: %w", err))
+		if service.TracesProvider != nil {
+			if err := service.TracesProvider.Shutdown(context.Background()); err != nil {
+				service.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown failed: %w", err))
 			}
 		}
-		if metricsProvider != nil {
-			if err := metricsProvider.Shutdown(context.Background()); err != nil {
-				slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown failed: %w", err))
+		if service.MetricsProvider != nil {
+			if err := service.MetricsProvider.Shutdown(context.Background()); err != nil {
+				service.Slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown failed: %w", err))
 			}
 		}
-		if logsProvider != nil {
-			if err := logsProvider.Shutdown(context.Background()); err != nil {
-				slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown failed: %w", err))
+		if service.LogsProvider != nil {
+			if err := service.LogsProvider.Shutdown(context.Background()); err != nil {
+				service.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown failed: %w", err))
 			}
 		}
 	}()

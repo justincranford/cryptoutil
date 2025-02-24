@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/ecdh"
 	"crypto/elliptic"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"cryptoutil/telemetry"
 
 	"cryptoutil/asn1"
 )
@@ -20,20 +21,20 @@ const (
 	exampleMaxTime         = MaxTime
 )
 
-func DoKeyPoolsExample(ctx context.Context, slogger *slog.Logger) {
-	keys := generateKeys(ctx, slogger)
+func DoKeyPoolsExample(ctx context.Context, telemetryService *telemetry.Service) {
+	keys := generateKeys(ctx, telemetryService)
 
-	writeKeys(slogger, keys)
-	readKeys(slogger, keys)
+	writeKeys(telemetryService, keys)
+	readKeys(telemetryService, keys)
 }
 
-func generateKeys(ctx context.Context, slogger *slog.Logger) []Key {
-	rsaPool := NewKeyPool(ctx, slogger, "RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPair(2048))
-	ecdsaPool := NewKeyPool(ctx, slogger, "ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPair(elliptic.P256()))
-	ecdhPool := NewKeyPool(ctx, slogger, "ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPair(ecdh.P256()))
-	eddsaPool := NewKeyPool(ctx, slogger, "EdDSA Ed25519", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateEDKeyPair("Ed25519"))
-	aesPool := NewKeyPool(ctx, slogger, "AES 128", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateAESKey(128))
-	hmacPool := NewKeyPool(ctx, slogger, "HMAC 256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateHMACKey(256))
+func generateKeys(ctx context.Context, telemetryService *telemetry.Service) []Key {
+	rsaPool := NewKeyPool(ctx, telemetryService, "RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPair(2048))
+	ecdsaPool := NewKeyPool(ctx, telemetryService, "ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPair(elliptic.P256()))
+	ecdhPool := NewKeyPool(ctx, telemetryService, "ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPair(ecdh.P256()))
+	eddsaPool := NewKeyPool(ctx, telemetryService, "EdDSA Ed25519", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateEDKeyPair("Ed25519"))
+	aesPool := NewKeyPool(ctx, telemetryService, "AES 128", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateAESKey(128))
+	hmacPool := NewKeyPool(ctx, telemetryService, "HMAC 256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateHMACKey(256))
 
 	defer rsaPool.Close()
 	defer ecdsaPool.Close()
@@ -44,7 +45,7 @@ func generateKeys(ctx context.Context, slogger *slog.Logger) []Key {
 
 	keys := make([]Key, 0, 6*exampleMaxSize) // 6 pools * K keys per pool
 	for range exampleMaxSize {
-		slogger.Info("Getting keys")
+		telemetryService.Slogger.Info("Getting keys")
 		keys = append(keys, rsaPool.Get())
 		keys = append(keys, ecdsaPool.Get())
 		keys = append(keys, ecdhPool.Get())
@@ -56,7 +57,7 @@ func generateKeys(ctx context.Context, slogger *slog.Logger) []Key {
 	return keys
 }
 
-func writeKeys(slogger *slog.Logger, keys []Key) {
+func writeKeys(telemetryService *telemetry.Service, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"
@@ -71,33 +72,33 @@ func writeKeys(slogger *slog.Logger, keys []Key) {
 
 		err := asn1.PemWrite(key.Private, privatePemFilename)
 		if err != nil {
-			slogger.Error("Write failed "+privatePemFilename, "error", err)
+			telemetryService.Slogger.Error("Write failed "+privatePemFilename, "error", err)
 			os.Exit(-1)
 		}
 
 		err = asn1.DerWrite(key.Private, privateDerFilename)
 		if err != nil {
-			slogger.Error("Write failed "+privateDerFilename, "error", err)
+			telemetryService.Slogger.Error("Write failed "+privateDerFilename, "error", err)
 			os.Exit(-1)
 		}
 
 		if key.Public != nil {
 			err = asn1.PemWrite(key.Public, publicPemFilename)
 			if err != nil {
-				slogger.Error("Write failed "+baseFilename+"_pub.pem", "error", err)
+				telemetryService.Slogger.Error("Write failed "+baseFilename+"_pub.pem", "error", err)
 				os.Exit(-1)
 			}
 
 			err = asn1.DerWrite(key.Public, publicDerFilename)
 			if err != nil {
-				slogger.Error("Write failed "+baseFilename+"_pub.der", "error", err)
+				telemetryService.Slogger.Error("Write failed "+baseFilename+"_pub.der", "error", err)
 				os.Exit(-1)
 			}
 		}
 	}
 }
 
-func readKeys(slogger *slog.Logger, keys []Key) {
+func readKeys(telemetryService *telemetry.Service, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"
@@ -112,26 +113,26 @@ func readKeys(slogger *slog.Logger, keys []Key) {
 
 		_, err := asn1.PemRead(privatePemFilename)
 		if err != nil {
-			slogger.Error("Write failed "+privatePemFilename, "error", err)
+			telemetryService.Slogger.Error("Write failed "+privatePemFilename, "error", err)
 			os.Exit(-1)
 		}
 
 		_, _, err = asn1.DerRead(privateDerFilename)
 		if err != nil {
-			slogger.Error("Read failed "+privateDerFilename, "error", err)
+			telemetryService.Slogger.Error("Read failed "+privateDerFilename, "error", err)
 			os.Exit(-1)
 		}
 
 		if key.Public != nil {
 			_, err = asn1.PemRead(publicPemFilename)
 			if err != nil {
-				slogger.Error("Read failed "+publicPemFilename, "error", err)
+				telemetryService.Slogger.Error("Read failed "+publicPemFilename, "error", err)
 				os.Exit(-1)
 			}
 
 			_, _, err = asn1.DerRead(publicDerFilename)
 			if err != nil {
-				slogger.Error("Read failed "+publicDerFilename, "error", err)
+				telemetryService.Slogger.Error("Read failed "+publicDerFilename, "error", err)
 				os.Exit(-1)
 			}
 		}
