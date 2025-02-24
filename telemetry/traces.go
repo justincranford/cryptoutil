@@ -21,13 +21,13 @@ func InitTraces(ctx context.Context, enableOtel bool, enableStdout bool) *trace.
 	if enableOtel {
 		tracerOtelGrpc, err := otlptracegrpc.New(ctx, otlptracegrpc.WithEndpoint(OtelGrpcPush), otlptracegrpc.WithInsecure())
 		ifErrorLogAndExit("create Otel GRPC traces failed: %v", err)
-		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(tracerOtelGrpc, trace.WithBatchTimeout(500*time.Millisecond))))
+		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(tracerOtelGrpc, trace.WithBatchTimeout(TracesTimeout))))
 	}
 
 	if enableStdout {
 		stdoutTraces, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
 		ifErrorLogAndExit("create STDOUT traces failed: %v", err)
-		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(stdoutTraces, trace.WithBatchTimeout(500*time.Millisecond))))
+		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(stdoutTraces, trace.WithBatchTimeout(TracesTimeout))))
 	}
 
 	return trace.NewTracerProvider(tracesOptions...)

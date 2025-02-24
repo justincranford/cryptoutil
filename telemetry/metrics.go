@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"math/rand/v2"
-	"time"
 
 	"go.opentelemetry.io/otel/sdk/resource"
 
@@ -23,14 +22,14 @@ func InitMetrics(ctx context.Context, enableOtel bool, enableStdout bool) *metri
 	if enableOtel {
 		otelGrpcMetrics, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithEndpoint(OtelGrpcPush), otlpmetricgrpc.WithInsecure())
 		ifErrorLogAndExit("create Otel GRPC metrics failed: %v", err)
-		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(otelGrpcMetrics, metric.WithInterval(500*time.Millisecond))))
+		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(otelGrpcMetrics, metric.WithInterval(MetricsTimeout))))
 	}
 
 	if enableStdout {
 		stdoutMetrics, err := stdoutmetric.New(stdoutmetric.WithPrettyPrint())
 		ifErrorLogAndExit("create STDOUT metrics failed: %v", err)
 		metric.NewPeriodicReader(stdoutMetrics)
-		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(stdoutMetrics, metric.WithInterval(500*time.Millisecond))))
+		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(stdoutMetrics, metric.WithInterval(MetricsTimeout))))
 	}
 
 	return metric.NewMeterProvider(metricsOptions...)

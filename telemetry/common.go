@@ -15,6 +15,9 @@ import (
 
 const (
 	OtelGrpcPush        = "127.0.0.1:4317"
+	LogsTimeout         = 500 * time.Millisecond
+	MetricsTimeout      = 500 * time.Millisecond
+	TracesTimeout       = 500 * time.Millisecond
 	LogAttrEnvKey       = "env"
 	LogAttrEnvValue     = "dev"
 	LogAttrHostKey      = "host"

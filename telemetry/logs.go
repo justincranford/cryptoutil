@@ -4,7 +4,6 @@ import (
 	"context"
 	"log/slog"
 	"os"
-	"time"
 
 	slogmulti "github.com/samber/slog-multi"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -23,7 +22,7 @@ func InitLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*s
 		ifErrorLogAndExit("create Otel GRPC logger failed: %v", err)
 		otelProviderOptions := []log.LoggerProviderOption{
 			log.WithResource(otelLogsResource),
-			log.WithProcessor(log.NewBatchProcessor(otelExporter, log.WithExportTimeout(500*time.Millisecond))),
+			log.WithProcessor(log.NewBatchProcessor(otelExporter, log.WithExportTimeout(LogsTimeout))),
 		}
 		otelProvider := log.NewLoggerProvider(otelProviderOptions...)
 		otelSlogHandler := otelslog.NewHandler(otelLoggerName, otelslog.WithLoggerProvider(otelProvider))
