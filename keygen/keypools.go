@@ -64,8 +64,7 @@ func writeKeys(slogger *slog.Logger, keys []Key) {
 		publicPemFilename := baseFilename + "_public.pem"
 		publicDerFilename := baseFilename + "_public.der"
 
-		hasPublicKey := key.Public != nil
-		if !hasPublicKey {
+		if key.Public == nil {
 			privatePemFilename = baseFilename + "_secret.pem"
 			privateDerFilename = baseFilename + "_secret.der"
 		}
@@ -82,7 +81,7 @@ func writeKeys(slogger *slog.Logger, keys []Key) {
 			os.Exit(-1)
 		}
 
-		if hasPublicKey {
+		if key.Public != nil {
 			err = asn1.PemWrite(key.Public, publicPemFilename)
 			if err != nil {
 				slogger.Error("Write failed "+baseFilename+"_pub.pem", "error", err)
@@ -106,8 +105,7 @@ func readKeys(slogger *slog.Logger, keys []Key) {
 		publicPemFilename := baseFilename + "_public.pem"
 		publicDerFilename := baseFilename + "_public.der"
 
-		hasPublicKey := key.Public != nil
-		if !hasPublicKey {
+		if key.Public == nil {
 			privatePemFilename = baseFilename + "_secret.pem"
 			privateDerFilename = baseFilename + "_secret.der"
 		}
