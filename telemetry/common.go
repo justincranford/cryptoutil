@@ -70,20 +70,21 @@ func Init(ctx context.Context, startTime time.Time, scope string, enableOtel, en
 
 func Shutdown(service *Service) {
 	func() {
+		ctx := context.Background()
 		if service.TracesProvider != nil {
-			if err := service.TracesProvider.Shutdown(context.Background()); err != nil {
-				service.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown failed: %w", err))
+			if err := service.TracesProvider.Shutdown(ctx); err != nil {
+				service.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
 			}
 		}
 		if service.MetricsProvider != nil {
-			if err := service.MetricsProvider.Shutdown(context.Background()); err != nil {
-				service.Slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown failed: %w", err))
+			if err := service.MetricsProvider.Shutdown(ctx); err != nil {
+				service.Slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
 			}
 		}
 		if service.LogsProvider != nil {
 			service.Slogger.Info("Stop", "uptime", time.Since(service.startTime).Seconds())
-			if err := service.LogsProvider.Shutdown(context.Background()); err != nil {
-				service.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown failed: %w", err))
+			if err := service.LogsProvider.Shutdown(ctx); err != nil {
+				service.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
 			}
 		}
 	}()
