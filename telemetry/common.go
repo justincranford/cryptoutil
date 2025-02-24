@@ -14,42 +14,42 @@ import (
 )
 
 const (
-	OtelGrpcPush        = "127.0.0.1:4317"
-	LogsTimeout         = 500 * time.Millisecond
-	MetricsTimeout      = 500 * time.Millisecond
-	TracesTimeout       = 500 * time.Millisecond
-	LogAttrEnvKey       = "env"
-	LogAttrEnvValue     = "dev"
-	LogAttrHostKey      = "host"
-	LogAttrHostValue    = "localhost"
-	LogAttrServiceKey   = "service"
-	LogAttrServiceValue = "cryptoutil"
-	LogAttrSourceKey    = "source"
-	LogAttrSourceValue  = "go"
-	LogAttrVersionKey   = "version"
-	LogAttrVersionValue = "0.0.1"
+	OtelGrpcPush     = "127.0.0.1:4317"
+	LogsTimeout      = 500 * time.Millisecond
+	MetricsTimeout   = 500 * time.Millisecond
+	TracesTimeout    = 500 * time.Millisecond
+	AttrEnvKey       = "env"
+	AttrEnvValue     = "dev"
+	AttrHostKey      = "host"
+	AttrHostValue    = "localhost"
+	AttrServiceKey   = "service"
+	AttrServiceValue = "cryptoutil"
+	AttrSourceKey    = "source"
+	AttrSourceValue  = "go"
+	AttrVersionKey   = "version"
+	AttrVersionValue = "0.0.1"
 )
 
-var stdoutLogAttributes = []slog.Attr{
-	{Key: LogAttrEnvKey, Value: slog.StringValue(LogAttrEnvValue)},
-	{Key: LogAttrHostKey, Value: slog.StringValue(LogAttrHostValue)},
-	{Key: LogAttrServiceKey, Value: slog.StringValue(LogAttrServiceValue)},
-	{Key: LogAttrSourceKey, Value: slog.StringValue(LogAttrSourceValue)},
+var stdoutAttributes = []slog.Attr{
+	{Key: AttrEnvKey, Value: slog.StringValue(AttrEnvValue)},
+	{Key: AttrHostKey, Value: slog.StringValue(AttrHostValue)},
+	{Key: AttrServiceKey, Value: slog.StringValue(AttrServiceValue)},
+	{Key: AttrSourceKey, Value: slog.StringValue(AttrSourceValue)},
 }
 
 var otelLogsAttributes = []attribute.KeyValue{
-	{Key: LogAttrEnvKey, Value: attribute.StringValue(LogAttrEnvValue)},
-	{Key: LogAttrHostKey, Value: attribute.StringValue(LogAttrHostValue)},
-	{Key: LogAttrServiceKey, Value: attribute.StringValue(LogAttrServiceValue)},
-	{Key: LogAttrSourceKey, Value: attribute.StringValue(LogAttrSourceValue)},
+	{Key: AttrEnvKey, Value: attribute.StringValue(AttrEnvValue)},
+	{Key: AttrHostKey, Value: attribute.StringValue(AttrHostValue)},
+	{Key: AttrServiceKey, Value: attribute.StringValue(AttrServiceValue)},
+	{Key: AttrSourceKey, Value: attribute.StringValue(AttrSourceValue)},
 }
 
 var otelMetricsTracesAttributes = []attribute.KeyValue{
-	{Key: LogAttrEnvKey, Value: attribute.StringValue(LogAttrEnvValue)},
-	{Key: LogAttrHostKey, Value: attribute.StringValue(LogAttrHostValue)},
-	{Key: LogAttrServiceKey, Value: attribute.StringValue(LogAttrServiceValue)},
-	{Key: LogAttrSourceKey, Value: attribute.StringValue(LogAttrSourceValue)},
-	{Key: LogAttrVersionKey, Value: attribute.StringValue(LogAttrVersionValue)},
+	{Key: AttrEnvKey, Value: attribute.StringValue(AttrEnvValue)},
+	{Key: AttrHostKey, Value: attribute.StringValue(AttrHostValue)},
+	{Key: AttrServiceKey, Value: attribute.StringValue(AttrServiceValue)},
+	{Key: AttrSourceKey, Value: attribute.StringValue(AttrSourceValue)},
+	{Key: AttrVersionKey, Value: attribute.StringValue(AttrVersionValue)},
 }
 
 type Service struct {

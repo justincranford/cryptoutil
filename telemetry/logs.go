@@ -13,7 +13,7 @@ import (
 )
 
 func InitLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*slog.Logger, *log.LoggerProvider) {
-	stdoutSlogHandler := slog.NewTextHandler(os.Stdout, nil).WithAttrs(stdoutLogAttributes)
+	stdoutSlogHandler := slog.NewTextHandler(os.Stdout, nil).WithAttrs(stdoutAttributes)
 
 	if enableOtel {
 		otelLogsResource := resource.NewWithAttributes("", otelLogsAttributes...)
