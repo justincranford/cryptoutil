@@ -21,7 +21,7 @@ const (
 	LogAttrServiceKey   = "service"
 	LogAttrServiceValue = "cryptoutil"
 	LogAttrSourceKey    = "source"
-	LogAttrSourceValue  = "golang"
+	LogAttrSourceValue  = "go"
 	LogAttrVersionKey   = "version"
 	LogAttrVersionValue = "0.0.1"
 )
