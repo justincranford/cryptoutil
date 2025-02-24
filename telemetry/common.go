@@ -55,8 +55,8 @@ type Service struct {
 	TracesProvider  *trace.TracerProvider
 }
 
-func Init(ctx context.Context) *Service {
-	slogger, logsProvider := InitLogger(ctx, false, "main")
+func Init(ctx context.Context, scope string) *Service {
+	slogger, logsProvider := InitLogger(ctx, false, scope)
 	metricsProvider := InitMetrics(ctx, false, true)
 	tracesProvider := InitTraces(ctx, false, true)
 	return &Service{Slogger: slogger, LogsProvider: logsProvider, MetricsProvider: metricsProvider, TracesProvider: tracesProvider}

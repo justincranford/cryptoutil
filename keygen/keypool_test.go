@@ -33,7 +33,7 @@ func TestMain(m *testing.M) {
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	telemetryService = telemetry.Init(ctx)
+	telemetryService = telemetry.Init(ctx, "keypool_test")
 	telemetry.Shutdown(telemetryService)
 
 	rc := m.Run()

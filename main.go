@@ -14,7 +14,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	telemetryService := telemetry.Init(ctx)
+	telemetryService := telemetry.Init(ctx, "main")
 	telemetryService.Slogger.Info("Start", "uptime", time.Since(startTime).Seconds())
 	defer func() {
 		telemetryService.Slogger.Info("Stop", "uptime", time.Since(startTime).Seconds())
