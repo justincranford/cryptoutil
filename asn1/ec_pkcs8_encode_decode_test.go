@@ -1,4 +1,4 @@
-package main
+package asn1
 
 import (
 	"crypto/ecdh"
