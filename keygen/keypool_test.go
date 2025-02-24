@@ -29,11 +29,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	startTime := time.Now()
+
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	telemetryService = telemetry.Init(ctx, "keypool_test")
+	telemetryService = telemetry.Init(ctx, startTime, "keypool_test")
 	telemetry.Shutdown(telemetryService)
 
 	rc := m.Run()

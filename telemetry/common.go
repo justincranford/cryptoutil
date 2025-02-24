@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/log"
@@ -49,17 +50,19 @@ var otelMetricsTracesAttributes = []attribute.KeyValue{
 }
 
 type Service struct {
+	startTime       time.Time
 	Slogger         *slog.Logger
 	LogsProvider    *log.LoggerProvider
 	MetricsProvider *metric.MeterProvider
 	TracesProvider  *trace.TracerProvider
 }
 
-func Init(ctx context.Context, scope string) *Service {
+func Init(ctx context.Context, startTime time.Time, scope string) *Service {
 	slogger, logsProvider := InitLogger(ctx, false, scope)
+	slogger.Info("Start", "uptime", time.Since(startTime).Seconds())
 	metricsProvider := InitMetrics(ctx, false, true)
 	tracesProvider := InitTraces(ctx, false, true)
-	return &Service{Slogger: slogger, LogsProvider: logsProvider, MetricsProvider: metricsProvider, TracesProvider: tracesProvider}
+	return &Service{startTime: startTime, Slogger: slogger, LogsProvider: logsProvider, MetricsProvider: metricsProvider, TracesProvider: tracesProvider}
 }
 
 func Shutdown(service *Service) {
@@ -75,6 +78,7 @@ func Shutdown(service *Service) {
 			}
 		}
 		if service.LogsProvider != nil {
+			service.Slogger.Info("Stop", "uptime", time.Since(service.startTime).Seconds())
 			if err := service.LogsProvider.Shutdown(context.Background()); err != nil {
 				service.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown failed: %w", err))
 			}

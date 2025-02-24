@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"os"
 	"testing"
+	"time"
 
 	"cryptoutil/telemetry"
 
@@ -25,11 +26,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
+	startTime := time.Now()
+
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithCancel(context.Background())
 	defer cancel()
 
-	telemetryService := telemetry.Init(ctx, "asn1_test")
+	telemetryService := telemetry.Init(ctx, startTime, "asn1_test")
 	telemetry.Shutdown(telemetryService)
 	slogger = telemetryService.Slogger
 

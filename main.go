@@ -14,11 +14,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	telemetryService := telemetry.Init(ctx, "main")
-	telemetryService.Slogger.Info("Start", "uptime", time.Since(startTime).Seconds())
-	defer func() {
-		telemetryService.Slogger.Info("Stop", "uptime", time.Since(startTime).Seconds())
-	}()
+	telemetryService := telemetry.Init(ctx, startTime, "main")
 	defer telemetry.Shutdown(telemetryService)
 
 	keygen.DoKeyPoolsExample(ctx, telemetryService)
