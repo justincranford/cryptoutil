@@ -16,18 +16,18 @@ func InitTraces(ctx context.Context, enableOtel bool, enableStdout bool) *trace.
 	var tracesOptions []trace.TracerProviderOption
 
 	otelMeterTracerResource, err := resource.New(ctx, resource.WithAttributes(otelMetricsTracesAttributes...))
-	logInitErrorAndExit("create Otel GRPC traces resource failed: %v", err)
+	ifErrorLogAndExit("create Otel GRPC traces resource failed: %v", err)
 	tracesOptions = append(tracesOptions, trace.WithResource(otelMeterTracerResource))
 
 	if enableOtel {
 		tracerOtelGrpc, err := otlptracegrpc.New(ctx, otlptracegrpc.WithEndpoint(OtelGrpcPush), otlptracegrpc.WithInsecure())
-		logInitErrorAndExit("create Otel GRPC traces failed: %v", err)
+		ifErrorLogAndExit("create Otel GRPC traces failed: %v", err)
 		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(tracerOtelGrpc, trace.WithBatchTimeout(500*time.Millisecond))))
 	}
 
 	if enableStdout {
 		stdoutTraces, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
-		logInitErrorAndExit("create STDOUT traces failed: %v", err)
+		ifErrorLogAndExit("create STDOUT traces failed: %v", err)
 		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(stdoutTraces, trace.WithBatchTimeout(500*time.Millisecond))))
 	}
 

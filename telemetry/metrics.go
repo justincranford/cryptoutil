@@ -18,18 +18,18 @@ func InitMetrics(ctx context.Context, enableOtel bool, enableStdout bool) *metri
 	var metricsOptions []metric.Option
 
 	otelMeterTracerTags, err := resource.New(ctx, resource.WithAttributes(otelMetricsTracesAttributes...))
-	logInitErrorAndExit("create Otel GRPC metrics resource failed: %v", err)
+	ifErrorLogAndExit("create Otel GRPC metrics resource failed: %v", err)
 	metricsOptions = append(metricsOptions, metric.WithResource(otelMeterTracerTags))
 
 	if enableOtel {
 		otelGrpcMetrics, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithEndpoint(OtelGrpcPush), otlpmetricgrpc.WithInsecure())
-		logInitErrorAndExit("create Otel GRPC metrics failed: %v", err)
+		ifErrorLogAndExit("create Otel GRPC metrics failed: %v", err)
 		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(otelGrpcMetrics, metric.WithInterval(500*time.Millisecond))))
 	}
 
 	if enableStdout {
 		stdoutMetrics, err := stdoutmetric.New(stdoutmetric.WithPrettyPrint())
-		logInitErrorAndExit("create STDOUT metrics failed: %v", err)
+		ifErrorLogAndExit("create STDOUT metrics failed: %v", err)
 		metric.NewPeriodicReader(stdoutMetrics)
 		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(stdoutMetrics, metric.WithInterval(500*time.Millisecond))))
 	}

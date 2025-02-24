@@ -20,7 +20,7 @@ func InitLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*s
 		otelLogsResource := resource.NewWithAttributes("", otelLogsAttributes...)
 
 		otelExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithEndpoint(OtelGrpcPush), otlploggrpc.WithInsecure())
-		logInitErrorAndExit("create Otel GRPC logger failed: %v", err)
+		ifErrorLogAndExit("create Otel GRPC logger failed: %v", err)
 		otelProviderOptions := []log.LoggerProviderOption{
 			log.WithResource(otelLogsResource),
 			log.WithProcessor(log.NewBatchProcessor(otelExporter, log.WithExportTimeout(500*time.Millisecond))),

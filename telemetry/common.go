@@ -3,13 +3,12 @@ package telemetry
 import (
 	"context"
 	"fmt"
-	"log/slog"
-	"os"
-
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
+	"log/slog"
+	"os"
 )
 
 const (
@@ -48,13 +47,6 @@ var otelMetricsTracesAttributes = []attribute.KeyValue{
 	{Key: LogAttrVersionKey, Value: attribute.StringValue(LogAttrVersionValue)},
 }
 
-func logInitErrorAndExit(format string, err error) {
-	if err != nil {
-		fmt.Printf(format, err)
-		os.Exit(-1)
-	}
-}
-
 func Init(ctx context.Context) (*slog.Logger, *log.LoggerProvider, *metric.MeterProvider, *trace.TracerProvider) {
 	slogger, logsProvider := InitLogger(ctx, false, "main")
 	metricsProvider := InitMetrics(ctx, false, true)
@@ -80,4 +72,11 @@ func Shutdown(slogger *slog.Logger, tracesProvider *trace.TracerProvider, metric
 			}
 		}
 	}()
+}
+
+func ifErrorLogAndExit(format string, err error) {
+	if err != nil {
+		fmt.Printf(format, err)
+		os.Exit(-1)
+	}
 }
