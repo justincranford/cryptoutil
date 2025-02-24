@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"certutil/asn1"
+	"cryptoutil/asn1"
 )
 
 const (

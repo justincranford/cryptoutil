@@ -16,7 +16,7 @@ import (
 
 	"go.opentelemetry.io/otel/sdk/log"
 
-	"certutil/telemetry"
+	"cryptoutil/telemetry"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -19,7 +19,7 @@ const (
 	LogAttrHostKey      = "host"
 	LogAttrHostValue    = "localhost"
 	LogAttrServiceKey   = "service"
-	LogAttrServiceValue = "certutil"
+	LogAttrServiceValue = "cryptoutil"
 	LogAttrSourceKey    = "source"
 	LogAttrSourceValue  = "golang"
 	LogAttrVersionKey   = "version"

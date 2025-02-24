@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"certutil/keygen"
-	"certutil/telemetry"
+	"cryptoutil/keygen"
+	"cryptoutil/telemetry"
 )
 
 func main() {

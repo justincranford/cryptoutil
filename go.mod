@@ -1,4 +1,4 @@
-module certutil
+module cryptoutil
 
 go 1.23.2
 
