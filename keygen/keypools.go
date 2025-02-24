@@ -59,27 +59,37 @@ func generateKeys(ctx context.Context, slogger *slog.Logger) []Key {
 func writeKeys(slogger *slog.Logger, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
+		privatePemFilename := baseFilename + "_private.pem"
+		privateDerFilename := baseFilename + "_private.der"
+		publicPemFilename := baseFilename + "_public.pem"
+		publicDerFilename := baseFilename + "_public.der"
 
-		err := asn1.PemWrite(key.Private, baseFilename+"_pri.pem")
+		hasPublicKey := key.Public != nil
+		if !hasPublicKey {
+			privatePemFilename = baseFilename + "_secret.pem"
+			privateDerFilename = baseFilename + "_secret.der"
+		}
+
+		err := asn1.PemWrite(key.Private, privatePemFilename)
 		if err != nil {
-			slogger.Error("Write failed "+baseFilename+"_pri.pem", "error", err)
+			slogger.Error("Write failed "+privatePemFilename, "error", err)
 			os.Exit(-1)
 		}
 
-		err = asn1.DerWrite(key.Private, baseFilename+"_pri.der")
+		err = asn1.DerWrite(key.Private, privateDerFilename)
 		if err != nil {
-			slogger.Error("Write failed "+baseFilename+"_pri.der", "error", err)
+			slogger.Error("Write failed "+privateDerFilename, "error", err)
 			os.Exit(-1)
 		}
 
-		if key.Public != nil {
-			err = asn1.PemWrite(key.Public, baseFilename+"_pub.pem")
+		if hasPublicKey {
+			err = asn1.PemWrite(key.Public, publicPemFilename)
 			if err != nil {
 				slogger.Error("Write failed "+baseFilename+"_pub.pem", "error", err)
 				os.Exit(-1)
 			}
 
-			err = asn1.DerWrite(key.Public, baseFilename+"_pub.der")
+			err = asn1.DerWrite(key.Public, publicDerFilename)
 			if err != nil {
 				slogger.Error("Write failed "+baseFilename+"_pub.der", "error", err)
 				os.Exit(-1)
@@ -91,29 +101,39 @@ func writeKeys(slogger *slog.Logger, keys []Key) {
 func readKeys(slogger *slog.Logger, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
+		privatePemFilename := baseFilename + "_private.pem"
+		privateDerFilename := baseFilename + "_private.der"
+		publicPemFilename := baseFilename + "_public.pem"
+		publicDerFilename := baseFilename + "_public.der"
 
-		_, err := asn1.PemRead(baseFilename + "_pri.pem")
+		hasPublicKey := key.Public != nil
+		if !hasPublicKey {
+			privatePemFilename = baseFilename + "_secret.pem"
+			privateDerFilename = baseFilename + "_secret.der"
+		}
+
+		_, err := asn1.PemRead(privatePemFilename)
 		if err != nil {
-			slogger.Error("Write failed "+baseFilename+"_pri.pem", "error", err)
+			slogger.Error("Write failed "+privatePemFilename, "error", err)
 			os.Exit(-1)
 		}
 
-		_, _, err = asn1.DerRead(baseFilename + "_pri.der")
+		_, _, err = asn1.DerRead(privateDerFilename)
 		if err != nil {
-			slogger.Error("Read failed "+baseFilename+"_pri.der", "error", err)
+			slogger.Error("Read failed "+privateDerFilename, "error", err)
 			os.Exit(-1)
 		}
 
 		if key.Public != nil {
-			_, err = asn1.PemRead(baseFilename + "_pub.pem")
+			_, err = asn1.PemRead(publicPemFilename)
 			if err != nil {
-				slogger.Error("Read failed "+baseFilename+"_pub.pem", "error", err)
+				slogger.Error("Read failed "+publicPemFilename, "error", err)
 				os.Exit(-1)
 			}
 
-			_, _, err = asn1.DerRead(baseFilename + "_pub.der")
+			_, _, err = asn1.DerRead(publicDerFilename)
 			if err != nil {
-				slogger.Error("Read failed "+baseFilename+"_pub.der", "error", err)
+				slogger.Error("Read failed "+publicDerFilename, "error", err)
 				os.Exit(-1)
 			}
 		}
