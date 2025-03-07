@@ -82,31 +82,31 @@ func Init(ctx context.Context, startTime time.Time, scope string, enableOtel, en
 	}
 }
 
-func Shutdown(service *Service) {
+func Shutdown(s *Service) {
 	func() {
 		ctx := context.Background()
-		if service.TracesProvider != nil {
-			if err := service.TracesProvider.Shutdown(ctx); err != nil {
-				service.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
+		if s.TracesProvider != nil {
+			if err := s.TracesProvider.Shutdown(ctx); err != nil {
+				s.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
 			}
-			service.TracesProvider = nil
+			s.TracesProvider = nil
 		}
-		if service.MetricsProvider != nil {
-			if err := service.MetricsProvider.Shutdown(ctx); err != nil {
-				service.Slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
+		if s.MetricsProvider != nil {
+			if err := s.MetricsProvider.Shutdown(ctx); err != nil {
+				s.Slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
 			}
-			service.MetricsProvider = nil
+			s.MetricsProvider = nil
 		}
-		if service.LogsProvider != nil {
-			service.Slogger.Info("Stop", "uptime", time.Since(service.startTime).Seconds())
-			if err := service.LogsProvider.Shutdown(ctx); err != nil {
-				service.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
+		if s.LogsProvider != nil {
+			s.Slogger.Info("Stop", "uptime", time.Since(s.startTime).Seconds())
+			if err := s.LogsProvider.Shutdown(ctx); err != nil {
+				s.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
 			}
-			service.LogsProvider = nil
+			s.LogsProvider = nil
 		}
-		service.TextMapPropagator = nil
-		service.Slogger = nil
-		service.stopTime = time.Now().UTC()
+		s.TextMapPropagator = nil
+		s.Slogger = nil
+		s.stopTime = time.Now().UTC()
 	}()
 }
 
