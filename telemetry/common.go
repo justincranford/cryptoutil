@@ -3,6 +3,7 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	uuid2 "github.com/google/uuid"
 	"log/slog"
 	"os"
 	"time"
@@ -11,46 +12,47 @@ import (
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
 )
 
 const (
-	OtelGrpcPush     = "127.0.0.1:4317"
-	LogsTimeout      = 500 * time.Millisecond
-	MetricsTimeout   = 500 * time.Millisecond
-	TracesTimeout    = 500 * time.Millisecond
-	AttrEnvKey       = "env"
-	AttrEnvValue     = "dev"
-	AttrHostKey      = "host"
-	AttrHostValue    = "localhost"
-	AttrServiceKey   = "service"
-	AttrServiceValue = "cryptoutil"
-	AttrSourceKey    = "source"
-	AttrSourceValue  = "go"
-	AttrVersionKey   = "version"
-	AttrVersionValue = "0.0.1"
+	OtelGrpcPush   = "127.0.0.1:4317"
+	LogsTimeout    = 500 * time.Millisecond
+	MetricsTimeout = 500 * time.Millisecond
+	TracesTimeout  = 500 * time.Millisecond
 )
 
-var stdoutAttributes = []slog.Attr{
-	{Key: AttrEnvKey, Value: slog.StringValue(AttrEnvValue)},
-	{Key: AttrHostKey, Value: slog.StringValue(AttrHostValue)},
-	{Key: AttrServiceKey, Value: slog.StringValue(AttrServiceValue)},
-	{Key: AttrSourceKey, Value: slog.StringValue(AttrSourceValue)},
-}
-
-var otelLogsAttributes = []attribute.KeyValue{
-	{Key: AttrEnvKey, Value: attribute.StringValue(AttrEnvValue)},
-	{Key: AttrHostKey, Value: attribute.StringValue(AttrHostValue)},
-	{Key: AttrServiceKey, Value: attribute.StringValue(AttrServiceValue)},
-	{Key: AttrSourceKey, Value: attribute.StringValue(AttrSourceValue)},
-}
+var (
+	AttrEnv               = "dev"
+	AttrHostName          = "localhost"
+	AttrServiceName       = "cryptoutil"
+	AttrServiceVersion    = "0.0.1"
+	AttrServiceInstanceID = func() string {
+		uuid, err := uuid2.NewV7()
+		if err != nil {
+			os.Exit(1)
+		}
+		return uuid.String()
+	}()
+)
 
 var otelMetricsTracesAttributes = []attribute.KeyValue{
-	{Key: AttrEnvKey, Value: attribute.StringValue(AttrEnvValue)},
-	{Key: AttrHostKey, Value: attribute.StringValue(AttrHostValue)},
-	{Key: AttrServiceKey, Value: attribute.StringValue(AttrServiceValue)},
-	{Key: AttrSourceKey, Value: attribute.StringValue(AttrSourceValue)},
-	{Key: AttrVersionKey, Value: attribute.StringValue(AttrVersionValue)},
+	semconv.DeploymentID(AttrEnv),                    // deployment.environment.name (e.g. local-standalone, adhoc, dev, qa, preprod, prod)
+	semconv.HostName(AttrHostName),                   // service.instance.id (e.g. 12)
+	semconv.ServiceName(AttrServiceName),             // service.name (e.g. cryptoutil)
+	semconv.ServiceVersion(AttrServiceVersion),       // service.version (e.g. 0.0.1, 1.0.2, 2.1.0)
+	semconv.ServiceInstanceID(AttrServiceInstanceID), // service.instance.id (e.g. 12, uuidV7)
 }
+
+var otelLogsAttributes = otelMetricsTracesAttributes // same (for now)
+
+var slogStdoutAttributes = func() []slog.Attr {
+	var slogAttrs []slog.Attr
+	for _, otelLogAttr := range otelLogsAttributes {
+		slogAttrs = append(slogAttrs, slog.String(string(otelLogAttr.Key), otelLogAttr.Value.AsString()))
+	}
+	return slogAttrs
+}()
 
 type Service struct {
 	startTime       time.Time
