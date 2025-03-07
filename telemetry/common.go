@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	uuid2 "github.com/google/uuid"
+	"go.opentelemetry.io/otel/propagation"
 	"log/slog"
 	"os"
 	"time"
@@ -54,12 +55,15 @@ var slogStdoutAttributes = func() []slog.Attr {
 	return slogAttrs
 }()
 
+// Service Composite of OpenTelemetry providers for Logs, Metrics, and Traces
 type Service struct {
-	startTime       time.Time
-	Slogger         *slog.Logger
-	LogsProvider    *log.LoggerProvider
-	MetricsProvider *metric.MeterProvider
-	TracesProvider  *trace.TracerProvider
+	startTime         time.Time
+	stopTime          time.Time
+	Slogger           *slog.Logger
+	LogsProvider      *log.LoggerProvider
+	MetricsProvider   *metric.MeterProvider
+	TracesProvider    *trace.TracerProvider
+	TextMapPropagator *propagation.TextMapPropagator
 }
 
 func Init(ctx context.Context, startTime time.Time, scope string, enableOtel, enableStdout bool) *Service {
@@ -67,7 +71,15 @@ func Init(ctx context.Context, startTime time.Time, scope string, enableOtel, en
 	slogger.Info("Start", "uptime", time.Since(startTime).Seconds())
 	metricsProvider := InitMetrics(ctx, enableOtel, enableStdout)
 	tracesProvider := InitTraces(ctx, enableOtel, enableStdout)
-	return &Service{startTime: startTime, Slogger: slogger, LogsProvider: logsProvider, MetricsProvider: metricsProvider, TracesProvider: tracesProvider}
+	textMapPropagator := InitTextMapPropagator()
+	return &Service{
+		startTime:         startTime,
+		Slogger:           slogger,
+		LogsProvider:      logsProvider,
+		MetricsProvider:   metricsProvider,
+		TracesProvider:    tracesProvider,
+		TextMapPropagator: textMapPropagator,
+	}
 }
 
 func Shutdown(service *Service) {
@@ -77,18 +89,24 @@ func Shutdown(service *Service) {
 			if err := service.TracesProvider.Shutdown(ctx); err != nil {
 				service.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
 			}
+			service.TracesProvider = nil
 		}
 		if service.MetricsProvider != nil {
 			if err := service.MetricsProvider.Shutdown(ctx); err != nil {
 				service.Slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
 			}
+			service.MetricsProvider = nil
 		}
 		if service.LogsProvider != nil {
 			service.Slogger.Info("Stop", "uptime", time.Since(service.startTime).Seconds())
 			if err := service.LogsProvider.Shutdown(ctx); err != nil {
 				service.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
 			}
+			service.LogsProvider = nil
 		}
+		service.TextMapPropagator = nil
+		service.Slogger = nil
+		service.stopTime = time.Now().UTC()
 	}()
 }
 
