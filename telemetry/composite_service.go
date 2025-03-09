@@ -82,7 +82,7 @@ func Init(ctx context.Context, startTime time.Time, scope string, enableOtel, en
 	}
 }
 
-func Shutdown(s *Service) {
+func (s *Service) Shutdown() {
 	func() {
 		ctx := context.Background()
 		if s.TracesProvider != nil {
