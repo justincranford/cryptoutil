@@ -9,35 +9,21 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"log/slog"
+	"cryptoutil/telemetry"
 	"math/big"
 	"os"
 	"testing"
-	"time"
-
-	"cryptoutil/telemetry"
 
 	"github.com/stretchr/testify/assert"
 )
 
-var (
-	ctx     context.Context
-	slogger *slog.Logger
-)
+var testCtx = context.Background()
+var testTelemetryService *telemetry.Service
 
 func TestMain(m *testing.M) {
-	startTime := time.Now()
-
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithCancel(context.Background())
-	defer cancel()
-
-	telemetryService := telemetry.Init(ctx, startTime, "asn1_test", false, false)
-	telemetry.Shutdown(telemetryService)
-	slogger = telemetryService.Slogger
-
-	rc := m.Run()
-	os.Exit(rc)
+	testTelemetryService = telemetry.NewService(testCtx, "asn1_test", false, false)
+	defer testTelemetryService.Shutdown(testCtx)
+	os.Exit(m.Run())
 }
 
 func TestPemEncodeDecodeRSA(t *testing.T) {
@@ -50,7 +36,7 @@ func TestPemEncodeDecodeRSA(t *testing.T) {
 
 	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("RSA Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("RSA Private", "pem", string(privateKeyPemBytes))
 
 	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
 	assert.NoError(t, err)
@@ -60,7 +46,7 @@ func TestPemEncodeDecodeRSA(t *testing.T) {
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("RSA Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("RSA Public", "pem", string(privateKeyPemBytes))
 
 	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
 	assert.NoError(t, err)
@@ -79,7 +65,7 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 
 	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("ECDSA Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDSA Private", "pem", string(privateKeyPemBytes))
 
 	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
 	assert.NoError(t, err)
@@ -89,7 +75,7 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("ECDSA Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDSA Public", "pem", string(privateKeyPemBytes))
 
 	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
 	assert.NoError(t, err)
@@ -109,7 +95,7 @@ func TestPemEncodeDecodeECDH(t *testing.T) {
 
 	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("ECDH Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDH Private", "pem", string(privateKeyPemBytes))
 
 	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
 	assert.NoError(t, err)
@@ -119,7 +105,7 @@ func TestPemEncodeDecodeECDH(t *testing.T) {
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("ECDH Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDH Public", "pem", string(privateKeyPemBytes))
 
 	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
 	assert.NoError(t, err)
@@ -136,7 +122,7 @@ func TestPemEncodeDecodeEdDSA(t *testing.T) {
 
 	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("ED Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ED Private", "pem", string(privateKeyPemBytes))
 
 	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
 	assert.NoError(t, err)
@@ -146,7 +132,7 @@ func TestPemEncodeDecodeEdDSA(t *testing.T) {
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	assert.NoError(t, err)
-	slogger.Info("ED Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ED Public", "pem", string(privateKeyPemBytes))
 
 	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
 	assert.NoError(t, err)
@@ -171,7 +157,7 @@ func TestPemEncodeDecodeCertificate(t *testing.T) {
 
 	certificatePemBytes, err := PemEncode(certificateOriginal)
 	assert.NoError(t, err)
-	slogger.Info("Cert", "pem", string(certificatePemBytes))
+	testTelemetryService.Slogger.Info("Cert", "pem", string(certificatePemBytes))
 
 	certificateDecoded, err := PemDecode(certificatePemBytes)
 	assert.NoError(t, err)

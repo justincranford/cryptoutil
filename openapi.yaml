@@ -1,0 +1,293 @@
+# https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.1/schema.yaml
+openapi: 3.0.3
+info:
+  title: API
+  version: "0.0.1"
+  description: >
+    REST API
+servers:
+  - url: http://localhost:8080/
+paths:
+  /kek:
+    post:
+      summary: Create a new KEK
+      description: >
+        Create a new KEK. If `imported` is true, key material will be provided later via the PUT version endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KEKCreate'
+      responses:
+        '200':
+          description: KEK created successfully and echoed back.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KEK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+        '500':
+          $ref: '#/components/responses/HTTP500'
+        '503':
+          $ref: '#/components/responses/HTTP503'
+        '504':
+          $ref: '#/components/responses/HTTP504'
+    get:
+      summary: List all KEKs
+      description: >
+        Returns a list of KEKs. Supports optional filtering, sorting, and paging.
+      parameters:
+        - in: query
+          name: filter
+          schema:
+            $ref: '#/components/schemas/QueryFilter'
+        - in: query
+          name: sort
+          schema:
+            $ref: '#/components/schemas/QuerySort'
+        - in: query
+          name: page
+          schema:
+            $ref: '#/components/schemas/QueryPage'
+      responses:
+        '200':
+          description: A JSON array of 0 or more KEKs.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KEK'
+        '400':
+          $ref: '#/components/responses/HTTP400'
+        '401':
+          $ref: '#/components/responses/HTTP401'
+        '403':
+          $ref: '#/components/responses/HTTP403'
+        '404':
+          $ref: '#/components/responses/HTTP404'
+        '429':
+          $ref: '#/components/responses/HTTP429'
+        '500':
+          $ref: '#/components/responses/HTTP500'
+        '503':
+          $ref: '#/components/responses/HTTP503'
+        '504':
+          $ref: '#/components/responses/HTTP504'
+
+
+components:
+  schemas:
+    QueryFilter:
+      type: string
+      description: "Filter criteria in the format 'field=value'. Supported operators are '=', '!=', '>', '<', '>=', '<='"
+      example: "field=value"
+    QuerySort:
+      type: string
+      description: "Sort criteria in the format 'field:direction' or 'field'. Values for direction are ASC or DESC. If omitted, it defaults to ASC."
+      example: "field:DESC"
+    QueryPage:
+      type: string
+      description: "Paging criteria in the format 'pageNumber:pageSize' or 'pageNumber'; pageNumber is 0 offset."
+      example: "0:25"
+
+    KEK:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/KEKId'
+        name:
+          $ref: '#/components/schemas/KEKName'
+        description:
+          $ref: '#/components/schemas/KEKDescription'
+        algorithm:
+          $ref: '#/components/schemas/KEKAlgorithm'
+        createDate:
+          type: string
+          format: date-time
+          description: Timestamp when the KEK was created.
+        status:
+          $ref: '#/components/schemas/KEKStatus'
+        enableVersioning:
+          type: boolean
+          description: Indicates whether the KEK supports automatic versioning.
+        imported:
+          type: boolean
+          description: Indicates if the KEK material was imported (BYOK).
+        provider:
+          type: string
+          enum: [ Internal, AWS, GCP, Azure ]
+          description: Provider of the key management service.
+        exportable:
+          type: boolean
+          description: Indicates if key material export is allowed.
+        keyMaterial:
+          type: string
+          description: Base64-encoded key material (if available).
+    KEKCreate:
+      type: object
+      required:
+        - name
+        - algorithm
+      properties:
+        name:
+          $ref: '#/components/schemas/KEKName'
+        description:
+          $ref: '#/components/schemas/KEKDescription'
+        algorithm:
+          $ref: '#/components/schemas/KEKAlgorithm'
+        enableVersioning:
+          type: boolean
+          description: Whether the KEK should support versioning.
+        imported:
+          type: boolean
+          description: Indicates whether key material will be imported.
+        exportable:
+          type: boolean
+          description: Indicates if key material export is allowed.
+    KEKUpdate:
+      type: object
+      properties:
+        name:
+          $ref: '#/components/schemas/KEKName'
+        description:
+          $ref: '#/components/schemas/KEKDescription'
+        status:
+          $ref: '#/components/schemas/KEKStatus'
+        enableVersioning:
+          type: boolean
+          description: Updated flag for KEK versioning.
+    KEKImport:
+      type: object
+      required:
+        - wrappedKeyMaterial
+        - importFormat
+      properties:
+        wrappedKeyMaterial:
+          type: string
+          description: Base64-encoded wrapped key material.
+        importFormat:
+          type: string
+          enum: [ RSA_OAEP, AES_KWP, CMS_ENVELOPEDDATA ]
+          description: Format used to wrap the key material.
+        expirationDate:
+          type: string
+          format: date-time
+          description: Optional expiration date for the imported key material.
+    KEKVersion:
+      type: object
+      properties:
+        version:
+          type: string
+          description: Identifier for this specific version.
+          minLength: 5
+          maxLength: 100
+        createDate:
+          type: string
+          format: date-time
+          example: "2025-03-14T12:00:00Z"
+          description: Timestamp when the KEK was created in ISO 8601 UTC format.
+        updateDate:
+          type: string
+          format: date-time
+          example: "2025-03-14T12:00:00Z"
+          description: Timestamp when the KEK was updated in ISO 8601 UTC format.
+        deleteDate:
+          type: string
+          example: "2025-03-14T12:00:00Z"
+          description: Timestamp when the KEK was deleted in ISO 8601 UTC format, if applicable.
+        importDate:
+          type: string
+          format: date-time
+          example: "2025-03-14T12:00:00Z"
+          description: Timestamp when the KEK was imported in ISO 8601 UTC format, if applicable.
+    KEKId:
+      type: string
+      description: Unique identifier for a KEK.
+      minimum: 1
+    KEKName:
+      type: string
+      description: Friendly name for a KEK.
+      minLength: 3
+      maxLength: 50
+    KEKDescription:
+      type: string
+      description: Description for a KEK.
+      minLength: 3
+      maxLength: 255
+    KEKAlgorithm:
+      type: string
+      description: Cryptographic algorithm for the KEK (e.g., RSA-2048, AES-256).
+      minLength: 5
+      maxLength: 20
+    KEKStatus:
+      type: string
+      enum: [ active, disabled, pending_import, expired ]
+      description: Operational status of the KEK.
+
+    HTTPError:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+
+  responses:
+    HTTP400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    HTTP401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    HTTP403:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    HTTP404:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    HTTP429:
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    HTTP500:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    HTTP503:
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'
+    HTTP504:
+      description: Gateway Timeout
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/HTTPError'

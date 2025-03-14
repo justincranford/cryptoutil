@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+package: openapi
+generate:
+  fiber-server: true
+  strict-server: true
+  models: true
+  embedded-spec: true
+output: api/openapi/openapi_gen.go

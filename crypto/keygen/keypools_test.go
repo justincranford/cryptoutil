@@ -4,13 +4,12 @@ import (
 	"context"
 	"crypto/ecdh"
 	"crypto/elliptic"
+	"cryptoutil/crypto/asn1"
+	"cryptoutil/telemetry"
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"cryptoutil/telemetry"
-
-	"cryptoutil/asn1"
+	"testing"
 )
 
 const (
@@ -21,9 +20,12 @@ const (
 	exampleMaxTime         = MaxTime
 )
 
-func DoKeyPoolsExample(ctx context.Context, telemetryService *telemetry.Service) {
-	keys := generateKeys(ctx, telemetryService)
+func TestPoolsExample(t *testing.T) {
+	ctx := context.Background()
+	telemetryService := telemetry.NewService(ctx, "asn1_test", false, false)
+	defer telemetryService.Shutdown(ctx)
 
+	keys := generateKeys(ctx, telemetryService)
 	writeKeys(telemetryService, keys)
 	readKeys(telemetryService, keys)
 }
