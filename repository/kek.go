@@ -1,96 +1,155 @@
 package repository
 
 import (
+	"cryptoutil/database"
+	"cryptoutil/uuid"
 	"time"
-
-	"gorm.io/gorm"
 )
 
-type Kek struct {
-	ID               string    `gorm:"primaryKey;type:text"`
-	Name             string    `gorm:"uniqueIndex:idx_kek_name_id;not null;check:length(name) BETWEEN 3 AND 50"`
-	Description      *string   `gorm:"type:text"`
-	Algorithm        string    `gorm:"not null;check:length(algorithm) BETWEEN 5 AND 20"`
-	CreateDate       time.Time `gorm:"not null;check:create_date GLOB '[0-9]*T[0-9]*Z'"`
-	Status           string    `gorm:"not null;check:status IN ('pending_import', 'active', 'disabled', 'expired')"`
-	EnableVersioning bool      `gorm:"not null"`
-	Imported         bool      `gorm:"not null"`
-	Provider         string    `gorm:"not null;check:provider IN ('AWS', 'GCP', 'Azure', 'Internal')"`
-	Exportable       bool      `gorm:"not null"`
-	KeyMaterial      *string   `gorm:"type:text"`
+type KEK struct {
+	ID                  string    `gorm:"primaryKey;type:text"`
+	Name                string    `gorm:"uniqueIndex:idx_kek_name_id;not null;check:length(name) BETWEEN 3 AND 50"`
+	Description         *string   `gorm:"type:text"`
+	Algorithm           string    `gorm:"not null;check:length(algorithm) BETWEEN 5 AND 20"`
+	Status              string    `gorm:"not null;check:status IN ('active', 'disabled', 'pending_import', 'expired')"`
+	Provider            string    `gorm:"not null;check:provider IN ('Internal', 'AWS', 'GCP', 'Azure')"`
+	IsVersioningEnabled bool      `gorm:"not null"`
+	IsImported          bool      `gorm:"not null"`
+	IsExportable        bool      `gorm:"not null"`
+	CreateDate          time.Time `gorm:"not null;check:create_date GLOB '[0-9]*T[0-9]*Z'"`
 }
 
-type KekVersion struct {
-	Version    string     `gorm:"primaryKey;type:text;check:length(version) BETWEEN 5 AND 100"`
-	KekID      string     `gorm:"not null;index:idx_kek_version_version_kek_id"`
-	CreateDate time.Time  `gorm:"not null;check:create_date GLOB '[0-9]*T[0-9]*Z'"`
-	UpdateDate *time.Time `gorm:"check:update_date GLOB '[0-9]*T[0-9]*Z'"`
-	DeleteDate *time.Time `gorm:"check:delete_date GLOB '[0-9]*T[0-9]*Z'"`
-	ImportDate *time.Time `gorm:"check:import_date GLOB '[0-9]*T[0-9]*Z'"`
+type KEKVersion struct {
+	KEKID       string     `gorm:"not null;index:idx_kek_version_version_kek_id"`
+	Version     string     `gorm:"primaryKey;type:text;check:length(version) BETWEEN 5 AND 100"`
+	KeyMaterial *string    `gorm:"type:text"`
+	UpdateDate  *time.Time `gorm:"check:update_date GLOB '[0-9]*T[0-9]*Z'"`
+	DeleteDate  *time.Time `gorm:"check:delete_date GLOB '[0-9]*T[0-9]*Z'"`
+	ImportDate  *time.Time `gorm:"check:import_date GLOB '[0-9]*T[0-9]*Z'"`
+	CreateDate  time.Time  `gorm:"not null;check:create_date GLOB '[0-9]*T[0-9]*Z'"`
 
-	Kek Kek `gorm:"foreignKey:KekID;constraint:OnDelete:CASCADE"`
+	KEK KEK `gorm:"foreignKey:KEKID;constraint:OnDelete:CASCADE"`
 }
 
-type KekRepository struct {
-	DB *gorm.DB
+type CreateKEK struct {
+	Name                string
+	Description         *string
+	Algorithm           string
+	Status              string
+	Provider            string
+	IsVersioningEnabled bool
+	IsImported          bool
+	IsExportable        bool
 }
 
-func NewKekRepository(db *gorm.DB) *KekRepository {
-	return &KekRepository{DB: db}
+type CreateKEKVersion struct {
+	KEKID       string
+	Version     string
+	KeyMaterial *string
+	ImportDate  *time.Time
 }
 
-func (r *KekRepository) CreateKek(kek *Kek) error {
-	return r.DB.Create(kek).Error
+type KEKRepository struct {
+	databaseService *database.Service
 }
 
-func (r *KekRepository) GetKekByID(id string) (*Kek, error) {
-	var kek Kek
-	if err := r.DB.First(&kek, "id = ?", id).Error; err != nil {
+func NewKEKRepository(databaseService *database.Service) *KEKRepository {
+	return &KEKRepository{databaseService: databaseService}
+}
+
+func (r *KEKRepository) CreateKEK(input *CreateKEK) (*KEK, error) {
+	newKEK := &KEK{
+		ID:                  uuid.V7(),
+		Name:                input.Name,
+		Description:         input.Description,
+		Algorithm:           input.Algorithm,
+		Status:              input.Status,
+		Provider:            input.Provider,
+		IsVersioningEnabled: input.IsVersioningEnabled,
+		IsImported:          input.IsImported,
+		IsExportable:        input.IsExportable,
+		CreateDate:          time.Now(),
+	}
+
+	if err := r.databaseService.GormDB().Create(newKEK).Error; err != nil {
 		return nil, err
 	}
-	return &kek, nil
+	return newKEK, nil
 }
 
-func (r *KekRepository) ListKeks() ([]Kek, error) {
-	var keks []Kek
-	if err := r.DB.Find(&keks).Error; err != nil {
+func (r *KEKRepository) ReadKEKs() ([]KEK, error) {
+	var keks []KEK
+	if err := r.databaseService.GormDB().Find(&keks).Error; err != nil {
 		return nil, err
 	}
 	return keks, nil
 }
 
-func (r *KekRepository) UpdateKek(kek *Kek) error {
-	return r.DB.Save(kek).Error
+func (r *KEKRepository) UpdateKEK(kek *KEK) (*KEK, error) {
+	if err := r.databaseService.GormDB().Save(kek).Error; err != nil {
+		return nil, err
+	}
+	var updatedKEK KEK
+	if err := r.databaseService.GormDB().First(&updatedKEK, "id = ?", kek.ID).Error; err != nil {
+		return nil, err
+	}
+	return &updatedKEK, nil
 }
 
-func (r *KekRepository) DeleteKek(id string) error {
-	return r.DB.Delete(&Kek{}, "id = ?", id).Error
+func (r *KEKRepository) DeleteKEK(id string) (*KEK, error) {
+	var deletedKEK KEK
+	if err := r.databaseService.GormDB().Where("id = ?", id).First(&deletedKEK).Error; err != nil {
+		return nil, err
+	}
+	if err := r.databaseService.GormDB().Delete(&deletedKEK).Error; err != nil {
+		return nil, err
+	}
+	return &deletedKEK, nil
 }
 
-func (r *KekRepository) CreateKekVersion(version *KekVersion) error {
-	return r.DB.Create(version).Error
+func (r *KEKRepository) CreateKEKVersion(input *CreateKEKVersion) (*KEKVersion, error) {
+	newKEKVersion := &KEKVersion{
+		KEKID:       input.KEKID,
+		Version:     input.Version,
+		KeyMaterial: input.KeyMaterial,
+		ImportDate:  input.ImportDate,
+		CreateDate:  time.Now(),
+	}
+
+	if err := r.databaseService.GormDB().Create(newKEKVersion).Error; err != nil {
+		return nil, err
+	}
+	return newKEKVersion, nil
 }
 
-func (r *KekRepository) GetKekVersion(kekID, version string) (*KekVersion, error) {
-	var kekVersion KekVersion
-	if err := r.DB.First(&kekVersion, "kek_id = ? AND version = ?", kekID, version).Error; err != nil {
+func (r *KEKRepository) ReadKEKVersions(kekID string) ([]KEKVersion, error) {
+	var kekVersions []KEKVersion
+	if err := r.databaseService.GormDB().Where("kek_id = ?", kekID).Find(&kekVersions).Error; err != nil {
+		return nil, err
+	}
+	return kekVersions, nil
+}
+
+func (r *KEKRepository) UpdateKEKVersion(kekVersion *KEKVersion) (*KEKVersion, error) {
+	if err := r.databaseService.GormDB().Save(kekVersion).Error; err != nil {
+		return nil, err
+	}
+
+	// Re-fetch the updated record to reflect changes from DB triggers
+	var updatedKEKVersion KEKVersion
+	if err := r.databaseService.GormDB().First(&updatedKEKVersion, "kek_id = ? AND version = ?", kekVersion.KEKID, kekVersion.Version).Error; err != nil {
+		return nil, err
+	}
+	return &updatedKEKVersion, nil
+}
+
+func (r *KEKRepository) DeleteKEKVersion(kekID, version string) (*KEKVersion, error) {
+	var kekVersion KEKVersion
+	if err := r.databaseService.GormDB().Where("kek_id = ? AND version = ?", kekID, version).First(&kekVersion).Error; err != nil {
+		return nil, err
+	}
+	if err := r.databaseService.GormDB().Delete(&kekVersion).Error; err != nil {
 		return nil, err
 	}
 	return &kekVersion, nil
-}
-
-func (r *KekRepository) ListKekVersions(kekID string) ([]KekVersion, error) {
-	var versions []KekVersion
-	if err := r.DB.Where("kek_id = ?", kekID).Find(&versions).Error; err != nil {
-		return nil, err
-	}
-	return versions, nil
-}
-
-func (r *KekRepository) UpdateKekVersion(version *KekVersion) error {
-	return r.DB.Save(version).Error
-}
-
-func (r *KekRepository) DeleteKekVersion(kekID, version string) error {
-	return r.DB.Delete(&KekVersion{}, "kek_id = ? AND version = ?", kekID, version).Error
 }

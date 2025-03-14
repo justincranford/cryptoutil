@@ -10,22 +10,21 @@ servers:
 paths:
   /kek:
     post:
-      summary: Create a new KEK
-      description: >
-        Create a new KEK. If `imported` is true, key material will be provided later via the PUT version endpoint.
+      summary: Create a new KEK Pool.
+      description: Create a new KEK Pool. Depending on the provider, it wraps one or many KEKs.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KEKCreate'
+              $ref: '#/components/schemas/KEKPoolCreate'
       responses:
         '200':
-          description: KEK created successfully and echoed back.
+          description: KEK pool created successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/KEK'
+                $ref: '#/components/schemas/KEKPool'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -43,9 +42,8 @@ paths:
         '504':
           $ref: '#/components/responses/HTTP504'
     get:
-      summary: List all KEKs
-      description: >
-        Returns a list of KEKs. Supports optional filtering, sorting, and paging.
+      summary: List all KEK Pools. Supports optional filtering, sorting, and paging.
+      description: List all KEK Pools. Supports optional filtering, sorting, and paging.
       parameters:
         - in: query
           name: filter
@@ -61,13 +59,13 @@ paths:
             $ref: '#/components/schemas/QueryPage'
       responses:
         '200':
-          description: A JSON array of 0 or more KEKs.
+          description: A JSON array of 0 or more KEK Pools.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/KEK'
+                  $ref: '#/components/schemas/KEKPool'
         '400':
           $ref: '#/components/responses/HTTP400'
         '401':
@@ -101,136 +99,122 @@ components:
       description: "Paging criteria in the format 'pageNumber:pageSize' or 'pageNumber'; pageNumber is 0 offset."
       example: "0:25"
 
-    KEK:
+    KEKPool:
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/KEKId'
+          $ref: '#/components/schemas/KEKPoolId'
         name:
-          $ref: '#/components/schemas/KEKName'
+          $ref: '#/components/schemas/KEKPoolName'
         description:
-          $ref: '#/components/schemas/KEKDescription'
+          $ref: '#/components/schemas/KEKPoolDescription'
         algorithm:
-          $ref: '#/components/schemas/KEKAlgorithm'
-        createDate:
-          type: string
-          format: date-time
-          description: Timestamp when the KEK was created.
+          $ref: '#/components/schemas/KEKPoolAlgorithm'
         status:
-          $ref: '#/components/schemas/KEKStatus'
-        enableVersioning:
-          type: boolean
-          description: Indicates whether the KEK supports automatic versioning.
-        imported:
-          type: boolean
-          description: Indicates if the KEK material was imported (BYOK).
+          $ref: '#/components/schemas/KEKPoolStatus'
         provider:
           type: string
           enum: [ Internal, AWS, GCP, Azure ]
           description: Provider of the key management service.
-        exportable:
+        isVersioningAllowed:
           type: boolean
-          description: Indicates if key material export is allowed.
-        keyMaterial:
+          description: Indicates if the KEK Pool supports versioning.
+        isImportAllowed:
+          type: boolean
+          description: Indicates if the KEK Pool supports import (BYOK).
+        isExportAllowed:
+          type: boolean
+          description: Indicates if the KEK Pool supports export.
+        createDate:
           type: string
-          description: Base64-encoded key material (if available).
-    KEKCreate:
+          format: date-time
+          description: Timestamp when the KEK Pool was created.
+    KEKPoolCreate:
       type: object
-      required:
-        - name
-        - algorithm
+      required: [ name, algorithm ]
       properties:
         name:
-          $ref: '#/components/schemas/KEKName'
+          $ref: '#/components/schemas/KEKPoolName'
         description:
-          $ref: '#/components/schemas/KEKDescription'
+          $ref: '#/components/schemas/KEKPoolDescription'
         algorithm:
-          $ref: '#/components/schemas/KEKAlgorithm'
-        enableVersioning:
+          $ref: '#/components/schemas/KEKPoolAlgorithm'
+        isVersioningAllowed:
           type: boolean
-          description: Whether the KEK should support versioning.
-        imported:
+          description: Indicates if the KEK Pool supports versioning.
+        isImportAllowed:
           type: boolean
-          description: Indicates whether key material will be imported.
-        exportable:
+          description: Indicates if the KEK Pool supports import (BYOK).
+        isExportAllowed:
           type: boolean
-          description: Indicates if key material export is allowed.
-    KEKUpdate:
+          description: Indicates if the KEK Pool supports export.
+    KEKPoolUpdate:
       type: object
       properties:
         name:
-          $ref: '#/components/schemas/KEKName'
+          $ref: '#/components/schemas/KEKPoolName'
         description:
-          $ref: '#/components/schemas/KEKDescription'
-        status:
-          $ref: '#/components/schemas/KEKStatus'
-        enableVersioning:
-          type: boolean
-          description: Updated flag for KEK versioning.
+          $ref: '#/components/schemas/KEKPoolDescription'
+    KEK:
+      type: object
+      properties:
+        version:
+          type: integer
+          description: Unique version of the KEK in a KEK Pool.
+          minimum: 1
+        generateDate:
+          type: string
+          format: date-time
+          example: "2025-03-14T12:00:00Z"
+          description: ISO 8601 UTC timestamp of KEK generation.
+        importDate:
+          type: string
+          format: date-time
+          example: "2025-03-14T12:00:00Z"
+          description: ISO 8601 UTC timestamp of KEK import.
+        expirationDate:
+          type: string
+          format: date-time
+          example: "2025-03-14T12:00:00Z"
+          description: ISO 8601 UTC timestamp of KEK expiration.
+        revocationDate:
+          type: string
+          format: date-time
+          example: "2025-03-14T12:00:00Z"
+          description: ISO 8601 UTC timestamp of KEK revocation.
     KEKImport:
       type: object
-      required:
-        - wrappedKeyMaterial
-        - importFormat
+      required: [ wrappedKeyMaterial, importFormat ]
       properties:
         wrappedKeyMaterial:
           type: string
           description: Base64-encoded wrapped key material.
         importFormat:
           type: string
-          enum: [ RSA_OAEP, AES_KWP, CMS_ENVELOPEDDATA ]
+          enum: [ RSA_OAEP, AES_KWP, CMS_ENVELOPED_DATA ]
           description: Format used to wrap the key material.
         expirationDate:
           type: string
           format: date-time
           description: Optional expiration date for the imported key material.
-    KEKVersion:
-      type: object
-      properties:
-        version:
-          type: string
-          description: Identifier for this specific version.
-          minLength: 5
-          maxLength: 100
-        createDate:
-          type: string
-          format: date-time
-          example: "2025-03-14T12:00:00Z"
-          description: Timestamp when the KEK was created in ISO 8601 UTC format.
-        updateDate:
-          type: string
-          format: date-time
-          example: "2025-03-14T12:00:00Z"
-          description: Timestamp when the KEK was updated in ISO 8601 UTC format.
-        deleteDate:
-          type: string
-          example: "2025-03-14T12:00:00Z"
-          description: Timestamp when the KEK was deleted in ISO 8601 UTC format, if applicable.
-        importDate:
-          type: string
-          format: date-time
-          example: "2025-03-14T12:00:00Z"
-          description: Timestamp when the KEK was imported in ISO 8601 UTC format, if applicable.
-    KEKId:
+    KEKPoolId:
       type: string
       description: Unique identifier for a KEK.
       minimum: 1
-    KEKName:
+    KEKPoolName:
       type: string
       description: Friendly name for a KEK.
-      minLength: 3
+      minLength: 1
       maxLength: 50
-    KEKDescription:
+    KEKPoolDescription:
       type: string
       description: Description for a KEK.
-      minLength: 3
+      minLength: 1
       maxLength: 255
-    KEKAlgorithm:
+    KEKPoolAlgorithm:
       type: string
       description: Cryptographic algorithm for the KEK (e.g., RSA-2048, AES-256).
-      minLength: 5
-      maxLength: 20
-    KEKStatus:
+    KEKPoolStatus:
       type: string
       enum: [ active, disabled, pending_import, expired ]
       description: Operational status of the KEK.
