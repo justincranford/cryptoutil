@@ -5,6 +5,7 @@ import (
 	openapi2 "cryptoutil/api/openapi"
 	"cryptoutil/database"
 	"cryptoutil/database/migrations"
+	"cryptoutil/service"
 	"fmt"
 	"log"
 	"os"
@@ -44,7 +45,7 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 	app.Get("/swagger/doc.json", openapi2.FiberHandlerOpenAPISpec())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	strictServer := handlers.NewStrictServer(dbService)
+	strictServer := handlers.NewStrictServer(service.NewService(dbService))
 	openapi2.RegisterHandlersWithOptions(app, openapi2.NewStrictHandler(strictServer, nil), openapi2.FiberServerOptions{
 		Middlewares: []openapi2.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),

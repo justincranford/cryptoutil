@@ -3,39 +3,30 @@ package handlers
 import (
 	"context"
 	"cryptoutil/api/openapi"
-	"cryptoutil/database"
+	"cryptoutil/service"
 )
 
 // StrictServer implements openapi.StrictServerInterface
 type StrictServer struct {
-	dbService *database.Service
+	service *service.KEKPoolService
 }
 
-func NewStrictServer(dbService *database.Service) *StrictServer {
-	return &StrictServer{dbService: dbService}
+func NewStrictServer(service *service.KEKPoolService) *StrictServer {
+	return &StrictServer{service: service}
 }
 
-// PostKek implements openapi.StrictServerInterface.PostKeK to handle POST /kek requests.
-func (s *StrictServer) PostKek(_ context.Context, request openapi.PostKekRequestObject) (openapi.PostKekResponseObject, error) {
-	kekCreate := *request.Body
-	kek := openapi.KEK{
-		Id:       new(openapi.KEKId),
-		Name:     &kekCreate.Name,
-		Provider: new(openapi.KEKProvider),
-		Status:   new(openapi.KEKStatus),
-	}
-	return openapi.PostKek200JSONResponse(kek), nil
+func (s *StrictServer) GetKekpool(ctx context.Context, request openapi.GetKekpoolRequestObject) (openapi.GetKekpoolResponseObject, error) {
+	return s.service.GetKEKPool(ctx, request)
 }
 
-// GetKek implements openapi.StrictServerInterface.GetKeK to handle GET /kek requests.
-func (s *StrictServer) GetKek(_ context.Context, request openapi.GetKekRequestObject) (openapi.GetKekResponseObject, error) {
-	keks := []openapi.KEK{
-		{
-			Id:       new(openapi.KEKId),
-			Name:     new(openapi.KEKName),
-			Provider: new(openapi.KEKProvider),
-			Status:   new(openapi.KEKStatus),
-		},
-	}
-	return openapi.GetKek200JSONResponse(keks), nil
+func (s *StrictServer) PostKekpool(ctx context.Context, request openapi.PostKekpoolRequestObject) (openapi.PostKekpoolResponseObject, error) {
+	return s.service.PostKekpool(ctx, request)
+}
+
+func (s *StrictServer) GetKekpoolKekPoolIDKek(ctx context.Context, request openapi.GetKekpoolKekPoolIDKekRequestObject) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
+	return s.service.GetKekpoolKekPoolIDKek(ctx, request)
+}
+
+func (s *StrictServer) PostKekpoolKekPoolIDKek(ctx context.Context, request openapi.PostKekpoolKekPoolIDKekRequestObject) (openapi.PostKekpoolKekPoolIDKekResponseObject, error) {
+	return s.service.PostKekpoolKekPoolIDKek(ctx, request)
 }

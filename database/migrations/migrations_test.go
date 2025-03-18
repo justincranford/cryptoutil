@@ -3,11 +3,10 @@ package migrations
 import (
 	"cryptoutil/database"
 	"database/sql"
-	"github.com/stretchr/testify/require"
 	"log"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/require"
 )
 
 func TestApplyMigrationsHappyPath(t *testing.T) {

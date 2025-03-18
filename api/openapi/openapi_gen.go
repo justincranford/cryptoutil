@@ -19,20 +19,24 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// Defines values for KEKProvider.
+// Defines values for KEKPoolAlgorithm.
 const (
-	AWS      KEKProvider = "AWS"
-	Azure    KEKProvider = "Azure"
-	GCP      KEKProvider = "GCP"
-	Internal KEKProvider = "Internal"
+	AES128 KEKPoolAlgorithm = "AES-128"
+	AES192 KEKPoolAlgorithm = "AES-192"
+	AES256 KEKPoolAlgorithm = "AES-256"
 )
 
-// Defines values for KEKStatus.
+// Defines values for KEKPoolProvider.
 const (
-	Active        KEKStatus = "active"
-	Disabled      KEKStatus = "disabled"
-	Expired       KEKStatus = "expired"
-	PendingImport KEKStatus = "pending_import"
+	Internal KEKPoolProvider = "Internal"
+)
+
+// Defines values for KEKPoolStatus.
+const (
+	Active          KEKPoolStatus = "active"
+	Disabled        KEKPoolStatus = "disabled"
+	PendingGenerate KEKPoolStatus = "pending_generate"
+	PendingImport   KEKPoolStatus = "pending_import"
 )
 
 // HTTPError defines model for HTTPError.
@@ -43,78 +47,105 @@ type HTTPError struct {
 
 // KEK defines model for KEK.
 type KEK struct {
-	// Algorithm Cryptographic algorithm for the KEK (e.g., RSA-2048, AES-256).
-	Algorithm *KEKAlgorithm `json:"algorithm,omitempty"`
+	// GenerateDate ISO 8601 UTC timestamp of KEK generation.
+	GenerateDate *KEKGenerateDate `json:"generateDate,omitempty"`
 
-	// CreateDate Timestamp when the KEK was created.
-	CreateDate *time.Time `json:"createDate,omitempty"`
+	// KekId Unique version of the KEK in a KEK Pool.
+	KekId *KEKId `json:"kek_id,omitempty"`
+
+	// KekPoolId Unique base64 url-encoded identifier for a KEK.
+	KekPoolId *KEKPoolId `json:"kek_pool_id,omitempty"`
+}
+
+// KEKGenerate defines model for KEKGenerate.
+type KEKGenerate = map[string]interface{}
+
+// KEKGenerateDate ISO 8601 UTC timestamp of KEK generation.
+type KEKGenerateDate = time.Time
+
+// KEKId Unique version of the KEK in a KEK Pool.
+type KEKId = int
+
+// KEKPool defines model for KEKPool.
+type KEKPool struct {
+	// Algorithm Cryptographic algorithm for the KEK.
+	Algorithm *KEKPoolAlgorithm `json:"algorithm,omitempty"`
 
 	// Description Description for a KEK.
-	Description *KEKDescription `json:"description,omitempty"`
+	Description *KEKPoolDescription `json:"description,omitempty"`
 
-	// EnableVersioning Indicates whether the KEK supports automatic versioning.
-	EnableVersioning *bool `json:"enableVersioning,omitempty"`
+	// Id Unique base64 url-encoded identifier for a KEK.
+	Id *KEKPoolId `json:"id,omitempty"`
 
-	// Exportable Indicates if key material export is allowed.
-	Exportable *bool `json:"exportable,omitempty"`
+	// IsExportAllowed Indicates if the KEK Pool supports export.
+	IsExportAllowed *KEKPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
 
-	// Id Unique identifier for a KEK.
-	Id *KEKId `json:"id,omitempty"`
+	// IsImportAllowed Indicates if the KEK Pool supports import (BYOK).
+	IsImportAllowed *KEKPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
 
-	// Imported Indicates if the KEK material was imported (BYOK).
-	Imported *bool `json:"imported,omitempty"`
-
-	// KeyMaterial Base64-encoded key material (if available).
-	KeyMaterial *string `json:"keyMaterial,omitempty"`
+	// IsVersioningAllowed Indicates if the KEK Pool supports versioning.
+	IsVersioningAllowed *KEKPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 
 	// Name Friendly name for a KEK.
-	Name *KEKName `json:"name,omitempty"`
+	Name *KEKPoolName `json:"name,omitempty"`
 
 	// Provider Provider of the key management service.
-	Provider *KEKProvider `json:"provider,omitempty"`
+	Provider *KEKPoolProvider `json:"provider,omitempty"`
 
-	// Status Operational status of the KEK.
-	Status *KEKStatus `json:"status,omitempty"`
+	// Status Status of the KEK.
+	Status *KEKPoolStatus `json:"status,omitempty"`
 }
 
-// KEKProvider Provider of the key management service.
-type KEKProvider string
+// KEKPoolAlgorithm Cryptographic algorithm for the KEK.
+type KEKPoolAlgorithm string
 
-// KEKAlgorithm Cryptographic algorithm for the KEK (e.g., RSA-2048, AES-256).
-type KEKAlgorithm = string
-
-// KEKCreate defines model for KEKCreate.
-type KEKCreate struct {
-	// Algorithm Cryptographic algorithm for the KEK (e.g., RSA-2048, AES-256).
-	Algorithm KEKAlgorithm `json:"algorithm"`
+// KEKPoolCreate defines model for KEKPoolCreate.
+type KEKPoolCreate struct {
+	// Algorithm Cryptographic algorithm for the KEK.
+	Algorithm *KEKPoolAlgorithm `json:"algorithm,omitempty"`
 
 	// Description Description for a KEK.
-	Description *KEKDescription `json:"description,omitempty"`
+	Description KEKPoolDescription `json:"description"`
 
-	// EnableVersioning Whether the KEK should support versioning.
-	EnableVersioning *bool `json:"enableVersioning,omitempty"`
+	// IsExportAllowed Indicates if the KEK Pool supports export.
+	IsExportAllowed *KEKPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
 
-	// Exportable Indicates if key material export is allowed.
-	Exportable *bool `json:"exportable,omitempty"`
+	// IsImportAllowed Indicates if the KEK Pool supports import (BYOK).
+	IsImportAllowed *KEKPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
 
-	// Imported Indicates whether key material will be imported.
-	Imported *bool `json:"imported,omitempty"`
+	// IsVersioningAllowed Indicates if the KEK Pool supports versioning.
+	IsVersioningAllowed *KEKPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 
 	// Name Friendly name for a KEK.
-	Name KEKName `json:"name"`
+	Name KEKPoolName `json:"name"`
+
+	// Provider Provider of the key management service.
+	Provider *KEKPoolProvider `json:"provider,omitempty"`
 }
 
-// KEKDescription Description for a KEK.
-type KEKDescription = string
+// KEKPoolDescription Description for a KEK.
+type KEKPoolDescription = string
 
-// KEKId Unique identifier for a KEK.
-type KEKId = string
+// KEKPoolId Unique base64 url-encoded identifier for a KEK.
+type KEKPoolId = string
 
-// KEKName Friendly name for a KEK.
-type KEKName = string
+// KEKPoolIsExportAllowed Indicates if the KEK Pool supports export.
+type KEKPoolIsExportAllowed = bool
 
-// KEKStatus Operational status of the KEK.
-type KEKStatus string
+// KEKPoolIsImportAllowed Indicates if the KEK Pool supports import (BYOK).
+type KEKPoolIsImportAllowed = bool
+
+// KEKPoolIsVersioningAllowed Indicates if the KEK Pool supports versioning.
+type KEKPoolIsVersioningAllowed = bool
+
+// KEKPoolName Friendly name for a KEK.
+type KEKPoolName = string
+
+// KEKPoolProvider Provider of the key management service.
+type KEKPoolProvider string
+
+// KEKPoolStatus Status of the KEK.
+type KEKPoolStatus string
 
 // QueryFilter Filter criteria in the format 'field=value'. Supported operators are '=', '!=', '>', '<', '>=', '<='
 type QueryFilter = string
@@ -149,24 +180,40 @@ type HTTP503 = HTTPError
 // HTTP504 defines model for HTTP504.
 type HTTP504 = HTTPError
 
-// GetKekParams defines parameters for GetKek.
-type GetKekParams struct {
+// GetKekpoolParams defines parameters for GetKekpool.
+type GetKekpoolParams struct {
 	Filter *QueryFilter `form:"filter,omitempty" json:"filter,omitempty"`
 	Sort   *QuerySort   `form:"sort,omitempty" json:"sort,omitempty"`
 	Page   *QueryPage   `form:"page,omitempty" json:"page,omitempty"`
 }
 
-// PostKekJSONRequestBody defines body for PostKek for application/json ContentType.
-type PostKekJSONRequestBody = KEKCreate
+// GetKekpoolKekPoolIDKekParams defines parameters for GetKekpoolKekPoolIDKek.
+type GetKekpoolKekPoolIDKekParams struct {
+	Filter *QueryFilter `form:"filter,omitempty" json:"filter,omitempty"`
+	Sort   *QuerySort   `form:"sort,omitempty" json:"sort,omitempty"`
+	Page   *QueryPage   `form:"page,omitempty" json:"page,omitempty"`
+}
+
+// PostKekpoolJSONRequestBody defines body for PostKekpool for application/json ContentType.
+type PostKekpoolJSONRequestBody = KEKPoolCreate
+
+// PostKekpoolKekPoolIDKekJSONRequestBody defines body for PostKekpoolKekPoolIDKek for application/json ContentType.
+type PostKekpoolKekPoolIDKekJSONRequestBody = KEKGenerate
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List all KEKs
-	// (GET /kek)
-	GetKek(c *fiber.Ctx, params GetKekParams) error
-	// Create a new KEK
-	// (POST /kek)
-	PostKek(c *fiber.Ctx) error
+	// List all KEK Pools. Supports optional filtering, sorting, and paging.
+	// (GET /kekpool)
+	GetKekpool(c *fiber.Ctx, params GetKekpoolParams) error
+	// Create a new KEK Pool.
+	// (POST /kekpool)
+	PostKekpool(c *fiber.Ctx) error
+	// List all KEKs in KEK Pool. Supports optional filtering, sorting, and paging.
+	// (GET /kekpool/{kekPoolID}/kek)
+	GetKekpoolKekPoolIDKek(c *fiber.Ctx, kekPoolID string, params GetKekpoolKekPoolIDKekParams) error
+	// Create a new KEK.
+	// (POST /kekpool/{kekPoolID}/kek)
+	PostKekpoolKekPoolIDKek(c *fiber.Ctx, kekPoolID string) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -176,13 +223,13 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc fiber.Handler
 
-// GetKek operation middleware
-func (siw *ServerInterfaceWrapper) GetKek(c *fiber.Ctx) error {
+// GetKekpool operation middleware
+func (siw *ServerInterfaceWrapper) GetKekpool(c *fiber.Ctx) error {
 
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetKekParams
+	var params GetKekpoolParams
 
 	var query url.Values
 	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
@@ -211,13 +258,75 @@ func (siw *ServerInterfaceWrapper) GetKek(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
 	}
 
-	return siw.Handler.GetKek(c, params)
+	return siw.Handler.GetKekpool(c, params)
 }
 
-// PostKek operation middleware
-func (siw *ServerInterfaceWrapper) PostKek(c *fiber.Ctx) error {
+// PostKekpool operation middleware
+func (siw *ServerInterfaceWrapper) PostKekpool(c *fiber.Ctx) error {
 
-	return siw.Handler.PostKek(c)
+	return siw.Handler.PostKekpool(c)
+}
+
+// GetKekpoolKekPoolIDKek operation middleware
+func (siw *ServerInterfaceWrapper) GetKekpoolKekPoolIDKek(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "kekPoolID" -------------
+	var kekPoolID string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "kekPoolID", c.Params("kekPoolID"), &kekPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter kekPoolID: %w", err).Error())
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetKekpoolKekPoolIDKekParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "filter" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "filter", query, &params.Filter)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter filter: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", query, &params.Sort)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter sort: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", query, &params.Page)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
+	}
+
+	return siw.Handler.GetKekpoolKekPoolIDKek(c, kekPoolID, params)
+}
+
+// PostKekpoolKekPoolIDKek operation middleware
+func (siw *ServerInterfaceWrapper) PostKekpoolKekPoolIDKek(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "kekPoolID" -------------
+	var kekPoolID string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "kekPoolID", c.Params("kekPoolID"), &kekPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter kekPoolID: %w", err).Error())
+	}
+
+	return siw.Handler.PostKekpoolKekPoolIDKek(c, kekPoolID)
 }
 
 // FiberServerOptions provides options for the Fiber server.
@@ -241,9 +350,13 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
-	router.Get(options.BaseURL+"/kek", wrapper.GetKek)
+	router.Get(options.BaseURL+"/kekpool", wrapper.GetKekpool)
 
-	router.Post(options.BaseURL+"/kek", wrapper.PostKek)
+	router.Post(options.BaseURL+"/kekpool", wrapper.PostKekpool)
+
+	router.Get(options.BaseURL+"/kekpool/:kekPoolID/kek", wrapper.GetKekpoolKekPoolIDKek)
+
+	router.Post(options.BaseURL+"/kekpool/:kekPoolID/kek", wrapper.PostKekpoolKekPoolIDKek)
 
 }
 
@@ -263,178 +376,358 @@ type HTTP503JSONResponse HTTPError
 
 type HTTP504JSONResponse HTTPError
 
-type GetKekRequestObject struct {
-	Params GetKekParams
+type GetKekpoolRequestObject struct {
+	Params GetKekpoolParams
 }
 
-type GetKekResponseObject interface {
-	VisitGetKekResponse(ctx *fiber.Ctx) error
+type GetKekpoolResponseObject interface {
+	VisitGetKekpoolResponse(ctx *fiber.Ctx) error
 }
 
-type GetKek200JSONResponse []KEK
+type GetKekpool200JSONResponse []KEKPool
 
-func (response GetKek200JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool200JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek400JSONResponse struct{ HTTP400JSONResponse }
+type GetKekpool400JSONResponse struct{ HTTP400JSONResponse }
 
-func (response GetKek400JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool400JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek401JSONResponse struct{ HTTP401JSONResponse }
+type GetKekpool401JSONResponse struct{ HTTP401JSONResponse }
 
-func (response GetKek401JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool401JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(401)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek403JSONResponse struct{ HTTP403JSONResponse }
+type GetKekpool403JSONResponse struct{ HTTP403JSONResponse }
 
-func (response GetKek403JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool403JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(403)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek404JSONResponse struct{ HTTP404JSONResponse }
+type GetKekpool404JSONResponse struct{ HTTP404JSONResponse }
 
-func (response GetKek404JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool404JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek429JSONResponse struct{ HTTP429JSONResponse }
+type GetKekpool429JSONResponse struct{ HTTP429JSONResponse }
 
-func (response GetKek429JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool429JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(429)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek500JSONResponse struct{ HTTP500JSONResponse }
+type GetKekpool500JSONResponse struct{ HTTP500JSONResponse }
 
-func (response GetKek500JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool500JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek503JSONResponse struct{ HTTP503JSONResponse }
+type GetKekpool503JSONResponse struct{ HTTP503JSONResponse }
 
-func (response GetKek503JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool503JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(503)
 
 	return ctx.JSON(&response)
 }
 
-type GetKek504JSONResponse struct{ HTTP504JSONResponse }
+type GetKekpool504JSONResponse struct{ HTTP504JSONResponse }
 
-func (response GetKek504JSONResponse) VisitGetKekResponse(ctx *fiber.Ctx) error {
+func (response GetKekpool504JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(504)
 
 	return ctx.JSON(&response)
 }
 
-type PostKekRequestObject struct {
-	Body *PostKekJSONRequestBody
+type PostKekpoolRequestObject struct {
+	Body *PostKekpoolJSONRequestBody
 }
 
-type PostKekResponseObject interface {
-	VisitPostKekResponse(ctx *fiber.Ctx) error
+type PostKekpoolResponseObject interface {
+	VisitPostKekpoolResponse(ctx *fiber.Ctx) error
 }
 
-type PostKek200JSONResponse KEK
+type PostKekpool200JSONResponse KEKPool
 
-func (response PostKek200JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool200JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek400JSONResponse struct{ HTTP400JSONResponse }
+type PostKekpool400JSONResponse struct{ HTTP400JSONResponse }
 
-func (response PostKek400JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool400JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek401JSONResponse struct{ HTTP401JSONResponse }
+type PostKekpool401JSONResponse struct{ HTTP401JSONResponse }
 
-func (response PostKek401JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool401JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(401)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek403JSONResponse struct{ HTTP403JSONResponse }
+type PostKekpool403JSONResponse struct{ HTTP403JSONResponse }
 
-func (response PostKek403JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool403JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(403)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek404JSONResponse struct{ HTTP404JSONResponse }
+type PostKekpool404JSONResponse struct{ HTTP404JSONResponse }
 
-func (response PostKek404JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool404JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek429JSONResponse struct{ HTTP429JSONResponse }
+type PostKekpool429JSONResponse struct{ HTTP429JSONResponse }
 
-func (response PostKek429JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool429JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(429)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek500JSONResponse struct{ HTTP500JSONResponse }
+type PostKekpool500JSONResponse struct{ HTTP500JSONResponse }
 
-func (response PostKek500JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool500JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek503JSONResponse struct{ HTTP503JSONResponse }
+type PostKekpool503JSONResponse struct{ HTTP503JSONResponse }
 
-func (response PostKek503JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool503JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(503)
 
 	return ctx.JSON(&response)
 }
 
-type PostKek504JSONResponse struct{ HTTP504JSONResponse }
+type PostKekpool504JSONResponse struct{ HTTP504JSONResponse }
 
-func (response PostKek504JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) error {
+func (response PostKekpool504JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(504)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKekRequestObject struct {
+	KekPoolID string `json:"kekPoolID"`
+	Params    GetKekpoolKekPoolIDKekParams
+}
+
+type GetKekpoolKekPoolIDKekResponseObject interface {
+	VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error
+}
+
+type GetKekpoolKekPoolIDKek200JSONResponse []KEK
+
+func (response GetKekpoolKekPoolIDKek200JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek400JSONResponse struct{ HTTP400JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek400JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek401JSONResponse struct{ HTTP401JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek401JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek403JSONResponse struct{ HTTP403JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek403JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek404JSONResponse struct{ HTTP404JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek404JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek429JSONResponse struct{ HTTP429JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek429JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(429)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek500JSONResponse struct{ HTTP500JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek500JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek503JSONResponse struct{ HTTP503JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek503JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(503)
+
+	return ctx.JSON(&response)
+}
+
+type GetKekpoolKekPoolIDKek504JSONResponse struct{ HTTP504JSONResponse }
+
+func (response GetKekpoolKekPoolIDKek504JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(504)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKekRequestObject struct {
+	KekPoolID string `json:"kekPoolID"`
+	Body      *PostKekpoolKekPoolIDKekJSONRequestBody
+}
+
+type PostKekpoolKekPoolIDKekResponseObject interface {
+	VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error
+}
+
+type PostKekpoolKekPoolIDKek200JSONResponse KEK
+
+func (response PostKekpoolKekPoolIDKek200JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek400JSONResponse struct{ HTTP400JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek400JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek401JSONResponse struct{ HTTP401JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek401JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek403JSONResponse struct{ HTTP403JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek403JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek404JSONResponse struct{ HTTP404JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek404JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek429JSONResponse struct{ HTTP429JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek429JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(429)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek500JSONResponse struct{ HTTP500JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek500JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek503JSONResponse struct{ HTTP503JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek503JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(503)
+
+	return ctx.JSON(&response)
+}
+
+type PostKekpoolKekPoolIDKek504JSONResponse struct{ HTTP504JSONResponse }
+
+func (response PostKekpoolKekPoolIDKek504JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(504)
 
@@ -443,12 +736,18 @@ func (response PostKek504JSONResponse) VisitPostKekResponse(ctx *fiber.Ctx) erro
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-	// List all KEKs
-	// (GET /kek)
-	GetKek(ctx context.Context, request GetKekRequestObject) (GetKekResponseObject, error)
-	// Create a new KEK
-	// (POST /kek)
-	PostKek(ctx context.Context, request PostKekRequestObject) (PostKekResponseObject, error)
+	// List all KEK Pools. Supports optional filtering, sorting, and paging.
+	// (GET /kekpool)
+	GetKekpool(ctx context.Context, request GetKekpoolRequestObject) (GetKekpoolResponseObject, error)
+	// Create a new KEK Pool.
+	// (POST /kekpool)
+	PostKekpool(ctx context.Context, request PostKekpoolRequestObject) (PostKekpoolResponseObject, error)
+	// List all KEKs in KEK Pool. Supports optional filtering, sorting, and paging.
+	// (GET /kekpool/{kekPoolID}/kek)
+	GetKekpoolKekPoolIDKek(ctx context.Context, request GetKekpoolKekPoolIDKekRequestObject) (GetKekpoolKekPoolIDKekResponseObject, error)
+	// Create a new KEK.
+	// (POST /kekpool/{kekPoolID}/kek)
+	PostKekpoolKekPoolIDKek(ctx context.Context, request PostKekpoolKekPoolIDKekRequestObject) (PostKekpoolKekPoolIDKekResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx *fiber.Ctx, args interface{}) (interface{}, error)
@@ -464,25 +763,25 @@ type strictHandler struct {
 	middlewares []StrictMiddlewareFunc
 }
 
-// GetKek operation middleware
-func (sh *strictHandler) GetKek(ctx *fiber.Ctx, params GetKekParams) error {
-	var request GetKekRequestObject
+// GetKekpool operation middleware
+func (sh *strictHandler) GetKekpool(ctx *fiber.Ctx, params GetKekpoolParams) error {
+	var request GetKekpoolRequestObject
 
 	request.Params = params
 
 	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
-		return sh.ssi.GetKek(ctx.UserContext(), request.(GetKekRequestObject))
+		return sh.ssi.GetKekpool(ctx.UserContext(), request.(GetKekpoolRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetKek")
+		handler = middleware(handler, "GetKekpool")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetKekResponseObject); ok {
-		if err := validResponse.VisitGetKekResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(GetKekpoolResponseObject); ok {
+		if err := validResponse.VisitGetKekpoolResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -491,29 +790,90 @@ func (sh *strictHandler) GetKek(ctx *fiber.Ctx, params GetKekParams) error {
 	return nil
 }
 
-// PostKek operation middleware
-func (sh *strictHandler) PostKek(ctx *fiber.Ctx) error {
-	var request PostKekRequestObject
+// PostKekpool operation middleware
+func (sh *strictHandler) PostKekpool(ctx *fiber.Ctx) error {
+	var request PostKekpoolRequestObject
 
-	var body PostKekJSONRequestBody
+	var body PostKekpoolJSONRequestBody
 	if err := ctx.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 	request.Body = &body
 
 	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
-		return sh.ssi.PostKek(ctx.UserContext(), request.(PostKekRequestObject))
+		return sh.ssi.PostKekpool(ctx.UserContext(), request.(PostKekpoolRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostKek")
+		handler = middleware(handler, "PostKekpool")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(PostKekResponseObject); ok {
-		if err := validResponse.VisitPostKekResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(PostKekpoolResponseObject); ok {
+		if err := validResponse.VisitPostKekpoolResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetKekpoolKekPoolIDKek operation middleware
+func (sh *strictHandler) GetKekpoolKekPoolIDKek(ctx *fiber.Ctx, kekPoolID string, params GetKekpoolKekPoolIDKekParams) error {
+	var request GetKekpoolKekPoolIDKekRequestObject
+
+	request.KekPoolID = kekPoolID
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+		return sh.ssi.GetKekpoolKekPoolIDKek(ctx.UserContext(), request.(GetKekpoolKekPoolIDKekRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetKekpoolKekPoolIDKek")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetKekpoolKekPoolIDKekResponseObject); ok {
+		if err := validResponse.VisitGetKekpoolKekPoolIDKekResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// PostKekpoolKekPoolIDKek operation middleware
+func (sh *strictHandler) PostKekpoolKekPoolIDKek(ctx *fiber.Ctx, kekPoolID string) error {
+	var request PostKekpoolKekPoolIDKekRequestObject
+
+	request.KekPoolID = kekPoolID
+
+	var body PostKekpoolKekPoolIDKekJSONRequestBody
+	if err := ctx.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	request.Body = &body
+
+	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+		return sh.ssi.PostKekpoolKekPoolIDKek(ctx.UserContext(), request.(PostKekpoolKekPoolIDKekRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostKekpoolKekPoolIDKek")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(PostKekpoolKekPoolIDKekResponseObject); ok {
+		if err := validResponse.VisitPostKekpoolKekPoolIDKekResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -525,31 +885,33 @@ func (sh *strictHandler) PostKek(ctx *fiber.Ctx) error {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"/9H5tcQVAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

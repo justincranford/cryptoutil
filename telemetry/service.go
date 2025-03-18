@@ -3,6 +3,10 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"os"
+	"time"
+
 	uuid2 "github.com/google/uuid"
 	slogmulti "github.com/samber/slog-multi"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -13,9 +17,6 @@ import (
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"log/slog"
-	"os"
-	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/log"
