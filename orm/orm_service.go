@@ -30,7 +30,6 @@ func NewService(ctx context.Context, devMode bool) (*Service, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to open SQLite in-memory database: %w", err)
 		}
-
 		gormDialector = sqlite.Dialector{Conn: db}
 		gormConfig = gorm.Config{}
 		shutdownFunction = func() {} // no-op
@@ -55,6 +54,10 @@ func NewService(ctx context.Context, devMode bool) (*Service, error) {
 	if err != nil {
 		shutdownFunction()
 		return nil, fmt.Errorf("failed to get SQL DB: %w", err)
+	}
+
+	if err := sqlDB.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
 	err = gormDB.AutoMigrate(ormTableStructs...)
