@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"cryptoutil/api/openapi"
 	"cryptoutil/orm"
+	"cryptoutil/util"
 	"errors"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 )
 
 type KEKPoolService struct {
-	// dbService *database.Service
 	dbService *orm.Service
 }
 
@@ -133,12 +133,11 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 		return &openapi.PostKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: stringPtr("Failed to generate key material")}}, nil
 	}
 
-	newVar := generateDate.Format("2006-01-02T15:04:05Z")
 	gormKek := orm.KEK{
 		KEKPoolID:       kekPoolID,
 		KEKID:           nextKekId,
 		KEKMaterial:     keyMaterial,
-		KEKGenerateDate: &newVar,
+		KEKGenerateDate: util.ISO8601Time2String(&generateDate),
 	}
 
 	result = service.dbService.GormDB.Create(&gormKek)
@@ -146,6 +145,7 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 		return nil, result.Error
 	}
 
+	// KeyMaterial is not returned
 	kekResponse := openapi.PostKekpoolKekPoolIDKek200JSONResponse{
 		KekId:        &gormKek.KEKID,
 		KekPoolId:    &request.KekPoolID,
@@ -158,42 +158,41 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 func (service *KEKPoolService) GetKekpoolKekPoolIDKek(ctx context.Context, request openapi.GetKekpoolKekPoolIDKekRequestObject) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
 	_, err := uuid.Parse(request.KekPoolID)
 	if err != nil {
-		return &openapi.GetKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: stringPtr("KEK Pool ID")}}, nil
+		return &openapi.GetKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: stringPtr("KEK Pool ID is invalid")}}, nil
 	}
 
-	var kekPool orm.KEKPool
-	result := service.dbService.GormDB.First(&kekPool, "kek_pool_id = ?", request.KekPoolID)
+	var gormKekPool orm.KEKPool
+	result := service.dbService.GormDB.First(&gormKekPool, "kek_pool_id = ?", request.KekPoolID)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return &openapi.GetKekpoolKekPoolIDKek404JSONResponse{HTTP404JSONResponse: openapi.HTTP404JSONResponse{Error: stringPtr("KEK Pool not found")}}, nil
+			return &openapi.GetKekpoolKekPoolIDKek404JSONResponse{HTTP404JSONResponse: openapi.HTTP404JSONResponse{Error: stringPtr("KEK Pool id not found")}}, nil
 		}
-		return nil, result.Error
+		return &openapi.GetKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: stringPtr("KEK Pool id lookup error")}}, nil
 	}
+
 	var gormKeks []orm.KEK
 	query := service.dbService.GormDB.Where("kek_pool_id = ?", request.KekPoolID)
 	result = query.Find(&gormKeks)
 	if result.Error != nil {
-		return nil, result.Error
+		return &openapi.GetKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: stringPtr("KEKs lookup error")}}, nil
 	}
 
-	keks := make([]openapi.KEK, len(gormKeks))
+	openapiKeks := make([]openapi.KEK, len(gormKeks))
 	for i, gormKek := range gormKeks {
-		var openapiKEKGenerateDate *time.Time
-		if gormKek.KEKGenerateDate != nil {
-			*openapiKEKGenerateDate, err = time.Parse("2006-01-02T15:04:05Z", *gormKek.KEKGenerateDate)
-			if err != nil {
-				return &openapi.GetKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: stringPtr("KEK generate date parse error")}}, nil
-			}
+		openapiKEKGenerateDate, err := util.ISO8601String2Time(gormKek.KEKGenerateDate)
+		if err != nil {
+			return &openapi.GetKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: stringPtr("KEK generate date is invalid")}}, nil
 		}
+		// KeyMaterial is not returned
 		kek := openapi.KEK{
 			KekId:        &gormKek.KEKID,
 			KekPoolId:    &request.KekPoolID,
 			GenerateDate: openapiKEKGenerateDate,
 		}
-		keks[i] = kek
+		openapiKeks[i] = kek
 	}
 
-	keksResponse := openapi.GetKekpoolKekPoolIDKek200JSONResponse(keks)
+	keksResponse := openapi.GetKekpoolKekPoolIDKek200JSONResponse(openapiKeks)
 	return &keksResponse, nil
 }
 

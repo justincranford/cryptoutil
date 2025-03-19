@@ -53,7 +53,7 @@ type KEK struct {
 	// KekId Unique version of the KEK in a KEK Pool.
 	KekId *KEKId `json:"kek_id,omitempty"`
 
-	// KekPoolId Unique base64 url-encoded identifier for a KEK.
+	// KekPoolId Unique base64 url-encoded identifier for a KEK Pool.
 	KekPoolId *KEKPoolId `json:"kek_pool_id,omitempty"`
 }
 
@@ -68,13 +68,13 @@ type KEKId = int
 
 // KEKPool defines model for KEKPool.
 type KEKPool struct {
-	// Algorithm Cryptographic algorithm for the KEK.
+	// Algorithm Cryptographic algorithm for the KEK Pool.
 	Algorithm *KEKPoolAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description for a KEK.
+	// Description Description for a KEK Pool.
 	Description *KEKPoolDescription `json:"description,omitempty"`
 
-	// Id Unique base64 url-encoded identifier for a KEK.
+	// Id Unique base64 url-encoded identifier for a KEK Pool.
 	Id *KEKPoolId `json:"id,omitempty"`
 
 	// IsExportAllowed Indicates if the KEK Pool supports export.
@@ -86,25 +86,25 @@ type KEKPool struct {
 	// IsVersioningAllowed Indicates if the KEK Pool supports versioning.
 	IsVersioningAllowed *KEKPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 
-	// Name Friendly name for a KEK.
+	// Name Friendly name for a KEK Pool.
 	Name *KEKPoolName `json:"name,omitempty"`
 
-	// Provider Provider of the key management service.
+	// Provider Provider of the KEK Pool management service.
 	Provider *KEKPoolProvider `json:"provider,omitempty"`
 
 	// Status Status of the KEK.
 	Status *KEKPoolStatus `json:"status,omitempty"`
 }
 
-// KEKPoolAlgorithm Cryptographic algorithm for the KEK.
+// KEKPoolAlgorithm Cryptographic algorithm for the KEK Pool.
 type KEKPoolAlgorithm string
 
 // KEKPoolCreate defines model for KEKPoolCreate.
 type KEKPoolCreate struct {
-	// Algorithm Cryptographic algorithm for the KEK.
+	// Algorithm Cryptographic algorithm for the KEK Pool.
 	Algorithm *KEKPoolAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description for a KEK.
+	// Description Description for a KEK Pool.
 	Description KEKPoolDescription `json:"description"`
 
 	// IsExportAllowed Indicates if the KEK Pool supports export.
@@ -116,17 +116,17 @@ type KEKPoolCreate struct {
 	// IsVersioningAllowed Indicates if the KEK Pool supports versioning.
 	IsVersioningAllowed *KEKPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 
-	// Name Friendly name for a KEK.
+	// Name Friendly name for a KEK Pool.
 	Name KEKPoolName `json:"name"`
 
-	// Provider Provider of the key management service.
+	// Provider Provider of the KEK Pool management service.
 	Provider *KEKPoolProvider `json:"provider,omitempty"`
 }
 
-// KEKPoolDescription Description for a KEK.
+// KEKPoolDescription Description for a KEK Pool.
 type KEKPoolDescription = string
 
-// KEKPoolId Unique base64 url-encoded identifier for a KEK.
+// KEKPoolId Unique base64 url-encoded identifier for a KEK Pool.
 type KEKPoolId = string
 
 // KEKPoolIsExportAllowed Indicates if the KEK Pool supports export.
@@ -138,10 +138,10 @@ type KEKPoolIsImportAllowed = bool
 // KEKPoolIsVersioningAllowed Indicates if the KEK Pool supports versioning.
 type KEKPoolIsVersioningAllowed = bool
 
-// KEKPoolName Friendly name for a KEK.
+// KEKPoolName Friendly name for a KEK Pool.
 type KEKPoolName = string
 
-// KEKPoolProvider Provider of the key management service.
+// KEKPoolProvider Provider of the KEK Pool management service.
 type KEKPoolProvider string
 
 // KEKPoolStatus Status of the KEK.
@@ -885,33 +885,34 @@ func (sh *strictHandler) PostKekpoolKekPoolIDKek(ctx *fiber.Ctx, kekPoolID strin
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"KH0WzqQ23ql76rZoepP+LwAA///HG+rCVSEAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
