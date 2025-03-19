@@ -3,9 +3,10 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
+
 	gormsqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"log"
 
 	_ "modernc.org/sqlite"
 )
@@ -30,19 +31,24 @@ func openDatabase(driverName string, databaseUrl string) (*Service, error) {
 	} else if len(databaseUrl) < 1 {
 		return nil, fmt.Errorf("database name must be non-blank")
 	}
+
 	log.Printf("opening database")
 	db, err := sql.Open(driverName, databaseUrl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
+
+	log.Printf("pinging database")
 	if err := db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
+
 	log.Printf("opening ORM")
 	gormDB, err := gorm.Open(gormsqlite.Dialector{Conn: db}, &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("unable to open ORM: %w", err)
 	}
+
 	return &Service{db: db, gormDB: gormDB}, nil
 }
 

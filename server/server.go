@@ -1,10 +1,10 @@
 package server
 
 import (
+	"context"
 	"cryptoutil/api/handlers"
 	openapi2 "cryptoutil/api/openapi"
-	"cryptoutil/database"
-	"cryptoutil/database/migrations"
+	"cryptoutil/orm"
 	"cryptoutil/service"
 	"fmt"
 	"log"
@@ -20,22 +20,15 @@ import (
 )
 
 func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
-	dbService, err := database.NewService() // dbClose() does its own logging
+	ctx := context.Background()
+	ormService, err := orm.NewService(ctx, true)
 	if err != nil {
-		log.Fatalf("open database error: %v", err)
-	}
-
-	if applyMigrations {
-		err = migrations.ApplyMigrations(dbService.DB())
-		if err != nil {
-			dbService.Shutdown()
-			log.Fatalf("apply sqlite error: %v", err)
-		}
+		log.Fatalf("open ORM service error: %v", err)
 	}
 
 	swaggerApi, err := openapi2.GetSwagger()
 	if err != nil {
-		dbService.Shutdown()
+		ormService.Shutdown(ctx)
 		log.Fatalf("get swagger error: %v", err)
 	}
 
@@ -45,7 +38,9 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 	app.Get("/swagger/doc.json", openapi2.FiberHandlerOpenAPISpec())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	strictServer := handlers.NewStrictServer(service.NewService(dbService))
+	newVar := service.NewService(ormService)
+
+	strictServer := handlers.NewStrictServer(newVar)
 	openapi2.RegisterHandlersWithOptions(app, openapi2.NewStrictHandler(strictServer, nil), openapi2.FiberServerOptions{
 		Middlewares: []openapi2.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
@@ -60,7 +55,7 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 		if err := app.Shutdown(); err != nil {
 			fmt.Printf("Fiber graceful shutdown error: %v", err)
 		}
-		dbService.Shutdown()
+		ormService.Shutdown(ctx)
 	}()
 
 	startServer := func() {
@@ -70,7 +65,7 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 		}
 	}
 	stopServer := func() {
-		dbService.Shutdown()
+		ormService.Shutdown(ctx)
 		err := app.Shutdown()
 		if err != nil {
 			fmt.Printf("Error stopping server: %s", err)

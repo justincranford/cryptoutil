@@ -4,8 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"cryptoutil/api/openapi"
-	"cryptoutil/database"
-	"cryptoutil/repository"
+	"cryptoutil/orm"
 	"errors"
 	"time"
 
@@ -14,10 +13,11 @@ import (
 )
 
 type KEKPoolService struct {
-	dbService *database.Service
+	// dbService *database.Service
+	dbService *orm.Service
 }
 
-func NewService(dbService *database.Service) *KEKPoolService {
+func NewService(dbService *orm.Service) *KEKPoolService {
 	return &KEKPoolService{dbService: dbService}
 }
 
@@ -26,7 +26,7 @@ func (service *KEKPoolService) PostKekpool(ctx context.Context, request openapi.
 	if *request.Body.IsImportAllowed {
 		kekPoolStatus = "pending_import"
 	}
-	gormKekPool := repository.KEKPool{
+	gormKekPool := orm.KEKPool{
 		KEKPoolName:                request.Body.Name,
 		KEKPoolDescription:         request.Body.Description,
 		KEKPoolAlgorithm:           string(*request.Body.Algorithm),
@@ -37,7 +37,7 @@ func (service *KEKPoolService) PostKekpool(ctx context.Context, request openapi.
 		KEKPoolStatus:              kekPoolStatus,
 	}
 
-	result := service.dbService.GormDB().Create(&gormKekPool)
+	result := service.dbService.GormDB.Create(&gormKekPool)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -63,8 +63,8 @@ func (service *KEKPoolService) PostKekpool(ctx context.Context, request openapi.
 }
 
 func (service *KEKPoolService) GetKEKPool(ctx context.Context, request openapi.GetKekpoolRequestObject) (openapi.GetKekpoolResponseObject, error) {
-	var gormKekPools []repository.KEKPool
-	result := service.dbService.GormDB().Find(&gormKekPools)
+	var gormKekPools []orm.KEKPool
+	result := service.dbService.GormDB.Find(&gormKekPools)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -99,8 +99,8 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 		return &openapi.PostKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: stringPtr("KEK Pool ID")}}, nil
 	}
 
-	var kekPool repository.KEKPool
-	result := service.dbService.GormDB().First(&kekPool, "kek_pool_id = ?", request.KekPoolID)
+	var kekPool orm.KEKPool
+	result := service.dbService.GormDB.First(&kekPool, "kek_pool_id = ?", request.KekPoolID)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return &openapi.PostKekpoolKekPoolIDKek404JSONResponse{HTTP404JSONResponse: openapi.HTTP404JSONResponse{Error: stringPtr("KEK Pool not found")}}, nil
@@ -113,7 +113,7 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 	}
 
 	var maxID int
-	service.dbService.GormDB().Model(&repository.KEK{}).Where("kek_pool_id = ?", request.KekPoolID).Select("COALESCE(MAX(kek_id), 0)").Scan(&maxID)
+	service.dbService.GormDB.Model(&orm.KEK{}).Where("kek_pool_id = ?", request.KekPoolID).Select("COALESCE(MAX(kek_id), 0)").Scan(&maxID)
 	nextKekId := maxID + 1
 	generateDate := time.Now().UTC()
 
@@ -134,14 +134,14 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 	}
 
 	newVar := generateDate.Format("2006-01-02T15:04:05Z")
-	gormKek := repository.KEK{
+	gormKek := orm.KEK{
 		KEKPoolID:       kekPoolID,
 		KEKID:           nextKekId,
 		KEKMaterial:     keyMaterial,
 		KEKGenerateDate: &newVar,
 	}
 
-	result = service.dbService.GormDB().Create(&gormKek)
+	result = service.dbService.GormDB.Create(&gormKek)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -161,16 +161,16 @@ func (service *KEKPoolService) GetKekpoolKekPoolIDKek(ctx context.Context, reque
 		return &openapi.GetKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: stringPtr("KEK Pool ID")}}, nil
 	}
 
-	var kekPool repository.KEKPool
-	result := service.dbService.GormDB().First(&kekPool, "kek_pool_id = ?", request.KekPoolID)
+	var kekPool orm.KEKPool
+	result := service.dbService.GormDB.First(&kekPool, "kek_pool_id = ?", request.KekPoolID)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return &openapi.GetKekpoolKekPoolIDKek404JSONResponse{HTTP404JSONResponse: openapi.HTTP404JSONResponse{Error: stringPtr("KEK Pool not found")}}, nil
 		}
 		return nil, result.Error
 	}
-	var gormKeks []repository.KEK
-	query := service.dbService.GormDB().Where("kek_pool_id = ?", request.KekPoolID)
+	var gormKeks []orm.KEK
+	query := service.dbService.GormDB.Where("kek_pool_id = ?", request.KekPoolID)
 	result = query.Find(&gormKeks)
 	if result.Error != nil {
 		return nil, result.Error
