@@ -75,7 +75,7 @@ func NewService(ctx context.Context, devMode bool) (*Service, error) {
 	return service, nil
 }
 
-func (s *Service) Shutdown(ctx context.Context) error {
+func (s *Service) Shutdown() {
 	err := s.SqlDB.Close()
 	if err == nil {
 		log.Printf("failed to close DB: %v", err)
@@ -83,5 +83,4 @@ func (s *Service) Shutdown(ctx context.Context) error {
 	if s.shutdownFunction != nil {
 		s.shutdownFunction()
 	}
-	return nil
 }

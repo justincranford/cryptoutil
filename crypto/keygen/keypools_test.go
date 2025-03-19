@@ -4,12 +4,13 @@ import (
 	"context"
 	"crypto/ecdh"
 	"crypto/elliptic"
-	"cryptoutil/crypto/asn1"
-	"cryptoutil/telemetry"
 	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
+
+	"cryptoutil/crypto/asn1"
+	"cryptoutil/telemetry"
 )
 
 const (

@@ -3,11 +3,12 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"errors"
+	"time"
+
 	"cryptoutil/api/openapi"
 	"cryptoutil/orm"
 	"cryptoutil/util"
-	"errors"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

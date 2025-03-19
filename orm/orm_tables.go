@@ -82,9 +82,11 @@ const (
 	PendingImport   KEKPoolStatus = "pending_import"
 )
 
-type KEKPoolDescription string
-type KEKPoolId string
-type KEKPoolIsExportAllowed bool
-type KEKPoolIsImportAllowed bool
-type KEKPoolIsVersioningAllowed bool
-type KEKPoolName string
+type (
+	KEKPoolDescription         string
+	KEKPoolId                  string
+	KEKPoolIsExportAllowed     bool
+	KEKPoolIsImportAllowed     bool
+	KEKPoolIsVersioningAllowed bool
+	KEKPoolName                string
+)

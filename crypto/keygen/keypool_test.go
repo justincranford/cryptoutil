@@ -23,8 +23,10 @@ const (
 	testMaxTime    = 3 * time.Second
 )
 
-var testCtx = context.Background()
-var testTelemetryService *telemetry.Service
+var (
+	testCtx              = context.Background()
+	testTelemetryService *telemetry.Service
+)
 
 func TestMain(m *testing.M) {
 	testTelemetryService = telemetry.NewService(testCtx, "asn1_test", false, false)

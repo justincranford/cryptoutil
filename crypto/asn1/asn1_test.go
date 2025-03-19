@@ -9,16 +9,19 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
-	"cryptoutil/telemetry"
 	"math/big"
 	"os"
 	"testing"
 
+	"cryptoutil/telemetry"
+
 	"github.com/stretchr/testify/assert"
 )
 
-var testCtx = context.Background()
-var testTelemetryService *telemetry.Service
+var (
+	testCtx              = context.Background()
+	testTelemetryService *telemetry.Service
+)
 
 func TestMain(m *testing.M) {
 	testTelemetryService = telemetry.NewService(testCtx, "asn1_test", false, false)

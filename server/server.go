@@ -2,15 +2,16 @@ package server
 
 import (
 	"context"
-	"cryptoutil/api/handlers"
-	openapi2 "cryptoutil/api/openapi"
-	"cryptoutil/orm"
-	"cryptoutil/service"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"cryptoutil/api/handlers"
+	openapi2 "cryptoutil/api/openapi"
+	"cryptoutil/orm"
+	"cryptoutil/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -28,7 +29,7 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 
 	swaggerApi, err := openapi2.GetSwagger()
 	if err != nil {
-		ormService.Shutdown(ctx)
+		ormService.Shutdown()
 		log.Fatalf("get swagger error: %v", err)
 	}
 
@@ -55,7 +56,7 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 		if err := app.Shutdown(); err != nil {
 			fmt.Printf("Fiber graceful shutdown error: %v", err)
 		}
-		ormService.Shutdown(ctx)
+		ormService.Shutdown()
 	}()
 
 	startServer := func() {
@@ -65,7 +66,7 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 		}
 	}
 	stopServer := func() {
-		ormService.Shutdown(ctx)
+		ormService.Shutdown()
 		err := app.Shutdown()
 		if err != nil {
 			fmt.Printf("Error stopping server: %s", err)

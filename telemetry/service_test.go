@@ -9,8 +9,10 @@ import (
 	"time"
 )
 
-var testCtx = context.Background()
-var testTelemetryService *Service
+var (
+	testCtx              = context.Background()
+	testTelemetryService *Service
+)
 
 func TestMain(m *testing.M) {
 	testTelemetryService = NewService(testCtx, "asn1_test", false, false)
