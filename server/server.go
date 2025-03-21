@@ -22,7 +22,8 @@ import (
 
 func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 	ctx := context.Background()
-	ormService, err := orm.NewService(ctx, true)
+	// ormService, err := orm.NewService(ctx, orm.DBTypePostgres, "", orm.ContainerModeRequired, applyMigrations)
+	ormService, err := orm.NewService(ctx, orm.DBTypeSQLite, ":memory:", orm.ContainerModeDisabled, applyMigrations)
 	if err != nil {
 		log.Fatalf("open ORM service error: %v", err)
 	}
