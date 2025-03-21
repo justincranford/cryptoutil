@@ -14,9 +14,9 @@ import (
 )
 
 type Service struct {
-	GormDB           *gorm.DB
-	SqlDB            *sql.DB
-	shutdownFunction func()
+	GormDB            *gorm.DB
+	SqlDB             *sql.DB
+	shutdownContainer func()
 }
 
 // NewService creates a new ORM service based on provided settings
@@ -67,9 +67,9 @@ func NewService(ctx context.Context, devMode bool) (*Service, error) {
 	}
 
 	service := &Service{
-		GormDB:           gormDB,
-		SqlDB:            sqlDB,
-		shutdownFunction: shutdownFunction,
+		GormDB:            gormDB,
+		SqlDB:             sqlDB,
+		shutdownContainer: shutdownFunction,
 	}
 
 	return service, nil
@@ -80,7 +80,7 @@ func (s *Service) Shutdown() {
 	if err == nil {
 		log.Printf("failed to close DB: %v", err)
 	}
-	if s.shutdownFunction != nil {
-		s.shutdownFunction()
+	if s.shutdownContainer != nil {
+		s.shutdownContainer()
 	}
 }
