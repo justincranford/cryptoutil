@@ -14,11 +14,11 @@ type KEKPool struct {
 	KEKPoolName                string    `gorm:"size:63;not null;check:length(kek_pool_name) >= 1"`
 	KEKPoolDescription         string    `gorm:"size:255;not null;check:length(kek_pool_description) >= 1"`
 	KEKPoolAlgorithm           string    `gorm:"size:15;not null;check:kek_pool_algorithm IN ('AES-256', 'AES-192', 'AES-128')"`
-	KEKPoolStatus              string    `gorm:"size:14;not null;check:kek_pool_status IN ('active', 'disabled', 'pending_generate', 'pending_import')"`
+	KEKPoolStatus              string    `gorm:"size:16;not null;check:kek_pool_status IN ('active', 'disabled', 'pending_generate', 'pending_import')"`
 	KEKPoolProvider            string    `gorm:"size:8;not null;check:kek_pool_provider IN ('Internal')"`
-	KEKPoolIsVersioningAllowed bool      `gorm:"not null;check:kek_pool_is_versioning_allowed IN (0, 1)"`
-	KEKPoolIsImportAllowed     bool      `gorm:"not null;check:kek_pool_is_import_allowed IN (0, 1)"`
-	KEKPoolIsExportAllowed     bool      `gorm:"not null;check:kek_pool_is_export_allowed IN (0, 1)"`
+	KEKPoolIsVersioningAllowed bool      `gorm:"not null;check:kek_pool_is_versioning_allowed IN (TRUE, FALSE)"`
+	KEKPoolIsImportAllowed     bool      `gorm:"not null;check:kek_pool_is_import_allowed IN (TRUE, FALSE)"`
+	KEKPoolIsExportAllowed     bool      `gorm:"not null;check:kek_pool_is_export_allowed IN (TRUE, FALSE)"`
 }
 
 func (KEKPool) TableName() string {
@@ -39,8 +39,8 @@ type KEK struct {
 	KEKPoolID         uuid.UUID `gorm:"type:uuid;primaryKey"`
 	KEKID             int       `gorm:"primaryKey;autoIncrement:false;not null;check(kek_id >= 0)"`
 	KEKMaterial       []byte    `gorm:"not null;check(length(kek_material) >= 1)"`
-	KEKGenerateDate   *string   `gorm:"size:20;check(length(kek_generate_date) == 20)"`   // ISO 8601
-	KEKImportDate     *string   `gorm:"size:20;check(length(kek_import_date) == 20)"`     // ISO 8601
+	KEKGenerateDate   *string   `gorm:"size:20;check(length(kek_generate_date)   == 20)"` // ISO 8601
+	KEKImportDate     *string   `gorm:"size:20;check(length(kek_import_date)     == 20)"` // ISO 8601
 	KEKExpirationDate *string   `gorm:"size:20;check(length(kek_expiration_date) == 20)"` // ISO 8601
 	KEKRevocationDate *string   `gorm:"size:20;check(length(kek_revocation_date) == 20)"` // ISO 8601
 }

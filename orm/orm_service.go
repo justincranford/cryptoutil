@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"math/rand"
 	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
 )
 
@@ -34,51 +36,23 @@ const (
 	maxDbConnectAttempts = 3
 )
 
-// var (
-// dbNameDefault = "postgres" //kekservice
-// 	dbUsername = fmt.Sprintf("postgresUsername%08d", rand.Intn(100_000_000))
-// 	dbPassword = fmt.Sprintf("postgresPassword%08d", rand.Intn(100_000_000))
-// )
+var (
+	dbNameDefault = fmt.Sprintf("kekservice%04d", rand.Intn(10_000))
+	dbUsername    = fmt.Sprintf("postgresUsername%04d", rand.Intn(10_000))
+	dbPassword    = fmt.Sprintf("postgresPassword%04d", rand.Intn(10_000))
+)
 
-func NewService(ctx context.Context, dbType DBType, dsn string, containerMode ContainerMode, applyMigrations bool) (*Service, error) {
-	var gormDialector gorm.Dialector
-	gormConfig := gorm.Config{}
-
+func NewService(ctx context.Context, dbType DBType, databaseUrl string, containerMode ContainerMode, applyMigrations bool) (*Service, error) {
 	// create gormDialector using provided dsn, or the dsn from a required||preferred container
-	gormDialector, shutdownContainer, err := newGormDialector(ctx, dbType, dsn, containerMode)
+	sqlDB, shutdownContainer, err := createSqlDB(ctx, dbType, databaseUrl, containerMode)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
 
-	// use sqlite or postgres GORM dialector to connect to the requested database
-	gormDB, err := gorm.Open(gormDialector, &gormConfig)
+	gormDB, err := createGormDB(dbType, sqlDB)
 	if err != nil {
 		shutdownContainer()
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	// extract the underlying SQL database connection from the GORM database connection, in case the caller needs to use it directly
-	log.Printf("attempting to get SQL DB connection: %v", err)
-	var sqlDB *sql.DB
-	for attemptsRemaining := maxDbConnectAttempts; attemptsRemaining > 0; attemptsRemaining-- {
-		sqlDB, err = gormDB.DB()
-		if err == nil {
-			break
-		}
-		log.Printf("failed to get SQL DB: %v", err)
-		if attemptsRemaining > 0 {
-			time.Sleep(1 * time.Second) // Wait for DB readiness
-		}
-	}
-	if sqlDB == nil {
-		log.Printf("giving up trying to get SQL")
-		shutdownContainer()
-		return nil, fmt.Errorf("gave up trying to get SQL DB: %w", err)
-	}
-
-	// ping the database to verify the connection
-	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}
 
 	if applyMigrations {
@@ -94,63 +68,81 @@ func NewService(ctx context.Context, dbType DBType, dsn string, containerMode Co
 	}
 
 	service := &Service{
-		GormDB:            gormDB,
 		SqlDB:             sqlDB,
+		GormDB:            gormDB,
 		shutdownContainer: shutdownContainer,
 	}
 
 	return service, nil
 }
 
-func newGormDialector(ctx context.Context, dbType DBType, dsn string, containerMode ContainerMode) (gorm.Dialector, func(), error) {
+func createGormDB(dbType DBType, sqlDB *sql.DB) (*gorm.DB, error) {
+	var gormDialector gorm.Dialector
+	switch dbType {
+	case DBTypeSQLite:
+		gormDialector = sqlite.Dialector{Conn: sqlDB}
+	case DBTypePostgres:
+		gormDialector = postgres.New(postgres.Config{Conn: sqlDB})
+	default:
+		return nil, fmt.Errorf("unsupported database type: %s", dbType)
+	}
+
+	gormDB, err := gorm.Open(gormDialector, &gorm.Config{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gormDB: %w", err)
+	}
+	return gormDB, nil
+}
+
+func createSqlDB(ctx context.Context, dbType DBType, databaseUrl string, containerMode ContainerMode) (*sql.DB, func(), error) {
 	var shutdownContainer func() = func() {} // no-op by default
 
 	if containerMode != ContainerModeDisabled {
-		log.Printf("Container mode is %s, trying to start a %s container and get its DSN", string(dbType), string(containerMode))
-		var containerDSN string
+		log.Printf("Container mode is %s, trying to start a %s container", string(dbType), string(containerMode)) // containerMode is required or preferred
+		var containerDatabaseUrl string
 		var err error
 		switch dbType {
 		case DBTypeSQLite:
-			return nil, nil, fmt.Errorf("sqlite is supported, but there is no container option for it") // TODO Support RQlite as a container option in future? It wraps SQLite with TCP support.
+			return nil, nil, fmt.Errorf("there is no container option for sqlite")
 		case DBTypePostgres:
-			containerDSN, shutdownContainer, err = startPostgresContainer(ctx, "postgres", "postgres", "postgres")
+			containerDatabaseUrl, shutdownContainer, err = startPostgresContainer(ctx, dbNameDefault, dbUsername, dbPassword)
 		default:
 			return nil, nil, fmt.Errorf("unsupported database type: %s", dbType)
 		}
-		if err != nil {
-			// container failed to start (e.g. Docker not installed, Docker Desktop not running, etc.)
-			if containerMode == ContainerModeRequired {
-				// caller requires container to be started, so return an error
-				return nil, nil, fmt.Errorf("containerMode is required, and failed to start %s container: %w", string(dbType), err)
-			}
-			// caller prefers container to be started, but is OK to fallback on using the provider DSN instead of a DB container's DSN
-			log.Printf("containerMode is preferred but container startup failed, changing containerMode to disabled and falling back to provided %s DSN: %v", string(dbType), err)
-			containerMode = ContainerModeDisabled
+		if err == nil { // Example> Docker not installed, Docker Desktop not running, etc.
+			log.Printf("containerMode was %s, and container started successfully, so using generated %s database URL: %s", string(containerMode), string(dbType), containerDatabaseUrl)
+			databaseUrl = containerDatabaseUrl
+		} else if containerMode == ContainerModeRequired { // give up and return the error
+			return nil, nil, fmt.Errorf("containerMode was required, but failed to start %s container: %w", string(dbType), err)
 		} else {
-			log.Printf("container started successfully, using generated %s DSN: %v", string(dbType), containerDSN)
-			dsn = containerDSN
+			log.Printf("containerMode was preferred, but failed to start, so use the provided %s database URL instead: %v", string(dbType), err)
 		}
 	}
 
-	// execute if containerMode is disabled, or containerMode was preferred but changed to disabled because container startup failed
-	var gormDialector gorm.Dialector
-	if containerMode == ContainerModeDisabled {
-		log.Printf("Container mode is disabled, using provided %s DSN: %s", string(dbType), dsn)
-		switch dbType {
-		case DBTypeSQLite:
-			db, err := sql.Open("sqlite", dsn)
-			if err != nil {
-				return nil, nil, fmt.Errorf("failed to open SQLite database: %w", err)
-			}
-			gormDialector = sqlite.Dialector{Conn: db}
-		case DBTypePostgres:
-			log.Printf("Initializing %s database", string(dbType))
-			gormDialector = postgres.Open(dsn)
-		default:
-			return nil, nil, fmt.Errorf("unsupported database type: %s", dbType)
+	sqlDB, err := sql.Open(string(dbType), databaseUrl)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to open %s database: %w", string(DBTypeSQLite), err)
+	}
+
+	for attempt, attemptsRemaining := 1, maxDbConnectAttempts; attemptsRemaining > 0; attemptsRemaining-- {
+		err = sqlDB.Ping()
+		if err == nil {
+			log.Printf("ping SQL DB attempt %d succeeded", attempt)
+			break
+		}
+		log.Printf("ping SQL DB attempt %d failed: %v", attempt, err)
+		attempt++
+		if attemptsRemaining > 0 {
+			time.Sleep(1 * time.Second)
 		}
 	}
-	return gormDialector, shutdownContainer, nil
+	if err != nil {
+		log.Printf("giving up trying to get SQL")
+		shutdownContainer()
+		return nil, nil, fmt.Errorf("gave up trying to get SQL DB: %w", err)
+	}
+
+	return sqlDB, shutdownContainer, nil
 }
 
 func (s *Service) Shutdown() {

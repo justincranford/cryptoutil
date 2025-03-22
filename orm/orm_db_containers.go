@@ -18,7 +18,8 @@ func startPostgresContainer(ctx context.Context, dbName, dbUsername, dbPassword 
 		Image:        "postgres:latest",
 		ExposedPorts: []string{"5432/tcp"},
 		Env:          map[string]string{"POSTGRES_DB": dbName, "POSTGRES_USER": dbUsername, "POSTGRES_PASSWORD": dbPassword},
-		WaitingFor:   wait.ForListeningPort("5432/tcp").WithStartupTimeout(postgresContainerStartupTimeout),
+		// WaitingFor:   wait.ForListeningPort("5432/tcp").WithStartupTimeout(postgresContainerStartupTimeout),
+		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(postgresContainerStartupTimeout),
 	}
 
 	container, terminateContainer, err := startContainer(ctx, postgresContainerRequest)
@@ -32,11 +33,11 @@ func startPostgresContainer(ctx context.Context, dbName, dbUsername, dbPassword 
 		return "", nil, fmt.Errorf("failed to get sqlite container host and port: %w", err)
 	}
 
-	// Example> host=localhost port=58135 user=postgres password=postgres dbname=postgres sslmode=disable TimeZone=UTC
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=UTC", containerHost, containerMappedPort, dbUsername, dbPassword, dbName)
+	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUsername, dbPassword, containerHost, containerMappedPort, dbName)
 
-	return dsn, terminateContainer, nil
+	return databaseUrl, terminateContainer, nil
 }
+
 func startContainer(ctx context.Context, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
 	startedContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: containerRequest,
