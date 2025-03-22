@@ -8,7 +8,6 @@ import (
 
 	"cryptoutil/api/openapi"
 	"cryptoutil/orm"
-	"cryptoutil/util"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -138,7 +137,7 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 		KEKPoolID:       kekPoolID,
 		KEKID:           nextKekId,
 		KEKMaterial:     keyMaterial,
-		KEKGenerateDate: util.ISO8601Time2String(&generateDate),
+		KEKGenerateDate: &generateDate,
 	}
 
 	result = service.dbService.GormDB.Create(&gormKek)
@@ -180,15 +179,10 @@ func (service *KEKPoolService) GetKekpoolKekPoolIDKek(ctx context.Context, reque
 
 	openapiKeks := make([]openapi.KEK, len(gormKeks))
 	for i, gormKek := range gormKeks {
-		openapiKEKGenerateDate, err := util.ISO8601String2Time(gormKek.KEKGenerateDate)
-		if err != nil {
-			return &openapi.GetKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: stringPtr("KEK generate date is invalid")}}, nil
-		}
-		// KeyMaterial is not returned
 		kek := openapi.KEK{
 			KekId:        &gormKek.KEKID,
 			KekPoolId:    &request.KekPoolID,
-			GenerateDate: openapiKEKGenerateDate,
+			GenerateDate: gormKek.KEKGenerateDate,
 		}
 		openapiKeks[i] = kek
 	}

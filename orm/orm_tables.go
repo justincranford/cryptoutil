@@ -2,6 +2,7 @@ package orm
 
 import (
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -39,10 +40,10 @@ type KEK struct {
 	KEKPoolID         uuid.UUID `gorm:"type:uuid;primaryKey"`
 	KEKID             int       `gorm:"primaryKey;autoIncrement:false;not null;check(kek_id >= 0)"`
 	KEKMaterial       []byte    `gorm:"not null;check(length(kek_material) >= 1)"`
-	KEKGenerateDate   *string   `gorm:"size:20;check(length(kek_generate_date)   == 20)"` // ISO 8601
-	KEKImportDate     *string   `gorm:"size:20;check(length(kek_import_date)     == 20)"` // ISO 8601
-	KEKExpirationDate *string   `gorm:"size:20;check(length(kek_expiration_date) == 20)"` // ISO 8601
-	KEKRevocationDate *string   `gorm:"size:20;check(length(kek_revocation_date) == 20)"` // ISO 8601
+	KEKGenerateDate   *time.Time
+	KEKImportDate     *time.Time
+	KEKExpirationDate *time.Time
+	KEKRevocationDate *time.Time
 }
 
 func (KEK) TableName() string {
