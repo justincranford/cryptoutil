@@ -30,12 +30,12 @@ func (service *KEKPoolService) PostKekpool(ctx context.Context, request openapi.
 	gormKekPool := orm.KEKPool{
 		KEKPoolName:                request.Body.Name,
 		KEKPoolDescription:         request.Body.Description,
-		KEKPoolAlgorithm:           string(*request.Body.Algorithm),
-		KEKPoolProvider:            string(*request.Body.Provider),
+		KEKPoolProvider:            orm.KEKPoolProviderEnum(string(*request.Body.Provider)),
+		KEKPoolAlgorithm:           orm.KEKPoolAlgorithmEnum(string(*request.Body.Algorithm)),
 		KEKPoolIsVersioningAllowed: *request.Body.IsVersioningAllowed,
 		KEKPoolIsImportAllowed:     *request.Body.IsImportAllowed,
 		KEKPoolIsExportAllowed:     *request.Body.IsExportAllowed,
-		KEKPoolStatus:              kekPoolStatus,
+		KEKPoolStatus:              orm.KEKPoolStatusEnum(kekPoolStatus),
 	}
 
 	result := service.dbService.GormDB.Create(&gormKekPool)
@@ -109,7 +109,7 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 		return nil, result.Error
 	}
 
-	if kekPool.KEKPoolStatus != string(openapi.Active) && kekPool.KEKPoolStatus != string(openapi.PendingGenerate) {
+	if kekPool.KEKPoolStatus != orm.Active && kekPool.KEKPoolStatus != orm.PendingGenerate {
 		return &openapi.PostKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: stringPtr("KEK Pool invalid state")}}, nil
 	}
 
@@ -120,11 +120,11 @@ func (service *KEKPoolService) PostKekpoolKekPoolIDKek(ctx context.Context, requ
 
 	var keyMaterial []byte
 	switch kekPool.KEKPoolAlgorithm {
-	case string(openapi.AES256):
+	case orm.AES256:
 		keyMaterial = make([]byte, 32)
-	case string(openapi.AES192):
+	case orm.AES192:
 		keyMaterial = make([]byte, 24)
-	case string(openapi.AES128):
+	case orm.AES128:
 		keyMaterial = make([]byte, 16)
 	default:
 		return &openapi.PostKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: stringPtr("KEK Pool invalid algorithm")}}, nil

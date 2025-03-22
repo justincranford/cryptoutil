@@ -10,15 +10,15 @@ import (
 var ormTableStructs = []any{&KEKPool{}, &KEK{}}
 
 type KEKPool struct {
-	KEKPoolID                  uuid.UUID `gorm:"type:uuid;primaryKey"`
-	KEKPoolName                string    `gorm:"size:63;not null;check:length(kek_pool_name) >= 1"`
-	KEKPoolDescription         string    `gorm:"size:255;not null;check:length(kek_pool_description) >= 1"`
-	KEKPoolAlgorithm           string    `gorm:"size:15;not null;check:kek_pool_algorithm IN ('AES-256', 'AES-192', 'AES-128')"`
-	KEKPoolStatus              string    `gorm:"size:16;not null;check:kek_pool_status IN ('active', 'disabled', 'pending_generate', 'pending_import')"`
-	KEKPoolProvider            string    `gorm:"size:8;not null;check:kek_pool_provider IN ('Internal')"`
-	KEKPoolIsVersioningAllowed bool      `gorm:"not null;check:kek_pool_is_versioning_allowed IN (TRUE, FALSE)"`
-	KEKPoolIsImportAllowed     bool      `gorm:"not null;check:kek_pool_is_import_allowed IN (TRUE, FALSE)"`
-	KEKPoolIsExportAllowed     bool      `gorm:"not null;check:kek_pool_is_export_allowed IN (TRUE, FALSE)"`
+	KEKPoolID                  uuid.UUID            `gorm:"type:uuid;primaryKey"`
+	KEKPoolName                string               `gorm:"size:63;not null;check:length(kek_pool_name) >= 1"`
+	KEKPoolDescription         string               `gorm:"size:255;not null;check:length(kek_pool_description) >= 1"`
+	KEKPoolProvider            KEKPoolProviderEnum  `gorm:"size:8;not null;check:kek_pool_provider IN ('Internal')"`
+	KEKPoolAlgorithm           KEKPoolAlgorithmEnum `gorm:"size:15;not null;check:kek_pool_algorithm IN ('AES-256', 'AES-192', 'AES-128')"`
+	KEKPoolIsVersioningAllowed bool                 `gorm:"not null;check:kek_pool_is_versioning_allowed IN (TRUE, FALSE)"`
+	KEKPoolIsImportAllowed     bool                 `gorm:"not null;check:kek_pool_is_import_allowed IN (TRUE, FALSE)"`
+	KEKPoolIsExportAllowed     bool                 `gorm:"not null;check:kek_pool_is_export_allowed IN (TRUE, FALSE)"`
+	KEKPoolStatus              KEKPoolStatusEnum    `gorm:"size:16;not null;check:kek_pool_status IN ('active', 'disabled', 'pending_generate', 'pending_import')"`
 }
 
 func (KEKPool) TableName() string {
@@ -50,36 +50,36 @@ func (KEK) TableName() string {
 }
 
 type KEKPoolCreate struct {
-	Algorithm           KEKPoolAlgorithm           `json:"algorithm,omitempty"`
+	Algorithm           KEKPoolAlgorithmEnum       `json:"algorithm,omitempty"`
 	Description         KEKPoolDescription         `json:"description"`
 	IsExportAllowed     KEKPoolIsExportAllowed     `json:"isExportAllowed,omitempty"`
 	IsImportAllowed     KEKPoolIsImportAllowed     `json:"isImportAllowed,omitempty"`
 	IsVersioningAllowed KEKPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 	Name                KEKPoolName                `json:"name"`
-	Provider            KEKPoolProvider            `json:"provider,omitempty"`
+	Provider            KEKPoolProviderEnum        `json:"provider,omitempty"`
 }
 
-type KEKPoolAlgorithm string
+type KEKPoolAlgorithmEnum string
 
 const (
-	AES128 KEKPoolAlgorithm = "AES-128"
-	AES192 KEKPoolAlgorithm = "AES-192"
-	AES256 KEKPoolAlgorithm = "AES-256"
+	AES128 KEKPoolAlgorithmEnum = "AES-128"
+	AES192 KEKPoolAlgorithmEnum = "AES-192"
+	AES256 KEKPoolAlgorithmEnum = "AES-256"
 )
 
-type KEKPoolProvider string
+type KEKPoolProviderEnum string
 
 const (
-	Internal KEKPoolProvider = "Internal"
+	Internal KEKPoolProviderEnum = "Internal"
 )
 
-type KEKPoolStatus string
+type KEKPoolStatusEnum string
 
 const (
-	Active          KEKPoolStatus = "active"
-	Disabled        KEKPoolStatus = "disabled"
-	PendingGenerate KEKPoolStatus = "pending_generate"
-	PendingImport   KEKPoolStatus = "pending_import"
+	Active          KEKPoolStatusEnum = "active"
+	Disabled        KEKPoolStatusEnum = "disabled"
+	PendingGenerate KEKPoolStatusEnum = "pending_generate"
+	PendingImport   KEKPoolStatusEnum = "pending_import"
 )
 
 type (
