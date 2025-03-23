@@ -32,12 +32,12 @@ func TestPoolsExample(t *testing.T) {
 }
 
 func generateKeys(ctx context.Context, telemetryService *telemetry.Service) []Key {
-	rsaPool := NewKeyPool(ctx, telemetryService, "RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPair(2048))
-	ecdsaPool := NewKeyPool(ctx, telemetryService, "ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPair(elliptic.P256()))
-	ecdhPool := NewKeyPool(ctx, telemetryService, "ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPair(ecdh.P256()))
-	eddsaPool := NewKeyPool(ctx, telemetryService, "EdDSA Ed25519", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateEDKeyPair("Ed25519"))
-	aesPool := NewKeyPool(ctx, telemetryService, "AES 128", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateAESKey(128))
-	hmacPool := NewKeyPool(ctx, telemetryService, "HMAC 256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateHMACKey(256))
+	rsaPool := NewKeyPool(ctx, telemetryService, "RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPairFunction(2048))
+	ecdsaPool := NewKeyPool(ctx, telemetryService, "ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPairFunction(elliptic.P256()))
+	ecdhPool := NewKeyPool(ctx, telemetryService, "ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPairFunction(ecdh.P256()))
+	eddsaPool := NewKeyPool(ctx, telemetryService, "EdDSA Ed25519", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateEDKeyPairFunction("Ed25519"))
+	aesPool := NewKeyPool(ctx, telemetryService, "AES 128", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateAESKeyFunction(128))
+	hmacPool := NewKeyPool(ctx, telemetryService, "HMAC 256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateHMACKeyFunction(256))
 
 	defer rsaPool.Close()
 	defer ecdsaPool.Close()

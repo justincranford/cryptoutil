@@ -21,13 +21,13 @@ func (s *StrictServer) GetKekpool(ctx context.Context, request openapi.GetKekpoo
 }
 
 func (s *StrictServer) PostKekpool(ctx context.Context, request openapi.PostKekpoolRequestObject) (openapi.PostKekpoolResponseObject, error) {
-	return s.service.PostKekpool(ctx, request)
+	return s.service.PostKEKPool(ctx, request)
 }
 
 func (s *StrictServer) GetKekpoolKekPoolIDKek(ctx context.Context, request openapi.GetKekpoolKekPoolIDKekRequestObject) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
-	return s.service.GetKekpoolKekPoolIDKek(ctx, request)
+	return s.service.GetKEKPoolKEKPoolIDKEK(ctx, request)
 }
 
 func (s *StrictServer) PostKekpoolKekPoolIDKek(ctx context.Context, request openapi.PostKekpoolKekPoolIDKekRequestObject) (openapi.PostKekpoolKekPoolIDKekResponseObject, error) {
-	return s.service.PostKekpoolKekPoolIDKek(ctx, request)
+	return s.service.PostKEKPoolKEKPoolIDKEK(ctx, request)
 }
