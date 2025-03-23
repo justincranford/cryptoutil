@@ -22,10 +22,6 @@ type KEKPool struct {
 	KEKPoolStatus              KEKPoolStatusEnum    `gorm:"size:16;not null;check:kek_pool_status IN ('active', 'disabled', 'pending_generate', 'pending_import')"`
 }
 
-func (KEKPool) TableName() string {
-	return "kek_pool"
-}
-
 func (k *KEKPool) BeforeCreate(tx *gorm.DB) (err error) {
 	if k.KEKPoolID == uuid.Nil {
 		k.KEKPoolID, err = uuid.NewV7()
@@ -44,10 +40,6 @@ type KEK struct {
 	KEKImportDate     *time.Time
 	KEKExpirationDate *time.Time
 	KEKRevocationDate *time.Time
-}
-
-func (KEK) TableName() string {
-	return "kek"
 }
 
 type KEKPoolCreate struct {
