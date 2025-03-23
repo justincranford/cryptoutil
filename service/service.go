@@ -2,16 +2,13 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"cryptoutil/api/openapi"
 	"cryptoutil/orm"
-	"cryptoutil/util"
 
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type KEKPoolService struct {
@@ -23,108 +20,89 @@ func NewService(dbService *orm.Service) *KEKPoolService {
 	return &KEKPoolService{ormService: dbService, openapiOrmMapper: NewMapper()}
 }
 
-func (s *KEKPoolService) PostKEKPool(ctx context.Context, openapiRequest openapi.PostKekpoolRequestObject) (openapi.PostKekpoolResponseObject, error) {
-	gormKEKPool := orm.KEKPool{
-		KEKPoolName:                openapiRequest.Body.Name,
-		KEKPoolDescription:         openapiRequest.Body.Description,
-		KEKPoolProvider:            s.openapiOrmMapper.toKEKPoolProviderEnum(*openapiRequest.Body.Provider),
-		KEKPoolAlgorithm:           s.openapiOrmMapper.toKKEKPoolAlgorithmEnum(*openapiRequest.Body.Algorithm),
-		KEKPoolIsVersioningAllowed: *openapiRequest.Body.IsVersioningAllowed,
-		KEKPoolIsImportAllowed:     *openapiRequest.Body.IsImportAllowed,
-		KEKPoolIsExportAllowed:     *openapiRequest.Body.IsExportAllowed,
-		KEKPoolStatus:              s.openapiOrmMapper.toKEKPoolStatusImportOrGenerate(*openapiRequest.Body.IsImportAllowed),
-	}
-
-	gormCreateKEKResult := s.ormService.GormDB.Create(&gormKEKPool)
+func (s *KEKPoolService) PostKEKPool(ctx context.Context, openapiKEKPoolCreate *openapi.KEKPoolCreate) (openapi.PostKekpoolResponseObject, error) {
+	gormKEKPoolInsert := s.openapiOrmMapper.toGormKEKPoolInsert(openapiKEKPoolCreate)
+	gormCreateKEKResult := s.ormService.GormDB.Create(gormKEKPoolInsert)
 	if gormCreateKEKResult.Error != nil {
-		return &openapi.PostKekpool500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: util.StringPtr("failed to insert KEK Pool")}}, fmt.Errorf("failed to insert KEK Pool: %w", gormCreateKEKResult.Error)
+		return s.openapiOrmMapper.toOpenapiResponseInsertKEKPoolError(gormCreateKEKResult.Error)
 	}
-
-	openapiResponse := openapi.PostKekpool200JSONResponse(s.openapiOrmMapper.toOpenapiKEKPool(gormKEKPool))
-	return &openapiResponse, nil
+	return s.openapiOrmMapper.toOpenapiResponseInsertKEKPoolSuccess(gormKEKPoolInsert), nil
 }
 
-func (s *KEKPoolService) GetKEKPool(ctx context.Context, openapiRequest openapi.GetKekpoolRequestObject) (openapi.GetKekpoolResponseObject, error) {
+func (s *KEKPoolService) GetKEKPool(ctx context.Context) (openapi.GetKekpoolResponseObject, error) {
 	var gormKEKPools []orm.KEKPool
 	gormFindKEKPoolsResult := s.ormService.GormDB.Find(&gormKEKPools)
 	if gormFindKEKPoolsResult.Error != nil {
-		if errors.Is(gormFindKEKPoolsResult.Error, gorm.ErrRecordNotFound) {
-			return &openapi.GetKekpool404JSONResponse{HTTP404JSONResponse: openapi.HTTP404JSONResponse{Error: util.StringPtr("KEK Pool not found")}}, fmt.Errorf("KEK Pool not found: %w", gormFindKEKPoolsResult.Error)
-		}
-		return &openapi.GetKekpool500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: util.StringPtr("failed to get KEK Pool")}}, fmt.Errorf("failed to get KEK Pool: %w", gormFindKEKPoolsResult.Error)
+		return s.openapiOrmMapper.toOpenapiResponseSelectKEKPoolError(gormFindKEKPoolsResult.Error)
 	}
-
-	openapiResponse := openapi.GetKekpool200JSONResponse(s.openapiOrmMapper.toOpenapiKEKPools(gormKEKPools))
-	return &openapiResponse, nil
+	return s.openapiOrmMapper.toOpenapiResponseSelectKEKPoolSuccess(&gormKEKPools), nil
 }
 
 func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, openapiRequest openapi.PostKekpoolKekPoolIDKekRequestObject) (openapi.PostKekpoolKekPoolIDKekResponseObject, error) {
-	gormKEKPoolID, err := uuid.Parse(openapiRequest.KekPoolID)
+	_, err := uuid.Parse(openapiRequest.KekPoolID)
 	if err != nil {
-		return &openapi.PostKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: util.StringPtr("KEK Pool ID")}}, fmt.Errorf("failed to get KEK Pool: %w", err)
+		return s.openapiOrmMapper.toOpenapiResponseInsertKEKSelectKEKPoolError(err)
 	}
 
 	var gormKEKPool orm.KEKPool
 	gormSelectKEKPoolResult := s.ormService.GormDB.First(&gormKEKPool, "kek_pool_id=?", openapiRequest.KekPoolID)
 	if gormSelectKEKPoolResult.Error != nil {
-		if errors.Is(gormSelectKEKPoolResult.Error, gorm.ErrRecordNotFound) {
-			return &openapi.PostKekpoolKekPoolIDKek404JSONResponse{HTTP404JSONResponse: openapi.HTTP404JSONResponse{Error: util.StringPtr("KEK Pool not found")}}, fmt.Errorf("KEK Pool not found: %w", err)
-		}
-		return &openapi.PostKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: util.StringPtr("KEK Pool find error")}}, fmt.Errorf("KEK Pool find error: %w", err)
+		return s.openapiOrmMapper.toOpenapiResponseInsertKEKSelectKEKPoolError(gormSelectKEKPoolResult.Error)
 	}
 
-	if gormKEKPool.KEKPoolStatus != orm.PendingGenerate && gormKEKPool.KEKPoolStatus != orm.PendingImport {
-		return &openapi.PostKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: util.StringPtr("KEK Pool invalid initial state")}}, fmt.Errorf("KEK Pool invalid initial state")
+	if gormKEKPool.KEKPoolStatus != orm.PendingGenerate {
+		return s.openapiOrmMapper.toOpenapiResponseInsertKEKInvalidKEKPoolStatus()
 	}
 
-	gormKEKKeyMaterial, err := generateKEKMaterial(string(gormKEKPool.KEKPoolAlgorithm))
+	var gormKEKPoolMaxID int // COALESCE clause returns 0 if no KEKs found for KEK Pool
+	s.ormService.GormDB.Model(&orm.KEK{}).Where("kek_pool_id=?", openapiRequest.KekPoolID).Select("COALESCE(MAX(kek_id), 0)").Scan(&gormKEKPoolMaxID)
+
+	gormKEK, err := s.generateKEKInsert(&gormKEKPool, gormKEKPoolMaxID+1)
 	if err != nil {
-		return &openapi.PostKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: util.StringPtr(err.Error())}}, nil
-	}
-	gormKEKGenerateDate := time.Now().UTC()
-
-	var gormMaxKEKIDForKEKPool int // COALESCE clause returns 0 if no KEKs found for KEK Pool
-	s.ormService.GormDB.Model(&orm.KEK{}).Where("kek_pool_id=?", openapiRequest.KekPoolID).Select("COALESCE(MAX(kek_id), 0)").Scan(&gormMaxKEKIDForKEKPool)
-	gormNextKEKIDForKEKPool := gormMaxKEKIDForKEKPool + 1
-
-	gormKEK := orm.KEK{
-		KEKPoolID:       gormKEKPoolID,
-		KEKID:           gormNextKEKIDForKEKPool,
-		KEKMaterial:     gormKEKKeyMaterial,
-		KEKGenerateDate: &gormKEKGenerateDate,
+		return s.openapiOrmMapper.toOpenapiResponseInsertKEKGenerateKeyMaterialError(err)
 	}
 
-	gormCreateKEKResult := s.ormService.GormDB.Create(&gormKEK)
+	gormCreateKEKResult := s.ormService.GormDB.Create(gormKEK)
 	if gormCreateKEKResult.Error != nil {
-		return &openapi.PostKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: util.StringPtr("KEK Pool find error")}}, fmt.Errorf("KEK Pool find error: %w", gormCreateKEKResult.Error)
+		return s.openapiOrmMapper.toOpenapiResponseInsertKEKError(gormSelectKEKPoolResult.Error)
 	}
 
-	openapiResponse := openapi.PostKekpoolKekPoolIDKek200JSONResponse(s.openapiOrmMapper.toOpenapiKEK(gormKEK)) // KeyMaterial is not returned
-	return &openapiResponse, nil
+	return s.openapiOrmMapper.toOpenapiResponseInsertKEKSuccess(gormKEK), nil
 }
 
 func (s *KEKPoolService) GetKEKPoolKEKPoolIDKEK(ctx context.Context, openapiRequest openapi.GetKekpoolKekPoolIDKekRequestObject) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
 	_, err := uuid.Parse(openapiRequest.KekPoolID)
 	if err != nil {
-		return &openapi.GetKekpoolKekPoolIDKek400JSONResponse{HTTP400JSONResponse: openapi.HTTP400JSONResponse{Error: util.StringPtr("KEK Pool ID is not valid UUID")}}, fmt.Errorf("KEK Pool ID is not valid UUID: %w", err)
+		return s.openapiOrmMapper.toOpenapiResponseGetKEKInvalidKEKPoolIDError(err)
 	}
 
 	var gormKekPool orm.KEKPool
 	gormKEKPool := s.ormService.GormDB.First(&gormKekPool, "kek_pool_id=?", openapiRequest.KekPoolID)
 	if gormKEKPool.Error != nil {
-		if errors.Is(gormKEKPool.Error, gorm.ErrRecordNotFound) {
-			return &openapi.GetKekpoolKekPoolIDKek404JSONResponse{HTTP404JSONResponse: openapi.HTTP404JSONResponse{Error: util.StringPtr("KEK Pool id not found")}}, fmt.Errorf("KEK Pool id not found: %w", gormKEKPool.Error)
-		}
-		return &openapi.GetKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: util.StringPtr("KEK Pool id lookup error")}}, fmt.Errorf("KEK Pool id lookup error: %w", gormKEKPool.Error)
+		return s.openapiOrmMapper.toOpenapiResponseGetKEKNoKEKPoolIDFoundError(err)
 	}
 
 	var gormKeks []orm.KEK
 	query := s.ormService.GormDB.Where("kek_pool_id=?", openapiRequest.KekPoolID)
 	gormKEKPool = query.Find(&gormKeks)
 	if gormKEKPool.Error != nil {
-		return &openapi.GetKekpoolKekPoolIDKek500JSONResponse{HTTP500JSONResponse: openapi.HTTP500JSONResponse{Error: util.StringPtr("KEKs lookup error")}}, fmt.Errorf("KEKs lookup error: %w", gormKEKPool.Error)
+		return s.openapiOrmMapper.toOpenapiResponseGetKEKFindError(err)
 	}
 
-	openapiResponse := openapi.GetKekpoolKekPoolIDKek200JSONResponse(s.openapiOrmMapper.toOpenapiKEKs(gormKeks)) // KeyMaterial is not returned
-	return &openapiResponse, nil
+	return s.openapiOrmMapper.toOpenapiResponseGetKEKSuccess(&gormKeks), nil
+}
+
+func (s *KEKPoolService) generateKEKInsert(gormKEKPool *orm.KEKPool, kekPoolNextID int) (*orm.KEK, error) {
+	gormKEKKeyMaterial, err := generateKEKMaterial(string(gormKEKPool.KEKPoolAlgorithm))
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate KEK material: %w", err)
+	}
+	gormKEKGenerateDate := time.Now().UTC()
+
+	return &orm.KEK{
+		KEKPoolID:       gormKEKPool.KEKPoolID,
+		KEKID:           kekPoolNextID,
+		KEKMaterial:     gormKEKKeyMaterial,
+		KEKGenerateDate: &gormKEKGenerateDate,
+	}, nil
 }
