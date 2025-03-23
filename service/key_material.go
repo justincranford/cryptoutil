@@ -5,10 +5,10 @@ import (
 	"fmt"
 )
 
-func generateKEKMaterial(gormKEKAlgorithm string) ([]byte, error) {
+func generateKeyMaterial(algorithm string) ([]byte, error) {
 	var key keygen.Key
 	var err error
-	switch string(gormKEKAlgorithm) {
+	switch string(algorithm) {
 	case "AES-256", "AES256":
 		key, err = keygen.GenerateAESKey(256)
 	case "AES-192", "AES192":
@@ -16,10 +16,10 @@ func generateKEKMaterial(gormKEKAlgorithm string) ([]byte, error) {
 	case "AES-128", "AES128":
 		key, err = keygen.GenerateAESKey(128)
 	default:
-		return nil, fmt.Errorf("invalid KEK Pool algorithm")
+		return nil, fmt.Errorf("unsuppported algorithm")
 	}
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate KEK key material: %w", err)
+		return nil, fmt.Errorf("failed to generate key material: %w", err)
 	}
 	return key.Private.([]byte), nil
 }

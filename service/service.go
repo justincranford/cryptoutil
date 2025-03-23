@@ -93,7 +93,7 @@ func (s *KEKPoolService) GetKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *
 }
 
 func (s *KEKPoolService) generateKEKInsert(gormKEKPool *orm.KEKPool, kekPoolNextID int) (*orm.KEK, error) {
-	gormKEKKeyMaterial, err := generateKEKMaterial(string(gormKEKPool.KEKPoolAlgorithm))
+	gormKEKKeyMaterial, err := generateKeyMaterial(string(gormKEKPool.KEKPoolAlgorithm))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate KEK material: %w", err)
 	}
