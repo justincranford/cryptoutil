@@ -38,14 +38,14 @@ func (s *KEKPoolService) GetKEKPool(ctx context.Context) (openapi.GetKekpoolResp
 	return s.openapiOrmMapper.toOpenapiResponseSelectKEKPoolSuccess(&gormKEKPools), nil
 }
 
-func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, openapiRequest openapi.PostKekpoolKekPoolIDKekRequestObject) (openapi.PostKekpoolKekPoolIDKekResponseObject, error) {
-	_, err := uuid.Parse(openapiRequest.KekPoolID)
+func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string) (openapi.PostKekpoolKekPoolIDKekResponseObject, error) {
+	_, err := uuid.Parse(*kekPoolID)
 	if err != nil {
 		return s.openapiOrmMapper.toOpenapiResponseInsertKEKSelectKEKPoolError(err)
 	}
 
 	var gormKEKPool orm.KEKPool
-	gormSelectKEKPoolResult := s.ormService.GormDB.First(&gormKEKPool, "kek_pool_id=?", openapiRequest.KekPoolID)
+	gormSelectKEKPoolResult := s.ormService.GormDB.First(&gormKEKPool, "kek_pool_id=?", *kekPoolID)
 	if gormSelectKEKPoolResult.Error != nil {
 		return s.openapiOrmMapper.toOpenapiResponseInsertKEKSelectKEKPoolError(gormSelectKEKPoolResult.Error)
 	}
@@ -55,7 +55,7 @@ func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, openapiReq
 	}
 
 	var gormKEKPoolMaxID int // COALESCE clause returns 0 if no KEKs found for KEK Pool
-	s.ormService.GormDB.Model(&orm.KEK{}).Where("kek_pool_id=?", openapiRequest.KekPoolID).Select("COALESCE(MAX(kek_id), 0)").Scan(&gormKEKPoolMaxID)
+	s.ormService.GormDB.Model(&orm.KEK{}).Where("kek_pool_id=?", *kekPoolID).Select("COALESCE(MAX(kek_id), 0)").Scan(&gormKEKPoolMaxID)
 
 	gormKEK, err := s.generateKEKInsert(&gormKEKPool, gormKEKPoolMaxID+1)
 	if err != nil {
@@ -70,20 +70,20 @@ func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, openapiReq
 	return s.openapiOrmMapper.toOpenapiResponseInsertKEKSuccess(gormKEK), nil
 }
 
-func (s *KEKPoolService) GetKEKPoolKEKPoolIDKEK(ctx context.Context, openapiRequest openapi.GetKekpoolKekPoolIDKekRequestObject) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
-	_, err := uuid.Parse(openapiRequest.KekPoolID)
+func (s *KEKPoolService) GetKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
+	_, err := uuid.Parse(*kekPoolID)
 	if err != nil {
 		return s.openapiOrmMapper.toOpenapiResponseGetKEKInvalidKEKPoolIDError(err)
 	}
 
 	var gormKekPool orm.KEKPool
-	gormKEKPool := s.ormService.GormDB.First(&gormKekPool, "kek_pool_id=?", openapiRequest.KekPoolID)
+	gormKEKPool := s.ormService.GormDB.First(&gormKekPool, "kek_pool_id=?", *kekPoolID)
 	if gormKEKPool.Error != nil {
 		return s.openapiOrmMapper.toOpenapiResponseGetKEKNoKEKPoolIDFoundError(err)
 	}
 
 	var gormKeks []orm.KEK
-	query := s.ormService.GormDB.Where("kek_pool_id=?", openapiRequest.KekPoolID)
+	query := s.ormService.GormDB.Where("kek_pool_id=?", *kekPoolID)
 	gormKEKPool = query.Find(&gormKeks)
 	if gormKEKPool.Error != nil {
 		return s.openapiOrmMapper.toOpenapiResponseGetKEKFindError(err)

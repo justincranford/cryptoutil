@@ -21,14 +21,16 @@ func (s *StrictServer) GetKekpool(ctx context.Context, _ openapi.GetKekpoolReque
 }
 
 func (s *StrictServer) PostKekpool(ctx context.Context, openapiPostKekpoolRequestObject openapi.PostKekpoolRequestObject) (openapi.PostKekpoolResponseObject, error) {
-	openapiKEKPoolCreate := openapi.KEKPoolCreate(*openapiPostKekpoolRequestObject.Body)
-	return s.service.PostKEKPool(ctx, &openapiKEKPoolCreate)
+	kekPoolCreate := openapi.KEKPoolCreate(*openapiPostKekpoolRequestObject.Body)
+	return s.service.PostKEKPool(ctx, &kekPoolCreate)
 }
 
 func (s *StrictServer) GetKekpoolKekPoolIDKek(ctx context.Context, openapiGetKekpoolKekPoolIDKekRequestObject openapi.GetKekpoolKekPoolIDKekRequestObject) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
-	return s.service.GetKEKPoolKEKPoolIDKEK(ctx, openapiGetKekpoolKekPoolIDKekRequestObject)
+	kekPoolID := openapiGetKekpoolKekPoolIDKekRequestObject.KekPoolID
+	return s.service.GetKEKPoolKEKPoolIDKEK(ctx, &kekPoolID)
 }
 
 func (s *StrictServer) PostKekpoolKekPoolIDKek(ctx context.Context, openapiPostKekpoolKekPoolIDKekRequestObject openapi.PostKekpoolKekPoolIDKekRequestObject) (openapi.PostKekpoolKekPoolIDKekResponseObject, error) {
-	return s.service.PostKEKPoolKEKPoolIDKEK(ctx, openapiPostKekpoolKekPoolIDKekRequestObject)
+	kekPoolID := openapiPostKekpoolKekPoolIDKekRequestObject.KekPoolID
+	return s.service.PostKEKPoolKEKPoolIDKEK(ctx, &kekPoolID)
 }
