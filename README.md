@@ -7,7 +7,7 @@ Requires Go 1.24+
 
 ## Initialize
 ```sh
-go mod init github.com/gottagolightspeed/backend_practical_justin_cranford
+go mod init github.com/justincranford/cryptoutil
 ```
 
 ## Install Utilities
@@ -19,7 +19,10 @@ go install mvdan.cc/gofumpt@latest
 
 ## Generate Go Fiber Code From OpenAPI Spec
 ```sh
-go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest --config=openapi_gen_config.yaml openapi.yaml
+go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest --config=openapi_gen_model.yaml  openapi_spec_components.yaml
+go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest --config=openapi_gen_server.yaml openapi_spec_paths.yaml
+
+go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest --config=openapi_gen_client.yaml openapi_spec_paths.yaml
 ```
 
 ## Run Automated Tests
