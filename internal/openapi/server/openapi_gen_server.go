@@ -217,7 +217,7 @@ func (response GetKekpool200JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 	return ctx.JSON(&response)
 }
 
-type GetKekpool400JSONResponse struct{ ExternalRef0.HTTP400BadRequest }
+type GetKekpool400JSONResponse struct{ externalRef0.HTTP400BadRequest }
 
 func (response GetKekpool400JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -227,7 +227,7 @@ func (response GetKekpool400JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 }
 
 type GetKekpool401JSONResponse struct {
-	ExternalRef0.HTTP401Unauthorized
+	externalRef0.HTTP401Unauthorized
 }
 
 func (response GetKekpool401JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
@@ -237,7 +237,7 @@ func (response GetKekpool401JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 	return ctx.JSON(&response)
 }
 
-type GetKekpool403JSONResponse struct{ ExternalRef0.HTTP403Forbidden }
+type GetKekpool403JSONResponse struct{ externalRef0.HTTP403Forbidden }
 
 func (response GetKekpool403JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -246,7 +246,7 @@ func (response GetKekpool403JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 	return ctx.JSON(&response)
 }
 
-type GetKekpool404JSONResponse struct{ ExternalRef0.HTTP404NotFound }
+type GetKekpool404JSONResponse struct{ externalRef0.HTTP404NotFound }
 
 func (response GetKekpool404JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -256,7 +256,7 @@ func (response GetKekpool404JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 }
 
 type GetKekpool429JSONResponse struct {
-	ExternalRef0.HTTP429TooManyRequests
+	externalRef0.HTTP429TooManyRequests
 }
 
 func (response GetKekpool429JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
@@ -267,7 +267,7 @@ func (response GetKekpool429JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 }
 
 type GetKekpool500JSONResponse struct {
-	ExternalRef0.HTTP500InternalServerError
+	externalRef0.HTTP500InternalServerError
 }
 
 func (response GetKekpool500JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
@@ -277,7 +277,7 @@ func (response GetKekpool500JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 	return ctx.JSON(&response)
 }
 
-type GetKekpool502JSONResponse struct{ ExternalRef0.HTTP502BadGateway }
+type GetKekpool502JSONResponse struct{ externalRef0.HTTP502BadGateway }
 
 func (response GetKekpool502JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -287,7 +287,7 @@ func (response GetKekpool502JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 }
 
 type GetKekpool503JSONResponse struct {
-	ExternalRef0.HTTP503ServiceUnavailable
+	externalRef0.HTTP503ServiceUnavailable
 }
 
 func (response GetKekpool503JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
@@ -298,7 +298,7 @@ func (response GetKekpool503JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx
 }
 
 type GetKekpool504JSONResponse struct {
-	ExternalRef0.HTTP504GatewayTimeout
+	externalRef0.HTTP504GatewayTimeout
 }
 
 func (response GetKekpool504JSONResponse) VisitGetKekpoolResponse(ctx *fiber.Ctx) error {
@@ -325,7 +325,7 @@ func (response PostKekpool200JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 	return ctx.JSON(&response)
 }
 
-type PostKekpool400JSONResponse struct{ ExternalRef0.HTTP400BadRequest }
+type PostKekpool400JSONResponse struct{ externalRef0.HTTP400BadRequest }
 
 func (response PostKekpool400JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -335,7 +335,7 @@ func (response PostKekpool400JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 }
 
 type PostKekpool401JSONResponse struct {
-	ExternalRef0.HTTP401Unauthorized
+	externalRef0.HTTP401Unauthorized
 }
 
 func (response PostKekpool401JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
@@ -345,7 +345,7 @@ func (response PostKekpool401JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 	return ctx.JSON(&response)
 }
 
-type PostKekpool403JSONResponse struct{ ExternalRef0.HTTP403Forbidden }
+type PostKekpool403JSONResponse struct{ externalRef0.HTTP403Forbidden }
 
 func (response PostKekpool403JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -354,7 +354,7 @@ func (response PostKekpool403JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 	return ctx.JSON(&response)
 }
 
-type PostKekpool404JSONResponse struct{ ExternalRef0.HTTP404NotFound }
+type PostKekpool404JSONResponse struct{ externalRef0.HTTP404NotFound }
 
 func (response PostKekpool404JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -364,7 +364,7 @@ func (response PostKekpool404JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 }
 
 type PostKekpool429JSONResponse struct {
-	ExternalRef0.HTTP429TooManyRequests
+	externalRef0.HTTP429TooManyRequests
 }
 
 func (response PostKekpool429JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
@@ -375,7 +375,7 @@ func (response PostKekpool429JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 }
 
 type PostKekpool500JSONResponse struct {
-	ExternalRef0.HTTP500InternalServerError
+	externalRef0.HTTP500InternalServerError
 }
 
 func (response PostKekpool500JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
@@ -385,7 +385,7 @@ func (response PostKekpool500JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 	return ctx.JSON(&response)
 }
 
-type PostKekpool502JSONResponse struct{ ExternalRef0.HTTP502BadGateway }
+type PostKekpool502JSONResponse struct{ externalRef0.HTTP502BadGateway }
 
 func (response PostKekpool502JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -395,7 +395,7 @@ func (response PostKekpool502JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 }
 
 type PostKekpool503JSONResponse struct {
-	ExternalRef0.HTTP503ServiceUnavailable
+	externalRef0.HTTP503ServiceUnavailable
 }
 
 func (response PostKekpool503JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
@@ -406,7 +406,7 @@ func (response PostKekpool503JSONResponse) VisitPostKekpoolResponse(ctx *fiber.C
 }
 
 type PostKekpool504JSONResponse struct {
-	ExternalRef0.HTTP504GatewayTimeout
+	externalRef0.HTTP504GatewayTimeout
 }
 
 func (response PostKekpool504JSONResponse) VisitPostKekpoolResponse(ctx *fiber.Ctx) error {
@@ -434,7 +434,7 @@ func (response GetKekpoolKekPoolIDKek200JSONResponse) VisitGetKekpoolKekPoolIDKe
 	return ctx.JSON(&response)
 }
 
-type GetKekpoolKekPoolIDKek400JSONResponse struct{ ExternalRef0.HTTP400BadRequest }
+type GetKekpoolKekPoolIDKek400JSONResponse struct{ externalRef0.HTTP400BadRequest }
 
 func (response GetKekpoolKekPoolIDKek400JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -444,7 +444,7 @@ func (response GetKekpoolKekPoolIDKek400JSONResponse) VisitGetKekpoolKekPoolIDKe
 }
 
 type GetKekpoolKekPoolIDKek401JSONResponse struct {
-	ExternalRef0.HTTP401Unauthorized
+	externalRef0.HTTP401Unauthorized
 }
 
 func (response GetKekpoolKekPoolIDKek401JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -454,7 +454,7 @@ func (response GetKekpoolKekPoolIDKek401JSONResponse) VisitGetKekpoolKekPoolIDKe
 	return ctx.JSON(&response)
 }
 
-type GetKekpoolKekPoolIDKek403JSONResponse struct{ ExternalRef0.HTTP403Forbidden }
+type GetKekpoolKekPoolIDKek403JSONResponse struct{ externalRef0.HTTP403Forbidden }
 
 func (response GetKekpoolKekPoolIDKek403JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -463,7 +463,7 @@ func (response GetKekpoolKekPoolIDKek403JSONResponse) VisitGetKekpoolKekPoolIDKe
 	return ctx.JSON(&response)
 }
 
-type GetKekpoolKekPoolIDKek404JSONResponse struct{ ExternalRef0.HTTP404NotFound }
+type GetKekpoolKekPoolIDKek404JSONResponse struct{ externalRef0.HTTP404NotFound }
 
 func (response GetKekpoolKekPoolIDKek404JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -473,7 +473,7 @@ func (response GetKekpoolKekPoolIDKek404JSONResponse) VisitGetKekpoolKekPoolIDKe
 }
 
 type GetKekpoolKekPoolIDKek429JSONResponse struct {
-	ExternalRef0.HTTP429TooManyRequests
+	externalRef0.HTTP429TooManyRequests
 }
 
 func (response GetKekpoolKekPoolIDKek429JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -484,7 +484,7 @@ func (response GetKekpoolKekPoolIDKek429JSONResponse) VisitGetKekpoolKekPoolIDKe
 }
 
 type GetKekpoolKekPoolIDKek500JSONResponse struct {
-	ExternalRef0.HTTP500InternalServerError
+	externalRef0.HTTP500InternalServerError
 }
 
 func (response GetKekpoolKekPoolIDKek500JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -494,7 +494,7 @@ func (response GetKekpoolKekPoolIDKek500JSONResponse) VisitGetKekpoolKekPoolIDKe
 	return ctx.JSON(&response)
 }
 
-type GetKekpoolKekPoolIDKek502JSONResponse struct{ ExternalRef0.HTTP502BadGateway }
+type GetKekpoolKekPoolIDKek502JSONResponse struct{ externalRef0.HTTP502BadGateway }
 
 func (response GetKekpoolKekPoolIDKek502JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -504,7 +504,7 @@ func (response GetKekpoolKekPoolIDKek502JSONResponse) VisitGetKekpoolKekPoolIDKe
 }
 
 type GetKekpoolKekPoolIDKek503JSONResponse struct {
-	ExternalRef0.HTTP503ServiceUnavailable
+	externalRef0.HTTP503ServiceUnavailable
 }
 
 func (response GetKekpoolKekPoolIDKek503JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -515,7 +515,7 @@ func (response GetKekpoolKekPoolIDKek503JSONResponse) VisitGetKekpoolKekPoolIDKe
 }
 
 type GetKekpoolKekPoolIDKek504JSONResponse struct {
-	ExternalRef0.HTTP504GatewayTimeout
+	externalRef0.HTTP504GatewayTimeout
 }
 
 func (response GetKekpoolKekPoolIDKek504JSONResponse) VisitGetKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -543,7 +543,7 @@ func (response PostKekpoolKekPoolIDKek200JSONResponse) VisitPostKekpoolKekPoolID
 	return ctx.JSON(&response)
 }
 
-type PostKekpoolKekPoolIDKek400JSONResponse struct{ ExternalRef0.HTTP400BadRequest }
+type PostKekpoolKekPoolIDKek400JSONResponse struct{ externalRef0.HTTP400BadRequest }
 
 func (response PostKekpoolKekPoolIDKek400JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -553,7 +553,7 @@ func (response PostKekpoolKekPoolIDKek400JSONResponse) VisitPostKekpoolKekPoolID
 }
 
 type PostKekpoolKekPoolIDKek401JSONResponse struct {
-	ExternalRef0.HTTP401Unauthorized
+	externalRef0.HTTP401Unauthorized
 }
 
 func (response PostKekpoolKekPoolIDKek401JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -563,7 +563,7 @@ func (response PostKekpoolKekPoolIDKek401JSONResponse) VisitPostKekpoolKekPoolID
 	return ctx.JSON(&response)
 }
 
-type PostKekpoolKekPoolIDKek403JSONResponse struct{ ExternalRef0.HTTP403Forbidden }
+type PostKekpoolKekPoolIDKek403JSONResponse struct{ externalRef0.HTTP403Forbidden }
 
 func (response PostKekpoolKekPoolIDKek403JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -572,7 +572,7 @@ func (response PostKekpoolKekPoolIDKek403JSONResponse) VisitPostKekpoolKekPoolID
 	return ctx.JSON(&response)
 }
 
-type PostKekpoolKekPoolIDKek404JSONResponse struct{ ExternalRef0.HTTP404NotFound }
+type PostKekpoolKekPoolIDKek404JSONResponse struct{ externalRef0.HTTP404NotFound }
 
 func (response PostKekpoolKekPoolIDKek404JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -582,7 +582,7 @@ func (response PostKekpoolKekPoolIDKek404JSONResponse) VisitPostKekpoolKekPoolID
 }
 
 type PostKekpoolKekPoolIDKek429JSONResponse struct {
-	ExternalRef0.HTTP429TooManyRequests
+	externalRef0.HTTP429TooManyRequests
 }
 
 func (response PostKekpoolKekPoolIDKek429JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -593,7 +593,7 @@ func (response PostKekpoolKekPoolIDKek429JSONResponse) VisitPostKekpoolKekPoolID
 }
 
 type PostKekpoolKekPoolIDKek500JSONResponse struct {
-	ExternalRef0.HTTP500InternalServerError
+	externalRef0.HTTP500InternalServerError
 }
 
 func (response PostKekpoolKekPoolIDKek500JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -603,7 +603,7 @@ func (response PostKekpoolKekPoolIDKek500JSONResponse) VisitPostKekpoolKekPoolID
 	return ctx.JSON(&response)
 }
 
-type PostKekpoolKekPoolIDKek502JSONResponse struct{ ExternalRef0.HTTP502BadGateway }
+type PostKekpoolKekPoolIDKek502JSONResponse struct{ externalRef0.HTTP502BadGateway }
 
 func (response PostKekpoolKekPoolIDKek502JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
@@ -613,7 +613,7 @@ func (response PostKekpoolKekPoolIDKek502JSONResponse) VisitPostKekpoolKekPoolID
 }
 
 type PostKekpoolKekPoolIDKek503JSONResponse struct {
-	ExternalRef0.HTTP503ServiceUnavailable
+	externalRef0.HTTP503ServiceUnavailable
 }
 
 func (response PostKekpoolKekPoolIDKek503JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
@@ -624,7 +624,7 @@ func (response PostKekpoolKekPoolIDKek503JSONResponse) VisitPostKekpoolKekPoolID
 }
 
 type PostKekpoolKekPoolIDKek504JSONResponse struct {
-	ExternalRef0.HTTP504GatewayTimeout
+	externalRef0.HTTP504GatewayTimeout
 }
 
 func (response PostKekpoolKekPoolIDKek504JSONResponse) VisitPostKekpoolKekPoolIDKekResponse(ctx *fiber.Ctx) error {
