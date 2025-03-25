@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	openapiHandler "cryptoutil/handler"
+	openapiHandler "cryptoutil/internal/handler"
 	openapiServer "cryptoutil/internal/openapi/server"
 	ormService "cryptoutil/internal/orm"
 	cryptoutilService "cryptoutil/service"
