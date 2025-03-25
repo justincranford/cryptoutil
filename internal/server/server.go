@@ -11,7 +11,7 @@ import (
 	openapiHandler "cryptoutil/internal/handler"
 	openapiServer "cryptoutil/internal/openapi/server"
 	ormService "cryptoutil/internal/orm"
-	cryptoutilService "cryptoutil/service"
+	cryptoutilService "cryptoutil/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
