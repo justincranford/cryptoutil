@@ -4,7 +4,7 @@ import (
 	"cryptoutil/internal/openapi/model"
 	"cryptoutil/internal/openapi/server"
 	ormService "cryptoutil/internal/orm"
-	"cryptoutil/util"
+	"cryptoutil/internal/util"
 	"errors"
 	"fmt"
 
