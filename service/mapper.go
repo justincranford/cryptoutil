@@ -3,7 +3,7 @@ package service
 import (
 	"cryptoutil/internal/openapi/model"
 	"cryptoutil/internal/openapi/server"
-	"cryptoutil/orm"
+	ormService "cryptoutil/internal/orm"
 	"cryptoutil/util"
 	"errors"
 	"fmt"
@@ -17,8 +17,8 @@ func NewMapper() *OpenapiOrmMapper {
 	return &OpenapiOrmMapper{}
 }
 
-func (m *OpenapiOrmMapper) toGormKEKPoolInsert(openapiKEKPoolCreate *model.KEKPoolCreate) *orm.KEKPool {
-	return &orm.KEKPool{
+func (m *OpenapiOrmMapper) toGormKEKPoolInsert(openapiKEKPoolCreate *model.KEKPoolCreate) *ormService.KEKPool {
+	return &ormService.KEKPool{
 		KEKPoolName:                openapiKEKPoolCreate.Name,
 		KEKPoolDescription:         openapiKEKPoolCreate.Description,
 		KEKPoolProvider:            *m.toKEKPoolProviderEnum(openapiKEKPoolCreate.Provider),
@@ -30,7 +30,7 @@ func (m *OpenapiOrmMapper) toGormKEKPoolInsert(openapiKEKPoolCreate *model.KEKPo
 	}
 }
 
-func (m *OpenapiOrmMapper) toOpenapiKEKPools(gormKEKPools *[]orm.KEKPool) *[]model.KEKPool {
+func (m *OpenapiOrmMapper) toOpenapiKEKPools(gormKEKPools *[]ormService.KEKPool) *[]model.KEKPool {
 	openapiKEKPools := make([]model.KEKPool, len(*gormKEKPools))
 	for i, gormKekPool := range *gormKEKPools {
 		openapiKEKPools[i] = *m.toOpenapiKEKPool(&gormKekPool)
@@ -38,7 +38,7 @@ func (m *OpenapiOrmMapper) toOpenapiKEKPools(gormKEKPools *[]orm.KEKPool) *[]mod
 	return &openapiKEKPools
 }
 
-func (*OpenapiOrmMapper) toOpenapiKEKPool(gormKekPool *orm.KEKPool) *model.KEKPool {
+func (*OpenapiOrmMapper) toOpenapiKEKPool(gormKekPool *ormService.KEKPool) *model.KEKPool {
 	return &model.KEKPool{
 		Id:                  (*model.KEKPoolId)(util.StringPtr(gormKekPool.KEKPoolID.String())),
 		Name:                &gormKekPool.KEKPoolName,
@@ -52,7 +52,7 @@ func (*OpenapiOrmMapper) toOpenapiKEKPool(gormKekPool *orm.KEKPool) *model.KEKPo
 	}
 }
 
-func (m *OpenapiOrmMapper) toOpenapiKEKs(gormKEKs *[]orm.KEK) *[]model.KEK {
+func (m *OpenapiOrmMapper) toOpenapiKEKs(gormKEKs *[]ormService.KEK) *[]model.KEK {
 	openapiKEKs := make([]model.KEK, len(*gormKEKs))
 	for i, gormKEK := range *gormKEKs {
 		openapiKEKs[i] = *m.toOpenapiKEK(&gormKEK)
@@ -60,7 +60,7 @@ func (m *OpenapiOrmMapper) toOpenapiKEKs(gormKEKs *[]orm.KEK) *[]model.KEK {
 	return &openapiKEKs
 }
 
-func (*OpenapiOrmMapper) toOpenapiKEK(gormKEK *orm.KEK) *model.KEK {
+func (*OpenapiOrmMapper) toOpenapiKEK(gormKEK *ormService.KEK) *model.KEK {
 	return &model.KEK{
 		KekId:        &gormKEK.KEKID,
 		KekPoolId:    (*model.KEKPoolId)(util.StringPtr(gormKEK.KEKPoolID.String())),
@@ -68,29 +68,29 @@ func (*OpenapiOrmMapper) toOpenapiKEK(gormKEK *orm.KEK) *model.KEK {
 	}
 }
 
-func (*OpenapiOrmMapper) toKEKPoolProviderEnum(openapiKEKPoolProvider *model.KEKPoolProvider) *orm.KEKPoolProviderEnum {
-	gormKEKPoolProvider := orm.KEKPoolProviderEnum(*openapiKEKPoolProvider)
+func (*OpenapiOrmMapper) toKEKPoolProviderEnum(openapiKEKPoolProvider *model.KEKPoolProvider) *ormService.KEKPoolProviderEnum {
+	gormKEKPoolProvider := ormService.KEKPoolProviderEnum(*openapiKEKPoolProvider)
 	return &gormKEKPoolProvider
 }
 
-func (*OpenapiOrmMapper) toKKEKPoolAlgorithmEnum(openapiKEKPoolProvider *model.KEKPoolAlgorithm) *orm.KEKPoolAlgorithmEnum {
-	gormKEKPoolAlgorithm := orm.KEKPoolAlgorithmEnum(*openapiKEKPoolProvider)
+func (*OpenapiOrmMapper) toKKEKPoolAlgorithmEnum(openapiKEKPoolProvider *model.KEKPoolAlgorithm) *ormService.KEKPoolAlgorithmEnum {
+	gormKEKPoolAlgorithm := ormService.KEKPoolAlgorithmEnum(*openapiKEKPoolProvider)
 	return &gormKEKPoolAlgorithm
 }
 
-func (*OpenapiOrmMapper) toKEKPoolInitialStatus(openapiKEKPoolIsImportAllowed *model.KEKPoolIsImportAllowed) *orm.KEKPoolStatusEnum {
-	var gormKEKPoolStatus orm.KEKPoolStatusEnum
+func (*OpenapiOrmMapper) toKEKPoolInitialStatus(openapiKEKPoolIsImportAllowed *model.KEKPoolIsImportAllowed) *ormService.KEKPoolStatusEnum {
+	var gormKEKPoolStatus ormService.KEKPoolStatusEnum
 	if *openapiKEKPoolIsImportAllowed {
-		gormKEKPoolStatus = orm.KEKPoolStatusEnum("pending_import")
+		gormKEKPoolStatus = ormService.KEKPoolStatusEnum("pending_import")
 	} else {
-		gormKEKPoolStatus = orm.KEKPoolStatusEnum("pending_generate")
+		gormKEKPoolStatus = ormService.KEKPoolStatusEnum("pending_generate")
 	}
 	return &gormKEKPoolStatus
 }
 
 // PostKEKPool
 
-func (m *OpenapiOrmMapper) toOpenapiResponseInsertKEKPoolSuccess(gormKEKPool *orm.KEKPool) server.PostKekpoolResponseObject {
+func (m *OpenapiOrmMapper) toOpenapiResponseInsertKEKPoolSuccess(gormKEKPool *ormService.KEKPool) server.PostKekpoolResponseObject {
 	openapiPostKekpoolResponseObject := server.PostKekpool200JSONResponse(*m.toOpenapiKEKPool(gormKEKPool))
 	return &openapiPostKekpoolResponseObject
 }
@@ -101,7 +101,7 @@ func (*OpenapiOrmMapper) toOpenapiResponseInsertKEKPoolError(err error) (server.
 
 // GetKEKPool
 
-func (m *OpenapiOrmMapper) toOpenapiResponseSelectKEKPoolSuccess(gormKEKPools *[]orm.KEKPool) server.GetKekpoolResponseObject {
+func (m *OpenapiOrmMapper) toOpenapiResponseSelectKEKPoolSuccess(gormKEKPools *[]ormService.KEKPool) server.GetKekpoolResponseObject {
 	openapiGetKekpoolResponseObject := server.GetKekpool200JSONResponse(*m.toOpenapiKEKPools(gormKEKPools))
 	return &openapiGetKekpoolResponseObject
 }
@@ -115,7 +115,7 @@ func (m *OpenapiOrmMapper) toOpenapiResponseSelectKEKPoolError(err error) (serve
 
 // PostKEKPoolKEKPoolIDKEK
 
-func (m *OpenapiOrmMapper) toOpenapiResponseInsertKEKSuccess(gormKEK *orm.KEK) server.PostKekpoolKekPoolIDKekResponseObject {
+func (m *OpenapiOrmMapper) toOpenapiResponseInsertKEKSuccess(gormKEK *ormService.KEK) server.PostKekpoolKekPoolIDKekResponseObject {
 	openapiPostKekpoolKekPoolIDKekResponseObject := server.PostKekpoolKekPoolIDKek200JSONResponse(*m.toOpenapiKEK(gormKEK))
 	return &openapiPostKekpoolKekPoolIDKekResponseObject
 }
@@ -142,7 +142,7 @@ func (*OpenapiOrmMapper) toOpenapiResponseInsertKEKError(err error) (server.Post
 
 // GetKEKPoolKEKPoolIDKEK
 
-func (m *OpenapiOrmMapper) toOpenapiResponseGetKEKSuccess(gormKEKs *[]orm.KEK) server.GetKekpoolKekPoolIDKekResponseObject {
+func (m *OpenapiOrmMapper) toOpenapiResponseGetKEKSuccess(gormKEKs *[]ormService.KEK) server.GetKekpoolKekPoolIDKekResponseObject {
 	openapiGetKekpoolKekPoolIDKekResponseObject := server.GetKekpoolKekPoolIDKek200JSONResponse(*m.toOpenapiKEKs(gormKEKs))
 	return &openapiGetKekpoolKekPoolIDKekResponseObject
 }
