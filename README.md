@@ -10,38 +10,46 @@ Requires Go 1.24+
 go mod init github.com/justincranford/cryptoutil
 ```
 
-## Install Utilities
+## Generate OpenAPI Handlers & Models
+
+### Install
+
 ```sh
 go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-go install mvdan.cc/gofumpt@latest
 ```
 
-## Generate Go Fiber Code From OpenAPI Spec
+## Generate
 ```sh
-go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest --config=openapi_gen_model.yaml  openapi_spec_components.yaml
-
-go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest --config=openapi_gen_server.yaml openapi_spec_paths.yaml
-
-go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest --config=openapi_gen_client.yaml openapi_spec_paths.yaml
+go generate ./...
 ```
 
-## Run Automated Tests
+Look at `internal/openapi/generate.go` for the commands used to generate internal/openapi/{model|server|client}/*.go code from OpenAPI spec files.
 
+## Testing
+
+### Automated Tests
 ```sh
 go test ./... -coverprofile=coverage.out          && \
 go tool cover -html=coverage.out -o coverage.html && \
 start coverage.html
 ```
 
-## Open Swagger UI for Manual Tests
-
+### Manual Tests with Swagger UI
 ```sh
 (go run main.go &) && \
 start http://localhost:8080/swagger
 ```
 
-## Run Linters
+## Linters
+
+### Install
+
+```sh
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+go install mvdan.cc/gofumpt@latest
+```
+
+### Run
 
 ```sh
 golangci-lint run
