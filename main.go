@@ -1,10 +1,10 @@
 package main
 
 import (
-	"cryptoutil/server"
+	cryptoutilServer "cryptoutil/internal/server"
 )
 
 func main() {
-	start, _ := server.NewServer("localhost:8080", true)
+	start, _ := cryptoutilServer.NewServer("localhost:8080", true)
 	start()
 }
