@@ -30,7 +30,7 @@ var (
 
 func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.NewService(testCtx, "asn1_test", false, false)
-	defer testTelemetryService.Shutdown(testCtx)
+	defer testTelemetryService.Shutdown()
 	os.Exit(m.Run())
 }
 
