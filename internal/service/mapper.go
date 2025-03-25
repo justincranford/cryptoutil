@@ -4,7 +4,7 @@ import (
 	cryptoutilModel "cryptoutil/internal/openapi/model"
 	cryptoutilServer "cryptoutil/internal/openapi/server"
 	cryptoutilOrmService "cryptoutil/internal/orm"
-	cryptoutilUtil "cryptoutil/internal/util"
+	cryptoutilPointer "cryptoutil/internal/pointer"
 	"errors"
 	"fmt"
 
@@ -40,7 +40,7 @@ func (m *OpenapiOrmMapper) toOpenapiKEKPools(gormKEKPools *[]cryptoutilOrmServic
 
 func (*OpenapiOrmMapper) toOpenapiKEKPool(gormKekPool *cryptoutilOrmService.KEKPool) *cryptoutilModel.KEKPool {
 	return &cryptoutilModel.KEKPool{
-		Id:                  (*cryptoutilModel.KEKPoolId)(cryptoutilUtil.StringPtr(gormKekPool.KEKPoolID.String())),
+		Id:                  (*cryptoutilModel.KEKPoolId)(cryptoutilPointer.StringPtr(gormKekPool.KEKPoolID.String())),
 		Name:                &gormKekPool.KEKPoolName,
 		Description:         &gormKekPool.KEKPoolDescription,
 		Algorithm:           (*cryptoutilModel.KEKPoolAlgorithm)(&gormKekPool.KEKPoolAlgorithm),
@@ -63,7 +63,7 @@ func (m *OpenapiOrmMapper) toOpenapiKEKs(gormKEKs *[]cryptoutilOrmService.KEK) *
 func (*OpenapiOrmMapper) toOpenapiKEK(gormKEK *cryptoutilOrmService.KEK) *cryptoutilModel.KEK {
 	return &cryptoutilModel.KEK{
 		KekId:        &gormKEK.KEKID,
-		KekPoolId:    (*cryptoutilModel.KEKPoolId)(cryptoutilUtil.StringPtr(gormKEK.KEKPoolID.String())),
+		KekPoolId:    (*cryptoutilModel.KEKPoolId)(cryptoutilPointer.StringPtr(gormKEK.KEKPoolID.String())),
 		GenerateDate: (*cryptoutilModel.KEKGenerateDate)(gormKEK.KEKGenerateDate),
 	}
 }
