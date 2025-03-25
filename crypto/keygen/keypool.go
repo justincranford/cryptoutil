@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"cryptoutil/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 )
 
 type KeyPool struct {
-	telemetryService *telemetry.Service
+	telemetryService *cryptoutilTelemetry.Service
 	startTime        time.Time
 	name             string
 	ctx              context.Context
@@ -31,7 +31,7 @@ type KeyPool struct {
 	getCounter       int
 }
 
-func NewKeyPool(ctx context.Context, telemetryService *telemetry.Service, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) *KeyPool {
+func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) *KeyPool {
 	wrappedCtx, cancelFunction := context.WithCancel(ctx)
 	pool := &KeyPool{
 		telemetryService: telemetryService,

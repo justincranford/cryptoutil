@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"cryptoutil/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -25,11 +25,11 @@ const (
 
 var (
 	testCtx              = context.Background()
-	testTelemetryService *telemetry.Service
+	testTelemetryService *cryptoutilTelemetry.Service
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = telemetry.NewService(testCtx, "asn1_test", false, false)
+	testTelemetryService = cryptoutilTelemetry.NewService(testCtx, "asn1_test", false, false)
 	defer testTelemetryService.Shutdown(testCtx)
 	os.Exit(m.Run())
 }

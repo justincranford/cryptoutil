@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"cryptoutil/crypto/asn1"
-	"cryptoutil/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 
 func TestPoolsExample(t *testing.T) {
 	ctx := context.Background()
-	telemetryService := telemetry.NewService(ctx, "asn1_test", false, false)
+	telemetryService := cryptoutilTelemetry.NewService(ctx, "asn1_test", false, false)
 	defer telemetryService.Shutdown(ctx)
 
 	keys := generateKeys(ctx, telemetryService)
@@ -31,7 +31,7 @@ func TestPoolsExample(t *testing.T) {
 	readKeys(telemetryService, keys)
 }
 
-func generateKeys(ctx context.Context, telemetryService *telemetry.Service) []Key {
+func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) []Key {
 	rsaPool := NewKeyPool(ctx, telemetryService, "RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPairFunction(2048))
 	ecdsaPool := NewKeyPool(ctx, telemetryService, "ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPairFunction(elliptic.P256()))
 	ecdhPool := NewKeyPool(ctx, telemetryService, "ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPairFunction(ecdh.P256()))
@@ -60,7 +60,7 @@ func generateKeys(ctx context.Context, telemetryService *telemetry.Service) []Ke
 	return keys
 }
 
-func writeKeys(telemetryService *telemetry.Service, keys []Key) {
+func writeKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"
@@ -101,7 +101,7 @@ func writeKeys(telemetryService *telemetry.Service, keys []Key) {
 	}
 }
 
-func readKeys(telemetryService *telemetry.Service, keys []Key) {
+func readKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"
