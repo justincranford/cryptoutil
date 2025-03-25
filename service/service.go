@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"cryptoutil/api/openapi"
+	"cryptoutil/internal/openapi/model"
+	"cryptoutil/internal/openapi/server"
 	"cryptoutil/orm"
 
 	"github.com/google/uuid"
@@ -20,7 +21,7 @@ func NewService(dbService *orm.Service) *KEKPoolService {
 	return &KEKPoolService{ormService: dbService, openapiOrmMapper: NewMapper()}
 }
 
-func (s *KEKPoolService) PostKEKPool(ctx context.Context, openapiKEKPoolCreate *openapi.KEKPoolCreate) (openapi.PostKekpoolResponseObject, error) {
+func (s *KEKPoolService) PostKEKPool(ctx context.Context, openapiKEKPoolCreate *model.KEKPoolCreate) (server.PostKekpoolResponseObject, error) {
 	gormKEKPoolInsert := s.openapiOrmMapper.toGormKEKPoolInsert(openapiKEKPoolCreate)
 	gormCreateKEKResult := s.ormService.GormDB.Create(gormKEKPoolInsert)
 	if gormCreateKEKResult.Error != nil {
@@ -29,7 +30,7 @@ func (s *KEKPoolService) PostKEKPool(ctx context.Context, openapiKEKPoolCreate *
 	return s.openapiOrmMapper.toOpenapiResponseInsertKEKPoolSuccess(gormKEKPoolInsert), nil
 }
 
-func (s *KEKPoolService) GetKEKPool(ctx context.Context) (openapi.GetKekpoolResponseObject, error) {
+func (s *KEKPoolService) GetKEKPool(ctx context.Context) (server.GetKekpoolResponseObject, error) {
 	var gormKEKPools []orm.KEKPool
 	gormFindKEKPoolsResult := s.ormService.GormDB.Find(&gormKEKPools)
 	if gormFindKEKPoolsResult.Error != nil {
@@ -38,7 +39,7 @@ func (s *KEKPoolService) GetKEKPool(ctx context.Context) (openapi.GetKekpoolResp
 	return s.openapiOrmMapper.toOpenapiResponseSelectKEKPoolSuccess(&gormKEKPools), nil
 }
 
-func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string) (openapi.PostKekpoolKekPoolIDKekResponseObject, error) {
+func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string, _ *model.KEKGenerate) (server.PostKekpoolKekPoolIDKekResponseObject, error) {
 	_, err := uuid.Parse(*kekPoolID)
 	if err != nil {
 		return s.openapiOrmMapper.toOpenapiResponseInsertKEKSelectKEKPoolError(err)
@@ -70,7 +71,7 @@ func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID 
 	return s.openapiOrmMapper.toOpenapiResponseInsertKEKSuccess(gormKEK), nil
 }
 
-func (s *KEKPoolService) GetKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string) (openapi.GetKekpoolKekPoolIDKekResponseObject, error) {
+func (s *KEKPoolService) GetKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string) (server.GetKekpoolKekPoolIDKekResponseObject, error) {
 	_, err := uuid.Parse(*kekPoolID)
 	if err != nil {
 		return s.openapiOrmMapper.toOpenapiResponseGetKEKInvalidKEKPoolIDError(err)

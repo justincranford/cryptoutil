@@ -1,0 +1,158 @@
+# https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.1/schema.yaml
+openapi: 3.0.3
+info:
+  title: API
+  version: "0.0.1"
+  description: >
+    Crypto REST API
+servers:
+  - url: http://localhost:8080/
+
+paths:
+  /kekpool:
+    post:
+      summary: Create a new KEK Pool.
+      description: Create a new KEK Pool. Depending on the provider, a KEK Pool may be contained to one KEK or many KEKs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/KEKPoolCreate'
+      responses:
+        '200':
+          description: KEK Pool created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/KEKPool'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+    get:
+      summary: List all KEK Pools. Supports optional filtering, sorting, and paging.
+      description: List all KEK Pools. Supports optional filtering, sorting, and paging.
+      parameters:
+        - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamFilter"
+        - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamSort"
+        - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamPage"
+      responses:
+        '200':
+          description: A JSON array of 0, 1, or many KEK Pools.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './openapi_spec_components.yaml#/components/schemas/KEKPool'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
+  /kekpool/{kekPoolID}/kek:
+    parameters:
+      - name: kekPoolID
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Generate a new KEK in a KEK Pool.
+      description: Generate a new KEK in a KEK Pool.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/KEKGenerate'
+      responses:
+        '200':
+          description: KEK generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/KEK'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+    get:
+      summary: List all KEKs in KEK Pool. Supports optional filtering, sorting, and paging.
+      description: List all KEKs in KEK Pool. Supports optional filtering, sorting, and paging.
+      parameters:
+        - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamFilter"
+        - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamSort"
+        - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamPage"
+      responses:
+        '200':
+          description: A JSON array of 0, 1, or many KEKs in a KEK Pool.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './openapi_spec_components.yaml#/components/schemas/KEK'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
+components:

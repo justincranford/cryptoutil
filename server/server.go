@@ -8,10 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
-	"cryptoutil/api/handlers"
-	openapi2 "cryptoutil/api/openapi"
-	"cryptoutil/orm"
-	"cryptoutil/service"
+	openapiHandler "cryptoutil/handler"
+	openapiServer "cryptoutil/internal/openapi/server"
+	ormService "cryptoutil/orm"
+	cryptoutilService "cryptoutil/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -23,12 +23,12 @@ import (
 func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 	ctx := context.Background()
 	// ormService, err := orm.NewService(ctx, orm.DBTypePostgres, "", orm.ContainerModeRequired, applyMigrations)
-	ormService, err := orm.NewService(ctx, orm.DBTypeSQLite, ":memory:", orm.ContainerModeDisabled, applyMigrations)
+	ormService, err := ormService.NewService(ctx, ormService.DBTypeSQLite, ":memory:", ormService.ContainerModeDisabled, applyMigrations)
 	if err != nil {
 		log.Fatalf("open ORM service error: %v", err)
 	}
 
-	swaggerApi, err := openapi2.GetSwagger()
+	swaggerApi, err := openapiServer.GetSwagger()
 	if err != nil {
 		ormService.Shutdown()
 		log.Fatalf("get swagger error: %v", err)
@@ -37,14 +37,12 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 	app := fiber.New(fiber.Config{Immutable: true})
 	app.Use(logger.New())
 	app.Use(recover.New())
-	app.Get("/swagger/doc.json", openapi2.FiberHandlerOpenAPISpec())
+	app.Get("/swagger/doc.json", openapiServer.FiberHandlerOpenAPISpec())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	newVar := service.NewService(ormService)
-
-	strictServer := handlers.NewStrictServer(newVar)
-	openapi2.RegisterHandlersWithOptions(app, openapi2.NewStrictHandler(strictServer, nil), openapi2.FiberServerOptions{
-		Middlewares: []openapi2.MiddlewareFunc{
+	strictServer := openapiHandler.NewStrictServer(cryptoutilService.NewService(ormService))
+	openapiServer.RegisterHandlersWithOptions(app, openapiServer.NewStrictHandler(strictServer, nil), openapiServer.FiberServerOptions{
+		Middlewares: []openapiServer.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 		},
 	})

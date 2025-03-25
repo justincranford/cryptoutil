@@ -1,0 +1,375 @@
+# https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.1/schema.yaml
+openapi: 3.0.3
+info:
+  title: API
+  version: "0.0.1"
+  description: >
+    Crypto REST API
+
+components:
+
+  parameters:
+    QueryParamFilter:
+      name: filter
+      in: query
+      schema:
+        $ref: '#/components/schemas/QueryParamFilter'
+    QueryParamSort:
+      name: sort
+      in: query
+      schema:
+        $ref: '#/components/schemas/QueryParamSort'
+    QueryParamPage:
+      name: page
+      in: query
+      schema:
+        $ref: '#/components/schemas/QueryParamPage'
+
+  schemas:
+    QueryParamFilter:
+      type: string
+      description: "Filter criteria in the format 'field=value'. Supported operators are '=', '!=', '>', '<', '>=', '<='"
+      example: "field=value"
+    QueryParamSort:
+      type: string
+      description: "Sort criteria in the format 'field:direction' or 'field'. Values for direction are ASC or DESC. If omitted, it defaults to ASC."
+      example: "field:DESC"
+    QueryParamPage:
+      type: string
+      description: "Paging criteria in the format 'pageNumber:pageSize' or 'pageNumber'; pageNumber is 0 offset."
+      example: "0:25"
+
+    KEKPoolCreate:
+      type: object
+      required: [ name, description ]
+      properties:
+        name:
+          $ref: '#/components/schemas/KEKPoolName'
+        description:
+          $ref: '#/components/schemas/KEKPoolDescription'
+        algorithm:
+          $ref: '#/components/schemas/KEKPoolAlgorithm'
+        provider:
+          $ref: '#/components/schemas/KEKPoolProvider'
+        isVersioningAllowed:
+          $ref: '#/components/schemas/KEKPoolIsVersioningAllowed'
+        isImportAllowed:
+          $ref: '#/components/schemas/KEKPoolIsImportAllowed'
+        isExportAllowed:
+          $ref: '#/components/schemas/KEKPoolIsExportAllowed'
+
+    KEKPool:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/KEKPoolId'
+        name:
+          $ref: '#/components/schemas/KEKPoolName'
+        description:
+          $ref: '#/components/schemas/KEKPoolDescription'
+        algorithm:
+          $ref: '#/components/schemas/KEKPoolAlgorithm'
+        provider:
+          $ref: '#/components/schemas/KEKPoolProvider'
+        isVersioningAllowed:
+          $ref: '#/components/schemas/KEKPoolIsVersioningAllowed'
+        isImportAllowed:
+          $ref: '#/components/schemas/KEKPoolIsImportAllowed'
+        isExportAllowed:
+          $ref: '#/components/schemas/KEKPoolIsExportAllowed'
+        status:
+          $ref: '#/components/schemas/KEKPoolStatus'
+
+    KEKPoolUpdate:
+      type: object
+      required: [ name, description ]
+      properties:
+        name:
+          $ref: '#/components/schemas/KEKPoolName'
+        description:
+          $ref: '#/components/schemas/KEKPoolDescription'
+
+    KEKGenerate:
+      type: object
+      additionalProperties: false
+
+    KEKUpdate:
+      type: object
+      required: [ kek_pool_id, kek_version ]
+      properties:
+        kek_pool_id:
+          $ref: '#/components/schemas/KEKPoolId'
+        kek_version:
+          $ref: '#/components/schemas/KEKId'
+
+    KEK:
+      type: object
+      properties:
+        kek_pool_id:
+          $ref: '#/components/schemas/KEKPoolId'
+        kek_id:
+          $ref: '#/components/schemas/KEKId'
+        generateDate:
+          $ref: '#/components/schemas/KEKGenerateDate'
+
+    KEKPoolId:
+      type: string
+      description: Unique base64 url-encoded identifier for a KEK Pool.
+      minLength: 2
+    KEKPoolName:
+      type: string
+      description: Friendly name for a KEK Pool.
+      example: Payroll Database
+      minLength: 1
+      maxLength: 63
+    KEKPoolDescription:
+      type: string
+      description: Description for a KEK Pool.
+      example: This KEK Pool is used to encrypt the Payroll Database
+      minLength: 1
+      maxLength: 255
+    KEKPoolAlgorithm:
+      type: string
+      enum: [ AES-256, AES-192, AES-128 ]
+      example: "AES-256"
+      description: Cryptographic algorithm for the KEK Pool.
+    KEKPoolProvider:
+      type: string
+      enum: [ Internal ]
+      example: "Internal"
+      description: Provider of the KEK Pool management service.
+    KEKPoolIsVersioningAllowed:
+      type: boolean
+      example: true
+      description: Indicates if the KEK Pool supports versioning.
+    KEKPoolIsImportAllowed:
+      type: boolean
+      example: false
+      description: Indicates if the KEK Pool supports import (BYOK).
+    KEKPoolIsExportAllowed:
+      type: boolean
+      example: false
+      description: Indicates if the KEK Pool supports export.
+    KEKPoolStatus:
+      type: string
+      enum: [ pending_generate, pending_import, active, disabled ]
+      example: "pending_generate"
+      description: Status of the KEK.
+
+    KEKId:
+      type: integer
+      description: Unique version of the KEK in a KEK Pool.
+      minimum: 1
+    KEKGenerateDate:
+      type: string
+      format: date-time
+      example: "2025-03-14T12:00:00Z"
+      description: ISO 8601 UTC timestamp of KEK generation.
+
+    HTTPError:
+      type: object
+      required: [ status, error, message ]
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          minimum: 400
+          maximum: 599
+        error:
+          type: string
+          description: HTTP status message
+          minLength: 1
+        message:
+          type: string
+          description: Detailed error message
+          minLength: 1
+
+  responses:
+    HTTP400BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 400
+                    minimum: 400
+                    maximum: 400
+                  error:
+                    type: string
+                    example: "Bad Request"
+                  message:
+                    type: string
+                    example: "The request could not be understood or was missing required parameters."
+
+    HTTP401Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 401
+                    minimum: 401
+                    maximum: 401
+                  error:
+                    type: string
+                    example: "Unauthorized"
+                  message:
+                    type: string
+                    example: "Authentication failed or user does not have permissions for the desired action."
+
+    HTTP403Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 403
+                    minimum: 403
+                    maximum: 403
+                  error:
+                    type: string
+                    example: "Forbidden"
+                  message:
+                    type: string
+                    example: "Authentication succeeded but the authenticated user does not have access to the resource."
+
+    HTTP404NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 404
+                    minimum: 404
+                    maximum: 404
+                  error:
+                    type: string
+                    example: "Not Found"
+                  message:
+                    type: string
+                    example: "The requested resource could not be found."
+
+    HTTP429TooManyRequests:
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 429
+                    minimum: 429
+                    maximum: 429
+                  error:
+                    type: string
+                    example: "Too Many Requests"
+                  message:
+                    type: string
+                    example: "You have sent too many requests in a given amount of time."
+
+    HTTP500InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 500
+                    minimum: 500
+                    maximum: 500
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+                  message:
+                    type: string
+                    example: "An unexpected error occurred on the server."
+
+    HTTP502BadGateway:
+      description: Bad Gateway
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 502
+                    minimum: 502
+                    maximum: 502
+                  error:
+                    type: string
+                    example: "Bad Gateway"
+                  message:
+                    type: string
+                    example: "The server received an invalid response from the upstream server."
+
+    HTTP503ServiceUnavailable:
+      description: Service Unavailable
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 503
+                    minimum: 503
+                    maximum: 503
+                  error:
+                    type: string
+                    example: "Service Unavailable"
+                  message:
+                    type: string
+                    example: "The server is currently unable to handle the request due to temporary overload or maintenance."
+
+    HTTP504GatewayTimeout:
+      description: Gateway Timeout
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/HTTPError'
+              - type: object
+                properties:
+                  status:
+                    type: integer
+                    example: 504
+                    minimum: 504
+                    maximum: 504
+                  error:
+                    type: string
+                    example: "Gateway Timeout"
+                  message:
+                    type: string
+                    example: "The server did not receive a timely response from the upstream server."

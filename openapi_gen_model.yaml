@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
-package: handlers
+package: model
+output: internal/openapi/model/openapi_gen_model.go
 generate:
-  fiber-server: true
-  strict-server: true
+  models: true
   embedded-spec: true
-output: api/handlers/openapi_handlers_gen.go
+output-options:
+  skip-prune: true
