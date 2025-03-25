@@ -2,7 +2,7 @@ package orm
 
 import (
 	"context"
-	"cryptoutil/container"
+	openapiContainer "cryptoutil/internal/container"
 	"database/sql"
 	"fmt"
 	"log"
@@ -90,7 +90,7 @@ func createSqlDB(ctx context.Context, dbType DBType, databaseUrl string, contain
 		case DBTypeSQLite:
 			return nil, nil, fmt.Errorf("there is no container option for sqlite")
 		case DBTypePostgres:
-			containerDatabaseUrl, shutdownDBContainer, err = container.StartPostgres(ctx, dbNameDefault, dbUsername, dbPassword)
+			containerDatabaseUrl, shutdownDBContainer, err = openapiContainer.StartPostgres(ctx, dbNameDefault, dbUsername, dbPassword)
 		default:
 			return nil, nil, fmt.Errorf("unsupported database type: %s", dbType)
 		}
