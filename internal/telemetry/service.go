@@ -30,9 +30,9 @@ type Service struct {
 	StartTime         time.Time
 	StopTime          time.Time
 	Slogger           *slog.Logger
-	LogsProvider      *log.LoggerProvider
-	MetricsProvider   *metric.MeterProvider
-	TracesProvider    *trace.TracerProvider
+	LogsProvider      *log.LoggerProvider   // TODO Convert to go.opentelemetry.io/otel/log for consistency with metric and trace
+	MetricsProvider   *metric.MeterProvider // TODO Convert to go.opentelemetry.io/otel/metric since otelfiber excepts the API, not the SDK
+	TracesProvider    *trace.TracerProvider // TODO Convert to go.opentelemetry.io/otel/trace since otelfiber excepts the API, not the SDK
 	TextMapPropagator *propagation.TextMapPropagator
 }
 
@@ -91,7 +91,8 @@ func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool
 	}
 }
 
-func (s *Service) Shutdown(ctx context.Context) {
+func (s *Service) Shutdown() {
+	ctx := context.Background()
 	if s.TracesProvider != nil {
 		if err := s.TracesProvider.Shutdown(ctx); err != nil {
 			s.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
