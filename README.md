@@ -36,8 +36,9 @@ start coverage.html
 
 ### Manual Tests with Swagger UI
 ```sh
-(go run main.go &) && \
+go run main.go &
 start http://localhost:8080/swagger
+fg
 ```
 
 ## Linters
