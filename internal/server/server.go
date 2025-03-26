@@ -12,7 +12,7 @@ import (
 
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilOrmService "cryptoutil/internal/orm"
+	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
 	cryptoutilService "cryptoutil/internal/service"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
@@ -36,7 +36,7 @@ func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
 	// fmt.Println(span.SpanContext().SpanID())
 
 	// ormService, err := orm.NewService(ctx, orm.DBTypePostgres, "", orm.ContainerModeRequired, applyMigrations)
-	ormService, err := cryptoutilOrmService.NewService(ctx, cryptoutilOrmService.DBTypeSQLite, ":memory:", cryptoutilOrmService.ContainerModeDisabled, applyMigrations)
+	ormService, err := cryptoutilRepositoryOrm.NewService(ctx, cryptoutilRepositoryOrm.DBTypeSQLite, ":memory:", cryptoutilRepositoryOrm.ContainerModeDisabled, applyMigrations)
 	if err != nil {
 		log.Fatalf("open ORM service error: %v", err)
 	}
