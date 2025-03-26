@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	dbNameDefault = fmt.Sprintf("kekservice%04d", rand.Intn(10_000))
+	dbNameDefault = fmt.Sprintf("keyservice%04d", rand.Intn(10_000))
 	dbUsername    = fmt.Sprintf("postgresUsername%04d", rand.Intn(10_000))
 	dbPassword    = fmt.Sprintf("postgresPassword%04d", rand.Intn(10_000))
 )

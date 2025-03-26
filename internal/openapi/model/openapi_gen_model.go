@@ -16,24 +16,24 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 )
 
-// Defines values for KEKPoolAlgorithm.
+// Defines values for KeyPoolAlgorithm.
 const (
-	AES128 KEKPoolAlgorithm = "AES-128"
-	AES192 KEKPoolAlgorithm = "AES-192"
-	AES256 KEKPoolAlgorithm = "AES-256"
+	AES128 KeyPoolAlgorithm = "AES-128"
+	AES192 KeyPoolAlgorithm = "AES-192"
+	AES256 KeyPoolAlgorithm = "AES-256"
 )
 
-// Defines values for KEKPoolProvider.
+// Defines values for KeyPoolProvider.
 const (
-	Internal KEKPoolProvider = "Internal"
+	Internal KeyPoolProvider = "Internal"
 )
 
-// Defines values for KEKPoolStatus.
+// Defines values for KeyPoolStatus.
 const (
-	Active          KEKPoolStatus = "active"
-	Disabled        KEKPoolStatus = "disabled"
-	PendingGenerate KEKPoolStatus = "pending_generate"
-	PendingImport   KEKPoolStatus = "pending_import"
+	Active          KeyPoolStatus = "active"
+	Disabled        KeyPoolStatus = "disabled"
+	PendingGenerate KeyPoolStatus = "pending_generate"
+	PendingImport   KeyPoolStatus = "pending_import"
 )
 
 // HTTPError defines model for HTTPError.
@@ -48,124 +48,124 @@ type HTTPError struct {
 	Status int `json:"status"`
 }
 
-// KEK defines model for KEK.
-type KEK struct {
-	// GenerateDate ISO 8601 UTC timestamp of KEK generation.
-	GenerateDate *KEKGenerateDate `json:"generateDate,omitempty"`
+// Key defines model for Key.
+type Key struct {
+	// GenerateDate ISO 8601 UTC timestamp of Key generation.
+	GenerateDate *KeyGenerateDate `json:"generateDate,omitempty"`
 
-	// KekId Unique version of the KEK in a KEK Pool.
-	KekId *KEKId `json:"kek_id,omitempty"`
+	// KeyId Unique version of the Key in a Key Pool.
+	KeyId *KeyId `json:"key_id,omitempty"`
 
-	// KekPoolId Unique base64 url-encoded identifier for a KEK Pool.
-	KekPoolId *KEKPoolId `json:"kek_pool_id,omitempty"`
+	// KeyPoolId Unique base64 url-encoded identifier for a Key Pool.
+	KeyPoolId *KeyPoolId `json:"key_pool_id,omitempty"`
 }
 
-// KEKGenerate defines model for KEKGenerate.
-type KEKGenerate = map[string]interface{}
+// KeyGenerate defines model for KeyGenerate.
+type KeyGenerate = map[string]interface{}
 
-// KEKGenerateDate ISO 8601 UTC timestamp of KEK generation.
-type KEKGenerateDate = time.Time
+// KeyGenerateDate ISO 8601 UTC timestamp of Key generation.
+type KeyGenerateDate = time.Time
 
-// KEKId Unique version of the KEK in a KEK Pool.
-type KEKId = int
+// KeyId Unique version of the Key in a Key Pool.
+type KeyId = int
 
-// KEKPool defines model for KEKPool.
-type KEKPool struct {
-	// Algorithm Cryptographic algorithm for the KEK Pool.
-	Algorithm *KEKPoolAlgorithm `json:"algorithm,omitempty"`
+// KeyPool defines model for KeyPool.
+type KeyPool struct {
+	// Algorithm Cryptographic algorithm for the Key Pool.
+	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description for a KEK Pool.
-	Description *KEKPoolDescription `json:"description,omitempty"`
+	// Description Description for a Key Pool.
+	Description *KeyPoolDescription `json:"description,omitempty"`
 
-	// Id Unique base64 url-encoded identifier for a KEK Pool.
-	Id *KEKPoolId `json:"id,omitempty"`
+	// Id Unique base64 url-encoded identifier for a Key Pool.
+	Id *KeyPoolId `json:"id,omitempty"`
 
-	// IsExportAllowed Indicates if the KEK Pool supports export.
-	IsExportAllowed *KEKPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
+	// IsExportAllowed Indicates if the Key Pool supports export.
+	IsExportAllowed *KeyPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
 
-	// IsImportAllowed Indicates if the KEK Pool supports import (BYOK).
-	IsImportAllowed *KEKPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
+	// IsImportAllowed Indicates if the Key Pool supports import (BYOK).
+	IsImportAllowed *KeyPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
 
-	// IsVersioningAllowed Indicates if the KEK Pool supports versioning.
-	IsVersioningAllowed *KEKPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
+	// IsVersioningAllowed Indicates if the Key Pool supports versioning.
+	IsVersioningAllowed *KeyPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 
-	// Name Friendly name for a KEK Pool.
-	Name *KEKPoolName `json:"name,omitempty"`
+	// Name Friendly name for a Key Pool.
+	Name *KeyPoolName `json:"name,omitempty"`
 
-	// Provider Provider of the KEK Pool management service.
-	Provider *KEKPoolProvider `json:"provider,omitempty"`
+	// Provider Provider of the Key Pool management service.
+	Provider *KeyPoolProvider `json:"provider,omitempty"`
 
-	// Status Status of the KEK.
-	Status *KEKPoolStatus `json:"status,omitempty"`
+	// Status Status of the Key.
+	Status *KeyPoolStatus `json:"status,omitempty"`
 }
 
-// KEKPoolAlgorithm Cryptographic algorithm for the KEK Pool.
-type KEKPoolAlgorithm string
+// KeyPoolAlgorithm Cryptographic algorithm for the Key Pool.
+type KeyPoolAlgorithm string
 
-// KEKPoolCreate defines model for KEKPoolCreate.
-type KEKPoolCreate struct {
-	// Algorithm Cryptographic algorithm for the KEK Pool.
-	Algorithm *KEKPoolAlgorithm `json:"algorithm,omitempty"`
+// KeyPoolCreate defines model for KeyPoolCreate.
+type KeyPoolCreate struct {
+	// Algorithm Cryptographic algorithm for the Key Pool.
+	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description for a KEK Pool.
-	Description KEKPoolDescription `json:"description"`
+	// Description Description for a Key Pool.
+	Description KeyPoolDescription `json:"description"`
 
-	// IsExportAllowed Indicates if the KEK Pool supports export.
-	IsExportAllowed *KEKPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
+	// IsExportAllowed Indicates if the Key Pool supports export.
+	IsExportAllowed *KeyPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
 
-	// IsImportAllowed Indicates if the KEK Pool supports import (BYOK).
-	IsImportAllowed *KEKPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
+	// IsImportAllowed Indicates if the Key Pool supports import (BYOK).
+	IsImportAllowed *KeyPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
 
-	// IsVersioningAllowed Indicates if the KEK Pool supports versioning.
-	IsVersioningAllowed *KEKPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
+	// IsVersioningAllowed Indicates if the Key Pool supports versioning.
+	IsVersioningAllowed *KeyPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 
-	// Name Friendly name for a KEK Pool.
-	Name KEKPoolName `json:"name"`
+	// Name Friendly name for a Key Pool.
+	Name KeyPoolName `json:"name"`
 
-	// Provider Provider of the KEK Pool management service.
-	Provider *KEKPoolProvider `json:"provider,omitempty"`
+	// Provider Provider of the Key Pool management service.
+	Provider *KeyPoolProvider `json:"provider,omitempty"`
 }
 
-// KEKPoolDescription Description for a KEK Pool.
-type KEKPoolDescription = string
+// KeyPoolDescription Description for a Key Pool.
+type KeyPoolDescription = string
 
-// KEKPoolId Unique base64 url-encoded identifier for a KEK Pool.
-type KEKPoolId = string
+// KeyPoolId Unique base64 url-encoded identifier for a Key Pool.
+type KeyPoolId = string
 
-// KEKPoolIsExportAllowed Indicates if the KEK Pool supports export.
-type KEKPoolIsExportAllowed = bool
+// KeyPoolIsExportAllowed Indicates if the Key Pool supports export.
+type KeyPoolIsExportAllowed = bool
 
-// KEKPoolIsImportAllowed Indicates if the KEK Pool supports import (BYOK).
-type KEKPoolIsImportAllowed = bool
+// KeyPoolIsImportAllowed Indicates if the Key Pool supports import (BYOK).
+type KeyPoolIsImportAllowed = bool
 
-// KEKPoolIsVersioningAllowed Indicates if the KEK Pool supports versioning.
-type KEKPoolIsVersioningAllowed = bool
+// KeyPoolIsVersioningAllowed Indicates if the Key Pool supports versioning.
+type KeyPoolIsVersioningAllowed = bool
 
-// KEKPoolName Friendly name for a KEK Pool.
-type KEKPoolName = string
+// KeyPoolName Friendly name for a Key Pool.
+type KeyPoolName = string
 
-// KEKPoolProvider Provider of the KEK Pool management service.
-type KEKPoolProvider string
+// KeyPoolProvider Provider of the Key Pool management service.
+type KeyPoolProvider string
 
-// KEKPoolStatus Status of the KEK.
-type KEKPoolStatus string
+// KeyPoolStatus Status of the Key.
+type KeyPoolStatus string
 
-// KEKPoolUpdate defines model for KEKPoolUpdate.
-type KEKPoolUpdate struct {
-	// Description Description for a KEK Pool.
-	Description KEKPoolDescription `json:"description"`
+// KeyPoolUpdate defines model for KeyPoolUpdate.
+type KeyPoolUpdate struct {
+	// Description Description for a Key Pool.
+	Description KeyPoolDescription `json:"description"`
 
-	// Name Friendly name for a KEK Pool.
-	Name KEKPoolName `json:"name"`
+	// Name Friendly name for a Key Pool.
+	Name KeyPoolName `json:"name"`
 }
 
-// KEKUpdate defines model for KEKUpdate.
-type KEKUpdate struct {
-	// KekPoolId Unique base64 url-encoded identifier for a KEK Pool.
-	KekPoolId KEKPoolId `json:"kek_pool_id"`
+// KeyUpdate defines model for KeyUpdate.
+type KeyUpdate struct {
+	// KeyPoolId Unique base64 url-encoded identifier for a Key Pool.
+	KeyPoolId KeyPoolId `json:"key_pool_id"`
 
-	// KekVersion Unique version of the KEK in a KEK Pool.
-	KekVersion KEKId `json:"kek_version"`
+	// KeyVersion Unique version of the Key in a Key Pool.
+	KeyVersion KeyId `json:"key_version"`
 }
 
 // QueryParamFilter Filter criteria in the format 'field=value'. Supported operators are '=', '!=', '>', '<', '>=', '<='
@@ -243,37 +243,37 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

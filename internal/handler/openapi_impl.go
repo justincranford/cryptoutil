@@ -10,29 +10,29 @@ import (
 
 // StrictServer implements cryptoutilServer.StrictServerInterface
 type StrictServer struct {
-	service *cryptoutilService.KEKPoolService
+	service *cryptoutilService.KeyPoolService
 }
 
-func NewStrictServer(service *cryptoutilService.KEKPoolService) *StrictServer {
+func NewStrictServer(service *cryptoutilService.KeyPoolService) *StrictServer {
 	return &StrictServer{service: service}
 }
 
-func (s *StrictServer) GetKekpool(ctx context.Context, _ cryptoutilServer.GetKekpoolRequestObject) (cryptoutilServer.GetKekpoolResponseObject, error) {
-	return s.service.GetKEKPool(ctx)
+func (s *StrictServer) GetKeypool(ctx context.Context, _ cryptoutilServer.GetKeypoolRequestObject) (cryptoutilServer.GetKeypoolResponseObject, error) {
+	return s.service.GetKeyPool(ctx)
 }
 
-func (s *StrictServer) PostKekpool(ctx context.Context, openapiPostKekpoolRequestObject cryptoutilServer.PostKekpoolRequestObject) (cryptoutilServer.PostKekpoolResponseObject, error) {
-	kekPoolCreate := cryptoutilModel.KEKPoolCreate(*openapiPostKekpoolRequestObject.Body)
-	return s.service.PostKEKPool(ctx, &kekPoolCreate)
+func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolRequestObject cryptoutilServer.PostKeypoolRequestObject) (cryptoutilServer.PostKeypoolResponseObject, error) {
+	keyPoolCreate := cryptoutilModel.KeyPoolCreate(*openapiPostKeypoolRequestObject.Body)
+	return s.service.PostKeyPool(ctx, &keyPoolCreate)
 }
 
-func (s *StrictServer) GetKekpoolKekPoolIDKek(ctx context.Context, openapiGetKekpoolKekPoolIDKekRequestObject cryptoutilServer.GetKekpoolKekPoolIDKekRequestObject) (cryptoutilServer.GetKekpoolKekPoolIDKekResponseObject, error) {
-	kekPoolID := openapiGetKekpoolKekPoolIDKekRequestObject.KekPoolID
-	return s.service.GetKEKPoolKEKPoolIDKEK(ctx, &kekPoolID)
+func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKeypoolKeyPoolIDKeyRequestObject cryptoutilServer.GetKeypoolKeyPoolIDKeyRequestObject) (cryptoutilServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
+	keyPoolID := openapiGetKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
+	return s.service.GetKeyPoolKeyPoolIDKey(ctx, &keyPoolID)
 }
 
-func (s *StrictServer) PostKekpoolKekPoolIDKek(ctx context.Context, openapiPostKekpoolKekPoolIDKekRequestObject cryptoutilServer.PostKekpoolKekPoolIDKekRequestObject) (cryptoutilServer.PostKekpoolKekPoolIDKekResponseObject, error) {
-	kekPoolID := openapiPostKekpoolKekPoolIDKekRequestObject.KekPoolID
-	kekGenerate := cryptoutilModel.KEKGenerate(*openapiPostKekpoolKekPoolIDKekRequestObject.Body)
-	return s.service.PostKEKPoolKEKPoolIDKEK(ctx, &kekPoolID, &kekGenerate)
+func (s *StrictServer) PostKeypoolKeyPoolIDKey(ctx context.Context, openapiPostKeypoolKeyPoolIDKeyRequestObject cryptoutilServer.PostKeypoolKeyPoolIDKeyRequestObject) (cryptoutilServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+	keyPoolID := openapiPostKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
+	keyGenerate := cryptoutilModel.KeyGenerate(*openapiPostKeypoolKeyPoolIDKeyRequestObject.Body)
+	return s.service.PostKeyPoolKeyPoolIDKey(ctx, &keyPoolID, &keyGenerate)
 }

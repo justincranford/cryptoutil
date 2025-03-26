@@ -22,25 +22,25 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// GetKekpoolParams defines parameters for GetKekpool.
-type GetKekpoolParams struct {
+// GetKeypoolParams defines parameters for GetKeypool.
+type GetKeypoolParams struct {
 	Filter *externalRef0.QueryParamFilter `form:"filter,omitempty" json:"filter,omitempty"`
 	Sort   *externalRef0.QueryParamSort   `form:"sort,omitempty" json:"sort,omitempty"`
 	Page   *externalRef0.QueryParamPage   `form:"page,omitempty" json:"page,omitempty"`
 }
 
-// GetKekpoolKekPoolIDKekParams defines parameters for GetKekpoolKekPoolIDKek.
-type GetKekpoolKekPoolIDKekParams struct {
+// GetKeypoolKeyPoolIDKeyParams defines parameters for GetKeypoolKeyPoolIDKey.
+type GetKeypoolKeyPoolIDKeyParams struct {
 	Filter *externalRef0.QueryParamFilter `form:"filter,omitempty" json:"filter,omitempty"`
 	Sort   *externalRef0.QueryParamSort   `form:"sort,omitempty" json:"sort,omitempty"`
 	Page   *externalRef0.QueryParamPage   `form:"page,omitempty" json:"page,omitempty"`
 }
 
-// PostKekpoolJSONRequestBody defines body for PostKekpool for application/json ContentType.
-type PostKekpoolJSONRequestBody = externalRef0.KEKPoolCreate
+// PostKeypoolJSONRequestBody defines body for PostKeypool for application/json ContentType.
+type PostKeypoolJSONRequestBody = externalRef0.KeyPoolCreate
 
-// PostKekpoolKekPoolIDKekJSONRequestBody defines body for PostKekpoolKekPoolIDKek for application/json ContentType.
-type PostKekpoolKekPoolIDKekJSONRequestBody = externalRef0.KEKGenerate
+// PostKeypoolKeyPoolIDKeyJSONRequestBody defines body for PostKeypoolKeyPoolIDKey for application/json ContentType.
+type PostKeypoolKeyPoolIDKeyJSONRequestBody = externalRef0.KeyGenerate
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -115,25 +115,25 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetKekpool request
-	GetKekpool(ctx context.Context, params *GetKekpoolParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetKeypool request
+	GetKeypool(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostKekpoolWithBody request with any body
-	PostKekpoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostKeypoolWithBody request with any body
+	PostKeypoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKekpool(ctx context.Context, body PostKekpoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostKeypool(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetKekpoolKekPoolIDKek request
-	GetKekpoolKekPoolIDKek(ctx context.Context, kekPoolID string, params *GetKekpoolKekPoolIDKekParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetKeypoolKeyPoolIDKey request
+	GetKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID string, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostKekpoolKekPoolIDKekWithBody request with any body
-	PostKekpoolKekPoolIDKekWithBody(ctx context.Context, kekPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostKeypoolKeyPoolIDKeyWithBody request with any body
+	PostKeypoolKeyPoolIDKeyWithBody(ctx context.Context, keyPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKekpoolKekPoolIDKek(ctx context.Context, kekPoolID string, body PostKekpoolKekPoolIDKekJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID string, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) GetKekpool(ctx context.Context, params *GetKekpoolParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKekpoolRequest(c.Server, params)
+func (c *Client) GetKeypool(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeypoolRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +144,8 @@ func (c *Client) GetKekpool(ctx context.Context, params *GetKekpoolParams, reqEd
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKekpoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKekpoolRequestWithBody(c.Server, contentType, body)
+func (c *Client) PostKeypoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostKeypoolRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -156,8 +156,8 @@ func (c *Client) PostKekpoolWithBody(ctx context.Context, contentType string, bo
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKekpool(ctx context.Context, body PostKekpoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKekpoolRequest(c.Server, body)
+func (c *Client) PostKeypool(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostKeypoolRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -168,8 +168,8 @@ func (c *Client) PostKekpool(ctx context.Context, body PostKekpoolJSONRequestBod
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetKekpoolKekPoolIDKek(ctx context.Context, kekPoolID string, params *GetKekpoolKekPoolIDKekParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKekpoolKekPoolIDKekRequest(c.Server, kekPoolID, params)
+func (c *Client) GetKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID string, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeypoolKeyPoolIDKeyRequest(c.Server, keyPoolID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -180,8 +180,8 @@ func (c *Client) GetKekpoolKekPoolIDKek(ctx context.Context, kekPoolID string, p
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKekpoolKekPoolIDKekWithBody(ctx context.Context, kekPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKekpoolKekPoolIDKekRequestWithBody(c.Server, kekPoolID, contentType, body)
+func (c *Client) PostKeypoolKeyPoolIDKeyWithBody(ctx context.Context, keyPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostKeypoolKeyPoolIDKeyRequestWithBody(c.Server, keyPoolID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -192,8 +192,8 @@ func (c *Client) PostKekpoolKekPoolIDKekWithBody(ctx context.Context, kekPoolID 
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKekpoolKekPoolIDKek(ctx context.Context, kekPoolID string, body PostKekpoolKekPoolIDKekJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKekpoolKekPoolIDKekRequest(c.Server, kekPoolID, body)
+func (c *Client) PostKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID string, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostKeypoolKeyPoolIDKeyRequest(c.Server, keyPoolID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -204,8 +204,8 @@ func (c *Client) PostKekpoolKekPoolIDKek(ctx context.Context, kekPoolID string, 
 	return c.Client.Do(req)
 }
 
-// NewGetKekpoolRequest generates requests for GetKekpool
-func NewGetKekpoolRequest(server string, params *GetKekpoolParams) (*http.Request, error) {
+// NewGetKeypoolRequest generates requests for GetKeypool
+func NewGetKeypoolRequest(server string, params *GetKeypoolParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -213,7 +213,7 @@ func NewGetKekpoolRequest(server string, params *GetKekpoolParams) (*http.Reques
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/kekpool")
+	operationPath := fmt.Sprintf("/keypool")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -285,19 +285,19 @@ func NewGetKekpoolRequest(server string, params *GetKekpoolParams) (*http.Reques
 	return req, nil
 }
 
-// NewPostKekpoolRequest calls the generic PostKekpool builder with application/json body
-func NewPostKekpoolRequest(server string, body PostKekpoolJSONRequestBody) (*http.Request, error) {
+// NewPostKeypoolRequest calls the generic PostKeypool builder with application/json body
+func NewPostKeypoolRequest(server string, body PostKeypoolJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostKekpoolRequestWithBody(server, "application/json", bodyReader)
+	return NewPostKeypoolRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostKekpoolRequestWithBody generates requests for PostKekpool with any type of body
-func NewPostKekpoolRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostKeypoolRequestWithBody generates requests for PostKeypool with any type of body
+func NewPostKeypoolRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -305,7 +305,7 @@ func NewPostKekpoolRequestWithBody(server string, contentType string, body io.Re
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/kekpool")
+	operationPath := fmt.Sprintf("/keypool")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -325,13 +325,13 @@ func NewPostKekpoolRequestWithBody(server string, contentType string, body io.Re
 	return req, nil
 }
 
-// NewGetKekpoolKekPoolIDKekRequest generates requests for GetKekpoolKekPoolIDKek
-func NewGetKekpoolKekPoolIDKekRequest(server string, kekPoolID string, params *GetKekpoolKekPoolIDKekParams) (*http.Request, error) {
+// NewGetKeypoolKeyPoolIDKeyRequest generates requests for GetKeypoolKeyPoolIDKey
+func NewGetKeypoolKeyPoolIDKeyRequest(server string, keyPoolID string, params *GetKeypoolKeyPoolIDKeyParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "kekPoolID", runtime.ParamLocationPath, kekPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +341,7 @@ func NewGetKekpoolKekPoolIDKekRequest(server string, kekPoolID string, params *G
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/kekpool/%s/kek", pathParam0)
+	operationPath := fmt.Sprintf("/keypool/%s/key", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -413,24 +413,24 @@ func NewGetKekpoolKekPoolIDKekRequest(server string, kekPoolID string, params *G
 	return req, nil
 }
 
-// NewPostKekpoolKekPoolIDKekRequest calls the generic PostKekpoolKekPoolIDKek builder with application/json body
-func NewPostKekpoolKekPoolIDKekRequest(server string, kekPoolID string, body PostKekpoolKekPoolIDKekJSONRequestBody) (*http.Request, error) {
+// NewPostKeypoolKeyPoolIDKeyRequest calls the generic PostKeypoolKeyPoolIDKey builder with application/json body
+func NewPostKeypoolKeyPoolIDKeyRequest(server string, keyPoolID string, body PostKeypoolKeyPoolIDKeyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostKekpoolKekPoolIDKekRequestWithBody(server, kekPoolID, "application/json", bodyReader)
+	return NewPostKeypoolKeyPoolIDKeyRequestWithBody(server, keyPoolID, "application/json", bodyReader)
 }
 
-// NewPostKekpoolKekPoolIDKekRequestWithBody generates requests for PostKekpoolKekPoolIDKek with any type of body
-func NewPostKekpoolKekPoolIDKekRequestWithBody(server string, kekPoolID string, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostKeypoolKeyPoolIDKeyRequestWithBody generates requests for PostKeypoolKeyPoolIDKey with any type of body
+func NewPostKeypoolKeyPoolIDKeyRequestWithBody(server string, keyPoolID string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "kekPoolID", runtime.ParamLocationPath, kekPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +440,7 @@ func NewPostKekpoolKekPoolIDKekRequestWithBody(server string, kekPoolID string, 
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/kekpool/%s/kek", pathParam0)
+	operationPath := fmt.Sprintf("/keypool/%s/key", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -503,27 +503,27 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetKekpoolWithResponse request
-	GetKekpoolWithResponse(ctx context.Context, params *GetKekpoolParams, reqEditors ...RequestEditorFn) (*GetKekpoolResponse, error)
+	// GetKeypoolWithResponse request
+	GetKeypoolWithResponse(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*GetKeypoolResponse, error)
 
-	// PostKekpoolWithBodyWithResponse request with any body
-	PostKekpoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKekpoolResponse, error)
+	// PostKeypoolWithBodyWithResponse request with any body
+	PostKeypoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error)
 
-	PostKekpoolWithResponse(ctx context.Context, body PostKekpoolJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKekpoolResponse, error)
+	PostKeypoolWithResponse(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error)
 
-	// GetKekpoolKekPoolIDKekWithResponse request
-	GetKekpoolKekPoolIDKekWithResponse(ctx context.Context, kekPoolID string, params *GetKekpoolKekPoolIDKekParams, reqEditors ...RequestEditorFn) (*GetKekpoolKekPoolIDKekResponse, error)
+	// GetKeypoolKeyPoolIDKeyWithResponse request
+	GetKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID string, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyResponse, error)
 
-	// PostKekpoolKekPoolIDKekWithBodyWithResponse request with any body
-	PostKekpoolKekPoolIDKekWithBodyWithResponse(ctx context.Context, kekPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKekpoolKekPoolIDKekResponse, error)
+	// PostKeypoolKeyPoolIDKeyWithBodyWithResponse request with any body
+	PostKeypoolKeyPoolIDKeyWithBodyWithResponse(ctx context.Context, keyPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error)
 
-	PostKekpoolKekPoolIDKekWithResponse(ctx context.Context, kekPoolID string, body PostKekpoolKekPoolIDKekJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKekpoolKekPoolIDKekResponse, error)
+	PostKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID string, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error)
 }
 
-type GetKekpoolResponse struct {
+type GetKeypoolResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef0.KEKPool
+	JSON200      *[]externalRef0.KeyPool
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -536,7 +536,7 @@ type GetKekpoolResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetKekpoolResponse) Status() string {
+func (r GetKeypoolResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -544,17 +544,17 @@ func (r GetKekpoolResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetKekpoolResponse) StatusCode() int {
+func (r GetKeypoolResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostKekpoolResponse struct {
+type PostKeypoolResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.KEKPool
+	JSON200      *externalRef0.KeyPool
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -567,7 +567,7 @@ type PostKekpoolResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostKekpoolResponse) Status() string {
+func (r PostKeypoolResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -575,17 +575,17 @@ func (r PostKekpoolResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostKekpoolResponse) StatusCode() int {
+func (r PostKeypoolResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetKekpoolKekPoolIDKekResponse struct {
+type GetKeypoolKeyPoolIDKeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef0.KEK
+	JSON200      *[]externalRef0.Key
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -598,7 +598,7 @@ type GetKekpoolKekPoolIDKekResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetKekpoolKekPoolIDKekResponse) Status() string {
+func (r GetKeypoolKeyPoolIDKeyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -606,17 +606,17 @@ func (r GetKekpoolKekPoolIDKekResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetKekpoolKekPoolIDKekResponse) StatusCode() int {
+func (r GetKeypoolKeyPoolIDKeyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostKekpoolKekPoolIDKekResponse struct {
+type PostKeypoolKeyPoolIDKeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.KEK
+	JSON200      *externalRef0.Key
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -629,7 +629,7 @@ type PostKekpoolKekPoolIDKekResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostKekpoolKekPoolIDKekResponse) Status() string {
+func (r PostKeypoolKeyPoolIDKeyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -637,81 +637,81 @@ func (r PostKekpoolKekPoolIDKekResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostKekpoolKekPoolIDKekResponse) StatusCode() int {
+func (r PostKeypoolKeyPoolIDKeyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-// GetKekpoolWithResponse request returning *GetKekpoolResponse
-func (c *ClientWithResponses) GetKekpoolWithResponse(ctx context.Context, params *GetKekpoolParams, reqEditors ...RequestEditorFn) (*GetKekpoolResponse, error) {
-	rsp, err := c.GetKekpool(ctx, params, reqEditors...)
+// GetKeypoolWithResponse request returning *GetKeypoolResponse
+func (c *ClientWithResponses) GetKeypoolWithResponse(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*GetKeypoolResponse, error) {
+	rsp, err := c.GetKeypool(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetKekpoolResponse(rsp)
+	return ParseGetKeypoolResponse(rsp)
 }
 
-// PostKekpoolWithBodyWithResponse request with arbitrary body returning *PostKekpoolResponse
-func (c *ClientWithResponses) PostKekpoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKekpoolResponse, error) {
-	rsp, err := c.PostKekpoolWithBody(ctx, contentType, body, reqEditors...)
+// PostKeypoolWithBodyWithResponse request with arbitrary body returning *PostKeypoolResponse
+func (c *ClientWithResponses) PostKeypoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error) {
+	rsp, err := c.PostKeypoolWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKekpoolResponse(rsp)
+	return ParsePostKeypoolResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKekpoolWithResponse(ctx context.Context, body PostKekpoolJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKekpoolResponse, error) {
-	rsp, err := c.PostKekpool(ctx, body, reqEditors...)
+func (c *ClientWithResponses) PostKeypoolWithResponse(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error) {
+	rsp, err := c.PostKeypool(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKekpoolResponse(rsp)
+	return ParsePostKeypoolResponse(rsp)
 }
 
-// GetKekpoolKekPoolIDKekWithResponse request returning *GetKekpoolKekPoolIDKekResponse
-func (c *ClientWithResponses) GetKekpoolKekPoolIDKekWithResponse(ctx context.Context, kekPoolID string, params *GetKekpoolKekPoolIDKekParams, reqEditors ...RequestEditorFn) (*GetKekpoolKekPoolIDKekResponse, error) {
-	rsp, err := c.GetKekpoolKekPoolIDKek(ctx, kekPoolID, params, reqEditors...)
+// GetKeypoolKeyPoolIDKeyWithResponse request returning *GetKeypoolKeyPoolIDKeyResponse
+func (c *ClientWithResponses) GetKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID string, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyResponse, error) {
+	rsp, err := c.GetKeypoolKeyPoolIDKey(ctx, keyPoolID, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetKekpoolKekPoolIDKekResponse(rsp)
+	return ParseGetKeypoolKeyPoolIDKeyResponse(rsp)
 }
 
-// PostKekpoolKekPoolIDKekWithBodyWithResponse request with arbitrary body returning *PostKekpoolKekPoolIDKekResponse
-func (c *ClientWithResponses) PostKekpoolKekPoolIDKekWithBodyWithResponse(ctx context.Context, kekPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKekpoolKekPoolIDKekResponse, error) {
-	rsp, err := c.PostKekpoolKekPoolIDKekWithBody(ctx, kekPoolID, contentType, body, reqEditors...)
+// PostKeypoolKeyPoolIDKeyWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDKeyResponse
+func (c *ClientWithResponses) PostKeypoolKeyPoolIDKeyWithBodyWithResponse(ctx context.Context, keyPoolID string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error) {
+	rsp, err := c.PostKeypoolKeyPoolIDKeyWithBody(ctx, keyPoolID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKekpoolKekPoolIDKekResponse(rsp)
+	return ParsePostKeypoolKeyPoolIDKeyResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKekpoolKekPoolIDKekWithResponse(ctx context.Context, kekPoolID string, body PostKekpoolKekPoolIDKekJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKekpoolKekPoolIDKekResponse, error) {
-	rsp, err := c.PostKekpoolKekPoolIDKek(ctx, kekPoolID, body, reqEditors...)
+func (c *ClientWithResponses) PostKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID string, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error) {
+	rsp, err := c.PostKeypoolKeyPoolIDKey(ctx, keyPoolID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKekpoolKekPoolIDKekResponse(rsp)
+	return ParsePostKeypoolKeyPoolIDKeyResponse(rsp)
 }
 
-// ParseGetKekpoolResponse parses an HTTP response from a GetKekpoolWithResponse call
-func ParseGetKekpoolResponse(rsp *http.Response) (*GetKekpoolResponse, error) {
+// ParseGetKeypoolResponse parses an HTTP response from a GetKeypoolWithResponse call
+func ParseGetKeypoolResponse(rsp *http.Response) (*GetKeypoolResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetKekpoolResponse{
+	response := &GetKeypoolResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef0.KEKPool
+		var dest []externalRef0.KeyPool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -785,22 +785,22 @@ func ParseGetKekpoolResponse(rsp *http.Response) (*GetKekpoolResponse, error) {
 	return response, nil
 }
 
-// ParsePostKekpoolResponse parses an HTTP response from a PostKekpoolWithResponse call
-func ParsePostKekpoolResponse(rsp *http.Response) (*PostKekpoolResponse, error) {
+// ParsePostKeypoolResponse parses an HTTP response from a PostKeypoolWithResponse call
+func ParsePostKeypoolResponse(rsp *http.Response) (*PostKeypoolResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKekpoolResponse{
+	response := &PostKeypoolResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.KEKPool
+		var dest externalRef0.KeyPool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -874,22 +874,22 @@ func ParsePostKekpoolResponse(rsp *http.Response) (*PostKekpoolResponse, error) 
 	return response, nil
 }
 
-// ParseGetKekpoolKekPoolIDKekResponse parses an HTTP response from a GetKekpoolKekPoolIDKekWithResponse call
-func ParseGetKekpoolKekPoolIDKekResponse(rsp *http.Response) (*GetKekpoolKekPoolIDKekResponse, error) {
+// ParseGetKeypoolKeyPoolIDKeyResponse parses an HTTP response from a GetKeypoolKeyPoolIDKeyWithResponse call
+func ParseGetKeypoolKeyPoolIDKeyResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDKeyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetKekpoolKekPoolIDKekResponse{
+	response := &GetKeypoolKeyPoolIDKeyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef0.KEK
+		var dest []externalRef0.Key
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -963,22 +963,22 @@ func ParseGetKekpoolKekPoolIDKekResponse(rsp *http.Response) (*GetKekpoolKekPool
 	return response, nil
 }
 
-// ParsePostKekpoolKekPoolIDKekResponse parses an HTTP response from a PostKekpoolKekPoolIDKekWithResponse call
-func ParsePostKekpoolKekPoolIDKekResponse(rsp *http.Response) (*PostKekpoolKekPoolIDKekResponse, error) {
+// ParsePostKeypoolKeyPoolIDKeyResponse parses an HTTP response from a PostKeypoolKeyPoolIDKeyWithResponse call
+func ParsePostKeypoolKeyPoolIDKeyResponse(rsp *http.Response) (*PostKeypoolKeyPoolIDKeyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKekpoolKekPoolIDKekResponse{
+	response := &PostKeypoolKeyPoolIDKeyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.KEK
+		var dest externalRef0.Key
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1055,45 +1055,45 @@ func ParsePostKekpoolKekPoolIDKekResponse(rsp *http.Response) (*PostKekpoolKekPo
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -39,132 +39,132 @@ components:
       description: "Paging criteria in the format 'pageNumber:pageSize' or 'pageNumber'; pageNumber is 0 offset."
       example: "0:25"
 
-    KEKPoolCreate:
+    KeyPoolCreate:
       type: object
       required: [ name, description ]
       properties:
         name:
-          $ref: '#/components/schemas/KEKPoolName'
+          $ref: '#/components/schemas/KeyPoolName'
         description:
-          $ref: '#/components/schemas/KEKPoolDescription'
+          $ref: '#/components/schemas/KeyPoolDescription'
         algorithm:
-          $ref: '#/components/schemas/KEKPoolAlgorithm'
+          $ref: '#/components/schemas/KeyPoolAlgorithm'
         provider:
-          $ref: '#/components/schemas/KEKPoolProvider'
+          $ref: '#/components/schemas/KeyPoolProvider'
         isVersioningAllowed:
-          $ref: '#/components/schemas/KEKPoolIsVersioningAllowed'
+          $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
         isImportAllowed:
-          $ref: '#/components/schemas/KEKPoolIsImportAllowed'
+          $ref: '#/components/schemas/KeyPoolIsImportAllowed'
         isExportAllowed:
-          $ref: '#/components/schemas/KEKPoolIsExportAllowed'
+          $ref: '#/components/schemas/KeyPoolIsExportAllowed'
 
-    KEKPool:
+    KeyPool:
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/KEKPoolId'
+          $ref: '#/components/schemas/KeyPoolId'
         name:
-          $ref: '#/components/schemas/KEKPoolName'
+          $ref: '#/components/schemas/KeyPoolName'
         description:
-          $ref: '#/components/schemas/KEKPoolDescription'
+          $ref: '#/components/schemas/KeyPoolDescription'
         algorithm:
-          $ref: '#/components/schemas/KEKPoolAlgorithm'
+          $ref: '#/components/schemas/KeyPoolAlgorithm'
         provider:
-          $ref: '#/components/schemas/KEKPoolProvider'
+          $ref: '#/components/schemas/KeyPoolProvider'
         isVersioningAllowed:
-          $ref: '#/components/schemas/KEKPoolIsVersioningAllowed'
+          $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
         isImportAllowed:
-          $ref: '#/components/schemas/KEKPoolIsImportAllowed'
+          $ref: '#/components/schemas/KeyPoolIsImportAllowed'
         isExportAllowed:
-          $ref: '#/components/schemas/KEKPoolIsExportAllowed'
+          $ref: '#/components/schemas/KeyPoolIsExportAllowed'
         status:
-          $ref: '#/components/schemas/KEKPoolStatus'
+          $ref: '#/components/schemas/KeyPoolStatus'
 
-    KEKPoolUpdate:
+    KeyPoolUpdate:
       type: object
       required: [ name, description ]
       properties:
         name:
-          $ref: '#/components/schemas/KEKPoolName'
+          $ref: '#/components/schemas/KeyPoolName'
         description:
-          $ref: '#/components/schemas/KEKPoolDescription'
+          $ref: '#/components/schemas/KeyPoolDescription'
 
-    KEKGenerate:
+    KeyGenerate:
       type: object
       additionalProperties: false
 
-    KEKUpdate:
+    KeyUpdate:
       type: object
-      required: [ kek_pool_id, kek_version ]
+      required: [ key_pool_id, key_version ]
       properties:
-        kek_pool_id:
-          $ref: '#/components/schemas/KEKPoolId'
-        kek_version:
-          $ref: '#/components/schemas/KEKId'
+        key_pool_id:
+          $ref: '#/components/schemas/KeyPoolId'
+        key_version:
+          $ref: '#/components/schemas/KeyId'
 
-    KEK:
+    Key:
       type: object
       properties:
-        kek_pool_id:
-          $ref: '#/components/schemas/KEKPoolId'
-        kek_id:
-          $ref: '#/components/schemas/KEKId'
+        key_pool_id:
+          $ref: '#/components/schemas/KeyPoolId'
+        key_id:
+          $ref: '#/components/schemas/KeyId'
         generateDate:
-          $ref: '#/components/schemas/KEKGenerateDate'
+          $ref: '#/components/schemas/KeyGenerateDate'
 
-    KEKPoolId:
+    KeyPoolId:
       type: string
-      description: Unique base64 url-encoded identifier for a KEK Pool.
+      description: Unique base64 url-encoded identifier for a Key Pool.
       minLength: 2
-    KEKPoolName:
+    KeyPoolName:
       type: string
-      description: Friendly name for a KEK Pool.
+      description: Friendly name for a Key Pool.
       example: Payroll Database
       minLength: 1
       maxLength: 63
-    KEKPoolDescription:
+    KeyPoolDescription:
       type: string
-      description: Description for a KEK Pool.
-      example: This KEK Pool is used to encrypt the Payroll Database
+      description: Description for a Key Pool.
+      example: This Key Pool is used to encrypt the Payroll Database
       minLength: 1
       maxLength: 255
-    KEKPoolAlgorithm:
+    KeyPoolAlgorithm:
       type: string
       enum: [ AES-256, AES-192, AES-128 ]
       example: "AES-256"
-      description: Cryptographic algorithm for the KEK Pool.
-    KEKPoolProvider:
+      description: Cryptographic algorithm for the Key Pool.
+    KeyPoolProvider:
       type: string
       enum: [ Internal ]
       example: "Internal"
-      description: Provider of the KEK Pool management service.
-    KEKPoolIsVersioningAllowed:
+      description: Provider of the Key Pool management service.
+    KeyPoolIsVersioningAllowed:
       type: boolean
       example: true
-      description: Indicates if the KEK Pool supports versioning.
-    KEKPoolIsImportAllowed:
+      description: Indicates if the Key Pool supports versioning.
+    KeyPoolIsImportAllowed:
       type: boolean
       example: false
-      description: Indicates if the KEK Pool supports import (BYOK).
-    KEKPoolIsExportAllowed:
+      description: Indicates if the Key Pool supports import (BYOK).
+    KeyPoolIsExportAllowed:
       type: boolean
       example: false
-      description: Indicates if the KEK Pool supports export.
-    KEKPoolStatus:
+      description: Indicates if the Key Pool supports export.
+    KeyPoolStatus:
       type: string
       enum: [ pending_generate, pending_import, active, disabled ]
       example: "pending_generate"
-      description: Status of the KEK.
+      description: Status of the Key.
 
-    KEKId:
+    KeyId:
       type: integer
-      description: Unique version of the KEK in a KEK Pool.
+      description: Unique version of the Key in a Key Pool.
       minimum: 1
-    KEKGenerateDate:
+    KeyGenerateDate:
       type: string
       format: date-time
       example: "2025-03-14T12:00:00Z"
-      description: ISO 8601 UTC timestamp of KEK generation.
+      description: ISO 8601 UTC timestamp of Key generation.
 
     HTTPError:
       type: object

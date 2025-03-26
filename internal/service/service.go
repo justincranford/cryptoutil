@@ -12,98 +12,98 @@ import (
 	"github.com/google/uuid"
 )
 
-type KEKPoolService struct {
+type KeyPoolService struct {
 	ormService       *ormService.Service
 	openapiOrmMapper *OpenapiOrmMapper
 }
 
-func NewService(dbService *ormService.Service) *KEKPoolService {
-	return &KEKPoolService{ormService: dbService, openapiOrmMapper: NewMapper()}
+func NewService(dbService *ormService.Service) *KeyPoolService {
+	return &KeyPoolService{ormService: dbService, openapiOrmMapper: NewMapper()}
 }
 
-func (s *KEKPoolService) PostKEKPool(ctx context.Context, openapiKEKPoolCreate *cryptoutilModel.KEKPoolCreate) (cryptoutilServer.PostKekpoolResponseObject, error) {
-	gormKEKPoolInsert := s.openapiOrmMapper.toGormKEKPoolInsert(openapiKEKPoolCreate)
-	gormCreateKEKResult := s.ormService.GormDB.Create(gormKEKPoolInsert)
-	if gormCreateKEKResult.Error != nil {
-		return s.openapiOrmMapper.toOpenapiResponseInsertKEKPoolError(gormCreateKEKResult.Error)
+func (s *KeyPoolService) PostKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilModel.KeyPoolCreate) (cryptoutilServer.PostKeypoolResponseObject, error) {
+	gormKeyPoolInsert := s.openapiOrmMapper.toGormKeyPoolInsert(openapiKeyPoolCreate)
+	gormCreateKeyResult := s.ormService.GormDB.Create(gormKeyPoolInsert)
+	if gormCreateKeyResult.Error != nil {
+		return s.openapiOrmMapper.toOpenapiResponseInsertKeyPoolError(gormCreateKeyResult.Error)
 	}
-	return s.openapiOrmMapper.toOpenapiResponseInsertKEKPoolSuccess(gormKEKPoolInsert), nil
+	return s.openapiOrmMapper.toOpenapiResponseInsertKeyPoolSuccess(gormKeyPoolInsert), nil
 }
 
-func (s *KEKPoolService) GetKEKPool(ctx context.Context) (cryptoutilServer.GetKekpoolResponseObject, error) {
-	var gormKEKPools []ormService.KEKPool
-	gormFindKEKPoolsResult := s.ormService.GormDB.Find(&gormKEKPools)
-	if gormFindKEKPoolsResult.Error != nil {
-		return s.openapiOrmMapper.toOpenapiResponseSelectKEKPoolError(gormFindKEKPoolsResult.Error)
+func (s *KeyPoolService) GetKeyPool(ctx context.Context) (cryptoutilServer.GetKeypoolResponseObject, error) {
+	var gormKeyPools []ormService.KeyPool
+	gormFindKeyPoolsResult := s.ormService.GormDB.Find(&gormKeyPools)
+	if gormFindKeyPoolsResult.Error != nil {
+		return s.openapiOrmMapper.toOpenapiResponseSelectKeyPoolError(gormFindKeyPoolsResult.Error)
 	}
-	return s.openapiOrmMapper.toOpenapiResponseSelectKEKPoolSuccess(&gormKEKPools), nil
+	return s.openapiOrmMapper.toOpenapiResponseSelectKeyPoolSuccess(&gormKeyPools), nil
 }
 
-func (s *KEKPoolService) PostKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string, _ *cryptoutilModel.KEKGenerate) (cryptoutilServer.PostKekpoolKekPoolIDKekResponseObject, error) {
-	_, err := uuid.Parse(*kekPoolID)
+func (s *KeyPoolService) PostKeyPoolKeyPoolIDKey(ctx context.Context, keyPoolID *string, _ *cryptoutilModel.KeyGenerate) (cryptoutilServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+	_, err := uuid.Parse(*keyPoolID)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiResponseInsertKEKSelectKEKPoolError(err)
+		return s.openapiOrmMapper.toOpenapiResponseInsertKeySelectKeyPoolError(err)
 	}
 
-	var gormKEKPool ormService.KEKPool
-	gormSelectKEKPoolResult := s.ormService.GormDB.First(&gormKEKPool, "kek_pool_id=?", *kekPoolID)
-	if gormSelectKEKPoolResult.Error != nil {
-		return s.openapiOrmMapper.toOpenapiResponseInsertKEKSelectKEKPoolError(gormSelectKEKPoolResult.Error)
+	var gormKeyPool ormService.KeyPool
+	gormSelectKeyPoolResult := s.ormService.GormDB.First(&gormKeyPool, "key_pool_id=?", *keyPoolID)
+	if gormSelectKeyPoolResult.Error != nil {
+		return s.openapiOrmMapper.toOpenapiResponseInsertKeySelectKeyPoolError(gormSelectKeyPoolResult.Error)
 	}
 
-	if gormKEKPool.KEKPoolStatus != ormService.PendingGenerate {
-		return s.openapiOrmMapper.toOpenapiResponseInsertKEKInvalidKEKPoolStatus()
+	if gormKeyPool.KeyPoolStatus != ormService.PendingGenerate {
+		return s.openapiOrmMapper.toOpenapiResponseInsertKeyInvalidKeyPoolStatus()
 	}
 
-	var gormKEKPoolMaxID int // COALESCE clause returns 0 if no KEKs found for KEK Pool
-	s.ormService.GormDB.Model(&ormService.KEK{}).Where("kek_pool_id=?", *kekPoolID).Select("COALESCE(MAX(kek_id), 0)").Scan(&gormKEKPoolMaxID)
+	var gormKeyPoolMaxID int // COALESCE clause returns 0 if no Keys found for Key Pool
+	s.ormService.GormDB.Model(&ormService.Key{}).Where("key_pool_id=?", *keyPoolID).Select("COALESCE(MAX(key_id), 0)").Scan(&gormKeyPoolMaxID)
 
-	gormKEK, err := s.generateKEKInsert(&gormKEKPool, gormKEKPoolMaxID+1)
+	gormKey, err := s.generateKeyInsert(&gormKeyPool, gormKeyPoolMaxID+1)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiResponseInsertKEKGenerateKeyMaterialError(err)
+		return s.openapiOrmMapper.toOpenapiResponseInsertKeyGenerateKeyMaterialError(err)
 	}
 
-	gormCreateKEKResult := s.ormService.GormDB.Create(gormKEK)
-	if gormCreateKEKResult.Error != nil {
-		return s.openapiOrmMapper.toOpenapiResponseInsertKEKError(gormSelectKEKPoolResult.Error)
+	gormCreateKeyResult := s.ormService.GormDB.Create(gormKey)
+	if gormCreateKeyResult.Error != nil {
+		return s.openapiOrmMapper.toOpenapiResponseInsertKeyError(gormSelectKeyPoolResult.Error)
 	}
 
-	return s.openapiOrmMapper.toOpenapiResponseInsertKEKSuccess(gormKEK), nil
+	return s.openapiOrmMapper.toOpenapiResponseInsertKeySuccess(gormKey), nil
 }
 
-func (s *KEKPoolService) GetKEKPoolKEKPoolIDKEK(ctx context.Context, kekPoolID *string) (cryptoutilServer.GetKekpoolKekPoolIDKekResponseObject, error) {
-	_, err := uuid.Parse(*kekPoolID)
+func (s *KeyPoolService) GetKeyPoolKeyPoolIDKey(ctx context.Context, keyPoolID *string) (cryptoutilServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
+	_, err := uuid.Parse(*keyPoolID)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiResponseGetKEKInvalidKEKPoolIDError(err)
+		return s.openapiOrmMapper.toOpenapiResponseGetKeyInvalidKeyPoolIDError(err)
 	}
 
-	var gormKekPool ormService.KEKPool
-	gormKEKPool := s.ormService.GormDB.First(&gormKekPool, "kek_pool_id=?", *kekPoolID)
-	if gormKEKPool.Error != nil {
-		return s.openapiOrmMapper.toOpenapiResponseGetKEKNoKEKPoolIDFoundError(err)
+	var gormKeyPool ormService.KeyPool
+	gormKeyPoolResult := s.ormService.GormDB.First(&gormKeyPool, "key_pool_id=?", *keyPoolID)
+	if gormKeyPoolResult.Error != nil {
+		return s.openapiOrmMapper.toOpenapiResponseGetKeyNoKeyPoolIDFoundError(err)
 	}
 
-	var gormKeks []ormService.KEK
-	query := s.ormService.GormDB.Where("kek_pool_id=?", *kekPoolID)
-	gormKEKPool = query.Find(&gormKeks)
-	if gormKEKPool.Error != nil {
-		return s.openapiOrmMapper.toOpenapiResponseGetKEKFindError(err)
+	var gormKeys []ormService.Key
+	query := s.ormService.GormDB.Where("key_pool_id=?", *keyPoolID)
+	gormKeysResult := query.Find(&gormKeys)
+	if gormKeysResult.Error != nil {
+		return s.openapiOrmMapper.toOpenapiResponseGetKeyFindError(err)
 	}
 
-	return s.openapiOrmMapper.toOpenapiResponseGetKEKSuccess(&gormKeks), nil
+	return s.openapiOrmMapper.toOpenapiResponseGetKeySuccess(&gormKeys), nil
 }
 
-func (s *KEKPoolService) generateKEKInsert(gormKEKPool *ormService.KEKPool, kekPoolNextID int) (*ormService.KEK, error) {
-	gormKEKKeyMaterial, err := generateKeyMaterial(string(gormKEKPool.KEKPoolAlgorithm))
+func (s *KeyPoolService) generateKeyInsert(gormKeyPool *ormService.KeyPool, keyPoolNextID int) (*ormService.Key, error) {
+	gormKeyKeyMaterial, err := generateKeyMaterial(string(gormKeyPool.KeyPoolAlgorithm))
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate KEK material: %w", err)
+		return nil, fmt.Errorf("failed to generate Key material: %w", err)
 	}
-	gormKEKGenerateDate := time.Now().UTC()
+	gormKeyGenerateDate := time.Now().UTC()
 
-	return &ormService.KEK{
-		KEKPoolID:       gormKEKPool.KEKPoolID,
-		KEKID:           kekPoolNextID,
-		KEKMaterial:     gormKEKKeyMaterial,
-		KEKGenerateDate: &gormKEKGenerateDate,
+	return &ormService.Key{
+		KeyPoolID:       gormKeyPool.KeyPoolID,
+		KeyID:           keyPoolNextID,
+		KeyMaterial:     gormKeyKeyMaterial,
+		KeyGenerateDate: &gormKeyGenerateDate,
 	}, nil
 }

@@ -9,23 +9,23 @@ servers:
   - url: http://localhost:8080/
 
 paths:
-  /kekpool:
+  /keypool:
     post:
-      summary: Create a new KEK Pool.
-      description: Create a new KEK Pool. Depending on the provider, a KEK Pool may be contained to one KEK or many KEKs.
+      summary: Create a new Key Pool.
+      description: Create a new Key Pool. Depending on the provider, a Key Pool may be contained to one Key or many Keys.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: './openapi_spec_components.yaml#/components/schemas/KEKPoolCreate'
+              $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolCreate'
       responses:
         '200':
-          description: KEK Pool created successfully.
+          description: Key Pool created successfully.
           content:
             application/json:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/KEKPool'
+                $ref: './openapi_spec_components.yaml#/components/schemas/KeyPool'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -45,21 +45,21 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
     get:
-      summary: List all KEK Pools. Supports optional filtering, sorting, and paging.
-      description: List all KEK Pools. Supports optional filtering, sorting, and paging.
+      summary: List all Key Pools. Supports optional filtering, sorting, and paging.
+      description: List all Key Pools. Supports optional filtering, sorting, and paging.
       parameters:
         - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamFilter"
         - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamSort"
         - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamPage"
       responses:
         '200':
-          description: A JSON array of 0, 1, or many KEK Pools.
+          description: A JSON array of 0, 1, or many Key Pools.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: './openapi_spec_components.yaml#/components/schemas/KEKPool'
+                  $ref: './openapi_spec_components.yaml#/components/schemas/KeyPool'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -79,29 +79,29 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
-  /kekpool/{kekPoolID}/kek:
+  /keypool/{keyPoolID}/key:
     parameters:
-      - name: kekPoolID
+      - name: keyPoolID
         in: path
         required: true
         schema:
           type: string
     post:
-      summary: Generate a new KEK in a KEK Pool.
-      description: Generate a new KEK in a KEK Pool.
+      summary: Generate a new Key in a Key Pool.
+      description: Generate a new Key in a Key Pool.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: './openapi_spec_components.yaml#/components/schemas/KEKGenerate'
+              $ref: './openapi_spec_components.yaml#/components/schemas/KeyGenerate'
       responses:
         '200':
-          description: KEK generated successfully.
+          description: Key generated successfully.
           content:
             application/json:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/KEK'
+                $ref: './openapi_spec_components.yaml#/components/schemas/Key'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -121,21 +121,21 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
     get:
-      summary: List all KEKs in KEK Pool. Supports optional filtering, sorting, and paging.
-      description: List all KEKs in KEK Pool. Supports optional filtering, sorting, and paging.
+      summary: List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
+      description: List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
       parameters:
         - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamFilter"
         - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamSort"
         - $ref: "./openapi_spec_components.yaml#/components/parameters/QueryParamPage"
       responses:
         '200':
-          description: A JSON array of 0, 1, or many KEKs in a KEK Pool.
+          description: A JSON array of 0, 1, or many Keys in a Key Pool.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: './openapi_spec_components.yaml#/components/schemas/KEK'
+                  $ref: './openapi_spec_components.yaml#/components/schemas/Key'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':

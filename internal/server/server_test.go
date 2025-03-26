@@ -22,7 +22,7 @@ func TestHttpGetHttp200(t *testing.T) {
 		{name: "Swagger UI root", url: "http://localhost:8080/swagger"},
 		{name: "Swagger UI index.html", url: "http://localhost:8080/swagger/index.html"},
 		{name: "OpenAPI Spec", url: "http://localhost:8080/swagger/doc.json"},
-		{name: "GET KEK Pools", url: "http://localhost:8080/kekpool"},
+		{name: "GET Key Pools", url: "http://localhost:8080/keypool"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
