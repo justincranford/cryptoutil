@@ -43,7 +43,7 @@ var (
 	dbPassword    = fmt.Sprintf("postgresPassword%04d", rand.Intn(10_000))
 )
 
-func NewService(ctx context.Context, dbType DBType, databaseUrl string, containerMode ContainerMode, applyMigrations bool) (*Service, error) {
+func NewRepositoryOrm(ctx context.Context, dbType DBType, databaseUrl string, containerMode ContainerMode, applyMigrations bool) (*Service, error) {
 	sqlDB, shutdownDBContainer, err := createSqlDB(ctx, dbType, databaseUrl, containerMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)

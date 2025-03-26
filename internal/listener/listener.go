@@ -25,7 +25,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func NewListener(listenAddress string, applyMigrations bool) (func(), func()) {
+func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(), func()) {
 	ctx := context.Background()
 
 	telemetryService := cryptoutilTelemetry.NewService(ctx, "asn1_test", false, false)
@@ -35,32 +35,34 @@ func NewListener(listenAddress string, applyMigrations bool) (func(), func()) {
 	// fmt.Println(span.SpanContext().TraceID())
 	// fmt.Println(span.SpanContext().SpanID())
 
-	// ormService, err := orm.NewService(ctx, orm.DBTypePostgres, "", orm.ContainerModeRequired, applyMigrations)
-	ormService, err := cryptoutilRepositoryOrm.NewService(ctx, cryptoutilRepositoryOrm.DBTypeSQLite, ":memory:", cryptoutilRepositoryOrm.ContainerModeDisabled, applyMigrations)
+	// repositoryOrm, err := orm.NewService(ctx, orm.DBTypePostgres, "", orm.ContainerModeRequired, applyMigrations)
+	repositoryOrm, err := cryptoutilRepositoryOrm.NewRepositoryOrm(ctx, cryptoutilRepositoryOrm.DBTypeSQLite, ":memory:", cryptoutilRepositoryOrm.ContainerModeDisabled, applyMigrations)
 	if err != nil {
 		log.Fatalf("open ORM service error: %v", err)
 	}
 
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
-		ormService.Shutdown()
+		repositoryOrm.Shutdown()
 		log.Fatalf("get swagger error: %v", err)
 	}
 
 	app := fiber.New(fiber.Config{Immutable: true})
 	app.Use(recover.New())
-	app.Use(logger.New()) // TODO Remove this since it prints unstructed logs locally, not structed and not propagated to OpenTelemetry
+	app.Use(logger.New()) // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
 	app.Use(otelLoggerMiddleware(telemetryService.Slogger))
 	app.Use(otelfiber.Middleware(
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
 		otelfiber.WithPropagators(*telemetryService.TextMapPropagator),
+		otelfiber.WithServerName(listenHost),
+		otelfiber.WithPort(listenPort),
 	))
 	app.Get("/swagger/doc.json", cryptoutilOpenapiServer.FiberHandlerOpenAPISpec())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	strictServer := cryptoutilOpenapiHandler.NewStrictServer(cryptoutilBusinessLogic.NewService(ormService))
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, cryptoutilOpenapiServer.NewStrictHandler(strictServer, nil), cryptoutilOpenapiServer.FiberServerOptions{
+	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(cryptoutilBusinessLogic.NewService(repositoryOrm))
+	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, cryptoutilOpenapiServer.NewStrictHandler(openapiHandler, nil), cryptoutilOpenapiServer.FiberServerOptions{
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 		},
@@ -74,9 +76,10 @@ func NewListener(listenAddress string, applyMigrations bool) (func(), func()) {
 		if err := app.Shutdown(); err != nil {
 			fmt.Printf("Fiber graceful shutdown error: %v", err)
 		}
-		ormService.Shutdown()
+		repositoryOrm.Shutdown()
 	}()
 
+	listenAddress := fmt.Sprintf("%s:%d", listenHost, listenPort)
 	startServer := func() {
 		err = app.Listen(listenAddress)
 		if err != nil {
@@ -84,7 +87,7 @@ func NewListener(listenAddress string, applyMigrations bool) (func(), func()) {
 		}
 	}
 	stopServer := func() {
-		ormService.Shutdown()
+		repositoryOrm.Shutdown()
 		err := app.Shutdown()
 		if err != nil {
 			fmt.Printf("Error stopping fiber server: %s", err)

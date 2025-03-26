@@ -4,14 +4,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
+	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 var ormTableStructs = []any{&KeyPool{}, &Key{}}
 
 type KeyPool struct {
-	KeyPoolID                  uuid.UUID            `gorm:"type:uuid;primaryKey"`
+	KeyPoolID                  googleUuid.UUID      `gorm:"type:uuid;primaryKey"`
 	KeyPoolName                string               `gorm:"size:63;not null;check:length(key_pool_name) >= 1;unique"`
 	KeyPoolDescription         string               `gorm:"size:255;not null;check:length(key_pool_description) >= 1"`
 	KeyPoolProvider            KeyPoolProviderEnum  `gorm:"size:8;not null;check:key_pool_provider IN ('Internal')"`
@@ -23,8 +23,8 @@ type KeyPool struct {
 }
 
 func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
-	if k.KeyPoolID == uuid.Nil {
-		k.KeyPoolID, err = uuid.NewV7()
+	if k.KeyPoolID == googleUuid.Nil {
+		k.KeyPoolID, err = googleUuid.NewV7()
 		if err != nil {
 			log.Printf("failed to generate UUIDv7: %v", err)
 		}
@@ -33,9 +33,9 @@ func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type Key struct {
-	KeyPoolID         uuid.UUID `gorm:"type:uuid;primaryKey"`
-	KeyID             int       `gorm:"primaryKey;autoIncrement:false;not null;check(key_id >= 0)"`
-	KeyMaterial       []byte    `gorm:"not null;check(length(key_material) >= 1)"`
+	KeyPoolID         googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	KeyID             int             `gorm:"primaryKey;autoIncrement:false;not null;check(key_id >= 0)"`
+	KeyMaterial       []byte          `gorm:"not null;check(length(key_material) >= 1)"`
 	KeyGenerateDate   *time.Time
 	KeyImportDate     *time.Time
 	KeyExpirationDate *time.Time
