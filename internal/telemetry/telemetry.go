@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	uuid2 "github.com/google/uuid"
-	slogmulti "github.com/samber/slog-multi"
+	googleUuid "github.com/google/uuid"
+	slogMulti "github.com/samber/slog-multi"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
@@ -49,7 +49,7 @@ var (
 	AttrServiceName       = "cryptoutil"
 	AttrServiceVersion    = "0.0.1"
 	AttrServiceInstanceID = func() string {
-		uuid, err := uuid2.NewV7()
+		uuid, err := googleUuid.NewV7()
 		if err != nil {
 			os.Exit(1)
 		}
@@ -139,7 +139,7 @@ func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*s
 		otelProvider := log.NewLoggerProvider(otelProviderOptions...)
 		otelSlogHandler := otelslog.NewHandler(otelLoggerName, otelslog.WithLoggerProvider(otelProvider))
 
-		return slog.New(slogmulti.Fanout(stdoutSlogHandler, otelSlogHandler)), otelProvider
+		return slog.New(slogMulti.Fanout(stdoutSlogHandler, otelSlogHandler)), otelProvider
 	}
 
 	return slog.New(stdoutSlogHandler), nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilCryptoKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
@@ -94,7 +95,7 @@ func (s *KeyPoolService) GetKeyPoolKeyPoolIDKey(ctx context.Context, keyPoolID *
 }
 
 func (s *KeyPoolService) generateKeyInsert(gormKeyPool *cryptoutilRepositoryOrm.KeyPool, keyPoolNextID int) (*cryptoutilRepositoryOrm.Key, error) {
-	gormKeyKeyMaterial, err := generateKeyMaterial(string(gormKeyPool.KeyPoolAlgorithm))
+	gormKeyKeyMaterial, err := cryptoutilCryptoKeygen.GenerateKeyMaterial(string(gormKeyPool.KeyPoolAlgorithm))
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate Key material: %w", err)
 	}

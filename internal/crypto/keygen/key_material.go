@@ -1,20 +1,19 @@
-package service
+package keygen
 
 import (
-	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	"fmt"
 )
 
-func generateKeyMaterial(algorithm string) ([]byte, error) {
-	var key cryptoutilKeygen.Key
+func GenerateKeyMaterial(algorithm string) ([]byte, error) {
+	var key Key
 	var err error
 	switch string(algorithm) {
 	case "AES-256", "AES256":
-		key, err = cryptoutilKeygen.GenerateAESKey(256)
+		key, err = GenerateAESKey(256)
 	case "AES-192", "AES192":
-		key, err = cryptoutilKeygen.GenerateAESKey(192)
+		key, err = GenerateAESKey(192)
 	case "AES-128", "AES128":
-		key, err = cryptoutilKeygen.GenerateAESKey(128)
+		key, err = GenerateAESKey(128)
 	default:
 		return nil, fmt.Errorf("unsuppported algorithm")
 	}

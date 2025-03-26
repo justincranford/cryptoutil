@@ -3,17 +3,17 @@ package handler
 import (
 	"context"
 
+	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilOpenapiService "cryptoutil/internal/service"
 )
 
 // StrictServer implements cryptoutilServer.StrictServerInterface
 type StrictServer struct {
-	service *cryptoutilOpenapiService.KeyPoolService
+	service *cryptoutilBusinessLogic.KeyPoolService
 }
 
-func NewStrictServer(service *cryptoutilOpenapiService.KeyPoolService) *StrictServer {
+func NewStrictServer(service *cryptoutilBusinessLogic.KeyPoolService) *StrictServer {
 	return &StrictServer{service: service}
 }
 

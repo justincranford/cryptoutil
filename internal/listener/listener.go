@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
-	cryptoutilService "cryptoutil/internal/service"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/gofiber/contrib/otelfiber"
@@ -59,7 +59,7 @@ func NewListener(listenAddress string, applyMigrations bool) (func(), func()) {
 	app.Get("/swagger/doc.json", cryptoutilOpenapiServer.FiberHandlerOpenAPISpec())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	strictServer := cryptoutilOpenapiHandler.NewStrictServer(cryptoutilService.NewService(ormService))
+	strictServer := cryptoutilOpenapiHandler.NewStrictServer(cryptoutilBusinessLogic.NewService(ormService))
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, cryptoutilOpenapiServer.NewStrictHandler(strictServer, nil), cryptoutilOpenapiServer.FiberServerOptions{
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
