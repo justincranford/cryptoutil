@@ -12,7 +12,7 @@ var ormTableStructs = []any{&KeyPool{}, &Key{}}
 
 type KeyPool struct {
 	KeyPoolID                  uuid.UUID            `gorm:"type:uuid;primaryKey"`
-	KeyPoolName                string               `gorm:"size:63;not null;check:length(key_pool_name) >= 1"`
+	KeyPoolName                string               `gorm:"size:63;not null;check:length(key_pool_name) >= 1;unique"`
 	KeyPoolDescription         string               `gorm:"size:255;not null;check:length(key_pool_description) >= 1"`
 	KeyPoolProvider            KeyPoolProviderEnum  `gorm:"size:8;not null;check:key_pool_provider IN ('Internal')"`
 	KeyPoolAlgorithm           KeyPoolAlgorithmEnum `gorm:"size:15;not null;check:key_pool_algorithm IN ('AES-256', 'AES-192', 'AES-128')"`
