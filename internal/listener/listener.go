@@ -1,4 +1,4 @@
-package server
+package listener
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func NewServer(listenAddress string, applyMigrations bool) (func(), func()) {
+func NewListener(listenAddress string, applyMigrations bool) (func(), func()) {
 	ctx := context.Background()
 
 	telemetryService := cryptoutilTelemetry.NewService(ctx, "asn1_test", false, false)

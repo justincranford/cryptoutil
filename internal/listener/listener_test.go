@@ -1,4 +1,4 @@
-package server
+package listener
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestHttpGetHttp200(t *testing.T) {
-	start, stop := NewServer("localhost:8080", true)
+	start, stop := NewListener("localhost:8080", true)
 	go start()
 	defer stop()
 
