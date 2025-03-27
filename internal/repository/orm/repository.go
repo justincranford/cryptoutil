@@ -24,43 +24,32 @@ var (
 )
 
 type RepositoryOrm struct {
-	gormDB              *gorm.DB
-	sqlDB               *sql.DB
-	shutdownDBContainer func()
+	gormDB *gorm.DB
+	sqlDB  *sql.DB
 }
 
-func NewRepositoryOrm(ctx context.Context, dbType cryptoutilRepositorySqlProvider.SupportedSqlDB, databaseUrl string, containerMode cryptoutilRepositorySqlProvider.ContainerMode, applyMigrations bool) (*RepositoryOrm, error) {
-	sqlDB, shutdownDBContainer, err := cryptoutilRepositorySqlProvider.CreateSqlDB(ctx, dbType, databaseUrl, containerMode)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
-	}
-
+func NewRepositoryOrm(ctx context.Context, dbType cryptoutilRepositorySqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*RepositoryOrm, error) {
 	gormDB, err := cryptoutilRepositorySqlProvider.CreateGormDB(dbType, sqlDB)
 	if err != nil {
-		shutdownDBContainer()
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}
 
 	if applyMigrations {
-		log.Printf("Applying %s migrations", string(dbType))
+		log.Printf("Applying migrations")
 		err = gormDB.AutoMigrate(ormTableStructs...)
 		if err != nil {
-			shutdownDBContainer()
 			return nil, fmt.Errorf("failed to run migrations: %w", err)
 		}
 	} else {
-		log.Printf("Skipping %s migrations", string(dbType))
+		log.Printf("Skipping migrations")
 	}
 
-	return &RepositoryOrm{sqlDB: sqlDB, gormDB: gormDB, shutdownDBContainer: shutdownDBContainer}, nil
+	return &RepositoryOrm{sqlDB: sqlDB, gormDB: gormDB}, nil
 }
 
 func (s *RepositoryOrm) Shutdown() {
 	if err := s.sqlDB.Close(); err != nil {
 		log.Printf("failed to close DB: %v", err)
-	}
-	if s.shutdownDBContainer != nil {
-		s.shutdownDBContainer()
 	}
 }
 

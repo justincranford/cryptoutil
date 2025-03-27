@@ -11,7 +11,10 @@ import (
 )
 
 func TestHttpGetHttp200(t *testing.T) {
-	start, stop := NewListener("localhost", 8080, true)
+	start, stop, err := NewListener("localhost", 8080, true)
+	if err != nil {
+		t.Fatalf("failed to create listener: %v", err)
+	}
 	go start()
 	defer stop()
 

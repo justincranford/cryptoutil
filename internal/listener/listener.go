@@ -26,7 +26,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(), func()) {
+func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
 	ctx := context.Background()
 
 	telemetryService := cryptoutilTelemetry.NewService(ctx, "asn1_test", false, false)
@@ -36,8 +36,16 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 	// fmt.Println(span.SpanContext().TraceID())
 	// fmt.Println(span.SpanContext().SpanID())
 
-	// repositoryOrm, err := orm.NewService(ctx, orm.SupportedSqlDBPostgres, "", orm.ContainerModeRequired, applyMigrations)
-	repositoryOrm, err := cryptoutilRepositoryOrm.NewRepositoryOrm(ctx, cryptoutilRepositorySqlProvider.SupportedSqlDBSQLite, ":memory:", cryptoutilRepositorySqlProvider.ContainerModeDisabled, applyMigrations)
+	// const dbType = cryptoutilRepositorySqlProvider.SupportedSqlDBPostgres
+	// const dbUrl = "?"
+	const dbType = cryptoutilRepositorySqlProvider.SupportedSqlDBSQLite
+	const dbUrl = ":memory:"
+	sqlDB, shutdownDBContainer, err := cryptoutilRepositorySqlProvider.CreateSqlDB(ctx, dbType, dbUrl, cryptoutilRepositorySqlProvider.ContainerModeDisabled)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
+	}
+
+	repositoryOrm, err := cryptoutilRepositoryOrm.NewRepositoryOrm(ctx, dbType, sqlDB, applyMigrations)
 	if err != nil {
 		log.Fatalf("open ORM service error: %v", err)
 	}
@@ -89,13 +97,14 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 	}
 	stopServer := func() {
 		repositoryOrm.Shutdown()
+		shutdownDBContainer()
 		err := app.Shutdown()
 		if err != nil {
 			fmt.Printf("Error stopping fiber server: %s", err)
 		}
 		telemetryService.Shutdown()
 	}
-	return startServer, stopServer
+	return startServer, stopServer, nil
 }
 
 func otelLoggerMiddleware(logger *slog.Logger) fiber.Handler {
