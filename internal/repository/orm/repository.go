@@ -8,7 +8,7 @@ import (
 	"log"
 	"math"
 
-	cryptoutilRepositorySqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 
 	"gorm.io/gorm"
 
@@ -28,8 +28,8 @@ type RepositoryOrm struct {
 	sqlDB  *sql.DB
 }
 
-func NewRepositoryOrm(ctx context.Context, dbType cryptoutilRepositorySqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*RepositoryOrm, error) {
-	gormDB, err := cryptoutilRepositorySqlProvider.CreateGormDB(dbType, sqlDB)
+func NewRepositoryOrm(ctx context.Context, dbType cryptoutilSqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*RepositoryOrm, error) {
+	gormDB, err := cryptoutilSqlProvider.CreateGormDB(dbType, sqlDB)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}

@@ -14,7 +14,7 @@ import (
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
-	cryptoutilRepositorySqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/gofiber/contrib/otelfiber"
@@ -29,18 +29,18 @@ import (
 func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
 	ctx := context.Background()
 
-	telemetryService := cryptoutilTelemetry.NewService(ctx, "asn1_test", false, false)
+	telemetryService := cryptoutilTelemetry.NewService(ctx, "cryptoutil", false, false)
 
 	// tracer := telemetryService.TracesProvider.Tracer("fiber-tracer")
 	// _, span := tracer.Start(context.Background(), "test-span")
 	// fmt.Println(span.SpanContext().TraceID())
 	// fmt.Println(span.SpanContext().SpanID())
 
-	// const dbType = cryptoutilRepositorySqlProvider.SupportedSqlDBPostgres
+	// const dbType = cryptoutilSqlProvider.SupportedSqlDBPostgres
 	// const dbUrl = "?"
-	const dbType = cryptoutilRepositorySqlProvider.SupportedSqlDBSQLite
+	const dbType = cryptoutilSqlProvider.SupportedSqlDBSQLite
 	const dbUrl = ":memory:"
-	sqlDB, shutdownDBContainer, err := cryptoutilRepositorySqlProvider.CreateSqlDB(ctx, dbType, dbUrl, cryptoutilRepositorySqlProvider.ContainerModeDisabled)
+	sqlDB, shutdownDBContainer, err := cryptoutilSqlProvider.CreateSqlDB(ctx, dbType, dbUrl, cryptoutilSqlProvider.ContainerModeDisabled)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
