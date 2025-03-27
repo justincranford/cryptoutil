@@ -3,7 +3,6 @@ package service
 import (
 	cryptoutilBusinessModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilPointer "cryptoutil/internal/pointer"
 	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
 	"errors"
 	"fmt"
@@ -41,7 +40,7 @@ func (m *openapiOrmMapper) toOpenapiKeyPools(gormKeyPools *[]cryptoutilRepositor
 
 func (*openapiOrmMapper) toOpenapiKeyPool(gormKeyPool *cryptoutilRepositoryOrm.KeyPool) *cryptoutilBusinessModel.KeyPool {
 	return &cryptoutilBusinessModel.KeyPool{
-		Id:                  (*cryptoutilBusinessModel.KeyPoolId)(cryptoutilPointer.StringPtr(gormKeyPool.KeyPoolID.String())),
+		Id:                  (*cryptoutilBusinessModel.KeyPoolId)(&gormKeyPool.KeyPoolID),
 		Name:                &gormKeyPool.KeyPoolName,
 		Description:         &gormKeyPool.KeyPoolDescription,
 		Algorithm:           (*cryptoutilBusinessModel.KeyPoolAlgorithm)(&gormKeyPool.KeyPoolAlgorithm),
@@ -64,7 +63,7 @@ func (m *openapiOrmMapper) toOpenapiKeys(gormKeys *[]cryptoutilRepositoryOrm.Key
 func (*openapiOrmMapper) toOpenapiKey(gormKey *cryptoutilRepositoryOrm.Key) *cryptoutilBusinessModel.Key {
 	return &cryptoutilBusinessModel.Key{
 		KeyId:        &gormKey.KeyID,
-		KeyPoolId:    (*cryptoutilBusinessModel.KeyPoolId)(cryptoutilPointer.StringPtr(gormKey.KeyPoolID.String())),
+		KeyPoolId:    (*cryptoutilBusinessModel.KeyPoolId)(&gormKey.KeyPoolID),
 		GenerateDate: (*cryptoutilBusinessModel.KeyGenerateDate)(gormKey.KeyGenerateDate),
 	}
 }

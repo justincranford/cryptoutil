@@ -13,12 +13,12 @@ import (
 
 // StrictServer implements cryptoutilServer.StrictServerInterface
 type StrictServer struct {
-	service       *cryptoutilBusinessLogic.KeyPoolService
-	openapiMapper *openapiMapper
+	businessLogicService *cryptoutilBusinessLogic.KeyPoolService
+	openapiMapper        *openapiMapper
 }
 
 func NewOpenapiHandler(service *cryptoutilBusinessLogic.KeyPoolService) *StrictServer {
-	return &StrictServer{service: service, openapiMapper: &openapiMapper{}}
+	return &StrictServer{businessLogicService: service, openapiMapper: &openapiMapper{}}
 }
 
 func (s *StrictServer) GetKeypool(ctx context.Context, openapiGetKeypoolRequestObject cryptoutilOpenapiServer.GetKeypoolRequestObject) (cryptoutilOpenapiServer.GetKeypoolResponseObject, error) {
@@ -29,12 +29,14 @@ func (s *StrictServer) GetKeypool(ctx context.Context, openapiGetKeypoolRequestO
 	} else if openapiGetKeypoolRequestObject.Params.Page != nil && len(string(*openapiGetKeypoolRequestObject.Params.Page)) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
 	}
-	return s.service.GetKeyPool(ctx)
+	listKeyPoolsResponse, err := s.businessLogicService.ListKeyPools(ctx)
+	return listKeyPoolsResponse, err
 }
 
 func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolRequestObject cryptoutilOpenapiServer.PostKeypoolRequestObject) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
-	keyPoolCreate := cryptoutilBusinessModel.KeyPoolCreate(*openapiPostKeypoolRequestObject.Body)
-	return s.service.PostKeyPool(ctx, &keyPoolCreate)
+	keyPoolCreateRequest := cryptoutilBusinessModel.KeyPoolCreate(*openapiPostKeypoolRequestObject.Body)
+	keyPoolCreateResponse, err := s.businessLogicService.AddKeyPool(ctx, &keyPoolCreateRequest)
+	return keyPoolCreateResponse, err
 }
 
 func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyRequestObject) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
@@ -46,11 +48,13 @@ func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKey
 		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
 	}
 	keyPoolID := openapiGetKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
-	return s.service.GetKeyPoolKeyPoolIDKey(ctx, &keyPoolID)
+	listKeysResponse, err := s.businessLogicService.ListKeysByKeyPool(ctx, keyPoolID)
+	return listKeysResponse, err
 }
 
 func (s *StrictServer) PostKeypoolKeyPoolIDKey(ctx context.Context, openapiPostKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
 	keyPoolID := openapiPostKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
-	keyGenerate := cryptoutilBusinessModel.KeyGenerate(*openapiPostKeypoolKeyPoolIDKeyRequestObject.Body)
-	return s.service.PostKeyPoolKeyPoolIDKey(ctx, &keyPoolID, &keyGenerate)
+	keyGenerateRequest := cryptoutilBusinessModel.KeyGenerate(*openapiPostKeypoolKeyPoolIDKeyRequestObject.Body)
+	generateKeyInKeyPoolResponse, err := s.businessLogicService.GenerateKeyInPoolKey(ctx, keyPoolID, &keyGenerateRequest)
+	return generateKeyInKeyPoolResponse, err
 }

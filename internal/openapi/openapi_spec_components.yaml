@@ -114,8 +114,8 @@ components:
 
     KeyPoolId:
       type: string
-      description: Unique base64 url-encoded identifier for a Key Pool.
-      minLength: 2
+      format: uuid
+      description: Unique UUID for a Key Pool.
     KeyPoolName:
       type: string
       description: Friendly name for a Key Pool.

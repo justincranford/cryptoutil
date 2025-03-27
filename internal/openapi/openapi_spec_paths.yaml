@@ -85,7 +85,7 @@ paths:
         in: path
         required: true
         schema:
-          type: string
+          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
     post:
       summary: Generate a new Key in a Key Pool.
       description: Generate a new Key in a Key Pool.
