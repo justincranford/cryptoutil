@@ -64,6 +64,28 @@ func (s *RepositoryOrm) AddKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
+func (s *RepositoryOrm) UpdateKeyPool(keyPool *KeyPool) error {
+	if keyPool.KeyPoolID == uuidZero {
+		return ErrKeyPoolIDMustBeNonZeroUUID
+	}
+	err := s.gormDB.UpdateColumns(keyPool).Error
+	if err != nil {
+		return fmt.Errorf("failed to update Key Pool: %w", err)
+	}
+	return nil
+}
+
+func (s *RepositoryOrm) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatusEnum) error {
+	if keyPoolID == uuidZero {
+		return ErrKeyPoolIDMustBeNonZeroUUID
+	}
+	err := s.gormDB.Model(&KeyPool{}).Where("key_pool_id = ?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
+	if err != nil {
+		return fmt.Errorf("failed to update Key Pool Status: %w", err)
+	}
+	return nil
+}
+
 func (s *RepositoryOrm) AddKey(key *Key) error {
 	if key.KeyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID

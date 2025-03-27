@@ -28,6 +28,22 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 	if err != nil {
 		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
 	}
+
+	if gormKeyPoolInsert.KeyPoolStatus == cryptoutilRepositoryOrm.PendingGenerate {
+		gormKey, err := s.generateKeyInsert(gormKeyPoolInsert, 1)
+		if err != nil {
+			return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+		}
+		err = s.ormService.AddKey(gormKey)
+		if err != nil {
+			return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+		}
+
+		err = s.ormService.UpdateKeyPoolStatus(gormKeyPoolInsert.KeyPoolID, cryptoutilRepositoryOrm.Active)
+		if err != nil {
+			return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+		}
+	}
 	return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseSuccess(gormKeyPoolInsert), nil
 }
 
