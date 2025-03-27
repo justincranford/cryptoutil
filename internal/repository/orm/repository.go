@@ -8,6 +8,8 @@ import (
 	"log"
 	"math"
 
+	cryptoutilRepositorySqlProvider "cryptoutil/internal/repository/sqlprovider"
+
 	"gorm.io/gorm"
 
 	"github.com/google/uuid"
@@ -27,13 +29,13 @@ type RepositoryOrm struct {
 	shutdownDBContainer func()
 }
 
-func NewRepositoryOrm(ctx context.Context, dbType DBType, databaseUrl string, containerMode ContainerMode, applyMigrations bool) (*RepositoryOrm, error) {
-	sqlDB, shutdownDBContainer, err := CreateSqlDB(ctx, dbType, databaseUrl, containerMode)
+func NewRepositoryOrm(ctx context.Context, dbType cryptoutilRepositorySqlProvider.SupportedSqlDB, databaseUrl string, containerMode cryptoutilRepositorySqlProvider.ContainerMode, applyMigrations bool) (*RepositoryOrm, error) {
+	sqlDB, shutdownDBContainer, err := cryptoutilRepositorySqlProvider.CreateSqlDB(ctx, dbType, databaseUrl, containerMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
 
-	gormDB, err := CreateGormDB(dbType, sqlDB)
+	gormDB, err := cryptoutilRepositorySqlProvider.CreateGormDB(dbType, sqlDB)
 	if err != nil {
 		shutdownDBContainer()
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)

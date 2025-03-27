@@ -1,4 +1,4 @@
-package orm
+package sqlprovider
 
 import (
 	"context"
@@ -10,49 +10,48 @@ import (
 	"time"
 )
 
-type DBType string
+type SupportedSqlDB string
 type ContainerMode string
 
 const (
-	DBTypeSQLite   DBType = "sqlite"
-	DBTypePostgres DBType = "postgres"
+	SupportedSqlDBSQLite   SupportedSqlDB = "sqlite"
+	SupportedSqlDBPostgres SupportedSqlDB = "postgres"
 
-	ContainerModeRequired  ContainerMode = "required"
-	ContainerModePreferred ContainerMode = "preferred"
 	ContainerModeDisabled  ContainerMode = "disabled"
+	ContainerModePreferred ContainerMode = "preferred"
+	ContainerModeRequired  ContainerMode = "required"
 
 	maxDbConnectAttempts = 3
 )
 
 var (
-	postgresContainerDbNameDefault = fmt.Sprintf("keyservice%04d", rand.Intn(10_000))
-	postgresContainerDbUsername    = fmt.Sprintf("postgresUsername%04d", rand.Intn(10_000))
-	postgresContainerDbPassword    = fmt.Sprintf("postgresPassword%04d", rand.Intn(10_000))
+	postgresContainerDbName     = fmt.Sprintf("keyservice%04d", rand.Intn(10_000))
+	postgresContainerDbUsername = fmt.Sprintf("postgresUsername%04d", rand.Intn(10_000))
+	postgresContainerDbPassword = fmt.Sprintf("postgresPassword%04d", rand.Intn(10_000))
 )
 
-// TODO Move this to different package
-
-func CreateSqlDB(ctx context.Context, dbType DBType, databaseUrl string, containerMode ContainerMode) (*sql.DB, func(), error) {
+func CreateSqlDB(ctx context.Context, dbType SupportedSqlDB, databaseUrl string, containerMode ContainerMode) (*sql.DB, func(), error) {
 	var shutdownDBContainer func() = func() {} // no-op by default
 
-	if containerMode != ContainerModeDisabled {
-		log.Printf("Container mode is %s, trying to start a %s container", string(dbType), string(containerMode)) // containerMode is required or preferred
+	if containerMode != ContainerModeDisabled { // containerMode is required or preferred
+		log.Printf("Container mode is %s, trying to start a %s container", string(dbType), string(containerMode))
 		var containerDatabaseUrl string
 		var err error
 		switch dbType {
-		case DBTypeSQLite:
+		case SupportedSqlDBSQLite:
 			return nil, nil, fmt.Errorf("there is no container option for sqlite")
-		case DBTypePostgres:
-			containerDatabaseUrl, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, postgresContainerDbNameDefault, postgresContainerDbUsername, postgresContainerDbPassword)
+		case SupportedSqlDBPostgres:
+			containerDatabaseUrl, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, postgresContainerDbName, postgresContainerDbUsername, postgresContainerDbPassword)
 		default:
 			return nil, nil, fmt.Errorf("unsupported database type: %s", dbType)
 		}
-		if err == nil { // Example> Docker not installed, Docker Desktop not running, etc.
+		// Example errors: Rootless Docker not supported (Windows), Docker Desktop not running (Windows), Docker not installed (Linux/Mac), etc.
+		if err == nil { // success
 			log.Printf("containerMode was %s, and container started successfully, so using generated %s database URL: %s", string(containerMode), string(dbType), containerDatabaseUrl)
 			databaseUrl = containerDatabaseUrl
-		} else if containerMode == ContainerModeRequired { // give up and return the error
+		} else if containerMode == ContainerModeRequired { // container is required, so this error is fatal; give up and return the errors
 			return nil, nil, fmt.Errorf("containerMode was required, but failed to start %s container: %w", string(dbType), err)
-		} else {
+		} else { // container was required, so this error not is fatal; fall through and try to connect with the provided databaseUrl parameter
 			log.Printf("containerMode was preferred, but failed to start, so use the provided %s database URL instead: %v", string(dbType), err)
 		}
 	}
@@ -60,7 +59,7 @@ func CreateSqlDB(ctx context.Context, dbType DBType, databaseUrl string, contain
 	sqlDB, err := sql.Open(string(dbType), databaseUrl)
 	if err != nil {
 		shutdownDBContainer()
-		return nil, nil, fmt.Errorf("failed to open %s database: %w", string(DBTypeSQLite), err)
+		return nil, nil, fmt.Errorf("failed to open %s database: %w", string(dbType), err)
 	}
 
 	for attempt, attemptsRemaining := 1, maxDbConnectAttempts; attemptsRemaining > 0; attemptsRemaining-- {

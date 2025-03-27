@@ -14,6 +14,7 @@ import (
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
+	cryptoutilRepositorySqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/gofiber/contrib/otelfiber"
@@ -35,8 +36,8 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 	// fmt.Println(span.SpanContext().TraceID())
 	// fmt.Println(span.SpanContext().SpanID())
 
-	// repositoryOrm, err := orm.NewService(ctx, orm.DBTypePostgres, "", orm.ContainerModeRequired, applyMigrations)
-	repositoryOrm, err := cryptoutilRepositoryOrm.NewRepositoryOrm(ctx, cryptoutilRepositoryOrm.DBTypeSQLite, ":memory:", cryptoutilRepositoryOrm.ContainerModeDisabled, applyMigrations)
+	// repositoryOrm, err := orm.NewService(ctx, orm.SupportedSqlDBPostgres, "", orm.ContainerModeRequired, applyMigrations)
+	repositoryOrm, err := cryptoutilRepositoryOrm.NewRepositoryOrm(ctx, cryptoutilRepositorySqlProvider.SupportedSqlDBSQLite, ":memory:", cryptoutilRepositorySqlProvider.ContainerModeDisabled, applyMigrations)
 	if err != nil {
 		log.Fatalf("open ORM service error: %v", err)
 	}
