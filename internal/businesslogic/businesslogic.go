@@ -29,22 +29,30 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
 	}
 
-	if gormKeyPoolInsert.KeyPoolStatus == cryptoutilRepositoryOrm.PendingGenerate {
-		gormKey, err := s.generateKeyInsert(gormKeyPoolInsert, 1)
-		if err != nil {
-			return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
-		}
-		err = s.ormService.AddKey(gormKey)
-		if err != nil {
-			return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
-		}
-
-		err = s.ormService.UpdateKeyPoolStatus(gormKeyPoolInsert.KeyPoolID, cryptoutilRepositoryOrm.Active)
-		if err != nil {
-			return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
-		}
+	if gormKeyPoolInsert.KeyPoolStatus != cryptoutilRepositoryOrm.PendingGenerate {
+		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseSuccess(gormKeyPoolInsert), nil
 	}
-	return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseSuccess(gormKeyPoolInsert), nil
+
+	gormKey, err := s.generateKeyInsert(gormKeyPoolInsert, 1)
+	if err != nil {
+		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+	}
+	err = s.ormService.AddKey(gormKey)
+	if err != nil {
+		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+	}
+
+	err = s.ormService.UpdateKeyPoolStatus(gormKeyPoolInsert.KeyPoolID, cryptoutilRepositoryOrm.Active)
+	if err != nil {
+		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+	}
+
+	updatedKeyPool, err := s.ormService.GetKeyPoolByID(gormKeyPoolInsert.KeyPoolID)
+	if err != nil {
+		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+	}
+
+	return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseSuccess(updatedKeyPool), nil
 }
 
 func (s *KeyPoolService) ListKeyPools(ctx context.Context) (cryptoutilOpenapiServer.GetKeypoolResponseObject, error) {
