@@ -1,13 +1,14 @@
 package service
 
 import (
+	cryptoutilBusinessModel "cryptoutil/internal/openapi/model"
 	"testing"
 )
 
 func TestTransitionInvalidState(t *testing.T) {
-	err := TransitionState("DoesNotExist", Creating)
+	err := TransitionState("DoesNotExist", cryptoutilBusinessModel.Creating)
 	if err == nil {
-		t.Errorf("Expected transition from DoesNotExist to %s to fail, but it succeeded", Creating)
+		t.Errorf("Expected transition from DoesNotExist to %s to fail, but it succeeded", cryptoutilBusinessModel.Creating)
 	}
 }
 

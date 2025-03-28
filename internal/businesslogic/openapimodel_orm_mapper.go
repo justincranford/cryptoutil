@@ -1,7 +1,7 @@
 package service
 
 import (
-	cryptoutilBusinessModel "cryptoutil/internal/openapi/model"
+	cryptoutilService "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
 	"errors"
@@ -11,13 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type openapiOrmMapper struct{}
+type serviceOrmMapper struct{}
 
-func NewMapper() *openapiOrmMapper {
-	return &openapiOrmMapper{}
+func NewMapper() *serviceOrmMapper {
+	return &serviceOrmMapper{}
 }
 
-func (m *openapiOrmMapper) toGormKeyPoolInsert(openapiKeyPoolCreate *cryptoutilBusinessModel.KeyPoolCreate) *cryptoutilRepositoryOrm.KeyPool {
+func (m *serviceOrmMapper) toGormKeyPoolInsert(openapiKeyPoolCreate *cryptoutilService.KeyPoolCreate) *cryptoutilRepositoryOrm.KeyPool {
 	return &cryptoutilRepositoryOrm.KeyPool{
 		KeyPoolName:                openapiKeyPoolCreate.Name,
 		KeyPoolDescription:         openapiKeyPoolCreate.Description,
@@ -30,55 +30,55 @@ func (m *openapiOrmMapper) toGormKeyPoolInsert(openapiKeyPoolCreate *cryptoutilB
 	}
 }
 
-func (m *openapiOrmMapper) toOpenapiKeyPools(gormKeyPools *[]cryptoutilRepositoryOrm.KeyPool) *[]cryptoutilBusinessModel.KeyPool {
-	openapiKeyPools := make([]cryptoutilBusinessModel.KeyPool, len(*gormKeyPools))
-	for i, gormKeyPool := range *gormKeyPools {
-		openapiKeyPools[i] = *m.toOpenapiKeyPool(&gormKeyPool)
+func (m *serviceOrmMapper) toServiceKeyPools(gormKeyPools []cryptoutilRepositoryOrm.KeyPool) []cryptoutilService.KeyPool {
+	openapiKeyPools := make([]cryptoutilService.KeyPool, len(gormKeyPools))
+	for i, gormKeyPool := range gormKeyPools {
+		openapiKeyPools[i] = *m.toServiceKeyPool(&gormKeyPool)
 	}
-	return &openapiKeyPools
+	return openapiKeyPools
 }
 
-func (*openapiOrmMapper) toOpenapiKeyPool(gormKeyPool *cryptoutilRepositoryOrm.KeyPool) *cryptoutilBusinessModel.KeyPool {
-	return &cryptoutilBusinessModel.KeyPool{
-		Id:                  (*cryptoutilBusinessModel.KeyPoolId)(&gormKeyPool.KeyPoolID),
+func (*serviceOrmMapper) toServiceKeyPool(gormKeyPool *cryptoutilRepositoryOrm.KeyPool) *cryptoutilService.KeyPool {
+	return &cryptoutilService.KeyPool{
+		Id:                  (*cryptoutilService.KeyPoolId)(&gormKeyPool.KeyPoolID),
 		Name:                &gormKeyPool.KeyPoolName,
 		Description:         &gormKeyPool.KeyPoolDescription,
-		Algorithm:           (*cryptoutilBusinessModel.KeyPoolAlgorithm)(&gormKeyPool.KeyPoolAlgorithm),
-		Provider:            (*cryptoutilBusinessModel.KeyPoolProvider)(&gormKeyPool.KeyPoolProvider),
+		Algorithm:           (*cryptoutilService.KeyPoolAlgorithm)(&gormKeyPool.KeyPoolAlgorithm),
+		Provider:            (*cryptoutilService.KeyPoolProvider)(&gormKeyPool.KeyPoolProvider),
 		IsVersioningAllowed: &gormKeyPool.KeyPoolIsVersioningAllowed,
 		IsImportAllowed:     &gormKeyPool.KeyPoolIsImportAllowed,
 		IsExportAllowed:     &gormKeyPool.KeyPoolIsExportAllowed,
-		Status:              (*cryptoutilBusinessModel.KeyPoolStatus)(&gormKeyPool.KeyPoolStatus),
+		Status:              (*cryptoutilService.KeyPoolStatus)(&gormKeyPool.KeyPoolStatus),
 	}
 }
 
-func (m *openapiOrmMapper) toOpenapiKeys(gormKeys *[]cryptoutilRepositoryOrm.Key) *[]cryptoutilBusinessModel.Key {
-	openapiKeys := make([]cryptoutilBusinessModel.Key, len(*gormKeys))
-	for i, gormKey := range *gormKeys {
-		openapiKeys[i] = *m.toOpenapiKey(&gormKey)
+func (m *serviceOrmMapper) toServiceKeys(gormKeys []cryptoutilRepositoryOrm.Key) []cryptoutilService.Key {
+	openapiKeys := make([]cryptoutilService.Key, len(gormKeys))
+	for i, gormKey := range gormKeys {
+		openapiKeys[i] = *m.toServiceKey(&gormKey)
 	}
-	return &openapiKeys
+	return openapiKeys
 }
 
-func (*openapiOrmMapper) toOpenapiKey(gormKey *cryptoutilRepositoryOrm.Key) *cryptoutilBusinessModel.Key {
-	return &cryptoutilBusinessModel.Key{
+func (*serviceOrmMapper) toServiceKey(gormKey *cryptoutilRepositoryOrm.Key) *cryptoutilService.Key {
+	return &cryptoutilService.Key{
 		KeyId:        &gormKey.KeyID,
-		KeyPoolId:    (*cryptoutilBusinessModel.KeyPoolId)(&gormKey.KeyPoolID),
-		GenerateDate: (*cryptoutilBusinessModel.KeyGenerateDate)(gormKey.KeyGenerateDate),
+		KeyPoolId:    (*cryptoutilService.KeyPoolId)(&gormKey.KeyPoolID),
+		GenerateDate: (*cryptoutilService.KeyGenerateDate)(gormKey.KeyGenerateDate),
 	}
 }
 
-func (*openapiOrmMapper) toKeyPoolProviderEnum(openapiKeyPoolProvider *cryptoutilBusinessModel.KeyPoolProvider) *cryptoutilRepositoryOrm.KeyPoolProviderEnum {
+func (*serviceOrmMapper) toKeyPoolProviderEnum(openapiKeyPoolProvider *cryptoutilService.KeyPoolProvider) *cryptoutilRepositoryOrm.KeyPoolProviderEnum {
 	gormKeyPoolProvider := cryptoutilRepositoryOrm.KeyPoolProviderEnum(*openapiKeyPoolProvider)
 	return &gormKeyPoolProvider
 }
 
-func (*openapiOrmMapper) toKKeyPoolAlgorithmEnum(openapiKeyPoolProvider *cryptoutilBusinessModel.KeyPoolAlgorithm) *cryptoutilRepositoryOrm.KeyPoolAlgorithmEnum {
+func (*serviceOrmMapper) toKKeyPoolAlgorithmEnum(openapiKeyPoolProvider *cryptoutilService.KeyPoolAlgorithm) *cryptoutilRepositoryOrm.KeyPoolAlgorithmEnum {
 	gormKeyPoolAlgorithm := cryptoutilRepositoryOrm.KeyPoolAlgorithmEnum(*openapiKeyPoolProvider)
 	return &gormKeyPoolAlgorithm
 }
 
-func (*openapiOrmMapper) toKeyPoolInitialStatus(openapiKeyPoolIsImportAllowed *cryptoutilBusinessModel.KeyPoolIsImportAllowed) *cryptoutilRepositoryOrm.KeyPoolStatusEnum {
+func (*serviceOrmMapper) toKeyPoolInitialStatus(openapiKeyPoolIsImportAllowed *cryptoutilService.KeyPoolIsImportAllowed) *cryptoutilRepositoryOrm.KeyPoolStatusEnum {
 	var gormKeyPoolStatus cryptoutilRepositoryOrm.KeyPoolStatusEnum
 	if *openapiKeyPoolIsImportAllowed {
 		gormKeyPoolStatus = cryptoutilRepositoryOrm.KeyPoolStatusEnum("pending_import")
@@ -90,76 +90,76 @@ func (*openapiOrmMapper) toKeyPoolInitialStatus(openapiKeyPoolIsImportAllowed *c
 
 // PostKeyPool
 
-func (m *openapiOrmMapper) toOpenapiInsertKeyPoolResponseSuccess(gormKeyPool *cryptoutilRepositoryOrm.KeyPool) cryptoutilOpenapiServer.PostKeypoolResponseObject {
-	openapiPostKeypoolResponseObject := cryptoutilOpenapiServer.PostKeypool200JSONResponse(*m.toOpenapiKeyPool(gormKeyPool))
+func (m *serviceOrmMapper) toOpenapiInsertKeyPoolResponseSuccess(gormKeyPool *cryptoutilRepositoryOrm.KeyPool) cryptoutilOpenapiServer.PostKeypoolResponseObject {
+	openapiPostKeypoolResponseObject := cryptoutilOpenapiServer.PostKeypool200JSONResponse(*m.toServiceKeyPool(gormKeyPool))
 	return &openapiPostKeypoolResponseObject
 }
 
-func (*openapiOrmMapper) toOpenapiInsertKeyPoolResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
-	return cryptoutilOpenapiServer.PostKeypool500JSONResponse{HTTP500InternalServerError: cryptoutilBusinessModel.HTTP500InternalServerError{Error: "failed to insert Key Pool"}}, fmt.Errorf("failed to insert Key Pool: %w", err)
+func (*serviceOrmMapper) toOpenapiInsertKeyPoolResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
+	return cryptoutilOpenapiServer.PostKeypool500JSONResponse{HTTP500InternalServerError: cryptoutilService.HTTP500InternalServerError{Error: "failed to insert Key Pool"}}, fmt.Errorf("failed to insert Key Pool: %w", err)
 }
 
 // GetKeyPool
 
-func (m *openapiOrmMapper) toOpenapiSelectKeyPoolResponseSuccess(gormKeyPools *[]cryptoutilRepositoryOrm.KeyPool) cryptoutilOpenapiServer.GetKeypoolResponseObject {
-	openapiGetKeypoolResponseObject := cryptoutilOpenapiServer.GetKeypool200JSONResponse(*m.toOpenapiKeyPools(gormKeyPools))
+func (m *serviceOrmMapper) toOpenapiSelectKeyPoolResponseSuccess(gormKeyPools []cryptoutilRepositoryOrm.KeyPool) cryptoutilOpenapiServer.GetKeypoolResponseObject {
+	openapiGetKeypoolResponseObject := cryptoutilOpenapiServer.GetKeypool200JSONResponse(m.toServiceKeyPools(gormKeyPools))
 	return &openapiGetKeypoolResponseObject
 }
 
-func (m *openapiOrmMapper) toOpenapiSelectKeyPoolResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolResponseObject, error) {
+func (m *serviceOrmMapper) toOpenapiSelectKeyPoolResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolResponseObject, error) {
 	if errors.Is(err, fiber.ErrBadRequest) {
-		return cryptoutilOpenapiServer.GetKeypool400JSONResponse{HTTP400BadRequest: cryptoutilBusinessModel.HTTP400BadRequest{Error: "Bad input"}}, fmt.Errorf("Bad input: %w", err)
+		return cryptoutilOpenapiServer.GetKeypool400JSONResponse{HTTP400BadRequest: cryptoutilService.HTTP400BadRequest{Error: "Bad input"}}, fmt.Errorf("Bad input: %w", err)
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
-		return cryptoutilOpenapiServer.GetKeypool404JSONResponse{HTTP404NotFound: cryptoutilBusinessModel.HTTP404NotFound{Error: "Key Pool not found"}}, fmt.Errorf("Key Pool not found: %w", err)
+		return cryptoutilOpenapiServer.GetKeypool404JSONResponse{HTTP404NotFound: cryptoutilService.HTTP404NotFound{Error: "Key Pool not found"}}, fmt.Errorf("Key Pool not found: %w", err)
 	}
-	return cryptoutilOpenapiServer.GetKeypool500JSONResponse{HTTP500InternalServerError: cryptoutilBusinessModel.HTTP500InternalServerError{Error: "failed to get Key Pool"}}, fmt.Errorf("failed to get Key Pool: %w", err)
+	return cryptoutilOpenapiServer.GetKeypool500JSONResponse{HTTP500InternalServerError: cryptoutilService.HTTP500InternalServerError{Error: "failed to get Key Pool"}}, fmt.Errorf("failed to get Key Pool: %w", err)
 }
 
 // PostKeyPoolKeyPoolIDKey
 
-func (m *openapiOrmMapper) toOpenapiInsertKeySuccessResponseError(gormKey *cryptoutilRepositoryOrm.Key) cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject {
-	openapiPostKeypoolKeyPoolIDKeyResponseObject := cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey200JSONResponse(*m.toOpenapiKey(gormKey))
+func (m *serviceOrmMapper) toOpenapiInsertKeySuccessResponseError(gormKey *cryptoutilRepositoryOrm.Key) cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject {
+	openapiPostKeypoolKeyPoolIDKeyResponseObject := cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey200JSONResponse(*m.toServiceKey(gormKey))
 	return &openapiPostKeypoolKeyPoolIDKeyResponseObject
 }
 
-func (*openapiOrmMapper) toOpenapiInsertKeyInvalidKeyPoolIDResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: cryptoutilBusinessModel.HTTP400BadRequest{Error: "Key Pool ID"}}, fmt.Errorf("Key Pool ID: %w", err)
+func (*serviceOrmMapper) toOpenapiInsertKeyInvalidKeyPoolIDResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: cryptoutilService.HTTP400BadRequest{Error: "Key Pool ID"}}, fmt.Errorf("Key Pool ID: %w", err)
 }
 
-func (*openapiOrmMapper) toOpenapiInsertKeySelectKeyPoolResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilBusinessModel.HTTP500InternalServerError{Error: "failed to insert Key"}}, fmt.Errorf("failed to insert Key: %w", err)
+func (*serviceOrmMapper) toOpenapiInsertKeySelectKeyPoolResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilService.HTTP500InternalServerError{Error: "failed to insert Key"}}, fmt.Errorf("failed to insert Key: %w", err)
 }
 
-func (*openapiOrmMapper) toOpenapiInsertKeyInvalidKeyPoolStatusResponseError() (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: cryptoutilBusinessModel.HTTP400BadRequest{Error: "Key Pool invalid initial state"}}, fmt.Errorf("Key Pool invalid initial state")
+func (*serviceOrmMapper) toOpenapiInsertKeyInvalidKeyPoolStatusResponseError() (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: cryptoutilService.HTTP400BadRequest{Error: "Key Pool invalid initial state"}}, fmt.Errorf("Key Pool invalid initial state")
 }
 
-func (*openapiOrmMapper) toOpenapiInsertKeyGenerateKeyMaterialResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
-	return &cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilBusinessModel.HTTP500InternalServerError{Error: err.Error()}}, nil
+func (*serviceOrmMapper) toOpenapiInsertKeyGenerateKeyMaterialResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+	return &cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilService.HTTP500InternalServerError{Error: err.Error()}}, nil
 }
 
-func (*openapiOrmMapper) toOpenapiInsertKeyResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilBusinessModel.HTTP500InternalServerError{Error: "failed to insert Key"}}, fmt.Errorf("failed to insert Key: %w", err)
+func (*serviceOrmMapper) toOpenapiInsertKeyResponseError(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilService.HTTP500InternalServerError{Error: "failed to insert Key"}}, fmt.Errorf("failed to insert Key: %w", err)
 }
 
 // GetKeyPoolKeyPoolIDKey
 
-func (m *openapiOrmMapper) toOpenapiGetKeyResponseSuccess(gormKeys *[]cryptoutilRepositoryOrm.Key) cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject {
-	openapiGetKeypoolKeyPoolIDKeyResponseObject := cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey200JSONResponse(*m.toOpenapiKeys(gormKeys))
+func (m *serviceOrmMapper) toOpenapiGetKeyResponseSuccess(gormKeys []cryptoutilRepositoryOrm.Key) cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject {
+	openapiGetKeypoolKeyPoolIDKeyResponseObject := cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey200JSONResponse(m.toServiceKeys(gormKeys))
 	return &openapiGetKeypoolKeyPoolIDKeyResponseObject
 }
 
-func (*openapiOrmMapper) toOpenapiGetKeyInvalidKeyPoolIDResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
-	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: cryptoutilBusinessModel.HTTP400BadRequest{Error: "Key Pool ID"}}, fmt.Errorf("Key Pool ID: %w", err)
+func (*serviceOrmMapper) toOpenapiGetKeyInvalidKeyPoolIDResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
+	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: cryptoutilService.HTTP400BadRequest{Error: "Key Pool ID"}}, fmt.Errorf("Key Pool ID: %w", err)
 }
 
-func (m *openapiOrmMapper) toOpenapiGetKeyNoKeyPoolIDFoundResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
+func (m *serviceOrmMapper) toOpenapiGetKeyNoKeyPoolIDFoundResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey404JSONResponse{HTTP404NotFound: cryptoutilBusinessModel.HTTP404NotFound{Error: "Key Pool not found"}}, fmt.Errorf("Key Pool not found: %w", err)
+		return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey404JSONResponse{HTTP404NotFound: cryptoutilService.HTTP404NotFound{Error: "Key Pool not found"}}, fmt.Errorf("Key Pool not found: %w", err)
 	}
-	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilBusinessModel.HTTP500InternalServerError{Error: "failed to get Key Pool"}}, fmt.Errorf("failed to get Key Pool: %w", err)
+	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilService.HTTP500InternalServerError{Error: "failed to get Key Pool"}}, fmt.Errorf("failed to get Key Pool: %w", err)
 }
 
-func (m *openapiOrmMapper) toOpenapiGetKeyFindResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
-	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilBusinessModel.HTTP500InternalServerError{Error: "failed to get Keys"}}, fmt.Errorf("failed to get Keys: %w", err)
+func (m *serviceOrmMapper) toOpenapiGetKeyFindResponseError(err error) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
+	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: cryptoutilService.HTTP500InternalServerError{Error: "failed to get Keys"}}, fmt.Errorf("failed to get Keys: %w", err)
 }

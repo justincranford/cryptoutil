@@ -8,107 +8,113 @@ import (
 	"github.com/google/uuid"
 
 	cryptoutilCryptoKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilBusinessModel "cryptoutil/internal/openapi/model"
-	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
+	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
+	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 )
 
 type KeyPoolService struct {
-	ormService       *cryptoutilRepositoryOrm.RepositoryOrm
-	openapiOrmMapper *openapiOrmMapper
+	ormRepository    *cryptoutilOrmRepository.Repository
+	serviceOrmMapper *serviceOrmMapper
 }
 
-func NewService(dbService *cryptoutilRepositoryOrm.RepositoryOrm) *KeyPoolService {
-	return &KeyPoolService{ormService: dbService, openapiOrmMapper: NewMapper()}
+func NewService(dbService *cryptoutilOrmRepository.Repository) *KeyPoolService {
+	return &KeyPoolService{ormRepository: dbService, serviceOrmMapper: NewMapper()}
 }
 
-func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilBusinessModel.KeyPoolCreate) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
-	gormKeyPoolInsert := s.openapiOrmMapper.toGormKeyPoolInsert(openapiKeyPoolCreate)
-	err := s.ormService.AddKeyPool(gormKeyPoolInsert)
+func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
+	gormKeyPoolToInsert := s.serviceOrmMapper.toGormKeyPoolInsert(openapiKeyPoolCreate)
+	err := s.ormRepository.AddKeyPool(gormKeyPoolToInsert)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+		return nil, fmt.Errorf("failed to add KeyPool: %w", err)
 	}
 
-	if gormKeyPoolInsert.KeyPoolStatus != cryptoutilRepositoryOrm.PendingGenerate {
-		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseSuccess(gormKeyPoolInsert), nil
+	err = TransitionState(cryptoutilServiceModel.Creating, cryptoutilServiceModel.KeyPoolStatus(gormKeyPoolToInsert.KeyPoolStatus))
+	if gormKeyPoolToInsert.KeyPoolStatus != cryptoutilOrmRepository.PendingGenerate {
+		return nil, fmt.Errorf("invalid KeyPoolStatus transition detected: %w", err)
 	}
 
-	gormKey, err := s.generateKeyInsert(gormKeyPoolInsert, 1)
-	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
-	}
-	err = s.ormService.AddKey(gormKey)
-	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+	if gormKeyPoolToInsert.KeyPoolStatus != cryptoutilOrmRepository.PendingGenerate {
+		return s.serviceOrmMapper.toServiceKeyPool(gormKeyPoolToInsert), nil
 	}
 
-	err = s.ormService.UpdateKeyPoolStatus(gormKeyPoolInsert.KeyPoolID, cryptoutilRepositoryOrm.Active)
+	gormKey, err := s.generateKeyInsert(gormKeyPoolToInsert.KeyPoolID, string(gormKeyPoolToInsert.KeyPoolAlgorithm), 1)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+		return nil, fmt.Errorf("failed to generate key material: %w", err)
 	}
 
-	updatedKeyPool, err := s.ormService.GetKeyPoolByID(gormKeyPoolInsert.KeyPoolID)
+	err = s.ormRepository.AddKey(gormKey)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseError(err)
+		return nil, fmt.Errorf("failed to add key: %w", err)
 	}
 
-	return s.openapiOrmMapper.toOpenapiInsertKeyPoolResponseSuccess(updatedKeyPool), nil
+	err = s.ormRepository.UpdateKeyPoolStatus(gormKeyPoolToInsert.KeyPoolID, cryptoutilOrmRepository.Active)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update KeyPoolStatus to active: %w", err)
+	}
+
+	updatedKeyPool, err := s.ormRepository.GetKeyPoolByID(gormKeyPoolToInsert.KeyPoolID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get updated KeyPool from DB: %w", err)
+	}
+
+	return s.serviceOrmMapper.toServiceKeyPool(updatedKeyPool), nil
 }
 
-func (s *KeyPoolService) ListKeyPools(ctx context.Context) (cryptoutilOpenapiServer.GetKeypoolResponseObject, error) {
-	gormKeyPools, err := s.ormService.FindKeyPools()
+func (s *KeyPoolService) ListKeyPools(ctx context.Context) ([]cryptoutilServiceModel.KeyPool, error) {
+	gormKeyPools, err := s.ormRepository.FindKeyPools()
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiSelectKeyPoolResponseError(err)
+		return nil, fmt.Errorf("failed to list KeyPools: %w", err)
 	}
-	return s.openapiOrmMapper.toOpenapiSelectKeyPoolResponseSuccess(&gormKeyPools), nil
+	return s.serviceOrmMapper.toServiceKeyPools(gormKeyPools), nil
 }
 
-func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID uuid.UUID, _ *cryptoutilBusinessModel.KeyGenerate) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
-	gormKeyPool, err := s.ormService.GetKeyPoolByID(keyPoolID)
+func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID uuid.UUID, _ *cryptoutilServiceModel.KeyGenerate) (*cryptoutilServiceModel.Key, error) {
+	gormKeyPool, err := s.ormRepository.GetKeyPoolByID(keyPoolID)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeySelectKeyPoolResponseError(err)
+		return nil, fmt.Errorf("failed to get KeyPool by KeyPoolID: %w", err)
 	}
 
-	if gormKeyPool.KeyPoolStatus != cryptoutilRepositoryOrm.PendingGenerate && gormKeyPool.KeyPoolStatus != cryptoutilRepositoryOrm.Active {
-		return s.openapiOrmMapper.toOpenapiInsertKeyInvalidKeyPoolStatusResponseError()
+	if gormKeyPool.KeyPoolStatus != cryptoutilOrmRepository.PendingGenerate && gormKeyPool.KeyPoolStatus != cryptoutilOrmRepository.Active {
+		return nil, fmt.Errorf("invalid KeyPoolStatus detected for generate Key: %w", err)
 	}
 
-	gormKeyPoolMaxID, err := s.ormService.ListMaxKeyIDByKeyPoolID(keyPoolID)
+	gormKeyPoolMaxID, err := s.ormRepository.ListMaxKeyIDByKeyPoolID(keyPoolID)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyGenerateKeyMaterialResponseError(err)
+		return nil, fmt.Errorf("failed to get max ID by KeyPoolID: %w", err)
 	}
 
-	gormKey, err := s.generateKeyInsert(gormKeyPool, gormKeyPoolMaxID+1)
+	gormKey, err := s.generateKeyInsert(gormKeyPool.KeyPoolID, string(gormKeyPool.KeyPoolAlgorithm), gormKeyPoolMaxID+1)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyGenerateKeyMaterialResponseError(err)
+		return nil, fmt.Errorf("failed to generate key material: %w", err)
 	}
 
-	err = s.ormService.AddKey(gormKey)
+	err = s.ormRepository.AddKey(gormKey)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiInsertKeyResponseError(err)
+		return nil, fmt.Errorf("failed to insert Key: %w", err)
 	}
 
-	return s.openapiOrmMapper.toOpenapiInsertKeySuccessResponseError(gormKey), nil
+	openapiPostKeypoolKeyPoolIDKeyResponseObject := *s.serviceOrmMapper.toServiceKey(gormKey)
+	return &openapiPostKeypoolKeyPoolIDKeyResponseObject, nil
 }
 
-func (s *KeyPoolService) ListKeysByKeyPool(ctx context.Context, keyPoolID uuid.UUID) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
-	gormKeys, err := s.ormService.ListKeysByKeyPoolID(keyPoolID)
+func (s *KeyPoolService) ListKeysByKeyPool(ctx context.Context, keyPoolID uuid.UUID) ([]cryptoutilServiceModel.Key, error) {
+	gormKeys, err := s.ormRepository.ListKeysByKeyPoolID(keyPoolID)
 	if err != nil {
-		return s.openapiOrmMapper.toOpenapiGetKeyFindResponseError(err)
+		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 	}
 
-	return s.openapiOrmMapper.toOpenapiGetKeyResponseSuccess(&gormKeys), nil
+	return s.serviceOrmMapper.toServiceKeys(gormKeys), nil
 }
 
-func (s *KeyPoolService) generateKeyInsert(gormKeyPool *cryptoutilRepositoryOrm.KeyPool, keyPoolNextID int) (*cryptoutilRepositoryOrm.Key, error) {
-	gormKeyKeyMaterial, err := cryptoutilCryptoKeygen.GenerateKeyMaterial(string(gormKeyPool.KeyPoolAlgorithm))
+func (s *KeyPoolService) generateKeyInsert(keyPoolID uuid.UUID, keyPoolAlgorithm string, keyPoolNextID int) (*cryptoutilOrmRepository.Key, error) {
+	gormKeyKeyMaterial, err := cryptoutilCryptoKeygen.GenerateKeyMaterial(keyPoolAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate Key material: %w", err)
 	}
 	gormKeyGenerateDate := time.Now().UTC()
 
-	return &cryptoutilRepositoryOrm.Key{
-		KeyPoolID:       gormKeyPool.KeyPoolID,
+	return &cryptoutilOrmRepository.Key{
+		KeyPoolID:       keyPoolID,
 		KeyID:           keyPoolNextID,
 		KeyMaterial:     gormKeyKeyMaterial,
 		KeyGenerateDate: &gormKeyGenerateDate,

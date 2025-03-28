@@ -4,20 +4,20 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
-	cryptoutilBusinessModel "cryptoutil/internal/openapi/model"
+	cryptoutilServiceLogic "cryptoutil/internal/businesslogic"
+	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// StrictServer implements cryptoutilServer.StrictServerInterface
+// StrictServer implements cryptoutilOpenapiServer.StrictServerInterface
 type StrictServer struct {
-	businessLogicService *cryptoutilBusinessLogic.KeyPoolService
+	businessLogicService *cryptoutilServiceLogic.KeyPoolService
 	openapiMapper        *openapiMapper
 }
 
-func NewOpenapiHandler(service *cryptoutilBusinessLogic.KeyPoolService) *StrictServer {
+func NewOpenapiHandler(service *cryptoutilServiceLogic.KeyPoolService) *StrictServer {
 	return &StrictServer{businessLogicService: service, openapiMapper: &openapiMapper{}}
 }
 
@@ -29,14 +29,20 @@ func (s *StrictServer) GetKeypool(ctx context.Context, openapiGetKeypoolRequestO
 	} else if openapiGetKeypoolRequestObject.Params.Page != nil && len(string(*openapiGetKeypoolRequestObject.Params.Page)) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
 	}
-	listKeyPoolsResponse, err := s.businessLogicService.ListKeyPools(ctx)
-	return listKeyPoolsResponse, err
+	keyPools, err := s.businessLogicService.ListKeyPools(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list KeyPools: %w", err)
+	}
+	return cryptoutilOpenapiServer.GetKeypool200JSONResponse(keyPools), err
 }
 
 func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolRequestObject cryptoutilOpenapiServer.PostKeypoolRequestObject) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
-	keyPoolCreateRequest := cryptoutilBusinessModel.KeyPoolCreate(*openapiPostKeypoolRequestObject.Body)
-	keyPoolCreateResponse, err := s.businessLogicService.AddKeyPool(ctx, &keyPoolCreateRequest)
-	return keyPoolCreateResponse, err
+	keyPoolCreate := cryptoutilServiceModel.KeyPoolCreate(*openapiPostKeypoolRequestObject.Body)
+	addedKeyPool, err := s.businessLogicService.AddKeyPool(ctx, &keyPoolCreate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add KeyPool: %w", err)
+	}
+	return cryptoutilOpenapiServer.PostKeypool200JSONResponse(*addedKeyPool), nil
 }
 
 func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyRequestObject) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
@@ -48,13 +54,19 @@ func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKey
 		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
 	}
 	keyPoolID := openapiGetKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
-	listKeysResponse, err := s.businessLogicService.ListKeysByKeyPool(ctx, keyPoolID)
-	return listKeysResponse, err
+	keys, err := s.businessLogicService.ListKeysByKeyPool(ctx, keyPoolID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
+	}
+	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey200JSONResponse(keys), err
 }
 
 func (s *StrictServer) PostKeypoolKeyPoolIDKey(ctx context.Context, openapiPostKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
 	keyPoolID := openapiPostKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
-	keyGenerateRequest := cryptoutilBusinessModel.KeyGenerate(*openapiPostKeypoolKeyPoolIDKeyRequestObject.Body)
+	keyGenerateRequest := cryptoutilServiceModel.KeyGenerate(*openapiPostKeypoolKeyPoolIDKeyRequestObject.Body)
 	generateKeyInKeyPoolResponse, err := s.businessLogicService.GenerateKeyInPoolKey(ctx, keyPoolID, &keyGenerateRequest)
-	return generateKeyInKeyPoolResponse, err
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate Key by KeyPoolID: %w", err)
+	}
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey200JSONResponse(*generateKeyInKeyPoolResponse), err
 }

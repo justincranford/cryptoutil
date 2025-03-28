@@ -23,12 +23,12 @@ var (
 	ErrKeyPoolIDMustBeNonZeroUUID = errors.New("Key Pool ID must not be 00000000-0000-0000-0000-000000000000 existing Key Pool")
 )
 
-type RepositoryOrm struct {
+type Repository struct {
 	gormDB *gorm.DB
 	sqlDB  *sql.DB
 }
 
-func NewRepositoryOrm(ctx context.Context, dbType cryptoutilSqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*RepositoryOrm, error) {
+func NewRepositoryOrm(ctx context.Context, dbType cryptoutilSqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*Repository, error) {
 	gormDB, err := cryptoutilSqlProvider.CreateGormDB(dbType, sqlDB)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
@@ -44,16 +44,16 @@ func NewRepositoryOrm(ctx context.Context, dbType cryptoutilSqlProvider.Supporte
 		log.Printf("Skipping migrations")
 	}
 
-	return &RepositoryOrm{sqlDB: sqlDB, gormDB: gormDB}, nil
+	return &Repository{sqlDB: sqlDB, gormDB: gormDB}, nil
 }
 
-func (s *RepositoryOrm) Shutdown() {
+func (s *Repository) Shutdown() {
 	if err := s.sqlDB.Close(); err != nil {
 		log.Printf("failed to close DB: %v", err)
 	}
 }
 
-func (s *RepositoryOrm) AddKeyPool(keyPool *KeyPool) error {
+func (s *Repository) AddKeyPool(keyPool *KeyPool) error {
 	if keyPool.KeyPoolID != uuidZero {
 		return ErrKeyPoolIDMustBeZeroUUID
 	}
@@ -64,7 +64,7 @@ func (s *RepositoryOrm) AddKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
-func (s *RepositoryOrm) UpdateKeyPool(keyPool *KeyPool) error {
+func (s *Repository) UpdateKeyPool(keyPool *KeyPool) error {
 	if keyPool.KeyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
 	}
@@ -75,7 +75,7 @@ func (s *RepositoryOrm) UpdateKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
-func (s *RepositoryOrm) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatusEnum) error {
+func (s *Repository) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatusEnum) error {
 	if keyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
 	}
@@ -86,7 +86,7 @@ func (s *RepositoryOrm) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus K
 	return nil
 }
 
-func (s *RepositoryOrm) AddKey(key *Key) error {
+func (s *Repository) AddKey(key *Key) error {
 	if key.KeyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
 	} else if key.KeyID == 0 {
@@ -99,7 +99,7 @@ func (s *RepositoryOrm) AddKey(key *Key) error {
 	return nil
 }
 
-func (s *RepositoryOrm) FindKeyPools() ([]KeyPool, error) {
+func (s *Repository) FindKeyPools() ([]KeyPool, error) {
 	var keyPools []KeyPool
 	err := s.gormDB.Find(&keyPools).Error
 	if err != nil {
@@ -108,7 +108,7 @@ func (s *RepositoryOrm) FindKeyPools() ([]KeyPool, error) {
 	return keyPools, nil
 }
 
-func (s *RepositoryOrm) GetKeyPoolByID(keyPoolID uuid.UUID) (*KeyPool, error) {
+func (s *Repository) GetKeyPoolByID(keyPoolID uuid.UUID) (*KeyPool, error) {
 	if keyPoolID == uuidZero {
 		return nil, ErrKeyPoolIDMustBeNonZeroUUID
 	}
@@ -120,7 +120,7 @@ func (s *RepositoryOrm) GetKeyPoolByID(keyPoolID uuid.UUID) (*KeyPool, error) {
 	return &keyPool, nil
 }
 
-func (s *RepositoryOrm) ListKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
+func (s *Repository) ListKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
 	if keyPoolID == uuidZero {
 		return nil, ErrKeyPoolIDMustBeNonZeroUUID
 	}
@@ -132,7 +132,7 @@ func (s *RepositoryOrm) ListKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) 
 	return keys, nil
 }
 
-func (s *RepositoryOrm) ListMaxKeyIDByKeyPoolID(keyPoolID uuid.UUID) (int, error) {
+func (s *Repository) ListMaxKeyIDByKeyPoolID(keyPoolID uuid.UUID) (int, error) {
 	if keyPoolID == uuidZero {
 		return math.MinInt, ErrKeyPoolIDMustBeNonZeroUUID
 	}
