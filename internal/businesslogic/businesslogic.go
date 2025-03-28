@@ -61,7 +61,7 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID uui
 		return s.openapiOrmMapper.toOpenapiInsertKeySelectKeyPoolResponseError(err)
 	}
 
-	if gormKeyPool.KeyPoolStatus != cryptoutilRepositoryOrm.PendingGenerate {
+	if gormKeyPool.KeyPoolStatus != cryptoutilRepositoryOrm.PendingGenerate && gormKeyPool.KeyPoolStatus != cryptoutilRepositoryOrm.Active {
 		return s.openapiOrmMapper.toOpenapiInsertKeyInvalidKeyPoolStatusResponseError()
 	}
 
