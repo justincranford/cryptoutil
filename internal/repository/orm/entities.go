@@ -19,7 +19,7 @@ type KeyPool struct {
 	KeyPoolIsVersioningAllowed bool                 `gorm:"not null;check:key_pool_is_versioning_allowed IN (TRUE, FALSE)"`
 	KeyPoolIsImportAllowed     bool                 `gorm:"not null;check:key_pool_is_import_allowed IN (TRUE, FALSE)"`
 	KeyPoolIsExportAllowed     bool                 `gorm:"not null;check:key_pool_is_export_allowed IN (TRUE, FALSE)"`
-	KeyPoolStatus              KeyPoolStatusEnum    `gorm:"size:16;not null;check:key_pool_status IN ('active', 'disabled', 'pending_generate', 'pending_import')"`
+	KeyPoolStatus              KeyPoolStatusEnum    `gorm:"size:34;not null;check:key_pool_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
 }
 
 func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
@@ -69,10 +69,20 @@ const (
 type KeyPoolStatusEnum string
 
 const (
-	Active          KeyPoolStatusEnum = "active"
-	Disabled        KeyPoolStatusEnum = "disabled"
-	PendingGenerate KeyPoolStatusEnum = "pending_generate"
-	PendingImport   KeyPoolStatusEnum = "pending_import"
+	Creating                       KeyPoolStatusEnum = "creating"
+	ImportFailed                   KeyPoolStatusEnum = "import_failed"
+	PendingImport                  KeyPoolStatusEnum = "pending_import"
+	PendingGenerate                KeyPoolStatusEnum = "pending_generate"
+	GenerateFailed                 KeyPoolStatusEnum = "generate_failed"
+	Active                         KeyPoolStatusEnum = "active"
+	Disabled                       KeyPoolStatusEnum = "disabled"
+	PendingDeleteWasImportFailed   KeyPoolStatusEnum = "pending_delete_was_import_failed"
+	PendingDeleteWasPendingImport  KeyPoolStatusEnum = "pending_delete_was_pending_import"
+	PendingDeleteWasActive         KeyPoolStatusEnum = "pending_delete_was_active"
+	PendingDeleteWasDisabled       KeyPoolStatusEnum = "pending_delete_was_disabled"
+	PendingDeleteWasGenerateFailed KeyPoolStatusEnum = "pending_delete_was_generate_failed"
+	StartedDelete                  KeyPoolStatusEnum = "started_delete"
+	FinishedDelete                 KeyPoolStatusEnum = "finished_delete"
 )
 
 type (
