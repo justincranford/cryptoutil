@@ -10,11 +10,11 @@ import (
 	"syscall"
 	"time"
 
-	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilRepositoryOrm "cryptoutil/internal/repository/orm"
+	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilServiceLogic "cryptoutil/internal/servicelogic"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/gofiber/contrib/otelfiber"
@@ -45,7 +45,7 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
 
-	repositoryOrm, err := cryptoutilRepositoryOrm.NewRepositoryOrm(ctx, dbType, sqlDB, applyMigrations)
+	repositoryOrm, err := cryptoutilOrmRepository.NewRepositoryOrm(ctx, dbType, sqlDB, applyMigrations)
 	if err != nil {
 		log.Fatalf("open ORM service error: %v", err)
 	}
@@ -70,7 +70,7 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 	app.Get("/swagger/doc.json", cryptoutilOpenapiServer.FiberHandlerOpenAPISpec())
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(cryptoutilBusinessLogic.NewService(repositoryOrm))
+	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(cryptoutilServiceLogic.NewService(repositoryOrm))
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, cryptoutilOpenapiServer.NewStrictHandler(openapiHandler, nil), cryptoutilOpenapiServer.FiberServerOptions{
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),

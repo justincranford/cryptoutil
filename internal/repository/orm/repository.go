@@ -75,7 +75,7 @@ func (s *Repository) UpdateKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
-func (s *Repository) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatusEnum) error {
+func (s *Repository) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatus) error {
 	if keyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
 	}

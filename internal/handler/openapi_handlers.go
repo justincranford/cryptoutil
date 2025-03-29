@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilServiceLogic "cryptoutil/internal/businesslogic"
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
+	cryptoutilServiceLogic "cryptoutil/internal/servicelogic"
 
 	"github.com/gofiber/fiber/v2"
 )

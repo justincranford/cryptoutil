@@ -1,4 +1,4 @@
-package service
+package servicelogic
 
 import (
 	"context"
@@ -17,12 +17,12 @@ type KeyPoolService struct {
 	serviceOrmMapper *serviceOrmMapper
 }
 
-func NewService(dbService *cryptoutilOrmRepository.Repository) *KeyPoolService {
-	return &KeyPoolService{ormRepository: dbService, serviceOrmMapper: NewMapper()}
+func NewService(ormRepository *cryptoutilOrmRepository.Repository) *KeyPoolService {
+	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper()}
 }
 
 func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
-	gormKeyPoolToInsert := s.serviceOrmMapper.toGormKeyPoolInsert(openapiKeyPoolCreate)
+	gormKeyPoolToInsert := s.serviceOrmMapper.toOrmKeyPoolInsert(openapiKeyPoolCreate)
 	err := s.ormRepository.AddKeyPool(gormKeyPoolToInsert)
 	if err != nil {
 		return nil, fmt.Errorf("failed to add KeyPool: %w", err)
