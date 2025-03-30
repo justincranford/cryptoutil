@@ -29,8 +29,8 @@ const (
 	ContainerModePreferred ContainerMode = "preferred"
 	ContainerModeRequired  ContainerMode = "required"
 
-	maxDbConnectAttempts = 3
-	waitBeforeNextPing   = 1 * time.Second
+	maxDbPingAttempts     = 3
+	nextDbPingAttemptWait = 1 * time.Second
 )
 
 var (
@@ -73,7 +73,7 @@ func NewSqlProvider(ctx context.Context, telemetryService *cryptoutilTelemetry.S
 
 	sqlProvider := &SqlProvider{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer}
 
-	for attempt, attemptsRemaining := 1, maxDbConnectAttempts; attemptsRemaining > 0; attemptsRemaining-- {
+	for attempt, attemptsRemaining := 1, maxDbPingAttempts; attemptsRemaining > 0; attemptsRemaining-- {
 		err = sqlDB.Ping()
 		if err == nil {
 			telemetryService.Slogger.Debug("ping SQL DB succeeded", "attempt", attempt)
@@ -82,7 +82,7 @@ func NewSqlProvider(ctx context.Context, telemetryService *cryptoutilTelemetry.S
 		telemetryService.Slogger.Warn("ping SQL DB failed", "attempt", attempt, "error", err)
 		attempt++
 		if attemptsRemaining > 0 {
-			time.Sleep(waitBeforeNextPing)
+			time.Sleep(nextDbPingAttemptWait)
 		}
 	}
 
@@ -93,10 +93,6 @@ func NewSqlProvider(ctx context.Context, telemetryService *cryptoutilTelemetry.S
 	}
 
 	return sqlProvider, nil
-}
-
-func (s *SqlProvider) SqlDB() *sql.DB {
-	return s.sqlDB
 }
 
 func (s *SqlProvider) Shutdown() {
