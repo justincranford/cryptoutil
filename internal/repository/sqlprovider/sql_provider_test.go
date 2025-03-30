@@ -80,7 +80,7 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 		require.NotNil(t, tx)
 		require.False(t, tx.IsReadOnly())
 
-		err := tx.Begin(testCtx, false)
+		err := tx.begin(testCtx, false)
 		require.Error(t, err)
 
 		return err
@@ -91,7 +91,7 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
 	tx := &SqlTransaction{sqlProvider: testSqlProvider}
 
-	commitErr := tx.Commit()
+	commitErr := tx.commit()
 	require.Error(t, commitErr)
 	require.EqualError(t, commitErr, "can't commit because transaction not active")
 }
@@ -99,7 +99,7 @@ func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
 func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 	tx := &SqlTransaction{sqlProvider: testSqlProvider}
 
-	rollbackErr := tx.Rollback()
+	rollbackErr := tx.rollback()
 	require.Error(t, rollbackErr)
 	require.EqualError(t, rollbackErr, "can't rollback because transaction not active")
 }

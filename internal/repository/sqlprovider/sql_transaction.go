@@ -23,13 +23,13 @@ type SqlTransactionState struct {
 }
 
 func (sp *SqlProvider) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SqlTransaction) error) error {
-	sqlTransaction, err := sp.NewTransaction()
+	sqlTransaction, err := sp.newTransaction()
 	if err != nil {
 		sp.telemetryService.Slogger.Error("failed to create transaction", "error", err)
 		return fmt.Errorf("failed to create transaction: %w", err)
 	}
 
-	err = sqlTransaction.Begin(ctx, readOnly)
+	err = sqlTransaction.begin(ctx, readOnly)
 	if err != nil {
 		sp.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -37,7 +37,7 @@ func (sp *SqlProvider) WithTransaction(ctx context.Context, readOnly bool, funct
 
 	defer func() {
 		if sqlTransaction.state != nil { // Avoid rollback if already committed or rolled back
-			if err := sqlTransaction.Rollback(); err != nil {
+			if err := sqlTransaction.rollback(); err != nil {
 				sp.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 			}
 		}
@@ -52,10 +52,10 @@ func (sp *SqlProvider) WithTransaction(ctx context.Context, readOnly bool, funct
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
-	return sqlTransaction.Commit()
+	return sqlTransaction.commit()
 }
 
-func (pr *SqlProvider) NewTransaction() (*SqlTransaction, error) {
+func (pr *SqlProvider) newTransaction() (*SqlTransaction, error) {
 	pr.telemetryService.Slogger.Info("new transaction")
 	return &SqlTransaction{sqlProvider: pr}, nil
 }
@@ -85,7 +85,7 @@ func (tx *SqlTransaction) IsReadOnly() bool {
 	return tx.state.readOnly
 }
 
-func (tx *SqlTransaction) Begin(ctx context.Context, readOnly bool) error {
+func (tx *SqlTransaction) begin(ctx context.Context, readOnly bool) error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -112,7 +112,7 @@ func (tx *SqlTransaction) Begin(ctx context.Context, readOnly bool) error {
 	return nil
 }
 
-func (tx *SqlTransaction) Commit() error {
+func (tx *SqlTransaction) commit() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -133,7 +133,7 @@ func (tx *SqlTransaction) Commit() error {
 	return nil
 }
 
-func (tx *SqlTransaction) Rollback() error {
+func (tx *SqlTransaction) rollback() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
