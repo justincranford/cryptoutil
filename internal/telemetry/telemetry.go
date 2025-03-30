@@ -76,12 +76,24 @@ var slogStdoutAttributes = func() []slog.Attr {
 	return slogAttrs
 }()
 
-func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool) *Service {
+func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool) (*Service, error) {
 	startTime := time.Now().UTC()
-	slogger, logsProvider := initLogger(ctx, enableOtel, scope)
-	metricsProvider := initMetrics(ctx, enableOtel, enableStdout)
-	tracesProvider := initTraces(ctx, enableOtel, enableStdout)
-	textMapPropagator := initTextMapPropagator()
+	slogger, logsProvider, err := initLogger(ctx, enableOtel, scope)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init logger: %w", err)
+	}
+	metricsProvider, err := initMetrics(ctx, slogger, enableOtel, enableStdout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init metrics: %w", err)
+	}
+	tracesProvider, err := initTraces(ctx, slogger, enableOtel, enableStdout)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init traces: %w", err)
+	}
+	textMapPropagator, err := initTextMapPropagator(slogger)
+	if err != nil {
+		return nil, fmt.Errorf("failed to init text map propagator: %w", err)
+	}
 	doExampleTracesSpans(ctx, tracesProvider, slogger)
 	return &Service{
 		StartTime:         startTime,
@@ -90,114 +102,133 @@ func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool
 		MetricsProvider:   metricsProvider,
 		TracesProvider:    tracesProvider,
 		TextMapPropagator: textMapPropagator,
-	}
+	}, nil
 }
 
 func (s *Service) Shutdown() {
+	s.Slogger.Debug("stopping telemetry")
 	ctx := context.Background()
+	s.TextMapPropagator = nil
 	if s.TracesProvider != nil {
 		if err := s.TracesProvider.Shutdown(ctx); err != nil {
-			s.Slogger.Info("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
+			s.Slogger.Error("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
 		}
 		s.TracesProvider = nil
 	}
 	if s.MetricsProvider != nil {
 		if err := s.MetricsProvider.Shutdown(ctx); err != nil {
-			s.Slogger.Info("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
+			s.Slogger.Error("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
 		}
 		s.MetricsProvider = nil
 	}
 	if s.LogsProvider != nil {
-		s.Slogger.Info("Stop", "uptime", time.Since(s.StartTime).Seconds())
+		s.Slogger.Info("stopped telemetry", "uptime", time.Since(s.StartTime).Seconds())
 		if err := s.LogsProvider.Shutdown(ctx); err != nil {
-			s.Slogger.Info("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
+			s.Slogger.Error("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
 		}
+		s.Slogger.Info("stop telemetry duration", "duration", time.Now().UTC().Sub(s.StartTime))
+		s.Slogger = nil
 		s.LogsProvider = nil
 	}
-	s.TextMapPropagator = nil
-	s.Slogger = nil
 	s.StopTime = time.Now().UTC()
 }
 
-func ifErrorLogAndExit(format string, err error) {
-	if err != nil {
-		fmt.Printf(format, err)
-		os.Exit(-1)
-	}
-}
-
-func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*slog.Logger, *logSdk.LoggerProvider) {
+func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*slog.Logger, *logSdk.LoggerProvider, error) {
 	stdoutSlogHandler := slog.NewTextHandler(os.Stdout, nil).WithAttrs(slogStdoutAttributes)
+	slogger := slog.New(stdoutSlogHandler)
+	slogger.Debug("initializing otel logs provider")
+
+	otelLogsResource := resource.NewWithAttributes("", otelLogsAttributes...)
+	otelExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithEndpoint(OtelGrpcPush), otlploggrpc.WithInsecure())
+	if err != nil {
+		slogger.Error("create Otel GRPC logger failed", "error", err)
+	}
+	otelProviderOptions := []logSdk.LoggerProviderOption{
+		logSdk.WithResource(otelLogsResource),
+		logSdk.WithProcessor(logSdk.NewBatchProcessor(otelExporter, logSdk.WithExportTimeout(LogsTimeout))),
+	}
+	otelProvider := logSdk.NewLoggerProvider(otelProviderOptions...)
 
 	if enableOtel {
-		otelLogsResource := resource.NewWithAttributes("", otelLogsAttributes...)
-
-		otelExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithEndpoint(OtelGrpcPush), otlploggrpc.WithInsecure())
-		ifErrorLogAndExit("create Otel GRPC logger failed: %v", err)
-		otelProviderOptions := []logSdk.LoggerProviderOption{
-			logSdk.WithResource(otelLogsResource),
-			logSdk.WithProcessor(logSdk.NewBatchProcessor(otelExporter, logSdk.WithExportTimeout(LogsTimeout))),
-		}
-		otelProvider := logSdk.NewLoggerProvider(otelProviderOptions...)
 		otelSlogHandler := otelslog.NewHandler(otelLoggerName, otelslog.WithLoggerProvider(otelProvider))
-
-		return slog.New(slogMulti.Fanout(stdoutSlogHandler, otelSlogHandler)), otelProvider
+		slogger = slog.New(slogMulti.Fanout(stdoutSlogHandler, otelSlogHandler))
 	}
 
-	return slog.New(stdoutSlogHandler), nil
+	slogger.Debug("initialized otel logs provider")
+	return slogger, otelProvider, nil
 }
 
-func initMetrics(ctx context.Context, enableOtel bool, enableStdout bool) *metricSdk.MeterProvider {
+func initMetrics(ctx context.Context, slogger *slog.Logger, enableOtel bool, enableStdout bool) (*metricSdk.MeterProvider, error) {
+	slogger.Debug("initializing metrics provider")
+
 	var metricsOptions []metricSdk.Option
 
 	otelMeterTracerTags, err := resource.New(ctx, resource.WithAttributes(otelMetricsTracesAttributes...))
-	ifErrorLogAndExit("create Otel GRPC metrics resource failed: %v", err)
+	if err != nil {
+		slogger.Error("create Otel GRPC metrics resource failed", "error", err)
+	}
 	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
 	if enableOtel {
 		otelGrpcMetrics, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithEndpoint(OtelGrpcPush), otlpmetricgrpc.WithInsecure())
-		ifErrorLogAndExit("create Otel GRPC metrics failed: %v", err)
+		if err != nil {
+			slogger.Error("create Otel GRPC metrics failed", "error", err)
+		}
 		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(otelGrpcMetrics, metricSdk.WithInterval(MetricsTimeout))))
 	}
 
 	if enableStdout {
 		stdoutMetrics, err := stdoutmetric.New(stdoutmetric.WithPrettyPrint())
-		ifErrorLogAndExit("create STDOUT metrics failed: %v", err)
+		if err != nil {
+			slogger.Error("create STDOUT metrics failed", "error", err)
+		}
 		metricSdk.NewPeriodicReader(stdoutMetrics)
 		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(stdoutMetrics, metricSdk.WithInterval(MetricsTimeout))))
 	}
 
-	return metricSdk.NewMeterProvider(metricsOptions...)
+	metricsProvider := metricSdk.NewMeterProvider(metricsOptions...)
+	slogger.Debug("initialized metrics provider")
+	return metricsProvider, nil
 }
 
-func initTraces(ctx context.Context, enableOtel bool, enableStdout bool) *traceSdk.TracerProvider {
+func initTraces(ctx context.Context, slogger *slog.Logger, enableOtel bool, enableStdout bool) (*traceSdk.TracerProvider, error) {
+	slogger.Debug("initializing traces provider")
+
 	var tracesOptions []traceSdk.TracerProviderOption
 
 	otelMeterTracerResource, err := resource.New(ctx, resource.WithAttributes(otelMetricsTracesAttributes...))
-	ifErrorLogAndExit("create Otel GRPC traces resource failed: %v", err)
+	if err != nil {
+		slogger.Error("create Otel GRPC traces resource failed", "error", err)
+	}
 	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
 	if enableOtel {
 		tracerOtelGrpc, err := otlptracegrpc.New(ctx, otlptracegrpc.WithEndpoint(OtelGrpcPush), otlptracegrpc.WithInsecure())
-		ifErrorLogAndExit("create Otel GRPC traces failed: %v", err)
+		if err != nil {
+			slogger.Error("create Otel GRPC traces failed", "error", err)
+		}
 		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(tracerOtelGrpc, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
 
 	if enableStdout {
 		stdoutTraces, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
-		ifErrorLogAndExit("create STDOUT traces failed: %v", err)
+		if err != nil {
+			slogger.Error("create STDOUT traces failed", "error", err)
+		}
 		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(stdoutTraces, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
 
-	return traceSdk.NewTracerProvider(tracesOptions...)
+	tracesProvider := traceSdk.NewTracerProvider(tracesOptions...)
+	slogger.Debug("initialized traces provider")
+	return tracesProvider, nil
 }
 
-func initTextMapPropagator() *propagation.TextMapPropagator {
+func initTextMapPropagator(slogger *slog.Logger) (*propagation.TextMapPropagator, error) {
 	textMapPropagator := propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	)
-	return &textMapPropagator
+	return &textMapPropagator, nil
 }
 
 func doExampleTracesSpans(ctx context.Context, tracesProvider *traceSdk.TracerProvider, slogger *slog.Logger) {

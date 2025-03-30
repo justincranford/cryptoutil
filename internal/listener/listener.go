@@ -25,37 +25,40 @@ import (
 func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
 	ctx := context.Background()
 
-	telemetryService := cryptoutilTelemetry.NewService(ctx, "cryptoutil", false, false)
+	telemetryService, err := cryptoutilTelemetry.NewService(ctx, "cryptoutil", false, false)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to initailize telemetry: %w", err)
+	}
 
 	// const dbType = cryptoutilSqlProvider.SupportedSqlDBPostgres
 	// const dbUrl = "?"
 	const dbType = cryptoutilSqlProvider.SupportedSqlDBSQLite
 	const dbUrl = ":memory:"
-	sqlDB, shutdownDBContainer, err := cryptoutilSqlProvider.CreateSqlDB(ctx, telemetryService, dbType, dbUrl, cryptoutilSqlProvider.ContainerModeDisabled)
+	sqlProvider, err := cryptoutilSqlProvider.NewSqlProvider(ctx, telemetryService, dbType, dbUrl, cryptoutilSqlProvider.ContainerModeDisabled)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
-		stopServerFunction(telemetryService, shutdownDBContainer, nil, nil)()
+		stopServerFunc(telemetryService, sqlProvider, nil, nil)()
 		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
 
-	repositoryOrm, err := cryptoutilOrmRepository.NewRepositoryOrm(ctx, telemetryService, dbType, sqlDB, applyMigrations)
+	repositoryOrm, err := cryptoutilOrmRepository.NewRepositoryOrm(ctx, telemetryService, sqlProvider, applyMigrations)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create ORM repository", "error", err)
-		stopServerFunction(telemetryService, shutdownDBContainer, repositoryOrm, nil)()
+		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
 		return nil, nil, fmt.Errorf("failed to create ORM repository: %w", err)
 	}
 
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get swagger", "error", err)
-		stopServerFunction(telemetryService, shutdownDBContainer, repositoryOrm, nil)()
+		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
 	fiberHandlerOpenAPISpec, err := cryptoutilOpenapiServer.FiberHandlerOpenAPISpec()
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
-		stopServerFunction(telemetryService, shutdownDBContainer, repositoryOrm, nil)()
+		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
 		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
 	}
 
@@ -82,55 +85,56 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 
 	listenAddress := fmt.Sprintf("%s:%d", listenHost, listenPort)
 
-	startServer := startServerFunction(err, listenAddress, app, telemetryService)
-	stopServer := stopServerFunction(telemetryService, shutdownDBContainer, repositoryOrm, app)
-	go stopServerSignalFunction(telemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
+	startServer := startServerFunc(err, listenAddress, app, telemetryService)
+	stopServer := stopServerFunc(telemetryService, sqlProvider, repositoryOrm, app)
+	go stopServerSignalFunc(telemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
 
 	return startServer, stopServer, nil
 }
 
-func startServerFunction(err error, listenAddress string, app *fiber.App, telemetryService *cryptoutilTelemetry.Service) func() {
-	startServer := func() {
-		telemetryService.Slogger.Info("starting fiber server")
-		err = app.Listen(listenAddress) // blocks until fiber app is stopped
+func startServerFunc(err error, listenAddress string, app *fiber.App, telemetryService *cryptoutilTelemetry.Service) func() {
+	return func() {
+		telemetryService.Slogger.Debug("starting server")
+		err = app.Listen(listenAddress) // blocks until fiber app is stopped (e.g. stopServerFunc called by unit test or stopServerSignalFunc)
 		if err != nil {
 			telemetryService.Slogger.Error("failed to start fiber server", "error", err)
 		}
 	}
-	return startServer
 }
 
-func stopServerFunction(telemetryService *cryptoutilTelemetry.Service, shutdownDBContainer func(), repositoryOrm *cryptoutilOrmRepository.Repository, app *fiber.App) func() {
-	stopServer := func() {
+func stopServerFunc(telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, repositoryOrm *cryptoutilOrmRepository.Repository, app *fiber.App) func() {
+	return func() {
 		if telemetryService != nil {
-			telemetryService.Slogger.Error("stopping fiber server")
+			telemetryService.Slogger.Debug("stopping server")
 		}
 		if app != nil {
+			if telemetryService != nil {
+				telemetryService.Slogger.Debug("stopping fiber server")
+			}
 			err := app.Shutdown()
 			if err != nil {
 				telemetryService.Slogger.Error("failed to stop fiber server", "error", err)
 			}
 		}
 		if repositoryOrm != nil {
-			repositoryOrm.Shutdown()
+			repositoryOrm.Shutdown() // does its own logging
 		}
-		if shutdownDBContainer != nil {
-			shutdownDBContainer()
+		if sqlProvider != nil {
+			sqlProvider.Shutdown() // does its own logging
 		}
 		if telemetryService != nil {
-			telemetryService.Shutdown()
+			telemetryService.Slogger.Debug("stopped server")
+			telemetryService.Shutdown() // does its own logging
 		}
 	}
-	return stopServer
 }
 
-func stopServerSignalFunction(telemetryService *cryptoutilTelemetry.Service, stopServer func()) func() {
-	newVar := func() {
+func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.Service, stopServerFunc func()) func() {
+	return func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		<-c
-		telemetryService.Slogger.Info("gracefully stopped fiber server")
-		stopServer()
+		telemetryService.Slogger.Info("received stop server signal")
+		stopServerFunc()
 	}
-	return newVar
 }

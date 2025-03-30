@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdh"
 	"crypto/elliptic"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -23,7 +24,11 @@ const (
 
 func TestPoolsExample(t *testing.T) {
 	ctx := context.Background()
-	telemetryService := cryptoutilTelemetry.NewService(ctx, "asn1_test", false, false)
+	telemetryService, err := cryptoutilTelemetry.NewService(ctx, "asn1_test", false, false)
+	if err != nil {
+		slog.Error("failed to initailize telemetry", "error", err)
+		os.Exit(-1)
+	}
 	defer telemetryService.Shutdown()
 
 	keys := generateKeys(ctx, telemetryService)

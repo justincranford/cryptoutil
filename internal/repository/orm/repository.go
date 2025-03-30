@@ -2,7 +2,6 @@ package orm
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"math"
@@ -24,34 +23,35 @@ var (
 )
 
 type Repository struct {
-	gormDB           *gorm.DB
-	sqlDB            *sql.DB
 	telemetryService *cryptoutilTelemetry.Service
+	sqlProvider      *cryptoutilSqlProvider.SqlProvider
+	gormDB           *gorm.DB
+	applyMigrations  bool
 }
 
-func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbType cryptoutilSqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*Repository, error) {
-	gormDB, err := cryptoutilSqlProvider.CreateGormDB(dbType, sqlDB)
+func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*Repository, error) {
+	gormDB, err := cryptoutilSqlProvider.CreateGormDB(sqlProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}
 
 	if applyMigrations {
-		telemetryService.Slogger.Error("Applying migrations")
+		telemetryService.Slogger.Debug("applying migrations")
 		err = gormDB.AutoMigrate(ormTableStructs...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run migrations: %w", err)
 		}
 	} else {
-		telemetryService.Slogger.Debug("Skipping migrations")
+		telemetryService.Slogger.Debug("skipping migrations")
 	}
 
-	return &Repository{sqlDB: sqlDB, gormDB: gormDB, telemetryService: telemetryService}, nil
+	return &Repository{telemetryService: telemetryService, sqlProvider: sqlProvider, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
 func (s *Repository) Shutdown() {
-	if err := s.sqlDB.Close(); err != nil {
-		s.telemetryService.Slogger.Error("failed to close DB", "error", err)
-	}
+	s.telemetryService.Slogger.Debug("stopping ORM repository")
+	s.sqlProvider.Shutdown()
+	s.telemetryService.Slogger.Debug("stopped ORM repository")
 }
 
 func (s *Repository) AddKeyPool(keyPool *KeyPool) error {

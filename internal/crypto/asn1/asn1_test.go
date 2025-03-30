@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"log/slog"
 	"math/big"
 	"os"
 	"testing"
@@ -24,7 +25,12 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.NewService(testCtx, "asn1_test", false, false)
+	telemetryService, err := cryptoutilTelemetry.NewService(testCtx, "asn1_test", false, false)
+	if err != nil {
+		slog.Error("failed to initailize telemetry", "error", err)
+		os.Exit(-1)
+	}
+	testTelemetryService = telemetryService
 	defer testTelemetryService.Shutdown()
 	os.Exit(m.Run())
 }
