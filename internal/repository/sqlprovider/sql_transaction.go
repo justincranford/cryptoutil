@@ -9,10 +9,6 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-var (
-	uuidZero = googleUuid.UUID{}
-)
-
 type SqlTransaction struct {
 	sqlProvider *SqlProvider
 	guardState  sync.Mutex
