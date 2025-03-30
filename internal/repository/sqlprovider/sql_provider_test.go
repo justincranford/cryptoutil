@@ -69,7 +69,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 func TestSqlTransaction_Success(t *testing.T) {
 	err := testSqlProvider.WithTransaction(testCtx, false, func(tx *SqlTransaction) error {
 		require.NotNil(t, tx)
-		require.False(t, tx.readOnly)
+		require.False(t, tx.IsReadOnly())
 		return nil
 	})
 	require.NoError(t, err)
@@ -78,7 +78,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 	err := testSqlProvider.WithTransaction(testCtx, false, func(tx *SqlTransaction) error {
 		require.NotNil(t, tx)
-		require.False(t, tx.readOnly)
+		require.False(t, tx.IsReadOnly())
 
 		err := tx.Begin(testCtx, false)
 		require.Error(t, err)
@@ -107,7 +107,7 @@ func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 	err := testSqlProvider.WithTransaction(testCtx, true, func(tx *SqlTransaction) error {
 		require.NotNil(t, tx)
-		require.True(t, tx.readOnly)
+		require.True(t, tx.IsReadOnly())
 
 		return nil
 	})
@@ -117,7 +117,7 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
 	err := testSqlProvider.WithTransaction(testCtx, false, func(tx *SqlTransaction) error {
 		require.NotNil(t, tx)
-		require.False(t, tx.readOnly)
+		require.False(t, tx.IsReadOnly())
 		return fmt.Errorf("intentional failure") // Simulate an error within the transaction
 	})
 	require.Error(t, err)
