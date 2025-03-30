@@ -27,9 +27,14 @@ func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
 		k.KeyPoolID, err = googleUuid.NewV7()
 		if err != nil {
 			log.Printf("failed to generate UUIDv7: %v", err)
+			if addErr := tx.AddError(err); addErr != nil {
+				log.Printf("failed to add error to transaction: %v", addErr)
+				return addErr
+			}
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 type Key struct {
