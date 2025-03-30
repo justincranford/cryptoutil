@@ -15,7 +15,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = NewService(testCtx, "asn1_test", false, false)
+	testTelemetryService = NewService(testCtx, "telemetry_test", false, false)
 	defer testTelemetryService.Shutdown()
 	os.Exit(m.Run())
 }
