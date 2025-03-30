@@ -2,43 +2,47 @@ package container
 
 import (
 	"context"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
-	"log"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"
 )
 
-func StartContainer(ctx context.Context, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
+func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
+	telemetryService.Slogger.Debug("starting container")
 	startedContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: containerRequest,
 		Started:          true,
 	})
 	if err != nil {
+		telemetryService.Slogger.Error("failed to start container", "error", err)
 		return nil, nil, fmt.Errorf("failed to start container: %w", err)
 	}
 
 	terminateContainer := func() {
-		log.Printf("terminating container")
+		telemetryService.Slogger.Debug("terminating container")
 		err := startedContainer.Terminate(ctx)
 		if err == nil {
-			log.Printf("successfully terminated container")
+			telemetryService.Slogger.Debug("successfully terminated container")
 		} else {
-			log.Printf("failed to terminate container: %v", err)
+			telemetryService.Slogger.Error("failed to terminate container")
 		}
 	}
 
 	return startedContainer, terminateContainer, nil
 }
 
-func GetContainerHostAndMappedPort(ctx context.Context, container testcontainers.Container, port string) (string, string, error) {
+func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, container testcontainers.Container, port string) (string, string, error) {
 	host, err := container.Host(ctx)
 	if err != nil {
+		telemetryService.Slogger.Error("failed to get container host", "error", err)
 		return "", "", fmt.Errorf("failed to get container host: %w", err)
 	}
 
 	mappedPort, err := container.MappedPort(ctx, nat.Port(port))
 	if err != nil {
+		telemetryService.Slogger.Error("failed to get container mapped port", "error", err)
 		return "", "", fmt.Errorf("failed to get container mapped port: %w", err)
 	}
 

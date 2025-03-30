@@ -19,10 +19,11 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/sdk/log"
-	"go.opentelemetry.io/otel/sdk/metric"
-	"go.opentelemetry.io/otel/sdk/trace"
+	logSdk "go.opentelemetry.io/otel/sdk/log"
+	metricSdk "go.opentelemetry.io/otel/sdk/metric"
+	traceSdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
+	traceApi "go.opentelemetry.io/otel/trace"
 )
 
 // Service Composite of OpenTelemetry providers for Logs, Metrics, and Traces
@@ -30,9 +31,9 @@ type Service struct {
 	StartTime         time.Time
 	StopTime          time.Time
 	Slogger           *slog.Logger
-	LogsProvider      *log.LoggerProvider   // TODO Convert to go.opentelemetry.io/otel/log for consistency with metric and trace
-	MetricsProvider   *metric.MeterProvider // TODO Convert to go.opentelemetry.io/otel/metric since otelfiber excepts the API, not the SDK
-	TracesProvider    *trace.TracerProvider // TODO Convert to go.opentelemetry.io/otel/trace since otelfiber excepts the API, not the SDK
+	LogsProvider      *logSdk.LoggerProvider   // TODO Convert to go.opentelemetry.io/otel/log for consistency with metric and trace
+	MetricsProvider   *metricSdk.MeterProvider // TODO Convert to go.opentelemetry.io/otel/metric since otelfiber excepts the API, not the SDK
+	TracesProvider    *traceSdk.TracerProvider // TODO Convert to go.opentelemetry.io/otel/trace since otelfiber excepts the API, not the SDK
 	TextMapPropagator *propagation.TextMapPropagator
 }
 
@@ -81,6 +82,7 @@ func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool
 	metricsProvider := initMetrics(ctx, enableOtel, enableStdout)
 	tracesProvider := initTraces(ctx, enableOtel, enableStdout)
 	textMapPropagator := initTextMapPropagator()
+	doExampleTracesSpans(ctx, tracesProvider, slogger)
 	return &Service{
 		StartTime:         startTime,
 		Slogger:           slogger,
@@ -124,7 +126,7 @@ func ifErrorLogAndExit(format string, err error) {
 	}
 }
 
-func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*slog.Logger, *log.LoggerProvider) {
+func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*slog.Logger, *logSdk.LoggerProvider) {
 	stdoutSlogHandler := slog.NewTextHandler(os.Stdout, nil).WithAttrs(slogStdoutAttributes)
 
 	if enableOtel {
@@ -132,11 +134,11 @@ func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*s
 
 		otelExporter, err := otlploggrpc.New(ctx, otlploggrpc.WithEndpoint(OtelGrpcPush), otlploggrpc.WithInsecure())
 		ifErrorLogAndExit("create Otel GRPC logger failed: %v", err)
-		otelProviderOptions := []log.LoggerProviderOption{
-			log.WithResource(otelLogsResource),
-			log.WithProcessor(log.NewBatchProcessor(otelExporter, log.WithExportTimeout(LogsTimeout))),
+		otelProviderOptions := []logSdk.LoggerProviderOption{
+			logSdk.WithResource(otelLogsResource),
+			logSdk.WithProcessor(logSdk.NewBatchProcessor(otelExporter, logSdk.WithExportTimeout(LogsTimeout))),
 		}
-		otelProvider := log.NewLoggerProvider(otelProviderOptions...)
+		otelProvider := logSdk.NewLoggerProvider(otelProviderOptions...)
 		otelSlogHandler := otelslog.NewHandler(otelLoggerName, otelslog.WithLoggerProvider(otelProvider))
 
 		return slog.New(slogMulti.Fanout(stdoutSlogHandler, otelSlogHandler)), otelProvider
@@ -145,49 +147,49 @@ func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*s
 	return slog.New(stdoutSlogHandler), nil
 }
 
-func initMetrics(ctx context.Context, enableOtel bool, enableStdout bool) *metric.MeterProvider {
-	var metricsOptions []metric.Option
+func initMetrics(ctx context.Context, enableOtel bool, enableStdout bool) *metricSdk.MeterProvider {
+	var metricsOptions []metricSdk.Option
 
 	otelMeterTracerTags, err := resource.New(ctx, resource.WithAttributes(otelMetricsTracesAttributes...))
 	ifErrorLogAndExit("create Otel GRPC metrics resource failed: %v", err)
-	metricsOptions = append(metricsOptions, metric.WithResource(otelMeterTracerTags))
+	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
 	if enableOtel {
 		otelGrpcMetrics, err := otlpmetricgrpc.New(ctx, otlpmetricgrpc.WithEndpoint(OtelGrpcPush), otlpmetricgrpc.WithInsecure())
 		ifErrorLogAndExit("create Otel GRPC metrics failed: %v", err)
-		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(otelGrpcMetrics, metric.WithInterval(MetricsTimeout))))
+		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(otelGrpcMetrics, metricSdk.WithInterval(MetricsTimeout))))
 	}
 
 	if enableStdout {
 		stdoutMetrics, err := stdoutmetric.New(stdoutmetric.WithPrettyPrint())
 		ifErrorLogAndExit("create STDOUT metrics failed: %v", err)
-		metric.NewPeriodicReader(stdoutMetrics)
-		metricsOptions = append(metricsOptions, metric.WithReader(metric.NewPeriodicReader(stdoutMetrics, metric.WithInterval(MetricsTimeout))))
+		metricSdk.NewPeriodicReader(stdoutMetrics)
+		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(stdoutMetrics, metricSdk.WithInterval(MetricsTimeout))))
 	}
 
-	return metric.NewMeterProvider(metricsOptions...)
+	return metricSdk.NewMeterProvider(metricsOptions...)
 }
 
-func initTraces(ctx context.Context, enableOtel bool, enableStdout bool) *trace.TracerProvider {
-	var tracesOptions []trace.TracerProviderOption
+func initTraces(ctx context.Context, enableOtel bool, enableStdout bool) *traceSdk.TracerProvider {
+	var tracesOptions []traceSdk.TracerProviderOption
 
 	otelMeterTracerResource, err := resource.New(ctx, resource.WithAttributes(otelMetricsTracesAttributes...))
 	ifErrorLogAndExit("create Otel GRPC traces resource failed: %v", err)
-	tracesOptions = append(tracesOptions, trace.WithResource(otelMeterTracerResource))
+	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
 	if enableOtel {
 		tracerOtelGrpc, err := otlptracegrpc.New(ctx, otlptracegrpc.WithEndpoint(OtelGrpcPush), otlptracegrpc.WithInsecure())
 		ifErrorLogAndExit("create Otel GRPC traces failed: %v", err)
-		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(tracerOtelGrpc, trace.WithBatchTimeout(TracesTimeout))))
+		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(tracerOtelGrpc, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
 
 	if enableStdout {
 		stdoutTraces, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
 		ifErrorLogAndExit("create STDOUT traces failed: %v", err)
-		tracesOptions = append(tracesOptions, trace.WithSpanProcessor(trace.NewBatchSpanProcessor(stdoutTraces, trace.WithBatchTimeout(TracesTimeout))))
+		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(stdoutTraces, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
 
-	return trace.NewTracerProvider(tracesOptions...)
+	return traceSdk.NewTracerProvider(tracesOptions...)
 }
 
 func initTextMapPropagator() *propagation.TextMapPropagator {
@@ -196,4 +198,16 @@ func initTextMapPropagator() *propagation.TextMapPropagator {
 		propagation.Baggage{},
 	)
 	return &textMapPropagator
+}
+
+func doExampleTracesSpans(ctx context.Context, tracesProvider *traceSdk.TracerProvider, slogger *slog.Logger) {
+	tracer := tracesProvider.Tracer("fiber-tracer")
+	spanCtx := doExampleTraceSpan(ctx, tracer, slogger, "sample parent trace and span")
+	doExampleTraceSpan(spanCtx, tracer, slogger, "sample child trace and span")
+}
+
+func doExampleTraceSpan(ctx context.Context, tracer traceApi.Tracer, slogger *slog.Logger, message string) context.Context {
+	spanCtx, span := tracer.Start(ctx, "test-span")
+	slogger.Debug(message, "traceid", span.SpanContext().TraceID(), "traceid", span.SpanContext().SpanID())
+	return spanCtx
 }

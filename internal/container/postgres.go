@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 
 const postgresContainerStartupTimeout = 30 * time.Second
 
-func StartPostgres(ctx context.Context, dbName, dbUsername, dbPassword string) (string, func(), error) {
+func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbName, dbUsername, dbPassword string) (string, func(), error) {
 	postgresContainerRequest := testcontainers.ContainerRequest{
 		Image:        "postgres:latest",
 		ExposedPorts: []string{"5432/tcp"},
@@ -20,15 +21,17 @@ func StartPostgres(ctx context.Context, dbName, dbUsername, dbPassword string) (
 		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(postgresContainerStartupTimeout),
 	}
 
-	container, terminateContainer, err := StartContainer(ctx, postgresContainerRequest)
+	container, terminateContainer, err := StartContainer(ctx, telemetryService, postgresContainerRequest)
 	if err != nil {
+		telemetryService.Slogger.Error("failed to start postgres container", "error", err)
 		return "", nil, fmt.Errorf("failed to start sqlite container: %w", err)
 	}
 
-	containerHost, containerMappedPort, err := GetContainerHostAndMappedPort(ctx, container, "5432")
+	containerHost, containerMappedPort, err := GetContainerHostAndMappedPort(ctx, telemetryService, container, "5432")
 	if err != nil {
+		telemetryService.Slogger.Error("failed to get postgres container host and mapped port", "error", err)
 		terminateContainer()
-		return "", nil, fmt.Errorf("failed to get sqlite container host and port: %w", err)
+		return "", nil, fmt.Errorf("failed to get postgres container host and mapped port: %w", err)
 	}
 
 	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUsername, dbPassword, containerHost, containerMappedPort, dbName)

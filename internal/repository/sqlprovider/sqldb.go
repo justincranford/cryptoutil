@@ -3,6 +3,7 @@ package sqlprovider
 import (
 	"context"
 	cryptoutilContainer "cryptoutil/internal/container"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"database/sql"
 	"fmt"
 	"log"
@@ -30,7 +31,7 @@ var (
 	postgresContainerDbPassword = fmt.Sprintf("postgresPassword%04d", rand.Intn(10_000))
 )
 
-func CreateSqlDB(ctx context.Context, dbType SupportedSqlDB, databaseUrl string, containerMode ContainerMode) (*sql.DB, func(), error) {
+func CreateSqlDB(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbType SupportedSqlDB, databaseUrl string, containerMode ContainerMode) (*sql.DB, func(), error) {
 	var shutdownDBContainer func() = func() {} // no-op by default
 
 	if containerMode != ContainerModeDisabled { // containerMode is required or preferred
@@ -41,7 +42,7 @@ func CreateSqlDB(ctx context.Context, dbType SupportedSqlDB, databaseUrl string,
 		case SupportedSqlDBSQLite:
 			return nil, nil, fmt.Errorf("there is no container option for sqlite")
 		case SupportedSqlDBPostgres:
-			containerDatabaseUrl, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, postgresContainerDbName, postgresContainerDbUsername, postgresContainerDbPassword)
+			containerDatabaseUrl, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, telemetryService, postgresContainerDbName, postgresContainerDbUsername, postgresContainerDbPassword)
 		default:
 			return nil, nil, fmt.Errorf("unsupported database type: %s", dbType)
 		}

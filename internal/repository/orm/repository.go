@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"math"
 
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"gorm.io/gorm"
 
@@ -24,32 +24,33 @@ var (
 )
 
 type Repository struct {
-	gormDB *gorm.DB
-	sqlDB  *sql.DB
+	gormDB           *gorm.DB
+	sqlDB            *sql.DB
+	telemetryService *cryptoutilTelemetry.Service
 }
 
-func NewRepositoryOrm(ctx context.Context, dbType cryptoutilSqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*Repository, error) {
+func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbType cryptoutilSqlProvider.SupportedSqlDB, sqlDB *sql.DB, applyMigrations bool) (*Repository, error) {
 	gormDB, err := cryptoutilSqlProvider.CreateGormDB(dbType, sqlDB)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}
 
 	if applyMigrations {
-		log.Printf("Applying migrations")
+		telemetryService.Slogger.Error("Applying migrations")
 		err = gormDB.AutoMigrate(ormTableStructs...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run migrations: %w", err)
 		}
 	} else {
-		log.Printf("Skipping migrations")
+		telemetryService.Slogger.Debug("Skipping migrations")
 	}
 
-	return &Repository{sqlDB: sqlDB, gormDB: gormDB}, nil
+	return &Repository{sqlDB: sqlDB, gormDB: gormDB, telemetryService: telemetryService}, nil
 }
 
 func (s *Repository) Shutdown() {
 	if err := s.sqlDB.Close(); err != nil {
-		log.Printf("failed to close DB: %v", err)
+		s.telemetryService.Slogger.Error("failed to close DB", "error", err)
 	}
 }
 
@@ -59,6 +60,7 @@ func (s *Repository) AddKeyPool(keyPool *KeyPool) error {
 	}
 	err := s.gormDB.Create(keyPool).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to insert Key Pool", "error", err)
 		return fmt.Errorf("failed to insert Key Pool: %w", err)
 	}
 	return nil
@@ -70,6 +72,7 @@ func (s *Repository) UpdateKeyPool(keyPool *KeyPool) error {
 	}
 	err := s.gormDB.UpdateColumns(keyPool).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to update Key Pool", "error", err)
 		return fmt.Errorf("failed to update Key Pool: %w", err)
 	}
 	return nil
@@ -81,6 +84,7 @@ func (s *Repository) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyP
 	}
 	err := s.gormDB.Model(&KeyPool{}).Where("key_pool_id = ?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to update Key Pool Status", "error", err)
 		return fmt.Errorf("failed to update Key Pool Status: %w", err)
 	}
 	return nil
@@ -90,10 +94,12 @@ func (s *Repository) AddKey(key *Key) error {
 	if key.KeyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
 	} else if key.KeyID == 0 {
+		s.telemetryService.Slogger.Error("Key ID must be non-zero, but got 0")
 		return fmt.Errorf("Key ID must be non-zero, but got 0")
 	}
 	err := s.gormDB.Create(key).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to insert Key", "error", err)
 		return fmt.Errorf("failed to insert Key: %w", err)
 	}
 	return nil
@@ -103,6 +109,7 @@ func (s *Repository) FindKeyPools() ([]KeyPool, error) {
 	var keyPools []KeyPool
 	err := s.gormDB.Find(&keyPools).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to find Key Pools", "error", err)
 		return nil, fmt.Errorf("failed to find Key Pools: %w", err)
 	}
 	return keyPools, nil
@@ -115,6 +122,7 @@ func (s *Repository) GetKeyPoolByID(keyPoolID uuid.UUID) (*KeyPool, error) {
 	var keyPool KeyPool
 	err := s.gormDB.First(&keyPool, "key_pool_id=?", keyPoolID).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to find Key Pool by Key Pool ID", "error", err)
 		return nil, fmt.Errorf("failed to find Key Pool by Key Pool ID: %w", err)
 	}
 	return &keyPool, nil
@@ -127,6 +135,7 @@ func (s *Repository) ListKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
 	var keys []Key
 	err := s.gormDB.Where("key_pool_id=?", keyPoolID).Find(&keys).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to find Keys by Key Pool ID", "error", err)
 		return keys, fmt.Errorf("failed to find Keys by Key Pool ID: %w", err)
 	}
 	return keys, nil
@@ -139,6 +148,7 @@ func (s *Repository) ListMaxKeyIDByKeyPoolID(keyPoolID uuid.UUID) (int, error) {
 	var maxKeyID int
 	err := s.gormDB.Model(&Key{}).Where("key_pool_id=?", keyPoolID).Select("COALESCE(MAX(key_id), 0)").Scan(&maxKeyID).Error
 	if err != nil {
+		s.telemetryService.Slogger.Error("failed to get max Key ID by Key Pool ID", "error", err)
 		return math.MinInt, fmt.Errorf("failed to get max Key ID by Key Pool ID: %w", err)
 	}
 	return maxKeyID, nil
