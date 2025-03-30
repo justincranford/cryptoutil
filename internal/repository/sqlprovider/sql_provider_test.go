@@ -59,28 +59,28 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 		}
 	}()
 
-	err := testSqlProvider.WithTransaction(testCtx, false, func(tx *SqlTransaction) error {
-		require.NotNil(t, tx)
+	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+		require.NotNil(t, sqlTransaction)
 		panic("simulated panic during transaction")
 	})
 	require.Error(t, err)
 }
 
 func TestSqlTransaction_Success(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, false, func(tx *SqlTransaction) error {
-		require.NotNil(t, tx)
-		require.False(t, tx.IsReadOnly())
+	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+		require.NotNil(t, sqlTransaction)
+		require.False(t, sqlTransaction.IsReadOnly())
 		return nil
 	})
 	require.NoError(t, err)
 }
 
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, false, func(tx *SqlTransaction) error {
-		require.NotNil(t, tx)
-		require.False(t, tx.IsReadOnly())
+	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+		require.NotNil(t, sqlTransaction)
+		require.False(t, sqlTransaction.IsReadOnly())
 
-		err := tx.begin(testCtx, false)
+		err := sqlTransaction.begin(testCtx, false)
 		require.Error(t, err)
 
 		return err
@@ -89,25 +89,25 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
-	tx := &SqlTransaction{sqlProvider: testSqlProvider}
+	sqlTransaction := &SqlTransaction{sqlProvider: testSqlProvider}
 
-	commitErr := tx.commit()
+	commitErr := sqlTransaction.commit()
 	require.Error(t, commitErr)
 	require.EqualError(t, commitErr, "can't commit because transaction not active")
 }
 
 func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
-	tx := &SqlTransaction{sqlProvider: testSqlProvider}
+	sqlTransaction := &SqlTransaction{sqlProvider: testSqlProvider}
 
-	rollbackErr := tx.rollback()
+	rollbackErr := sqlTransaction.rollback()
 	require.Error(t, rollbackErr)
 	require.EqualError(t, rollbackErr, "can't rollback because transaction not active")
 }
 
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, true, func(tx *SqlTransaction) error {
-		require.NotNil(t, tx)
-		require.True(t, tx.IsReadOnly())
+	err := testSqlProvider.WithTransaction(testCtx, true, func(sqlTransaction *SqlTransaction) error {
+		require.NotNil(t, sqlTransaction)
+		require.True(t, sqlTransaction.IsReadOnly())
 
 		return nil
 	})
@@ -115,9 +115,9 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, false, func(tx *SqlTransaction) error {
-		require.NotNil(t, tx)
-		require.False(t, tx.IsReadOnly())
+	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+		require.NotNil(t, sqlTransaction)
+		require.False(t, sqlTransaction.IsReadOnly())
 		return fmt.Errorf("intentional failure") // Simulate an error within the transaction
 	})
 	require.Error(t, err)

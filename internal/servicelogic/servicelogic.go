@@ -13,11 +13,11 @@ import (
 )
 
 type KeyPoolService struct {
-	ormRepository    *cryptoutilOrmRepository.Repository
+	ormRepository    *cryptoutilOrmRepository.RepositoryProvider
 	serviceOrmMapper *serviceOrmMapper
 }
 
-func NewService(ormRepository *cryptoutilOrmRepository.Repository) *KeyPoolService {
+func NewService(ormRepository *cryptoutilOrmRepository.RepositoryProvider) *KeyPoolService {
 	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper()}
 }
 
