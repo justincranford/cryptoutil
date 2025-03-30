@@ -105,12 +105,13 @@ func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, true, func(sqlTransaction *SqlTransaction) error {
+	newVar := func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.True(t, sqlTransaction.IsReadOnly())
 
 		return nil
-	})
+	}
+	err := testSqlProvider.WithTransaction(testCtx, true, newVar)
 	require.NoError(t, err)
 }
 
