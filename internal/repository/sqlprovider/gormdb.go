@@ -6,14 +6,17 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+
+	_ "github.com/lib/pq"
+	_ "modernc.org/sqlite"
 )
 
 func CreateGormDB(sqlProvider *SqlProvider) (*gorm.DB, error) {
 	var gormDialector gorm.Dialector
 	switch sqlProvider.dbType {
-	case SupportedSqlDBSQLite:
+	case DBTypeSQLite:
 		gormDialector = sqlite.Dialector{Conn: sqlProvider.sqlDB}
-	case SupportedSqlDBPostgres:
+	case DBTypePostgres:
 		gormDialector = postgres.New(postgres.Config{Conn: sqlProvider.sqlDB})
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", sqlProvider.dbType)

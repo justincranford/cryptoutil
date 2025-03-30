@@ -32,7 +32,7 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 
 	// const dbType = cryptoutilSqlProvider.SupportedSqlDBPostgres
 	// const dbUrl = "?"
-	const dbType = cryptoutilSqlProvider.SupportedSqlDBSQLite
+	const dbType = cryptoutilSqlProvider.DBTypeSQLite
 	const dbUrl = ":memory:"
 	sqlProvider, err := cryptoutilSqlProvider.NewSqlProvider(ctx, telemetryService, dbType, dbUrl, cryptoutilSqlProvider.ContainerModeDisabled)
 	if err != nil {
