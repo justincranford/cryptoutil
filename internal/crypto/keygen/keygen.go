@@ -11,6 +11,7 @@ import (
 	"fmt"
 
 	"github.com/cloudflare/circl/sign/ed448"
+	googleUuid "github.com/google/uuid"
 )
 
 type Key struct {
@@ -40,6 +41,10 @@ func GenerateAESKeyFunction(aesBits int) func() (Key, error) {
 
 func GenerateHMACKeyFunction(hmacBits int) func() (Key, error) {
 	return func() (Key, error) { return GenerateHMACKey(hmacBits) }
+}
+
+func GenerateUUIDv7Function() func() (Key, error) {
+	return func() (Key, error) { return GenerateUUIDv7() }
 }
 
 func GenerateRSAKeyPair(rsaBits int) (Key, error) {
@@ -107,4 +112,12 @@ func GenerateHMACKey(hmacBits int) (Key, error) {
 		return Key{}, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}
 	return Key{Private: key}, nil
+}
+
+func GenerateUUIDv7() (Key, error) {
+	uuid, err := googleUuid.NewV7()
+	if err != nil {
+		return Key{}, fmt.Errorf("failed to generate UUID: %w", err)
+	}
+	return Key{Private: uuid}, nil
 }

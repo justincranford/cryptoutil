@@ -14,6 +14,7 @@ import (
 
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
+	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -102,6 +103,17 @@ func TestPoolHMAC(t *testing.T) {
 	for i := 0; i < testMaxSize; i++ {
 		keyPair := pool.Get()
 		assert.IsType(t, []byte{}, keyPair.Private)
+		assert.Nil(t, keyPair.Public)
+	}
+}
+
+func TestPoolUUIDv7(t *testing.T) {
+	pool := NewKeyPool(testCtx, testTelemetryService, "UUIDv7", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateUUIDv7Function())
+	defer pool.Close()
+
+	for i := 0; i < testMaxSize; i++ {
+		keyPair := pool.Get()
+		assert.IsType(t, googleUuid.UUID{}, keyPair.Private)
 		assert.Nil(t, keyPair.Public)
 	}
 }
