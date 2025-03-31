@@ -17,55 +17,55 @@ type RepositoryTransaction struct {
 }
 
 type RepositoryTransactionState struct {
-	ctx           context.Context
-	autoCommit    bool
-	readOnly      bool
-	transactionID googleUuid.UUID
-	gormTx        *gorm.DB
+	ctx        context.Context
+	autoCommit bool
+	readOnly   bool
+	txID       googleUuid.UUID
+	gormTx     *gorm.DB
 }
 
 // RepositoryProvider
 
 func (r *RepositoryProvider) WithTransaction(ctx context.Context, autoCommit, readOnly bool, function func(repositoryTransaction *RepositoryTransaction) error) error {
-	repositoryTransaction := &RepositoryTransaction{repositoryProvider: r}
+	tx := &RepositoryTransaction{repositoryProvider: r}
 
-	err := repositoryTransaction.begin(ctx, autoCommit, readOnly)
+	err := tx.begin(ctx, autoCommit, readOnly)
 	if err != nil {
 		r.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	defer func() {
-		if repositoryTransaction.state != nil && !repositoryTransaction.state.autoCommit {
-			if err := repositoryTransaction.rollback(); err != nil {
-				r.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", repositoryTransaction.TransactionID(), "readOnly", repositoryTransaction.IsReadOnly(), "error", err)
+		if tx.state != nil && !tx.state.autoCommit {
+			if err := tx.rollback(); err != nil {
+				r.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "readOnly", tx.ReadOnly(), "error", err)
 			}
 		}
 		telemetryService := r.telemetryService
 		if r := recover(); r != nil {
-			telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", repositoryTransaction.TransactionID(), "readOnly", repositoryTransaction.IsReadOnly(), "panic", r)
+			telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "readOnly", tx.ReadOnly(), "panic", r)
 			panic(r)
 		}
 	}()
 
-	if err := function(repositoryTransaction); err != nil {
-		r.telemetryService.Slogger.Error("transaction function failed", "transactionID", repositoryTransaction.TransactionID(), "readOnly", repositoryTransaction.IsReadOnly(), "error", err)
+	if err := function(tx); err != nil {
+		r.telemetryService.Slogger.Error("transaction function failed", "txID", tx.ID(), "readOnly", tx.ReadOnly(), "error", err)
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
-	if repositoryTransaction.state.autoCommit {
+	if tx.state.autoCommit {
 		return nil
 	}
-	return repositoryTransaction.commit()
+	return tx.commit()
 }
 
 // RepositoryTransaction
 
-func (repositoryTransaction *RepositoryTransaction) TransactionID() *googleUuid.UUID {
-	if repositoryTransaction.state == nil {
+func (tx *RepositoryTransaction) ID() *googleUuid.UUID {
+	if tx.state == nil {
 		return nil
 	}
-	transactionIDCopy := googleUuid.UUID(repositoryTransaction.state.transactionID)
+	transactionIDCopy := googleUuid.UUID(tx.state.txID)
 	return &transactionIDCopy
 }
 
@@ -76,14 +76,14 @@ func (repositoryTransaction *RepositoryTransaction) Context() context.Context {
 	return repositoryTransaction.state.ctx
 }
 
-func (repositoryTransaction *RepositoryTransaction) IsAutoCommit() bool {
+func (repositoryTransaction *RepositoryTransaction) AutoCommit() bool {
 	if repositoryTransaction.state == nil {
 		return false
 	}
 	return repositoryTransaction.state.autoCommit
 }
 
-func (repositoryTransaction *RepositoryTransaction) IsReadOnly() bool {
+func (repositoryTransaction *RepositoryTransaction) ReadOnly() bool {
 	if repositoryTransaction.state == nil {
 		return false
 	}
@@ -92,81 +92,106 @@ func (repositoryTransaction *RepositoryTransaction) IsReadOnly() bool {
 
 // Helpers
 
-func (repositoryTransaction *RepositoryTransaction) begin(ctx context.Context, autoCommit, readOnly bool) error {
-	repositoryTransaction.guardState.Lock()
-	defer repositoryTransaction.guardState.Unlock()
+func (tx *RepositoryTransaction) begin(ctx context.Context, autoCommit, readOnly bool) error {
+	tx.guardState.Lock()
+	defer tx.guardState.Unlock()
 
-	repositoryTransaction.repositoryProvider.telemetryService.Slogger.Info("beginning transaction", "autoCommit", autoCommit, "readOnly", readOnly)
+	tx.repositoryProvider.telemetryService.Slogger.Info("beginning transaction", "autoCommit", autoCommit, "readOnly", readOnly)
 
-	if repositoryTransaction.state != nil {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("transaction already started", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
+	if tx.state != nil {
+		tx.repositoryProvider.telemetryService.Slogger.Error("transaction already started", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
 		return fmt.Errorf("transaction already started")
 	}
 
-	transactionID, err := googleUuid.NewV7()
+	txID, err := googleUuid.NewV7()
 	if err != nil {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("failed to generate transaction ID", "error", err)
+		tx.repositoryProvider.telemetryService.Slogger.Error("failed to generate transaction ID", "error", err)
 		return fmt.Errorf("failed to generate transaction ID: %w", err)
 	}
 
-	gormTx := repositoryTransaction.repositoryProvider.gormDB.WithContext(ctx)
+	gormTx, err := tx.beginImplementation(ctx, autoCommit, readOnly, txID)
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	tx.state = &RepositoryTransactionState{ctx: ctx, autoCommit: autoCommit, readOnly: readOnly, txID: txID, gormTx: gormTx}
+	tx.repositoryProvider.telemetryService.Slogger.Info("started transaction", "txID", txID, "autoCommit", autoCommit, "readOnly", readOnly)
+	return nil
+}
+
+func (tx *RepositoryTransaction) commit() error {
+	tx.guardState.Lock()
+	defer tx.guardState.Unlock()
+
+	tx.repositoryProvider.telemetryService.Slogger.Info("committing transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+
+	if tx.state == nil {
+		tx.repositoryProvider.telemetryService.Slogger.Error("can't commit because transaction not active", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+		return fmt.Errorf("can't commit because transaction not active")
+	} else if tx.state.autoCommit {
+		tx.repositoryProvider.telemetryService.Slogger.Error("can't commit because transaction is autocommit", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+		return fmt.Errorf("can't commit because transaction is autocommit")
+	}
+
+	if err := tx.commitImplementation(); err != nil {
+		tx.repositoryProvider.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly(), "error", err)
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	tx.repositoryProvider.telemetryService.Slogger.Info("committed transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+	tx.state = nil
+	return nil
+}
+
+func (tx *RepositoryTransaction) rollback() error {
+	tx.guardState.Lock()
+	defer tx.guardState.Unlock()
+
+	tx.repositoryProvider.telemetryService.Slogger.Info("rolling back transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+
+	if tx.state == nil {
+		tx.repositoryProvider.telemetryService.Slogger.Error("can't rollback because transaction not active", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+		return fmt.Errorf("can't rollback because transaction not active")
+	} else if tx.state.autoCommit {
+		tx.repositoryProvider.telemetryService.Slogger.Error("can't rollback because transaction is autocommit", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+		return fmt.Errorf("can't rollback because transaction is autocommit")
+	}
+
+	if err := tx.rollbackImplementation(); err != nil {
+		tx.repositoryProvider.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly(), "error", err)
+		return fmt.Errorf("failed to rollback transaction: %w", err)
+	}
+
+	tx.repositoryProvider.telemetryService.Slogger.Info("rolled back transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly())
+	tx.state = nil
+	return nil
+}
+
+// Implementation using Gorm
+
+func (tx *RepositoryTransaction) beginImplementation(ctx context.Context, autoCommit bool, readOnly bool, txID googleUuid.UUID) (*gorm.DB, error) {
+	gormTx := tx.repositoryProvider.gormDB.WithContext(ctx)
 	if !autoCommit {
-		gormTx = gormTx.Begin(&sql.TxOptions{ReadOnly: readOnly}) // begin TX
+		gormTx = gormTx.Begin(&sql.TxOptions{ReadOnly: readOnly})
 		if gormTx.Error != nil {
-			repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("failed to begin transaction", "transactionID", transactionID, "autoCommit", autoCommit, "readOnly", readOnly, "error", gormTx.Error)
-			return fmt.Errorf("failed to begin transaction: %w", gormTx.Error)
+			return nil, fmt.Errorf("failed to begin gorm transaction: %w", gormTx.Error)
 		}
 	}
+	return gormTx, nil
+}
 
-	repositoryTransaction.state = &RepositoryTransactionState{ctx: ctx, autoCommit: autoCommit, readOnly: readOnly, transactionID: transactionID, gormTx: gormTx}
-	repositoryTransaction.repositoryProvider.telemetryService.Slogger.Info("started transaction", "transactionID", transactionID, "autoCommit", autoCommit, "readOnly", readOnly)
+func (tx *RepositoryTransaction) commitImplementation() error {
+	gormTx := tx.state.gormTx.Commit()
+	if gormTx.Error != nil {
+		return fmt.Errorf("failed to commit gorm transaction: %w", gormTx.Error)
+	}
 	return nil
 }
 
-func (repositoryTransaction *RepositoryTransaction) commit() error {
-	repositoryTransaction.guardState.Lock()
-	defer repositoryTransaction.guardState.Unlock()
-
-	repositoryTransaction.repositoryProvider.telemetryService.Slogger.Info("committing transaction", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-
-	if repositoryTransaction.state == nil {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("can't commit because transaction not active", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-		return fmt.Errorf("can't commit because transaction not active")
-	} else if repositoryTransaction.state.autoCommit {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("can't commit because transaction is auto committed", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-		return fmt.Errorf("can't commit because transaction is auto committed")
+func (tx *RepositoryTransaction) rollbackImplementation() error {
+	gormTx := tx.state.gormTx.Rollback()
+	if gormTx.Error != nil {
+		return fmt.Errorf("failed to rollback gorm transaction: %w", gormTx.Error)
 	}
-
-	if err := repositoryTransaction.state.gormTx.Commit().Error; err != nil {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("failed to commit transaction", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly(), "error", err)
-		return err
-	}
-
-	repositoryTransaction.repositoryProvider.telemetryService.Slogger.Info("committed transaction", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-	repositoryTransaction.state = nil
-	return nil
-}
-
-func (repositoryTransaction *RepositoryTransaction) rollback() error {
-	repositoryTransaction.guardState.Lock()
-	defer repositoryTransaction.guardState.Unlock()
-
-	repositoryTransaction.repositoryProvider.telemetryService.Slogger.Info("rolling back transaction", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-
-	if repositoryTransaction.state == nil {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("can't rollback because transaction not active", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-		return fmt.Errorf("can't rollback because transaction not active")
-	} else if repositoryTransaction.state.autoCommit {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("can't rollback because transaction is auto committed", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-		return fmt.Errorf("can't rollback because transaction is auto committed")
-	}
-
-	if err := repositoryTransaction.state.gormTx.Rollback().Error; err != nil {
-		repositoryTransaction.repositoryProvider.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly(), "error", err)
-		return err
-	}
-
-	repositoryTransaction.repositoryProvider.telemetryService.Slogger.Info("rolled back transaction", "transactionID", repositoryTransaction.TransactionID(), "autoCommit", repositoryTransaction.IsAutoCommit(), "readOnly", repositoryTransaction.IsReadOnly())
-	repositoryTransaction.state = nil
 	return nil
 }

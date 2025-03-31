@@ -66,8 +66,8 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 func TestSqlTransaction_Success(t *testing.T) {
 	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
-		require.False(t, repositoryTransaction.IsAutoCommit())
-		require.False(t, repositoryTransaction.IsReadOnly())
+		require.False(t, repositoryTransaction.AutoCommit())
+		require.False(t, repositoryTransaction.ReadOnly())
 		return nil
 	})
 	require.NoError(t, err)
@@ -76,8 +76,8 @@ func TestSqlTransaction_Success(t *testing.T) {
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
-		require.False(t, repositoryTransaction.IsAutoCommit())
-		require.False(t, repositoryTransaction.IsReadOnly())
+		require.False(t, repositoryTransaction.AutoCommit())
+		require.False(t, repositoryTransaction.ReadOnly())
 
 		err := repositoryTransaction.begin(testCtx, false, false)
 		require.Error(t, err)
@@ -107,8 +107,8 @@ func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 	err := testRepositoryProvider.WithTransaction(testCtx, true, true, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
-		require.True(t, repositoryTransaction.IsAutoCommit())
-		require.True(t, repositoryTransaction.IsReadOnly())
+		require.True(t, repositoryTransaction.AutoCommit())
+		require.True(t, repositoryTransaction.ReadOnly())
 
 		return nil
 	})
@@ -118,8 +118,8 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
 	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
-		require.False(t, repositoryTransaction.IsAutoCommit())
-		require.False(t, repositoryTransaction.IsReadOnly())
+		require.False(t, repositoryTransaction.AutoCommit())
+		require.False(t, repositoryTransaction.ReadOnly())
 		return fmt.Errorf("intentional failure")
 	})
 	require.Error(t, err)
