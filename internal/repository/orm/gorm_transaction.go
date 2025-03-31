@@ -36,27 +36,29 @@ func (r *RepositoryProvider) WithTransaction(ctx context.Context, autoCommit, re
 	}
 
 	defer func() {
-		if tx.state != nil && !tx.state.autoCommit {
+		if tx.state != nil && !tx.state.autoCommit { // ensure commit() or other rollback() calls didn't overwrite tx.state with nil
 			if err := tx.rollback(); err != nil {
-				r.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "readOnly", tx.ReadOnly(), "error", err)
+				r.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly(), "error", err)
 			}
 		}
-		telemetryService := r.telemetryService
-		if r := recover(); r != nil {
-			telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "readOnly", tx.ReadOnly(), "panic", r)
-			panic(r)
+		if recover := recover(); recover != nil {
+			r.telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly(), "panic", recover)
+			panic(recover)
 		}
 	}()
 
 	if err := function(tx); err != nil {
-		r.telemetryService.Slogger.Error("transaction function failed", "txID", tx.ID(), "readOnly", tx.ReadOnly(), "error", err)
+		r.telemetryService.Slogger.Error("transaction function failed", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly(), "error", err)
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
-	if tx.state.autoCommit {
-		return nil
+	if !tx.state.autoCommit {
+		if err := tx.commit(); err != nil { // clears state
+			r.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "autoCommit", tx.AutoCommit(), "readOnly", tx.ReadOnly(), "error", err)
+			return fmt.Errorf("failed to commit transaction: %w", err)
+		}
 	}
-	return tx.commit()
+	return nil
 }
 
 // RepositoryTransaction
