@@ -1,57 +1,55 @@
 package orm
 
 import (
-	"fmt"
+	"context"
+	"cryptoutil/internal/crypto/keygen"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"time"
 
 	googleUuid "github.com/google/uuid"
 )
 
-func GivenKeyPoolCreate(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPoolCreate, error) {
-	uuid, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate UUID: %w", err)
-	}
-	keyPool := &KeyPoolCreate{
-		Name:                KeyPoolName("Key Pool Name " + uuid.String()),
-		Description:         KeyPoolDescription("Key Pool Description " + uuid.String()),
-		Provider:            Internal,
-		Algorithm:           AES256,
-		IsVersioningAllowed: KeyPoolIsVersioningAllowed(versioningAllowed),
-		IsImportAllowed:     KeyPoolIsImportAllowed(importAllowed),
-		IsExportAllowed:     KeyPoolIsExportAllowed(exportAllowed),
-	}
-	return keyPool, nil
+type Givens struct {
+	telemetryService *cryptoutilTelemetry.Service
+	aes256Pool       *keygen.KeyPool
+	uuidv7Pool       *keygen.KeyPool
 }
 
-func GivenKeyPoolForAdd(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPool, error) {
-	uuid, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate UUID: %w", err)
-	}
-	keyPool := &KeyPool{
-		KeyPoolID:                  uuidZero,
-		KeyPoolName:                string("Key Pool Name " + uuid.String()),
-		KeyPoolDescription:         string("Key Pool Description " + uuid.String()),
-		KeyPoolProvider:            Internal,
-		KeyPoolAlgorithm:           AES256,
-		KeyPoolIsVersioningAllowed: versioningAllowed,
-		KeyPoolIsImportAllowed:     importAllowed,
-		KeyPoolIsExportAllowed:     exportAllowed,
-		KeyPoolStatus:              Creating,
-	}
-	return keyPool, nil
+func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) *Givens {
+	aes256Pool := keygen.NewKeyPool(ctx, telemetryService, "AES", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
+	uuidv7Pool := keygen.NewKeyPool(ctx, telemetryService, "UUIDv7", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
+	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidv7Pool: uuidv7Pool}
 }
 
-func GivenKeyForAdd(keyPoolID googleUuid.UUID, keyID int, keyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
-	key := &Key{
-		KeyPoolID:         keyPoolID,
-		KeyID:             keyID,
-		KeyMaterial:       keyMaterial,
-		KeyGenerateDate:   generateDate,
-		KeyImportDate:     importDate,
-		KeyExpirationDate: expirationDate,
-		KeyRevocationDate: revocationDate,
-	}
-	return key
+func (g *Givens) Shutdown() {
+	g.uuidv7Pool.Close()
+	g.aes256Pool.Close()
+}
+
+func (g *Givens) UUIDv7() googleUuid.UUID {
+	return g.uuidv7Pool.Get().Private.(googleUuid.UUID)
+}
+
+func (g *Givens) AES256() []byte {
+	return g.aes256Pool.Get().Private.([]byte)
+}
+
+func (g *Givens) KeyPool(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPool, error) {
+	uuid := g.UUIDv7()
+	return BuildKeyPool(uuid, string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed, string(Creating))
+}
+
+func (g *Givens) KeyPoolForAdd(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPool, error) {
+	uuid := g.UUIDv7()
+	return BuildKeyPool(uuidZero, string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed, string(Creating))
+}
+
+func (g *Givens) Key(keyPoolID googleUuid.UUID, keyID int, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
+	keyMaterial := g.AES256()
+	return BuildKey(keyPoolID, keyID, keyMaterial, generateDate, importDate, expirationDate, revocationDate)
+}
+
+func (g *Givens) KeyPoolCreate(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPoolCreate, error) {
+	uuid := g.UUIDv7()
+	return BuildKeyPoolCreate(string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed)
 }

@@ -2,7 +2,6 @@ package orm
 
 import (
 	"context"
-	cryptoutilCryptoKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
@@ -21,6 +20,7 @@ var (
 	testTelemetryService   *cryptoutilTelemetry.Service
 	testSqlProvider        *cryptoutilSqlProvider.SqlProvider
 	testRepositoryProvider *RepositoryProvider
+	testGivens             *Givens
 )
 
 func TestMain(m *testing.M) {
@@ -46,6 +46,9 @@ func TestMain(m *testing.M) {
 		os.Exit(-1)
 	}
 	defer testRepositoryProvider.Shutdown()
+
+	testGivens = NewGivens(testCtx, testTelemetryService)
+	defer testGivens.Shutdown()
 
 	os.Exit(m.Run())
 }
@@ -137,7 +140,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 			require.Equal(t, testCase.autoCommit, repositoryTransaction.AutoCommit())
 			require.Equal(t, testCase.readOnly, repositoryTransaction.ReadOnly())
 
-			keyPool, err := GivenKeyPoolForAdd(true, false, false)
+			keyPool, err := testGivens.KeyPoolForAdd(true, false, false)
 			if err != nil {
 				return fmt.Errorf("failed to generate given Key Pool for insert: %w", err)
 			}
@@ -146,14 +149,9 @@ func TestSqlTransaction_Success(t *testing.T) {
 				return fmt.Errorf("failed to add Key Pool: %w", err)
 			}
 
-			for nextKeyId := 1; nextKeyId <= 20; nextKeyId++ {
-				keyKeyMaterial, err := cryptoutilCryptoKeygen.GenerateKeyMaterial(string(AES256))
-				if err != nil {
-					return fmt.Errorf("failed to generate Key material: %w", err)
-				}
+			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
 				now := time.Now().UTC()
-
-				key := GivenKeyForAdd(keyPool.KeyPoolID, nextKeyId, keyKeyMaterial, &now, nil, nil, nil)
+				key := testGivens.Key(keyPool.KeyPoolID, nextKeyId, &now, nil, nil, nil)
 				err = repositoryTransaction.AddKey(key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
