@@ -23,6 +23,18 @@ type SqlTransactionState struct {
 }
 
 func (sqlProvider *SqlProvider) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SqlTransaction) error) error {
+	if readOnly {
+		switch sqlProvider.dbType {
+		case DBTypeSQLite: // SQLite lacks support for read-only transactions
+			sqlProvider.telemetryService.Slogger.Warn("database doesn't support read-only transactions", "dbType", string(sqlProvider.dbType))
+			return fmt.Errorf("database %s doesn't support read-only transactions", string(sqlProvider.dbType))
+		case DBTypePostgres:
+			sqlProvider.telemetryService.Slogger.Debug("database supports read-only transactions", "dbType", string(sqlProvider.dbType))
+		default:
+			return fmt.Errorf("%w: %s", ErrUnsupportedDBType, string(sqlProvider.dbType))
+		}
+	}
+
 	sqlTransaction, err := sqlProvider.newTransaction()
 	if err != nil {
 		sqlProvider.telemetryService.Slogger.Error("failed to create transaction", "error", err)

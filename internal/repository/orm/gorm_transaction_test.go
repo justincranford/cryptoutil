@@ -21,28 +21,41 @@ var (
 	testSqlProvider        *cryptoutilSqlProvider.SqlProvider
 	testRepositoryProvider *RepositoryProvider
 	testGivens             *Givens
+	skipReadOnlyTxTests    bool
+	testDbType             = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't seem to support read-only transactions, but PostgreSQL does
+	// testDbType = cryptoutilSqlProvider.DBTypePostgres
 )
 
 func TestMain(m *testing.M) {
 	var err error
 
-	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "sqlprovider_test", false, false)
+	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "orm_transaction_test", false, false)
 	if err != nil {
 		slog.Error("failed to initailize telemetry", "error", err)
 		os.Exit(-1)
 	}
 	defer testTelemetryService.Shutdown()
 
-	testSqlProvider, err = cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypeSQLite, ":memory:", cryptoutilSqlProvider.ContainerModeDisabled)
+	switch testDbType {
+	case cryptoutilSqlProvider.DBTypeSQLite:
+		skipReadOnlyTxTests = true
+		testSqlProvider, err = cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypeSQLite, ":memory:", cryptoutilSqlProvider.ContainerModeDisabled)
+	case cryptoutilSqlProvider.DBTypePostgres:
+		skipReadOnlyTxTests = false
+		testSqlProvider, err = cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypePostgres, "", cryptoutilSqlProvider.ContainerModeRequired)
+	default:
+		testTelemetryService.Slogger.Error("unsupported dbType", "dbType", string(testDbType))
+		os.Exit(-1)
+	}
 	if err != nil {
-		slog.Error("failed to initailize sqlProvider", "error", err)
+		testTelemetryService.Slogger.Error("failed to initailize sqlProvider", "error", err)
 		os.Exit(-1)
 	}
 	defer testSqlProvider.Shutdown()
 
 	testRepositoryProvider, err = NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
 	if err != nil {
-		slog.Error("failed to initailize repositoryProvider", "error", err)
+		testTelemetryService.Slogger.Error("failed to initailize repositoryProvider", "error", err)
 		os.Exit(-1)
 	}
 	defer testRepositoryProvider.Shutdown()
@@ -122,17 +135,22 @@ func TestSqlTransaction_RollbackOnError(t *testing.T) {
 }
 
 func TestSqlTransaction_Success(t *testing.T) {
-	tests := []struct {
-		autoCommit  bool
+	type happyPathTestCase struct {
 		readOnly    bool
+		autoCommit  bool
 		expectError bool
-	}{
-		{readOnly: false, autoCommit: false, expectError: false},
-		{readOnly: false, autoCommit: true, expectError: false},
-		// {readOnly: true, autoCommit: false, expectError: true}, // TODO Debug why write succeeds for readOnly TX?
-		// {readOnly: true, autoCommit: true, expectError: true},
 	}
+
+	tests := []happyPathTestCase{}
+	tests = append(tests, happyPathTestCase{readOnly: false, autoCommit: false, expectError: false})
+	tests = append(tests, happyPathTestCase{readOnly: false, autoCommit: true, expectError: false})
+	if !skipReadOnlyTxTests {
+		tests = append(tests, happyPathTestCase{readOnly: true, autoCommit: false, expectError: true})
+		// tests = append(tests, happyPathTestCase{readOnly: true, autoCommit: true, expectError: true})
+	}
+
 	for _, testCase := range tests {
+		testTelemetryService.Slogger.Info("Executing test case", "autoCommit", testCase.autoCommit, "readOnly", testCase.readOnly, "expectError", testCase.expectError)
 		err := testRepositoryProvider.WithTransaction(testCtx, testCase.autoCommit, testCase.readOnly, func(repositoryTransaction *RepositoryTransaction) error {
 			require.NotNil(t, repositoryTransaction)
 			require.NotNil(t, repositoryTransaction.ID())
