@@ -48,13 +48,13 @@ type Key struct {
 }
 
 type KeyPoolCreate struct {
-	Algorithm           KeyPoolAlgorithm           `json:"algorithm,omitempty"`
-	Description         KeyPoolDescription         `json:"description"`
-	IsExportAllowed     KeyPoolIsExportAllowed     `json:"isExportAllowed,omitempty"`
-	IsImportAllowed     KeyPoolIsImportAllowed     `json:"isImportAllowed,omitempty"`
-	IsVersioningAllowed KeyPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
 	Name                KeyPoolName                `json:"name"`
+	Description         KeyPoolDescription         `json:"description"`
 	Provider            KeyPoolProvider            `json:"provider,omitempty"`
+	Algorithm           KeyPoolAlgorithm           `json:"algorithm,omitempty"`
+	IsVersioningAllowed KeyPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
+	IsImportAllowed     KeyPoolIsImportAllowed     `json:"isImportAllowed,omitempty"`
+	IsExportAllowed     KeyPoolIsExportAllowed     `json:"isExportAllowed,omitempty"`
 }
 
 type KeyPoolAlgorithm string

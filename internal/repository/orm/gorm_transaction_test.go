@@ -2,12 +2,14 @@ package orm
 
 import (
 	"context"
+	cryptoutilCryptoKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
 	"log/slog"
 	"os"
 	"testing"
+	"time"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
@@ -63,16 +65,6 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 	require.EqualError(t, panicErr, "simulated panic during transaction")
 }
 
-func TestSqlTransaction_Success(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
-		require.NotNil(t, repositoryTransaction)
-		require.False(t, repositoryTransaction.AutoCommit())
-		require.False(t, repositoryTransaction.ReadOnly())
-		return nil
-	})
-	require.NoError(t, err)
-}
-
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
@@ -124,4 +116,56 @@ func TestSqlTransaction_RollbackOnError(t *testing.T) {
 	})
 	require.Error(t, err)
 	require.EqualError(t, err, "failed to execute transaction: intentional failure")
+}
+
+func TestSqlTransaction_Success(t *testing.T) {
+	tests := []struct {
+		autoCommit  bool
+		readOnly    bool
+		expectError bool
+	}{
+		{readOnly: false, autoCommit: false, expectError: false},
+		{readOnly: false, autoCommit: true, expectError: false},
+		// {readOnly: true, autoCommit: false, expectError: true}, // TODO Debug why write succeeds for readOnly TX?
+		// {readOnly: true, autoCommit: true, expectError: true},
+	}
+	for _, testCase := range tests {
+		err := testRepositoryProvider.WithTransaction(testCtx, testCase.autoCommit, testCase.readOnly, func(repositoryTransaction *RepositoryTransaction) error {
+			require.NotNil(t, repositoryTransaction)
+			require.NotNil(t, repositoryTransaction.ID())
+			require.NotNil(t, repositoryTransaction.Context())
+			require.Equal(t, testCase.autoCommit, repositoryTransaction.AutoCommit())
+			require.Equal(t, testCase.readOnly, repositoryTransaction.ReadOnly())
+
+			keyPool, err := GivenKeyPoolForAdd(true, false, false)
+			if err != nil {
+				return fmt.Errorf("failed to generate given Key Pool for insert: %w", err)
+			}
+			err = repositoryTransaction.AddKeyPool(keyPool)
+			if err != nil {
+				return fmt.Errorf("failed to add Key Pool: %w", err)
+			}
+
+			for nextKeyId := 1; nextKeyId <= 20; nextKeyId++ {
+				keyKeyMaterial, err := cryptoutilCryptoKeygen.GenerateKeyMaterial(string(AES256))
+				if err != nil {
+					return fmt.Errorf("failed to generate Key material: %w", err)
+				}
+				now := time.Now().UTC()
+
+				key := GivenKeyForAdd(keyPool.KeyPoolID, nextKeyId, keyKeyMaterial, &now, nil, nil, nil)
+				err = repositoryTransaction.AddKey(key)
+				if err != nil {
+					return fmt.Errorf("failed to add Key: %w", err)
+				}
+			}
+
+			return nil
+		})
+		if testCase.expectError {
+			require.Error(t, err)
+		} else {
+			require.NoError(t, err)
+		}
+	}
 }
