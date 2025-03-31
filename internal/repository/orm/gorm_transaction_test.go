@@ -22,29 +22,28 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	telemetryService, err := cryptoutilTelemetry.NewService(testCtx, "sqlprovider_test", false, false)
+	var err error
+
+	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "sqlprovider_test", false, false)
 	if err != nil {
 		slog.Error("failed to initailize telemetry", "error", err)
 		os.Exit(-1)
 	}
-	testTelemetryService = telemetryService
 	defer testTelemetryService.Shutdown()
 
-	sqlProvider, err := cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypeSQLite, ":memory:", cryptoutilSqlProvider.ContainerModeDisabled)
+	testSqlProvider, err = cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypeSQLite, ":memory:", cryptoutilSqlProvider.ContainerModeDisabled)
 	if err != nil {
 		slog.Error("failed to initailize sqlProvider", "error", err)
 		os.Exit(-1)
 	}
-	testSqlProvider = sqlProvider
-	defer sqlProvider.Shutdown()
+	defer testSqlProvider.Shutdown()
 
-	repositoryProvider, err := NewRepositoryOrm(testCtx, testTelemetryService, sqlProvider, true)
+	testRepositoryProvider, err = NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
 	if err != nil {
 		slog.Error("failed to initailize repositoryProvider", "error", err)
 		os.Exit(-1)
 	}
-	testRepositoryProvider = repositoryProvider
-	defer repositoryProvider.Shutdown()
+	defer testRepositoryProvider.Shutdown()
 
 	os.Exit(m.Run())
 }
@@ -56,16 +55,18 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 		}
 	}()
 
-	err := testRepositoryProvider.WithTransaction(testCtx, false, func(repositoryTransaction *RepositoryTransaction) error {
+	panicErr := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
 		panic("simulated panic during transaction")
 	})
-	require.Error(t, err)
+	require.Error(t, panicErr)
+	require.EqualError(t, panicErr, "simulated panic during transaction")
 }
 
 func TestSqlTransaction_Success(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, false, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
+		require.False(t, repositoryTransaction.IsAutoCommit())
 		require.False(t, repositoryTransaction.IsReadOnly())
 		return nil
 	})
@@ -73,16 +74,18 @@ func TestSqlTransaction_Success(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, false, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
+		require.False(t, repositoryTransaction.IsAutoCommit())
 		require.False(t, repositoryTransaction.IsReadOnly())
 
-		err := repositoryTransaction.begin(testCtx, false)
+		err := repositoryTransaction.begin(testCtx, false, false)
 		require.Error(t, err)
 
 		return err
 	})
 	require.Error(t, err)
+	require.EqualError(t, err, "failed to execute transaction: transaction already started")
 }
 
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
@@ -102,8 +105,9 @@ func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, true, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testRepositoryProvider.WithTransaction(testCtx, true, true, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
+		require.True(t, repositoryTransaction.IsAutoCommit())
 		require.True(t, repositoryTransaction.IsReadOnly())
 
 		return nil
@@ -112,10 +116,12 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, false, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
+		require.False(t, repositoryTransaction.IsAutoCommit())
 		require.False(t, repositoryTransaction.IsReadOnly())
-		return fmt.Errorf("intentional failure") // Simulate an error within the transaction
+		return fmt.Errorf("intentional failure")
 	})
 	require.Error(t, err)
+	require.EqualError(t, err, "failed to execute transaction: intentional failure")
 }
