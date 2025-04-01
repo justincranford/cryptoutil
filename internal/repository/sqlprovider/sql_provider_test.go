@@ -112,7 +112,8 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 		return nil
 	}
 	err := testSqlProvider.WithTransaction(testCtx, true, newVar)
-	require.NoError(t, err)
+	require.Error(t, err)
+	require.EqualError(t, err, "database sqlite doesn't support read-only transactions")
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {

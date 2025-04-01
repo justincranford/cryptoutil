@@ -22,7 +22,7 @@ var (
 	testRepositoryProvider *RepositoryProvider
 	testGivens             *Givens
 	skipReadOnlyTxTests    bool
-	testDbType             = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't seem to support read-only transactions, but PostgreSQL does
+	testDbType             = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	// testDbType = cryptoutilSqlProvider.DBTypePostgres
 )
 
@@ -44,8 +44,7 @@ func TestMain(m *testing.M) {
 		skipReadOnlyTxTests = false
 		testSqlProvider, err = cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypePostgres, "", cryptoutilSqlProvider.ContainerModeRequired)
 	default:
-		testTelemetryService.Slogger.Error("unsupported dbType", "dbType", string(testDbType))
-		os.Exit(-1)
+		err = fmt.Errorf("unsupported dbType %s", testDbType)
 	}
 	if err != nil {
 		testTelemetryService.Slogger.Error("failed to initailize sqlProvider", "error", err)
@@ -73,7 +72,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 		}
 	}()
 
-	panicErr := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
+	panicErr := testRepositoryProvider.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
 		panic("simulated panic during transaction")
 	})
@@ -82,12 +81,11 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testRepositoryProvider.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
-		require.False(t, repositoryTransaction.AutoCommit())
-		require.False(t, repositoryTransaction.ReadOnly())
+		require.Equal(t, ReadWrite, *repositoryTransaction.Mode())
 
-		err := repositoryTransaction.begin(testCtx, false, false)
+		err := repositoryTransaction.begin(testCtx, ReadWrite)
 		require.Error(t, err)
 
 		return err
@@ -113,10 +111,9 @@ func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, true, true, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testRepositoryProvider.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
-		require.True(t, repositoryTransaction.AutoCommit())
-		require.True(t, repositoryTransaction.ReadOnly())
+		require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
 
 		return nil
 	})
@@ -124,10 +121,9 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, false, false, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testRepositoryProvider.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
-		require.False(t, repositoryTransaction.AutoCommit())
-		require.False(t, repositoryTransaction.ReadOnly())
+		require.Equal(t, ReadWrite, *repositoryTransaction.Mode())
 		return fmt.Errorf("intentional failure")
 	})
 	require.Error(t, err)
@@ -136,29 +132,29 @@ func TestSqlTransaction_RollbackOnError(t *testing.T) {
 
 func TestSqlTransaction_Success(t *testing.T) {
 	type happyPathTestCase struct {
-		readOnly    bool
-		autoCommit  bool
+		txMode      TransactionMode
 		expectError bool
 	}
 
 	tests := []happyPathTestCase{}
-	tests = append(tests, happyPathTestCase{readOnly: false, autoCommit: false, expectError: false})
-	tests = append(tests, happyPathTestCase{readOnly: false, autoCommit: true, expectError: false})
+	tests = append(tests, happyPathTestCase{txMode: AutoCommit, expectError: false})
+	tests = append(tests, happyPathTestCase{txMode: ReadWrite, expectError: false})
 	if !skipReadOnlyTxTests {
-		tests = append(tests, happyPathTestCase{readOnly: true, autoCommit: false, expectError: true})
-		// tests = append(tests, happyPathTestCase{readOnly: true, autoCommit: true, expectError: true})
+		tests = append(tests, happyPathTestCase{txMode: ReadOnly, expectError: true})
 	}
 
 	for _, testCase := range tests {
-		testTelemetryService.Slogger.Info("Executing test case", "autoCommit", testCase.autoCommit, "readOnly", testCase.readOnly, "expectError", testCase.expectError)
-		err := testRepositoryProvider.WithTransaction(testCtx, testCase.autoCommit, testCase.readOnly, func(repositoryTransaction *RepositoryTransaction) error {
+		testTelemetryService.Slogger.Info("Executing test case", "mode", testCase.txMode, "expectError", testCase.expectError)
+
+		addedKeyPools := []*KeyPool{}
+		addedKeys := []*Key{}
+		err := testRepositoryProvider.WithTransaction(testCtx, testCase.txMode, func(repositoryTransaction *RepositoryTransaction) error {
 			require.NotNil(t, repositoryTransaction)
 			require.NotNil(t, repositoryTransaction.ID())
 			require.NotNil(t, repositoryTransaction.Context())
-			require.Equal(t, testCase.autoCommit, repositoryTransaction.AutoCommit())
-			require.Equal(t, testCase.readOnly, repositoryTransaction.ReadOnly())
+			require.Equal(t, testCase.txMode, *repositoryTransaction.Mode())
 
-			keyPool, err := testGivens.KeyPoolForAdd(true, false, false)
+			keyPool, err := testGivens.KeyPoolForAdd(true, true, true)
 			if err != nil {
 				return fmt.Errorf("failed to generate given Key Pool for insert: %w", err)
 			}
@@ -166,6 +162,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 			if err != nil {
 				return fmt.Errorf("failed to add Key Pool: %w", err)
 			}
+			addedKeyPools = append(addedKeyPools, keyPool)
 
 			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
 				now := time.Now().UTC()
@@ -178,9 +175,47 @@ func TestSqlTransaction_Success(t *testing.T) {
 
 			return nil
 		})
+
+		testTelemetryService.Slogger.Info("Happy path test case result", "mode", testCase.txMode, "expectError", testCase.expectError, "error", err)
 		if testCase.expectError {
 			require.Error(t, err)
 		} else {
+			require.NoError(t, err)
+		}
+
+		for _, addedKeyPool := range addedKeyPools {
+			err = testRepositoryProvider.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
+				require.NotNil(t, repositoryTransaction)
+				require.NotNil(t, repositoryTransaction.ID())
+				require.NotNil(t, repositoryTransaction.Context())
+				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
+
+				retrievedKeyPool, err := repositoryTransaction.GetKeyPoolByID(addedKeyPool.KeyPoolID)
+				if err != nil {
+					return fmt.Errorf("failed to get Key Pool: %w", err)
+				}
+				require.Equal(t, addedKeyPool, retrievedKeyPool)
+
+				return nil
+			})
+			require.NoError(t, err)
+		}
+
+		for _, addedKey := range addedKeys {
+			err = testRepositoryProvider.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
+				require.NotNil(t, repositoryTransaction)
+				require.NotNil(t, repositoryTransaction.ID())
+				require.NotNil(t, repositoryTransaction.Context())
+				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
+
+				retrievedKey, err := repositoryTransaction.GetKeyByKeyPoolIDAndKyID(addedKey.KeyPoolID, addedKey.KeyID)
+				if err != nil {
+					return fmt.Errorf("failed to get Key: %w", err)
+				}
+				require.Equal(t, addedKey, retrievedKey)
+
+				return nil
+			})
 			require.NoError(t, err)
 		}
 	}
