@@ -27,13 +27,13 @@ var (
 type RepositoryProvider struct {
 	telemetryService *cryptoutilTelemetry.Service
 	sqlProvider      *cryptoutilSqlProvider.SqlProvider
-	uuidv7Pool       *keygen.KeyPool
+	uuidV7Pool       *keygen.KeyPool
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
 func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*RepositoryProvider, error) {
-	uuidv7Pool := keygen.NewKeyPool(ctx, telemetryService, "UUIDv7", 10, 2, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
+	uuidV7Pool := keygen.NewKeyPool(ctx, telemetryService, "UUIDv7", 10, 2, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
 
 	gormDB, err := cryptoutilSqlProvider.CreateGormDB(sqlProvider)
 	if err != nil {
@@ -50,7 +50,7 @@ func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry
 		telemetryService.Slogger.Debug("skipping migrations")
 	}
 
-	return &RepositoryProvider{telemetryService: telemetryService, sqlProvider: sqlProvider, uuidv7Pool: uuidv7Pool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
+	return &RepositoryProvider{telemetryService: telemetryService, sqlProvider: sqlProvider, uuidV7Pool: uuidV7Pool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
 func (s *RepositoryProvider) Shutdown() {

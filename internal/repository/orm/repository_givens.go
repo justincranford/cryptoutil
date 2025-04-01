@@ -12,22 +12,22 @@ import (
 type Givens struct {
 	telemetryService *cryptoutilTelemetry.Service
 	aes256Pool       *keygen.KeyPool
-	uuidv7Pool       *keygen.KeyPool
+	uuidV7Pool       *keygen.KeyPool
 }
 
 func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) *Givens {
 	aes256Pool := keygen.NewKeyPool(ctx, telemetryService, "AES", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
-	uuidv7Pool := keygen.NewKeyPool(ctx, telemetryService, "UUIDv7", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
-	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidv7Pool: uuidv7Pool}
+	uuidV7Pool := keygen.NewKeyPool(ctx, telemetryService, "UUIDv7", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
+	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidV7Pool: uuidV7Pool}
 }
 
 func (g *Givens) Shutdown() {
-	g.uuidv7Pool.Close()
+	g.uuidV7Pool.Close()
 	g.aes256Pool.Close()
 }
 
 func (g *Givens) UUIDv7() googleUuid.UUID {
-	return g.uuidv7Pool.Get().Private.(googleUuid.UUID)
+	return g.uuidV7Pool.Get().Private.(googleUuid.UUID)
 }
 
 func (g *Givens) AES256() []byte {
