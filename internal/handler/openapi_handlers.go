@@ -22,12 +22,12 @@ func NewOpenapiHandler(service *cryptoutilServiceLogic.KeyPoolService) *StrictSe
 }
 
 func (s *StrictServer) GetKeypool(ctx context.Context, openapiGetKeypoolRequestObject cryptoutilOpenapiServer.GetKeypoolRequestObject) (cryptoutilOpenapiServer.GetKeypoolResponseObject, error) {
-	if openapiGetKeypoolRequestObject.Params.Filter != nil && len(string(*openapiGetKeypoolRequestObject.Params.Filter)) > 0 {
-		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'filter' not supported yet: %w", fiber.ErrBadRequest))
-	} else if openapiGetKeypoolRequestObject.Params.Sort != nil && len(string(*openapiGetKeypoolRequestObject.Params.Sort)) > 0 {
+	if openapiGetKeypoolRequestObject.Params.Sort != nil && len(string(*openapiGetKeypoolRequestObject.Params.Sort)) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'sort' not supported yet: %w", fiber.ErrBadRequest))
 	} else if openapiGetKeypoolRequestObject.Params.Page != nil && len(string(*openapiGetKeypoolRequestObject.Params.Page)) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
+	} else if openapiGetKeypoolRequestObject.Params.Size != nil && len(string(*openapiGetKeypoolRequestObject.Params.Size)) > 0 {
+		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'size' not supported yet: %w", fiber.ErrBadRequest))
 	}
 	keyPools, err := s.businessLogicService.ListKeyPools(ctx)
 	if err != nil {
@@ -46,12 +46,12 @@ func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolReques
 }
 
 func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyRequestObject) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
-	if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Filter != nil && len(string(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Filter)) > 0 {
-		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'filter' not supported yet: %w", fiber.ErrBadRequest))
-	} else if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort != nil && len(string(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort)) > 0 {
+	if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort != nil && len(string(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort)) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'sort' not supported yet: %w", fiber.ErrBadRequest))
 	} else if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Page != nil && len(string(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Page)) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
+	} else if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Size != nil && len(string(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Size)) > 0 {
+		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'size' not supported yet: %w", fiber.ErrBadRequest))
 	}
 	keyPoolID := openapiGetKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
 	keys, err := s.businessLogicService.ListKeysByKeyPool(ctx, keyPoolID)

@@ -22,19 +22,106 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for GetKeypoolParamsSort.
+const (
+	GetKeypoolParamsSortAlgorithm             GetKeypoolParamsSort = "algorithm"
+	GetKeypoolParamsSortAlgorithmASC          GetKeypoolParamsSort = "algorithm:ASC"
+	GetKeypoolParamsSortAlgorithmDESC         GetKeypoolParamsSort = "algorithm:DESC"
+	GetKeypoolParamsSortExportAllowed         GetKeypoolParamsSort = "export_allowed"
+	GetKeypoolParamsSortExportAllowedASC      GetKeypoolParamsSort = "export_allowed:ASC"
+	GetKeypoolParamsSortExportAllowedDESC     GetKeypoolParamsSort = "export_allowed:DESC"
+	GetKeypoolParamsSortId                    GetKeypoolParamsSort = "id"
+	GetKeypoolParamsSortIdASC                 GetKeypoolParamsSort = "id:ASC"
+	GetKeypoolParamsSortIdDESC                GetKeypoolParamsSort = "id:DESC"
+	GetKeypoolParamsSortImportAllowed         GetKeypoolParamsSort = "import_allowed"
+	GetKeypoolParamsSortImportAllowedASC      GetKeypoolParamsSort = "import_allowed:ASC"
+	GetKeypoolParamsSortImportAllowedDESC     GetKeypoolParamsSort = "import_allowed:DESC"
+	GetKeypoolParamsSortName                  GetKeypoolParamsSort = "name"
+	GetKeypoolParamsSortNameASC               GetKeypoolParamsSort = "name:ASC"
+	GetKeypoolParamsSortNameDESC              GetKeypoolParamsSort = "name:DESC"
+	GetKeypoolParamsSortProvider              GetKeypoolParamsSort = "provider"
+	GetKeypoolParamsSortProviderASC           GetKeypoolParamsSort = "provider:ASC"
+	GetKeypoolParamsSortProviderDESC          GetKeypoolParamsSort = "provider:DESC"
+	GetKeypoolParamsSortStatus                GetKeypoolParamsSort = "status"
+	GetKeypoolParamsSortStatusASC             GetKeypoolParamsSort = "status:ASC"
+	GetKeypoolParamsSortStatusDESC            GetKeypoolParamsSort = "status:DESC"
+	GetKeypoolParamsSortVersioningAllowed     GetKeypoolParamsSort = "versioning_allowed"
+	GetKeypoolParamsSortVersioningAllowedASC  GetKeypoolParamsSort = "versioning_allowed:ASC"
+	GetKeypoolParamsSortVersioningAllowedDESC GetKeypoolParamsSort = "versioning_allowed:DESC"
+)
+
+// Defines values for GetKeypoolKeyPoolIDKeyParamsSort.
+const (
+	GetKeypoolKeyPoolIDKeyParamsSortGenerateDate     GetKeypoolKeyPoolIDKeyParamsSort = "generate_date"
+	GetKeypoolKeyPoolIDKeyParamsSortGenerateDateASC  GetKeypoolKeyPoolIDKeyParamsSort = "generate_date:ASC"
+	GetKeypoolKeyPoolIDKeyParamsSortGenerateDateDESC GetKeypoolKeyPoolIDKeyParamsSort = "generate_date:DESC"
+	GetKeypoolKeyPoolIDKeyParamsSortId               GetKeypoolKeyPoolIDKeyParamsSort = "id"
+	GetKeypoolKeyPoolIDKeyParamsSortIdASC            GetKeypoolKeyPoolIDKeyParamsSort = "id:ASC"
+	GetKeypoolKeyPoolIDKeyParamsSortIdDESC           GetKeypoolKeyPoolIDKeyParamsSort = "id:DESC"
+	GetKeypoolKeyPoolIDKeyParamsSortPool             GetKeypoolKeyPoolIDKeyParamsSort = "pool"
+	GetKeypoolKeyPoolIDKeyParamsSortPoolASC          GetKeypoolKeyPoolIDKeyParamsSort = "pool:ASC"
+	GetKeypoolKeyPoolIDKeyParamsSortPoolDESC         GetKeypoolKeyPoolIDKeyParamsSort = "pool:DESC"
+)
+
 // GetKeypoolParams defines parameters for GetKeypool.
 type GetKeypoolParams struct {
-	Filter *externalRef0.QueryParamFilter `form:"filter,omitempty" json:"filter,omitempty"`
-	Sort   *externalRef0.QueryParamSort   `form:"sort,omitempty" json:"sort,omitempty"`
-	Page   *externalRef0.QueryParamPage   `form:"page,omitempty" json:"page,omitempty"`
+	Page *externalRef0.PageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.PageSize   `form:"size,omitempty" json:"size,omitempty"`
+
+	// Id Filter by the Key Pool ID (UUID).
+	Id *externalRef0.KeyPoolFilterId `form:"id,omitempty" json:"id,omitempty"`
+
+	// Name Filter by the Key Pool name.
+	Name *externalRef0.KeyPoolFilterName `form:"name,omitempty" json:"name,omitempty"`
+
+	// Provider Filter by Key Pool provider.
+	Provider *externalRef0.KeyPoolFilterProvider `form:"provider,omitempty" json:"provider,omitempty"`
+
+	// Algorithm Filter by cryptographic algorithm.
+	Algorithm *externalRef0.KeyPoolFilterAlgorithm `form:"algorithm,omitempty" json:"algorithm,omitempty"`
+
+	// VersioningAllowed Filter by whether versioning is allowed.
+	VersioningAllowed *externalRef0.KeyPoolFilterIsVersioningAllowed `form:"versioning_allowed,omitempty" json:"versioning_allowed,omitempty"`
+
+	// ImportAllowed Filter by whether import is allowed.
+	ImportAllowed *externalRef0.KeyPoolFilterIsImportAllowed `form:"import_allowed,omitempty" json:"import_allowed,omitempty"`
+
+	// ExportAllowed Filter by whether export is allowed.
+	ExportAllowed *externalRef0.KeyPoolFilterIsExportAllowed `form:"export_allowed,omitempty" json:"export_allowed,omitempty"`
+
+	// Status Filter by the Key Pool status.
+	Status *externalRef0.KeyPoolFilterStatus `form:"status,omitempty" json:"status,omitempty"`
+
+	// Sort Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
+	Sort *GetKeypoolParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 }
+
+// GetKeypoolParamsSort defines parameters for GetKeypool.
+type GetKeypoolParamsSort string
 
 // GetKeypoolKeyPoolIDKeyParams defines parameters for GetKeypoolKeyPoolIDKey.
 type GetKeypoolKeyPoolIDKeyParams struct {
-	Filter *externalRef0.QueryParamFilter `form:"filter,omitempty" json:"filter,omitempty"`
-	Sort   *externalRef0.QueryParamSort   `form:"sort,omitempty" json:"sort,omitempty"`
-	Page   *externalRef0.QueryParamPage   `form:"page,omitempty" json:"page,omitempty"`
+	Page *externalRef0.PageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.PageSize   `form:"size,omitempty" json:"size,omitempty"`
+
+	// Pool Filter by the Key Pool ID (uuid).
+	Pool *externalRef0.KeyFilterKeyPoolId `form:"pool,omitempty" json:"pool,omitempty"`
+
+	// Id Filter by the Key ID.
+	Id *externalRef0.KeyFilterId `form:"id,omitempty" json:"id,omitempty"`
+
+	// MinGenerateDate Filter by the Key minimum generate date (inclusive).
+	MinGenerateDate *externalRef0.KeyFilterMinimumGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
+
+	// MaxGenerateDate Filter by the Key maximum generate date (inclusive).
+	MaxGenerateDate *externalRef0.KeyFilterMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
+
+	// Sort Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
+	Sort *GetKeypoolKeyPoolIDKeyParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
 }
+
+// GetKeypoolKeyPoolIDKeyParamsSort defines parameters for GetKeypoolKeyPoolIDKey.
+type GetKeypoolKeyPoolIDKeyParamsSort string
 
 // PostKeypoolJSONRequestBody defines body for PostKeypool for application/json ContentType.
 type PostKeypoolJSONRequestBody = externalRef0.KeyPoolCreate
@@ -226,9 +313,153 @@ func NewGetKeypoolRequest(server string, params *GetKeypoolParams) (*http.Reques
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Filter != nil {
+		if params.Page != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "filter", runtime.ParamLocationQuery, *params.Filter); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Size != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Id != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "id", runtime.ParamLocationQuery, *params.Id); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Name != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, *params.Name); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Provider != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "provider", runtime.ParamLocationQuery, *params.Provider); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Algorithm != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "algorithm", runtime.ParamLocationQuery, *params.Algorithm); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.VersioningAllowed != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "versioning_allowed", runtime.ParamLocationQuery, *params.VersioningAllowed); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ImportAllowed != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "import_allowed", runtime.ParamLocationQuery, *params.ImportAllowed); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.ExportAllowed != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "export_allowed", runtime.ParamLocationQuery, *params.ExportAllowed); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -245,22 +476,6 @@ func NewGetKeypoolRequest(server string, params *GetKeypoolParams) (*http.Reques
 		if params.Sort != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Page != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -354,9 +569,89 @@ func NewGetKeypoolKeyPoolIDKeyRequest(server string, keyPoolID externalRef0.KeyP
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Filter != nil {
+		if params.Page != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "filter", runtime.ParamLocationQuery, *params.Filter); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Size != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Pool != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "pool", runtime.ParamLocationQuery, *params.Pool); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Id != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "id", runtime.ParamLocationQuery, *params.Id); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MinGenerateDate != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_generate_date", runtime.ParamLocationQuery, *params.MinGenerateDate); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxGenerateDate != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_generate_date", runtime.ParamLocationQuery, *params.MaxGenerateDate); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -373,22 +668,6 @@ func NewGetKeypoolKeyPoolIDKeyRequest(server string, keyPoolID externalRef0.KeyP
 		if params.Sort != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Page != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -1055,46 +1334,52 @@ func ParsePostKeypoolKeyPoolIDKeyResponse(rsp *http.Response) (*PostKeypoolKeyPo
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"9d/6Z2T+OP9vAAAA//8Yxmzx0jsAAA==",
+	"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",
+	"eVFLAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -47,6 +47,47 @@ const (
 	StartedDelete                  KeyPoolStatus = "started_delete"
 )
 
+// Defines values for KeyFilterSortParameter.
+const (
+	KeyFilterSortParameterGenerateDate     KeyFilterSortParameter = "generate_date"
+	KeyFilterSortParameterGenerateDateASC  KeyFilterSortParameter = "generate_date:ASC"
+	KeyFilterSortParameterGenerateDateDESC KeyFilterSortParameter = "generate_date:DESC"
+	KeyFilterSortParameterId               KeyFilterSortParameter = "id"
+	KeyFilterSortParameterIdASC            KeyFilterSortParameter = "id:ASC"
+	KeyFilterSortParameterIdDESC           KeyFilterSortParameter = "id:DESC"
+	KeyFilterSortParameterPool             KeyFilterSortParameter = "pool"
+	KeyFilterSortParameterPoolASC          KeyFilterSortParameter = "pool:ASC"
+	KeyFilterSortParameterPoolDESC         KeyFilterSortParameter = "pool:DESC"
+)
+
+// Defines values for KeyPoolFilterSortParameter.
+const (
+	KeyPoolFilterSortParameterAlgorithm             KeyPoolFilterSortParameter = "algorithm"
+	KeyPoolFilterSortParameterAlgorithmASC          KeyPoolFilterSortParameter = "algorithm:ASC"
+	KeyPoolFilterSortParameterAlgorithmDESC         KeyPoolFilterSortParameter = "algorithm:DESC"
+	KeyPoolFilterSortParameterExportAllowed         KeyPoolFilterSortParameter = "export_allowed"
+	KeyPoolFilterSortParameterExportAllowedASC      KeyPoolFilterSortParameter = "export_allowed:ASC"
+	KeyPoolFilterSortParameterExportAllowedDESC     KeyPoolFilterSortParameter = "export_allowed:DESC"
+	KeyPoolFilterSortParameterId                    KeyPoolFilterSortParameter = "id"
+	KeyPoolFilterSortParameterIdASC                 KeyPoolFilterSortParameter = "id:ASC"
+	KeyPoolFilterSortParameterIdDESC                KeyPoolFilterSortParameter = "id:DESC"
+	KeyPoolFilterSortParameterImportAllowed         KeyPoolFilterSortParameter = "import_allowed"
+	KeyPoolFilterSortParameterImportAllowedASC      KeyPoolFilterSortParameter = "import_allowed:ASC"
+	KeyPoolFilterSortParameterImportAllowedDESC     KeyPoolFilterSortParameter = "import_allowed:DESC"
+	KeyPoolFilterSortParameterName                  KeyPoolFilterSortParameter = "name"
+	KeyPoolFilterSortParameterNameASC               KeyPoolFilterSortParameter = "name:ASC"
+	KeyPoolFilterSortParameterNameDESC              KeyPoolFilterSortParameter = "name:DESC"
+	KeyPoolFilterSortParameterProvider              KeyPoolFilterSortParameter = "provider"
+	KeyPoolFilterSortParameterProviderASC           KeyPoolFilterSortParameter = "provider:ASC"
+	KeyPoolFilterSortParameterProviderDESC          KeyPoolFilterSortParameter = "provider:DESC"
+	KeyPoolFilterSortParameterStatus                KeyPoolFilterSortParameter = "status"
+	KeyPoolFilterSortParameterStatusASC             KeyPoolFilterSortParameter = "status:ASC"
+	KeyPoolFilterSortParameterStatusDESC            KeyPoolFilterSortParameter = "status:DESC"
+	KeyPoolFilterSortParameterVersioningAllowed     KeyPoolFilterSortParameter = "versioning_allowed"
+	KeyPoolFilterSortParameterVersioningAllowedASC  KeyPoolFilterSortParameter = "versioning_allowed:ASC"
+	KeyPoolFilterSortParameterVersioningAllowedDESC KeyPoolFilterSortParameter = "versioning_allowed:DESC"
+)
+
 // HTTPError defines model for HTTPError.
 type HTTPError struct {
 	// Error HTTP status message
@@ -62,13 +103,13 @@ type HTTPError struct {
 // Key defines model for Key.
 type Key struct {
 	// GenerateDate ISO 8601 UTC timestamp of Key generation.
-	GenerateDate *KeyGenerateDate `json:"generateDate,omitempty"`
+	GenerateDate *KeyGenerateDate `json:"generate_date,omitempty"`
 
-	// KeyId Unique version of the Key in a Key Pool.
-	KeyId *KeyId `json:"key_id,omitempty"`
+	// Id Unique version of the Key in a Key Pool.
+	Id *KeyId `json:"id,omitempty"`
 
-	// KeyPoolId Unique UUID for a Key Pool.
-	KeyPoolId *KeyPoolId `json:"key_pool_id,omitempty"`
+	// Pool Unique UUID for a Key Pool.
+	Pool *KeyPoolId `json:"pool,omitempty"`
 }
 
 // KeyGenerate defines model for KeyGenerate.
@@ -88,17 +129,14 @@ type KeyPool struct {
 	// Description Description for a Key Pool.
 	Description *KeyPoolDescription `json:"description,omitempty"`
 
+	// ExportAllowed Indicates if the Key Pool supports export.
+	ExportAllowed *KeyPoolIsExportAllowed `json:"export_allowed,omitempty"`
+
 	// Id Unique UUID for a Key Pool.
 	Id *KeyPoolId `json:"id,omitempty"`
 
-	// IsExportAllowed Indicates if the Key Pool supports export.
-	IsExportAllowed *KeyPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
-
-	// IsImportAllowed Indicates if the Key Pool supports import (BYOK).
-	IsImportAllowed *KeyPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
-
-	// IsVersioningAllowed Indicates if the Key Pool supports versioning.
-	IsVersioningAllowed *KeyPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
+	// ImportAllowed Indicates if the Key Pool supports import (BYOK).
+	ImportAllowed *KeyPoolIsImportAllowed `json:"import_allowed,omitempty"`
 
 	// Name Friendly name for a Key Pool.
 	Name *KeyPoolName `json:"name,omitempty"`
@@ -108,6 +146,9 @@ type KeyPool struct {
 
 	// Status Status of the Key Pool.
 	Status *KeyPoolStatus `json:"status,omitempty"`
+
+	// VersioningAllowed Indicates if the Key Pool supports versioning.
+	VersioningAllowed *KeyPoolIsVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
 // KeyPoolAlgorithm Cryptographic algorithm for the Key Pool.
@@ -121,20 +162,20 @@ type KeyPoolCreate struct {
 	// Description Description for a Key Pool.
 	Description KeyPoolDescription `json:"description"`
 
-	// IsExportAllowed Indicates if the Key Pool supports export.
-	IsExportAllowed *KeyPoolIsExportAllowed `json:"isExportAllowed,omitempty"`
+	// ExportAllowed Indicates if the Key Pool supports export.
+	ExportAllowed *KeyPoolIsExportAllowed `json:"export_allowed,omitempty"`
 
-	// IsImportAllowed Indicates if the Key Pool supports import (BYOK).
-	IsImportAllowed *KeyPoolIsImportAllowed `json:"isImportAllowed,omitempty"`
-
-	// IsVersioningAllowed Indicates if the Key Pool supports versioning.
-	IsVersioningAllowed *KeyPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
+	// ImportAllowed Indicates if the Key Pool supports import (BYOK).
+	ImportAllowed *KeyPoolIsImportAllowed `json:"import_allowed,omitempty"`
 
 	// Name Friendly name for a Key Pool.
 	Name KeyPoolName `json:"name"`
 
 	// Provider Provider of the Key Pool management service.
 	Provider *KeyPoolProvider `json:"provider,omitempty"`
+
+	// VersioningAllowed Indicates if the Key Pool supports versioning.
+	VersioningAllowed *KeyPoolIsVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
 // KeyPoolDescription Description for a Key Pool.
@@ -172,21 +213,60 @@ type KeyPoolUpdate struct {
 
 // KeyUpdate defines model for KeyUpdate.
 type KeyUpdate struct {
-	// KeyPoolId Unique UUID for a Key Pool.
-	KeyPoolId KeyPoolId `json:"key_pool_id"`
+	// Id Unique version of the Key in a Key Pool.
+	Id KeyId `json:"id"`
 
-	// KeyVersion Unique version of the Key in a Key Pool.
-	KeyVersion KeyId `json:"key_version"`
+	// Pool Unique UUID for a Key Pool.
+	Pool KeyPoolId `json:"pool"`
 }
 
-// QueryParamFilter Filter criteria in the format 'field=value'. Supported operators are '=', '!=', '>', '<', '>=', '<='
-type QueryParamFilter = string
+// PageNumber Page number starting at 0.
+type PageNumber = int
 
-// QueryParamPage Paging criteria in the format 'pageNumber:pageSize' or 'pageNumber'; pageNumber is 0 offset.
-type QueryParamPage = string
+// PageSize Page number.
+type PageSize = int
 
-// QueryParamSort Sort criteria in the format 'field:direction' or 'field'. Values for direction are ASC or DESC. If omitted, it defaults to ASC.
-type QueryParamSort = string
+// KeyFilterId Unique version of the Key in a Key Pool.
+type KeyFilterId = KeyId
+
+// KeyFilterKeyPoolId Unique UUID for a Key Pool.
+type KeyFilterKeyPoolId = KeyPoolId
+
+// KeyFilterMaximumGenerateDate ISO 8601 UTC timestamp of Key generation.
+type KeyFilterMaximumGenerateDate = KeyGenerateDate
+
+// KeyFilterMinimumGenerateDate ISO 8601 UTC timestamp of Key generation.
+type KeyFilterMinimumGenerateDate = KeyGenerateDate
+
+// KeyFilterSortParameter defines model for KeyFilterSortParameter.
+type KeyFilterSortParameter string
+
+// KeyPoolFilterAlgorithm Cryptographic algorithm for the Key Pool.
+type KeyPoolFilterAlgorithm = KeyPoolAlgorithm
+
+// KeyPoolFilterId Unique UUID for a Key Pool.
+type KeyPoolFilterId = KeyPoolId
+
+// KeyPoolFilterIsExportAllowed Indicates if the Key Pool supports export.
+type KeyPoolFilterIsExportAllowed = KeyPoolIsExportAllowed
+
+// KeyPoolFilterIsImportAllowed Indicates if the Key Pool supports import (BYOK).
+type KeyPoolFilterIsImportAllowed = KeyPoolIsImportAllowed
+
+// KeyPoolFilterIsVersioningAllowed Indicates if the Key Pool supports versioning.
+type KeyPoolFilterIsVersioningAllowed = KeyPoolIsVersioningAllowed
+
+// KeyPoolFilterName Friendly name for a Key Pool.
+type KeyPoolFilterName = KeyPoolName
+
+// KeyPoolFilterProvider Provider of the Key Pool management service.
+type KeyPoolFilterProvider = KeyPoolProvider
+
+// KeyPoolFilterSortParameter defines model for KeyPoolFilterSortParameter.
+type KeyPoolFilterSortParameter string
+
+// KeyPoolFilterStatus Status of the Key Pool.
+type KeyPoolFilterStatus = KeyPoolStatus
 
 // HTTP400BadRequest defines model for HTTP400BadRequest.
 type HTTP400BadRequest struct {
@@ -254,38 +334,42 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"1GQi8iTZ/C8AAP//pZFSMsQhAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

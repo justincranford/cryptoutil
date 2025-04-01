@@ -120,6 +120,17 @@ func (s *RepositoryTransaction) FindKeyPools() ([]KeyPool, error) {
 	return keyPools, nil
 }
 
+func (s *RepositoryTransaction) FindKeyPoolsAdvanced(filter map[string]any, sortBy, sortOrder string, page, pageSize int) ([]KeyPool, error) {
+	var keyPools []KeyPool
+	order := fmt.Sprintf("%s %s", sortBy, sortOrder)
+	err := s.state.gormTx.Where(filter).Order(order).Offset(page * pageSize).Limit(pageSize).Find(&keyPools).Error
+	if err != nil {
+		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Key Pools", "error", err)
+		return nil, fmt.Errorf("failed to find Key Pools: %w", err)
+	}
+	return keyPools, nil
+}
+
 func (s *RepositoryTransaction) GetKeyPoolByID(keyPoolID uuid.UUID) (*KeyPool, error) {
 	if keyPoolID == uuidZero {
 		return nil, ErrKeyPoolIDMustBeNonZeroUUID

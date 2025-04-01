@@ -7,37 +7,165 @@ info:
     Crypto REST API
 
 components:
-
   parameters:
-    QueryParamFilter:
-      name: filter
-      in: query
-      schema:
-        $ref: '#/components/schemas/QueryParamFilter'
-    QueryParamSort:
-      name: sort
-      in: query
-      schema:
-        $ref: '#/components/schemas/QueryParamSort'
-    QueryParamPage:
+    PageNumber:
       name: page
       in: query
       schema:
-        $ref: '#/components/schemas/QueryParamPage'
+        $ref: '#/components/schemas/PageNumber'
+    PageSize:
+      name: size
+      in: query
+      schema:
+        $ref: '#/components/schemas/PageSize'
+
+    KeyPoolFilterId:
+      name: id
+      in: query
+      description: Filter by the Key Pool ID (UUID).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolId'
+    KeyPoolFilterName:
+      name: name
+      in: query
+      description: Filter by the Key Pool name.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolName'
+    KeyPoolFilterProvider:
+      name: provider
+      in: query
+      description: Filter by Key Pool provider.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolProvider'
+    KeyPoolFilterAlgorithm:
+      name: algorithm
+      in: query
+      description: Filter by cryptographic algorithm.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolAlgorithm'
+    KeyPoolFilterIsVersioningAllowed:
+      name: versioning_allowed
+      in: query
+      description: Filter by whether versioning is allowed.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
+    KeyPoolFilterIsImportAllowed:
+      name: import_allowed
+      in: query
+      description: Filter by whether import is allowed.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolIsImportAllowed'
+    KeyPoolFilterIsExportAllowed:
+      name: export_allowed
+      in: query
+      description: Filter by whether export is allowed.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolIsExportAllowed'
+    KeyPoolFilterStatus:
+      name: status
+      in: query
+      description: Filter by the Key Pool status.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolStatus'
+    KeyPoolFilterSortParameter:
+      name: sort
+      in: query
+      description: Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
+      required: false
+      schema:
+        type: string
+        enum:
+          - id
+          - id:ASC
+          - id:DESC
+          - name
+          - name:ASC
+          - name:DESC
+          - provider
+          - provider:ASC
+          - provider:DESC
+          - algorithm
+          - algorithm:ASC
+          - algorithm:DESC
+          - versioning_allowed
+          - versioning_allowed:ASC
+          - versioning_allowed:DESC
+          - import_allowed
+          - import_allowed:ASC
+          - import_allowed:DESC
+          - export_allowed
+          - export_allowed:ASC
+          - export_allowed:DESC
+          - status
+          - status:ASC
+          - status:DESC
+
+    KeyFilterKeyPoolId:
+      name: pool
+      in: query
+      description: Filter by the Key Pool ID (uuid).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyPoolId'
+    KeyFilterId:
+      name: id
+      in: query
+      description: Filter by the Key ID.
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyId'
+    KeyFilterMinimumGenerateDate:
+      name: min_generate_date
+      in: query
+      description: Filter by the Key minimum generate date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyGenerateDate'
+    KeyFilterMaximumGenerateDate:
+      name: max_generate_date
+      in: query
+      description: Filter by the Key maximum generate date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyGenerateDate'
+    KeyFilterSortParameter:
+      name: sort
+      in: query
+      description: Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
+      required: false
+      schema:
+        type: string
+        enum:
+          - pool
+          - pool:ASC
+          - pool:DESC
+          - id
+          - id:ASC
+          - id:DESC
+          - generate_date
+          - generate_date:ASC
+          - generate_date:DESC
 
   schemas:
-    QueryParamFilter:
-      type: string
-      description: "Filter criteria in the format 'field=value'. Supported operators are '=', '!=', '>', '<', '>=', '<='"
-      example: "field=value"
-    QueryParamSort:
-      type: string
-      description: "Sort criteria in the format 'field:direction' or 'field'. Values for direction are ASC or DESC. If omitted, it defaults to ASC."
-      example: "field:DESC"
-    QueryParamPage:
-      type: string
-      description: "Paging criteria in the format 'pageNumber:pageSize' or 'pageNumber'; pageNumber is 0 offset."
-      example: "0:25"
+    PageNumber:
+      type: integer
+      description: Page number starting at 0.
+      minimum: 0
+      example: 0
+    PageSize:
+      type: integer
+      description: Page number.
+      minimum: 2
+      maximum: 50
+      example: 25
 
     KeyPoolCreate:
       type: object
@@ -51,11 +179,11 @@ components:
           $ref: '#/components/schemas/KeyPoolAlgorithm'
         provider:
           $ref: '#/components/schemas/KeyPoolProvider'
-        isVersioningAllowed:
+        versioning_allowed:
           $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
-        isImportAllowed:
+        import_allowed:
           $ref: '#/components/schemas/KeyPoolIsImportAllowed'
-        isExportAllowed:
+        export_allowed:
           $ref: '#/components/schemas/KeyPoolIsExportAllowed'
 
     KeyPool:
@@ -67,15 +195,15 @@ components:
           $ref: '#/components/schemas/KeyPoolName'
         description:
           $ref: '#/components/schemas/KeyPoolDescription'
-        algorithm:
-          $ref: '#/components/schemas/KeyPoolAlgorithm'
         provider:
           $ref: '#/components/schemas/KeyPoolProvider'
-        isVersioningAllowed:
+        algorithm:
+          $ref: '#/components/schemas/KeyPoolAlgorithm'
+        versioning_allowed:
           $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
-        isImportAllowed:
+        import_allowed:
           $ref: '#/components/schemas/KeyPoolIsImportAllowed'
-        isExportAllowed:
+        export_allowed:
           $ref: '#/components/schemas/KeyPoolIsExportAllowed'
         status:
           $ref: '#/components/schemas/KeyPoolStatus'
@@ -95,21 +223,21 @@ components:
 
     KeyUpdate:
       type: object
-      required: [ key_pool_id, key_version ]
+      required: [ pool, id ]
       properties:
-        key_pool_id:
+        pool:
           $ref: '#/components/schemas/KeyPoolId'
-        key_version:
+        id:
           $ref: '#/components/schemas/KeyId'
 
     Key:
       type: object
       properties:
-        key_pool_id:
+        pool:
           $ref: '#/components/schemas/KeyPoolId'
-        key_id:
+        id:
           $ref: '#/components/schemas/KeyId'
-        generateDate:
+        generate_date:
           $ref: '#/components/schemas/KeyGenerateDate'
 
     KeyPoolId:
@@ -174,6 +302,7 @@ components:
       type: integer
       description: Unique version of the Key in a Key Pool.
       minimum: 1
+      example: 3
     KeyGenerateDate:
       type: string
       format: date-time

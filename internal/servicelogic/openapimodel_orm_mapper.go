@@ -19,10 +19,10 @@ func (m *serviceOrmMapper) toOrmKeyPoolInsert(serviceKeyPoolCreate *cryptoutilSe
 		KeyPoolDescription:         serviceKeyPoolCreate.Description,
 		KeyPoolProvider:            *m.toOrmKeyPoolProvider(serviceKeyPoolCreate.Provider),
 		KeyPoolAlgorithm:           *m.toOrmKeyPoolAlgorithm(serviceKeyPoolCreate.Algorithm),
-		KeyPoolIsVersioningAllowed: *serviceKeyPoolCreate.IsVersioningAllowed,
-		KeyPoolIsImportAllowed:     *serviceKeyPoolCreate.IsImportAllowed,
-		KeyPoolIsExportAllowed:     *serviceKeyPoolCreate.IsExportAllowed,
-		KeyPoolStatus:              *m.toKeyPoolInitialStatus(serviceKeyPoolCreate.IsImportAllowed),
+		KeyPoolIsVersioningAllowed: *serviceKeyPoolCreate.VersioningAllowed,
+		KeyPoolIsImportAllowed:     *serviceKeyPoolCreate.ImportAllowed,
+		KeyPoolIsExportAllowed:     *serviceKeyPoolCreate.ExportAllowed,
+		KeyPoolStatus:              *m.toKeyPoolInitialStatus(serviceKeyPoolCreate.ImportAllowed),
 	}
 }
 
@@ -58,15 +58,15 @@ func (m *serviceOrmMapper) toServiceKeyPools(ormKeyPools []cryptoutilOrmReposito
 
 func (s *serviceOrmMapper) toServiceKeyPool(ormKeyPool *cryptoutilOrmRepository.KeyPool) *cryptoutilServiceModel.KeyPool {
 	return &cryptoutilServiceModel.KeyPool{
-		Id:                  (*cryptoutilServiceModel.KeyPoolId)(&ormKeyPool.KeyPoolID),
-		Name:                &ormKeyPool.KeyPoolName,
-		Description:         &ormKeyPool.KeyPoolDescription,
-		Algorithm:           s.toServiceKeyPoolAlgorithm(&ormKeyPool.KeyPoolAlgorithm),
-		Provider:            s.toServiceKeyPoolProvider(&ormKeyPool.KeyPoolProvider),
-		IsVersioningAllowed: &ormKeyPool.KeyPoolIsVersioningAllowed,
-		IsImportAllowed:     &ormKeyPool.KeyPoolIsImportAllowed,
-		IsExportAllowed:     &ormKeyPool.KeyPoolIsExportAllowed,
-		Status:              s.toServiceKeyPoolStatus(&ormKeyPool.KeyPoolStatus),
+		Id:                (*cryptoutilServiceModel.KeyPoolId)(&ormKeyPool.KeyPoolID),
+		Name:              &ormKeyPool.KeyPoolName,
+		Description:       &ormKeyPool.KeyPoolDescription,
+		Algorithm:         s.toServiceKeyPoolAlgorithm(&ormKeyPool.KeyPoolAlgorithm),
+		Provider:          s.toServiceKeyPoolProvider(&ormKeyPool.KeyPoolProvider),
+		VersioningAllowed: &ormKeyPool.KeyPoolIsVersioningAllowed,
+		ImportAllowed:     &ormKeyPool.KeyPoolIsImportAllowed,
+		ExportAllowed:     &ormKeyPool.KeyPoolIsExportAllowed,
+		Status:            s.toServiceKeyPoolStatus(&ormKeyPool.KeyPoolStatus),
 	}
 }
 
@@ -95,8 +95,8 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key) 
 
 func (*serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key) *cryptoutilServiceModel.Key {
 	return &cryptoutilServiceModel.Key{
-		KeyPoolId:    (*cryptoutilServiceModel.KeyPoolId)(&ormKey.KeyPoolID),
-		KeyId:        &ormKey.KeyID,
+		Pool:         (*cryptoutilServiceModel.KeyPoolId)(&ormKey.KeyPoolID),
+		Id:           &ormKey.KeyID,
 		GenerateDate: (*cryptoutilServiceModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
 	}
 }
