@@ -61,12 +61,12 @@ func (pool *KeyPool) shutdownWorker() {
 		startTime := time.Now()
 		select {
 		case <-pool.ctx.Done():
-			pool.telemetryService.Slogger.Info("cancelled", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Debug("cancelled", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 			return
 		default:
 			reachedLimit, _ := pool.checkPoolLimits(false)
 			if reachedLimit {
-				pool.telemetryService.Slogger.Info("limit", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+				pool.telemetryService.Slogger.Warn("limit", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 				return
 			}
 			time.Sleep(time.Second)
@@ -80,12 +80,12 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 		startTime := time.Now()
 		select {
 		case <-pool.ctx.Done():
-			pool.telemetryService.Slogger.Info("cancelled", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Debug("cancelled", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		default:
 			reachedLimit, generateCounter := pool.checkPoolLimits(true)
 			if reachedLimit {
-				pool.telemetryService.Slogger.Info("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+				pool.telemetryService.Slogger.Warn("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 				return
 			}
 			key, err := pool.generateFunction()
@@ -93,7 +93,7 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 				pool.telemetryService.Slogger.Error("failed", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds(), "error", err)
 				return
 			}
-			pool.telemetryService.Slogger.Info("ok", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Debug("ok", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 			pool.keyChannel <- key
 		}
 	}
@@ -107,7 +107,7 @@ func (pool *KeyPool) Get() Key {
 	getCounter := pool.getCounter
 	pool.guardCounters.Unlock()
 	defer func() {
-		pool.telemetryService.Slogger.Info("ok", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
+		pool.telemetryService.Slogger.Debug("ok", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
 	}()
 	return key
 }
@@ -133,7 +133,7 @@ func (pool *KeyPool) Close() {
 		}()
 	} else {
 		defer func() {
-			pool.telemetryService.Slogger.Info("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Debug("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 		}()
 		pool.cancelFunction()
 		pool.cancelFunction = nil
