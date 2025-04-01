@@ -16,8 +16,8 @@ type Givens struct {
 }
 
 func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) *Givens {
-	aes256Pool := keygen.NewKeyPool(ctx, telemetryService, "AES", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
-	uuidV7Pool := keygen.NewKeyPool(ctx, telemetryService, "UUIDv7", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
+	aes256Pool := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens AES256", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
+	uuidV7Pool := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens UUIDv7", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
 	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidV7Pool: uuidV7Pool}
 }
 

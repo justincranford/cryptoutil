@@ -108,7 +108,7 @@ func TestPoolHMAC(t *testing.T) {
 }
 
 func TestPoolUUIDv7(t *testing.T) {
-	pool := NewKeyPool(testCtx, testTelemetryService, "UUIDv7", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateUUIDv7Function())
+	pool := NewKeyPool(testCtx, testTelemetryService, "Test UUIDv7", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateUUIDv7Function())
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {

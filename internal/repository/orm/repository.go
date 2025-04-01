@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math"
 
-	"cryptoutil/internal/crypto/keygen"
+	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
@@ -27,13 +27,13 @@ var (
 type RepositoryProvider struct {
 	telemetryService *cryptoutilTelemetry.Service
 	sqlProvider      *cryptoutilSqlProvider.SqlProvider
-	uuidV7Pool       *keygen.KeyPool
+	uuidV7Pool       *cryptoutilKeygen.KeyPool
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
 func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*RepositoryProvider, error) {
-	uuidV7Pool := keygen.NewKeyPool(ctx, telemetryService, "UUIDv7", 10, 2, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
+	uuidV7Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Orm UUIDv7", 3, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
 
 	gormDB, err := cryptoutilSqlProvider.CreateGormDB(sqlProvider)
 	if err != nil {
