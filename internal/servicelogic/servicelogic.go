@@ -7,18 +7,26 @@ import (
 
 	"github.com/google/uuid"
 
-	cryptoutilCryptoKeygen "cryptoutil/internal/crypto/keygen"
+	"cryptoutil/internal/crypto/keygen"
+	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 type KeyPoolService struct {
 	ormRepository    *cryptoutilOrmRepository.RepositoryProvider
 	serviceOrmMapper *serviceOrmMapper
+	aes256Pool       *cryptoutilKeygen.KeyPool
+	aes192Pool       *cryptoutilKeygen.KeyPool
+	aes128Pool       *cryptoutilKeygen.KeyPool
 }
 
-func NewService(ormRepository *cryptoutilOrmRepository.RepositoryProvider) *KeyPoolService {
-	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper()}
+func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) *KeyPoolService {
+	aes256Pool := keygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
+	aes192Pool := keygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(192))
+	aes128Pool := keygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(128))
+	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool}
 }
 
 func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
@@ -143,7 +151,7 @@ func (s *KeyPoolService) ListKeysByKeyPool(ctx context.Context, keyPoolID uuid.U
 }
 
 func (s *KeyPoolService) generateKeyInsert(keyPoolID uuid.UUID, keyPoolAlgorithm string, keyPoolNextID int) (*cryptoutilOrmRepository.Key, error) {
-	gormKeyKeyMaterial, err := cryptoutilCryptoKeygen.GenerateKeyMaterial(keyPoolAlgorithm)
+	gormKeyKeyMaterial, err := s.GenerateKeyMaterial(keyPoolAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate Key material: %w", err)
 	}
@@ -155,4 +163,17 @@ func (s *KeyPoolService) generateKeyInsert(keyPoolID uuid.UUID, keyPoolAlgorithm
 		KeyMaterial:     gormKeyKeyMaterial,
 		KeyGenerateDate: &gormKeyGenerateDate,
 	}, nil
+}
+
+func (s *KeyPoolService) GenerateKeyMaterial(algorithm string) ([]byte, error) {
+	switch string(algorithm) {
+	case "AES-256", "AES256":
+		return s.aes256Pool.Get().Private.([]byte), nil
+	case "AES-192", "AES192":
+		return s.aes192Pool.Get().Private.([]byte), nil
+	case "AES-128", "AES128":
+		return s.aes128Pool.Get().Private.([]byte), nil
+	default:
+		return nil, fmt.Errorf("unsuppported algorithm")
+	}
 }

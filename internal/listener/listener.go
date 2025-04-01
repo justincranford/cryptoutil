@@ -76,7 +76,7 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(cryptoutilServiceLogic.NewService(repositoryOrm))
+	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(cryptoutilServiceLogic.NewService(ctx, telemetryService, repositoryOrm))
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, cryptoutilOpenapiServer.NewStrictHandler(openapiHandler, nil), cryptoutilOpenapiServer.FiberServerOptions{
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
