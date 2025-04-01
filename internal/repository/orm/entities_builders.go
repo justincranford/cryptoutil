@@ -34,19 +34,6 @@ func BuildKey(keyPoolID googleUuid.UUID, keyID int, keyMaterial []byte, generate
 	return &key
 }
 
-func BuildKeyPoolCreate(name, description, provider, algorithm string, versioningAllowed, importAllowed, exportAllowed bool) (*KeyPoolCreate, error) {
-	keyPoolCreate := KeyPoolCreate{
-		Name:                KeyPoolName(name),
-		Description:         KeyPoolDescription(description),
-		Provider:            KeyPoolProvider(provider),
-		Algorithm:           KeyPoolAlgorithm(algorithm),
-		IsVersioningAllowed: KeyPoolIsVersioningAllowed(versioningAllowed),
-		IsImportAllowed:     KeyPoolIsImportAllowed(importAllowed),
-		IsExportAllowed:     KeyPoolIsExportAllowed(exportAllowed),
-	}
-	return &keyPoolCreate, nil
-}
-
 func KeyPoolStatusInitial(importAllowed bool) string {
 	if importAllowed {
 		return string(PendingImport)

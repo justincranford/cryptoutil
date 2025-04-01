@@ -47,16 +47,6 @@ type Key struct {
 	KeyRevocationDate *time.Time
 }
 
-type KeyPoolCreate struct {
-	Name                KeyPoolName                `json:"name"`
-	Description         KeyPoolDescription         `json:"description"`
-	Provider            KeyPoolProvider            `json:"provider,omitempty"`
-	Algorithm           KeyPoolAlgorithm           `json:"algorithm,omitempty"`
-	IsVersioningAllowed KeyPoolIsVersioningAllowed `json:"isVersioningAllowed,omitempty"`
-	IsImportAllowed     KeyPoolIsImportAllowed     `json:"isImportAllowed,omitempty"`
-	IsExportAllowed     KeyPoolIsExportAllowed     `json:"isExportAllowed,omitempty"`
-}
-
 type KeyPoolAlgorithm string
 
 const (

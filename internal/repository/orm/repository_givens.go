@@ -48,8 +48,3 @@ func (g *Givens) Key(keyPoolID googleUuid.UUID, keyID int, generateDate, importD
 	keyMaterial := g.AES256()
 	return BuildKey(keyPoolID, keyID, keyMaterial, generateDate, importDate, expirationDate, revocationDate)
 }
-
-func (g *Givens) KeyPoolCreate(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPoolCreate, error) {
-	uuid := g.UUIDv7()
-	return BuildKeyPoolCreate(string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed)
-}
