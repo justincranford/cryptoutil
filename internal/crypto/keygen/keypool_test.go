@@ -31,7 +31,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	telemetryService, err := cryptoutilTelemetry.NewService(testCtx, "asn1_test", false, false)
+	telemetryService, err := cryptoutilTelemetry.NewService(testCtx, "keypool_test", false, false)
 	if err != nil {
 		slog.Error("failed to initailize telemetry", "error", err)
 		os.Exit(-1)
@@ -86,7 +86,7 @@ func TestPoolEdDSA(t *testing.T) {
 }
 
 func TestPoolAES(t *testing.T) {
-	pool := NewKeyPool(testCtx, testTelemetryService, "Test AES-128", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateAESKeyFunction(128))
+	pool := NewKeyPool(testCtx, testTelemetryService, "Test AES 128", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateAESKeyFunction(128))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
@@ -97,7 +97,7 @@ func TestPoolAES(t *testing.T) {
 }
 
 func TestPoolHMAC(t *testing.T) {
-	pool := NewKeyPool(testCtx, testTelemetryService, "Test HMAC-256", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateHMACKeyFunction(256))
+	pool := NewKeyPool(testCtx, testTelemetryService, "Test HMAC 256", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateHMACKeyFunction(256))
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
@@ -108,7 +108,7 @@ func TestPoolHMAC(t *testing.T) {
 }
 
 func TestPoolUUIDv7(t *testing.T) {
-	pool := NewKeyPool(testCtx, testTelemetryService, "Test UUIDv7", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateUUIDv7Function())
+	pool := NewKeyPool(testCtx, testTelemetryService, "Test UUID V7", testNumWorkers, testSize, testMaxSize, testMaxTime, GenerateUUIDv7Function())
 	defer pool.Close()
 
 	for i := 0; i < testMaxSize; i++ {
