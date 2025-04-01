@@ -136,7 +136,7 @@ func (s *KeyPoolService) ListKeysByKeyPool(ctx context.Context, keyPoolID uuid.U
 	var gormKeys []cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		gormKeys, err = sqlTransaction.ListKeysByKeyPoolID(keyPoolID)
+		gormKeys, err = sqlTransaction.FindKeysByKeyPoolID(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 		}

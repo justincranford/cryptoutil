@@ -133,7 +133,7 @@ func (s *RepositoryTransaction) GetKeyPoolByID(keyPoolID uuid.UUID) (*KeyPool, e
 	return &keyPool, nil
 }
 
-func (s *RepositoryTransaction) ListKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
+func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
 	if keyPoolID == uuidZero {
 		return nil, ErrKeyPoolIDMustBeNonZeroUUID
 	}
