@@ -30,21 +30,6 @@ func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool, uuidV7Pool: uuidV7Pool}
 }
 
-// func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
-// 	if k.KeyPoolID == googleUuid.Nil {
-// 		k.KeyPoolID, err = googleUuid.NewV7()
-// 		if err != nil {
-// 			log.Printf("failed to generate UUIDv7: %v", err)
-// 			if addErr := tx.AddError(err); addErr != nil {
-// 				log.Printf("failed to add error to transaction: %v", addErr)
-// 				return addErr
-// 			}
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
-
 func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
 	keyPoolID := s.uuidV7Pool.Get().Private.(googleUuid.UUID)
 	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmKeyPoolInsert(keyPoolID, openapiKeyPoolCreate)
