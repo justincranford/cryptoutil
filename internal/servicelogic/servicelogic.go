@@ -77,7 +77,7 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 	return s.serviceOrmMapper.toServiceKeyPool(insertedKeyPool), nil
 }
 
-func (s *KeyPoolService) ListKeyPools(ctx context.Context) ([]cryptoutilServiceModel.KeyPool, error) {
+func (s *KeyPoolService) ListKeyPools(ctx context.Context, keyPoolQueryParams *cryptoutilServiceModel.KeyPoolQueryParams) ([]cryptoutilServiceModel.KeyPool, error) {
 	var gormKeyPools []cryptoutilOrmRepository.KeyPool
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error

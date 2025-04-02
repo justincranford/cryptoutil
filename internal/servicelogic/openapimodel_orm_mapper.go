@@ -15,14 +15,14 @@ func NewMapper() *serviceOrmMapper {
 
 func (m *serviceOrmMapper) toOrmKeyPoolInsert(serviceKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
 	return &cryptoutilOrmRepository.KeyPool{
-		KeyPoolName:                serviceKeyPoolCreate.Name,
-		KeyPoolDescription:         serviceKeyPoolCreate.Description,
-		KeyPoolProvider:            *m.toOrmKeyPoolProvider(serviceKeyPoolCreate.Provider),
-		KeyPoolAlgorithm:           *m.toOrmKeyPoolAlgorithm(serviceKeyPoolCreate.Algorithm),
-		KeyPoolIsVersioningAllowed: *serviceKeyPoolCreate.VersioningAllowed,
-		KeyPoolIsImportAllowed:     *serviceKeyPoolCreate.ImportAllowed,
-		KeyPoolIsExportAllowed:     *serviceKeyPoolCreate.ExportAllowed,
-		KeyPoolStatus:              *m.toKeyPoolInitialStatus(serviceKeyPoolCreate.ImportAllowed),
+		KeyPoolName:              serviceKeyPoolCreate.Name,
+		KeyPoolDescription:       serviceKeyPoolCreate.Description,
+		KeyPoolProvider:          *m.toOrmKeyPoolProvider(serviceKeyPoolCreate.Provider),
+		KeyPoolAlgorithm:         *m.toOrmKeyPoolAlgorithm(serviceKeyPoolCreate.Algorithm),
+		KeyPoolVersioningAllowed: *serviceKeyPoolCreate.VersioningAllowed,
+		KeyPoolImportAllowed:     *serviceKeyPoolCreate.ImportAllowed,
+		KeyPoolExportAllowed:     *serviceKeyPoolCreate.ExportAllowed,
+		KeyPoolStatus:            *m.toKeyPoolInitialStatus(serviceKeyPoolCreate.ImportAllowed),
 	}
 }
 
@@ -36,9 +36,9 @@ func (*serviceOrmMapper) toOrmKeyPoolAlgorithm(serviceKeyPoolProvider *cryptouti
 	return &ormKeyPoolAlgorithm
 }
 
-func (*serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolIsImportAllowed *cryptoutilServiceModel.KeyPoolIsImportAllowed) *cryptoutilOrmRepository.KeyPoolStatus {
+func (*serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolImportAllowed *cryptoutilServiceModel.KeyPoolImportAllowed) *cryptoutilOrmRepository.KeyPoolStatus {
 	var ormKeyPoolStatus cryptoutilOrmRepository.KeyPoolStatus
-	if *serviceKeyPoolIsImportAllowed {
+	if *serviceKeyPoolImportAllowed {
 		ormKeyPoolStatus = cryptoutilOrmRepository.KeyPoolStatus("pending_import")
 	} else {
 		ormKeyPoolStatus = cryptoutilOrmRepository.KeyPoolStatus("pending_generate")
@@ -63,9 +63,9 @@ func (s *serviceOrmMapper) toServiceKeyPool(ormKeyPool *cryptoutilOrmRepository.
 		Description:       &ormKeyPool.KeyPoolDescription,
 		Algorithm:         s.toServiceKeyPoolAlgorithm(&ormKeyPool.KeyPoolAlgorithm),
 		Provider:          s.toServiceKeyPoolProvider(&ormKeyPool.KeyPoolProvider),
-		VersioningAllowed: &ormKeyPool.KeyPoolIsVersioningAllowed,
-		ImportAllowed:     &ormKeyPool.KeyPoolIsImportAllowed,
-		ExportAllowed:     &ormKeyPool.KeyPoolIsExportAllowed,
+		VersioningAllowed: &ormKeyPool.KeyPoolVersioningAllowed,
+		ImportAllowed:     &ormKeyPool.KeyPoolImportAllowed,
+		ExportAllowed:     &ormKeyPool.KeyPoolExportAllowed,
 		Status:            s.toServiceKeyPoolStatus(&ormKeyPool.KeyPoolStatus),
 	}
 }

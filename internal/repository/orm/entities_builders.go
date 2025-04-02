@@ -8,15 +8,15 @@ import (
 
 func BuildKeyPool(keyPoolID googleUuid.UUID, name, description, provider, algorithm string, versioningAllowed, importAllowed, exportAllowed bool, status string) (*KeyPool, error) {
 	keyPool := KeyPool{
-		KeyPoolID:                  keyPoolID,
-		KeyPoolName:                name,
-		KeyPoolDescription:         description,
-		KeyPoolProvider:            KeyPoolProvider(provider),
-		KeyPoolAlgorithm:           KeyPoolAlgorithm(algorithm),
-		KeyPoolIsVersioningAllowed: versioningAllowed,
-		KeyPoolIsImportAllowed:     importAllowed,
-		KeyPoolIsExportAllowed:     exportAllowed,
-		KeyPoolStatus:              KeyPoolStatus(status),
+		KeyPoolID:                keyPoolID,
+		KeyPoolName:              name,
+		KeyPoolDescription:       description,
+		KeyPoolProvider:          KeyPoolProvider(provider),
+		KeyPoolAlgorithm:         KeyPoolAlgorithm(algorithm),
+		KeyPoolVersioningAllowed: versioningAllowed,
+		KeyPoolImportAllowed:     importAllowed,
+		KeyPoolExportAllowed:     exportAllowed,
+		KeyPoolStatus:            KeyPoolStatus(status),
 	}
 	return &keyPool, nil
 }

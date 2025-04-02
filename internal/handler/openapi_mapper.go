@@ -43,6 +43,23 @@ func (*openapiMapper) toOpenapiInsertKeyPoolResponseError(err error) (cryptoutil
 
 // GetKeyPool
 
+func (m *openapiMapper) toServiceModelGetKeyPoolQueryParams(openapiGetKeyParamsObject *cryptoutilOpenapiServer.GetKeypoolParams) *cryptoutilServiceModel.KeyPoolQueryParams {
+	filters := cryptoutilServiceModel.KeyPoolQueryParams{
+		Id:                openapiGetKeyParamsObject.Id,
+		Name:              openapiGetKeyParamsObject.Name,
+		Provider:          openapiGetKeyParamsObject.Provider,
+		Algorithm:         openapiGetKeyParamsObject.Algorithm,
+		VersioningAllowed: openapiGetKeyParamsObject.VersioningAllowed,
+		ImportAllowed:     openapiGetKeyParamsObject.ImportAllowed,
+		ExportAllowed:     openapiGetKeyParamsObject.ExportAllowed,
+		Status:            openapiGetKeyParamsObject.Status,
+		Sort:              openapiGetKeyParamsObject.Sort,
+		Page:              openapiGetKeyParamsObject.Page,
+		Size:              openapiGetKeyParamsObject.Size,
+	}
+	return &filters
+}
+
 func (m *openapiMapper) toOpenapiSelectKeyPoolResponseSuccess(gormKeyPools []cryptoutilServiceModel.KeyPool) cryptoutilOpenapiServer.GetKeypoolResponseObject {
 	openapiGetKeypoolResponseObject := cryptoutilOpenapiServer.GetKeypool200JSONResponse(gormKeyPools)
 	return &openapiGetKeypoolResponseObject

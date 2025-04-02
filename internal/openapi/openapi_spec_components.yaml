@@ -52,27 +52,27 @@ components:
           $ref: '#/components/schemas/KeyPoolAlgorithm'
       style: form
       explode: true
-    KeyPoolFilterIsVersioningAllowed:
+    KeyPoolFilterVersioningAllowed:
       name: versioning_allowed
       in: query
       description: Filter by whether versioning is allowed.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
-    KeyPoolFilterIsImportAllowed:
+        $ref: '#/components/schemas/KeyPoolVersioningAllowed'
+    KeyPoolFilterImportAllowed:
       name: import_allowed
       in: query
       description: Filter by whether import is allowed.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolIsImportAllowed'
-    KeyPoolFilterIsExportAllowed:
+        $ref: '#/components/schemas/KeyPoolImportAllowed'
+    KeyPoolFilterExportAllowed:
       name: export_allowed
       in: query
       description: Filter by whether export is allowed.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolIsExportAllowed'
+        $ref: '#/components/schemas/KeyPoolExportAllowed'
     KeyPoolFilterStatuses:
       name: status
       in: query
@@ -92,32 +92,7 @@ components:
       schema:
         type: array
         items:
-          type: string
-          enum:
-            - id
-            - id:ASC
-            - id:DESC
-            - name
-            - name:ASC
-            - name:DESC
-            - provider
-            - provider:ASC
-            - provider:DESC
-            - algorithm
-            - algorithm:ASC
-            - algorithm:DESC
-            - versioning_allowed
-            - versioning_allowed:ASC
-            - versioning_allowed:DESC
-            - import_allowed
-            - import_allowed:ASC
-            - import_allowed:DESC
-            - export_allowed
-            - export_allowed:ASC
-            - export_allowed:DESC
-            - status
-            - status:ASC
-            - status:DESC
+          $ref: '#/components/schemas/KeyPoolSort'
       style: form
       explode: true
     KeyPoolFilterPageNumber:
@@ -130,7 +105,6 @@ components:
       in: query
       schema:
         $ref: '#/components/schemas/PageSize'
-
 
     KeyFilterKeyPoolId:
       name: pool
@@ -176,18 +150,7 @@ components:
       schema:
         type: array
         items:
-          schema:
-            type: string
-            enum:
-              - pool
-              - pool:ASC
-              - pool:DESC
-              - id
-              - id:ASC
-              - id:DESC
-              - generate_date
-              - generate_date:ASC
-              - generate_date:DESC
+        $ref: '#/components/schemas/KeySort'
       style: form
       explode: true
     KeyFilterPageNumber:
@@ -227,11 +190,11 @@ components:
         provider:
           $ref: '#/components/schemas/KeyPoolProvider'
         versioning_allowed:
-          $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
+          $ref: '#/components/schemas/KeyPoolVersioningAllowed'
         import_allowed:
-          $ref: '#/components/schemas/KeyPoolIsImportAllowed'
+          $ref: '#/components/schemas/KeyPoolImportAllowed'
         export_allowed:
-          $ref: '#/components/schemas/KeyPoolIsExportAllowed'
+          $ref: '#/components/schemas/KeyPoolExportAllowed'
 
     KeyPool:
       type: object
@@ -247,11 +210,11 @@ components:
         algorithm:
           $ref: '#/components/schemas/KeyPoolAlgorithm'
         versioning_allowed:
-          $ref: '#/components/schemas/KeyPoolIsVersioningAllowed'
+          $ref: '#/components/schemas/KeyPoolVersioningAllowed'
         import_allowed:
-          $ref: '#/components/schemas/KeyPoolIsImportAllowed'
+          $ref: '#/components/schemas/KeyPoolImportAllowed'
         export_allowed:
-          $ref: '#/components/schemas/KeyPoolIsExportAllowed'
+          $ref: '#/components/schemas/KeyPoolExportAllowed'
         status:
           $ref: '#/components/schemas/KeyPoolStatus'
 
@@ -313,15 +276,15 @@ components:
       enum: [ Internal ]
       example: "Internal"
       description: Provider of the Key Pool management service.
-    KeyPoolIsVersioningAllowed:
+    KeyPoolVersioningAllowed:
       type: boolean
       example: true
       description: Indicates if the Key Pool supports versioning.
-    KeyPoolIsImportAllowed:
+    KeyPoolImportAllowed:
       type: boolean
       example: false
       description: Indicates if the Key Pool supports import (BYOK).
-    KeyPoolIsExportAllowed:
+    KeyPoolExportAllowed:
       type: boolean
       example: false
       description: Indicates if the Key Pool supports export.
@@ -344,6 +307,25 @@ components:
         - finished_delete
       example: "creating"
       description: Status of the Key Pool.
+    KeyPoolSort:
+      type: string
+      enum:
+        - id:ASC
+        - id:DESC
+        - name:ASC
+        - name:DESC
+        - provider:ASC
+        - provider:DESC
+        - algorithm:ASC
+        - algorithm:DESC
+        - versioning_allowed:ASC
+        - versioning_allowed:DESC
+        - import_allowed:ASC
+        - import_allowed:DESC
+        - export_allowed:ASC
+        - export_allowed:DESC
+        - status:ASC
+        - status:DESC
 
     KeyId:
       type: integer
@@ -355,6 +337,58 @@ components:
       format: date-time
       example: "2025-03-14T12:00:00Z"
       description: ISO 8601 UTC timestamp of Key generation.
+    KeySort:
+      type: string
+      enum:
+        - pool
+        - pool:ASC
+        - pool:DESC
+        - id
+        - id:ASC
+        - id:DESC
+        - generate_date
+        - generate_date:ASC
+        - generate_date:DESC
+
+    KeyPoolQueryParams:
+      type: object
+      properties:
+        id:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyPoolId'
+        name:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyPoolName'
+        provider:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyPoolProvider'
+        algorithm:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyPoolAlgorithm'
+        versioning_allowed:
+          $ref: '#/components/schemas/KeyPoolVersioningAllowed'
+        import_allowed:
+          $ref: '#/components/schemas/KeyPoolImportAllowed'
+        export_allowed:
+          $ref: '#/components/schemas/KeyPoolExportAllowed'
+        status:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyPoolStatus'
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyPoolSort'
+        page:
+          type: integer
+          minimum: 1
+        size:
+          type: integer
+          minimum: 1
 
     HTTPError:
       type: object

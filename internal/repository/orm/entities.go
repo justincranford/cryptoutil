@@ -11,15 +11,15 @@ import (
 var ormTableStructs = []any{&KeyPool{}, &Key{}}
 
 type KeyPool struct {
-	KeyPoolID                  googleUuid.UUID  `gorm:"type:uuid;primaryKey"`
-	KeyPoolName                string           `gorm:"size:63;not null;check:length(key_pool_name) >= 1;unique"`
-	KeyPoolDescription         string           `gorm:"size:255;not null;check:length(key_pool_description) >= 1"`
-	KeyPoolProvider            KeyPoolProvider  `gorm:"size:8;not null;check:key_pool_provider IN ('Internal')"`
-	KeyPoolAlgorithm           KeyPoolAlgorithm `gorm:"size:15;not null;check:key_pool_algorithm IN ('AES-256', 'AES-192', 'AES-128')"`
-	KeyPoolIsVersioningAllowed bool             `gorm:"not null;check:key_pool_is_versioning_allowed IN (TRUE, FALSE)"`
-	KeyPoolIsImportAllowed     bool             `gorm:"not null;check:key_pool_is_import_allowed IN (TRUE, FALSE)"`
-	KeyPoolIsExportAllowed     bool             `gorm:"not null;check:key_pool_is_export_allowed IN (TRUE, FALSE)"`
-	KeyPoolStatus              KeyPoolStatus    `gorm:"size:34;not null;check:key_pool_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
+	KeyPoolID                googleUuid.UUID  `gorm:"type:uuid;primaryKey"`
+	KeyPoolName              string           `gorm:"size:63;not null;check:length(key_pool_name) >= 1;unique"`
+	KeyPoolDescription       string           `gorm:"size:255;not null;check:length(key_pool_description) >= 1"`
+	KeyPoolProvider          KeyPoolProvider  `gorm:"size:8;not null;check:key_pool_provider IN ('Internal')"`
+	KeyPoolAlgorithm         KeyPoolAlgorithm `gorm:"size:15;not null;check:key_pool_algorithm IN ('AES-256', 'AES-192', 'AES-128')"`
+	KeyPoolVersioningAllowed bool             `gorm:"not null;check:key_pool_versioning_allowed IN (TRUE, FALSE)"`
+	KeyPoolImportAllowed     bool             `gorm:"not null;check:key_pool_import_allowed IN (TRUE, FALSE)"`
+	KeyPoolExportAllowed     bool             `gorm:"not null;check:key_pool_export_allowed IN (TRUE, FALSE)"`
+	KeyPoolStatus            KeyPoolStatus    `gorm:"size:34;not null;check:key_pool_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
 }
 
 func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
@@ -81,10 +81,10 @@ const (
 )
 
 type (
-	KeyPoolDescription         string
-	KeyPoolId                  string
-	KeyPoolIsExportAllowed     bool
-	KeyPoolIsImportAllowed     bool
-	KeyPoolIsVersioningAllowed bool
-	KeyPoolName                string
+	KeyPoolDescription       string
+	KeyPoolId                string
+	KeyPoolExportAllowed     bool
+	KeyPoolImportAllowed     bool
+	KeyPoolVersioningAllowed bool
+	KeyPoolName              string
 )
