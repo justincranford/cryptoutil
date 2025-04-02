@@ -63,9 +63,6 @@ const (
 
 // GetKeypoolParams defines parameters for GetKeypool.
 type GetKeypoolParams struct {
-	Page *externalRef0.PageNumber `form:"page,omitempty" json:"page,omitempty"`
-	Size *externalRef0.PageSize   `form:"size,omitempty" json:"size,omitempty"`
-
 	// Id Filter by the Key Pool ID (UUID).
 	Id *externalRef0.KeyPoolFilterId `form:"id,omitempty" json:"id,omitempty"`
 
@@ -91,7 +88,9 @@ type GetKeypoolParams struct {
 	Status *externalRef0.KeyPoolFilterStatus `form:"status,omitempty" json:"status,omitempty"`
 
 	// Sort Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
-	Sort *GetKeypoolParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+	Sort *GetKeypoolParamsSort                 `form:"sort,omitempty" json:"sort,omitempty"`
+	Page *externalRef0.KeyPoolFilterPageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.KeyPoolFilterPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
 // GetKeypoolParamsSort defines parameters for GetKeypool.
@@ -99,9 +98,6 @@ type GetKeypoolParamsSort string
 
 // GetKeypoolKeyPoolIDKeyParams defines parameters for GetKeypoolKeyPoolIDKey.
 type GetKeypoolKeyPoolIDKeyParams struct {
-	Page *externalRef0.PageNumber `form:"page,omitempty" json:"page,omitempty"`
-	Size *externalRef0.PageSize   `form:"size,omitempty" json:"size,omitempty"`
-
 	// Pool Filter by the Key Pool ID (uuid).
 	Pool *externalRef0.KeyFilterKeyPoolId `form:"pool,omitempty" json:"pool,omitempty"`
 
@@ -116,6 +112,8 @@ type GetKeypoolKeyPoolIDKeyParams struct {
 
 	// Sort Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
 	Sort *GetKeypoolKeyPoolIDKeyParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+	Page *externalRef0.KeyFilterPageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.KeyFilterPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
 // GetKeypoolKeyPoolIDKeyParamsSort defines parameters for GetKeypoolKeyPoolIDKey.
@@ -162,20 +160,6 @@ func (siw *ServerInterfaceWrapper) GetKeypool(c *fiber.Ctx) error {
 	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "page" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "page", query, &params.Page)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "size" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "size", query, &params.Size)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter size: %w", err).Error())
 	}
 
 	// ------------- Optional query parameter "id" -------------
@@ -241,6 +225,20 @@ func (siw *ServerInterfaceWrapper) GetKeypool(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter sort: %w", err).Error())
 	}
 
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", query, &params.Page)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "size" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "size", query, &params.Size)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter size: %w", err).Error())
+	}
+
 	return siw.Handler.GetKeypool(c, params)
 }
 
@@ -270,20 +268,6 @@ func (siw *ServerInterfaceWrapper) GetKeypoolKeyPoolIDKey(c *fiber.Ctx) error {
 	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "page" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "page", query, &params.Page)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
-	}
-
-	// ------------- Optional query parameter "size" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "size", query, &params.Size)
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter size: %w", err).Error())
 	}
 
 	// ------------- Optional query parameter "pool" -------------
@@ -319,6 +303,20 @@ func (siw *ServerInterfaceWrapper) GetKeypoolKeyPoolIDKey(c *fiber.Ctx) error {
 	err = runtime.BindQueryParameter("form", true, false, "sort", query, &params.Sort)
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter sort: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", query, &params.Page)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "size" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "size", query, &params.Size)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter size: %w", err).Error())
 	}
 
 	return siw.Handler.GetKeypoolKeyPoolIDKey(c, keyPoolID, params)
@@ -956,52 +954,52 @@ func (sh *strictHandler) PostKeypoolKeyPoolIDKey(ctx *fiber.Ctx, keyPoolID exter
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xb3W/jNhL/VwjePewC3kT+KjZ+y67Tni9tNmiSA3q9IMtIY5utRKoklay68P9+IEV9",
-	"0JZs2dYWwV1eEokihzP8cT7IGX/FPo9izoApiSdfcUwEiUCBMG88BkZi+iBj8B/Kjg+XkH5PQwViFuhu",
-	"AUhf0FhRzvAEZ1/QY4rUEtAlpGg2PcE9TPXHPxIQKe5hRiLAE0wD3MPSX0JENKG/C5jjCf7baTnXafZV",
-	"nm7hZRbg1aq3m9tLSK85D9sxrXui2RS9SRIavG0SIOY87EIEy1crMX4iX2iURD8AA0EUTImCNgJF2TC0",
-	"sONQoP+8ocwPE0mfoFHGiHx5yAc96EFdCOxw305syg4SOxt2gNiUvQSxb7hQ17lWbgp8E4NP5ymSXCjK",
-	"FohI9HlOIQyuSASTgArwdc/P6A2cLE566DMNJkT6n9+eoJ8hBqJQofJozgWKklDROARDEBlKsmmFdBdn",
-	"UYAlEZ78mmuF/jc5v/mYP04vzLNRehrYLzTI29cX23m3vd02M/C+h1UaG36UoGyxa1m1qmVLex4uuKBq",
-	"GW3bR75IY8UXgsRL6iOSD2lak6JDV1ahZLK1XHsauLu72fTtt7XQ7cxbRQJ58SXmQp2HIX+GreI8L0Et",
-	"QSAwAxCViGSDmiTKOj7YXp1Jt8bxHqLOoj1FpVFLUbOO3YvqcryHqP8CISlnlC32EPepGNRC5LJz92Jv",
-	"ct9a9CvDXUul1KI0yWf+dSSRYaq1CNeCP9GgzgeVYhQixLZzY9yUE+tIlIK51uJ07Ve1YN/eszb5Trst",
-	"DBPnRUv+tbLa+WPul/NX27Pqvopn27d8t51rdW2z0Q6v+ZAHBOtmym3IhXUb7dgNa+422LFrjXasVEQl",
-	"sniwfe3LkbHFTUa7rcpnkzZuh4LRLnTFsrZNlGuygKskesw0o1aByeJ4O1SZZhc3N/RPaOJF6m9d8GIm",
-	"WWlWBMiYMwlbj8H/uL29HnneBxL8DH8kIJXu7HOmgJlHEsch9YlG/vQ3qeH/WmGShOGnOZ78ehi7eu4L",
-	"IbjAq95XrcYxCEUzfsG064cvJIpDvUQfSIByJjf2dA9HIKUG1BlzuwQksjHI50kYIMYVegSUsACEVJwH",
-	"iAv0TCSKqJTaSuruVEBQmj6zpzfmk4V2FNONPK+H7Rk1f8uObvbNEqFMwcJuGNvEH38DX+HVvYHO1beq",
-	"4Fu2WAZl/46RRC25oH9mocnLBNPhsi2a54laAlNWBDQnNASDXyJBoICDNPAuyROgGIRBlDNpXJc2VQFI",
-	"gywxfq89qn0H1b6Dav9QVJ0V2Anr8HsuHmkQAHu5mJYsHgioTHwfIIAAPSbKIEbKDhDUwUx8H6REipvu",
-	"AiRPhA/toR060A4daIeHQlsuxE5cR1dcfc8T9oJV9YorlLF4gNWFoADFNcBzTbE9TiMHp5GD0+hQnErJ",
-	"duE0OLvl/CfCUmuH5cuF65ZzpDlFBattYfuFJ5lSSWAKKc5RpOlYJCWiDBG0oE/AEIl4whTic6Ro1F7d",
-	"BmdVGM1bAaN+OwzGTYl3wDn2vBlTIBgJb0A8gbjIl/FlQpozizJuUTa0tZFlKGHwJQZfa6Mhj7jvJ0K7",
-	"Qs6M4ZSGcFscx06cM3binPHhcU69mDuxHHwgwQ9EwTNJX3bwmjO5jxnNgEECfKBPOnRhiLInElJjV018",
-	"j+aCRwbFJJZKAIn2hnPgwDlw4BwcE7bmIu8Ecagxpz7cMfJEaEgeQ3i5YFpeUZXZA0ClEhktZCpMUcI0",
-	"GR3ILAkL9FPl6BIk5ouCKOaCiBTxJxAhJyb4jYgGhhHWPu4ZO3HP2Il7xofHPXXrshP5kd0jtzQCnrzg",
-	"86flE+WMHoB4QLP4x6ozIsZ9hmmXujxykB05yB4cKa3LrnvY5d11u1D41oYFdifSI+xNEspX04jwI7CF",
-	"WuJJf/uyu9SmoLIzYub1WhOUDTdfVe58HhhKxVqfnbU47ue3C3jya3klBtaf5/zdb2Cy9cZuc3HdNGRX",
-	"qV6T9jyuxCHLonaThdtniXJBjNEIAqrxJOF1ZdHmJJRwGNH6NP7s5hN6/53XR3e3H42aS0WiWIfMl5Dm",
-	"qXx7DVEai4E3GL/zhu/6o9v+YOJ5E8/7N+7hORcRUXiCNaDvNLU6e7B98Tc4vGP0jwTy3JQJ5u19ron0",
-	"84tdh8Gqp6i5+th5s7y5V0k1g91NknnNeh1FdlqhtNq4q+844XqkhuXKsZGO6DhZmt9ad5C5qyR2usqe",
-	"Vc13BymG2hzRt0nD7mN83C2/odsf60s+iqtQR7ltYu784ubdYPwd7pmn/tkgfxq81y6pcqIsOu5jgvR0",
-	"HwVYY/lqBLYYgf9r7f3L1K0ai9nkc3XL3O+vkFN3x60Ho8WbUcMGD4tvl1SWWVUqUSIh0Mc/YKaQy+jv",
-	"NUkFD0M0JYo8Emkj0TymHYzHO2Pc3X6kKWC4u5tNayQoYpQkocEBtmFnwdSMBSYRIBGdr6Wek1iPlLaC",
-	"yllPN7B75DwEwlqxs6OoqQU7tsrpzYdfPl2+7YirFvVHLTgrlcxhS4nkEK4aSoMEBRaEqSkG2rrlt+/m",
-	"74bHbubmup/8SzX6NSsVEUYWEAFT5gROs8uV3FXmV5WuXyxa9+ewqdYia1/nrsqKr12qnqTwG1leFPdw",
-	"DCzQZjRrrzTk58NqNWoxiviKPhljSCV5dCkFEIKCh2ciH5omq3RpnL/Sp5it5tt2BjY5l4oIBYHtpE0S",
-	"ZVQuyxYHrcrCtUbLLSpZ20pkAYiZj8hwYmquFPKcvV69K/f2OUBVK0gaJ3amGoydq6DKxHV3ujruYHPe",
-	"FEqiny9ubtH59ew/Jr1LVRYJXs/Ksig8wd6Jd9KvSIEneHjinQw1gkQtzQY//R3S/BZgAWpzwh+pVIiE",
-	"YbHd5Qm6yQ0Xj7OzO5qbKiTKFr28wK2HCAtQTBbWqukA0xyxtS/DP4C6tBP3nN+INNwell1a1f70jqKS",
-	"Ve0cTmO9drorUjbM64ZYJcjrhmA12u9o6epCxc5orwfiXdFdP0B0Q7c4AHdEzilWXd2vFagNPG+vq3+q",
-	"IDr2iI/LMzcRgqS45ub7HP3z5tMVMt+1G/Z6qN/L0i4srVgoTWuUyVDHUSHraftKPEOxfyzF/nqh0cgb",
-	"Hktz6FS4jLzRsQTLMhhNb3B2JL3Nco1VD4+PRaehbMCQHhxLuprFNhSHx1KsS6kayqNjKa+n7Ew2KIki",
-	"ItLO3LdJFUhVF44AUYAIYvBcBsRoCjZEzEsa8puJXuXUgSKSokdA2soQyrJjNWdZYF3RabkZPlxzWYkf",
-	"bGL2Aw/2qzk4wljZq7OVe3OhD2yrI03pURZ002IWi20CbAiysj4p50kYpq928tVOvtpJYyfrDZnplB+R",
-	"Tr/+bq99pivd1urIZAr1SsPY5ckpv4SaXkL6v3mKWv+VfRfUOiJT9+PxTujW/Ba/C7ovLODvJNiX66nx",
-	"V2/26s1evVnXHmi14VvMb+ZiopblT+YK14jXA+Iuf+1/33QOye1lxYFvlM00HiHWHOlffJwoqqFezmGi",
-	"6SCRX/K/niJe7e6r3a2xu7vNkNGsrIo4s6WJCPEEL5WKJ6enIfdJuORSTd57771TvLpf/TcAAP//3ojQ",
-	"eVFLAAA=",
+	"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",
+	"cy7V6K331jvFy/vlfwMAAP//LLB19sFMAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

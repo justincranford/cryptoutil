@@ -8,17 +8,6 @@ info:
 
 components:
   parameters:
-    PageNumber:
-      name: page
-      in: query
-      schema:
-        $ref: '#/components/schemas/PageNumber'
-    PageSize:
-      name: size
-      in: query
-      schema:
-        $ref: '#/components/schemas/PageSize'
-
     KeyPoolFilterId:
       name: id
       in: query
@@ -107,6 +96,17 @@ components:
           - status
           - status:ASC
           - status:DESC
+    KeyPoolFilterPageNumber:
+      name: page
+      in: query
+      schema:
+        $ref: '#/components/schemas/PageNumber'
+    KeyPoolFilterPageSize:
+      name: size
+      in: query
+      schema:
+        $ref: '#/components/schemas/PageSize'
+
 
     KeyFilterKeyPoolId:
       name: pool
@@ -153,6 +153,16 @@ components:
           - generate_date
           - generate_date:ASC
           - generate_date:DESC
+    KeyFilterPageNumber:
+      name: page
+      in: query
+      schema:
+        $ref: '#/components/schemas/PageNumber'
+    KeyFilterPageSize:
+      name: size
+      in: query
+      schema:
+        $ref: '#/components/schemas/PageSize'
 
   schemas:
     PageNumber:

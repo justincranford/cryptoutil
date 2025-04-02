@@ -48,8 +48,6 @@ paths:
       summary: List all Key Pools. Supports optional filtering, sorting, and paging.
       description: List all Key Pools. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/PageNumber'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/PageSize'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterId'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterName'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterProvider'
@@ -59,6 +57,8 @@ paths:
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterIsExportAllowed'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterStatus'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterSortParameter'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterPageNumber'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterPageSize'
       responses:
         '200':
           description: A JSON array of 0, 1, or many Key Pools.
@@ -132,13 +132,13 @@ paths:
       summary: List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
       description: List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/PageNumber'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/PageSize'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterKeyPoolId'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterId'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterMinimumGenerateDate'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterMaximumGenerateDate'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterSortParameter'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterPageNumber'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterPageSize'
       responses:
         '200':
           description: A JSON array of 0, 1, or many Keys in a Key Pool.
