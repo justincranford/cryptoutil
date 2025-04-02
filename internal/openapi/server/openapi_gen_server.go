@@ -22,58 +22,45 @@ import (
 
 // Defines values for GetKeypoolParamsSort.
 const (
-	GetKeypoolParamsSortAlgorithm             GetKeypoolParamsSort = "algorithm"
-	GetKeypoolParamsSortAlgorithmASC          GetKeypoolParamsSort = "algorithm:ASC"
-	GetKeypoolParamsSortAlgorithmDESC         GetKeypoolParamsSort = "algorithm:DESC"
-	GetKeypoolParamsSortExportAllowed         GetKeypoolParamsSort = "export_allowed"
-	GetKeypoolParamsSortExportAllowedASC      GetKeypoolParamsSort = "export_allowed:ASC"
-	GetKeypoolParamsSortExportAllowedDESC     GetKeypoolParamsSort = "export_allowed:DESC"
-	GetKeypoolParamsSortId                    GetKeypoolParamsSort = "id"
-	GetKeypoolParamsSortIdASC                 GetKeypoolParamsSort = "id:ASC"
-	GetKeypoolParamsSortIdDESC                GetKeypoolParamsSort = "id:DESC"
-	GetKeypoolParamsSortImportAllowed         GetKeypoolParamsSort = "import_allowed"
-	GetKeypoolParamsSortImportAllowedASC      GetKeypoolParamsSort = "import_allowed:ASC"
-	GetKeypoolParamsSortImportAllowedDESC     GetKeypoolParamsSort = "import_allowed:DESC"
-	GetKeypoolParamsSortName                  GetKeypoolParamsSort = "name"
-	GetKeypoolParamsSortNameASC               GetKeypoolParamsSort = "name:ASC"
-	GetKeypoolParamsSortNameDESC              GetKeypoolParamsSort = "name:DESC"
-	GetKeypoolParamsSortProvider              GetKeypoolParamsSort = "provider"
-	GetKeypoolParamsSortProviderASC           GetKeypoolParamsSort = "provider:ASC"
-	GetKeypoolParamsSortProviderDESC          GetKeypoolParamsSort = "provider:DESC"
-	GetKeypoolParamsSortStatus                GetKeypoolParamsSort = "status"
-	GetKeypoolParamsSortStatusASC             GetKeypoolParamsSort = "status:ASC"
-	GetKeypoolParamsSortStatusDESC            GetKeypoolParamsSort = "status:DESC"
-	GetKeypoolParamsSortVersioningAllowed     GetKeypoolParamsSort = "versioning_allowed"
-	GetKeypoolParamsSortVersioningAllowedASC  GetKeypoolParamsSort = "versioning_allowed:ASC"
-	GetKeypoolParamsSortVersioningAllowedDESC GetKeypoolParamsSort = "versioning_allowed:DESC"
-)
-
-// Defines values for GetKeypoolKeyPoolIDKeyParamsSort.
-const (
-	GetKeypoolKeyPoolIDKeyParamsSortGenerateDate     GetKeypoolKeyPoolIDKeyParamsSort = "generate_date"
-	GetKeypoolKeyPoolIDKeyParamsSortGenerateDateASC  GetKeypoolKeyPoolIDKeyParamsSort = "generate_date:ASC"
-	GetKeypoolKeyPoolIDKeyParamsSortGenerateDateDESC GetKeypoolKeyPoolIDKeyParamsSort = "generate_date:DESC"
-	GetKeypoolKeyPoolIDKeyParamsSortId               GetKeypoolKeyPoolIDKeyParamsSort = "id"
-	GetKeypoolKeyPoolIDKeyParamsSortIdASC            GetKeypoolKeyPoolIDKeyParamsSort = "id:ASC"
-	GetKeypoolKeyPoolIDKeyParamsSortIdDESC           GetKeypoolKeyPoolIDKeyParamsSort = "id:DESC"
-	GetKeypoolKeyPoolIDKeyParamsSortPool             GetKeypoolKeyPoolIDKeyParamsSort = "pool"
-	GetKeypoolKeyPoolIDKeyParamsSortPoolASC          GetKeypoolKeyPoolIDKeyParamsSort = "pool:ASC"
-	GetKeypoolKeyPoolIDKeyParamsSortPoolDESC         GetKeypoolKeyPoolIDKeyParamsSort = "pool:DESC"
+	Algorithm             GetKeypoolParamsSort = "algorithm"
+	AlgorithmASC          GetKeypoolParamsSort = "algorithm:ASC"
+	AlgorithmDESC         GetKeypoolParamsSort = "algorithm:DESC"
+	ExportAllowed         GetKeypoolParamsSort = "export_allowed"
+	ExportAllowedASC      GetKeypoolParamsSort = "export_allowed:ASC"
+	ExportAllowedDESC     GetKeypoolParamsSort = "export_allowed:DESC"
+	Id                    GetKeypoolParamsSort = "id"
+	IdASC                 GetKeypoolParamsSort = "id:ASC"
+	IdDESC                GetKeypoolParamsSort = "id:DESC"
+	ImportAllowed         GetKeypoolParamsSort = "import_allowed"
+	ImportAllowedASC      GetKeypoolParamsSort = "import_allowed:ASC"
+	ImportAllowedDESC     GetKeypoolParamsSort = "import_allowed:DESC"
+	Name                  GetKeypoolParamsSort = "name"
+	NameASC               GetKeypoolParamsSort = "name:ASC"
+	NameDESC              GetKeypoolParamsSort = "name:DESC"
+	Provider              GetKeypoolParamsSort = "provider"
+	ProviderASC           GetKeypoolParamsSort = "provider:ASC"
+	ProviderDESC          GetKeypoolParamsSort = "provider:DESC"
+	Status                GetKeypoolParamsSort = "status"
+	StatusASC             GetKeypoolParamsSort = "status:ASC"
+	StatusDESC            GetKeypoolParamsSort = "status:DESC"
+	VersioningAllowed     GetKeypoolParamsSort = "versioning_allowed"
+	VersioningAllowedASC  GetKeypoolParamsSort = "versioning_allowed:ASC"
+	VersioningAllowedDESC GetKeypoolParamsSort = "versioning_allowed:DESC"
 )
 
 // GetKeypoolParams defines parameters for GetKeypool.
 type GetKeypoolParams struct {
 	// Id Filter by the Key Pool ID (UUID).
-	Id *externalRef0.KeyPoolFilterId `form:"id,omitempty" json:"id,omitempty"`
+	Id *externalRef0.KeyPoolFilterIds `form:"id,omitempty" json:"id,omitempty"`
 
 	// Name Filter by the Key Pool name.
-	Name *externalRef0.KeyPoolFilterName `form:"name,omitempty" json:"name,omitempty"`
+	Name *externalRef0.KeyPoolFilterNames `form:"name,omitempty" json:"name,omitempty"`
 
 	// Provider Filter by Key Pool provider.
-	Provider *externalRef0.KeyPoolFilterProvider `form:"provider,omitempty" json:"provider,omitempty"`
+	Provider *externalRef0.KeyPoolFilterProviders `form:"provider,omitempty" json:"provider,omitempty"`
 
 	// Algorithm Filter by cryptographic algorithm.
-	Algorithm *externalRef0.KeyPoolFilterAlgorithm `form:"algorithm,omitempty" json:"algorithm,omitempty"`
+	Algorithm *externalRef0.KeyPoolFilterAlgorithms `form:"algorithm,omitempty" json:"algorithm,omitempty"`
 
 	// VersioningAllowed Filter by whether versioning is allowed.
 	VersioningAllowed *externalRef0.KeyPoolFilterIsVersioningAllowed `form:"versioning_allowed,omitempty" json:"versioning_allowed,omitempty"`
@@ -85,10 +72,10 @@ type GetKeypoolParams struct {
 	ExportAllowed *externalRef0.KeyPoolFilterIsExportAllowed `form:"export_allowed,omitempty" json:"export_allowed,omitempty"`
 
 	// Status Filter by the Key Pool status.
-	Status *externalRef0.KeyPoolFilterStatus `form:"status,omitempty" json:"status,omitempty"`
+	Status *externalRef0.KeyPoolFilterStatuses `form:"status,omitempty" json:"status,omitempty"`
 
 	// Sort Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
-	Sort *GetKeypoolParamsSort                 `form:"sort,omitempty" json:"sort,omitempty"`
+	Sort *externalRef0.KeyPoolFilterSorts      `form:"sort,omitempty" json:"sort,omitempty"`
 	Page *externalRef0.KeyPoolFilterPageNumber `form:"page,omitempty" json:"page,omitempty"`
 	Size *externalRef0.KeyPoolFilterPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
@@ -111,13 +98,10 @@ type GetKeypoolKeyPoolIDKeyParams struct {
 	MaxGenerateDate *externalRef0.KeyFilterMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
 
 	// Sort Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
-	Sort *GetKeypoolKeyPoolIDKeyParamsSort `form:"sort,omitempty" json:"sort,omitempty"`
+	Sort *externalRef0.KeyFilterSorts      `form:"sort,omitempty" json:"sort,omitempty"`
 	Page *externalRef0.KeyFilterPageNumber `form:"page,omitempty" json:"page,omitempty"`
 	Size *externalRef0.KeyFilterPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
-
-// GetKeypoolKeyPoolIDKeyParamsSort defines parameters for GetKeypoolKeyPoolIDKey.
-type GetKeypoolKeyPoolIDKeyParamsSort string
 
 // PostKeypoolJSONRequestBody defines body for PostKeypool for application/json ContentType.
 type PostKeypoolJSONRequestBody = externalRef0.KeyPoolCreate
@@ -954,52 +938,53 @@ func (sh *strictHandler) PostKeypoolKeyPoolIDKey(ctx *fiber.Ctx, keyPoolID exter
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"cy7V6K331jvFy/vlfwMAAP//LLB19sFMAAA=",
+	"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",
+	"d/47/9hb3C7+GwAA//+YtMRip04AAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

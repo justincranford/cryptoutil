@@ -8,34 +8,50 @@ info:
 
 components:
   parameters:
-    KeyPoolFilterId:
+    KeyPoolFilterIds:
       name: id
       in: query
       description: Filter by the Key Pool ID (UUID).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolId'
-    KeyPoolFilterName:
+        type: array
+        items:
+          $ref: '#/components/schemas/KeyPoolId'
+      style: form
+      explode: true
+    KeyPoolFilterNames:
       name: name
       in: query
       description: Filter by the Key Pool name.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolName'
-    KeyPoolFilterProvider:
+        type: array
+        items:
+          $ref: '#/components/schemas/KeyPoolName'
+      style: form
+      explode: true
+    KeyPoolFilterProviders:
       name: provider
       in: query
       description: Filter by Key Pool provider.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolProvider'
-    KeyPoolFilterAlgorithm:
+        type: array
+        items:
+          $ref: '#/components/schemas/KeyPoolProvider'
+      style: form
+      explode: true
+    KeyPoolFilterAlgorithms:
       name: algorithm
       in: query
       description: Filter by cryptographic algorithm.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolAlgorithm'
+        type: array
+        items:
+          $ref: '#/components/schemas/KeyPoolAlgorithm'
+      style: form
+      explode: true
     KeyPoolFilterIsVersioningAllowed:
       name: versioning_allowed
       in: query
@@ -57,45 +73,53 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/KeyPoolIsExportAllowed'
-    KeyPoolFilterStatus:
+    KeyPoolFilterStatuses:
       name: status
       in: query
       description: Filter by the Key Pool status.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolStatus'
-    KeyPoolFilterSortParameter:
+        type: array
+        items:
+          $ref: '#/components/schemas/KeyPoolStatus'
+      style: form
+      explode: true
+    KeyPoolFilterSorts:
       name: sort
       in: query
       description: Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
       required: false
       schema:
-        type: string
-        enum:
-          - id
-          - id:ASC
-          - id:DESC
-          - name
-          - name:ASC
-          - name:DESC
-          - provider
-          - provider:ASC
-          - provider:DESC
-          - algorithm
-          - algorithm:ASC
-          - algorithm:DESC
-          - versioning_allowed
-          - versioning_allowed:ASC
-          - versioning_allowed:DESC
-          - import_allowed
-          - import_allowed:ASC
-          - import_allowed:DESC
-          - export_allowed
-          - export_allowed:ASC
-          - export_allowed:DESC
-          - status
-          - status:ASC
-          - status:DESC
+        type: array
+        items:
+          type: string
+          enum:
+            - id
+            - id:ASC
+            - id:DESC
+            - name
+            - name:ASC
+            - name:DESC
+            - provider
+            - provider:ASC
+            - provider:DESC
+            - algorithm
+            - algorithm:ASC
+            - algorithm:DESC
+            - versioning_allowed
+            - versioning_allowed:ASC
+            - versioning_allowed:DESC
+            - import_allowed
+            - import_allowed:ASC
+            - import_allowed:DESC
+            - export_allowed
+            - export_allowed:ASC
+            - export_allowed:DESC
+            - status
+            - status:ASC
+            - status:DESC
+      style: form
+      explode: true
     KeyPoolFilterPageNumber:
       name: page
       in: query
@@ -114,14 +138,22 @@ components:
       description: Filter by the Key Pool ID (uuid).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolId'
+        type: array
+        items:
+          $ref: '#/components/schemas/KeyPoolId'
+      style: form
+      explode: true
     KeyFilterId:
       name: id
       in: query
       description: Filter by the Key ID.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyId'
+        type: array
+        items:
+          $ref: '#/components/schemas/KeyId'
+      style: form
+      explode: true
     KeyFilterMinimumGenerateDate:
       name: min_generate_date
       in: query
@@ -136,23 +168,28 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/KeyGenerateDate'
-    KeyFilterSortParameter:
+    KeyFilterSorts:
       name: sort
       in: query
       description: Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
       required: false
       schema:
-        type: string
-        enum:
-          - pool
-          - pool:ASC
-          - pool:DESC
-          - id
-          - id:ASC
-          - id:DESC
-          - generate_date
-          - generate_date:ASC
-          - generate_date:DESC
+        type: array
+        items:
+          schema:
+            type: string
+            enum:
+              - pool
+              - pool:ASC
+              - pool:DESC
+              - id
+              - id:ASC
+              - id:DESC
+              - generate_date
+              - generate_date:ASC
+              - generate_date:DESC
+      style: form
+      explode: true
     KeyFilterPageNumber:
       name: page
       in: query

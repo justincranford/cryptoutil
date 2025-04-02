@@ -22,7 +22,7 @@ func NewOpenapiHandler(service *cryptoutilServiceLogic.KeyPoolService) *StrictSe
 }
 
 func (s *StrictServer) GetKeypool(ctx context.Context, openapiGetKeypoolRequestObject cryptoutilOpenapiServer.GetKeypoolRequestObject) (cryptoutilOpenapiServer.GetKeypoolResponseObject, error) {
-	if openapiGetKeypoolRequestObject.Params.Sort != nil && len(string(*openapiGetKeypoolRequestObject.Params.Sort)) > 0 {
+	if openapiGetKeypoolRequestObject.Params.Sort != nil && len(*openapiGetKeypoolRequestObject.Params.Sort) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'sort' not supported yet: %w", fiber.ErrBadRequest))
 	} else if openapiGetKeypoolRequestObject.Params.Page != nil && *openapiGetKeypoolRequestObject.Params.Page >= 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
@@ -46,7 +46,7 @@ func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolReques
 }
 
 func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyRequestObject) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
-	if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort != nil && len(string(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort)) > 0 {
+	if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort != nil && len(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort) > 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'sort' not supported yet: %w", fiber.ErrBadRequest))
 	} else if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Page != nil && *openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Page >= 0 {
 		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))

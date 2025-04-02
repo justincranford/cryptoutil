@@ -48,15 +48,15 @@ paths:
       summary: List all Key Pools. Supports optional filtering, sorting, and paging.
       description: List all Key Pools. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterId'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterName'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterProvider'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterAlgorithm'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterNames'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterProviders'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterAlgorithms'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterIsVersioningAllowed'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterIsImportAllowed'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterIsExportAllowed'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterStatus'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterSortParameter'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterStatuses'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterSorts'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterPageNumber'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolFilterPageSize'
       responses:
@@ -136,7 +136,7 @@ paths:
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterId'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterMinimumGenerateDate'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterMaximumGenerateDate'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterSortParameter'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterSorts'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterPageNumber'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyFilterPageSize'
       responses:
