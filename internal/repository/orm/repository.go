@@ -157,7 +157,17 @@ func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key,
 	return keys, nil
 }
 
-func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKyID(keyPoolID uuid.UUID, keyID int) (*Key, error) {
+func (s *RepositoryTransaction) FindKeys() ([]Key, error) {
+	var keys []Key
+	err := s.state.gormTx.Find(&keys).Error
+	if err != nil {
+		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Keys", "error", err)
+		return keys, fmt.Errorf("failed to find Keys: %w", err)
+	}
+	return keys, nil
+}
+
+func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, keyID int) (*Key, error) {
 	if keyPoolID == uuidZero {
 		return nil, ErrKeyPoolIDMustBeNonZeroUUID
 	} else if keyID < 1 {

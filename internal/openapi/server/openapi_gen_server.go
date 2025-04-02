@@ -20,8 +20,25 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// GetKeypoolParams defines parameters for GetKeypool.
-type GetKeypoolParams struct {
+// GetKeypoolKeyPoolIDKeysParams defines parameters for GetKeypoolKeyPoolIDKeys.
+type GetKeypoolKeyPoolIDKeysParams struct {
+	// Id Filter by the Key ID.
+	Id *externalRef0.KeyQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
+
+	// MinGenerateDate Filter by the Key minimum generate date (inclusive).
+	MinGenerateDate *externalRef0.KeyQueryParamMinimumGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
+
+	// MaxGenerateDate Filter by the Key maximum generate date (inclusive).
+	MaxGenerateDate *externalRef0.KeyQueryParamMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
+
+	// Sort Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
+	Sort *externalRef0.KeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
+	Page *externalRef0.KeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.KeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
+}
+
+// GetKeypoolsParams defines parameters for GetKeypools.
+type GetKeypoolsParams struct {
 	// Id Filter by the Key Pool ID (UUID).
 	Id *externalRef0.KeyPoolQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
 
@@ -52,8 +69,8 @@ type GetKeypoolParams struct {
 	Size *externalRef0.KeyPoolQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
-// GetKeypoolKeyPoolIDKeyParams defines parameters for GetKeypoolKeyPoolIDKey.
-type GetKeypoolKeyPoolIDKeyParams struct {
+// GetKeysParams defines parameters for GetKeys.
+type GetKeysParams struct {
 	// Pool Filter by the Key Pool ID (uuid).
 	Pool *externalRef0.KeyQueryParamKeyPoolIds `form:"pool,omitempty" json:"pool,omitempty"`
 
@@ -80,18 +97,27 @@ type PostKeypoolKeyPoolIDKeyJSONRequestBody = externalRef0.KeyGenerate
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List all Key Pools. Supports optional filtering, sorting, and paging.
-	// (GET /keypool)
-	GetKeypool(c *fiber.Ctx, params GetKeypoolParams) error
 	// Create a new Key Pool.
 	// (POST /keypool)
 	PostKeypool(c *fiber.Ctx) error
-	// List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
-	// (GET /keypool/{keyPoolID}/key)
-	GetKeypoolKeyPoolIDKey(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId, params GetKeypoolKeyPoolIDKeyParams) error
+	// Get a Key Pool.
+	// (GET /keypool/{keyPoolID})
+	GetKeypoolKeyPoolID(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId) error
 	// Generate a new Key in a Key Pool.
 	// (POST /keypool/{keyPoolID}/key)
 	PostKeypoolKeyPoolIDKey(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId) error
+	// Get Key in Key Pool.
+	// (GET /keypool/{keyPoolID}/key/{keyID})
+	GetKeypoolKeyPoolIDKeyKeyID(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId) error
+	// Find Keys in Key Pool. Supports optional filtering, sorting, and paging.
+	// (GET /keypool/{keyPoolID}/keys)
+	GetKeypoolKeyPoolIDKeys(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId, params GetKeypoolKeyPoolIDKeysParams) error
+	// Find Key Pools. Supports optional filtering, sorting, and paging.
+	// (GET /keypools)
+	GetKeypools(c *fiber.Ctx, params GetKeypoolsParams) error
+	// Find Keys. Supports optional filtering, sorting, and paging.
+	// (GET /keys)
+	GetKeys(c *fiber.Ctx, params GetKeysParams) error
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -101,13 +127,142 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc fiber.Handler
 
-// GetKeypool operation middleware
-func (siw *ServerInterfaceWrapper) GetKeypool(c *fiber.Ctx) error {
+// PostKeypool operation middleware
+func (siw *ServerInterfaceWrapper) PostKeypool(c *fiber.Ctx) error {
+
+	return siw.Handler.PostKeypool(c)
+}
+
+// GetKeypoolKeyPoolID operation middleware
+func (siw *ServerInterfaceWrapper) GetKeypoolKeyPoolID(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "keyPoolID" -------------
+	var keyPoolID externalRef0.KeyPoolId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "keyPoolID", c.Params("keyPoolID"), &keyPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter keyPoolID: %w", err).Error())
+	}
+
+	return siw.Handler.GetKeypoolKeyPoolID(c, keyPoolID)
+}
+
+// PostKeypoolKeyPoolIDKey operation middleware
+func (siw *ServerInterfaceWrapper) PostKeypoolKeyPoolIDKey(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "keyPoolID" -------------
+	var keyPoolID externalRef0.KeyPoolId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "keyPoolID", c.Params("keyPoolID"), &keyPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter keyPoolID: %w", err).Error())
+	}
+
+	return siw.Handler.PostKeypoolKeyPoolIDKey(c, keyPoolID)
+}
+
+// GetKeypoolKeyPoolIDKeyKeyID operation middleware
+func (siw *ServerInterfaceWrapper) GetKeypoolKeyPoolIDKeyKeyID(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "keyPoolID" -------------
+	var keyPoolID externalRef0.KeyPoolId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "keyPoolID", c.Params("keyPoolID"), &keyPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter keyPoolID: %w", err).Error())
+	}
+
+	// ------------- Path parameter "keyID" -------------
+	var keyID externalRef0.KeyId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "keyID", c.Params("keyID"), &keyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter keyID: %w", err).Error())
+	}
+
+	return siw.Handler.GetKeypoolKeyPoolIDKeyKeyID(c, keyPoolID, keyID)
+}
+
+// GetKeypoolKeyPoolIDKeys operation middleware
+func (siw *ServerInterfaceWrapper) GetKeypoolKeyPoolIDKeys(c *fiber.Ctx) error {
+
+	var err error
+
+	// ------------- Path parameter "keyPoolID" -------------
+	var keyPoolID externalRef0.KeyPoolId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "keyPoolID", c.Params("keyPoolID"), &keyPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter keyPoolID: %w", err).Error())
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetKeypoolKeyPoolIDKeysParams
+
+	var query url.Values
+	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "id" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "id", query, &params.Id)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter id: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "min_generate_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "min_generate_date", query, &params.MinGenerateDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter min_generate_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "max_generate_date" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "max_generate_date", query, &params.MaxGenerateDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter max_generate_date: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", query, &params.Sort)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter sort: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "page", query, &params.Page)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter page: %w", err).Error())
+	}
+
+	// ------------- Optional query parameter "size" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "size", query, &params.Size)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter size: %w", err).Error())
+	}
+
+	return siw.Handler.GetKeypoolKeyPoolIDKeys(c, keyPoolID, params)
+}
+
+// GetKeypools operation middleware
+func (siw *ServerInterfaceWrapper) GetKeypools(c *fiber.Ctx) error {
 
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetKeypoolParams
+	var params GetKeypoolsParams
 
 	var query url.Values
 	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
@@ -192,30 +347,16 @@ func (siw *ServerInterfaceWrapper) GetKeypool(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter size: %w", err).Error())
 	}
 
-	return siw.Handler.GetKeypool(c, params)
+	return siw.Handler.GetKeypools(c, params)
 }
 
-// PostKeypool operation middleware
-func (siw *ServerInterfaceWrapper) PostKeypool(c *fiber.Ctx) error {
-
-	return siw.Handler.PostKeypool(c)
-}
-
-// GetKeypoolKeyPoolIDKey operation middleware
-func (siw *ServerInterfaceWrapper) GetKeypoolKeyPoolIDKey(c *fiber.Ctx) error {
+// GetKeys operation middleware
+func (siw *ServerInterfaceWrapper) GetKeys(c *fiber.Ctx) error {
 
 	var err error
 
-	// ------------- Path parameter "keyPoolID" -------------
-	var keyPoolID externalRef0.KeyPoolId
-
-	err = runtime.BindStyledParameterWithOptions("simple", "keyPoolID", c.Params("keyPoolID"), &keyPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter keyPoolID: %w", err).Error())
-	}
-
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetKeypoolKeyPoolIDKeyParams
+	var params GetKeysParams
 
 	var query url.Values
 	query, err = url.ParseQuery(string(c.Request().URI().QueryString()))
@@ -272,23 +413,7 @@ func (siw *ServerInterfaceWrapper) GetKeypoolKeyPoolIDKey(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter size: %w", err).Error())
 	}
 
-	return siw.Handler.GetKeypoolKeyPoolIDKey(c, keyPoolID, params)
-}
-
-// PostKeypoolKeyPoolIDKey operation middleware
-func (siw *ServerInterfaceWrapper) PostKeypoolKeyPoolIDKey(c *fiber.Ctx) error {
-
-	var err error
-
-	// ------------- Path parameter "keyPoolID" -------------
-	var keyPoolID externalRef0.KeyPoolId
-
-	err = runtime.BindStyledParameterWithOptions("simple", "keyPoolID", c.Params("keyPoolID"), &keyPoolID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter keyPoolID: %w", err).Error())
-	}
-
-	return siw.Handler.PostKeypoolKeyPoolIDKey(c, keyPoolID)
+	return siw.Handler.GetKeys(c, params)
 }
 
 // FiberServerOptions provides options for the Fiber server.
@@ -312,122 +437,20 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 		router.Use(fiber.Handler(m))
 	}
 
-	router.Get(options.BaseURL+"/keypool", wrapper.GetKeypool)
-
 	router.Post(options.BaseURL+"/keypool", wrapper.PostKeypool)
 
-	router.Get(options.BaseURL+"/keypool/:keyPoolID/key", wrapper.GetKeypoolKeyPoolIDKey)
+	router.Get(options.BaseURL+"/keypool/:keyPoolID", wrapper.GetKeypoolKeyPoolID)
 
 	router.Post(options.BaseURL+"/keypool/:keyPoolID/key", wrapper.PostKeypoolKeyPoolIDKey)
 
-}
+	router.Get(options.BaseURL+"/keypool/:keyPoolID/key/:keyID", wrapper.GetKeypoolKeyPoolIDKeyKeyID)
 
-type GetKeypoolRequestObject struct {
-	Params GetKeypoolParams
-}
+	router.Get(options.BaseURL+"/keypool/:keyPoolID/keys", wrapper.GetKeypoolKeyPoolIDKeys)
 
-type GetKeypoolResponseObject interface {
-	VisitGetKeypoolResponse(ctx *fiber.Ctx) error
-}
+	router.Get(options.BaseURL+"/keypools", wrapper.GetKeypools)
 
-type GetKeypool200JSONResponse []externalRef0.KeyPool
+	router.Get(options.BaseURL+"/keys", wrapper.GetKeys)
 
-func (response GetKeypool200JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(200)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool400JSONResponse struct{ externalRef0.HTTP400BadRequest }
-
-func (response GetKeypool400JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(400)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool401JSONResponse struct {
-	externalRef0.HTTP401Unauthorized
-}
-
-func (response GetKeypool401JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(401)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool403JSONResponse struct{ externalRef0.HTTP403Forbidden }
-
-func (response GetKeypool403JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(403)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool404JSONResponse struct{ externalRef0.HTTP404NotFound }
-
-func (response GetKeypool404JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(404)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool429JSONResponse struct {
-	externalRef0.HTTP429TooManyRequests
-}
-
-func (response GetKeypool429JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(429)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool500JSONResponse struct {
-	externalRef0.HTTP500InternalServerError
-}
-
-func (response GetKeypool500JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(500)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool502JSONResponse struct{ externalRef0.HTTP502BadGateway }
-
-func (response GetKeypool502JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(502)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool503JSONResponse struct {
-	externalRef0.HTTP503ServiceUnavailable
-}
-
-func (response GetKeypool503JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(503)
-
-	return ctx.JSON(&response)
-}
-
-type GetKeypool504JSONResponse struct {
-	externalRef0.HTTP504GatewayTimeout
-}
-
-func (response GetKeypool504JSONResponse) VisitGetKeypoolResponse(ctx *fiber.Ctx) error {
-	ctx.Response().Header.Set("Content-Type", "application/json")
-	ctx.Status(504)
-
-	return ctx.JSON(&response)
 }
 
 type PostKeypoolRequestObject struct {
@@ -538,109 +561,108 @@ func (response PostKeypool504JSONResponse) VisitPostKeypoolResponse(ctx *fiber.C
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKeyRequestObject struct {
+type GetKeypoolKeyPoolIDRequestObject struct {
 	KeyPoolID externalRef0.KeyPoolId `json:"keyPoolID"`
-	Params    GetKeypoolKeyPoolIDKeyParams
 }
 
-type GetKeypoolKeyPoolIDKeyResponseObject interface {
-	VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error
+type GetKeypoolKeyPoolIDResponseObject interface {
+	VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error
 }
 
-type GetKeypoolKeyPoolIDKey200JSONResponse []externalRef0.Key
+type GetKeypoolKeyPoolID200JSONResponse externalRef0.KeyPool
 
-func (response GetKeypoolKeyPoolIDKey200JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID200JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey400JSONResponse struct{ externalRef0.HTTP400BadRequest }
+type GetKeypoolKeyPoolID400JSONResponse struct{ externalRef0.HTTP400BadRequest }
 
-func (response GetKeypoolKeyPoolIDKey400JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID400JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey401JSONResponse struct {
+type GetKeypoolKeyPoolID401JSONResponse struct {
 	externalRef0.HTTP401Unauthorized
 }
 
-func (response GetKeypoolKeyPoolIDKey401JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID401JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(401)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey403JSONResponse struct{ externalRef0.HTTP403Forbidden }
+type GetKeypoolKeyPoolID403JSONResponse struct{ externalRef0.HTTP403Forbidden }
 
-func (response GetKeypoolKeyPoolIDKey403JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID403JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(403)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey404JSONResponse struct{ externalRef0.HTTP404NotFound }
+type GetKeypoolKeyPoolID404JSONResponse struct{ externalRef0.HTTP404NotFound }
 
-func (response GetKeypoolKeyPoolIDKey404JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID404JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey429JSONResponse struct {
+type GetKeypoolKeyPoolID429JSONResponse struct {
 	externalRef0.HTTP429TooManyRequests
 }
 
-func (response GetKeypoolKeyPoolIDKey429JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID429JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(429)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey500JSONResponse struct {
+type GetKeypoolKeyPoolID500JSONResponse struct {
 	externalRef0.HTTP500InternalServerError
 }
 
-func (response GetKeypoolKeyPoolIDKey500JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID500JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey502JSONResponse struct{ externalRef0.HTTP502BadGateway }
+type GetKeypoolKeyPoolID502JSONResponse struct{ externalRef0.HTTP502BadGateway }
 
-func (response GetKeypoolKeyPoolIDKey502JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID502JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(502)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey503JSONResponse struct {
+type GetKeypoolKeyPoolID503JSONResponse struct {
 	externalRef0.HTTP503ServiceUnavailable
 }
 
-func (response GetKeypoolKeyPoolIDKey503JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID503JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(503)
 
 	return ctx.JSON(&response)
 }
 
-type GetKeypoolKeyPoolIDKey504JSONResponse struct {
+type GetKeypoolKeyPoolID504JSONResponse struct {
 	externalRef0.HTTP504GatewayTimeout
 }
 
-func (response GetKeypoolKeyPoolIDKey504JSONResponse) VisitGetKeypoolKeyPoolIDKeyResponse(ctx *fiber.Ctx) error {
+func (response GetKeypoolKeyPoolID504JSONResponse) VisitGetKeypoolKeyPoolIDResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(504)
 
@@ -756,20 +778,463 @@ func (response PostKeypoolKeyPoolIDKey504JSONResponse) VisitPostKeypoolKeyPoolID
 	return ctx.JSON(&response)
 }
 
+type GetKeypoolKeyPoolIDKeyKeyIDRequestObject struct {
+	KeyPoolID externalRef0.KeyPoolId `json:"keyPoolID"`
+	KeyID     externalRef0.KeyId     `json:"keyID"`
+}
+
+type GetKeypoolKeyPoolIDKeyKeyIDResponseObject interface {
+	VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID200JSONResponse externalRef0.Key
+
+func (response GetKeypoolKeyPoolIDKeyKeyID200JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID400JSONResponse struct{ externalRef0.HTTP400BadRequest }
+
+func (response GetKeypoolKeyPoolIDKeyKeyID400JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID401JSONResponse struct {
+	externalRef0.HTTP401Unauthorized
+}
+
+func (response GetKeypoolKeyPoolIDKeyKeyID401JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID403JSONResponse struct{ externalRef0.HTTP403Forbidden }
+
+func (response GetKeypoolKeyPoolIDKeyKeyID403JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID404JSONResponse struct{ externalRef0.HTTP404NotFound }
+
+func (response GetKeypoolKeyPoolIDKeyKeyID404JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID429JSONResponse struct {
+	externalRef0.HTTP429TooManyRequests
+}
+
+func (response GetKeypoolKeyPoolIDKeyKeyID429JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(429)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID500JSONResponse struct {
+	externalRef0.HTTP500InternalServerError
+}
+
+func (response GetKeypoolKeyPoolIDKeyKeyID500JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID502JSONResponse struct{ externalRef0.HTTP502BadGateway }
+
+func (response GetKeypoolKeyPoolIDKeyKeyID502JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(502)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID503JSONResponse struct {
+	externalRef0.HTTP503ServiceUnavailable
+}
+
+func (response GetKeypoolKeyPoolIDKeyKeyID503JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(503)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeyKeyID504JSONResponse struct {
+	externalRef0.HTTP504GatewayTimeout
+}
+
+func (response GetKeypoolKeyPoolIDKeyKeyID504JSONResponse) VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(504)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeysRequestObject struct {
+	KeyPoolID externalRef0.KeyPoolId `json:"keyPoolID"`
+	Params    GetKeypoolKeyPoolIDKeysParams
+}
+
+type GetKeypoolKeyPoolIDKeysResponseObject interface {
+	VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error
+}
+
+type GetKeypoolKeyPoolIDKeys200JSONResponse []externalRef0.Key
+
+func (response GetKeypoolKeyPoolIDKeys200JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys400JSONResponse struct{ externalRef0.HTTP400BadRequest }
+
+func (response GetKeypoolKeyPoolIDKeys400JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys401JSONResponse struct {
+	externalRef0.HTTP401Unauthorized
+}
+
+func (response GetKeypoolKeyPoolIDKeys401JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys403JSONResponse struct{ externalRef0.HTTP403Forbidden }
+
+func (response GetKeypoolKeyPoolIDKeys403JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys404JSONResponse struct{ externalRef0.HTTP404NotFound }
+
+func (response GetKeypoolKeyPoolIDKeys404JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys429JSONResponse struct {
+	externalRef0.HTTP429TooManyRequests
+}
+
+func (response GetKeypoolKeyPoolIDKeys429JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(429)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys500JSONResponse struct {
+	externalRef0.HTTP500InternalServerError
+}
+
+func (response GetKeypoolKeyPoolIDKeys500JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys502JSONResponse struct{ externalRef0.HTTP502BadGateway }
+
+func (response GetKeypoolKeyPoolIDKeys502JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(502)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys503JSONResponse struct {
+	externalRef0.HTTP503ServiceUnavailable
+}
+
+func (response GetKeypoolKeyPoolIDKeys503JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(503)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolKeyPoolIDKeys504JSONResponse struct {
+	externalRef0.HTTP504GatewayTimeout
+}
+
+func (response GetKeypoolKeyPoolIDKeys504JSONResponse) VisitGetKeypoolKeyPoolIDKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(504)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypoolsRequestObject struct {
+	Params GetKeypoolsParams
+}
+
+type GetKeypoolsResponseObject interface {
+	VisitGetKeypoolsResponse(ctx *fiber.Ctx) error
+}
+
+type GetKeypools200JSONResponse []externalRef0.KeyPool
+
+func (response GetKeypools200JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools400JSONResponse struct{ externalRef0.HTTP400BadRequest }
+
+func (response GetKeypools400JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools401JSONResponse struct {
+	externalRef0.HTTP401Unauthorized
+}
+
+func (response GetKeypools401JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools403JSONResponse struct{ externalRef0.HTTP403Forbidden }
+
+func (response GetKeypools403JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools404JSONResponse struct{ externalRef0.HTTP404NotFound }
+
+func (response GetKeypools404JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools429JSONResponse struct {
+	externalRef0.HTTP429TooManyRequests
+}
+
+func (response GetKeypools429JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(429)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools500JSONResponse struct {
+	externalRef0.HTTP500InternalServerError
+}
+
+func (response GetKeypools500JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools502JSONResponse struct{ externalRef0.HTTP502BadGateway }
+
+func (response GetKeypools502JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(502)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools503JSONResponse struct {
+	externalRef0.HTTP503ServiceUnavailable
+}
+
+func (response GetKeypools503JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(503)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeypools504JSONResponse struct {
+	externalRef0.HTTP504GatewayTimeout
+}
+
+func (response GetKeypools504JSONResponse) VisitGetKeypoolsResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(504)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeysRequestObject struct {
+	Params GetKeysParams
+}
+
+type GetKeysResponseObject interface {
+	VisitGetKeysResponse(ctx *fiber.Ctx) error
+}
+
+type GetKeys200JSONResponse []externalRef0.Key
+
+func (response GetKeys200JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(200)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys400JSONResponse struct{ externalRef0.HTTP400BadRequest }
+
+func (response GetKeys400JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(400)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys401JSONResponse struct {
+	externalRef0.HTTP401Unauthorized
+}
+
+func (response GetKeys401JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(401)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys403JSONResponse struct{ externalRef0.HTTP403Forbidden }
+
+func (response GetKeys403JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(403)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys404JSONResponse struct{ externalRef0.HTTP404NotFound }
+
+func (response GetKeys404JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(404)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys429JSONResponse struct {
+	externalRef0.HTTP429TooManyRequests
+}
+
+func (response GetKeys429JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(429)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys500JSONResponse struct {
+	externalRef0.HTTP500InternalServerError
+}
+
+func (response GetKeys500JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(500)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys502JSONResponse struct{ externalRef0.HTTP502BadGateway }
+
+func (response GetKeys502JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(502)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys503JSONResponse struct {
+	externalRef0.HTTP503ServiceUnavailable
+}
+
+func (response GetKeys503JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(503)
+
+	return ctx.JSON(&response)
+}
+
+type GetKeys504JSONResponse struct {
+	externalRef0.HTTP504GatewayTimeout
+}
+
+func (response GetKeys504JSONResponse) VisitGetKeysResponse(ctx *fiber.Ctx) error {
+	ctx.Response().Header.Set("Content-Type", "application/json")
+	ctx.Status(504)
+
+	return ctx.JSON(&response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-	// List all Key Pools. Supports optional filtering, sorting, and paging.
-	// (GET /keypool)
-	GetKeypool(ctx context.Context, request GetKeypoolRequestObject) (GetKeypoolResponseObject, error)
 	// Create a new Key Pool.
 	// (POST /keypool)
 	PostKeypool(ctx context.Context, request PostKeypoolRequestObject) (PostKeypoolResponseObject, error)
-	// List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
-	// (GET /keypool/{keyPoolID}/key)
-	GetKeypoolKeyPoolIDKey(ctx context.Context, request GetKeypoolKeyPoolIDKeyRequestObject) (GetKeypoolKeyPoolIDKeyResponseObject, error)
+	// Get a Key Pool.
+	// (GET /keypool/{keyPoolID})
+	GetKeypoolKeyPoolID(ctx context.Context, request GetKeypoolKeyPoolIDRequestObject) (GetKeypoolKeyPoolIDResponseObject, error)
 	// Generate a new Key in a Key Pool.
 	// (POST /keypool/{keyPoolID}/key)
 	PostKeypoolKeyPoolIDKey(ctx context.Context, request PostKeypoolKeyPoolIDKeyRequestObject) (PostKeypoolKeyPoolIDKeyResponseObject, error)
+	// Get Key in Key Pool.
+	// (GET /keypool/{keyPoolID}/key/{keyID})
+	GetKeypoolKeyPoolIDKeyKeyID(ctx context.Context, request GetKeypoolKeyPoolIDKeyKeyIDRequestObject) (GetKeypoolKeyPoolIDKeyKeyIDResponseObject, error)
+	// Find Keys in Key Pool. Supports optional filtering, sorting, and paging.
+	// (GET /keypool/{keyPoolID}/keys)
+	GetKeypoolKeyPoolIDKeys(ctx context.Context, request GetKeypoolKeyPoolIDKeysRequestObject) (GetKeypoolKeyPoolIDKeysResponseObject, error)
+	// Find Key Pools. Supports optional filtering, sorting, and paging.
+	// (GET /keypools)
+	GetKeypools(ctx context.Context, request GetKeypoolsRequestObject) (GetKeypoolsResponseObject, error)
+	// Find Keys. Supports optional filtering, sorting, and paging.
+	// (GET /keys)
+	GetKeys(ctx context.Context, request GetKeysRequestObject) (GetKeysResponseObject, error)
 }
 
 type StrictHandlerFunc func(ctx *fiber.Ctx, args interface{}) (interface{}, error)
@@ -783,33 +1248,6 @@ func NewStrictHandler(ssi StrictServerInterface, middlewares []StrictMiddlewareF
 type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
-}
-
-// GetKeypool operation middleware
-func (sh *strictHandler) GetKeypool(ctx *fiber.Ctx, params GetKeypoolParams) error {
-	var request GetKeypoolRequestObject
-
-	request.Params = params
-
-	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
-		return sh.ssi.GetKeypool(ctx.UserContext(), request.(GetKeypoolRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetKeypool")
-	}
-
-	response, err := handler(ctx, request)
-
-	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetKeypoolResponseObject); ok {
-		if err := validResponse.VisitGetKeypoolResponse(ctx); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
-		}
-	} else if response != nil {
-		return fmt.Errorf("unexpected response type: %T", response)
-	}
-	return nil
 }
 
 // PostKeypool operation middleware
@@ -843,26 +1281,25 @@ func (sh *strictHandler) PostKeypool(ctx *fiber.Ctx) error {
 	return nil
 }
 
-// GetKeypoolKeyPoolIDKey operation middleware
-func (sh *strictHandler) GetKeypoolKeyPoolIDKey(ctx *fiber.Ctx, keyPoolID externalRef0.KeyPoolId, params GetKeypoolKeyPoolIDKeyParams) error {
-	var request GetKeypoolKeyPoolIDKeyRequestObject
+// GetKeypoolKeyPoolID operation middleware
+func (sh *strictHandler) GetKeypoolKeyPoolID(ctx *fiber.Ctx, keyPoolID externalRef0.KeyPoolId) error {
+	var request GetKeypoolKeyPoolIDRequestObject
 
 	request.KeyPoolID = keyPoolID
-	request.Params = params
 
 	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
-		return sh.ssi.GetKeypoolKeyPoolIDKey(ctx.UserContext(), request.(GetKeypoolKeyPoolIDKeyRequestObject))
+		return sh.ssi.GetKeypoolKeyPoolID(ctx.UserContext(), request.(GetKeypoolKeyPoolIDRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetKeypoolKeyPoolIDKey")
+		handler = middleware(handler, "GetKeypoolKeyPoolID")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetKeypoolKeyPoolIDKeyResponseObject); ok {
-		if err := validResponse.VisitGetKeypoolKeyPoolIDKeyResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(GetKeypoolKeyPoolIDResponseObject); ok {
+		if err := validResponse.VisitGetKeypoolKeyPoolIDResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -904,56 +1341,168 @@ func (sh *strictHandler) PostKeypoolKeyPoolIDKey(ctx *fiber.Ctx, keyPoolID exter
 	return nil
 }
 
+// GetKeypoolKeyPoolIDKeyKeyID operation middleware
+func (sh *strictHandler) GetKeypoolKeyPoolIDKeyKeyID(ctx *fiber.Ctx, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId) error {
+	var request GetKeypoolKeyPoolIDKeyKeyIDRequestObject
+
+	request.KeyPoolID = keyPoolID
+	request.KeyID = keyID
+
+	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+		return sh.ssi.GetKeypoolKeyPoolIDKeyKeyID(ctx.UserContext(), request.(GetKeypoolKeyPoolIDKeyKeyIDRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetKeypoolKeyPoolIDKeyKeyID")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetKeypoolKeyPoolIDKeyKeyIDResponseObject); ok {
+		if err := validResponse.VisitGetKeypoolKeyPoolIDKeyKeyIDResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetKeypoolKeyPoolIDKeys operation middleware
+func (sh *strictHandler) GetKeypoolKeyPoolIDKeys(ctx *fiber.Ctx, keyPoolID externalRef0.KeyPoolId, params GetKeypoolKeyPoolIDKeysParams) error {
+	var request GetKeypoolKeyPoolIDKeysRequestObject
+
+	request.KeyPoolID = keyPoolID
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+		return sh.ssi.GetKeypoolKeyPoolIDKeys(ctx.UserContext(), request.(GetKeypoolKeyPoolIDKeysRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetKeypoolKeyPoolIDKeys")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetKeypoolKeyPoolIDKeysResponseObject); ok {
+		if err := validResponse.VisitGetKeypoolKeyPoolIDKeysResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetKeypools operation middleware
+func (sh *strictHandler) GetKeypools(ctx *fiber.Ctx, params GetKeypoolsParams) error {
+	var request GetKeypoolsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+		return sh.ssi.GetKeypools(ctx.UserContext(), request.(GetKeypoolsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetKeypools")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetKeypoolsResponseObject); ok {
+		if err := validResponse.VisitGetKeypoolsResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
+// GetKeys operation middleware
+func (sh *strictHandler) GetKeys(ctx *fiber.Ctx, params GetKeysParams) error {
+	var request GetKeysRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
+		return sh.ssi.GetKeys(ctx.UserContext(), request.(GetKeysRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetKeys")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	} else if validResponse, ok := response.(GetKeysResponseObject); ok {
+		if err := validResponse.VisitGetKeysResponse(ctx); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+		}
+	} else if response != nil {
+		return fmt.Errorf("unexpected response type: %T", response)
+	}
+	return nil
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"I/F1TwAA",
+	"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",
+	"NwAA///8uoqpxGAAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

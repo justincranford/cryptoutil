@@ -182,14 +182,50 @@ type KeyPoolId = openapi_types.UUID
 // KeyPoolImportAllowed Indicates if the Key Pool supports import (BYOK).
 type KeyPoolImportAllowed = bool
 
+// KeyPoolKeysQueryParams defines model for KeyPoolKeysQueryParams.
+type KeyPoolKeysQueryParams struct {
+	Id *[]KeyId `json:"id,omitempty"`
+
+	// MaxGenerateDate ISO 8601 UTC timestamp of Key generation.
+	MaxGenerateDate *KeyGenerateDate `json:"max_generate_date,omitempty"`
+
+	// MinGenerateDate ISO 8601 UTC timestamp of Key generation.
+	MinGenerateDate *KeyGenerateDate `json:"min_generate_date,omitempty"`
+
+	// Page Page number starting at 0.
+	Page *PageNumber `json:"page,omitempty"`
+
+	// Size Page number.
+	Size *PageSize  `json:"size,omitempty"`
+	Sort *[]KeySort `json:"sort,omitempty"`
+}
+
 // KeyPoolName Friendly name for a Key Pool.
 type KeyPoolName = string
 
 // KeyPoolProvider Provider of the Key Pool management service.
 type KeyPoolProvider string
 
-// KeyPoolQueryParams defines model for KeyPoolQueryParams.
-type KeyPoolQueryParams struct {
+// KeyPoolSort defines model for KeyPoolSort.
+type KeyPoolSort string
+
+// KeyPoolStatus Status of the Key Pool.
+type KeyPoolStatus string
+
+// KeyPoolUpdate defines model for KeyPoolUpdate.
+type KeyPoolUpdate struct {
+	// Description Description for a Key Pool.
+	Description KeyPoolDescription `json:"description"`
+
+	// Name Friendly name for a Key Pool.
+	Name KeyPoolName `json:"name"`
+}
+
+// KeyPoolVersioningAllowed Indicates if the Key Pool supports versioning.
+type KeyPoolVersioningAllowed = bool
+
+// KeyPoolsQueryParams defines model for KeyPoolsQueryParams.
+type KeyPoolsQueryParams struct {
 	Algorithm *[]KeyPoolAlgorithm `json:"algorithm,omitempty"`
 
 	// ExportAllowed Indicates if the Key Pool supports export.
@@ -213,26 +249,20 @@ type KeyPoolQueryParams struct {
 	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// KeyPoolSort defines model for KeyPoolSort.
-type KeyPoolSort string
+// KeySort defines model for KeySort.
+type KeySort string
 
-// KeyPoolStatus Status of the Key Pool.
-type KeyPoolStatus string
+// KeyUpdate defines model for KeyUpdate.
+type KeyUpdate struct {
+	// Id Unique version of the Key in a Key Pool.
+	Id KeyId `json:"id"`
 
-// KeyPoolUpdate defines model for KeyPoolUpdate.
-type KeyPoolUpdate struct {
-	// Description Description for a Key Pool.
-	Description KeyPoolDescription `json:"description"`
-
-	// Name Friendly name for a Key Pool.
-	Name KeyPoolName `json:"name"`
+	// Pool Unique UUID for a Key Pool.
+	Pool KeyPoolId `json:"pool"`
 }
 
-// KeyPoolVersioningAllowed Indicates if the Key Pool supports versioning.
-type KeyPoolVersioningAllowed = bool
-
-// KeyQueryParams defines model for KeyQueryParams.
-type KeyQueryParams struct {
+// KeysQueryParams defines model for KeysQueryParams.
+type KeysQueryParams struct {
 	Id *[]KeyId `json:"id,omitempty"`
 
 	// MaxGenerateDate ISO 8601 UTC timestamp of Key generation.
@@ -248,18 +278,6 @@ type KeyQueryParams struct {
 	// Size Page number.
 	Size *PageSize  `json:"size,omitempty"`
 	Sort *[]KeySort `json:"sort,omitempty"`
-}
-
-// KeySort defines model for KeySort.
-type KeySort string
-
-// KeyUpdate defines model for KeyUpdate.
-type KeyUpdate struct {
-	// Id Unique version of the Key in a Key Pool.
-	Id KeyId `json:"id"`
-
-	// Pool Unique UUID for a Key Pool.
-	Pool KeyPoolId `json:"pool"`
 }
 
 // PageNumber Page number starting at 0.
@@ -388,45 +406,45 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"//8V27tOYDMAAA==",
+	"H4sIAAAAAAAC/+xabXPbuBH+Kxi0H5IZxZFk6easb07kXDVuHDeWO3NNMw5ErCTckAADgLJ1Gf33DkDw",
+	"BRKlI2n57Hb6xRbxursPsM8Cix84EFEsOHCt8OgHjokkEWiQ9usS1tdChP9IQK6vTc15uBCS6WVkqymo",
+	"QLJYM8HxCH9goQaJZmsUyHWsxUKSeMkCRLI+J7iD4SEOBQU80jKBDmam43czPO5gTiLAI5y3xx2sgiVE",
+	"xMzFNKST/lXCHI/wX94Wgr9Nm6m3Tt5cSrzpYL2O7ahSkrX5VnodmoK5kLZ+R8eLh1hIfR6G4h7oITXv",
+	"l6CXIBHYDogpRNJORtEqzdKGd66Vp14NrXy5NlWiT+hBXPQS0CWskemEJmP06vZ2Mn5dExZGW+Mxoa2A",
+	"mEQNgWBRTSDShm2B8OWqBOKKRFAfCiNVTRTsv7Y4GKlaIXFNFnCVRDOQdsoKuWKygNp2LA232TfdDfsd",
+	"9k2mTF2Tyexg1VNJsWLUubt9YOVAxa51TbCy5q0By6RrBdqNkLpCrZsYAjZfIyWkZnyBiELf5gxCalbH",
+	"iDIJgWn5Db2Ck8VJB30zyoyICr69PkGfIQaiUc4SaC4kipJQszgEOySyY6maFjI9WlvHKNjOMproRDXY",
+	"oMp2qKuTbdxeq7R7G73+CVIxwRlfNHCaq7xTDcdZNG7rPHdldPuyMYtNxk/LXLVZq5A857tmNJwkjNal",
+	"4ViI8OmJuFDpI3lgURL9Ahwk0TAmGuroFqXd0ML1Q9T8ecV4ECaKreD1vhUWkYe7rNOd6dRkgXlS7qyr",
+	"j4y3UiXt1kIVxp9KlScn5D+JjI/PVoy+OK6qx1ObDpagYsEdMf1tOr0edLvvCP0M3xNQ2hQGgmvg9ieJ",
+	"45AFxGj/9jdljPWjJBsJw09zPPpyWDgzx4WUwgQYP0y4EoPULJ0fbLn58UCi2Ar6jlCUCZOro7RkfGH0",
+	"iUAps+q8PtMlIJn2QYFIQoq40GgGKOEm7NJCUCQkuicKRUwpg7FpziTQAjoL0c58jmjL0w263Q52vif7",
+	"Srev+3KDMK5h4Va7KxKz3yDQePN1Ywr9VVhWfNNx0PRuOUn0Ukj2e8q0zwuOJ01ddM4TvQSunahoTlgI",
+	"Fo9EgURUgLJwLckKUAzSIiS4slvJ+EcKyiJF7C6sj1LPQ6nnodRri5JngRym0w9CzhilwJ8fo0KUlgCp",
+	"JAgAKFA0S7RFgBQNgFbBRoIAlEJa2OYSlEhkAPWhOvWgOvWgOm0LVWGIHKfBldAfRMJfwFa6EhqlorTw",
+	"ckBzI/sOb25GrG/3gWf3gWf3QVu7F5pldu+fTYX4SPja+Tf1/OafCoGMRCgXqS4Mv4okXfQKuEZaCBSZ",
+	"cRwyCjGOCFqwFXBEIpFwjcQcaRbV3w79szIs9iuHxXy1g2VXYwfPsNudcA2Sk/AG5ArkRWau54UoEwql",
+	"UqG0a22nxlHC4SGGwOwWOzwSQZBIQyWCW0el7MB1cRl6vD/0eH/Ynver1cyx6b8j9Bei4Z6sX0ZwlgnT",
+	"xG2lhkYSAmArQ+UcMb4iIbN+zMajaC5FZFFJYqUlkKgxPH0Pnr4HT/8xYVmmcg7KqcGKBXDLyYqwkMxC",
+	"eH5wnEyoLFQLkJhCdpdwHa5Rws0whtiXhFPzqxRq08TWaIhiIYlcI7ECGQpig7uIGENzwuvHAUMvDhh6",
+	"ccCwfRxQZZccyYHDdsoiEMkLOP84eVAmUAsEKUvjAbfdELH0E66PudcGHlIDD6nWkcO27qaFM2N2Ws25",
+	"aY8h/QFND3exijKrWVH/Dnyhl3jUO2xef7Qx6PTskrJJ7QELA+6XLhDUjpTb9OysxrEyO8Xi0ZfiShgc",
+	"T2byfd2xvb0W2TWif4/U9PqogxmtfeNpbxjr3yduqlXIBLCbkVJm7ErC65JScxIqONy5+opucvMJ/fxT",
+	"t4dup+/t9lGaRLEJ5S5hnV3TueNosQn73f7wTff0TW8w7fVH3e6o2/0X7tjLF6LxCBvDvjGjVe2z1Dg7",
+	"ktxy9j2B7ArdBpPu0tBGmtklrydI2XNWHHXza/3dNVAkxlukwT3Ba3Ufl3psOtvJ61Y565rrsLiq3krU",
+	"tsrPZhd4jVKkeequeaKucCmNsj0VqZXHZFSqtpW/KHZW8/vqZxv5ZY+3nLlZv1/w+cXNm/7wJ9yxv3pn",
+	"/exX/2fj3Eoxf96wanOZYd9LcNv9f3DZ/xeu4yMvyDIfulcMZXC+7l+yYx/DbeLPv+xC3eN18XTJVJF1",
+	"YwolCqgJkYHb50p2hV+TtRRhiMZEkxlRjvWz+KE/HP5hPFG5AHYZjFN7YacQm29lmpPY9FTuUZGng0+Y",
+	"MyFCILw06QGGur2djCvMk5NfkjB6YGv+wUucGuq4pzmv3v366fJ1I60uYa2KNJHa9Q8ppTwuq7ubdWwe",
+	"Yu2m+5qPEbvgtm6yrpOm32pn3TppFuvRyasDBHPlnNTWha9kwGm4tm+dDm7Uw3vwp9O6W/C65Pl8WbKa",
+	"crxmV2tEOFlABFzbMxdLj8cZ1WWXQT6v5aX7JblxJs8GYnR0fvMem2BoNL6wv+wbm/PipyvOvLeryj9d",
+	"dc6Mrr74dg12XbhrWVHhuvhMlQnqF7qmPjW6pluFrmkaE7km7sNWfT1gtj1Hs7R8G7wyUoGJJMxgueRp",
+	"YsuYEDg1WqflpYJs5+JOcdbKe5FAs5VlLKbIzB+JQgga7u6Juts3WanJ3vlLbfLZKuoOC7ArudJEaqCu",
+	"kXH5jDO1LEq8xVwy3D5UbmNaGaU9OtBqHNw8Kqao8VSqBqsV28jzYekbgr2MdpjOvHD3aK+ej3l6e/yL",
+	"o+OGw8d4AtuceMuR9dHedD4xmR9+NZm52+O8VvwTzrPbxOrexpl/GWOanxmz0ZRyt7l3+4mW9+1a+2WH",
+	"mGuff3zSC7iyH3RGYHSf+/t/NH1gUzvTH+FR5YuJy/23gluhMFkA4rYS2VDBvrHTqOvxWTmb2q26siy/",
+	"Edw7gTdkf+glKUoTVGUDDWXwudh3ZYU+X9xM0fn15N/2YQ3T6Y3T9aSIdPEId0+6Jz0jrYiBk5jhET49",
+	"6Z6cGjdB9FLhEU/CcPOfAAAA//857KWoEjUAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

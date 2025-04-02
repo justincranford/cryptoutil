@@ -44,9 +44,45 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /keypool/{keyPoolID}:
+    parameters:
+      - name: keyPoolID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
     get:
-      summary: List all Key Pools. Supports optional filtering, sorting, and paging.
-      description: List all Key Pools. Supports optional filtering, sorting, and paging.
+      summary: Get a Key Pool.
+      description: Get a Key Pool.
+      responses:
+        '200':
+          description: Key Pool retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/KeyPool'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /keypools:
+    get:
+      summary: Find Key Pools. Supports optional filtering, sorting, and paging.
+      description: Find Key Pools. Supports optional filtering, sorting, and paging.
       parameters:
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamIds'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamNames'
@@ -128,9 +164,94 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /keypool/{keyPoolID}/key/{keyID}:
+    parameters:
+      - name: keyPoolID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+      - name: keyID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/KeyId'
     get:
-      summary: List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
-      description: List all Keys in Key Pool. Supports optional filtering, sorting, and paging.
+      summary: Get Key in Key Pool.
+      description: Get Key in Key Pool.
+      responses:
+        '200':
+          description: A JSON array of 0, 1, or many Keys in a Key Pool.
+          content:
+            application/json:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/Key'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /keypool/{keyPoolID}/keys:
+    parameters:
+      - name: keyPoolID
+        in: path
+        required: true
+        schema:
+          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+    get:
+      summary: Find Keys in Key Pool. Supports optional filtering, sorting, and paging.
+      description: Find Keys in Key Pool. Supports optional filtering, sorting, and paging.
+      parameters:
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMinimumGenerateDate'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMaximumGenerateDate'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamSorts'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageNumber'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageSize'
+      responses:
+        '200':
+          description: A JSON array of 0, 1, or many Keys in a Key Pool.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: './openapi_spec_components.yaml#/components/schemas/Key'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /keys:
+    get:
+      summary: Find Keys. Supports optional filtering, sorting, and paging.
+      description: Find Keys. Supports optional filtering, sorting, and paging.
       parameters:
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamKeyPoolIds'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamIds'

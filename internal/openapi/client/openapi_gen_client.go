@@ -22,8 +22,25 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// GetKeypoolParams defines parameters for GetKeypool.
-type GetKeypoolParams struct {
+// GetKeypoolKeyPoolIDKeysParams defines parameters for GetKeypoolKeyPoolIDKeys.
+type GetKeypoolKeyPoolIDKeysParams struct {
+	// Id Filter by the Key ID.
+	Id *externalRef0.KeyQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
+
+	// MinGenerateDate Filter by the Key minimum generate date (inclusive).
+	MinGenerateDate *externalRef0.KeyQueryParamMinimumGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
+
+	// MaxGenerateDate Filter by the Key maximum generate date (inclusive).
+	MaxGenerateDate *externalRef0.KeyQueryParamMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
+
+	// Sort Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
+	Sort *externalRef0.KeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
+	Page *externalRef0.KeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.KeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
+}
+
+// GetKeypoolsParams defines parameters for GetKeypools.
+type GetKeypoolsParams struct {
 	// Id Filter by the Key Pool ID (UUID).
 	Id *externalRef0.KeyPoolQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
 
@@ -54,8 +71,8 @@ type GetKeypoolParams struct {
 	Size *externalRef0.KeyPoolQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
-// GetKeypoolKeyPoolIDKeyParams defines parameters for GetKeypoolKeyPoolIDKey.
-type GetKeypoolKeyPoolIDKeyParams struct {
+// GetKeysParams defines parameters for GetKeys.
+type GetKeysParams struct {
 	// Pool Filter by the Key Pool ID (uuid).
 	Pool *externalRef0.KeyQueryParamKeyPoolIds `form:"pool,omitempty" json:"pool,omitempty"`
 
@@ -153,33 +170,30 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// GetKeypool request
-	GetKeypool(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*http.Response, error)
-
 	// PostKeypoolWithBody request with any body
 	PostKeypoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PostKeypool(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetKeypoolKeyPoolIDKey request
-	GetKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetKeypoolKeyPoolID request
+	GetKeypoolKeyPoolID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostKeypoolKeyPoolIDKeyWithBody request with any body
 	PostKeypoolKeyPoolIDKeyWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	PostKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
-}
 
-func (c *Client) GetKeypool(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKeypoolRequest(c.Server, params)
-	if err != nil {
-		return nil, err
-	}
-	req = req.WithContext(ctx)
-	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
-		return nil, err
-	}
-	return c.Client.Do(req)
+	// GetKeypoolKeyPoolIDKeyKeyID request
+	GetKeypoolKeyPoolIDKeyKeyID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetKeypoolKeyPoolIDKeys request
+	GetKeypoolKeyPoolIDKeys(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetKeypools request
+	GetKeypools(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetKeys request
+	GetKeys(ctx context.Context, params *GetKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) PostKeypoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -206,8 +220,8 @@ func (c *Client) PostKeypool(ctx context.Context, body PostKeypoolJSONRequestBod
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKeypoolKeyPoolIDKeyRequest(c.Server, keyPoolID, params)
+func (c *Client) GetKeypoolKeyPoolID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeypoolKeyPoolIDRequest(c.Server, keyPoolID)
 	if err != nil {
 		return nil, err
 	}
@@ -242,8 +256,67 @@ func (c *Client) PostKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID external
 	return c.Client.Do(req)
 }
 
-// NewGetKeypoolRequest generates requests for GetKeypool
-func NewGetKeypoolRequest(server string, params *GetKeypoolParams) (*http.Request, error) {
+func (c *Client) GetKeypoolKeyPoolIDKeyKeyID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeypoolKeyPoolIDKeyKeyIDRequest(c.Server, keyPoolID, keyID)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetKeypoolKeyPoolIDKeys(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeypoolKeyPoolIDKeysRequest(c.Server, keyPoolID, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetKeypools(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeypoolsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) GetKeys(ctx context.Context, params *GetKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetKeysRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// NewPostKeypoolRequest calls the generic PostKeypool builder with application/json body
+func NewPostKeypoolRequest(server string, body PostKeypoolJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostKeypoolRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostKeypoolRequestWithBody generates requests for PostKeypool with any type of body
+func NewPostKeypoolRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -252,6 +325,293 @@ func NewGetKeypoolRequest(server string, params *GetKeypoolParams) (*http.Reques
 	}
 
 	operationPath := fmt.Sprintf("/keypool")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetKeypoolKeyPoolIDRequest generates requests for GetKeypoolKeyPoolID
+func NewGetKeypoolKeyPoolIDRequest(server string, keyPoolID externalRef0.KeyPoolId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/keypool/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewPostKeypoolKeyPoolIDKeyRequest calls the generic PostKeypoolKeyPoolIDKey builder with application/json body
+func NewPostKeypoolKeyPoolIDKeyRequest(server string, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostKeypoolKeyPoolIDKeyRequestWithBody(server, keyPoolID, "application/json", bodyReader)
+}
+
+// NewPostKeypoolKeyPoolIDKeyRequestWithBody generates requests for PostKeypoolKeyPoolIDKey with any type of body
+func NewPostKeypoolKeyPoolIDKeyRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/keypool/%s/key", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewGetKeypoolKeyPoolIDKeyKeyIDRequest generates requests for GetKeypoolKeyPoolIDKeyKeyID
+func NewGetKeypoolKeyPoolIDKeyKeyIDRequest(server string, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithLocation("simple", false, "keyID", runtime.ParamLocationPath, keyID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/keypool/%s/key/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetKeypoolKeyPoolIDKeysRequest generates requests for GetKeypoolKeyPoolIDKeys
+func NewGetKeypoolKeyPoolIDKeysRequest(server string, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/keypool/%s/keys", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Id != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "id", runtime.ParamLocationQuery, *params.Id); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MinGenerateDate != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_generate_date", runtime.ParamLocationQuery, *params.MinGenerateDate); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.MaxGenerateDate != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_generate_date", runtime.ParamLocationQuery, *params.MaxGenerateDate); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Sort != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Page != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		if params.Size != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetKeypoolsRequest generates requests for GetKeypools
+func NewGetKeypoolsRequest(server string, params *GetKeypoolsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/keypools")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -451,19 +811,8 @@ func NewGetKeypoolRequest(server string, params *GetKeypoolParams) (*http.Reques
 	return req, nil
 }
 
-// NewPostKeypoolRequest calls the generic PostKeypool builder with application/json body
-func NewPostKeypoolRequest(server string, body PostKeypoolJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostKeypoolRequestWithBody(server, "application/json", bodyReader)
-}
-
-// NewPostKeypoolRequestWithBody generates requests for PostKeypool with any type of body
-func NewPostKeypoolRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewGetKeysRequest generates requests for GetKeys
+func NewGetKeysRequest(server string, params *GetKeysParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -471,43 +820,7 @@ func NewPostKeypoolRequestWithBody(server string, contentType string, body io.Re
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
-// NewGetKeypoolKeyPoolIDKeyRequest generates requests for GetKeypoolKeyPoolIDKey
-func NewGetKeypoolKeyPoolIDKeyRequest(server string, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeyParams) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/keypool/%s/key", pathParam0)
+	operationPath := fmt.Sprintf("/keys")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -643,53 +956,6 @@ func NewGetKeypoolKeyPoolIDKeyRequest(server string, keyPoolID externalRef0.KeyP
 	return req, nil
 }
 
-// NewPostKeypoolKeyPoolIDKeyRequest calls the generic PostKeypoolKeyPoolIDKey builder with application/json body
-func NewPostKeypoolKeyPoolIDKeyRequest(server string, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody) (*http.Request, error) {
-	var bodyReader io.Reader
-	buf, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	bodyReader = bytes.NewReader(buf)
-	return NewPostKeypoolKeyPoolIDKeyRequestWithBody(server, keyPoolID, "application/json", bodyReader)
-}
-
-// NewPostKeypoolKeyPoolIDKeyRequestWithBody generates requests for PostKeypoolKeyPoolIDKey with any type of body
-func NewPostKeypoolKeyPoolIDKeyRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader) (*http.Request, error) {
-	var err error
-
-	var pathParam0 string
-
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
-	if err != nil {
-		return nil, err
-	}
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/keypool/%s/key", pathParam0)
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", queryURL.String(), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Add("Content-Type", contentType)
-
-	return req, nil
-}
-
 func (c *Client) applyEditors(ctx context.Context, req *http.Request, additionalEditors []RequestEditorFn) error {
 	for _, r := range c.RequestEditors {
 		if err := r(ctx, req); err != nil {
@@ -733,52 +999,30 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// GetKeypoolWithResponse request
-	GetKeypoolWithResponse(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*GetKeypoolResponse, error)
-
 	// PostKeypoolWithBodyWithResponse request with any body
 	PostKeypoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error)
 
 	PostKeypoolWithResponse(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error)
 
-	// GetKeypoolKeyPoolIDKeyWithResponse request
-	GetKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyResponse, error)
+	// GetKeypoolKeyPoolIDWithResponse request
+	GetKeypoolKeyPoolIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDResponse, error)
 
 	// PostKeypoolKeyPoolIDKeyWithBodyWithResponse request with any body
 	PostKeypoolKeyPoolIDKeyWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error)
 
 	PostKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error)
-}
 
-type GetKeypoolResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON200      *[]externalRef0.KeyPool
-	JSON400      *externalRef0.HTTP400BadRequest
-	JSON401      *externalRef0.HTTP401Unauthorized
-	JSON403      *externalRef0.HTTP403Forbidden
-	JSON404      *externalRef0.HTTP404NotFound
-	JSON429      *externalRef0.HTTP429TooManyRequests
-	JSON500      *externalRef0.HTTP500InternalServerError
-	JSON502      *externalRef0.HTTP502BadGateway
-	JSON503      *externalRef0.HTTP503ServiceUnavailable
-	JSON504      *externalRef0.HTTP504GatewayTimeout
-}
+	// GetKeypoolKeyPoolIDKeyKeyIDWithResponse request
+	GetKeypoolKeyPoolIDKeyKeyIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyKeyIDResponse, error)
 
-// Status returns HTTPResponse.Status
-func (r GetKeypoolResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
+	// GetKeypoolKeyPoolIDKeysWithResponse request
+	GetKeypoolKeyPoolIDKeysWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeysResponse, error)
 
-// StatusCode returns HTTPResponse.StatusCode
-func (r GetKeypoolResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
+	// GetKeypoolsWithResponse request
+	GetKeypoolsWithResponse(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*GetKeypoolsResponse, error)
+
+	// GetKeysWithResponse request
+	GetKeysWithResponse(ctx context.Context, params *GetKeysParams, reqEditors ...RequestEditorFn) (*GetKeysResponse, error)
 }
 
 type PostKeypoolResponse struct {
@@ -812,10 +1056,10 @@ func (r PostKeypoolResponse) StatusCode() int {
 	return 0
 }
 
-type GetKeypoolKeyPoolIDKeyResponse struct {
+type GetKeypoolKeyPoolIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef0.Key
+	JSON200      *externalRef0.KeyPool
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -828,7 +1072,7 @@ type GetKeypoolKeyPoolIDKeyResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetKeypoolKeyPoolIDKeyResponse) Status() string {
+func (r GetKeypoolKeyPoolIDResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -836,7 +1080,7 @@ func (r GetKeypoolKeyPoolIDKeyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetKeypoolKeyPoolIDKeyResponse) StatusCode() int {
+func (r GetKeypoolKeyPoolIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -874,13 +1118,128 @@ func (r PostKeypoolKeyPoolIDKeyResponse) StatusCode() int {
 	return 0
 }
 
-// GetKeypoolWithResponse request returning *GetKeypoolResponse
-func (c *ClientWithResponses) GetKeypoolWithResponse(ctx context.Context, params *GetKeypoolParams, reqEditors ...RequestEditorFn) (*GetKeypoolResponse, error) {
-	rsp, err := c.GetKeypool(ctx, params, reqEditors...)
-	if err != nil {
-		return nil, err
+type GetKeypoolKeyPoolIDKeyKeyIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.Key
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetKeypoolKeyPoolIDKeyKeyIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
 	}
-	return ParseGetKeypoolResponse(rsp)
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetKeypoolKeyPoolIDKeyKeyIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetKeypoolKeyPoolIDKeysResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]externalRef0.Key
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetKeypoolKeyPoolIDKeysResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetKeypoolKeyPoolIDKeysResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetKeypoolsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]externalRef0.KeyPool
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetKeypoolsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetKeypoolsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetKeysResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *[]externalRef0.Key
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetKeysResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetKeysResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
 }
 
 // PostKeypoolWithBodyWithResponse request with arbitrary body returning *PostKeypoolResponse
@@ -900,13 +1259,13 @@ func (c *ClientWithResponses) PostKeypoolWithResponse(ctx context.Context, body 
 	return ParsePostKeypoolResponse(rsp)
 }
 
-// GetKeypoolKeyPoolIDKeyWithResponse request returning *GetKeypoolKeyPoolIDKeyResponse
-func (c *ClientWithResponses) GetKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeyParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyResponse, error) {
-	rsp, err := c.GetKeypoolKeyPoolIDKey(ctx, keyPoolID, params, reqEditors...)
+// GetKeypoolKeyPoolIDWithResponse request returning *GetKeypoolKeyPoolIDResponse
+func (c *ClientWithResponses) GetKeypoolKeyPoolIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDResponse, error) {
+	rsp, err := c.GetKeypoolKeyPoolID(ctx, keyPoolID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetKeypoolKeyPoolIDKeyResponse(rsp)
+	return ParseGetKeypoolKeyPoolIDResponse(rsp)
 }
 
 // PostKeypoolKeyPoolIDKeyWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDKeyResponse
@@ -926,93 +1285,40 @@ func (c *ClientWithResponses) PostKeypoolKeyPoolIDKeyWithResponse(ctx context.Co
 	return ParsePostKeypoolKeyPoolIDKeyResponse(rsp)
 }
 
-// ParseGetKeypoolResponse parses an HTTP response from a GetKeypoolWithResponse call
-func ParseGetKeypoolResponse(rsp *http.Response) (*GetKeypoolResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
+// GetKeypoolKeyPoolIDKeyKeyIDWithResponse request returning *GetKeypoolKeyPoolIDKeyKeyIDResponse
+func (c *ClientWithResponses) GetKeypoolKeyPoolIDKeyKeyIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyKeyIDResponse, error) {
+	rsp, err := c.GetKeypoolKeyPoolIDKeyKeyID(ctx, keyPoolID, keyID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
+	return ParseGetKeypoolKeyPoolIDKeyKeyIDResponse(rsp)
+}
 
-	response := &GetKeypoolResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
+// GetKeypoolKeyPoolIDKeysWithResponse request returning *GetKeypoolKeyPoolIDKeysResponse
+func (c *ClientWithResponses) GetKeypoolKeyPoolIDKeysWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeysResponse, error) {
+	rsp, err := c.GetKeypoolKeyPoolIDKeys(ctx, keyPoolID, params, reqEditors...)
+	if err != nil {
+		return nil, err
 	}
+	return ParseGetKeypoolKeyPoolIDKeysResponse(rsp)
+}
 
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef0.KeyPool
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.HTTP400BadRequest
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.HTTP401Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.HTTP403Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.HTTP404NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
-		var dest externalRef0.HTTP429TooManyRequests
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON429 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.HTTP500InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
-		var dest externalRef0.HTTP502BadGateway
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON502 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
-		var dest externalRef0.HTTP503ServiceUnavailable
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON503 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
-		var dest externalRef0.HTTP504GatewayTimeout
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON504 = &dest
-
+// GetKeypoolsWithResponse request returning *GetKeypoolsResponse
+func (c *ClientWithResponses) GetKeypoolsWithResponse(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*GetKeypoolsResponse, error) {
+	rsp, err := c.GetKeypools(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
 	}
+	return ParseGetKeypoolsResponse(rsp)
+}
 
-	return response, nil
+// GetKeysWithResponse request returning *GetKeysResponse
+func (c *ClientWithResponses) GetKeysWithResponse(ctx context.Context, params *GetKeysParams, reqEditors ...RequestEditorFn) (*GetKeysResponse, error) {
+	rsp, err := c.GetKeys(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetKeysResponse(rsp)
 }
 
 // ParsePostKeypoolResponse parses an HTTP response from a PostKeypoolWithResponse call
@@ -1104,22 +1410,22 @@ func ParsePostKeypoolResponse(rsp *http.Response) (*PostKeypoolResponse, error) 
 	return response, nil
 }
 
-// ParseGetKeypoolKeyPoolIDKeyResponse parses an HTTP response from a GetKeypoolKeyPoolIDKeyWithResponse call
-func ParseGetKeypoolKeyPoolIDKeyResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDKeyResponse, error) {
+// ParseGetKeypoolKeyPoolIDResponse parses an HTTP response from a GetKeypoolKeyPoolIDWithResponse call
+func ParseGetKeypoolKeyPoolIDResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetKeypoolKeyPoolIDKeyResponse{
+	response := &GetKeypoolKeyPoolIDResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef0.Key
+		var dest externalRef0.KeyPool
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1282,56 +1588,414 @@ func ParsePostKeypoolKeyPoolIDKeyResponse(rsp *http.Response) (*PostKeypoolKeyPo
 	return response, nil
 }
 
+// ParseGetKeypoolKeyPoolIDKeyKeyIDResponse parses an HTTP response from a GetKeypoolKeyPoolIDKeyKeyIDWithResponse call
+func ParseGetKeypoolKeyPoolIDKeyKeyIDResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDKeyKeyIDResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetKeypoolKeyPoolIDKeyKeyIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.Key
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetKeypoolKeyPoolIDKeysResponse parses an HTTP response from a GetKeypoolKeyPoolIDKeysWithResponse call
+func ParseGetKeypoolKeyPoolIDKeysResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDKeysResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetKeypoolKeyPoolIDKeysResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []externalRef0.Key
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetKeypoolsResponse parses an HTTP response from a GetKeypoolsWithResponse call
+func ParseGetKeypoolsResponse(rsp *http.Response) (*GetKeypoolsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetKeypoolsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []externalRef0.KeyPool
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetKeysResponse parses an HTTP response from a GetKeysWithResponse call
+func ParseGetKeysResponse(rsp *http.Response) (*GetKeysResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetKeysResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []externalRef0.Key
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"I/F1TwAA",
+	"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",
+	"NwAA///8uoqpxGAAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

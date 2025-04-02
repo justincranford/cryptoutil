@@ -350,7 +350,7 @@ components:
         - generate_date:ASC
         - generate_date:DESC
 
-    KeyPoolQueryParams:
+    KeyPoolsQueryParams:
       type: object
       properties:
         id:
@@ -388,7 +388,27 @@ components:
         size:
           $ref: '#/components/schemas/PageSize'
 
-    KeyQueryParams:
+    KeyPoolKeysQueryParams:
+      type: object
+      properties:
+        id:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyId'
+        min_generate_date:
+          $ref: '#/components/schemas/KeyGenerateDate'
+        max_generate_date:
+          $ref: '#/components/schemas/KeyGenerateDate'
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeySort'
+        page:
+          $ref: '#/components/schemas/PageNumber'
+        size:
+          $ref: '#/components/schemas/PageSize'
+
+    KeysQueryParams:
       type: object
       properties:
         pool:
