@@ -30,18 +30,18 @@ func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolReques
 
 func (s *StrictServer) GetKeypoolKeyPoolID(ctx context.Context, openapiGetKeypoolKeyPoolIDRequestObject cryptoutilOpenapiServer.GetKeypoolKeyPoolIDRequestObject) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDResponseObject, error) {
 	keyPoolID := openapiGetKeypoolKeyPoolIDRequestObject.KeyPoolID
-	keyPool, err := s.businessLogicService.GetKeyPool(ctx, keyPoolID)
+	keyPool, err := s.businessLogicService.GetKeyPoolByKeyPoolID(ctx, keyPoolID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get KeyPools: %w", err)
+		return nil, fmt.Errorf("failed to get KeyPool by KeyPoolID: %w", err)
 	}
 	return cryptoutilOpenapiServer.GetKeypoolKeyPoolID200JSONResponse(*keyPool), err
 }
 
 func (s *StrictServer) GetKeypools(ctx context.Context, openapiGetKeypoolRequestObject cryptoutilOpenapiServer.GetKeypoolsRequestObject) (cryptoutilOpenapiServer.GetKeypoolsResponseObject, error) {
 	keyPoolsQueryParams := s.openapiMapper.toServiceModelGetKeyPoolQueryParams(&openapiGetKeypoolRequestObject.Params)
-	keyPools, err := s.businessLogicService.ListKeyPools(ctx, keyPoolsQueryParams)
+	keyPools, err := s.businessLogicService.GetKeyPools(ctx, keyPoolsQueryParams)
 	if err != nil {
-		return nil, fmt.Errorf("failed to list KeyPools: %w", err)
+		return nil, fmt.Errorf("failed to get KeyPools: %w", err)
 	}
 	return cryptoutilOpenapiServer.GetKeypools200JSONResponse(keyPools), err
 }
@@ -69,7 +69,7 @@ func (s *StrictServer) GetKeypoolKeyPoolIDKeyKeyID(ctx context.Context, openapiG
 func (s *StrictServer) GetKeypoolKeyPoolIDKeys(ctx context.Context, openapiGetKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysRequestObject) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysResponseObject, error) {
 	keyPoolID := openapiGetKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
 	keyPoolKeysQueryParams := s.openapiMapper.toServiceModelGetKeyPoolKeysQueryParams(&openapiGetKeypoolKeyPoolIDKeyRequestObject.Params)
-	keys, err := s.businessLogicService.ListKeysByKeyPool(ctx, keyPoolID, keyPoolKeysQueryParams)
+	keys, err := s.businessLogicService.GetKeysByKeyPool(ctx, keyPoolID, keyPoolKeysQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 	}
@@ -77,7 +77,7 @@ func (s *StrictServer) GetKeypoolKeyPoolIDKeys(ctx context.Context, openapiGetKe
 }
 func (s *StrictServer) GetKeys(ctx context.Context, openapiGetKeysRequestObject cryptoutilOpenapiServer.GetKeysRequestObject) (cryptoutilOpenapiServer.GetKeysResponseObject, error) {
 	keysQueryParams := s.openapiMapper.toServiceModelGetKeysQueryParams(&openapiGetKeysRequestObject.Params)
-	keys, err := s.businessLogicService.ListKeys(ctx, keysQueryParams)
+	keys, err := s.businessLogicService.GetKeys(ctx, keysQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 	}

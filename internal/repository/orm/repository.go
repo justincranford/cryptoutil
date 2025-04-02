@@ -71,7 +71,20 @@ func (s *RepositoryTransaction) AddKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
-func (s *RepositoryTransaction) UpdateKeyPool(keyPool *KeyPool) error {
+func (s *RepositoryTransaction) GetKeyPoolByKeyPoolID(keyPoolID uuid.UUID) (*KeyPool, error) {
+	if keyPoolID == uuidZero {
+		return nil, ErrKeyPoolIDMustBeNonZeroUUID
+	}
+	var keyPool KeyPool
+	err := s.state.gormTx.First(&keyPool, "key_pool_id=?", keyPoolID).Error
+	if err != nil {
+		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Key Pool by Key Pool ID", "error", err)
+		return nil, fmt.Errorf("failed to find Key Pool by Key Pool ID: %w", err)
+	}
+	return &keyPool, nil
+}
+
+func (s *RepositoryTransaction) UpdateKeyPoolByKeyPoolID(keyPool *KeyPool) error {
 	if keyPool.KeyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
 	}
@@ -95,6 +108,18 @@ func (s *RepositoryTransaction) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPool
 	return nil
 }
 
+func (s *RepositoryTransaction) GetKeyPools() ([]KeyPool, error) {
+	var keyPools []KeyPool
+	err := s.state.gormTx.Find(&keyPools).Error
+	// order := fmt.Sprintf("%s %s", sortBy, sortOrder)
+	// err := s.state.gormTx.Where(filter).Order(order).Offset(page * pageSize).Limit(pageSize).Find(&keyPools).Error
+	if err != nil {
+		s.repositoryProvider.telemetryService.Slogger.Error("failed to get Key Pools", "error", err)
+		return nil, fmt.Errorf("failed to get Key Pools: %w", err)
+	}
+	return keyPools, nil
+}
+
 func (s *RepositoryTransaction) AddKey(key *Key) error {
 	if key.KeyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
@@ -110,40 +135,6 @@ func (s *RepositoryTransaction) AddKey(key *Key) error {
 	return nil
 }
 
-func (s *RepositoryTransaction) FindKeyPools() ([]KeyPool, error) {
-	var keyPools []KeyPool
-	err := s.state.gormTx.Find(&keyPools).Error
-	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Key Pools", "error", err)
-		return nil, fmt.Errorf("failed to find Key Pools: %w", err)
-	}
-	return keyPools, nil
-}
-
-func (s *RepositoryTransaction) FindKeyPoolsAdvanced(filter map[string]any, sortBy, sortOrder string, page, pageSize int) ([]KeyPool, error) {
-	var keyPools []KeyPool
-	order := fmt.Sprintf("%s %s", sortBy, sortOrder)
-	err := s.state.gormTx.Where(filter).Order(order).Offset(page * pageSize).Limit(pageSize).Find(&keyPools).Error
-	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Key Pools", "error", err)
-		return nil, fmt.Errorf("failed to find Key Pools: %w", err)
-	}
-	return keyPools, nil
-}
-
-func (s *RepositoryTransaction) GetKeyPoolByID(keyPoolID uuid.UUID) (*KeyPool, error) {
-	if keyPoolID == uuidZero {
-		return nil, ErrKeyPoolIDMustBeNonZeroUUID
-	}
-	var keyPool KeyPool
-	err := s.state.gormTx.First(&keyPool, "key_pool_id=?", keyPoolID).Error
-	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Key Pool by Key Pool ID", "error", err)
-		return nil, fmt.Errorf("failed to find Key Pool by Key Pool ID: %w", err)
-	}
-	return &keyPool, nil
-}
-
 func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
 	if keyPoolID == uuidZero {
 		return nil, ErrKeyPoolIDMustBeNonZeroUUID
@@ -157,7 +148,7 @@ func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key,
 	return keys, nil
 }
 
-func (s *RepositoryTransaction) FindKeys() ([]Key, error) {
+func (s *RepositoryTransaction) GetKeys() ([]Key, error) {
 	var keys []Key
 	err := s.state.gormTx.Find(&keys).Error
 	if err != nil {
@@ -182,7 +173,7 @@ func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, k
 	return &key, nil
 }
 
-func (s *RepositoryTransaction) ListMaxKeyIDByKeyPoolID(keyPoolID uuid.UUID) (int, error) {
+func (s *RepositoryTransaction) GetMaxKeyIDByKeyPoolID(keyPoolID uuid.UUID) (int, error) {
 	if keyPoolID == uuidZero {
 		return math.MinInt, ErrKeyPoolIDMustBeNonZeroUUID
 	}

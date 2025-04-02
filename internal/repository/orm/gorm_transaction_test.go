@@ -190,7 +190,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 				require.NotNil(t, repositoryTransaction.Context())
 				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
 
-				retrievedKeyPool, err := repositoryTransaction.GetKeyPoolByID(addedKeyPool.KeyPoolID)
+				retrievedKeyPool, err := repositoryTransaction.GetKeyPoolByKeyPoolID(addedKeyPool.KeyPoolID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key Pool: %w", err)
 				}
@@ -208,7 +208,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 				require.NotNil(t, repositoryTransaction.Context())
 				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
 
-				retrievedKey, err := repositoryTransaction.GetKeyByKeyPoolIDAndKyID(addedKey.KeyPoolID, addedKey.KeyID)
+				retrievedKey, err := repositoryTransaction.GetKeyByKeyPoolIDAndKeyID(addedKey.KeyPoolID, addedKey.KeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}
