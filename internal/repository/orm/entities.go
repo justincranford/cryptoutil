@@ -1,11 +1,9 @@
 package orm
 
 import (
-	"log"
 	"time"
 
 	googleUuid "github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 var ormTableStructs = []any{&KeyPool{}, &Key{}}
@@ -22,24 +20,9 @@ type KeyPool struct {
 	KeyPoolStatus            KeyPoolStatus    `gorm:"size:34;not null;check:key_pool_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
 }
 
-func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
-	if k.KeyPoolID == googleUuid.Nil {
-		k.KeyPoolID, err = googleUuid.NewV7()
-		if err != nil {
-			log.Printf("failed to generate UUIDv7: %v", err)
-			if addErr := tx.AddError(err); addErr != nil {
-				log.Printf("failed to add error to transaction: %v", addErr)
-				return addErr
-			}
-			return err
-		}
-	}
-	return nil
-}
-
 type Key struct {
 	KeyPoolID         googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	KeyID             int             `gorm:"primaryKey;autoIncrement:false;not null;check(key_id >= 0)"`
+	KeyID             googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	KeyMaterial       []byte          `gorm:"not null;check(length(key_material) >= 1)"`
 	KeyGenerateDate   *time.Time
 	KeyImportDate     *time.Time

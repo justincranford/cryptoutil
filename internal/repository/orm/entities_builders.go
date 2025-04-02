@@ -21,7 +21,7 @@ func BuildKeyPool(keyPoolID googleUuid.UUID, name, description, provider, algori
 	return &keyPool, nil
 }
 
-func BuildKey(keyPoolID googleUuid.UUID, keyID int, keyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
+func BuildKey(keyPoolID googleUuid.UUID, keyID googleUuid.UUID, keyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
 	key := Key{
 		KeyPoolID:         keyPoolID,
 		KeyID:             keyID,

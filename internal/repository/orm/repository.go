@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
@@ -19,9 +18,8 @@ import (
 
 var (
 	uuidZero                      = uuid.UUID{}
-	ErrKeyPoolIDMustBeZeroUUID    = errors.New("Key Pool ID must be 00000000-0000-0000-0000-000000000000 for add Key Pool")
-	ErrKeyPoolIDMustBeNonZeroUUID = errors.New("Key Pool ID must not be 00000000-0000-0000-0000-000000000000 existing Key Pool")
-	ErrKeyIDMustBeMinimumOne      = errors.New("Key ID must be minimum 1")
+	ErrKeyPoolIDMustBeNonZeroUUID = errors.New("Key Pool ID must not be 00000000-0000-0000-0000-000000000000")
+	ErrKeyIDMustBeNonZeroUUID     = errors.New("Key ID must not be 00000000-0000-0000-0000-000000000000")
 )
 
 type RepositoryProvider struct {
@@ -60,8 +58,8 @@ func (s *RepositoryProvider) Shutdown() {
 }
 
 func (s *RepositoryTransaction) AddKeyPool(keyPool *KeyPool) error {
-	if keyPool.KeyPoolID != uuidZero {
-		return ErrKeyPoolIDMustBeZeroUUID
+	if keyPool.KeyPoolID == uuidZero {
+		return ErrKeyPoolIDMustBeNonZeroUUID
 	}
 	err := s.state.gormTx.Create(keyPool).Error
 	if err != nil {
@@ -123,9 +121,8 @@ func (s *RepositoryTransaction) GetKeyPools() ([]KeyPool, error) {
 func (s *RepositoryTransaction) AddKey(key *Key) error {
 	if key.KeyPoolID == uuidZero {
 		return ErrKeyPoolIDMustBeNonZeroUUID
-	} else if key.KeyID == 0 {
-		s.repositoryProvider.telemetryService.Slogger.Error("Key ID must be non-zero, but got 0")
-		return fmt.Errorf("Key ID must be non-zero, but got 0")
+	} else if key.KeyID == uuidZero {
+		return ErrKeyIDMustBeNonZeroUUID
 	}
 	err := s.state.gormTx.Create(key).Error
 	if err != nil {
@@ -158,11 +155,11 @@ func (s *RepositoryTransaction) GetKeys() ([]Key, error) {
 	return keys, nil
 }
 
-func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, keyID int) (*Key, error) {
+func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, keyID uuid.UUID) (*Key, error) {
 	if keyPoolID == uuidZero {
 		return nil, ErrKeyPoolIDMustBeNonZeroUUID
-	} else if keyID < 1 {
-		return nil, ErrKeyIDMustBeMinimumOne
+	} else if keyID == uuidZero {
+		return nil, ErrKeyIDMustBeNonZeroUUID
 	}
 	var key Key
 	err := s.state.gormTx.First(&key, "key_pool_id=? AND key_id=?", keyPoolID, keyID).Error
@@ -171,17 +168,4 @@ func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, k
 		return nil, fmt.Errorf("failed to find Key by Key Pool ID and Key ID: %w", err)
 	}
 	return &key, nil
-}
-
-func (s *RepositoryTransaction) GetMaxKeyIDByKeyPoolID(keyPoolID uuid.UUID) (int, error) {
-	if keyPoolID == uuidZero {
-		return math.MinInt, ErrKeyPoolIDMustBeNonZeroUUID
-	}
-	var maxKeyID int
-	err := s.state.gormTx.Model(&Key{}).Where("key_pool_id=?", keyPoolID).Select("COALESCE(MAX(key_id), 0)").Scan(&maxKeyID).Error
-	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to get max Key ID by Key Pool ID", "error", err)
-		return math.MinInt, fmt.Errorf("failed to get max Key ID by Key Pool ID: %w", err)
-	}
-	return maxKeyID, nil
 }

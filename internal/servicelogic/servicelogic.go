@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	googleUuid "github.com/google/uuid"
 
-	"cryptoutil/internal/crypto/keygen"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
@@ -20,17 +19,35 @@ type KeyPoolService struct {
 	aes256Pool       *cryptoutilKeygen.KeyPool
 	aes192Pool       *cryptoutilKeygen.KeyPool
 	aes128Pool       *cryptoutilKeygen.KeyPool
+	uuidV7Pool       *cryptoutilKeygen.KeyPool
 }
 
 func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) *KeyPoolService {
-	aes256Pool := keygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
-	aes192Pool := keygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(192))
-	aes128Pool := keygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(128))
-	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool}
+	aes256Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	aes192Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(192))
+	aes128Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(128))
+	uuidV7Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service UUIDv7", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
+	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool, uuidV7Pool: uuidV7Pool}
 }
 
+// func (k *KeyPool) BeforeCreate(tx *gorm.DB) (err error) {
+// 	if k.KeyPoolID == googleUuid.Nil {
+// 		k.KeyPoolID, err = googleUuid.NewV7()
+// 		if err != nil {
+// 			log.Printf("failed to generate UUIDv7: %v", err)
+// 			if addErr := tx.AddError(err); addErr != nil {
+// 				log.Printf("failed to add error to transaction: %v", addErr)
+// 				return addErr
+// 			}
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
+
 func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
-	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmKeyPoolInsert(openapiKeyPoolCreate)
+	keyPoolID := s.uuidV7Pool.Get().Private.(googleUuid.UUID)
+	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmKeyPoolInsert(keyPoolID, openapiKeyPoolCreate)
 
 	var insertedKeyPool *cryptoutilOrmRepository.KeyPool
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
@@ -49,7 +66,7 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 		}
 
 		// generate first key automatically now
-		repositoryKey, err := s.generateKeyInsert(repositoryKeyPoolToInsert.KeyPoolID, string(repositoryKeyPoolToInsert.KeyPoolAlgorithm), 1)
+		repositoryKey, err := s.generateKeyInsert(keyPoolID, string(repositoryKeyPoolToInsert.KeyPoolAlgorithm))
 		if err != nil {
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
@@ -59,12 +76,12 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 			return fmt.Errorf("failed to add key: %w", err)
 		}
 
-		err = sqlTransaction.UpdateKeyPoolStatus(repositoryKeyPoolToInsert.KeyPoolID, cryptoutilOrmRepository.Active)
+		err = sqlTransaction.UpdateKeyPoolStatus(keyPoolID, cryptoutilOrmRepository.Active)
 		if err != nil {
 			return fmt.Errorf("failed to update KeyPoolStatus to active: %w", err)
 		}
 
-		insertedKeyPool, err = sqlTransaction.GetKeyPoolByKeyPoolID(repositoryKeyPoolToInsert.KeyPoolID)
+		insertedKeyPool, err = sqlTransaction.GetKeyPoolByKeyPoolID(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get updated KeyPool from DB: %w", err)
 		}
@@ -80,7 +97,7 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 
 var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 
-func (s *KeyPoolService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID uuid.UUID) (*cryptoutilServiceModel.KeyPool, error) {
+func (s *KeyPoolService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID) (*cryptoutilServiceModel.KeyPool, error) {
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
 		repositoryKeyPool, err = sqlTransaction.GetKeyPoolByKeyPoolID(keyPoolID)
@@ -114,7 +131,7 @@ func (s *KeyPoolService) GetKeyPools(ctx context.Context, keyPoolQueryParams *cr
 	return s.serviceOrmMapper.toServiceKeyPools(repositoryKeyPools), nil
 }
 
-func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID uuid.UUID, _ *cryptoutilServiceModel.KeyGenerate) (*cryptoutilServiceModel.Key, error) {
+func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID googleUuid.UUID, _ *cryptoutilServiceModel.KeyGenerate) (*cryptoutilServiceModel.Key, error) {
 	var repositoryKey *cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
@@ -127,12 +144,7 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID uui
 			return fmt.Errorf("invalid KeyPoolStatus detected for generate Key: %w", err)
 		}
 
-		repositoryKeyPoolMaxID, err := sqlTransaction.GetMaxKeyIDByKeyPoolID(keyPoolID)
-		if err != nil {
-			return fmt.Errorf("failed to get max ID by KeyPoolID: %w", err)
-		}
-
-		repositoryKey, err = s.generateKeyInsert(repositoryKeyPool.KeyPoolID, string(repositoryKeyPool.KeyPoolAlgorithm), repositoryKeyPoolMaxID+1)
+		repositoryKey, err = s.generateKeyInsert(repositoryKeyPool.KeyPoolID, string(repositoryKeyPool.KeyPoolAlgorithm))
 		if err != nil {
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
@@ -152,7 +164,7 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID uui
 	return &openapiPostKeypoolKeyPoolIDKeyResponseObject, nil
 }
 
-func (s *KeyPoolService) GetKeysByKeyPool(ctx context.Context, keyPoolID uuid.UUID, keyPoolKeysQueryParams *cryptoutilServiceModel.KeyPoolKeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
+func (s *KeyPoolService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleUuid.UUID, keyPoolKeysQueryParams *cryptoutilServiceModel.KeyPoolKeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
 	// TODO Validate keyPoolKeysQueryParams
 	var repositoryKeys []cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
@@ -190,7 +202,7 @@ func (s *KeyPoolService) GetKeys(ctx context.Context, keysQueryParams *cryptouti
 	return s.serviceOrmMapper.toServiceKeys(repositoryKeys), nil
 }
 
-func (s *KeyPoolService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID uuid.UUID, keyID int) (*cryptoutilServiceModel.Key, error) {
+func (s *KeyPoolService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*cryptoutilServiceModel.Key, error) {
 	var repositoryKey *cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
@@ -208,7 +220,9 @@ func (s *KeyPoolService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID 
 	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
 }
 
-func (s *KeyPoolService) generateKeyInsert(keyPoolID uuid.UUID, keyPoolAlgorithm string, keyPoolNextID int) (*cryptoutilOrmRepository.Key, error) {
+func (s *KeyPoolService) generateKeyInsert(keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {
+	keyID := s.uuidV7Pool.Get().Private.(googleUuid.UUID)
+
 	repositoryKeyKeyMaterial, err := s.GenerateKeyMaterial(keyPoolAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate Key material: %w", err)
@@ -217,7 +231,7 @@ func (s *KeyPoolService) generateKeyInsert(keyPoolID uuid.UUID, keyPoolAlgorithm
 
 	return &cryptoutilOrmRepository.Key{
 		KeyPoolID:       keyPoolID,
-		KeyID:           keyPoolNextID,
+		KeyID:           keyID,
 		KeyMaterial:     repositoryKeyKeyMaterial,
 		KeyGenerateDate: &repositoryKeyGenerateDate,
 	}, nil

@@ -328,10 +328,9 @@ components:
         - status:DESC
 
     KeyId:
-      type: integer
-      description: Unique version of the Key in a Key Pool.
-      minimum: 1
-      example: 3
+      type: string
+      format: uuid
+      description: Unique UUID for a Key.
     KeyGenerateDate:
       type: string
       format: date-time

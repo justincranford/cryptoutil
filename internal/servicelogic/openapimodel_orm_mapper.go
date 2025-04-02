@@ -3,6 +3,8 @@ package servicelogic
 import (
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+
+	"github.com/google/uuid"
 )
 
 type serviceOrmMapper struct{}
@@ -13,8 +15,9 @@ func NewMapper() *serviceOrmMapper {
 
 // service => orm
 
-func (m *serviceOrmMapper) toOrmKeyPoolInsert(serviceKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
+func (m *serviceOrmMapper) toOrmKeyPoolInsert(keyPoolID uuid.UUID, serviceKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
 	return &cryptoutilOrmRepository.KeyPool{
+		KeyPoolID:                keyPoolID,
 		KeyPoolName:              serviceKeyPoolCreate.Name,
 		KeyPoolDescription:       serviceKeyPoolCreate.Description,
 		KeyPoolProvider:          *m.toOrmKeyPoolProvider(serviceKeyPoolCreate.Provider),

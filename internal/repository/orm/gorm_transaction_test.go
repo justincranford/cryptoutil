@@ -166,7 +166,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 
 			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
 				now := time.Now().UTC()
-				key := testGivens.Key(keyPool.KeyPoolID, nextKeyId, &now, nil, nil, nil)
+				key := testGivens.Key(keyPool.KeyPoolID, &now, nil, nil, nil)
 				err = repositoryTransaction.AddKey(key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
