@@ -43,19 +43,19 @@ func (*openapiMapper) toOpenapiInsertKeyPoolResponseError(err error) (cryptoutil
 
 // GetKeyPool
 
-func (m *openapiMapper) toServiceModelGetKeyPoolQueryParams(openapiGetKeyParamsObject *cryptoutilOpenapiServer.GetKeypoolParams) *cryptoutilServiceModel.KeyPoolQueryParams {
+func (m *openapiMapper) toServiceModelGetKeyPoolQueryParams(openapiGetKeyPoolQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolParams) *cryptoutilServiceModel.KeyPoolQueryParams {
 	filters := cryptoutilServiceModel.KeyPoolQueryParams{
-		Id:                openapiGetKeyParamsObject.Id,
-		Name:              openapiGetKeyParamsObject.Name,
-		Provider:          openapiGetKeyParamsObject.Provider,
-		Algorithm:         openapiGetKeyParamsObject.Algorithm,
-		VersioningAllowed: openapiGetKeyParamsObject.VersioningAllowed,
-		ImportAllowed:     openapiGetKeyParamsObject.ImportAllowed,
-		ExportAllowed:     openapiGetKeyParamsObject.ExportAllowed,
-		Status:            openapiGetKeyParamsObject.Status,
-		Sort:              openapiGetKeyParamsObject.Sort,
-		Page:              openapiGetKeyParamsObject.Page,
-		Size:              openapiGetKeyParamsObject.Size,
+		Id:                openapiGetKeyPoolQueryParamsObject.Id,
+		Name:              openapiGetKeyPoolQueryParamsObject.Name,
+		Provider:          openapiGetKeyPoolQueryParamsObject.Provider,
+		Algorithm:         openapiGetKeyPoolQueryParamsObject.Algorithm,
+		VersioningAllowed: openapiGetKeyPoolQueryParamsObject.VersioningAllowed,
+		ImportAllowed:     openapiGetKeyPoolQueryParamsObject.ImportAllowed,
+		ExportAllowed:     openapiGetKeyPoolQueryParamsObject.ExportAllowed,
+		Status:            openapiGetKeyPoolQueryParamsObject.Status,
+		Sort:              openapiGetKeyPoolQueryParamsObject.Sort,
+		Page:              openapiGetKeyPoolQueryParamsObject.Page,
+		Size:              openapiGetKeyPoolQueryParamsObject.Size,
 	}
 	return &filters
 }
@@ -102,6 +102,17 @@ func (*openapiMapper) toOpenapiInsertKeyResponseError(err error) (cryptoutilOpen
 }
 
 // GetKeyPoolKeyPoolIDKey
+
+func (m *openapiMapper) toServiceModelGetKeyQueryParams(openapiGetKeyQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyParams) *cryptoutilServiceModel.KeyQueryParams {
+	filters := cryptoutilServiceModel.KeyQueryParams{
+		Pool: openapiGetKeyQueryParamsObject.Pool,
+		Id:   openapiGetKeyQueryParamsObject.Id,
+		Sort: openapiGetKeyQueryParamsObject.Sort,
+		Page: openapiGetKeyQueryParamsObject.Page,
+		Size: openapiGetKeyQueryParamsObject.Size,
+	}
+	return &filters
+}
 
 func (m *openapiMapper) toOpenapiGetKeyResponseSuccess(keys []cryptoutilServiceModel.Key) cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject {
 	openapiGetKeypoolKeyPoolIDKeyResponseObject := cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKey200JSONResponse(keys)

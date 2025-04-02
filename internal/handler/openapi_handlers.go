@@ -7,8 +7,6 @@ import (
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilServiceLogic "cryptoutil/internal/servicelogic"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 // StrictServer implements cryptoutilOpenapiServer.StrictServerInterface
@@ -40,15 +38,9 @@ func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolReques
 }
 
 func (s *StrictServer) GetKeypoolKeyPoolIDKey(ctx context.Context, openapiGetKeypoolKeyPoolIDKeyRequestObject cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyRequestObject) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyResponseObject, error) {
-	if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort != nil && len(*openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Sort) > 0 {
-		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'sort' not supported yet: %w", fiber.ErrBadRequest))
-	} else if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Page != nil && *openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Page >= 0 {
-		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'page' not supported yet: %w", fiber.ErrBadRequest))
-	} else if openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Size != nil && *openapiGetKeypoolKeyPoolIDKeyRequestObject.Params.Size > 0 {
-		return s.openapiMapper.toOpenapiGetKeypoolKeyPoolIDKeyResponseError(fmt.Errorf("query parameter 'size' not supported yet: %w", fiber.ErrBadRequest))
-	}
+	keyQueryParams := s.openapiMapper.toServiceModelGetKeyQueryParams(&openapiGetKeypoolKeyPoolIDKeyRequestObject.Params)
 	keyPoolID := openapiGetKeypoolKeyPoolIDKeyRequestObject.KeyPoolID
-	keys, err := s.businessLogicService.ListKeysByKeyPool(ctx, keyPoolID)
+	keys, err := s.businessLogicService.ListKeysByKeyPool(ctx, keyPoolID, keyQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 	}

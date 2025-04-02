@@ -8,7 +8,7 @@ info:
 
 components:
   parameters:
-    KeyPoolFilterIds:
+    KeyPoolQueryParamIds:
       name: id
       in: query
       description: Filter by the Key Pool ID (UUID).
@@ -19,7 +19,7 @@ components:
           $ref: '#/components/schemas/KeyPoolId'
       style: form
       explode: true
-    KeyPoolFilterNames:
+    KeyPoolQueryParamNames:
       name: name
       in: query
       description: Filter by the Key Pool name.
@@ -30,7 +30,7 @@ components:
           $ref: '#/components/schemas/KeyPoolName'
       style: form
       explode: true
-    KeyPoolFilterProviders:
+    KeyPoolQueryParamProviders:
       name: provider
       in: query
       description: Filter by Key Pool provider.
@@ -41,7 +41,7 @@ components:
           $ref: '#/components/schemas/KeyPoolProvider'
       style: form
       explode: true
-    KeyPoolFilterAlgorithms:
+    KeyPoolQueryParamAlgorithms:
       name: algorithm
       in: query
       description: Filter by cryptographic algorithm.
@@ -52,28 +52,28 @@ components:
           $ref: '#/components/schemas/KeyPoolAlgorithm'
       style: form
       explode: true
-    KeyPoolFilterVersioningAllowed:
+    KeyPoolQueryParamVersioningAllowed:
       name: versioning_allowed
       in: query
       description: Filter by whether versioning is allowed.
       required: false
       schema:
         $ref: '#/components/schemas/KeyPoolVersioningAllowed'
-    KeyPoolFilterImportAllowed:
+    KeyPoolQueryParamImportAllowed:
       name: import_allowed
       in: query
       description: Filter by whether import is allowed.
       required: false
       schema:
         $ref: '#/components/schemas/KeyPoolImportAllowed'
-    KeyPoolFilterExportAllowed:
+    KeyPoolQueryParamExportAllowed:
       name: export_allowed
       in: query
       description: Filter by whether export is allowed.
       required: false
       schema:
         $ref: '#/components/schemas/KeyPoolExportAllowed'
-    KeyPoolFilterStatuses:
+    KeyPoolQueryParamStatuses:
       name: status
       in: query
       description: Filter by the Key Pool status.
@@ -84,7 +84,7 @@ components:
           $ref: '#/components/schemas/KeyPoolStatus'
       style: form
       explode: true
-    KeyPoolFilterSorts:
+    KeyPoolQueryParamSorts:
       name: sort
       in: query
       description: Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
@@ -95,18 +95,18 @@ components:
           $ref: '#/components/schemas/KeyPoolSort'
       style: form
       explode: true
-    KeyPoolFilterPageNumber:
+    KeyPoolQueryParamPageNumber:
       name: page
       in: query
       schema:
         $ref: '#/components/schemas/PageNumber'
-    KeyPoolFilterPageSize:
+    KeyPoolQueryParamPageSize:
       name: size
       in: query
       schema:
         $ref: '#/components/schemas/PageSize'
 
-    KeyFilterKeyPoolId:
+    KeyQueryParamKeyPoolIds:
       name: pool
       in: query
       description: Filter by the Key Pool ID (uuid).
@@ -117,7 +117,7 @@ components:
           $ref: '#/components/schemas/KeyPoolId'
       style: form
       explode: true
-    KeyFilterId:
+    KeyQueryParamIds:
       name: id
       in: query
       description: Filter by the Key ID.
@@ -128,21 +128,21 @@ components:
           $ref: '#/components/schemas/KeyId'
       style: form
       explode: true
-    KeyFilterMinimumGenerateDate:
+    KeyQueryParamMinimumGenerateDate:
       name: min_generate_date
       in: query
       description: Filter by the Key minimum generate date (inclusive).
       required: false
       schema:
         $ref: '#/components/schemas/KeyGenerateDate'
-    KeyFilterMaximumGenerateDate:
+    KeyQueryParamMaximumGenerateDate:
       name: max_generate_date
       in: query
       description: Filter by the Key maximum generate date (inclusive).
       required: false
       schema:
         $ref: '#/components/schemas/KeyGenerateDate'
-    KeyFilterSorts:
+    KeyQueryParamSorts:
       name: sort
       in: query
       description: Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
@@ -150,15 +150,15 @@ components:
       schema:
         type: array
         items:
-        $ref: '#/components/schemas/KeySort'
+          $ref: '#/components/schemas/KeySort'
       style: form
       explode: true
-    KeyFilterPageNumber:
+    KeyQueryParamPageNumber:
       name: page
       in: query
       schema:
         $ref: '#/components/schemas/PageNumber'
-    KeyFilterPageSize:
+    KeyQueryParamPageSize:
       name: size
       in: query
       schema:
@@ -384,11 +384,33 @@ components:
           items:
             $ref: '#/components/schemas/KeyPoolSort'
         page:
-          type: integer
-          minimum: 1
+          $ref: '#/components/schemas/PageNumber'
         size:
-          type: integer
-          minimum: 1
+          $ref: '#/components/schemas/PageSize'
+
+    KeyQueryParams:
+      type: object
+      properties:
+        pool:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyPoolId'
+        id:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyId'
+        min_generate_date:
+          $ref: '#/components/schemas/KeyGenerateDate'
+        max_generate_date:
+          $ref: '#/components/schemas/KeyGenerateDate'
+        sort:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeySort'
+        page:
+          $ref: '#/components/schemas/PageNumber'
+        size:
+          $ref: '#/components/schemas/PageSize'
 
     HTTPError:
       type: object

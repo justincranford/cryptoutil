@@ -199,11 +199,15 @@ type KeyPoolQueryParams struct {
 	// ImportAllowed Indicates if the Key Pool supports import (BYOK).
 	ImportAllowed *KeyPoolImportAllowed `json:"import_allowed,omitempty"`
 	Name          *[]KeyPoolName        `json:"name,omitempty"`
-	Page          *int                  `json:"page,omitempty"`
-	Provider      *[]KeyPoolProvider    `json:"provider,omitempty"`
-	Size          *int                  `json:"size,omitempty"`
-	Sort          *[]KeyPoolSort        `json:"sort,omitempty"`
-	Status        *[]KeyPoolStatus      `json:"status,omitempty"`
+
+	// Page Page number starting at 0.
+	Page     *PageNumber        `json:"page,omitempty"`
+	Provider *[]KeyPoolProvider `json:"provider,omitempty"`
+
+	// Size Page number.
+	Size   *PageSize        `json:"size,omitempty"`
+	Sort   *[]KeyPoolSort   `json:"sort,omitempty"`
+	Status *[]KeyPoolStatus `json:"status,omitempty"`
 
 	// VersioningAllowed Indicates if the Key Pool supports versioning.
 	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
@@ -227,6 +231,25 @@ type KeyPoolUpdate struct {
 // KeyPoolVersioningAllowed Indicates if the Key Pool supports versioning.
 type KeyPoolVersioningAllowed = bool
 
+// KeyQueryParams defines model for KeyQueryParams.
+type KeyQueryParams struct {
+	Id *[]KeyId `json:"id,omitempty"`
+
+	// MaxGenerateDate ISO 8601 UTC timestamp of Key generation.
+	MaxGenerateDate *KeyGenerateDate `json:"max_generate_date,omitempty"`
+
+	// MinGenerateDate ISO 8601 UTC timestamp of Key generation.
+	MinGenerateDate *KeyGenerateDate `json:"min_generate_date,omitempty"`
+
+	// Page Page number starting at 0.
+	Page *PageNumber  `json:"page,omitempty"`
+	Pool *[]KeyPoolId `json:"pool,omitempty"`
+
+	// Size Page number.
+	Size *PageSize  `json:"size,omitempty"`
+	Sort *[]KeySort `json:"sort,omitempty"`
+}
+
 // KeySort defines model for KeySort.
 type KeySort string
 
@@ -245,59 +268,59 @@ type PageNumber = int
 // PageSize Page number.
 type PageSize = int
 
-// KeyFilterId defines model for KeyFilterId.
-type KeyFilterId = []KeyId
+// KeyPoolQueryParamAlgorithms defines model for KeyPoolQueryParamAlgorithms.
+type KeyPoolQueryParamAlgorithms = []KeyPoolAlgorithm
 
-// KeyFilterKeyPoolId defines model for KeyFilterKeyPoolId.
-type KeyFilterKeyPoolId = []KeyPoolId
+// KeyPoolQueryParamExportAllowed Indicates if the Key Pool supports export.
+type KeyPoolQueryParamExportAllowed = KeyPoolExportAllowed
 
-// KeyFilterMaximumGenerateDate ISO 8601 UTC timestamp of Key generation.
-type KeyFilterMaximumGenerateDate = KeyGenerateDate
+// KeyPoolQueryParamIds defines model for KeyPoolQueryParamIds.
+type KeyPoolQueryParamIds = []KeyPoolId
 
-// KeyFilterMinimumGenerateDate ISO 8601 UTC timestamp of Key generation.
-type KeyFilterMinimumGenerateDate = KeyGenerateDate
+// KeyPoolQueryParamImportAllowed Indicates if the Key Pool supports import (BYOK).
+type KeyPoolQueryParamImportAllowed = KeyPoolImportAllowed
 
-// KeyFilterPageNumber Page number starting at 0.
-type KeyFilterPageNumber = PageNumber
+// KeyPoolQueryParamNames defines model for KeyPoolQueryParamNames.
+type KeyPoolQueryParamNames = []KeyPoolName
 
-// KeyFilterPageSize Page number.
-type KeyFilterPageSize = PageSize
+// KeyPoolQueryParamPageNumber Page number starting at 0.
+type KeyPoolQueryParamPageNumber = PageNumber
 
-// KeyFilterSorts defines model for KeyFilterSorts.
-type KeyFilterSorts = KeySort
+// KeyPoolQueryParamPageSize Page number.
+type KeyPoolQueryParamPageSize = PageSize
 
-// KeyPoolFilterAlgorithms defines model for KeyPoolFilterAlgorithms.
-type KeyPoolFilterAlgorithms = []KeyPoolAlgorithm
+// KeyPoolQueryParamProviders defines model for KeyPoolQueryParamProviders.
+type KeyPoolQueryParamProviders = []KeyPoolProvider
 
-// KeyPoolFilterExportAllowed Indicates if the Key Pool supports export.
-type KeyPoolFilterExportAllowed = KeyPoolExportAllowed
+// KeyPoolQueryParamSorts defines model for KeyPoolQueryParamSorts.
+type KeyPoolQueryParamSorts = []KeyPoolSort
 
-// KeyPoolFilterIds defines model for KeyPoolFilterIds.
-type KeyPoolFilterIds = []KeyPoolId
+// KeyPoolQueryParamStatuses defines model for KeyPoolQueryParamStatuses.
+type KeyPoolQueryParamStatuses = []KeyPoolStatus
 
-// KeyPoolFilterImportAllowed Indicates if the Key Pool supports import (BYOK).
-type KeyPoolFilterImportAllowed = KeyPoolImportAllowed
+// KeyPoolQueryParamVersioningAllowed Indicates if the Key Pool supports versioning.
+type KeyPoolQueryParamVersioningAllowed = KeyPoolVersioningAllowed
 
-// KeyPoolFilterNames defines model for KeyPoolFilterNames.
-type KeyPoolFilterNames = []KeyPoolName
+// KeyQueryParamIds defines model for KeyQueryParamIds.
+type KeyQueryParamIds = []KeyId
 
-// KeyPoolFilterPageNumber Page number starting at 0.
-type KeyPoolFilterPageNumber = PageNumber
+// KeyQueryParamKeyPoolIds defines model for KeyQueryParamKeyPoolIds.
+type KeyQueryParamKeyPoolIds = []KeyPoolId
 
-// KeyPoolFilterPageSize Page number.
-type KeyPoolFilterPageSize = PageSize
+// KeyQueryParamMaximumGenerateDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMaximumGenerateDate = KeyGenerateDate
 
-// KeyPoolFilterProviders defines model for KeyPoolFilterProviders.
-type KeyPoolFilterProviders = []KeyPoolProvider
+// KeyQueryParamMinimumGenerateDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMinimumGenerateDate = KeyGenerateDate
 
-// KeyPoolFilterSorts defines model for KeyPoolFilterSorts.
-type KeyPoolFilterSorts = []KeyPoolSort
+// KeyQueryParamPageNumber Page number starting at 0.
+type KeyQueryParamPageNumber = PageNumber
 
-// KeyPoolFilterStatuses defines model for KeyPoolFilterStatuses.
-type KeyPoolFilterStatuses = []KeyPoolStatus
+// KeyQueryParamPageSize Page number.
+type KeyQueryParamPageSize = PageSize
 
-// KeyPoolFilterVersioningAllowed Indicates if the Key Pool supports versioning.
-type KeyPoolFilterVersioningAllowed = KeyPoolVersioningAllowed
+// KeyQueryParamSorts defines model for KeyQueryParamSorts.
+type KeyQueryParamSorts = []KeySort
 
 // HTTP400BadRequest defines model for HTTP400BadRequest.
 type HTTP400BadRequest struct {
@@ -365,44 +388,45 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"//8V27tOYDMAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

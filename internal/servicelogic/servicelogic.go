@@ -78,10 +78,11 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 }
 
 func (s *KeyPoolService) ListKeyPools(ctx context.Context, keyPoolQueryParams *cryptoutilServiceModel.KeyPoolQueryParams) ([]cryptoutilServiceModel.KeyPool, error) {
+	// TODO Validate keyPoolQueryParams
 	var gormKeyPools []cryptoutilOrmRepository.KeyPool
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		gormKeyPools, err = sqlTransaction.FindKeyPools()
+		gormKeyPools, err = sqlTransaction.FindKeyPools() // TODO pass converted keyPoolQueryParams
 		if err != nil {
 			return fmt.Errorf("failed to list KeyPools: %w", err)
 		}
@@ -132,11 +133,12 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID uui
 	return &openapiPostKeypoolKeyPoolIDKeyResponseObject, nil
 }
 
-func (s *KeyPoolService) ListKeysByKeyPool(ctx context.Context, keyPoolID uuid.UUID) ([]cryptoutilServiceModel.Key, error) {
+func (s *KeyPoolService) ListKeysByKeyPool(ctx context.Context, keyPoolID uuid.UUID, keyQueryParams *cryptoutilServiceModel.KeyQueryParams) ([]cryptoutilServiceModel.Key, error) {
+	// TODO Validate keyQueryParams
 	var gormKeys []cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		gormKeys, err = sqlTransaction.FindKeysByKeyPoolID(keyPoolID)
+		gormKeys, err = sqlTransaction.FindKeysByKeyPoolID(keyPoolID) // TODO pass converted keyQueryParams
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 		}
