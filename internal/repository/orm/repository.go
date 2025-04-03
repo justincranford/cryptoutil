@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"cryptoutil/internal/apperr"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
+	"modernc.org/sqlite"
 	_ "modernc.org/sqlite"
 )
 
@@ -57,51 +59,49 @@ func (s *RepositoryProvider) Shutdown() {
 	s.telemetryService.Slogger.Debug("stopped ORM repository")
 }
 
+// Service-Repository calls
+
 func (s *RepositoryTransaction) AddKeyPool(keyPool *KeyPool) error {
 	if keyPool.KeyPoolID == uuidZero {
-		return ErrKeyPoolIDMustBeNonZeroUUID
+		return s.toAppErr("failed to insert Key Pool", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.Create(keyPool).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to insert Key Pool", "error", err)
-		return fmt.Errorf("failed to insert Key Pool: %w", err)
+		return s.toAppErr("failed to insert Key Pool", err)
 	}
 	return nil
 }
 
 func (s *RepositoryTransaction) GetKeyPoolByKeyPoolID(keyPoolID uuid.UUID) (*KeyPool, error) {
 	if keyPoolID == uuidZero {
-		return nil, ErrKeyPoolIDMustBeNonZeroUUID
+		return nil, s.toAppErr("failed to find Key Pool by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	var keyPool KeyPool
 	err := s.state.gormTx.First(&keyPool, "key_pool_id=?", keyPoolID).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Key Pool by Key Pool ID", "error", err)
-		return nil, fmt.Errorf("failed to find Key Pool by Key Pool ID: %w", err)
+		return nil, s.toAppErr("failed to find Key Pool by Key Pool ID", err)
 	}
 	return &keyPool, nil
 }
 
 func (s *RepositoryTransaction) UpdateKeyPoolByKeyPoolID(keyPool *KeyPool) error {
 	if keyPool.KeyPoolID == uuidZero {
-		return ErrKeyPoolIDMustBeNonZeroUUID
+		return s.toAppErr("failed to update Key Pool", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.UpdateColumns(keyPool).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to update Key Pool", "error", err)
-		return fmt.Errorf("failed to update Key Pool: %w", err)
+		return s.toAppErr("failed to update Key Pool", err)
 	}
 	return nil
 }
 
 func (s *RepositoryTransaction) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatus) error {
 	if keyPoolID == uuidZero {
-		return ErrKeyPoolIDMustBeNonZeroUUID
+		return s.toAppErr("failed to update Key Pool Status", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.Model(&KeyPool{}).Where("key_pool_id = ?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to update Key Pool Status", "error", err)
-		return fmt.Errorf("failed to update Key Pool Status: %w", err)
+		return s.toAppErr("failed to update Key Pool Status", err)
 	}
 	return nil
 }
@@ -112,35 +112,32 @@ func (s *RepositoryTransaction) GetKeyPools() ([]KeyPool, error) {
 	// order := fmt.Sprintf("%s %s", sortBy, sortOrder)
 	// err := s.state.gormTx.Where(filter).Order(order).Offset(page * pageSize).Limit(pageSize).Find(&keyPools).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to get Key Pools", "error", err)
-		return nil, fmt.Errorf("failed to get Key Pools: %w", err)
+		return nil, s.toAppErr("failed to get Key Pools", err)
 	}
 	return keyPools, nil
 }
 
 func (s *RepositoryTransaction) AddKey(key *Key) error {
 	if key.KeyPoolID == uuidZero {
-		return ErrKeyPoolIDMustBeNonZeroUUID
+		return s.toAppErr("failed to insert Key", ErrKeyPoolIDMustBeNonZeroUUID)
 	} else if key.KeyID == uuidZero {
-		return ErrKeyIDMustBeNonZeroUUID
+		return s.toAppErr("failed to insert Key", ErrKeyIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.Create(key).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to insert Key", "error", err)
-		return fmt.Errorf("failed to insert Key: %w", err)
+		return s.toAppErr("failed to insert Key", err)
 	}
 	return nil
 }
 
 func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
 	if keyPoolID == uuidZero {
-		return nil, ErrKeyPoolIDMustBeNonZeroUUID
+		return nil, s.toAppErr("failed to find Keys by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	var keys []Key
 	err := s.state.gormTx.Where("key_pool_id=?", keyPoolID).Find(&keys).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Keys by Key Pool ID", "error", err)
-		return keys, fmt.Errorf("failed to find Keys by Key Pool ID: %w", err)
+		return nil, s.toAppErr("failed to find Keys by Key Pool ID", err)
 	}
 	return keys, nil
 }
@@ -149,23 +146,57 @@ func (s *RepositoryTransaction) GetKeys() ([]Key, error) {
 	var keys []Key
 	err := s.state.gormTx.Find(&keys).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Keys", "error", err)
-		return keys, fmt.Errorf("failed to find Keys: %w", err)
+		return nil, s.toAppErr("failed to find Keys", err)
 	}
 	return keys, nil
 }
 
 func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, keyID uuid.UUID) (*Key, error) {
 	if keyPoolID == uuidZero {
-		return nil, ErrKeyPoolIDMustBeNonZeroUUID
+		return nil, s.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	} else if keyID == uuidZero {
-		return nil, ErrKeyIDMustBeNonZeroUUID
+		return nil, s.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyIDMustBeNonZeroUUID)
 	}
 	var key Key
 	err := s.state.gormTx.First(&key, "key_pool_id=? AND key_id=?", keyPoolID, keyID).Error
 	if err != nil {
-		s.repositoryProvider.telemetryService.Slogger.Error("failed to find Key by Key Pool ID and Key ID", "error", err)
-		return nil, fmt.Errorf("failed to find Key by Key Pool ID and Key ID: %w", err)
+		return nil, s.toAppErr("failed to find Key by Key Pool ID and Key ID", err)
 	}
 	return &key, nil
+}
+
+func (s *RepositoryTransaction) toAppErr(msg string, err error) error {
+	s.repositoryProvider.telemetryService.Slogger.Error(msg, "error", err)
+
+	// custom errors
+	if errors.Is(err, ErrKeyPoolIDMustBeNonZeroUUID) {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	} else if errors.Is(err, ErrKeyPoolIDMustBeNonZeroUUID) {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	}
+
+	// gorm errors
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return apperr.NewHTTP404NotFound(msg, fmt.Errorf("%s: %w", msg, err))
+	} else if errors.Is(err, gorm.ErrDuplicatedKey) {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	} else if errors.Is(err, gorm.ErrCheckConstraintViolated) {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	} else if errors.Is(err, gorm.ErrInvalidData) {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	} else if errors.Is(err, gorm.ErrInvalidValueOfLength) {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	} else if errors.Is(err, gorm.ErrNotImplemented) {
+		return apperr.NewHTTP501StatusLineAndCodeNotImplemented(msg, fmt.Errorf("%s: %w", msg, err))
+	}
+
+	// SQLite errors
+	var sqliteErr *sqlite.Error
+	if errors.As(err, &sqliteErr) && sqliteErr.Code() == 2067 {
+		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	}
+
+	return apperr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", msg, err))
 }

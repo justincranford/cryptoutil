@@ -2,8 +2,11 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/http"
 
+	"cryptoutil/internal/apperr"
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilServiceLogic "cryptoutil/internal/servicelogic"
@@ -23,6 +26,35 @@ func (s *StrictServer) PostKeypool(ctx context.Context, openapiPostKeypoolReques
 	keyPoolCreate := cryptoutilServiceModel.KeyPoolCreate(*openapiPostKeypoolRequestObject.Body)
 	addedKeyPool, err := s.businessLogicService.AddKeyPool(ctx, &keyPoolCreate)
 	if err != nil {
+		var appErr *apperr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostKeypool400JSONResponse{
+					HTTP400BadRequest: cryptoutilServiceModel.HTTP400BadRequest{
+						Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
+						Message: appErr.Error(),
+						Status:  int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode),
+					},
+				}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostKeypool404JSONResponse{
+					HTTP404NotFound: cryptoutilServiceModel.HTTP404NotFound{
+						Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
+						Message: appErr.Error(),
+						Status:  int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode),
+					},
+				}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostKeypool500JSONResponse{
+					HTTP500InternalServerError: cryptoutilServiceModel.HTTP500InternalServerError{
+						Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
+						Message: appErr.Error(),
+						Status:  int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode),
+					},
+				}, nil
+			}
+		}
 		return nil, fmt.Errorf("failed to add KeyPool: %w", err)
 	}
 	return cryptoutilOpenapiServer.PostKeypool200JSONResponse(*addedKeyPool), nil
