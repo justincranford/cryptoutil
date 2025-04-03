@@ -9,6 +9,7 @@ import (
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilUtil "cryptoutil/internal/util"
 
 	"gorm.io/gorm"
 
@@ -19,7 +20,6 @@ import (
 )
 
 var (
-	uuidZero                      = uuid.UUID{}
 	ErrKeyPoolIDMustBeNonZeroUUID = errors.New("Key Pool ID must not be 00000000-0000-0000-0000-000000000000")
 	ErrKeyIDMustBeNonZeroUUID     = errors.New("Key ID must not be 00000000-0000-0000-0000-000000000000")
 )
@@ -62,7 +62,7 @@ func (s *RepositoryProvider) Shutdown() {
 // Service-Repository calls
 
 func (s *RepositoryTransaction) AddKeyPool(keyPool *KeyPool) error {
-	if keyPool.KeyPoolID == uuidZero {
+	if keyPool.KeyPoolID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to insert Key Pool", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.Create(keyPool).Error
@@ -73,7 +73,7 @@ func (s *RepositoryTransaction) AddKeyPool(keyPool *KeyPool) error {
 }
 
 func (s *RepositoryTransaction) GetKeyPoolByKeyPoolID(keyPoolID uuid.UUID) (*KeyPool, error) {
-	if keyPoolID == uuidZero {
+	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, s.toAppErr("failed to find Key Pool by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	var keyPool KeyPool
@@ -85,7 +85,7 @@ func (s *RepositoryTransaction) GetKeyPoolByKeyPoolID(keyPoolID uuid.UUID) (*Key
 }
 
 func (s *RepositoryTransaction) UpdateKeyPoolByKeyPoolID(keyPool *KeyPool) error {
-	if keyPool.KeyPoolID == uuidZero {
+	if keyPool.KeyPoolID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to update Key Pool", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.UpdateColumns(keyPool).Error
@@ -96,7 +96,7 @@ func (s *RepositoryTransaction) UpdateKeyPoolByKeyPoolID(keyPool *KeyPool) error
 }
 
 func (s *RepositoryTransaction) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatus) error {
-	if keyPoolID == uuidZero {
+	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to update Key Pool Status", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.Model(&KeyPool{}).Where("key_pool_id = ?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
@@ -106,7 +106,7 @@ func (s *RepositoryTransaction) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPool
 	return nil
 }
 
-func (s *RepositoryTransaction) GetKeyPools() ([]KeyPool, error) {
+func (s *RepositoryTransaction) GetKeyPools(ormKeyPoolsQueryParams *GetKeyPoolsFilters) ([]KeyPool, error) {
 	var keyPools []KeyPool
 	err := s.state.gormTx.Find(&keyPools).Error
 	// order := fmt.Sprintf("%s %s", sortBy, sortOrder)
@@ -118,9 +118,9 @@ func (s *RepositoryTransaction) GetKeyPools() ([]KeyPool, error) {
 }
 
 func (s *RepositoryTransaction) AddKey(key *Key) error {
-	if key.KeyPoolID == uuidZero {
+	if key.KeyPoolID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to insert Key", ErrKeyPoolIDMustBeNonZeroUUID)
-	} else if key.KeyID == uuidZero {
+	} else if key.KeyID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to insert Key", ErrKeyIDMustBeNonZeroUUID)
 	}
 	err := s.state.gormTx.Create(key).Error
@@ -130,8 +130,8 @@ func (s *RepositoryTransaction) AddKey(key *Key) error {
 	return nil
 }
 
-func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key, error) {
-	if keyPoolID == uuidZero {
+func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID, ormKeyPoolKeysQueryParams *GetKeyPoolKeysFilters) ([]Key, error) {
+	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, s.toAppErr("failed to find Keys by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	var keys []Key
@@ -142,7 +142,7 @@ func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID) ([]Key,
 	return keys, nil
 }
 
-func (s *RepositoryTransaction) GetKeys() ([]Key, error) {
+func (s *RepositoryTransaction) GetKeys(ormKeysQueryParams *GetKeysFilters) ([]Key, error) {
 	var keys []Key
 	err := s.state.gormTx.Find(&keys).Error
 	if err != nil {
@@ -152,9 +152,9 @@ func (s *RepositoryTransaction) GetKeys() ([]Key, error) {
 }
 
 func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, keyID uuid.UUID) (*Key, error) {
-	if keyPoolID == uuidZero {
+	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, s.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyPoolIDMustBeNonZeroUUID)
-	} else if keyID == uuidZero {
+	} else if keyID == cryptoutilUtil.ZeroUUID {
 		return nil, s.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyIDMustBeNonZeroUUID)
 	}
 	var key Key

@@ -3,6 +3,10 @@ package servicelogic
 import (
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilUtil "cryptoutil/internal/util"
+	"errors"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -29,17 +33,17 @@ func (m *serviceOrmMapper) toOrmKeyPoolInsert(keyPoolID uuid.UUID, serviceKeyPoo
 	}
 }
 
-func (*serviceOrmMapper) toOrmKeyPoolProvider(serviceKeyPoolProvider *cryptoutilServiceModel.KeyPoolProvider) *cryptoutilOrmRepository.KeyPoolProvider {
+func (m *serviceOrmMapper) toOrmKeyPoolProvider(serviceKeyPoolProvider *cryptoutilServiceModel.KeyPoolProvider) *cryptoutilOrmRepository.KeyPoolProvider {
 	ormKeyPoolProvider := cryptoutilOrmRepository.KeyPoolProvider(*serviceKeyPoolProvider)
 	return &ormKeyPoolProvider
 }
 
-func (*serviceOrmMapper) toOrmKeyPoolAlgorithm(serviceKeyPoolProvider *cryptoutilServiceModel.KeyPoolAlgorithm) *cryptoutilOrmRepository.KeyPoolAlgorithm {
+func (m *serviceOrmMapper) toOrmKeyPoolAlgorithm(serviceKeyPoolProvider *cryptoutilServiceModel.KeyPoolAlgorithm) *cryptoutilOrmRepository.KeyPoolAlgorithm {
 	ormKeyPoolAlgorithm := cryptoutilOrmRepository.KeyPoolAlgorithm(*serviceKeyPoolProvider)
 	return &ormKeyPoolAlgorithm
 }
 
-func (*serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolImportAllowed *cryptoutilServiceModel.KeyPoolImportAllowed) *cryptoutilOrmRepository.KeyPoolStatus {
+func (m *serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolImportAllowed *cryptoutilServiceModel.KeyPoolImportAllowed) *cryptoutilOrmRepository.KeyPoolStatus {
 	var ormKeyPoolStatus cryptoutilOrmRepository.KeyPoolStatus
 	if *serviceKeyPoolImportAllowed {
 		ormKeyPoolStatus = cryptoutilOrmRepository.KeyPoolStatus("pending_import")
@@ -73,17 +77,17 @@ func (s *serviceOrmMapper) toServiceKeyPool(ormKeyPool *cryptoutilOrmRepository.
 	}
 }
 
-func (*serviceOrmMapper) toServiceKeyPoolAlgorithm(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) *cryptoutilServiceModel.KeyPoolAlgorithm {
+func (m *serviceOrmMapper) toServiceKeyPoolAlgorithm(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) *cryptoutilServiceModel.KeyPoolAlgorithm {
 	serviceKeyPoolAlgorithm := cryptoutilServiceModel.KeyPoolAlgorithm(*ormKeyPoolAlgorithm)
 	return &serviceKeyPoolAlgorithm
 }
 
-func (*serviceOrmMapper) toServiceKeyPoolProvider(ormKeyPoolProvider *cryptoutilOrmRepository.KeyPoolProvider) *cryptoutilServiceModel.KeyPoolProvider {
+func (m *serviceOrmMapper) toServiceKeyPoolProvider(ormKeyPoolProvider *cryptoutilOrmRepository.KeyPoolProvider) *cryptoutilServiceModel.KeyPoolProvider {
 	serviceKeyPoolProvider := cryptoutilServiceModel.KeyPoolProvider(*ormKeyPoolProvider)
 	return &serviceKeyPoolProvider
 }
 
-func (*serviceOrmMapper) toServiceKeyPoolStatus(ormKeyPoolStatus *cryptoutilOrmRepository.KeyPoolStatus) *cryptoutilServiceModel.KeyPoolStatus {
+func (m *serviceOrmMapper) toServiceKeyPoolStatus(ormKeyPoolStatus *cryptoutilOrmRepository.KeyPoolStatus) *cryptoutilServiceModel.KeyPoolStatus {
 	serviceKeyPoolStatus := cryptoutilServiceModel.KeyPoolStatus(*ormKeyPoolStatus)
 	return &serviceKeyPoolStatus
 }
@@ -96,10 +100,227 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key) 
 	return serviceKeys
 }
 
-func (*serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key) *cryptoutilServiceModel.Key {
+func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key) *cryptoutilServiceModel.Key {
 	return &cryptoutilServiceModel.Key{
 		Pool:         (*cryptoutilServiceModel.KeyPoolId)(&ormKey.KeyPoolID),
 		Id:           &ormKey.KeyID,
 		GenerateDate: (*cryptoutilServiceModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
 	}
+}
+
+func (m *serviceOrmMapper) toOrmKeyPoolsQueryParams(params *cryptoutilServiceModel.KeyPoolsQueryParams) (*cryptoutilOrmRepository.GetKeyPoolsFilters, error) {
+	if params == nil {
+		return nil, nil
+	}
+	var errs []error
+	keyPoolIDs, err := m.toOrmUUIDs(params.Id)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Key Pool ID: %w", err))
+	}
+	names, err := m.toOrmStrings(params.Name)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Key Pool Name: %w", err))
+	}
+	algorithms, err := m.toOrmAlgorithms(params.Algorithm)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Key Pool Algorithm: %w", err))
+	}
+	sorts, err := m.toOrmKeyPoolSorts(params.Sort)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Key Pool Sort: %w", err))
+	}
+	pageNumber, err := m.toOrmPageNumber(params.Page)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Page Number: %w", err))
+	}
+	pageSize, err := m.toOrmPageSize(params.Size)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
+	}
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("invalid parameters: %w", errors.Join(errs...))
+	}
+
+	return &cryptoutilOrmRepository.GetKeyPoolsFilters{
+		ID:                keyPoolIDs,
+		Name:              names,
+		Algorithm:         algorithms,
+		VersioningAllowed: params.VersioningAllowed,
+		ImportAllowed:     params.ImportAllowed,
+		ExportAllowed:     params.ExportAllowed,
+		Sort:              sorts,
+		PageNumber:        pageNumber,
+		PageSize:          pageSize,
+	}, nil
+}
+
+func (*serviceOrmMapper) newMethod(params *cryptoutilServiceModel.KeyPoolsQueryParams) cryptoutilServiceModel.PageNumber {
+	newVar := *params.Page
+	return newVar
+}
+
+func (m *serviceOrmMapper) toOrmKeyPoolKeysQueryParams(params *cryptoutilServiceModel.KeyPoolKeysQueryParams) (*cryptoutilOrmRepository.GetKeyPoolKeysFilters, error) {
+	if params == nil {
+		return nil, nil
+	}
+	var errs []error
+	keyIDs, err := m.toOrmUUIDs(params.Id)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
+	}
+	minGenerateDate, maxGenerateDate, err := m.toOrmGenerateDate(params.MinGenerateDate, params.MaxGenerateDate)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
+	}
+	sorts, err := m.toOrmKeySorts(params.Sort)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Key Sort: %w", err))
+	}
+	pageNumber, err := m.toOrmPageNumber(params.Page)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Page Number: %w", err))
+	}
+	pageSize, err := m.toOrmPageSize(params.Size)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
+	}
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("invalid parameters: %w", errors.Join(errs...))
+	}
+	return &cryptoutilOrmRepository.GetKeyPoolKeysFilters{
+		ID:                  keyIDs,
+		MinimumGenerateDate: minGenerateDate,
+		MaximumGenerateDate: maxGenerateDate,
+		Sort:                sorts,
+		PageNumber:          pageNumber,
+		PageSize:            pageSize,
+	}, nil
+}
+
+func (m *serviceOrmMapper) toOrmKeysQueryParams(params *cryptoutilServiceModel.KeysQueryParams) (*cryptoutilOrmRepository.GetKeysFilters, error) {
+	if params == nil {
+		return nil, nil
+	}
+	var errs []error
+	keyPoolIDs, err := m.toOrmUUIDs(params.Pool)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid KeyPoolID: %w", err))
+	}
+	keyIDs, err := m.toOrmUUIDs(params.Id)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
+	}
+	minGenerateDate, maxGenerateDate, err := m.toOrmGenerateDate(params.MinGenerateDate, params.MaxGenerateDate)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
+	}
+	sorts, err := m.toOrmKeySorts(params.Sort)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Key Sort: %w", err))
+	}
+	pageNumber, err := m.toOrmPageNumber(params.Page)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Page Number: %w", err))
+	}
+	pageSize, err := m.toOrmPageSize(params.Size)
+	if err != nil {
+		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
+	}
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("invalid parameters: %w", errors.Join(errs...))
+	}
+
+	return &cryptoutilOrmRepository.GetKeysFilters{
+		Pool:                keyPoolIDs,
+		ID:                  keyIDs,
+		MinimumGenerateDate: minGenerateDate,
+		MaximumGenerateDate: maxGenerateDate,
+		Sort:                sorts,
+		PageNumber:          pageNumber,
+		PageSize:            pageSize,
+	}, nil
+}
+
+// Helper methods
+
+func (*serviceOrmMapper) toOrmUUIDs(uuids *[]uuid.UUID) ([]uuid.UUID, error) {
+	if uuids == nil || len(*uuids) == 0 {
+		return nil, nil
+	}
+	for _, uuid := range *uuids {
+		if uuid == cryptoutilUtil.ZeroUUID {
+			return nil, fmt.Errorf("UUID must not be 00000000-0000-0000-0000-000000000000")
+		}
+	}
+	return *uuids, nil
+}
+
+func (*serviceOrmMapper) toOrmStrings(strings *[]string) ([]string, error) {
+	if strings == nil || len(*strings) == 0 {
+		return nil, nil
+	}
+	for _, value := range *strings {
+		if len(value) == 0 {
+			return nil, fmt.Errorf("value must not be empty string")
+		}
+	}
+	return *strings, nil
+}
+
+func (*serviceOrmMapper) toOrmGenerateDate(minGenerateDate *cryptoutilServiceModel.KeyGenerateDate, maxGenerateDate *cryptoutilServiceModel.KeyGenerateDate) (*cryptoutilServiceModel.KeyGenerateDate, *cryptoutilServiceModel.KeyGenerateDate, error) {
+	var errs []error
+	if minGenerateDate != nil && minGenerateDate.Compare(time.Now().UTC()) >= 0 {
+		errs = append(errs, fmt.Errorf("Min Generate Date can't be in the future"))
+	}
+	if maxGenerateDate != nil && maxGenerateDate.Compare(time.Now().UTC()) <= 0 {
+		errs = append(errs, fmt.Errorf("Min Generate Date can't be in the future"))
+	}
+	if minGenerateDate != nil && maxGenerateDate != nil && minGenerateDate.Compare(*maxGenerateDate) >= 0 {
+		errs = append(errs, fmt.Errorf("Min Generate Date must be before Max Generate Date"))
+	}
+	return minGenerateDate, maxGenerateDate, errors.Join(errs...)
+}
+
+func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilServiceModel.KeyPoolAlgorithm) ([]string, error) {
+	newVar := toStrings(algorithms, func(algorithm cryptoutilServiceModel.KeyPoolAlgorithm) string { return string(algorithm) })
+	return newVar, nil
+}
+
+func (m *serviceOrmMapper) toOrmKeyPoolSorts(keyPoolSorts *[]cryptoutilServiceModel.KeyPoolSort) ([]string, error) {
+	newVar := toStrings(keyPoolSorts, func(keyPoolSort cryptoutilServiceModel.KeyPoolSort) string { return string(keyPoolSort) })
+	return newVar, nil
+}
+
+func (m *serviceOrmMapper) toOrmKeySorts(keySorts *[]cryptoutilServiceModel.KeySort) ([]string, error) {
+	newVar := toStrings(keySorts, func(keySort cryptoutilServiceModel.KeySort) string { return string(keySort) })
+	return newVar, nil
+}
+
+func (*serviceOrmMapper) toOrmPageNumber(pageNumber *cryptoutilServiceModel.PageNumber) (int, error) {
+	if pageNumber == nil {
+		return 0, nil
+	} else if *pageNumber >= 0 {
+		return *pageNumber, nil
+	}
+	return 0, fmt.Errorf("Page Number must be zero or higher")
+}
+
+func (*serviceOrmMapper) toOrmPageSize(pageSize *cryptoutilServiceModel.PageSize) (int, error) {
+	if pageSize == nil {
+		return 25, nil
+	} else if *pageSize >= 1 {
+		return *pageSize, nil
+	}
+	return 0, fmt.Errorf("Page Size must be one or higher")
+}
+
+func toStrings[T any](items *[]T, toString func(T) string) []string {
+	if items == nil || len(*items) == 0 {
+		return nil
+	}
+	converted := make([]string, 0, len(*items))
+	for _, item := range *items {
+		converted = append(converted, toString(item))
+	}
+	return converted
 }

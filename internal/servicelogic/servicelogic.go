@@ -99,11 +99,14 @@ func (s *KeyPoolService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID go
 }
 
 func (s *KeyPoolService) GetKeyPools(ctx context.Context, keyPoolQueryParams *cryptoutilServiceModel.KeyPoolsQueryParams) ([]cryptoutilServiceModel.KeyPool, error) {
-	// TODO Validate keyPoolQueryParams
+	ormKeyPoolsQueryParams, err := s.serviceOrmMapper.toOrmKeyPoolsQueryParams(keyPoolQueryParams)
+	if err != nil {
+		return nil, fmt.Errorf("invalid Get Key Pools parameters: %w", err)
+	}
 	var repositoryKeyPools []cryptoutilOrmRepository.KeyPool
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		repositoryKeyPools, err = sqlTransaction.GetKeyPools() // TODO pass converted keyPoolQueryParams
+		repositoryKeyPools, err = sqlTransaction.GetKeyPools(ormKeyPoolsQueryParams)
 		if err != nil {
 			return fmt.Errorf("failed to list KeyPools: %w", err)
 		}
@@ -150,11 +153,14 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID goo
 }
 
 func (s *KeyPoolService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleUuid.UUID, keyPoolKeysQueryParams *cryptoutilServiceModel.KeyPoolKeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
-	// TODO Validate keyPoolKeysQueryParams
+	ormKeyPoolKeysQueryParams, err := s.serviceOrmMapper.toOrmKeyPoolKeysQueryParams(keyPoolKeysQueryParams)
+	if err != nil {
+		return nil, fmt.Errorf("invalid Get Keys by Key Pool ID parameters: %w", err)
+	}
 	var repositoryKeys []cryptoutilOrmRepository.Key
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		repositoryKeys, err = sqlTransaction.FindKeysByKeyPoolID(keyPoolID) // TODO pass converted keyPoolKeysQueryParams
+		repositoryKeys, err = sqlTransaction.FindKeysByKeyPoolID(keyPoolID, ormKeyPoolKeysQueryParams)
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 		}
@@ -169,11 +175,14 @@ func (s *KeyPoolService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleU
 }
 
 func (s *KeyPoolService) GetKeys(ctx context.Context, keysQueryParams *cryptoutilServiceModel.KeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
-	// TODO Validate keysQueryParams
+	ormKeysQueryParams, err := s.serviceOrmMapper.toOrmKeysQueryParams(keysQueryParams)
+	if err != nil {
+		return nil, fmt.Errorf("invalid Get Keys parameters: %w", err)
+	}
 	var repositoryKeys []cryptoutilOrmRepository.Key
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		repositoryKeys, err = sqlTransaction.GetKeys() // TODO pass converted keysQueryParams
+		repositoryKeys, err = sqlTransaction.GetKeys(ormKeysQueryParams)
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 		}
