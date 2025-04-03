@@ -29,7 +29,7 @@ func (m *openapiMapper) toPostKeyResponse(err error, addedKeyPool *cryptoutilSer
 			}
 		}
 		return nil, fmt.Errorf("failed to add KeyPool: %w", err)
-	}s
+	}
 	return cryptoutilOpenapiServer.PostKeypool200JSONResponse(*addedKeyPool), nil
 }
 
