@@ -15,21 +15,21 @@ func NewMapper() *openapiMapper {
 	return &openapiMapper{}
 }
 
-func (s *openapiMapper) toPostKeyResponse(err error, addedKeyPool *cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
+func (m *openapiMapper) toPostKeyResponse(err error, addedKeyPool *cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypool400JSONResponse{HTTP400BadRequest: s.http400(appErr)}, nil
+				return cryptoutilOpenapiServer.PostKeypool400JSONResponse{HTTP400BadRequest: m.http400(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypool404JSONResponse{HTTP404NotFound: s.http404(appErr)}, nil
+				return cryptoutilOpenapiServer.PostKeypool404JSONResponse{HTTP404NotFound: m.http404(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypool500JSONResponse{HTTP500InternalServerError: s.http500(appErr)}, nil
+				return cryptoutilOpenapiServer.PostKeypool500JSONResponse{HTTP500InternalServerError: m.http500(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to add KeyPool: %w", err)
-	}
+	}s
 	return cryptoutilOpenapiServer.PostKeypool200JSONResponse(*addedKeyPool), nil
 }
 
@@ -50,17 +50,17 @@ func (m *openapiMapper) toServiceModelGetKeyPoolQueryParams(openapiGetKeyPoolQue
 	return &filters
 }
 
-func (s *openapiMapper) toGetKeypoolsResponse(err error, keyPools []cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolsResponseObject, error) {
+func (m *openapiMapper) toGetKeypoolsResponse(err error, keyPools []cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolsResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypools400JSONResponse{HTTP400BadRequest: s.http400(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypools400JSONResponse{HTTP400BadRequest: m.http400(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypools404JSONResponse{HTTP404NotFound: s.http404(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypools404JSONResponse{HTTP404NotFound: m.http404(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypools500JSONResponse{HTTP500InternalServerError: s.http500(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypools500JSONResponse{HTTP500InternalServerError: m.http500(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to get KeyPools: %w", err)
@@ -68,17 +68,17 @@ func (s *openapiMapper) toGetKeypoolsResponse(err error, keyPools []cryptoutilSe
 	return cryptoutilOpenapiServer.GetKeypools200JSONResponse(keyPools), err
 }
 
-func (s *openapiMapper) toGetKeypoolKeyPoolIDResponse(err error, keyPool *cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDResponseObject, error) {
+func (m *openapiMapper) toGetKeypoolKeyPoolIDResponse(err error, keyPool *cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID400JSONResponse{HTTP400BadRequest: s.http400(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID400JSONResponse{HTTP400BadRequest: m.http400(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID404JSONResponse{HTTP404NotFound: s.http404(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID404JSONResponse{HTTP404NotFound: m.http404(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID500JSONResponse{HTTP500InternalServerError: s.http500(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID500JSONResponse{HTTP500InternalServerError: m.http500(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to get KeyPool by KeyPoolID: %w", err)
@@ -86,17 +86,17 @@ func (s *openapiMapper) toGetKeypoolKeyPoolIDResponse(err error, keyPool *crypto
 	return cryptoutilOpenapiServer.GetKeypoolKeyPoolID200JSONResponse(*keyPool), err
 }
 
-func (s *openapiMapper) toPostKeypoolKeyPoolIDKeyResponse(err error, generateKeyInKeyPoolResponse *cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+func (m *openapiMapper) toPostKeypoolKeyPoolIDKeyResponse(err error, generateKeyInKeyPoolResponse *cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: s.http400(appErr)}, nil
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: m.http400(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey404JSONResponse{HTTP404NotFound: s.http404(appErr)}, nil
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey404JSONResponse{HTTP404NotFound: m.http404(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: s.http500(appErr)}, nil
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: m.http500(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to generate Key by KeyPoolID: %w", err)
@@ -104,17 +104,17 @@ func (s *openapiMapper) toPostKeypoolKeyPoolIDKeyResponse(err error, generateKey
 	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey200JSONResponse(*generateKeyInKeyPoolResponse), err
 }
 
-func (s *openapiMapper) toGetKeypoolKeyPoolIDKeyKeyIDResponse(err error, key *cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyIDResponseObject, error) {
+func (m *openapiMapper) toGetKeypoolKeyPoolIDKeyKeyIDResponse(err error, key *cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID400JSONResponse{HTTP400BadRequest: s.http400(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID400JSONResponse{HTTP400BadRequest: m.http400(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID404JSONResponse{HTTP404NotFound: s.http404(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID404JSONResponse{HTTP404NotFound: m.http404(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID500JSONResponse{HTTP500InternalServerError: s.http500(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID500JSONResponse{HTTP500InternalServerError: m.http500(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to get Keys by KeyPoolID and KeyID: %w", err)
@@ -132,17 +132,17 @@ func (m *openapiMapper) toServiceModelGetKeyPoolKeysQueryParams(openapiGetKeyQue
 	return &filters
 }
 
-func (s *openapiMapper) toGetKeypoolKeyPoolIDKeysResponse(err error, keys []cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysResponseObject, error) {
+func (m *openapiMapper) toGetKeypoolKeyPoolIDKeysResponse(err error, keys []cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys400JSONResponse{HTTP400BadRequest: s.http400(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys400JSONResponse{HTTP400BadRequest: m.http400(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys404JSONResponse{HTTP404NotFound: s.http404(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys404JSONResponse{HTTP404NotFound: m.http404(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys500JSONResponse{HTTP500InternalServerError: s.http500(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys500JSONResponse{HTTP500InternalServerError: m.http500(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
@@ -161,17 +161,17 @@ func (m *openapiMapper) toServiceModelGetKeysQueryParams(openapiGetKeyQueryParam
 	return &filters
 }
 
-func (s *openapiMapper) toGetKeysResponse(err error, keys []cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeysResponseObject, error) {
+func (m *openapiMapper) toGetKeysResponse(err error, keys []cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeys400JSONResponse{HTTP400BadRequest: s.http400(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeys400JSONResponse{HTTP400BadRequest: m.http400(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeys404JSONResponse{HTTP404NotFound: s.http404(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeys404JSONResponse{HTTP404NotFound: m.http404(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeys500JSONResponse{HTTP500InternalServerError: s.http500(appErr)}, nil
+				return cryptoutilOpenapiServer.GetKeys500JSONResponse{HTTP500InternalServerError: m.http500(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
@@ -179,7 +179,7 @@ func (s *openapiMapper) toGetKeysResponse(err error, keys []cryptoutilServiceMod
 	return cryptoutilOpenapiServer.GetKeys200JSONResponse(keys), err
 }
 
-func (s *openapiMapper) http400(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP400BadRequest {
+func (m *openapiMapper) http400(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP400BadRequest {
 	return cryptoutilServiceModel.HTTP400BadRequest{
 		Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
 		Message: appErr.Error(),
@@ -187,7 +187,7 @@ func (s *openapiMapper) http400(appErr *cryptoutilAppErr.Error) cryptoutilServic
 	}
 }
 
-func (s *openapiMapper) http404(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP404NotFound {
+func (m *openapiMapper) http404(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP404NotFound {
 	return cryptoutilServiceModel.HTTP404NotFound{
 		Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
 		Message: appErr.Error(),
@@ -195,7 +195,7 @@ func (s *openapiMapper) http404(appErr *cryptoutilAppErr.Error) cryptoutilServic
 	}
 }
 
-func (s *openapiMapper) http500(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP500InternalServerError {
+func (m *openapiMapper) http500(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP500InternalServerError {
 	return cryptoutilServiceModel.HTTP500InternalServerError{
 		Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
 		Message: appErr.Error(),
