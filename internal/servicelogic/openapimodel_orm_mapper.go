@@ -19,7 +19,7 @@ func NewMapper() *serviceOrmMapper {
 
 // service => orm
 
-func (m *serviceOrmMapper) toOrmKeyPoolInsert(keyPoolID uuid.UUID, serviceKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
+func (m *serviceOrmMapper) toOrmAddKeyPool(keyPoolID uuid.UUID, serviceKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
 	return &cryptoutilOrmRepository.KeyPool{
 		KeyPoolID:                keyPoolID,
 		KeyPoolName:              serviceKeyPoolCreate.Name,
@@ -108,7 +108,7 @@ func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key) *cr
 	}
 }
 
-func (m *serviceOrmMapper) toOrmKeyPoolsQueryParams(params *cryptoutilServiceModel.KeyPoolsQueryParams) (*cryptoutilOrmRepository.GetKeyPoolsFilters, error) {
+func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilServiceModel.KeyPoolsQueryParams) (*cryptoutilOrmRepository.GetKeyPoolsFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -138,7 +138,7 @@ func (m *serviceOrmMapper) toOrmKeyPoolsQueryParams(params *cryptoutilServiceMod
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("invalid parameters: %w", errors.Join(errs...))
+		return nil, fmt.Errorf("invalid Get Key Pools parameters: %w", errors.Join(errs...))
 	}
 
 	return &cryptoutilOrmRepository.GetKeyPoolsFilters{
@@ -154,12 +154,7 @@ func (m *serviceOrmMapper) toOrmKeyPoolsQueryParams(params *cryptoutilServiceMod
 	}, nil
 }
 
-func (*serviceOrmMapper) newMethod(params *cryptoutilServiceModel.KeyPoolsQueryParams) cryptoutilServiceModel.PageNumber {
-	newVar := *params.Page
-	return newVar
-}
-
-func (m *serviceOrmMapper) toOrmKeyPoolKeysQueryParams(params *cryptoutilServiceModel.KeyPoolKeysQueryParams) (*cryptoutilOrmRepository.GetKeyPoolKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetKeyPoolKeysQueryParams(params *cryptoutilServiceModel.KeyPoolKeysQueryParams) (*cryptoutilOrmRepository.GetKeyPoolKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -168,7 +163,7 @@ func (m *serviceOrmMapper) toOrmKeyPoolKeysQueryParams(params *cryptoutilService
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
 	}
-	minGenerateDate, maxGenerateDate, err := m.toOrmGenerateDate(params.MinGenerateDate, params.MaxGenerateDate)
+	minGenerateDate, maxGenerateDate, err := m.toOrmDateRange(params.MinGenerateDate, params.MaxGenerateDate)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
 	}
@@ -185,7 +180,7 @@ func (m *serviceOrmMapper) toOrmKeyPoolKeysQueryParams(params *cryptoutilService
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("invalid parameters: %w", errors.Join(errs...))
+		return nil, fmt.Errorf("invalid Get Key Pool Keys parameters: %w", errors.Join(errs...))
 	}
 	return &cryptoutilOrmRepository.GetKeyPoolKeysFilters{
 		ID:                  keyIDs,
@@ -197,7 +192,7 @@ func (m *serviceOrmMapper) toOrmKeyPoolKeysQueryParams(params *cryptoutilService
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmKeysQueryParams(params *cryptoutilServiceModel.KeysQueryParams) (*cryptoutilOrmRepository.GetKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilServiceModel.KeysQueryParams) (*cryptoutilOrmRepository.GetKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -210,7 +205,7 @@ func (m *serviceOrmMapper) toOrmKeysQueryParams(params *cryptoutilServiceModel.K
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
 	}
-	minGenerateDate, maxGenerateDate, err := m.toOrmGenerateDate(params.MinGenerateDate, params.MaxGenerateDate)
+	minGenerateDate, maxGenerateDate, err := m.toOrmDateRange(params.MinGenerateDate, params.MaxGenerateDate)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
 	}
@@ -227,7 +222,7 @@ func (m *serviceOrmMapper) toOrmKeysQueryParams(params *cryptoutilServiceModel.K
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("invalid parameters: %w", errors.Join(errs...))
+		return nil, fmt.Errorf("invalid Get Keys parameters: %w", errors.Join(errs...))
 	}
 
 	return &cryptoutilOrmRepository.GetKeysFilters{
@@ -267,18 +262,25 @@ func (*serviceOrmMapper) toOrmStrings(strings *[]string) ([]string, error) {
 	return *strings, nil
 }
 
-func (*serviceOrmMapper) toOrmGenerateDate(minGenerateDate *cryptoutilServiceModel.KeyGenerateDate, maxGenerateDate *cryptoutilServiceModel.KeyGenerateDate) (*cryptoutilServiceModel.KeyGenerateDate, *cryptoutilServiceModel.KeyGenerateDate, error) {
+func (*serviceOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) (*time.Time, *time.Time, error) {
 	var errs []error
-	if minGenerateDate != nil && minGenerateDate.Compare(time.Now().UTC()) >= 0 {
-		errs = append(errs, fmt.Errorf("Min Generate Date can't be in the future"))
+	nonNullMinDate := minDate != nil
+	nonNullMaxDate := maxDate != nil
+	if nonNullMinDate || nonNullMaxDate {
+		now := time.Now().UTC()
+		if nonNullMinDate && minDate.Compare(now) > 0 {
+			errs = append(errs, fmt.Errorf("Min Date can't be in the future"))
+		}
+		if nonNullMaxDate {
+			if maxDate.Compare(now) > 0 {
+				errs = append(errs, fmt.Errorf("Max Date can't be in the future"))
+			}
+			if nonNullMinDate && minDate.Compare(*maxDate) > 0 {
+				errs = append(errs, fmt.Errorf("Min Date must be before Max Date"))
+			}
+		}
 	}
-	if maxGenerateDate != nil && maxGenerateDate.Compare(time.Now().UTC()) <= 0 {
-		errs = append(errs, fmt.Errorf("Min Generate Date can't be in the future"))
-	}
-	if minGenerateDate != nil && maxGenerateDate != nil && minGenerateDate.Compare(*maxGenerateDate) >= 0 {
-		errs = append(errs, fmt.Errorf("Min Generate Date must be before Max Generate Date"))
-	}
-	return minGenerateDate, maxGenerateDate, errors.Join(errs...)
+	return minDate, maxDate, errors.Join(errs...)
 }
 
 func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilServiceModel.KeyPoolAlgorithm) ([]string, error) {

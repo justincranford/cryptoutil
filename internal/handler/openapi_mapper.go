@@ -122,12 +122,14 @@ func (m *openapiMapper) toGetKeypoolKeyPoolIDKeyKeyIDResponse(err error, key *cr
 	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID200JSONResponse(*key), err
 }
 
-func (m *openapiMapper) toServiceModelGetKeyPoolKeysQueryParams(openapiGetKeyQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysParams) *cryptoutilServiceModel.KeyPoolKeysQueryParams {
+func (m *openapiMapper) toServiceModelGetKeyPoolKeysQueryParams(openapiGetKeyPoolKeysQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysParams) *cryptoutilServiceModel.KeyPoolKeysQueryParams {
 	filters := cryptoutilServiceModel.KeyPoolKeysQueryParams{
-		Id:   openapiGetKeyQueryParamsObject.Id,
-		Sort: openapiGetKeyQueryParamsObject.Sort,
-		Page: openapiGetKeyQueryParamsObject.Page,
-		Size: openapiGetKeyQueryParamsObject.Size,
+		Id:              openapiGetKeyPoolKeysQueryParamsObject.Id,
+		MinGenerateDate: openapiGetKeyPoolKeysQueryParamsObject.MinGenerateDate,
+		MaxGenerateDate: openapiGetKeyPoolKeysQueryParamsObject.MaxGenerateDate,
+		Sort:            openapiGetKeyPoolKeysQueryParamsObject.Sort,
+		Page:            openapiGetKeyPoolKeysQueryParamsObject.Page,
+		Size:            openapiGetKeyPoolKeysQueryParamsObject.Size,
 	}
 	return &filters
 }
@@ -152,11 +154,13 @@ func (m *openapiMapper) toGetKeypoolKeyPoolIDKeysResponse(err error, keys []cryp
 
 func (m *openapiMapper) toServiceModelGetKeysQueryParams(openapiGetKeyQueryParamsObject *cryptoutilOpenapiServer.GetKeysParams) *cryptoutilServiceModel.KeysQueryParams {
 	filters := cryptoutilServiceModel.KeysQueryParams{
-		Pool: openapiGetKeyQueryParamsObject.Pool,
-		Id:   openapiGetKeyQueryParamsObject.Id,
-		Sort: openapiGetKeyQueryParamsObject.Sort,
-		Page: openapiGetKeyQueryParamsObject.Page,
-		Size: openapiGetKeyQueryParamsObject.Size,
+		Pool:            openapiGetKeyQueryParamsObject.Pool,
+		Id:              openapiGetKeyQueryParamsObject.Id,
+		MinGenerateDate: openapiGetKeyQueryParamsObject.MinGenerateDate,
+		MaxGenerateDate: openapiGetKeyQueryParamsObject.MaxGenerateDate,
+		Sort:            openapiGetKeyQueryParamsObject.Sort,
+		Page:            openapiGetKeyQueryParamsObject.Page,
+		Size:            openapiGetKeyQueryParamsObject.Size,
 	}
 	return &filters
 }

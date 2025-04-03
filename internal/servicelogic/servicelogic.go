@@ -32,7 +32,7 @@ func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 
 func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
 	keyPoolID := s.uuidV7Pool.Get().Private.(googleUuid.UUID)
-	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmKeyPoolInsert(keyPoolID, openapiKeyPoolCreate)
+	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(keyPoolID, openapiKeyPoolCreate)
 
 	var insertedKeyPool *cryptoutilOrmRepository.KeyPool
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
@@ -99,7 +99,7 @@ func (s *KeyPoolService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID go
 }
 
 func (s *KeyPoolService) GetKeyPools(ctx context.Context, keyPoolQueryParams *cryptoutilServiceModel.KeyPoolsQueryParams) ([]cryptoutilServiceModel.KeyPool, error) {
-	ormKeyPoolsQueryParams, err := s.serviceOrmMapper.toOrmKeyPoolsQueryParams(keyPoolQueryParams)
+	ormKeyPoolsQueryParams, err := s.serviceOrmMapper.toOrmGetKeyPoolsQueryParams(keyPoolQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Key Pools parameters: %w", err)
 	}
@@ -153,9 +153,9 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID goo
 }
 
 func (s *KeyPoolService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleUuid.UUID, keyPoolKeysQueryParams *cryptoutilServiceModel.KeyPoolKeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
-	ormKeyPoolKeysQueryParams, err := s.serviceOrmMapper.toOrmKeyPoolKeysQueryParams(keyPoolKeysQueryParams)
+	ormKeyPoolKeysQueryParams, err := s.serviceOrmMapper.toOrmGetKeyPoolKeysQueryParams(keyPoolKeysQueryParams)
 	if err != nil {
-		return nil, fmt.Errorf("invalid Get Keys by Key Pool ID parameters: %w", err)
+		return nil, fmt.Errorf("invalid Get Key Pool Keys parameters: %w", err)
 	}
 	var repositoryKeys []cryptoutilOrmRepository.Key
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
@@ -175,7 +175,7 @@ func (s *KeyPoolService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleU
 }
 
 func (s *KeyPoolService) GetKeys(ctx context.Context, keysQueryParams *cryptoutilServiceModel.KeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
-	ormKeysQueryParams, err := s.serviceOrmMapper.toOrmKeysQueryParams(keysQueryParams)
+	ormKeysQueryParams, err := s.serviceOrmMapper.toOrmGetKeysQueryParams(keysQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Keys parameters: %w", err)
 	}
