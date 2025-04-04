@@ -21,6 +21,7 @@ import (
 )
 
 var (
+	ormTableStructs               = []any{&KeyPool{}, &Key{}, &RootKek{}, &NamespaceKek{}, &NamespaceKeys{}}
 	ErrKeyPoolIDMustBeNonZeroUUID = fmt.Errorf("invalid Key Pool ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 	ErrKeyIDMustBeNonZeroUUID     = fmt.Errorf("invalid Key ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 )
@@ -34,7 +35,7 @@ type RepositoryProvider struct {
 }
 
 func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*RepositoryProvider, error) {
-	uuidV7Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Orm UUIDv7", 3, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
+	uuidV7Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Orm UUIDv7", 5, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
 
 	gormDB, err := cryptoutilSqlProvider.CreateGormDB(sqlProvider)
 	if err != nil {
@@ -100,7 +101,7 @@ func (s *RepositoryTransaction) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPool
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to update Key Pool Status", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
-	err := s.state.gormTx.Model(&KeyPool{}).Where("key_pool_id = ?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
+	err := s.state.gormTx.Model(&KeyPool{}).Where("key_pool_id=?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
 	if err != nil {
 		return s.toAppErr("failed to update Key Pool Status", err)
 	}
@@ -240,20 +241,21 @@ func applyGetKeyPoolsFilters(db *gorm.DB, filters *GetKeyPoolsFilters) *gorm.DB 
 		db = db.Where("key_pool_algorithm IN ?", filters.Algorithm)
 	}
 	if filters.VersioningAllowed != nil {
-		db = db.Where("key_pool_versioning_allowed = ?", *filters.VersioningAllowed)
+		db = db.Where("key_pool_versioning_allowed=?", *filters.VersioningAllowed)
 	}
 	if filters.ImportAllowed != nil {
-		db = db.Where("key_pool_import_allowed = ?", *filters.ImportAllowed)
+		db = db.Where("key_pool_import_allowed=?", *filters.ImportAllowed)
 	}
 	if filters.ExportAllowed != nil {
-		db = db.Where("key_pool_export_allowed = ?", *filters.ExportAllowed)
+		db = db.Where("key_pool_export_allowed=?", *filters.ExportAllowed)
 	}
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
 			db = db.Order(sort)
 		}
 	}
-	db = db.Offset(filters.PageNumber * filters.PageSize).Limit(filters.PageSize)
+	db = db.Offset(filters.PageNumber * filters.PageSize)
+	db = db.Limit(filters.PageSize)
 	return db
 }
 
@@ -268,17 +270,18 @@ func applyKeyFilters(db *gorm.DB, filters *GetKeysFilters) *gorm.DB {
 		db = db.Where("key_pool_id IN ?", filters.Pool)
 	}
 	if filters.MinimumGenerateDate != nil {
-		db = db.Where("key_generate_date >= ?", *filters.MinimumGenerateDate)
+		db = db.Where("key_generate_date>=?", *filters.MinimumGenerateDate)
 	}
 	if filters.MaximumGenerateDate != nil {
-		db = db.Where("key_generate_date <= ?", *filters.MaximumGenerateDate)
+		db = db.Where("key_generate_date<=?", *filters.MaximumGenerateDate)
 	}
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
 			db = db.Order(sort)
 		}
 	}
-	db = db.Offset(filters.PageNumber * filters.PageSize).Limit(filters.PageSize)
+	db = db.Offset(filters.PageNumber * filters.PageSize)
+	db = db.Limit(filters.PageSize)
 	return db
 }
 
@@ -290,16 +293,17 @@ func applyGetKeyPoolKeysFilters(db *gorm.DB, filters *GetKeyPoolKeysFilters) *go
 		db = db.Where("key_id IN ?", filters.ID)
 	}
 	if filters.MinimumGenerateDate != nil {
-		db = db.Where("key_generate_date >= ?", *filters.MinimumGenerateDate)
+		db = db.Where("key_generate_date>=?", *filters.MinimumGenerateDate)
 	}
 	if filters.MaximumGenerateDate != nil {
-		db = db.Where("key_generate_date <= ?", *filters.MaximumGenerateDate)
+		db = db.Where("key_generate_date<=?", *filters.MaximumGenerateDate)
 	}
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
 			db = db.Order(sort)
 		}
 	}
-	db = db.Offset(filters.PageNumber * filters.PageSize).Limit(filters.PageSize)
+	db = db.Offset(filters.PageNumber * filters.PageSize)
+	db = db.Limit(filters.PageSize)
 	return db
 }

@@ -6,8 +6,6 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-var ormTableStructs = []any{&KeyPool{}, &Key{}}
-
 type KeyPool struct {
 	KeyPoolID                googleUuid.UUID  `gorm:"type:uuid;primaryKey"`
 	KeyPoolName              string           `gorm:"size:63;not null;check:length(key_pool_name) >= 1;unique"`
