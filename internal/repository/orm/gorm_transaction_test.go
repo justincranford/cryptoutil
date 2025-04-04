@@ -167,7 +167,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
 				now := time.Now().UTC()
 				key := testGivens.Key(keyPool.KeyPoolID, &now, nil, nil, nil)
-				err = repositoryTransaction.AddKey(key)
+				err = repositoryTransaction.AddKeyPoolKey(key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
 				}
@@ -190,7 +190,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 				require.NotNil(t, repositoryTransaction.Context())
 				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
 
-				retrievedKeyPool, err := repositoryTransaction.GetKeyPoolByKeyPoolID(addedKeyPool.KeyPoolID)
+				retrievedKeyPool, err := repositoryTransaction.GetKeyPool(addedKeyPool.KeyPoolID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key Pool: %w", err)
 				}
@@ -208,7 +208,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 				require.NotNil(t, repositoryTransaction.Context())
 				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
 
-				retrievedKey, err := repositoryTransaction.GetKeyByKeyPoolIDAndKeyID(addedKey.KeyPoolID, addedKey.KeyID)
+				retrievedKey, err := repositoryTransaction.GetKeyPoolKey(addedKey.KeyPoolID, addedKey.KeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}

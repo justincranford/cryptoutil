@@ -14,14 +14,15 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"modernc.org/sqlite"
 	_ "modernc.org/sqlite"
 )
 
 var (
-	ErrKeyPoolIDMustBeNonZeroUUID = errors.New("Key Pool ID must not be 00000000-0000-0000-0000-000000000000")
-	ErrKeyIDMustBeNonZeroUUID     = errors.New("Key ID must not be 00000000-0000-0000-0000-000000000000")
+	ErrKeyPoolIDMustBeNonZeroUUID = fmt.Errorf("invalid Key Pool ID: %w", cryptoutilUtil.ErrNonZeroUUID)
+	ErrKeyIDMustBeNonZeroUUID     = fmt.Errorf("invalid Key ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 )
 
 type RepositoryProvider struct {
@@ -72,7 +73,7 @@ func (s *RepositoryTransaction) AddKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
-func (s *RepositoryTransaction) GetKeyPoolByKeyPoolID(keyPoolID uuid.UUID) (*KeyPool, error) {
+func (s *RepositoryTransaction) GetKeyPool(keyPoolID uuid.UUID) (*KeyPool, error) {
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, s.toAppErr("failed to find Key Pool by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
@@ -84,7 +85,7 @@ func (s *RepositoryTransaction) GetKeyPoolByKeyPoolID(keyPoolID uuid.UUID) (*Key
 	return &keyPool, nil
 }
 
-func (s *RepositoryTransaction) UpdateKeyPoolByKeyPoolID(keyPool *KeyPool) error {
+func (s *RepositoryTransaction) UpdateKeyPool(keyPool *KeyPool) error {
 	if keyPool.KeyPoolID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to update Key Pool", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
@@ -106,18 +107,17 @@ func (s *RepositoryTransaction) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPool
 	return nil
 }
 
-func (s *RepositoryTransaction) GetKeyPools(ormKeyPoolsQueryParams *GetKeyPoolsFilters) ([]KeyPool, error) {
+func (s *RepositoryTransaction) GetKeyPools(getKeyPoolsFilters *GetKeyPoolsFilters) ([]KeyPool, error) {
 	var keyPools []KeyPool
-	err := s.state.gormTx.Find(&keyPools).Error
-	// order := fmt.Sprintf("%s %s", sortBy, sortOrder)
-	// err := s.state.gormTx.Where(filter).Order(order).Offset(page * pageSize).Limit(pageSize).Find(&keyPools).Error
+	query := s.state.gormTx
+	err := applyGetKeyPoolsFilters(query, getKeyPoolsFilters).Find(&keyPools).Error
 	if err != nil {
 		return nil, s.toAppErr("failed to get Key Pools", err)
 	}
 	return keyPools, nil
 }
 
-func (s *RepositoryTransaction) AddKey(key *Key) error {
+func (s *RepositoryTransaction) AddKeyPoolKey(key *Key) error {
 	if key.KeyPoolID == cryptoutilUtil.ZeroUUID {
 		return s.toAppErr("failed to insert Key", ErrKeyPoolIDMustBeNonZeroUUID)
 	} else if key.KeyID == cryptoutilUtil.ZeroUUID {
@@ -130,28 +130,30 @@ func (s *RepositoryTransaction) AddKey(key *Key) error {
 	return nil
 }
 
-func (s *RepositoryTransaction) FindKeysByKeyPoolID(keyPoolID uuid.UUID, ormKeyPoolKeysQueryParams *GetKeyPoolKeysFilters) ([]Key, error) {
+func (s *RepositoryTransaction) GetKeyPoolKeys(keyPoolID uuid.UUID, getKeyPoolKeysFilters *GetKeyPoolKeysFilters) ([]Key, error) {
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, s.toAppErr("failed to find Keys by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
 	var keys []Key
-	err := s.state.gormTx.Where("key_pool_id=?", keyPoolID).Find(&keys).Error
+	query := s.state.gormTx.Where("key_pool_id=?", keyPoolID)
+	err := applyGetKeyPoolKeysFilters(query, getKeyPoolKeysFilters).Find(&keys).Error
 	if err != nil {
 		return nil, s.toAppErr("failed to find Keys by Key Pool ID", err)
 	}
 	return keys, nil
 }
 
-func (s *RepositoryTransaction) GetKeys(ormKeysQueryParams *GetKeysFilters) ([]Key, error) {
+func (s *RepositoryTransaction) GetKeys(getKeysFilters *GetKeysFilters) ([]Key, error) {
 	var keys []Key
-	err := s.state.gormTx.Find(&keys).Error
+	query := s.state.gormTx
+	err := applyKeyFilters(query, getKeysFilters).Find(&keys).Error
 	if err != nil {
 		return nil, s.toAppErr("failed to find Keys", err)
 	}
 	return keys, nil
 }
 
-func (s *RepositoryTransaction) GetKeyByKeyPoolIDAndKeyID(keyPoolID uuid.UUID, keyID uuid.UUID) (*Key, error) {
+func (s *RepositoryTransaction) GetKeyPoolKey(keyPoolID uuid.UUID, keyID uuid.UUID) (*Key, error) {
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, s.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	} else if keyID == cryptoutilUtil.ZeroUUID {
@@ -176,27 +178,128 @@ func (s *RepositoryTransaction) toAppErr(msg string, err error) error {
 	}
 
 	// gorm errors
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	switch {
+	case errors.Is(err, gorm.ErrRecordNotFound):
 		return apperr.NewHTTP404NotFound(msg, fmt.Errorf("%s: %w", msg, err))
-	} else if errors.Is(err, gorm.ErrDuplicatedKey) {
+	case errors.Is(err, gorm.ErrDuplicatedKey):
 		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
-	} else if errors.Is(err, gorm.ErrForeignKeyViolated) {
+	case errors.Is(err, gorm.ErrForeignKeyViolated):
 		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
-	} else if errors.Is(err, gorm.ErrCheckConstraintViolated) {
+	case errors.Is(err, gorm.ErrCheckConstraintViolated):
 		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
-	} else if errors.Is(err, gorm.ErrInvalidData) {
+	case errors.Is(err, gorm.ErrInvalidData):
 		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
-	} else if errors.Is(err, gorm.ErrInvalidValueOfLength) {
+	case errors.Is(err, gorm.ErrInvalidValueOfLength):
 		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
-	} else if errors.Is(err, gorm.ErrNotImplemented) {
+	case errors.Is(err, gorm.ErrNotImplemented):
 		return apperr.NewHTTP501StatusLineAndCodeNotImplemented(msg, fmt.Errorf("%s: %w", msg, err))
 	}
 
 	// SQLite errors
 	var sqliteErr *sqlite.Error
-	if errors.As(err, &sqliteErr) && sqliteErr.Code() == 2067 {
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+	if errors.As(err, &sqliteErr) {
+		switch sqliteErr.Code() {
+		case 2067: // UNIQUE constraint failed
+			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		case 787: // FOREIGN KEY constraint failed
+			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		case 1299: // CHECK constraint failed
+			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		}
+	}
+
+	// PostgreSQL errors
+	var pgErr *pq.Error
+	if errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case "23505": // unique_violation
+			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		case "23503": // foreign_key_violation
+			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		case "23514": // check_violation
+			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		case "22001": // string_data_right_truncation
+			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		}
 	}
 
 	return apperr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", msg, err))
+}
+
+func applyGetKeyPoolsFilters(db *gorm.DB, filters *GetKeyPoolsFilters) *gorm.DB {
+	if filters == nil {
+		return db
+	}
+	if len(filters.ID) > 0 {
+		db = db.Where("key_pool_id IN ?", filters.ID)
+	}
+	if len(filters.Name) > 0 {
+		db = db.Where("key_pool_name IN ?", filters.Name)
+	}
+	if len(filters.Algorithm) > 0 {
+		db = db.Where("key_pool_algorithm IN ?", filters.Algorithm)
+	}
+	if filters.VersioningAllowed != nil {
+		db = db.Where("key_pool_versioning_allowed = ?", *filters.VersioningAllowed)
+	}
+	if filters.ImportAllowed != nil {
+		db = db.Where("key_pool_import_allowed = ?", *filters.ImportAllowed)
+	}
+	if filters.ExportAllowed != nil {
+		db = db.Where("key_pool_export_allowed = ?", *filters.ExportAllowed)
+	}
+	if len(filters.Sort) > 0 {
+		for _, sort := range filters.Sort {
+			db = db.Order(sort)
+		}
+	}
+	db = db.Offset(filters.PageNumber * filters.PageSize).Limit(filters.PageSize)
+	return db
+}
+
+func applyKeyFilters(db *gorm.DB, filters *GetKeysFilters) *gorm.DB {
+	if filters == nil {
+		return db
+	}
+	if len(filters.ID) > 0 {
+		db = db.Where("key_id IN ?", filters.ID)
+	}
+	if len(filters.Pool) > 0 {
+		db = db.Where("key_pool_id IN ?", filters.Pool)
+	}
+	if filters.MinimumGenerateDate != nil {
+		db = db.Where("key_generate_date >= ?", *filters.MinimumGenerateDate)
+	}
+	if filters.MaximumGenerateDate != nil {
+		db = db.Where("key_generate_date <= ?", *filters.MaximumGenerateDate)
+	}
+	if len(filters.Sort) > 0 {
+		for _, sort := range filters.Sort {
+			db = db.Order(sort)
+		}
+	}
+	db = db.Offset(filters.PageNumber * filters.PageSize).Limit(filters.PageSize)
+	return db
+}
+
+func applyGetKeyPoolKeysFilters(db *gorm.DB, filters *GetKeyPoolKeysFilters) *gorm.DB {
+	if filters == nil {
+		return db
+	}
+	if len(filters.ID) > 0 {
+		db = db.Where("key_id IN ?", filters.ID)
+	}
+	if filters.MinimumGenerateDate != nil {
+		db = db.Where("key_generate_date >= ?", *filters.MinimumGenerateDate)
+	}
+	if filters.MaximumGenerateDate != nil {
+		db = db.Where("key_generate_date <= ?", *filters.MaximumGenerateDate)
+	}
+	if len(filters.Sort) > 0 {
+		for _, sort := range filters.Sort {
+			db = db.Order(sort)
+		}
+	}
+	db = db.Offset(filters.PageNumber * filters.PageSize).Limit(filters.PageSize)
+	return db
 }

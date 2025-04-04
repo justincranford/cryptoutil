@@ -272,9 +272,9 @@ func (*serviceOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) 
 			errs = append(errs, fmt.Errorf("Min Date can't be in the future"))
 		}
 		if nonNullMaxDate {
-			if maxDate.Compare(now) > 0 {
-				errs = append(errs, fmt.Errorf("Max Date can't be in the future"))
-			}
+			// if maxDate.Compare(now) > 0 {
+			// 	errs = append(errs, fmt.Errorf("Max Date can't be in the future"))
+			// }
 			if nonNullMinDate && minDate.Compare(*maxDate) > 0 {
 				errs = append(errs, fmt.Errorf("Min Date must be before Max Date"))
 			}

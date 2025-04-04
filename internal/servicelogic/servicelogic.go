@@ -56,7 +56,7 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
 
-		err = sqlTransaction.AddKey(repositoryKey)
+		err = sqlTransaction.AddKeyPoolKey(repositoryKey)
 		if err != nil {
 			return fmt.Errorf("failed to add key: %w", err)
 		}
@@ -66,7 +66,7 @@ func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *c
 			return fmt.Errorf("failed to update KeyPoolStatus to active: %w", err)
 		}
 
-		insertedKeyPool, err = sqlTransaction.GetKeyPoolByKeyPoolID(keyPoolID)
+		insertedKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get updated KeyPool from DB: %w", err)
 		}
@@ -85,7 +85,7 @@ var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 func (s *KeyPoolService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID) (*cryptoutilServiceModel.KeyPool, error) {
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		repositoryKeyPool, err = sqlTransaction.GetKeyPoolByKeyPoolID(keyPoolID)
+		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get KeyPool: %w", err)
 		}
@@ -123,7 +123,7 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID goo
 	var repositoryKey *cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		repositoryKeyPool, err := sqlTransaction.GetKeyPoolByKeyPoolID(keyPoolID)
+		repositoryKeyPool, err := sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get KeyPool by KeyPoolID: %w", err)
 		}
@@ -137,7 +137,7 @@ func (s *KeyPoolService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID goo
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
 
-		err = sqlTransaction.AddKey(repositoryKey)
+		err = sqlTransaction.AddKeyPoolKey(repositoryKey)
 		if err != nil {
 			return fmt.Errorf("failed to insert Key: %w", err)
 		}
@@ -160,7 +160,7 @@ func (s *KeyPoolService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleU
 	var repositoryKeys []cryptoutilOrmRepository.Key
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		repositoryKeys, err = sqlTransaction.FindKeysByKeyPoolID(keyPoolID, ormKeyPoolKeysQueryParams)
+		repositoryKeys, err = sqlTransaction.GetKeyPoolKeys(keyPoolID, ormKeyPoolKeysQueryParams)
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 		}
@@ -200,7 +200,7 @@ func (s *KeyPoolService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID 
 	var repositoryKey *cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
-		repositoryKey, err = sqlTransaction.GetKeyByKeyPoolIDAndKeyID(keyPoolID, keyID)
+		repositoryKey, err = sqlTransaction.GetKeyPoolKey(keyPoolID, keyID)
 		if err != nil {
 			return fmt.Errorf("failed to get Key by KeyPoolID and KeyID: %w", err)
 		}
