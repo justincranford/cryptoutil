@@ -38,7 +38,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 	loadLatestLeafKey := func() (*JWKCacheEntry, error) {
 		return deserilalizeLatest(ormRepository.GetRootKeyLatest())
 	}
-	loadLeafKey := func(uuid googleUuid.UUID) (*jwk.Key, error) {
+	loadLeafKey := func(uuid googleUuid.UUID) (jwk.Key, error) {
 		return deserilalize(ormRepository.GetRootKeyVersioned(uuid))
 	}
 	storeLeafKey := func(uuid googleUuid.UUID, jwk jwk.Key, parentUuid googleUuid.UUID) error {
@@ -146,7 +146,7 @@ func deserilalizeLatest(barrierKey cryptoutilOrmRepository.BarrierKey, err error
 	return &JWKCacheEntry{key: (barrierKey).GetUUID(), value: jwk}, nil
 }
 
-func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (*jwk.Key, error) {
+func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (jwk.Key, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load latest Key from database: %w", err)
 	}
@@ -155,5 +155,5 @@ func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (*jw
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal latest Key from database: %w", err)
 	}
-	return &jwk, nil
+	return jwk, nil
 }

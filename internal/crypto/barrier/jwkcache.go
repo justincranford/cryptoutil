@@ -15,7 +15,7 @@ type JWKCache struct {
 	latest         JWKCacheEntry
 	mu             sync.RWMutex
 	loadLatestFunc func() (*JWKCacheEntry, error)
-	loadFunc       func(uuid googleUuid.UUID) (*jwk.Key, error)
+	loadFunc       func(uuid googleUuid.UUID) (jwk.Key, error)
 	storeFunc      func(uuid googleUuid.UUID, jwk jwk.Key, parentUuid googleUuid.UUID) error
 }
 
@@ -26,7 +26,7 @@ type JWKCacheEntry struct {
 
 var nilEntry = JWKCacheEntry{key: uuid.Nil, value: nil}
 
-func NewJWKCache(size int, loadLatestFunc func() (*JWKCacheEntry, error), loadFunc func(uuid googleUuid.UUID) (*jwk.Key, error), storeFunc func(uuid googleUuid.UUID, jwk jwk.Key, parentUuid googleUuid.UUID) error) (*JWKCache, error) {
+func NewJWKCache(size int, loadLatestFunc func() (*JWKCacheEntry, error), loadFunc func(uuid googleUuid.UUID) (jwk.Key, error), storeFunc func(uuid googleUuid.UUID, jwk jwk.Key, parentUuid googleUuid.UUID) error) (*JWKCache, error) {
 	cache, err := lru.New(size)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LRU cache: %w", err)
@@ -65,14 +65,15 @@ func (jwkCache *JWKCache) Get(key uuid.UUID) (jwk.Key, error) {
 	if !ok {
 		jwkCache.mu.Lock()
 		defer jwkCache.mu.Unlock()
-		value, err := jwkCache.loadFunc(key) // get from database
+		var err error
+		value, err = jwkCache.loadFunc(key) // get from database
 		if err != nil {
 			return nil, fmt.Errorf("key not found in cache or database: %w", err)
 		}
 		jwkCache.cache.Add(key, value)
 		if key.Time() > jwkCache.latest.key.Time() {
 			jwkCache.latest.key = key
-			jwkCache.latest.value = *value
+			jwkCache.latest.value = value.(jwk.Key)
 		}
 	}
 	return value.(jwk.Key), nil
