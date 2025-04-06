@@ -61,7 +61,7 @@ func GenerateAesJWK(alg jwa.KeyEncryptionAlgorithm) (jwk.Key, []byte, error) {
 	return aesJwk, encodedAesJwk, nil
 }
 
-func Encrypt(encryptionKey jwk.Key, clearBytes []byte) (*jwe.Message, []byte, error) {
+func EncryptBytes(encryptionKey jwk.Key, clearBytes []byte) (*jwe.Message, []byte, error) {
 	if encryptionKey == nil {
 		return nil, nil, fmt.Errorf("nil JWK key provided")
 	}
@@ -85,7 +85,7 @@ func Encrypt(encryptionKey jwk.Key, clearBytes []byte) (*jwe.Message, []byte, er
 	return jweMessage, encodedJweMessage, nil
 }
 
-func Decrypt(decryptionKey jwk.Key, encryptedBytes []byte) ([]byte, error) {
+func DecryptBytes(decryptionKey jwk.Key, encryptedBytes []byte) ([]byte, error) {
 	if decryptionKey == nil {
 		return nil, fmt.Errorf("nil JWK key provided")
 	}
@@ -103,4 +103,24 @@ func Decrypt(decryptionKey jwk.Key, encryptedBytes []byte) ([]byte, error) {
 	}
 
 	return decryptedBytes, nil
+}
+
+func EncryptKey(kek jwk.Key, key jwk.Key) (*jwe.Message, []byte, error) {
+	encodedKey, err := json.Marshal(key)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to encode JWK: %w", err)
+	}
+	return EncryptBytes(kek, []byte(encodedKey))
+}
+
+func DecryptKey(kek jwk.Key, encryptedBytes []byte) (jwk.Key, error) {
+	decryptedBytes, err := DecryptBytes(kek, encryptedBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt JWK: %w", err)
+	}
+	parsedKey, err := jwk.ParseKey(decryptedBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode JWK: %w", err)
+	}
+	return parsedKey, nil
 }
