@@ -86,9 +86,9 @@ func Test_HappyPath_Key(t *testing.T) {
 
 		jweMessage, encodedJweMessage, err := EncryptKey(kek, originalKey)
 		require.NoError(t, err)
-		encodedJweHeaders, err := json.Marshal(jweMessage.ProtectedHeaders())
+		jsonHeaders, err := JSONHeadersString(jweMessage)
 		require.NoError(t, err)
-		log.Printf("JWE Message Headers: %s", string(encodedJweHeaders))
+		log.Printf("JWE Message Headers: %s", jsonHeaders)
 
 		decryptedKey, err := DecryptKey(kek, encodedJweMessage)
 		require.NoError(t, err)

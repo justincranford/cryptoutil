@@ -124,3 +124,11 @@ func DecryptKey(kek jwk.Key, encryptedBytes []byte) (jwk.Key, error) {
 	}
 	return parsedKey, nil
 }
+
+func JSONHeadersString(jweMessage *jwe.Message) (string, error) {
+	jweHeadersString, err := json.Marshal(jweMessage.ProtectedHeaders())
+	if err != nil {
+		return "", fmt.Errorf("failed to marshall JWE headers: %w", err)
+	}
+	return string(jweHeadersString), err
+}
