@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	ormTableStructs               = []any{&KeyPool{}, &Key{}, &RootKek{}, &NamespaceKek{}, &NamespaceKeys{}}
+	ormTableStructs               = []any{&KeyPool{}, &Key{}, &RootKey{}, &IntermediateKey{}, &LeafKey{}}
 	ErrKeyPoolIDMustBeNonZeroUUID = fmt.Errorf("invalid Key Pool ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 	ErrKeyIDMustBeNonZeroUUID     = fmt.Errorf("invalid Key ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 )
