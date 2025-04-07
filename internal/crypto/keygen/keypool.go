@@ -93,13 +93,13 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 				pool.telemetryService.Slogger.Error("failed", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds(), "error", err)
 				return
 			}
-			pool.telemetryService.Slogger.Info("generated", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Debug("generated", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 			select {
 			case <-pool.ctx.Done():
 				pool.telemetryService.Slogger.Info("cancelled", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 				return
 			case pool.keyChannel <- key:
-				pool.telemetryService.Slogger.Info("added", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+				pool.telemetryService.Slogger.Debug("added", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 			}
 		}
 	}

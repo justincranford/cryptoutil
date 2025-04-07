@@ -25,8 +25,8 @@ type IntermediateKey struct {
 
 // Leaf Keys are wrapped by Intermediate Keys.
 type LeafKey struct {
-	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
+	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
 	Serialized string          `gorm:"type:json;not null"`
 	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
 }

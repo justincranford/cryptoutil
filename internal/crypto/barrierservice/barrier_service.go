@@ -33,18 +33,18 @@ type BarrierService struct {
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
 	aes256Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Crypto Service AES-256", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
 
-	intermediateKeyService, err1 := newIntermediateKeyService(ormRepository, telemetryService, aes256Pool)
-	leafKeyService, err2 := newLeafKeyService(ormRepository, telemetryService)
+	intermediateKeyRepository, err1 := newIntermediateKeyRepository(ormRepository, telemetryService, aes256Pool)
+	leafKeyRepository, err2 := newLeafKeyRepository(ormRepository, telemetryService)
 	if err1 != nil || err2 != nil {
-		return nil, fmt.Errorf("failed to initialize JWK caches: %w", errors.Join(err1, err2))
+		return nil, fmt.Errorf("failed to initialize barrier repositories: %w", errors.Join(err1, err2))
 	}
 
 	return &BarrierService{
 		telemetryService:          telemetryService,
 		ormRepository:             ormRepository,
 		aes256Pool:                aes256Pool,
-		intermediateKeyRepository: intermediateKeyService,
-		leafKeyRepository:         leafKeyService,
+		intermediateKeyRepository: intermediateKeyRepository,
+		leafKeyRepository:         leafKeyRepository,
 	}, nil
 }
 
@@ -92,7 +92,7 @@ func (d *BarrierService) Encrypt(clearBytes []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWE message headers: %w", err)
 	}
-	d.telemetryService.Slogger.Info("Encrypted", "jwe", jweHeaders)
+	d.telemetryService.Slogger.Info("Encrypted Bytes", "JWE Headers", jweHeaders)
 
 	return encodedJweMessage, nil
 }
@@ -154,7 +154,7 @@ func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (jos
 	return jwk, nil
 }
 
-func newIntermediateKeyService(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
+func newIntermediateKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestIntermediateKey := func() (joseJwk.Key, error) {
 		return deserilalizeLatest(ormRepository.GetIntermediateKeyLatest())
 	}
@@ -178,7 +178,7 @@ func newIntermediateKeyService(ormRepository *cryptoutilOrmRepository.Repository
 		if err != nil {
 			return fmt.Errorf("failed to get jwe message headers: %w", err)
 		}
-		telemetryService.Slogger.Info("Encrypted", "JWE Headers", jweHeaders)
+		telemetryService.Slogger.Info("Encrypted Intermediate JWK", "JWE Headers", jweHeaders)
 
 		return ormRepository.AddIntermediateKey(&cryptoutilOrmRepository.IntermediateKey{UUID: jwkKidUuid, Serialized: string(jweMessageBytes), KEKUUID: kekKidUuid})
 	}
@@ -186,12 +186,12 @@ func newIntermediateKeyService(ormRepository *cryptoutilOrmRepository.Repository
 		return deserilalize(ormRepository.DeleteIntermediateKey(uuid))
 	}
 
-	intermediateKeyService, err := cryptoutilBarrierRepository.NewRepository("Intermediate", telemetryService, 10, loadLatestIntermediateKey, loadIntermediateKey, storeIntermediateKey, deleteKey)
+	intermediateKeyRepository, err := cryptoutilBarrierRepository.New("Intermediate", telemetryService, 10, loadLatestIntermediateKey, loadIntermediateKey, storeIntermediateKey, deleteKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create intermediate Key cache: %w", err)
 	}
 
-	latestJwk, err := intermediateKeyService.GetLatest()
+	latestJwk, err := intermediateKeyRepository.GetLatest()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest intermediate Key: %w", err)
 	}
@@ -200,16 +200,16 @@ func newIntermediateKeyService(ormRepository *cryptoutilOrmRepository.Repository
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate DEK JWK: %w", err)
 		}
-		err = intermediateKeyService.Put(intermediateJwk, rootJwk)
+		err = intermediateKeyRepository.Put(intermediateJwk, rootJwk)
 		if err != nil {
 			return nil, fmt.Errorf("failed to store first intermediate Key: %w", err)
 		}
 	}
 
-	return intermediateKeyService, nil
+	return intermediateKeyRepository, nil
 }
 
-func newLeafKeyService(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
+func newLeafKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestLeafKey := func() (joseJwk.Key, error) {
 		return deserilalizeLatest(ormRepository.GetLeafKeyLatest())
 	}
@@ -233,7 +233,7 @@ func newLeafKeyService(ormRepository *cryptoutilOrmRepository.RepositoryProvider
 		if err != nil {
 			return fmt.Errorf("failed to get jwe message headers: %w", err)
 		}
-		telemetryService.Slogger.Info("Encrypted", "JWE Headers", jweHeaders)
+		telemetryService.Slogger.Info("Encrypted Leaf JWK", "JWE Headers", jweHeaders)
 
 		return ormRepository.AddLeafKey(&cryptoutilOrmRepository.LeafKey{UUID: jwkKidUuid, Serialized: string(jweMessageBytes), KEKUUID: kekKidUuid})
 	}
@@ -241,9 +241,9 @@ func newLeafKeyService(ormRepository *cryptoutilOrmRepository.RepositoryProvider
 		return deserilalize(ormRepository.DeleteLeafKey(uuid))
 	}
 
-	leafKeyService, err := cryptoutilBarrierRepository.NewRepository("Leaf", telemetryService, 1000, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
+	leafKeyRepository, err := cryptoutilBarrierRepository.New("Leaf", telemetryService, 1000, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create leaf Key cache: %w", err)
 	}
-	return leafKeyService, nil
+	return leafKeyRepository, nil
 }

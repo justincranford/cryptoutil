@@ -41,7 +41,7 @@ type Observations struct {
 	histogramWaitPurge     metricApi.Int64Histogram
 }
 
-func NewRepository(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Repository, error) {
+func New(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Repository, error) {
 	tracer := telemetryService.TracesProvider.Tracer("barrierrepository")
 	_, span := tracer.Start(context.Background(), "NewJWKCache")
 	defer span.End()
