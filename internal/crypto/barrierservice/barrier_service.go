@@ -33,8 +33,8 @@ type BarrierService struct {
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
 	aes256Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Crypto Service AES-256", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
 
-	intermediateKeyRepository, err1 := newIntermediateKeyRepository(ormRepository, telemetryService, aes256Pool)
-	leafKeyRepository, err2 := newLeafKeyRepository(ormRepository, telemetryService)
+	intermediateKeyRepository, err1 := newIntermediateKeyRepository(2, ormRepository, telemetryService, aes256Pool)
+	leafKeyRepository, err2 := newLeafKeyRepository(10, ormRepository, telemetryService)
 	if err1 != nil || err2 != nil {
 		return nil, fmt.Errorf("failed to initialize barrier repositories: %w", errors.Join(err1, err2))
 	}
@@ -154,7 +154,7 @@ func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (jos
 	return jwk, nil
 }
 
-func newIntermediateKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
+func newIntermediateKeyRepository(cacheSize int, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestIntermediateKey := func() (joseJwk.Key, error) {
 		return deserilalizeLatest(ormRepository.GetIntermediateKeyLatest())
 	}
@@ -186,7 +186,7 @@ func newIntermediateKeyRepository(ormRepository *cryptoutilOrmRepository.Reposit
 		return deserilalize(ormRepository.DeleteIntermediateKey(uuid))
 	}
 
-	intermediateKeyRepository, err := cryptoutilBarrierRepository.New("Intermediate", telemetryService, 10, loadLatestIntermediateKey, loadIntermediateKey, storeIntermediateKey, deleteKey)
+	intermediateKeyRepository, err := cryptoutilBarrierRepository.New("Intermediate", telemetryService, cacheSize, loadLatestIntermediateKey, loadIntermediateKey, storeIntermediateKey, deleteKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create intermediate Key cache: %w", err)
 	}
@@ -209,7 +209,7 @@ func newIntermediateKeyRepository(ormRepository *cryptoutilOrmRepository.Reposit
 	return intermediateKeyRepository, nil
 }
 
-func newLeafKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
+func newLeafKeyRepository(cacheSize int, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestLeafKey := func() (joseJwk.Key, error) {
 		return deserilalizeLatest(ormRepository.GetLeafKeyLatest())
 	}
@@ -241,7 +241,7 @@ func newLeafKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvi
 		return deserilalize(ormRepository.DeleteLeafKey(uuid))
 	}
 
-	leafKeyRepository, err := cryptoutilBarrierRepository.New("Leaf", telemetryService, 1000, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
+	leafKeyRepository, err := cryptoutilBarrierRepository.New("Leaf", telemetryService, cacheSize, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create leaf Key cache: %w", err)
 	}
