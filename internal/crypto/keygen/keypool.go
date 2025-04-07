@@ -87,20 +87,24 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 	defer pool.waitGroup.Done()
 	for {
 		startTime := time.Now()
+		pool.telemetryService.Slogger.Debug("check", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		select {
 		case <-pool.ctx.Done():
 			pool.telemetryService.Slogger.Debug("cancelled before", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		case pool.permissionChannel <- 1: // acquire permission to generate
+			pool.telemetryService.Slogger.Debug("permitted", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		}
 		reachedLimit, generateCounter := pool.checkPoolLimits(true)
 		if reachedLimit {
+			pool.telemetryService.Slogger.Debug("release", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			<-pool.permissionChannel // release permission to generate
 			pool.telemetryService.Slogger.Warn("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		}
 		key, err := pool.generateFunction()
 		if err != nil {
+			pool.telemetryService.Slogger.Debug("release", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			<-pool.permissionChannel // release permission to generate
 			pool.telemetryService.Slogger.Error("failed", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds(), "error", err)
 			return
@@ -108,10 +112,12 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 		pool.telemetryService.Slogger.Debug("generated", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 		select {
 		case <-pool.ctx.Done():
+			pool.telemetryService.Slogger.Debug("release", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			<-pool.permissionChannel // release permission to generate
 			pool.telemetryService.Slogger.Debug("cancelled after", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		case pool.keyChannel <- key:
+			<-pool.permissionChannel // release permission to generate
 			pool.telemetryService.Slogger.Debug("added", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 		}
 	}
@@ -151,7 +157,7 @@ func (pool *KeyPool) Close() {
 		}()
 	} else {
 		defer func() {
-			pool.telemetryService.Slogger.Debug("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Info("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 		}()
 		pool.cancelFunction()
 		pool.cancelFunction = nil
