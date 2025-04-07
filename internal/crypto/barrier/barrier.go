@@ -18,19 +18,19 @@ import (
 )
 
 var (
-	rootKeyCacheSize         = 1000
-	intermediateKeyCacheSize = 1000
-	leafKeyCacheSize         = 1000
-	intermediateKeyUUID      = googleUuid.Must(googleUuid.NewV7())
+	rootKeyCacheSize = 1000
+	// intermediateKeyCacheSize = 1000
+	// leafKeyCacheSize         = 1000
+	intermediateKeyUUID = googleUuid.Must(googleUuid.NewV7())
 )
 
 type BarrierService struct {
-	telemetryService     *cryptoutilTelemetry.Service
-	ormRepository        *cryptoutilOrmRepository.RepositoryProvider
-	aes256Pool           *cryptoutilKeygen.KeyPool
-	rootKeyCache         *cryptoutilBarrierCache.Cache
-	intermediateKeyCache *cryptoutilBarrierCache.Cache
-	leafKeyCache         *cryptoutilBarrierCache.Cache
+	telemetryService *cryptoutilTelemetry.Service
+	ormRepository    *cryptoutilOrmRepository.RepositoryProvider
+	aes256Pool       *cryptoutilKeygen.KeyPool
+	// rootKeyCache         *cryptoutilBarrierCache.Cache
+	// intermediateKeyCache *cryptoutilBarrierCache.Cache
+	leafKeyCache *cryptoutilBarrierCache.Cache
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
