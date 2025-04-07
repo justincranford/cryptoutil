@@ -144,8 +144,6 @@ func (pool *KeyPool) checkPoolLimits(incrementGenerateCounter bool) (bool, int) 
 
 func (pool *KeyPool) Close() {
 	startTime := time.Now()
-	pool.guardCounters.Lock()
-	defer pool.guardCounters.Unlock()
 
 	if pool.cancelFunction == nil {
 		defer func() {
