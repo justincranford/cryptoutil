@@ -1,4 +1,4 @@
-package barrierpersistence
+package barrierrepository
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	traceApi "go.opentelemetry.io/otel/trace"
 )
 
-type Cache struct {
+type Repository struct {
 	name             string
 	telemetryService *cryptoutilTelemetry.Service
 	cacheSize        int
@@ -41,11 +41,11 @@ type Observations struct {
 	histogramWaitPurge     metricApi.Int64Histogram
 }
 
-func NewJWKCache(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Cache, error) {
-	tracer := telemetryService.TracesProvider.Tracer("barrierpersistence")
+func NewRepository(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Repository, error) {
+	tracer := telemetryService.TracesProvider.Tracer("barrierrepository")
 	_, span := tracer.Start(context.Background(), "NewJWKCache")
 	defer span.End()
-	meter := telemetryService.MetricsProvider.Meter("barrierpersistence")
+	meter := telemetryService.MetricsProvider.Meter("barrierrepository")
 
 	cache, err := lru.New(cacheSize)
 	if err != nil {
@@ -61,7 +61,7 @@ func NewJWKCache(name string, telemetryService *cryptoutilTelemetry.Service, cac
 		return nil, fmt.Errorf("failed to create Int64Histograms: %w", errors.Join(err1, err2, err3, err4, err5))
 	}
 
-	jwkCache := Cache{
+	jwkCache := Repository{
 		name:             name,
 		telemetryService: telemetryService,
 		cacheSize:        cacheSize,
@@ -82,14 +82,14 @@ func NewJWKCache(name string, telemetryService *cryptoutilTelemetry.Service, cac
 	return &jwkCache, nil
 }
 
-func (jwkCache *Cache) Shutdown() error {
+func (jwkCache *Repository) Shutdown() error {
 	_, span := jwkCache.observations.tracer.Start(context.Background(), "Shutdown")
 	defer span.End()
 
 	return jwkCache.Purge()
 }
 
-func (jwkCache *Cache) GetLatest() (joseJwk.Key, error) {
+func (jwkCache *Repository) GetLatest() (joseJwk.Key, error) {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "GetLatest")
 	defer span.End()
 
@@ -117,7 +117,7 @@ func (jwkCache *Cache) GetLatest() (joseJwk.Key, error) {
 	return latestJwk, nil
 }
 
-func (jwkCache *Cache) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
+func (jwkCache *Repository) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Get")
 	defer span.End()
 
@@ -137,14 +137,10 @@ func (jwkCache *Cache) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to load from database: %w", err)
 		}
-		castedDatabaseJwk, ok := databaseJwk.(joseJwk.Key)
-		if !ok {
-			return nil, fmt.Errorf("type assertion to joseJwk.Key failed")
-		}
 
 		if jwkCache.latestJwk == nil {
 			// no latestJwk in memory, so database value is assumed to be the latest
-			jwkCache.latestJwk = castedDatabaseJwk
+			jwkCache.latestJwk = databaseJwk
 		} else {
 			// update latestJwk if retrieved value is newer
 			latestKidUuid, err := cryptoutilJose.ExtractKidUuid(jwkCache.latestJwk)
@@ -152,12 +148,12 @@ func (jwkCache *Cache) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 				return nil, fmt.Errorf("failed to extract kid uuid: %w", err)
 			}
 			if kid.Time() > latestKidUuid.Time() {
-				jwkCache.latestJwk = castedDatabaseJwk
+				jwkCache.latestJwk = databaseJwk
 			}
 		}
 
-		jwkCache.cache.Add(kid, castedDatabaseJwk)
-		return castedDatabaseJwk, nil
+		jwkCache.cache.Add(kid, databaseJwk)
+		return databaseJwk, nil
 	}
 	castedJwk, ok := cachedJwk.(joseJwk.Key)
 	if !ok {
@@ -166,7 +162,7 @@ func (jwkCache *Cache) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 	return castedJwk, nil
 }
 
-func (jwkCache *Cache) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
+func (jwkCache *Repository) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Put")
 	defer span.End()
 
@@ -205,7 +201,7 @@ func (jwkCache *Cache) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
 	return nil
 }
 
-func (jwkCache *Cache) Remove(kidUuid googleUuid.UUID) error {
+func (jwkCache *Repository) Remove(kidUuid googleUuid.UUID) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Remove")
 	defer span.End()
 
@@ -245,7 +241,7 @@ func (jwkCache *Cache) Remove(kidUuid googleUuid.UUID) error {
 	return nil
 }
 
-func (jwkCache *Cache) Purge() error {
+func (jwkCache *Repository) Purge() error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Purge")
 	defer span.End()
 

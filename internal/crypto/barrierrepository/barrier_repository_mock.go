@@ -1,4 +1,4 @@
-package barrierpersistence
+package barrierrepository
 
 import (
 	"cryptoutil/internal/crypto/jose"
