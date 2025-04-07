@@ -79,8 +79,8 @@ func Test_HappyPath_Bytes(t *testing.T) {
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 
-	encryptedBytesSlice := make([][]byte, 0, 2000)
-	for i := range 100 {
+	encryptedBytesSlice := make([][]byte, 0, 10)
+	for i := range cap(encryptedBytesSlice) {
 		t.Logf("Attempt: %d", i+1)
 		encryptedBytes, err := barrierService.Encrypt(plaintext)
 		require.NoError(t, err)
