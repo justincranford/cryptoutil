@@ -27,7 +27,7 @@ type BarrierService struct {
 	aes256Pool                *cryptoutilKeygen.KeyPool
 	rootKeyRepository         *cryptoutilBarrierRepository.Repository
 	intermediateKeyRepository *cryptoutilBarrierRepository.Repository
-	leafKeyRepository         *cryptoutilBarrierRepository.Repository
+	contentKeyRepository      *cryptoutilBarrierRepository.Repository
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
@@ -35,9 +35,9 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 
 	rootKeyRepository, err1 := newRootKeyRepository(rootJwk, telemetryService)
 	intermediateKeyRepository, err2 := newIntermediateKeyRepository(rootKeyRepository, 2, ormRepository, telemetryService, aes256Pool)
-	leafKeyRepository, err3 := newLeafKeyRepository(intermediateKeyRepository, 10, ormRepository, telemetryService)
+	contentKeyRepository, err3 := newContentKeyRepository(intermediateKeyRepository, 10, ormRepository, telemetryService)
 	if err1 != nil || err2 != nil || err3 != nil {
-		return nil, fmt.Errorf("failed to initialize barrier repositories: %w", errors.Join(err1, err2, err3))
+		return nil, fmt.Errorf("failed to initialize JWK repositories: %w", errors.Join(err1, err2, err3))
 	}
 
 	return &BarrierService{
@@ -46,15 +46,15 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		aes256Pool:                aes256Pool,
 		rootKeyRepository:         rootKeyRepository,
 		intermediateKeyRepository: intermediateKeyRepository,
-		leafKeyRepository:         leafKeyRepository,
+		contentKeyRepository:      contentKeyRepository,
 	}, nil
 }
 
 func (d *BarrierService) Shutdown() {
-	if d.leafKeyRepository != nil {
-		err := d.leafKeyRepository.Shutdown()
+	if d.contentKeyRepository != nil {
+		err := d.contentKeyRepository.Shutdown()
 		if err != nil {
-			d.telemetryService.Slogger.Error("failed to shutdown leaf key cache", "error", err)
+			d.telemetryService.Slogger.Error("failed to shutdown content key cache", "error", err)
 		}
 	}
 	if d.intermediateKeyRepository != nil {
@@ -79,15 +79,17 @@ func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("failed to cast AES-256 pool key to []byte")
 	}
-	leafJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
+	contentJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate leaf JWK: %w", err)
+		return nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
-	err = d.leafKeyRepository.Put(leafJwk)
+	// TODO Add namespace header to JWK before encrypting it?
+	err = d.contentKeyRepository.Put(contentJwk)
 	if err != nil {
-		return nil, fmt.Errorf("failed to put leaf JWK in cache: %w", err)
+		return nil, fmt.Errorf("failed to put content JWK in cache: %w", err)
 	}
-	jweMessage, encodedJweMessage, err := cryptoutilJose.EncryptBytes(leafJwk, clearBytes)
+	// TODO Add namespace header to JWE too?
+	jweMessage, encodedJweMessage, err := cryptoutilJose.EncryptBytes(contentJwk, clearBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt clear bytes: %w", err)
 	}
@@ -105,6 +107,7 @@ func (d *BarrierService) DecryptContent(encodedJweMessage []byte) ([]byte, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message: %w", err)
 	}
+	// TODO Check namespace header in JWE before decrypting it?
 	var kid string
 	err = jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &kid)
 	if err != nil {
@@ -114,10 +117,11 @@ func (d *BarrierService) DecryptContent(encodedJweMessage []byte) ([]byte, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	jwk, err := d.leafKeyRepository.Get(uuid)
+	jwk, err := d.contentKeyRepository.Get(uuid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
+	// TODO Check namespace header in JWK before returning it?
 	decryptedBytes, err := cryptoutilJose.DecryptBytes(jwk, encodedJweMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt with JWK %s: %w", kid, err)
@@ -241,19 +245,19 @@ func newIntermediateKeyRepository(rootKeyRepository *cryptoutilBarrierRepository
 	return intermediateKeyRepository, nil
 }
 
-func newLeafKeyRepository(intermediateKeyRepository *cryptoutilBarrierRepository.Repository, cacheSize int, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
-	loadLatestLeafKey := func() (joseJwk.Key, error) {
-		jwk, err := ormRepository.GetLeafKeyLatest()
+func newContentKeyRepository(intermediateKeyRepository *cryptoutilBarrierRepository.Repository, cacheSize int, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
+	loadLatestContentKey := func() (joseJwk.Key, error) {
+		jwk, err := ormRepository.GetContentKeyLatest()
 		return decrypt(intermediateKeyRepository, jwk, err)
 	}
-	loadLeafKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		jwk, err := ormRepository.GetLeafKey(uuid)
+	loadContentKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
+		jwk, err := ormRepository.GetContentKey(uuid)
 		return decrypt(intermediateKeyRepository, jwk, err)
 	}
-	storeLeafKey := func(jwk joseJwk.Key) error {
+	storeContentKey := func(jwk joseJwk.Key) error {
 		jwkKidUuid, err := cryptoutilJose.ExtractKidUuid(jwk)
 		if err != nil {
-			return fmt.Errorf("failed to get leaf jwk kid uuid: %w", err)
+			return fmt.Errorf("failed to get content JWK kid uuid: %w", err)
 		}
 		kek, err := intermediateKeyRepository.GetLatest()
 		if err != nil {
@@ -273,16 +277,16 @@ func newLeafKeyRepository(intermediateKeyRepository *cryptoutilBarrierRepository
 		}
 		telemetryService.Slogger.Info("Encrypted Leaf JWK", "JWE Headers", jweHeaders)
 
-		return ormRepository.AddLeafKey(&cryptoutilOrmRepository.LeafKey{UUID: jwkKidUuid, Serialized: string(jweMessageBytes), KEKUUID: kekKidUuid})
+		return ormRepository.AddContentKey(&cryptoutilOrmRepository.ContentKey{UUID: jwkKidUuid, Serialized: string(jweMessageBytes), KEKUUID: kekKidUuid})
 	}
 	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		jwk, err := ormRepository.DeleteLeafKey(uuid)
+		jwk, err := ormRepository.DeleteContentKey(uuid)
 		return decrypt(intermediateKeyRepository, jwk, err)
 	}
 
-	leafKeyRepository, err := cryptoutilBarrierRepository.New("Leaf", telemetryService, cacheSize, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
+	contentKeyRepository, err := cryptoutilBarrierRepository.New("Leaf", telemetryService, cacheSize, loadLatestContentKey, loadContentKey, storeContentKey, deleteKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create leaf Key cache: %w", err)
+		return nil, fmt.Errorf("failed to create content JWK repository: %w", err)
 	}
-	return leafKeyRepository, nil
+	return contentKeyRepository, nil
 }

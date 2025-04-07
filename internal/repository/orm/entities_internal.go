@@ -24,7 +24,7 @@ type IntermediateKey struct {
 }
 
 // Leaf Keys are wrapped by Intermediate Keys.
-type LeafKey struct {
+type ContentKey struct {
 	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
 	Serialized string          `gorm:"type:json;not null"`
@@ -79,22 +79,22 @@ func (r *IntermediateKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 	r.KEKUUID = kekUUID
 }
 
-func (r *LeafKey) GetUUID() googleUuid.UUID {
+func (r *ContentKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
-func (r *LeafKey) SetUUID(uuid googleUuid.UUID) {
+func (r *ContentKey) SetUUID(uuid googleUuid.UUID) {
 	r.UUID = uuid
 }
-func (r *LeafKey) GetSerialized() string {
+func (r *ContentKey) GetSerialized() string {
 	return r.Serialized
 }
-func (r *LeafKey) SetSerialized(serialized string) {
+func (r *ContentKey) SetSerialized(serialized string) {
 	r.Serialized = serialized
 }
-func (r *LeafKey) GetKEKUUID() googleUuid.UUID {
+func (r *ContentKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
-func (r *LeafKey) SetKEKUUID(kekUUID googleUuid.UUID) {
+func (r *ContentKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 	r.KEKUUID = kekUUID
 }
 
@@ -182,41 +182,41 @@ func (r *RepositoryProvider) DeleteIntermediateKey(uuid googleUuid.UUID) (*Inter
 
 // Leaf Keys
 
-func (r *RepositoryProvider) AddLeafKey(leafKey *LeafKey) error {
-	if err := r.gormDB.Create(leafKey).Error; err != nil {
-		return fmt.Errorf("failed to add leaf key: %w", err)
+func (r *RepositoryProvider) AddContentKey(contentKey *ContentKey) error {
+	if err := r.gormDB.Create(contentKey).Error; err != nil {
+		return fmt.Errorf("failed to add content key: %w", err)
 	}
 	return nil
 }
 
-func (r *RepositoryProvider) GetLeafKeys() ([]LeafKey, error) {
-	var leafKeys []LeafKey
-	if err := r.gormDB.Order("uuid DESC").Find(&leafKeys).Error; err != nil {
-		return nil, fmt.Errorf("failed to load leaf keys: %w", err)
+func (r *RepositoryProvider) GetContentKeys() ([]ContentKey, error) {
+	var contentKeys []ContentKey
+	if err := r.gormDB.Order("uuid DESC").Find(&contentKeys).Error; err != nil {
+		return nil, fmt.Errorf("failed to load content keys: %w", err)
 	}
-	return leafKeys, nil
+	return contentKeys, nil
 }
 
-func (r *RepositoryProvider) GetLeafKeyLatest() (*LeafKey, error) {
-	var leafKey LeafKey
-	if err := r.gormDB.Order("uuid DESC").First(&leafKey).Error; err != nil {
-		return nil, fmt.Errorf("failed to load latest leaf key: %w", err)
+func (r *RepositoryProvider) GetContentKeyLatest() (*ContentKey, error) {
+	var contentKey ContentKey
+	if err := r.gormDB.Order("uuid DESC").First(&contentKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to load latest content key: %w", err)
 	}
-	return &leafKey, nil
+	return &contentKey, nil
 }
 
-func (r *RepositoryProvider) GetLeafKey(uuid googleUuid.UUID) (*LeafKey, error) {
-	var leafKey LeafKey
-	if err := r.gormDB.Where("uuid=?", uuid).First(&leafKey).Error; err != nil {
+func (r *RepositoryProvider) GetContentKey(uuid googleUuid.UUID) (*ContentKey, error) {
+	var contentKey ContentKey
+	if err := r.gormDB.Where("uuid=?", uuid).First(&contentKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
 	}
-	return &leafKey, nil
+	return &contentKey, nil
 }
 
-func (r *RepositoryProvider) DeleteLeafKey(uuid googleUuid.UUID) (*LeafKey, error) {
-	var leafKey LeafKey
-	if err := r.gormDB.Where("uuid=?", uuid).Delete(&leafKey).Error; err != nil {
-		return nil, fmt.Errorf("failed to delete leaf key with UUID %s: %w", uuid, err)
+func (r *RepositoryProvider) DeleteContentKey(uuid googleUuid.UUID) (*ContentKey, error) {
+	var contentKey ContentKey
+	if err := r.gormDB.Where("uuid=?", uuid).Delete(&contentKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to delete content key with UUID %s: %w", uuid, err)
 	}
-	return &leafKey, nil
+	return &contentKey, nil
 }
