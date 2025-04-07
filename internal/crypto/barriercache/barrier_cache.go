@@ -41,13 +41,15 @@ type Observations struct {
 }
 
 func NewJWKCache(telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Cache, error) {
+	tracer := telemetryService.TracesProvider.Tracer("barriercache")
+	_, span := tracer.Start(context.Background(), "NewJWKCache")
+	defer span.End()
+	meter := telemetryService.MetricsProvider.Meter("barriercache")
+
 	cache, err := lru.New(cacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LRU cache: %w", err)
 	}
-
-	tracer := telemetryService.TracesProvider.Tracer("barriercache")
-	meter := telemetryService.MetricsProvider.Meter("barriercache")
 
 	histogramWaitGetLatest, err1 := meter.Int64Histogram("cache.request.getlatest")
 	histogramWaitGet, err2 := meter.Int64Histogram("cache.request.get")
@@ -79,6 +81,9 @@ func NewJWKCache(telemetryService *cryptoutilTelemetry.Service, cacheSize int, l
 }
 
 func (jwkCache *Cache) Shutdown() error {
+	_, span := jwkCache.observations.tracer.Start(context.Background(), "Shutdown")
+	defer span.End()
+
 	return jwkCache.Purge()
 }
 
