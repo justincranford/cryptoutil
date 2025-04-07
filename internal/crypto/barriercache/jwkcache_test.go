@@ -1,4 +1,4 @@
-package barrier
+package barriercache
 
 import (
 	"errors"
@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestJWKCache_GetLatest_HappyPath(t *testing.T) {
+func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
 	kid, mockAesJwk := mockJWKKey()
-	mockLoadLatestFunc := func() (*JWKCacheEntry, error) {
-		return &JWKCacheEntry{key: kid, value: mockAesJwk}, nil
+	mockLoadLatestFunc := func() (*Entry, error) {
+		return &Entry{Key: kid, Value: mockAesJwk}, nil
 	}
 
 	jwkCache, _ := NewJWKCache(10, mockLoadLatestFunc, nil, nil)
@@ -24,7 +24,7 @@ func TestJWKCache_GetLatest_HappyPath(t *testing.T) {
 	require.Equal(t, mockAesJwk, aesJwk)
 }
 
-func TestJWKCache_Get_HappyPath(t *testing.T) {
+func TestJWKCache_HappyPath_Get(t *testing.T) {
 	kid, mockAesJwk := mockJWKKey()
 	mockLoadFunc := func(kid googleUuid.UUID) (joseJwk.Key, error) {
 		return mockAesJwk, nil
@@ -38,9 +38,28 @@ func TestJWKCache_Get_HappyPath(t *testing.T) {
 	require.Equal(t, mockAesJwk, aesJwk)
 }
 
-func TestJWKCache_GetLatest_SadPath(t *testing.T) {
+func TestJWKCache_HappyPath_Put(t *testing.T) {
+	mockStoreFunc := func(kid googleUuid.UUID, jwk joseJwk.Key, parentUuid googleUuid.UUID) error {
+		return nil
+	}
+
+	jwkCache, _ := NewJWKCache(10, nil, nil, mockStoreFunc)
+	kid, aesJwk := mockJWKKey()
+	err := jwkCache.Put(kid, aesJwk, googleUuid.Nil)
+
+	require.NoError(t, err)
+}
+
+func TestJWKCache_SadPath_CacheSize(t *testing.T) {
+	_, err := NewJWKCache(0, nil, nil, nil)
+
+	require.Error(t, err)
+	require.Equal(t, "failed to create LRU cache: must provide a positive size", err.Error())
+}
+
+func TestJWKCache_SadPath_GetLatest_Function(t *testing.T) {
 	dbErr := fmt.Errorf("database error")
-	mockLoadLatestFunc := func() (*JWKCacheEntry, error) {
+	mockLoadLatestFunc := func() (*Entry, error) {
 		return nil, dbErr
 	}
 
@@ -51,7 +70,7 @@ func TestJWKCache_GetLatest_SadPath(t *testing.T) {
 	require.True(t, errors.Is(err, dbErr))
 }
 
-func TestJWKCache_Get_SadPath(t *testing.T) {
+func TestJWKCache_SadPath_Get_Function(t *testing.T) {
 	mockLoadFunc := func(kid googleUuid.UUID) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("database error")
 	}
@@ -61,18 +80,6 @@ func TestJWKCache_Get_SadPath(t *testing.T) {
 	_, err := jwkCache.Get(kid)
 
 	require.Error(t, err)
-}
-
-func TestJWKCache_Put_HappyPath(t *testing.T) {
-	mockStoreFunc := func(kid googleUuid.UUID, jwk joseJwk.Key, parentUuid googleUuid.UUID) error {
-		return nil
-	}
-
-	jwkCache, _ := NewJWKCache(10, nil, nil, mockStoreFunc)
-	kid, aesJwk := mockJWKKey()
-	err := jwkCache.Put(kid, aesJwk, googleUuid.Nil)
-
-	require.NoError(t, err)
 }
 
 func TestJWKCache_Put_SadPath(t *testing.T) {

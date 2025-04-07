@@ -2,7 +2,7 @@ package barrier
 
 import (
 	"context"
-	"cryptoutil/internal/repository/orm"
+	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
@@ -19,7 +19,7 @@ var (
 	testCtx                = context.Background()
 	testTelemetryService   *cryptoutilTelemetry.Service
 	testSqlProvider        *cryptoutilSqlProvider.SqlProvider
-	testRepositoryProvider *orm.RepositoryProvider
+	testRepositoryProvider *cryptoutilOrmRepository.RepositoryProvider
 	// testGivens             *orm.Givens
 	skipReadOnlyTxTests bool
 	testDbType          = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
@@ -64,7 +64,7 @@ func runAllTestsAndShutdown(m *testing.M) int {
 	}
 	defer testSqlProvider.Shutdown()
 
-	testRepositoryProvider, err = orm.NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
+	testRepositoryProvider, err = cryptoutilOrmRepository.NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
 	if err != nil {
 		testTelemetryService.Slogger.Error("failed to initailize repositoryProvider", "error", err)
 		os.Exit(-1)

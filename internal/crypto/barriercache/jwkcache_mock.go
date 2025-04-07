@@ -1,4 +1,4 @@
-package barrier
+package barriercache
 
 import (
 	"cryptoutil/internal/crypto/jose"
