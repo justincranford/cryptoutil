@@ -14,37 +14,39 @@ const (
 )
 
 type KeyPool struct {
-	telemetryService *cryptoutilTelemetry.Service
-	startTime        time.Time
-	name             string
-	ctx              context.Context
-	numWorkers       int
-	size             int
-	maxKeys          int
-	maxTime          time.Duration
-	keyChannel       chan Key
-	waitGroup        sync.WaitGroup
-	generateFunction func() (Key, error)
-	cancelFunction   context.CancelFunc
-	guardCounters    sync.Mutex
-	generateCounter  int
-	getCounter       int
+	telemetryService  *cryptoutilTelemetry.Service
+	startTime         time.Time
+	name              string
+	ctx               context.Context
+	numWorkers        int
+	size              int
+	maxKeys           int
+	maxTime           time.Duration
+	permissionChannel chan any
+	keyChannel        chan Key
+	waitGroup         sync.WaitGroup
+	generateFunction  func() (Key, error)
+	cancelFunction    context.CancelFunc
+	guardCounters     sync.Mutex
+	generateCounter   int
+	getCounter        int
 }
 
 func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) *KeyPool {
 	wrappedCtx, cancelFunction := context.WithCancel(ctx)
 	pool := &KeyPool{
-		telemetryService: telemetryService,
-		startTime:        time.Now(),
-		name:             name,
-		ctx:              wrappedCtx,
-		numWorkers:       numWorkers,
-		size:             size,
-		maxKeys:          maxKeys,
-		maxTime:          maxTime,
-		keyChannel:       make(chan Key, size),
-		generateFunction: generateFunction,
-		cancelFunction:   cancelFunction,
+		telemetryService:  telemetryService,
+		startTime:         time.Now(),
+		name:              name,
+		ctx:               wrappedCtx,
+		numWorkers:        numWorkers,
+		size:              size,
+		maxKeys:           maxKeys,
+		maxTime:           maxTime,
+		permissionChannel: make(chan any, size),
+		keyChannel:        make(chan Key, size),
+		generateFunction:  generateFunction,
+		cancelFunction:    cancelFunction,
 	}
 	if pool.maxKeys > 0 || pool.maxTime > 0 {
 		go pool.shutdownWorker()
@@ -80,40 +82,45 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 		startTime := time.Now()
 		select {
 		case <-pool.ctx.Done():
-			pool.telemetryService.Slogger.Debug("cancelled", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Debug("cancelled before", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
-		default:
-			reachedLimit, generateCounter := pool.checkPoolLimits(true)
-			if reachedLimit {
-				pool.telemetryService.Slogger.Warn("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-				return
-			}
-			key, err := pool.generateFunction()
-			if err != nil {
-				pool.telemetryService.Slogger.Error("failed", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds(), "error", err)
-				return
-			}
-			pool.telemetryService.Slogger.Debug("generated", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
-			select {
-			case <-pool.ctx.Done():
-				pool.telemetryService.Slogger.Info("cancelled", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-				return
-			case pool.keyChannel <- key:
-				pool.telemetryService.Slogger.Debug("added", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
-			}
+		case pool.permissionChannel <- 1: // acquire permission to generate
+		}
+		reachedLimit, generateCounter := pool.checkPoolLimits(true)
+		if reachedLimit {
+			<-pool.permissionChannel // release permission to generate
+			pool.telemetryService.Slogger.Warn("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			return
+		}
+		key, err := pool.generateFunction()
+		if err != nil {
+			<-pool.permissionChannel // release permission to generate
+			pool.telemetryService.Slogger.Error("failed", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds(), "error", err)
+			return
+		}
+		pool.telemetryService.Slogger.Debug("generated", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+		select {
+		case <-pool.ctx.Done():
+			<-pool.permissionChannel // release permission to generate
+			pool.telemetryService.Slogger.Debug("cancelled after", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			return
+		case pool.keyChannel <- key:
+			pool.telemetryService.Slogger.Debug("added", "pool", pool.name, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 		}
 	}
 }
 
 func (pool *KeyPool) Get() Key {
 	startTime := time.Now()
+	pool.telemetryService.Slogger.Debug("getting", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 	key := <-pool.keyChannel
+	pool.telemetryService.Slogger.Debug("received", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 	pool.guardCounters.Lock()
 	pool.getCounter++
 	getCounter := pool.getCounter
 	pool.guardCounters.Unlock()
 	defer func() {
-		pool.telemetryService.Slogger.Debug("ok", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
+		pool.telemetryService.Slogger.Debug("got", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
 	}()
 	return key
 }
