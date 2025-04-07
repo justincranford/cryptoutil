@@ -13,6 +13,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 
+	"go.opentelemetry.io/otel/attribute"
 	metricApi "go.opentelemetry.io/otel/metric"
 	traceApi "go.opentelemetry.io/otel/trace"
 )
@@ -42,10 +43,13 @@ type Observations struct {
 }
 
 func New(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Repository, error) {
-	tracer := telemetryService.TracesProvider.Tracer("barrierrepository")
+	repositoryNameAttribute := attribute.String("repository.name", name)
+
+	tracer := telemetryService.TracesProvider.Tracer("barrierrepository", traceApi.WithInstrumentationAttributes(repositoryNameAttribute))
 	_, span := tracer.Start(context.Background(), "NewJWKCache")
 	defer span.End()
-	meter := telemetryService.MetricsProvider.Meter("barrierrepository")
+
+	meter := telemetryService.MetricsProvider.Meter("barrierrepository", metricApi.WithInstrumentationAttributes(repositoryNameAttribute))
 
 	cache, err := lru.New(cacheSize)
 	if err != nil {
@@ -133,7 +137,7 @@ func (jwkCache *Repository) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 	cachedJwk, ok := jwkCache.cache.Get(kid) // Get from LRU cache
 	if !ok {
 		var err error
-		databaseJwk, err := jwkCache.loadFunc(kid) // TODO decrypt jwk coming from loadFunc from database
+		databaseJwk, err := jwkCache.loadFunc(kid)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load from database: %w", err)
 		}
@@ -175,7 +179,7 @@ func (jwkCache *Repository) Put(jwk joseJwk.Key) error {
 	jwkCache.mu.Lock()
 	jwkCache.observations.histogramWaitPut.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
-	err = jwkCache.storeFunc(jwk) // TODO encrypt jwk before passing to storeFunc to insert into database
+	err = jwkCache.storeFunc(jwk)
 	if err != nil {
 		return fmt.Errorf("failed to put key in database: %w", err)
 	}
