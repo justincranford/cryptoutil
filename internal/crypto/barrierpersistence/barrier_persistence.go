@@ -1,4 +1,4 @@
-package barriercache
+package barrierpersistence
 
 import (
 	"context"
@@ -42,10 +42,10 @@ type Observations struct {
 }
 
 func NewJWKCache(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Cache, error) {
-	tracer := telemetryService.TracesProvider.Tracer("barriercache")
+	tracer := telemetryService.TracesProvider.Tracer("barrierpersistence")
 	_, span := tracer.Start(context.Background(), "NewJWKCache")
 	defer span.End()
-	meter := telemetryService.MetricsProvider.Meter("barriercache")
+	meter := telemetryService.MetricsProvider.Meter("barrierpersistence")
 
 	cache, err := lru.New(cacheSize)
 	if err != nil {

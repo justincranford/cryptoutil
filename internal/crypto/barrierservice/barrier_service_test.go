@@ -1,4 +1,4 @@
-package barrier
+package barrierservice
 
 import (
 	"context"

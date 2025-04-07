@@ -1,8 +1,8 @@
-package barrier
+package barrierservice
 
 import (
 	"context"
-	cryptoutilBarrierCache "cryptoutil/internal/crypto/barriercache"
+	cryptoutilBarrierCache "cryptoutil/internal/crypto/barrierpersistence"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"

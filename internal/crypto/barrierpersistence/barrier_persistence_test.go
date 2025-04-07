@@ -1,4 +1,4 @@
-package barriercache
+package barrierpersistence
 
 import (
 	"context"
@@ -24,7 +24,7 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
-	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "barriercache_test", false, false)
+	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "barrierpersistence_test", false, false)
 	if err != nil {
 		slog.Error("failed to initailize telemetry", "error", err)
 		os.Exit(-1)
