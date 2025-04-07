@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 // Happy Path
 
 func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
-	jwk := mockJWKKey()
+	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
 	mockLoadLatestFunc := func() (joseJwk.Key, error) {
 		return jwk, nil
 	}
@@ -53,7 +53,7 @@ func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
 }
 
 func TestJWKCache_HappyPath_Get(t *testing.T) {
-	jwk := mockJWKKey()
+	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
 	mockLoadFunc := func(kid googleUuid.UUID) (joseJwk.Key, error) {
 		return jwk, nil
 	}
@@ -73,8 +73,8 @@ func TestJWKCache_HappyPath_Get(t *testing.T) {
 }
 
 func TestJWKCache_HappyPath_Put(t *testing.T) {
-	jwk := mockJWKKey()
-	kek := mockJWKKey()
+	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
+	kek, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
 	mockStoreFunc := func(jwk joseJwk.Key, kek joseJwk.Key) error {
 		return nil
 	}
@@ -129,8 +129,8 @@ func TestJWKCache_SadPath_Get_Function(t *testing.T) {
 }
 
 func TestJWKCache_Put_SadPath(t *testing.T) {
-	jwk := mockJWKKey()
-	kek := mockJWKKey()
+	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
+	kek, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
 
 	mockStoreFunc := func(jwk joseJwk.Key, kek joseJwk.Key) error {
 		return nil

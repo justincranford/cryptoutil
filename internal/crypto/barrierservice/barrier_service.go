@@ -124,7 +124,7 @@ func (d *BarrierService) Decrypt(encodedJweMessage []byte) ([]byte, error) {
 
 // Helpers
 
-func deserilalizeLatest(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
+func decryptLatest(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
@@ -139,15 +139,32 @@ func deserilalizeLatest(barrierKey cryptoutilOrmRepository.BarrierKey, err error
 	return jwk, nil
 }
 
-func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
+func decrypt(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, fmt.Errorf("failed to load Key from database: %w", err)
 	}
+	// kekUUID := barrierKey.GetKEKUUID()
+
+	jweMessageBytes := []byte((barrierKey).GetSerialized())
+	// jweMessage, err := joseJwe.Parse(jweMessageBytes)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to parse JWE from database: %w", err)
+	// }
+	// var intermediateJwkKidString string
+	// err = jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &intermediateJwkKidString)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to extract kid from JWE: %w", err)
+	// }
+	// kekUUID, err := googleUuid.Parse(intermediateJwkKidString)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to parse kid from JWE as UUID: %w", err)
+	// }
+
 	var jwk joseJwk.Key
-	err = json.Unmarshal([]byte((barrierKey).GetSerialized()), &jwk)
+	err = json.Unmarshal(jweMessageBytes, &jwk)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal Key from database: %w", err)
 	}
@@ -156,10 +173,10 @@ func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (jos
 
 func newIntermediateKeyRepository(cacheSize int, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestIntermediateKey := func() (joseJwk.Key, error) {
-		return deserilalizeLatest(ormRepository.GetIntermediateKeyLatest())
+		return decryptLatest(ormRepository.GetIntermediateKeyLatest())
 	}
 	loadIntermediateKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return deserilalize(ormRepository.GetIntermediateKey(uuid))
+		return decrypt(ormRepository.GetIntermediateKey(uuid))
 	}
 	storeIntermediateKey := func(jwk joseJwk.Key, kek joseJwk.Key) error {
 		jwkKidUuid, err := cryptoutilJose.ExtractKidUuid(jwk)
@@ -183,7 +200,7 @@ func newIntermediateKeyRepository(cacheSize int, ormRepository *cryptoutilOrmRep
 		return ormRepository.AddIntermediateKey(&cryptoutilOrmRepository.IntermediateKey{UUID: jwkKidUuid, Serialized: string(jweMessageBytes), KEKUUID: kekKidUuid})
 	}
 	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return deserilalize(ormRepository.DeleteIntermediateKey(uuid))
+		return decrypt(ormRepository.DeleteIntermediateKey(uuid))
 	}
 
 	intermediateKeyRepository, err := cryptoutilBarrierRepository.New("Intermediate", telemetryService, cacheSize, loadLatestIntermediateKey, loadIntermediateKey, storeIntermediateKey, deleteKey)
@@ -211,10 +228,10 @@ func newIntermediateKeyRepository(cacheSize int, ormRepository *cryptoutilOrmRep
 
 func newLeafKeyRepository(cacheSize int, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestLeafKey := func() (joseJwk.Key, error) {
-		return deserilalizeLatest(ormRepository.GetLeafKeyLatest())
+		return decryptLatest(ormRepository.GetLeafKeyLatest())
 	}
 	loadLeafKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return deserilalize(ormRepository.GetLeafKey(uuid))
+		return decrypt(ormRepository.GetLeafKey(uuid))
 	}
 	storeLeafKey := func(jwk joseJwk.Key, kek joseJwk.Key) error {
 		jwkKidUuid, err := cryptoutilJose.ExtractKidUuid(jwk)
@@ -238,7 +255,7 @@ func newLeafKeyRepository(cacheSize int, ormRepository *cryptoutilOrmRepository.
 		return ormRepository.AddLeafKey(&cryptoutilOrmRepository.LeafKey{UUID: jwkKidUuid, Serialized: string(jweMessageBytes), KEKUUID: kekKidUuid})
 	}
 	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return deserilalize(ormRepository.DeleteLeafKey(uuid))
+		return decrypt(ormRepository.DeleteLeafKey(uuid))
 	}
 
 	leafKeyRepository, err := cryptoutilBarrierRepository.New("Leaf", telemetryService, cacheSize, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
