@@ -11,24 +11,24 @@ import (
 
 // Root Keys are unsealed by HSM, KMS, Shamir, etc. Rotation is infrequent.
 type RootKey struct {
-	UUID          googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Serialized    string          `gorm:"type:json;not null"`
-	UnsealKeyUUID googleUuid.UUID `gorm:"type:uuid;not null"`
+	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	Serialized string          `gorm:"type:json;not null"`
+	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null"`
 }
 
 // Intermediate Keys are wrapped by root Keys. Rotation can be more frequent than Root Keys.
 type IntermediateKey struct {
-	UUID        googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Serialized  string          `gorm:"type:json;not null"`
-	RootKeyUUID googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKeyUUID;references:UUID"`
+	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	Serialized string          `gorm:"type:json;not null"`
+	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
 }
 
 // Leaf Keys are wrapped by Intermediate Keys.
 type LeafKey struct {
-	UUID                googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Name                string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
-	Serialized          string          `gorm:"type:json;not null"`
-	IntermediateKeyUUID googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKeyUUID;references:UUID"`
+	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
+	Serialized string          `gorm:"type:json;not null"`
+	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
 }
 
 // BarrierKey is an interface for all Keys.
@@ -37,8 +37,8 @@ type BarrierKey interface {
 	SetUUID(googleUuid.UUID)
 	GetSerialized() string
 	SetSerialized(string)
-	GetParentUUID() googleUuid.UUID
-	SetParentUUID(googleUuid.UUID)
+	GetKEKUUID() googleUuid.UUID
+	SetKEKUUID(googleUuid.UUID)
 }
 
 func (r *RootKey) GetUUID() googleUuid.UUID {
@@ -53,11 +53,11 @@ func (r *RootKey) GetSerialized() string {
 func (r *RootKey) SetSerialized(serialized string) {
 	r.Serialized = serialized
 }
-func (r *RootKey) GetParentUUID() googleUuid.UUID {
-	return r.UnsealKeyUUID
+func (r *RootKey) GetKEKUUID() googleUuid.UUID {
+	return r.KEKUUID
 }
-func (r *RootKey) SetParentUUID(parentUUID googleUuid.UUID) {
-	r.UnsealKeyUUID = parentUUID
+func (r *RootKey) SetKEKUUID(kekUUID googleUuid.UUID) {
+	r.KEKUUID = kekUUID
 }
 
 func (r *IntermediateKey) GetUUID() googleUuid.UUID {
@@ -72,11 +72,11 @@ func (r *IntermediateKey) GetSerialized() string {
 func (r *IntermediateKey) SetSerialized(serialized string) {
 	r.Serialized = serialized
 }
-func (r *IntermediateKey) GetParentUUID() googleUuid.UUID {
-	return r.RootKeyUUID
+func (r *IntermediateKey) GetKEKUUID() googleUuid.UUID {
+	return r.KEKUUID
 }
-func (r *IntermediateKey) SetParentUUID(parentUUID googleUuid.UUID) {
-	r.RootKeyUUID = parentUUID
+func (r *IntermediateKey) SetKEKUUID(kekUUID googleUuid.UUID) {
+	r.KEKUUID = kekUUID
 }
 
 func (r *LeafKey) GetUUID() googleUuid.UUID {
@@ -91,108 +91,132 @@ func (r *LeafKey) GetSerialized() string {
 func (r *LeafKey) SetSerialized(serialized string) {
 	r.Serialized = serialized
 }
-func (r *LeafKey) GetParentUUID() googleUuid.UUID {
-	return r.IntermediateKeyUUID
+func (r *LeafKey) GetKEKUUID() googleUuid.UUID {
+	return r.KEKUUID
 }
-func (r *LeafKey) SetParentUUID(parentUUID googleUuid.UUID) {
-	r.IntermediateKeyUUID = parentUUID
+func (r *LeafKey) SetKEKUUID(kekUUID googleUuid.UUID) {
+	r.KEKUUID = kekUUID
 }
 
 // Root KEKs
 
-func (r *RepositoryProvider) AddRootKey(rootKek *RootKey) error {
-	if err := r.gormDB.Create(rootKek).Error; err != nil {
-		return fmt.Errorf("failed to add root KEK: %w", err)
+func (r *RepositoryProvider) AddRootKey(rootKey *RootKey) error {
+	if err := r.gormDB.Create(rootKey).Error; err != nil {
+		return fmt.Errorf("failed to add root key: %w", err)
 	}
 	return nil
 }
 
 func (r *RepositoryProvider) GetRootKeys() ([]RootKey, error) {
-	var rootKeks []RootKey
-	if err := r.gormDB.Order("uuid DESC").Find(&rootKeks).Error; err != nil {
-		return nil, fmt.Errorf("failed to get root KEKs: %w", err)
+	var rootKeys []RootKey
+	if err := r.gormDB.Order("uuid DESC").Find(&rootKeys).Error; err != nil {
+		return nil, fmt.Errorf("failed to load root keys: %w", err)
 	}
-	return rootKeks, nil
+	return rootKeys, nil
 }
 
 func (r *RepositoryProvider) GetRootKeyLatest() (*RootKey, error) {
-	var rootKek RootKey
-	if err := r.gormDB.Order("uuid DESC").First(&rootKek).Error; err != nil {
-		return nil, fmt.Errorf("failed to get latest root KEK: %w", err)
+	var rootKey RootKey
+	if err := r.gormDB.Order("uuid DESC").First(&rootKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to load latest root key: %w", err)
 	}
-	return &rootKek, nil
+	return &rootKey, nil
 }
 
-func (r *RepositoryProvider) GetRootKeyVersioned(uuid googleUuid.UUID) (*RootKey, error) {
-	var rootKek RootKey
-	if err := r.gormDB.Where("uuid=?", uuid).First(&rootKek).Error; err != nil {
-		return nil, fmt.Errorf("failed to get root KEK with UUID %s: %w", uuid, err)
+func (r *RepositoryProvider) GetRootKey(uuid googleUuid.UUID) (*RootKey, error) {
+	var rootKey RootKey
+	if err := r.gormDB.Where("uuid=?", uuid).First(&rootKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
 	}
-	return &rootKek, nil
+	return &rootKey, nil
 }
 
-// Namespace KEKs
+func (r *RepositoryProvider) DeleteRootKey(uuid googleUuid.UUID) (*RootKey, error) {
+	var rootKey RootKey
+	if err := r.gormDB.Where("uuid=?", uuid).Delete(&rootKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to delete root key with UUID %s: %w", uuid, err)
+	}
+	return &rootKey, nil
+}
 
-func (r *RepositoryProvider) AddIntermediateKey(namespaceKek *IntermediateKey) error {
-	if err := r.gormDB.Create(namespaceKek).Error; err != nil {
-		return fmt.Errorf("failed to add namespace KEK: %w", err)
+// Intermediate Keys
+
+func (r *RepositoryProvider) AddIntermediateKey(intermediateKey *IntermediateKey) error {
+	if err := r.gormDB.Create(intermediateKey).Error; err != nil {
+		return fmt.Errorf("failed to add intermediate key: %w", err)
 	}
 	return nil
 }
 
-func (r *RepositoryProvider) GetIntermediateKeys(rootKekUUID googleUuid.UUID) ([]IntermediateKey, error) {
-	var namespaceKeks []IntermediateKey
-	if err := r.gormDB.Where("root_kek_uuid=?", rootKekUUID).Order("uuid DESC").Find(&namespaceKeks).Error; err != nil {
-		return nil, fmt.Errorf("failed to get namespace KEKs: %w", err)
+func (r *RepositoryProvider) GetIntermediateKeys() ([]IntermediateKey, error) {
+	var intermediateKeys []IntermediateKey
+	if err := r.gormDB.Order("uuid DESC").Find(&intermediateKeys).Error; err != nil {
+		return nil, fmt.Errorf("failed to load intermediate keys: %w", err)
 	}
-	return namespaceKeks, nil
+	return intermediateKeys, nil
 }
 
-func (r *RepositoryProvider) GetIntermediateKeyLatest(rootKekUUID googleUuid.UUID) (*IntermediateKey, error) {
-	var namespaceKek IntermediateKey
-	if err := r.gormDB.Where("root_kek_uuid=?", rootKekUUID).Order("uuid DESC").First(&namespaceKek).Error; err != nil {
-		return nil, fmt.Errorf("failed to get latest namespace KEK: %w", err)
+func (r *RepositoryProvider) GetIntermediateKeyLatest() (*IntermediateKey, error) {
+	var intermediateKey IntermediateKey
+	if err := r.gormDB.Order("uuid DESC").First(&intermediateKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to load latest intermediate key: %w", err)
 	}
-	return &namespaceKek, nil
+	return &intermediateKey, nil
 }
 
-func (r *RepositoryProvider) GetIntermediateKeyVersion(uuid googleUuid.UUID) (*IntermediateKey, error) {
-	var namespaceKek IntermediateKey
-	if err := r.gormDB.Where("uuid=?", uuid).First(&namespaceKek).Error; err != nil {
-		return nil, fmt.Errorf("failed to get namespace KEK with UUID %s: %w", uuid, err)
+func (r *RepositoryProvider) GetIntermediateKey(uuid googleUuid.UUID) (*IntermediateKey, error) {
+	var intermediateKey IntermediateKey
+	if err := r.gormDB.Where("uuid=?", uuid).First(&intermediateKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
 	}
-	return &namespaceKek, nil
+	return &intermediateKey, nil
 }
 
-// Namespace CEKs
+func (r *RepositoryProvider) DeleteIntermediateKey(uuid googleUuid.UUID) (*IntermediateKey, error) {
+	var intermediateKey IntermediateKey
+	if err := r.gormDB.Where("uuid=?", uuid).Delete(&intermediateKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to delete intermediate key with UUID %s: %w", uuid, err)
+	}
+	return &intermediateKey, nil
+}
 
-func (r *RepositoryProvider) AddLeafKey(namespaceKeys *LeafKey) error {
-	if err := r.gormDB.Create(namespaceKeys).Error; err != nil {
-		return fmt.Errorf("failed to add namespace keys: %w", err)
+// Leaf Keys
+
+func (r *RepositoryProvider) AddLeafKey(leafKey *LeafKey) error {
+	if err := r.gormDB.Create(leafKey).Error; err != nil {
+		return fmt.Errorf("failed to add leaf key: %w", err)
 	}
 	return nil
 }
 
-func (r *RepositoryProvider) GetNamespaceCeks(namespaceKekUUID string) ([]LeafKey, error) {
-	var namespaceKeys []LeafKey
-	if err := r.gormDB.Where("namespace_kek_uuid=?", namespaceKekUUID).Order("uuid DESC").Find(&namespaceKeys).Error; err != nil {
-		return nil, fmt.Errorf("failed to get namespace keys: %w", err)
+func (r *RepositoryProvider) GetLeafKeys() ([]LeafKey, error) {
+	var leafKeys []LeafKey
+	if err := r.gormDB.Order("uuid DESC").Find(&leafKeys).Error; err != nil {
+		return nil, fmt.Errorf("failed to load leaf keys: %w", err)
 	}
-	return namespaceKeys, nil
+	return leafKeys, nil
 }
 
-func (r *RepositoryProvider) GetNamespaceCekLatest(namespaceKekUUID string) (*LeafKey, error) {
-	var namespaceKey LeafKey
-	if err := r.gormDB.Where("namespace_kek_uuid=?", namespaceKekUUID).Order("uuid DESC").First(&namespaceKey).Error; err != nil {
-		return nil, fmt.Errorf("failed to get latest namespace keys: %w", err)
+func (r *RepositoryProvider) GetLeafKeyLatest() (*LeafKey, error) {
+	var leafKey LeafKey
+	if err := r.gormDB.Order("uuid DESC").First(&leafKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to load latest leaf key: %w", err)
 	}
-	return &namespaceKey, nil
+	return &leafKey, nil
 }
 
-func (r *RepositoryProvider) GetNamespaceCekVersion(uuid string) (*LeafKey, error) {
-	var namespaceKey LeafKey
-	if err := r.gormDB.Where("uuid=?", uuid).First(&namespaceKey).Error; err != nil {
-		return nil, fmt.Errorf("failed to get namespace keys with UUID %s: %w", uuid, err)
+func (r *RepositoryProvider) GetLeafKey(uuid googleUuid.UUID) (*LeafKey, error) {
+	var leafKey LeafKey
+	if err := r.gormDB.Where("uuid=?", uuid).First(&leafKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
 	}
-	return &namespaceKey, nil
+	return &leafKey, nil
+}
+
+func (r *RepositoryProvider) DeleteLeafKey(uuid googleUuid.UUID) (*LeafKey, error) {
+	var leafKey LeafKey
+	if err := r.gormDB.Where("uuid=?", uuid).Delete(&leafKey).Error; err != nil {
+		return nil, fmt.Errorf("failed to delete leaf key with UUID %s: %w", uuid, err)
+	}
+	return &leafKey, nil
 }

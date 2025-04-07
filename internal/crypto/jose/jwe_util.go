@@ -6,21 +6,54 @@ import (
 
 	"encoding/json"
 
-	"github.com/google/uuid"
-	"github.com/lestrrat-go/jwx/v3/jwa"
-	"github.com/lestrrat-go/jwx/v3/jwe"
-	"github.com/lestrrat-go/jwx/v3/jwk"
+	googleUuid "github.com/google/uuid"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
+	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 var (
-	KtyOct       = jwa.OctetSeq()                             // KeyType
-	AlgDIRECT    = jwa.DIRECT()                               // KeyEncryptionAlgorithm
-	AlgA256GCMKW = jwa.A256GCMKW()                            // KeyEncryptionAlgorithm
-	AlgA256GCM   = jwa.A256GCM()                              // ContentEncryptionAlgorithm
-	OpsEncDec    = jwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
+	KtyOct              = joseJwa.OctetSeq()                             // KeyType
+	AlgDIRECT           = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
+	AlgA256GCMKW        = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
+	AlgA256GCM          = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
+	OpsEncDec           = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
+	ErrCantBeNil        = fmt.Errorf("jwk can't be nil")
+	ErrKidCantBeNilUuid = fmt.Errorf("jwk kid can't be nil uuid")
+	ErrKidCantBeMaxUuid = fmt.Errorf("jwk kid can't be max uuid")
 )
 
-func GenerateAesJWK(alg jwa.KeyEncryptionAlgorithm) (jwk.Key, []byte, error) {
+func GetKidUuid(jwk joseJwk.Key) (googleUuid.UUID, error) {
+	if jwk == nil {
+		return googleUuid.Nil, ErrCantBeNil
+	}
+	var err error
+	var kidString string
+	if err = jwk.Get(joseJwk.KeyIDKey, &kidString); err != nil {
+		return googleUuid.Nil, fmt.Errorf("failed to get `kid` header: %w", err)
+	}
+	var kidUuid googleUuid.UUID
+	if kidUuid, err = googleUuid.Parse(kidString); err != nil {
+		return googleUuid.Nil, fmt.Errorf("failed to parse `kid` as UUID: %w", err)
+	}
+	if err = ValidateKid(kidUuid); err != nil {
+		return googleUuid.Nil, fmt.Errorf("invalid `kid`: %w", err)
+	}
+	return kidUuid, nil
+}
+
+func ValidateKid(kidUuid googleUuid.UUID) error {
+	switch kidUuid {
+	case googleUuid.Nil:
+		return ErrKidCantBeNilUuid
+	case googleUuid.Max:
+		return ErrKidCantBeMaxUuid
+	default:
+		return nil
+	}
+}
+
+func GenerateAesJWK(alg joseJwa.KeyEncryptionAlgorithm) (joseJwk.Key, []byte, error) {
 	switch alg {
 	case AlgDIRECT, AlgA256GCMKW:
 	default:
@@ -33,23 +66,23 @@ func GenerateAesJWK(alg jwa.KeyEncryptionAlgorithm) (jwk.Key, []byte, error) {
 		return nil, nil, fmt.Errorf("failed to generate raw AES 256 key: %w", err)
 	}
 
-	aesJwk, err := jwk.Import(rawkey)
+	aesJwk, err := joseJwk.Import(rawkey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to import raw AES 256 key: %w", err)
 	}
-	if err = aesJwk.Set(jwk.KeyIDKey, uuid.Must(uuid.NewV7()).String()); err != nil {
+	if err = aesJwk.Set(joseJwk.KeyIDKey, googleUuid.Must(googleUuid.NewV7()).String()); err != nil {
 		return nil, nil, fmt.Errorf("failed to set `kid` header: %w", err)
 	}
-	if err = aesJwk.Set(jwk.AlgorithmKey, alg); err != nil {
+	if err = aesJwk.Set(joseJwk.AlgorithmKey, alg); err != nil {
 		return nil, nil, fmt.Errorf("failed to set `alg` header: %w", err)
 	}
-	if err = aesJwk.Set(jwk.KeyUsageKey, "enc"); err != nil {
+	if err = aesJwk.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
 		return nil, nil, fmt.Errorf("failed to set `enc` header: %w", err)
 	}
-	if err = aesJwk.Set(jwk.KeyOpsKey, OpsEncDec); err != nil {
+	if err = aesJwk.Set(joseJwk.KeyOpsKey, OpsEncDec); err != nil {
 		return nil, nil, fmt.Errorf("failed to set `ops` header: %w", err)
 	}
-	if err = aesJwk.Set(jwk.KeyTypeKey, KtyOct); err != nil {
+	if err = aesJwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
 		return nil, nil, fmt.Errorf("failed to set 'kty': %w", err)
 	}
 
@@ -61,23 +94,23 @@ func GenerateAesJWK(alg jwa.KeyEncryptionAlgorithm) (jwk.Key, []byte, error) {
 	return aesJwk, encodedAesJwk, nil
 }
 
-func EncryptBytes(encryptionKey jwk.Key, clearBytes []byte) (*jwe.Message, []byte, error) {
+func EncryptBytes(encryptionKey joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
 	if encryptionKey == nil {
-		return nil, nil, fmt.Errorf("nil JWK key provided")
+		return nil, nil, ErrCantBeNil
 	}
 
-	var alg jwa.KeyAlgorithm
-	err := encryptionKey.Get(jwk.AlgorithmKey, &alg)
+	var alg joseJwa.KeyAlgorithm
+	err := encryptionKey.Get(joseJwk.AlgorithmKey, &alg)
 	if err != nil {
 		return nil, nil, fmt.Errorf("algorithm not found in JWK: %w", err)
 	}
 
-	encodedJweMessage, err := jwe.Encrypt(clearBytes, jwe.WithKey(alg, encryptionKey))
+	encodedJweMessage, err := joseJwe.Encrypt(clearBytes, joseJwe.WithKey(alg, encryptionKey))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt clearBytes: %w", err)
 	}
 
-	jweMessage, err := jwe.Parse(encodedJweMessage)
+	jweMessage, err := joseJwe.Parse(encodedJweMessage)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse encrypted object: %w", err)
 	}
@@ -85,19 +118,19 @@ func EncryptBytes(encryptionKey jwk.Key, clearBytes []byte) (*jwe.Message, []byt
 	return jweMessage, encodedJweMessage, nil
 }
 
-func DecryptBytes(decryptionKey jwk.Key, encryptedBytes []byte) ([]byte, error) {
+func DecryptBytes(decryptionKey joseJwk.Key, encryptedBytes []byte) ([]byte, error) {
 	if decryptionKey == nil {
-		return nil, fmt.Errorf("nil JWK key provided")
+		return nil, ErrCantBeNil
 	}
 
-	var alg jwa.KeyAlgorithm
-	err := decryptionKey.Get(jwk.AlgorithmKey, &alg)
+	var alg joseJwa.KeyAlgorithm
+	err := decryptionKey.Get(joseJwk.AlgorithmKey, &alg)
 	if err != nil {
 		return nil, fmt.Errorf("algorithm not found in JWK: %w", err)
 	}
 
-	var msg jwe.Message
-	decryptedBytes, err := jwe.Decrypt(encryptedBytes, jwe.WithKey(alg, decryptionKey), jwe.WithMessage(&msg))
+	var msg joseJwe.Message
+	decryptedBytes, err := joseJwe.Decrypt(encryptedBytes, joseJwe.WithKey(alg, decryptionKey), joseJwe.WithMessage(&msg))
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt JWE: %w", err)
 	}
@@ -105,7 +138,7 @@ func DecryptBytes(decryptionKey jwk.Key, encryptedBytes []byte) ([]byte, error) 
 	return decryptedBytes, nil
 }
 
-func EncryptKey(kek jwk.Key, key jwk.Key) (*jwe.Message, []byte, error) {
+func EncryptKey(kek joseJwk.Key, key joseJwk.Key) (*joseJwe.Message, []byte, error) {
 	encodedKey, err := json.Marshal(key)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encode JWK: %w", err)
@@ -113,19 +146,19 @@ func EncryptKey(kek jwk.Key, key jwk.Key) (*jwe.Message, []byte, error) {
 	return EncryptBytes(kek, []byte(encodedKey))
 }
 
-func DecryptKey(kek jwk.Key, encryptedBytes []byte) (jwk.Key, error) {
+func DecryptKey(kek joseJwk.Key, encryptedBytes []byte) (joseJwk.Key, error) {
 	decryptedBytes, err := DecryptBytes(kek, encryptedBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt JWK: %w", err)
 	}
-	parsedKey, err := jwk.ParseKey(decryptedBytes)
+	parsedKey, err := joseJwk.ParseKey(decryptedBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode JWK: %w", err)
 	}
 	return parsedKey, nil
 }
 
-func JSONHeadersString(jweMessage *jwe.Message) (string, error) {
+func JSONHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	jweHeadersString, err := json.Marshal(jweMessage.ProtectedHeaders())
 	if err != nil {
 		return "", fmt.Errorf("failed to marshall JWE headers: %w", err)
