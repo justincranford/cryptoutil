@@ -23,7 +23,7 @@ var (
 	ErrKidCantBeMaxUuid = fmt.Errorf("jwk kid can't be max uuid")
 )
 
-func GetKidUuid(jwk joseJwk.Key) (googleUuid.UUID, error) {
+func ExtractKidUuid(jwk joseJwk.Key) (googleUuid.UUID, error) {
 	if jwk == nil {
 		return googleUuid.Nil, ErrCantBeNil
 	}

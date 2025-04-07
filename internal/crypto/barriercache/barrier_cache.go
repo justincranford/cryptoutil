@@ -18,6 +18,7 @@ import (
 )
 
 type Cache struct {
+	name             string
 	telemetryService *cryptoutilTelemetry.Service
 	cacheSize        int
 	cache            *lru.Cache
@@ -40,7 +41,7 @@ type Observations struct {
 	histogramWaitPurge     metricApi.Int64Histogram
 }
 
-func NewJWKCache(telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Cache, error) {
+func NewJWKCache(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Cache, error) {
 	tracer := telemetryService.TracesProvider.Tracer("barriercache")
 	_, span := tracer.Start(context.Background(), "NewJWKCache")
 	defer span.End()
@@ -61,6 +62,7 @@ func NewJWKCache(telemetryService *cryptoutilTelemetry.Service, cacheSize int, l
 	}
 
 	jwkCache := Cache{
+		name:             name,
 		telemetryService: telemetryService,
 		cacheSize:        cacheSize,
 		cache:            cache,
@@ -102,8 +104,10 @@ func (jwkCache *Cache) GetLatest() (joseJwk.Key, error) {
 	latestJwk, err := jwkCache.loadLatestFunc() // get from database
 	if err != nil {
 		return nil, fmt.Errorf("failed to load latest from database: %w", err)
+	} else if latestJwk == nil {
+		return nil, nil
 	}
-	kidUuid, err := cryptoutilJose.GetKidUuid(latestJwk)
+	kidUuid, err := cryptoutilJose.ExtractKidUuid(latestJwk)
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract kid uuid: %w", err)
 	}
@@ -143,7 +147,7 @@ func (jwkCache *Cache) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 			jwkCache.latestJwk = castedDatabaseJwk
 		} else {
 			// update latestJwk if retrieved value is newer
-			latestKidUuid, err := cryptoutilJose.GetKidUuid(jwkCache.latestJwk)
+			latestKidUuid, err := cryptoutilJose.ExtractKidUuid(jwkCache.latestJwk)
 			if err != nil {
 				return nil, fmt.Errorf("failed to extract kid uuid: %w", err)
 			}
@@ -166,11 +170,11 @@ func (jwkCache *Cache) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Put")
 	defer span.End()
 
-	jwkKid, err := cryptoutilJose.GetKidUuid(jwk)
+	jwkKid, err := cryptoutilJose.ExtractKidUuid(jwk)
 	if err != nil {
 		return fmt.Errorf("failed to get jwk kid: %w", err)
 	}
-	_, err = cryptoutilJose.GetKidUuid(kek)
+	_, err = cryptoutilJose.ExtractKidUuid(kek)
 	if err != nil {
 		return fmt.Errorf("failed to get kek kid: %w", err)
 	}
@@ -188,7 +192,7 @@ func (jwkCache *Cache) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
 		jwkCache.latestJwk = jwk
 	} else {
 		// update latestJwk if added value is newer
-		latestKidUuid, err := cryptoutilJose.GetKidUuid(jwkCache.latestJwk)
+		latestKidUuid, err := cryptoutilJose.ExtractKidUuid(jwkCache.latestJwk)
 		if err != nil {
 			return fmt.Errorf("failed to extract kid uuid: %w", err)
 		}
@@ -210,7 +214,7 @@ func (jwkCache *Cache) Remove(kidUuid googleUuid.UUID) error {
 	jwkCache.observations.histogramWaitRemove.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
 
-	latestKidUuid, err := cryptoutilJose.GetKidUuid(jwkCache.latestJwk)
+	latestKidUuid, err := cryptoutilJose.ExtractKidUuid(jwkCache.latestJwk)
 	if err != nil {
 		return fmt.Errorf("failed to extract kid uuid: %w", err)
 	}
@@ -230,7 +234,7 @@ func (jwkCache *Cache) Remove(kidUuid googleUuid.UUID) error {
 			// there are no entries remaining in the DB, so latest doesn't needs updating in memory
 			return nil
 		}
-		latestKidUuid, err = cryptoutilJose.GetKidUuid(latest)
+		latestKidUuid, err = cryptoutilJose.ExtractKidUuid(latest)
 		if err != nil {
 			return fmt.Errorf("failed to extract kid uuid: %w", err)
 		}

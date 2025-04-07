@@ -42,7 +42,7 @@ func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
 		return jwk, nil
 	}
 
-	jwkCache, err := NewJWKCache(testTelemetryService, 10, mockLoadLatestFunc, nil, nil, nil)
+	jwkCache, err := NewJWKCache("TestJWKCache_HappyPath_GetLatest", testTelemetryService, 10, mockLoadLatestFunc, nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
@@ -58,10 +58,10 @@ func TestJWKCache_HappyPath_Get(t *testing.T) {
 		return jwk, nil
 	}
 
-	kid, err := jose.GetKidUuid(jwk)
+	kid, err := jose.ExtractKidUuid(jwk)
 	require.NoError(t, err)
 
-	jwkCache, err := NewJWKCache(testTelemetryService, 10, nil, mockLoadFunc, nil, nil)
+	jwkCache, err := NewJWKCache("TestJWKCache_HappyPath_Get", testTelemetryService, 10, nil, mockLoadFunc, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
@@ -79,7 +79,7 @@ func TestJWKCache_HappyPath_Put(t *testing.T) {
 		return nil
 	}
 
-	jwkCache, err := NewJWKCache(testTelemetryService, 10, nil, nil, mockStoreFunc, nil)
+	jwkCache, err := NewJWKCache("TestJWKCache_HappyPath_Put", testTelemetryService, 10, nil, nil, mockStoreFunc, nil)
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
@@ -91,7 +91,7 @@ func TestJWKCache_HappyPath_Put(t *testing.T) {
 // Sad Path
 
 func TestJWKCache_SadPath_CacheSize(t *testing.T) {
-	jwkCache, err := NewJWKCache(testTelemetryService, 0, nil, nil, nil, nil)
+	jwkCache, err := NewJWKCache("TestJWKCache_SadPath_CacheSize", testTelemetryService, 0, nil, nil, nil, nil)
 	require.Error(t, err)
 	require.Nil(t, jwkCache)
 	require.Equal(t, "failed to create LRU cache: must provide a positive size", err.Error())
@@ -103,7 +103,7 @@ func TestJWKCache_SadPath_GetLatest_Function(t *testing.T) {
 		return nil, dbErr
 	}
 
-	jwkCache, err := NewJWKCache(testTelemetryService, 10, mockLoadLatestFunc, nil, nil, nil)
+	jwkCache, err := NewJWKCache("TestJWKCache_SadPath_GetLatest_Function", testTelemetryService, 10, mockLoadLatestFunc, nil, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
@@ -118,7 +118,7 @@ func TestJWKCache_SadPath_Get_Function(t *testing.T) {
 		return nil, fmt.Errorf("database error")
 	}
 
-	jwkCache, err := NewJWKCache(testTelemetryService, 10, nil, mockLoadFunc, nil, nil)
+	jwkCache, err := NewJWKCache("TestJWKCache_SadPath_Get_Function", testTelemetryService, 10, nil, mockLoadFunc, nil, nil)
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
@@ -136,7 +136,7 @@ func TestJWKCache_Put_SadPath(t *testing.T) {
 		return nil
 	}
 
-	jwkCache, err := NewJWKCache(testTelemetryService, 10, nil, nil, mockStoreFunc, nil)
+	jwkCache, err := NewJWKCache("TestJWKCache_Put_SadPath", testTelemetryService, 10, nil, nil, mockStoreFunc, nil)
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
