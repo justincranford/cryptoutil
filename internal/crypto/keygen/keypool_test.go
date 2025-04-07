@@ -35,30 +35,31 @@ var (
 	testTelemetryService *cryptoutilTelemetry.Service
 	happyPathWorkers     = []int{1, 2}
 	happyPathSize        = []int{1, 3}
-	happyPathGets        = []int{0, 1, 3}
 	happyPathMaxSize     = []int{1, 3, MaxKeys}
 	happyPathMaxTime     = []time.Duration{MaxTime}
+	happyPathGets        = []int{0, 1, 3, 4}
 	happyPathTestCases   = func() []TestCase {
-		testCases := make([]TestCase, len(happyPathWorkers)*len(happyPathSize)*len(happyPathGets)*len(happyPathMaxSize)*len(happyPathMaxTime))
+		testCases := make([]TestCase, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxSize)*len(happyPathMaxTime)*len(happyPathGets))
 		for _, workers := range happyPathWorkers {
 			for _, size := range happyPathSize {
 				if workers > size {
 					continue
 				}
-				for _, gets := range happyPathGets {
-					if gets > size {
+				for _, maxSize := range happyPathMaxSize {
+					if size > maxSize {
 						continue
 					}
-					for _, maxSize := range happyPathMaxSize {
-						if size > maxSize || gets > maxSize {
-							continue
-						}
-						for _, maxTime := range happyPathMaxTime {
+					for _, maxTime := range happyPathMaxTime {
+						for _, gets := range happyPathGets {
+							if gets > maxSize {
+								continue
+							}
 							name := fmt.Sprintf("workers[%d] size[%d] maxSize[%d] maxTime[%v] gets[%d]", workers, size, maxSize, time.Duration(maxTime), gets)
 							testCases = append(testCases, TestCase{name: name, workers: workers, size: size, maxSize: maxSize, maxTime: time.Duration(maxTime), gets: gets})
 						}
 					}
 				}
+
 			}
 		}
 		return testCases
