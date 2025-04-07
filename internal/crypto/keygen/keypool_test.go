@@ -7,6 +7,7 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"fmt"
 	"log/slog"
 	"os"
 	"testing"
@@ -30,6 +31,26 @@ type TestCase struct {
 var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.Service
+	happyPathWorkers     = []int{1, 3}
+	happyPathGets        = []int{0, 1, 3}
+	happyPathMaxSize     = []int{1, 3, MaxKeys}
+	happyPathMaxTime     = []time.Duration{5 * time.Second, MaxTime}
+	happyPathTestCases   = func() []TestCase {
+		testCases := make([]TestCase, len(happyPathWorkers)*len(happyPathGets)*len(happyPathMaxSize)*len(happyPathMaxTime))
+		for _, workers := range happyPathWorkers {
+			for _, gets := range happyPathGets {
+				for _, maxSize := range happyPathMaxSize {
+					if gets <= maxSize { // happy path should only do up to or including maxSize (i.e. the pool's lifetime output)
+						for _, maxTime := range happyPathMaxTime {
+							name := fmt.Sprintf("workers[%d] gets[%d] maxSize[%d] maxTime[%v]", workers, gets, maxSize, time.Duration(maxTime))
+							testCases = append(testCases, TestCase{name: name, workers: workers, gets: gets, maxSize: maxSize, maxTime: time.Duration(maxTime)})
+						}
+					}
+				}
+			}
+		}
+		return testCases
+	}()
 )
 
 func TestMain(m *testing.M) {
@@ -44,11 +65,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestPoolRSA(t *testing.T) {
-	testCases := []TestCase{
-		{name: "Finite RSA 2048", workers: 2, gets: 3, maxSize: 3, maxTime: 3 * time.Second},
-		{name: "Indefinite RSA 2048", workers: 2, gets: 3, maxSize: MaxKeys, maxTime: MaxTime},
-	}
-	for _, tc := range testCases {
+	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			pool := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.gets, tc.maxSize, tc.maxTime, GenerateRSAKeyPairFunction(2048))
 			defer pool.Close()
@@ -63,11 +80,7 @@ func TestPoolRSA(t *testing.T) {
 }
 
 func TestPoolEcDSA(t *testing.T) {
-	testCases := []TestCase{
-		{name: "Finite ECDSA P256", workers: 2, gets: 3, maxSize: 3, maxTime: 3 * time.Second},
-		{name: "Indefinite ECDSA P256", workers: 2, gets: 3, maxSize: MaxKeys, maxTime: MaxTime},
-	}
-	for _, tc := range testCases {
+	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			pool := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.gets, tc.maxSize, tc.maxTime, GenerateECDSAKeyPairFunction(elliptic.P256()))
 			defer pool.Close()
@@ -82,11 +95,7 @@ func TestPoolEcDSA(t *testing.T) {
 }
 
 func TestPoolEcDH(t *testing.T) {
-	testCases := []TestCase{
-		{name: "Finite ECDH P256", workers: 2, gets: 3, maxSize: 3, maxTime: 3 * time.Second},
-		{name: "Indefinite ECDH P256", workers: 2, gets: 3, maxSize: MaxKeys, maxTime: MaxTime},
-	}
-	for _, tc := range testCases {
+	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			pool := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.gets, tc.maxSize, tc.maxTime, GenerateECDHKeyPairFunction(ecdh.P256()))
 			defer pool.Close()
@@ -101,11 +110,7 @@ func TestPoolEcDH(t *testing.T) {
 }
 
 func TestPoolEdDSA(t *testing.T) {
-	testCases := []TestCase{
-		{name: "Finite Ed25519", workers: 2, gets: 3, maxSize: 3, maxTime: 3 * time.Second},
-		{name: "Indefinite Ed25519", workers: 2, gets: 3, maxSize: MaxKeys, maxTime: MaxTime},
-	}
-	for _, tc := range testCases {
+	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			pool := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.gets, tc.maxSize, tc.maxTime, GenerateEDKeyPairFunction("Ed25519"))
 			defer pool.Close()
@@ -120,11 +125,7 @@ func TestPoolEdDSA(t *testing.T) {
 }
 
 func TestPoolAES(t *testing.T) {
-	testCases := []TestCase{
-		{name: "Finite AES 128", workers: 2, gets: 3, maxSize: 3, maxTime: 3 * time.Second},
-		{name: "Indefinite AES 128", workers: 2, gets: 3, maxSize: MaxKeys, maxTime: MaxTime},
-	}
-	for _, tc := range testCases {
+	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			pool := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.gets, tc.maxSize, tc.maxTime, GenerateAESKeyFunction(128))
 			defer pool.Close()
@@ -139,11 +140,7 @@ func TestPoolAES(t *testing.T) {
 }
 
 func TestPoolHMAC(t *testing.T) {
-	testCases := []TestCase{
-		{name: "Finite HMAC 256", workers: 2, gets: 3, maxSize: 3, maxTime: 3 * time.Second},
-		{name: "Indefinite HMAC 256", workers: 2, gets: 3, maxSize: MaxKeys, maxTime: MaxTime},
-	}
-	for _, tc := range testCases {
+	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			pool := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.gets, tc.maxSize, tc.maxTime, GenerateHMACKeyFunction(256))
 			defer pool.Close()
@@ -158,11 +155,7 @@ func TestPoolHMAC(t *testing.T) {
 }
 
 func TestPoolUUIDv7(t *testing.T) {
-	testCases := []TestCase{
-		{name: "Finite UUID V7", workers: 2, gets: 3, maxSize: 3, maxTime: 3 * time.Second},
-		{name: "Indefinite UUID V7", workers: 2, gets: 3, maxSize: MaxKeys, maxTime: MaxTime},
-	}
-	for _, tc := range testCases {
+	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			pool := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.gets, tc.maxSize, tc.maxTime, GenerateUUIDv7Function())
 			defer pool.Close()
