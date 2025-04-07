@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	rootJwk, _, _ = cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
+	rootJwk, _, _ = cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	// rootKeyCacheSize         = 1000
 	intermediateKeyCacheSize = 1000
 	leafKeyCacheSize         = 1000
@@ -37,7 +37,7 @@ type BarrierService struct {
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
 	aes256Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Crypto Service AES-256", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
 
-	intermediateKeyCache, err1 := newIntermediateKeyCache(ormRepository, telemetryService)
+	intermediateKeyCache, err1 := newIntermediateKeyCache(ormRepository, telemetryService, aes256Pool)
 	leafKeyCache, err2 := newLeafKeyCache(ormRepository, telemetryService)
 	if err1 != nil || err2 != nil {
 		return nil, fmt.Errorf("failed to initialize JWK caches: %w", errors.Join(err1, err2))
@@ -76,7 +76,11 @@ func (d *BarrierService) Encrypt(clearBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to get latest intermediate JWK from cache: %w", err)
 	}
 
-	leafJwk, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
+	rawKey, ok := d.aes256Pool.Get().Private.([]byte)
+	if !ok {
+		return nil, fmt.Errorf("failed to cast AES-256 pool key to []byte")
+	}
+	leafJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate leaf JWK: %w", err)
 	}
@@ -154,7 +158,7 @@ func deserilalize(barrierKey cryptoutilOrmRepository.BarrierKey, err error) (jos
 	return jwk, nil
 }
 
-func newIntermediateKeyCache(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierCache.Cache, error) {
+func newIntermediateKeyCache(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierCache.Cache, error) {
 	loadLatestIntermediateKey := func() (joseJwk.Key, error) {
 		return deserilalizeLatest(ormRepository.GetIntermediateKeyLatest())
 	}
@@ -196,7 +200,7 @@ func newIntermediateKeyCache(ormRepository *cryptoutilOrmRepository.RepositoryPr
 		return nil, fmt.Errorf("failed to get latest intermediate Key: %w", err)
 	}
 	if latestJwk == nil {
-		intermediateJwk, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
+		intermediateJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, aes256Pool.Get().Private.([]byte))
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate DEK JWK: %w", err)
 		}

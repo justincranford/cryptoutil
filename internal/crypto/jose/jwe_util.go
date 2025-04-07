@@ -53,17 +53,20 @@ func ValidateKid(kidUuid googleUuid.UUID) error {
 	}
 }
 
-func GenerateAesJWK(alg joseJwa.KeyEncryptionAlgorithm) (joseJwk.Key, []byte, error) {
-	switch alg {
+func GenerateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm) (joseJwk.Key, []byte, error) {
+	rawKey := make([]byte, 32)
+	_, err := rand.Read(rawKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to generate raw AES 256 key: %w", err)
+	}
+	return CreateAesJWK(kekAlg, rawKey)
+}
+
+func CreateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (joseJwk.Key, []byte, error) {
+	switch kekAlg {
 	case AlgDIRECT, AlgA256GCMKW:
 	default:
 		return nil, nil, fmt.Errorf("unsupported algorithm; only use %s or %s", AlgDIRECT, AlgA256GCMKW)
-	}
-
-	rawkey := make([]byte, 32)
-	_, err := rand.Read(rawkey)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to generate raw AES 256 key: %w", err)
 	}
 
 	aesJwk, err := joseJwk.Import(rawkey)
@@ -73,7 +76,7 @@ func GenerateAesJWK(alg joseJwa.KeyEncryptionAlgorithm) (joseJwk.Key, []byte, er
 	if err = aesJwk.Set(joseJwk.KeyIDKey, googleUuid.Must(googleUuid.NewV7()).String()); err != nil {
 		return nil, nil, fmt.Errorf("failed to set `kid` header: %w", err)
 	}
-	if err = aesJwk.Set(joseJwk.AlgorithmKey, alg); err != nil {
+	if err = aesJwk.Set(joseJwk.AlgorithmKey, kekAlg); err != nil {
 		return nil, nil, fmt.Errorf("failed to set `alg` header: %w", err)
 	}
 	if err = aesJwk.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
