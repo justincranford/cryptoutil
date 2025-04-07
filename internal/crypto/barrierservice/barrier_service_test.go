@@ -34,11 +34,6 @@ var (
 // }
 
 func TestMain(m *testing.M) {
-	rc := runAllTestsAndShutdown(m)
-	os.Exit(rc)
-}
-
-func runAllTestsAndShutdown(m *testing.M) int {
 	var err error
 
 	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "servicelogic_test", false, false)
@@ -74,8 +69,7 @@ func runAllTestsAndShutdown(m *testing.M) int {
 	// testGivens = orm.NewGivens(testCtx, testTelemetryService)
 	// defer testGivens.Shutdown()
 
-	rc := m.Run()
-	return rc
+	os.Exit(m.Run())
 }
 
 func Test_HappyPath_Bytes(t *testing.T) {

@@ -66,7 +66,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return deserilalize(ormRepository.DeleteLeafKey(uuid))
 	}
 
-	leafKeyCache, err := cryptoutilBarrierCache.NewJWKCache(rootKeyCacheSize, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
+	leafKeyCache, err := cryptoutilBarrierCache.NewJWKCache(telemetryService, rootKeyCacheSize, loadLatestLeafKey, loadLeafKey, storeLeafKey, deleteKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create leaf Key cache: %w", err)
 	}

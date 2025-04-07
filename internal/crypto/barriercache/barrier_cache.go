@@ -1,33 +1,81 @@
 package barriercache
 
 import (
+	"context"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	googleUuid "github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+
+	metricApi "go.opentelemetry.io/otel/metric"
+	traceApi "go.opentelemetry.io/otel/trace"
 )
 
 type Cache struct {
-	cacheSize      int
-	cache          *lru.Cache
-	latestJwk      joseJwk.Key
-	mu             sync.RWMutex
-	loadLatestFunc func() (joseJwk.Key, error)
-	loadFunc       func(kid googleUuid.UUID) (joseJwk.Key, error)
-	storeFunc      func(jwk joseJwk.Key, kek joseJwk.Key) error
-	deleteFunc     func(kid googleUuid.UUID) error
+	telemetryService *cryptoutilTelemetry.Service
+	cacheSize        int
+	cache            *lru.Cache
+	latestJwk        joseJwk.Key
+	mu               sync.RWMutex
+	loadLatestFunc   func() (joseJwk.Key, error)
+	loadFunc         func(kid googleUuid.UUID) (joseJwk.Key, error)
+	storeFunc        func(jwk joseJwk.Key, kek joseJwk.Key) error
+	deleteFunc       func(kid googleUuid.UUID) error
+	observations     Observations
 }
 
-func NewJWKCache(cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Cache, error) {
+type Observations struct {
+	tracer                 traceApi.Tracer
+	meter                  metricApi.Meter
+	histogramWaitGetLatest metricApi.Int64Histogram
+	histogramWaitGet       metricApi.Int64Histogram
+	histogramWaitPut       metricApi.Int64Histogram
+	histogramWaitRemove    metricApi.Int64Histogram
+	histogramWaitPurge     metricApi.Int64Histogram
+}
+
+func NewJWKCache(telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Cache, error) {
 	cache, err := lru.New(cacheSize)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create LRU cache: %w", err)
 	}
-	jwkCache := &Cache{cacheSize: cacheSize, cache: cache, loadLatestFunc: loadLatestFunc, loadFunc: loadFunc, storeFunc: storeFunc}
-	return jwkCache, nil
+
+	tracer := telemetryService.TracesProvider.Tracer("barriercache")
+	meter := telemetryService.MetricsProvider.Meter("barriercache")
+
+	histogramWaitGetLatest, err1 := meter.Int64Histogram("cache.request.getlatest")
+	histogramWaitGet, err2 := meter.Int64Histogram("cache.request.get")
+	histogramWaitPut, err3 := meter.Int64Histogram("cache.request.put")
+	histogramWaitRemove, err4 := meter.Int64Histogram("cache.request.remove")
+	histogramWaitPurge, err5 := meter.Int64Histogram("cache.request.purge")
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil {
+		return nil, fmt.Errorf("failed to create Int64Histograms: %w", errors.Join(err1, err2, err3, err4, err5))
+	}
+
+	jwkCache := Cache{
+		telemetryService: telemetryService,
+		cacheSize:        cacheSize,
+		cache:            cache,
+		loadLatestFunc:   loadLatestFunc,
+		loadFunc:         loadFunc,
+		storeFunc:        storeFunc,
+		observations: Observations{
+			tracer:                 tracer,
+			meter:                  meter,
+			histogramWaitGetLatest: histogramWaitGetLatest,
+			histogramWaitGet:       histogramWaitGet,
+			histogramWaitPut:       histogramWaitPut,
+			histogramWaitRemove:    histogramWaitRemove,
+			histogramWaitPurge:     histogramWaitPurge,
+		},
+	}
+	return &jwkCache, nil
 }
 
 func (jwkCache *Cache) Shutdown() error {
@@ -35,8 +83,14 @@ func (jwkCache *Cache) Shutdown() error {
 }
 
 func (jwkCache *Cache) GetLatest() (joseJwk.Key, error) {
+	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "GetLatest")
+	defer span.End()
+
+	waitStart := time.Now().UTC()
 	jwkCache.mu.RLock()
+	jwkCache.observations.histogramWaitGetLatest.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.RUnlock()
+
 	if jwkCache.latestJwk != nil {
 		return jwkCache.latestJwk, nil
 	}
@@ -50,16 +104,22 @@ func (jwkCache *Cache) GetLatest() (joseJwk.Key, error) {
 	}
 	jwkCache.latestJwk = latestJwk
 	jwkCache.cache.Add(kidUuid, latestJwk)
+
 	return latestJwk, nil
 }
 
 func (jwkCache *Cache) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
+	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Get")
+	defer span.End()
+
 	if kid == googleUuid.Nil { // guard against zero time
 		return nil, fmt.Errorf("get nil key not supported")
 	} else if kid == googleUuid.Max { // guard against max time
 		return nil, fmt.Errorf("get max key not supported")
 	}
+	waitStart := time.Now().UTC()
 	jwkCache.mu.Lock()
+	jwkCache.observations.histogramWaitGet.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
 	cachedJwk, ok := jwkCache.cache.Get(kid) // Get from LRU cache
 	if !ok {
@@ -98,6 +158,9 @@ func (jwkCache *Cache) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 }
 
 func (jwkCache *Cache) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
+	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Put")
+	defer span.End()
+
 	jwkKid, err := cryptoutilJose.GetKidUuid(jwk)
 	if err != nil {
 		return fmt.Errorf("failed to get jwk kid: %w", err)
@@ -107,7 +170,9 @@ func (jwkCache *Cache) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
 		return fmt.Errorf("failed to get kek kid: %w", err)
 	}
 
+	waitStart := time.Now().UTC()
 	jwkCache.mu.Lock()
+	jwkCache.observations.histogramWaitPut.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
 	err = jwkCache.storeFunc(jwk, kek) // TODO encrypt jwk before passing to storeFunc to insert into database
 	if err != nil {
@@ -132,7 +197,12 @@ func (jwkCache *Cache) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
 }
 
 func (jwkCache *Cache) Remove(kidUuid googleUuid.UUID) error {
+	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Remove")
+	defer span.End()
+
+	waitStart := time.Now().UTC()
 	jwkCache.mu.Lock()
+	jwkCache.observations.histogramWaitRemove.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
 
 	latestKidUuid, err := cryptoutilJose.GetKidUuid(jwkCache.latestJwk)
@@ -167,7 +237,12 @@ func (jwkCache *Cache) Remove(kidUuid googleUuid.UUID) error {
 }
 
 func (jwkCache *Cache) Purge() error {
+	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Purge")
+	defer span.End()
+
+	waitStart := time.Now().UTC()
 	jwkCache.mu.Lock()
+	jwkCache.observations.histogramWaitPurge.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
 
 	newCache, err := lru.New(jwkCache.cacheSize)
