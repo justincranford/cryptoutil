@@ -74,8 +74,7 @@ func TestJWKCache_HappyPath_Get(t *testing.T) {
 
 func TestJWKCache_HappyPath_Put(t *testing.T) {
 	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
-	kek, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
-	mockStoreFunc := func(jwk joseJwk.Key, kek joseJwk.Key) error {
+	mockStoreFunc := func(jwk joseJwk.Key) error {
 		return nil
 	}
 
@@ -83,7 +82,7 @@ func TestJWKCache_HappyPath_Put(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
-	err = jwkCache.Put(jwk, kek)
+	err = jwkCache.Put(jwk)
 
 	require.NoError(t, err)
 }
@@ -130,9 +129,8 @@ func TestJWKCache_SadPath_Get_Function(t *testing.T) {
 
 func TestJWKCache_Put_SadPath(t *testing.T) {
 	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
-	kek, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
 
-	mockStoreFunc := func(jwk joseJwk.Key, kek joseJwk.Key) error {
+	mockStoreFunc := func(jwk joseJwk.Key) error {
 		return nil
 	}
 
@@ -140,6 +138,6 @@ func TestJWKCache_Put_SadPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
-	err = jwkCache.Put(jwk, kek)
+	err = jwkCache.Put(jwk)
 	require.NoError(t, err)
 }

@@ -82,13 +82,13 @@ func Test_HappyPath_Bytes(t *testing.T) {
 	encryptedBytesSlice := make([][]byte, 0, 11)
 	for i := range cap(encryptedBytesSlice) {
 		t.Logf("Attempt: %d", i+1)
-		encryptedBytes, err := barrierService.Encrypt(plaintext)
+		encryptedBytes, err := barrierService.EncryptContent(plaintext)
 		require.NoError(t, err)
 		t.Logf("Encrypted Data > JWE Headers: %s", string(encryptedBytes))
 		encryptedBytesSlice = append(encryptedBytesSlice, encryptedBytes)
 	}
 	for _, encryptedBytes := range encryptedBytesSlice {
-		decryptedBytes, err := barrierService.Decrypt(encryptedBytes)
+		decryptedBytes, err := barrierService.DecryptContent(encryptedBytes)
 		require.NoError(t, err)
 		// t.Logf("Decrypted: %s", string(decryptedBytes))
 		require.Equal(t, plaintext, decryptedBytes)

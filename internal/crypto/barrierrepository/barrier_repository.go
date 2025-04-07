@@ -26,7 +26,7 @@ type Repository struct {
 	mu               sync.RWMutex
 	loadLatestFunc   func() (joseJwk.Key, error)
 	loadFunc         func(kid googleUuid.UUID) (joseJwk.Key, error)
-	storeFunc        func(jwk joseJwk.Key, kek joseJwk.Key) error
+	storeFunc        func(jwk joseJwk.Key) error
 	deleteFunc       func(kid googleUuid.UUID) error
 	observations     Observations
 }
@@ -41,7 +41,7 @@ type Observations struct {
 	histogramWaitPurge     metricApi.Int64Histogram
 }
 
-func New(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key, kek joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Repository, error) {
+func New(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Repository, error) {
 	tracer := telemetryService.TracesProvider.Tracer("barrierrepository")
 	_, span := tracer.Start(context.Background(), "NewJWKCache")
 	defer span.End()
@@ -162,7 +162,7 @@ func (jwkCache *Repository) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 	return castedJwk, nil
 }
 
-func (jwkCache *Repository) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
+func (jwkCache *Repository) Put(jwk joseJwk.Key) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Put")
 	defer span.End()
 
@@ -170,16 +170,12 @@ func (jwkCache *Repository) Put(jwk joseJwk.Key, kek joseJwk.Key) error {
 	if err != nil {
 		return fmt.Errorf("failed to get jwk kid: %w", err)
 	}
-	_, err = cryptoutilJose.ExtractKidUuid(kek)
-	if err != nil {
-		return fmt.Errorf("failed to get kek kid: %w", err)
-	}
 
 	waitStart := time.Now().UTC()
 	jwkCache.mu.Lock()
 	jwkCache.observations.histogramWaitPut.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
-	err = jwkCache.storeFunc(jwk, kek) // TODO encrypt jwk before passing to storeFunc to insert into database
+	err = jwkCache.storeFunc(jwk) // TODO encrypt jwk before passing to storeFunc to insert into database
 	if err != nil {
 		return fmt.Errorf("failed to put key in database: %w", err)
 	}
