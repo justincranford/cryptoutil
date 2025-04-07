@@ -35,7 +35,10 @@ type RepositoryProvider struct {
 }
 
 func NewRepositoryOrm(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*RepositoryProvider, error) {
-	uuidV7Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Orm UUIDv7", 5, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
+	uuidV7Pool, err := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create UUID V7 pool: %w", err)
+	}
 
 	gormDB, err := cryptoutilSqlProvider.CreateGormDB(sqlProvider)
 	if err != nil {

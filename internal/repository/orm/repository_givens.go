@@ -5,6 +5,8 @@ import (
 	"cryptoutil/internal/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	cryptoutilUtil "cryptoutil/internal/util"
+	"errors"
+	"fmt"
 	"time"
 
 	googleUuid "github.com/google/uuid"
@@ -16,10 +18,13 @@ type Givens struct {
 	uuidV7Pool       *keygen.KeyPool
 }
 
-func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) *Givens {
-	aes256Pool := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens AES256", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
-	uuidV7Pool := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens UUIDv7", 3, 1, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
-	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidV7Pool: uuidV7Pool}
+func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) (*Givens, error) {
+	aes256Pool, err1 := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens AES256", 3, 3, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
+	uuidV7Pool, err2 := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
+	if err1 != nil || err2 != nil {
+		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2))
+	}
+	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidV7Pool: uuidV7Pool}, nil
 }
 
 func (g *Givens) Shutdown() {

@@ -2,6 +2,7 @@ package keygen
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -32,7 +33,13 @@ type KeyPool struct {
 	getCounter        int
 }
 
-func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) *KeyPool {
+func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) (*KeyPool, error) {
+	if numWorkers > size {
+		return nil, fmt.Errorf("More workers than pool size is not allowed")
+	} else if size > maxKeys {
+		return nil, fmt.Errorf("Bigger pool size than lifetime max keys is not allowed")
+	}
+
 	wrappedCtx, cancelFunction := context.WithCancel(ctx)
 	pool := &KeyPool{
 		telemetryService:  telemetryService,
@@ -55,7 +62,7 @@ func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 		pool.waitGroup.Add(1)
 		go pool.generateWorker(i + 1)
 	}
-	return pool
+	return pool, nil
 }
 
 func (pool *KeyPool) shutdownWorker() {

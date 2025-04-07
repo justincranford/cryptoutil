@@ -2,6 +2,7 @@ package servicelogic
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -22,12 +23,15 @@ type KeyPoolService struct {
 	uuidV7Pool       *cryptoutilKeygen.KeyPool
 }
 
-func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) *KeyPoolService {
-	aes256Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	aes192Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(192))
-	aes128Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(128))
-	uuidV7Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service UUIDv7", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
-	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool, uuidV7Pool: uuidV7Pool}
+func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*KeyPoolService, error) {
+	aes256Pool, err1 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	aes192Pool, err2 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(192))
+	aes128Pool, err3 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(128))
+	uuidV7Pool, err4 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4))
+	}
+	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool, uuidV7Pool: uuidV7Pool}, nil
 }
 
 func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {

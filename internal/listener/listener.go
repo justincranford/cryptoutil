@@ -62,6 +62,13 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
 	}
 
+	businessLogicService, err := cryptoutilServiceLogic.NewService(ctx, telemetryService, repositoryOrm)
+	if err != nil {
+		telemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
+		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
+		return nil, nil, fmt.Errorf("failed to initialize business logic service: %w", err)
+	}
+
 	app := fiber.New(fiber.Config{Immutable: true})
 	app.Use(recover.New())
 	app.Use(logger.New()) // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
@@ -76,7 +83,7 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(cryptoutilServiceLogic.NewService(ctx, telemetryService, repositoryOrm))
+	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(businessLogicService)
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, cryptoutilOpenapiServer.NewStrictHandler(openapiHandler, nil), cryptoutilOpenapiServer.FiberServerOptions{
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),

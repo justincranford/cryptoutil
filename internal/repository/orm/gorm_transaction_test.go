@@ -59,7 +59,11 @@ func TestMain(m *testing.M) {
 	}
 	defer testRepositoryProvider.Shutdown()
 
-	testGivens = NewGivens(testCtx, testTelemetryService)
+	testGivens, err = NewGivens(testCtx, testTelemetryService)
+	if err != nil {
+		testTelemetryService.Slogger.Error("failed to initailize givens", "error", err)
+		os.Exit(-1)
+	}
 	defer testGivens.Shutdown()
 
 	os.Exit(m.Run())

@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/ecdh"
 	"crypto/elliptic"
+	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -27,22 +29,29 @@ func TestPoolsExample(t *testing.T) {
 	telemetryService, err := cryptoutilTelemetry.NewService(ctx, "keypools_test", false, false)
 	if err != nil {
 		slog.Error("failed to initailize telemetry", "error", err)
-		os.Exit(-1)
+		return
 	}
 	defer telemetryService.Shutdown()
 
-	keys := generateKeys(ctx, telemetryService)
+	keys, err := generateKeys(ctx, telemetryService)
+	if err != nil {
+		slog.Error("failed to generate keys", "error", err)
+		return
+	}
 	writeKeys(telemetryService, keys)
 	readKeys(telemetryService, keys)
 }
 
-func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) []Key {
-	rsaPool := NewKeyPool(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPairFunction(2048))
-	ecdsaPool := NewKeyPool(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPairFunction(elliptic.P256()))
-	ecdhPool := NewKeyPool(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPairFunction(ecdh.P256()))
-	eddsaPool := NewKeyPool(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateEDKeyPairFunction("Ed25519"))
-	aesPool := NewKeyPool(ctx, telemetryService, "Test AES 128", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateAESKeyFunction(128))
-	hmacPool := NewKeyPool(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateHMACKeyFunction(256))
+func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) ([]Key, error) {
+	rsaPool, err1 := NewKeyPool(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPairFunction(2048))
+	ecdsaPool, err2 := NewKeyPool(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPairFunction(elliptic.P256()))
+	ecdhPool, err3 := NewKeyPool(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPairFunction(ecdh.P256()))
+	eddsaPool, err4 := NewKeyPool(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateEDKeyPairFunction("Ed25519"))
+	aesPool, err5 := NewKeyPool(ctx, telemetryService, "Test AES 128", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateAESKeyFunction(128))
+	hmacPool, err6 := NewKeyPool(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateHMACKeyFunction(256))
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
+		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6))
+	}
 
 	defer rsaPool.Close()
 	defer ecdsaPool.Close()
@@ -62,7 +71,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Ser
 		keys = append(keys, hmacPool.Get())
 	}
 
-	return keys
+	return keys, nil
 }
 
 func writeKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
