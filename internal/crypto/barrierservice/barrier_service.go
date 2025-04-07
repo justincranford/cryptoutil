@@ -33,7 +33,7 @@ type BarrierService struct {
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
 	aes256Pool := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Crypto Service AES-256", 3, 1, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
 
-	rootKeyRepository, err1 := newRootKeyRepository(rootJwk, ormRepository, telemetryService, aes256Pool)
+	rootKeyRepository, err1 := newRootKeyRepository(rootJwk, telemetryService)
 	intermediateKeyRepository, err2 := newIntermediateKeyRepository(rootKeyRepository, 2, ormRepository, telemetryService, aes256Pool)
 	leafKeyRepository, err3 := newLeafKeyRepository(intermediateKeyRepository, 10, ormRepository, telemetryService)
 	if err1 != nil || err2 != nil || err3 != nil {
@@ -51,9 +51,6 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 }
 
 func (d *BarrierService) Shutdown() {
-	if d.aes256Pool != nil {
-		d.aes256Pool.Close()
-	}
 	if d.leafKeyRepository != nil {
 		err := d.leafKeyRepository.Shutdown()
 		if err != nil {
@@ -65,6 +62,15 @@ func (d *BarrierService) Shutdown() {
 		if err != nil {
 			d.telemetryService.Slogger.Error("failed to shutdown intermediate key cache", "error", err)
 		}
+	}
+	if d.rootKeyRepository != nil {
+		err := d.rootKeyRepository.Shutdown()
+		if err != nil {
+			d.telemetryService.Slogger.Error("failed to shutdown root key cache", "error", err)
+		}
+	}
+	if d.aes256Pool != nil {
+		d.aes256Pool.Close()
 	}
 }
 
@@ -166,7 +172,7 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 	return jwk, nil
 }
 
-func newRootKeyRepository(rootJwk joseJwk.Key, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
+func newRootKeyRepository(rootJwk joseJwk.Key, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestRootKey := func() (joseJwk.Key, error) {
 		return rootJwk, nil
 	}
