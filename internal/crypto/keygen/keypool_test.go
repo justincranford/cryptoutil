@@ -80,7 +80,7 @@ func TestMain(m *testing.M) {
 func TestPoolRSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateRSAKeyPairFunction(2048))
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateRSAKeyPairFunction(512))
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
