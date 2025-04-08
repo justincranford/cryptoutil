@@ -16,6 +16,7 @@ require (
 	github.com/oapi-codegen/fiber-middleware v1.0.2
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/samber/slog-multi v1.4.0
+	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/testcontainers/testcontainers-go v0.35.0
 	go.opentelemetry.io/otel v1.35.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.10.0
