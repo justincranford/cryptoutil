@@ -158,15 +158,21 @@ func TestEncodeMethods(t *testing.T) {
 	valueB := value("B")
 	valueC := value("C")
 
-	comb := combination{valueA, valueB}
-	combos := combinations{comb, {valueC}}
+	combinationAB := combination{valueA, valueB}
+	encodedCombinationAB := combinationAB.Encode()
+	require.Equal(t, []byte{0, 'A', 1, 'B'}, encodedCombinationAB)
+
+	combinationC := combination{valueC}
+	encodedCombinationC := combinationC.Encode()
+	require.Equal(t, []byte{0, 'C'}, encodedCombinationC)
+
+	combos := combinations{combinationAB, combinationC}
 	seq := sequence{combos}
 
-	encodedComb := comb.Encode()
 	encodedCombos := combos.Encode()
-	encodedSeq := seq.Encode()
+	require.Equal(t, []byte{0, 0, 'A', 1, 'B', 1, 0, 'C'}, encodedCombos)
 
-	require.NotEmpty(t, encodedComb)
-	require.NotEmpty(t, encodedCombos)
+	encodedSeq := seq.Encode()
 	require.NotEmpty(t, encodedSeq)
+	require.Equal(t, []byte{0, 0, 0, 'A', 1, 'B', 1, 0, 'C'}, encodedSeq)
 }
