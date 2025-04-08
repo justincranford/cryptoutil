@@ -158,7 +158,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 			require.NotNil(t, repositoryTransaction.Context())
 			require.Equal(t, testCase.txMode, *repositoryTransaction.Mode())
 
-			keyPool, err := testGivens.KeyPoolForAdd(true, true, true)
+			keyPool, err := testGivens.KeyPool(true, true, true)
 			if err != nil {
 				return fmt.Errorf("failed to generate given Key Pool for insert: %w", err)
 			}

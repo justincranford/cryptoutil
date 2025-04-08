@@ -4,7 +4,6 @@ import (
 	"context"
 	"cryptoutil/internal/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
-	cryptoutilUtil "cryptoutil/internal/util"
 	"errors"
 	"fmt"
 	"time"
@@ -43,11 +42,6 @@ func (g *Givens) AES256() []byte {
 func (g *Givens) KeyPool(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPool, error) {
 	uuid := g.UUIDv7()
 	return BuildKeyPool(uuid, string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed, string(Creating))
-}
-
-func (g *Givens) KeyPoolForAdd(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPool, error) {
-	uuid := g.UUIDv7()
-	return BuildKeyPool(cryptoutilUtil.ZeroUUID, string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed, string(Creating))
 }
 
 func (g *Givens) Key(keyPoolID googleUuid.UUID, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
