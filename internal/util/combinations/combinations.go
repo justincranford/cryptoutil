@@ -10,11 +10,6 @@ type value []byte
 type combination []value
 type combinations []combination
 
-type input struct {
-	m M
-	n int
-}
-
 func ComputeCombinations(m M, n int) (combinations, error) {
 	if m == nil {
 		return nil, fmt.Errorf("m can't be nil")
