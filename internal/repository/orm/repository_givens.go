@@ -18,8 +18,8 @@ type Givens struct {
 }
 
 func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) (*Givens, error) {
-	aes256Pool, err1 := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens AES256", 3, 3, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateAESKeyFunction(256))
-	uuidV7Pool, err2 := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, keygen.MaxKeys, keygen.MaxTime, keygen.GenerateUUIDv7Function())
+	aes256Pool, err1 := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens AES256", 3, 3, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, keygen.GenerateAESKeyFunction(256))
+	uuidV7Pool, err2 := keygen.NewKeyPool(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, keygen.GenerateUUIDv7Function())
 	if err1 != nil || err2 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2))
 	}

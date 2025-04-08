@@ -22,44 +22,43 @@ import (
 )
 
 type TestCase struct {
-	name    string
-	workers int
-	size    int
-	maxSize int64
-	maxTime time.Duration
-	gets    int
+	name                string
+	workers             int
+	size                int
+	maxLifetimeKeys     int64
+	maxLifetimeDuration time.Duration
+	gets                int
 }
 
 var (
-	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.Service
-	happyPathWorkers     = []int{1, 2}
-	happyPathSize        = []int{1, 3}
-	happyPathMaxSize     = []int64{1, 3, MaxKeys}
-	happyPathMaxTime     = []time.Duration{MaxTime}
-	happyPathGets        = []int{0, 1, 3, 4}
-	happyPathTestCases   = func() []TestCase {
-		testCases := make([]TestCase, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxSize)*len(happyPathMaxTime)*len(happyPathGets))
+	testCtx                      = context.Background()
+	testTelemetryService         *cryptoutilTelemetry.Service
+	happyPathWorkers             = []int{1, 2}
+	happyPathSize                = []int{1, 3}
+	happyPathMaxLifetimeKeys     = []int64{1, 3, MaxLifetimeKeys}
+	happyPathMaxLifetimeDuration = []time.Duration{MaxLifetimeDuration}
+	happyPathGets                = []int{0, 1, 3, 4}
+	happyPathTestCases           = func() []*TestCase {
+		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
 		for _, workers := range happyPathWorkers {
 			for _, size := range happyPathSize {
 				if workers > size {
 					continue
 				}
-				for _, maxSize := range happyPathMaxSize {
-					if int64(size) > maxSize {
+				for _, maxLifetimeKeys := range happyPathMaxLifetimeKeys {
+					if int64(size) > maxLifetimeKeys {
 						continue
 					}
-					for _, maxTime := range happyPathMaxTime {
+					for _, maxLifetimeDuration := range happyPathMaxLifetimeDuration {
 						for _, gets := range happyPathGets {
-							if int64(gets) > maxSize {
+							if int64(gets) > maxLifetimeKeys {
 								continue
 							}
-							name := fmt.Sprintf("workers[%d] size[%d] maxSize[%d] maxTime[%v] gets[%d]", workers, size, maxSize, time.Duration(maxTime), gets)
-							testCases = append(testCases, TestCase{name: name, workers: workers, size: size, maxSize: maxSize, maxTime: time.Duration(maxTime), gets: gets})
+							name := fmt.Sprintf("workers[%d] size[%d] maxLifetimeKeys[%d] maxLifetimeDuration[%v] gets[%d]", workers, size, maxLifetimeKeys, time.Duration(maxLifetimeDuration), gets)
+							testCases = append(testCases, &TestCase{name: name, workers: workers, size: size, maxLifetimeKeys: maxLifetimeKeys, maxLifetimeDuration: time.Duration(maxLifetimeDuration), gets: gets})
 						}
 					}
 				}
-
 			}
 		}
 		return testCases
@@ -80,7 +79,7 @@ func TestMain(m *testing.M) {
 func TestPoolRSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateRSAKeyPairFunction(256))
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(256))
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -97,7 +96,7 @@ func TestPoolRSA(t *testing.T) {
 func TestPoolEcDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateECDSAKeyPairFunction(elliptic.P256()))
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -114,7 +113,7 @@ func TestPoolEcDSA(t *testing.T) {
 func TestPoolEcDH(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateECDHKeyPairFunction(ecdh.P256()))
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -131,7 +130,7 @@ func TestPoolEcDH(t *testing.T) {
 func TestPoolEdDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateEDKeyPairFunction("Ed25519"))
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -148,7 +147,7 @@ func TestPoolEdDSA(t *testing.T) {
 func TestPoolAES(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateAESKeyFunction(128))
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESKeyFunction(128))
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -165,7 +164,7 @@ func TestPoolAES(t *testing.T) {
 func TestPoolHMAC(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateHMACKeyFunction(256))
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateHMACKeyFunction(256))
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -182,7 +181,7 @@ func TestPoolHMAC(t *testing.T) {
 func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxSize, tc.maxTime, GenerateUUIDv7Function())
+			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateUUIDv7Function())
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()

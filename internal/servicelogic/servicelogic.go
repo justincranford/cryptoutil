@@ -24,10 +24,10 @@ type KeyPoolService struct {
 }
 
 func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*KeyPoolService, error) {
-	aes256Pool, err1 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	aes192Pool, err2 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(192))
-	aes128Pool, err3 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateAESKeyFunction(128))
-	uuidV7Pool, err4 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxKeys, cryptoutilKeygen.MaxTime, cryptoutilKeygen.GenerateUUIDv7Function())
+	aes256Pool, err1 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	aes192Pool, err2 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
+	aes128Pool, err3 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
+	uuidV7Pool, err4 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4))
 	}
