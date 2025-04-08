@@ -43,7 +43,7 @@ func TestPoolsExample(t *testing.T) {
 }
 
 func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) ([]Key, error) {
-	rsaPool, err1 := NewKeyPool(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPairFunction(2048))
+	rsaPool, err1 := NewKeyPool(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, exampleSize, exampleMaxSize, exampleMaxTime, GenerateRSAKeyPairFunction(256))
 	ecdsaPool, err2 := NewKeyPool(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDSAKeyPairFunction(elliptic.P256()))
 	ecdhPool, err3 := NewKeyPool(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateECDHKeyPairFunction(ecdh.P256()))
 	eddsaPool, err4 := NewKeyPool(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, exampleSize, exampleMaxSize, exampleMaxTime, GenerateEDKeyPairFunction("Ed25519"))
