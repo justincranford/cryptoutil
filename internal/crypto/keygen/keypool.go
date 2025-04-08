@@ -137,28 +137,30 @@ func (pool *KeyPool) Get() Key {
 }
 
 func (pool *KeyPool) Close() {
-	startTime := time.Now()
+	pool.closeOnce.Do(func() {
+		startTime := time.Now()
 
-	if pool.cancelFunction == nil {
-		defer func() {
-			pool.telemetryService.Slogger.Warn("already closed", "pool", pool.name, "duration", time.Since(startTime).Seconds())
-		}()
-	} else {
-		defer func() {
-			pool.telemetryService.Slogger.Info("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
-		}()
-		pool.cancelFunction()
-		pool.cancelFunction = nil
-	}
+		if pool.cancelFunction == nil {
+			defer func() {
+				pool.telemetryService.Slogger.Warn("already closed", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			}()
+		} else {
+			defer func() {
+				pool.telemetryService.Slogger.Info("close ok", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			}()
+			pool.cancelFunction()
+			pool.cancelFunction = nil
+		}
 
-	pool.waitForWorkers.Wait()
+		pool.waitForWorkers.Wait()
 
-	if pool.keyChannel != nil {
-		close(pool.keyChannel)
-		pool.keyChannel = nil
-	}
-	if pool.permissionChannel != nil {
-		close(pool.permissionChannel)
-		pool.permissionChannel = nil
-	}
+		if pool.keyChannel != nil {
+			close(pool.keyChannel)
+			pool.keyChannel = nil
+		}
+		if pool.permissionChannel != nil {
+			close(pool.permissionChannel)
+			pool.permissionChannel = nil
+		}
+	})
 }
