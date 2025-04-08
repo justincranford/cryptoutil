@@ -34,6 +34,8 @@ func Sequence(inputs []input) (sequence, error) {
 func Combinations(m M, n int) (combinations, error) {
 	if m == nil {
 		return nil, fmt.Errorf("m can't be nil")
+	} else if n == 0 {
+		return combinations{}, nil
 	} else if n < 0 {
 		return nil, fmt.Errorf("n cannot be negative")
 	} else if n > len(m) {
