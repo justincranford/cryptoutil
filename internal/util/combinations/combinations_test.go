@@ -1,4 +1,4 @@
-package util
+package combinations
 
 import (
 	"reflect"
@@ -23,7 +23,7 @@ type combinationSadPath struct {
 type sequenceHappyPath struct {
 	name     string
 	inputs   []input
-	expected sequence
+	expected sequences
 }
 
 func TestCombinations_HappyPath(t *testing.T) {
@@ -73,7 +73,7 @@ func TestCombinations_HappyPath(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := Combinations(tc.m, tc.n)
+			result, err := ComputeCombinations(tc.m, tc.n)
 			require.NoError(t, err)
 			if !reflect.DeepEqual(result, tc.expected) {
 				t.Errorf("Test %s failed. Expected: %v, Got: %v", tc.name, tc.expected, result)
@@ -92,7 +92,7 @@ func TestCombinationsSadPath(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := Combinations(tc.m, tc.n)
+			_, err := ComputeCombinations(tc.m, tc.n)
 			require.Error(t, err)
 		})
 	}
@@ -118,17 +118,17 @@ func TestSequenceHappyPath(t *testing.T) {
 		{
 			name:     "1 of 2 AND 2 of 3",
 			inputs:   []input{{mAB, 1}, {mABC, 2}},
-			expected: sequence{combinations{combinationA, combinationB}, combinations{combinationAB, combinationAC, combinationBC}},
+			expected: sequences{combinations{combinationA, combinationB}, combinations{combinationAB, combinationAC, combinationBC}},
 		},
 		{
 			name:     "2 of 2 AND 3 of 3",
 			inputs:   []input{{mAB, 2}, {mABC, 3}},
-			expected: sequence{combinations{combinationAB}, combinations{combinationABC}},
+			expected: sequences{combinations{combinationAB}, combinations{combinationABC}},
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			result, err := Sequence(tc.inputs)
+			result, err := ComputeSequences(tc.inputs)
 			require.NoError(t, err)
 			require.Len(t, result, len(tc.inputs))
 			if !reflect.DeepEqual(result, tc.expected) {
@@ -140,7 +140,7 @@ func TestSequenceHappyPath(t *testing.T) {
 
 func TestSequenceSadPath(t *testing.T) {
 	t.Run("nil input slice", func(t *testing.T) {
-		_, err := Sequence(nil)
+		_, err := ComputeSequences(nil)
 		require.Error(t, err)
 	})
 
@@ -148,7 +148,7 @@ func TestSequenceSadPath(t *testing.T) {
 		badInputs := []input{
 			{nil, 1}, // This will trigger "m can't be nil" in Combinations
 		}
-		_, err := Sequence(badInputs)
+		_, err := ComputeSequences(badInputs)
 		require.Error(t, err)
 	})
 }
@@ -167,7 +167,7 @@ func TestEncodeMethods(t *testing.T) {
 	require.Equal(t, []byte{0, 'C'}, encodedCombinationC)
 
 	combos := combinations{combinationAB, combinationC}
-	seq := sequence{combos}
+	seq := sequences{combos}
 
 	encodedCombos := combos.Encode()
 	require.Equal(t, []byte{0, 0, 'A', 1, 'B', 1, 0, 'C'}, encodedCombos)

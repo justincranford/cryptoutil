@@ -1,4 +1,4 @@
-package util
+package combinations
 
 import (
 	"bytes"
@@ -9,20 +9,20 @@ type M []value
 type value []byte
 type combination []value
 type combinations []combination
-type sequence []combinations
+type sequences []combinations
 
 type input struct {
 	m M
 	n int
 }
 
-func Sequence(inputs []input) (sequence, error) {
+func ComputeSequences(inputs []input) (sequences, error) {
 	if inputs == nil {
 		return nil, fmt.Errorf("inputs can't be nil")
 	}
-	var result sequence
+	var result sequences
 	for index, tuple := range inputs {
-		combos, err := Combinations(tuple.m, tuple.n)
+		combos, err := ComputeCombinations(tuple.m, tuple.n)
 		if err != nil {
 			return nil, fmt.Errorf("error generating combinations for input %d: %v", index, err)
 		}
@@ -31,7 +31,7 @@ func Sequence(inputs []input) (sequence, error) {
 	return result, nil
 }
 
-func Combinations(m M, n int) (combinations, error) {
+func ComputeCombinations(m M, n int) (combinations, error) {
 	if m == nil {
 		return nil, fmt.Errorf("m can't be nil")
 	} else if n == 0 {
@@ -63,7 +63,7 @@ func Combinations(m M, n int) (combinations, error) {
 
 // Encoding functions
 
-func (s sequence) Encode() []byte {
+func (s sequences) Encode() []byte {
 	var buffer bytes.Buffer
 	for i, combinations := range s {
 		buffer.WriteByte(uint8(i))          // Write index as a uint8

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = ".;combinations";
+
+message Value {
+    bytes data = 1;
+}
+
+message Combination {
+    repeated Value values = 1;
+}
+
+message Combinations {
+    repeated Combination combinations = 1;
+}
+
+message Sequence {
+    repeated Combinations sequences = 1;
+}
