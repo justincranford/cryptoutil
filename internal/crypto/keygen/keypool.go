@@ -56,7 +56,7 @@ func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 		cancelFunction:    cancelFunction,
 	}
 	if pool.maxKeys > 0 || pool.maxTime > 0 {
-		go pool.shutdownWorker()
+		go pool.monitorShutdownWorker()
 	}
 	for i := 0; i < pool.numWorkers; i++ {
 		pool.waitGroup.Add(1)
@@ -65,20 +65,20 @@ func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 	return pool, nil
 }
 
-func (pool *KeyPool) shutdownWorker() {
+func (pool *KeyPool) monitorShutdownWorker() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
 	for {
-		startTime := time.Now()
 		select {
 		case <-pool.ctx.Done():
-			pool.telemetryService.Slogger.Debug("cancelled", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+			pool.telemetryService.Slogger.Debug("cancelled", "pool", pool.name)
 			return
-		default:
+		case <-ticker.C:
 			reachedLimit, _ := pool.checkPoolLimits(false)
 			if reachedLimit {
-				pool.telemetryService.Slogger.Warn("limit", "pool", pool.name, "duration", time.Since(startTime).Seconds())
+				pool.telemetryService.Slogger.Warn("limit reached", "pool", pool.name)
 				return
 			}
-			time.Sleep(time.Second)
 		}
 	}
 }
