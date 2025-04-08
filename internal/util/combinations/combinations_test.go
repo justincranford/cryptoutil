@@ -68,7 +68,9 @@ func TestCombinations_HappyPath(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := ComputeCombinations(tc.m, tc.n)
-			t.Logf("combinations: \n%s", result.ToString())
+			for i, combination := range result {
+				t.Logf("combination[%d] = %s, 0x%x ", i, combination.ToString(), combination.Encode())
+			}
 			require.NoError(t, err)
 			if !reflect.DeepEqual(result, tc.expected) {
 				t.Errorf("Test %s failed. Expected: %v, Got: %v", tc.name, tc.expected, result)
@@ -93,21 +95,30 @@ func TestCombinationsSadPath(t *testing.T) {
 	}
 }
 
-func TestEncodeMethods(t *testing.T) {
+func TestEncode(t *testing.T) {
 	valueA := value("A")
 	valueB := value("B")
 	valueC := value("C")
 
+	expectededCombinationAB := []byte{2, 1, 'A', 1, 'B'}
+	expectededCombinationC := []byte{1, 1, 'C'}
+
 	combinationAB := combination{valueA, valueB}
 	encodedCombinationAB := combinationAB.Encode()
-	require.Equal(t, []byte{0, 'A', 1, 'B'}, encodedCombinationAB)
+	require.Equal(t, expectededCombinationAB, encodedCombinationAB)
+	t.Logf("combinationAB = %s", combinationAB.ToString())
+	t.Logf("encodedCombinationAB = 0x%x", encodedCombinationAB)
 
 	combinationC := combination{valueC}
 	encodedCombinationC := combinationC.Encode()
-	require.Equal(t, []byte{0, 'C'}, encodedCombinationC)
+	require.Equal(t, expectededCombinationC, encodedCombinationC)
+	t.Logf("combinationC = %s", combinationC.ToString())
+	t.Logf("combinationC = 0x%x", encodedCombinationC)
 
 	combos := combinations{combinationAB, combinationC}
 
 	encodedCombos := combos.Encode()
-	require.Equal(t, []byte{0, 0, 'A', 1, 'B', 1, 0, 'C'}, encodedCombos)
+	require.Equal(t, 2, len(encodedCombos))
+	require.Equal(t, expectededCombinationAB, encodedCombos[0])
+	require.Equal(t, expectededCombinationC, encodedCombos[1])
 }

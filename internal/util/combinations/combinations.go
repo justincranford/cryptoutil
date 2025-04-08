@@ -13,12 +13,14 @@ type combinations []combination
 func ComputeCombinations(m M, n int) (combinations, error) {
 	if m == nil {
 		return nil, fmt.Errorf("m can't be nil")
+	} else if len(m) >= 255 {
+		return nil, fmt.Errorf("m can't be greater than 255")
 	} else if n == 0 {
 		return combinations{}, nil
 	} else if n < 0 {
-		return nil, fmt.Errorf("n cannot be negative")
+		return nil, fmt.Errorf("n can't be negative")
 	} else if n > len(m) {
-		return nil, fmt.Errorf("n cannot be greater than m")
+		return nil, fmt.Errorf("n can't be greater than m")
 	}
 
 	var result combinations
@@ -40,27 +42,28 @@ func ComputeCombinations(m M, n int) (combinations, error) {
 	return result, nil
 }
 
-// Encoding functions
+// ENCODE
 
-func (c combinations) Encode() []byte {
+func (combinations *combinations) Encode() [][]byte {
+	var encodings [][]byte
+	for _, combination := range *combinations {
+		encodings = append(encodings, combination.Encode())
+	}
+	return encodings
+}
+
+func (combination *combination) Encode() []byte {
 	var buffer bytes.Buffer
-	for i, combination := range c {
-		buffer.WriteByte(uint8(i))         // Write index as a uint8
-		buffer.Write(combination.Encode()) // Write encoded combination
+	buffer.WriteByte(uint8(len(*combination))) // encode number of values
+	for _, value := range *combination {
+		buffer.WriteByte(uint8(len(value))) // encode value length
+		buffer.Write(value)
 	}
 	return buffer.Bytes()
 }
 
-func (v combination) Encode() []byte {
-	var buffer bytes.Buffer
-	for i, value := range v {
-		buffer.WriteByte(uint8(i)) // Write index as a uint8
-		buffer.Write(value)        // Write encoded value
-	}
-	return buffer.Bytes()
-}
+// ToString methods
 
-// M ToString method
 func (m M) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("[")
@@ -74,12 +77,10 @@ func (m M) ToString() string {
 	return buffer.String()
 }
 
-// value ToString method
 func (v value) ToString() string {
 	return fmt.Sprintf("%q", []byte(v))
 }
 
-// combination ToString method
 func (c combination) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("[")
@@ -93,7 +94,6 @@ func (c combination) ToString() string {
 	return buffer.String()
 }
 
-// combinations ToString method
 func (c combinations) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("[")
