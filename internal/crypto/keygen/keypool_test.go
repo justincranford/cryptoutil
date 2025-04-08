@@ -25,9 +25,9 @@ type TestCase struct {
 	name    string
 	workers int
 	size    int
-	gets    int
-	maxSize int
+	maxSize int64
 	maxTime time.Duration
+	gets    int
 }
 
 var (
@@ -35,7 +35,7 @@ var (
 	testTelemetryService *cryptoutilTelemetry.Service
 	happyPathWorkers     = []int{1, 2}
 	happyPathSize        = []int{1, 3}
-	happyPathMaxSize     = []int{1, 3, MaxKeys}
+	happyPathMaxSize     = []int64{1, 3, MaxKeys}
 	happyPathMaxTime     = []time.Duration{MaxTime}
 	happyPathGets        = []int{0, 1, 3, 4}
 	happyPathTestCases   = func() []TestCase {
@@ -46,12 +46,12 @@ var (
 					continue
 				}
 				for _, maxSize := range happyPathMaxSize {
-					if size > maxSize {
+					if int64(size) > maxSize {
 						continue
 					}
 					for _, maxTime := range happyPathMaxTime {
 						for _, gets := range happyPathGets {
-							if gets > maxSize {
+							if int64(gets) > maxSize {
 								continue
 							}
 							name := fmt.Sprintf("workers[%d] size[%d] maxSize[%d] maxTime[%v] gets[%d]", workers, size, maxSize, time.Duration(maxTime), gets)

@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 const (
-	MaxKeys = 1<<63 - 1
+	MaxKeys = int64(1<<63 - 1)
 	MaxTime = time.Duration(MaxKeys)
 )
 
@@ -21,22 +22,21 @@ type KeyPool struct {
 	ctx               context.Context
 	numWorkers        int
 	size              int
-	maxKeys           int
+	maxKeys           int64
 	maxTime           time.Duration
 	permissionChannel chan any
 	keyChannel        chan Key
-	waitGroup         sync.WaitGroup
+	waitForWorkers    sync.WaitGroup
 	generateFunction  func() (Key, error)
 	cancelFunction    context.CancelFunc
-	guardCounters     sync.Mutex
-	generateCounter   int
-	getCounter        int
+	generateCounter   int64
+	getCounter        int64
 }
 
-func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, name string, numWorkers int, size int, maxKeys int, maxTime time.Duration, generateFunction func() (Key, error)) (*KeyPool, error) {
+func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, name string, numWorkers int, size int, maxKeys int64, maxTime time.Duration, generateFunction func() (Key, error)) (*KeyPool, error) {
 	if numWorkers > size {
 		return nil, fmt.Errorf("More workers than pool size is not allowed")
-	} else if size > maxKeys {
+	} else if int64(size) > maxKeys {
 		return nil, fmt.Errorf("Bigger pool size than lifetime max keys is not allowed")
 	}
 
@@ -59,7 +59,7 @@ func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 		go pool.monitorShutdownWorker()
 	}
 	for i := 0; i < pool.numWorkers; i++ {
-		pool.waitGroup.Add(1)
+		pool.waitForWorkers.Add(1)
 		go pool.generateWorker(i + 1)
 	}
 	return pool, nil
@@ -84,7 +84,7 @@ func (pool *KeyPool) monitorShutdownWorker() {
 }
 
 func (pool *KeyPool) generateWorker(workerNum int) {
-	defer pool.waitGroup.Done()
+	defer pool.waitForWorkers.Done()
 	for {
 		startTime := time.Now()
 		pool.telemetryService.Slogger.Debug("check", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
@@ -128,23 +128,21 @@ func (pool *KeyPool) Get() Key {
 	pool.telemetryService.Slogger.Debug("getting", "pool", pool.name, "duration", time.Since(startTime).Seconds())
 	key := <-pool.keyChannel
 	pool.telemetryService.Slogger.Debug("received", "pool", pool.name, "duration", time.Since(startTime).Seconds())
-	pool.guardCounters.Lock()
-	pool.getCounter++
-	getCounter := pool.getCounter
-	pool.guardCounters.Unlock()
+	getCounter := atomic.AddInt64(&pool.getCounter, 1)
 	defer func() {
 		pool.telemetryService.Slogger.Debug("got", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
 	}()
 	return key
 }
 
-func (pool *KeyPool) checkPoolLimits(incrementGenerateCounter bool) (bool, int) {
-	pool.guardCounters.Lock()
-	defer pool.guardCounters.Unlock()
+func (pool *KeyPool) checkPoolLimits(incrementGenerateCounter bool) (bool, int64) {
+	var generateCounter int64
 	if incrementGenerateCounter {
-		pool.generateCounter = pool.generateCounter + 1
+		generateCounter = atomic.AddInt64(&pool.generateCounter, 1)
+	} else {
+		generateCounter = atomic.LoadInt64(&pool.generateCounter)
 	}
-	isDone := (pool.maxKeys > 0 && pool.generateCounter > pool.maxKeys) || (pool.maxTime > 0 && time.Since(pool.startTime) >= pool.maxTime)
+	isDone := (pool.maxKeys > 0 && generateCounter > pool.maxKeys) || (pool.maxTime > 0 && time.Since(pool.startTime) >= pool.maxTime)
 	return isDone, pool.generateCounter
 }
 
@@ -163,7 +161,7 @@ func (pool *KeyPool) Close() {
 		pool.cancelFunction = nil
 	}
 
-	pool.waitGroup.Wait()
+	pool.waitForWorkers.Wait()
 
 	if pool.keyChannel != nil {
 		close(pool.keyChannel)
