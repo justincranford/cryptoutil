@@ -9,26 +9,10 @@ type M []value
 type value []byte
 type combination []value
 type combinations []combination
-type sequences []combinations
 
 type input struct {
 	m M
 	n int
-}
-
-func ComputeSequences(inputs []input) (sequences, error) {
-	if inputs == nil {
-		return nil, fmt.Errorf("inputs can't be nil")
-	}
-	var result sequences
-	for index, tuple := range inputs {
-		combos, err := ComputeCombinations(tuple.m, tuple.n)
-		if err != nil {
-			return nil, fmt.Errorf("error generating combinations for input %d: %v", index, err)
-		}
-		result = append(result, combos)
-	}
-	return result, nil
 }
 
 func ComputeCombinations(m M, n int) (combinations, error) {
@@ -63,15 +47,6 @@ func ComputeCombinations(m M, n int) (combinations, error) {
 
 // Encoding functions
 
-func (s sequences) Encode() []byte {
-	var buffer bytes.Buffer
-	for i, combinations := range s {
-		buffer.WriteByte(uint8(i))          // Write index as a uint8
-		buffer.Write(combinations.Encode()) // Write encoded combinations
-	}
-	return buffer.Bytes()
-}
-
 func (c combinations) Encode() []byte {
 	var buffer bytes.Buffer
 	for i, combination := range c {
@@ -88,4 +63,51 @@ func (v combination) Encode() []byte {
 		buffer.Write(value)        // Write encoded value
 	}
 	return buffer.Bytes()
+}
+
+// M ToString method
+func (m M) ToString() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	for i, v := range m {
+		buffer.WriteString(v.ToString())
+		if i < len(m)-1 {
+			buffer.WriteString(", ")
+		}
+	}
+	buffer.WriteString("]")
+	return buffer.String()
+}
+
+// value ToString method
+func (v value) ToString() string {
+	return fmt.Sprintf("%q", []byte(v))
+}
+
+// combination ToString method
+func (c combination) ToString() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	for i, v := range c {
+		buffer.WriteString(v.ToString())
+		if i < len(c)-1 {
+			buffer.WriteString(", ")
+		}
+	}
+	buffer.WriteString("]")
+	return buffer.String()
+}
+
+// combinations ToString method
+func (c combinations) ToString() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("[")
+	for i, combination := range c {
+		buffer.WriteString(combination.ToString())
+		if i < len(c)-1 {
+			buffer.WriteString(", ")
+		}
+	}
+	buffer.WriteString("]")
+	return buffer.String()
 }
