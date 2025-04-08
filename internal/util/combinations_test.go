@@ -7,14 +7,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type testcase struct {
+type combinationsHappyPath struct {
 	name     string
 	m        M
 	n        int
 	expected combinations
 }
 
-func TestGenerateCombinations(t *testing.T) {
+type combinationSadPath struct {
+	name string
+	m    M
+	n    int
+}
+
+type sequenceHappyPath struct {
+	name     string
+	inputs   []input
+	expected sequence
+}
+
+func TestCombinations_HappyPath(t *testing.T) {
 	valueA := value("A")
 	valueB := value("B")
 	valueC := value("C")
@@ -42,7 +54,7 @@ func TestGenerateCombinations(t *testing.T) {
 	combinationBCD := combination{valueB, valueC, valueD}
 	combinationABCD := combination{valueA, valueB, valueC, valueD}
 
-	testCases := []testcase{
+	testCases := []combinationsHappyPath{
 		{"0 of 0", m, 0, combinations{}},
 		{"0 of 1", mA, 0, combinations{}},
 		{"1 of 1", mA, 1, combinations{combinationA}},
@@ -59,7 +71,6 @@ func TestGenerateCombinations(t *testing.T) {
 		{"3 of 4", mABCD, 3, combinations{combinationABC, combinationABD, combinationACD, combinationBCD}},
 		{"4 of 4", mABCD, 4, combinations{combinationABCD}},
 	}
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			result, err := Combinations(tc.m, tc.n)
@@ -69,4 +80,93 @@ func TestGenerateCombinations(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCombinationsSadPath(t *testing.T) {
+	valueA := value("A")
+
+	tests := []combinationSadPath{
+		{"nil m", nil, 1},
+		{"n < 0", M{valueA}, -1},
+		{"n > len(m)", M{valueA}, 2},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Combinations(tc.m, tc.n)
+			require.Error(t, err)
+		})
+	}
+}
+
+func TestSequenceHappyPath(t *testing.T) {
+	valueA := value("A")
+	valueB := value("B")
+	valueC := value("C")
+
+	mAB := M{valueA, valueB}
+	mABC := M{valueA, valueB, valueC}
+
+	combinationA := combination{valueA}
+	combinationB := combination{valueB}
+	// combinationC := combination{valueC}
+	combinationAB := combination{valueA, valueB}
+	combinationAC := combination{valueA, valueC}
+	combinationBC := combination{valueB, valueC}
+	combinationABC := combination{valueA, valueB, valueC}
+
+	testCases := []sequenceHappyPath{
+		{
+			name:     "1 of 2 AND 2 of 3",
+			inputs:   []input{{mAB, 1}, {mABC, 2}},
+			expected: sequence{combinations{combinationA, combinationB}, combinations{combinationAB, combinationAC, combinationBC}},
+		},
+		{
+			name:     "2 of 2 AND 3 of 3",
+			inputs:   []input{{mAB, 2}, {mABC, 3}},
+			expected: sequence{combinations{combinationAB}, combinations{combinationABC}},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := Sequence(tc.inputs)
+			require.NoError(t, err)
+			require.Len(t, result, len(tc.inputs))
+			if !reflect.DeepEqual(result, tc.expected) {
+				t.Errorf("Test %s failed. Expected: %v, Got: %v", tc.name, tc.expected, result)
+			}
+		})
+	}
+}
+
+func TestSequenceSadPath(t *testing.T) {
+	t.Run("nil input slice", func(t *testing.T) {
+		_, err := Sequence(nil)
+		require.Error(t, err)
+	})
+
+	t.Run("Combinations failure", func(t *testing.T) {
+		badInputs := []input{
+			{nil, 1}, // This will trigger "m can't be nil" in Combinations
+		}
+		_, err := Sequence(badInputs)
+		require.Error(t, err)
+	})
+}
+
+func TestEncodeMethods(t *testing.T) {
+	valueA := value("A")
+	valueB := value("B")
+	valueC := value("C")
+
+	comb := combination{valueA, valueB}
+	combos := combinations{comb, {valueC}}
+	seq := sequence{combos}
+
+	encodedComb := comb.Encode()
+	encodedCombos := combos.Encode()
+	encodedSeq := seq.Encode()
+
+	require.NotEmpty(t, encodedComb)
+	require.NotEmpty(t, encodedCombos)
+	require.NotEmpty(t, encodedSeq)
 }

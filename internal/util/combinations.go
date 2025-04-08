@@ -63,11 +63,11 @@ func Combinations(m M, n int) (combinations, error) {
 
 // Encoding functions
 
-func (v combination) Encode() []byte {
+func (s sequence) Encode() []byte {
 	var buffer bytes.Buffer
-	for i, value := range v {
-		buffer.WriteByte(uint8(i)) // Write index as a uint8
-		buffer.Write(value)        // Write encoded value
+	for i, combinations := range s {
+		buffer.WriteByte(uint8(i))          // Write index as a uint8
+		buffer.Write(combinations.Encode()) // Write encoded combinations
 	}
 	return buffer.Bytes()
 }
@@ -81,11 +81,11 @@ func (c combinations) Encode() []byte {
 	return buffer.Bytes()
 }
 
-func (s sequence) Encode() []byte {
+func (v combination) Encode() []byte {
 	var buffer bytes.Buffer
-	for i, combinations := range s {
-		buffer.WriteByte(uint8(i))          // Write index as a uint8
-		buffer.Write(combinations.Encode()) // Write encoded combinations
+	for i, value := range v {
+		buffer.WriteByte(uint8(i)) // Write index as a uint8
+		buffer.Write(value)        // Write encoded value
 	}
 	return buffer.Bytes()
 }
