@@ -24,7 +24,7 @@ type KeyPool struct {
 	size              int
 	maxKeys           int64
 	maxTime           time.Duration
-	permissionChannel chan any
+	permissionChannel chan struct{}
 	keyChannel        chan Key
 	waitForWorkers    sync.WaitGroup
 	generateFunction  func() (Key, error)
@@ -50,7 +50,7 @@ func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 		size:              size,
 		maxKeys:           maxKeys,
 		maxTime:           maxTime,
-		permissionChannel: make(chan any, size),
+		permissionChannel: make(chan struct{}, size),
 		keyChannel:        make(chan Key, size),
 		generateFunction:  generateFunction,
 		cancelFunction:    cancelFunction,
@@ -92,7 +92,7 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 		case <-pool.ctx.Done():
 			pool.telemetryService.Slogger.Debug("cancelled before", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
-		case pool.permissionChannel <- 1: // acquire permission to generate
+		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
 			pool.telemetryService.Slogger.Debug("permitted", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		}
 		reachedLimit, generateCounter := pool.checkPoolLimits(true)
@@ -166,5 +166,9 @@ func (pool *KeyPool) Close() {
 	if pool.keyChannel != nil {
 		close(pool.keyChannel)
 		pool.keyChannel = nil
+	}
+	if pool.permissionChannel != nil {
+		close(pool.permissionChannel)
+		pool.permissionChannel = nil
 	}
 }
