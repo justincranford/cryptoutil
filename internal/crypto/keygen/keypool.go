@@ -28,6 +28,7 @@ type KeyPool struct {
 	keyChannel        chan Key
 	waitForWorkers    sync.WaitGroup
 	generateFunction  func() (Key, error)
+	closeOnce         sync.Once
 	cancelFunction    context.CancelFunc
 	generateCounter   int64
 	getCounter        int64
@@ -56,7 +57,7 @@ func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 		cancelFunction:    cancelFunction,
 	}
 	if pool.maxKeys > 0 || pool.maxTime > 0 {
-		go pool.monitorShutdownWorker()
+		go pool.monitorShutdown()
 	}
 	for i := 0; i < pool.numWorkers; i++ {
 		pool.waitForWorkers.Add(1)
@@ -65,7 +66,7 @@ func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 	return pool, nil
 }
 
-func (pool *KeyPool) monitorShutdownWorker() {
+func (pool *KeyPool) monitorShutdown() {
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
@@ -74,7 +75,7 @@ func (pool *KeyPool) monitorShutdownWorker() {
 			pool.telemetryService.Slogger.Debug("cancelled", "pool", pool.name)
 			return
 		case <-ticker.C:
-			reachedLimit, _ := pool.checkPoolLimits(false)
+			reachedLimit := (pool.maxTime > 0 && time.Since(pool.startTime) >= pool.maxTime) || (pool.maxKeys > 0 && atomic.LoadInt64(&pool.generateCounter) > pool.maxKeys)
 			if reachedLimit {
 				pool.telemetryService.Slogger.Warn("limit reached", "pool", pool.name)
 				return
@@ -95,8 +96,8 @@ func (pool *KeyPool) generateWorker(workerNum int) {
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
 			pool.telemetryService.Slogger.Debug("permitted", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		}
-		reachedLimit, generateCounter := pool.checkPoolLimits(true)
-		if reachedLimit {
+		generateCounter := atomic.AddInt64(&pool.generateCounter, 1)
+		if (pool.maxKeys > 0 && generateCounter > pool.maxKeys) || (pool.maxTime > 0 && time.Since(pool.startTime) >= pool.maxTime) {
 			pool.telemetryService.Slogger.Debug("release", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			<-pool.permissionChannel // release permission to generate
 			pool.telemetryService.Slogger.Warn("limit", "pool", pool.name, "worker", workerNum, "duration", time.Since(startTime).Seconds())
@@ -133,17 +134,6 @@ func (pool *KeyPool) Get() Key {
 		pool.telemetryService.Slogger.Debug("got", "pool", pool.name, "get", getCounter, "duration", time.Since(startTime).Seconds())
 	}()
 	return key
-}
-
-func (pool *KeyPool) checkPoolLimits(incrementGenerateCounter bool) (bool, int64) {
-	var generateCounter int64
-	if incrementGenerateCounter {
-		generateCounter = atomic.AddInt64(&pool.generateCounter, 1)
-	} else {
-		generateCounter = atomic.LoadInt64(&pool.generateCounter)
-	}
-	isDone := (pool.maxKeys > 0 && generateCounter > pool.maxKeys) || (pool.maxTime > 0 && time.Since(pool.startTime) >= pool.maxTime)
-	return isDone, pool.generateCounter
 }
 
 func (pool *KeyPool) Close() {
