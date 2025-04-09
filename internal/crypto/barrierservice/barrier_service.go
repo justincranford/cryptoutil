@@ -18,8 +18,13 @@ import (
 )
 
 var (
-	rootJwk, _, _ = cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	rootJwkSet = joseJwk.NewSet()
 )
+
+func init() {
+	rootJwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	rootJwkSet.AddKey(rootJwk)
+}
 
 type BarrierService struct {
 	telemetryService          *cryptoutilTelemetry.Service
@@ -40,7 +45,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}
 
-	rootKeyRepository, err1 := newRootKeyRepository(rootJwk, telemetryService)
+	rootKeyRepository, err1 := newRootKeyRepository(rootJwkSet, telemetryService)
 	intermediateKeyRepository, err2 := newIntermediateKeyRepository(rootKeyRepository, 2, ormRepository, telemetryService, aes256Pool)
 	contentKeyRepository, err3 := newContentKeyRepository(intermediateKeyRepository, 10, ormRepository, telemetryService)
 	if err1 != nil || err2 != nil || err3 != nil {
@@ -183,7 +188,11 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 	return jwk, nil
 }
 
-func newRootKeyRepository(rootJwk joseJwk.Key, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
+func newRootKeyRepository(rootJwkSet joseJwk.Set, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
+	rootJwk, ok := rootJwkSet.Key(0)
+	if !ok {
+		return nil, fmt.Errorf("no root Keys")
+	}
 	loadLatestRootKey := func() (joseJwk.Key, error) {
 		return rootJwk, nil
 	}
