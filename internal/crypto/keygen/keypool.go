@@ -25,9 +25,9 @@ type KeyPool struct {
 	poolSize              uint32
 	maxLifetimeKeys       uint64
 	maxLifetimeDuration   time.Duration
-	permissionChannel     chan struct{} // N generateWorker threads block wait before generating Key, because Key generation (e.g. RSA-4096) can be CPU & Memory expensive
-	keyChannel            chan Key      // N generateWorker threads publish generated Keys to this channel
-	waitForWorkers        sync.WaitGroup
+	permissionChannel     chan struct{}  // N generateWorker threads block wait before generating Key, because Key generation (e.g. RSA-4096) can be CPU & Memory expensive
+	keyChannel            chan Key       // N generateWorker threads publish generated Keys to this channel
+	waitForWorkers        sync.WaitGroup // Close() uses this to wait for N generateWorker threads to finish before closing keyChannel and permissionChannel
 	generateFunction      func() (Key, error)
 	closeOnce             sync.Once
 	generateCounter       uint64
