@@ -9,6 +9,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"errors"
 	"fmt"
+	"log"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -17,14 +18,15 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-var (
-	rootJwkSet = joseJwk.NewSet()
-)
-
-func init() {
+var rootJwkSet = func() joseJwk.Set {
+	set := joseJwk.NewSet()
 	rootJwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
-	rootJwkSet.AddKey(rootJwk)
-}
+	err := set.AddKey(rootJwk)
+	if err != nil {
+		log.Fatalf("failed to create root JWK: %v", err)
+	}
+	return set
+}()
 
 type BarrierService struct {
 	telemetryService          *cryptoutilTelemetry.Service
