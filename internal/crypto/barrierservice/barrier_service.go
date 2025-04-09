@@ -9,7 +9,6 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"errors"
 	"fmt"
-	"log"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -17,16 +16,6 @@ import (
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
-
-var rootJwkSet = func() joseJwk.Set {
-	set := joseJwk.NewSet()
-	rootJwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
-	err := set.AddKey(rootJwk)
-	if err != nil {
-		log.Fatalf("failed to create root JWK: %v", err)
-	}
-	return set
-}()
 
 type BarrierService struct {
 	telemetryService          *cryptoutilTelemetry.Service
@@ -38,6 +27,11 @@ type BarrierService struct {
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
+	rootJwkSet, rootJwkSetErr := UnsealJwkSet()
+	if rootJwkSetErr != nil {
+		return nil, fmt.Errorf("failed to get root JWKSet: %w", rootJwkSetErr)
+	}
+
 	keyPoolConfig, err := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Crypto Service AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
