@@ -79,7 +79,10 @@ func TestMain(m *testing.M) {
 func TestPoolRSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(256))
+			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(256))
+			require.NoError(t, err)
+			require.NotNil(t, config)
+			pool, err := NewKeyPool(config)
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -96,7 +99,10 @@ func TestPoolRSA(t *testing.T) {
 func TestPoolEcDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
+			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
+			require.NoError(t, err)
+			require.NotNil(t, config)
+			pool, err := NewKeyPool(config)
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -113,7 +119,10 @@ func TestPoolEcDSA(t *testing.T) {
 func TestPoolEcDH(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
+			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
+			require.NoError(t, err)
+			require.NotNil(t, config)
+			pool, err := NewKeyPool(config)
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -130,7 +139,10 @@ func TestPoolEcDH(t *testing.T) {
 func TestPoolEdDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
+			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
+			require.NoError(t, err)
+			require.NotNil(t, config)
+			pool, err := NewKeyPool(config)
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -147,7 +159,10 @@ func TestPoolEdDSA(t *testing.T) {
 func TestPoolAES(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESKeyFunction(128))
+			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESKeyFunction(128))
+			require.NoError(t, err)
+			require.NotNil(t, config)
+			pool, err := NewKeyPool(config)
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -164,7 +179,10 @@ func TestPoolAES(t *testing.T) {
 func TestPoolHMAC(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateHMACKeyFunction(256))
+			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateHMACKeyFunction(256))
+			require.NoError(t, err)
+			require.NotNil(t, config)
+			pool, err := NewKeyPool(config)
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()
@@ -181,7 +199,10 @@ func TestPoolHMAC(t *testing.T) {
 func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			pool, err := NewKeyPool(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateUUIDv7Function())
+			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateUUIDv7Function())
+			require.NoError(t, err)
+			require.NotNil(t, config)
+			pool, err := NewKeyPool(config)
 			require.NoError(t, err)
 			require.NotNil(t, pool)
 			defer pool.Close()

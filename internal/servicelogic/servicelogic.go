@@ -24,10 +24,18 @@ type KeyPoolService struct {
 }
 
 func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*KeyPoolService, error) {
-	aes256Pool, err1 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	aes192Pool, err2 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
-	aes128Pool, err3 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
-	uuidV7Pool, err4 := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	aes256PoolConfig, err1 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	aes192PoolConfig, err2 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
+	aes128PoolConfig, err3 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
+	uuidV7PoolConfig, err4 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4))
+	}
+
+	aes256Pool, err1 := cryptoutilKeygen.NewKeyPool(aes256PoolConfig)
+	aes192Pool, err2 := cryptoutilKeygen.NewKeyPool(aes192PoolConfig)
+	aes128Pool, err3 := cryptoutilKeygen.NewKeyPool(aes128PoolConfig)
+	uuidV7Pool, err4 := cryptoutilKeygen.NewKeyPool(uuidV7PoolConfig)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4))
 	}

@@ -31,7 +31,11 @@ type BarrierService struct {
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
-	aes256Pool, err := cryptoutilKeygen.NewKeyPool(ctx, telemetryService, "Crypto Service AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	keyPoolConfig, err := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Crypto Service AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
+	}
+	aes256Pool, err := cryptoutilKeygen.NewKeyPool(keyPoolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}

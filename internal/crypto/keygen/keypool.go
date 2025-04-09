@@ -15,69 +15,94 @@ const (
 	MaxLifetimeDuration = time.Duration(1<<63 - 1)
 )
 
+type KeyPoolConfig struct {
+	ctx                 context.Context
+	telemetryService    *cryptoutilTelemetry.Service // Observability providers (i.e. logs, metrics, traces); supports publishing to STDOUT and/or OLTP+gRPC (e.g. OpenTelemetry sidecar container http://127.0.0.1:4317/)
+	poolName            string
+	numWorkers          uint32
+	poolSize            uint32
+	maxLifetimeKeys     uint64
+	maxLifetimeDuration time.Duration
+	generateFunction    func() (Key, error)
+}
+
 type KeyPool struct {
 	poolStartTime         time.Time
+	cfg                   *KeyPoolConfig
 	ctx                   context.Context // Close() uses this to send Done() signal to N generateWorker threads and 1 monitorShutdown thread
 	cancelWorkersFunction context.CancelFunc
-	telemetryService      *cryptoutilTelemetry.Service // Observability providers (i.e. logs, metrics, traces); supports publishing to STDOUT and/or OLTP+gRPC (e.g. OpenTelemetry sidecar container http://127.0.0.1:4317/)
-	poolName              string
-	numWorkers            uint32
-	poolSize              uint32
-	maxLifetimeKeys       uint64
-	maxLifetimeDuration   time.Duration
 	permissionChannel     chan struct{}  // N generateWorker threads block wait before generating Key, because Key generation (e.g. RSA-4096) can be CPU & Memory expensive
 	keyChannel            chan Key       // N generateWorker threads publish generated Keys to this channel
 	waitForWorkers        sync.WaitGroup // Close() uses this to wait for N generateWorker threads to finish before closing keyChannel and permissionChannel
-	generateFunction      func() (Key, error)
 	closeOnce             sync.Once
 	generateCounter       uint64
 	getCounter            uint64
 }
 
 // NewKeyPool supports finite or indefinite pools
-func NewKeyPool(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyPool, error) {
+func NewKeyPool(config *KeyPoolConfig) (*KeyPool, error) {
 	poolStartTime := time.Now() // used by N generateWorker threads and 1 monitorShutdown thread to enforce maxLifetimeDuration
-	if ctx == nil {
-		return nil, fmt.Errorf("Context can't be nil")
-	} else if telemetryService == nil {
-		return nil, fmt.Errorf("Telemetry service can't be nil")
-	} else if len(poolName) == 0 {
-		return nil, fmt.Errorf("Name can't be empty")
-	} else if numWorkers == 0 {
-		return nil, fmt.Errorf("Number of workers can't be 0")
-	} else if poolSize == 0 {
-		return nil, fmt.Errorf("Pool size can't be 0")
-	} else if maxLifetimeKeys == 0 {
-		return nil, fmt.Errorf("Max lifetime keys can't be 0")
-	} else if maxLifetimeDuration <= 0 {
-		return nil, fmt.Errorf("Max lifetime duration must be positive and non-zero")
-	} else if numWorkers > poolSize {
-		return nil, fmt.Errorf("Number of workers can't be greater than pool size")
-	} else if uint64(poolSize) > maxLifetimeKeys {
-		return nil, fmt.Errorf("Pool size can't be greater than max lifetime keys")
+	if err := validateConfig(config); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
-	wrappedCtx, cancelFunction := context.WithCancel(ctx)
+	wrappedCtx, cancelFunction := context.WithCancel(config.ctx)
 	pool := &KeyPool{
 		poolStartTime:         poolStartTime,
+		cfg:                   config,
 		ctx:                   wrappedCtx,
-		telemetryService:      telemetryService,
-		poolName:              poolName,
-		numWorkers:            numWorkers,
-		poolSize:              poolSize,
-		maxLifetimeKeys:       maxLifetimeKeys,
-		maxLifetimeDuration:   maxLifetimeDuration,
-		permissionChannel:     make(chan struct{}, poolSize),
-		keyChannel:            make(chan Key, poolSize),
-		generateFunction:      generateFunction,
 		cancelWorkersFunction: cancelFunction,
+		permissionChannel:     make(chan struct{}, config.poolSize),
+		keyChannel:            make(chan Key, config.poolSize),
 	}
 	go pool.monitorShutdown()
-	for i := uint32(0); i < pool.numWorkers; i++ {
+	for i := uint32(0); i < pool.cfg.numWorkers; i++ {
 		pool.waitForWorkers.Add(1)
 		go pool.generateWorker(i + 1)
 	}
 	return pool, nil
+}
+
+func NewKeyPoolConfig(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyPoolConfig, error) {
+	config := &KeyPoolConfig{
+		ctx:                 ctx,
+		telemetryService:    telemetryService,
+		poolName:            poolName,
+		numWorkers:          numWorkers,
+		poolSize:            poolSize,
+		maxLifetimeKeys:     maxLifetimeKeys,
+		maxLifetimeDuration: maxLifetimeDuration,
+		generateFunction:    generateFunction,
+	}
+	if err := validateConfig(config); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
+	}
+	return config, nil
+}
+
+func validateConfig(config *KeyPoolConfig) error {
+	if config.ctx == nil {
+		return fmt.Errorf("Context can't be nil")
+	} else if config.telemetryService == nil {
+		return fmt.Errorf("Telemetry service can't be nil")
+	} else if len(config.poolName) == 0 {
+		return fmt.Errorf("Name can't be empty")
+	} else if config.numWorkers == 0 {
+		return fmt.Errorf("Number of workers can't be 0")
+	} else if config.poolSize == 0 {
+		return fmt.Errorf("Pool size can't be 0")
+	} else if config.maxLifetimeKeys == 0 {
+		return fmt.Errorf("Max lifetime keys can't be 0")
+	} else if config.maxLifetimeDuration <= 0 {
+		return fmt.Errorf("Max lifetime duration must be positive and non-zero")
+	} else if config.numWorkers > config.poolSize {
+		return fmt.Errorf("Number of workers can't be greater than pool size")
+	} else if uint64(config.poolSize) > config.maxLifetimeKeys {
+		return fmt.Errorf("Pool size can't be greater than max lifetime keys")
+	} else if config.generateFunction == nil {
+		return fmt.Errorf("Generate function can't be nil")
+	}
+	return nil
 }
 
 func (pool *KeyPool) monitorShutdown() {
@@ -86,12 +111,12 @@ func (pool *KeyPool) monitorShutdown() {
 	for {
 		select {
 		case <-pool.ctx.Done(): // someone else called Close()
-			pool.telemetryService.Slogger.Debug("cancelled", "pool", pool.poolName)
+			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName)
 			return
 		case <-ticker.C:
-			reachedLimit := (pool.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.maxLifetimeDuration) || (pool.maxLifetimeKeys > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.maxLifetimeKeys)
+			reachedLimit := (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration) || (pool.cfg.maxLifetimeKeys > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.cfg.maxLifetimeKeys)
 			if reachedLimit {
-				pool.telemetryService.Slogger.Warn("limit reached", "pool", pool.poolName)
+				pool.cfg.telemetryService.Slogger.Warn("limit reached", "pool", pool.cfg.poolName)
 				pool.Close()
 				return
 			}
@@ -103,17 +128,17 @@ func (pool *KeyPool) generateWorker(workerNum uint32) {
 	startTime := time.Now()
 	defer func() {
 		if r := recover(); r != nil {
-			pool.telemetryService.Slogger.Error("Worker panic recovered", "pool", pool.poolName, "worker", workerNum, "panic", r)
+			pool.cfg.telemetryService.Slogger.Error("Worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", r)
 		}
 		pool.waitForWorkers.Done()
-		pool.telemetryService.Slogger.Debug("Worker done", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Debug("Worker done", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}()
-	pool.telemetryService.Slogger.Debug("Worker started", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	pool.cfg.telemetryService.Slogger.Debug("Worker started", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	for {
-		pool.telemetryService.Slogger.Debug("check", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Debug("check", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		select {
 		case <-pool.ctx.Done(): // someone called Close()
-			pool.telemetryService.Slogger.Debug("Worker canceled", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			pool.cfg.telemetryService.Slogger.Debug("Worker canceled", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
 			pool.generateKeyAndReleasePermission(workerNum, startTime) // Use method with defer to guarantee permission release even if there is an error or panic
@@ -124,42 +149,42 @@ func (pool *KeyPool) generateWorker(workerNum uint32) {
 func (pool *KeyPool) generateKeyAndReleasePermission(workerNum uint32, startTime time.Time) {
 	defer func() {
 		if r := recover(); r != nil {
-			pool.telemetryService.Slogger.Error("Recovered from panic", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", r)
+			pool.cfg.telemetryService.Slogger.Error("Recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", r)
 		}
 		<-pool.permissionChannel
-		pool.telemetryService.Slogger.Debug("Released permission", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Debug("Released permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}()
-	pool.telemetryService.Slogger.Debug("Permission granted", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	pool.cfg.telemetryService.Slogger.Debug("Permission granted", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 
 	generateCounter := atomic.AddUint64(&pool.generateCounter, 1)
-	if (pool.maxLifetimeKeys > 0 && generateCounter > pool.maxLifetimeKeys) || (pool.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.maxLifetimeDuration) {
-		pool.telemetryService.Slogger.Warn("Limit reached", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	if (pool.cfg.maxLifetimeKeys > 0 && generateCounter > pool.cfg.maxLifetimeKeys) || (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration) {
+		pool.cfg.telemetryService.Slogger.Warn("Limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		return
 	}
 
-	key, err := pool.generateFunction()
+	key, err := pool.cfg.generateFunction()
 	if err != nil {
-		pool.telemetryService.Slogger.Error("Key generation failed", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
+		pool.cfg.telemetryService.Slogger.Error("Key generation failed", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
 		return
 	}
-	pool.telemetryService.Slogger.Debug("Generated", "pool", pool.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+	pool.cfg.telemetryService.Slogger.Debug("Generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 
 	select {
 	case <-pool.ctx.Done(): // someone called Close()
-		pool.telemetryService.Slogger.Debug("Context canceled during publish", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Debug("Context canceled during publish", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	case pool.keyChannel <- key:
-		pool.telemetryService.Slogger.Debug("Key added to channel", "pool", pool.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Debug("Key added to channel", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}
 }
 
 func (pool *KeyPool) Get() Key {
 	startTime := time.Now()
-	pool.telemetryService.Slogger.Debug("getting", "pool", pool.poolName, "duration", time.Since(startTime).Seconds())
+	pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	key := <-pool.keyChannel
-	pool.telemetryService.Slogger.Debug("received", "pool", pool.poolName, "duration", time.Since(startTime).Seconds())
+	pool.cfg.telemetryService.Slogger.Debug("received", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	getCounter := atomic.AddUint64(&pool.getCounter, 1)
 	defer func() {
-		pool.telemetryService.Slogger.Debug("got", "pool", pool.poolName, "get", getCounter, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Debug("got", "pool", pool.cfg.poolName, "get", getCounter, "duration", time.Since(startTime).Seconds())
 	}()
 	return key
 }
@@ -170,11 +195,11 @@ func (pool *KeyPool) Close() {
 
 		if pool.cancelWorkersFunction == nil {
 			defer func() {
-				pool.telemetryService.Slogger.Warn("already closed", "pool", pool.poolName, "duration", time.Since(startTime).Seconds())
+				pool.cfg.telemetryService.Slogger.Warn("already closed", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 			}()
 		} else {
 			defer func() {
-				pool.telemetryService.Slogger.Info("close ok", "pool", pool.poolName, "duration", time.Since(startTime).Seconds())
+				pool.cfg.telemetryService.Slogger.Info("close ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 			}()
 			pool.cancelWorkersFunction() // send Done() signal to N generateWorker threads and 1 monitorShutdown thread (if they are still listening to the shared context.WithCancel)
 			pool.cancelWorkersFunction = nil
