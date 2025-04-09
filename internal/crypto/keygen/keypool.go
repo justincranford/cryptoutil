@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	MaxLifetimeKeys     = uint64(18446744073709551615)
-	MaxLifetimeDuration = time.Duration(1<<63 - 1)
+	MaxLifetimeKeys     = ^uint64(0)                            // Max uint64 (= 2^64-1 = 18,446,744,073,709,551,615)
+	MaxLifetimeDuration = time.Duration(int64(^uint64(0) >> 1)) // Max int64  (= 2^63-1 =  9,223,372,036,854,775,807 nanoseconds = 292.47 years)
 )
 
 type KeyPoolConfig struct {
@@ -29,11 +29,11 @@ type KeyPoolConfig struct {
 type KeyPool struct {
 	poolStartTime         time.Time
 	cfg                   *KeyPoolConfig
-	ctx                   context.Context // Close() uses this to send Done() signal to N generateWorker threads and 1 monitorShutdown thread
-	cancelWorkersFunction context.CancelFunc
-	permissionChannel     chan struct{}  // N generateWorker threads block wait before generating Key, because Key generation (e.g. RSA-4096) can be CPU & Memory expensive
-	keyChannel            chan Key       // N generateWorker threads publish generated Keys to this channel
-	waitForWorkers        sync.WaitGroup // Close() uses this to wait for N generateWorker threads to finish before closing keyChannel and permissionChannel
+	wrappedCtx            context.Context    // Close() calls cancelWorkersFunction which makes Done() signal available to all of the N generateWorker threads and 1 monitorShutdown thread
+	cancelWorkersFunction context.CancelFunc // This is the associated cancel function for wrappedCtx; the cancel function is called by Close()
+	permissionChannel     chan struct{}      // N generateWorker threads block wait before generating Key, because Key generation (e.g. RSA-4096) can be CPU & Memory expensive
+	keyChannel            chan Key           // N generateWorker threads publish generated Keys to this channel
+	waitForWorkers        sync.WaitGroup     // Close() uses this to wait for N generateWorker threads to finish before closing keyChannel and permissionChannel
 	closeOnce             sync.Once
 	generateCounter       uint64
 	getCounter            uint64
@@ -41,7 +41,7 @@ type KeyPool struct {
 
 // NewKeyPool supports finite or indefinite pools
 func NewKeyPool(config *KeyPoolConfig) (*KeyPool, error) {
-	poolStartTime := time.Now() // used by N generateWorker threads and 1 monitorShutdown thread to enforce maxLifetimeDuration
+	poolStartTime := time.Now() // used to enforce maxLifetimeDuration in N generateWorker threads and 1 monitorShutdown thread
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
@@ -50,7 +50,7 @@ func NewKeyPool(config *KeyPoolConfig) (*KeyPool, error) {
 	pool := &KeyPool{
 		poolStartTime:         poolStartTime,
 		cfg:                   config,
-		ctx:                   wrappedCtx,
+		wrappedCtx:            wrappedCtx,
 		cancelWorkersFunction: cancelFunction,
 		permissionChannel:     make(chan struct{}, config.poolSize),
 		keyChannel:            make(chan Key, config.poolSize),
@@ -110,7 +110,7 @@ func (pool *KeyPool) monitorShutdown() {
 	defer ticker.Stop()
 	for {
 		select {
-		case <-pool.ctx.Done(): // someone else called Close()
+		case <-pool.wrappedCtx.Done(): // someone else called Close()
 			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName)
 			return
 		case <-ticker.C:
@@ -137,7 +137,7 @@ func (pool *KeyPool) generateWorker(workerNum uint32) {
 	for {
 		pool.cfg.telemetryService.Slogger.Debug("check", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		select {
-		case <-pool.ctx.Done(): // someone called Close()
+		case <-pool.wrappedCtx.Done(): // someone called Close()
 			pool.cfg.telemetryService.Slogger.Debug("Worker canceled", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
@@ -170,7 +170,7 @@ func (pool *KeyPool) generateKeyAndReleasePermission(workerNum uint32, startTime
 	pool.cfg.telemetryService.Slogger.Debug("Generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 
 	select {
-	case <-pool.ctx.Done(): // someone called Close()
+	case <-pool.wrappedCtx.Done(): // someone called Close()
 		pool.cfg.telemetryService.Slogger.Debug("Context canceled during publish", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	case pool.keyChannel <- key:
 		pool.cfg.telemetryService.Slogger.Debug("Key added to channel", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
