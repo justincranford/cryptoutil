@@ -19,6 +19,8 @@ func TestRuntimeNumCPU(t *testing.T) {
 
 	// Validate cached == uncached
 	require.Equal(t, uncached, cached, "Mismatch between uncached and cached CPU count")
+
+	t.Logf("cached RuntimeNumCPU: %d", cached)
 }
 
 func TestGoArch(t *testing.T) {
@@ -37,6 +39,8 @@ func TestGoArch(t *testing.T) {
 	// Validate cached == uncached
 	require.Equal(t, *uncached, *cached, "Mismatch between uncached and cached architecture")
 	require.Equal(t, uncached, cached, "Mismatch between uncached and cached architecture")
+
+	t.Logf("cached GoArch: %s", *cached)
 }
 
 func TestGoOS(t *testing.T) {
@@ -54,6 +58,8 @@ func TestGoOS(t *testing.T) {
 	// Validate cached == uncached
 	require.Equal(t, *uncached, *cached, "Mismatch between uncached and cached OS")
 	require.Equal(t, uncached, cached, "Mismatch between uncached and cached OS")
+
+	t.Logf("cached GoOS: %s", *cached)
 }
 
 func TestCPUInfo(t *testing.T) {
@@ -75,6 +81,8 @@ func TestCPUInfo(t *testing.T) {
 	require.Equal(t, uncachedErr, cachedErr, "Mismatch between uncached and cached errors")
 	require.Equal(t, *uncached, *cached, "Mismatch between uncached and cached CPU info")
 	require.Equal(t, uncached, cached, "Mismatch between uncached and cached CPU info")
+
+	t.Logf("cached CPUInfo: %s", *cached)
 }
 
 func TestRAMSize(t *testing.T) {
@@ -93,6 +101,8 @@ func TestRAMSize(t *testing.T) {
 	// Validate cached == uncached
 	require.Equal(t, uncachedErr, cachedErr, "Mismatch between uncached and cached errors")
 	require.Equal(t, uncached, cached, "Mismatch between uncached and cached RAM size")
+
+	t.Logf("cached RAMSize: %d", cached)
 }
 
 func TestDiskSize(t *testing.T) {
@@ -114,6 +124,8 @@ func TestDiskSize(t *testing.T) {
 	require.Equal(t, uncachedErr, cachedErr, "Mismatch between uncached and cached errors")
 	require.Equal(t, *uncached, *cached, "Mismatch between uncached and cached disk size")
 	require.Equal(t, uncached, cached, "Mismatch between uncached and cached disk size")
+
+	t.Logf("cached DiskSize: %s", *cached)
 }
 
 func TestOSHostname(t *testing.T) {
@@ -134,6 +146,8 @@ func TestOSHostname(t *testing.T) {
 	// Validate cached == uncached
 	require.Equal(t, *uncached, *cached, "Mismatch between uncached and cached hostname")
 	require.Equal(t, uncached, cached, "Mismatch between uncached and cached hostname")
+
+	t.Logf("cached OSHostname: %s", *cached)
 }
 
 func TestHostInfo(t *testing.T) {
@@ -199,6 +213,10 @@ func TestHostInfo(t *testing.T) {
 	require.Equal(t, *uncachedVirtualizationSystem, *cachedVirtualizationSystem, "Mismatch between uncached and cached virtualization system")
 	require.Equal(t, *uncachedVirtualizationRole, *cachedVirtualizationRole, "Mismatch between uncached and cached virtualization role")
 	require.Equal(t, *uncachedHostID, *cachedHostID, "Mismatch between uncached and cached host ID")
+
+	t.Logf("cached HostInfo:\n"+
+		"Hostname: %s\nOS: %s\nPlatform: %s\nPlatformFamily: %s\nPlatformVersion: %s\nKernelVersion: %s\nKernelArch: %s\nVirtualizationSystem: %s\nVirtualizationRole: %s\nHostID: %s",
+		*cachedHostname, *cachedOS, *cachedPlatform, *cachedPlatformFamily, *cachedPlatformVersion, *cachedKernelVersion, *cachedKernelArch, orNil(cachedVirtualizationSystem), orNil(cachedVirtualizationRole), *cachedHostID)
 }
 
 func TestUserStat(t *testing.T) {
@@ -239,4 +257,13 @@ func TestUserStat(t *testing.T) {
 	require.Equal(t, *uncachedUid, *cachedUid, "Mismatch between uncached and cached UID")
 	require.Equal(t, *uncachedGid, *cachedGid, "Mismatch between uncached and cached GID")
 	require.Equal(t, *uncachedHomeDir, *cachedHomeDir, "Mismatch between uncached and cached home directory")
+
+	t.Logf("cached UserStat:\nUsername: %s\nName: %s\nUID: %s\nGID: %s\nHomeDir: %s", *cachedUsername, *cachedName, *cachedUid, *cachedGid, *cachedHomeDir)
+}
+
+func orNil(s *string) string {
+	if s == nil {
+		return "<nil>"
+	}
+	return *s
 }
