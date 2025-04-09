@@ -56,9 +56,12 @@ func NewKeyPool(config *KeyPoolConfig) (*KeyPool, error) {
 		keyChannel:            make(chan Key, config.poolSize),
 	}
 	go pool.monitorShutdown()
-	for i := uint32(0); i < pool.cfg.numWorkers; i++ {
+	for workerNum := uint32(1); workerNum <= pool.cfg.numWorkers; workerNum++ {
 		pool.waitForWorkers.Add(1)
-		go pool.generateWorker(i + 1)
+		go func() {
+			defer pool.waitForWorkers.Done()
+			pool.generateWorker(workerNum)
+		}()
 	}
 	return pool, nil
 }
@@ -130,7 +133,6 @@ func (pool *KeyPool) generateWorker(workerNum uint32) {
 		if r := recover(); r != nil {
 			pool.cfg.telemetryService.Slogger.Error("Worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", r)
 		}
-		pool.waitForWorkers.Done()
 		pool.cfg.telemetryService.Slogger.Debug("Worker done", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}()
 	pool.cfg.telemetryService.Slogger.Debug("Worker started", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
