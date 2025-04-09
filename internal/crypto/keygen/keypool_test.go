@@ -23,21 +23,21 @@ import (
 
 type TestCase struct {
 	name                string
-	workers             int
-	size                int
-	maxLifetimeKeys     int64
+	workers             uint32
+	size                uint32
+	maxLifetimeKeys     uint64
 	maxLifetimeDuration time.Duration
-	gets                int
+	gets                uint64
 }
 
 var (
 	testCtx                      = context.Background()
 	testTelemetryService         *cryptoutilTelemetry.Service
-	happyPathWorkers             = []int{1, 2}
-	happyPathSize                = []int{1, 3}
-	happyPathMaxLifetimeKeys     = []int64{1, 3, MaxLifetimeKeys}
+	happyPathWorkers             = []uint32{1, 2}
+	happyPathSize                = []uint32{1, 3}
+	happyPathMaxLifetimeKeys     = []uint64{1, 3, MaxLifetimeKeys}
 	happyPathMaxLifetimeDuration = []time.Duration{MaxLifetimeDuration}
-	happyPathGets                = []int{0, 1, 3, 4}
+	happyPathGets                = []uint64{0, 1, 3, 4}
 	happyPathTestCases           = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
 		for _, workers := range happyPathWorkers {
@@ -46,12 +46,12 @@ var (
 					continue
 				}
 				for _, maxLifetimeKeys := range happyPathMaxLifetimeKeys {
-					if int64(size) > maxLifetimeKeys {
+					if uint64(size) > maxLifetimeKeys {
 						continue
 					}
 					for _, maxLifetimeDuration := range happyPathMaxLifetimeDuration {
 						for _, gets := range happyPathGets {
-							if int64(gets) > maxLifetimeKeys {
+							if gets > maxLifetimeKeys {
 								continue
 							}
 							name := fmt.Sprintf("workers[%d] size[%d] maxLifetimeKeys[%d] maxLifetimeDuration[%v] gets[%d]", workers, size, maxLifetimeKeys, time.Duration(maxLifetimeDuration), gets)
@@ -84,7 +84,7 @@ func TestPoolRSA(t *testing.T) {
 			require.NotNil(t, pool)
 			defer pool.Close()
 
-			for i := 0; i < tc.gets; i++ {
+			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := pool.Get()
 				assert.IsType(t, &rsa.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, &rsa.PublicKey{}, keyPair.Public)
@@ -101,7 +101,7 @@ func TestPoolEcDSA(t *testing.T) {
 			require.NotNil(t, pool)
 			defer pool.Close()
 
-			for i := 0; i < tc.gets; i++ {
+			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := pool.Get()
 				assert.IsType(t, &ecdsa.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, &ecdsa.PublicKey{}, keyPair.Public)
@@ -118,7 +118,7 @@ func TestPoolEcDH(t *testing.T) {
 			require.NotNil(t, pool)
 			defer pool.Close()
 
-			for i := 0; i < tc.gets; i++ {
+			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := pool.Get()
 				assert.IsType(t, &ecdh.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, &ecdh.PublicKey{}, keyPair.Public)
@@ -135,7 +135,7 @@ func TestPoolEdDSA(t *testing.T) {
 			require.NotNil(t, pool)
 			defer pool.Close()
 
-			for i := 0; i < tc.gets; i++ {
+			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := pool.Get()
 				assert.IsType(t, ed25519.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, ed25519.PublicKey{}, keyPair.Public)
@@ -152,7 +152,7 @@ func TestPoolAES(t *testing.T) {
 			require.NotNil(t, pool)
 			defer pool.Close()
 
-			for i := 0; i < tc.gets; i++ {
+			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := pool.Get()
 				assert.IsType(t, []byte{}, keyPair.Private)
 				assert.Nil(t, keyPair.Public)
@@ -169,7 +169,7 @@ func TestPoolHMAC(t *testing.T) {
 			require.NotNil(t, pool)
 			defer pool.Close()
 
-			for i := 0; i < tc.gets; i++ {
+			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := pool.Get()
 				assert.IsType(t, []byte{}, keyPair.Private)
 				assert.Nil(t, keyPair.Public)
@@ -186,7 +186,7 @@ func TestPoolUUIDv7(t *testing.T) {
 			require.NotNil(t, pool)
 			defer pool.Close()
 
-			for i := 0; i < tc.gets; i++ {
+			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := pool.Get()
 				assert.IsType(t, googleUuid.UUID{}, keyPair.Private)
 				assert.Nil(t, keyPair.Public)
