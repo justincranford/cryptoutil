@@ -17,7 +17,14 @@ func UnsealJwkSet() (joseJwk.Set, error) {
 	}
 
 	sysinfosBytes := cryptoutilUtil.ConcatBytes(sysinfos)
-	derivedKeyBytes := cryptoutilDigests.SHA256(sysinfosBytes)
+
+	derivedSecretBytes := cryptoutilDigests.SHA512(sysinfosBytes)
+	derivedSaltBytes := cryptoutilDigests.SHA384(sysinfosBytes)
+	derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretBytes, derivedSaltBytes, []byte("unseal v1"), 32)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create JWK: %w", err)
+	}
+
 	rootJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgA256GCMKW, derivedKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JWK: %w", err)
