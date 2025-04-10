@@ -49,7 +49,6 @@ func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 		if err != nil {
 			return nil, fmt.Errorf("failed to get root JWK kid uuid: %w", err)
 		}
-		unsealedRootJwksMap[unsealedRootJwkslatestKidUuid] = &unsealedRootJwkslatest // generate success, store it in-memory
 
 		jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(unsealJwks, unsealedRootJwkslatest)
 		if err != nil {
@@ -66,49 +65,56 @@ func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 			return nil, fmt.Errorf("failed to get seal JWK kid uuid: %w", err)
 		}
 
+		// put encrypted root JWK in DB (i.e. generated)
 		err = ormRepository.AddRootKey(&cryptoutilOrmRepository.RootKey{UUID: unsealedRootJwkslatestKidUuid, Serialized: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
 		if err != nil {
 			return nil, fmt.Errorf("failed to store root JWK: %w", err)
 		}
 
+		// put clear root JWK in-memory (i.e. generated)
+		unsealedRootJwksMap[unsealedRootJwkslatestKidUuid] = &unsealedRootJwkslatest
+
 		telemetryService.Slogger.Info("Encrypted Root JWK", "JWE Headers", jweHeaders)
 	} else {
-		// at least one root JWK was created and stored in the DB, try to decrypt them using provided unsealJwkSet
-		encryptedRootJwkLatest, err := ormRepository.GetRootKeyLatest()
+		// one or more encrypted root JWKs was found in DB, try using unsealJwks to decrypt them
+		encryptedRootJwkLatest, err := ormRepository.GetRootKeyLatest() // First row using ORDER BY uuid DESC
 		if err != nil {
 			return nil, fmt.Errorf("failed to get root JWK latest from database")
 		}
-		encryptedRootJwkLatestKidUuid := encryptedRootJwkLatest.GetUUID()
+		encryptedRootJwkLatestKidUuid := encryptedRootJwkLatest.GetUUID() // look for this in the decrypt loop and get a copy
 
-		// loop through encryptedRootJwks, use provided unsealJwkSet to attempt decryption of all root JWKs from DB
+		// loop through encryptedRootJwks from DB, try using unsealJwks to decrypt them
 		var errs []error
-		for unsealJwkIndex, encryptedRootJwk := range encryptedRootJwks {
+		for encryptedRootJwkIndex, encryptedRootJwk := range encryptedRootJwks {
 			encryptedRootJwkKidUuid := encryptedRootJwk.GetUUID()
 			var unsealedRootJwk joseJwk.Key
-			for rootJwkIndex, unsealJwk := range unsealJwks {
+			for unsealJwkIndex, unsealJwk := range unsealJwks {
 				unsealedRootJwkBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{unsealJwk}, []byte(encryptedRootJwk.GetSerialized()))
 				if err != nil {
-					errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d with unseal JWK %d: %w", unsealJwkIndex, rootJwkIndex, err))
+					errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d with unseal JWK %d: %w", encryptedRootJwkIndex, unsealJwkIndex, err))
 					continue
 				}
 				unsealedRootJwk, err = joseJwk.ParseKey(unsealedRootJwkBytes)
 				if err != nil {
-					errs = append(errs, fmt.Errorf("failed to parse decrypted root JWK %d after using unseal JWK %d: %w", unsealJwkIndex, rootJwkIndex, err))
+					errs = append(errs, fmt.Errorf("failed to parse decrypted root JWK %d after using unseal JWK %d: %w", encryptedRootJwkIndex, unsealJwkIndex, err))
 				}
 				unsealedRootJwksMap[encryptedRootJwkKidUuid] = &unsealedRootJwk // decrypt success, store it in-memory
 				if unsealedRootJwkslatest == nil && encryptedRootJwkKidUuid == encryptedRootJwkLatestKidUuid {
-					unsealedRootJwkslatest = unsealedRootJwk
+					unsealedRootJwkslatest = unsealedRootJwk // latest UUID matched, grab a copy
 				}
 			}
+			// verify a copy of latest was found during the decrypt loop
 			if unsealedRootJwk == nil {
-				errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d: %w", unsealJwkIndex, err)) // non-fatal until we have tried all unsealJwks and no root keys were unsealed
+				errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d: %w", encryptedRootJwkIndex, err))
 			}
 		}
 		if len(unsealedRootJwksMap) == 0 {
-			return nil, fmt.Errorf("failed to unseal all root JWKs: %w", errors.Join(errs...)) // no encrypted root JWKs from DB weren't decrypted via the unseal JWKs
+			return nil, fmt.Errorf("failed to unseal all root JWKs: %w", errors.Join(errs...)) // FATAL: all decrypt attempts failed
 		} else if unsealedRootJwkslatest == nil {
-			return nil, fmt.Errorf("failed to unseal latest root JWK: %w", errors.Join(errs...)) // latest encrypted root JWK from DB wasn't decrypted via the unseal JWKs
-		} else if len(errs) == 0 {
+			return nil, fmt.Errorf("failed to unseal latest root JWK: %w", errors.Join(errs...)) // FATAL: encrypted latest not decrypted and found during the the decrypt loop
+		}
+		// older root keys might not decrypt anymore, but as long as the latest decrypted then the service can start
+		if len(errs) == 0 {
 			telemetryService.Slogger.Debug("unsealed all root JWKs", "unsealed", len(unsealedRootJwksMap))
 		} else {
 			telemetryService.Slogger.Warn("unsealed some root JWKs", "unsealed", len(unsealedRootJwksMap), "errors", len(errs), "error", errors.Join(errs...))
