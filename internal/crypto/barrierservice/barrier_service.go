@@ -154,7 +154,7 @@ func (d *BarrierService) DecryptContent(encodedJweMessage []byte) ([]byte, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	decryptedBytes, err := cryptoutilJose.DecryptBytes(jwk, encodedJweMessage)
+	decryptedBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{jwk}, encodedJweMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt with JWK %s: %w", kid, err)
 	}
@@ -201,7 +201,7 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kek kid from database: %w", err)
 	}
-	jwk, err := cryptoutilJose.DecryptKey(kekJwk, []byte((barrierKey).GetSerialized()))
+	jwk, err := cryptoutilJose.DecryptKey([]joseJwk.Key{kekJwk}, []byte((barrierKey).GetSerialized()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt JWK from database: %w", err)
 	}
@@ -269,7 +269,7 @@ func newRootKeyRepository(unsealJwks []joseJwk.Key, ormRepository *cryptoutilOrm
 		var errs []error
 		for _, encryptedRootJwk := range encryptedRootJwks {
 			for i, unsealJwk := range unsealJwks {
-				unsealedRootJwkBytes, err := cryptoutilJose.DecryptBytes(unsealJwk, []byte(encryptedRootJwk.GetSerialized()))
+				unsealedRootJwkBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{unsealJwk}, []byte(encryptedRootJwk.GetSerialized()))
 				if err != nil {
 					errs = append(errs, fmt.Errorf("failed to decrypt with unseak JWK %d: %w", i, err)) // non-fatal until we have tried all unsealJwks and no root keys were unsealed
 					continue

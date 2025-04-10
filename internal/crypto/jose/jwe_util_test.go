@@ -71,7 +71,7 @@ func Test_HappyPath_Bytes(t *testing.T) {
 		require.NoError(t, jweHeaders.Get("enc", &actualJweEnc))
 		require.Equal(t, AlgA256GCM, actualJweEnc)
 
-		decrypted, err := DecryptBytes(cek, encodedJweMessage)
+		decrypted, err := DecryptBytes([]joseJwk.Key{cek}, encodedJweMessage)
 		require.NoError(t, err)
 		require.Equal(t, plaintext, decrypted)
 	}
@@ -91,7 +91,7 @@ func Test_HappyPath_Key(t *testing.T) {
 		require.NoError(t, err)
 		log.Printf("JWE Message Headers: %s", jsonHeaders)
 
-		decryptedKey, err := DecryptKey(kek, encodedJweMessage)
+		decryptedKey, err := DecryptKey([]joseJwk.Key{kek}, encodedJweMessage)
 		require.NoError(t, err)
 
 		decryptedEncodedKey, err := json.Marshal(decryptedKey)
@@ -124,6 +124,6 @@ func Test_SadPath_DecryptJWE_InvalidCiphertext(t *testing.T) {
 	key, _, err := GenerateAesJWK(AlgA256GCMKW)
 	require.NoError(t, err)
 
-	_, err = DecryptBytes(key, []byte("this-is-not-valid-ciphertext"))
+	_, err = DecryptBytes([]joseJwk.Key{key}, []byte("this-is-not-valid-ciphertext"))
 	require.Error(t, err)
 }
