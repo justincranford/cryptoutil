@@ -3,6 +3,7 @@ package barrierservice
 import (
 	"context"
 	cryptoutilBarrierRepository "cryptoutil/internal/crypto/barrierrepository"
+	cryptoutilUnseal "cryptoutil/internal/crypto/barrierservice/unseal"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
@@ -205,16 +206,21 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 }
 
 func newRootKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
-	unsealService, err := newUnsealService(telemetryService, ormRepository, &cryptoutilSysinfo.DefaultSysInfoProvider{})
+	unsealKeyRepository, err := cryptoutilUnseal.NewUnsealKeyRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize unseal repository")
+	}
+
+	unsealService, err := cryptoutilUnseal.NewUnsealService(telemetryService, ormRepository, unsealKeyRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize unseal service")
 	}
 
 	loadLatestRootKey := func() (joseJwk.Key, error) {
-		return *unsealService.getLatest(), nil
+		return *unsealService.GetLatest(), nil
 	}
 	loadRootKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return *unsealService.get(uuid), nil
+		return *unsealService.Get(uuid), nil
 	}
 	storeRootKey := func(jwk joseJwk.Key) error {
 		return nil

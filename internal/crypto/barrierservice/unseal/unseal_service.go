@@ -1,4 +1,4 @@
-package barrierservice
+package unseal
 
 import (
 	cryptoutilCombinations "cryptoutil/internal/combinations"
@@ -16,24 +16,23 @@ import (
 
 const fingerprintLeeway = 1
 
-type unsealService struct {
+type UnsealService struct {
 	unsealedRootJwksMap    *map[googleUuid.UUID]*joseJwk.Key
 	unsealedRootJwkslatest *joseJwk.Key
 }
 
-func (u *unsealService) get(uuid googleUuid.UUID) *joseJwk.Key {
+func (u *UnsealService) Get(uuid googleUuid.UUID) *joseJwk.Key {
 	return (*u.unsealedRootJwksMap)[uuid]
 }
 
-func (u *unsealService) getLatest() *joseJwk.Key {
+func (u *UnsealService) GetLatest() *joseJwk.Key {
 	return u.unsealedRootJwkslatest
 }
 
-func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, sysInfoProvider *cryptoutilSysinfo.DefaultSysInfoProvider) (*unsealService, error) {
-	// TODO Support other sources of unseal JWKs (e.g. HSM, 3rd-party KMS, secret key sharing, etc)
-	unsealJwks, unsealJwksErr := sysFingerprintUnsealJwks(sysInfoProvider)
-	if unsealJwksErr != nil {
-		return nil, fmt.Errorf("failed to get unseal JWKs: %w", unsealJwksErr)
+func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealKeyRepository *UnsealKeyRepository) (*UnsealService, error) {
+	unsealJwks := unsealKeyRepository.UnsealJwks()
+	if len(unsealJwks) == 0 {
+		return nil, fmt.Errorf("no unseal JWKs")
 	}
 
 	encryptedRootJwks, err := ormRepository.GetRootKeys()
@@ -119,7 +118,7 @@ func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 			telemetryService.Slogger.Warn("unsealed some root JWKs", "unsealed", len(unsealedRootJwksMap), "errors", len(errs), "error", errors.Join(errs...))
 		}
 	}
-	return &unsealService{unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwkslatest: &unsealedRootJwkslatest}, nil
+	return &UnsealService{unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwkslatest: &unsealedRootJwkslatest}, nil
 }
 
 func sysFingerprintUnsealJwks(sysInfoProvider *cryptoutilSysinfo.DefaultSysInfoProvider) ([]joseJwk.Key, error) {
