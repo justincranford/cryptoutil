@@ -27,25 +27,33 @@ type BarrierService struct {
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
-	unsealJwks, unsealJwksErr := UnsealJwks()
-	if unsealJwksErr != nil {
-		return nil, fmt.Errorf("failed to get unseal JWKs: %w", unsealJwksErr)
-	}
-
 	keyPoolConfig, err := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Crypto Service AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
+		return nil, fmt.Errorf("failed to create AES-256 pool config: %w", err)
 	}
 	aes256Pool, err := cryptoutilKeygen.NewKeyPool(keyPoolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}
 
-	rootKeyRepository, err1 := newRootKeyRepository(unsealJwks, ormRepository, telemetryService, aes256Pool)
-	intermediateKeyRepository, err2 := newIntermediateKeyRepository(rootKeyRepository, 2, ormRepository, telemetryService, aes256Pool)
-	contentKeyRepository, err3 := newContentKeyRepository(intermediateKeyRepository, 10, ormRepository, telemetryService)
-	if err1 != nil || err2 != nil || err3 != nil {
-		return nil, fmt.Errorf("failed to initialize JWK repositories: %w", errors.Join(err1, err2, err3))
+	unsealJwks, unsealJwksErr := UnsealJwks()
+	if unsealJwksErr != nil {
+		return nil, fmt.Errorf("failed to get unseal JWKs: %w", unsealJwksErr)
+	}
+
+	rootKeyRepository, err := newRootKeyRepository(unsealJwks, ormRepository, telemetryService, aes256Pool)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize root JWK repository: %w", err)
+	}
+
+	intermediateKeyRepository, err := newIntermediateKeyRepository(rootKeyRepository, 2, ormRepository, telemetryService, aes256Pool)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize intermediate JWK repository: %w", err)
+	}
+
+	contentKeyRepository, err := newContentKeyRepository(intermediateKeyRepository, 10, ormRepository, telemetryService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize content JWK repository: %w", err)
 	}
 
 	return &BarrierService{
