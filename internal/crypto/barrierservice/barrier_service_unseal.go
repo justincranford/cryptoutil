@@ -10,7 +10,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-func UnsealJwkSet() (joseJwk.Set, error) {
+func UnsealJwks() ([]joseJwk.Key, error) {
 	sysinfos, err := cryptoutilSysinfo.GetAllInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
@@ -18,22 +18,20 @@ func UnsealJwkSet() (joseJwk.Set, error) {
 
 	sysinfosBytes := cryptoutilUtil.ConcatBytes(sysinfos)
 
-	derivedSecretBytes := cryptoutilDigests.SHA512(sysinfosBytes)
-	derivedSaltBytes := cryptoutilDigests.SHA384(sysinfosBytes)
-	derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretBytes, derivedSaltBytes, []byte("unseal v1"), 32)
+	derivedSecretBytes := cryptoutilDigests.SHA512(fmt.Append(sysinfosBytes, []byte("secret")))
+	derivedSaltBytes := cryptoutilDigests.SHA512(fmt.Append(sysinfosBytes, []byte("salt")))
+	derivedUnsealKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretBytes, derivedSaltBytes, []byte("derive unsealed JWKs algorithm v1"), 32)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JWK: %w", err)
 	}
 
-	rootJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgA256GCMKW, derivedKeyBytes)
+	unsealJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgA256GCMKW, derivedUnsealKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create JWK: %w", err)
 	}
 
-	set := joseJwk.NewSet()
-	err = set.AddKey(rootJwk)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create root JWK: %w", err)
-	}
-	return set, nil
+	unsealJwks := make([]joseJwk.Key, 0, 1)
+	unsealJwks = append(unsealJwks, unsealJwk)
+
+	return unsealJwks, nil
 }
