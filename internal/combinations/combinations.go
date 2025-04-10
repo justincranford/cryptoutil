@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type M []value
+type M [][]byte
 type value []byte
 type combination []value
 type combinations []combination
@@ -68,7 +68,7 @@ func (m M) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("[")
 	for i, v := range m {
-		buffer.WriteString(v.ToString())
+		buffer.WriteString(string(v))
 		if i < len(m)-1 {
 			buffer.WriteString(", ")
 		}
