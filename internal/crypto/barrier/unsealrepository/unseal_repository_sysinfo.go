@@ -1,9 +1,9 @@
 package unsealrepository
 
 import (
-	cryptoutilCombinations "cryptoutil/internal/combinations"
 	cryptoutilDigests "cryptoutil/internal/crypto/digests"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilCombinations "cryptoutil/internal/util/combinations"
 	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 	"fmt"
 
