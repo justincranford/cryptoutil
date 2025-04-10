@@ -6,6 +6,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilSysinfo "cryptoutil/internal/sysinfo"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"errors"
 	"fmt"
@@ -204,7 +205,7 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 }
 
 func newRootKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
-	unsealService, err := newUnsealService(telemetryService, ormRepository)
+	unsealService, err := newUnsealService(telemetryService, ormRepository, &cryptoutilSysinfo.DefaultSysInfoProvider{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize unseal service")
 	}

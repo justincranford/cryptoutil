@@ -17,22 +17,21 @@ import (
 const fingerprintLeeway = 1
 
 type unsealService struct {
-	unsealedRootJwksMap    *map[googleUuid.UUID]joseJwk.Key
+	unsealedRootJwksMap    *map[googleUuid.UUID]*joseJwk.Key
 	unsealedRootJwkslatest *joseJwk.Key
 }
 
 func (u *unsealService) get(uuid googleUuid.UUID) *joseJwk.Key {
-	x := (*u.unsealedRootJwksMap)[uuid]
-	return &x
+	return (*u.unsealedRootJwksMap)[uuid]
 }
 
 func (u *unsealService) getLatest() *joseJwk.Key {
 	return u.unsealedRootJwkslatest
 }
 
-func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*unsealService, error) {
+func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, sysInfoProvider *cryptoutilSysinfo.DefaultSysInfoProvider) (*unsealService, error) {
 	// TODO Support other sources of unseal JWKs (e.g. HSM, 3rd-party KMS, secret key sharing, etc)
-	unsealJwks, unsealJwksErr := sysFingerprintUnsealJwks()
+	unsealJwks, unsealJwksErr := sysFingerprintUnsealJwks(sysInfoProvider)
 	if unsealJwksErr != nil {
 		return nil, fmt.Errorf("failed to get unseal JWKs: %w", unsealJwksErr)
 	}
@@ -42,7 +41,7 @@ func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 		return nil, fmt.Errorf("failed to get encrypted root JWKs from DB")
 	}
 
-	unsealedRootJwksMap := make(map[googleUuid.UUID]joseJwk.Key)
+	unsealedRootJwksMap := make(map[googleUuid.UUID]*joseJwk.Key)
 	var unsealedRootJwkslatest joseJwk.Key
 	if len(encryptedRootJwks) == 0 {
 		// not root JWKs in the DB, generate one and encrypt it with the first unsealJwkSet, then put it in the DB
@@ -55,7 +54,7 @@ func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 		if err != nil {
 			return nil, fmt.Errorf("failed to get root JWK kid uuid: %w", err)
 		}
-		unsealedRootJwksMap[unsealedRootJwkslatestKidUuid] = unsealedRootJwkslatest // generate success, store it in-memory
+		unsealedRootJwksMap[unsealedRootJwkslatestKidUuid] = &unsealedRootJwkslatest // generate success, store it in-memory
 
 		jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(unsealJwks, unsealedRootJwkslatest)
 		if err != nil {
@@ -101,7 +100,7 @@ func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 				if err != nil {
 					errs = append(errs, fmt.Errorf("failed to parse decrypted root JWK %d after using unseal JWK %d: %w", unsealJwkIndex, rootJwkIndex, err))
 				}
-				unsealedRootJwksMap[encryptedRootJwkKidUuid] = unsealedRootJwk // decrypt success, store it in-memory
+				unsealedRootJwksMap[encryptedRootJwkKidUuid] = &unsealedRootJwk // decrypt success, store it in-memory
 				if unsealedRootJwkslatest == nil && encryptedRootJwkKidUuid == encryptedRootJwkLatestKidUuid {
 					unsealedRootJwkslatest = unsealedRootJwk
 				}
@@ -123,8 +122,8 @@ func newUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 	return &unsealService{unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwkslatest: &unsealedRootJwkslatest}, nil
 }
 
-func sysFingerprintUnsealJwks() ([]joseJwk.Key, error) {
-	sysinfos, err := cryptoutilSysinfo.GetAllInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+func sysFingerprintUnsealJwks(sysInfoProvider *cryptoutilSysinfo.DefaultSysInfoProvider) ([]joseJwk.Key, error) {
+	sysinfos, err := cryptoutilSysinfo.GetAllInfo(sysInfoProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
 	}
