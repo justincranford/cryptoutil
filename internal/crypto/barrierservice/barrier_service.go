@@ -112,15 +112,15 @@ func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("failed to cast AES-256 pool key to []byte")
 	}
-	contentJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
+	cek, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
-	err = d.contentKeyRepository.Put(contentJwk)
+	err = d.contentKeyRepository.Put(cek)
 	if err != nil {
 		return nil, fmt.Errorf("failed to put content JWK in cache: %w", err)
 	}
-	jweMessage, encodedJweMessage, err := cryptoutilJose.EncryptBytes(contentJwk, clearBytes)
+	jweMessage, encodedJweMessage, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{cek}, clearBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt clear bytes: %w", err)
 	}
@@ -178,7 +178,7 @@ func encrypt(jwk joseJwk.Key, kekRepository *cryptoutilBarrierRepository.Reposit
 		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to get latest kek kid uuid: %w", err)
 	}
 
-	jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(kek, jwk)
+	jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{kek}, jwk)
 	if err != nil {
 		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to serialize jwk: %w", err)
 	}
@@ -237,25 +237,27 @@ func newRootKeyRepository(unsealJwks []joseJwk.Key, ormRepository *cryptoutilOrm
 		}
 		unsealedRootJwksMap[unsealedRootJwkslatestKidUuid] = unsealedRootJwkslatest // generate success, store it in-memory
 
+		jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(unsealJwks, unsealedRootJwkslatest)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize root JWK for unseal JWK: %w", err)
+		}
+		jweHeaders, err := cryptoutilJose.JSONHeadersString(jweMessage)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get JWE message headers for unseal JWK: %w", err)
+		}
+		telemetryService.Slogger.Info("Encrypted Root JWK for Unseal JWK", "JWE Headers", jweHeaders)
+
 		sealJwkKidUuid, err := cryptoutilJose.ExtractKidUuid(unsealJwks[0])
 		if err != nil {
 			return nil, fmt.Errorf("failed to get seal JWK kid uuid: %w", err)
 		}
 
-		jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(unsealJwks[0], unsealedRootJwkslatest)
-		if err != nil {
-			return nil, fmt.Errorf("failed to serialize root JWK: %w", err)
-		}
-		jweHeaders, err := cryptoutilJose.JSONHeadersString(jweMessage)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get jwe message headers: %w", err)
-		}
-		telemetryService.Slogger.Info("Encrypted Root JWK", "JWE Headers", jweHeaders)
-
 		err = ormRepository.AddRootKey(&cryptoutilOrmRepository.RootKey{UUID: unsealedRootJwkslatestKidUuid, Serialized: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
 		if err != nil {
 			return nil, fmt.Errorf("failed to store root JWK: %w", err)
 		}
+
+		telemetryService.Slogger.Info("Encrypted Root JWK", "JWE Headers", jweHeaders)
 	} else {
 		// at least one root JWK was created and stored in the DB, try to decrypt them using provided unsealJwkSet
 		encryptedRootJwkLatest, err := ormRepository.GetRootKeyLatest()
@@ -385,7 +387,7 @@ func newContentKeyRepository(intermediateKeyRepository *cryptoutilBarrierReposit
 		if err != nil {
 			return fmt.Errorf("failed to get kek kid uuid: %w", err)
 		}
-		jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(kek, jwk)
+		jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{kek}, jwk)
 		if err != nil {
 			return fmt.Errorf("failed to serialize jwk: %w", err)
 		}

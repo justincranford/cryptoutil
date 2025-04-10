@@ -97,18 +97,25 @@ func CreateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (joseJwk
 	return aesJwk, encodedAesJwk, nil
 }
 
-func EncryptBytes(encryptionKey joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
-	if encryptionKey == nil {
+func EncryptBytes(ceks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
+	if ceks == nil {
 		return nil, nil, ErrCantBeNil
 	}
 
-	var alg joseJwa.KeyAlgorithm
-	err := encryptionKey.Get(joseJwk.AlgorithmKey, &alg)
-	if err != nil {
-		return nil, nil, fmt.Errorf("algorithm not found in JWK: %w", err)
+	withKeys := make([]joseJwe.EncryptOption, 0, len(ceks))
+	if len(ceks) > 1 {
+		withKeys = append(withKeys, joseJwe.WithJSON()) // use JSON encoding instead of default Compact encoding
+	}
+	for _, cek := range ceks {
+		var alg joseJwa.KeyAlgorithm
+		err := cek.Get(joseJwk.AlgorithmKey, &alg)
+		if err != nil {
+			return nil, nil, fmt.Errorf("algorithm not found in JWK: %w", err)
+		}
+		withKeys = append(withKeys, joseJwe.WithKey(alg, cek))
 	}
 
-	encodedJweMessage, err := joseJwe.Encrypt(clearBytes, joseJwe.WithKey(alg, encryptionKey))
+	encodedJweMessage, err := joseJwe.Encrypt(clearBytes, withKeys...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt clearBytes: %w", err)
 	}
@@ -121,19 +128,19 @@ func EncryptBytes(encryptionKey joseJwk.Key, clearBytes []byte) (*joseJwe.Messag
 	return jweMessage, encodedJweMessage, nil
 }
 
-func DecryptBytes(decryptionKey joseJwk.Key, encryptedBytes []byte) ([]byte, error) {
-	if decryptionKey == nil {
+func DecryptBytes(cdk joseJwk.Key, encryptedBytes []byte) ([]byte, error) {
+	if cdk == nil {
 		return nil, ErrCantBeNil
 	}
 
 	var alg joseJwa.KeyAlgorithm
-	err := decryptionKey.Get(joseJwk.AlgorithmKey, &alg)
+	err := cdk.Get(joseJwk.AlgorithmKey, &alg)
 	if err != nil {
 		return nil, fmt.Errorf("algorithm not found in JWK: %w", err)
 	}
 
 	var msg joseJwe.Message
-	decryptedBytes, err := joseJwe.Decrypt(encryptedBytes, joseJwe.WithKey(alg, decryptionKey), joseJwe.WithMessage(&msg))
+	decryptedBytes, err := joseJwe.Decrypt(encryptedBytes, joseJwe.WithKey(alg, cdk), joseJwe.WithMessage(&msg))
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt JWE: %w", err)
 	}
@@ -141,12 +148,12 @@ func DecryptBytes(decryptionKey joseJwk.Key, encryptedBytes []byte) ([]byte, err
 	return decryptedBytes, nil
 }
 
-func EncryptKey(kek joseJwk.Key, key joseJwk.Key) (*joseJwe.Message, []byte, error) {
+func EncryptKey(keks []joseJwk.Key, key joseJwk.Key) (*joseJwe.Message, []byte, error) {
 	encodedKey, err := json.Marshal(key)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encode JWK: %w", err)
 	}
-	return EncryptBytes(kek, []byte(encodedKey))
+	return EncryptBytes(keks, []byte(encodedKey))
 }
 
 func DecryptKey(kek joseJwk.Key, encryptedBytes []byte) (joseJwk.Key, error) {

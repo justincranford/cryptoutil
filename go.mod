@@ -6,6 +6,7 @@ require (
 	github.com/cloudflare/circl v1.6.0
 	github.com/docker/go-connections v0.5.0
 	github.com/getkin/kin-openapi v0.129.0
+	github.com/goccy/go-yaml v1.17.1
 	github.com/gofiber/contrib/otelfiber v1.0.10
 	github.com/gofiber/fiber/v2 v2.52.6
 	github.com/gofiber/swagger v1.1.1
@@ -146,6 +147,6 @@ require (
 require (
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/contrib/bridges/otelslog v0.9.0
-	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/crypto v0.36.0
 	golang.org/x/sys v0.32.0 // indirect
 )

@@ -7,6 +7,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwk"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,34 +20,34 @@ var happyPathTestCases = []struct {
 
 func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		aesJwk, encodedAesJwk, err := GenerateAesJWK(testCase.alg)
+		cek, encodedAesJwk, err := GenerateAesJWK(testCase.alg)
 		require.NoError(t, err)
-		require.NotNil(t, aesJwk)
+		require.NotNil(t, cek)
 		require.NotEmpty(t, encodedAesJwk)
 		log.Printf("Generated: %s", encodedAesJwk)
 
 		var actualJwkKid string
-		require.NoError(t, aesJwk.Get(jwk.KeyIDKey, &actualJwkKid))
+		require.NoError(t, cek.Get(jwk.KeyIDKey, &actualJwkKid))
 		require.NotEmpty(t, actualJwkKid)
 
 		var actualJwkAlg jwa.KeyAlgorithm
-		require.NoError(t, aesJwk.Get(jwk.AlgorithmKey, &actualJwkAlg))
+		require.NoError(t, cek.Get(jwk.AlgorithmKey, &actualJwkAlg))
 		require.Equal(t, testCase.alg, actualJwkAlg)
 
 		var actualJwkUse string
-		require.NoError(t, aesJwk.Get(jwk.KeyUsageKey, &actualJwkUse))
+		require.NoError(t, cek.Get(jwk.KeyUsageKey, &actualJwkUse))
 		require.Equal(t, "enc", actualJwkUse)
 
 		var actualJwkOps jwk.KeyOperationList
-		require.NoError(t, aesJwk.Get(jwk.KeyOpsKey, &actualJwkOps))
+		require.NoError(t, cek.Get(jwk.KeyOpsKey, &actualJwkOps))
 		require.Equal(t, OpsEncDec, actualJwkOps)
 
 		var actualJwkKty jwa.KeyType
-		require.NoError(t, aesJwk.Get(jwk.KeyTypeKey, &actualJwkKty))
+		require.NoError(t, cek.Get(jwk.KeyTypeKey, &actualJwkKty))
 		require.Equal(t, KtyOct, actualJwkKty)
 
 		plaintext := []byte("hello, world!")
-		jweMessage, encodedJweMessage, err := EncryptBytes(aesJwk, plaintext)
+		jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{cek}, plaintext)
 		require.NoError(t, err)
 		require.NotEmpty(t, encodedJweMessage)
 		log.Printf("JWE Message: %s", string(encodedJweMessage))
@@ -70,7 +71,7 @@ func Test_HappyPath_Bytes(t *testing.T) {
 		require.NoError(t, jweHeaders.Get("enc", &actualJweEnc))
 		require.Equal(t, AlgA256GCM, actualJweEnc)
 
-		decrypted, err := DecryptBytes(aesJwk, encodedJweMessage)
+		decrypted, err := DecryptBytes(cek, encodedJweMessage)
 		require.NoError(t, err)
 		require.Equal(t, plaintext, decrypted)
 	}
@@ -84,7 +85,7 @@ func Test_HappyPath_Key(t *testing.T) {
 		originalKey, encodedKey, _ := GenerateAesJWK(testCase.alg)
 		log.Printf("Original Key: %s", string(encodedKey))
 
-		jweMessage, encodedJweMessage, err := EncryptKey(kek, originalKey)
+		jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{kek}, originalKey)
 		require.NoError(t, err)
 		jsonHeaders, err := JSONHeadersString(jweMessage)
 		require.NoError(t, err)
