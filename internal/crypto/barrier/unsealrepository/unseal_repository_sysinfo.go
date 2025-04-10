@@ -12,7 +12,7 @@ import (
 
 const fingerprintLeeway = 1
 
-func NewUnsealKeyRepositoryFromSysInfo(sysInfoProvider *cryptoutilSysinfo.DefaultSysInfoProvider) (*UnsealKeyRepository, error) {
+func NewUnsealKeyRepositoryFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (*UnsealKeyRepository, error) {
 	unsealJwks, unsealJwksErr := sysFingerprintUnsealJwks(sysInfoProvider)
 	if unsealJwksErr != nil {
 		return nil, fmt.Errorf("failed to get unseal JWKs: %w", unsealJwksErr)
@@ -24,7 +24,7 @@ func (u *UnsealKeyRepository) UnsealJwks() []joseJwk.Key {
 	return u.unsealJwks
 }
 
-func sysFingerprintUnsealJwks(sysInfoProvider *cryptoutilSysinfo.DefaultSysInfoProvider) ([]joseJwk.Key, error) {
+func sysFingerprintUnsealJwks(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) ([]joseJwk.Key, error) {
 	sysinfos, err := cryptoutilSysinfo.GetAllInfo(sysInfoProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
