@@ -9,6 +9,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"errors"
 	"fmt"
+	"sync"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
@@ -17,6 +18,8 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+var shutdownOnce sync.Once
+
 type BarrierService struct {
 	telemetryService          *cryptoutilTelemetry.Service
 	ormRepository             *cryptoutilOrmRepository.RepositoryProvider
@@ -24,6 +27,7 @@ type BarrierService struct {
 	rootKeyRepository         *cryptoutilBarrierRepository.Repository
 	intermediateKeyRepository *cryptoutilBarrierRepository.Repository
 	contentKeyRepository      *cryptoutilBarrierRepository.Repository
+	closed                    bool
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*BarrierService, error) {
@@ -63,34 +67,47 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		rootKeyRepository:         rootKeyRepository,
 		intermediateKeyRepository: intermediateKeyRepository,
 		contentKeyRepository:      contentKeyRepository,
+		closed:                    false,
 	}, nil
 }
 
 func (d *BarrierService) Shutdown() {
-	if d.contentKeyRepository != nil {
-		err := d.contentKeyRepository.Shutdown()
-		if err != nil {
-			d.telemetryService.Slogger.Error("failed to shutdown content key cache", "error", err)
+	shutdownOnce.Do(func() {
+		if d.contentKeyRepository != nil {
+			err := d.contentKeyRepository.Shutdown()
+			if err != nil {
+				d.telemetryService.Slogger.Error("failed to shutdown content key cache", "error", err)
+			}
+			d.contentKeyRepository = nil
 		}
-	}
-	if d.intermediateKeyRepository != nil {
-		err := d.intermediateKeyRepository.Shutdown()
-		if err != nil {
-			d.telemetryService.Slogger.Error("failed to shutdown intermediate key cache", "error", err)
+		if d.intermediateKeyRepository != nil {
+			err := d.intermediateKeyRepository.Shutdown()
+			if err != nil {
+				d.telemetryService.Slogger.Error("failed to shutdown intermediate key cache", "error", err)
+			}
+			d.intermediateKeyRepository = nil
 		}
-	}
-	if d.rootKeyRepository != nil {
-		err := d.rootKeyRepository.Shutdown()
-		if err != nil {
-			d.telemetryService.Slogger.Error("failed to shutdown root key cache", "error", err)
+		if d.rootKeyRepository != nil {
+			err := d.rootKeyRepository.Shutdown()
+			if err != nil {
+				d.telemetryService.Slogger.Error("failed to shutdown root key cache", "error", err)
+			}
+			d.rootKeyRepository = nil
 		}
-	}
-	if d.aes256Pool != nil {
-		d.aes256Pool.Close()
-	}
+		if d.aes256Pool != nil {
+			d.aes256Pool.Close()
+			d.aes256Pool = nil
+		}
+		d.ormRepository = nil
+		d.telemetryService = nil
+		d.closed = true
+	})
 }
 
 func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
+	if d.closed {
+		return nil, fmt.Errorf("barrier service is closed")
+	}
 	rawKey, ok := d.aes256Pool.Get().Private.([]byte)
 	if !ok {
 		return nil, fmt.Errorf("failed to cast AES-256 pool key to []byte")
@@ -117,6 +134,9 @@ func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
 }
 
 func (d *BarrierService) DecryptContent(encodedJweMessage []byte) ([]byte, error) {
+	if d.closed {
+		return nil, fmt.Errorf("barrier service is closed")
+	}
 	jweMessage, err := joseJwe.Parse(encodedJweMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message: %w", err)

@@ -75,10 +75,12 @@ func TestMain(m *testing.M) {
 func Test_HappyPath_Bytes(t *testing.T) {
 	plaintext := []byte("hello, world!")
 
+	// start service
 	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testRepositoryProvider)
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 
+	// encrypt N times
 	encryptedBytesSlice := make([][]byte, 0, 11)
 	for i := range cap(encryptedBytesSlice) {
 		t.Logf("Attempt: %d", i+1)
@@ -87,10 +89,30 @@ func Test_HappyPath_Bytes(t *testing.T) {
 		t.Logf("Encrypted Data > JWE Headers: %s", string(encryptedBytes))
 		encryptedBytesSlice = append(encryptedBytesSlice, encryptedBytes)
 	}
+
+	// decrypt N times with service
 	for _, encryptedBytes := range encryptedBytesSlice {
 		decryptedBytes, err := barrierService.DecryptContent(encryptedBytes)
 		require.NoError(t, err)
-		// t.Logf("Decrypted: %s", string(decryptedBytes))
+		require.Equal(t, plaintext, decryptedBytes)
+	}
+
+	// shutdown service
+	barrierService.Shutdown()
+	_, err = barrierService.EncryptContent(plaintext)
+	require.Error(t, err)
+	_, err = barrierService.DecryptContent(plaintext)
+	require.Error(t, err)
+
+	// restart service
+	barrierService, err = NewBarrierService(testCtx, testTelemetryService, testRepositoryProvider)
+	require.NoError(t, err)
+	defer barrierService.Shutdown()
+
+	// decrypt N times with restarted service
+	for _, encryptedBytes := range encryptedBytesSlice {
+		decryptedBytes, err := barrierService.DecryptContent(encryptedBytes)
+		require.NoError(t, err)
 		require.Equal(t, plaintext, decryptedBytes)
 	}
 	t.Log("Success")
