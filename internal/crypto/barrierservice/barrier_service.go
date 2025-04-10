@@ -204,16 +204,16 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 }
 
 func newRootKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service) (*cryptoutilBarrierRepository.Repository, error) {
-	unsealedRootJwksMap, unsealedRootJwkslatest, err := unsealService(telemetryService, ormRepository)
+	unsealService, err := newUnsealService(telemetryService, ormRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize unseal service")
 	}
 
 	loadLatestRootKey := func() (joseJwk.Key, error) {
-		return *unsealedRootJwkslatest, nil
+		return *unsealService.getLatest(), nil
 	}
 	loadRootKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return (*unsealedRootJwksMap)[uuid], nil
+		return *unsealService.get(uuid), nil
 	}
 	storeRootKey := func(jwk joseJwk.Key) error {
 		return nil
@@ -228,102 +228,6 @@ func newRootKeyRepository(ormRepository *cryptoutilOrmRepository.RepositoryProvi
 	}
 
 	return rootKeyRepository, nil
-}
-
-func unsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*map[googleUuid.UUID]joseJwk.Key, *joseJwk.Key, error) {
-	unsealJwks, unsealJwksErr := UnsealJwks()
-	if unsealJwksErr != nil {
-		return nil, nil, fmt.Errorf("failed to get unseal JWKs: %w", unsealJwksErr)
-	}
-
-	if len(unsealJwks) == 0 {
-		return nil, nil, fmt.Errorf("no unseal JWKs")
-	}
-
-	encryptedRootJwks, err := ormRepository.GetRootKeys()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get root JWKs from database")
-	}
-
-	unsealedRootJwksMap := make(map[googleUuid.UUID]joseJwk.Key)
-	var unsealedRootJwkslatest joseJwk.Key
-	if len(encryptedRootJwks) == 0 {
-		// not root JWKs in the DB, generate one and encrypt it with the first unsealJwkSet, then put it in the DB
-		unsealedRootJwkslatest, _, err = cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to generate root JWK: %w", err)
-		}
-
-		unsealedRootJwkslatestKidUuid, err := cryptoutilJose.ExtractKidUuid(unsealedRootJwkslatest)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get root JWK kid uuid: %w", err)
-		}
-		unsealedRootJwksMap[unsealedRootJwkslatestKidUuid] = unsealedRootJwkslatest // generate success, store it in-memory
-
-		jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(unsealJwks, unsealedRootJwkslatest)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to encrypt root JWK: %w", err)
-		}
-		jweHeaders, err := cryptoutilJose.JSONHeadersString(jweMessage)
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get JWE message headers for encrypt root JWK: %w", err)
-		}
-		telemetryService.Slogger.Info("Encrypted Root JWK with Unseal JWK", "JWE Headers", jweHeaders)
-
-		sealJwkKidUuid, err := cryptoutilJose.ExtractKidUuid(unsealJwks[0])
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get seal JWK kid uuid: %w", err)
-		}
-
-		err = ormRepository.AddRootKey(&cryptoutilOrmRepository.RootKey{UUID: unsealedRootJwkslatestKidUuid, Serialized: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to store root JWK: %w", err)
-		}
-
-		telemetryService.Slogger.Info("Encrypted Root JWK", "JWE Headers", jweHeaders)
-	} else {
-		// at least one root JWK was created and stored in the DB, try to decrypt them using provided unsealJwkSet
-		encryptedRootJwkLatest, err := ormRepository.GetRootKeyLatest()
-		if err != nil {
-			return nil, nil, fmt.Errorf("failed to get root JWK latest from database")
-		}
-		encryptedRootJwkLatestKidUuid := encryptedRootJwkLatest.GetUUID()
-
-		// loop through encryptedRootJwks, use provided unsealJwkSet to attempt decryption of all root JWKs from DB
-		var errs []error
-		for unsealJwkIndex, encryptedRootJwk := range encryptedRootJwks {
-			encryptedRootJwkKidUuid := encryptedRootJwk.GetUUID()
-			var unsealedRootJwk joseJwk.Key
-			for rootJwkIndex, unsealJwk := range unsealJwks {
-				unsealedRootJwkBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{unsealJwk}, []byte(encryptedRootJwk.GetSerialized()))
-				if err != nil {
-					errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d with unseal JWK %d: %w", unsealJwkIndex, rootJwkIndex, err))
-					continue
-				}
-				unsealedRootJwk, err = joseJwk.ParseKey(unsealedRootJwkBytes)
-				if err != nil {
-					errs = append(errs, fmt.Errorf("failed to parse decrypted root JWK %d after using unseal JWK %d: %w", unsealJwkIndex, rootJwkIndex, err))
-				}
-				unsealedRootJwksMap[encryptedRootJwkKidUuid] = unsealedRootJwk // decrypt success, store it in-memory
-				if unsealedRootJwkslatest == nil && encryptedRootJwkKidUuid == encryptedRootJwkLatestKidUuid {
-					unsealedRootJwkslatest = unsealedRootJwk
-				}
-			}
-			if unsealedRootJwk == nil {
-				errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d: %w", unsealJwkIndex, err)) // non-fatal until we have tried all unsealJwks and no root keys were unsealed
-			}
-		}
-		if len(unsealedRootJwksMap) == 0 {
-			return nil, nil, fmt.Errorf("failed to unseal all root JWKs: %w", errors.Join(errs...)) // no encrypted root JWKs from DB weren't decrypted via the unseal JWKs
-		} else if unsealedRootJwkslatest == nil {
-			return nil, nil, fmt.Errorf("failed to unseal latest root JWK: %w", errors.Join(errs...)) // latest encrypted root JWK from DB wasn't decrypted via the unseal JWKs
-		} else if len(errs) == 0 {
-			telemetryService.Slogger.Debug("unsealed all root JWKs", "unsealed", len(unsealedRootJwksMap))
-		} else {
-			telemetryService.Slogger.Warn("unsealed some root JWKs", "unsealed", len(unsealedRootJwksMap), "errors", len(errs), "error", errors.Join(errs...))
-		}
-	}
-	return &unsealedRootJwksMap, &unsealedRootJwkslatest, nil
 }
 
 func newIntermediateKeyRepository(rootKeyRepository *cryptoutilBarrierRepository.Repository, cacheSize int, ormRepository *cryptoutilOrmRepository.RepositoryProvider, telemetryService *cryptoutilTelemetry.Service, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
