@@ -4,7 +4,7 @@ import (
 	cryptoutilCombinations "cryptoutil/internal/combinations"
 	cryptoutilDigests "cryptoutil/internal/crypto/digests"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
-	cryptoutilSysinfo "cryptoutil/internal/sysinfo"
+	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 	"fmt"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
