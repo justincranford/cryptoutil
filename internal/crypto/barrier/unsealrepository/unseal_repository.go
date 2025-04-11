@@ -14,10 +14,10 @@ type UnsealKeyRepository interface {
 	UnsealJwks() []joseJwk.Key
 }
 
-func computeCombinationsAndDeriveJwks(m [][]byte, n int) ([]jwk.Key, error) {
-	combinations, err := combinations.ComputeCombinations(m, n)
+func computeCombinationsAndDeriveJwks(m [][]byte, chooseN int) ([]jwk.Key, error) {
+	combinations, err := combinations.ComputeCombinations(m, chooseN)
 	if err != nil {
-		return nil, fmt.Errorf("failed to compute %d of %d combinations of shared secrets: %w", len(m), n, err)
+		return nil, fmt.Errorf("failed to compute %d of %d combinations of shared secrets: %w", len(m), chooseN, err)
 	} else if len(combinations) == 0 {
 		return nil, fmt.Errorf("no combinations")
 	}
