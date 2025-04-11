@@ -2,9 +2,11 @@ package barrierservice
 
 import (
 	"context"
+	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 	"log/slog"
 	"os"
 	"testing"
@@ -52,8 +54,11 @@ func TestMain(m *testing.M) {
 func Test_HappyPath_Bytes(t *testing.T) {
 	plaintext := []byte("hello, world!")
 
+	unsealKeyRepository, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+	require.NoError(t, err)
+
 	// start service
-	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testRepositoryProvider)
+	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testRepositoryProvider, unsealKeyRepository)
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 
@@ -82,7 +87,7 @@ func Test_HappyPath_Bytes(t *testing.T) {
 	require.Error(t, err)
 
 	// restart service
-	barrierService, err = NewBarrierService(testCtx, testTelemetryService, testRepositoryProvider)
+	barrierService, err = NewBarrierService(testCtx, testTelemetryService, testRepositoryProvider, unsealKeyRepository)
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 
