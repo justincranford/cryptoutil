@@ -20,8 +20,6 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-var shutdownOnce sync.Once
-
 type BarrierService struct {
 	telemetryService          *cryptoutilTelemetry.Service
 	ormRepository             *cryptoutilOrmRepository.RepositoryProvider
@@ -30,6 +28,7 @@ type BarrierService struct {
 	intermediateKeyRepository *cryptoutilBarrierRepository.Repository
 	contentKeyRepository      *cryptoutilBarrierRepository.Repository
 	closed                    bool
+	shutdownOnce              sync.Once
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealKeyRepository cryptoutilUnsealRepository.UnsealKeyRepository) (*BarrierService, error) {
@@ -69,7 +68,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 }
 
 func (d *BarrierService) Shutdown() {
-	shutdownOnce.Do(func() {
+	d.shutdownOnce.Do(func() {
 		if d.contentKeyRepository != nil {
 			err := d.contentKeyRepository.Shutdown()
 			if err != nil {
@@ -208,7 +207,7 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 func newRootKeyRepository(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealKeyRepository cryptoutilUnsealRepository.UnsealKeyRepository) (*cryptoutilBarrierRepository.Repository, error) {
 	unsealService, err := cryptoutilUnsealService.NewUnsealService(telemetryService, ormRepository, unsealKeyRepository)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize unseal service")
+		return nil, fmt.Errorf("failed to initialize unseal service: %w", err)
 	}
 
 	loadLatestRootKey := func() (joseJwk.Key, error) {
