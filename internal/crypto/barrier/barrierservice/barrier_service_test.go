@@ -26,13 +26,6 @@ var (
 	// testDbType = cryptoutilSqlProvider.DBTypePostgres
 )
 
-// var happyPathTestCases = []struct {
-// 	alg jwa.KeyEncryptionAlgorithm
-// }{
-// 	{alg: jose.AlgA256GCMKW},
-// 	{alg: jose.AlgDIRECT},
-// }
-
 func TestMain(m *testing.M) {
 	var err error
 
@@ -65,9 +58,6 @@ func TestMain(m *testing.M) {
 		os.Exit(-1)
 	}
 	defer testRepositoryProvider.Shutdown()
-
-	// testGivens = orm.NewGivens(testCtx, testTelemetryService)
-	// defer testGivens.Shutdown()
 
 	os.Exit(m.Run())
 }
