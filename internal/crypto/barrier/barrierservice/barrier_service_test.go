@@ -3,6 +3,7 @@ package barrierservice
 import (
 	"context"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
@@ -82,16 +83,36 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	unsealJwksCopy := make([]joseJwk.Key, len(unsealJwks))
 	copy(unsealJwksCopy, unsealJwks)
 
-	// all same keys
-	restartedUnsealKeyRepository2, err := cryptoutilUnsealRepository.NewUnsealKeyRepositorySimple(unsealJwksCopy)
+	restartedUnsealKeyRepository2, err := cryptoutilUnsealRepository.NewUnsealKeyRepositorySimple(unsealJwks)
 	require.NoError(t, err)
+	require.NotNil(t, restartedUnsealKeyRepository2)
 	encryptDecryptContent_Restart_DecryptAgain(t, testRepositoryProvider, originalUnsealKeyRepository, restartedUnsealKeyRepository2)
 
-	// remove first key, 2nd key remains
-	// unsealJwksCopy = unsealJwksCopy[1:]
-	restartedUnsealKeyRepository1, err := cryptoutilUnsealRepository.NewUnsealKeyRepositorySimple(unsealJwksCopy)
+	restartedUnsealKeyRepository1a, err := cryptoutilUnsealRepository.NewUnsealKeyRepositorySimple(unsealJwksCopy[:1])
 	require.NoError(t, err)
-	encryptDecryptContent_Restart_DecryptAgain(t, testRepositoryProvider, originalUnsealKeyRepository, restartedUnsealKeyRepository1)
+	require.NotNil(t, restartedUnsealKeyRepository1a)
+	encryptDecryptContent_Restart_DecryptAgain(t, testRepositoryProvider, originalUnsealKeyRepository, restartedUnsealKeyRepository1a)
+
+	restartedUnsealKeyRepository1b, err := cryptoutilUnsealRepository.NewUnsealKeyRepositorySimple(unsealJwksCopy[1:])
+	require.NoError(t, err)
+	require.NotNil(t, restartedUnsealKeyRepository1b)
+	encryptDecryptContent_Restart_DecryptAgain(t, testRepositoryProvider, originalUnsealKeyRepository, restartedUnsealKeyRepository1b)
+
+	invalidJwk, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	require.NoError(t, err)
+	restartedUnsealKeyRepository0, err := cryptoutilUnsealRepository.NewUnsealKeyRepositorySimple([]joseJwk.Key{invalidJwk})
+	require.NoError(t, err)
+	require.NotNil(t, restartedUnsealKeyRepository0)
+	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testRepositoryProvider, restartedUnsealKeyRepository0)
+	require.Error(t, err)
+	require.Nil(t, barrierService)
+
+	// retry previously successful unseal
+	restartedUnsealKeyRepository1a, err = cryptoutilUnsealRepository.NewUnsealKeyRepositorySimple(unsealJwksCopy[:1])
+	require.NoError(t, err)
+	require.NotNil(t, restartedUnsealKeyRepository1a)
+	encryptDecryptContent_Restart_DecryptAgain(t, testRepositoryProvider, originalUnsealKeyRepository, restartedUnsealKeyRepository1a)
+
 }
 
 func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testRepositoryProvider *cryptoutilOrmRepository.RepositoryProvider, originalUnsealKeyRepository cryptoutilUnsealRepository.UnsealKeyRepository, restartedUnsealKeyRepository cryptoutilUnsealRepository.UnsealKeyRepository) {
