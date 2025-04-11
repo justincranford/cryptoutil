@@ -49,7 +49,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestUnsealService_HappyPath_OneUnsealJwks(t *testing.T) {
-	mockUnsealKeyRepository, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 1)
+	mockUnsealKeyRepository, _, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 1)
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealKeyRepository)
 
@@ -59,7 +59,7 @@ func TestUnsealService_HappyPath_OneUnsealJwks(t *testing.T) {
 }
 
 func TestUnsealService_SadPath_ZeroUnsealJwks(t *testing.T) {
-	mockUnsealKeyRepository, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 0)
+	mockUnsealKeyRepository, _, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealKeyRepository)
 
@@ -70,7 +70,7 @@ func TestUnsealService_SadPath_ZeroUnsealJwks(t *testing.T) {
 }
 
 func TestUnsealService_SadPath_NilUnsealJwks(t *testing.T) {
-	mockUnsealKeyRepository, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 0)
+	mockUnsealKeyRepository, _, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealKeyRepository)
 	mockUnsealKeyRepository.On("UnsealJwks").Return(nil)
