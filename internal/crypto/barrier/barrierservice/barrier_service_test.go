@@ -5,7 +5,6 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
-	"fmt"
 	"log/slog"
 	"os"
 	"testing"
@@ -20,10 +19,7 @@ var (
 	testTelemetryService   *cryptoutilTelemetry.Service
 	testSqlProvider        *cryptoutilSqlProvider.SqlProvider
 	testRepositoryProvider *cryptoutilOrmRepository.RepositoryProvider
-	// testGivens             *orm.Givens
-	skipReadOnlyTxTests bool
-	testDbType          = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
-	// testDbType = cryptoutilSqlProvider.DBTypePostgres
+	testDbType             = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 )
 
 func TestMain(m *testing.M) {
@@ -36,16 +32,7 @@ func TestMain(m *testing.M) {
 	}
 	defer testTelemetryService.Shutdown()
 
-	switch testDbType {
-	case cryptoutilSqlProvider.DBTypeSQLite:
-		skipReadOnlyTxTests = true
-		testSqlProvider, err = cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypeSQLite, ":memory:", cryptoutilSqlProvider.ContainerModeDisabled)
-	case cryptoutilSqlProvider.DBTypePostgres:
-		skipReadOnlyTxTests = false
-		testSqlProvider, err = cryptoutilSqlProvider.NewSqlProvider(testCtx, testTelemetryService, cryptoutilSqlProvider.DBTypePostgres, "", cryptoutilSqlProvider.ContainerModeRequired)
-	default:
-		err = fmt.Errorf("unsupported dbType %s", testDbType)
-	}
+	testSqlProvider, err = cryptoutilSqlProvider.NewSqlProviderForTest(testCtx, testTelemetryService, testDbType)
 	if err != nil {
 		testTelemetryService.Slogger.Error("failed to initailize sqlProvider", "error", err)
 		os.Exit(-1)
