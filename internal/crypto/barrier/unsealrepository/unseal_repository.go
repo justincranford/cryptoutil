@@ -23,14 +23,14 @@ func computeCombinationsAndDeriveJwks(m [][]byte, chooseN int) ([]jwk.Key, error
 	}
 
 	unsealJwks := make([]jwk.Key, 0, len(combinations))
-	for _, combo := range combinations {
-		var comboBytes []byte
-		for _, key := range combo {
-			comboBytes = append(comboBytes, key...)
+	for _, combination := range combinations {
+		var concatenatedCombinationBytes []byte
+		for _, combinationElement := range combination {
+			concatenatedCombinationBytes = append(concatenatedCombinationBytes, combinationElement...)
 		}
 
-		secret := digests.SHA512(append(comboBytes, []byte("secret")...))
-		salt := digests.SHA512(append(comboBytes, []byte("salt")...))
+		secret := digests.SHA512(append(concatenatedCombinationBytes, []byte("secret")...))
+		salt := digests.SHA512(append(concatenatedCombinationBytes, []byte("salt")...))
 		derivedKey, err := digests.HKDFwithSHA256(secret, salt, []byte("derive unseal JWKs v1"), 32)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive key: %w", err)
