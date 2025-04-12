@@ -23,7 +23,7 @@ go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 go generate ./...
 ```
 
-Look at `internal/openapi/generate.go` for the commands used to generate internal/openapi/{model|server|client}/*.go code from OpenAPI spec files.
+Look at [internal/openapi/generate.go](https://github.com/justincranford/cryptoutil/blob/main/internal/openapi/generate.go) for the commands used to generate internal/openapi/{model|server|client}/*.go code from OpenAPI spec files.
 
 ## Testing
 
