@@ -11,13 +11,9 @@ import (
 )
 
 var (
-	ErrInvalidNilDigestFunction = errors.New("digest function can't be nil; supported options are SHA512, SHA384, SHA256, SHA224")
-	ErrInvalidNilSecret         = errors.New("secret can't be nil; generate a random value, and protect it")
-	ErrInvalidEmptySecret       = errors.New("secret can't be empty; generate a random value, and protect it")
-	// ErrInvalidNilSalt                   = errors.New("salt shouldn't be nil; generate a random value once, and store it with the digest")
-	// ErrInvalidEmptySalt                 = errors.New("salt shouldn't be empty; generate a random value once, and store it with the digest")
-	// ErrInvalidNilInfo                   = errors.New("info shouldn't be nil; provide a fixed context value")
-	// ErrInvalidEmptyInfo                 = errors.New("info shouldn't be empty; provide a fixed context value")
+	ErrInvalidNilDigestFunction         = errors.New("digest function can't be nil; supported options are SHA512, SHA384, SHA256, SHA224")
+	ErrInvalidNilSecret                 = errors.New("secret can't be nil; generate a random value, and protect it")
+	ErrInvalidEmptySecret               = errors.New("secret can't be empty; generate a random value, and protect it")
 	ErrInvalidOutputBytesLengthNegative = errors.New("outputBytesLength can't be negative; minimum should be 1 * digest block size, but can be truncated for some use cases")
 	ErrInvalidOutputBytesLengthZero     = errors.New("outputBytesLength can't be zero; minimum should be 1 * digest block size, but can be truncated for some use cases")
 	ErrInvalidOutputBytesLengthTooBig   = errors.New("outputBytesLength too big; maximum is 255 * digest block size")
@@ -66,16 +62,6 @@ func HKDF(digestName string, secretBytes []byte, saltBytes []byte, infoBytes []b
 	} else if len(secretBytes) == 0 {
 		errs = append(errs, ErrInvalidEmptySecret)
 	}
-	// if salt == nil {
-	// 	errs = append(errs, ErrInvalidNilSalt)
-	// } else if len(salt) == 0 {
-	// 	errs = append(errs, ErrInvalidEmptySalt)
-	// }
-	// if info == nil {
-	// 	errs = append(errs, ErrInvalidNilInfo)
-	// } else if len(info) == 0 {
-	// 	errs = append(errs, ErrInvalidEmptyInfo)
-	// }
 	if outputBytesLength < 0 {
 		errs = append(errs, ErrInvalidOutputBytesLengthNegative)
 	} else if outputBytesLength == 0 {
