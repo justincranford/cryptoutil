@@ -34,11 +34,7 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 	testSqlProvider := cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlProvider.Shutdown()
 
-	testRepositoryProvider, err := cryptoutilOrmRepository.NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
-	if err != nil {
-		testTelemetryService.Slogger.Error("failed to initailize repositoryProvider", "error", err)
-		os.Exit(-1)
-	}
+	testRepositoryProvider := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
 	defer testRepositoryProvider.Shutdown()
 
 	originalUnsealRepository, err := cryptoutilUnsealRepository.NewUnsealRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
@@ -51,11 +47,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	testSqlProvider := cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlProvider.Shutdown()
 
-	testRepositoryProvider, err := cryptoutilOrmRepository.NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
-	if err != nil {
-		testTelemetryService.Slogger.Error("failed to initailize repositoryProvider", "error", err)
-		os.Exit(-1)
-	}
+	testRepositoryProvider := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
 	defer testRepositoryProvider.Shutdown()
 
 	originalUnsealRepository, unsealJwks, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 2)

@@ -22,19 +22,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	var err error
-
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "servicelogic_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlProvider.Shutdown()
 
-	testRepositoryProvider, err = cryptoutilOrmRepository.NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
-	if err != nil {
-		testTelemetryService.Slogger.Error("failed to initailize repositoryProvider", "error", err)
-		os.Exit(-1)
-	}
+	testRepositoryProvider = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
 	defer testRepositoryProvider.Shutdown()
 
 	os.Exit(m.Run())
