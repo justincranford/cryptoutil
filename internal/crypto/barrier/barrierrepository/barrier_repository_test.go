@@ -23,7 +23,6 @@ var (
 func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "barrierrepository_test", false, false)
 	defer testTelemetryService.Shutdown()
-
 	os.Exit(m.Run())
 }
 

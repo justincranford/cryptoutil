@@ -3,7 +3,6 @@ package telemetry
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"math/rand/v2"
 	"os"
 	"testing"
@@ -16,12 +15,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	telemetryService, err := NewService(testCtx, "telemetry_test", false, false)
-	if err != nil {
-		slog.Error("failed to initailize telemetry", "error", err)
-		os.Exit(-1)
-	}
-	testTelemetryService = telemetryService
+	testTelemetryService = RequireNewForTest(testCtx, "telemetry_test", false, false)
 	defer testTelemetryService.Shutdown()
 	os.Exit(m.Run())
 }

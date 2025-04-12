@@ -25,7 +25,6 @@ func TestMain(m *testing.M) {
 
 	testSqlProvider = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)
 	defer testSqlProvider.Shutdown()
-
 	testSqlProvider.logConnectionPoolSettings()
 
 	os.Exit(m.Run())
