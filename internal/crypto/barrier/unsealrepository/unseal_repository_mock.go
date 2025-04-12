@@ -10,23 +10,23 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type UnsealKeyRepositoryMock struct {
+type UnsealRepositoryMock struct {
 	mock.Mock
 }
 
-func (m *UnsealKeyRepositoryMock) UnsealJwks() []joseJwk.Key {
+func (m *UnsealRepositoryMock) UnsealJwks() []joseJwk.Key {
 	args := m.Called()
 	return args.Get(0).([]joseJwk.Key)
 }
 
-func NewUnsealKeyRepositoryMock(t *testing.T, numUnsealJwks int) (*UnsealKeyRepositoryMock, []joseJwk.Key, error) {
+func NewUnsealRepositoryMock(t *testing.T, numUnsealJwks int) (*UnsealRepositoryMock, []joseJwk.Key, error) {
 	unsealKeys := make([]joseJwk.Key, 0, numUnsealJwks)
 	for _ = range numUnsealJwks {
 		unsealJwk, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 		assert.NoError(t, err)
 		unsealKeys = append(unsealKeys, unsealJwk)
 	}
-	mockUnsealKeyRepository := &UnsealKeyRepositoryMock{}
-	mockUnsealKeyRepository.On("UnsealJwks").Return(unsealKeys)
-	return mockUnsealKeyRepository, unsealKeys, nil
+	mockUnsealRepository := &UnsealRepositoryMock{}
+	mockUnsealRepository.On("UnsealJwks").Return(unsealKeys)
+	return mockUnsealRepository, unsealKeys, nil
 }

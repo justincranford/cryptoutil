@@ -31,7 +31,7 @@ type BarrierService struct {
 	shutdownOnce              sync.Once
 }
 
-func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealKeyRepository cryptoutilUnsealRepository.UnsealKeyRepository) (*BarrierService, error) {
+func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*BarrierService, error) {
 	keyPoolConfig, err := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Crypto Service AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool config: %w", err)
@@ -41,7 +41,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}
 
-	rootKeyRepository, err := newRootKeyRepository(telemetryService, ormRepository, unsealKeyRepository)
+	rootKeyRepository, err := newRootKeyRepository(telemetryService, ormRepository, unsealRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize root JWK repository: %w", err)
 	}
@@ -204,8 +204,8 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.Repository, barrierKey c
 	return jwk, nil
 }
 
-func newRootKeyRepository(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealKeyRepository cryptoutilUnsealRepository.UnsealKeyRepository) (*cryptoutilBarrierRepository.Repository, error) {
-	unsealService, err := cryptoutilUnsealService.NewUnsealService(telemetryService, ormRepository, unsealKeyRepository)
+func newRootKeyRepository(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*cryptoutilBarrierRepository.Repository, error) {
+	unsealService, err := cryptoutilUnsealService.NewUnsealService(telemetryService, ormRepository, unsealRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize unseal service: %w", err)
 	}

@@ -6,19 +6,19 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-type UnsealKeyRepositorySimple struct {
+type UnsealRepositorySimple struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealKeyRepositorySimple) UnsealJwks() []joseJwk.Key {
+func (u *UnsealRepositorySimple) UnsealJwks() []joseJwk.Key {
 	return u.unsealJwks
 }
 
-func NewUnsealKeyRepositorySimple(unsealJwks []joseJwk.Key) (UnsealKeyRepository, error) {
+func NewUnsealRepositorySimple(unsealJwks []joseJwk.Key) (UnsealRepository, error) {
 	if unsealJwks == nil {
 		return nil, fmt.Errorf("unsealJwks can't be nil")
 	} else if len(unsealJwks) == 0 {
 		return nil, fmt.Errorf("unsealJwks can't be empty")
 	}
-	return &UnsealKeyRepositorySimple{unsealJwks: unsealJwks}, nil
+	return &UnsealRepositorySimple{unsealJwks: unsealJwks}, nil
 }

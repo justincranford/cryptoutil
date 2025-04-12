@@ -25,8 +25,8 @@ func (u *UnsealService) GetLatest() *joseJwk.Key {
 	return u.unsealedRootJwksLatest
 }
 
-func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealKeyRepository cryptoutilUnsealRepository.UnsealKeyRepository) (*UnsealService, error) {
-	unsealJwks := unsealKeyRepository.UnsealJwks() // unseal keys from unseal repository
+func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*UnsealService, error) {
+	unsealJwks := unsealRepository.UnsealJwks() // unseal keys from unseal repository
 	if len(unsealJwks) == 0 {
 		return nil, fmt.Errorf("no unseal JWKs")
 	}

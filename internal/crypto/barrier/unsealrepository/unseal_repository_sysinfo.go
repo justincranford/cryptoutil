@@ -9,15 +9,15 @@ import (
 
 const fingerprintLeeway = 1
 
-type UnsealKeyRepositoryFromSysInfo struct {
+type UnsealRepositoryFromSysInfo struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealKeyRepositoryFromSysInfo) UnsealJwks() []joseJwk.Key {
+func (u *UnsealRepositoryFromSysInfo) UnsealJwks() []joseJwk.Key {
 	return u.unsealJwks
 }
 
-func NewUnsealKeyRepositoryFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealKeyRepository, error) {
+func NewUnsealRepositoryFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealRepository, error) {
 	sysinfos, err := cryptoutilSysinfo.GetAllInfo(sysInfoProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
@@ -35,9 +35,9 @@ func NewUnsealKeyRepositoryFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfo
 		chooseN = numSysinfos - fingerprintLeeway // use combinations of M choose M-1
 	}
 
-	unsealJwks, err := computeCombinationsAndDeriveJwks(sysinfos, chooseN)
+	unsealJwks, err := deriveJwksFromMChooseNCombinations(sysinfos, chooseN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
 	}
-	return &UnsealKeyRepositoryFromSysInfo{unsealJwks: unsealJwks}, nil
+	return &UnsealRepositoryFromSysInfo{unsealJwks: unsealJwks}, nil
 }

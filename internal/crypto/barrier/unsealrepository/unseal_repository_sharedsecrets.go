@@ -7,15 +7,15 @@ import (
 	"github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-type UnsealKeyRepositorySharedSecrets struct {
+type UnsealRepositorySharedSecrets struct {
 	unsealJwks []jwk.Key
 }
 
-func (u *UnsealKeyRepositorySharedSecrets) UnsealJwks() []jwk.Key {
+func (u *UnsealRepositorySharedSecrets) UnsealJwks() []jwk.Key {
 	return u.unsealJwks
 }
 
-func NewUnsealKeyRepositorySharedSecrets(m, chooseN, secretBytesLength int) (UnsealKeyRepository, error) {
+func NewUnsealRepositorySharedSecrets(m, chooseN, secretBytesLength int) (UnsealRepository, error) {
 	if m == 0 {
 		return nil, fmt.Errorf("m can't be zero")
 	} else if m < 0 {
@@ -42,9 +42,9 @@ func NewUnsealKeyRepositorySharedSecrets(m, chooseN, secretBytesLength int) (Uns
 		}
 	}
 
-	unsealJwks, err := computeCombinationsAndDeriveJwks(sharedSecrets, chooseN)
+	unsealJwks, err := deriveJwksFromMChooseNCombinations(sharedSecrets, chooseN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
 	}
-	return &UnsealKeyRepositorySharedSecrets{unsealJwks: unsealJwks}, nil
+	return &UnsealRepositorySharedSecrets{unsealJwks: unsealJwks}, nil
 }

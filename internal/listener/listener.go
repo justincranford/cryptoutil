@@ -51,12 +51,12 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 		return nil, nil, fmt.Errorf("failed to create ORM repository: %w", err)
 	}
 
-	unsealKeyRepository, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+	unsealRepository, err := cryptoutilUnsealRepository.NewUnsealRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create unseal key repository: %w", err)
 	}
 
-	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, repositoryOrm, unsealKeyRepository)
+	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, repositoryOrm, unsealRepository)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create unseal key repository: %w", err)
 	}

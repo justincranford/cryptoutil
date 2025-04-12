@@ -49,33 +49,33 @@ func TestMain(m *testing.M) {
 }
 
 func TestUnsealService_HappyPath_OneUnsealJwks(t *testing.T) {
-	mockUnsealKeyRepository, _, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 1)
+	mockUnsealRepository, _, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 1)
 	assert.NoError(t, err)
-	assert.NotNil(t, mockUnsealKeyRepository)
+	assert.NotNil(t, mockUnsealRepository)
 
-	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealKeyRepository)
+	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealRepository)
 	assert.NoError(t, err)
 	assert.NotNil(t, service)
 }
 
 func TestUnsealService_SadPath_ZeroUnsealJwks(t *testing.T) {
-	mockUnsealKeyRepository, _, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 0)
+	mockUnsealRepository, _, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 0)
 	assert.NoError(t, err)
-	assert.NotNil(t, mockUnsealKeyRepository)
+	assert.NotNil(t, mockUnsealRepository)
 
-	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealKeyRepository)
+	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealRepository)
 	assert.Error(t, err)
 	assert.Nil(t, service)
 	assert.EqualError(t, err, "no unseal JWKs")
 }
 
 func TestUnsealService_SadPath_NilUnsealJwks(t *testing.T) {
-	mockUnsealKeyRepository, _, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryMock(t, 0)
+	mockUnsealRepository, _, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 0)
 	assert.NoError(t, err)
-	assert.NotNil(t, mockUnsealKeyRepository)
-	mockUnsealKeyRepository.On("UnsealJwks").Return(nil)
+	assert.NotNil(t, mockUnsealRepository)
+	mockUnsealRepository.On("UnsealJwks").Return(nil)
 
-	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealKeyRepository)
+	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealRepository)
 	assert.Error(t, err)
 	assert.Nil(t, service)
 	assert.EqualError(t, err, "no unseal JWKs")
