@@ -10,6 +10,7 @@ import (
 	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier/barrierservice"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilUnsealService "cryptoutil/internal/crypto/barrier/unsealservice"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
@@ -53,12 +54,17 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 
 	unsealRepository, err := cryptoutilUnsealRepository.NewUnsealRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create unseal key repository: %w", err)
+		return nil, nil, fmt.Errorf("failed to create unseal repository: %w", err)
 	}
 
-	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, repositoryOrm, unsealRepository)
+	unsealService, err := cryptoutilUnsealService.NewUnsealService(telemetryService, repositoryOrm, unsealRepository)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create unseal key repository: %w", err)
+		return nil, nil, fmt.Errorf("failed to create unseal service: %w", err)
+	}
+
+	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, repositoryOrm, unsealService)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create barrier service: %w", err)
 	}
 
 	businessLogicService, err := cryptoutilBusinessLogic.NewService(ctx, telemetryService, repositoryOrm, barrierService)
