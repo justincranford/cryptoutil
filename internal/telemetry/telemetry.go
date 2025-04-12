@@ -50,11 +50,7 @@ var (
 	AttrServiceName       = "cryptoutil"
 	AttrServiceVersion    = "0.0.1"
 	AttrServiceInstanceID = func() string {
-		uuid, err := googleUuid.NewV7()
-		if err != nil {
-			os.Exit(1)
-		}
-		return uuid.String()
+		return googleUuid.Must(googleUuid.NewV7()).String()
 	}()
 )
 
