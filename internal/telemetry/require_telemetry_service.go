@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"context"
+
 	cryptoutilAppErr "cryptoutil/internal/apperr"
 )
 
