@@ -29,7 +29,7 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
-	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "orm_transaction_test", false, false)
+	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "orm_transaction_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)

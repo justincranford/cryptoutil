@@ -20,7 +20,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "sqlprovider_test", false, false)
+	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "sqlprovider_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	testSqlProvider = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)

@@ -26,7 +26,7 @@ const (
 
 func TestPoolsExample(t *testing.T) {
 	ctx := context.Background()
-	telemetryService := cryptoutilTelemetry.RequireNewService(testCtx, "keypools_test", false, false)
+	telemetryService := cryptoutilTelemetry.RequireNewForTest(testCtx, "keypools_test", false, false)
 	defer telemetryService.Shutdown()
 
 	keys, err := generateKeys(ctx, telemetryService)

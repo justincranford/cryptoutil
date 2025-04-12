@@ -24,7 +24,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "asn1_test", false, false)
+	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "asn1_test", false, false)
 	defer testTelemetryService.Shutdown()
 	os.Exit(m.Run())
 }
