@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"strconv"
 	"testing"
 
+	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilAsn1 "cryptoutil/internal/crypto/asn1"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
@@ -94,29 +94,17 @@ func writeKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
 		}
 
 		err := cryptoutilAsn1.PemWrite(key.Private, privatePemFilename)
-		if err != nil {
-			telemetryService.Slogger.Error("Write failed "+privatePemFilename, "error", err)
-			os.Exit(-1)
-		}
+		cryptoutilAppErr.RequireNoError(err, "Write failed "+privatePemFilename)
 
 		err = cryptoutilAsn1.DerWrite(key.Private, privateDerFilename)
-		if err != nil {
-			telemetryService.Slogger.Error("Write failed "+privateDerFilename, "error", err)
-			os.Exit(-1)
-		}
+		cryptoutilAppErr.RequireNoError(err, "Write failed "+privateDerFilename)
 
 		if key.Public != nil {
 			err = cryptoutilAsn1.PemWrite(key.Public, publicPemFilename)
-			if err != nil {
-				telemetryService.Slogger.Error("Write failed "+baseFilename+"_pub.pem", "error", err)
-				os.Exit(-1)
-			}
+			cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.pem")
 
 			err = cryptoutilAsn1.DerWrite(key.Public, publicDerFilename)
-			if err != nil {
-				telemetryService.Slogger.Error("Write failed "+baseFilename+"_pub.der", "error", err)
-				os.Exit(-1)
-			}
+			cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.der")
 		}
 	}
 }
@@ -135,29 +123,17 @@ func readKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
 		}
 
 		_, err := cryptoutilAsn1.PemRead(privatePemFilename)
-		if err != nil {
-			telemetryService.Slogger.Error("Write failed "+privatePemFilename, "error", err)
-			os.Exit(-1)
-		}
+		cryptoutilAppErr.RequireNoError(err, "Write failed "+privatePemFilename)
 
 		_, _, err = cryptoutilAsn1.DerRead(privateDerFilename)
-		if err != nil {
-			telemetryService.Slogger.Error("Read failed "+privateDerFilename, "error", err)
-			os.Exit(-1)
-		}
+		cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDerFilename)
 
 		if key.Public != nil {
 			_, err = cryptoutilAsn1.PemRead(publicPemFilename)
-			if err != nil {
-				telemetryService.Slogger.Error("Read failed "+publicPemFilename, "error", err)
-				os.Exit(-1)
-			}
+			cryptoutilAppErr.RequireNoError(err, "Read failed "+publicPemFilename)
 
 			_, _, err = cryptoutilAsn1.DerRead(publicDerFilename)
-			if err != nil {
-				telemetryService.Slogger.Error("Read failed "+publicDerFilename, "error", err)
-				os.Exit(-1)
-			}
+			cryptoutilAppErr.RequireNoError(err, "Read failed "+publicDerFilename)
 		}
 	}
 }
