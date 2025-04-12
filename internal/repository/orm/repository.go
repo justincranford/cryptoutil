@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
@@ -180,27 +180,27 @@ func (s *RepositoryTransaction) toAppErr(msg string, err error) error {
 
 	// custom errors
 	if errors.Is(err, ErrKeyPoolIDMustBeNonZeroUUID) {
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	} else if errors.Is(err, ErrKeyPoolIDMustBeNonZeroUUID) {
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	}
 
 	// gorm errors
 	switch {
 	case errors.Is(err, gorm.ErrRecordNotFound):
-		return apperr.NewHTTP404NotFound(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP404NotFound(msg, fmt.Errorf("%s: %w", msg, err))
 	case errors.Is(err, gorm.ErrDuplicatedKey):
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	case errors.Is(err, gorm.ErrForeignKeyViolated):
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	case errors.Is(err, gorm.ErrCheckConstraintViolated):
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	case errors.Is(err, gorm.ErrInvalidData):
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	case errors.Is(err, gorm.ErrInvalidValueOfLength):
-		return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	case errors.Is(err, gorm.ErrNotImplemented):
-		return apperr.NewHTTP501StatusLineAndCodeNotImplemented(msg, fmt.Errorf("%s: %w", msg, err))
+		return cryptoutilAppErr.NewHTTP501StatusLineAndCodeNotImplemented(msg, fmt.Errorf("%s: %w", msg, err))
 	}
 
 	// SQLite errors
@@ -208,11 +208,11 @@ func (s *RepositoryTransaction) toAppErr(msg string, err error) error {
 	if errors.As(err, &sqliteErr) {
 		switch sqliteErr.Code() {
 		case 2067: // UNIQUE constraint failed
-			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 		case 787: // FOREIGN KEY constraint failed
-			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 		case 1299: // CHECK constraint failed
-			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 		}
 	}
 
@@ -221,17 +221,17 @@ func (s *RepositoryTransaction) toAppErr(msg string, err error) error {
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
 		case "23505": // unique_violation
-			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 		case "23503": // foreign_key_violation
-			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 		case "23514": // check_violation
-			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 		case "22001": // string_data_right_truncation
-			return apperr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
+			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 		}
 	}
 
-	return apperr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", msg, err))
+	return cryptoutilAppErr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", msg, err))
 }
 
 func applyGetKeyPoolsFilters(db *gorm.DB, filters *GetKeyPoolsFilters) *gorm.DB {

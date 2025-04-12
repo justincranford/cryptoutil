@@ -2,7 +2,7 @@ package barrierrepository
 
 import (
 	"context"
-	"cryptoutil/internal/crypto/jose"
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 // Happy Path
 
 func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
-	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
+	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	mockLoadLatestFunc := func() (joseJwk.Key, error) {
 		return jwk, nil
 	}
@@ -53,12 +53,12 @@ func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
 }
 
 func TestJWKCache_HappyPath_Get(t *testing.T) {
-	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
+	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	mockLoadFunc := func(kid googleUuid.UUID) (joseJwk.Key, error) {
 		return jwk, nil
 	}
 
-	kid, err := jose.ExtractKidUuid(jwk)
+	kid, err := cryptoutilJose.ExtractKidUuid(jwk)
 	require.NoError(t, err)
 
 	jwkCache, err := New("TestJWKCache_HappyPath_Get", testTelemetryService, 10, nil, mockLoadFunc, nil, nil)
@@ -73,7 +73,7 @@ func TestJWKCache_HappyPath_Get(t *testing.T) {
 }
 
 func TestJWKCache_HappyPath_Put(t *testing.T) {
-	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
+	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	mockStoreFunc := func(jwk joseJwk.Key) error {
 		return nil
 	}
@@ -128,7 +128,7 @@ func TestJWKCache_SadPath_Get_Function(t *testing.T) {
 }
 
 func TestJWKCache_Put_SadPath(t *testing.T) {
-	jwk, _, _ := jose.GenerateAesJWK(jose.AlgA256GCMKW)
+	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 
 	mockStoreFunc := func(jwk joseJwk.Key) error {
 		return nil

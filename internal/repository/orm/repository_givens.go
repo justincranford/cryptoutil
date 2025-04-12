@@ -2,7 +2,7 @@ package orm
 
 import (
 	"context"
-	"cryptoutil/internal/crypto/keygen"
+	cryptoutilKeyGen "cryptoutil/internal/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"errors"
 	"fmt"
@@ -13,19 +13,19 @@ import (
 
 type Givens struct {
 	telemetryService *cryptoutilTelemetry.Service
-	aes256Pool       *keygen.KeyPool
-	uuidV7Pool       *keygen.KeyPool
+	aes256Pool       *cryptoutilKeyGen.KeyPool
+	uuidV7Pool       *cryptoutilKeyGen.KeyPool
 }
 
 func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) (*Givens, error) {
-	aes256PoolConfig, err1 := keygen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens AES256", 3, 3, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, keygen.GenerateAESKeyFunction(256))
-	uuidV7PoolConfig, err2 := keygen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, keygen.GenerateUUIDv7Function())
+	aes256PoolConfig, err1 := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens AES256", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(256))
+	uuidV7PoolConfig, err2 := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateUUIDv7Function())
 	if err1 != nil || err2 != nil {
 		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2))
 	}
 
-	aes256Pool, err1 := keygen.NewKeyPool(aes256PoolConfig)
-	uuidV7Pool, err2 := keygen.NewKeyPool(uuidV7PoolConfig)
+	aes256Pool, err1 := cryptoutilKeyGen.NewKeyPool(aes256PoolConfig)
+	uuidV7Pool, err2 := cryptoutilKeyGen.NewKeyPool(uuidV7PoolConfig)
 	if err1 != nil || err2 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2))
 	}

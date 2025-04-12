@@ -1,7 +1,7 @@
 package sysinfo
 
 import (
-	"cryptoutil/internal/util"
+	cryptoutilUtil "cryptoutil/internal/util"
 	"errors"
 	"fmt"
 	"sync"
@@ -53,5 +53,5 @@ func GetAllInfo(sysInfoProvider SysInfoProvider) ([][]byte, error) {
 		return nil, errors.Join(cpuErr, ramErr, osErr, hostIDErr, userErr)
 	}
 
-	return util.StringPointersToBytes(&hostID, &userID, &groupID, &runtimeGoArch, &runtimeGoOS, &runtimeNumCPU, &cpuVendorID, &cpuFamily, &cpuPhysicalID, &cpuModelName, &ramSize, &osHostname, &username), nil
+	return cryptoutilUtil.StringPointersToBytes(&hostID, &userID, &groupID, &runtimeGoArch, &runtimeGoOS, &runtimeNumCPU, &cpuVendorID, &cpuFamily, &cpuPhysicalID, &cpuModelName, &ramSize, &osHostname, &username), nil
 }
