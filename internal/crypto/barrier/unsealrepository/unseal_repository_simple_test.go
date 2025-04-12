@@ -11,7 +11,7 @@ import (
 func TestNewUnsealRepositorySimple_HappyPath(t *testing.T) {
 	const newConst = 10
 	unsealKeys := make([]joseJwk.Key, 0, newConst)
-	for _ = range newConst {
+	for range newConst {
 		unsealJwk, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
 		assert.NoError(t, err, "Expected no error")
 		unsealKeys = append(unsealKeys, unsealJwk)
