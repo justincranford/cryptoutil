@@ -7,12 +7,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier/barrierservice"
+	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilServiceLogic "cryptoutil/internal/servicelogic"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
@@ -48,6 +51,23 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 		return nil, nil, fmt.Errorf("failed to create ORM repository: %w", err)
 	}
 
+	unsealKeyRepository, err := cryptoutilUnsealRepository.NewUnsealKeyRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create unseal key repository: %w", err)
+	}
+
+	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, repositoryOrm, unsealKeyRepository)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create unseal key repository: %w", err)
+	}
+
+	businessLogicService, err := cryptoutilServiceLogic.NewService(ctx, telemetryService, repositoryOrm, barrierService)
+	if err != nil {
+		telemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
+		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
+		return nil, nil, fmt.Errorf("failed to initialize business logic service: %w", err)
+	}
+
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get swagger", "error", err)
@@ -60,13 +80,6 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 		telemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
 		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
 		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
-	}
-
-	businessLogicService, err := cryptoutilServiceLogic.NewService(ctx, telemetryService, repositoryOrm)
-	if err != nil {
-		telemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
-		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
-		return nil, nil, fmt.Errorf("failed to initialize business logic service: %w", err)
 	}
 
 	app := fiber.New(fiber.Config{Immutable: true})

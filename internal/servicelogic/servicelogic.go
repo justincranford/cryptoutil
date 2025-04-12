@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"time"
 
-	googleUuid "github.com/google/uuid"
-
+	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier/barrierservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+
+	googleUuid "github.com/google/uuid"
 )
 
 type KeyPoolService struct {
@@ -21,9 +22,10 @@ type KeyPoolService struct {
 	aes192Pool       *cryptoutilKeygen.KeyPool
 	aes128Pool       *cryptoutilKeygen.KeyPool
 	uuidV7Pool       *cryptoutilKeygen.KeyPool
+	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
-func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider) (*KeyPoolService, error) {
+func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, barrierService *cryptoutilBarrierService.BarrierService) (*KeyPoolService, error) {
 	aes256PoolConfig, err1 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	aes192PoolConfig, err2 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
 	aes128PoolConfig, err3 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
@@ -39,7 +41,8 @@ func NewService(ctx context.Context, telemetryService *cryptoutilTelemetry.Servi
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4))
 	}
-	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool, uuidV7Pool: uuidV7Pool}, nil
+
+	return &KeyPoolService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool, uuidV7Pool: uuidV7Pool, barrierService: barrierService}, nil
 }
 
 func (s *KeyPoolService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
@@ -229,16 +232,22 @@ func (s *KeyPoolService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID 
 func (s *KeyPoolService) generateKeyInsert(keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {
 	keyID := s.uuidV7Pool.Get().Private.(googleUuid.UUID)
 
-	repositoryKeyKeyMaterial, err := s.GenerateKeyMaterial(keyPoolAlgorithm)
+	// TODO Generate JWK instead of []byte
+	clearKeyMaterial, err := s.GenerateKeyMaterial(keyPoolAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate Key material: %w", err)
 	}
 	repositoryKeyGenerateDate := time.Now().UTC()
 
+	encryptedKeyMaterial, err := s.barrierService.EncryptContent(clearKeyMaterial)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt Key material: %w", err)
+	}
+
 	return &cryptoutilOrmRepository.Key{
 		KeyPoolID:       keyPoolID,
 		KeyID:           keyID,
-		KeyMaterial:     repositoryKeyKeyMaterial,
+		KeyMaterial:     encryptedKeyMaterial,
 		KeyGenerateDate: &repositoryKeyGenerateDate,
 	}, nil
 }
