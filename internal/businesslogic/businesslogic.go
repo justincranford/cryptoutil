@@ -1,4 +1,4 @@
-package servicelogic
+package businesslogic
 
 import (
 	"context"

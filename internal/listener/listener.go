@@ -7,13 +7,13 @@ import (
 	"os/signal"
 	"syscall"
 
+	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier/barrierservice"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
-	cryptoutilServiceLogic "cryptoutil/internal/servicelogic"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 
@@ -61,7 +61,7 @@ func NewListener(listenHost string, listenPort int, applyMigrations bool) (func(
 		return nil, nil, fmt.Errorf("failed to create unseal key repository: %w", err)
 	}
 
-	businessLogicService, err := cryptoutilServiceLogic.NewService(ctx, telemetryService, repositoryOrm, barrierService)
+	businessLogicService, err := cryptoutilBusinessLogic.NewService(ctx, telemetryService, repositoryOrm, barrierService)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
 		stopServerFunc(telemetryService, sqlProvider, repositoryOrm, nil)()
