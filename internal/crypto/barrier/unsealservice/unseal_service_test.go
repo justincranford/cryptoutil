@@ -27,11 +27,7 @@ func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "servicelogic_test", false, false)
 	defer testTelemetryService.Shutdown()
 
-	testSqlProvider, err = cryptoutilSqlProvider.NewSqlProviderForTest(testCtx, testTelemetryService, testDbType)
-	if err != nil {
-		testTelemetryService.Slogger.Error("failed to initailize sqlProvider", "error", err)
-		os.Exit(-1)
-	}
+	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlProvider.Shutdown()
 
 	testRepositoryProvider, err = cryptoutilOrmRepository.NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)

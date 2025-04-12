@@ -4,16 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
-func NewSqlProviderForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbType SupportedDBType) (*SqlProvider, error) {
+func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbType SupportedDBType) *SqlProvider {
+	var sqlProvider *SqlProvider
+	var err error
 	switch dbType {
 	case DBTypeSQLite:
-		return NewSqlProvider(ctx, telemetryService, DBTypeSQLite, ":memory:", ContainerModeDisabled)
+		sqlProvider, err = NewSqlProvider(ctx, telemetryService, DBTypeSQLite, ":memory:", ContainerModeDisabled)
 	case DBTypePostgres:
-		return NewSqlProvider(ctx, telemetryService, DBTypePostgres, "", ContainerModeRequired)
+		sqlProvider, err = NewSqlProvider(ctx, telemetryService, DBTypePostgres, "", ContainerModeRequired)
 	default:
-		return nil, fmt.Errorf("unsupported dbType %s", dbType)
+		err = fmt.Errorf("unsupported dbType %s", dbType)
 	}
+	cryptoutilAppErr.RequireNoError(err, "failed to initialize SQL provider")
+	return sqlProvider
 }

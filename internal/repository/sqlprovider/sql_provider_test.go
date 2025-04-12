@@ -3,7 +3,6 @@ package sqlprovider
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"testing"
 
@@ -24,15 +23,10 @@ func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "sqlprovider_test", false, false)
 	defer testTelemetryService.Shutdown()
 
-	sqlProvider, err := NewSqlProvider(testCtx, testTelemetryService, DBTypeSQLite, ":memory:", ContainerModeDisabled)
-	if err != nil {
-		slog.Error("failed to initailize sqlProvider", "error", err)
-		os.Exit(-1)
-	}
-	testSqlProvider = sqlProvider
-	defer sqlProvider.Shutdown()
+	testSqlProvider = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)
+	defer testSqlProvider.Shutdown()
 
-	sqlProvider.logConnectionPoolSettings()
+	testSqlProvider.logConnectionPoolSettings()
 
 	os.Exit(m.Run())
 }
