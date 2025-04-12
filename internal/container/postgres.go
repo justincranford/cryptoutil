@@ -2,9 +2,10 @@ package container
 
 import (
 	"context"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
 	"time"
+
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"

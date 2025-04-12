@@ -1,10 +1,11 @@
 package sysinfo
 
 import (
-	cryptoutilUtil "cryptoutil/internal/util"
 	"errors"
 	"fmt"
 	"sync"
+
+	cryptoutilUtil "cryptoutil/internal/util"
 )
 
 func GetAllInfo(sysInfoProvider SysInfoProvider) ([][]byte, error) {

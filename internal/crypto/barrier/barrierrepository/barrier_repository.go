@@ -2,12 +2,13 @@ package barrierrepository
 
 import (
 	"context"
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"errors"
 	"fmt"
 	"sync"
 	"time"
+
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru"

@@ -1,8 +1,9 @@
 package unsealrepository
 
 import (
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	"testing"
+
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/assert"

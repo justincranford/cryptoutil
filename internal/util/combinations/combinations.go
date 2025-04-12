@@ -5,10 +5,12 @@ import (
 	"fmt"
 )
 
-type M [][]byte
-type value []byte
-type combination []value
-type combinations []combination
+type (
+	M            [][]byte
+	value        []byte
+	combination  []value
+	combinations []combination
+)
 
 func ComputeCombinations(m M, n int) (combinations, error) {
 	if m == nil {

@@ -1,12 +1,13 @@
 package handler
 
 import (
-	cryptoutilAppErr "cryptoutil/internal/apperr"
-	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
-	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	"errors"
 	"fmt"
 	"net/http"
+
+	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 )
 
 type openapiMapper struct{}

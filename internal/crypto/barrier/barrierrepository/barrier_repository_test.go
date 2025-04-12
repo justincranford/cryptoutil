@@ -2,12 +2,13 @@ package barrierrepository
 
 import (
 	"context"
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"testing"
+
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 

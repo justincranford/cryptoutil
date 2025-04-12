@@ -2,13 +2,14 @@ package sqlprovider
 
 import (
 	"context"
-	cryptoutilContainer "cryptoutil/internal/container"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"database/sql"
 	"errors"
 	"fmt"
 	"math/rand"
 	"time"
+
+	cryptoutilContainer "cryptoutil/internal/container"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 type SqlProvider struct {
@@ -19,8 +20,10 @@ type SqlProvider struct {
 	shutdownDBContainer func()
 }
 
-type SupportedDBType string
-type ContainerMode string
+type (
+	SupportedDBType string
+	ContainerMode   string
+)
 
 const (
 	DBTypeSQLite   SupportedDBType = "sqlite"

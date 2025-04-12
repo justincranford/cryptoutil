@@ -1,10 +1,11 @@
 package unsealrepository
 
 import (
+	"fmt"
+
 	cryptoutilDigests "cryptoutil/internal/crypto/digests"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilCombinations "cryptoutil/internal/util/combinations"
-	"fmt"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )

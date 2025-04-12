@@ -1,12 +1,13 @@
 package unsealservice
 
 import (
+	"errors"
+	"fmt"
+
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
-	"errors"
-	"fmt"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"

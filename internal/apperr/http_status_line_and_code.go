@@ -2,9 +2,11 @@ package apperr
 
 import "net/http"
 
-type HTTPStatusCode int
-type HTTPReasonPhrase string
-type Code string
+type (
+	HTTPStatusCode   int
+	HTTPReasonPhrase string
+	Code             string
+)
 
 type HTTPStatusLine struct {
 	StatusCode   HTTPStatusCode   // HTTP status code

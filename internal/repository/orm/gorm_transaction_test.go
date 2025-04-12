@@ -2,13 +2,14 @@ package orm
 
 import (
 	"context"
-	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
 	"log/slog"
 	"os"
 	"testing"
 	"time"
+
+	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"

@@ -1,8 +1,9 @@
 package unsealrepository
 
 import (
-	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 	"fmt"
+
+	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )

@@ -2,8 +2,9 @@ package sqlprovider
 
 import (
 	"context"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
+
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 func NewSqlProviderForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbType SupportedDBType) (*SqlProvider, error) {

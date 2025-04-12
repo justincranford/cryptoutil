@@ -2,11 +2,12 @@ package sqlprovider
 
 import (
 	"context"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
 	"log/slog"
 	"os"
 	"testing"
+
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"

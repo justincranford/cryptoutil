@@ -44,18 +44,23 @@ type BarrierKey interface {
 func (r *RootKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
+
 func (r *RootKey) SetUUID(uuid googleUuid.UUID) {
 	r.UUID = uuid
 }
+
 func (r *RootKey) GetSerialized() string {
 	return r.Serialized
 }
+
 func (r *RootKey) SetSerialized(serialized string) {
 	r.Serialized = serialized
 }
+
 func (r *RootKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
+
 func (r *RootKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 	r.KEKUUID = kekUUID
 }
@@ -63,18 +68,23 @@ func (r *RootKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 func (r *IntermediateKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
+
 func (r *IntermediateKey) SetUUID(uuid googleUuid.UUID) {
 	r.UUID = uuid
 }
+
 func (r *IntermediateKey) GetSerialized() string {
 	return r.Serialized
 }
+
 func (r *IntermediateKey) SetSerialized(serialized string) {
 	r.Serialized = serialized
 }
+
 func (r *IntermediateKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
+
 func (r *IntermediateKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 	r.KEKUUID = kekUUID
 }
@@ -82,18 +92,23 @@ func (r *IntermediateKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 func (r *ContentKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
+
 func (r *ContentKey) SetUUID(uuid googleUuid.UUID) {
 	r.UUID = uuid
 }
+
 func (r *ContentKey) GetSerialized() string {
 	return r.Serialized
 }
+
 func (r *ContentKey) SetSerialized(serialized string) {
 	r.Serialized = serialized
 }
+
 func (r *ContentKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
+
 func (r *ContentKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 	r.KEKUUID = kekUUID
 }

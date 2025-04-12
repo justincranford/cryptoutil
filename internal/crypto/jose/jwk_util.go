@@ -2,9 +2,8 @@ package jose
 
 import (
 	"crypto/rand"
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"

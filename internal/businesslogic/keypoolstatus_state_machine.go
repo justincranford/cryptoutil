@@ -1,9 +1,10 @@
 package businesslogic
 
 import (
-	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 	"errors"
 	"fmt"
+
+	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
 )
 
 var validTransitions = func() map[cryptoutilServiceModel.KeyPoolStatus]map[cryptoutilServiceModel.KeyPoolStatus]bool {

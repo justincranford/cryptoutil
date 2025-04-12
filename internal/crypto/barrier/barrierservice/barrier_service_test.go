@@ -2,15 +2,16 @@ package barrierservice
 
 import (
 	"context"
+	"log/slog"
+	"os"
+	"testing"
+
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
-	"log/slog"
-	"os"
-	"testing"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	_ "github.com/lib/pq"
@@ -112,7 +113,6 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, restartedUnsealRepository1a)
 	encryptDecryptContent_Restart_DecryptAgain(t, testRepositoryProvider, originalUnsealRepository, restartedUnsealRepository1a)
-
 }
 
 func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testRepositoryProvider *cryptoutilOrmRepository.RepositoryProvider, originalUnsealRepository cryptoutilUnsealRepository.UnsealRepository, restartedUnsealRepository cryptoutilUnsealRepository.UnsealRepository) {

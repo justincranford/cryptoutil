@@ -3,9 +3,8 @@ package sysinfo
 import (
 	"fmt"
 	"os"
-	"runtime"
-
 	"os/user"
+	"runtime"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"

@@ -2,6 +2,10 @@ package barrierservice
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"sync"
+
 	cryptoutilBarrierRepository "cryptoutil/internal/crypto/barrier/barrierrepository"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilUnsealService "cryptoutil/internal/crypto/barrier/unsealservice"
@@ -9,9 +13,6 @@ import (
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
-	"errors"
-	"fmt"
-	"sync"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"

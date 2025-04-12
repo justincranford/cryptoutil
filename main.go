@@ -1,8 +1,9 @@
 package main
 
 import (
-	cryptoutilServer "cryptoutil/internal/listener"
 	"log"
+
+	cryptoutilServer "cryptoutil/internal/listener"
 )
 
 func main() {

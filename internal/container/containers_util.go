@@ -2,8 +2,9 @@ package container
 
 import (
 	"context"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	"fmt"
+
+	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"

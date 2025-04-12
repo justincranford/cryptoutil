@@ -1,9 +1,8 @@
 package jose
 
 import (
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
