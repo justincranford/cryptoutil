@@ -78,6 +78,11 @@ var slogStdoutAttributes = func() []slog.Attr {
 
 func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool) (*Service, error) {
 	startTime := time.Now().UTC()
+	if ctx == nil {
+		return nil, fmt.Errorf("context must be non-nil")
+	} else if len(scope) == 0 {
+		return nil, fmt.Errorf("scope must be non-empty")
+	}
 	slogger, logsProvider, err := initLogger(ctx, enableOtel, scope)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init logger: %w", err)

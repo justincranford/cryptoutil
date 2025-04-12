@@ -8,7 +8,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	"fmt"
-	"log/slog"
 	"os"
 	"testing"
 	"time"
@@ -66,12 +65,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	telemetryService, err := cryptoutilTelemetry.NewService(testCtx, "keypool_test", false, false)
-	if err != nil {
-		slog.Error("failed to initailize telemetry", "error", err)
-		os.Exit(-1)
-	}
-	testTelemetryService = telemetryService
+	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "keypool_test", false, false)
 	defer testTelemetryService.Shutdown()
 	os.Exit(m.Run())
 }

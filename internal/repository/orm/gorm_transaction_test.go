@@ -3,7 +3,6 @@ package orm
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"testing"
 	"time"
@@ -30,11 +29,7 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
-	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "orm_transaction_test", false, false)
-	if err != nil {
-		slog.Error("failed to initailize telemetry", "error", err)
-		os.Exit(-1)
-	}
+	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "orm_transaction_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	testSqlProvider, err = cryptoutilSqlProvider.NewSqlProviderForTest(testCtx, testTelemetryService, testDbType)

@@ -21,12 +21,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	telemetryService, err := cryptoutilTelemetry.NewService(testCtx, "sqlprovider_test", false, false)
-	if err != nil {
-		slog.Error("failed to initailize telemetry", "error", err)
-		os.Exit(-1)
-	}
-	testTelemetryService = telemetryService
+	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "sqlprovider_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	sqlProvider, err := NewSqlProvider(testCtx, testTelemetryService, DBTypeSQLite, ":memory:", ContainerModeDisabled)

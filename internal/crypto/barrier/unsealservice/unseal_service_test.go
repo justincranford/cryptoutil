@@ -2,7 +2,6 @@ package unsealservice
 
 import (
 	"context"
-	"log/slog"
 	"os"
 	"testing"
 
@@ -25,11 +24,7 @@ var (
 func TestMain(m *testing.M) {
 	var err error
 
-	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "servicelogic_test", false, false)
-	if err != nil {
-		slog.Error("failed to initailize telemetry", "error", err)
-		os.Exit(-1)
-	}
+	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "servicelogic_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	testSqlProvider, err = cryptoutilSqlProvider.NewSqlProviderForTest(testCtx, testTelemetryService, testDbType)

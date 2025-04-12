@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"testing"
 
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
-
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
@@ -23,13 +21,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	var err error
-
-	testTelemetryService, err = cryptoutilTelemetry.NewService(testCtx, "barrierrepository_test", false, false)
-	if err != nil {
-		slog.Error("failed to initailize telemetry", "error", err)
-		os.Exit(-1)
-	}
+	testTelemetryService = cryptoutilTelemetry.RequireNewService(testCtx, "barrierrepository_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	os.Exit(m.Run())
