@@ -10,13 +10,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type RepositoryTransaction struct {
+type OrmTransaction struct {
 	ormRepository *OrmRepository
 	guardState    sync.Mutex
-	state         *RepositoryTransactionState
+	state         *OrmTransactionState
 }
 
-type RepositoryTransactionState struct {
+type OrmTransactionState struct {
 	ctx    context.Context
 	txMode TransactionMode
 	txID   googleUuid.UUID
@@ -33,8 +33,8 @@ var (
 
 // OrmRepository
 
-func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode TransactionMode, function func(repositoryTransaction *RepositoryTransaction) error) error {
-	tx := &RepositoryTransaction{ormRepository: r}
+func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode TransactionMode, function func(ormTransaction *OrmTransaction) error) error {
+	tx := &OrmTransaction{ormRepository: r}
 
 	err := tx.begin(ctx, transactionMode)
 	if err != nil {
@@ -70,7 +70,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 
 // RepositoryTransaction
 
-func (tx *RepositoryTransaction) ID() *googleUuid.UUID {
+func (tx *OrmTransaction) ID() *googleUuid.UUID {
 	// tx.guardState.Lock()
 	// defer tx.guardState.Unlock()
 	if tx.state == nil {
@@ -79,7 +79,7 @@ func (tx *RepositoryTransaction) ID() *googleUuid.UUID {
 	return &tx.state.txID
 }
 
-func (tx *RepositoryTransaction) Context() context.Context {
+func (tx *OrmTransaction) Context() context.Context {
 	// tx.guardState.Lock()
 	// defer tx.guardState.Unlock()
 	if tx.state == nil {
@@ -88,7 +88,7 @@ func (tx *RepositoryTransaction) Context() context.Context {
 	return tx.state.ctx
 }
 
-func (tx *RepositoryTransaction) Mode() *TransactionMode {
+func (tx *OrmTransaction) Mode() *TransactionMode {
 	// tx.guardState.Lock()
 	// defer tx.guardState.Unlock()
 	if tx.state == nil {
@@ -99,7 +99,7 @@ func (tx *RepositoryTransaction) Mode() *TransactionMode {
 
 // Helpers
 
-func (tx *RepositoryTransaction) begin(ctx context.Context, transactionMode TransactionMode) error {
+func (tx *OrmTransaction) begin(ctx context.Context, transactionMode TransactionMode) error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -116,12 +116,12 @@ func (tx *RepositoryTransaction) begin(ctx context.Context, transactionMode Tran
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	tx.state = &RepositoryTransactionState{ctx: ctx, txMode: transactionMode, txID: txID, gormTx: gormTx}
+	tx.state = &OrmTransactionState{ctx: ctx, txMode: transactionMode, txID: txID, gormTx: gormTx}
 	tx.ormRepository.telemetryService.Slogger.Info("started transaction", "txID", txID, "mode", transactionMode)
 	return nil
 }
 
-func (tx *RepositoryTransaction) commit() error {
+func (tx *OrmTransaction) commit() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -145,7 +145,7 @@ func (tx *RepositoryTransaction) commit() error {
 	return nil
 }
 
-func (tx *RepositoryTransaction) rollback() error {
+func (tx *OrmTransaction) rollback() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
@@ -171,7 +171,7 @@ func (tx *RepositoryTransaction) rollback() error {
 
 // Implementation using Gorm
 
-func (tx *RepositoryTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode, txID googleUuid.UUID) (*gorm.DB, error) {
+func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode, txID googleUuid.UUID) (*gorm.DB, error) {
 	gormTx := tx.ormRepository.gormDB.WithContext(ctx)
 	if transactionMode == AutoCommit {
 		return gormTx, nil
@@ -186,7 +186,7 @@ func (tx *RepositoryTransaction) beginImplementation(ctx context.Context, transa
 	return gormTx, nil
 }
 
-func (tx *RepositoryTransaction) commitImplementation() (*gorm.DB, error) {
+func (tx *OrmTransaction) commitImplementation() (*gorm.DB, error) {
 	gormTx := tx.state.gormTx.Commit()
 	if gormTx.Error != nil {
 		return nil, fmt.Errorf("failed to commit gorm transaction: %w", gormTx.Error)
@@ -194,7 +194,7 @@ func (tx *RepositoryTransaction) commitImplementation() (*gorm.DB, error) {
 	return gormTx, nil
 }
 
-func (tx *RepositoryTransaction) rollbackImplementation() (*gorm.DB, error) {
+func (tx *OrmTransaction) rollbackImplementation() (*gorm.DB, error) {
 	gormTx := tx.state.gormTx.Rollback()
 	if gormTx.Error != nil {
 		return nil, fmt.Errorf("failed to rollback gorm transaction: %w", gormTx.Error)

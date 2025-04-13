@@ -48,8 +48,8 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 		}
 	}()
 
-	panicErr := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
-		require.NotNil(t, repositoryTransaction)
+	panicErr := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
+		require.NotNil(t, ormTransaction)
 		panic("simulated panic during transaction")
 	})
 	require.Error(t, panicErr)
@@ -57,11 +57,11 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
-	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
-		require.NotNil(t, repositoryTransaction)
-		require.Equal(t, ReadWrite, *repositoryTransaction.Mode())
+	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
+		require.NotNil(t, ormTransaction)
+		require.Equal(t, ReadWrite, *ormTransaction.Mode())
 
-		err := repositoryTransaction.begin(testCtx, ReadWrite)
+		err := ormTransaction.begin(testCtx, ReadWrite)
 		require.Error(t, err)
 
 		return err
@@ -71,25 +71,25 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
-	repositoryTransaction := &RepositoryTransaction{ormRepository: testOrmRepository}
+	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
 
-	commitErr := repositoryTransaction.commit()
+	commitErr := ormTransaction.commit()
 	require.Error(t, commitErr)
 	require.EqualError(t, commitErr, "can't commit because transaction not active")
 }
 
 func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
-	repositoryTransaction := &RepositoryTransaction{ormRepository: testOrmRepository}
+	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
 
-	rollbackErr := repositoryTransaction.rollback()
+	rollbackErr := ormTransaction.rollback()
 	require.Error(t, rollbackErr)
 	require.EqualError(t, rollbackErr, "can't rollback because transaction not active")
 }
 
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
-	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
-		require.NotNil(t, repositoryTransaction)
-		require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
+	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(ormTransaction *OrmTransaction) error {
+		require.NotNil(t, ormTransaction)
+		require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
 		return nil
 	})
@@ -97,9 +97,9 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
-	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
-		require.NotNil(t, repositoryTransaction)
-		require.Equal(t, ReadWrite, *repositoryTransaction.Mode())
+	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
+		require.NotNil(t, ormTransaction)
+		require.Equal(t, ReadWrite, *ormTransaction.Mode())
 		return fmt.Errorf("intentional failure")
 	})
 	require.Error(t, err)
@@ -124,14 +124,14 @@ func TestSqlTransaction_Success(t *testing.T) {
 
 		addedKeyPools := []*KeyPool{}
 		addedKeys := []*Key{}
-		err := testOrmRepository.WithTransaction(testCtx, testCase.txMode, func(repositoryTransaction *RepositoryTransaction) error {
-			require.NotNil(t, repositoryTransaction)
-			require.NotNil(t, repositoryTransaction.ID())
-			require.NotNil(t, repositoryTransaction.Context())
-			require.Equal(t, testCase.txMode, *repositoryTransaction.Mode())
+		err := testOrmRepository.WithTransaction(testCtx, testCase.txMode, func(ormTransaction *OrmTransaction) error {
+			require.NotNil(t, ormTransaction)
+			require.NotNil(t, ormTransaction.ID())
+			require.NotNil(t, ormTransaction.Context())
+			require.Equal(t, testCase.txMode, *ormTransaction.Mode())
 
 			keyPool := testGivens.Aes256KeyPool(true, true, true)
-			err := repositoryTransaction.AddKeyPool(keyPool)
+			err := ormTransaction.AddKeyPool(keyPool)
 			if err != nil {
 				return fmt.Errorf("failed to add Key Pool: %w", err)
 			}
@@ -140,7 +140,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
 				now := time.Now().UTC()
 				key := testGivens.Aes256Key(keyPool.KeyPoolID, &now, nil, nil, nil)
-				err = repositoryTransaction.AddKeyPoolKey(key)
+				err = ormTransaction.AddKeyPoolKey(key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
 				}
@@ -157,13 +157,13 @@ func TestSqlTransaction_Success(t *testing.T) {
 		}
 
 		for _, addedKeyPool := range addedKeyPools {
-			err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
-				require.NotNil(t, repositoryTransaction)
-				require.NotNil(t, repositoryTransaction.ID())
-				require.NotNil(t, repositoryTransaction.Context())
-				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
+			err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(ormTransaction *OrmTransaction) error {
+				require.NotNil(t, ormTransaction)
+				require.NotNil(t, ormTransaction.ID())
+				require.NotNil(t, ormTransaction.Context())
+				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedKeyPool, err := repositoryTransaction.GetKeyPool(addedKeyPool.KeyPoolID)
+				retrievedKeyPool, err := ormTransaction.GetKeyPool(addedKeyPool.KeyPoolID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key Pool: %w", err)
 				}
@@ -175,13 +175,13 @@ func TestSqlTransaction_Success(t *testing.T) {
 		}
 
 		for _, addedKey := range addedKeys {
-			err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
-				require.NotNil(t, repositoryTransaction)
-				require.NotNil(t, repositoryTransaction.ID())
-				require.NotNil(t, repositoryTransaction.Context())
-				require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
+			err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(ormTransaction *OrmTransaction) error {
+				require.NotNil(t, ormTransaction)
+				require.NotNil(t, ormTransaction.ID())
+				require.NotNil(t, ormTransaction.Context())
+				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedKey, err := repositoryTransaction.GetKeyPoolKey(addedKey.KeyPoolID, addedKey.KeyID)
+				retrievedKey, err := ormTransaction.GetKeyPoolKey(addedKey.KeyPoolID, addedKey.KeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}

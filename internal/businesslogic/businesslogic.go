@@ -50,7 +50,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(keyPoolID, openapiKeyPoolCreate)
 
 	var insertedKeyPool *cryptoutilOrmRepository.KeyPool
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		err := sqlTransaction.AddKeyPool(repositoryKeyPoolToInsert)
 		if err != nil {
 			return fmt.Errorf("failed to add KeyPool: %w", err)
@@ -98,7 +98,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 
 func (s *BusinessLogicService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID) (*cryptoutilBusinessLogicModel.KeyPool, error) {
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
@@ -119,7 +119,7 @@ func (s *BusinessLogicService) GetKeyPools(ctx context.Context, keyPoolQueryPara
 		return nil, fmt.Errorf("invalid Get Key Pools parameters: %w", err)
 	}
 	var repositoryKeyPools []cryptoutilOrmRepository.KeyPool
-	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKeyPools, err = sqlTransaction.GetKeyPools(ormKeyPoolsQueryParams)
 		if err != nil {
@@ -136,7 +136,7 @@ func (s *BusinessLogicService) GetKeyPools(ctx context.Context, keyPoolQueryPara
 
 func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID googleUuid.UUID, _ *cryptoutilBusinessLogicModel.KeyGenerate) (*cryptoutilBusinessLogicModel.Key, error) {
 	var repositoryKey *cryptoutilOrmRepository.Key
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKeyPool, err := sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
@@ -173,7 +173,7 @@ func (s *BusinessLogicService) GetKeysByKeyPool(ctx context.Context, keyPoolID g
 		return nil, fmt.Errorf("invalid Get Key Pool Keys parameters: %w", err)
 	}
 	var repositoryKeys []cryptoutilOrmRepository.Key
-	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKeys, err = sqlTransaction.GetKeyPoolKeys(keyPoolID, ormKeyPoolKeysQueryParams)
 		if err != nil {
@@ -195,7 +195,7 @@ func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cry
 		return nil, fmt.Errorf("invalid Get Keys parameters: %w", err)
 	}
 	var repositoryKeys []cryptoutilOrmRepository.Key
-	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKeys, err = sqlTransaction.GetKeys(ormKeysQueryParams)
 		if err != nil {
@@ -213,7 +213,7 @@ func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cry
 
 func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*cryptoutilBusinessLogicModel.Key, error) {
 	var repositoryKey *cryptoutilOrmRepository.Key
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKey, err = sqlTransaction.GetKeyPoolKey(keyPoolID, keyID)
 		if err != nil {
