@@ -29,7 +29,7 @@ type ContentKey struct {
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
 }
 
-// BarrierKey is an interface for all Keys.
+// BarrierKey is an interface for all 3 of the above Keys.
 type BarrierKey interface {
 	GetUUID() googleUuid.UUID
 	SetUUID(googleUuid.UUID)
