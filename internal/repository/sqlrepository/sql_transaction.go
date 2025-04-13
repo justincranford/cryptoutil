@@ -1,4 +1,4 @@
-package sqlprovider
+package sqlrepository
 
 import (
 	"context"

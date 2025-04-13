@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	_ "github.com/lib/pq"

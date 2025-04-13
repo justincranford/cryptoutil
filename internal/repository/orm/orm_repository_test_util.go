@@ -4,7 +4,7 @@ import (
 	"context"
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 

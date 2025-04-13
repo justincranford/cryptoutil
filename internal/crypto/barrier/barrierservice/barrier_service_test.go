@@ -9,7 +9,7 @@ import (
 	cryptoutilUnsealService "cryptoutil/internal/crypto/barrier/unsealservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 

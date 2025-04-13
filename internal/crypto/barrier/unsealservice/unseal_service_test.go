@@ -7,7 +7,7 @@ import (
 
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/stretchr/testify/assert"

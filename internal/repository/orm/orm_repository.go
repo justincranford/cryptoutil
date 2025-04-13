@@ -7,7 +7,7 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	cryptoutilUtil "cryptoutil/internal/util"
 
