@@ -41,9 +41,9 @@ type TelemetryService struct {
 	MetricsProvider   metricApi.MeterProvider
 	TracesProvider    traceApi.TracerProvider
 	TextMapPropagator *propagationApi.TextMapPropagator
-	logsProvider      *logSdk.LoggerProvider
-	metricsProvider   *metricSdk.MeterProvider
-	tracesProvider    *traceSdk.TracerProvider
+	logsProvider      *logSdk.LoggerProvider   // Not exported, but still needed to do shutdown
+	metricsProvider   *metricSdk.MeterProvider // Not exported, but still needed to do shutdown
+	tracesProvider    *traceSdk.TracerProvider // Not exported, but still needed to do shutdown
 }
 
 const (
