@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	ormTableStructs               = []any{&KeyPool{}, &Key{}, &RootKey{}, &IntermediateKey{}, &ContentKey{}}
+	ormEntities                   = []any{&RootKey{}, &IntermediateKey{}, &ContentKey{}, &KeyPool{}, &Key{}}
 	ErrKeyPoolIDMustBeNonZeroUUID = fmt.Errorf("invalid Key Pool ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 	ErrKeyIDMustBeNonZeroUUID     = fmt.Errorf("invalid Key ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 )
@@ -51,7 +51,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 	if applyMigrations {
 		telemetryService.Slogger.Debug("applying migrations")
-		err = gormDB.AutoMigrate(ormTableStructs...)
+		err = gormDB.AutoMigrate(ormEntities...)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run migrations: %w", err)
 		}
