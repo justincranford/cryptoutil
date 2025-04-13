@@ -21,13 +21,12 @@ var (
 	testSqlProvider      *cryptoutilSqlProvider.SqlProvider
 	testOrmRepository    *RepositoryProvider
 	testGivens           *Givens
-	skipReadOnlyTxTests  = true
+	skipReadOnlyTxTests  = true                               // true for DBTypeSQLite, false for DBTypePostgres
 	testDbType           = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
-	// testDbType = cryptoutilSqlProvider.DBTypePostgres
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "orm_transaction_test", false, false)
+	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "gorm_transaction_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
