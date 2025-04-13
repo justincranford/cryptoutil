@@ -10,11 +10,11 @@ import (
 
 // StrictServer implements cryptoutilOpenapiServer.StrictServerInterface
 type StrictServer struct {
-	businessLogicService *cryptoutilBusinessLogic.KeyPoolService
+	businessLogicService *cryptoutilBusinessLogic.BusinessLogicService
 	openapiMapper        *openapiMapper
 }
 
-func NewOpenapiHandler(service *cryptoutilBusinessLogic.KeyPoolService) *StrictServer {
+func NewOpenapiHandler(service *cryptoutilBusinessLogic.BusinessLogicService) *StrictServer {
 	return &StrictServer{businessLogicService: service, openapiMapper: &openapiMapper{}}
 }
 
