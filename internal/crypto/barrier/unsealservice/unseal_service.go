@@ -76,7 +76,7 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	}
 
 	// put new, encrypted root JWK in DB
-	err = ormRepository.AddRootKey(&cryptoutilOrmRepository.RootKey{UUID: unsealedRootJwksLatestKidUuid, Serialized: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
+	err = ormRepository.AddRootKey(&cryptoutilOrmRepository.RootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
 	if err != nil {
 		return nil, fmt.Errorf("failed to store root JWK: %w", err)
 	}
@@ -103,7 +103,7 @@ func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryServ
 		encryptedRootJwkKidUuid := encryptedRootJwk.GetUUID()
 		var unsealedRootJwk joseJwk.Key
 		for unsealJwkIndex, unsealJwk := range unsealJwks {
-			unsealedRootJwkBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{unsealJwk}, []byte(encryptedRootJwk.GetSerialized()))
+			unsealedRootJwkBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{unsealJwk}, []byte(encryptedRootJwk.GetEncrypted()))
 			if err != nil {
 				errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d with unseal JWK %d: %w", encryptedRootJwkIndex, unsealJwkIndex, err))
 				continue

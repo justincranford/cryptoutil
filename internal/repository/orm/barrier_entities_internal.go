@@ -11,32 +11,32 @@ import (
 
 // Root Keys are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is posible but infrequent.
 type RootKey struct {
-	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Serialized string          `gorm:"type:json;not null"`
-	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null"`
+	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	Encrypted string          `gorm:"type:json;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
+	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null"`
 }
 
 // Intermediate Keys are wrapped by root Keys. Rotation is encouraged and can be frequent.
 type IntermediateKey struct {
-	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Serialized string          `gorm:"type:json;not null"`
-	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
+	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	Encrypted string          `gorm:"type:json;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
+	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
 }
 
 // Leaf Keys are wrapped by Intermediate Keys. Rotation is encouraged and can be very frequent.
 type ContentKey struct {
 	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
-	Serialized string          `gorm:"type:json;not null"`
-	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
+	Encrypted string          `gorm:"type:json;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
+	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
 }
 
 // BarrierKey is an interface for all Keys.
 type BarrierKey interface {
 	GetUUID() googleUuid.UUID
 	SetUUID(googleUuid.UUID)
-	GetSerialized() string
-	SetSerialized(string)
+	GetEncrypted() string
+	SetEncrypted(string)
 	GetKEKUUID() googleUuid.UUID
 	SetKEKUUID(googleUuid.UUID)
 }
@@ -49,12 +49,12 @@ func (r *RootKey) SetUUID(uuid googleUuid.UUID) {
 	r.UUID = uuid
 }
 
-func (r *RootKey) GetSerialized() string {
-	return r.Serialized
+func (r *RootKey) GetEncrypted() string {
+	return r.Encrypted
 }
 
-func (r *RootKey) SetSerialized(serialized string) {
-	r.Serialized = serialized
+func (r *RootKey) SetEncrypted(serialized string) {
+	r.Encrypted = serialized
 }
 
 func (r *RootKey) GetKEKUUID() googleUuid.UUID {
@@ -73,12 +73,12 @@ func (r *IntermediateKey) SetUUID(uuid googleUuid.UUID) {
 	r.UUID = uuid
 }
 
-func (r *IntermediateKey) GetSerialized() string {
-	return r.Serialized
+func (r *IntermediateKey) GetEncrypted() string {
+	return r.Encrypted
 }
 
-func (r *IntermediateKey) SetSerialized(serialized string) {
-	r.Serialized = serialized
+func (r *IntermediateKey) SetEncrypted(serialized string) {
+	r.Encrypted = serialized
 }
 
 func (r *IntermediateKey) GetKEKUUID() googleUuid.UUID {
@@ -97,12 +97,12 @@ func (r *ContentKey) SetUUID(uuid googleUuid.UUID) {
 	r.UUID = uuid
 }
 
-func (r *ContentKey) GetSerialized() string {
-	return r.Serialized
+func (r *ContentKey) GetEncrypted() string {
+	return r.Encrypted
 }
 
-func (r *ContentKey) SetSerialized(serialized string) {
-	r.Serialized = serialized
+func (r *ContentKey) SetEncrypted(serialized string) {
+	r.Encrypted = serialized
 }
 
 func (r *ContentKey) GetKEKUUID() googleUuid.UUID {
