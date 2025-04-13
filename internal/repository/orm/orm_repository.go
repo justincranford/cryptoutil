@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	ormEntities                   = []any{&RootKey{}, &IntermediateKey{}, &ContentKey{}, &KeyPool{}, &Key{}}
+	ormEntities                   = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierContentKey{}, &KeyPool{}, &Key{}}
 	ErrKeyPoolIDMustBeNonZeroUUID = fmt.Errorf("invalid Key Pool ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 	ErrKeyIDMustBeNonZeroUUID     = fmt.Errorf("invalid Key ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 )

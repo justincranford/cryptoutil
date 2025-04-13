@@ -76,7 +76,7 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	}
 
 	// put new, encrypted root JWK in DB
-	err = ormRepository.AddRootKey(&cryptoutilOrmRepository.RootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
+	err = ormRepository.AddRootKey(&cryptoutilOrmRepository.BarrierRootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
 	if err != nil {
 		return nil, fmt.Errorf("failed to store root JWK: %w", err)
 	}
@@ -88,7 +88,7 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	return &UnsealService{unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwksLatest: &unsealedRootJwksLatest}, nil
 }
 
-func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.RootKey) (*UnsealService, error) {
+func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey) (*UnsealService, error) {
 	encryptedRootJwkLatest, err := ormRepository.GetRootKeyLatest() // First row using ORDER BY uuid DESC
 	if err != nil {
 		return nil, fmt.Errorf("failed to get root JWK latest from database")

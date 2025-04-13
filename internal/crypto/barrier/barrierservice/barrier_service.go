@@ -243,7 +243,7 @@ func newIntermediateKeyRepository(telemetryService *cryptoutilTelemetry.Telemetr
 			return fmt.Errorf("failed to encrypt intermediate Key cache: %w", err)
 		}
 
-		return ormRepository.AddIntermediateKey(&cryptoutilOrmRepository.IntermediateKey{UUID: jwkKidUuid, KEKUUID: kekKidUuid, Encrypted: string(jweMessageBytes)})
+		return ormRepository.AddIntermediateKey(&cryptoutilOrmRepository.BarrierIntermediateKey{UUID: jwkKidUuid, KEKUUID: kekKidUuid, Encrypted: string(jweMessageBytes)})
 	}
 	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
 		jwk, err := ormRepository.DeleteIntermediateKey(uuid)
@@ -305,7 +305,7 @@ func newContentKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryServ
 		}
 		telemetryService.Slogger.Info("Encrypted Leaf JWK", "JWE Headers", jweHeaders)
 
-		return ormRepository.AddContentKey(&cryptoutilOrmRepository.ContentKey{UUID: jwkKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: kekKidUuid})
+		return ormRepository.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: jwkKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: kekKidUuid})
 	}
 	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
 		jwk, err := ormRepository.DeleteContentKey(uuid)
