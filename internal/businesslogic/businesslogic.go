@@ -66,7 +66,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 		}
 
 		// generate first key automatically now
-		repositoryKey, err := s.generateKeyInsert(keyPoolID, string(repositoryKeyPoolToInsert.KeyPoolAlgorithm))
+		repositoryKey, err := s.generateKeyInsert(sqlTransaction, keyPoolID, string(repositoryKeyPoolToInsert.KeyPoolAlgorithm))
 		if err != nil {
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
@@ -147,7 +147,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 			return fmt.Errorf("invalid KeyPoolStatus detected for generate Key: %w", err)
 		}
 
-		repositoryKey, err = s.generateKeyInsert(repositoryKeyPool.KeyPoolID, string(repositoryKeyPool.KeyPoolAlgorithm))
+		repositoryKey, err = s.generateKeyInsert(sqlTransaction, repositoryKeyPool.KeyPoolID, string(repositoryKeyPool.KeyPoolAlgorithm))
 		if err != nil {
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
@@ -229,7 +229,7 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
 }
 
-func (s *BusinessLogicService) generateKeyInsert(keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {
+func (s *BusinessLogicService) generateKeyInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {
 	keyID := s.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
 
 	// TODO Generate JWK instead of []byte
@@ -239,7 +239,7 @@ func (s *BusinessLogicService) generateKeyInsert(keyPoolID googleUuid.UUID, keyP
 	}
 	repositoryKeyGenerateDate := time.Now().UTC()
 
-	encryptedKeyMaterial, err := s.barrierService.EncryptContent(clearKeyMaterial)
+	encryptedKeyMaterial, err := s.barrierService.EncryptContent(sqlTransaction, clearKeyMaterial)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt Key material: %w", err)
 	}

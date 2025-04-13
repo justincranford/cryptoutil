@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
@@ -29,8 +30,9 @@ func TestMain(m *testing.M) {
 // Happy Path
 
 func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
+	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
 	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
-	mockLoadLatestFunc := func() (joseJwk.Key, error) {
+	mockLoadLatestFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
 		return jwk, nil
 	}
 
@@ -38,15 +40,16 @@ func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
-	aesJwk, err := jwkCache.GetLatest()
+	aesJwk, err := jwkCache.GetLatest(mockSqlTransaction)
 	require.NoError(t, err)
 	require.NotNil(t, aesJwk)
 	require.Equal(t, jwk, aesJwk)
 }
 
 func TestJWKCache_HappyPath_Get(t *testing.T) {
+	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
 	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
-	mockLoadFunc := func(kid googleUuid.UUID) (joseJwk.Key, error) {
+	mockLoadFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) (joseJwk.Key, error) {
 		return jwk, nil
 	}
 
@@ -57,7 +60,7 @@ func TestJWKCache_HappyPath_Get(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
-	cachedJwk, err := jwkCache.Get(kid)
+	cachedJwk, err := jwkCache.Get(mockSqlTransaction, kid)
 
 	require.NoError(t, err)
 	require.NotNil(t, cachedJwk)
@@ -65,8 +68,9 @@ func TestJWKCache_HappyPath_Get(t *testing.T) {
 }
 
 func TestJWKCache_HappyPath_Put(t *testing.T) {
+	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
 	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
-	mockStoreFunc := func(jwk joseJwk.Key) error {
+	mockStoreFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		return nil
 	}
 
@@ -74,7 +78,7 @@ func TestJWKCache_HappyPath_Put(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
-	err = jwkCache.Put(jwk)
+	err = jwkCache.Put(mockSqlTransaction, jwk)
 
 	require.NoError(t, err)
 }
@@ -89,8 +93,9 @@ func TestJWKCache_SadPath_CacheSize(t *testing.T) {
 }
 
 func TestJWKCache_SadPath_GetLatest_Function(t *testing.T) {
+	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
 	dbErr := fmt.Errorf("database error")
-	mockLoadLatestFunc := func() (joseJwk.Key, error) {
+	mockLoadLatestFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
 		return nil, dbErr
 	}
 
@@ -98,14 +103,15 @@ func TestJWKCache_SadPath_GetLatest_Function(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
-	latestJwk, err := jwkCache.GetLatest()
+	latestJwk, err := jwkCache.GetLatest(mockSqlTransaction)
 	require.Error(t, err)
 	require.Nil(t, latestJwk)
 	require.True(t, errors.Is(err, dbErr))
 }
 
 func TestJWKCache_SadPath_Get_Function(t *testing.T) {
-	mockLoadFunc := func(kid googleUuid.UUID) (joseJwk.Key, error) {
+	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
+	mockLoadFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("database error")
 	}
 
@@ -114,15 +120,16 @@ func TestJWKCache_SadPath_Get_Function(t *testing.T) {
 	require.NotNil(t, jwkCache)
 
 	kid := googleUuid.Must(googleUuid.NewV7())
-	cachedJwk, err := jwkCache.Get(kid)
+	cachedJwk, err := jwkCache.Get(mockSqlTransaction, kid)
 	require.Nil(t, cachedJwk)
 	require.Error(t, err)
 }
 
 func TestJWKCache_Put_SadPath(t *testing.T) {
+	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
 	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 
-	mockStoreFunc := func(jwk joseJwk.Key) error {
+	mockStoreFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		return nil
 	}
 
@@ -130,6 +137,6 @@ func TestJWKCache_Put_SadPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, jwkCache)
 
-	err = jwkCache.Put(jwk)
+	err = jwkCache.Put(mockSqlTransaction, jwk)
 	require.NoError(t, err)
 }

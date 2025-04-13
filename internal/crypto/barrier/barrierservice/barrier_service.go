@@ -100,7 +100,7 @@ func (d *BarrierService) Shutdown() {
 	})
 }
 
-func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
+func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
@@ -112,7 +112,7 @@ func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
-	err = d.contentKeyRepository.Put(cek)
+	err = d.contentKeyRepository.Put(sqlTransaction, cek)
 	if err != nil {
 		return nil, fmt.Errorf("failed to put content JWK in cache: %w", err)
 	}
@@ -129,7 +129,7 @@ func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
 	return encodedJweMessage, nil
 }
 
-func (d *BarrierService) DecryptContent(encodedJweMessage []byte) ([]byte, error) {
+func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encodedJweMessage []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
@@ -146,7 +146,7 @@ func (d *BarrierService) DecryptContent(encodedJweMessage []byte) ([]byte, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	jwk, err := d.contentKeyRepository.Get(uuid)
+	jwk, err := d.contentKeyRepository.Get(sqlTransaction, uuid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
@@ -159,13 +159,13 @@ func (d *BarrierService) DecryptContent(encodedJweMessage []byte) ([]byte, error
 
 // Helpers
 
-func encrypt(jwk joseJwk.Key, kekRepository *cryptoutilBarrierRepository.BarrierRepository, telemetryService *cryptoutilTelemetry.TelemetryService) (googleUuid.UUID, googleUuid.UUID, []byte, error) {
+func encrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key, kekRepository *cryptoutilBarrierRepository.BarrierRepository, telemetryService *cryptoutilTelemetry.TelemetryService) (googleUuid.UUID, googleUuid.UUID, []byte, error) {
 	jwkKidUuid, err := cryptoutilJose.ExtractKidUuid(jwk)
 	if err != nil {
 		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to get jwk kid uuid: %w", err)
 	}
 
-	kek, err := kekRepository.GetLatest()
+	kek, err := kekRepository.GetLatest(sqlTransaction)
 	if err != nil {
 		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to get latest kek jwk kid uuid: %w", err)
 	}
@@ -187,13 +187,13 @@ func encrypt(jwk joseJwk.Key, kekRepository *cryptoutilBarrierRepository.Barrier
 	return jwkKidUuid, kekKidUuid, jweMessageBytes, nil
 }
 
-func decrypt(kekRepository *cryptoutilBarrierRepository.BarrierRepository, barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
+func decrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kekRepository *cryptoutilBarrierRepository.BarrierRepository, barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	} else if err != nil {
 		return nil, fmt.Errorf("failed to load Key from database: %w", err)
 	}
-	kekJwk, err := kekRepository.Get(barrierKey.GetKEKUUID())
+	kekJwk, err := kekRepository.Get(sqlTransaction, barrierKey.GetKEKUUID())
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kek kid from database: %w", err)
 	}
@@ -205,16 +205,16 @@ func decrypt(kekRepository *cryptoutilBarrierRepository.BarrierRepository, barri
 }
 
 func newRootKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealService *cryptoutilUnsealService.UnsealService) (*cryptoutilBarrierRepository.BarrierRepository, error) {
-	loadLatestRootKey := func() (joseJwk.Key, error) {
+	loadLatestRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
 		return *unsealService.GetLatest(), nil
 	}
-	loadRootKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
+	loadRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
 		return *unsealService.Get(uuid), nil
 	}
-	storeRootKey := func(jwk joseJwk.Key) error {
+	storeRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		return nil
 	}
-	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
+	deleteKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
 		return nil, nil
 	}
 
@@ -227,27 +227,27 @@ func newRootKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryService
 }
 
 func newIntermediateKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeyRepository *cryptoutilBarrierRepository.BarrierRepository, cacheSize int, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*cryptoutilBarrierRepository.BarrierRepository, error) {
-	loadLatestIntermediateKey := func() (joseJwk.Key, error) {
-		jwk, err := ormRepository.GetIntermediateKeyLatest()
-		return decrypt(rootKeyRepository, jwk, err)
+	loadLatestIntermediateKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
+		jwk, err := sqlTransaction.GetIntermediateKeyLatest()
+		return decrypt(sqlTransaction, rootKeyRepository, jwk, err)
 	}
-	loadIntermediateKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		jwk, err := ormRepository.GetIntermediateKey(uuid)
-		return decrypt(rootKeyRepository, jwk, err)
+	loadIntermediateKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
+		jwk, err := sqlTransaction.GetIntermediateKey(uuid)
+		return decrypt(sqlTransaction, rootKeyRepository, jwk, err)
 	}
-	storeIntermediateKey := func(jwk joseJwk.Key) error {
+	storeIntermediateKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		kekRepository := rootKeyRepository
 
-		jwkKidUuid, kekKidUuid, jweMessageBytes, err := encrypt(jwk, kekRepository, telemetryService)
+		jwkKidUuid, kekKidUuid, jweMessageBytes, err := encrypt(sqlTransaction, jwk, kekRepository, telemetryService)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt intermediate Key cache: %w", err)
 		}
 
-		return ormRepository.AddIntermediateKey(&cryptoutilOrmRepository.BarrierIntermediateKey{UUID: jwkKidUuid, KEKUUID: kekKidUuid, Encrypted: string(jweMessageBytes)})
+		return sqlTransaction.AddIntermediateKey(&cryptoutilOrmRepository.BarrierIntermediateKey{UUID: jwkKidUuid, KEKUUID: kekKidUuid, Encrypted: string(jweMessageBytes)})
 	}
-	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		jwk, err := ormRepository.DeleteIntermediateKey(uuid)
-		return decrypt(rootKeyRepository, jwk, err)
+	deleteKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
+		jwk, err := sqlTransaction.DeleteIntermediateKey(uuid)
+		return decrypt(sqlTransaction, rootKeyRepository, jwk, err)
 	}
 
 	intermediateKeyRepository, err := cryptoutilBarrierRepository.NewBarrierRepository("Intermediate", telemetryService, cacheSize, loadLatestIntermediateKey, loadIntermediateKey, storeIntermediateKey, deleteKey)
@@ -255,39 +255,45 @@ func newIntermediateKeyRepository(telemetryService *cryptoutilTelemetry.Telemetr
 		return nil, fmt.Errorf("failed to create intermediate Key cache: %w", err)
 	}
 
-	latestJwk, err := intermediateKeyRepository.GetLatest()
+	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		latestJwk, err := intermediateKeyRepository.GetLatest(sqlTransaction)
+		if err != nil {
+			return fmt.Errorf("failed to get latest intermediate Key: %w", err)
+		}
+		if latestJwk == nil {
+			intermediateJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, aes256KeyGenPool.Get().Private.([]byte))
+			if err != nil {
+				return fmt.Errorf("failed to generate DEK JWK: %w", err)
+			}
+			err = intermediateKeyRepository.Put(sqlTransaction, intermediateJwk) // calls injected storeIntermediateKey, which calls encrypt() using rootKeyRepository.GetLatest()
+			if err != nil {
+				return fmt.Errorf("failed to store first intermediate Key: %w", err)
+			}
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to get latest intermediate Key: %w", err)
-	}
-	if latestJwk == nil {
-		intermediateJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, aes256KeyGenPool.Get().Private.([]byte))
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate DEK JWK: %w", err)
-		}
-		err = intermediateKeyRepository.Put(intermediateJwk) // calls injected storeIntermediateKey, which calls encrypt() using rootKeyRepository.GetLatest()
-		if err != nil {
-			return nil, fmt.Errorf("failed to store first intermediate Key: %w", err)
-		}
+		return nil, fmt.Errorf("failed to get updated KeyPool from DB: %w", err)
 	}
 
 	return intermediateKeyRepository, nil
 }
 
 func newContentKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeyRepository *cryptoutilBarrierRepository.BarrierRepository, cacheSize int) (*cryptoutilBarrierRepository.BarrierRepository, error) {
-	loadLatestContentKey := func() (joseJwk.Key, error) {
-		jwk, err := ormRepository.GetContentKeyLatest()
-		return decrypt(intermediateKeyRepository, jwk, err)
+	loadLatestContentKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
+		jwk, err := sqlTransaction.GetContentKeyLatest()
+		return decrypt(sqlTransaction, intermediateKeyRepository, jwk, err)
 	}
-	loadContentKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		jwk, err := ormRepository.GetContentKey(uuid)
-		return decrypt(intermediateKeyRepository, jwk, err)
+	loadContentKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
+		jwk, err := sqlTransaction.GetContentKey(uuid)
+		return decrypt(sqlTransaction, intermediateKeyRepository, jwk, err)
 	}
-	storeContentKey := func(jwk joseJwk.Key) error {
+	storeContentKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		jwkKidUuid, err := cryptoutilJose.ExtractKidUuid(jwk)
 		if err != nil {
 			return fmt.Errorf("failed to get content JWK kid uuid: %w", err)
 		}
-		kek, err := intermediateKeyRepository.GetLatest()
+		kek, err := intermediateKeyRepository.GetLatest(sqlTransaction)
 		if err != nil {
 			return fmt.Errorf("failed to get latest intermediate jwk kid uuid: %w", err)
 		}
@@ -305,11 +311,11 @@ func newContentKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryServ
 		}
 		telemetryService.Slogger.Info("Encrypted Leaf JWK", "JWE Headers", jweHeaders)
 
-		return ormRepository.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: jwkKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: kekKidUuid})
+		return sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: jwkKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: kekKidUuid})
 	}
-	deleteKey := func(uuid googleUuid.UUID) (joseJwk.Key, error) {
-		jwk, err := ormRepository.DeleteContentKey(uuid)
-		return decrypt(intermediateKeyRepository, jwk, err)
+	deleteKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
+		jwk, err := sqlTransaction.DeleteContentKey(uuid)
+		return decrypt(sqlTransaction, intermediateKeyRepository, jwk, err)
 	}
 
 	contentKeyRepository, err := cryptoutilBarrierRepository.NewBarrierRepository("Leaf", telemetryService, cacheSize, loadLatestContentKey, loadContentKey, storeContentKey, deleteKey)

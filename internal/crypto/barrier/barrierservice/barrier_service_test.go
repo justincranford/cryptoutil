@@ -116,7 +116,12 @@ func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository 
 	encryptedBytesSlice := make([][]byte, 0, numEncryptsDecrypts)
 	for i := range cap(encryptedBytesSlice) {
 		t.Logf("Attempt: %d", i+1)
-		encryptedBytes, err := barrierService.EncryptContent(plaintext)
+		var encryptedBytes []byte
+		err := testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+			var err error
+			encryptedBytes, err = barrierService.EncryptContent(sqlTransaction, plaintext)
+			return err
+		})
 		require.NoError(t, err)
 		t.Logf("Encrypted Data > JWE Headers: %s", string(encryptedBytes))
 		encryptedBytesSlice = append(encryptedBytesSlice, encryptedBytes)
@@ -124,16 +129,29 @@ func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository 
 
 	// decrypt N times with original service
 	for _, encryptedBytes := range encryptedBytesSlice {
-		decryptedBytes, err := barrierService.DecryptContent(encryptedBytes)
+		var decryptedBytes []byte
+		err := testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+			var err error
+			decryptedBytes, err = barrierService.DecryptContent(sqlTransaction, encryptedBytes)
+			return err
+		})
 		require.NoError(t, err)
 		require.Equal(t, plaintext, decryptedBytes)
 	}
 
 	// shutdown original service
 	barrierService.Shutdown()
-	_, err = barrierService.EncryptContent(plaintext)
+	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		_, err = barrierService.EncryptContent(sqlTransaction, plaintext)
+		return err
+	})
 	require.Error(t, err)
-	_, err = barrierService.DecryptContent(plaintext)
+	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		_, err = barrierService.DecryptContent(sqlTransaction, plaintext)
+		return err
+	})
 	require.Error(t, err)
 
 	// restart new service with same unseal key repository
@@ -143,16 +161,29 @@ func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository 
 
 	// decrypt N times with restarted service
 	for _, encryptedBytes := range encryptedBytesSlice {
-		decryptedBytes, err := barrierService.DecryptContent(encryptedBytes)
+		var decryptedBytes []byte
+		err := testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+			var err error
+			decryptedBytes, err = barrierService.DecryptContent(sqlTransaction, encryptedBytes)
+			return err
+		})
 		require.NoError(t, err)
 		require.Equal(t, plaintext, decryptedBytes)
 	}
 
 	// shutdown restarted service
 	barrierService.Shutdown()
-	_, err = barrierService.EncryptContent(plaintext)
+	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		_, err = barrierService.EncryptContent(sqlTransaction, plaintext)
+		return err
+	})
 	require.Error(t, err)
-	_, err = barrierService.DecryptContent(plaintext)
+	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		_, err = barrierService.DecryptContent(sqlTransaction, plaintext)
+		return err
+	})
 	require.Error(t, err)
 
 	t.Log("Success")

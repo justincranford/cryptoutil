@@ -1,6 +1,7 @@
 package unsealservice
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -32,7 +33,12 @@ func NewUnsealService(telemetryService *cryptoutilTelemetry.TelemetryService, or
 		return nil, fmt.Errorf("no unseal JWKs")
 	}
 
-	encryptedRootJwks, err := ormRepository.GetRootKeys() // encrypted root JWKs from DB
+	var encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey
+	err := ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		encryptedRootJwks, err = sqlTransaction.GetRootKeys() // encrypted root JWKs from DB
+		return err
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get encrypted root JWKs from DB")
 	}
@@ -76,7 +82,9 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	}
 
 	// put new, encrypted root JWK in DB
-	err = ormRepository.AddRootKey(&cryptoutilOrmRepository.BarrierRootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
+	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		return sqlTransaction.AddRootKey(&cryptoutilOrmRepository.BarrierRootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to store root JWK: %w", err)
 	}
@@ -89,7 +97,12 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 }
 
 func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey) (*UnsealService, error) {
-	encryptedRootJwkLatest, err := ormRepository.GetRootKeyLatest() // First row using ORDER BY uuid DESC
+	var encryptedRootJwkLatest *cryptoutilOrmRepository.BarrierRootKey
+	err := ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		encryptedRootJwkLatest, err = sqlTransaction.GetRootKeyLatest() // First row using ORDER BY uuid DESC
+		return err
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get root JWK latest from database")
 	}

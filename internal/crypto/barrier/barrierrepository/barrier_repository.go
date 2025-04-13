@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
@@ -26,10 +27,10 @@ type BarrierRepository struct {
 	cache            *lru.Cache
 	latestJwk        joseJwk.Key
 	mu               sync.RWMutex
-	loadLatestFunc   func() (joseJwk.Key, error)
-	loadFunc         func(kid googleUuid.UUID) (joseJwk.Key, error)
-	storeFunc        func(jwk joseJwk.Key) error
-	deleteFunc       func(kid googleUuid.UUID) error
+	loadLatestFunc   func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error)
+	loadFunc         func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) (joseJwk.Key, error)
+	storeFunc        func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error
+	deleteFunc       func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) error
 	observations     Observations
 }
 
@@ -43,7 +44,7 @@ type Observations struct {
 	histogramWaitPurge     metricApi.Int64Histogram
 }
 
-func NewBarrierRepository(name string, telemetryService *cryptoutilTelemetry.TelemetryService, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*BarrierRepository, error) {
+func NewBarrierRepository(name string, telemetryService *cryptoutilTelemetry.TelemetryService, cacheSize int, loadLatestFunc func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error), loadFunc func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error, removeFunc func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) (joseJwk.Key, error)) (*BarrierRepository, error) {
 	repositoryNameAttribute := attribute.String("repository.name", name)
 
 	tracer := telemetryService.TracesProvider.Tracer("barrierrepository", traceApi.WithInstrumentationAttributes(repositoryNameAttribute))
@@ -94,7 +95,7 @@ func (jwkCache *BarrierRepository) Shutdown() error {
 	return jwkCache.Purge()
 }
 
-func (jwkCache *BarrierRepository) GetLatest() (joseJwk.Key, error) {
+func (jwkCache *BarrierRepository) GetLatest(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "GetLatest")
 	defer span.End()
 
@@ -106,7 +107,7 @@ func (jwkCache *BarrierRepository) GetLatest() (joseJwk.Key, error) {
 	if jwkCache.latestJwk != nil {
 		return jwkCache.latestJwk, nil
 	}
-	latestJwk, err := jwkCache.loadLatestFunc() // get from database
+	latestJwk, err := jwkCache.loadLatestFunc(sqlTransaction) // get from database
 	if err != nil {
 		return nil, fmt.Errorf("failed to load latest from database: %w", err)
 	} else if latestJwk == nil {
@@ -122,7 +123,7 @@ func (jwkCache *BarrierRepository) GetLatest() (joseJwk.Key, error) {
 	return latestJwk, nil
 }
 
-func (jwkCache *BarrierRepository) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
+func (jwkCache *BarrierRepository) Get(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) (joseJwk.Key, error) {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Get")
 	defer span.End()
 
@@ -138,7 +139,7 @@ func (jwkCache *BarrierRepository) Get(kid googleUuid.UUID) (joseJwk.Key, error)
 	cachedJwk, ok := jwkCache.cache.Get(kid) // Get from LRU cache
 	if !ok {
 		var err error
-		databaseJwk, err := jwkCache.loadFunc(kid)
+		databaseJwk, err := jwkCache.loadFunc(sqlTransaction, kid)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load from database: %w", err)
 		}
@@ -167,7 +168,7 @@ func (jwkCache *BarrierRepository) Get(kid googleUuid.UUID) (joseJwk.Key, error)
 	return castedJwk, nil
 }
 
-func (jwkCache *BarrierRepository) Put(jwk joseJwk.Key) error {
+func (jwkCache *BarrierRepository) Put(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Put")
 	defer span.End()
 
@@ -180,7 +181,7 @@ func (jwkCache *BarrierRepository) Put(jwk joseJwk.Key) error {
 	jwkCache.mu.Lock()
 	jwkCache.observations.histogramWaitPut.Record(ctx, int64(time.Now().UTC().Sub(waitStart)))
 	defer jwkCache.mu.Unlock()
-	err = jwkCache.storeFunc(jwk)
+	err = jwkCache.storeFunc(sqlTransaction, jwk)
 	if err != nil {
 		return fmt.Errorf("failed to put key in database: %w", err)
 	}
@@ -202,7 +203,7 @@ func (jwkCache *BarrierRepository) Put(jwk joseJwk.Key) error {
 	return nil
 }
 
-func (jwkCache *BarrierRepository) Remove(kidUuid googleUuid.UUID) error {
+func (jwkCache *BarrierRepository) Remove(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kidUuid googleUuid.UUID) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Remove")
 	defer span.End()
 
@@ -216,7 +217,7 @@ func (jwkCache *BarrierRepository) Remove(kidUuid googleUuid.UUID) error {
 		return fmt.Errorf("failed to extract kid uuid: %w", err)
 	}
 
-	err = jwkCache.deleteFunc(kidUuid)
+	err = jwkCache.deleteFunc(sqlTransaction, kidUuid)
 	if err != nil {
 		return fmt.Errorf("failed to delete jwk: %w", err)
 	}
@@ -226,7 +227,7 @@ func (jwkCache *BarrierRepository) Remove(kidUuid googleUuid.UUID) error {
 		jwkCache.latestJwk = nil
 
 		// try loading next latest from database
-		latest, err := jwkCache.loadLatestFunc()
+		latest, err := jwkCache.loadLatestFunc(sqlTransaction)
 		if err != nil {
 			// there are no entries remaining in the DB, so latest doesn't needs updating in memory
 			return nil
