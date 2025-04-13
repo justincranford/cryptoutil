@@ -29,17 +29,17 @@ var (
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.Service
 	sqlProvider      *cryptoutilSqlProvider.SqlProvider
-	uuidV7Pool       *cryptoutilKeygen.KeyPool
+	uuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
 func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*OrmRepository, error) {
-	uuidV7PoolConfig, err := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	uuidV7KeyGenPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool config: %w", err)
 	}
-	uuidV7Pool, err := cryptoutilKeygen.NewKeyPool(uuidV7PoolConfig)
+	uuidV7KeyGenPool, err := cryptoutilKeygen.NewGenKeyPool(uuidV7KeyGenPoolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool: %w", err)
 	}
@@ -59,7 +59,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		telemetryService.Slogger.Debug("skipping migrations")
 	}
 
-	return &OrmRepository{telemetryService: telemetryService, sqlProvider: sqlProvider, uuidV7Pool: uuidV7Pool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
+	return &OrmRepository{telemetryService: telemetryService, sqlProvider: sqlProvider, uuidV7KeyGenPool: uuidV7KeyGenPool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
 func (s *OrmRepository) Shutdown() {

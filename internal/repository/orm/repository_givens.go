@@ -13,36 +13,36 @@ import (
 
 type Givens struct {
 	telemetryService *cryptoutilTelemetry.Service
-	aes256Pool       *cryptoutilKeyGen.KeyPool
-	uuidV7Pool       *cryptoutilKeyGen.KeyPool
+	aes256KeyGenPool *cryptoutilKeyGen.KeyGenPool
+	uuidV7KeyGenPool *cryptoutilKeyGen.KeyGenPool
 }
 
 func RequireNewGivensForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) *Givens {
-	aes256PoolConfig, err := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens AES256", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(256))
+	aes256KeyGenPoolConfig, err := cryptoutilKeyGen.NewKeyGenPoolConfig(ctx, telemetryService, "Orm Givens AES256", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(256))
 	cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 pool config")
 
-	aes256Pool, err := cryptoutilKeyGen.NewKeyPool(aes256PoolConfig)
+	aes256KeyGenPool, err := cryptoutilKeyGen.NewGenKeyPool(aes256KeyGenPoolConfig)
 	cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 pool")
 
-	uuidV7PoolConfig, err := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateUUIDv7Function())
+	uuidV7KeyGenPoolConfig, err := cryptoutilKeyGen.NewKeyGenPoolConfig(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateUUIDv7Function())
 	cryptoutilAppErr.RequireNoError(err, "failed to create UUID v7 pool config")
 
-	uuidV7Pool, err := cryptoutilKeyGen.NewKeyPool(uuidV7PoolConfig)
+	uuidV7KeyGenPool, err := cryptoutilKeyGen.NewGenKeyPool(uuidV7KeyGenPoolConfig)
 	cryptoutilAppErr.RequireNoError(err, "failed to create UUID v7 pool")
-	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidV7Pool: uuidV7Pool}
+	return &Givens{telemetryService: telemetryService, aes256KeyGenPool: aes256KeyGenPool, uuidV7KeyGenPool: uuidV7KeyGenPool}
 }
 
 func (g *Givens) Shutdown() {
-	g.uuidV7Pool.Close()
-	g.aes256Pool.Close()
+	g.uuidV7KeyGenPool.Close()
+	g.aes256KeyGenPool.Close()
 }
 
 func (g *Givens) UUIDv7() googleUuid.UUID {
-	return g.uuidV7Pool.Get().Private.(googleUuid.UUID)
+	return g.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
 }
 
 func (g *Givens) AES256() []byte {
-	return g.aes256Pool.Get().Private.([]byte)
+	return g.aes256KeyGenPool.Get().Private.([]byte)
 }
 
 func (g *Givens) Aes256KeyPool(versioningAllowed, importAllowed, exportAllowed bool) *KeyPool {

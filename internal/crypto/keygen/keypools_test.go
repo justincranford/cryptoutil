@@ -39,42 +39,42 @@ func TestPoolsExample(t *testing.T) {
 }
 
 func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) ([]Key, error) {
-	rsaPoolConfig, err1 := NewKeyPoolConfig(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateRSAKeyPairFunction(256))
-	ecdsaPoolConfig, err2 := NewKeyPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
-	ecdhPoolConfig, err3 := NewKeyPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
-	eddsaPoolConfig, err4 := NewKeyPoolConfig(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
-	aesPoolConfig, err5 := NewKeyPoolConfig(ctx, telemetryService, "Test AES 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateAESKeyFunction(128))
-	hmacPoolConfig, err6 := NewKeyPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateHMACKeyFunction(256))
+	rsaKeyGenPoolConfig, err1 := NewKeyGenPoolConfig(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateRSAKeyPairFunction(256))
+	ecdsaKeyGenPoolConfig, err2 := NewKeyGenPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
+	ecdhKeyGenPoolConfig, err3 := NewKeyGenPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
+	eddsaKeyGenPoolConfig, err4 := NewKeyGenPoolConfig(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
+	aesKeyGenPoolConfig, err5 := NewKeyGenPoolConfig(ctx, telemetryService, "Test AES 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateAESKeyFunction(128))
+	hmacKeyGenPoolConfig, err6 := NewKeyGenPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateHMACKeyFunction(256))
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
 		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6))
 	}
 
-	rsaPool, err1 := NewKeyPool(rsaPoolConfig)
-	ecdsaPool, err2 := NewKeyPool(ecdsaPoolConfig)
-	ecdhPool, err3 := NewKeyPool(ecdhPoolConfig)
-	eddsaPool, err4 := NewKeyPool(eddsaPoolConfig)
-	aesPool, err5 := NewKeyPool(aesPoolConfig)
-	hmacPool, err6 := NewKeyPool(hmacPoolConfig)
+	rsaKeyGenPool, err1 := NewGenKeyPool(rsaKeyGenPoolConfig)
+	ecdsaKeyGenPool, err2 := NewGenKeyPool(ecdsaKeyGenPoolConfig)
+	ecdhKeyGenPool, err3 := NewGenKeyPool(ecdhKeyGenPoolConfig)
+	eddsaKeyGenPool, err4 := NewGenKeyPool(eddsaKeyGenPoolConfig)
+	aesKeyGenPool, err5 := NewGenKeyPool(aesKeyGenPoolConfig)
+	hmacKeyGenPool, err6 := NewGenKeyPool(hmacKeyGenPoolConfig)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6))
 	}
 
-	defer rsaPool.Close()
-	defer ecdsaPool.Close()
-	defer ecdhPool.Close()
-	defer eddsaPool.Close()
-	defer aesPool.Close()
-	defer hmacPool.Close()
+	defer rsaKeyGenPool.Close()
+	defer ecdsaKeyGenPool.Close()
+	defer ecdhKeyGenPool.Close()
+	defer eddsaKeyGenPool.Close()
+	defer aesKeyGenPool.Close()
+	defer hmacKeyGenPool.Close()
 
 	keys := make([]Key, 0, 6*exampleMaxLifetimeKeys) // 6 pools * K keys per pool
 	for range exampleMaxLifetimeKeys {
 		telemetryService.Slogger.Info("Getting keys")
-		keys = append(keys, rsaPool.Get())
-		keys = append(keys, ecdsaPool.Get())
-		keys = append(keys, ecdhPool.Get())
-		keys = append(keys, eddsaPool.Get())
-		keys = append(keys, aesPool.Get())
-		keys = append(keys, hmacPool.Get())
+		keys = append(keys, rsaKeyGenPool.Get())
+		keys = append(keys, ecdsaKeyGenPool.Get())
+		keys = append(keys, ecdhKeyGenPool.Get())
+		keys = append(keys, eddsaKeyGenPool.Get())
+		keys = append(keys, aesKeyGenPool.Get())
+		keys = append(keys, hmacKeyGenPool.Get())
 	}
 
 	return keys, nil

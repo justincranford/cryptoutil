@@ -23,7 +23,7 @@ import (
 type BarrierService struct {
 	telemetryService          *cryptoutilTelemetry.Service
 	ormRepository             *cryptoutilOrmRepository.OrmRepository
-	aes256Pool                *cryptoutilKeygen.KeyPool
+	aes256KeyGenPool          *cryptoutilKeygen.KeyGenPool
 	rootKeyRepository         *cryptoutilBarrierRepository.Repository
 	intermediateKeyRepository *cryptoutilBarrierRepository.Repository
 	contentKeyRepository      *cryptoutilBarrierRepository.Repository
@@ -32,11 +32,11 @@ type BarrierService struct {
 }
 
 func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealService *cryptoutilUnsealService.UnsealService) (*BarrierService, error) {
-	keyPoolConfig, err := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Crypto Service AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	keyPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Crypto Service AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool config: %w", err)
 	}
-	aes256Pool, err := cryptoutilKeygen.NewKeyPool(keyPoolConfig)
+	aes256KeyGenPool, err := cryptoutilKeygen.NewGenKeyPool(keyPoolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}
@@ -46,7 +46,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("failed to initialize root JWK repository: %w", err)
 	}
 
-	intermediateKeyRepository, err := newIntermediateKeyRepository(telemetryService, ormRepository, rootKeyRepository, 2, aes256Pool)
+	intermediateKeyRepository, err := newIntermediateKeyRepository(telemetryService, ormRepository, rootKeyRepository, 2, aes256KeyGenPool)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize intermediate JWK repository: %w", err)
 	}
@@ -59,7 +59,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 	return &BarrierService{
 		telemetryService:          telemetryService,
 		ormRepository:             ormRepository,
-		aes256Pool:                aes256Pool,
+		aes256KeyGenPool:          aes256KeyGenPool,
 		rootKeyRepository:         rootKeyRepository,
 		intermediateKeyRepository: intermediateKeyRepository,
 		contentKeyRepository:      contentKeyRepository,
@@ -90,9 +90,9 @@ func (d *BarrierService) Shutdown() {
 			}
 			d.rootKeyRepository = nil
 		}
-		if d.aes256Pool != nil {
-			d.aes256Pool.Close()
-			d.aes256Pool = nil
+		if d.aes256KeyGenPool != nil {
+			d.aes256KeyGenPool.Close()
+			d.aes256KeyGenPool = nil
 		}
 		d.ormRepository = nil
 		d.telemetryService = nil
@@ -104,7 +104,7 @@ func (d *BarrierService) EncryptContent(clearBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
-	rawKey, ok := d.aes256Pool.Get().Private.([]byte)
+	rawKey, ok := d.aes256KeyGenPool.Get().Private.([]byte)
 	if !ok {
 		return nil, fmt.Errorf("failed to cast AES-256 pool key to []byte")
 	}
@@ -226,7 +226,7 @@ func newRootKeyRepository(telemetryService *cryptoutilTelemetry.Service, ormRepo
 	return rootKeyRepository, nil
 }
 
-func newIntermediateKeyRepository(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeyRepository *cryptoutilBarrierRepository.Repository, cacheSize int, aes256Pool *cryptoutilKeygen.KeyPool) (*cryptoutilBarrierRepository.Repository, error) {
+func newIntermediateKeyRepository(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeyRepository *cryptoutilBarrierRepository.Repository, cacheSize int, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*cryptoutilBarrierRepository.Repository, error) {
 	loadLatestIntermediateKey := func() (joseJwk.Key, error) {
 		jwk, err := ormRepository.GetIntermediateKeyLatest()
 		return decrypt(rootKeyRepository, jwk, err)
@@ -260,7 +260,7 @@ func newIntermediateKeyRepository(telemetryService *cryptoutilTelemetry.Service,
 		return nil, fmt.Errorf("failed to get latest intermediate Key: %w", err)
 	}
 	if latestJwk == nil {
-		intermediateJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, aes256Pool.Get().Private.([]byte))
+		intermediateJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, aes256KeyGenPool.Get().Private.([]byte))
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate DEK JWK: %w", err)
 		}

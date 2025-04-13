@@ -73,16 +73,16 @@ func TestMain(m *testing.M) {
 func TestPoolRSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(256))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(256))
 			require.NoError(t, err)
-			require.NotNil(t, config)
-			pool, err := NewKeyPool(config)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
 			require.NoError(t, err)
-			require.NotNil(t, pool)
-			defer pool.Close()
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := pool.Get()
+				keyPair := keyGenPool.Get()
 				assert.IsType(t, &rsa.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, &rsa.PublicKey{}, keyPair.Public)
 			}
@@ -93,16 +93,16 @@ func TestPoolRSA(t *testing.T) {
 func TestPoolEcDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
 			require.NoError(t, err)
-			require.NotNil(t, config)
-			pool, err := NewKeyPool(config)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
 			require.NoError(t, err)
-			require.NotNil(t, pool)
-			defer pool.Close()
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := pool.Get()
+				keyPair := keyGenPool.Get()
 				assert.IsType(t, &ecdsa.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, &ecdsa.PublicKey{}, keyPair.Public)
 			}
@@ -113,16 +113,16 @@ func TestPoolEcDSA(t *testing.T) {
 func TestPoolEcDH(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
 			require.NoError(t, err)
-			require.NotNil(t, config)
-			pool, err := NewKeyPool(config)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
 			require.NoError(t, err)
-			require.NotNil(t, pool)
-			defer pool.Close()
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := pool.Get()
+				keyPair := keyGenPool.Get()
 				assert.IsType(t, &ecdh.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, &ecdh.PublicKey{}, keyPair.Public)
 			}
@@ -133,16 +133,16 @@ func TestPoolEcDH(t *testing.T) {
 func TestPoolEdDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
 			require.NoError(t, err)
-			require.NotNil(t, config)
-			pool, err := NewKeyPool(config)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
 			require.NoError(t, err)
-			require.NotNil(t, pool)
-			defer pool.Close()
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := pool.Get()
+				keyPair := keyGenPool.Get()
 				assert.IsType(t, ed25519.PrivateKey{}, keyPair.Private)
 				assert.IsType(t, ed25519.PublicKey{}, keyPair.Public)
 			}
@@ -153,16 +153,16 @@ func TestPoolEdDSA(t *testing.T) {
 func TestPoolAES(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESKeyFunction(128))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESKeyFunction(128))
 			require.NoError(t, err)
-			require.NotNil(t, config)
-			pool, err := NewKeyPool(config)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
 			require.NoError(t, err)
-			require.NotNil(t, pool)
-			defer pool.Close()
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := pool.Get()
+				keyPair := keyGenPool.Get()
 				assert.IsType(t, []byte{}, keyPair.Private)
 				assert.Nil(t, keyPair.Public)
 			}
@@ -173,16 +173,16 @@ func TestPoolAES(t *testing.T) {
 func TestPoolHMAC(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateHMACKeyFunction(256))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateHMACKeyFunction(256))
 			require.NoError(t, err)
-			require.NotNil(t, config)
-			pool, err := NewKeyPool(config)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
 			require.NoError(t, err)
-			require.NotNil(t, pool)
-			defer pool.Close()
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := pool.Get()
+				keyPair := keyGenPool.Get()
 				assert.IsType(t, []byte{}, keyPair.Private)
 				assert.Nil(t, keyPair.Public)
 			}
@@ -193,16 +193,16 @@ func TestPoolHMAC(t *testing.T) {
 func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			config, err := NewKeyPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateUUIDv7Function())
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateUUIDv7Function())
 			require.NoError(t, err)
-			require.NotNil(t, config)
-			pool, err := NewKeyPool(config)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
 			require.NoError(t, err)
-			require.NotNil(t, pool)
-			defer pool.Close()
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := pool.Get()
+				keyPair := keyGenPool.Get()
 				assert.IsType(t, googleUuid.UUID{}, keyPair.Private)
 				assert.Nil(t, keyPair.Public)
 			}

@@ -18,35 +18,35 @@ import (
 type BusinessLogicService struct {
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	serviceOrmMapper *serviceOrmMapper
-	aes256Pool       *cryptoutilKeygen.KeyPool
-	aes192Pool       *cryptoutilKeygen.KeyPool
-	aes128Pool       *cryptoutilKeygen.KeyPool
-	uuidV7Pool       *cryptoutilKeygen.KeyPool
+	aes256KeyGenPool *cryptoutilKeygen.KeyGenPool
+	aes192KeyGenPool *cryptoutilKeygen.KeyGenPool
+	aes128KeyGenPool *cryptoutilKeygen.KeyGenPool
+	uuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
 func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
-	aes256PoolConfig, err1 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	aes192PoolConfig, err2 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
-	aes128PoolConfig, err3 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
-	uuidV7PoolConfig, err4 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	aes256KeyGenPoolConfig, err1 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	aes192KeyGenPoolConfig, err2 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
+	aes128KeyGenPoolConfig, err3 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
+	uuidV7KeyGenPoolConfig, err4 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4))
 	}
 
-	aes256Pool, err1 := cryptoutilKeygen.NewKeyPool(aes256PoolConfig)
-	aes192Pool, err2 := cryptoutilKeygen.NewKeyPool(aes192PoolConfig)
-	aes128Pool, err3 := cryptoutilKeygen.NewKeyPool(aes128PoolConfig)
-	uuidV7Pool, err4 := cryptoutilKeygen.NewKeyPool(uuidV7PoolConfig)
+	aes256KeyGenPool, err1 := cryptoutilKeygen.NewGenKeyPool(aes256KeyGenPoolConfig)
+	aes192KeyGenPool, err2 := cryptoutilKeygen.NewGenKeyPool(aes192KeyGenPoolConfig)
+	aes128KeyGenPool, err3 := cryptoutilKeygen.NewGenKeyPool(aes128KeyGenPoolConfig)
+	uuidV7KeyGenPool, err4 := cryptoutilKeygen.NewGenKeyPool(uuidV7KeyGenPoolConfig)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4))
 	}
 
-	return &BusinessLogicService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256Pool: aes256Pool, aes192Pool: aes192Pool, aes128Pool: aes128Pool, uuidV7Pool: uuidV7Pool, barrierService: barrierService}, nil
+	return &BusinessLogicService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256KeyGenPool: aes256KeyGenPool, aes192KeyGenPool: aes192KeyGenPool, aes128KeyGenPool: aes128KeyGenPool, uuidV7KeyGenPool: uuidV7KeyGenPool, barrierService: barrierService}, nil
 }
 
 func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
-	keyPoolID := s.uuidV7Pool.Get().Private.(googleUuid.UUID)
+	keyPoolID := s.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
 	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(keyPoolID, openapiKeyPoolCreate)
 
 	var insertedKeyPool *cryptoutilOrmRepository.KeyPool
@@ -230,7 +230,7 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 }
 
 func (s *BusinessLogicService) generateKeyInsert(keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {
-	keyID := s.uuidV7Pool.Get().Private.(googleUuid.UUID)
+	keyID := s.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
 
 	// TODO Generate JWK instead of []byte
 	clearKeyMaterial, err := s.GenerateKeyMaterial(keyPoolAlgorithm)
@@ -255,11 +255,11 @@ func (s *BusinessLogicService) generateKeyInsert(keyPoolID googleUuid.UUID, keyP
 func (s *BusinessLogicService) GenerateKeyMaterial(algorithm string) ([]byte, error) {
 	switch string(algorithm) {
 	case "AES-256", "AES256":
-		return s.aes256Pool.Get().Private.([]byte), nil
+		return s.aes256KeyGenPool.Get().Private.([]byte), nil
 	case "AES-192", "AES192":
-		return s.aes192Pool.Get().Private.([]byte), nil
+		return s.aes192KeyGenPool.Get().Private.([]byte), nil
 	case "AES-128", "AES128":
-		return s.aes128Pool.Get().Private.([]byte), nil
+		return s.aes128KeyGenPool.Get().Private.([]byte), nil
 	default:
 		return nil, fmt.Errorf("unsuppported algorithm")
 	}

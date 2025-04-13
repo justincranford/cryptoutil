@@ -26,7 +26,7 @@ type KeyPoolConfig struct {
 	generateFunction    func() (Key, error)
 }
 
-type KeyPool struct {
+type KeyGenPool struct {
 	poolStartTime         time.Time
 	cfg                   *KeyPoolConfig
 	wrappedCtx            context.Context    // Close() calls cancelWorkersFunction which makes Done() signal available to all of the N generateWorker threads and 1 monitorShutdown thread
@@ -39,15 +39,15 @@ type KeyPool struct {
 	getCounter            uint64
 }
 
-// NewKeyPool supports finite or indefinite pools
-func NewKeyPool(config *KeyPoolConfig) (*KeyPool, error) {
+// NewGenKeyPool supports finite or indefinite pools
+func NewGenKeyPool(config *KeyPoolConfig) (*KeyGenPool, error) {
 	poolStartTime := time.Now() // used to enforce maxLifetimeDuration in N generateWorker threads and 1 monitorShutdown thread
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
 	wrappedCtx, cancelFunction := context.WithCancel(config.ctx)
-	pool := &KeyPool{
+	keyGenPool := &KeyGenPool{
 		poolStartTime:         poolStartTime,
 		cfg:                   config,
 		wrappedCtx:            wrappedCtx,
@@ -55,18 +55,18 @@ func NewKeyPool(config *KeyPoolConfig) (*KeyPool, error) {
 		permissionChannel:     make(chan struct{}, config.poolSize),
 		keyChannel:            make(chan Key, config.poolSize),
 	}
-	go pool.monitorShutdown()
-	for workerNum := uint32(1); workerNum <= pool.cfg.numWorkers; workerNum++ {
-		pool.waitForWorkers.Add(1)
+	go keyGenPool.monitorShutdown()
+	for workerNum := uint32(1); workerNum <= keyGenPool.cfg.numWorkers; workerNum++ {
+		keyGenPool.waitForWorkers.Add(1)
 		go func() {
-			defer pool.waitForWorkers.Done()
-			pool.generateWorker(workerNum)
+			defer keyGenPool.waitForWorkers.Done()
+			keyGenPool.generateWorker(workerNum)
 		}()
 	}
-	return pool, nil
+	return keyGenPool, nil
 }
 
-func NewKeyPoolConfig(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyPoolConfig, error) {
+func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyPoolConfig, error) {
 	config := &KeyPoolConfig{
 		ctx:                 ctx,
 		telemetryService:    telemetryService,
@@ -108,7 +108,7 @@ func validateConfig(config *KeyPoolConfig) error {
 	return nil
 }
 
-func (pool *KeyPool) monitorShutdown() {
+func (pool *KeyGenPool) monitorShutdown() {
 	ticker := time.NewTicker(500 * time.Millisecond) // time keeps on ticking ticking ticking... into the future
 	defer ticker.Stop()
 	for {
@@ -127,7 +127,7 @@ func (pool *KeyPool) monitorShutdown() {
 	}
 }
 
-func (pool *KeyPool) generateWorker(workerNum uint32) {
+func (pool *KeyGenPool) generateWorker(workerNum uint32) {
 	startTime := time.Now()
 	defer func() {
 		if r := recover(); r != nil {
@@ -148,7 +148,7 @@ func (pool *KeyPool) generateWorker(workerNum uint32) {
 	}
 }
 
-func (pool *KeyPool) generateKeyAndReleasePermission(workerNum uint32, startTime time.Time) {
+func (pool *KeyGenPool) generateKeyAndReleasePermission(workerNum uint32, startTime time.Time) {
 	defer func() {
 		if r := recover(); r != nil {
 			pool.cfg.telemetryService.Slogger.Error("Recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", r)
@@ -179,7 +179,7 @@ func (pool *KeyPool) generateKeyAndReleasePermission(workerNum uint32, startTime
 	}
 }
 
-func (pool *KeyPool) Get() Key {
+func (pool *KeyGenPool) Get() Key {
 	startTime := time.Now()
 	pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	key := <-pool.keyChannel
@@ -191,7 +191,7 @@ func (pool *KeyPool) Get() Key {
 	return key
 }
 
-func (pool *KeyPool) Close() {
+func (pool *KeyGenPool) Close() {
 	pool.closeOnce.Do(func() {
 		startTime := time.Now()
 
