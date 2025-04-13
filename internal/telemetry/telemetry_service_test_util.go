@@ -6,8 +6,8 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/apperr"
 )
 
-func RequireNewForTest(ctx context.Context, scope string, enableOtel, enableStdout bool) *Service {
-	telemetryService, err := NewService(ctx, scope, enableOtel, enableStdout)
+func RequireNewForTest(ctx context.Context, scope string, enableOtel, enableStdout bool) *TelemetryService {
+	telemetryService, err := NewTelemetryService(ctx, scope, enableOtel, enableStdout)
 	cryptoutilAppErr.RequireNoError(err, "failed to initialize telemetry")
 	return telemetryService
 }

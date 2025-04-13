@@ -26,8 +26,8 @@ import (
 	traceApi "go.opentelemetry.io/otel/trace"
 )
 
-// Service Composite of OpenTelemetry providers for Logs, Metrics, and Traces
-type Service struct {
+// TelemetryService Composite of OpenTelemetry providers for Logs, Metrics, and Traces
+type TelemetryService struct {
 	StartTime         time.Time
 	StopTime          time.Time
 	Slogger           *slog.Logger
@@ -72,7 +72,7 @@ var slogStdoutAttributes = func() []slog.Attr {
 	return slogAttrs
 }()
 
-func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool) (*Service, error) {
+func NewTelemetryService(ctx context.Context, scope string, enableOtel, enableStdout bool) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")
@@ -96,7 +96,7 @@ func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool
 		return nil, fmt.Errorf("failed to init text map propagator: %w", err)
 	}
 	doExampleTracesSpans(ctx, tracesProvider, slogger)
-	return &Service{
+	return &TelemetryService{
 		StartTime:         startTime,
 		Slogger:           slogger,
 		LogsProvider:      logsProvider,
@@ -106,7 +106,7 @@ func NewService(ctx context.Context, scope string, enableOtel, enableStdout bool
 	}, nil
 }
 
-func (s *Service) Shutdown() {
+func (s *TelemetryService) Shutdown() {
 	s.Slogger.Debug("stopping telemetry")
 	ctx := context.Background()
 	s.TextMapPropagator = nil

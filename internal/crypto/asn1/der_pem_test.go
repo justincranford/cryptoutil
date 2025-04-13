@@ -20,7 +20,7 @@ import (
 
 var (
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.Service
+	testTelemetryService *cryptoutilTelemetry.TelemetryService
 )
 
 func TestMain(m *testing.M) {

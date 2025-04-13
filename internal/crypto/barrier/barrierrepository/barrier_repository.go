@@ -19,9 +19,9 @@ import (
 	traceApi "go.opentelemetry.io/otel/trace"
 )
 
-type Repository struct {
+type BarrierRepository struct {
 	name             string
-	telemetryService *cryptoutilTelemetry.Service
+	telemetryService *cryptoutilTelemetry.TelemetryService
 	cacheSize        int
 	cache            *lru.Cache
 	latestJwk        joseJwk.Key
@@ -43,7 +43,7 @@ type Observations struct {
 	histogramWaitPurge     metricApi.Int64Histogram
 }
 
-func New(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*Repository, error) {
+func NewBarrierRepository(name string, telemetryService *cryptoutilTelemetry.TelemetryService, cacheSize int, loadLatestFunc func() (joseJwk.Key, error), loadFunc func(kid googleUuid.UUID) (joseJwk.Key, error), storeFunc func(jwk joseJwk.Key) error, removeFunc func(kid googleUuid.UUID) (joseJwk.Key, error)) (*BarrierRepository, error) {
 	repositoryNameAttribute := attribute.String("repository.name", name)
 
 	tracer := telemetryService.TracesProvider.Tracer("barrierrepository", traceApi.WithInstrumentationAttributes(repositoryNameAttribute))
@@ -66,7 +66,7 @@ func New(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize i
 		return nil, fmt.Errorf("failed to create Int64Histograms: %w", errors.Join(err1, err2, err3, err4, err5))
 	}
 
-	jwkCache := Repository{
+	jwkCache := BarrierRepository{
 		name:             name,
 		telemetryService: telemetryService,
 		cacheSize:        cacheSize,
@@ -87,14 +87,14 @@ func New(name string, telemetryService *cryptoutilTelemetry.Service, cacheSize i
 	return &jwkCache, nil
 }
 
-func (jwkCache *Repository) Shutdown() error {
+func (jwkCache *BarrierRepository) Shutdown() error {
 	_, span := jwkCache.observations.tracer.Start(context.Background(), "Shutdown")
 	defer span.End()
 
 	return jwkCache.Purge()
 }
 
-func (jwkCache *Repository) GetLatest() (joseJwk.Key, error) {
+func (jwkCache *BarrierRepository) GetLatest() (joseJwk.Key, error) {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "GetLatest")
 	defer span.End()
 
@@ -122,7 +122,7 @@ func (jwkCache *Repository) GetLatest() (joseJwk.Key, error) {
 	return latestJwk, nil
 }
 
-func (jwkCache *Repository) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
+func (jwkCache *BarrierRepository) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Get")
 	defer span.End()
 
@@ -167,7 +167,7 @@ func (jwkCache *Repository) Get(kid googleUuid.UUID) (joseJwk.Key, error) {
 	return castedJwk, nil
 }
 
-func (jwkCache *Repository) Put(jwk joseJwk.Key) error {
+func (jwkCache *BarrierRepository) Put(jwk joseJwk.Key) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Put")
 	defer span.End()
 
@@ -202,7 +202,7 @@ func (jwkCache *Repository) Put(jwk joseJwk.Key) error {
 	return nil
 }
 
-func (jwkCache *Repository) Remove(kidUuid googleUuid.UUID) error {
+func (jwkCache *BarrierRepository) Remove(kidUuid googleUuid.UUID) error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Remove")
 	defer span.End()
 
@@ -242,7 +242,7 @@ func (jwkCache *Repository) Remove(kidUuid googleUuid.UUID) error {
 	return nil
 }
 
-func (jwkCache *Repository) Purge() error {
+func (jwkCache *BarrierRepository) Purge() error {
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Purge")
 	defer span.End()
 

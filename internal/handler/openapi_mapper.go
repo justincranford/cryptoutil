@@ -6,17 +6,17 @@ import (
 	"net/http"
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
-	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
+	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 )
 
-type openapiMapper struct{}
+type openapiBusinessLogicMapper struct{}
 
-func NewMapper() *openapiMapper {
-	return &openapiMapper{}
+func NewOpenapiBusinessLogicMapper() *openapiBusinessLogicMapper {
+	return &openapiBusinessLogicMapper{}
 }
 
-func (m *openapiMapper) toPostKeyResponse(err error, addedKeyPool *cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostKeyResponse(err error, addedKeyPool *cryptoutilBusinessLogicModel.KeyPool) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -34,8 +34,8 @@ func (m *openapiMapper) toPostKeyResponse(err error, addedKeyPool *cryptoutilSer
 	return cryptoutilOpenapiServer.PostKeypool200JSONResponse(*addedKeyPool), nil
 }
 
-func (m *openapiMapper) toServiceModelGetKeyPoolQueryParams(openapiGetKeyPoolQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolsParams) *cryptoutilServiceModel.KeyPoolsQueryParams {
-	filters := cryptoutilServiceModel.KeyPoolsQueryParams{
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetKeyPoolQueryParams(openapiGetKeyPoolQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolsParams) *cryptoutilBusinessLogicModel.KeyPoolsQueryParams {
+	filters := cryptoutilBusinessLogicModel.KeyPoolsQueryParams{
 		Id:                openapiGetKeyPoolQueryParamsObject.Id,
 		Name:              openapiGetKeyPoolQueryParamsObject.Name,
 		Provider:          openapiGetKeyPoolQueryParamsObject.Provider,
@@ -51,7 +51,7 @@ func (m *openapiMapper) toServiceModelGetKeyPoolQueryParams(openapiGetKeyPoolQue
 	return &filters
 }
 
-func (m *openapiMapper) toGetKeypoolsResponse(err error, keyPools []cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolsResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetKeypoolsResponse(err error, keyPools []cryptoutilBusinessLogicModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolsResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -69,7 +69,7 @@ func (m *openapiMapper) toGetKeypoolsResponse(err error, keyPools []cryptoutilSe
 	return cryptoutilOpenapiServer.GetKeypools200JSONResponse(keyPools), err
 }
 
-func (m *openapiMapper) toGetKeypoolKeyPoolIDResponse(err error, keyPool *cryptoutilServiceModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetKeypoolKeyPoolIDResponse(err error, keyPool *cryptoutilBusinessLogicModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -87,7 +87,7 @@ func (m *openapiMapper) toGetKeypoolKeyPoolIDResponse(err error, keyPool *crypto
 	return cryptoutilOpenapiServer.GetKeypoolKeyPoolID200JSONResponse(*keyPool), err
 }
 
-func (m *openapiMapper) toPostKeypoolKeyPoolIDKeyResponse(err error, generateKeyInKeyPoolResponse *cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostKeypoolKeyPoolIDKeyResponse(err error, generateKeyInKeyPoolResponse *cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -105,7 +105,7 @@ func (m *openapiMapper) toPostKeypoolKeyPoolIDKeyResponse(err error, generateKey
 	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey200JSONResponse(*generateKeyInKeyPoolResponse), err
 }
 
-func (m *openapiMapper) toGetKeypoolKeyPoolIDKeyKeyIDResponse(err error, key *cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyIDResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetKeypoolKeyPoolIDKeyKeyIDResponse(err error, key *cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -123,8 +123,8 @@ func (m *openapiMapper) toGetKeypoolKeyPoolIDKeyKeyIDResponse(err error, key *cr
 	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID200JSONResponse(*key), err
 }
 
-func (m *openapiMapper) toServiceModelGetKeyPoolKeysQueryParams(openapiGetKeyPoolKeysQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysParams) *cryptoutilServiceModel.KeyPoolKeysQueryParams {
-	filters := cryptoutilServiceModel.KeyPoolKeysQueryParams{
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetKeyPoolKeysQueryParams(openapiGetKeyPoolKeysQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysParams) *cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams {
+	filters := cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams{
 		Id:              openapiGetKeyPoolKeysQueryParamsObject.Id,
 		MinGenerateDate: openapiGetKeyPoolKeysQueryParamsObject.MinGenerateDate,
 		MaxGenerateDate: openapiGetKeyPoolKeysQueryParamsObject.MaxGenerateDate,
@@ -135,7 +135,7 @@ func (m *openapiMapper) toServiceModelGetKeyPoolKeysQueryParams(openapiGetKeyPoo
 	return &filters
 }
 
-func (m *openapiMapper) toGetKeypoolKeyPoolIDKeysResponse(err error, keys []cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetKeypoolKeyPoolIDKeysResponse(err error, keys []cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -153,8 +153,8 @@ func (m *openapiMapper) toGetKeypoolKeyPoolIDKeysResponse(err error, keys []cryp
 	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys200JSONResponse(keys), err
 }
 
-func (m *openapiMapper) toServiceModelGetKeysQueryParams(openapiGetKeyQueryParamsObject *cryptoutilOpenapiServer.GetKeysParams) *cryptoutilServiceModel.KeysQueryParams {
-	filters := cryptoutilServiceModel.KeysQueryParams{
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetKeysQueryParams(openapiGetKeyQueryParamsObject *cryptoutilOpenapiServer.GetKeysParams) *cryptoutilBusinessLogicModel.KeysQueryParams {
+	filters := cryptoutilBusinessLogicModel.KeysQueryParams{
 		Pool:            openapiGetKeyQueryParamsObject.Pool,
 		Id:              openapiGetKeyQueryParamsObject.Id,
 		MinGenerateDate: openapiGetKeyQueryParamsObject.MinGenerateDate,
@@ -166,7 +166,7 @@ func (m *openapiMapper) toServiceModelGetKeysQueryParams(openapiGetKeyQueryParam
 	return &filters
 }
 
-func (m *openapiMapper) toGetKeysResponse(err error, keys []cryptoutilServiceModel.Key) (cryptoutilOpenapiServer.GetKeysResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetKeysResponse(err error, keys []cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.GetKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -186,20 +186,20 @@ func (m *openapiMapper) toGetKeysResponse(err error, keys []cryptoutilServiceMod
 
 // Helper methods
 
-func (m *openapiMapper) toHTTP400Response(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP400BadRequest {
-	return cryptoutilServiceModel.HTTP400BadRequest(m.toHTTPErrorResponse(appErr))
+func (m *openapiBusinessLogicMapper) toHTTP400Response(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTP400BadRequest {
+	return cryptoutilBusinessLogicModel.HTTP400BadRequest(m.toHTTPErrorResponse(appErr))
 }
 
-func (m *openapiMapper) toHTTP404Response(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP404NotFound {
-	return cryptoutilServiceModel.HTTP404NotFound(m.toHTTPErrorResponse(appErr))
+func (m *openapiBusinessLogicMapper) toHTTP404Response(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTP404NotFound {
+	return cryptoutilBusinessLogicModel.HTTP404NotFound(m.toHTTPErrorResponse(appErr))
 }
 
-func (m *openapiMapper) toHTTP500Response(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTP500InternalServerError {
-	return cryptoutilServiceModel.HTTP500InternalServerError(m.toHTTPErrorResponse(appErr))
+func (m *openapiBusinessLogicMapper) toHTTP500Response(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTP500InternalServerError {
+	return cryptoutilBusinessLogicModel.HTTP500InternalServerError(m.toHTTPErrorResponse(appErr))
 }
 
-func (*openapiMapper) toHTTPErrorResponse(appErr *cryptoutilAppErr.Error) cryptoutilServiceModel.HTTPError {
-	return cryptoutilServiceModel.HTTPError{
+func (*openapiBusinessLogicMapper) toHTTPErrorResponse(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTPError {
+	return cryptoutilBusinessLogicModel.HTTPError{
 		Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
 		Message: appErr.Error(),
 		Status:  int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode),

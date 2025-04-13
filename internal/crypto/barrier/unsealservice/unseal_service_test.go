@@ -7,7 +7,7 @@ import (
 
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	"github.com/stretchr/testify/assert"
@@ -15,20 +15,20 @@ import (
 
 var (
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.Service
-	testSqlProvider      *cryptoutilSqlProvider.SqlProvider
+	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
-	testDbType           = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 )
 
 func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "servicelogic_test", false, false)
 	defer testTelemetryService.Shutdown()
 
-	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
-	defer testSqlProvider.Shutdown()
+	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
 	os.Exit(m.Run())

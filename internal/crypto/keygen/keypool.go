@@ -17,7 +17,7 @@ const (
 
 type KeyPoolConfig struct {
 	ctx                 context.Context
-	telemetryService    *cryptoutilTelemetry.Service // Observability providers (i.e. logs, metrics, traces); supports publishing to STDOUT and/or OLTP+gRPC (e.g. OpenTelemetry sidecar container http://127.0.0.1:4317/)
+	telemetryService    *cryptoutilTelemetry.TelemetryService // Observability providers (i.e. logs, metrics, traces); supports publishing to STDOUT and/or OLTP+gRPC (e.g. OpenTelemetry sidecar container http://127.0.0.1:4317/)
 	poolName            string
 	numWorkers          uint32
 	poolSize            uint32
@@ -66,7 +66,7 @@ func NewGenKeyPool(config *KeyPoolConfig) (*KeyGenPool, error) {
 	return keyGenPool, nil
 }
 
-func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyPoolConfig, error) {
+func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyPoolConfig, error) {
 	config := &KeyPoolConfig{
 		ctx:                 ctx,
 		telemetryService:    telemetryService,

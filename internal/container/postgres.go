@@ -13,7 +13,7 @@ import (
 
 const postgresContainerStartupTimeout = 30 * time.Second
 
-func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbName, dbUsername, dbPassword string) (string, func(), error) {
+func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
 	postgresContainerRequest := testcontainers.ContainerRequest{
 		Image:        "postgres:latest",
 		ExposedPorts: []string{"5432/tcp"},

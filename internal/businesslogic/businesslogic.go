@@ -8,7 +8,7 @@ import (
 
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier/barrierservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
+	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
@@ -25,7 +25,7 @@ type BusinessLogicService struct {
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
-func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
+func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
 	aes256KeyGenPoolConfig, err1 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	aes192KeyGenPoolConfig, err2 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
 	aes128KeyGenPoolConfig, err3 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
@@ -45,7 +45,7 @@ func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTe
 	return &BusinessLogicService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256KeyGenPool: aes256KeyGenPool, aes192KeyGenPool: aes192KeyGenPool, aes128KeyGenPool: aes128KeyGenPool, uuidV7KeyGenPool: uuidV7KeyGenPool, barrierService: barrierService}, nil
 }
 
-func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) (*cryptoutilServiceModel.KeyPool, error) {
+func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) (*cryptoutilBusinessLogicModel.KeyPool, error) {
 	keyPoolID := s.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
 	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(keyPoolID, openapiKeyPoolCreate)
 
@@ -56,7 +56,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 			return fmt.Errorf("failed to add KeyPool: %w", err)
 		}
 
-		err = TransitionState(cryptoutilServiceModel.Creating, cryptoutilServiceModel.KeyPoolStatus(repositoryKeyPoolToInsert.KeyPoolStatus))
+		err = TransitionState(cryptoutilBusinessLogicModel.Creating, cryptoutilBusinessLogicModel.KeyPoolStatus(repositoryKeyPoolToInsert.KeyPoolStatus))
 		if repositoryKeyPoolToInsert.KeyPoolStatus != cryptoutilOrmRepository.PendingGenerate {
 			return fmt.Errorf("invalid KeyPoolStatus transition detected: %w", err)
 		}
@@ -97,7 +97,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 
 var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 
-func (s *BusinessLogicService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID) (*cryptoutilServiceModel.KeyPool, error) {
+func (s *BusinessLogicService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID) (*cryptoutilBusinessLogicModel.KeyPool, error) {
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
 		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
@@ -113,7 +113,7 @@ func (s *BusinessLogicService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoo
 	return s.serviceOrmMapper.toServiceKeyPool(repositoryKeyPool), nil
 }
 
-func (s *BusinessLogicService) GetKeyPools(ctx context.Context, keyPoolQueryParams *cryptoutilServiceModel.KeyPoolsQueryParams) ([]cryptoutilServiceModel.KeyPool, error) {
+func (s *BusinessLogicService) GetKeyPools(ctx context.Context, keyPoolQueryParams *cryptoutilBusinessLogicModel.KeyPoolsQueryParams) ([]cryptoutilBusinessLogicModel.KeyPool, error) {
 	ormKeyPoolsQueryParams, err := s.serviceOrmMapper.toOrmGetKeyPoolsQueryParams(keyPoolQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Key Pools parameters: %w", err)
@@ -134,7 +134,7 @@ func (s *BusinessLogicService) GetKeyPools(ctx context.Context, keyPoolQueryPara
 	return s.serviceOrmMapper.toServiceKeyPools(repositoryKeyPools), nil
 }
 
-func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID googleUuid.UUID, _ *cryptoutilServiceModel.KeyGenerate) (*cryptoutilServiceModel.Key, error) {
+func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID googleUuid.UUID, _ *cryptoutilBusinessLogicModel.KeyGenerate) (*cryptoutilBusinessLogicModel.Key, error) {
 	var repositoryKey *cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error
@@ -167,7 +167,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 	return &openapiPostKeypoolKeyPoolIDKeyResponseObject, nil
 }
 
-func (s *BusinessLogicService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleUuid.UUID, keyPoolKeysQueryParams *cryptoutilServiceModel.KeyPoolKeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
+func (s *BusinessLogicService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleUuid.UUID, keyPoolKeysQueryParams *cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams) ([]cryptoutilBusinessLogicModel.Key, error) {
 	ormKeyPoolKeysQueryParams, err := s.serviceOrmMapper.toOrmGetKeyPoolKeysQueryParams(keyPoolKeysQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Key Pool Keys parameters: %w", err)
@@ -189,7 +189,7 @@ func (s *BusinessLogicService) GetKeysByKeyPool(ctx context.Context, keyPoolID g
 	return s.serviceOrmMapper.toServiceKeys(repositoryKeys), nil
 }
 
-func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cryptoutilServiceModel.KeysQueryParams) ([]cryptoutilServiceModel.Key, error) {
+func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cryptoutilBusinessLogicModel.KeysQueryParams) ([]cryptoutilBusinessLogicModel.Key, error) {
 	ormKeysQueryParams, err := s.serviceOrmMapper.toOrmGetKeysQueryParams(keysQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Keys parameters: %w", err)
@@ -211,7 +211,7 @@ func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cry
 	return s.serviceOrmMapper.toServiceKeys(repositoryKeys), nil
 }
 
-func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*cryptoutilServiceModel.Key, error) {
+func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*cryptoutilBusinessLogicModel.Key, error) {
 	var repositoryKey *cryptoutilOrmRepository.Key
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.RepositoryTransaction) error {
 		var err error

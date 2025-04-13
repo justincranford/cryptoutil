@@ -11,15 +11,15 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func CreateGormDB(sqlProvider *SqlProvider) (*gorm.DB, error) {
+func CreateGormDB(sqlRepository *SqlRepository) (*gorm.DB, error) {
 	var gormDialector gorm.Dialector
-	switch sqlProvider.dbType {
+	switch sqlRepository.dbType {
 	case DBTypeSQLite:
-		gormDialector = sqlite.Dialector{Conn: sqlProvider.sqlDB}
+		gormDialector = sqlite.Dialector{Conn: sqlRepository.sqlDB}
 	case DBTypePostgres:
-		gormDialector = postgres.New(postgres.Config{Conn: sqlProvider.sqlDB})
+		gormDialector = postgres.New(postgres.Config{Conn: sqlRepository.sqlDB})
 	default:
-		return nil, fmt.Errorf("unsupported database type: %s", sqlProvider.dbType)
+		return nil, fmt.Errorf("unsupported database type: %s", sqlRepository.dbType)
 	}
 
 	gormDB, err := gorm.Open(gormDialector, &gorm.Config{})

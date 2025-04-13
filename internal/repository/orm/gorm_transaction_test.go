@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	_ "github.com/lib/pq"
@@ -17,22 +17,22 @@ import (
 
 var (
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.Service
-	testSqlProvider      *cryptoutilSqlProvider.SqlProvider
+	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *OrmRepository
 	testGivens           *Givens
-	skipReadOnlyTxTests  = true                               // true for DBTypeSQLite, false for DBTypePostgres
-	testDbType           = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	skipReadOnlyTxTests  = true                                 // true for DBTypeSQLite, false for DBTypePostgres
+	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 )
 
 func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "gorm_transaction_test", false, false)
 	defer testTelemetryService.Shutdown()
 
-	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
-	defer testSqlProvider.Shutdown()
+	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
+	testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
 	testGivens = RequireNewGivensForTest(testCtx, testTelemetryService)

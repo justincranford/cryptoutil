@@ -10,7 +10,7 @@ import (
 	"github.com/testcontainers/testcontainers-go"
 )
 
-func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
+func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
 	telemetryService.Slogger.Debug("starting container")
 	startedContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: containerRequest,
@@ -34,7 +34,7 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.S
 	return startedContainer, terminateContainer, nil
 }
 
-func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, container testcontainers.Container, port string) (string, string, error) {
+func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, container testcontainers.Container, port string) (string, string, error) {
 	host, err := container.Host(ctx)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get container host", "error", err)

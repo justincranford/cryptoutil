@@ -11,7 +11,7 @@ import (
 
 var (
 	testCtx              = context.Background()
-	testTelemetryService *Service
+	testTelemetryService *TelemetryService
 )
 
 func TestMain(m *testing.M) {

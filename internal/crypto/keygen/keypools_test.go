@@ -38,7 +38,7 @@ func TestPoolsExample(t *testing.T) {
 	readKeys(telemetryService, keys)
 }
 
-func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) ([]Key, error) {
+func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) ([]Key, error) {
 	rsaKeyGenPoolConfig, err1 := NewKeyGenPoolConfig(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateRSAKeyPairFunction(256))
 	ecdsaKeyGenPoolConfig, err2 := NewKeyGenPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
 	ecdhKeyGenPoolConfig, err3 := NewKeyGenPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
@@ -80,7 +80,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Ser
 	return keys, nil
 }
 
-func writeKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
+func writeKeys(telemetryService *cryptoutilTelemetry.TelemetryService, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"
@@ -109,7 +109,7 @@ func writeKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
 	}
 }
 
-func readKeys(telemetryService *cryptoutilTelemetry.Service, keys []Key) {
+func readKeys(telemetryService *cryptoutilTelemetry.TelemetryService, keys []Key) {
 	for i, key := range keys {
 		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"

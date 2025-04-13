@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
+	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilUtil "cryptoutil/internal/util"
 
@@ -20,7 +20,7 @@ func NewMapper() *serviceOrmMapper {
 
 // service => orm
 
-func (m *serviceOrmMapper) toOrmAddKeyPool(keyPoolID uuid.UUID, serviceKeyPoolCreate *cryptoutilServiceModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
+func (m *serviceOrmMapper) toOrmAddKeyPool(keyPoolID uuid.UUID, serviceKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
 	return &cryptoutilOrmRepository.KeyPool{
 		KeyPoolID:                keyPoolID,
 		KeyPoolName:              serviceKeyPoolCreate.Name,
@@ -34,17 +34,17 @@ func (m *serviceOrmMapper) toOrmAddKeyPool(keyPoolID uuid.UUID, serviceKeyPoolCr
 	}
 }
 
-func (m *serviceOrmMapper) toOrmKeyPoolProvider(serviceKeyPoolProvider *cryptoutilServiceModel.KeyPoolProvider) *cryptoutilOrmRepository.KeyPoolProvider {
+func (m *serviceOrmMapper) toOrmKeyPoolProvider(serviceKeyPoolProvider *cryptoutilBusinessLogicModel.KeyPoolProvider) *cryptoutilOrmRepository.KeyPoolProvider {
 	ormKeyPoolProvider := cryptoutilOrmRepository.KeyPoolProvider(*serviceKeyPoolProvider)
 	return &ormKeyPoolProvider
 }
 
-func (m *serviceOrmMapper) toOrmKeyPoolAlgorithm(serviceKeyPoolProvider *cryptoutilServiceModel.KeyPoolAlgorithm) *cryptoutilOrmRepository.KeyPoolAlgorithm {
+func (m *serviceOrmMapper) toOrmKeyPoolAlgorithm(serviceKeyPoolProvider *cryptoutilBusinessLogicModel.KeyPoolAlgorithm) *cryptoutilOrmRepository.KeyPoolAlgorithm {
 	ormKeyPoolAlgorithm := cryptoutilOrmRepository.KeyPoolAlgorithm(*serviceKeyPoolProvider)
 	return &ormKeyPoolAlgorithm
 }
 
-func (m *serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolImportAllowed *cryptoutilServiceModel.KeyPoolImportAllowed) *cryptoutilOrmRepository.KeyPoolStatus {
+func (m *serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolImportAllowed *cryptoutilBusinessLogicModel.KeyPoolImportAllowed) *cryptoutilOrmRepository.KeyPoolStatus {
 	var ormKeyPoolStatus cryptoutilOrmRepository.KeyPoolStatus
 	if *serviceKeyPoolImportAllowed {
 		ormKeyPoolStatus = cryptoutilOrmRepository.KeyPoolStatus("pending_import")
@@ -56,17 +56,17 @@ func (m *serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolImportAllowed *c
 
 // orm => service
 
-func (m *serviceOrmMapper) toServiceKeyPools(ormKeyPools []cryptoutilOrmRepository.KeyPool) []cryptoutilServiceModel.KeyPool {
-	serviceKeyPools := make([]cryptoutilServiceModel.KeyPool, len(ormKeyPools))
+func (m *serviceOrmMapper) toServiceKeyPools(ormKeyPools []cryptoutilOrmRepository.KeyPool) []cryptoutilBusinessLogicModel.KeyPool {
+	serviceKeyPools := make([]cryptoutilBusinessLogicModel.KeyPool, len(ormKeyPools))
 	for i, ormKeyPool := range ormKeyPools {
 		serviceKeyPools[i] = *m.toServiceKeyPool(&ormKeyPool)
 	}
 	return serviceKeyPools
 }
 
-func (s *serviceOrmMapper) toServiceKeyPool(ormKeyPool *cryptoutilOrmRepository.KeyPool) *cryptoutilServiceModel.KeyPool {
-	return &cryptoutilServiceModel.KeyPool{
-		Id:                (*cryptoutilServiceModel.KeyPoolId)(&ormKeyPool.KeyPoolID),
+func (s *serviceOrmMapper) toServiceKeyPool(ormKeyPool *cryptoutilOrmRepository.KeyPool) *cryptoutilBusinessLogicModel.KeyPool {
+	return &cryptoutilBusinessLogicModel.KeyPool{
+		Id:                (*cryptoutilBusinessLogicModel.KeyPoolId)(&ormKeyPool.KeyPoolID),
 		Name:              &ormKeyPool.KeyPoolName,
 		Description:       &ormKeyPool.KeyPoolDescription,
 		Algorithm:         s.toServiceKeyPoolAlgorithm(&ormKeyPool.KeyPoolAlgorithm),
@@ -78,38 +78,38 @@ func (s *serviceOrmMapper) toServiceKeyPool(ormKeyPool *cryptoutilOrmRepository.
 	}
 }
 
-func (m *serviceOrmMapper) toServiceKeyPoolAlgorithm(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) *cryptoutilServiceModel.KeyPoolAlgorithm {
-	serviceKeyPoolAlgorithm := cryptoutilServiceModel.KeyPoolAlgorithm(*ormKeyPoolAlgorithm)
+func (m *serviceOrmMapper) toServiceKeyPoolAlgorithm(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) *cryptoutilBusinessLogicModel.KeyPoolAlgorithm {
+	serviceKeyPoolAlgorithm := cryptoutilBusinessLogicModel.KeyPoolAlgorithm(*ormKeyPoolAlgorithm)
 	return &serviceKeyPoolAlgorithm
 }
 
-func (m *serviceOrmMapper) toServiceKeyPoolProvider(ormKeyPoolProvider *cryptoutilOrmRepository.KeyPoolProvider) *cryptoutilServiceModel.KeyPoolProvider {
-	serviceKeyPoolProvider := cryptoutilServiceModel.KeyPoolProvider(*ormKeyPoolProvider)
+func (m *serviceOrmMapper) toServiceKeyPoolProvider(ormKeyPoolProvider *cryptoutilOrmRepository.KeyPoolProvider) *cryptoutilBusinessLogicModel.KeyPoolProvider {
+	serviceKeyPoolProvider := cryptoutilBusinessLogicModel.KeyPoolProvider(*ormKeyPoolProvider)
 	return &serviceKeyPoolProvider
 }
 
-func (m *serviceOrmMapper) toServiceKeyPoolStatus(ormKeyPoolStatus *cryptoutilOrmRepository.KeyPoolStatus) *cryptoutilServiceModel.KeyPoolStatus {
-	serviceKeyPoolStatus := cryptoutilServiceModel.KeyPoolStatus(*ormKeyPoolStatus)
+func (m *serviceOrmMapper) toServiceKeyPoolStatus(ormKeyPoolStatus *cryptoutilOrmRepository.KeyPoolStatus) *cryptoutilBusinessLogicModel.KeyPoolStatus {
+	serviceKeyPoolStatus := cryptoutilBusinessLogicModel.KeyPoolStatus(*ormKeyPoolStatus)
 	return &serviceKeyPoolStatus
 }
 
-func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key) []cryptoutilServiceModel.Key {
-	serviceKeys := make([]cryptoutilServiceModel.Key, len(ormKeys))
+func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key) []cryptoutilBusinessLogicModel.Key {
+	serviceKeys := make([]cryptoutilBusinessLogicModel.Key, len(ormKeys))
 	for i, ormKey := range ormKeys {
 		serviceKeys[i] = *m.toServiceKey(&ormKey)
 	}
 	return serviceKeys
 }
 
-func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key) *cryptoutilServiceModel.Key {
-	return &cryptoutilServiceModel.Key{
-		Pool:         (*cryptoutilServiceModel.KeyPoolId)(&ormKey.KeyPoolID),
+func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key) *cryptoutilBusinessLogicModel.Key {
+	return &cryptoutilBusinessLogicModel.Key{
+		Pool:         (*cryptoutilBusinessLogicModel.KeyPoolId)(&ormKey.KeyPoolID),
 		Id:           &ormKey.KeyID,
-		GenerateDate: (*cryptoutilServiceModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
+		GenerateDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
 	}
 }
 
-func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilServiceModel.KeyPoolsQueryParams) (*cryptoutilOrmRepository.GetKeyPoolsFilters, error) {
+func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilBusinessLogicModel.KeyPoolsQueryParams) (*cryptoutilOrmRepository.GetKeyPoolsFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -155,7 +155,7 @@ func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilService
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetKeyPoolKeysQueryParams(params *cryptoutilServiceModel.KeyPoolKeysQueryParams) (*cryptoutilOrmRepository.GetKeyPoolKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetKeyPoolKeysQueryParams(params *cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams) (*cryptoutilOrmRepository.GetKeyPoolKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -193,7 +193,7 @@ func (m *serviceOrmMapper) toOrmGetKeyPoolKeysQueryParams(params *cryptoutilServ
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilServiceModel.KeysQueryParams) (*cryptoutilOrmRepository.GetKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLogicModel.KeysQueryParams) (*cryptoutilOrmRepository.GetKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -284,22 +284,22 @@ func (*serviceOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) 
 	return minDate, maxDate, errors.Join(errs...)
 }
 
-func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilServiceModel.KeyPoolAlgorithm) ([]string, error) {
-	newVar := toStrings(algorithms, func(algorithm cryptoutilServiceModel.KeyPoolAlgorithm) string { return string(algorithm) })
+func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilBusinessLogicModel.KeyPoolAlgorithm) ([]string, error) {
+	newVar := toStrings(algorithms, func(algorithm cryptoutilBusinessLogicModel.KeyPoolAlgorithm) string { return string(algorithm) })
 	return newVar, nil
 }
 
-func (m *serviceOrmMapper) toOrmKeyPoolSorts(keyPoolSorts *[]cryptoutilServiceModel.KeyPoolSort) ([]string, error) {
-	newVar := toStrings(keyPoolSorts, func(keyPoolSort cryptoutilServiceModel.KeyPoolSort) string { return string(keyPoolSort) })
+func (m *serviceOrmMapper) toOrmKeyPoolSorts(keyPoolSorts *[]cryptoutilBusinessLogicModel.KeyPoolSort) ([]string, error) {
+	newVar := toStrings(keyPoolSorts, func(keyPoolSort cryptoutilBusinessLogicModel.KeyPoolSort) string { return string(keyPoolSort) })
 	return newVar, nil
 }
 
-func (m *serviceOrmMapper) toOrmKeySorts(keySorts *[]cryptoutilServiceModel.KeySort) ([]string, error) {
-	newVar := toStrings(keySorts, func(keySort cryptoutilServiceModel.KeySort) string { return string(keySort) })
+func (m *serviceOrmMapper) toOrmKeySorts(keySorts *[]cryptoutilBusinessLogicModel.KeySort) ([]string, error) {
+	newVar := toStrings(keySorts, func(keySort cryptoutilBusinessLogicModel.KeySort) string { return string(keySort) })
 	return newVar, nil
 }
 
-func (*serviceOrmMapper) toOrmPageNumber(pageNumber *cryptoutilServiceModel.PageNumber) (int, error) {
+func (*serviceOrmMapper) toOrmPageNumber(pageNumber *cryptoutilBusinessLogicModel.PageNumber) (int, error) {
 	if pageNumber == nil {
 		return 0, nil
 	} else if *pageNumber >= 0 {
@@ -308,7 +308,7 @@ func (*serviceOrmMapper) toOrmPageNumber(pageNumber *cryptoutilServiceModel.Page
 	return 0, fmt.Errorf("Page Number must be zero or higher")
 }
 
-func (*serviceOrmMapper) toOrmPageSize(pageSize *cryptoutilServiceModel.PageSize) (int, error) {
+func (*serviceOrmMapper) toOrmPageSize(pageSize *cryptoutilBusinessLogicModel.PageSize) (int, error) {
 	if pageSize == nil {
 		return 25, nil
 	} else if *pageSize >= 1 {

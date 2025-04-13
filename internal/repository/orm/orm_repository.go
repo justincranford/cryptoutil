@@ -7,7 +7,7 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	cryptoutilUtil "cryptoutil/internal/util"
 
@@ -27,14 +27,14 @@ var (
 )
 
 type OrmRepository struct {
-	telemetryService *cryptoutilTelemetry.Service
-	sqlProvider      *cryptoutilSqlProvider.SqlProvider
+	telemetryService *cryptoutilTelemetry.TelemetryService
+	sqlRepository    *cryptoutilSqlRepository.SqlRepository
 	uuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
 	uuidV7KeyGenPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool config: %w", err)
@@ -44,7 +44,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to create UUID V7 pool: %w", err)
 	}
 
-	gormDB, err := cryptoutilSqlProvider.CreateGormDB(sqlProvider)
+	gormDB, err := cryptoutilSqlRepository.CreateGormDB(sqlRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}
@@ -59,12 +59,12 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		telemetryService.Slogger.Debug("skipping migrations")
 	}
 
-	return &OrmRepository{telemetryService: telemetryService, sqlProvider: sqlProvider, uuidV7KeyGenPool: uuidV7KeyGenPool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
+	return &OrmRepository{telemetryService: telemetryService, sqlRepository: sqlRepository, uuidV7KeyGenPool: uuidV7KeyGenPool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
 func (s *OrmRepository) Shutdown() {
 	s.telemetryService.Slogger.Debug("stopping ORM repository")
-	s.sqlProvider.Shutdown()
+	s.sqlRepository.Shutdown()
 	s.telemetryService.Slogger.Debug("stopped ORM repository")
 }
 

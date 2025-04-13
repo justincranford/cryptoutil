@@ -12,12 +12,12 @@ import (
 )
 
 type Givens struct {
-	telemetryService *cryptoutilTelemetry.Service
+	telemetryService *cryptoutilTelemetry.TelemetryService
 	aes256KeyGenPool *cryptoutilKeyGen.KeyGenPool
 	uuidV7KeyGenPool *cryptoutilKeyGen.KeyGenPool
 }
 
-func RequireNewGivensForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) *Givens {
+func RequireNewGivensForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) *Givens {
 	aes256KeyGenPoolConfig, err := cryptoutilKeyGen.NewKeyGenPoolConfig(ctx, telemetryService, "Orm Givens AES256", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(256))
 	cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 pool config")
 

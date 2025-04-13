@@ -11,7 +11,7 @@ import (
 )
 
 func TestHttpGetHttp200(t *testing.T) {
-	start, stop, err := NewListener("localhost", 8080, true)
+	start, stop, err := NewHttpListener("localhost", 8080, true)
 	if err != nil {
 		t.Fatalf("failed to create listener: %v", err)
 	}

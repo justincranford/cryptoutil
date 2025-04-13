@@ -31,7 +31,7 @@ type TestCase struct {
 
 var (
 	testCtx                      = context.Background()
-	testTelemetryService         *cryptoutilTelemetry.Service
+	testTelemetryService         *cryptoutilTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
 	happyPathSize                = []uint32{1, 3}
 	happyPathMaxLifetimeKeys     = []uint64{1, 3, MaxLifetimeKeys}

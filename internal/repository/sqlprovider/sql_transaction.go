@@ -10,9 +10,9 @@ import (
 )
 
 type SqlTransaction struct {
-	sqlProvider *SqlProvider
-	guardState  sync.Mutex
-	state       *SqlTransactionState
+	sqlRepository *SqlRepository
+	guardState    sync.Mutex
+	state         *SqlTransactionState
 }
 
 type SqlTransactionState struct {
@@ -22,54 +22,54 @@ type SqlTransactionState struct {
 	sqlTx         *sql.Tx
 }
 
-func (sqlProvider *SqlProvider) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SqlTransaction) error) error {
+func (sqlRepository *SqlRepository) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SqlTransaction) error) error {
 	if readOnly {
-		switch sqlProvider.dbType {
+		switch sqlRepository.dbType {
 		case DBTypeSQLite: // SQLite lacks support for read-only transactions
-			sqlProvider.telemetryService.Slogger.Warn("database doesn't support read-only transactions", "dbType", string(sqlProvider.dbType))
-			return fmt.Errorf("database %s doesn't support read-only transactions", string(sqlProvider.dbType))
+			sqlRepository.telemetryService.Slogger.Warn("database doesn't support read-only transactions", "dbType", string(sqlRepository.dbType))
+			return fmt.Errorf("database %s doesn't support read-only transactions", string(sqlRepository.dbType))
 		case DBTypePostgres:
-			sqlProvider.telemetryService.Slogger.Debug("database supports read-only transactions", "dbType", string(sqlProvider.dbType))
+			sqlRepository.telemetryService.Slogger.Debug("database supports read-only transactions", "dbType", string(sqlRepository.dbType))
 		default:
-			return fmt.Errorf("%w: %s", ErrUnsupportedDBType, string(sqlProvider.dbType))
+			return fmt.Errorf("%w: %s", ErrUnsupportedDBType, string(sqlRepository.dbType))
 		}
 	}
 
-	sqlTransaction, err := sqlProvider.newTransaction()
+	sqlTransaction, err := sqlRepository.newTransaction()
 	if err != nil {
-		sqlProvider.telemetryService.Slogger.Error("failed to create transaction", "error", err)
+		sqlRepository.telemetryService.Slogger.Error("failed to create transaction", "error", err)
 		return fmt.Errorf("failed to create transaction: %w", err)
 	}
 
 	err = sqlTransaction.begin(ctx, readOnly)
 	if err != nil {
-		sqlProvider.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
+		sqlRepository.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	defer func() {
 		if sqlTransaction.state != nil { // Avoid rollback if already committed or rolled back
 			if err := sqlTransaction.rollback(); err != nil {
-				sqlProvider.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+				sqlRepository.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 			}
 		}
 		if r := recover(); r != nil {
-			sqlProvider.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", r)
+			sqlRepository.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", r)
 			panic(r) // re-throw the panic after rollback
 		}
 	}()
 
 	if err := function(sqlTransaction); err != nil {
-		sqlProvider.telemetryService.Slogger.Error("transaction function failed", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+		sqlRepository.telemetryService.Slogger.Error("transaction function failed", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
 	return sqlTransaction.commit()
 }
 
-func (sqlProvider *SqlProvider) newTransaction() (*SqlTransaction, error) {
-	sqlProvider.telemetryService.Slogger.Info("new transaction")
-	return &SqlTransaction{sqlProvider: sqlProvider}, nil
+func (sqlRepository *SqlRepository) newTransaction() (*SqlTransaction, error) {
+	sqlRepository.telemetryService.Slogger.Info("new transaction")
+	return &SqlTransaction{sqlRepository: sqlRepository}, nil
 }
 
 // TransactionID Transaction ID is valid (non-nil) only when a transaction is active
@@ -101,26 +101,26 @@ func (sqlTransaction *SqlTransaction) begin(ctx context.Context, readOnly bool) 
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
-	sqlTransaction.sqlProvider.telemetryService.Slogger.Info("beginning transaction", "readOnly", readOnly)
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("beginning transaction", "readOnly", readOnly)
 	if sqlTransaction.state != nil {
-		sqlTransaction.sqlProvider.telemetryService.Slogger.Error("transaction already started", "transactionID", sqlTransaction.TransactionID())
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("transaction already started", "transactionID", sqlTransaction.TransactionID())
 		return fmt.Errorf("transaction already started")
 	}
 
 	transactionID, err := googleUuid.NewV7()
 	if err != nil {
-		sqlTransaction.sqlProvider.telemetryService.Slogger.Error("failed to generate transaction ID", "error", err)
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to generate transaction ID", "error", err)
 		return fmt.Errorf("failed to generate transaction ID: %w", err)
 	}
 
-	sqlTx, err := sqlTransaction.sqlProvider.sqlDB.BeginTx(ctx, &sql.TxOptions{ReadOnly: readOnly})
+	sqlTx, err := sqlTransaction.sqlRepository.sqlDB.BeginTx(ctx, &sql.TxOptions{ReadOnly: readOnly})
 	if err != nil {
-		sqlTransaction.sqlProvider.telemetryService.Slogger.Error("failed to begin transaction", "transactionID", transactionID, "readOnly", readOnly, "error", err)
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to begin transaction", "transactionID", transactionID, "readOnly", readOnly, "error", err)
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	sqlTransaction.state = &SqlTransactionState{ctx: ctx, readOnly: readOnly, transactionID: transactionID, sqlTx: sqlTx}
-	sqlTransaction.sqlProvider.telemetryService.Slogger.Info("started transaction", "transactionID", transactionID, "readOnly", readOnly)
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("started transaction", "transactionID", transactionID, "readOnly", readOnly)
 	return nil
 }
 
@@ -128,19 +128,19 @@ func (sqlTransaction *SqlTransaction) commit() error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
-	sqlTransaction.sqlProvider.telemetryService.Slogger.Info("committing transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("committing transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	if sqlTransaction.state == nil {
-		sqlTransaction.sqlProvider.telemetryService.Slogger.Error("can't commit because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't commit because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 		return fmt.Errorf("can't commit because transaction not active")
 	}
 
 	err := sqlTransaction.state.sqlTx.Commit()
 	if err != nil {
-		sqlTransaction.sqlProvider.telemetryService.Slogger.Error("failed to commit transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to commit transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 		return err
 	}
 
-	sqlTransaction.sqlProvider.telemetryService.Slogger.Info("committed transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("committed transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	sqlTransaction.state = nil
 	return nil
 }
@@ -149,19 +149,19 @@ func (sqlTransaction *SqlTransaction) rollback() error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
-	sqlTransaction.sqlProvider.telemetryService.Slogger.Info("rolling back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("rolling back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	if sqlTransaction.state == nil {
-		sqlTransaction.sqlProvider.telemetryService.Slogger.Error("can't rollback because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 		return fmt.Errorf("can't rollback because transaction not active")
 	}
 
 	err := sqlTransaction.state.sqlTx.Rollback()
 	if err != nil {
-		sqlTransaction.sqlProvider.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 		return err
 	}
 
-	sqlTransaction.sqlProvider.telemetryService.Slogger.Info("rolled back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("rolled back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	sqlTransaction.state = nil
 	return nil
 }

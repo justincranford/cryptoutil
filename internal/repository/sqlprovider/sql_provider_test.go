@@ -15,28 +15,28 @@ import (
 
 var (
 	testCtx              = context.Background()
-	testTelemetryService *cryptoutilTelemetry.Service
-	testSqlProvider      *SqlProvider
+	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testSqlRepository    *SqlRepository
 )
 
 func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "sqlprovider_test", false, false)
 	defer testTelemetryService.Shutdown()
 
-	testSqlProvider = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)
-	defer testSqlProvider.Shutdown()
-	testSqlProvider.logConnectionPoolSettings()
+	testSqlRepository = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)
+	defer testSqlRepository.Shutdown()
+	testSqlRepository.logConnectionPoolSettings()
 
 	os.Exit(m.Run())
 }
 
-func TestSqlProvider_UnsupportedDatabaseType(t *testing.T) {
-	_, err := NewSqlProvider(testCtx, testTelemetryService, "invalidDbType", "", ContainerModeDisabled)
+func TestSqlRepository_UnsupportedDatabaseType(t *testing.T) {
+	_, err := NewSqlRepository(testCtx, testTelemetryService, "invalidDbType", "", ContainerModeDisabled)
 	require.Error(t, err)
 }
 
-func TestSqlProvider_PingFailure(t *testing.T) {
-	invalidProvider, err := NewSqlProvider(testCtx, testTelemetryService, DBTypeSQLite, "invalid:memory:", ContainerModeDisabled)
+func TestSqlRepository_PingFailure(t *testing.T) {
+	invalidProvider, err := NewSqlRepository(testCtx, testTelemetryService, DBTypeSQLite, "invalid:memory:", ContainerModeDisabled)
 	require.Error(t, err)
 	require.Nil(t, invalidProvider)
 }
@@ -48,7 +48,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 		}
 	}()
 
-	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		panic("simulated panic during transaction")
 	})
@@ -56,7 +56,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 }
 
 func TestSqlTransaction_Success(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
 		return nil
@@ -65,7 +65,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
 
@@ -78,7 +78,7 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
-	sqlTransaction := &SqlTransaction{sqlProvider: testSqlProvider}
+	sqlTransaction := &SqlTransaction{sqlRepository: testSqlRepository}
 
 	commitErr := sqlTransaction.commit()
 	require.Error(t, commitErr)
@@ -86,7 +86,7 @@ func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
-	sqlTransaction := &SqlTransaction{sqlProvider: testSqlProvider}
+	sqlTransaction := &SqlTransaction{sqlRepository: testSqlRepository}
 
 	rollbackErr := sqlTransaction.rollback()
 	require.Error(t, rollbackErr)
@@ -100,13 +100,13 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 
 		return nil
 	}
-	err := testSqlProvider.WithTransaction(testCtx, true, newVar)
+	err := testSqlRepository.WithTransaction(testCtx, true, newVar)
 	require.Error(t, err)
 	require.EqualError(t, err, "database sqlite doesn't support read-only transactions")
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
-	err := testSqlProvider.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
 		return fmt.Errorf("intentional failure") // Simulate an error within the transaction

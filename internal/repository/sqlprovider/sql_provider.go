@@ -12,8 +12,8 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
-type SqlProvider struct {
-	telemetryService    *cryptoutilTelemetry.Service
+type SqlRepository struct {
+	telemetryService    *cryptoutilTelemetry.TelemetryService
 	dbType              SupportedDBType
 	sqlDB               *sql.DB
 	containerMode       ContainerMode
@@ -52,7 +52,7 @@ var (
 	ErrMaxPingAttemptsExceeded                      = errors.New("exceeded maximum DB ping attempts")
 )
 
-func NewSqlProvider(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, dbType SupportedDBType, databaseUrl string, containerMode ContainerMode) (*SqlProvider, error) {
+func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbType SupportedDBType, databaseUrl string, containerMode ContainerMode) (*SqlRepository, error) {
 	var shutdownDBContainer func() = func() {} // no-op by default
 
 	if containerMode != ContainerModeDisabled { // containerMode is required or preferred
@@ -86,8 +86,8 @@ func NewSqlProvider(ctx context.Context, telemetryService *cryptoutilTelemetry.S
 		return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s", string(dbType)))
 	}
 
-	sqlProvider := &SqlProvider{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer}
-	sqlProvider.logConnectionPoolSettings()
+	sqlRepository := &SqlRepository{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer}
+	sqlRepository.logConnectionPoolSettings()
 
 	for attempt, attemptsRemaining := 1, maxDbPingAttempts; attemptsRemaining > 0; attemptsRemaining-- {
 		err = sqlDB.Ping()
@@ -104,14 +104,14 @@ func NewSqlProvider(ctx context.Context, telemetryService *cryptoutilTelemetry.S
 
 	if err != nil {
 		telemetryService.Slogger.Warn("giving up trying to ping database", "attempts", maxDbPingAttempts, "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrPingDatabaseFailed, err))
-		sqlProvider.Shutdown()
+		sqlRepository.Shutdown()
 		return nil, errors.Join(ErrPingDatabaseFailed, fmt.Errorf("dbType: %s", string(dbType)))
 	}
 
-	return sqlProvider, nil
+	return sqlRepository, nil
 }
 
-func (s *SqlProvider) Shutdown() {
+func (s *SqlRepository) Shutdown() {
 	s.telemetryService.Slogger.Error("shutting down SQL Provider")
 	s.shutdownDBContainer() // This call does it's own logging
 	s.telemetryService.Slogger.Error("shutting down SQL connection")
@@ -120,7 +120,7 @@ func (s *SqlProvider) Shutdown() {
 	}
 }
 
-func (s *SqlProvider) logConnectionPoolSettings() {
+func (s *SqlRepository) logConnectionPoolSettings() {
 	sqlDBStats := s.sqlDB.Stats()
 
 	maxOpenConnections := sqlDBStats.MaxOpenConnections

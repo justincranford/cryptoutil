@@ -4,29 +4,29 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilServiceModel "cryptoutil/internal/openapi/model"
+	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 )
 
-var validTransitions = func() map[cryptoutilServiceModel.KeyPoolStatus]map[cryptoutilServiceModel.KeyPoolStatus]bool {
-	transitions := map[cryptoutilServiceModel.KeyPoolStatus][]cryptoutilServiceModel.KeyPoolStatus{
-		cryptoutilServiceModel.Creating:                       {cryptoutilServiceModel.PendingGenerate, cryptoutilServiceModel.PendingImport},
-		cryptoutilServiceModel.ImportFailed:                   {cryptoutilServiceModel.PendingDeleteWasImportFailed, cryptoutilServiceModel.PendingImport},
-		cryptoutilServiceModel.PendingImport:                  {cryptoutilServiceModel.PendingDeleteWasPendingImport, cryptoutilServiceModel.ImportFailed, cryptoutilServiceModel.Active},
-		cryptoutilServiceModel.PendingGenerate:                {cryptoutilServiceModel.GenerateFailed, cryptoutilServiceModel.Active},
-		cryptoutilServiceModel.GenerateFailed:                 {cryptoutilServiceModel.PendingDeleteWasGenerateFailed, cryptoutilServiceModel.PendingGenerate},
-		cryptoutilServiceModel.Active:                         {cryptoutilServiceModel.PendingDeleteWasActive, cryptoutilServiceModel.Disabled},
-		cryptoutilServiceModel.Disabled:                       {cryptoutilServiceModel.PendingDeleteWasDisabled, cryptoutilServiceModel.Active},
-		cryptoutilServiceModel.PendingDeleteWasImportFailed:   {cryptoutilServiceModel.FinishedDelete, cryptoutilServiceModel.ImportFailed},
-		cryptoutilServiceModel.PendingDeleteWasPendingImport:  {cryptoutilServiceModel.FinishedDelete, cryptoutilServiceModel.PendingImport},
-		cryptoutilServiceModel.PendingDeleteWasActive:         {cryptoutilServiceModel.FinishedDelete, cryptoutilServiceModel.Active},
-		cryptoutilServiceModel.PendingDeleteWasDisabled:       {cryptoutilServiceModel.FinishedDelete, cryptoutilServiceModel.Disabled},
-		cryptoutilServiceModel.PendingDeleteWasGenerateFailed: {cryptoutilServiceModel.FinishedDelete, cryptoutilServiceModel.GenerateFailed},
-		cryptoutilServiceModel.StartedDelete:                  {cryptoutilServiceModel.FinishedDelete},
-		cryptoutilServiceModel.FinishedDelete:                 {},
+var validTransitions = func() map[cryptoutilBusinessLogicModel.KeyPoolStatus]map[cryptoutilBusinessLogicModel.KeyPoolStatus]bool {
+	transitions := map[cryptoutilBusinessLogicModel.KeyPoolStatus][]cryptoutilBusinessLogicModel.KeyPoolStatus{
+		cryptoutilBusinessLogicModel.Creating:                       {cryptoutilBusinessLogicModel.PendingGenerate, cryptoutilBusinessLogicModel.PendingImport},
+		cryptoutilBusinessLogicModel.ImportFailed:                   {cryptoutilBusinessLogicModel.PendingDeleteWasImportFailed, cryptoutilBusinessLogicModel.PendingImport},
+		cryptoutilBusinessLogicModel.PendingImport:                  {cryptoutilBusinessLogicModel.PendingDeleteWasPendingImport, cryptoutilBusinessLogicModel.ImportFailed, cryptoutilBusinessLogicModel.Active},
+		cryptoutilBusinessLogicModel.PendingGenerate:                {cryptoutilBusinessLogicModel.GenerateFailed, cryptoutilBusinessLogicModel.Active},
+		cryptoutilBusinessLogicModel.GenerateFailed:                 {cryptoutilBusinessLogicModel.PendingDeleteWasGenerateFailed, cryptoutilBusinessLogicModel.PendingGenerate},
+		cryptoutilBusinessLogicModel.Active:                         {cryptoutilBusinessLogicModel.PendingDeleteWasActive, cryptoutilBusinessLogicModel.Disabled},
+		cryptoutilBusinessLogicModel.Disabled:                       {cryptoutilBusinessLogicModel.PendingDeleteWasDisabled, cryptoutilBusinessLogicModel.Active},
+		cryptoutilBusinessLogicModel.PendingDeleteWasImportFailed:   {cryptoutilBusinessLogicModel.FinishedDelete, cryptoutilBusinessLogicModel.ImportFailed},
+		cryptoutilBusinessLogicModel.PendingDeleteWasPendingImport:  {cryptoutilBusinessLogicModel.FinishedDelete, cryptoutilBusinessLogicModel.PendingImport},
+		cryptoutilBusinessLogicModel.PendingDeleteWasActive:         {cryptoutilBusinessLogicModel.FinishedDelete, cryptoutilBusinessLogicModel.Active},
+		cryptoutilBusinessLogicModel.PendingDeleteWasDisabled:       {cryptoutilBusinessLogicModel.FinishedDelete, cryptoutilBusinessLogicModel.Disabled},
+		cryptoutilBusinessLogicModel.PendingDeleteWasGenerateFailed: {cryptoutilBusinessLogicModel.FinishedDelete, cryptoutilBusinessLogicModel.GenerateFailed},
+		cryptoutilBusinessLogicModel.StartedDelete:                  {cryptoutilBusinessLogicModel.FinishedDelete},
+		cryptoutilBusinessLogicModel.FinishedDelete:                 {},
 	}
-	convertedTransitions := make(map[cryptoutilServiceModel.KeyPoolStatus]map[cryptoutilServiceModel.KeyPoolStatus]bool)
+	convertedTransitions := make(map[cryptoutilBusinessLogicModel.KeyPoolStatus]map[cryptoutilBusinessLogicModel.KeyPoolStatus]bool)
 	for current, nextStates := range transitions {
-		convertedTransitions[current] = make(map[cryptoutilServiceModel.KeyPoolStatus]bool)
+		convertedTransitions[current] = make(map[cryptoutilBusinessLogicModel.KeyPoolStatus]bool)
 		for _, next := range nextStates {
 			convertedTransitions[current][next] = true
 		}
@@ -34,7 +34,7 @@ var validTransitions = func() map[cryptoutilServiceModel.KeyPoolStatus]map[crypt
 	return convertedTransitions
 }()
 
-func TransitionState(current cryptoutilServiceModel.KeyPoolStatus, next cryptoutilServiceModel.KeyPoolStatus) error {
+func TransitionState(current cryptoutilBusinessLogicModel.KeyPoolStatus, next cryptoutilBusinessLogicModel.KeyPoolStatus) error {
 	allowedTransitions, exists := validTransitions[current]
 	if !exists {
 		return errors.New("invalid current state")

@@ -4,12 +4,12 @@ import (
 	"context"
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
-	cryptoutilSqlProvider "cryptoutil/internal/repository/sqlprovider"
+	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlprovider"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
-func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) *OrmRepository {
-	ormRepository, err := NewOrmRepository(ctx, telemetryService, sqlProvider, applyMigrations)
+func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) *OrmRepository {
+	ormRepository, err := NewOrmRepository(ctx, telemetryService, sqlRepository, applyMigrations)
 	cryptoutilAppErr.RequireNoError(err, "failed to create new ORM repository")
 	return ormRepository
 }
