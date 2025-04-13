@@ -9,7 +9,7 @@ import (
 )
 
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) *RepositoryProvider {
-	repositoryProvider, err := NewRepositoryOrm(ctx, telemetryService, sqlProvider, applyMigrations)
-	cryptoutilAppErr.RequireNoError(err, "failed to create new repository provider")
-	return repositoryProvider
+	ormRepository, err := NewOrmRepository(ctx, telemetryService, sqlProvider, applyMigrations)
+	cryptoutilAppErr.RequireNoError(err, "failed to create new ORM repository")
+	return ormRepository
 }

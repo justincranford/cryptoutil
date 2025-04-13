@@ -16,37 +16,27 @@ import (
 )
 
 var (
-	testCtx                = context.Background()
-	testTelemetryService   *cryptoutilTelemetry.Service
-	testSqlProvider        *cryptoutilSqlProvider.SqlProvider
-	testRepositoryProvider *RepositoryProvider
-	testGivens             *Givens
-	skipReadOnlyTxTests    = true
-	testDbType             = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	testCtx              = context.Background()
+	testTelemetryService *cryptoutilTelemetry.Service
+	testSqlProvider      *cryptoutilSqlProvider.SqlProvider
+	testOrmRepository    *RepositoryProvider
+	testGivens           *Givens
+	skipReadOnlyTxTests  = true
+	testDbType           = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	// testDbType = cryptoutilSqlProvider.DBTypePostgres
 )
 
 func TestMain(m *testing.M) {
-	var err error
-
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "orm_transaction_test", false, false)
 	defer testTelemetryService.Shutdown()
 
 	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlProvider.Shutdown()
 
-	testRepositoryProvider, err = NewRepositoryOrm(testCtx, testTelemetryService, testSqlProvider, true)
-	if err != nil {
-		testTelemetryService.Slogger.Error("failed to initailize repositoryProvider", "error", err)
-		os.Exit(-1)
-	}
-	defer testRepositoryProvider.Shutdown()
+	testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
+	defer testOrmRepository.Shutdown()
 
-	testGivens, err = NewGivens(testCtx, testTelemetryService)
-	if err != nil {
-		testTelemetryService.Slogger.Error("failed to initailize givens", "error", err)
-		os.Exit(-1)
-	}
+	testGivens = RequireNewGivensForTest(testCtx, testTelemetryService)
 	defer testGivens.Shutdown()
 
 	os.Exit(m.Run())
@@ -59,7 +49,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 		}
 	}()
 
-	panicErr := testRepositoryProvider.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
+	panicErr := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
 		panic("simulated panic during transaction")
 	})
@@ -68,7 +58,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
 		require.Equal(t, ReadWrite, *repositoryTransaction.Mode())
 
@@ -82,7 +72,7 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
-	repositoryTransaction := &RepositoryTransaction{repositoryProvider: testRepositoryProvider}
+	repositoryTransaction := &RepositoryTransaction{repositoryProvider: testOrmRepository}
 
 	commitErr := repositoryTransaction.commit()
 	require.Error(t, commitErr)
@@ -90,7 +80,7 @@ func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
-	repositoryTransaction := &RepositoryTransaction{repositoryProvider: testRepositoryProvider}
+	repositoryTransaction := &RepositoryTransaction{repositoryProvider: testOrmRepository}
 
 	rollbackErr := repositoryTransaction.rollback()
 	require.Error(t, rollbackErr)
@@ -98,7 +88,7 @@ func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
 		require.Equal(t, ReadOnly, *repositoryTransaction.Mode())
 
@@ -108,7 +98,7 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
-	err := testRepositoryProvider.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
+	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(repositoryTransaction *RepositoryTransaction) error {
 		require.NotNil(t, repositoryTransaction)
 		require.Equal(t, ReadWrite, *repositoryTransaction.Mode())
 		return fmt.Errorf("intentional failure")
@@ -135,17 +125,14 @@ func TestSqlTransaction_Success(t *testing.T) {
 
 		addedKeyPools := []*KeyPool{}
 		addedKeys := []*Key{}
-		err := testRepositoryProvider.WithTransaction(testCtx, testCase.txMode, func(repositoryTransaction *RepositoryTransaction) error {
+		err := testOrmRepository.WithTransaction(testCtx, testCase.txMode, func(repositoryTransaction *RepositoryTransaction) error {
 			require.NotNil(t, repositoryTransaction)
 			require.NotNil(t, repositoryTransaction.ID())
 			require.NotNil(t, repositoryTransaction.Context())
 			require.Equal(t, testCase.txMode, *repositoryTransaction.Mode())
 
-			keyPool, err := testGivens.KeyPool(true, true, true)
-			if err != nil {
-				return fmt.Errorf("failed to generate given Key Pool for insert: %w", err)
-			}
-			err = repositoryTransaction.AddKeyPool(keyPool)
+			keyPool := testGivens.Aes256KeyPool(true, true, true)
+			err := repositoryTransaction.AddKeyPool(keyPool)
 			if err != nil {
 				return fmt.Errorf("failed to add Key Pool: %w", err)
 			}
@@ -153,7 +140,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 
 			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
 				now := time.Now().UTC()
-				key := testGivens.Key(keyPool.KeyPoolID, &now, nil, nil, nil)
+				key := testGivens.Aes256Key(keyPool.KeyPoolID, &now, nil, nil, nil)
 				err = repositoryTransaction.AddKeyPoolKey(key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
@@ -171,7 +158,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 		}
 
 		for _, addedKeyPool := range addedKeyPools {
-			err = testRepositoryProvider.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
+			err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
 				require.NotNil(t, repositoryTransaction)
 				require.NotNil(t, repositoryTransaction.ID())
 				require.NotNil(t, repositoryTransaction.Context())
@@ -189,7 +176,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 		}
 
 		for _, addedKey := range addedKeys {
-			err = testRepositoryProvider.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
+			err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(repositoryTransaction *RepositoryTransaction) error {
 				require.NotNil(t, repositoryTransaction)
 				require.NotNil(t, repositoryTransaction.ID())
 				require.NotNil(t, repositoryTransaction.Context())

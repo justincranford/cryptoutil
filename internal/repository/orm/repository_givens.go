@@ -2,10 +2,9 @@ package orm
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"time"
 
+	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
@@ -18,19 +17,19 @@ type Givens struct {
 	uuidV7Pool       *cryptoutilKeyGen.KeyPool
 }
 
-func NewGivens(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) (*Givens, error) {
-	aes256PoolConfig, err1 := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens AES256", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(256))
-	uuidV7PoolConfig, err2 := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateUUIDv7Function())
-	if err1 != nil || err2 != nil {
-		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2))
-	}
+func RequireNewGivensForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.Service) *Givens {
+	aes256PoolConfig, err := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens AES256", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(256))
+	cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 pool config")
 
-	aes256Pool, err1 := cryptoutilKeyGen.NewKeyPool(aes256PoolConfig)
-	uuidV7Pool, err2 := cryptoutilKeyGen.NewKeyPool(uuidV7PoolConfig)
-	if err1 != nil || err2 != nil {
-		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2))
-	}
-	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidV7Pool: uuidV7Pool}, nil
+	aes256Pool, err := cryptoutilKeyGen.NewKeyPool(aes256PoolConfig)
+	cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 pool")
+
+	uuidV7PoolConfig, err := cryptoutilKeyGen.NewKeyPoolConfig(ctx, telemetryService, "Orm Givens UUIDv7", 3, 3, cryptoutilKeyGen.MaxLifetimeKeys, cryptoutilKeyGen.MaxLifetimeDuration, cryptoutilKeyGen.GenerateUUIDv7Function())
+	cryptoutilAppErr.RequireNoError(err, "failed to create UUID v7 pool config")
+
+	uuidV7Pool, err := cryptoutilKeyGen.NewKeyPool(uuidV7PoolConfig)
+	cryptoutilAppErr.RequireNoError(err, "failed to create UUID v7 pool")
+	return &Givens{telemetryService: telemetryService, aes256Pool: aes256Pool, uuidV7Pool: uuidV7Pool}
 }
 
 func (g *Givens) Shutdown() {
@@ -46,13 +45,13 @@ func (g *Givens) AES256() []byte {
 	return g.aes256Pool.Get().Private.([]byte)
 }
 
-func (g *Givens) KeyPool(versioningAllowed, importAllowed, exportAllowed bool) (*KeyPool, error) {
+func (g *Givens) Aes256KeyPool(versioningAllowed, importAllowed, exportAllowed bool) *KeyPool {
 	uuid := g.UUIDv7()
-	return BuildKeyPool(uuid, string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed, string(Creating))
+	keyPool, err := BuildKeyPool(uuid, string("Key Pool Name "+uuid.String()), string("Key Pool Description "+uuid.String()), string(Internal), string(AES256), versioningAllowed, importAllowed, exportAllowed, string(Creating))
+	cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 key pool")
+	return keyPool
 }
 
-func (g *Givens) Key(keyPoolID googleUuid.UUID, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
-	uuid := g.UUIDv7()
-	keyMaterial := g.AES256()
-	return BuildKey(keyPoolID, uuid, keyMaterial, generateDate, importDate, expirationDate, revocationDate)
+func (g *Givens) Aes256Key(keyPoolID googleUuid.UUID, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
+	return BuildKey(keyPoolID, g.UUIDv7(), g.AES256(), generateDate, importDate, expirationDate, revocationDate)
 }
