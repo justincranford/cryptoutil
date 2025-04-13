@@ -9,21 +9,21 @@ import (
 // UUIDv7 = timestamp (48-bits) + version (4-bits) + rand_a (12-bits) + var (2-bits) + rand_b (62-bits)
 // JWK/JWKs = JWE wrapping of JWK/JWKs, stored as JSON (PostgreSQL JSONB, SQLite JSON)
 
-// Root Keys are unsealed by HSM, KMS, Shamir, etc. Rotation is infrequent.
+// Root Keys are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is posible but infrequent.
 type RootKey struct {
 	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	Serialized string          `gorm:"type:json;not null"`
 	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null"`
 }
 
-// Intermediate Keys are wrapped by root Keys. Rotation can be more frequent than Root Keys.
+// Intermediate Keys are wrapped by root Keys. Rotation is encouraged and can be frequent.
 type IntermediateKey struct {
 	UUID       googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	Serialized string          `gorm:"type:json;not null"`
 	KEKUUID    googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
 }
 
-// Leaf Keys are wrapped by Intermediate Keys.
+// Leaf Keys are wrapped by Intermediate Keys. Rotation is encouraged and can be very frequent.
 type ContentKey struct {
 	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
