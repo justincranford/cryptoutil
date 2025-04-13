@@ -53,6 +53,10 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	} else {
 		telemetryService.Slogger.Debug("skipping migrations")
 	}
+	err = cryptoutilSqlRepository.LogSchema(sqlRepository)
+	if err != nil {
+		return nil, fmt.Errorf("failed to log schemas: %w", err)
+	}
 
 	return &OrmRepository{telemetryService: telemetryService, sqlRepository: sqlRepository, uuidV7KeyGenPool: uuidV7KeyGenPool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
