@@ -14,11 +14,11 @@ import (
 )
 
 var (
-	testCtx                = context.Background()
-	testTelemetryService   *cryptoutilTelemetry.Service
-	testSqlProvider        *cryptoutilSqlProvider.SqlProvider
-	testRepositoryProvider *cryptoutilOrmRepository.RepositoryProvider
-	testDbType             = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	testCtx              = context.Background()
+	testTelemetryService *cryptoutilTelemetry.Service
+	testSqlProvider      *cryptoutilSqlProvider.SqlProvider
+	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
+	testDbType           = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 )
 
 func TestMain(m *testing.M) {
@@ -28,8 +28,8 @@ func TestMain(m *testing.M) {
 	testSqlProvider = cryptoutilSqlProvider.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlProvider.Shutdown()
 
-	testRepositoryProvider = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
-	defer testRepositoryProvider.Shutdown()
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlProvider, true)
+	defer testOrmRepository.Shutdown()
 
 	os.Exit(m.Run())
 }
@@ -39,7 +39,7 @@ func TestUnsealService_HappyPath_OneUnsealJwks(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealRepository)
 
-	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealRepository)
+	service, err := NewUnsealService(testTelemetryService, testOrmRepository, mockUnsealRepository)
 	assert.NoError(t, err)
 	assert.NotNil(t, service)
 }
@@ -49,7 +49,7 @@ func TestUnsealService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealRepository)
 
-	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealRepository)
+	service, err := NewUnsealService(testTelemetryService, testOrmRepository, mockUnsealRepository)
 	assert.Error(t, err)
 	assert.Nil(t, service)
 	assert.EqualError(t, err, "no unseal JWKs")
@@ -61,7 +61,7 @@ func TestUnsealService_SadPath_NilUnsealJwks(t *testing.T) {
 	assert.NotNil(t, mockUnsealRepository)
 	mockUnsealRepository.On("UnsealJwks").Return(nil)
 
-	service, err := NewUnsealService(testTelemetryService, testRepositoryProvider, mockUnsealRepository)
+	service, err := NewUnsealService(testTelemetryService, testOrmRepository, mockUnsealRepository)
 	assert.Error(t, err)
 	assert.Nil(t, service)
 	assert.EqualError(t, err, "no unseal JWKs")

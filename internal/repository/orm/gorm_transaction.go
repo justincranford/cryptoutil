@@ -11,9 +11,9 @@ import (
 )
 
 type RepositoryTransaction struct {
-	repositoryProvider *RepositoryProvider
-	guardState         sync.Mutex
-	state              *RepositoryTransactionState
+	ormRepository *OrmRepository
+	guardState    sync.Mutex
+	state         *RepositoryTransactionState
 }
 
 type RepositoryTransactionState struct {
@@ -31,10 +31,10 @@ var (
 	ReadOnly   TransactionMode = "ReadOnly"
 )
 
-// RepositoryProvider
+// OrmRepository
 
-func (r *RepositoryProvider) WithTransaction(ctx context.Context, transactionMode TransactionMode, function func(repositoryTransaction *RepositoryTransaction) error) error {
-	tx := &RepositoryTransaction{repositoryProvider: r}
+func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode TransactionMode, function func(repositoryTransaction *RepositoryTransaction) error) error {
+	tx := &RepositoryTransaction{ormRepository: r}
 
 	err := tx.begin(ctx, transactionMode)
 	if err != nil {
@@ -103,21 +103,21 @@ func (tx *RepositoryTransaction) begin(ctx context.Context, transactionMode Tran
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
-	tx.repositoryProvider.telemetryService.Slogger.Info("beginning transaction", "mode", transactionMode)
+	tx.ormRepository.telemetryService.Slogger.Info("beginning transaction", "mode", transactionMode)
 
 	if tx.state != nil {
-		tx.repositoryProvider.telemetryService.Slogger.Error("transaction already started", "txID", tx.ID(), "mode", tx.Mode())
+		tx.ormRepository.telemetryService.Slogger.Error("transaction already started", "txID", tx.ID(), "mode", tx.Mode())
 		return fmt.Errorf("transaction already started")
 	}
 
-	txID := tx.repositoryProvider.uuidV7Pool.Get().Private.(googleUuid.UUID)
+	txID := tx.ormRepository.uuidV7Pool.Get().Private.(googleUuid.UUID)
 	gormTx, err := tx.beginImplementation(ctx, transactionMode, txID)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	tx.state = &RepositoryTransactionState{ctx: ctx, txMode: transactionMode, txID: txID, gormTx: gormTx}
-	tx.repositoryProvider.telemetryService.Slogger.Info("started transaction", "txID", txID, "mode", transactionMode)
+	tx.ormRepository.telemetryService.Slogger.Info("started transaction", "txID", txID, "mode", transactionMode)
 	return nil
 }
 
@@ -125,22 +125,22 @@ func (tx *RepositoryTransaction) commit() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
-	tx.repositoryProvider.telemetryService.Slogger.Info("committing transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Info("committing transaction", "txID", tx.ID(), "mode", tx.Mode())
 
 	if tx.state == nil {
-		tx.repositoryProvider.telemetryService.Slogger.Error("can't commit because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
+		tx.ormRepository.telemetryService.Slogger.Error("can't commit because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
 		return fmt.Errorf("can't commit because transaction not active")
 	} else if tx.state.txMode == AutoCommit {
-		tx.repositoryProvider.telemetryService.Slogger.Error("can't commit because transaction is autocommit", "txID", tx.ID(), "mode", tx.Mode())
+		tx.ormRepository.telemetryService.Slogger.Error("can't commit because transaction is autocommit", "txID", tx.ID(), "mode", tx.Mode())
 		return fmt.Errorf("can't commit because transaction is autocommit")
 	}
 
 	if _, err := tx.commitImplementation(); err != nil {
-		tx.repositoryProvider.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+		tx.ormRepository.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	tx.repositoryProvider.telemetryService.Slogger.Info("committed transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Info("committed transaction", "txID", tx.ID(), "mode", tx.Mode())
 	tx.state = nil
 	return nil
 }
@@ -149,22 +149,22 @@ func (tx *RepositoryTransaction) rollback() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
-	tx.repositoryProvider.telemetryService.Slogger.Info("rolling back transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Info("rolling back transaction", "txID", tx.ID(), "mode", tx.Mode())
 
 	if tx.state == nil {
-		tx.repositoryProvider.telemetryService.Slogger.Error("can't rollback because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
+		tx.ormRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
 		return fmt.Errorf("can't rollback because transaction not active")
 	} else if tx.state.txMode == AutoCommit {
-		tx.repositoryProvider.telemetryService.Slogger.Error("can't rollback because transaction is autocommit", "txID", tx.ID(), "mode", tx.Mode())
+		tx.ormRepository.telemetryService.Slogger.Error("can't rollback because transaction is autocommit", "txID", tx.ID(), "mode", tx.Mode())
 		return fmt.Errorf("can't rollback because transaction is autocommit")
 	}
 
 	if _, err := tx.rollbackImplementation(); err != nil {
-		tx.repositoryProvider.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+		tx.ormRepository.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 
-	tx.repositoryProvider.telemetryService.Slogger.Info("rolled back transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Info("rolled back transaction", "txID", tx.ID(), "mode", tx.Mode())
 	tx.state = nil
 	return nil
 }
@@ -172,7 +172,7 @@ func (tx *RepositoryTransaction) rollback() error {
 // Implementation using Gorm
 
 func (tx *RepositoryTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode, txID googleUuid.UUID) (*gorm.DB, error) {
-	gormTx := tx.repositoryProvider.gormDB.WithContext(ctx)
+	gormTx := tx.ormRepository.gormDB.WithContext(ctx)
 	if transactionMode == AutoCommit {
 		return gormTx, nil
 	} else if transactionMode == ReadWrite {

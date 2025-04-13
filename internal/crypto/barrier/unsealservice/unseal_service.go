@@ -26,7 +26,7 @@ func (u *UnsealService) GetLatest() *joseJwk.Key {
 	return u.unsealedRootJwksLatest
 }
 
-func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*UnsealService, error) {
+func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*UnsealService, error) {
 	unsealJwks := unsealRepository.UnsealJwks() // unseal keys from unseal repository
 	if len(unsealJwks) == 0 {
 		return nil, fmt.Errorf("no unseal JWKs")
@@ -49,7 +49,7 @@ func NewUnsealService(telemetryService *cryptoutilTelemetry.Service, ormReposito
 	return unsealService, nil
 }
 
-func createFirstRootJwk(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealJwks []joseJwk.Key) (*UnsealService, error) {
+func createFirstRootJwk(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key) (*UnsealService, error) {
 	unsealedRootJwksLatest, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate root JWK: %w", err)
@@ -88,7 +88,7 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.Service, ormReposi
 	return &UnsealService{unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwksLatest: &unsealedRootJwksLatest}, nil
 }
 
-func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.RootKey) (*UnsealService, error) {
+func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.RootKey) (*UnsealService, error) {
 	encryptedRootJwkLatest, err := ormRepository.GetRootKeyLatest() // First row using ORDER BY uuid DESC
 	if err != nil {
 		return nil, fmt.Errorf("failed to get root JWK latest from database")

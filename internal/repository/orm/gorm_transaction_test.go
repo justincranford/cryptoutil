@@ -19,7 +19,7 @@ var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.Service
 	testSqlProvider      *cryptoutilSqlProvider.SqlProvider
-	testOrmRepository    *RepositoryProvider
+	testOrmRepository    *OrmRepository
 	testGivens           *Givens
 	skipReadOnlyTxTests  = true                               // true for DBTypeSQLite, false for DBTypePostgres
 	testDbType           = cryptoutilSqlProvider.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
@@ -71,7 +71,7 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
-	repositoryTransaction := &RepositoryTransaction{repositoryProvider: testOrmRepository}
+	repositoryTransaction := &RepositoryTransaction{ormRepository: testOrmRepository}
 
 	commitErr := repositoryTransaction.commit()
 	require.Error(t, commitErr)
@@ -79,7 +79,7 @@ func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
-	repositoryTransaction := &RepositoryTransaction{repositoryProvider: testOrmRepository}
+	repositoryTransaction := &RepositoryTransaction{ormRepository: testOrmRepository}
 
 	rollbackErr := repositoryTransaction.rollback()
 	require.Error(t, rollbackErr)

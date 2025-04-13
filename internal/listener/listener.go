@@ -130,7 +130,7 @@ func startServerFunc(err error, listenAddress string, app *fiber.App, telemetryS
 	}
 }
 
-func stopServerFunc(telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, ormRepository *cryptoutilOrmRepository.RepositoryProvider, barrierService *cryptoutilBarrierService.BarrierService, app *fiber.App) func() {
+func stopServerFunc(telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService, app *fiber.App) func() {
 	return func() {
 		if telemetryService != nil {
 			telemetryService.Slogger.Debug("stopping server")

@@ -16,7 +16,7 @@ import (
 )
 
 type BusinessLogicService struct {
-	ormRepository    *cryptoutilOrmRepository.RepositoryProvider
+	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	serviceOrmMapper *serviceOrmMapper
 	aes256Pool       *cryptoutilKeygen.KeyPool
 	aes192Pool       *cryptoutilKeygen.KeyPool
@@ -25,7 +25,7 @@ type BusinessLogicService struct {
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
-func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.RepositoryProvider, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
+func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
 	aes256PoolConfig, err1 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	aes192PoolConfig, err2 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
 	aes128PoolConfig, err3 := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))

@@ -26,7 +26,7 @@ var (
 	ErrKeyIDMustBeNonZeroUUID     = fmt.Errorf("invalid Key ID: %w", cryptoutilUtil.ErrNonZeroUUID)
 )
 
-type RepositoryProvider struct {
+type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.Service
 	sqlProvider      *cryptoutilSqlProvider.SqlProvider
 	uuidV7Pool       *cryptoutilKeygen.KeyPool
@@ -34,7 +34,7 @@ type RepositoryProvider struct {
 	applyMigrations  bool
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*RepositoryProvider, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.Service, sqlProvider *cryptoutilSqlProvider.SqlProvider, applyMigrations bool) (*OrmRepository, error) {
 	uuidV7PoolConfig, err := cryptoutilKeygen.NewKeyPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool config: %w", err)
@@ -59,10 +59,10 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		telemetryService.Slogger.Debug("skipping migrations")
 	}
 
-	return &RepositoryProvider{telemetryService: telemetryService, sqlProvider: sqlProvider, uuidV7Pool: uuidV7Pool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
+	return &OrmRepository{telemetryService: telemetryService, sqlProvider: sqlProvider, uuidV7Pool: uuidV7Pool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
-func (s *RepositoryProvider) Shutdown() {
+func (s *OrmRepository) Shutdown() {
 	s.telemetryService.Slogger.Debug("stopping ORM repository")
 	s.sqlProvider.Shutdown()
 	s.telemetryService.Slogger.Debug("stopped ORM repository")
@@ -176,7 +176,7 @@ func (s *RepositoryTransaction) GetKeyPoolKey(keyPoolID uuid.UUID, keyID uuid.UU
 }
 
 func (s *RepositoryTransaction) toAppErr(msg string, err error) error {
-	s.repositoryProvider.telemetryService.Slogger.Error(msg, "error", err)
+	s.ormRepository.telemetryService.Slogger.Error(msg, "error", err)
 
 	// custom errors
 	if errors.Is(err, ErrKeyPoolIDMustBeNonZeroUUID) {

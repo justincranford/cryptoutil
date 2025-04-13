@@ -115,14 +115,14 @@ func (r *ContentKey) SetKEKUUID(kekUUID googleUuid.UUID) {
 
 // Root KEKs
 
-func (r *RepositoryProvider) AddRootKey(rootKey *RootKey) error {
+func (r *OrmRepository) AddRootKey(rootKey *RootKey) error {
 	if err := r.gormDB.Create(rootKey).Error; err != nil {
 		return fmt.Errorf("failed to add root key: %w", err)
 	}
 	return nil
 }
 
-func (r *RepositoryProvider) GetRootKeys() ([]RootKey, error) {
+func (r *OrmRepository) GetRootKeys() ([]RootKey, error) {
 	var rootKeys []RootKey
 	if err := r.gormDB.Order("uuid DESC").Find(&rootKeys).Error; err != nil {
 		return nil, fmt.Errorf("failed to load root keys: %w", err)
@@ -130,7 +130,7 @@ func (r *RepositoryProvider) GetRootKeys() ([]RootKey, error) {
 	return rootKeys, nil
 }
 
-func (r *RepositoryProvider) GetRootKeyLatest() (*RootKey, error) {
+func (r *OrmRepository) GetRootKeyLatest() (*RootKey, error) {
 	var rootKey RootKey
 	if err := r.gormDB.Order("uuid DESC").First(&rootKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load latest root key: %w", err)
@@ -138,7 +138,7 @@ func (r *RepositoryProvider) GetRootKeyLatest() (*RootKey, error) {
 	return &rootKey, nil
 }
 
-func (r *RepositoryProvider) GetRootKey(uuid googleUuid.UUID) (*RootKey, error) {
+func (r *OrmRepository) GetRootKey(uuid googleUuid.UUID) (*RootKey, error) {
 	var rootKey RootKey
 	if err := r.gormDB.Where("uuid=?", uuid).First(&rootKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
@@ -146,7 +146,7 @@ func (r *RepositoryProvider) GetRootKey(uuid googleUuid.UUID) (*RootKey, error) 
 	return &rootKey, nil
 }
 
-func (r *RepositoryProvider) DeleteRootKey(uuid googleUuid.UUID) (*RootKey, error) {
+func (r *OrmRepository) DeleteRootKey(uuid googleUuid.UUID) (*RootKey, error) {
 	var rootKey RootKey
 	if err := r.gormDB.Where("uuid=?", uuid).Delete(&rootKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to delete root key with UUID %s: %w", uuid, err)
@@ -156,14 +156,14 @@ func (r *RepositoryProvider) DeleteRootKey(uuid googleUuid.UUID) (*RootKey, erro
 
 // Intermediate Keys
 
-func (r *RepositoryProvider) AddIntermediateKey(intermediateKey *IntermediateKey) error {
+func (r *OrmRepository) AddIntermediateKey(intermediateKey *IntermediateKey) error {
 	if err := r.gormDB.Create(intermediateKey).Error; err != nil {
 		return fmt.Errorf("failed to add intermediate key: %w", err)
 	}
 	return nil
 }
 
-func (r *RepositoryProvider) GetIntermediateKeys() ([]IntermediateKey, error) {
+func (r *OrmRepository) GetIntermediateKeys() ([]IntermediateKey, error) {
 	var intermediateKeys []IntermediateKey
 	if err := r.gormDB.Order("uuid DESC").Find(&intermediateKeys).Error; err != nil {
 		return nil, fmt.Errorf("failed to load intermediate keys: %w", err)
@@ -171,7 +171,7 @@ func (r *RepositoryProvider) GetIntermediateKeys() ([]IntermediateKey, error) {
 	return intermediateKeys, nil
 }
 
-func (r *RepositoryProvider) GetIntermediateKeyLatest() (*IntermediateKey, error) {
+func (r *OrmRepository) GetIntermediateKeyLatest() (*IntermediateKey, error) {
 	var intermediateKey IntermediateKey
 	if err := r.gormDB.Order("uuid DESC").First(&intermediateKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load latest intermediate key: %w", err)
@@ -179,7 +179,7 @@ func (r *RepositoryProvider) GetIntermediateKeyLatest() (*IntermediateKey, error
 	return &intermediateKey, nil
 }
 
-func (r *RepositoryProvider) GetIntermediateKey(uuid googleUuid.UUID) (*IntermediateKey, error) {
+func (r *OrmRepository) GetIntermediateKey(uuid googleUuid.UUID) (*IntermediateKey, error) {
 	var intermediateKey IntermediateKey
 	if err := r.gormDB.Where("uuid=?", uuid).First(&intermediateKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
@@ -187,7 +187,7 @@ func (r *RepositoryProvider) GetIntermediateKey(uuid googleUuid.UUID) (*Intermed
 	return &intermediateKey, nil
 }
 
-func (r *RepositoryProvider) DeleteIntermediateKey(uuid googleUuid.UUID) (*IntermediateKey, error) {
+func (r *OrmRepository) DeleteIntermediateKey(uuid googleUuid.UUID) (*IntermediateKey, error) {
 	var intermediateKey IntermediateKey
 	if err := r.gormDB.Where("uuid=?", uuid).Delete(&intermediateKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to delete intermediate key with UUID %s: %w", uuid, err)
@@ -197,14 +197,14 @@ func (r *RepositoryProvider) DeleteIntermediateKey(uuid googleUuid.UUID) (*Inter
 
 // Leaf Keys
 
-func (r *RepositoryProvider) AddContentKey(contentKey *ContentKey) error {
+func (r *OrmRepository) AddContentKey(contentKey *ContentKey) error {
 	if err := r.gormDB.Create(contentKey).Error; err != nil {
 		return fmt.Errorf("failed to add content key: %w", err)
 	}
 	return nil
 }
 
-func (r *RepositoryProvider) GetContentKeys() ([]ContentKey, error) {
+func (r *OrmRepository) GetContentKeys() ([]ContentKey, error) {
 	var contentKeys []ContentKey
 	if err := r.gormDB.Order("uuid DESC").Find(&contentKeys).Error; err != nil {
 		return nil, fmt.Errorf("failed to load content keys: %w", err)
@@ -212,7 +212,7 @@ func (r *RepositoryProvider) GetContentKeys() ([]ContentKey, error) {
 	return contentKeys, nil
 }
 
-func (r *RepositoryProvider) GetContentKeyLatest() (*ContentKey, error) {
+func (r *OrmRepository) GetContentKeyLatest() (*ContentKey, error) {
 	var contentKey ContentKey
 	if err := r.gormDB.Order("uuid DESC").First(&contentKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load latest content key: %w", err)
@@ -220,7 +220,7 @@ func (r *RepositoryProvider) GetContentKeyLatest() (*ContentKey, error) {
 	return &contentKey, nil
 }
 
-func (r *RepositoryProvider) GetContentKey(uuid googleUuid.UUID) (*ContentKey, error) {
+func (r *OrmRepository) GetContentKey(uuid googleUuid.UUID) (*ContentKey, error) {
 	var contentKey ContentKey
 	if err := r.gormDB.Where("uuid=?", uuid).First(&contentKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
@@ -228,7 +228,7 @@ func (r *RepositoryProvider) GetContentKey(uuid googleUuid.UUID) (*ContentKey, e
 	return &contentKey, nil
 }
 
-func (r *RepositoryProvider) DeleteContentKey(uuid googleUuid.UUID) (*ContentKey, error) {
+func (r *OrmRepository) DeleteContentKey(uuid googleUuid.UUID) (*ContentKey, error) {
 	var contentKey ContentKey
 	if err := r.gormDB.Where("uuid=?", uuid).Delete(&contentKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to delete content key with UUID %s: %w", uuid, err)
