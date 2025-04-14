@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilUtil "cryptoutil/internal/util"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -244,8 +244,10 @@ func (*serviceOrmMapper) toOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID
 		return nil, nil
 	}
 	for _, uuid := range *uuids {
-		if uuid == cryptoutilUtil.ZeroUUID {
-			return nil, fmt.Errorf("UUID must not be 00000000-0000-0000-0000-000000000000")
+		if uuid == googleUuid.Nil {
+			return nil, cryptoutilJose.ErrNonZeroUUID
+		} else if uuid == googleUuid.Max {
+			return nil, cryptoutilJose.ErrNonMaxUUID
 		}
 	}
 	return *uuids, nil

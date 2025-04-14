@@ -7,7 +7,6 @@ import (
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
-	cryptoutilUtil "cryptoutil/internal/util"
 
 	"gorm.io/gorm"
 
@@ -16,9 +15,7 @@ import (
 )
 
 var (
-	ormEntities                   = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierContentKey{}, &KeyPool{}, &Key{}}
-	ErrKeyPoolIDMustBeNonZeroUUID = fmt.Errorf("invalid Key Pool ID: %w", cryptoutilUtil.ErrNonZeroUUID)
-	ErrKeyIDMustBeNonZeroUUID     = fmt.Errorf("invalid Key ID: %w", cryptoutilUtil.ErrNonZeroUUID)
+	ormEntities = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierContentKey{}, &KeyPool{}, &Key{}}
 )
 
 type OrmRepository struct {

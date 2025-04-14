@@ -82,9 +82,9 @@ func GenerateHMACKey(hmacBits int) (Key, error) {
 }
 
 func GenerateUUIDv7() (Key, error) {
-	uuid, err := googleUuid.NewV7()
+	uuidV7, err := googleUuid.NewV7()
 	if err != nil {
 		return Key{}, fmt.Errorf("failed to generate UUID: %w", err)
 	}
-	return Key{Private: uuid}, nil
+	return Key{Private: uuidV7}, nil
 }

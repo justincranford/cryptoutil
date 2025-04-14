@@ -2,6 +2,7 @@ package jose
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -10,15 +11,16 @@ import (
 )
 
 var (
-	KtyOct              = joseJwa.OctetSeq()                             // KeyType
-	AlgDIRECT           = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
-	AlgA256GCMKW        = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
-	AlgA256GCM          = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
-	OpsEncDec           = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
-	ErrCantBeNil        = fmt.Errorf("jwk can't be nil")
-	ErrCantBeEmpty      = fmt.Errorf("jwks can't be empty")
-	ErrKidCantBeNilUuid = fmt.Errorf("jwk kid can't be nil uuid")
-	ErrKidCantBeMaxUuid = fmt.Errorf("jwk kid can't be max uuid")
+	KtyOct         = joseJwa.OctetSeq()                             // KeyType
+	AlgDIRECT      = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
+	AlgA256GCMKW   = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
+	AlgA256GCM     = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
+	OpsEncDec      = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
+	ErrCantBeNil   = errors.New("jwk can't be nil")
+	ErrCantBeEmpty = errors.New("jwks can't be empty")
+	ErrNonNilUUID  = errors.New("UUID can't be nil")
+	ErrNonZeroUUID = errors.New("UUID must not be zero UUID")
+	ErrNonMaxUUID  = errors.New("UUID must not be max UUID")
 )
 
 func EncryptBytes(ceks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {

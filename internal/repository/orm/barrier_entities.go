@@ -43,70 +43,70 @@ func (r *BarrierRootKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
-func (r *BarrierRootKey) SetUUID(uuid googleUuid.UUID) {
-	r.UUID = uuid
+func (r *BarrierRootKey) SetUUID(uuidV7 googleUuid.UUID) {
+	r.UUID = uuidV7
 }
 
 func (r *BarrierRootKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
-func (r *BarrierRootKey) SetEncrypted(serialized string) {
-	r.Encrypted = serialized
+func (r *BarrierRootKey) SetEncrypted(encrypted string) {
+	r.Encrypted = encrypted
 }
 
 func (r *BarrierRootKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
-func (r *BarrierRootKey) SetKEKUUID(kekUUID googleUuid.UUID) {
-	r.KEKUUID = kekUUID
+func (r *BarrierRootKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
+	r.KEKUUID = kekUUIDV7
 }
 
 func (r *BarrierIntermediateKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
-func (r *BarrierIntermediateKey) SetUUID(uuid googleUuid.UUID) {
-	r.UUID = uuid
+func (r *BarrierIntermediateKey) SetUUID(uuidV7 googleUuid.UUID) {
+	r.UUID = uuidV7
 }
 
 func (r *BarrierIntermediateKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
-func (r *BarrierIntermediateKey) SetEncrypted(serialized string) {
-	r.Encrypted = serialized
+func (r *BarrierIntermediateKey) SetEncrypted(encrypted string) {
+	r.Encrypted = encrypted
 }
 
 func (r *BarrierIntermediateKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
-func (r *BarrierIntermediateKey) SetKEKUUID(kekUUID googleUuid.UUID) {
-	r.KEKUUID = kekUUID
+func (r *BarrierIntermediateKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
+	r.KEKUUID = kekUUIDV7
 }
 
 func (r *BarrierContentKey) GetUUID() googleUuid.UUID {
 	return r.UUID
 }
 
-func (r *BarrierContentKey) SetUUID(uuid googleUuid.UUID) {
-	r.UUID = uuid
+func (r *BarrierContentKey) SetUUID(uuidV7 googleUuid.UUID) {
+	r.UUID = uuidV7
 }
 
 func (r *BarrierContentKey) GetEncrypted() string {
 	return r.Encrypted
 }
 
-func (r *BarrierContentKey) SetEncrypted(serialized string) {
-	r.Encrypted = serialized
+func (r *BarrierContentKey) SetEncrypted(encrypted string) {
+	r.Encrypted = encrypted
 }
 
 func (r *BarrierContentKey) GetKEKUUID() googleUuid.UUID {
 	return r.KEKUUID
 }
 
-func (r *BarrierContentKey) SetKEKUUID(kekUUID googleUuid.UUID) {
-	r.KEKUUID = kekUUID
+func (r *BarrierContentKey) SetKEKUUID(kekUUIDV7 googleUuid.UUID) {
+	r.KEKUUID = kekUUIDV7
 }

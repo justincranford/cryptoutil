@@ -128,9 +128,9 @@ func (jwkCache *BarrierRepository) Get(sqlTransaction *cryptoutilOrmRepository.O
 	defer span.End()
 
 	if kid == googleUuid.Nil { // guard against zero time
-		return nil, fmt.Errorf("get nil key not supported")
+		return nil, cryptoutilJose.ErrNonZeroUUID
 	} else if kid == googleUuid.Max { // guard against max time
-		return nil, fmt.Errorf("get max key not supported")
+		return nil, cryptoutilJose.ErrNonMaxUUID
 	}
 	waitStart := time.Now().UTC()
 	jwkCache.mu.Lock()

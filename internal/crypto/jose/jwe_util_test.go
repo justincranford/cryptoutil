@@ -1,11 +1,11 @@
 package jose
 
 import (
-	cryptoutilUtil "cryptoutil/internal/util"
 	"encoding/json"
 	"log"
 	"testing"
 
+	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
@@ -105,7 +105,7 @@ func Test_SadPath_GenerateAesJWK_UnsupportedAlg(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, key)
 	require.Nil(t, raw)
-	require.Equal(t, cryptoutilUtil.ZeroUUID, kid)
+	require.Equal(t, googleUuid.Nil, kid)
 }
 
 func Test_SadPath_EncryptJWE_NilKey(t *testing.T) {

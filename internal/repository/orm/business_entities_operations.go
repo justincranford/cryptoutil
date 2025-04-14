@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
-	cryptoutilUtil "cryptoutil/internal/util"
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 
 	"gorm.io/gorm"
 
@@ -19,8 +19,10 @@ import (
 // Service-Repository calls
 
 func (tx *OrmTransaction) AddKeyPool(keyPool *KeyPool) error {
-	if keyPool.KeyPoolID == cryptoutilUtil.ZeroUUID {
-		return tx.toAppErr("failed to insert Key Pool", ErrKeyPoolIDMustBeNonZeroUUID)
+	if keyPool.KeyPoolID == googleUuid.Nil {
+		return tx.toAppErr("failed to insert Key Pool", cryptoutilJose.ErrNonZeroUUID)
+	} else if keyPool.KeyPoolID == googleUuid.Max {
+		return tx.toAppErr("failed to insert Key Pool", cryptoutilJose.ErrNonMaxUUID)
 	}
 	err := tx.state.gormTx.Create(keyPool).Error
 	if err != nil {
@@ -30,8 +32,10 @@ func (tx *OrmTransaction) AddKeyPool(keyPool *KeyPool) error {
 }
 
 func (tx *OrmTransaction) GetKeyPool(keyPoolID googleUuid.UUID) (*KeyPool, error) {
-	if keyPoolID == cryptoutilUtil.ZeroUUID {
-		return nil, tx.toAppErr("failed to find Key Pool by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
+	if keyPoolID == googleUuid.Nil {
+		return nil, tx.toAppErr("failed to find Key Pool by Key Pool ID", cryptoutilJose.ErrNonZeroUUID)
+	} else if keyPoolID == googleUuid.Max {
+		return nil, tx.toAppErr("failed to find Key Pool by Key Pool ID", cryptoutilJose.ErrNonMaxUUID)
 	}
 	var keyPool KeyPool
 	err := tx.state.gormTx.First(&keyPool, "key_pool_id=?", keyPoolID).Error
@@ -42,8 +46,10 @@ func (tx *OrmTransaction) GetKeyPool(keyPoolID googleUuid.UUID) (*KeyPool, error
 }
 
 func (tx *OrmTransaction) UpdateKeyPool(keyPool *KeyPool) error {
-	if keyPool.KeyPoolID == cryptoutilUtil.ZeroUUID {
-		return tx.toAppErr("failed to update Key Pool", ErrKeyPoolIDMustBeNonZeroUUID)
+	if keyPool.KeyPoolID == googleUuid.Nil {
+		return tx.toAppErr("failed to update Key Pool by Key Pool ID", cryptoutilJose.ErrNonZeroUUID)
+	} else if keyPool.KeyPoolID == googleUuid.Max {
+		return tx.toAppErr("failed to update Key Pool by Key Pool ID", cryptoutilJose.ErrNonMaxUUID)
 	}
 	err := tx.state.gormTx.UpdateColumns(keyPool).Error
 	if err != nil {
@@ -53,8 +59,10 @@ func (tx *OrmTransaction) UpdateKeyPool(keyPool *KeyPool) error {
 }
 
 func (tx *OrmTransaction) UpdateKeyPoolStatus(keyPoolID googleUuid.UUID, keyPoolStatus KeyPoolStatus) error {
-	if keyPoolID == cryptoutilUtil.ZeroUUID {
-		return tx.toAppErr("failed to update Key Pool Status", ErrKeyPoolIDMustBeNonZeroUUID)
+	if keyPoolID == googleUuid.Nil {
+		return tx.toAppErr("failed to update Key Pool Status by Key Pool ID", cryptoutilJose.ErrNonZeroUUID)
+	} else if keyPoolID == googleUuid.Max {
+		return tx.toAppErr("failed to update Key Pool Status by Key Pool ID", cryptoutilJose.ErrNonMaxUUID)
 	}
 	err := tx.state.gormTx.Model(&KeyPool{}).Where("key_pool_id=?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
 	if err != nil {
@@ -74,10 +82,14 @@ func (tx *OrmTransaction) GetKeyPools(getKeyPoolsFilters *GetKeyPoolsFilters) ([
 }
 
 func (tx *OrmTransaction) AddKeyPoolKey(key *Key) error {
-	if key.KeyPoolID == cryptoutilUtil.ZeroUUID {
-		return tx.toAppErr("failed to insert Key", ErrKeyPoolIDMustBeNonZeroUUID)
-	} else if key.KeyID == cryptoutilUtil.ZeroUUID {
-		return tx.toAppErr("failed to insert Key", ErrKeyIDMustBeNonZeroUUID)
+	if key.KeyPoolID == googleUuid.Nil {
+		return tx.toAppErr("failed to insert Key by Key Pool ID", cryptoutilJose.ErrNonZeroUUID)
+	} else if key.KeyPoolID == googleUuid.Max {
+		return tx.toAppErr("failed to insert Key by Key Pool ID", cryptoutilJose.ErrNonMaxUUID)
+	} else if key.KeyID == googleUuid.Nil {
+		return tx.toAppErr("failed to insert Key by Key ID", cryptoutilJose.ErrNonZeroUUID)
+	} else if key.KeyID == googleUuid.Max {
+		return tx.toAppErr("failed to insert Key by Key ID", cryptoutilJose.ErrNonMaxUUID)
 	}
 	err := tx.state.gormTx.Create(key).Error
 	if err != nil {
@@ -87,8 +99,10 @@ func (tx *OrmTransaction) AddKeyPoolKey(key *Key) error {
 }
 
 func (tx *OrmTransaction) GetKeyPoolKeys(keyPoolID googleUuid.UUID, getKeyPoolKeysFilters *GetKeyPoolKeysFilters) ([]Key, error) {
-	if keyPoolID == cryptoutilUtil.ZeroUUID {
-		return nil, tx.toAppErr("failed to find Keys by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
+	if keyPoolID == googleUuid.Nil {
+		return nil, tx.toAppErr("failed to find Keys by Key Pool ID", cryptoutilJose.ErrNonZeroUUID)
+	} else if keyPoolID == googleUuid.Max {
+		return nil, tx.toAppErr("failed to find Keys by Key Pool ID", cryptoutilJose.ErrNonMaxUUID)
 	}
 	var keys []Key
 	query := tx.state.gormTx.Where("key_pool_id=?", keyPoolID)
@@ -110,10 +124,10 @@ func (tx *OrmTransaction) GetKeys(getKeysFilters *GetKeysFilters) ([]Key, error)
 }
 
 func (tx *OrmTransaction) GetKeyPoolKey(keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*Key, error) {
-	if keyPoolID == cryptoutilUtil.ZeroUUID {
-		return nil, tx.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyPoolIDMustBeNonZeroUUID)
-	} else if keyID == cryptoutilUtil.ZeroUUID {
-		return nil, tx.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyIDMustBeNonZeroUUID)
+	if keyPoolID == googleUuid.Nil {
+		return nil, tx.toAppErr("failed to find Key by Key Pool ID and Key ID", cryptoutilJose.ErrNonZeroUUID)
+	} else if keyID == googleUuid.Nil {
+		return nil, tx.toAppErr("failed to find Key by Key Pool ID and Key ID", cryptoutilJose.ErrNonMaxUUID)
 	}
 	var key Key
 	err := tx.state.gormTx.First(&key, "key_pool_id=? AND key_id=?", keyPoolID, keyID).Error
@@ -127,9 +141,7 @@ func (tx *OrmTransaction) toAppErr(msg string, err error) error {
 	tx.ormRepository.telemetryService.Slogger.Error(msg, "error", err)
 
 	// custom errors
-	if errors.Is(err, ErrKeyPoolIDMustBeNonZeroUUID) {
-		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
-	} else if errors.Is(err, ErrKeyPoolIDMustBeNonZeroUUID) {
+	if errors.Is(err, cryptoutilJose.ErrNonNilUUID) || errors.Is(err, cryptoutilJose.ErrNonZeroUUID) || errors.Is(err, cryptoutilJose.ErrNonMaxUUID) {
 		return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", msg, err))
 	}
 
