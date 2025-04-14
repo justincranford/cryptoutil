@@ -56,14 +56,9 @@ func NewUnsealService(telemetryService *cryptoutilTelemetry.TelemetryService, or
 }
 
 func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key) (*UnsealService, error) {
-	unsealedRootJwksLatest, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
+	unsealedRootJwksLatest, _, unsealedRootJwksLatestKidUuid, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate root JWK: %w", err)
-	}
-
-	unsealedRootJwksLatestKidUuid, err := cryptoutilJose.ExtractKidUuid(unsealedRootJwksLatest)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get root JWK kid uuid: %w", err)
 	}
 
 	jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(unsealJwks, unsealedRootJwksLatest)
@@ -83,7 +78,7 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 
 	// put new, encrypted root JWK in DB
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		return sqlTransaction.AddRootKey(&cryptoutilOrmRepository.BarrierRootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: sealJwkKidUuid})
+		return sqlTransaction.AddRootKey(&cryptoutilOrmRepository.BarrierRootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: *sealJwkKidUuid})
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to store root JWK: %w", err)

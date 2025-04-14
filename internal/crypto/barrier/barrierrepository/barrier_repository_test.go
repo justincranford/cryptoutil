@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 
 func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
 	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
-	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	jwk, _, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	mockLoadLatestFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
 		return jwk, nil
 	}
@@ -48,13 +48,10 @@ func TestJWKCache_HappyPath_GetLatest(t *testing.T) {
 
 func TestJWKCache_HappyPath_Get(t *testing.T) {
 	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
-	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	jwk, _, kid, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	mockLoadFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction, kid googleUuid.UUID) (joseJwk.Key, error) {
 		return jwk, nil
 	}
-
-	kid, err := cryptoutilJose.ExtractKidUuid(jwk)
-	require.NoError(t, err)
 
 	jwkCache, err := NewBarrierRepository("TestJWKCache_HappyPath_Get", testTelemetryService, 10, nil, mockLoadFunc, nil, nil)
 	require.NoError(t, err)
@@ -69,7 +66,7 @@ func TestJWKCache_HappyPath_Get(t *testing.T) {
 
 func TestJWKCache_HappyPath_Put(t *testing.T) {
 	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
-	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	jwk, _, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	mockStoreFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		return nil
 	}
@@ -127,7 +124,7 @@ func TestJWKCache_SadPath_Get_Function(t *testing.T) {
 
 func TestJWKCache_Put_SadPath(t *testing.T) {
 	var mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction
-	jwk, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	jwk, _, _, _ := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 
 	mockStoreFunc := func(mockSqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		return nil

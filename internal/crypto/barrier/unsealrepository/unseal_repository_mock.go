@@ -22,7 +22,7 @@ func (m *UnsealRepositoryMock) UnsealJwks() []joseJwk.Key {
 func NewUnsealRepositoryMock(t *testing.T, numUnsealJwks int) (*UnsealRepositoryMock, []joseJwk.Key, error) {
 	unsealKeys := make([]joseJwk.Key, 0, numUnsealJwks)
 	for range numUnsealJwks {
-		unsealJwk, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+		unsealJwk, _, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 		assert.NoError(t, err)
 		unsealKeys = append(unsealKeys, unsealJwk)
 	}

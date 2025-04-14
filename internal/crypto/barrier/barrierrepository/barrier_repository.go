@@ -223,7 +223,7 @@ func (jwkCache *BarrierRepository) Remove(sqlTransaction *cryptoutilOrmRepositor
 	}
 	jwkCache.cache.Remove(kidUuid)
 
-	if latestKidUuid == kidUuid {
+	if *latestKidUuid == kidUuid {
 		jwkCache.latestJwk = nil
 
 		// try loading next latest from database

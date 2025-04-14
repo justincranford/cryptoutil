@@ -108,7 +108,7 @@ func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.
 	if !ok {
 		return nil, fmt.Errorf("failed to cast AES-256 pool key to []byte")
 	}
-	cek, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
+	cek, _, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
@@ -184,7 +184,7 @@ func encrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk
 	}
 	telemetryService.Slogger.Info("Encrypted Intermediate JWK", "JWE Headers", jweHeaders)
 
-	return jwkKidUuid, kekKidUuid, jweMessageBytes, nil
+	return *jwkKidUuid, *kekKidUuid, jweMessageBytes, nil
 }
 
 func decrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kekRepository *cryptoutilBarrierRepository.BarrierRepository, barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
@@ -261,7 +261,7 @@ func newIntermediateKeyRepository(telemetryService *cryptoutilTelemetry.Telemetr
 			return fmt.Errorf("failed to get latest intermediate Key: %w", err)
 		}
 		if latestJwk == nil {
-			intermediateJwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, aes256KeyGenPool.Get().Private.([]byte))
+			intermediateJwk, _, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, aes256KeyGenPool.Get().Private.([]byte))
 			if err != nil {
 				return fmt.Errorf("failed to generate DEK JWK: %w", err)
 			}
@@ -311,7 +311,7 @@ func newContentKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryServ
 		}
 		telemetryService.Slogger.Info("Encrypted Leaf JWK", "JWE Headers", jweHeaders)
 
-		return sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: jwkKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: kekKidUuid})
+		return sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: *jwkKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: *kekKidUuid})
 	}
 	deleteKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
 		jwk, err := sqlTransaction.DeleteContentKey(uuid)

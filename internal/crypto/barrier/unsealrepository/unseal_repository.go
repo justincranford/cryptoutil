@@ -37,7 +37,7 @@ func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 			return nil, fmt.Errorf("failed to derive key: %w", err)
 		}
 
-		jwk, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgA256GCMKW, derivedKeyBytes) // use derived JWK for envelope encryption (i.e. AES256GCM Key Wrap), not DIRECT encryption
+		jwk, _, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgA256GCMKW, derivedKeyBytes) // use derived JWK for envelope encryption (i.e. AES256GCM Key Wrap), not DIRECT encryption
 		if err != nil {
 			return nil, fmt.Errorf("failed to create JWK: %w", err)
 		}

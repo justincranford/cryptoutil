@@ -87,7 +87,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	require.NoError(t, err)
 	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealService, restartedUnsealService1b)
 
-	invalidJwk, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
+	invalidJwk, _, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	require.NoError(t, err)
 	invalidUnsealRepository, err := cryptoutilUnsealRepository.NewUnsealRepositorySimple([]joseJwk.Key{invalidJwk})
 	require.NoError(t, err)

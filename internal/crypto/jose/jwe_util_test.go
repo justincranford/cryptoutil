@@ -1,6 +1,7 @@
 package jose
 
 import (
+	cryptoutilUtil "cryptoutil/internal/util"
 	"encoding/json"
 	"log"
 	"testing"
@@ -20,15 +21,12 @@ var happyPathTestCases = []struct {
 
 func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		cek, encodedAesJwk, err := GenerateAesJWK(testCase.alg)
+		cek, encodedAesJwk, actualJwkKid, err := GenerateAesJWK(testCase.alg)
 		require.NoError(t, err)
 		require.NotNil(t, cek)
 		require.NotEmpty(t, encodedAesJwk)
-		log.Printf("Generated: %s", encodedAesJwk)
-
-		var actualJwkKid string
-		require.NoError(t, cek.Get(jwk.KeyIDKey, &actualJwkKid))
 		require.NotEmpty(t, actualJwkKid)
+		log.Printf("Generated: %s", encodedAesJwk)
 
 		var actualJwkAlg jwa.KeyAlgorithm
 		require.NoError(t, cek.Get(jwk.AlgorithmKey, &actualJwkAlg))
@@ -60,7 +58,7 @@ func Test_HappyPath_Bytes(t *testing.T) {
 		var actualJweKid string
 		require.NoError(t, jweHeaders.Get(jwk.KeyIDKey, &actualJweKid))
 		require.NotEmpty(t, actualJweKid)
-		require.Equal(t, actualJwkKid, actualJweKid)
+		require.Equal(t, actualJwkKid.String(), actualJweKid)
 
 		var actualJweAlg jwa.KeyAlgorithm
 		require.NoError(t, jweHeaders.Get(jwk.AlgorithmKey, &actualJweAlg))
@@ -79,10 +77,10 @@ func Test_HappyPath_Bytes(t *testing.T) {
 
 func Test_HappyPath_Key(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		kek, encodedKek, _ := GenerateAesJWK(testCase.alg)
+		kek, encodedKek, _, _ := GenerateAesJWK(testCase.alg)
 		log.Printf("KEK: %s", string(encodedKek))
 
-		originalKey, encodedKey, _ := GenerateAesJWK(testCase.alg)
+		originalKey, encodedKey, _, _ := GenerateAesJWK(testCase.alg)
 		log.Printf("Original Key: %s", string(encodedKey))
 
 		jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{kek}, originalKey)
@@ -104,10 +102,11 @@ func Test_HappyPath_Key(t *testing.T) {
 
 func Test_SadPath_GenerateAesJWK_UnsupportedAlg(t *testing.T) {
 	invalidAlg := jwa.RSA_OAEP()
-	key, raw, err := GenerateAesJWK(invalidAlg)
+	key, raw, kid, err := GenerateAesJWK(invalidAlg)
 	require.Error(t, err)
 	require.Nil(t, key)
 	require.Nil(t, raw)
+	require.Equal(t, cryptoutilUtil.ZeroUUID, kid)
 }
 
 func Test_SadPath_EncryptJWE_NilKey(t *testing.T) {
@@ -121,7 +120,10 @@ func Test_SadPath_DecryptJWE_NilKey(t *testing.T) {
 }
 
 func Test_SadPath_DecryptJWE_InvalidCiphertext(t *testing.T) {
-	key, _, err := GenerateAesJWK(AlgA256GCMKW)
+	key, raw, kid, err := GenerateAesJWK(AlgA256GCMKW)
+	require.NotNil(t, key)
+	require.NotNil(t, raw)
+	require.NotNil(t, kid)
 	require.NoError(t, err)
 
 	_, err = DecryptBytes([]joseJwk.Key{key}, []byte("this-is-not-valid-ciphertext"))
