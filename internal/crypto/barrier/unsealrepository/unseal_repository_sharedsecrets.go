@@ -4,14 +4,14 @@ import (
 	"crypto/rand"
 	"fmt"
 
-	"github.com/lestrrat-go/jwx/v3/jwk"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 type UnsealRepositorySharedSecrets struct {
-	unsealJwks []jwk.Key
+	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealRepositorySharedSecrets) UnsealJwks() []jwk.Key {
+func (u *UnsealRepositorySharedSecrets) UnsealJwks() []joseJwk.Key {
 	return u.unsealJwks
 }
 
