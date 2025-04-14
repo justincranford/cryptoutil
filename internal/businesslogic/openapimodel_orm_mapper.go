@@ -9,7 +9,7 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilUtil "cryptoutil/internal/util"
 
-	"github.com/google/uuid"
+	googleUuid "github.com/google/uuid"
 )
 
 type serviceOrmMapper struct{}
@@ -20,7 +20,7 @@ func NewMapper() *serviceOrmMapper {
 
 // service => orm
 
-func (m *serviceOrmMapper) toOrmAddKeyPool(keyPoolID uuid.UUID, serviceKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
+func (m *serviceOrmMapper) toOrmAddKeyPool(keyPoolID googleUuid.UUID, serviceKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
 	return &cryptoutilOrmRepository.KeyPool{
 		KeyPoolID:                keyPoolID,
 		KeyPoolName:              serviceKeyPoolCreate.Name,
@@ -239,7 +239,7 @@ func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLog
 
 // Helper methods
 
-func (*serviceOrmMapper) toOrmUUIDs(uuids *[]uuid.UUID) ([]uuid.UUID, error) {
+func (*serviceOrmMapper) toOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID, error) {
 	if uuids == nil || len(*uuids) == 0 {
 		return nil, nil
 	}

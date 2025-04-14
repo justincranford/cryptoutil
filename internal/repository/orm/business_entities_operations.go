@@ -9,7 +9,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/google/uuid"
+	googleUuid "github.com/google/uuid"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"modernc.org/sqlite"
@@ -29,7 +29,7 @@ func (tx *OrmTransaction) AddKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
-func (tx *OrmTransaction) GetKeyPool(keyPoolID uuid.UUID) (*KeyPool, error) {
+func (tx *OrmTransaction) GetKeyPool(keyPoolID googleUuid.UUID) (*KeyPool, error) {
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, tx.toAppErr("failed to find Key Pool by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
@@ -52,7 +52,7 @@ func (tx *OrmTransaction) UpdateKeyPool(keyPool *KeyPool) error {
 	return nil
 }
 
-func (tx *OrmTransaction) UpdateKeyPoolStatus(keyPoolID uuid.UUID, keyPoolStatus KeyPoolStatus) error {
+func (tx *OrmTransaction) UpdateKeyPoolStatus(keyPoolID googleUuid.UUID, keyPoolStatus KeyPoolStatus) error {
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return tx.toAppErr("failed to update Key Pool Status", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
@@ -86,7 +86,7 @@ func (tx *OrmTransaction) AddKeyPoolKey(key *Key) error {
 	return nil
 }
 
-func (tx *OrmTransaction) GetKeyPoolKeys(keyPoolID uuid.UUID, getKeyPoolKeysFilters *GetKeyPoolKeysFilters) ([]Key, error) {
+func (tx *OrmTransaction) GetKeyPoolKeys(keyPoolID googleUuid.UUID, getKeyPoolKeysFilters *GetKeyPoolKeysFilters) ([]Key, error) {
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, tx.toAppErr("failed to find Keys by Key Pool ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	}
@@ -109,7 +109,7 @@ func (tx *OrmTransaction) GetKeys(getKeysFilters *GetKeysFilters) ([]Key, error)
 	return keys, nil
 }
 
-func (tx *OrmTransaction) GetKeyPoolKey(keyPoolID uuid.UUID, keyID uuid.UUID) (*Key, error) {
+func (tx *OrmTransaction) GetKeyPoolKey(keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*Key, error) {
 	if keyPoolID == cryptoutilUtil.ZeroUUID {
 		return nil, tx.toAppErr("failed to find Key by Key Pool ID and Key ID", ErrKeyPoolIDMustBeNonZeroUUID)
 	} else if keyID == cryptoutilUtil.ZeroUUID {
