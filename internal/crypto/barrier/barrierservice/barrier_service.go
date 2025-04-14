@@ -41,7 +41,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}
 
-	rootKeyRepository, err := newRootKeyRepository(telemetryService, ormRepository, unsealService)
+	rootKeyRepository, err := newRootKeyRepository(telemetryService, unsealService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize root JWK repository: %w", err)
 	}
@@ -142,13 +142,13 @@ func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message kid: %w", err)
 	}
-	uuid, err := googleUuid.Parse(kid)
+	kidUuid, err := googleUuid.Parse(kid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	jwk, err := d.contentKeyRepository.Get(sqlTransaction, uuid)
+	jwk, err := d.contentKeyRepository.Get(sqlTransaction, kidUuid)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
+		return nil, fmt.Errorf("failed to get key by kid as uuid: %w", err)
 	}
 	decryptedBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{jwk}, encodedJweMessage)
 	if err != nil {
@@ -204,17 +204,17 @@ func decrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kekReposito
 	return jwk, nil
 }
 
-func newRootKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealService *cryptoutilUnsealService.UnsealService) (*cryptoutilBarrierRepository.BarrierRepository, error) {
+func newRootKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryService, unsealService *cryptoutilUnsealService.UnsealService) (*cryptoutilBarrierRepository.BarrierRepository, error) {
 	loadLatestRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
 		return unsealService.GetLatest(), nil
 	}
-	loadRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return unsealService.Get(uuid), nil
+	loadRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kidUuid googleUuid.UUID) (joseJwk.Key, error) {
+		return unsealService.Get(kidUuid), nil
 	}
 	storeRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		return nil
 	}
-	deleteKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
+	deleteKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kidUuid googleUuid.UUID) (joseJwk.Key, error) {
 		return nil, nil
 	}
 
