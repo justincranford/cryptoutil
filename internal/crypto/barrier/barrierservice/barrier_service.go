@@ -206,10 +206,10 @@ func decrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kekReposito
 
 func newRootKeyRepository(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealService *cryptoutilUnsealService.UnsealService) (*cryptoutilBarrierRepository.BarrierRepository, error) {
 	loadLatestRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
-		return *unsealService.GetLatest(), nil
+		return unsealService.GetLatest(), nil
 	}
 	loadRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, uuid googleUuid.UUID) (joseJwk.Key, error) {
-		return *unsealService.Get(uuid), nil
+		return unsealService.Get(uuid), nil
 	}
 	storeRootKey := func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key) error {
 		return nil
