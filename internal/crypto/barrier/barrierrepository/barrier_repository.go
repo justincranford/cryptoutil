@@ -10,6 +10,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilUtil "cryptoutil/internal/util"
 
 	googleUuid "github.com/google/uuid"
 	lru "github.com/hashicorp/golang-lru"
@@ -127,10 +128,8 @@ func (jwkCache *BarrierRepository) Get(sqlTransaction *cryptoutilOrmRepository.O
 	ctx, span := jwkCache.observations.tracer.Start(context.Background(), "Get")
 	defer span.End()
 
-	if kid == googleUuid.Nil { // guard against zero time
-		return nil, cryptoutilJose.ErrNonZeroUUID
-	} else if kid == googleUuid.Max { // guard against max time
-		return nil, cryptoutilJose.ErrNonMaxUUID
+	if err := cryptoutilUtil.ValidateUUID(&kid, "invalid kid UUID"); err != nil {
+		return nil, fmt.Errorf("failed to add Key Pool: %w", err)
 	}
 	waitStart := time.Now().UTC()
 	jwkCache.mu.Lock()

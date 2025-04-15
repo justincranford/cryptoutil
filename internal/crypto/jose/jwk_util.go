@@ -2,6 +2,8 @@ package jose
 
 import (
 	"crypto/rand"
+	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilUtil "cryptoutil/internal/util"
 	"encoding/json"
 	"fmt"
 
@@ -57,33 +59,19 @@ func CreateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (joseJwk
 
 func ExtractKidUuid(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	if jwk == nil {
-		return nil, ErrCantBeNil
+		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
 	var err error
 	var kidString string
 	if err = jwk.Get(joseJwk.KeyIDKey, &kidString); err != nil {
-		return nil, fmt.Errorf("failed to get `kid` header: %w", err)
+		return nil, fmt.Errorf("failed to get kid header: %w", err)
 	}
 	var kidUuid googleUuid.UUID
 	if kidUuid, err = googleUuid.Parse(kidString); err != nil {
-		return nil, fmt.Errorf("failed to parse `kid` as UUID: %w", err)
+		return nil, fmt.Errorf("failed to parse kid as UUID: %w", err)
 	}
-	if err = ValidateKid(&kidUuid); err != nil {
-		return nil, fmt.Errorf("invalid `kid`: %w", err)
+	if err = cryptoutilUtil.ValidateUUID(&kidUuid, "invalid kid"); err != nil {
+		return nil, err
 	}
 	return &kidUuid, nil
-}
-
-func ValidateKid(kidUuid *googleUuid.UUID) error {
-	if kidUuid == nil {
-		return ErrNonNilUUID
-	}
-	switch *kidUuid {
-	case googleUuid.Nil:
-		return ErrNonZeroUUID
-	case googleUuid.Max:
-		return ErrNonMaxUUID
-	default:
-		return nil
-	}
 }

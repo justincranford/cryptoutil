@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilUtil "cryptoutil/internal/util"
 
 	googleUuid "github.com/google/uuid"
 )
@@ -114,11 +114,11 @@ func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilBusines
 		return nil, nil
 	}
 	var errs []error
-	keyPoolIDs, err := m.toOrmUUIDs(params.Id)
+	keyPoolIDs, err := m.toOptionalOrmUUIDs(params.Id)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Key Pool ID: %w", err))
 	}
-	names, err := m.toOrmStrings(params.Name)
+	names, err := m.toOptionalOrmStrings(params.Name)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Key Pool Name: %w", err))
 	}
@@ -160,7 +160,7 @@ func (m *serviceOrmMapper) toOrmGetKeyPoolKeysQueryParams(params *cryptoutilBusi
 		return nil, nil
 	}
 	var errs []error
-	keyIDs, err := m.toOrmUUIDs(params.Id)
+	keyIDs, err := m.toOptionalOrmUUIDs(params.Id)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
 	}
@@ -198,11 +198,11 @@ func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLog
 		return nil, nil
 	}
 	var errs []error
-	keyPoolIDs, err := m.toOrmUUIDs(params.Pool)
+	keyPoolIDs, err := m.toOptionalOrmUUIDs(params.Pool)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid KeyPoolID: %w", err))
 	}
-	keyIDs, err := m.toOrmUUIDs(params.Id)
+	keyIDs, err := m.toOptionalOrmUUIDs(params.Id)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
 	}
@@ -239,21 +239,17 @@ func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLog
 
 // Helper methods
 
-func (*serviceOrmMapper) toOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID, error) {
+func (*serviceOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID, error) {
 	if uuids == nil || len(*uuids) == 0 {
 		return nil, nil
 	}
-	for _, uuid := range *uuids {
-		if uuid == googleUuid.Nil {
-			return nil, cryptoutilJose.ErrNonZeroUUID
-		} else if uuid == googleUuid.Max {
-			return nil, cryptoutilJose.ErrNonMaxUUID
-		}
+	if err := cryptoutilUtil.ValidateUUIDs(*uuids, "invalid UUIDs"); err != nil {
+		return nil, err
 	}
 	return *uuids, nil
 }
 
-func (*serviceOrmMapper) toOrmStrings(strings *[]string) ([]string, error) {
+func (*serviceOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
 	if strings == nil || len(*strings) == 0 {
 		return nil, nil
 	}
