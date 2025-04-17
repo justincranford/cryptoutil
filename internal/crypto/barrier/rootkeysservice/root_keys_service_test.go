@@ -1,4 +1,4 @@
-package unsealservice
+package rootkeysservice
 
 import (
 	"context"
@@ -34,35 +34,39 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestUnsealService_HappyPath_OneUnsealJwks(t *testing.T) {
+func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
 	mockUnsealRepository, _, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 1)
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealRepository)
+	defer mockUnsealRepository.Shutdown()
 
-	service, err := NewUnsealService(testTelemetryService, testOrmRepository, mockUnsealRepository)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository)
 	assert.NoError(t, err)
-	assert.NotNil(t, service)
+	assert.NotNil(t, rootKeysService)
+	defer rootKeysService.Shutdown()
 }
 
-func TestUnsealService_SadPath_ZeroUnsealJwks(t *testing.T) {
+func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	mockUnsealRepository, _, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealRepository)
+	defer mockUnsealRepository.Shutdown()
 
-	service, err := NewUnsealService(testTelemetryService, testOrmRepository, mockUnsealRepository)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository)
 	assert.Error(t, err)
-	assert.Nil(t, service)
+	assert.Nil(t, rootKeysService)
 	assert.EqualError(t, err, "no unseal JWKs")
 }
 
-func TestUnsealService_SadPath_NilUnsealJwks(t *testing.T) {
+func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	mockUnsealRepository, _, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealRepository)
 	mockUnsealRepository.On("UnsealJwks").Return(nil)
+	defer mockUnsealRepository.Shutdown()
 
-	service, err := NewUnsealService(testTelemetryService, testOrmRepository, mockUnsealRepository)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository)
 	assert.Error(t, err)
-	assert.Nil(t, service)
+	assert.Nil(t, rootKeysService)
 	assert.EqualError(t, err, "no unseal JWKs")
 }

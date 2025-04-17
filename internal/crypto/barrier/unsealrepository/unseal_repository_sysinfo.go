@@ -18,6 +18,10 @@ func (u *UnsealRepositoryFromSysInfo) UnsealJwks() []joseJwk.Key {
 	return u.unsealJwks
 }
 
+func (u *UnsealRepositoryFromSysInfo) Shutdown() {
+	u.unsealJwks = nil
+}
+
 func NewUnsealRepositoryFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealRepository, error) {
 	sysinfos, err := cryptoutilSysinfo.GetAllInfo(sysInfoProvider)
 	if err != nil {

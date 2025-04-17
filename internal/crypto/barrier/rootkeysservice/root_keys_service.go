@@ -1,4 +1,4 @@
-package unsealservice
+package rootkeysservice
 
 import (
 	"context"
@@ -14,20 +14,31 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-type UnsealService struct {
-	unsealedRootJwksMap    *map[googleUuid.UUID]joseJwk.Key
-	unsealedRootJwksLatest joseJwk.Key
+type RootKeysService struct {
+	unsealedRootJwksList  []joseJwk.Key
+	unsealedRootJwksMap   *map[googleUuid.UUID]joseJwk.Key
+	unsealedRootJwkLatest joseJwk.Key
 }
 
-func (u *UnsealService) Get(uuid googleUuid.UUID) joseJwk.Key {
+func (u *RootKeysService) GetAll() []joseJwk.Key {
+	return u.unsealedRootJwksList
+}
+
+func (u *RootKeysService) Get(uuid googleUuid.UUID) joseJwk.Key {
 	return (*u.unsealedRootJwksMap)[uuid]
 }
 
-func (u *UnsealService) GetLatest() joseJwk.Key {
-	return u.unsealedRootJwksLatest
+func (u *RootKeysService) GetLatest() joseJwk.Key {
+	return u.unsealedRootJwkLatest
 }
 
-func NewUnsealService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*UnsealService, error) {
+func (u *RootKeysService) Shutdown() {
+	u.unsealedRootJwksList = nil
+	u.unsealedRootJwksMap = nil
+	u.unsealedRootJwkLatest = nil
+}
+
+func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*RootKeysService, error) {
 	unsealJwks := unsealRepository.UnsealJwks() // unseal keys from unseal repository
 	if len(unsealJwks) == 0 {
 		return nil, fmt.Errorf("no unseal JWKs")
@@ -43,19 +54,20 @@ func NewUnsealService(telemetryService *cryptoutilTelemetry.TelemetryService, or
 		return nil, fmt.Errorf("failed to get encrypted root JWKs from DB")
 	}
 
-	var unsealService *UnsealService
+	var rootKeysService *RootKeysService
 	if len(encryptedRootJwks) == 0 {
-		unsealService, err = createFirstRootJwk(telemetryService, ormRepository, unsealJwks)
+		rootKeysService, err = createFirstRootJwk(telemetryService, ormRepository, unsealJwks)
 	} else {
-		unsealService, err = decryptExistingRootJwks(telemetryService, ormRepository, unsealJwks, encryptedRootJwks)
+		rootKeysService, err = decryptExistingRootJwks(telemetryService, ormRepository, unsealJwks, encryptedRootJwks)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize unseal service: %w", err)
 	}
-	return unsealService, nil
+
+	return rootKeysService, nil
 }
 
-func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key) (*UnsealService, error) {
+func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key) (*RootKeysService, error) {
 	unsealedRootJwksLatest, _, unsealedRootJwksLatestKidUuid, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate root JWK: %w", err)
@@ -85,13 +97,14 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	}
 
 	// put new, clear root JWK in-memory
+	unsealedRootKeys := []joseJwk.Key{unsealedRootJwksLatest}
 	unsealedRootJwksMap := make(map[googleUuid.UUID]joseJwk.Key)
 	unsealedRootJwksMap[unsealedRootJwksLatestKidUuid] = unsealedRootJwksLatest
 
-	return &UnsealService{unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwksLatest: unsealedRootJwksLatest}, nil
+	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
 }
 
-func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey) (*UnsealService, error) {
+func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey) (*RootKeysService, error) {
 	var encryptedRootJwkLatest *cryptoutilOrmRepository.BarrierRootKey
 	err := ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
@@ -104,6 +117,7 @@ func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryServ
 	encryptedRootJwkLatestKidUuid := encryptedRootJwkLatest.GetUUID() // during decrypt loop, look for latest by UUID to grab a copy of the decrypted JWK
 
 	// loop through encryptedRootJwks from DB, try using all of the unsealJwks to decrypt them
+	unsealedRootKeys := make([]joseJwk.Key, 0, len(encryptedRootJwks))
 	unsealedRootJwksMap := make(map[googleUuid.UUID]joseJwk.Key)
 	var unsealedRootJwksLatest joseJwk.Key
 	var errs []error
@@ -120,6 +134,7 @@ func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryServ
 			if err != nil {
 				errs = append(errs, fmt.Errorf("failed to parse decrypted root JWK %d after using unseal JWK %d: %w", encryptedRootJwkIndex, unsealJwkIndex, err))
 			}
+			unsealedRootKeys = append(unsealedRootKeys, unsealedRootJwk)
 			unsealedRootJwksMap[encryptedRootJwkKidUuid] = unsealedRootJwk // decrypt success, store it in-memory
 			if unsealedRootJwksLatest == nil && encryptedRootJwkKidUuid == encryptedRootJwkLatestKidUuid {
 				unsealedRootJwksLatest = unsealedRootJwk // latest UUID matched, grab a copy
@@ -141,5 +156,5 @@ func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryServ
 	} else {
 		telemetryService.Slogger.Warn("unsealed some root JWKs", "unsealed", len(unsealedRootJwksMap), "errors", len(errs), "error", errors.Join(errs...))
 	}
-	return &UnsealService{unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwksLatest: unsealedRootJwksLatest}, nil
+	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
 }

@@ -1,16 +1,12 @@
 package barrierservice
 
 import (
-	"errors"
 	"fmt"
 
-	cryptoutilBarrierRepository "cryptoutil/internal/crypto/barrier/barrierrepository"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
-	"gorm.io/gorm"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -20,102 +16,79 @@ func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
-	rawKey, ok := d.aes256KeyGenPool.Get().Private.([]byte)
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	clearContentKeyBytes, ok := d.aes256KeyGenPool.Get().Private.([]byte)
 	if !ok {
 		return nil, fmt.Errorf("failed to cast AES-256 pool key to []byte")
 	}
-	cek, _, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, rawKey)
+	clearContentKey, _, contentKeyKidUUID, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, clearContentKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
-	err = d.contentKeyRepository.Put(sqlTransaction, cek)
+	_, encryptedContentJweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{clearContentKey}, clearBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to put content JWK in cache: %w", err)
+		return nil, fmt.Errorf("failed to encrypt content with JWK")
 	}
-	jweMessage, encodedJweMessage, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{cek}, clearBytes)
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	clearIntermediateKeyLatest, err := d.intermediateKeysService.GetLatest(sqlTransaction)
 	if err != nil {
-		return nil, fmt.Errorf("failed to encrypt clear bytes: %w", err)
+		return nil, fmt.Errorf("failed to get latest clear intermediate key")
 	}
-	jweHeaders, err := cryptoutilJose.JSONHeadersString(jweMessage)
+	clearIntermediateKeyLatestKidUuid, err := cryptoutilJose.ExtractKidUuid(clearIntermediateKeyLatest)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get JWE message headers: %w", err)
+		return nil, fmt.Errorf("failed to get latest clear intermediate key kid uuid: %w", err)
 	}
-	d.telemetryService.Slogger.Info("Encrypted Bytes", "JWE Headers", jweHeaders)
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	_, encryptedContentKeyJweMessageBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{clearIntermediateKeyLatest}, clearContentKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt content key: %w", err)
+	}
+	err = sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: contentKeyKidUUID, Encrypted: string(encryptedContentKeyJweMessageBytes), KEKUUID: *clearIntermediateKeyLatestKidUuid})
+	if err != nil {
+		return nil, fmt.Errorf("failed to add content key to DB: %w", err)
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	return encodedJweMessage, nil
+	return encryptedContentJweMessageBytes, nil
 }
 
-func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encodedJweMessage []byte) ([]byte, error) {
+func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJweMessageBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
-	jweMessage, err := joseJwe.Parse(encodedJweMessage)
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	encryptedContentJweMessage, err := joseJwe.Parse(encryptedContentJweMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message: %w", err)
 	}
-	var kid string
-	err = jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &kid)
+	var encryptedContentJweMessageKidString string
+	err = encryptedContentJweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &encryptedContentJweMessageKidString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message kid: %w", err)
 	}
-	kidUuid, err := googleUuid.Parse(kid)
+	encryptedContentJweMessageKidUuid, err := googleUuid.Parse(encryptedContentJweMessageKidString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	jwk, err := d.contentKeyRepository.Get(sqlTransaction, kidUuid)
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	encryptedContentKey, err := sqlTransaction.GetContentKey(encryptedContentJweMessageKidUuid)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get key by kid as uuid: %w", err)
+		return nil, fmt.Errorf("failed to get encrypted content key")
 	}
-	decryptedBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{jwk}, encodedJweMessage)
+	decryptedIntermediateKey, err := d.intermediateKeysService.Get(sqlTransaction, encryptedContentKey.GetKEKUUID())
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt with JWK %s: %w", kid, err)
+		return nil, fmt.Errorf("failed to get intermediate key")
+	}
+	decryptedContentKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{decryptedIntermediateKey}, []byte(encryptedContentKey.GetEncrypted()))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt root key")
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	decryptedBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedContentKey}, encryptedContentJweMessageBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt content with content key: %w", err)
 	}
 	return decryptedBytes, nil
-}
-
-// Helpers
-
-func encrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, jwk joseJwk.Key, kekRepository *cryptoutilBarrierRepository.BarrierRepository, telemetryService *cryptoutilTelemetry.TelemetryService) (googleUuid.UUID, googleUuid.UUID, []byte, error) {
-	jwkKidUuid, err := cryptoutilJose.ExtractKidUuid(jwk)
-	if err != nil {
-		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to get jwk kid uuid: %w", err)
-	}
-
-	kek, err := kekRepository.GetLatest(sqlTransaction)
-	if err != nil {
-		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to get latest kek jwk kid uuid: %w", err)
-	}
-	kekKidUuid, err := cryptoutilJose.ExtractKidUuid(kek)
-	if err != nil {
-		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to get latest kek kid uuid: %w", err)
-	}
-
-	jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{kek}, jwk)
-	if err != nil {
-		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to serialize jwk: %w", err)
-	}
-	jweHeaders, err := cryptoutilJose.JSONHeadersString(jweMessage)
-	if err != nil {
-		return googleUuid.UUID{}, googleUuid.UUID{}, nil, fmt.Errorf("failed to get jwe message headers: %w", err)
-	}
-	telemetryService.Slogger.Info("Encrypted Intermediate JWK", "JWE Headers", jweHeaders)
-
-	return *jwkKidUuid, *kekKidUuid, jweMessageBytes, nil
-}
-
-func decrypt(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, kekRepository *cryptoutilBarrierRepository.BarrierRepository, barrierKey cryptoutilOrmRepository.BarrierKey, err error) (joseJwk.Key, error) {
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	} else if err != nil {
-		return nil, fmt.Errorf("failed to load Key from database: %w", err)
-	}
-	kekJwk, err := kekRepository.Get(sqlTransaction, barrierKey.GetKEKUUID())
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse kek kid from database: %w", err)
-	}
-	jwk, err := cryptoutilJose.DecryptKey([]joseJwk.Key{kekJwk}, []byte((barrierKey).GetEncrypted()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt JWK from database: %w", err)
-	}
-	return jwk, nil
 }

@@ -14,6 +14,10 @@ func (u *UnsealRepositorySimple) UnsealJwks() []joseJwk.Key {
 	return u.unsealJwks
 }
 
+func (u *UnsealRepositorySimple) Shutdown() {
+	u.unsealJwks = nil
+}
+
 func NewUnsealRepositorySimple(unsealJwks []joseJwk.Key) (UnsealRepository, error) {
 	if unsealJwks == nil {
 		return nil, fmt.Errorf("unsealJwks can't be nil")

@@ -12,6 +12,7 @@ import (
 
 type UnsealRepository interface {
 	UnsealJwks() []joseJwk.Key
+	Shutdown()
 }
 
 func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key, error) {

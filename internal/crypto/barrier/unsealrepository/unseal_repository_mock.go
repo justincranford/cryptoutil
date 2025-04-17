@@ -19,6 +19,9 @@ func (m *UnsealRepositoryMock) UnsealJwks() []joseJwk.Key {
 	return args.Get(0).([]joseJwk.Key)
 }
 
+func (u *UnsealRepositoryMock) Shutdown() {
+}
+
 func NewUnsealRepositoryMock(t *testing.T, numUnsealJwks int) (*UnsealRepositoryMock, []joseJwk.Key, error) {
 	unsealKeys := make([]joseJwk.Key, 0, numUnsealJwks)
 	for range numUnsealJwks {

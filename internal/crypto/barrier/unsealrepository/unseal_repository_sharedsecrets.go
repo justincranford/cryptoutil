@@ -15,6 +15,10 @@ func (u *UnsealRepositorySharedSecrets) UnsealJwks() []joseJwk.Key {
 	return u.unsealJwks
 }
 
+func (u *UnsealRepositorySharedSecrets) Shutdown() {
+	u.unsealJwks = nil
+}
+
 func NewUnsealRepositorySharedSecrets(m, chooseN, secretBytesLength int) (UnsealRepository, error) {
 	if m == 0 {
 		return nil, fmt.Errorf("m can't be zero")
