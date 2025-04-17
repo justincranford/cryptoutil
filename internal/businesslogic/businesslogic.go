@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier/barrierservice"
+	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"

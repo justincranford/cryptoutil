@@ -8,9 +8,7 @@ import (
 	"syscall"
 
 	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
-	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier/barrierservice"
-	cryptoutilIntermediateKeysService "cryptoutil/internal/crypto/barrier/intermediatekeysservice"
-	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
+	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
@@ -40,61 +38,49 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, dbType, dbUrl, cryptoutilSqlRepository.ContainerModeDisabled)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
-		stopServerFunc(telemetryService, nil, nil, nil, nil, nil, nil)()
+		stopServerFunc(telemetryService, nil, nil, nil, nil, nil)()
 		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
 
 	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, sqlRepository, applyMigrations)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create ORM repository", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, nil, nil, nil, nil, nil)()
+		stopServerFunc(telemetryService, sqlRepository, nil, nil, nil, nil)()
 		return nil, nil, fmt.Errorf("failed to create ORM repository: %w", err)
 	}
 
 	unsealRepository, err := cryptoutilUnsealRepository.NewUnsealRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 	if err != nil {
-		stopServerFunc(telemetryService, sqlRepository, ormRepository, nil, nil, nil, nil)()
+		telemetryService.Slogger.Error("failed to create unseal repository", "error", err)
+		stopServerFunc(telemetryService, sqlRepository, ormRepository, nil, nil, nil)()
 		return nil, nil, fmt.Errorf("failed to create unseal repository: %w", err)
 	}
 
-	rootKeysService, err := cryptoutilRootKeysService.NewRootKeysService(telemetryService, ormRepository, unsealRepository)
-	if err != nil {
-		stopServerFunc(telemetryService, sqlRepository, ormRepository, nil, nil, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to create root keys service: %w", err)
-	}
-
-	// TODO add intermediateKeysService to intermediateKeysService
-	intermediateKeysService, err := cryptoutilIntermediateKeysService.NewIntermediateKeysService(telemetryService, ormRepository, rootKeysService)
-	if err != nil {
-		stopServerFunc(telemetryService, sqlRepository, ormRepository, rootKeysService, nil, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
-	}
-
-	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, ormRepository, intermediateKeysService)
+	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, ormRepository, unsealRepository)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, ormRepository, rootKeysService, intermediateKeysService, nil, nil)()
+		stopServerFunc(telemetryService, sqlRepository, ormRepository, unsealRepository, nil, nil)()
 		return nil, nil, fmt.Errorf("failed to create barrier service: %w", err)
 	}
 
 	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, telemetryService, ormRepository, barrierService)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, ormRepository, rootKeysService, intermediateKeysService, barrierService, nil)()
+		stopServerFunc(telemetryService, sqlRepository, ormRepository, unsealRepository, barrierService, nil)()
 		return nil, nil, fmt.Errorf("failed to initialize business logic service: %w", err)
 	}
 
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get swagger", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, ormRepository, rootKeysService, intermediateKeysService, barrierService, nil)()
+		stopServerFunc(telemetryService, sqlRepository, ormRepository, unsealRepository, barrierService, nil)()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
 	fiberHandlerOpenAPISpec, err := cryptoutilOpenapiServer.FiberHandlerOpenAPISpec()
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, ormRepository, rootKeysService, intermediateKeysService, barrierService, nil)()
+		stopServerFunc(telemetryService, sqlRepository, ormRepository, unsealRepository, barrierService, nil)()
 		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
 	}
 
@@ -122,7 +108,7 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 	listenAddress := fmt.Sprintf("%s:%d", listenHost, listenPort)
 
 	startServer := startServerFunc(err, listenAddress, app, telemetryService)
-	stopServer := stopServerFunc(telemetryService, sqlRepository, ormRepository, rootKeysService, intermediateKeysService, barrierService, app)
+	stopServer := stopServerFunc(telemetryService, sqlRepository, ormRepository, unsealRepository, barrierService, app)
 	go stopServerSignalFunc(telemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
 
 	return startServer, stopServer, nil
@@ -138,7 +124,7 @@ func startServerFunc(err error, listenAddress string, app *fiber.App, telemetryS
 	}
 }
 
-func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, barrierService *cryptoutilBarrierService.BarrierService, app *fiber.App) func() {
+func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository, barrierService *cryptoutilBarrierService.BarrierService, app *fiber.App) func() {
 	return func() {
 		if telemetryService != nil {
 			telemetryService.Slogger.Debug("stopping server")
@@ -155,11 +141,8 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlR
 		if barrierService != nil {
 			barrierService.Shutdown() // does its own logging
 		}
-		if intermediateKeysService != nil {
-			intermediateKeysService.Shutdown() // does its own logging
-		}
-		if rootKeysService != nil {
-			rootKeysService.Shutdown() // does its own logging
+		if unsealRepository != nil {
+			unsealRepository.Shutdown() // does its own logging
 		}
 		if ormRepository != nil {
 			ormRepository.Shutdown() // does its own logging
