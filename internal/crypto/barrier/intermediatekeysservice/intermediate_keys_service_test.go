@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
@@ -40,11 +39,7 @@ func TestMain(m *testing.M) {
 	unsealRepository := cryptoutilUnsealRepository.RequireNewForTest()
 	defer unsealRepository.Shutdown()
 
-	keyPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(context.Background(), testTelemetryService, "Test AES-256", 1, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	cryptoutilAppErr.RequireNoError(err, "failed to create AES-256 pool config")
-
-	testAes256KeyGenPool, err = cryptoutilKeygen.NewGenKeyPool(keyPoolConfig)
-	cryptoutilAppErr.RequireNoError(err, "failed to create AES-256 pool")
+	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
 	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealRepository, testAes256KeyGenPool)
