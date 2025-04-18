@@ -36,7 +36,6 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 }
 
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	clearContentKey, _, contentKeyKidUUID, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, s.aes256KeyGenPool)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
@@ -45,47 +44,39 @@ func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmReposit
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content with JWK")
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	encryptedContentKeyJweMessageBytes, intermediateKeyKidUUID, err := s.intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK")
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	err = sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: contentKeyKidUUID, Encrypted: string(encryptedContentKeyJweMessageBytes), KEKUUID: *intermediateKeyKidUUID})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to add content key to DB: %w", err)
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	return encryptedContentJweMessageBytes, &contentKeyKidUUID, nil
 }
 
 func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJweMessageBytes []byte) ([]byte, error) {
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	encryptedContentJweMessage, err := joseJwe.Parse(encryptedContentJweMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message: %w", err)
 	}
-	var encryptedContentJweMessageKidString string
-	err = encryptedContentJweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &encryptedContentJweMessageKidString)
+	var encryptedContentKeyKidString string
+	err = encryptedContentJweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &encryptedContentKeyKidString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message kid: %w", err)
 	}
-	encryptedContentJweMessageKidUuid, err := googleUuid.Parse(encryptedContentJweMessageKidString)
+	encryptedContentKeyKidUuid, err := googleUuid.Parse(encryptedContentKeyKidString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	encryptedContentKey, err := sqlTransaction.GetContentKey(encryptedContentJweMessageKidUuid)
+	encryptedContentKey, err := sqlTransaction.GetContentKey(encryptedContentKeyKidUuid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get encrypted content key")
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	decryptedContentKey, err := s.intermediateKeysService.DecryptKey(sqlTransaction, []byte(encryptedContentKey.GetEncrypted()))
 	if err != nil {
-		return nil, fmt.Errorf("failed to get intermediate key")
+		return nil, fmt.Errorf("failed to decrypt content key")
 	}
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	decryptedBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedContentKey}, encryptedContentJweMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt content with content key: %w", err)
