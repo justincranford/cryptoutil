@@ -13,7 +13,8 @@ import (
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
-	"github.com/stretchr/testify/assert"
+	googleUuid "github.com/google/uuid"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -54,31 +55,34 @@ func TestMain(m *testing.M) {
 
 func TestContentKeysService_HappyPath(t *testing.T) {
 	contentKeysService, err := NewContentKeysService(testTelemetryService, testOrmRepository, testIntermediateKeysService, testAes256KeyGenPool)
-	assert.NoError(t, err)
-	assert.NotNil(t, contentKeysService)
+	require.NoError(t, err)
+	require.NotNil(t, contentKeysService)
 	defer contentKeysService.Shutdown()
 
 	clearBytes := []byte("Hello World")
 
 	var encrypted []byte
+	var contentKeyKidUuid *googleUuid.UUID
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		encrypted, err = contentKeysService.EncryptContent(sqlTransaction, clearBytes)
-		assert.NoError(t, err)
-		assert.NotNil(t, encrypted)
+		encrypted, contentKeyKidUuid, err = contentKeysService.EncryptContent(sqlTransaction, clearBytes)
+		require.NoError(t, err)
+		require.NotNil(t, encrypted)
+		require.NotNil(t, contentKeyKidUuid)
 		return err
 	})
-	assert.NoError(t, err)
-	assert.NotNil(t, encrypted)
+	require.NoError(t, err)
+	require.NotNil(t, encrypted)
+	require.NotNil(t, contentKeyKidUuid)
 
 	var decrypted []byte
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		decrypted, err = contentKeysService.DecryptContent(sqlTransaction, encrypted)
-		assert.NoError(t, err)
-		assert.NotNil(t, decrypted)
+		require.NoError(t, err)
+		require.NotNil(t, decrypted)
 		return err
 	})
-	assert.NoError(t, err)
-	assert.NotNil(t, decrypted)
+	require.NoError(t, err)
+	require.NotNil(t, decrypted)
 
-	assert.Equal(t, clearBytes, decrypted)
+	require.Equal(t, clearBytes, decrypted)
 }

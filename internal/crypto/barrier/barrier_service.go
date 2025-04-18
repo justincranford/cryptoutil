@@ -79,6 +79,28 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 	}, nil
 }
 
+func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearBytes []byte) ([]byte, error) {
+	if d.closed {
+		return nil, fmt.Errorf("barrier service is closed")
+	}
+	encryptedContentJweMessageBytes, _, err := d.contentKeysService.EncryptContent(sqlTransaction, clearBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt content bytes: %w", err)
+	}
+	return encryptedContentJweMessageBytes, nil
+}
+
+func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJweMessageBytes []byte) ([]byte, error) {
+	if d.closed {
+		return nil, fmt.Errorf("barrier service is closed")
+	}
+	decryptedBytes, err := d.contentKeysService.DecryptContent(sqlTransaction, encryptedContentJweMessageBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt content bytes: %w", err)
+	}
+	return decryptedBytes, nil
+}
+
 func (d *BarrierService) Shutdown() {
 	d.shutdownOnce.Do(func() {
 		d.closed = true

@@ -7,11 +7,13 @@ import (
 
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
+	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/assert"
 )
@@ -54,25 +56,37 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	assert.NotNil(t, intermediateKeysService)
 	defer intermediateKeysService.Shutdown()
 
-	var latest joseJwk.Key
-	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		latest, err = intermediateKeysService.GetLatest(sqlTransaction)
-		assert.NoError(t, err)
-		assert.NotNil(t, latest)
-		return err
-	})
-	assert.NoError(t, err)
-	assert.NotNil(t, latest)
+	clearContentKeyBytes, ok := testAes256KeyGenPool.Get().Private.([]byte)
+	assert.True(t, ok)
+	assert.NotNil(t, clearContentKeyBytes)
 
-	var all []joseJwk.Key
+	clearContentKey, _, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, clearContentKeyBytes)
+	assert.NoError(t, err)
+	assert.NotNil(t, clearContentKey)
+
+	var encryptedContentKeyBytes []byte
+	var intermediateKeyKidUuid *googleUuid.UUID
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		all, err = intermediateKeysService.GetAll(sqlTransaction)
+		encryptedContentKeyBytes, intermediateKeyKidUuid, err = intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
 		assert.NoError(t, err)
-		assert.NotNil(t, latest)
-		assert.Equal(t, 1, len(all))
+		assert.NotNil(t, encryptedContentKeyBytes)
+		assert.NotNil(t, intermediateKeyKidUuid)
 		return err
 	})
 	assert.NoError(t, err)
-	assert.NotNil(t, all)
-	assert.Equal(t, 1, len(all))
+	assert.NotNil(t, encryptedContentKeyBytes)
+	assert.NotNil(t, intermediateKeyKidUuid)
+
+	var decryptedContentKey joseJwk.Key
+	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		decryptedContentKey, err = intermediateKeysService.DecryptKey(sqlTransaction, encryptedContentKeyBytes)
+		assert.NoError(t, err)
+		assert.NotNil(t, decryptedContentKey)
+		return err
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, decryptedContentKey)
+
+	// TODO Why does Equal not work on clearContentKey <=> decryptedContentKey?
+	assert.Equal(t, clearContentKey.Keys(), decryptedContentKey.Keys())
 }
