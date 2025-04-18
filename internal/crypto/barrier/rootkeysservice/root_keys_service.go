@@ -7,6 +7,7 @@ import (
 
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
@@ -15,6 +16,7 @@ import (
 )
 
 type RootKeysService struct {
+	aes256KeyGenPool      *cryptoutilKeygen.KeyGenPool
 	unsealedRootJwksList  []joseJwk.Key
 	unsealedRootJwksMap   *map[googleUuid.UUID]joseJwk.Key
 	unsealedRootJwkLatest joseJwk.Key
@@ -38,7 +40,17 @@ func (u *RootKeysService) Shutdown() {
 	u.unsealedRootJwkLatest = nil
 }
 
-func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*RootKeysService, error) {
+func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*RootKeysService, error) {
+	if telemetryService == nil {
+		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if ormRepository == nil {
+		return nil, fmt.Errorf("ormRepository must be non-nil")
+	} else if unsealRepository == nil {
+		return nil, fmt.Errorf("unsealRepository must be non-nil")
+	} else if aes256KeyGenPool == nil {
+		return nil, fmt.Errorf("aes256KeyGenPool must be non-nil")
+	}
+
 	unsealJwks := unsealRepository.UnsealJwks() // unseal keys from unseal repository
 	if len(unsealJwks) == 0 {
 		return nil, fmt.Errorf("no unseal JWKs")
@@ -56,9 +68,9 @@ func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, 
 
 	var rootKeysService *RootKeysService
 	if len(encryptedRootJwks) == 0 {
-		rootKeysService, err = createFirstRootJwk(telemetryService, ormRepository, unsealJwks)
+		rootKeysService, err = createFirstRootJwk(telemetryService, ormRepository, aes256KeyGenPool, unsealJwks)
 	} else {
-		rootKeysService, err = decryptExistingRootJwks(telemetryService, ormRepository, unsealJwks, encryptedRootJwks)
+		rootKeysService, err = decryptExistingRootJwks(telemetryService, ormRepository, aes256KeyGenPool, unsealJwks, encryptedRootJwks)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize unseal service: %w", err)
@@ -67,7 +79,7 @@ func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	return rootKeysService, nil
 }
 
-func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key) (*RootKeysService, error) {
+func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool, unsealJwks []joseJwk.Key) (*RootKeysService, error) {
 	unsealedRootJwksLatest, _, unsealedRootJwksLatestKidUuid, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate root JWK: %w", err)
@@ -101,10 +113,10 @@ func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	unsealedRootJwksMap := make(map[googleUuid.UUID]joseJwk.Key)
 	unsealedRootJwksMap[unsealedRootJwksLatestKidUuid] = unsealedRootJwksLatest
 
-	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
+	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, aes256KeyGenPool: aes256KeyGenPool, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
 }
 
-func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey) (*RootKeysService, error) {
+func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey) (*RootKeysService, error) {
 	var encryptedRootJwkLatest *cryptoutilOrmRepository.BarrierRootKey
 	err := ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
@@ -156,5 +168,5 @@ func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryServ
 	} else {
 		telemetryService.Slogger.Warn("unsealed some root JWKs", "unsealed", len(unsealedRootJwksMap), "errors", len(errs), "error", errors.Join(errs...))
 	}
-	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
+	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, aes256KeyGenPool: aes256KeyGenPool, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
 }

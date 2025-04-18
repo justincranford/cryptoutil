@@ -5,7 +5,9 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilAppErr "cryptoutil/internal/apperr"
 	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
@@ -19,6 +21,7 @@ var (
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	testAes256KeyGenPool *cryptoutilKeygen.KeyGenPool
 )
 
 func TestMain(m *testing.M) {
@@ -31,6 +34,12 @@ func TestMain(m *testing.M) {
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
+	keyPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(context.Background(), testTelemetryService, "Test AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	cryptoutilAppErr.RequireNoError(err, "failed to create AES-256 pool config")
+	testAes256KeyGenPool, err = cryptoutilKeygen.NewGenKeyPool(keyPoolConfig)
+	cryptoutilAppErr.RequireNoError(err, "failed to create AES-256 pool")
+	defer testAes256KeyGenPool.Close()
+
 	os.Exit(m.Run())
 }
 
@@ -40,7 +49,7 @@ func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
 	assert.NotNil(t, mockUnsealRepository)
 	defer mockUnsealRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository, testAes256KeyGenPool)
 	assert.NoError(t, err)
 	assert.NotNil(t, rootKeysService)
 	defer rootKeysService.Shutdown()
@@ -52,7 +61,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	assert.NotNil(t, mockUnsealRepository)
 	defer mockUnsealRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository, testAes256KeyGenPool)
 	assert.Error(t, err)
 	assert.Nil(t, rootKeysService)
 	assert.EqualError(t, err, "no unseal JWKs")
@@ -65,7 +74,7 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	mockUnsealRepository.On("UnsealJwks").Return(nil)
 	defer mockUnsealRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository, testAes256KeyGenPool)
 	assert.Error(t, err)
 	assert.Nil(t, rootKeysService)
 	assert.EqualError(t, err, "no unseal JWKs")

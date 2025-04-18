@@ -7,6 +7,7 @@ import (
 
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
@@ -19,12 +20,19 @@ import (
 type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
+	aes256KeyGenPool *cryptoutilKeygen.KeyGenPool
 	rootKeysService  *cryptoutilRootKeysService.RootKeysService
 }
 
-func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) (*IntermediateKeysService, error) {
+func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if ormRepository == nil {
+		return nil, fmt.Errorf("ormRepository must be non-nil")
+	} else if rootKeysService == nil {
+		return nil, fmt.Errorf("rootKeysService must be non-nil")
+	} else if aes256KeyGenPool == nil {
+		return nil, fmt.Errorf("aes256KeyGenPool must be non-nil")
 	}
 
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
@@ -33,12 +41,15 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 		encryptedIntermediateKeyLatest, err = sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK from DB
 		return err
 	})
-	// TODO handle no row gracefully
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, fmt.Errorf("failed to get encrypted intermediate JWK latest from DB")
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		firstClearIntermediateKey, _, firstClearIntermediateKeyLatestKidUuid, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
+		firstClearIntermediateKeyBytes, ok := aes256KeyGenPool.Get().Private.([]byte)
+		if !ok {
+			return nil, fmt.Errorf("failed to generate intermediate JWK latest from pool: %w", err)
+		}
+		firstClearIntermediateKey, _, firstClearIntermediateKeyLatestKidUuid, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, firstClearIntermediateKeyBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate intermediate JWK latest: %w", err)
 		}
@@ -60,7 +71,7 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 		}
 	}
 
-	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService}, nil
+	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, aes256KeyGenPool: aes256KeyGenPool}, nil
 }
 
 func (i *IntermediateKeysService) GetLatest(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) (joseJwk.Key, error) {
