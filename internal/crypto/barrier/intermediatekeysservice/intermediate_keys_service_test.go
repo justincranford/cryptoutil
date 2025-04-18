@@ -56,11 +56,7 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	assert.NotNil(t, intermediateKeysService)
 	defer intermediateKeysService.Shutdown()
 
-	clearContentKeyBytes, ok := testAes256KeyGenPool.Get().Private.([]byte)
-	assert.True(t, ok)
-	assert.NotNil(t, clearContentKeyBytes)
-
-	clearContentKey, _, _, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, clearContentKeyBytes)
+	clearContentKey, _, _, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, testAes256KeyGenPool)
 	assert.NoError(t, err)
 	assert.NotNil(t, clearContentKey)
 

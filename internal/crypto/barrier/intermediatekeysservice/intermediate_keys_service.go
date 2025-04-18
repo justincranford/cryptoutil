@@ -46,11 +46,7 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 		return nil, fmt.Errorf("failed to get encrypted intermediate JWK latest from DB")
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		firstClearIntermediateKeyBytes, ok := aes256KeyGenPool.Get().Private.([]byte)
-		if !ok {
-			return nil, fmt.Errorf("failed to generate intermediate JWK latest from pool: %w", err)
-		}
-		firstClearIntermediateKey, _, firstClearIntermediateKeyLatestKidUuid, err := cryptoutilJose.CreateAesJWK(cryptoutilJose.AlgDIRECT, firstClearIntermediateKeyBytes)
+		firstClearIntermediateKey, _, firstClearIntermediateKeyLatestKidUuid, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, aes256KeyGenPool)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate intermediate JWK latest: %w", err)
 		}

@@ -3,6 +3,7 @@ package jose
 import (
 	"crypto/rand"
 	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/util"
 	"encoding/json"
 	"fmt"
@@ -18,10 +19,18 @@ func GenerateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm) (joseJwk.Key, []byte,
 	if err != nil {
 		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to generate raw AES 256 key: %w", err)
 	}
-	return CreateAesJWK(kekAlg, rawKey)
+	return CreateAesJWKFromBytes(kekAlg, rawKey)
 }
 
-func CreateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (joseJwk.Key, []byte, googleUuid.UUID, error) {
+func GenerateAesJWKFromPool(kekAlg joseJwa.KeyEncryptionAlgorithm, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (joseJwk.Key, []byte, googleUuid.UUID, error) {
+	rawKey, ok := aes256KeyGenPool.Get().Private.([]byte)
+	if !ok {
+		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to generate raw AES 256 key from pool")
+	}
+	return CreateAesJWKFromBytes(kekAlg, rawKey)
+}
+
+func CreateAesJWKFromBytes(kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (joseJwk.Key, []byte, googleUuid.UUID, error) {
 	switch kekAlg {
 	case AlgDIRECT, AlgA256GCMKW:
 	default:
