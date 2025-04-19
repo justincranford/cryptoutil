@@ -10,8 +10,12 @@ type UnsealRepositorySimple struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealRepositorySimple) UnsealJwks() []joseJwk.Key {
-	return u.unsealJwks
+func (u *UnsealRepositorySimple) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJwks, clearRootKey)
+}
+
+func (u *UnsealRepositorySimple) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
 }
 
 func (u *UnsealRepositorySimple) Shutdown() {

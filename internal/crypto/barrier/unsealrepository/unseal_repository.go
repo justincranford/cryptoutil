@@ -11,7 +11,8 @@ import (
 )
 
 type UnsealRepository interface {
-	UnsealJwks() []joseJwk.Key
+	EncryptKey(clearRootKey joseJwk.Key) ([]byte, error)
+	DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error)
 	Shutdown()
 }
 
@@ -47,4 +48,20 @@ func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 	}
 
 	return unsealJwks, nil
+}
+
+func encryptKey(unsealJwks []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, error) {
+	_, encryptedRootKeyBytes, err := cryptoutilJose.EncryptKey(unsealJwks, clearRootKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt root JWK with unseal JWK")
+	}
+	return encryptedRootKeyBytes, nil
+}
+
+func decryptKey(unsealJwks []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+	decryptedRootKey, err := cryptoutilJose.DecryptKey(unsealJwks, []byte(encryptedRootKeyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK")
+	}
+	return decryptedRootKey, nil
 }

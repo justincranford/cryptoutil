@@ -14,9 +14,17 @@ type UnsealRepositoryMock struct {
 	mock.Mock
 }
 
-func (m *UnsealRepositoryMock) UnsealJwks() []joseJwk.Key {
+func (m *UnsealRepositoryMock) unsealJwks() []joseJwk.Key {
 	args := m.Called()
 	return args.Get(0).([]joseJwk.Key)
+}
+
+func (u *UnsealRepositoryMock) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJwks(), clearRootKey)
+}
+
+func (u *UnsealRepositoryMock) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJwks(), encryptedRootKeyBytes)
 }
 
 func (u *UnsealRepositoryMock) Shutdown() {
@@ -30,6 +38,6 @@ func NewUnsealRepositoryMock(t *testing.T, numUnsealJwks int) (*UnsealRepository
 		unsealKeys = append(unsealKeys, unsealJwk)
 	}
 	mockUnsealRepository := &UnsealRepositoryMock{}
-	mockUnsealRepository.On("UnsealJwks").Return(unsealKeys)
+	mockUnsealRepository.On("unsealJwks").Return(unsealKeys)
 	return mockUnsealRepository, unsealKeys, nil
 }

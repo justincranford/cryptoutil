@@ -11,8 +11,12 @@ type UnsealRepositorySharedSecrets struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealRepositorySharedSecrets) UnsealJwks() []joseJwk.Key {
-	return u.unsealJwks
+func (u *UnsealRepositorySharedSecrets) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJwks, clearRootKey)
+}
+
+func (u *UnsealRepositorySharedSecrets) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
 }
 
 func (u *UnsealRepositorySharedSecrets) Shutdown() {

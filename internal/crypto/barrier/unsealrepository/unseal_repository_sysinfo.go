@@ -14,8 +14,12 @@ type UnsealRepositoryFromSysInfo struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealRepositoryFromSysInfo) UnsealJwks() []joseJwk.Key {
-	return u.unsealJwks
+func (u *UnsealRepositoryFromSysInfo) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJwks, clearRootKey)
+}
+
+func (u *UnsealRepositoryFromSysInfo) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
 }
 
 func (u *UnsealRepositoryFromSysInfo) Shutdown() {

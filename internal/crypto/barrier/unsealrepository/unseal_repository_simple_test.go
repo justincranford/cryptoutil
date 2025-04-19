@@ -21,7 +21,6 @@ func TestNewUnsealRepositorySimple_HappyPath(t *testing.T) {
 	unsealRepository, err := NewUnsealRepositorySimple(unsealKeys)
 	assert.NoError(t, err, "Expected no error")
 	assert.NotNil(t, unsealRepository, "Repository should not be nil")
-	assert.Equal(t, unsealKeys, unsealRepository.UnsealJwks(), "Expected returned JWKs to match input JWKs")
 }
 
 func TestNewUnsealRepositorySimple_SadPath_NilInput(t *testing.T) {

@@ -66,14 +66,14 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository, testAes256KeyGenPool)
 	assert.Error(t, err)
 	assert.Nil(t, rootKeysService)
-	assert.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: invalid ceks: jwks can't be empty")
+	assert.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK")
 }
 
 func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	mockUnsealRepository, _, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, mockUnsealRepository)
-	mockUnsealRepository.On("UnsealJwks").Return(nil)
+	mockUnsealRepository.On("unsealJwks").Return(nil)
 	defer mockUnsealRepository.Shutdown()
 
 	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
@@ -85,5 +85,5 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, mockUnsealRepository, testAes256KeyGenPool)
 	assert.Error(t, err)
 	assert.Nil(t, rootKeysService)
-	assert.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: invalid ceks: jwks can't be empty")
+	assert.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK")
 }
