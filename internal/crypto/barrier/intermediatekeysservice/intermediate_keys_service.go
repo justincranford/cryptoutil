@@ -36,6 +36,15 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 		return nil, fmt.Errorf("aes256KeyGenPool must be non-nil")
 	}
 
+	err := initializeFirstIntermediateJwk(ormRepository, aes256KeyGenPool, rootKeysService)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize first intermediate JWK")
+	}
+
+	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, aes256KeyGenPool: aes256KeyGenPool}, nil
+}
+
+func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool, rootKeysService *cryptoutilRootKeysService.RootKeysService) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -43,12 +52,12 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 		return err
 	})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, fmt.Errorf("failed to get encrypted intermediate JWK latest from DB")
+		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
-	if encryptedIntermediateKeyLatest == nil || errors.Is(err, gorm.ErrRecordNotFound) {
+	if encryptedIntermediateKeyLatest == nil {
 		clearIntermediateKey, _, clearIntermediateKeyKidUuid, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, aes256KeyGenPool)
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate first intermediate JWK: %w", err)
+			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
 		var encryptedIntermediateKeyBytes []byte
 		var clearRootJwkKidUuid *googleUuid.UUID
@@ -64,11 +73,10 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 			return nil
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to encrypt and store intermediate first JWK: %w", err)
+			return fmt.Errorf("failed to encrypt and store intermediate first JWK: %w", err)
 		}
 	}
-
-	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, aes256KeyGenPool: aes256KeyGenPool}, nil
+	return nil
 }
 
 func (i *IntermediateKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
