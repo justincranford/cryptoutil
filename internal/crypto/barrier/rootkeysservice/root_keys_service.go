@@ -12,32 +12,23 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
+	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+	"gorm.io/gorm"
 )
 
 type RootKeysService struct {
-	aes256KeyGenPool      *cryptoutilKeygen.KeyGenPool
-	unsealedRootJwksList  []joseJwk.Key
-	unsealedRootJwksMap   *map[googleUuid.UUID]joseJwk.Key
-	unsealedRootJwkLatest joseJwk.Key
-}
-
-func (u *RootKeysService) GetAll() []joseJwk.Key {
-	return u.unsealedRootJwksList
-}
-
-func (u *RootKeysService) Get(uuid googleUuid.UUID) joseJwk.Key {
-	return (*u.unsealedRootJwksMap)[uuid]
-}
-
-func (u *RootKeysService) GetLatest() joseJwk.Key {
-	return u.unsealedRootJwkLatest
+	telemetryService *cryptoutilTelemetry.TelemetryService
+	ormRepository    *cryptoutilOrmRepository.OrmRepository
+	unsealRepository cryptoutilUnsealRepository.UnsealRepository
+	aes256KeyGenPool *cryptoutilKeygen.KeyGenPool
 }
 
 func (u *RootKeysService) Shutdown() {
-	u.unsealedRootJwksList = nil
-	u.unsealedRootJwksMap = nil
-	u.unsealedRootJwkLatest = nil
+	u.aes256KeyGenPool = nil
+	u.unsealRepository = nil
+	u.ormRepository = nil
+	u.telemetryService = nil
 }
 
 func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*RootKeysService, error) {
@@ -56,117 +47,82 @@ func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, 
 		return nil, fmt.Errorf("no unseal JWKs")
 	}
 
-	var encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey
+	var encryptedRootKeyLatest *cryptoutilOrmRepository.BarrierRootKey
 	err := ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
-		encryptedRootJwks, err = sqlTransaction.GetRootKeys() // encrypted root JWKs from DB
+		encryptedRootKeyLatest, err = sqlTransaction.GetRootKeyLatest() // encrypted intermediate JWK from DB
 		return err
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get encrypted root JWKs from DB")
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, fmt.Errorf("failed to get encrypted root JWK latest from DB")
 	}
-
-	var rootKeysService *RootKeysService
-	if len(encryptedRootJwks) == 0 {
-		rootKeysService, err = createFirstRootJwk(telemetryService, ormRepository, aes256KeyGenPool, unsealJwks)
-	} else {
-		rootKeysService, err = decryptExistingRootJwks(telemetryService, ormRepository, aes256KeyGenPool, unsealJwks, encryptedRootJwks)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize unseal service: %w", err)
-	}
-
-	return rootKeysService, nil
-}
-
-func createFirstRootJwk(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool, unsealJwks []joseJwk.Key) (*RootKeysService, error) {
-	unsealedRootJwksLatest, _, unsealedRootJwksLatestKidUuid, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgDIRECT)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate root JWK: %w", err)
-	}
-
-	jweMessage, jweMessageBytes, err := cryptoutilJose.EncryptKey(unsealJwks, unsealedRootJwksLatest)
-	if err != nil {
-		return nil, fmt.Errorf("failed to encrypt root JWK: %w", err)
-	}
-	jweHeaders, err := cryptoutilJose.JSONHeadersString(jweMessage)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get JWE message headers for encrypt root JWK: %w", err)
-	}
-	telemetryService.Slogger.Info("Encrypted Root JWK with Unseal JWK", "JWE Headers", jweHeaders)
-
-	sealJwkKidUuid, err := cryptoutilJose.ExtractKidUuid(unsealJwks[0])
-	if err != nil {
-		return nil, fmt.Errorf("failed to get seal JWK kid uuid: %w", err)
-	}
-
-	// put new, encrypted root JWK in DB
-	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		return sqlTransaction.AddRootKey(&cryptoutilOrmRepository.BarrierRootKey{UUID: unsealedRootJwksLatestKidUuid, Encrypted: string(jweMessageBytes), KEKUUID: *sealJwkKidUuid})
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to store root JWK: %w", err)
-	}
-
-	// put new, clear root JWK in-memory
-	unsealedRootKeys := []joseJwk.Key{unsealedRootJwksLatest}
-	unsealedRootJwksMap := make(map[googleUuid.UUID]joseJwk.Key)
-	unsealedRootJwksMap[unsealedRootJwksLatestKidUuid] = unsealedRootJwksLatest
-
-	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, aes256KeyGenPool: aes256KeyGenPool, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
-}
-
-func decryptExistingRootJwks(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool, unsealJwks []joseJwk.Key, encryptedRootJwks []cryptoutilOrmRepository.BarrierRootKey) (*RootKeysService, error) {
-	var encryptedRootJwkLatest *cryptoutilOrmRepository.BarrierRootKey
-	err := ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		var err error
-		encryptedRootJwkLatest, err = sqlTransaction.GetRootKeyLatest() // First row using ORDER BY uuid DESC
-		return err
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get root JWK latest from database")
-	}
-	encryptedRootJwkLatestKidUuid := encryptedRootJwkLatest.GetUUID() // during decrypt loop, look for latest by UUID to grab a copy of the decrypted JWK
-
-	// loop through encryptedRootJwks from DB, try using all of the unsealJwks to decrypt them
-	unsealedRootKeys := make([]joseJwk.Key, 0, len(encryptedRootJwks))
-	unsealedRootJwksMap := make(map[googleUuid.UUID]joseJwk.Key)
-	var unsealedRootJwksLatest joseJwk.Key
-	var errs []error
-	for encryptedRootJwkIndex, encryptedRootJwk := range encryptedRootJwks {
-		encryptedRootJwkKidUuid := encryptedRootJwk.GetUUID()
-		var unsealedRootJwk joseJwk.Key
-		for unsealJwkIndex, unsealJwk := range unsealJwks {
-			unsealedRootJwkBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{unsealJwk}, []byte(encryptedRootJwk.GetEncrypted()))
-			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d with unseal JWK %d: %w", encryptedRootJwkIndex, unsealJwkIndex, err))
-				continue
-			}
-			unsealedRootJwk, err = joseJwk.ParseKey(unsealedRootJwkBytes)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("failed to parse decrypted root JWK %d after using unseal JWK %d: %w", encryptedRootJwkIndex, unsealJwkIndex, err))
-			}
-			unsealedRootKeys = append(unsealedRootKeys, unsealedRootJwk)
-			unsealedRootJwksMap[encryptedRootJwkKidUuid] = unsealedRootJwk // decrypt success, store it in-memory
-			if unsealedRootJwksLatest == nil && encryptedRootJwkKidUuid == encryptedRootJwkLatestKidUuid {
-				unsealedRootJwksLatest = unsealedRootJwk // latest UUID matched, grab a copy
-			}
+	if encryptedRootKeyLatest == nil {
+		firstClearRootKey, _, firstClearRootKeyLatestKidUuid, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgA256GCMKW, aes256KeyGenPool)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate root JWK latest: %w", err)
 		}
-		// verify a copy of the latest was found (by UUID) during the decrypt loop
-		if unsealedRootJwk == nil {
-			errs = append(errs, fmt.Errorf("failed to decrypt root JWK %d: %w", encryptedRootJwkIndex, err))
+		_, firstEncryptedRootKeyLatestBytes, err := cryptoutilJose.EncryptKey(unsealRepository.UnsealJwks(), firstClearRootKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to encrypt root JWK: %w", err)
+		}
+
+		// put new, encrypted root JWK latest in DB
+		err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+			return sqlTransaction.AddRootKey(&cryptoutilOrmRepository.BarrierRootKey{UUID: firstClearRootKeyLatestKidUuid, Encrypted: string(firstEncryptedRootKeyLatestBytes), KEKUUID: googleUuid.Nil})
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to store encrypted root JWK: %w", err)
 		}
 	}
-	if len(unsealedRootJwksMap) == 0 {
-		return nil, fmt.Errorf("failed to unseal all root JWKs: %w", errors.Join(errs...)) // FATAL: all decrypt attempts failed
-	} else if unsealedRootJwksLatest == nil {
-		return nil, fmt.Errorf("failed to unseal latest root JWK: %w", errors.Join(errs...)) // FATAL: encrypted latest not decrypted and found during the the decrypt loop
+
+	return &RootKeysService{telemetryService: telemetryService, ormRepository: ormRepository, unsealRepository: unsealRepository, aes256KeyGenPool: aes256KeyGenPool}, nil
+}
+
+func (i *RootKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearIntermediateKey joseJwk.Key) ([]byte, *googleUuid.UUID, error) {
+	encryptedRootKeyLatest, err := sqlTransaction.GetRootKeyLatest() // encrypted root JWK latest from DB
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get encrypted root JWK latest from DB")
 	}
-	// older root keys might not decrypt anymore, but as long as the latest decrypted then the service can start
-	if len(errs) == 0 {
-		telemetryService.Slogger.Debug("unsealed all root JWKs", "unsealed", len(unsealedRootJwksMap))
-	} else {
-		telemetryService.Slogger.Warn("unsealed some root JWKs", "unsealed", len(unsealedRootJwksMap), "errors", len(errs), "error", errors.Join(errs...))
+	encryptedRootKeyLatestKidUuid := encryptedRootKeyLatest.GetUUID()
+	decryptedRootKeyLatest, err := cryptoutilJose.DecryptKey(i.unsealRepository.UnsealJwks(), []byte(encryptedRootKeyLatest.GetEncrypted()))
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to decrypt root JWK latest: %w", err)
 	}
-	return &RootKeysService{unsealedRootJwksList: unsealedRootKeys, unsealedRootJwksMap: &unsealedRootJwksMap, aes256KeyGenPool: aes256KeyGenPool, unsealedRootJwkLatest: unsealedRootJwksLatest}, nil
+	_, encryptedIntermediateKeyBytes, err := cryptoutilJose.EncryptKey([]joseJwk.Key{decryptedRootKeyLatest}, clearIntermediateKey)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to encrypt intermediate JWK with root JWK")
+	}
+	return encryptedIntermediateKeyBytes, &encryptedRootKeyLatestKidUuid, nil
+}
+
+func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
+	encryptedIntermediateKey, err := joseJwe.Parse(encryptedIntermediateKeyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse encrypted intermediate key message: %w", err)
+	}
+	var rootKeyKidUuidString string
+	err = encryptedIntermediateKey.ProtectedHeaders().Get(joseJwk.KeyIDKey, &rootKeyKidUuidString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse encrypted intermediate key message kid UUID: %w", err)
+	}
+	rootKeyKidUuid, err := googleUuid.Parse(rootKeyKidUuidString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	encryptedRootKey, err := sqlTransaction.GetRootKey(rootKeyKidUuid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get root key")
+	}
+	decryptedRootKey, err := cryptoutilJose.DecryptKey(i.unsealRepository.UnsealJwks(), []byte(encryptedRootKey.GetEncrypted()))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt root key")
+	}
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	decryptedIntermediateKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{decryptedRootKey}, []byte(encryptedIntermediateKeyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt intermediate key")
+	}
+
+	return decryptedIntermediateKey, nil
 }
