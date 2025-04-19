@@ -108,6 +108,10 @@ func (d *BarrierService) Shutdown() {
 			d.aes256KeyGenPool.Close()
 			d.aes256KeyGenPool = nil
 		}
+		if d.contentKeysService != nil {
+			d.contentKeysService.Shutdown()
+			d.contentKeysService = nil
+		}
 		if d.intermediateKeysService != nil {
 			d.intermediateKeysService.Shutdown()
 			d.intermediateKeysService = nil
