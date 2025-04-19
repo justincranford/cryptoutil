@@ -15,7 +15,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -52,37 +52,37 @@ func TestMain(m *testing.M) {
 
 func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	intermediateKeysService, err := NewIntermediateKeysService(testTelemetryService, testOrmRepository, testRootKeysService, testAes256KeyGenPool)
-	assert.NoError(t, err)
-	assert.NotNil(t, intermediateKeysService)
+	require.NoError(t, err)
+	require.NotNil(t, intermediateKeysService)
 	defer intermediateKeysService.Shutdown()
 
 	clearContentKey, _, _, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, testAes256KeyGenPool)
-	assert.NoError(t, err)
-	assert.NotNil(t, clearContentKey)
+	require.NoError(t, err)
+	require.NotNil(t, clearContentKey)
 
 	var encryptedContentKeyBytes []byte
 	var intermediateKeyKidUuid *googleUuid.UUID
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		encryptedContentKeyBytes, intermediateKeyKidUuid, err = intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
-		assert.NoError(t, err)
-		assert.NotNil(t, encryptedContentKeyBytes)
-		assert.NotNil(t, intermediateKeyKidUuid)
+		require.NoError(t, err)
+		require.NotNil(t, encryptedContentKeyBytes)
+		require.NotNil(t, intermediateKeyKidUuid)
 		return err
 	})
-	assert.NoError(t, err)
-	assert.NotNil(t, encryptedContentKeyBytes)
-	assert.NotNil(t, intermediateKeyKidUuid)
+	require.NoError(t, err)
+	require.NotNil(t, encryptedContentKeyBytes)
+	require.NotNil(t, intermediateKeyKidUuid)
 
 	var decryptedContentKey joseJwk.Key
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		decryptedContentKey, err = intermediateKeysService.DecryptKey(sqlTransaction, encryptedContentKeyBytes)
-		assert.NoError(t, err)
-		assert.NotNil(t, decryptedContentKey)
+		require.NoError(t, err)
+		require.NotNil(t, decryptedContentKey)
 		return err
 	})
-	assert.NoError(t, err)
-	assert.NotNil(t, decryptedContentKey)
+	require.NoError(t, err)
+	require.NotNil(t, decryptedContentKey)
 
 	// TODO Why does Equal not work on clearContentKey <=> decryptedContentKey?
-	assert.Equal(t, clearContentKey.Keys(), decryptedContentKey.Keys())
+	require.Equal(t, clearContentKey.Keys(), decryptedContentKey.Keys())
 }

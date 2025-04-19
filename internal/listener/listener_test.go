@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestHttpGetHttp200(t *testing.T) {
@@ -45,13 +46,9 @@ func TestHttpGetHttp200(t *testing.T) {
 
 func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
-	if !assert.NoError(t, err) {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
+	require.NoError(t, err, "failed to create GET request")
 	resp, err := http.DefaultClient.Do(req)
-	if !assert.NoError(t, err) {
-		return nil, fmt.Errorf("failed to make GET request: %w", err)
-	}
+	require.NoError(t, err, "failed to make GET request")
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
@@ -60,9 +57,9 @@ func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string) ([]b
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
-	if !assert.NoError(t, err) {
-		return nil, fmt.Errorf("HTTP Status code: %d, failed to read error response body: %w", resp.StatusCode, err)
-	} else if resp.StatusCode != expectedStatusCode {
+	require.NoError(t, err, "failed to make GET request")
+	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")
+	if resp.StatusCode != expectedStatusCode {
 		return nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, body)
 	}
 	t.Logf("HTTP Status code: %d, response body: %d bytes", resp.StatusCode, len(body))

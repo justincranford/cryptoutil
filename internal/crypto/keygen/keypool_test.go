@@ -16,7 +16,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,8 +82,8 @@ func TestPoolRSA(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				assert.IsType(t, &rsa.PrivateKey{}, keyPair.Private)
-				assert.IsType(t, &rsa.PublicKey{}, keyPair.Public)
+				require.IsType(t, &rsa.PrivateKey{}, keyPair.Private)
+				require.IsType(t, &rsa.PublicKey{}, keyPair.Public)
 			}
 		})
 	}
@@ -103,8 +102,8 @@ func TestPoolEcDSA(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				assert.IsType(t, &ecdsa.PrivateKey{}, keyPair.Private)
-				assert.IsType(t, &ecdsa.PublicKey{}, keyPair.Public)
+				require.IsType(t, &ecdsa.PrivateKey{}, keyPair.Private)
+				require.IsType(t, &ecdsa.PublicKey{}, keyPair.Public)
 			}
 		})
 	}
@@ -123,8 +122,8 @@ func TestPoolEcDH(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				assert.IsType(t, &ecdh.PrivateKey{}, keyPair.Private)
-				assert.IsType(t, &ecdh.PublicKey{}, keyPair.Public)
+				require.IsType(t, &ecdh.PrivateKey{}, keyPair.Private)
+				require.IsType(t, &ecdh.PublicKey{}, keyPair.Public)
 			}
 		})
 	}
@@ -143,8 +142,8 @@ func TestPoolEdDSA(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				assert.IsType(t, ed25519.PrivateKey{}, keyPair.Private)
-				assert.IsType(t, ed25519.PublicKey{}, keyPair.Public)
+				require.IsType(t, ed25519.PrivateKey{}, keyPair.Private)
+				require.IsType(t, ed25519.PublicKey{}, keyPair.Public)
 			}
 		})
 	}
@@ -163,8 +162,8 @@ func TestPoolAES(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				assert.IsType(t, []byte{}, keyPair.Private)
-				assert.Nil(t, keyPair.Public)
+				require.IsType(t, []byte{}, keyPair.Private)
+				require.Nil(t, keyPair.Public)
 			}
 		})
 	}
@@ -183,8 +182,8 @@ func TestPoolHMAC(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				assert.IsType(t, []byte{}, keyPair.Private)
-				assert.Nil(t, keyPair.Public)
+				require.IsType(t, []byte{}, keyPair.Private)
+				require.Nil(t, keyPair.Public)
 			}
 		})
 	}
@@ -203,8 +202,8 @@ func TestPoolUUIDv7(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				assert.IsType(t, googleUuid.UUID{}, keyPair.Private)
-				assert.Nil(t, keyPair.Public)
+				require.IsType(t, googleUuid.UUID{}, keyPair.Private)
+				require.Nil(t, keyPair.Public)
 			}
 		})
 	}

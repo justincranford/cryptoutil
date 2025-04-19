@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var ecdhTestCurves = []struct {
@@ -41,13 +41,13 @@ func TestEncodeDecodeECDH(t *testing.T) {
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
-			assert.IsType(t, &ecdh.PrivateKey{}, original)
+			require.IsType(t, &ecdh.PrivateKey{}, original)
 
 			decoded, err := pkcs8EncodeDecode(t, original)
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
-			assert.IsType(t, &ecdh.PrivateKey{}, decoded)
+			require.IsType(t, &ecdh.PrivateKey{}, decoded)
 		})
 	}
 }
@@ -59,13 +59,13 @@ func TestEncodeDecodeECDSA(t *testing.T) {
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
-			assert.IsType(t, &ecdsa.PrivateKey{}, original)
+			require.IsType(t, &ecdsa.PrivateKey{}, original)
 
 			decoded, err := pkcs8EncodeDecode(t, original)
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
-			assert.IsType(t, &ecdsa.PrivateKey{}, decoded)
+			require.IsType(t, &ecdsa.PrivateKey{}, decoded)
 		})
 	}
 }
