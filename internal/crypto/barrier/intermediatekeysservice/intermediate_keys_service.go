@@ -53,25 +53,26 @@ func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRe
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		clearIntermediateKey, _, clearIntermediateKeyKidUuid, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, aes256KeyGenPool)
+		clearIntermediateKey, _, intermediateKeyKidUuid, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, aes256KeyGenPool)
 		if err != nil {
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
 		var encryptedIntermediateKeyBytes []byte
-		var clearRootJwkKidUuid *googleUuid.UUID
+		var rootJwkKidUuid *googleUuid.UUID
 		err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-			encryptedIntermediateKeyBytes, clearRootJwkKidUuid, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
+			encryptedIntermediateKeyBytes, rootJwkKidUuid, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
 			if err != nil {
 				return fmt.Errorf("failed to encrypt first intermediate JWK: %w", err)
 			}
-			err = sqlTransaction.AddIntermediateKey(&cryptoutilOrmRepository.BarrierIntermediateKey{UUID: clearIntermediateKeyKidUuid, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *clearRootJwkKidUuid})
+			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.BarrierIntermediateKey{UUID: intermediateKeyKidUuid, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootJwkKidUuid}
+			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {
 				return fmt.Errorf("failed to store first intermediate JWK: %w", err)
 			}
 			return nil
 		})
 		if err != nil {
-			return fmt.Errorf("failed to encrypt and store intermediate first JWK: %w", err)
+			return fmt.Errorf("failed to encrypt and store first intermediate first JWK: %w", err)
 		}
 	}
 	return nil
