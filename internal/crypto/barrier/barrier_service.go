@@ -8,7 +8,7 @@ import (
 	cryptoutilContentKeysService "cryptoutil/internal/crypto/barrier/contentkeysservice"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/crypto/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
-	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
@@ -18,7 +18,7 @@ type BarrierService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	aes256KeyGenPool        *cryptoutilKeygen.KeyGenPool
-	unsealRepository        cryptoutilUnsealRepository.UnsealRepository
+	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *cryptoutilRootKeysService.RootKeysService
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 	contentKeysService      *cryptoutilContentKeysService.ContentKeysService
@@ -26,15 +26,15 @@ type BarrierService struct {
 	shutdownOnce            sync.Once
 }
 
-func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository) (*BarrierService, error) {
+func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {
 		return nil, fmt.Errorf("ormRepository must be non-nil")
-	} else if unsealRepository == nil {
-		return nil, fmt.Errorf("unsealRepository must be non-nil")
+	} else if unsealKeysService == nil {
+		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
 
 	keyPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Barrier Service Keys AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
@@ -46,7 +46,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}
 
-	rootKeysService, err := cryptoutilRootKeysService.NewRootKeysService(telemetryService, ormRepository, unsealRepository, aes256KeyGenPool)
+	rootKeysService, err := cryptoutilRootKeysService.NewRootKeysService(telemetryService, ormRepository, unsealKeysService, aes256KeyGenPool)
 	if err != nil {
 		aes256KeyGenPool.Close()
 		return nil, fmt.Errorf("failed to create root keys service: %w", err)
@@ -70,7 +70,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 	return &BarrierService{
 		telemetryService:        telemetryService,
 		ormRepository:           ormRepository,
-		unsealRepository:        unsealRepository,
+		unsealKeysService:       unsealKeysService,
 		aes256KeyGenPool:        aes256KeyGenPool,
 		rootKeysService:         rootKeysService,
 		intermediateKeysService: intermediateKeysService,
@@ -116,7 +116,7 @@ func (d *BarrierService) Shutdown() {
 			d.rootKeysService.Shutdown()
 			d.rootKeysService = nil
 		}
-		d.unsealRepository = nil
+		d.unsealKeysService = nil
 		d.ormRepository = nil
 		d.telemetryService = nil
 	})

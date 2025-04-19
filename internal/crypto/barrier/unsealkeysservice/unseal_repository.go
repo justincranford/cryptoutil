@@ -1,4 +1,4 @@
-package unsealrepository
+package unsealkeysservice
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-type UnsealRepository interface {
+type UnsealKeysService interface {
 	EncryptKey(clearRootKey joseJwk.Key) ([]byte, error)
 	DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error)
 	Shutdown()

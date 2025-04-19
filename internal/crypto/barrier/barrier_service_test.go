@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
@@ -37,11 +37,11 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	originalUnsealRepository, err := cryptoutilUnsealRepository.NewUnsealRepositoryFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 	require.NoError(t, err)
-	defer originalUnsealRepository.Shutdown()
+	defer originalUnsealKeysService.Shutdown()
 
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealRepository, originalUnsealRepository)
+	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, originalUnsealKeysService)
 }
 
 func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
@@ -51,58 +51,58 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	originalUnsealRepository, unsealJwks, err := cryptoutilUnsealRepository.NewUnsealRepositoryMock(t, 2)
+	originalUnsealKeysService, unsealJwks, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceMock(t, 2)
 	require.NoError(t, err)
 	require.NotNil(t, unsealJwks)
-	defer originalUnsealRepository.Shutdown()
+	defer originalUnsealKeysService.Shutdown()
 
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealRepository, originalUnsealRepository)
+	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, originalUnsealKeysService)
 
 	unsealJwksCopy := make([]joseJwk.Key, len(unsealJwks))
 	copy(unsealJwksCopy, unsealJwks)
 
-	restartedUnsealRepository2, err := cryptoutilUnsealRepository.NewUnsealRepositorySimple(unsealJwks)
+	restartedUnsealKeysService2, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)
 	require.NoError(t, err)
-	require.NotNil(t, restartedUnsealRepository2)
-	defer restartedUnsealRepository2.Shutdown()
+	require.NotNil(t, restartedUnsealKeysService2)
+	defer restartedUnsealKeysService2.Shutdown()
 
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealRepository, restartedUnsealRepository2)
+	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, restartedUnsealKeysService2)
 
-	restartedUnsealRepository1a, err := cryptoutilUnsealRepository.NewUnsealRepositorySimple(unsealJwksCopy[:1])
+	restartedUnsealKeysService1a, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwksCopy[:1])
 	require.NoError(t, err)
-	require.NotNil(t, restartedUnsealRepository1a)
-	defer restartedUnsealRepository1a.Shutdown()
+	require.NotNil(t, restartedUnsealKeysService1a)
+	defer restartedUnsealKeysService1a.Shutdown()
 
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealRepository, restartedUnsealRepository1a)
+	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, restartedUnsealKeysService1a)
 
-	restartedUnsealRepository1b, err := cryptoutilUnsealRepository.NewUnsealRepositorySimple(unsealJwksCopy[1:])
+	restartedUnsealKeysService1b, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwksCopy[1:])
 	require.NoError(t, err)
-	require.NotNil(t, restartedUnsealRepository1b)
-	defer restartedUnsealRepository1b.Shutdown()
+	require.NotNil(t, restartedUnsealKeysService1b)
+	defer restartedUnsealKeysService1b.Shutdown()
 
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealRepository, restartedUnsealRepository1b)
+	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, restartedUnsealKeysService1b)
 
 	invalidJwk, _, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 	require.NoError(t, err)
-	invalidUnsealRepository, err := cryptoutilUnsealRepository.NewUnsealRepositorySimple([]joseJwk.Key{invalidJwk})
+	invalidUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{invalidJwk})
 	require.NoError(t, err)
-	require.NotNil(t, invalidUnsealRepository)
+	require.NotNil(t, invalidUnsealKeysService)
 
 	// retry previously successful unseal
-	retryRestartedUnsealRepository1a, err := cryptoutilUnsealRepository.NewUnsealRepositorySimple(unsealJwksCopy[:1])
+	retryRestartedUnsealKeysService1a, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwksCopy[:1])
 	require.NoError(t, err)
-	require.NotNil(t, retryRestartedUnsealRepository1a)
-	defer retryRestartedUnsealRepository1a.Shutdown()
+	require.NotNil(t, retryRestartedUnsealKeysService1a)
+	defer retryRestartedUnsealKeysService1a.Shutdown()
 
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealRepository, retryRestartedUnsealRepository1a)
+	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, retryRestartedUnsealKeysService1a)
 }
 
-func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository *cryptoutilOrmRepository.OrmRepository, originalUnsealRepository cryptoutilUnsealRepository.UnsealRepository, restartedUnsealRepository cryptoutilUnsealRepository.UnsealRepository) {
+func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository *cryptoutilOrmRepository.OrmRepository, originalUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, restartedUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) {
 	const numEncryptsDecrypts = 1
 	plaintext := []byte("hello, world!")
 
 	// start service
-	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testOrmRepository, originalUnsealRepository)
+	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testOrmRepository, originalUnsealKeysService)
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 
@@ -149,7 +149,7 @@ func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository 
 	require.Error(t, err)
 
 	// restart new service with same unseal key repository
-	barrierService, err = NewBarrierService(testCtx, testTelemetryService, testOrmRepository, restartedUnsealRepository)
+	barrierService, err = NewBarrierService(testCtx, testTelemetryService, testOrmRepository, restartedUnsealKeysService)
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 

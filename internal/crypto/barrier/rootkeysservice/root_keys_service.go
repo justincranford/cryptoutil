@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
@@ -18,37 +18,37 @@ import (
 )
 
 type RootKeysService struct {
-	telemetryService *cryptoutilTelemetry.TelemetryService
-	ormRepository    *cryptoutilOrmRepository.OrmRepository
-	unsealRepository cryptoutilUnsealRepository.UnsealRepository
-	aes256KeyGenPool *cryptoutilKeygen.KeyGenPool
+	telemetryService  *cryptoutilTelemetry.TelemetryService
+	ormRepository     *cryptoutilOrmRepository.OrmRepository
+	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
+	aes256KeyGenPool  *cryptoutilKeygen.KeyGenPool
 }
 
 func (u *RootKeysService) Shutdown() {
 	u.aes256KeyGenPool = nil
-	u.unsealRepository = nil
+	u.unsealKeysService = nil
 	u.ormRepository = nil
 	u.telemetryService = nil
 }
 
-func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*RootKeysService, error) {
+func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*RootKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {
 		return nil, fmt.Errorf("ormRepository must be non-nil")
-	} else if unsealRepository == nil {
-		return nil, fmt.Errorf("unsealRepository must be non-nil")
+	} else if unsealKeysService == nil {
+		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	} else if aes256KeyGenPool == nil {
 		return nil, fmt.Errorf("aes256KeyGenPool must be non-nil")
 	}
-	err := initializeFirstRootJwk(ormRepository, unsealRepository, aes256KeyGenPool)
+	err := initializeFirstRootJwk(ormRepository, unsealKeysService, aes256KeyGenPool)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first root JWK: %w", err)
 	}
-	return &RootKeysService{telemetryService: telemetryService, ormRepository: ormRepository, unsealRepository: unsealRepository, aes256KeyGenPool: aes256KeyGenPool}, nil
+	return &RootKeysService{telemetryService: telemetryService, ormRepository: ormRepository, unsealKeysService: unsealKeysService, aes256KeyGenPool: aes256KeyGenPool}, nil
 }
 
-func initializeFirstRootJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, unsealRepository cryptoutilUnsealRepository.UnsealRepository, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) error {
+func initializeFirstRootJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) error {
 	var encryptedRootKeyLatest *cryptoutilOrmRepository.BarrierRootKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -63,7 +63,7 @@ func initializeFirstRootJwk(ormRepository *cryptoutilOrmRepository.OrmRepository
 		if err != nil {
 			return fmt.Errorf("failed to generate first root JWK latest: %w", err)
 		}
-		encryptedRootKeyBytes, err := unsealRepository.EncryptKey(clearRootKey)
+		encryptedRootKeyBytes, err := unsealKeysService.EncryptKey(clearRootKey)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt first root JWK: %w", err)
 		}
@@ -83,7 +83,7 @@ func (i *RootKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 		return nil, nil, fmt.Errorf("failed to get encrypted root JWK latest from DB")
 	}
 	encryptedRootKeyLatestKidUuid := encryptedRootKeyLatest.GetUUID()
-	decryptedRootKeyLatest, err := i.unsealRepository.DecryptKey([]byte(encryptedRootKeyLatest.GetEncrypted()))
+	decryptedRootKeyLatest, err := i.unsealKeysService.DecryptKey([]byte(encryptedRootKeyLatest.GetEncrypted()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to decrypt root JWK latest: %w", err)
 	}
@@ -114,7 +114,7 @@ func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 	if err != nil {
 		return nil, fmt.Errorf("failed to get root key")
 	}
-	decryptedRootKey, err := i.unsealRepository.DecryptKey([]byte(encryptedRootKey.GetEncrypted()))
+	decryptedRootKey, err := i.unsealKeysService.DecryptKey([]byte(encryptedRootKey.GetEncrypted()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt root key")
 	}

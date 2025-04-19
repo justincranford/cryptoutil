@@ -1,4 +1,4 @@
-package unsealrepository
+package unsealkeysservice
 
 import (
 	"testing"
@@ -10,34 +10,34 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type UnsealRepositoryMock struct {
+type UnsealKeysServiceMock struct {
 	mock.Mock
 }
 
-func (m *UnsealRepositoryMock) unsealJwks() []joseJwk.Key {
+func (m *UnsealKeysServiceMock) unsealJwks() []joseJwk.Key {
 	args := m.Called()
 	return args.Get(0).([]joseJwk.Key)
 }
 
-func (u *UnsealRepositoryMock) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
+func (u *UnsealKeysServiceMock) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
 	return encryptKey(u.unsealJwks(), clearRootKey)
 }
 
-func (u *UnsealRepositoryMock) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+func (u *UnsealKeysServiceMock) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
 	return decryptKey(u.unsealJwks(), encryptedRootKeyBytes)
 }
 
-func (u *UnsealRepositoryMock) Shutdown() {
+func (u *UnsealKeysServiceMock) Shutdown() {
 }
 
-func NewUnsealRepositoryMock(t *testing.T, numUnsealJwks int) (*UnsealRepositoryMock, []joseJwk.Key, error) {
+func NewUnsealKeysServiceMock(t *testing.T, numUnsealJwks int) (*UnsealKeysServiceMock, []joseJwk.Key, error) {
 	unsealKeys := make([]joseJwk.Key, 0, numUnsealJwks)
 	for range numUnsealJwks {
 		unsealJwk, _, _, err := cryptoutilJose.GenerateAesJWK(cryptoutilJose.AlgA256GCMKW)
 		assert.NoError(t, err)
 		unsealKeys = append(unsealKeys, unsealJwk)
 	}
-	mockUnsealRepository := &UnsealRepositoryMock{}
-	mockUnsealRepository.On("unsealJwks").Return(unsealKeys)
-	return mockUnsealRepository, unsealKeys, nil
+	mockUnsealKeysService := &UnsealKeysServiceMock{}
+	mockUnsealKeysService.On("unsealJwks").Return(unsealKeys)
+	return mockUnsealKeysService, unsealKeys, nil
 }

@@ -1,4 +1,4 @@
-package unsealrepository
+package unsealkeysservice
 
 import (
 	"fmt"
@@ -10,23 +10,23 @@ import (
 
 const fingerprintLeeway = 1
 
-type UnsealRepositoryFromSysInfo struct {
+type UnsealKeysServiceFromSysInfo struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealRepositoryFromSysInfo) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
+func (u *UnsealKeysServiceFromSysInfo) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
 	return encryptKey(u.unsealJwks, clearRootKey)
 }
 
-func (u *UnsealRepositoryFromSysInfo) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+func (u *UnsealKeysServiceFromSysInfo) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
 	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
 }
 
-func (u *UnsealRepositoryFromSysInfo) Shutdown() {
+func (u *UnsealKeysServiceFromSysInfo) Shutdown() {
 	u.unsealJwks = nil
 }
 
-func NewUnsealRepositoryFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealRepository, error) {
+func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealKeysService, error) {
 	sysinfos, err := cryptoutilSysinfo.GetAllInfo(sysInfoProvider)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
@@ -48,5 +48,5 @@ func NewUnsealRepositoryFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoPro
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
 	}
-	return &UnsealRepositoryFromSysInfo{unsealJwks: unsealJwks}, nil
+	return &UnsealKeysServiceFromSysInfo{unsealJwks: unsealJwks}, nil
 }

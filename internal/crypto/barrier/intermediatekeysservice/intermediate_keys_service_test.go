@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
-	cryptoutilUnsealRepository "cryptoutil/internal/crypto/barrier/unsealrepository"
+	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
@@ -38,13 +38,13 @@ func TestMain(m *testing.M) {
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	unsealRepository := cryptoutilUnsealRepository.RequireNewForTest()
-	defer unsealRepository.Shutdown()
+	unsealKeysService := cryptoutilUnsealKeysService.RequireNewForTest()
+	defer unsealKeysService.Shutdown()
 
 	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
-	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealRepository, testAes256KeyGenPool)
+	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testAes256KeyGenPool)
 	defer testRootKeysService.Shutdown()
 
 	os.Exit(m.Run())

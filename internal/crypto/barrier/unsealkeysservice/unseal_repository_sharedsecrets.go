@@ -1,4 +1,4 @@
-package unsealrepository
+package unsealkeysservice
 
 import (
 	"crypto/rand"
@@ -7,23 +7,23 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-type UnsealRepositorySharedSecrets struct {
+type UnsealKeysServiceSharedSecrets struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealRepositorySharedSecrets) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
+func (u *UnsealKeysServiceSharedSecrets) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
 	return encryptKey(u.unsealJwks, clearRootKey)
 }
 
-func (u *UnsealRepositorySharedSecrets) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+func (u *UnsealKeysServiceSharedSecrets) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
 	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
 }
 
-func (u *UnsealRepositorySharedSecrets) Shutdown() {
+func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
 	u.unsealJwks = nil
 }
 
-func NewUnsealRepositorySharedSecrets(m, chooseN, secretBytesLength int) (UnsealRepository, error) {
+func NewUnsealKeysServiceSharedSecrets(m, chooseN, secretBytesLength int) (UnsealKeysService, error) {
 	if m == 0 {
 		return nil, fmt.Errorf("m can't be zero")
 	} else if m < 0 {
@@ -54,5 +54,5 @@ func NewUnsealRepositorySharedSecrets(m, chooseN, secretBytesLength int) (Unseal
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
 	}
-	return &UnsealRepositorySharedSecrets{unsealJwks: unsealJwks}, nil
+	return &UnsealKeysServiceSharedSecrets{unsealJwks: unsealJwks}, nil
 }
