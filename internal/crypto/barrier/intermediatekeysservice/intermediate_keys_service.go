@@ -34,13 +34,15 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 		return nil, fmt.Errorf("rootKeysService must be non-nil")
 	} else if aes256KeyGenPool == nil {
 		return nil, fmt.Errorf("aes256KeyGenPool must be non-nil")
-	} else if err := initializeFirstIntermediateJwk(telemetryService, ormRepository, rootKeysService, aes256KeyGenPool); err != nil {
+	}
+	err := initializeFirstIntermediateJwk(ormRepository, rootKeysService, aes256KeyGenPool)
+	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first intermediate JWK")
 	}
 	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, aes256KeyGenPool: aes256KeyGenPool}, nil
 }
 
-func initializeFirstIntermediateJwk(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) error {
+func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
