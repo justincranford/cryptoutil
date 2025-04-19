@@ -20,11 +20,11 @@ var happyPathTestCases = []struct {
 
 func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		cek, encodedAesJwk, actualJwkKid, err := GenerateAesJWK(testCase.alg)
+		cek, encodedAesJwk, actualKeyKid, err := GenerateAesJWK(testCase.alg)
 		require.NoError(t, err)
 		require.NotNil(t, cek)
 		require.NotEmpty(t, encodedAesJwk)
-		require.NotEmpty(t, actualJwkKid)
+		require.NotEmpty(t, actualKeyKid)
 		log.Printf("Generated: %s", encodedAesJwk)
 
 		var actualJwkAlg joseJwa.KeyAlgorithm
@@ -57,7 +57,7 @@ func Test_HappyPath_Bytes(t *testing.T) {
 		var actualJweKid string
 		require.NoError(t, jweHeaders.Get(joseJwk.KeyIDKey, &actualJweKid))
 		require.NotEmpty(t, actualJweKid)
-		require.Equal(t, actualJwkKid.String(), actualJweKid)
+		require.Equal(t, actualKeyKid.String(), actualJweKid)
 
 		var actualJweAlg joseJwa.KeyAlgorithm
 		require.NoError(t, jweHeaders.Get(joseJwk.AlgorithmKey, &actualJweAlg))

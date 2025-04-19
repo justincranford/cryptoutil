@@ -76,7 +76,7 @@ func (i *RootKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get encrypted root JWK latest from DB")
 	}
-	encryptedRootKeyLatestKidUuid := encryptedRootKeyLatest.GetUUID()
+	rootKeyLatestKidUuid := encryptedRootKeyLatest.GetUUID()
 	decryptedRootKeyLatest, err := i.unsealKeysService.DecryptKey([]byte(encryptedRootKeyLatest.GetEncrypted()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to decrypt root JWK latest: %w", err)
@@ -86,7 +86,7 @@ func (i *RootKeysService) EncryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt intermediate JWK with root JWK")
 	}
-	return encryptedIntermediateKeyBytes, &encryptedRootKeyLatestKidUuid, nil
+	return encryptedIntermediateKeyBytes, &rootKeyLatestKidUuid, nil
 }
 
 func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedIntermediateKeyBytes []byte) (joseJwk.Key, error) {
