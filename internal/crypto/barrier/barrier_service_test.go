@@ -51,31 +51,23 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	originalUnsealKeysService, unsealJwks, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceMock(t, 2)
-	require.NoError(t, err)
+	unsealJwks := cryptoutilJose.GenerateAes256KeysForTest(t, 2, cryptoutilJose.AlgA256GCMKW)
 	require.NotNil(t, unsealJwks)
+
+	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)
+	require.NoError(t, err)
 	defer originalUnsealKeysService.Shutdown()
 
 	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, originalUnsealKeysService)
 
-	unsealJwksCopy := make([]joseJwk.Key, len(unsealJwks))
-	copy(unsealJwksCopy, unsealJwks)
-
-	restartedUnsealKeysService2, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)
-	require.NoError(t, err)
-	require.NotNil(t, restartedUnsealKeysService2)
-	defer restartedUnsealKeysService2.Shutdown()
-
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, restartedUnsealKeysService2)
-
-	restartedUnsealKeysService1a, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwksCopy[:1])
+	restartedUnsealKeysService1a, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks[:1])
 	require.NoError(t, err)
 	require.NotNil(t, restartedUnsealKeysService1a)
 	defer restartedUnsealKeysService1a.Shutdown()
 
 	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, restartedUnsealKeysService1a)
 
-	restartedUnsealKeysService1b, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwksCopy[1:])
+	restartedUnsealKeysService1b, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks[1:])
 	require.NoError(t, err)
 	require.NotNil(t, restartedUnsealKeysService1b)
 	defer restartedUnsealKeysService1b.Shutdown()
@@ -89,7 +81,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	require.NotNil(t, invalidUnsealKeysService)
 
 	// retry previously successful unseal
-	retryRestartedUnsealKeysService1a, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwksCopy[:1])
+	retryRestartedUnsealKeysService1a, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks[:1])
 	require.NoError(t, err)
 	require.NotNil(t, retryRestartedUnsealKeysService1a)
 	defer retryRestartedUnsealKeysService1a.Shutdown()

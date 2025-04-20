@@ -53,7 +53,7 @@ func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 func encryptKey(unsealJwks []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, error) {
 	_, encryptedRootKeyBytes, err := cryptoutilJose.EncryptKey(unsealJwks, clearRootKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to encrypt root JWK with unseal JWK")
+		return nil, fmt.Errorf("failed to encrypt root JWK with unseal JWK: %w", err)
 	}
 	return encryptedRootKeyBytes, nil
 }
@@ -61,7 +61,7 @@ func encryptKey(unsealJwks []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, err
 func decryptKey(unsealJwks []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
 	decryptedRootKey, err := cryptoutilJose.DecryptKey(unsealJwks, []byte(encryptedRootKeyBytes))
 	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK")
+		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK: %w", err)
 	}
 	return decryptedRootKey, nil
 }

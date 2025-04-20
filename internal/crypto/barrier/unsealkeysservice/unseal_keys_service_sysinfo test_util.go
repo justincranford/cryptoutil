@@ -5,7 +5,7 @@ import (
 	"cryptoutil/internal/util/sysinfo"
 )
 
-func RequireNewForTest() UnsealKeysService {
+func RequireNewFromSysInfoForTest() UnsealKeysService {
 	unsealKeysService, err := NewUnsealKeysServiceFromSysInfo(&sysinfo.DefaultSysInfoProvider{})
 	cryptoutilAppErr.RequireNoError(err, "failed to create unseal repository")
 
