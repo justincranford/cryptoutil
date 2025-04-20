@@ -29,8 +29,8 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 	countM := len(sharedSecretsM)
 	if countM == 0 {
 		return nil, fmt.Errorf("shared secrets can't be zero")
-	} else if countM >= 255 {
-		return nil, fmt.Errorf("shared secrets can't be greater than 255")
+	} else if countM >= 256 {
+		return nil, fmt.Errorf("shared secrets can't be greater than 256")
 	} else if chooseN == 0 {
 		return nil, fmt.Errorf("n can't be zero")
 	} else if chooseN < 0 {
