@@ -1,7 +1,6 @@
 package unsealkeysservice
 
 import (
-	"crypto/rand"
 	"fmt"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -23,36 +22,35 @@ func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
 	u.unsealJwks = nil
 }
 
-func NewUnsealKeysServiceSharedSecrets(m, chooseN, secretBytesLength int) (UnsealKeysService, error) {
-	if m == 0 {
-		return nil, fmt.Errorf("m can't be zero")
-	} else if m < 0 {
-		return nil, fmt.Errorf("m can't be negative")
-	} else if m >= 255 {
-		return nil, fmt.Errorf("m can't be greater than 255")
+func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) {
+	if sharedSecretsM == nil {
+		return nil, fmt.Errorf("shared secrets can't be nil")
+	}
+	countM := len(sharedSecretsM)
+	if countM == 0 {
+		return nil, fmt.Errorf("shared secrets can't be zero")
+	} else if countM >= 255 {
+		return nil, fmt.Errorf("shared secrets can't be greater than 255")
 	} else if chooseN == 0 {
 		return nil, fmt.Errorf("n can't be zero")
 	} else if chooseN < 0 {
 		return nil, fmt.Errorf("n can't be negative")
-	} else if chooseN > m {
-		return nil, fmt.Errorf("n can't be greater than m")
-	} else if secretBytesLength < 32 {
-		return nil, fmt.Errorf("secretBytesLength can't be greater than 32")
-	} else if secretBytesLength > 64 {
-		return nil, fmt.Errorf("secretBytesLength can't be greater than 64")
+	} else if chooseN > countM {
+		return nil, fmt.Errorf("n can't be greater than shared secrets count")
 	}
-
-	sharedSecrets := make([][]byte, m)
-	for i := range m {
-		sharedSecrets[i] = make([]byte, secretBytesLength)
-		if _, err := rand.Read(sharedSecrets[i]); err != nil {
-			return nil, fmt.Errorf("failed to generate shared secret: %w", err)
+	for i, sharedSecret := range sharedSecretsM {
+		if sharedSecret == nil {
+			return nil, fmt.Errorf("shared secret %d can't be nil", i)
+		} else if len(sharedSecret) < 32 {
+			return nil, fmt.Errorf("shared secret %d length can't be greater than 32", i)
+		} else if len(sharedSecret) > 64 {
+			return nil, fmt.Errorf("shared secret %d length can't be greater than 64", i)
 		}
 	}
 
-	unsealJwks, err := deriveJwksFromMChooseNCombinations(sharedSecrets, chooseN)
+	unsealJwks, err := deriveJwksFromMChooseNCombinations(sharedSecretsM, chooseN)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
+		return nil, fmt.Errorf("failed to create unseal JWK combinations: %w", err)
 	}
 	return &UnsealKeysServiceSharedSecrets{unsealJwks: unsealJwks}, nil
 }
