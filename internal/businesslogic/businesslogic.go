@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"time"
 
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
@@ -15,6 +16,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// BusinessLogicService implements methods in StrictServerInterface
 type BusinessLogicService struct {
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	serviceOrmMapper *serviceOrmMapper
@@ -227,6 +229,16 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 	}
 
 	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
+}
+
+func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadReader io.Reader) (*string, error) {
+	// TODO
+	return nil, fmt.Errorf("Not implemented yet")
+}
+
+func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayload *string) (io.Reader, error) {
+	// TODO
+	return nil, fmt.Errorf("Not implemented yet")
 }
 
 func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {

@@ -80,6 +80,12 @@ const (
 	KeySortPoolDESC         KeySort = "pool:DESC"
 )
 
+// Defines values for SymmetricCipherAlgorithm.
+const (
+	Aes256gcm128V1    SymmetricCipherAlgorithm = "aes256gcm128V1"
+	Aes256gcmsiv128V1 SymmetricCipherAlgorithm = "aes256gcmsiv128V1"
+)
+
 // HTTPError defines model for HTTPError.
 type HTTPError struct {
 	// Error HTTP status message
@@ -286,6 +292,39 @@ type PageNumber = int
 // PageSize Page number.
 type PageSize = int
 
+// SymmetricCipherAdditionalAuthenticatedData Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+type SymmetricCipherAdditionalAuthenticatedData = string
+
+// SymmetricCipherAlgorithm Optional encryption algorithm. Defaults to `aes256gcm128V1`. - `aes256gcm128V1`: randomized encryption (default), example usage is for non-searchable data such as passwords. - `aes256gcmsiv128V1`: convergent encryption (deterministic), example usage is for searchable data such as names, numbers, and other PII (Personally Identifiable Information).
+type SymmetricCipherAlgorithm string
+
+// SymmetricCipherInitializationVector Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
+type SymmetricCipherInitializationVector = string
+
+// SymmetricDecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
+type SymmetricDecryptRequest = string
+
+// SymmetricDecryptResponse Decrypted, secret bytes.
+type SymmetricDecryptResponse = openapi_types.File
+
+// SymmetricEncryptParams defines model for SymmetricEncryptParams.
+type SymmetricEncryptParams struct {
+	// Aad Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+	Aad *SymmetricCipherAdditionalAuthenticatedData `json:"aad,omitempty"`
+
+	// Alg Optional encryption algorithm. Defaults to `aes256gcm128V1`. - `aes256gcm128V1`: randomized encryption (default), example usage is for non-searchable data such as passwords. - `aes256gcmsiv128V1`: convergent encryption (deterministic), example usage is for searchable data such as names, numbers, and other PII (Personally Identifiable Information).
+	Alg *SymmetricCipherAlgorithm `json:"alg,omitempty"`
+
+	// Iv Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
+	Iv *SymmetricCipherInitializationVector `json:"iv,omitempty"`
+}
+
+// SymmetricEncryptRequest Clear, secret bytes to be encrypted.
+type SymmetricEncryptRequest = openapi_types.File
+
+// SymmetricEncryptResponse Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
+type SymmetricEncryptResponse = string
+
 // KeyPoolQueryParamAlgorithms defines model for KeyPoolQueryParamAlgorithms.
 type KeyPoolQueryParamAlgorithms = []KeyPoolAlgorithm
 
@@ -406,45 +445,54 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"SRhu/hMAAP//7cS6MPc0AAA=",
+	"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",
+	"zF4sVDDiaRTd/ycAAP//7QmPqQM9AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

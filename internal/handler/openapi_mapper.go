@@ -3,6 +3,7 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
@@ -182,6 +183,51 @@ func (m *openapiBusinessLogicMapper) toGetKeysResponse(err error, keys []cryptou
 		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 	}
 	return cryptoutilOpenapiServer.GetKeys200JSONResponse(keys), err
+}
+
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject *cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptParams) *cryptoutilBusinessLogicModel.SymmetricEncryptParams {
+	filters := cryptoutilBusinessLogicModel.SymmetricEncryptParams{
+		Iv:  openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Iv,
+		Aad: openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Aad,
+		Alg: openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Alg,
+	}
+	return &filters
+}
+
+func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, symmetricEncryptionResponse *cryptoutilBusinessLogicModel.SymmetricEncryptResponse) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+			}
+		}
+		return nil, fmt.Errorf("failed to encrypt: %w", err)
+	}
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt200TextResponse(*symmetricEncryptionResponse), err
+}
+
+func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, symmetricDecryptionResponse io.Reader) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+			}
+		}
+		return nil, fmt.Errorf("failed to encrypt: %w", err)
+	}
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt200ApplicationoctetStreamResponse{Body: symmetricDecryptionResponse}, err
 }
 
 // Helper methods

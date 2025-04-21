@@ -287,5 +287,103 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+  /keypool/{keyPoolID}/encrypt:
+    post:
+      summary: Encrypt binary data using a specific key.
+      description: Encrypts raw binary data using the selected algorithm.
+      parameters:
+        - name: keyPoolID
+          in: path
+          required: true
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+        - name: iv
+          in: query
+          required: false
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricCipherInitializationVector'
+        - name: aad
+          in: query
+          required: false
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricCipherAdditionalAuthenticatedData'
+        - name: alg
+          in: query
+          required: false
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricCipherAlgorithm'
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricEncryptRequest'
+      responses:
+        '200':
+          description: Raw JWE ciphertext.
+          content:
+            text/plain:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricEncryptResponse'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
+  /keypool/{keyPoolID}/decrypt:
+    post:
+      summary: Decrypt raw JWE ciphertext using a specific key.
+      description: Accepts a raw JWE (binary) ciphertext and returns raw decrypted plaintext.
+      parameters:
+        - name: keyPoolID
+          in: path
+          required: true
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricDecryptRequest'
+      responses:
+        '200':
+          description: Raw decrypted plaintext.
+          content:
+            application/octet-stream:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricDecryptResponse'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
 components:

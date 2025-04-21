@@ -62,3 +62,18 @@ func (s *StrictServer) GetKeys(ctx context.Context, openapiGetKeysRequestObject 
 	keys, err := s.businessLogicService.GetKeys(ctx, keysQueryParams)
 	return s.openapiMapper.toGetKeysResponse(err, keys)
 }
+
+func (s *StrictServer) PostKeypoolKeyPoolIDEncrypt(ctx context.Context, openapiPostKeypoolKeyPoolIDEncryptRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptResponseObject, error) {
+	keyPoolID := openapiPostKeypoolKeyPoolIDEncryptRequestObject.KeyPoolID
+	encryptParams := s.openapiMapper.toBusinessLogicModelPostEncryptQueryParams(&openapiPostKeypoolKeyPoolIDEncryptRequestObject.Params)
+	clearPayloadReader := openapiPostKeypoolKeyPoolIDEncryptRequestObject.Body
+	encryptedPayload, err := s.businessLogicService.PostEncryptByKeyPoolIDAndKeyID(ctx, keyPoolID, encryptParams, clearPayloadReader)
+	return s.openapiMapper.toPostEncryptResponse(err, encryptedPayload)
+}
+
+func (s *StrictServer) PostKeypoolKeyPoolIDDecrypt(ctx context.Context, openapiPostKeypoolKeyPoolIDDecryptRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptResponseObject, error) {
+	keyPoolID := openapiPostKeypoolKeyPoolIDDecryptRequestObject.KeyPoolID
+	encryptedPayload := openapiPostKeypoolKeyPoolIDDecryptRequestObject.Body
+	decryptedPayload, err := s.businessLogicService.PostDecryptByKeyPoolIDAndKeyID(ctx, keyPoolID, encryptedPayload)
+	return s.openapiMapper.toPostDecryptResponse(err, decryptedPayload)
+}

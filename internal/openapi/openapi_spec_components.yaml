@@ -349,6 +349,23 @@ components:
         - generate_date:ASC
         - generate_date:DESC
 
+    SymmetricCipherInitializationVector:
+      type: string
+      pattern: '^[A-Za-z0-9_-]+$'
+      description: Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
+    SymmetricCipherAdditionalAuthenticatedData:
+      type: string
+      pattern: '^[A-Za-z0-9_-]+$'
+      description: Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+    SymmetricCipherAlgorithm:
+      type: string
+      enum: [ aes256gcm128V1, aes256gcmsiv128V1 ]
+      default: aes256gcm128V1
+      description: >
+        Optional encryption algorithm. Defaults to `aes256gcm128V1`.
+        - `aes256gcm128V1`: randomized encryption (default), example usage is for non-searchable data such as passwords.
+        - `aes256gcmsiv128V1`: convergent encryption (deterministic), example usage is for searchable data such as names, numbers, and other PII (Personally Identifiable Information).
+
     KeyPoolsQueryParams:
       type: object
       properties:
@@ -430,6 +447,31 @@ components:
           $ref: '#/components/schemas/PageNumber'
         size:
           $ref: '#/components/schemas/PageSize'
+
+    SymmetricEncryptParams:
+      type: object
+      properties:
+        iv:
+          $ref: '#/components/schemas/SymmetricCipherInitializationVector'
+        aad:
+          $ref: '#/components/schemas/SymmetricCipherAdditionalAuthenticatedData'
+        alg:
+          $ref: '#/components/schemas/SymmetricCipherAlgorithm'
+
+    SymmetricEncryptRequest:
+      type: string
+      format: binary
+      description: Clear, secret bytes to be encrypted.
+    SymmetricEncryptResponse:
+      type: string
+      description: Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
+    SymmetricDecryptRequest:
+      type: string
+      description: Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
+    SymmetricDecryptResponse:
+      type: string
+      format: binary
+      description: Decrypted, secret bytes.
 
     HTTPError:
       type: object
