@@ -123,6 +123,18 @@ func (tx *OrmTransaction) GetKeyPoolKey(keyPoolID googleUuid.UUID, keyID googleU
 	return &key, nil
 }
 
+func (tx *OrmTransaction) GetKeyPoolLatestKey(keyPoolID googleUuid.UUID) (*Key, error) {
+	if err := cryptoutilUtil.ValidateUUID(&keyPoolID, "invalid Key Pool ID"); err != nil {
+		return nil, tx.toAppErr("failed to get latest Key by Key Pool ID", err)
+	}
+	var key Key
+	err := tx.state.gormTx.Order("key_id DESC").First(&key, "key_pool_id=?", keyPoolID).Error
+	if err != nil {
+		return nil, tx.toAppErr("failed to get latest Key by Key Pool ID", err)
+	}
+	return &key, nil
+}
+
 func (tx *OrmTransaction) toAppErr(msg string, err error) error {
 	tx.ormRepository.telemetryService.Slogger.Error(msg, "error", err)
 

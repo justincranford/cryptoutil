@@ -8,12 +8,14 @@ import (
 	"time"
 
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
+	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
 // BusinessLogicService implements methods in StrictServerInterface
@@ -97,9 +99,8 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 	return s.serviceOrmMapper.toServiceKeyPool(insertedKeyPool), nil
 }
 
-var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
-
 func (s *BusinessLogicService) GetKeyPoolByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID) (*cryptoutilBusinessLogicModel.KeyPool, error) {
+	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
@@ -231,12 +232,56 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
 }
 
-func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadReader io.Reader) (*string, error) {
-	// TODO
-	return nil, fmt.Errorf("Not implemented yet")
+func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadReader io.Reader) ([]byte, error) {
+	clearPayloadBytes, err := io.ReadAll(clearPayloadReader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read clear bytes: %w", err)
+	}
+
+	var repositoryKeyPoolLatestKeyKidUuid googleUuid.UUID
+	var decryptedKeyPoolLatestKeyMaterialBytes []byte
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		// var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
+		_, err = sqlTransaction.GetKeyPool(keyPoolID)
+		if err != nil {
+			return fmt.Errorf("failed to get KeyPool for KeyPoolID: %w", err)
+		}
+		repositoryKeyPoolLatestKey, err := sqlTransaction.GetKeyPoolLatestKey(keyPoolID)
+		if err != nil {
+			return fmt.Errorf("failed to latest Key material for KeyPoolID: %w", err)
+		}
+		repositoryKeyPoolLatestKeyKidUuid = repositoryKeyPoolLatestKey.KeyID
+		decryptedKeyPoolLatestKeyMaterialBytes, err = s.barrierService.DecryptContent(sqlTransaction, repositoryKeyPoolLatestKey.KeyMaterial)
+		if err != nil {
+			return fmt.Errorf("failed to decrypt latest Key material for KeyPoolID: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get latest Key material for KeyPoolID: %w", err)
+	}
+
+	// TODO Use encryptParams for encryption? IV, AAD, ALG
+
+	// envelope encrypt => latestKeyInKeyPool( randomAES256GCM(clearBytes) )
+	latestKeyInKeyPool, _, _, err := cryptoutilJose.CreateAesJWKFromBytes(cryptoutilJose.AlgA256GCMKW, decryptedKeyPoolLatestKeyMaterialBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
+	}
+	err = latestKeyInKeyPool.Set(joseJwk.KeyIDKey, repositoryKeyPoolLatestKeyKidUuid.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to set kid to KeyID of latest Key material for KeyPoolID: %w", err)
+	}
+
+	// JWE Headers: alg=A256GCMKW, enc=A256GCM, iv=Uy6bFPp_mflirpPN (base64url-encoded 12-byte nonce), tag=c8f7buGvHOV9FK0ls3cSug (base64url-encoded 16-byte tag), kid=019656e9-6ee4-729f-abfb-6c6986eaa3f4 (uuid v7)
+	_, encryptedJweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{latestKeyInKeyPool}, clearPayloadBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt bytes with latest Key for KeyPoolID: %w", err)
+	}
+	return encryptedJweMessageBytes, nil
 }
 
-func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayload *string) (io.Reader, error) {
+func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayload []byte) (io.Reader, error) {
 	// TODO
 	return nil, fmt.Errorf("Not implemented yet")
 }

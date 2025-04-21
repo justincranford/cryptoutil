@@ -194,7 +194,7 @@ func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, symmetricEncryptionResponse *cryptoutilBusinessLogicModel.SymmetricEncryptResponse) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, symmetricEncryptionResponse cryptoutilBusinessLogicModel.SymmetricEncryptResponse) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -209,7 +209,7 @@ func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, symmetricE
 		}
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt200TextResponse(*symmetricEncryptionResponse), err
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt200TextResponse(symmetricEncryptionResponse), err
 }
 
 func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, symmetricDecryptionResponse io.Reader) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptResponseObject, error) {

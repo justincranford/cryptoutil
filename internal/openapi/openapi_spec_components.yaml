@@ -464,9 +464,11 @@ components:
       description: Clear, secret bytes to be encrypted.
     SymmetricEncryptResponse:
       type: string
+      format: byte
       description: Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
     SymmetricDecryptRequest:
       type: string
+      format: byte
       description: Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
     SymmetricDecryptResponse:
       type: string

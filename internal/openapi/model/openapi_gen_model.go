@@ -302,7 +302,7 @@ type SymmetricCipherAlgorithm string
 type SymmetricCipherInitializationVector = string
 
 // SymmetricDecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
-type SymmetricDecryptRequest = string
+type SymmetricDecryptRequest = []byte
 
 // SymmetricDecryptResponse Decrypted, secret bytes.
 type SymmetricDecryptResponse = openapi_types.File
@@ -323,7 +323,7 @@ type SymmetricEncryptParams struct {
 type SymmetricEncryptRequest = openapi_types.File
 
 // SymmetricEncryptResponse Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes and non-secret cipher parameters. See RFC 7516 JSON Web Encryption (JWE) for more details.
-type SymmetricEncryptResponse = string
+type SymmetricEncryptResponse = []byte
 
 // KeyPoolQueryParamAlgorithms defines model for KeyPoolQueryParamAlgorithms.
 type KeyPoolQueryParamAlgorithms = []KeyPoolAlgorithm
@@ -489,10 +489,10 @@ var swaggerSpec = []string{
 	"IAoSotStkFT5Gyq2zPcMBV+inJurm7+nRmlUS2kWbtt5264Woo7TXtWxCAvbGH81HsOTK5TKyC1awZga",
 	"RZgxu8aYZ2kVJvjB4T955V6yAcQGJ7VeZQ3lMWeakYh9slu8xVDX1dA2tf5S8BCd9vUH3enKhLanF5Pu",
 	"D2evQMj8Z3cyfntgnv19INson39SmX/2/KzJeSlxeVqeho4R9C1Gkfn7LZ2o82z5SoNtrXxlVMj3x8nr",
-	"S/gZp3BRUcAff744yK+qTgBIIZOd4a8irdCiW+1shQkivHlxBn8b9k92rG+7l4VEoLbUWd8Su8lZVlWu",
-	"S6k6OjvgSLP0egnDKeNErnbu48jces8hfxgR7WH17232Y98Fqzcmttxzdu05rPXA6yLZqlRnERLpS92Y",
-	"3WlFd1qisB3tv5giGwEzPhPbylfw5mJyDadXY2t5NdNZ9elqXGa9glHQO+wd9o2cRIKcJCwYBUeHvcOj",
-	"zF4sVDDiaRTd/ycAAP//7QmPqQM9AAA=",
+	"S/gZp3BRUcAff744yK+qTgBIIZOd4a8irdCiW+1shQkivHlxBn8b9k92rG+7l4VEoLbUqbzUntmrGadZ",
+	"lbkuxero7oAj1dLv78I4kaud+ziyt957yB9GSHt4gXubDdl3weoNii33nF17Lms98rpItirZWYRE+lI3",
+	"Znha0aWWKGxH+y+u2EbgjM/EtvIWvLmYXMPp1dhaZs10Vp26GpdZsWAU9A57h30jN5EgJwkLRsHRYe/w",
+	"KLMnCxWMeBpF9/8JAAD//1Z9h2ojPQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
