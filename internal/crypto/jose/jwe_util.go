@@ -14,6 +14,8 @@ var (
 	KtyOct       = joseJwa.OctetSeq()                             // KeyType
 	AlgDIRECT    = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
 	AlgA256GCMKW = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
+	AlgA192GCMKW = joseJwa.A192GCMKW()                            // KeyEncryptionAlgorithm
+	AlgA128GCMKW = joseJwa.A128GCMKW()                            // KeyEncryptionAlgorithm
 	AlgA256GCM   = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
 	OpsEncDec    = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
 )

@@ -52,7 +52,7 @@ func initializeFirstRootJwk(ormRepository *cryptoutilOrmRepository.OrmRepository
 		return fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
 	}
 	if encryptedRootKeyLatest == nil {
-		clearRootKey, _, rootKeyKidUuid, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, aes256KeyGenPool)
+		rootKeyKidUuid, clearRootKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(cryptoutilJose.AlgDIRECT, aes256KeyGenPool)
 		if err != nil {
 			return fmt.Errorf("failed to generate first root JWK latest: %w", err)
 		}
@@ -60,7 +60,7 @@ func initializeFirstRootJwk(ormRepository *cryptoutilOrmRepository.OrmRepository
 		if err != nil {
 			return fmt.Errorf("failed to encrypt first root JWK: %w", err)
 		}
-		firstEncryptedRootKey := &cryptoutilOrmRepository.BarrierRootKey{UUID: rootKeyKidUuid, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
+		firstEncryptedRootKey := &cryptoutilOrmRepository.BarrierRootKey{UUID: *rootKeyKidUuid, Encrypted: string(encryptedRootKeyBytes), KEKUUID: googleUuid.Nil}
 		err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 			return sqlTransaction.AddRootKey(firstEncryptedRootKey)
 		})

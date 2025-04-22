@@ -359,12 +359,13 @@ components:
       description: Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
     SymmetricCipherAlgorithm:
       type: string
-      enum: [ aes256gcm128V1, aes256gcmsiv128V1 ]
-      default: aes256gcm128V1
+      enum: [ AES-GCM-KeyWrap-V1, AES-GCM-Direct-V1, AES-GCM-SIV-Direct-V1 ]
+      default:  AES-GCM-KeyWrap-V1
       description: >
-        Optional encryption algorithm. Defaults to `aes256gcm128V1`.
-        - `aes256gcm128V1`: randomized encryption (default), example usage is for non-searchable data such as passwords.
-        - `aes256gcmsiv128V1`: convergent encryption (deterministic), example usage is for searchable data such as names, numbers, and other PII (Personally Identifiable Information).
+        Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`.
+        - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc.
+        - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc.
+        - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
 
     KeyPoolsQueryParams:
       type: object

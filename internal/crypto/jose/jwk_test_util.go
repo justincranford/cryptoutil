@@ -21,7 +21,7 @@ func GenerateAes256KeysForTest(t *testing.T, count int, kekAlg joseJwa.KeyEncryp
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			jwk, _, _, err := GenerateAesJWK(kekAlg)
+			_, jwk, _, err := GenerateAesJWK(kekAlg)
 			jwkOrErrs <- jwkOrErr{key: jwk, err: err}
 		}()
 	}

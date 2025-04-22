@@ -15,6 +15,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
@@ -238,19 +239,18 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 		return nil, fmt.Errorf("failed to read clear bytes: %w", err)
 	}
 
-	var repositoryKeyPoolLatestKeyKidUuid googleUuid.UUID
+	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
+	var repositoryKeyPoolLatestKey *cryptoutilOrmRepository.Key
 	var decryptedKeyPoolLatestKeyMaterialBytes []byte
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		// var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
-		_, err = sqlTransaction.GetKeyPool(keyPoolID)
+		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get KeyPool for KeyPoolID: %w", err)
 		}
-		repositoryKeyPoolLatestKey, err := sqlTransaction.GetKeyPoolLatestKey(keyPoolID)
+		repositoryKeyPoolLatestKey, err = sqlTransaction.GetKeyPoolLatestKey(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to latest Key material for KeyPoolID: %w", err)
 		}
-		repositoryKeyPoolLatestKeyKidUuid = repositoryKeyPoolLatestKey.KeyID
 		decryptedKeyPoolLatestKeyMaterialBytes, err = s.barrierService.DecryptContent(sqlTransaction, repositoryKeyPoolLatestKey.KeyMaterial)
 		if err != nil {
 			return fmt.Errorf("failed to decrypt latest Key material for KeyPoolID: %w", err)
@@ -260,17 +260,52 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest Key material for KeyPoolID: %w", err)
 	}
+	keyPoolKeyTypeAlgorithm := repositoryKeyPool.KeyPoolAlgorithm
+	keyPoolProvider := repositoryKeyPool.KeyPoolProvider
+	repositoryKeyPoolLatestKeyKidUuid := &repositoryKeyPoolLatestKey.KeyID
 
-	// TODO Use encryptParams for encryption? IV, AAD, ALG
+	// TODO Use encryptParams for encryption? IV, AAD (N.B. Already using ALG below)
+
+	// Example kekAlg determinations:
+	// keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1)    => kekAlg (AES-128-GCM-Tag128-KeyWrap-V1)
+	// keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-Direct-V1)     => kekAlg (AES-192-GCM-Tag128-Direct-V1)
+	// keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-SIV-Direct-V1) => kekAlg (AES-256-GCM-SIV-Tag128-Direct-V1)
+
+	var encryptionAlgorithm string
+	if encryptParams == nil || encryptParams.Alg == nil {
+		encryptionAlgorithm = "AES-GCM-KeyWrap-V1" // default
+	} else {
+		encryptionAlgorithm = string(*encryptParams.Alg)
+	}
+
+	var kekAlg joseJwa.KeyEncryptionAlgorithm
+	switch encryptionAlgorithm {
+	case "AES-GCM-KeyWrap-V1": // default is key wrap, useful for encrypting data
+		switch keyPoolKeyTypeAlgorithm {
+		case cryptoutilOrmRepository.AES256:
+			kekAlg = cryptoutilJose.AlgA256GCMKW // keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+		case cryptoutilOrmRepository.AES192:
+			kekAlg = cryptoutilJose.AlgA192GCMKW // keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+		case cryptoutilOrmRepository.AES128:
+			kekAlg = cryptoutilJose.AlgA128GCMKW // keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+		default:
+			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
+		}
+	case "AES-GCM-Direct-V1": // use keyPool key directly for encryption, useful for encrypting keys
+		kekAlg = cryptoutilJose.AlgDIRECT
+	case "AES-GCM-SIV-Direct-V1": // use keyPool key directly for deterministic encryption, useful for encrypting search data (e.g. identifiers, attributes)
+		return nil, fmt.Errorf("encryption algorithm '%s' not implemented yet", string(*encryptParams.Alg))
+	default:
+		return nil, fmt.Errorf("encryption algorithm not supported")
+	}
+	if keyPoolProvider != "Internal" {
+		return nil, fmt.Errorf("provider not supported yet")
+	}
 
 	// envelope encrypt => latestKeyInKeyPool( randomAES256GCM(clearBytes) )
-	latestKeyInKeyPool, _, _, err := cryptoutilJose.CreateAesJWKFromBytes(cryptoutilJose.AlgA256GCMKW, decryptedKeyPoolLatestKeyMaterialBytes)
+	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, kekAlg, decryptedKeyPoolLatestKeyMaterialBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
-	}
-	err = latestKeyInKeyPool.Set(joseJwk.KeyIDKey, repositoryKeyPoolLatestKeyKidUuid.String())
-	if err != nil {
-		return nil, fmt.Errorf("failed to set kid to KeyID of latest Key material for KeyPoolID: %w", err)
 	}
 
 	// JWE Headers: alg=A256GCMKW, enc=A256GCM, iv=Uy6bFPp_mflirpPN (base64url-encoded 12-byte nonce), tag=c8f7buGvHOV9FK0ls3cSug (base64url-encoded 16-byte tag), kid=019656e9-6ee4-729f-abfb-6c6986eaa3f4 (uuid v7)

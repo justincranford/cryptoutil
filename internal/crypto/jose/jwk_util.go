@@ -13,57 +13,76 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-func GenerateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm) (joseJwk.Key, []byte, googleUuid.UUID, error) {
+func GenerateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	rawKey := make([]byte, 32)
 	_, err := rand.Read(rawKey)
 	if err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to generate raw AES 256 key: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to generate raw AES 256 key: %w", err)
 	}
-	return CreateAesJWKFromBytes(kekAlg, rawKey)
+	kekKidUuid := googleUuid.Must(googleUuid.NewV7())
+	return CreateAesJWKFromBytes(&kekKidUuid, kekAlg, rawKey)
 }
 
-func GenerateAesJWKFromPool(kekAlg joseJwa.KeyEncryptionAlgorithm, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (joseJwk.Key, []byte, googleUuid.UUID, error) {
+func GenerateAesJWKFromPool(kekAlg joseJwa.KeyEncryptionAlgorithm, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	rawKey, ok := aes256KeyGenPool.Get().Private.([]byte)
 	if !ok {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to generate raw AES 256 key from pool")
+		return nil, nil, nil, fmt.Errorf("failed to generate raw AES 256 key from pool")
 	}
-	return CreateAesJWKFromBytes(kekAlg, rawKey)
+	kekKidUuid := googleUuid.Must(googleUuid.NewV7())
+	return CreateAesJWKFromBytes(&kekKidUuid, kekAlg, rawKey)
 }
 
-func CreateAesJWKFromBytes(kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (joseJwk.Key, []byte, googleUuid.UUID, error) {
+func CreateAesJWKFromBytes(kekKidUuid *googleUuid.UUID, kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	if err := cryptoutilUtil.ValidateUUID(kekKidUuid, "invalid kid"); err != nil {
+		return nil, nil, nil, fmt.Errorf("kid uuid must be valid")
+	}
 	switch kekAlg {
-	case AlgDIRECT, AlgA256GCMKW:
+	case AlgDIRECT:
+		if rawkey == nil || !(len(rawkey) == 32 || len(rawkey) == 24 || len(rawkey) == 16) {
+			return nil, nil, nil, fmt.Errorf("invalid raw key for alg=dir, must be 32-bytes")
+		}
+	case AlgA256GCMKW:
+		if rawkey == nil || len(rawkey) != 32 {
+			return nil, nil, nil, fmt.Errorf("invalid raw key for alg=A256GCMKW, must be 32-bytes")
+		}
+	case AlgA192GCMKW:
+		if rawkey == nil || len(rawkey) != 24 {
+			return nil, nil, nil, fmt.Errorf("invalid raw key for alg=A192GCMKW, must be 24-bytes")
+		}
+	case AlgA128GCMKW:
+		if rawkey == nil || len(rawkey) != 16 {
+			return nil, nil, nil, fmt.Errorf("invalid raw key for alg=A128GCMKW, must be 16-bytes")
+		}
 	default:
-		return nil, nil, googleUuid.Nil, fmt.Errorf("unsupported algorithm; only use %s or %s", AlgDIRECT, AlgA256GCMKW)
+		return nil, nil, nil, fmt.Errorf("unsupported KEK algorithm; only use %s, %s, %s, or %s", AlgDIRECT, AlgA256GCMKW, AlgA192GCMKW, AlgA128GCMKW)
 	}
 
 	aesJwk, err := joseJwk.Import(rawkey)
 	if err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to import raw AES 256 key: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to import raw AES raw skey: %w", err)
 	}
-	kidUuid := googleUuid.Must(googleUuid.NewV7())
-	if err = aesJwk.Set(joseJwk.KeyIDKey, kidUuid.String()); err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to set `kid` header: %w", err)
+	if err = aesJwk.Set(joseJwk.KeyIDKey, kekKidUuid.String()); err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to set `kid` header: %w", err)
 	}
 	if err = aesJwk.Set(joseJwk.AlgorithmKey, kekAlg); err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to set `alg` header: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set `alg` header: %w", err)
 	}
 	if err = aesJwk.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to set `enc` header: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set `enc` header: %w", err)
 	}
 	if err = aesJwk.Set(joseJwk.KeyOpsKey, OpsEncDec); err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to set `ops` header: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set `ops` header: %w", err)
 	}
 	if err = aesJwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to set 'kty': %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set 'kty': %w", err)
 	}
 
 	encodedAesJwk, err := json.Marshal(aesJwk)
 	if err != nil {
-		return nil, nil, googleUuid.Nil, fmt.Errorf("failed to serialize key AES 256 JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to serialize key AES 256 JWK: %w", err)
 	}
 
-	return aesJwk, encodedAesJwk, kidUuid, nil
+	return kekKidUuid, aesJwk, encodedAesJwk, nil
 }
 
 func ExtractKidUuid(jwk joseJwk.Key) (*googleUuid.UUID, error) {

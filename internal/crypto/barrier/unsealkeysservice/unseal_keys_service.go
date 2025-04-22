@@ -7,6 +7,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilCombinations "cryptoutil/internal/util/combinations"
 
+	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
@@ -39,7 +40,8 @@ func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 			return nil, fmt.Errorf("failed to derive key: %w", err)
 		}
 
-		jwk, _, _, err := cryptoutilJose.CreateAesJWKFromBytes(cryptoutilJose.AlgA256GCMKW, derivedKeyBytes) // use derived JWK for envelope encryption (i.e. AES256GCM Key Wrap), not DIRECT encryption
+		kekKidUuid := googleUuid.Must(googleUuid.NewV7())
+		_, jwk, _, err := cryptoutilJose.CreateAesJWKFromBytes(&kekKidUuid, cryptoutilJose.AlgA256GCMKW, derivedKeyBytes) // use derived JWK for envelope encryption (i.e. AES256GCM Key Wrap), not DIRECT encryption
 		if err != nil {
 			return nil, fmt.Errorf("failed to create JWK: %w", err)
 		}

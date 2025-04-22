@@ -15,12 +15,14 @@ var happyPathTestCases = []struct {
 	alg joseJwa.KeyEncryptionAlgorithm
 }{
 	{alg: AlgA256GCMKW},
+	{alg: AlgA192GCMKW},
+	{alg: AlgA128GCMKW},
 	{alg: AlgDIRECT},
 }
 
 func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		cek, encodedAesJwk, actualKeyKid, err := GenerateAesJWK(testCase.alg)
+		actualKeyKid, cek, encodedAesJwk, err := GenerateAesJWK(testCase.alg)
 		require.NoError(t, err)
 		require.NotNil(t, cek)
 		require.NotEmpty(t, encodedAesJwk)
@@ -76,10 +78,10 @@ func Test_HappyPath_Bytes(t *testing.T) {
 
 func Test_HappyPath_Key(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		kek, encodedKek, _, _ := GenerateAesJWK(testCase.alg)
+		_, kek, encodedKek, _ := GenerateAesJWK(testCase.alg)
 		log.Printf("KEK: %s", string(encodedKek))
 
-		originalKey, encodedKey, _, _ := GenerateAesJWK(testCase.alg)
+		_, originalKey, encodedKey, _ := GenerateAesJWK(testCase.alg)
 		log.Printf("Original Key: %s", string(encodedKey))
 
 		jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{kek}, originalKey)
@@ -119,7 +121,7 @@ func Test_SadPath_DecryptJWE_NilKey(t *testing.T) {
 }
 
 func Test_SadPath_DecryptJWE_InvalidCiphertext(t *testing.T) {
-	key, raw, kid, err := GenerateAesJWK(AlgA256GCMKW)
+	kid, key, raw, err := GenerateAesJWK(AlgA256GCMKW)
 	require.NotNil(t, key)
 	require.NotNil(t, raw)
 	require.NotNil(t, kid)
