@@ -13,17 +13,29 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-func GenerateAesJWK(kekAlg joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	rawKey := make([]byte, 32)
+func GenerateAesJWK(kekAlg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	var rawKey []byte
+	switch *kekAlg {
+	case AlgDIRECT:
+		rawKey = make([]byte, 32)
+	case AlgA256GCMKW:
+		rawKey = make([]byte, 32)
+	case AlgA192GCMKW:
+		rawKey = make([]byte, 24)
+	case AlgA128GCMKW:
+		rawKey = make([]byte, 16)
+	default:
+		return nil, nil, nil, fmt.Errorf("unsupported KEK algorithm; only use %s, %s, %s, or %s", AlgDIRECT, AlgA256GCMKW, AlgA192GCMKW, AlgA128GCMKW)
+	}
 	_, err := rand.Read(rawKey)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to generate raw AES 256 key: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to generate raw AES %d key: %w", len(rawKey)/8, err)
 	}
 	kekKidUuid := googleUuid.Must(googleUuid.NewV7())
 	return CreateAesJWKFromBytes(&kekKidUuid, kekAlg, rawKey)
 }
 
-func GenerateAesJWKFromPool(kekAlg joseJwa.KeyEncryptionAlgorithm, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func GenerateAesJWKFromPool(kekAlg *joseJwa.KeyEncryptionAlgorithm, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	rawKey, ok := aes256KeyGenPool.Get().Private.([]byte)
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("failed to generate raw AES 256 key from pool")
@@ -32,11 +44,11 @@ func GenerateAesJWKFromPool(kekAlg joseJwa.KeyEncryptionAlgorithm, aes256KeyGenP
 	return CreateAesJWKFromBytes(&kekKidUuid, kekAlg, rawKey)
 }
 
-func CreateAesJWKFromBytes(kekKidUuid *googleUuid.UUID, kekAlg joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func CreateAesJWKFromBytes(kekKidUuid *googleUuid.UUID, kekAlg *joseJwa.KeyEncryptionAlgorithm, rawkey []byte) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	if err := cryptoutilUtil.ValidateUUID(kekKidUuid, "invalid kid"); err != nil {
 		return nil, nil, nil, fmt.Errorf("kid uuid must be valid")
 	}
-	switch kekAlg {
+	switch *kekAlg {
 	case AlgDIRECT:
 		if rawkey == nil || !(len(rawkey) == 32 || len(rawkey) == 24 || len(rawkey) == 16) {
 			return nil, nil, nil, fmt.Errorf("invalid raw key for alg=dir, must be 32-bytes")
@@ -64,7 +76,7 @@ func CreateAesJWKFromBytes(kekKidUuid *googleUuid.UUID, kekAlg joseJwa.KeyEncryp
 	if err = aesJwk.Set(joseJwk.KeyIDKey, kekKidUuid.String()); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `kid` header: %w", err)
 	}
-	if err = aesJwk.Set(joseJwk.AlgorithmKey, kekAlg); err != nil {
+	if err = aesJwk.Set(joseJwk.AlgorithmKey, *kekAlg); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `alg` header: %w", err)
 	}
 	if err = aesJwk.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
