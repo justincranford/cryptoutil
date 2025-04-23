@@ -315,7 +315,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/octet-stream:
+          text/plain:
             schema:
               $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricEncryptRequest'
       responses:
@@ -364,7 +364,7 @@ paths:
         '200':
           description: Raw decrypted plaintext.
           content:
-            application/octet-stream:
+            text/plain:
               schema:
                 $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricDecryptResponse'
         '400':

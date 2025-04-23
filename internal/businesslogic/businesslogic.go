@@ -1,11 +1,9 @@
 package businesslogic
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"time"
 
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
@@ -235,16 +233,12 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
 }
 
-func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadReader io.Reader) ([]byte, error) {
-	clearPayloadBytes, err := io.ReadAll(clearPayloadReader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read clear bytes: %w", err)
-	}
-
+func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadBytes []byte) ([]byte, error) {
 	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 	var repositoryKeyPoolLatestKey *cryptoutilOrmRepository.Key
 	var decryptedKeyPoolLatestKeyMaterialBytes []byte
-	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
 		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get KeyPool for KeyPoolID: %w", err)
@@ -318,13 +312,13 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	return encryptedJweMessageBytes, nil
 }
 
-func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayload []byte) (io.Reader, error) {
+func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayload []byte) ([]byte, error) {
 	jweMessage, err := joseJwe.Parse(encryptedPayload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted JWE message bytes: %w", err)
 	}
 	var jweMessageKidUuidString string
-	err = jweMessage.ProtectedHeaders().Get(joseJwk.KeyUsageKey, &jweMessageKidUuidString)
+	err = jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &jweMessageKidUuidString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get encrypted JWE kid UUID: %w", err)
 	}
@@ -332,11 +326,17 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted JWE kid UUID: %w", err)
 	}
+	var kekAlg joseJwa.KeyEncryptionAlgorithm
+	err = jweMessage.ProtectedHeaders().Get(joseJwk.AlgorithmKey, &kekAlg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get encrypted JWE kid UUID: %w", err)
+	}
 
 	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 	var repositoryKeyPoolKey *cryptoutilOrmRepository.Key
 	var decryptedKeyPoolKeyMaterialBytes []byte
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
 		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get KeyPool for KeyPoolID: %w", err)
@@ -362,7 +362,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	}
 
 	// envelope encrypt => keyInKeyPool( randomAES256GCM(clearBytes) )
-	_, keyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, nil, decryptedKeyPoolKeyMaterialBytes)
+	_, keyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, &kekAlg, decryptedKeyPoolKeyMaterialBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID from JWE kid UUID: %w", err)
 	}
@@ -372,7 +372,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt bytes with Key for KeyPoolID from JWE kid UUID: %w", err)
 	}
-	return bytes.NewReader(decryptedJweMessageBytes), nil
+	return decryptedJweMessageBytes, nil
 }
 
 func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {

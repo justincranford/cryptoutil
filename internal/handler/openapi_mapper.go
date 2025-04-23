@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 
 	cryptoutilAppErr "cryptoutil/internal/apperr"
@@ -194,7 +193,7 @@ func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, symmetricEncryptionResponse cryptoutilBusinessLogicModel.SymmetricEncryptResponse) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -209,10 +208,10 @@ func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, symmetricE
 		}
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt200TextResponse(symmetricEncryptionResponse), err
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt200TextResponse(encryptedBytes), err
 }
 
-func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, symmetricDecryptionResponse io.Reader) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, decryptedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -227,7 +226,7 @@ func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, symmetricD
 		}
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt200ApplicationoctetStreamResponse{Body: symmetricDecryptionResponse}, err
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt200TextResponse(decryptedBytes), err
 }
 
 // Helper methods
