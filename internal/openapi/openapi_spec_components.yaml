@@ -461,8 +461,7 @@ components:
 
     SymmetricEncryptRequest:
       type: string
-      pattern: '^[A-Za-z0-9_-]+$'
-      description: Base64Url-encoded clear secret bytes to be encrypted.
+      description: Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
     SymmetricEncryptResponse:
       type: string
       pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
@@ -487,8 +486,7 @@ components:
         - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag.
     SymmetricDecryptResponse:
       type: string
-      pattern: '^[A-Za-z0-9_-]+$'
-      description: Base64Url-encoded clear secret bytes that were decrypted.
+      description: Clear text to be decrypted. If you encoded bytes to text before submitting them for encryption, remember to decode them from text to bytes using the same encoding scheme.
 
     HTTPError:
       type: object
