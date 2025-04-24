@@ -486,7 +486,7 @@ components:
         - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag.
     SymmetricDecryptResponse:
       type: string
-      description: Clear text to be decrypted. If you encoded bytes to text before submitting them for encryption, remember to decode them from text to bytes using the same encoding scheme.
+      description: Encrypted text to be decrypted. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; ese the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
 
     HTTPError:
       type: object
