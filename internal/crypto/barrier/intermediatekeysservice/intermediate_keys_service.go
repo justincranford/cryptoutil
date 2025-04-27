@@ -53,7 +53,7 @@ func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRe
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		intermediateKeyKidUuid, clearIntermediateKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgDIRECT, aes256KeyGenPool)
+		intermediateKeyKidUuid, clearIntermediateKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgKekDIRECT, aes256KeyGenPool)
 		if err != nil {
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}

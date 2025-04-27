@@ -260,6 +260,10 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	keyPoolProvider := repositoryKeyPool.KeyPoolProvider
 	repositoryKeyPoolLatestKeyKidUuid := &repositoryKeyPoolLatestKey.KeyID
 
+	if keyPoolProvider != "Internal" {
+		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
+	}
+
 	// TODO Use encryptParams for encryption? IV, AAD (N.B. Already using ALG below)
 
 	// Example kekAlg determinations:
@@ -275,31 +279,42 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	}
 
 	var kekAlg *joseJwa.KeyEncryptionAlgorithm
+	var cekAlg *joseJwa.ContentEncryptionAlgorithm
 	switch encryptionAlgorithm {
 	case "AES-GCM-KeyWrap-V1": // default is key wrap, useful for encrypting data
 		switch keyPoolKeyTypeAlgorithm {
 		case cryptoutilOrmRepository.AES256:
-			kekAlg = &cryptoutilJose.AlgA256GCMKW // keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			kekAlg = &cryptoutilJose.AlgKekA256GCMKW // keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			cekAlg = &cryptoutilJose.AlgCekA256GCM
 		case cryptoutilOrmRepository.AES192:
-			kekAlg = &cryptoutilJose.AlgA192GCMKW // keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			kekAlg = &cryptoutilJose.AlgKekA192GCMKW // keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			cekAlg = &cryptoutilJose.AlgCekA192GCM
 		case cryptoutilOrmRepository.AES128:
-			kekAlg = &cryptoutilJose.AlgA128GCMKW // keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			kekAlg = &cryptoutilJose.AlgKekA128GCMKW // keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			cekAlg = &cryptoutilJose.AlgCekA128GCM
 		default:
 			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
 		}
 	case "AES-GCM-Direct-V1": // use keyPool key directly for encryption, useful for encrypting keys
-		kekAlg = &cryptoutilJose.AlgDIRECT
+		kekAlg = &cryptoutilJose.AlgKekDIRECT // keyPoolKeyTypeAlgorithm (Direct) + encryptionAlgorithm (AES-GCM-Direct-V1) => kekAlg (AES-256-GCM-Tag128-V1)
+		switch keyPoolKeyTypeAlgorithm {
+		case cryptoutilOrmRepository.AES256:
+			cekAlg = &cryptoutilJose.AlgCekA256GCM
+		case cryptoutilOrmRepository.AES192:
+			cekAlg = &cryptoutilJose.AlgCekA192GCM
+		case cryptoutilOrmRepository.AES128:
+			cekAlg = &cryptoutilJose.AlgCekA128GCM
+		default:
+			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
+		}
 	case "AES-GCM-SIV-Direct-V1": // use keyPool key directly for deterministic encryption, useful for encrypting search data (e.g. identifiers, attributes)
 		return nil, fmt.Errorf("encryption algorithm '%s' not implemented yet", string(*encryptParams.Alg))
 	default:
 		return nil, fmt.Errorf("encryption algorithm not supported")
 	}
-	if keyPoolProvider != "Internal" {
-		return nil, fmt.Errorf("provider not supported yet")
-	}
 
 	// envelope encrypt => latestKeyInKeyPool( randomAES256GCM(clearBytes) )
-	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, kekAlg, decryptedKeyPoolLatestKeyMaterialBytes)
+	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, kekAlg, cekAlg, decryptedKeyPoolLatestKeyMaterialBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
 	}
@@ -331,6 +346,11 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	if err != nil {
 		return nil, fmt.Errorf("failed to get encrypted JWE kid UUID: %w", err)
 	}
+	var cekAlg joseJwa.ContentEncryptionAlgorithm
+	err = jweMessage.ProtectedHeaders().Get("enc", &cekAlg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get encrypted JWE kid UUID: %w", err)
+	}
 
 	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 	var repositoryKeyPoolKey *cryptoutilOrmRepository.Key
@@ -358,11 +378,11 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	repositoryKeyPoolLatestKeyKidUuid := &repositoryKeyPoolKey.KeyID
 
 	if keyPoolProvider != "Internal" {
-		return nil, fmt.Errorf("provider not supported yet")
+		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
 
 	// envelope encrypt => keyInKeyPool( randomAES256GCM(clearBytes) )
-	_, keyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, &kekAlg, decryptedKeyPoolKeyMaterialBytes)
+	_, keyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, &kekAlg, &cekAlg, decryptedKeyPoolKeyMaterialBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID from JWE kid UUID: %w", err)
 	}

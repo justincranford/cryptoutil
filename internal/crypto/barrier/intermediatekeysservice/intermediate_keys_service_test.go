@@ -56,7 +56,7 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	require.NotNil(t, intermediateKeysService)
 	defer intermediateKeysService.Shutdown()
 
-	_, clearContentKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgDIRECT, testAes256KeyGenPool)
+	_, clearContentKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgKekDIRECT, testAes256KeyGenPool)
 	require.NoError(t, err)
 	require.NotNil(t, clearContentKey)
 

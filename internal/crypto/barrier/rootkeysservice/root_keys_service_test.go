@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
-	unsealJwks := cryptoutilJose.GenerateAes256KeysForTest(t, 1, &cryptoutilJose.AlgA256GCMKW)
+	unsealJwks := cryptoutilJose.GenerateAes256KeysForTest(t, 1, &cryptoutilJose.AlgKekA256GCMKW)
 	require.NotNil(t, unsealJwks)
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)
@@ -70,7 +70,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testAes256KeyGenPool)
 	require.Error(t, err)
 	require.Nil(t, rootKeysService)
-	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid ceks: jwks can't be empty")
+	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid JWKs: jwks can't be empty")
 }
 
 func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
@@ -87,5 +87,5 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testAes256KeyGenPool)
 	require.Error(t, err)
 	require.Nil(t, rootKeysService)
-	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid ceks: jwks can't be nil")
+	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid JWKs: jwks can't be nil")
 }

@@ -26,6 +26,10 @@ type KeyPoolConfig struct {
 	generateFunction    func() (Key, error)
 }
 
+func (c *KeyGenPool) Name() string {
+	return c.cfg.poolName
+}
+
 type KeyGenPool struct {
 	poolStartTime         time.Time
 	cfg                   *KeyPoolConfig
@@ -84,7 +88,9 @@ func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTeleme
 }
 
 func validateConfig(config *KeyPoolConfig) error {
-	if config.ctx == nil {
+	if config == nil {
+		return fmt.Errorf("KeyPoolConfig can't be nil")
+	} else if config.ctx == nil {
 		return fmt.Errorf("Context can't be nil")
 	} else if config.telemetryService == nil {
 		return fmt.Errorf("Telemetry service can't be nil")
