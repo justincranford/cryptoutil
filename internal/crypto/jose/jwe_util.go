@@ -11,15 +11,18 @@ import (
 )
 
 var (
-	KtyOct          = joseJwa.OctetSeq()                             // KeyType
-	AlgKekDIRECT    = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
-	AlgKekA256GCMKW = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
-	AlgKekA192GCMKW = joseJwa.A192GCMKW()                            // KeyEncryptionAlgorithm
-	AlgKekA128GCMKW = joseJwa.A128GCMKW()                            // KeyEncryptionAlgorithm
-	AlgCekA256GCM   = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
-	AlgCekA192GCM   = joseJwa.A192GCM()                              // ContentEncryptionAlgorithm
-	AlgCekA128GCM   = joseJwa.A128GCM()                              // ContentEncryptionAlgorithm
-	OpsEncDec       = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
+	KtyOct              = joseJwa.OctetSeq()                             // KeyType
+	AlgKekDIRECT        = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
+	AlgKekA256GCMKW     = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
+	AlgKekA192GCMKW     = joseJwa.A192GCMKW()                            // KeyEncryptionAlgorithm
+	AlgKekA128GCMKW     = joseJwa.A128GCMKW()                            // KeyEncryptionAlgorithm
+	AlgCekA256GCM       = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
+	AlgCekA192GCM       = joseJwa.A192GCM()                              // ContentEncryptionAlgorithm
+	AlgCekA128GCM       = joseJwa.A128GCM()                              // ContentEncryptionAlgorithm
+	AlgCekA256CBC_HS512 = joseJwa.A256CBC_HS512()                        // ContentEncryptionAlgorithm
+	AlgCekA192CBC_HS384 = joseJwa.A192CBC_HS384()                        // ContentEncryptionAlgorithm
+	AlgCekA128CBC_HS256 = joseJwa.A128CBC_HS256()                        // ContentEncryptionAlgorithm
+	OpsEncDec           = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
 )
 
 func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {

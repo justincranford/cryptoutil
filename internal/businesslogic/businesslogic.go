@@ -267,9 +267,11 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	// TODO Use encryptParams for encryption? IV, AAD (N.B. Already using ALG below)
 
 	// Example kekAlg determinations:
-	// keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1)    => kekAlg (AES-128-GCM-Tag128-KeyWrap-V1)
-	// keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-Direct-V1)     => kekAlg (AES-192-GCM-Tag128-Direct-V1)
-	// keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-SIV-Direct-V1) => kekAlg (AES-256-GCM-SIV-Tag128-Direct-V1)
+	// keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1)             => kekAlg (AES-128-GCM-Tag128-KeyWrap-V1)
+	// keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-Direct-V1)              => kekAlg (AES-192-GCM-Tag128-Direct-V1)
+	// keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-CBC-HMAC-SHA256-KeyWrap-V1) => kekAlg (AES-128-CBC-HMAC-SHA256-KeyWrap-V1)
+	// keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-CBC-HMAC-SHA384-Direct-V1)  => kekAlg (AES-192-CBC-HMAC-SHA384-Direct-V1)
+	// keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-SIV-Direct-V1)          => kekAlg (AES-256-GCM-SIV-Tag128-Direct-V1)
 
 	var encryptionAlgorithm string
 	if encryptParams == nil || encryptParams.Alg == nil {
@@ -281,21 +283,21 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	var kekAlg *joseJwa.KeyEncryptionAlgorithm
 	var cekAlg *joseJwa.ContentEncryptionAlgorithm
 	switch encryptionAlgorithm {
-	case "AES-GCM-KeyWrap-V1": // default is key wrap, useful for encrypting data
+	case "AES-GCM-KeyWrap-V1": // key wrap is useful for encrypting large data (e.g. large blobs) to minimize use of the actual key from the key pool
 		switch keyPoolKeyTypeAlgorithm {
 		case cryptoutilOrmRepository.AES256:
-			kekAlg = &cryptoutilJose.AlgKekA256GCMKW // keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			kekAlg = &cryptoutilJose.AlgKekA256GCMKW
 			cekAlg = &cryptoutilJose.AlgCekA256GCM
 		case cryptoutilOrmRepository.AES192:
-			kekAlg = &cryptoutilJose.AlgKekA192GCMKW // keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			kekAlg = &cryptoutilJose.AlgKekA192GCMKW
 			cekAlg = &cryptoutilJose.AlgCekA192GCM
 		case cryptoutilOrmRepository.AES128:
-			kekAlg = &cryptoutilJose.AlgKekA128GCMKW // keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1) => kekAlg (AES-256-GCM-Tag128-KeyWrap-V1)
+			kekAlg = &cryptoutilJose.AlgKekA128GCMKW
 			cekAlg = &cryptoutilJose.AlgCekA128GCM
 		default:
 			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
 		}
-	case "AES-GCM-Direct-V1": // use keyPool key directly for encryption, useful for encrypting keys
+	case "AES-GCM-Direct-V1": // direct is useful for encrypting small data (i.e. keys)
 		kekAlg = &cryptoutilJose.AlgKekDIRECT // keyPoolKeyTypeAlgorithm (Direct) + encryptionAlgorithm (AES-GCM-Direct-V1) => kekAlg (AES-256-GCM-Tag128-V1)
 		switch keyPoolKeyTypeAlgorithm {
 		case cryptoutilOrmRepository.AES256:
@@ -304,6 +306,32 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 			cekAlg = &cryptoutilJose.AlgCekA192GCM
 		case cryptoutilOrmRepository.AES128:
 			cekAlg = &cryptoutilJose.AlgCekA128GCM
+		default:
+			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
+		}
+	case "AES-CBC-HMAC-SHA2-KeyWrap-V1": // key wrap is useful for encrypting large data (e.g. large blobs) to minimize use of the actual key from the key pool
+		switch keyPoolKeyTypeAlgorithm {
+		case cryptoutilOrmRepository.AES256:
+			kekAlg = &cryptoutilJose.AlgKekA256GCMKW
+			cekAlg = &cryptoutilJose.AlgCekA256CBC_HS512
+		case cryptoutilOrmRepository.AES192:
+			kekAlg = &cryptoutilJose.AlgKekA192GCMKW
+			cekAlg = &cryptoutilJose.AlgCekA192CBC_HS384
+		case cryptoutilOrmRepository.AES128:
+			kekAlg = &cryptoutilJose.AlgKekA128GCMKW
+			cekAlg = &cryptoutilJose.AlgCekA128CBC_HS256
+		default:
+			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
+		}
+	case "AES-CBC-HMAC-SHA2-Direct-V1": // use keyPool key directly for encryption, useful for encrypting keys (i.e. small amounts)
+		kekAlg = &cryptoutilJose.AlgKekDIRECT
+		switch keyPoolKeyTypeAlgorithm {
+		case cryptoutilOrmRepository.AES256:
+			cekAlg = &cryptoutilJose.AlgCekA256CBC_HS512
+		case cryptoutilOrmRepository.AES192:
+			cekAlg = &cryptoutilJose.AlgCekA192CBC_HS384
+		case cryptoutilOrmRepository.AES128:
+			cekAlg = &cryptoutilJose.AlgCekA128CBC_HS256
 		default:
 			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
 		}
@@ -318,6 +346,10 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
 	}
+
+	// TODO Debug
+	// failed to encrypt: failed to encrypt bytes with latest Key for KeyPoolID: failed to encrypt clearBytes: jwe.Encrypt: failed to encrypt payload: failed to crypt content:
+	// failed to fetch AEAD: cipher: failed to create AES cipher for CBC: failed to execute block cipher function: crypto/aes: invalid key size 8
 
 	// JWE Headers: alg=A256GCMKW, enc=A256GCM, iv=Uy6bFPp_mflirpPN (base64url-encoded 12-byte nonce), tag=c8f7buGvHOV9FK0ls3cSug (base64url-encoded 16-byte tag), kid=019656e9-6ee4-729f-abfb-6c6986eaa3f4 (uuid v7)
 	_, encryptedJweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{latestKeyInKeyPool}, clearPayloadBytes)
@@ -420,11 +452,11 @@ func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *crypt
 
 func (s *BusinessLogicService) GenerateKeyMaterial(algorithm string) ([]byte, error) {
 	switch string(algorithm) {
-	case "AES-256", "AES256":
+	case "AES-256", "AES256", "A256":
 		return s.aes256KeyGenPool.Get().Private.([]byte), nil
-	case "AES-192", "AES192":
+	case "AES-192", "AES192", "A192":
 		return s.aes192KeyGenPool.Get().Private.([]byte), nil
-	case "AES-128", "AES128":
+	case "AES-128", "AES128", "A128":
 		return s.aes128KeyGenPool.Get().Private.([]byte), nil
 	default:
 		return nil, fmt.Errorf("unsuppported algorithm")

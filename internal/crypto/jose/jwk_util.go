@@ -93,26 +93,26 @@ func CreateAesJWKFromBytes(kekKidUuid *googleUuid.UUID, kekAlg *joseJwa.KeyEncry
 	case AlgKekDIRECT.String():
 		if !(len(rawkey) == 32 || len(rawkey) == 24 || len(rawkey) == 16) {
 			return nil, nil, nil, fmt.Errorf("invalid raw key length %d for alg=dir, must be 32-bytes, 24-bytes, or 16-bytes", len(rawkey))
-		} else if !((*cekAlg).String() == AlgCekA256GCM.String() || (*cekAlg).String() == AlgCekA192GCM.String() || (*cekAlg).String() == AlgCekA128GCM.String()) {
-			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=dir, must be 32-bytes, 24-bytes, or 16-bytes", *cekAlg)
+		} else if !((*cekAlg).String() == AlgCekA256GCM.String() || (*cekAlg).String() == AlgCekA192GCM.String() || (*cekAlg).String() == AlgCekA128GCM.String() || (*cekAlg).String() == AlgCekA256CBC_HS512.String() || (*cekAlg).String() == AlgCekA192CBC_HS384.String() || (*cekAlg).String() == AlgCekA128CBC_HS256.String()) {
+			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=dir, must be A256GCM, A192GCM, A128GCM, A256CBC_HS512, A192CBC_HS384, or A128CBC_HS256", *cekAlg)
 		}
 	case AlgKekA256GCMKW.String():
 		if len(rawkey) != 32 {
 			return nil, nil, nil, fmt.Errorf("invalid raw key length %d for alg=A256GCMKW, must be 32-bytes", len(rawkey))
-		} else if (*cekAlg).String() != AlgCekA256GCM.String() {
-			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=A256GCMKW, must be A256GCM", *cekAlg)
+		} else if !((*cekAlg).String() != AlgCekA256GCM.String() || (*cekAlg).String() != AlgCekA256CBC_HS512.String()) {
+			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=A256GCMKW, must be A256GCM or A256CBC_HS512", *cekAlg)
 		}
 	case AlgKekA192GCMKW.String():
 		if len(rawkey) != 24 {
 			return nil, nil, nil, fmt.Errorf("invalid raw key length %d for alg=A192GCMKW, must be 24-bytes", len(rawkey))
-		} else if (*cekAlg).String() != AlgCekA192GCM.String() {
-			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=A192GCMKW, must be A192GCM", *cekAlg)
+		} else if !((*cekAlg).String() != AlgCekA192GCM.String() || (*cekAlg).String() != AlgCekA192CBC_HS384.String()) {
+			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=A192GCMKW, must be A192GCM or A192CBC_HS384", *cekAlg)
 		}
 	case AlgKekA128GCMKW.String():
 		if len(rawkey) != 16 {
 			return nil, nil, nil, fmt.Errorf("invalid raw key length %d for alg=A128GCMKW, must be 16-bytes", len(rawkey))
-		} else if (*cekAlg).String() != AlgCekA128GCM.String() {
-			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=A128GCMKW, must be A128GCM", *cekAlg)
+		} else if !((*cekAlg).String() != AlgCekA128GCM.String() || (*cekAlg).String() != AlgCekA128CBC_HS256.String()) {
+			return nil, nil, nil, fmt.Errorf("invalid raw key enc=%s for alg=A128GCMKW, must be A128GCM or A128CBC_HS256", *cekAlg)
 		}
 	default:
 		return nil, nil, nil, fmt.Errorf("unsupported KEK algorithm; only use %s, %s, %s, or %s", AlgKekDIRECT, AlgKekA256GCMKW, AlgKekA192GCMKW, AlgKekA128GCMKW)

@@ -82,9 +82,11 @@ const (
 
 // Defines values for SymmetricCipherAlgorithm.
 const (
-	AESGCMDirectV1    SymmetricCipherAlgorithm = "AES-GCM-Direct-V1"
-	AESGCMKeyWrapV1   SymmetricCipherAlgorithm = "AES-GCM-KeyWrap-V1"
-	AESGCMSIVDirectV1 SymmetricCipherAlgorithm = "AES-GCM-SIV-Direct-V1"
+	AESCBCHMACSHA2DirectV1  SymmetricCipherAlgorithm = "AES-CBC-HMAC-SHA2-Direct-V1"
+	AESCBCHMACSHA2KeyWrapV1 SymmetricCipherAlgorithm = "AES-CBC-HMAC-SHA2-KeyWrap-V1"
+	AESGCMDirectV1          SymmetricCipherAlgorithm = "AES-GCM-Direct-V1"
+	AESGCMKeyWrapV1         SymmetricCipherAlgorithm = "AES-GCM-KeyWrap-V1"
+	AESGCMSIVDirectV1       SymmetricCipherAlgorithm = "AES-GCM-SIV-Direct-V1"
 )
 
 // HTTPError defines model for HTTPError.
@@ -296,13 +298,13 @@ type PageSize = int
 // SymmetricCipherAdditionalAuthenticatedData Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
 type SymmetricCipherAdditionalAuthenticatedData = string
 
-// SymmetricCipherAlgorithm Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`. - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
+// SymmetricCipherAlgorithm Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`. - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-CBC-HMAC-SHA2-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-CBC-HMAC-SHA2-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
 type SymmetricCipherAlgorithm string
 
 // SymmetricCipherInitializationVector Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
 type SymmetricCipherInitializationVector = string
 
-// SymmetricDecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag.
+// SymmetricDecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
 type SymmetricDecryptRequest = string
 
 // SymmetricDecryptResponse Encrypted text to be decrypted. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; ese the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
@@ -313,7 +315,7 @@ type SymmetricEncryptParams struct {
 	// Aad Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
 	Aad *SymmetricCipherAdditionalAuthenticatedData `json:"aad,omitempty"`
 
-	// Alg Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`. - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
+	// Alg Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`. - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-CBC-HMAC-SHA2-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-CBC-HMAC-SHA2-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
 	Alg *SymmetricCipherAlgorithm `json:"alg,omitempty"`
 
 	// Iv Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
@@ -323,7 +325,7 @@ type SymmetricEncryptParams struct {
 // SymmetricEncryptRequest Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
 type SymmetricEncryptRequest = string
 
-// SymmetricEncryptResponse Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag.
+// SymmetricEncryptResponse Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
 type SymmetricEncryptResponse = string
 
 // KeyPoolQueryParamAlgorithms defines model for KeyPoolQueryParamAlgorithms.
@@ -446,63 +448,64 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AAD//4SK2SGzRwAA",
+	"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",
+	"AP//38FUFdNJAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
