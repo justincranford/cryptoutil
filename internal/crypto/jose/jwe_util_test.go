@@ -134,7 +134,7 @@ func Test_SadPath_DecryptJWE_NilKey(t *testing.T) {
 }
 
 func Test_SadPath_DecryptJWE_InvalidCiphertext(t *testing.T) {
-	kid, key, raw, err := GenerateAesJWK(&AlgA256GCMKW, &EncA256GCM)
+	kid, key, raw, err := GenerateAesJWK(&AlgA256KW, &EncA256GCM)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
 	require.NotNil(t, key)

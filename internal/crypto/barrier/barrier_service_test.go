@@ -51,7 +51,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	unsealJwks := cryptoutilJose.GenerateAes256KeysForTest(t, 2, &cryptoutilJose.AlgA256GCMKW, &cryptoutilJose.EncA256GCM)
+	unsealJwks := cryptoutilJose.GenerateAes256KeysForTest(t, 2, &cryptoutilJose.AlgA256KW, &cryptoutilJose.EncA256GCM)
 	require.NotNil(t, unsealJwks)
 
 	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)
@@ -74,7 +74,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 
 	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, originalUnsealKeysService, restartedUnsealKeysService1b)
 
-	_, invalidJwk, _, err := cryptoutilJose.GenerateAesJWK(&cryptoutilJose.AlgA256GCMKW, &cryptoutilJose.EncA256GCM)
+	_, invalidJwk, _, err := cryptoutilJose.GenerateAesJWK(&cryptoutilJose.AlgA256KW, &cryptoutilJose.EncA256GCM)
 	require.NoError(t, err)
 	invalidUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{invalidJwk})
 	require.NoError(t, err)

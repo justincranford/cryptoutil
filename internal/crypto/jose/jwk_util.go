@@ -101,7 +101,7 @@ func ValidateJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorith
 		return nil, fmt.Errorf("raw key must be non-nil")
 	}
 	switch *alg {
-	case AlgA256GCMKW:
+	case AlgA256KW, AlgA256GCMKW:
 		switch *enc {
 		case EncA256GCM, EncA256CBC_HS512:
 			if rawKey == nil {
@@ -115,7 +115,7 @@ func ValidateJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorith
 		default:
 			return nil, fmt.Errorf("valid alg %s, but invalid enc %s; use %s or %s", *alg, *enc, EncA256GCM, EncA256CBC_HS512)
 		}
-	case AlgA192GCMKW:
+	case AlgA192KW, AlgA192GCMKW:
 		switch *enc {
 		case EncA192GCM, EncA192CBC_HS384:
 			if rawKey == nil {
@@ -129,7 +129,7 @@ func ValidateJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorith
 		default:
 			return nil, fmt.Errorf("valid alg %s, but invalid enc %s; use %s or %s", *alg, *enc, EncA192GCM, EncA192CBC_HS384)
 		}
-	case AlgA128GCMKW:
+	case AlgA128KW, AlgA128GCMKW:
 		switch *enc {
 		case EncA128GCM, EncA128CBC_HS256:
 			if rawKey == nil {
@@ -203,7 +203,7 @@ func ValidateJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorith
 			return nil, fmt.Errorf("valid alg %s, but unsupported enc %s; use %s, %s, %s, %s, %s, or %s", *alg, *enc, EncA256GCM, EncA192GCM, EncA128GCM, EncA256CBC_HS512, EncA192CBC_HS384, EncA128CBC_HS256)
 		}
 	default:
-		return nil, fmt.Errorf("unsupported alg %s; use %s, %s, %s, or %s", *alg, AlgDIRECT, AlgA256GCMKW, AlgA192GCMKW, AlgA128GCMKW)
+		return nil, fmt.Errorf("unsupported alg %s; use %s, %s, %s, %s, %s, %s, or %s", *alg, AlgA256KW, AlgA192KW, AlgA128GCMKW, AlgA256KW, AlgA192GCMKW, AlgA128GCMKW, AlgDIRECT)
 	}
 	return rawKey, nil
 }

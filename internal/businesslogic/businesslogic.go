@@ -23,9 +23,9 @@ import (
 type BusinessLogicService struct {
 	ormRepository         *cryptoutilOrmRepository.OrmRepository
 	serviceOrmMapper      *serviceOrmMapper
-	aes256KeyGenPool      *cryptoutilKeygen.KeyGenPool // 32-bytes A256GCM (or A256GCMKW)
-	aes192KeyGenPool      *cryptoutilKeygen.KeyGenPool // 24-bytes A192GCM (or A192GCMKW)
-	aes128KeyGenPool      *cryptoutilKeygen.KeyGenPool // 16-bytes A128GCM (or A128GCMKW)
+	aes256KeyGenPool      *cryptoutilKeygen.KeyGenPool // 32-bytes A256GCM, A256KW, A256GCMKW
+	aes192KeyGenPool      *cryptoutilKeygen.KeyGenPool // 24-bytes A192GCM, A192KW, A192GCMKW
+	aes128KeyGenPool      *cryptoutilKeygen.KeyGenPool // 16-bytes A128GCM, A128KW, A128GCMKW
 	aes256HS512KeyGenPool *cryptoutilKeygen.KeyGenPool // 32-bytes A256CBC + 32-bytes HS512 (half of 64-bytes)
 	aes192HS384KeyGenPool *cryptoutilKeygen.KeyGenPool // 24-bytes A192CBC + 24-bytes HS384 (half of 48-bytes)
 	aes128HS256KeyGenPool *cryptoutilKeygen.KeyGenPool // 16-bytes A128CBC + 16-bytes HS256 (half of 32-bytes)
@@ -275,6 +275,15 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	var kekAlg *joseJwa.KeyEncryptionAlgorithm
 	var cekAlg *joseJwa.ContentEncryptionAlgorithm
 	switch repositoryKeyPool.KeyPoolAlgorithm {
+	case cryptoutilOrmRepository.A256GCM_A256KW:
+		kekAlg = &cryptoutilJose.AlgA256KW
+		cekAlg = &cryptoutilJose.EncA256GCM
+	case cryptoutilOrmRepository.A192GCM_A192KW:
+		kekAlg = &cryptoutilJose.AlgA192KW
+		cekAlg = &cryptoutilJose.EncA192GCM
+	case cryptoutilOrmRepository.A128GCM_A128KW:
+		kekAlg = &cryptoutilJose.AlgA128KW
+		cekAlg = &cryptoutilJose.EncA128GCM
 	case cryptoutilOrmRepository.A256GCM_A256GCMKW:
 		kekAlg = &cryptoutilJose.AlgA256GCMKW
 		cekAlg = &cryptoutilJose.EncA256GCM
@@ -426,11 +435,11 @@ func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *crypt
 
 func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) ([]byte, error) {
 	switch keyPoolAlgorithm {
-	case cryptoutilOrmRepository.A256GCM_A256GCMKW, cryptoutilOrmRepository.A256GCM_Dir, cryptoutilOrmRepository.A256CBCHS512_A256GCMKW:
+	case cryptoutilOrmRepository.A256GCM_A256KW, cryptoutilOrmRepository.A256GCM_A256GCMKW, cryptoutilOrmRepository.A256GCM_Dir, cryptoutilOrmRepository.A256CBCHS512_A256GCMKW:
 		return s.aes256KeyGenPool.Get().Private.([]byte), nil
-	case cryptoutilOrmRepository.A192GCM_A192GCMKW, cryptoutilOrmRepository.A192GCM_Dir, cryptoutilOrmRepository.A192CBCHS384_A192GCMKW:
+	case cryptoutilOrmRepository.A192GCM_A192KW, cryptoutilOrmRepository.A192GCM_A192GCMKW, cryptoutilOrmRepository.A192GCM_Dir, cryptoutilOrmRepository.A192CBCHS384_A192GCMKW:
 		return s.aes192KeyGenPool.Get().Private.([]byte), nil
-	case cryptoutilOrmRepository.A128GCM_A128GCMKW, cryptoutilOrmRepository.A128GCM_Dir, cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
+	case cryptoutilOrmRepository.A128GCM_A128KW, cryptoutilOrmRepository.A128GCM_A128GCMKW, cryptoutilOrmRepository.A128GCM_Dir, cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
 		return s.aes128KeyGenPool.Get().Private.([]byte), nil
 	case cryptoutilOrmRepository.A256CBCHS512_Dir:
 		return s.aes256HS512KeyGenPool.Get().Private.([]byte), nil

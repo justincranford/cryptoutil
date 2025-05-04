@@ -13,6 +13,9 @@ import (
 var (
 	KtyOct           = joseJwa.OctetSeq()                             // KeyType
 	AlgDIRECT        = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
+	AlgA256KW        = joseJwa.A256KW()                               // KeyEncryptionAlgorithm
+	AlgA192KW        = joseJwa.A192KW()                               // KeyEncryptionAlgorithm
+	AlgA128KW        = joseJwa.A128KW()                               // KeyEncryptionAlgorithm
 	AlgA256GCMKW     = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
 	AlgA192GCMKW     = joseJwa.A192GCMKW()                            // KeyEncryptionAlgorithm
 	AlgA128GCMKW     = joseJwa.A128GCMKW()                            // KeyEncryptionAlgorithm
@@ -134,7 +137,7 @@ func getJwkAlgAndEnc(jwk joseJwk.Key, i int) (*joseJwa.KeyAlgorithm, *joseJwa.Co
 	}
 
 	var kekAlg joseJwa.KeyAlgorithm
-	err := jwk.Get(joseJwk.AlgorithmKey, &kekAlg) // Example: A256GCMKW, A192GCMKW, A128GCMKW, dir
+	err := jwk.Get(joseJwk.AlgorithmKey, &kekAlg) // Example: A256KW, A192KW, A128KW, A256GCMKW, A192GCMKW, A128GCMKW, dir
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
 	}

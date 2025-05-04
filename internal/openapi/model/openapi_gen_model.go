@@ -20,16 +20,22 @@ import (
 // Defines values for KeyPoolAlgorithm.
 const (
 	A128CBCHS256A128GCMKW KeyPoolAlgorithm = "A128CBC-HS256/A128GCMKW"
+	A128CBCHS256A128KW    KeyPoolAlgorithm = "A128CBC-HS256/A128KW"
 	A128CBCHS256Dir       KeyPoolAlgorithm = "A128CBC-HS256/Dir"
 	A128GCMA128GCMKW      KeyPoolAlgorithm = "A128GCM/A128GCMKW"
+	A128GCMA128KW         KeyPoolAlgorithm = "A128GCM/A128KW"
 	A128GCMDir            KeyPoolAlgorithm = "A128GCM/Dir"
 	A192CBCHS384A192GCMKW KeyPoolAlgorithm = "A192CBC-HS384/A192GCMKW"
+	A192CBCHS384A192KW    KeyPoolAlgorithm = "A192CBC-HS384/A192KW"
 	A192CBCHS384Dir       KeyPoolAlgorithm = "A192CBC-HS384/Dir"
 	A192GCMA192GCMKW      KeyPoolAlgorithm = "A192GCM/A192GCMKW"
+	A192GCMA192KW         KeyPoolAlgorithm = "A192GCM/A192KW"
 	A192GCMDir            KeyPoolAlgorithm = "A192GCM/Dir"
 	A256CBCHS512A256GCMKW KeyPoolAlgorithm = "A256CBC-HS512/A256GCMKW"
+	A256CBCHS512A256KW    KeyPoolAlgorithm = "A256CBC-HS512/A256KW"
 	A256CBCHS512Dir       KeyPoolAlgorithm = "A256CBC-HS512/Dir"
 	A256GCMA256GCMKW      KeyPoolAlgorithm = "A256GCM/A256GCMKW"
+	A256GCMA256KW         KeyPoolAlgorithm = "A256GCM/A256KW"
 	A256GCMDir            KeyPoolAlgorithm = "A256GCM/Dir"
 )
 
@@ -124,7 +130,7 @@ type KeyId = openapi_types.UUID
 
 // KeyPool defines model for KeyPool.
 type KeyPool struct {
-	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256GCMKW' for all values; it is the default.
+	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
 	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
 
 	// Description Description for a Key Pool.
@@ -152,12 +158,12 @@ type KeyPool struct {
 	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// KeyPoolAlgorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256GCMKW' for all values; it is the default.
+// KeyPoolAlgorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
 type KeyPoolAlgorithm string
 
 // KeyPoolCreate defines model for KeyPoolCreate.
 type KeyPoolCreate struct {
-	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256GCMKW' for all values; it is the default.
+	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
 	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
 
 	// Description Description for a Key Pool.
@@ -442,63 +448,64 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"ycP/BgAA//+innnFwUgAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
