@@ -69,6 +69,18 @@ func GenerateAESKey(aesBits int) (Key, error) {
 	return Key{Private: key}, nil
 }
 
+func GenerateAESHSKey(aesHsBits int) (Key, error) {
+	if aesHsBits != 256 && aesHsBits != 384 && aesHsBits != 512 {
+		return Key{}, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be 256, 384, or 512 bits)", aesHsBits)
+	}
+	key := make([]byte, aesHsBits/8)
+	_, err := rand.Read(key)
+	if err != nil {
+		return Key{}, fmt.Errorf("generate AES HAMC-SHA2 %d key failed: %w", aesHsBits, err)
+	}
+	return Key{Private: key}, nil
+}
+
 func GenerateHMACKey(hmacBits int) (Key, error) {
 	if hmacBits < 256 {
 		return Key{}, fmt.Errorf("invalid HMAC key size: %d (must be 256 bits or higher)", hmacBits)

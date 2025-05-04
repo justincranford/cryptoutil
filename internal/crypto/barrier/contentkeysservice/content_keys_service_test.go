@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 	unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
 	defer unsealKeysService.Shutdown()
 
-	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GenKeyPoolForTest(testTelemetryService)
+	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
 	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testAes256KeyGenPool)

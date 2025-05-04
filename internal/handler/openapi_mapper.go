@@ -188,7 +188,6 @@ func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(
 	filters := cryptoutilBusinessLogicModel.SymmetricEncryptParams{
 		Iv:  openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Iv,
 		Aad: openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Aad,
-		Alg: openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Alg,
 	}
 	return &filters
 }

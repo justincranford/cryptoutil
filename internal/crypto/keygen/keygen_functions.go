@@ -30,6 +30,10 @@ func GenerateAESKeyFunction(aesBits int) func() (Key, error) {
 	return func() (Key, error) { return GenerateAESKey(aesBits) }
 }
 
+func GenerateAESHSKeyFunction(aesHsBits int) func() (Key, error) {
+	return func() (Key, error) { return GenerateAESHSKey(aesHsBits) }
+}
+
 func GenerateHMACKeyFunction(hmacBits int) func() (Key, error) {
 	return func() (Key, error) { return GenerateHMACKey(hmacBits) }
 }

@@ -6,13 +6,13 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-func BuildKeyPool(keyPoolID googleUuid.UUID, name, description, provider, algorithm string, versioningAllowed, importAllowed, exportAllowed bool, status string) (*KeyPool, error) {
+func BuildKeyPool(keyPoolID googleUuid.UUID, name, description string, provider KeyPoolProvider, algorithm KeyPoolAlgorithm, versioningAllowed, importAllowed, exportAllowed bool, status string) (*KeyPool, error) {
 	keyPool := KeyPool{
 		KeyPoolID:                keyPoolID,
 		KeyPoolName:              name,
 		KeyPoolDescription:       description,
-		KeyPoolProvider:          KeyPoolProvider(provider),
-		KeyPoolAlgorithm:         KeyPoolAlgorithm(algorithm),
+		KeyPoolProvider:          provider,
+		KeyPoolAlgorithm:         algorithm,
 		KeyPoolVersioningAllowed: versioningAllowed,
 		KeyPoolImportAllowed:     importAllowed,
 		KeyPoolExportAllowed:     exportAllowed,

@@ -36,7 +36,7 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 }
 
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	contentKeyKidUuid, clearContentKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgKekDIRECT, s.aes256KeyGenPool)
+	contentKeyKidUuid, clearContentKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgDIRECT, &cryptoutilJose.EncA256GCM, s.aes256KeyGenPool)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}

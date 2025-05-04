@@ -37,7 +37,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
 
-	keyPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Barrier Service Keys AES-256", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	keyPoolConfig, err := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Barrier Service Keys AES-256-GCM", 3, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool config: %w", err)
 	}

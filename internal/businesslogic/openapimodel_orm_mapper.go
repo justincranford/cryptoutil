@@ -283,7 +283,9 @@ func (*serviceOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) 
 }
 
 func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilBusinessLogicModel.KeyPoolAlgorithm) ([]string, error) {
-	newVar := toStrings(algorithms, func(algorithm cryptoutilBusinessLogicModel.KeyPoolAlgorithm) string { return string(algorithm) })
+	newVar := toStrings(algorithms, func(algorithm cryptoutilBusinessLogicModel.KeyPoolAlgorithm) string {
+		return string(algorithm)
+	})
 	return newVar, nil
 }
 

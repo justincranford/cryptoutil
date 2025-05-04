@@ -80,7 +80,7 @@ func DerDecode(bytes []byte, x509Type string) (any, error) {
 	case PemTypeCsr:
 		key, err = x509.ParseCertificateRequest(bytes)
 	case PemTypeSecretKey:
-		key, err = bytes, nil // AES, HMAC
+		key, err = bytes, nil // AES, HMAC, AES-HMAC
 	default:
 		return nil, fmt.Errorf("type not supported: %s", x509Type)
 	}

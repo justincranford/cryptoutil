@@ -268,9 +268,24 @@ components:
       maxLength: 255
     KeyPoolAlgorithm:
       type: string
-      enum: [ AES-256, AES-192, AES-128 ]
-      example: "AES-256"
-      description: Cryptographic algorithm for the Key Pool.
+      enum: 
+        - A256GCM/A256GCMKW
+        - A192GCM/A192GCMKW
+        - A128GCM/A128GCMKW
+        - A256GCM/Dir
+        - A192GCM/Dir
+        - A128GCM/Dir
+        - A256CBC-HS512/A256GCMKW
+        - A192CBC-HS384/A192GCMKW
+        - A128CBC-HS256/A128GCMKW
+        - A256CBC-HS512/Dir
+        - A192CBC-HS384/Dir
+        - A128CBC-HS256/Dir
+      example: "A256GCM/A256GCMKW"
+      description: Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
+                   If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values.
+                   If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
+                   If in doubt, it is safe to use 'A256GCM/A256GCMKW' for all values; it is the default.
     KeyPoolProvider:
       type: string
       enum: [ Internal ]
@@ -357,17 +372,6 @@ components:
       type: string
       pattern: '^[A-Za-z0-9_-]+$'
       description: Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
-    SymmetricCipherAlgorithm:
-      type: string
-      enum: [ AES-GCM-KeyWrap-V1, AES-GCM-Direct-V1, AES-CBC-HMAC-SHA2-KeyWrap-V1, AES-CBC-HMAC-SHA2-Direct-V1, AES-GCM-SIV-Direct-V1 ]
-      default:  AES-GCM-KeyWrap-V1
-      description: >
-        Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`.
-        - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc.
-        - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc.
-        - `AES-CBC-HMAC-SHA2-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc.
-        - `AES-CBC-HMAC-SHA2-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc.
-        - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
 
     KeyPoolsQueryParams:
       type: object
@@ -458,8 +462,6 @@ components:
           $ref: '#/components/schemas/SymmetricCipherInitializationVector'
         aad:
           $ref: '#/components/schemas/SymmetricCipherAdditionalAuthenticatedData'
-        alg:
-          $ref: '#/components/schemas/SymmetricCipherAlgorithm'
 
     SymmetricEncryptRequest:
       type: string

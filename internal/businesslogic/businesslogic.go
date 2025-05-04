@@ -21,33 +21,42 @@ import (
 
 // BusinessLogicService implements methods in StrictServerInterface
 type BusinessLogicService struct {
-	ormRepository    *cryptoutilOrmRepository.OrmRepository
-	serviceOrmMapper *serviceOrmMapper
-	aes256KeyGenPool *cryptoutilKeygen.KeyGenPool
-	aes192KeyGenPool *cryptoutilKeygen.KeyGenPool
-	aes128KeyGenPool *cryptoutilKeygen.KeyGenPool
-	uuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool
-	barrierService   *cryptoutilBarrierService.BarrierService
+	ormRepository         *cryptoutilOrmRepository.OrmRepository
+	serviceOrmMapper      *serviceOrmMapper
+	aes256KeyGenPool      *cryptoutilKeygen.KeyGenPool // 32-bytes A256GCM (or A256GCMKW)
+	aes192KeyGenPool      *cryptoutilKeygen.KeyGenPool // 24-bytes A192GCM (or A192GCMKW)
+	aes128KeyGenPool      *cryptoutilKeygen.KeyGenPool // 16-bytes A128GCM (or A128GCMKW)
+	aes256HS512KeyGenPool *cryptoutilKeygen.KeyGenPool // 32-bytes A256CBC + 32-bytes HS512 (half of 64-bytes)
+	aes192HS384KeyGenPool *cryptoutilKeygen.KeyGenPool // 24-bytes A192CBC + 24-bytes HS384 (half of 48-bytes)
+	aes128HS256KeyGenPool *cryptoutilKeygen.KeyGenPool // 16-bytes A128CBC + 16-bytes HS256 (half of 32-bytes)
+	uuidV7KeyGenPool      *cryptoutilKeygen.KeyGenPool
+	barrierService        *cryptoutilBarrierService.BarrierService
 }
 
 func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
-	aes256KeyGenPoolConfig, err1 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	aes192KeyGenPoolConfig, err2 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
-	aes128KeyGenPoolConfig, err3 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
-	uuidV7KeyGenPoolConfig, err4 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4))
+	aes256KeyGenPoolConfig, err1 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-GCM", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	aes192KeyGenPoolConfig, err2 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-GCM", 1, 4, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
+	aes128KeyGenPoolConfig, err3 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-GCM", 1, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
+	aes256HS512KeyGenPoolConfig, err4 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-CBC HS-512", 1, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(512))
+	aes192HS384KeyGenPoolConfig, err5 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-CBC HS-384", 1, 4, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(384))
+	aes128HS256KeyGenPoolConfig, err6 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-CBC HS-256", 1, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(256))
+	uuidV7KeyGenPoolConfig, err7 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
+		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
 	}
 
 	aes256KeyGenPool, err1 := cryptoutilKeygen.NewGenKeyPool(aes256KeyGenPoolConfig)
 	aes192KeyGenPool, err2 := cryptoutilKeygen.NewGenKeyPool(aes192KeyGenPoolConfig)
 	aes128KeyGenPool, err3 := cryptoutilKeygen.NewGenKeyPool(aes128KeyGenPoolConfig)
-	uuidV7KeyGenPool, err4 := cryptoutilKeygen.NewGenKeyPool(uuidV7KeyGenPoolConfig)
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4))
+	aes256HS512KeyGenPool, err4 := cryptoutilKeygen.NewGenKeyPool(aes256HS512KeyGenPoolConfig)
+	aes192HS384KeyGenPool, err5 := cryptoutilKeygen.NewGenKeyPool(aes192HS384KeyGenPoolConfig)
+	aes128HS256KeyGenPool, err6 := cryptoutilKeygen.NewGenKeyPool(aes128HS256KeyGenPoolConfig)
+	uuidV7KeyGenPool, err7 := cryptoutilKeygen.NewGenKeyPool(uuidV7KeyGenPoolConfig)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
+		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
 	}
 
-	return &BusinessLogicService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256KeyGenPool: aes256KeyGenPool, aes192KeyGenPool: aes192KeyGenPool, aes128KeyGenPool: aes128KeyGenPool, uuidV7KeyGenPool: uuidV7KeyGenPool, barrierService: barrierService}, nil
+	return &BusinessLogicService{ormRepository: ormRepository, serviceOrmMapper: NewMapper(), aes256KeyGenPool: aes256KeyGenPool, aes192KeyGenPool: aes192KeyGenPool, aes128KeyGenPool: aes128KeyGenPool, aes256HS512KeyGenPool: aes256HS512KeyGenPool, aes192HS384KeyGenPool: aes192HS384KeyGenPool, aes128HS256KeyGenPool: aes128HS256KeyGenPool, uuidV7KeyGenPool: uuidV7KeyGenPool, barrierService: barrierService}, nil
 }
 
 func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) (*cryptoutilBusinessLogicModel.KeyPool, error) {
@@ -71,7 +80,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 		}
 
 		// generate first key automatically now
-		repositoryKey, err := s.generateKeyPoolKeyForInsert(sqlTransaction, keyPoolID, string(repositoryKeyPoolToInsert.KeyPoolAlgorithm))
+		repositoryKey, err := s.generateKeyPoolKeyForInsert(sqlTransaction, keyPoolID, repositoryKeyPoolToInsert.KeyPoolAlgorithm)
 		if err != nil {
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
@@ -151,7 +160,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 			return fmt.Errorf("invalid KeyPoolStatus detected for generate Key: %w", err)
 		}
 
-		repositoryKey, err = s.generateKeyPoolKeyForInsert(sqlTransaction, repositoryKeyPool.KeyPoolID, string(repositoryKeyPool.KeyPoolAlgorithm))
+		repositoryKey, err = s.generateKeyPoolKeyForInsert(sqlTransaction, repositoryKeyPool.KeyPoolID, repositoryKeyPool.KeyPoolAlgorithm)
 		if err != nil {
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
@@ -256,93 +265,58 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest Key material for KeyPoolID: %w", err)
 	}
-	keyPoolKeyTypeAlgorithm := repositoryKeyPool.KeyPoolAlgorithm
-	keyPoolProvider := repositoryKeyPool.KeyPoolProvider
-	repositoryKeyPoolLatestKeyKidUuid := &repositoryKeyPoolLatestKey.KeyID
 
-	if keyPoolProvider != "Internal" {
+	if repositoryKeyPool.KeyPoolProvider != "Internal" {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
 
 	// TODO Use encryptParams for encryption? IV, AAD (N.B. Already using ALG below)
 
-	// Example kekAlg determinations:
-	// keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-GCM-KeyWrap-V1)             => kekAlg (AES-128-GCM-Tag128-KeyWrap-V1)
-	// keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-GCM-Direct-V1)              => kekAlg (AES-192-GCM-Tag128-Direct-V1)
-	// keyPoolKeyTypeAlgorithm (AES-128) + encryptionAlgorithm (AES-CBC-HMAC-SHA256-KeyWrap-V1) => kekAlg (AES-128-CBC-HMAC-SHA256-KeyWrap-V1)
-	// keyPoolKeyTypeAlgorithm (AES-192) + encryptionAlgorithm (AES-CBC-HMAC-SHA384-Direct-V1)  => kekAlg (AES-192-CBC-HMAC-SHA384-Direct-V1)
-	// keyPoolKeyTypeAlgorithm (AES-256) + encryptionAlgorithm (AES-GCM-SIV-Direct-V1)          => kekAlg (AES-256-GCM-SIV-Tag128-Direct-V1)
-
-	var encryptionAlgorithm string
-	if encryptParams == nil || encryptParams.Alg == nil {
-		encryptionAlgorithm = "AES-GCM-KeyWrap-V1" // default
-	} else {
-		encryptionAlgorithm = string(*encryptParams.Alg)
-	}
-
 	var kekAlg *joseJwa.KeyEncryptionAlgorithm
 	var cekAlg *joseJwa.ContentEncryptionAlgorithm
-	switch encryptionAlgorithm {
-	case "AES-GCM-KeyWrap-V1": // key wrap is useful for encrypting large data (e.g. large blobs) to minimize use of the actual key from the key pool
-		switch keyPoolKeyTypeAlgorithm {
-		case cryptoutilOrmRepository.AES256:
-			kekAlg = &cryptoutilJose.AlgKekA256GCMKW
-			cekAlg = &cryptoutilJose.AlgCekA256GCM
-		case cryptoutilOrmRepository.AES192:
-			kekAlg = &cryptoutilJose.AlgKekA192GCMKW
-			cekAlg = &cryptoutilJose.AlgCekA192GCM
-		case cryptoutilOrmRepository.AES128:
-			kekAlg = &cryptoutilJose.AlgKekA128GCMKW
-			cekAlg = &cryptoutilJose.AlgCekA128GCM
-		default:
-			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
-		}
-	case "AES-GCM-Direct-V1": // direct is useful for encrypting small data (i.e. keys)
-		kekAlg = &cryptoutilJose.AlgKekDIRECT // keyPoolKeyTypeAlgorithm (Direct) + encryptionAlgorithm (AES-GCM-Direct-V1) => kekAlg (AES-256-GCM-Tag128-V1)
-		switch keyPoolKeyTypeAlgorithm {
-		case cryptoutilOrmRepository.AES256:
-			cekAlg = &cryptoutilJose.AlgCekA256GCM
-		case cryptoutilOrmRepository.AES192:
-			cekAlg = &cryptoutilJose.AlgCekA192GCM
-		case cryptoutilOrmRepository.AES128:
-			cekAlg = &cryptoutilJose.AlgCekA128GCM
-		default:
-			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
-		}
-	case "AES-CBC-HMAC-SHA2-KeyWrap-V1": // key wrap is useful for encrypting large data (e.g. large blobs) to minimize use of the actual key from the key pool
-		switch keyPoolKeyTypeAlgorithm {
-		case cryptoutilOrmRepository.AES256:
-			kekAlg = &cryptoutilJose.AlgKekA256GCMKW
-			cekAlg = &cryptoutilJose.AlgCekA256CBC_HS512
-		case cryptoutilOrmRepository.AES192:
-			kekAlg = &cryptoutilJose.AlgKekA192GCMKW
-			cekAlg = &cryptoutilJose.AlgCekA192CBC_HS384
-		case cryptoutilOrmRepository.AES128:
-			kekAlg = &cryptoutilJose.AlgKekA128GCMKW
-			cekAlg = &cryptoutilJose.AlgCekA128CBC_HS256
-		default:
-			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
-		}
-	case "AES-CBC-HMAC-SHA2-Direct-V1": // use keyPool key directly for encryption, useful for encrypting keys (i.e. small amounts)
-		kekAlg = &cryptoutilJose.AlgKekDIRECT
-		switch keyPoolKeyTypeAlgorithm {
-		case cryptoutilOrmRepository.AES256:
-			cekAlg = &cryptoutilJose.AlgCekA256CBC_HS512
-		case cryptoutilOrmRepository.AES192:
-			cekAlg = &cryptoutilJose.AlgCekA192CBC_HS384
-		case cryptoutilOrmRepository.AES128:
-			cekAlg = &cryptoutilJose.AlgCekA128CBC_HS256
-		default:
-			return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", keyPoolKeyTypeAlgorithm)
-		}
-	case "AES-GCM-SIV-Direct-V1": // use keyPool key directly for deterministic encryption, useful for encrypting search data (e.g. identifiers, attributes)
-		return nil, fmt.Errorf("encryption algorithm '%s' not implemented yet", string(*encryptParams.Alg))
+	switch repositoryKeyPool.KeyPoolAlgorithm {
+	case cryptoutilOrmRepository.A256GCM_A256GCMKW:
+		kekAlg = &cryptoutilJose.AlgA256GCMKW
+		cekAlg = &cryptoutilJose.EncA256GCM
+	case cryptoutilOrmRepository.A192GCM_A192GCMKW:
+		kekAlg = &cryptoutilJose.AlgA192GCMKW
+		cekAlg = &cryptoutilJose.EncA192GCM
+	case cryptoutilOrmRepository.A128GCM_A128GCMKW:
+		kekAlg = &cryptoutilJose.AlgA128GCMKW
+		cekAlg = &cryptoutilJose.EncA128GCM
+	case cryptoutilOrmRepository.A256GCM_Dir:
+		kekAlg = &cryptoutilJose.AlgDIRECT
+		cekAlg = &cryptoutilJose.EncA256GCM
+	case cryptoutilOrmRepository.A192GCM_Dir:
+		kekAlg = &cryptoutilJose.AlgDIRECT
+		cekAlg = &cryptoutilJose.EncA192GCM
+	case cryptoutilOrmRepository.A128GCM_Dir:
+		kekAlg = &cryptoutilJose.AlgDIRECT
+		cekAlg = &cryptoutilJose.EncA128GCM
+	case cryptoutilOrmRepository.A256CBCHS512_A256GCMKW:
+		kekAlg = &cryptoutilJose.AlgA256GCMKW
+		cekAlg = &cryptoutilJose.EncA256CBC_HS512
+	case cryptoutilOrmRepository.A192CBCHS384_A192GCMKW:
+		kekAlg = &cryptoutilJose.AlgA192GCMKW
+		cekAlg = &cryptoutilJose.EncA192CBC_HS384
+	case cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
+		kekAlg = &cryptoutilJose.AlgA128GCMKW
+		cekAlg = &cryptoutilJose.EncA128CBC_HS256
+	case cryptoutilOrmRepository.A256CBCHS512_Dir:
+		kekAlg = &cryptoutilJose.AlgDIRECT
+		cekAlg = &cryptoutilJose.EncA256CBC_HS512
+	case cryptoutilOrmRepository.A192CBCHS384_Dir:
+		kekAlg = &cryptoutilJose.AlgDIRECT
+		cekAlg = &cryptoutilJose.EncA192CBC_HS384
+	case cryptoutilOrmRepository.A128CBCHS256_Dir:
+		kekAlg = &cryptoutilJose.AlgDIRECT
+		cekAlg = &cryptoutilJose.EncA128CBC_HS256
 	default:
-		return nil, fmt.Errorf("encryption algorithm not supported")
+		return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", repositoryKeyPool.KeyPoolAlgorithm)
 	}
 
-	// envelope encrypt => latestKeyInKeyPool( randomAES256GCM(clearBytes) )
-	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, kekAlg, cekAlg, decryptedKeyPoolLatestKeyMaterialBytes)
+	// envelope encrypt => latestKeyInKeyPool( randomA256GCM(clearBytes) )
+	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(&repositoryKeyPoolLatestKey.KeyID, kekAlg, cekAlg, decryptedKeyPoolLatestKeyMaterialBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
 	}
@@ -413,7 +387,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
 
-	// envelope encrypt => keyInKeyPool( randomAES256GCM(clearBytes) )
+	// envelope encrypt => keyInKeyPool( randomA256GCM(clearBytes) )
 	_, keyInKeyPool, _, err := cryptoutilJose.CreateAesJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, &kekAlg, &cekAlg, decryptedKeyPoolKeyMaterialBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID from JWE kid UUID: %w", err)
@@ -427,7 +401,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	return decryptedJweMessageBytes, nil
 }
 
-func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm string) (*cryptoutilOrmRepository.Key, error) {
+func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) (*cryptoutilOrmRepository.Key, error) {
 	keyID := s.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
 
 	// TODO Generate JWK instead of []byte
@@ -450,15 +424,21 @@ func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *crypt
 	}, nil
 }
 
-func (s *BusinessLogicService) GenerateKeyMaterial(algorithm string) ([]byte, error) {
-	switch string(algorithm) {
-	case "AES-256", "AES256", "A256":
+func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) ([]byte, error) {
+	switch keyPoolAlgorithm {
+	case cryptoutilOrmRepository.A256GCM_A256GCMKW, cryptoutilOrmRepository.A256GCM_Dir, cryptoutilOrmRepository.A256CBCHS512_A256GCMKW:
 		return s.aes256KeyGenPool.Get().Private.([]byte), nil
-	case "AES-192", "AES192", "A192":
+	case cryptoutilOrmRepository.A192GCM_A192GCMKW, cryptoutilOrmRepository.A192GCM_Dir, cryptoutilOrmRepository.A192CBCHS384_A192GCMKW:
 		return s.aes192KeyGenPool.Get().Private.([]byte), nil
-	case "AES-128", "AES128", "A128":
+	case cryptoutilOrmRepository.A128GCM_A128GCMKW, cryptoutilOrmRepository.A128GCM_Dir, cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
 		return s.aes128KeyGenPool.Get().Private.([]byte), nil
+	case cryptoutilOrmRepository.A256CBCHS512_Dir:
+		return s.aes256HS512KeyGenPool.Get().Private.([]byte), nil
+	case cryptoutilOrmRepository.A192CBCHS384_Dir:
+		return s.aes192HS384KeyGenPool.Get().Private.([]byte), nil
+	case cryptoutilOrmRepository.A128CBCHS256_Dir:
+		return s.aes128HS256KeyGenPool.Get().Private.([]byte), nil
 	default:
-		return nil, fmt.Errorf("unsuppported algorithm")
+		return nil, fmt.Errorf("unsuppported keyPoolAlgorithm: %s", keyPoolAlgorithm)
 	}
 }

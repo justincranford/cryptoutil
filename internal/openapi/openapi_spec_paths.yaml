@@ -307,11 +307,6 @@ paths:
           required: false
           schema:
             $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricCipherAdditionalAuthenticatedData'
-        - name: alg
-          in: query
-          required: false
-          schema:
-            $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricCipherAlgorithm'
       requestBody:
         required: true
         content:

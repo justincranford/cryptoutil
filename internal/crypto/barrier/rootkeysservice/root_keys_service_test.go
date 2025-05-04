@@ -29,14 +29,14 @@ func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "root_keys_service_test", false, false)
 	defer testTelemetryService.Shutdown()
 
-	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GenKeyPoolForTest(testTelemetryService)
+	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
 	os.Exit(m.Run())
 }
 
 func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
-	unsealJwks := cryptoutilJose.GenerateAes256KeysForTest(t, 1, &cryptoutilJose.AlgKekA256GCMKW)
+	unsealJwks := cryptoutilJose.GenerateAes256KeysForTest(t, 1, &cryptoutilJose.AlgA256GCMKW, &cryptoutilJose.EncA256GCM)
 	require.NotNil(t, unsealJwks)
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)

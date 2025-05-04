@@ -43,10 +43,11 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	ecdsaKeyGenPoolConfig, err2 := NewKeyGenPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
 	ecdhKeyGenPoolConfig, err3 := NewKeyGenPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
 	eddsaKeyGenPoolConfig, err4 := NewKeyGenPoolConfig(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
-	aesKeyGenPoolConfig, err5 := NewKeyGenPoolConfig(ctx, telemetryService, "Test AES 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateAESKeyFunction(128))
-	hmacKeyGenPoolConfig, err6 := NewKeyGenPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateHMACKeyFunction(256))
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
-		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6))
+	aesKeyGenPoolConfig, err5 := NewKeyGenPoolConfig(ctx, telemetryService, "Test AES 128 GCM", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateAESKeyFunction(128))
+	aesHsKeyGenPoolConfig, err6 := NewKeyGenPoolConfig(ctx, telemetryService, "Test AES 128 GCM", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateAESKeyFunction(128))
+	hmacKeyGenPoolConfig, err7 := NewKeyGenPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, GenerateHMACKeyFunction(256))
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
+		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
 	}
 
 	rsaKeyGenPool, err1 := NewGenKeyPool(rsaKeyGenPoolConfig)
@@ -54,9 +55,10 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	ecdhKeyGenPool, err3 := NewGenKeyPool(ecdhKeyGenPoolConfig)
 	eddsaKeyGenPool, err4 := NewGenKeyPool(eddsaKeyGenPoolConfig)
 	aesKeyGenPool, err5 := NewGenKeyPool(aesKeyGenPoolConfig)
-	hmacKeyGenPool, err6 := NewGenKeyPool(hmacKeyGenPoolConfig)
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil {
-		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6))
+	aesHsKeyGenPool, err6 := NewGenKeyPool(aesHsKeyGenPoolConfig)
+	hmacKeyGenPool, err7 := NewGenKeyPool(hmacKeyGenPoolConfig)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
+		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
 	}
 
 	defer rsaKeyGenPool.Close()
@@ -64,9 +66,10 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	defer ecdhKeyGenPool.Close()
 	defer eddsaKeyGenPool.Close()
 	defer aesKeyGenPool.Close()
+	defer aesHsKeyGenPool.Close()
 	defer hmacKeyGenPool.Close()
 
-	keys := make([]Key, 0, 6*exampleMaxLifetimeKeys) // 6 pools * K keys per pool
+	keys := make([]Key, 0, 7*exampleMaxLifetimeKeys) // 7 pools * K keys per pool
 	for range exampleMaxLifetimeKeys {
 		telemetryService.Slogger.Info("Getting keys")
 		keys = append(keys, rsaKeyGenPool.Get())
@@ -74,6 +77,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 		keys = append(keys, ecdhKeyGenPool.Get())
 		keys = append(keys, eddsaKeyGenPool.Get())
 		keys = append(keys, aesKeyGenPool.Get())
+		keys = append(keys, aesHsKeyGenPool.Get())
 		keys = append(keys, hmacKeyGenPool.Get())
 	}
 

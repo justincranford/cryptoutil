@@ -11,18 +11,18 @@ import (
 )
 
 var (
-	KtyOct              = joseJwa.OctetSeq()                             // KeyType
-	AlgKekDIRECT        = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
-	AlgKekA256GCMKW     = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
-	AlgKekA192GCMKW     = joseJwa.A192GCMKW()                            // KeyEncryptionAlgorithm
-	AlgKekA128GCMKW     = joseJwa.A128GCMKW()                            // KeyEncryptionAlgorithm
-	AlgCekA256GCM       = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
-	AlgCekA192GCM       = joseJwa.A192GCM()                              // ContentEncryptionAlgorithm
-	AlgCekA128GCM       = joseJwa.A128GCM()                              // ContentEncryptionAlgorithm
-	AlgCekA256CBC_HS512 = joseJwa.A256CBC_HS512()                        // ContentEncryptionAlgorithm
-	AlgCekA192CBC_HS384 = joseJwa.A192CBC_HS384()                        // ContentEncryptionAlgorithm
-	AlgCekA128CBC_HS256 = joseJwa.A128CBC_HS256()                        // ContentEncryptionAlgorithm
-	OpsEncDec           = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
+	KtyOct           = joseJwa.OctetSeq()                             // KeyType
+	AlgDIRECT        = joseJwa.DIRECT()                               // KeyEncryptionAlgorithm
+	AlgA256GCMKW     = joseJwa.A256GCMKW()                            // KeyEncryptionAlgorithm
+	AlgA192GCMKW     = joseJwa.A192GCMKW()                            // KeyEncryptionAlgorithm
+	AlgA128GCMKW     = joseJwa.A128GCMKW()                            // KeyEncryptionAlgorithm
+	EncA256GCM       = joseJwa.A256GCM()                              // ContentEncryptionAlgorithm
+	EncA192GCM       = joseJwa.A192GCM()                              // ContentEncryptionAlgorithm
+	EncA128GCM       = joseJwa.A128GCM()                              // ContentEncryptionAlgorithm
+	EncA256CBC_HS512 = joseJwa.A256CBC_HS512()                        // ContentEncryptionAlgorithm
+	EncA192CBC_HS384 = joseJwa.A192CBC_HS384()                        // ContentEncryptionAlgorithm
+	EncA128CBC_HS256 = joseJwa.A128CBC_HS256()                        // ContentEncryptionAlgorithm
+	OpsEncDec        = joseJwk.KeyOperationList{"encrypt", "decrypt"} // []KeyOperation
 )
 
 func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
@@ -134,7 +134,7 @@ func getJwkAlgAndEnc(jwk joseJwk.Key, i int) (*joseJwa.KeyAlgorithm, *joseJwa.Co
 	}
 
 	var kekAlg joseJwa.KeyAlgorithm
-	err := jwk.Get(joseJwk.AlgorithmKey, &kekAlg) // Example: A256GCMKW, A192GCMKW, A128GCMKW, AlgDIRECT
+	err := jwk.Get(joseJwk.AlgorithmKey, &kekAlg) // Example: A256GCMKW, A192GCMKW, A128GCMKW, dir
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
 	}

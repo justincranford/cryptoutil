@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 	unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
 	defer unsealKeysService.Shutdown()
 
-	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GenKeyPoolForTest(testTelemetryService)
+	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
 	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testAes256KeyGenPool)
@@ -56,7 +56,7 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	require.NotNil(t, intermediateKeysService)
 	defer intermediateKeysService.Shutdown()
 
-	_, clearContentKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgKekDIRECT, testAes256KeyGenPool)
+	_, clearContentKey, _, err := cryptoutilJose.GenerateAesJWKFromPool(&cryptoutilJose.AlgDIRECT, &cryptoutilJose.EncA256GCM, testAes256KeyGenPool)
 	require.NoError(t, err)
 	require.NotNil(t, clearContentKey)
 

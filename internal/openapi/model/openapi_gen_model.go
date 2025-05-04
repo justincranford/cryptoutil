@@ -19,9 +19,18 @@ import (
 
 // Defines values for KeyPoolAlgorithm.
 const (
-	AES128 KeyPoolAlgorithm = "AES-128"
-	AES192 KeyPoolAlgorithm = "AES-192"
-	AES256 KeyPoolAlgorithm = "AES-256"
+	A128CBCHS256A128GCMKW KeyPoolAlgorithm = "A128CBC-HS256/A128GCMKW"
+	A128CBCHS256Dir       KeyPoolAlgorithm = "A128CBC-HS256/Dir"
+	A128GCMA128GCMKW      KeyPoolAlgorithm = "A128GCM/A128GCMKW"
+	A128GCMDir            KeyPoolAlgorithm = "A128GCM/Dir"
+	A192CBCHS384A192GCMKW KeyPoolAlgorithm = "A192CBC-HS384/A192GCMKW"
+	A192CBCHS384Dir       KeyPoolAlgorithm = "A192CBC-HS384/Dir"
+	A192GCMA192GCMKW      KeyPoolAlgorithm = "A192GCM/A192GCMKW"
+	A192GCMDir            KeyPoolAlgorithm = "A192GCM/Dir"
+	A256CBCHS512A256GCMKW KeyPoolAlgorithm = "A256CBC-HS512/A256GCMKW"
+	A256CBCHS512Dir       KeyPoolAlgorithm = "A256CBC-HS512/Dir"
+	A256GCMA256GCMKW      KeyPoolAlgorithm = "A256GCM/A256GCMKW"
+	A256GCMDir            KeyPoolAlgorithm = "A256GCM/Dir"
 )
 
 // Defines values for KeyPoolProvider.
@@ -80,15 +89,6 @@ const (
 	KeySortPoolDESC         KeySort = "pool:DESC"
 )
 
-// Defines values for SymmetricCipherAlgorithm.
-const (
-	AESCBCHMACSHA2DirectV1  SymmetricCipherAlgorithm = "AES-CBC-HMAC-SHA2-Direct-V1"
-	AESCBCHMACSHA2KeyWrapV1 SymmetricCipherAlgorithm = "AES-CBC-HMAC-SHA2-KeyWrap-V1"
-	AESGCMDirectV1          SymmetricCipherAlgorithm = "AES-GCM-Direct-V1"
-	AESGCMKeyWrapV1         SymmetricCipherAlgorithm = "AES-GCM-KeyWrap-V1"
-	AESGCMSIVDirectV1       SymmetricCipherAlgorithm = "AES-GCM-SIV-Direct-V1"
-)
-
 // HTTPError defines model for HTTPError.
 type HTTPError struct {
 	// Error HTTP status message
@@ -124,7 +124,7 @@ type KeyId = openapi_types.UUID
 
 // KeyPool defines model for KeyPool.
 type KeyPool struct {
-	// Algorithm Cryptographic algorithm for the Key Pool.
+	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256GCMKW' for all values; it is the default.
 	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
 
 	// Description Description for a Key Pool.
@@ -152,12 +152,12 @@ type KeyPool struct {
 	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// KeyPoolAlgorithm Cryptographic algorithm for the Key Pool.
+// KeyPoolAlgorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256GCMKW' for all values; it is the default.
 type KeyPoolAlgorithm string
 
 // KeyPoolCreate defines model for KeyPoolCreate.
 type KeyPoolCreate struct {
-	// Algorithm Cryptographic algorithm for the Key Pool.
+	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values. If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256GCMKW' for all values; it is the default.
 	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
 
 	// Description Description for a Key Pool.
@@ -298,9 +298,6 @@ type PageSize = int
 // SymmetricCipherAdditionalAuthenticatedData Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
 type SymmetricCipherAdditionalAuthenticatedData = string
 
-// SymmetricCipherAlgorithm Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`. - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-CBC-HMAC-SHA2-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-CBC-HMAC-SHA2-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
-type SymmetricCipherAlgorithm string
-
 // SymmetricCipherInitializationVector Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
 type SymmetricCipherInitializationVector = string
 
@@ -314,9 +311,6 @@ type SymmetricDecryptResponse = string
 type SymmetricEncryptParams struct {
 	// Aad Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
 	Aad *SymmetricCipherAdditionalAuthenticatedData `json:"aad,omitempty"`
-
-	// Alg Optional encryption algorithm. Defaults to `AES-GCM-KeyWrap-V1`. - `AES-GCM-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-GCM-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-CBC-HMAC-SHA2-KeyWrap-V1`: randomized envelope encryption (default) for large, non-searchable values such as file contents, clobs, blobs, etc. - `AES-CBC-HMAC-SHA2-Direct-V1`: randomized direct encryption, for small, non-searchable values such as encryption keys, signing keys, deriving keys, etc. - `AES-GCM-SIV-Direct-V1`: deterministic direct encryption (aka convergent) for small, searchable values such as IDs or attributes, including usernames, names, numbers, and PII (Personally Identifiable Information).
-	Alg *SymmetricCipherAlgorithm `json:"alg,omitempty"`
 
 	// Iv Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
 	Iv *SymmetricCipherInitializationVector `json:"iv,omitempty"`
@@ -448,64 +442,63 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AP//38FUFdNJAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
