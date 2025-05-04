@@ -16,11 +16,17 @@ var happyPathTestCases = []struct {
 	alg *joseJwa.KeyEncryptionAlgorithm
 }{
 	{enc: &EncA256GCM, alg: &AlgA256KW},
+	{enc: &EncA192GCM, alg: &AlgA256KW},
+	{enc: &EncA128GCM, alg: &AlgA256KW},
 	{enc: &EncA192GCM, alg: &AlgA192KW},
+	{enc: &EncA128GCM, alg: &AlgA192KW},
 	{enc: &EncA128GCM, alg: &AlgA128KW},
 
 	{enc: &EncA256GCM, alg: &AlgA256GCMKW},
+	{enc: &EncA192GCM, alg: &AlgA256GCMKW},
+	{enc: &EncA128GCM, alg: &AlgA256GCMKW},
 	{enc: &EncA192GCM, alg: &AlgA192GCMKW},
+	{enc: &EncA128GCM, alg: &AlgA192GCMKW},
 	{enc: &EncA128GCM, alg: &AlgA128GCMKW},
 
 	{enc: &EncA256GCM, alg: &AlgDIRECT},
@@ -28,12 +34,18 @@ var happyPathTestCases = []struct {
 	{enc: &EncA128GCM, alg: &AlgDIRECT},
 
 	{enc: &EncA256CBC_HS512, alg: &AlgA256KW},
+	{enc: &EncA192CBC_HS384, alg: &AlgA256KW},
+	{enc: &EncA128CBC_HS256, alg: &AlgA256KW},
 	{enc: &EncA192CBC_HS384, alg: &AlgA192KW},
+	{enc: &EncA128CBC_HS256, alg: &AlgA192KW},
 	{enc: &EncA128CBC_HS256, alg: &AlgA128KW},
 
 	{enc: &EncA256CBC_HS512, alg: &AlgA256GCMKW},
+	{enc: &EncA192CBC_HS384, alg: &AlgA256GCMKW},
+	{enc: &EncA128CBC_HS256, alg: &AlgA256GCMKW},
 	{enc: &EncA192CBC_HS384, alg: &AlgA192GCMKW},
-	{enc: &EncA128CBC_HS256, alg: &AlgA128GCMKW},
+	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW},
+	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW},
 
 	{enc: &EncA256CBC_HS512, alg: &AlgDIRECT},
 	{enc: &EncA192CBC_HS384, alg: &AlgDIRECT},

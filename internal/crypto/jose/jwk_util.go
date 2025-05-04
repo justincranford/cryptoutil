@@ -103,7 +103,7 @@ func ValidateJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorith
 	switch *alg {
 	case AlgA256KW, AlgA256GCMKW:
 		switch *enc {
-		case EncA256GCM, EncA256CBC_HS512:
+		case EncA256GCM, EncA256CBC_HS512, EncA192GCM, EncA192CBC_HS384, EncA128GCM, EncA128CBC_HS256:
 			if rawKey == nil {
 				if !isNilRawKeyOk {
 					return nil, fmt.Errorf("valid alg %s and enc %s, but invalid nil key; use 32-bytes", *alg, *enc)
@@ -117,7 +117,7 @@ func ValidateJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorith
 		}
 	case AlgA192KW, AlgA192GCMKW:
 		switch *enc {
-		case EncA192GCM, EncA192CBC_HS384:
+		case EncA192GCM, EncA192CBC_HS384, EncA128GCM, EncA128CBC_HS256:
 			if rawKey == nil {
 				if !isNilRawKeyOk {
 					return nil, fmt.Errorf("valid alg %s and enc %s, but invalid nil key; use 24-bytes", *alg, *enc)
