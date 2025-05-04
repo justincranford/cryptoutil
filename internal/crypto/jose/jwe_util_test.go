@@ -12,26 +12,37 @@ import (
 )
 
 var happyPathTestCases = []struct {
-	alg *joseJwa.KeyEncryptionAlgorithm
 	enc *joseJwa.ContentEncryptionAlgorithm
+	alg *joseJwa.KeyEncryptionAlgorithm
 }{
-	// {alg: &AlgA256GCMKW, enc: &EncA256GCM},
-	{alg: &AlgA256GCMKW, enc: &EncA256CBC_HS512},
-	// {alg: &AlgA192GCMKW, enc: &EncA192GCM},
-	// {alg: &AlgA192GCMKW, enc: &EncA192CBC_HS384},
-	// {alg: &AlgA128GCMKW, enc: &EncA128GCM},
-	// {alg: &AlgA128GCMKW, enc: &EncA128CBC_HS256},
-	// {alg: &AlgDIRECT, enc: &EncA256GCM},
-	// {alg: &AlgDIRECT, enc: &EncA192GCM},
-	// {alg: &AlgDIRECT, enc: &EncA128GCM},
-	// {alg: &AlgDIRECT, enc: &EncA256CBC_HS512},
-	// {alg: &AlgDIRECT, enc: &EncA192CBC_HS384},
-	// {alg: &AlgDIRECT, enc: &EncA128CBC_HS256},
+	{enc: &EncA256GCM, alg: &AlgA256KW},
+	{enc: &EncA192GCM, alg: &AlgA192KW},
+	{enc: &EncA128GCM, alg: &AlgA128KW},
+
+	{enc: &EncA256GCM, alg: &AlgA256GCMKW},
+	{enc: &EncA192GCM, alg: &AlgA192GCMKW},
+	{enc: &EncA128GCM, alg: &AlgA128GCMKW},
+
+	{enc: &EncA256GCM, alg: &AlgDIRECT},
+	{enc: &EncA192GCM, alg: &AlgDIRECT},
+	{enc: &EncA128GCM, alg: &AlgDIRECT},
+
+	{enc: &EncA256CBC_HS512, alg: &AlgA256KW},
+	{enc: &EncA192CBC_HS384, alg: &AlgA192KW},
+	{enc: &EncA128CBC_HS256, alg: &AlgA128KW},
+
+	{enc: &EncA256CBC_HS512, alg: &AlgA256GCMKW},
+	{enc: &EncA192CBC_HS384, alg: &AlgA192GCMKW},
+	{enc: &EncA128CBC_HS256, alg: &AlgA128GCMKW},
+
+	{enc: &EncA256CBC_HS512, alg: &AlgDIRECT},
+	{enc: &EncA192CBC_HS384, alg: &AlgDIRECT},
+	{enc: &EncA128CBC_HS256, alg: &AlgDIRECT},
 }
 
 func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		t.Run(testCase.alg.String(), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			actualKeyKid, cek, encodedAesJwk, err := GenerateAesJWK(testCase.alg, testCase.enc)
 			require.NoError(t, err)
 			require.NotNil(t, cek)
@@ -89,7 +100,7 @@ func Test_HappyPath_Bytes(t *testing.T) {
 
 func Test_HappyPath_Key(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
-		t.Run(fmt.Sprintf("%s %s", testCase.alg, testCase.enc), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			_, kek, encodedKek, _ := GenerateAesJWK(testCase.alg, testCase.enc)
 			log.Printf("KEK: %s", string(encodedKek))
 
