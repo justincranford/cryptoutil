@@ -98,12 +98,14 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
-	openapiHandler := cryptoutilOpenapiHandler.NewOpenapiHandler(businessLogicService)
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, cryptoutilOpenapiServer.NewStrictHandler(openapiHandler, nil), cryptoutilOpenapiServer.FiberServerOptions{
-		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{
+	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(businessLogicService)
+	openapiStrictHandler := cryptoutilOpenapiServer.NewOpenapiStrictHandler(openapiStrictServer, nil)
+	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 		},
-	})
+	}
+	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, openapiStrictHandler, fiberServerOptions)
 
 	listenAddress := fmt.Sprintf("%s:%d", listenHost, listenPort)
 

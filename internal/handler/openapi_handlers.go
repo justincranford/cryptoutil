@@ -14,7 +14,7 @@ type StrictServer struct {
 	openapiMapper        *openapiBusinessLogicMapper
 }
 
-func NewOpenapiHandler(service *cryptoutilBusinessLogic.BusinessLogicService) *StrictServer {
+func NewOpenapiStrictServer(service *cryptoutilBusinessLogic.BusinessLogicService) *StrictServer {
 	return &StrictServer{businessLogicService: service, openapiMapper: &openapiBusinessLogicMapper{}}
 }
 
