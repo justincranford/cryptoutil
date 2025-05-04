@@ -38,7 +38,7 @@ func (g *Givens) A256() []byte {
 
 func (g *Givens) Aes256KeyPool(versioningAllowed, importAllowed, exportAllowed bool) *KeyPool {
 	uuidV7 := g.UUIDv7()
-	keyPool, err := BuildKeyPool(uuidV7, string("Key Pool Name "+uuidV7.String()), string("Key Pool Description "+uuidV7.String()), Internal, A256GCM_Dir, versioningAllowed, importAllowed, exportAllowed, string(Creating))
+	keyPool, err := BuildKeyPool(uuidV7, string("Key Pool Name "+uuidV7.String()), string("Key Pool Description "+uuidV7.String()), Internal, A256GCM_dir, versioningAllowed, importAllowed, exportAllowed, string(Creating))
 	cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 key pool")
 	return keyPool
 }

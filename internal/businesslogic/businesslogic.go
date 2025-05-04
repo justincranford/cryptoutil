@@ -311,13 +311,13 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	case cryptoutilOrmRepository.A128GCM_A128GCMKW:
 		cekAlg = &cryptoutilJose.EncA128GCM
 		kekAlg = &cryptoutilJose.AlgA128GCMKW
-	case cryptoutilOrmRepository.A256GCM_Dir:
+	case cryptoutilOrmRepository.A256GCM_dir:
 		cekAlg = &cryptoutilJose.EncA256GCM
 		kekAlg = &cryptoutilJose.AlgDIRECT
-	case cryptoutilOrmRepository.A192GCM_Dir:
+	case cryptoutilOrmRepository.A192GCM_dir:
 		cekAlg = &cryptoutilJose.EncA192GCM
 		kekAlg = &cryptoutilJose.AlgDIRECT
-	case cryptoutilOrmRepository.A128GCM_Dir:
+	case cryptoutilOrmRepository.A128GCM_dir:
 		cekAlg = &cryptoutilJose.EncA128GCM
 		kekAlg = &cryptoutilJose.AlgDIRECT
 	case cryptoutilOrmRepository.A256CBCHS512_A256KW:
@@ -356,13 +356,13 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	case cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
 		cekAlg = &cryptoutilJose.EncA128CBC_HS256
 		kekAlg = &cryptoutilJose.AlgA128GCMKW
-	case cryptoutilOrmRepository.A256CBCHS512_Dir:
+	case cryptoutilOrmRepository.A256CBCHS512_dir:
 		cekAlg = &cryptoutilJose.EncA256CBC_HS512
 		kekAlg = &cryptoutilJose.AlgDIRECT
-	case cryptoutilOrmRepository.A192CBCHS384_Dir:
+	case cryptoutilOrmRepository.A192CBCHS384_dir:
 		cekAlg = &cryptoutilJose.EncA192CBC_HS384
 		kekAlg = &cryptoutilJose.AlgDIRECT
-	case cryptoutilOrmRepository.A128CBCHS256_Dir:
+	case cryptoutilOrmRepository.A128CBCHS256_dir:
 		cekAlg = &cryptoutilJose.EncA128CBC_HS256
 		kekAlg = &cryptoutilJose.AlgDIRECT
 	default:
@@ -484,25 +484,25 @@ func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOr
 		cryptoutilOrmRepository.A256GCM_A256GCMKW, cryptoutilOrmRepository.A192GCM_A256GCMKW, cryptoutilOrmRepository.A128GCM_A256GCMKW,
 		cryptoutilOrmRepository.A256CBCHS512_A256KW, cryptoutilOrmRepository.A192CBCHS384_A256KW, cryptoutilOrmRepository.A128CBCHS256_A256KW,
 		cryptoutilOrmRepository.A256CBCHS512_A256GCMKW, cryptoutilOrmRepository.A192CBCHS384_A256GCMKW, cryptoutilOrmRepository.A128CBCHS256_A256GCMKW,
-		cryptoutilOrmRepository.A256GCM_Dir:
+		cryptoutilOrmRepository.A256GCM_dir:
 		return s.aes256KeyGenPool.Get().Private.([]byte), nil
 	case cryptoutilOrmRepository.A192GCM_A192KW, cryptoutilOrmRepository.A128GCM_A192KW,
 		cryptoutilOrmRepository.A192GCM_A192GCMKW, cryptoutilOrmRepository.A128GCM_A192GCMKW,
 		cryptoutilOrmRepository.A192CBCHS384_A192KW, cryptoutilOrmRepository.A128CBCHS256_A192KW,
 		cryptoutilOrmRepository.A192CBCHS384_A192GCMKW, cryptoutilOrmRepository.A128CBCHS256_A192GCMKW,
-		cryptoutilOrmRepository.A192GCM_Dir:
+		cryptoutilOrmRepository.A192GCM_dir:
 		return s.aes192KeyGenPool.Get().Private.([]byte), nil
 	case cryptoutilOrmRepository.A128GCM_A128KW,
 		cryptoutilOrmRepository.A128GCM_A128GCMKW,
 		cryptoutilOrmRepository.A128CBCHS256_A128KW,
 		cryptoutilOrmRepository.A128CBCHS256_A128GCMKW,
-		cryptoutilOrmRepository.A128GCM_Dir:
+		cryptoutilOrmRepository.A128GCM_dir:
 		return s.aes128KeyGenPool.Get().Private.([]byte), nil
-	case cryptoutilOrmRepository.A256CBCHS512_Dir:
+	case cryptoutilOrmRepository.A256CBCHS512_dir:
 		return s.aes256HS512KeyGenPool.Get().Private.([]byte), nil
-	case cryptoutilOrmRepository.A192CBCHS384_Dir:
+	case cryptoutilOrmRepository.A192CBCHS384_dir:
 		return s.aes192HS384KeyGenPool.Get().Private.([]byte), nil
-	case cryptoutilOrmRepository.A128CBCHS256_Dir:
+	case cryptoutilOrmRepository.A128CBCHS256_dir:
 		return s.aes128HS256KeyGenPool.Get().Private.([]byte), nil
 	default:
 		return nil, fmt.Errorf("unsuppported keyPoolAlgorithm: %s", keyPoolAlgorithm)

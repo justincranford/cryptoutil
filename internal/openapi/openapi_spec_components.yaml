@@ -281,9 +281,9 @@ components:
         - A192GCM/A192GCMKW
         - A128GCM/A192GCMKW
         - A128GCM/A128GCMKW
-        - A256GCM/Dir
-        - A192GCM/Dir
-        - A128GCM/Dir
+        - A256GCM/dir
+        - A192GCM/dir
+        - A128GCM/dir
         - A256CBC-HS512/A256KW
         - A192CBC-HS384/A256KW
         - A128CBC-HS256/A256KW
@@ -296,13 +296,13 @@ components:
         - A192CBC-HS384/A192GCMKW
         - A128CBC-HS256/A192GCMKW
         - A128CBC-HS256/A128GCMKW
-        - A256CBC-HS512/Dir
-        - A192CBC-HS384/Dir
-        - A128CBC-HS256/Dir
+        - A256CBC-HS512/dir
+        - A192CBC-HS384/dir
+        - A128CBC-HS256/dir
       example: "A256GCM/A256KW"
       description: Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
-                   If key encryption algorithm is 'Dir', the Key Pool Key is directly used on values. Direct encryption is useful for small values.
-                   If key encryption algorithm is 'Key Wrap', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
+                   If key encryption algorithm is 'dir', the Key Pool Key is directly used on values. direct encryption is useful for small values.
+                   If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
                    If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
     KeyPoolProvider:
       type: string

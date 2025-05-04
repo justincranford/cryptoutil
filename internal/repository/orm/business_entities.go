@@ -11,7 +11,7 @@ type KeyPool struct {
 	KeyPoolName              string           `gorm:"size:63;not null;check:length(key_pool_name) >= 1;unique"`
 	KeyPoolDescription       string           `gorm:"size:255;not null;check:length(key_pool_description) >= 1"`
 	KeyPoolProvider          KeyPoolProvider  `gorm:"size:8;not null;check:key_pool_provider IN ('Internal')"`
-	KeyPoolAlgorithm         KeyPoolAlgorithm `gorm:"size:23;not null;check:key_pool_algorithm IN ('A256GCM/A256KW', 'A192GCM/A256KW', 'A128GCM/A256KW', 'A192GCM/A192KW', 'A128GCM/A192KW', 'A128GCM/A128KW', 'A256GCM/A256GCMKW', 'A192GCM/A256GCMKW', 'A128GCM/A256GCMKW', 'A192GCM/A192GCMKW', 'A128GCM/A192GCMKW', 'A128GCM/A128GCMKW', 'A256GCM/Dir', 'A192GCM/Dir', 'A128GCM/Dir', 'A256CBC-HS512/A256KW', 'A192CBC-HS384/A256KW', 'A128CBC-HS256/A256KW', 'A192CBC-HS384/A192KW', 'A128CBC-HS256/A192KW', 'A128CBC-HS256/A128KW', 'A256CBC-HS512/A256GCMKW', 'A192CBC-HS384/A256GCMKW', 'A128CBC-HS256/A256GCMKW', 'A192CBC-HS384/A192GCMKW', 'A128CBC-HS256/A192GCMKW', 'A128CBC-HS256/A128GCMKW', 'A256CBC-HS512/Dir', 'A192CBC-HS384/Dir', 'A128CBC-HS256/Dir')"`
+	KeyPoolAlgorithm         KeyPoolAlgorithm `gorm:"size:23;not null;check:key_pool_algorithm IN ('A256GCM/A256KW', 'A192GCM/A256KW', 'A128GCM/A256KW', 'A192GCM/A192KW', 'A128GCM/A192KW', 'A128GCM/A128KW', 'A256GCM/A256GCMKW', 'A192GCM/A256GCMKW', 'A128GCM/A256GCMKW', 'A192GCM/A192GCMKW', 'A128GCM/A192GCMKW', 'A128GCM/A128GCMKW', 'A256GCM/dir', 'A192GCM/dir', 'A128GCM/dir', 'A256CBC-HS512/A256KW', 'A192CBC-HS384/A256KW', 'A128CBC-HS256/A256KW', 'A192CBC-HS384/A192KW', 'A128CBC-HS256/A192KW', 'A128CBC-HS256/A128KW', 'A256CBC-HS512/A256GCMKW', 'A192CBC-HS384/A256GCMKW', 'A128CBC-HS256/A256GCMKW', 'A192CBC-HS384/A192GCMKW', 'A128CBC-HS256/A192GCMKW', 'A128CBC-HS256/A128GCMKW', 'A256CBC-HS512/dir', 'A192CBC-HS384/dir', 'A128CBC-HS256/dir')"`
 	KeyPoolVersioningAllowed bool             `gorm:"not null;check:key_pool_versioning_allowed IN (TRUE, FALSE)"`
 	KeyPoolImportAllowed     bool             `gorm:"not null;check:key_pool_import_allowed IN (TRUE, FALSE)"`
 	KeyPoolExportAllowed     bool             `gorm:"not null;check:key_pool_export_allowed IN (TRUE, FALSE)"`
@@ -43,9 +43,9 @@ const (
 	A192GCM_A192GCMKW      KeyPoolAlgorithm = "A192GCM/A192GCMKW"
 	A128GCM_A192GCMKW      KeyPoolAlgorithm = "A128GCM/A192GCMKW"
 	A128GCM_A128GCMKW      KeyPoolAlgorithm = "A128GCM/A128GCMKW"
-	A256GCM_Dir            KeyPoolAlgorithm = "A256GCM/Dir"
-	A192GCM_Dir            KeyPoolAlgorithm = "A192GCM/Dir"
-	A128GCM_Dir            KeyPoolAlgorithm = "A128GCM/Dir"
+	A256GCM_dir            KeyPoolAlgorithm = "A256GCM/dir"
+	A192GCM_dir            KeyPoolAlgorithm = "A192GCM/dir"
+	A128GCM_dir            KeyPoolAlgorithm = "A128GCM/dir"
 	A256CBCHS512_A256KW    KeyPoolAlgorithm = "A256CBC-HS512/A256KW"
 	A192CBCHS384_A256KW    KeyPoolAlgorithm = "A192CBC-HS384/A256KW"
 	A128CBCHS256_A256KW    KeyPoolAlgorithm = "A128CBC-HS256/A256KW"
@@ -58,9 +58,9 @@ const (
 	A192CBCHS384_A192GCMKW KeyPoolAlgorithm = "A192CBC-HS384/A192GCMKW"
 	A128CBCHS256_A192GCMKW KeyPoolAlgorithm = "A128CBC-HS256/A192GCMKW"
 	A128CBCHS256_A128GCMKW KeyPoolAlgorithm = "A128CBC-HS256/A128GCMKW"
-	A256CBCHS512_Dir       KeyPoolAlgorithm = "A256CBC-HS512/Dir"
-	A192CBCHS384_Dir       KeyPoolAlgorithm = "A192CBC-HS384/Dir"
-	A128CBCHS256_Dir       KeyPoolAlgorithm = "A128CBC-HS256/Dir"
+	A256CBCHS512_dir       KeyPoolAlgorithm = "A256CBC-HS512/dir"
+	A192CBCHS384_dir       KeyPoolAlgorithm = "A192CBC-HS384/dir"
+	A128CBCHS256_dir       KeyPoolAlgorithm = "A128CBC-HS256/dir"
 )
 
 type KeyPoolProvider string
