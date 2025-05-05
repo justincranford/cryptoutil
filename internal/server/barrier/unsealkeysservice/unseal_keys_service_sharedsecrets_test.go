@@ -1,8 +1,9 @@
 package unsealkeysservice
 
 import (
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	"testing"
+
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 
 	"github.com/stretchr/testify/require"
 )

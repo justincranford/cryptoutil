@@ -1,10 +1,11 @@
 package orm
 
 import (
-	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	"fmt"
 	"strings"
 	"testing"
+
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 
 	"github.com/stretchr/testify/require"
 )

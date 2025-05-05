@@ -1,8 +1,9 @@
 package unsealkeysservice
 
 import (
-	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	"testing"
+
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"

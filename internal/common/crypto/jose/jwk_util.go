@@ -2,11 +2,12 @@ package jose
 
 import (
 	"crypto/rand"
+	"encoding/json"
+	"fmt"
+
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	"encoding/json"
-	"fmt"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"

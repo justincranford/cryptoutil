@@ -1,9 +1,10 @@
 package jose
 
 import (
-	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	"encoding/json"
 	"fmt"
+
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
