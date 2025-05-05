@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	cryptoutilBarrierService "cryptoutil/internal/common/crypto/barrier"
-	cryptoutilUnsealKeysService "cryptoutil/internal/common/crypto/barrier/unsealkeysservice"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
+	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
+	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"

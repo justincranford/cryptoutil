@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilContentKeysService "cryptoutil/internal/common/crypto/barrier/contentkeysservice"
-	cryptoutilIntermediateKeysService "cryptoutil/internal/common/crypto/barrier/intermediatekeysservice"
-	cryptoutilRootKeysService "cryptoutil/internal/common/crypto/barrier/rootkeysservice"
-	cryptoutilUnsealKeysService "cryptoutil/internal/common/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilContentKeysService "cryptoutil/internal/server/barrier/contentkeysservice"
+	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
+	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
+	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 )
 

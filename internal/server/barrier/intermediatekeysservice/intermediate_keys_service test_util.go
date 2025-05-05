@@ -2,9 +2,9 @@ package intermediatekeysservice
 
 import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilRootKeysService "cryptoutil/internal/common/crypto/barrier/rootkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 )
 

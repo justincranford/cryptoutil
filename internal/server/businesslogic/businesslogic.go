@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilBarrierService "cryptoutil/internal/common/crypto/barrier"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
+	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
