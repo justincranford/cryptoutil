@@ -3,9 +3,9 @@ package handler
 import (
 	"context"
 
-	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
+	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 )
 
 // StrictServer implements cryptoutilOpenapiServer.StrictServerInterface

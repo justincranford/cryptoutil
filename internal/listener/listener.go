@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
@@ -16,6 +15,7 @@ import (
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
+	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
