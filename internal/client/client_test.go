@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -24,13 +25,24 @@ func TestClient(t *testing.T) {
 	defer stop()
 
 	openapiClient := RequireClientWithResponses(t, "http://localhost:8080/")
-	openapiCreateKeyPoolRequest := RequireCreateKeyPoolRequest(t, "Name", "Description", "A256GCM/A256KW", "Internal", false, false, true)
-	openapiCreateKeyPoolResponse := RequireCreateKeyPoolResponse(t, context.Background(), openapiClient, openapiCreateKeyPoolRequest)
 
-	responseJson, err := json.MarshalIndent(*openapiCreateKeyPoolResponse.JSON200, "", "  ")
-	require.NoError(t, err)
-	require.NotNil(t, responseJson)
-	t.Logf("Response: %s", responseJson)
+	createdKeyPools := make([]*cryptoutilOpenapiModel.KeyPool, 0, 10)
+	for i := range cap(createdKeyPools) {
+		suffix := strconv.Itoa(i + 1)
+		openapiCreateKeyPoolRequest := RequireCreateKeyPoolRequest(t, "Name "+suffix, "Description "+suffix, "A256GCM/A256KW", "Internal", false, false, true)
+		openapiCreateKeyPoolResponse := RequireCreateKeyPoolResponse(t, context.Background(), openapiClient, openapiCreateKeyPoolRequest)
+
+		createdKeyPool := openapiCreateKeyPoolResponse.JSON200
+		createdKeyPools = append(createdKeyPools, createdKeyPool)
+	}
+
+	t.Logf("Created %d key pools", len(createdKeyPools))
+	for _, createdKeyPool := range createdKeyPools {
+		responseJson, err := json.MarshalIndent(*createdKeyPool, "", "  ")
+		require.NoError(t, err)
+		require.NotNil(t, responseJson)
+		t.Log(string(responseJson))
+	}
 }
 
 func RequireClientWithResponses(t *testing.T, baseUrl string) *cryptoutilOpenapiClient.ClientWithResponses {
