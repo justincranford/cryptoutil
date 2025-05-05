@@ -1,7 +1,7 @@
 package rootkeysservice
 
 import (
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"

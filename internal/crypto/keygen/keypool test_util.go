@@ -2,7 +2,7 @@ package keygen
 
 import (
 	"context"
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 

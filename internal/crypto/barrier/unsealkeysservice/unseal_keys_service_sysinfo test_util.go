@@ -1,7 +1,7 @@
 package unsealkeysservice
 
 import (
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	"cryptoutil/internal/util/sysinfo"
 )
 

@@ -1,7 +1,7 @@
 package util
 
 import (
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	"fmt"
 
 	googleUuid "github.com/google/uuid"

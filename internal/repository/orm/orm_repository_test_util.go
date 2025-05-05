@@ -3,7 +3,7 @@ package orm
 import (
 	"context"
 
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )

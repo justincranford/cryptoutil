@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"testing"
 
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilAsn1 "cryptoutil/internal/crypto/asn1"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )

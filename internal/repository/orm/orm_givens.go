@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 

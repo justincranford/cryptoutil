@@ -1,7 +1,7 @@
 package jose
 
 import (
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	"encoding/json"
 	"fmt"
 

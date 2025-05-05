@@ -3,7 +3,7 @@ package telemetry
 import (
 	"context"
 
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 )
 
 func RequireNewForTest(ctx context.Context, scope string, enableOtel, enableStdout bool) *TelemetryService {

@@ -2,7 +2,7 @@ package jose
 
 import (
 	"crypto/rand"
-	cryptoutilAppErr "cryptoutil/internal/apperr"
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/util"
 	"encoding/json"
