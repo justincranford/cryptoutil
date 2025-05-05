@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	cryptoutilServer "cryptoutil/internal/listener"
+	cryptoutilServer "cryptoutil/internal/server/listener"
 )
 
 func main() {
