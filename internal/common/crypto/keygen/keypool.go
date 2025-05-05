@@ -89,27 +89,27 @@ func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTeleme
 
 func validateConfig(config *KeyPoolConfig) error {
 	if config == nil {
-		return fmt.Errorf("KeyPoolConfig can't be nil")
+		return fmt.Errorf("keyPoolConfig can't be nil")
 	} else if config.ctx == nil {
-		return fmt.Errorf("Context can't be nil")
+		return fmt.Errorf("context can't be nil")
 	} else if config.telemetryService == nil {
-		return fmt.Errorf("Telemetry service can't be nil")
+		return fmt.Errorf("telemetry service can't be nil")
 	} else if len(config.poolName) == 0 {
-		return fmt.Errorf("Name can't be empty")
+		return fmt.Errorf("name can't be empty")
 	} else if config.numWorkers == 0 {
-		return fmt.Errorf("Number of workers can't be 0")
+		return fmt.Errorf("number of workers can't be 0")
 	} else if config.poolSize == 0 {
-		return fmt.Errorf("Pool size can't be 0")
+		return fmt.Errorf("pool size can't be 0")
 	} else if config.maxLifetimeKeys == 0 {
-		return fmt.Errorf("Max lifetime keys can't be 0")
+		return fmt.Errorf("max lifetime keys can't be 0")
 	} else if config.maxLifetimeDuration <= 0 {
-		return fmt.Errorf("Max lifetime duration must be positive and non-zero")
+		return fmt.Errorf("max lifetime duration must be positive and non-zero")
 	} else if config.numWorkers > config.poolSize {
-		return fmt.Errorf("Number of workers can't be greater than pool size")
+		return fmt.Errorf("number of workers can't be greater than pool size")
 	} else if uint64(config.poolSize) > config.maxLifetimeKeys {
-		return fmt.Errorf("Pool size can't be greater than max lifetime keys")
+		return fmt.Errorf("pool size can't be greater than max lifetime keys")
 	} else if config.generateFunction == nil {
-		return fmt.Errorf("Generate function can't be nil")
+		return fmt.Errorf("generate function can't be nil")
 	}
 	return nil
 }
