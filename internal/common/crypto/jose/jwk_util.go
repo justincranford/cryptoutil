@@ -3,8 +3,8 @@ package jose
 import (
 	"crypto/rand"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	"encoding/json"
 	"fmt"
 

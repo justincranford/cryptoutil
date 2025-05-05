@@ -1,7 +1,7 @@
 package orm
 
 import (
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	"fmt"
 	"strings"
 	"testing"

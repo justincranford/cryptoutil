@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilAsn1 "cryptoutil/internal/crypto/asn1"
 )
 
 const (

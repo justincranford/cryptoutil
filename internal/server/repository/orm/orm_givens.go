@@ -5,8 +5,8 @@ import (
 	"time"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 
 	googleUuid "github.com/google/uuid"
 )

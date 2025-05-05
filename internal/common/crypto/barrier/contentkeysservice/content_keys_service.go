@@ -3,10 +3,10 @@ package contentkeysservice
 import (
 	"fmt"
 
+	cryptoutilIntermediateKeysService "cryptoutil/internal/common/crypto/barrier/intermediatekeysservice"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilIntermediateKeysService "cryptoutil/internal/crypto/barrier/intermediatekeysservice"
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
-	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"

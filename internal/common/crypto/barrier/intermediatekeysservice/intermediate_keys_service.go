@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	cryptoutilRootKeysService "cryptoutil/internal/common/crypto/barrier/rootkeysservice"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
-	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"

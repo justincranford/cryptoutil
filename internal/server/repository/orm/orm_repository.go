@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	"gorm.io/gorm"

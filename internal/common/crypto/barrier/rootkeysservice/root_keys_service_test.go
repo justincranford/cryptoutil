@@ -5,10 +5,10 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilUnsealKeysService "cryptoutil/internal/common/crypto/barrier/unsealkeysservice"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
-	cryptoutilJose "cryptoutil/internal/crypto/jose"
-	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
