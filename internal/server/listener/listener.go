@@ -11,9 +11,9 @@ import (
 	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
-	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
+	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
