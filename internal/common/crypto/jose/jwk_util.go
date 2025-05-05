@@ -13,9 +13,9 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-func GenerateAesJWK(alg *joseJwa.KeyEncryptionAlgorithm, enc *joseJwa.ContentEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func GenerateAesJWK(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	kid := googleUuid.Must(googleUuid.NewV7())
-	rawKey, err := ValidateJWKHeaders(&kid, alg, enc, nil, true) // true => if successful, it makes a raw key  []byte of the correct length
+	rawKey, err := ValidateJWKHeaders(&kid, enc, alg, nil, true) // true => if successful, it makes a raw key  []byte of the correct length
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWK headers: %w", err)
 	}
@@ -23,20 +23,20 @@ func GenerateAesJWK(alg *joseJwa.KeyEncryptionAlgorithm, enc *joseJwa.ContentEnc
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to generate raw key length %d for alg %s and enc %s: %w", len(rawKey)/8, *alg, *enc, err)
 	}
-	return CreateAesJWKFromBytes(&kid, alg, enc, rawKey)
+	return CreateAesJWKFromBytes(&kid, enc, alg, rawKey)
 }
 
-func GenerateAesJWKFromPool(alg *joseJwa.KeyEncryptionAlgorithm, enc *joseJwa.ContentEncryptionAlgorithm, keyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func GenerateAesJWKFromPool(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	kid := googleUuid.Must(googleUuid.NewV7())
 	rawKey, ok := keyGenPool.Get().Private.([]byte)
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("failed to generate raw AES 256 key from pool")
 	}
-	return CreateAesJWKFromBytes(&kid, alg, enc, rawKey)
+	return CreateAesJWKFromBytes(&kid, enc, alg, rawKey)
 }
 
-func CreateAesJWKFromBytes(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorithm, enc *joseJwa.ContentEncryptionAlgorithm, rawKey []byte) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	_, err := ValidateJWKHeaders(kid, alg, enc, rawKey, false)
+func CreateAesJWKFromBytes(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, rawKey []byte) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	_, err := ValidateJWKHeaders(kid, enc, alg, rawKey, false)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWK headers: %w", err)
 	}
@@ -90,7 +90,7 @@ func ExtractKidUuid(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	return &kidUuid, nil
 }
 
-func ValidateJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.KeyEncryptionAlgorithm, enc *joseJwa.ContentEncryptionAlgorithm, rawKey []byte, isNilRawKeyOk bool) ([]byte, error) {
+func ValidateJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, rawKey []byte, isNilRawKeyOk bool) ([]byte, error) {
 	if err := cryptoutilUtil.ValidateUUID(kid, "invalid kid"); err != nil {
 		return nil, fmt.Errorf("kid must be valid: %w", err)
 	} else if alg == nil {

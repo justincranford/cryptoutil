@@ -41,18 +41,18 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
 	}
 	for i, jwk := range jwks {
-		kekAlg, cekAlg, err := getJwkAlgAndEnc(jwk, i)
+		enc, alg, err := getJwkAlgAndEnc(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
 		if len(cekAlgs) == 0 {
-			jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithContentEncryption(*cekAlg)) // only add CEK alg once
+			jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithContentEncryption(*enc)) // only add CEK alg once
 		}
-		cekAlgs[*cekAlg] = struct{}{} // ensure CEK alg is the same for all JWKs
+		cekAlgs[*enc] = struct{}{} // ensure CEK alg is the same for all JWKs
 		if len(cekAlgs) != 1 {
 			return nil, nil, fmt.Errorf("can't use JWK %d 'enc' attributes; only one unique 'enc' attribute is allowed", i)
 		}
-		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*kekAlg, jwk)) // add ALG+JWK tuple for each JWK
+		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*alg, jwk)) // add ALG+JWK tuple for each JWK
 	}
 
 	encodedJweMessage, err := joseJwe.Encrypt(clearBytes, jweEncryptOptions...)
@@ -83,15 +83,15 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	cekAlgs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
 	jweDecryptOptions := make([]joseJwe.DecryptOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		kekAlg, cekAlg, err := getJwkAlgAndEnc(jwk, i)
+		enc, alg, err := getJwkAlgAndEnc(jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
-		cekAlgs[*cekAlg] = struct{}{}
+		cekAlgs[*enc] = struct{}{}
 		if len(cekAlgs) != 1 {
 			return nil, fmt.Errorf("can't use JWK %d 'enc' attributes; only one unique 'enc' attribute is allowed", i)
 		}
-		jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithKey(*kekAlg, jwk))
+		jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithKey(*alg, jwk))
 	}
 	jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithMessage(jweMessage))
 
@@ -131,19 +131,19 @@ func JSONHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	return string(jweHeadersString), err
 }
 
-func getJwkAlgAndEnc(jwk joseJwk.Key, i int) (*joseJwa.KeyAlgorithm, *joseJwa.ContentEncryptionAlgorithm, error) {
+func getJwkAlgAndEnc(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyAlgorithm, error) {
 	if jwk == nil {
 		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
 
-	var kekAlg joseJwa.KeyAlgorithm
-	err := jwk.Get(joseJwk.AlgorithmKey, &kekAlg) // Example: A256KW, A192KW, A128KW, A256GCMKW, A192GCMKW, A128GCMKW, dir
+	var alg joseJwa.KeyAlgorithm
+	err := jwk.Get(joseJwk.AlgorithmKey, &alg) // Example: A256KW, A192KW, A128KW, A256GCMKW, A192GCMKW, A128GCMKW, dir
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
 	}
 
-	var cekAlg joseJwa.ContentEncryptionAlgorithm
-	err = jwk.Get("enc", &cekAlg) // Example: A256GCM, A192GCM, A128GCM, A256CBC-HS512, A192CBC-HS384, A128CBC-HS256
+	var enc joseJwa.ContentEncryptionAlgorithm
+	err = jwk.Get("enc", &enc) // Example: A256GCM, A192GCM, A128GCM, A256CBC-HS512, A192CBC-HS384, A128CBC-HS256
 	if err != nil {
 		// Workaround: If JWK was serialized (for encryption) and parsed (after decryption), 'enc' header incorrect gets parsed as string, so try getting as string converting it to joseJwa.ContentEncryptionAlgorithm
 		var cekAlgString string
@@ -151,7 +151,7 @@ func getJwkAlgAndEnc(jwk joseJwk.Key, i int) (*joseJwa.KeyAlgorithm, *joseJwa.Co
 		if err != nil {
 			return nil, nil, fmt.Errorf("can't get JWK %d 'enc' attribute: %w", i, err)
 		}
-		cekAlg = joseJwa.NewContentEncryptionAlgorithm(cekAlgString)
+		enc = joseJwa.NewContentEncryptionAlgorithm(cekAlgString)
 	}
-	return &kekAlg, &cekAlg, nil
+	return &enc, &alg, nil
 }

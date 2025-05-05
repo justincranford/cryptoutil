@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func GenerateAes256KeysForTest(t *testing.T, count int, alg *joseJwa.KeyEncryptionAlgorithm, enc *joseJwa.ContentEncryptionAlgorithm) []joseJwk.Key {
+func GenerateAes256KeysForTest(t *testing.T, count int, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) []joseJwk.Key {
 	type jwkOrErr struct {
 		key joseJwk.Key
 		err error
@@ -21,7 +21,7 @@ func GenerateAes256KeysForTest(t *testing.T, count int, alg *joseJwa.KeyEncrypti
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, jwk, _, err := GenerateAesJWK(alg, enc)
+			_, jwk, _, err := GenerateAesJWK(enc, alg)
 			jwkOrErrs <- jwkOrErr{key: jwk, err: err}
 		}()
 	}
