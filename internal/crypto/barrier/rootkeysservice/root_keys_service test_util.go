@@ -5,7 +5,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 )
 
 func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) *RootKeysService {

@@ -13,9 +13,9 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
+	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
+	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"

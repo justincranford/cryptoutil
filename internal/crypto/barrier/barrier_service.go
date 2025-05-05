@@ -11,7 +11,7 @@ import (
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 )
 
 type BarrierService struct {

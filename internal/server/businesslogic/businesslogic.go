@@ -11,7 +11,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
-	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"

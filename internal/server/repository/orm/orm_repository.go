@@ -6,7 +6,7 @@ import (
 
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
+	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	"gorm.io/gorm"
 

@@ -5,7 +5,7 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
+	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 )
 
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) *OrmRepository {

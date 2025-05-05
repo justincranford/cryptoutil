@@ -10,8 +10,8 @@ import (
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
+	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
+	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

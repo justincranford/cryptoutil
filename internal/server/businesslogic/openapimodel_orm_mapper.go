@@ -7,7 +7,7 @@ import (
 
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
-	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
+	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
 )

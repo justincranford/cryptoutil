@@ -10,8 +10,8 @@ import (
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
-	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
+	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
+	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
