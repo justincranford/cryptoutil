@@ -269,36 +269,36 @@ components:
     KeyPoolAlgorithm:
       type: string
       enum: 
-        - A256GCM/A256KW
-        - A192GCM/A256KW
-        - A128GCM/A256KW
-        - A192GCM/A192KW
-        - A128GCM/A192KW
-        - A128GCM/A128KW
-        - A256GCM/A256GCMKW
-        - A192GCM/A256GCMKW
-        - A128GCM/A256GCMKW
-        - A192GCM/A192GCMKW
-        - A128GCM/A192GCMKW
-        - A128GCM/A128GCMKW
-        - A256GCM/dir
-        - A192GCM/dir
-        - A128GCM/dir
-        - A256CBC-HS512/A256KW
-        - A192CBC-HS384/A256KW
-        - A128CBC-HS256/A256KW
-        - A192CBC-HS384/A192KW
-        - A128CBC-HS256/A192KW
-        - A128CBC-HS256/A128KW
-        - A256CBC-HS512/A256GCMKW
-        - A192CBC-HS384/A256GCMKW
-        - A128CBC-HS256/A256GCMKW
-        - A192CBC-HS384/A192GCMKW
-        - A128CBC-HS256/A192GCMKW
-        - A128CBC-HS256/A128GCMKW
-        - A256CBC-HS512/dir
-        - A192CBC-HS384/dir
-        - A128CBC-HS256/dir
+        - "A256GCM/A256KW"
+        - "A192GCM/A256KW"
+        - "A128GCM/A256KW"
+        - "A192GCM/A192KW"
+        - "A128GCM/A192KW"
+        - "A128GCM/A128KW"
+        - "A256GCM/A256GCMKW"
+        - "A192GCM/A256GCMKW"
+        - "A128GCM/A256GCMKW"
+        - "A192GCM/A192GCMKW"
+        - "A128GCM/A192GCMKW"
+        - "A128GCM/A128GCMKW"
+        - "A256GCM/dir"
+        - "A192GCM/dir"
+        - "A128GCM/dir"
+        - "A256CBC-HS512/A256KW"
+        - "A192CBC-HS384/A256KW"
+        - "A128CBC-HS256/A256KW"
+        - "A192CBC-HS384/A192KW"
+        - "A128CBC-HS256/A192KW"
+        - "A128CBC-HS256/A128KW"
+        - "A256CBC-HS512/A256GCMKW"
+        - "A192CBC-HS384/A256GCMKW"
+        - "A128CBC-HS256/A256GCMKW"
+        - "A192CBC-HS384/A192GCMKW"
+        - "A128CBC-HS256/A192GCMKW"
+        - "A128CBC-HS256/A128GCMKW"
+        - "A256CBC-HS512/dir"
+        - "A192CBC-HS384/dir"
+        - "A128CBC-HS256/dir"
       example: "A256GCM/A256KW"
       description: Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
                    If key encryption algorithm is 'dir', the Key Pool Key is directly used on values. direct encryption is useful for small values.
@@ -324,41 +324,41 @@ components:
     KeyPoolStatus:
       type: string
       enum:
-        - creating
-        - import_failed
-        - pending_import
-        - pending_generate
-        - generate_failed
-        - active
-        - disabled
-        - pending_delete_was_import_failed
-        - pending_delete_was_pending_import
-        - pending_delete_was_active
-        - pending_delete_was_disabled
-        - pending_delete_was_generate_failed
-        - started_delete
-        - finished_delete
+        - "creating"
+        - "import_failed"
+        - "pending_import"
+        - "pending_generate"
+        - "generate_failed"
+        - "active"
+        - "disabled"
+        - "pending_delete_was_import_failed"
+        - "pending_delete_was_pending_import"
+        - "pending_delete_was_active"
+        - "pending_delete_was_disabled"
+        - "pending_delete_was_generate_failed"
+        - "started_delete"
+        - "finished_delete"
       example: "creating"
       description: Status of the Key Pool.
     KeyPoolSort:
       type: string
       enum:
-        - id:ASC
-        - id:DESC
-        - name:ASC
-        - name:DESC
-        - provider:ASC
-        - provider:DESC
-        - algorithm:ASC
-        - algorithm:DESC
-        - versioning_allowed:ASC
-        - versioning_allowed:DESC
-        - import_allowed:ASC
-        - import_allowed:DESC
-        - export_allowed:ASC
-        - export_allowed:DESC
-        - status:ASC
-        - status:DESC
+        - "id:ASC"
+        - "id:DESC"
+        - "name:ASC"
+        - "name:DESC"
+        - "provider:ASC"
+        - "provider:DESC"
+        - "algorithm:ASC"
+        - "algorithm:DESC"
+        - "versioning_allowed:ASC"
+        - "versioning_allowed:DESC"
+        - "import_allowed:ASC"
+        - "import_allowed:DESC"
+        - "export_allowed:ASC"
+        - "export_allowed:DESC"
+        - "status:ASC"
+        - "status:DESC"
 
     KeyId:
       type: string
@@ -372,15 +372,15 @@ components:
     KeySort:
       type: string
       enum:
-        - pool
-        - pool:ASC
-        - pool:DESC
-        - id
-        - id:ASC
-        - id:DESC
-        - generate_date
-        - generate_date:ASC
-        - generate_date:DESC
+        - "pool"
+        - "pool:ASC"
+        - "pool:DESC"
+        - "id"
+        - "id:ASC"
+        - "id:DESC"
+        - "generate_date"
+        - "generate_date:ASC"
+        - "generate_date:DESC"
 
     SymmetricCipherInitializationVector:
       type: string
