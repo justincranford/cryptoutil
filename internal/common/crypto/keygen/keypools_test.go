@@ -25,6 +25,8 @@ const (
 )
 
 func TestPoolsExample(t *testing.T) {
+	tempDir := t.TempDir()
+
 	ctx := context.Background()
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(testCtx, "keypools_test", false, false)
 	defer telemetryService.Shutdown()
@@ -34,8 +36,8 @@ func TestPoolsExample(t *testing.T) {
 		slog.Error("failed to generate keys", "error", err)
 		return
 	}
-	writeKeys(telemetryService, keys)
-	readKeys(telemetryService, keys)
+	writeKeys(&tempDir, telemetryService, keys)
+	readKeys(&tempDir, telemetryService, keys)
 }
 
 func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) ([]Key, error) {
@@ -84,9 +86,9 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	return keys, nil
 }
 
-func writeKeys(telemetryService *cryptoutilTelemetry.TelemetryService, keys []Key) {
+func writeKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []Key) {
 	for i, key := range keys {
-		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
+		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"
 		privateDerFilename := baseFilename + "_private.der"
 		publicPemFilename := baseFilename + "_public.pem"
@@ -113,9 +115,9 @@ func writeKeys(telemetryService *cryptoutilTelemetry.TelemetryService, keys []Ke
 	}
 }
 
-func readKeys(telemetryService *cryptoutilTelemetry.TelemetryService, keys []Key) {
+func readKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []Key) {
 	for i, key := range keys {
-		baseFilename := filepath.Join("output", "key_"+strconv.Itoa(i+1))
+		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))
 		privatePemFilename := baseFilename + "_private.pem"
 		privateDerFilename := baseFilename + "_private.der"
 		publicPemFilename := baseFilename + "_public.pem"
