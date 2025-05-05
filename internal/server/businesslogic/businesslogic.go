@@ -272,8 +272,8 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 
 	// TODO Use encryptParams for encryption? IV, AAD (N.B. Already using ALG below)
 
-	var alg *joseJwa.KeyEncryptionAlgorithm
 	var enc *joseJwa.ContentEncryptionAlgorithm
+	var alg *joseJwa.KeyEncryptionAlgorithm
 	switch repositoryKeyPool.KeyPoolAlgorithm {
 	case cryptoutilOrmRepository.A256GCM_A256KW:
 		enc = &cryptoutilJose.EncA256GCM
@@ -313,13 +313,13 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 		alg = &cryptoutilJose.AlgA128GCMKW
 	case cryptoutilOrmRepository.A256GCM_dir:
 		enc = &cryptoutilJose.EncA256GCM
-		alg = &cryptoutilJose.AlgDIRECT
+		alg = &cryptoutilJose.AlgDir
 	case cryptoutilOrmRepository.A192GCM_dir:
 		enc = &cryptoutilJose.EncA192GCM
-		alg = &cryptoutilJose.AlgDIRECT
+		alg = &cryptoutilJose.AlgDir
 	case cryptoutilOrmRepository.A128GCM_dir:
 		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgDIRECT
+		alg = &cryptoutilJose.AlgDir
 	case cryptoutilOrmRepository.A256CBCHS512_A256KW:
 		enc = &cryptoutilJose.EncA256CBC_HS512
 		alg = &cryptoutilJose.AlgA256KW
@@ -358,13 +358,13 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 		alg = &cryptoutilJose.AlgA128GCMKW
 	case cryptoutilOrmRepository.A256CBCHS512_dir:
 		enc = &cryptoutilJose.EncA256CBC_HS512
-		alg = &cryptoutilJose.AlgDIRECT
+		alg = &cryptoutilJose.AlgDir
 	case cryptoutilOrmRepository.A192CBCHS384_dir:
 		enc = &cryptoutilJose.EncA192CBC_HS384
-		alg = &cryptoutilJose.AlgDIRECT
+		alg = &cryptoutilJose.AlgDir
 	case cryptoutilOrmRepository.A128CBCHS256_dir:
 		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgDIRECT
+		alg = &cryptoutilJose.AlgDir
 	default:
 		return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", repositoryKeyPool.KeyPoolAlgorithm)
 	}

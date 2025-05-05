@@ -29,9 +29,9 @@ var happyPathTestCases = []struct {
 	{enc: &EncA128GCM, alg: &AlgA192GCMKW},
 	{enc: &EncA128GCM, alg: &AlgA128GCMKW},
 
-	{enc: &EncA256GCM, alg: &AlgDIRECT},
-	{enc: &EncA192GCM, alg: &AlgDIRECT},
-	{enc: &EncA128GCM, alg: &AlgDIRECT},
+	{enc: &EncA256GCM, alg: &AlgDir},
+	{enc: &EncA192GCM, alg: &AlgDir},
+	{enc: &EncA128GCM, alg: &AlgDir},
 
 	{enc: &EncA256CBC_HS512, alg: &AlgA256KW},
 	{enc: &EncA192CBC_HS384, alg: &AlgA256KW},
@@ -47,9 +47,9 @@ var happyPathTestCases = []struct {
 	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW},
 	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW},
 
-	{enc: &EncA256CBC_HS512, alg: &AlgDIRECT},
-	{enc: &EncA192CBC_HS384, alg: &AlgDIRECT},
-	{enc: &EncA128CBC_HS256, alg: &AlgDIRECT},
+	{enc: &EncA256CBC_HS512, alg: &AlgDir},
+	{enc: &EncA192CBC_HS384, alg: &AlgDir},
+	{enc: &EncA128CBC_HS256, alg: &AlgDir},
 }
 
 func Test_HappyPath_Bytes(t *testing.T) {
@@ -94,14 +94,14 @@ func Test_HappyPath_Bytes(t *testing.T) {
 			require.NotEmpty(t, actualJweKid)
 			require.Equal(t, actualKeyKid.String(), actualJweKid)
 
+			var actualJweEnc joseJwa.ContentEncryptionAlgorithm
+			require.NoError(t, jweHeaders.Get("enc", &actualJweEnc))
+			// require.Equal(t, AlgCekA256GCM, actualJweEnc)
+
 			var actualJweAlg joseJwa.KeyAlgorithm
 			require.NoError(t, jweHeaders.Get(joseJwk.AlgorithmKey, &actualJweAlg))
 			require.Equal(t, *testCase.alg, actualJweAlg)
 			require.Equal(t, actualJwkAlg, actualJweAlg)
-
-			var actualJweEnc joseJwa.ContentEncryptionAlgorithm
-			require.NoError(t, jweHeaders.Get("enc", &actualJweEnc))
-			// require.Equal(t, AlgCekA256GCM, actualJweEnc)
 
 			decrypted, err := DecryptBytes([]joseJwk.Key{cek}, encodedJweMessage)
 			require.NoError(t, err)

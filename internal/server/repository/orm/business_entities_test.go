@@ -27,9 +27,9 @@ var happyPathTestCases = []struct {
 	{actual: A128GCM_A192GCMKW, expected: cryptoutilJose.EncA128GCM.String() + "/" + cryptoutilJose.AlgA192GCMKW.String()},
 	{actual: A128GCM_A128GCMKW, expected: cryptoutilJose.EncA128GCM.String() + "/" + cryptoutilJose.AlgA128GCMKW.String()},
 
-	{actual: A256GCM_dir, expected: cryptoutilJose.EncA256GCM.String() + "/" + cryptoutilJose.AlgDIRECT.String()},
-	{actual: A192GCM_dir, expected: cryptoutilJose.EncA192GCM.String() + "/" + cryptoutilJose.AlgDIRECT.String()},
-	{actual: A128GCM_dir, expected: cryptoutilJose.EncA128GCM.String() + "/" + cryptoutilJose.AlgDIRECT.String()},
+	{actual: A256GCM_dir, expected: cryptoutilJose.EncA256GCM.String() + "/" + cryptoutilJose.AlgDir.String()},
+	{actual: A192GCM_dir, expected: cryptoutilJose.EncA192GCM.String() + "/" + cryptoutilJose.AlgDir.String()},
+	{actual: A128GCM_dir, expected: cryptoutilJose.EncA128GCM.String() + "/" + cryptoutilJose.AlgDir.String()},
 
 	{actual: A256CBCHS512_A256KW, expected: cryptoutilJose.EncA256CBC_HS512.String() + "/" + cryptoutilJose.AlgA256KW.String()},
 	{actual: A192CBCHS384_A256KW, expected: cryptoutilJose.EncA192CBC_HS384.String() + "/" + cryptoutilJose.AlgA256KW.String()},
@@ -45,9 +45,9 @@ var happyPathTestCases = []struct {
 	{actual: A128CBCHS256_A192GCMKW, expected: cryptoutilJose.EncA128CBC_HS256.String() + "/" + cryptoutilJose.AlgA192GCMKW.String()},
 	{actual: A128CBCHS256_A128GCMKW, expected: cryptoutilJose.EncA128CBC_HS256.String() + "/" + cryptoutilJose.AlgA128GCMKW.String()},
 
-	{actual: A256CBCHS512_dir, expected: cryptoutilJose.EncA256CBC_HS512.String() + "/" + cryptoutilJose.AlgDIRECT.String()},
-	{actual: A192CBCHS384_dir, expected: cryptoutilJose.EncA192CBC_HS384.String() + "/" + cryptoutilJose.AlgDIRECT.String()},
-	{actual: A128CBCHS256_dir, expected: cryptoutilJose.EncA128CBC_HS256.String() + "/" + cryptoutilJose.AlgDIRECT.String()},
+	{actual: A256CBCHS512_dir, expected: cryptoutilJose.EncA256CBC_HS512.String() + "/" + cryptoutilJose.AlgDir.String()},
+	{actual: A192CBCHS384_dir, expected: cryptoutilJose.EncA192CBC_HS384.String() + "/" + cryptoutilJose.AlgDir.String()},
+	{actual: A128CBCHS256_dir, expected: cryptoutilJose.EncA128CBC_HS256.String() + "/" + cryptoutilJose.AlgDir.String()},
 }
 
 func Test_HappyPath_Match(t *testing.T) {
