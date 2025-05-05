@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	cryptoutilUtil "cryptoutil/internal/util"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 )
 
 func GetAllInfo(sysInfoProvider SysInfoProvider) ([][]byte, error) {

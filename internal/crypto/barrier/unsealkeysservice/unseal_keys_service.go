@@ -3,9 +3,9 @@ package unsealkeysservice
 import (
 	"fmt"
 
+	cryptoutilCombinations "cryptoutil/internal/common/util/combinations"
 	cryptoutilDigests "cryptoutil/internal/crypto/digests"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
-	cryptoutilCombinations "cryptoutil/internal/util/combinations"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"

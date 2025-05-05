@@ -2,7 +2,7 @@ package unsealkeysservice
 
 import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	"cryptoutil/internal/util/sysinfo"
+	"cryptoutil/internal/common/util/sysinfo"
 )
 
 func RequireNewFromSysInfoForTest() UnsealKeysService {

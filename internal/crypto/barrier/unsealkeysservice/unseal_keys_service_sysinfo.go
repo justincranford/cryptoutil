@@ -3,7 +3,7 @@ package unsealkeysservice
 import (
 	"fmt"
 
-	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
+	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilUtil "cryptoutil/internal/util"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"gorm.io/gorm"
 

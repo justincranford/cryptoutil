@@ -6,11 +6,11 @@ import (
 	"testing"
 
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
-	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	_ "github.com/lib/pq"
