@@ -5,13 +5,13 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/crypto/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"

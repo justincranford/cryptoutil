@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbType SupportedDBType) *SqlRepository {

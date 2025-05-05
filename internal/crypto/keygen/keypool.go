@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
 const (

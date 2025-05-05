@@ -3,7 +3,7 @@ package keygen
 import (
 	"context"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
 func RequireNewAes256GcmGenKeyPoolForTest(telemetryService *cryptoutilTelemetry.TelemetryService) *KeyGenPool {

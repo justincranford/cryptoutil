@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"

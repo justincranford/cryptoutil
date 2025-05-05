@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"

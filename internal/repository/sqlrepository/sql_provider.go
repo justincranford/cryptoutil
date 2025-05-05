@@ -8,8 +8,8 @@ import (
 	"math/rand"
 	"time"
 
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilContainer "cryptoutil/internal/container"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 type SqlRepository struct {

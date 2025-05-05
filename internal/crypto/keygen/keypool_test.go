@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	googleUuid "github.com/google/uuid"
 

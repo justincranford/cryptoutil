@@ -5,12 +5,12 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilJose "cryptoutil/internal/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	"github.com/docker/go-connections/nat"
 	"github.com/testcontainers/testcontainers-go"

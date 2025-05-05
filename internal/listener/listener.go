@@ -8,13 +8,13 @@ import (
 	"syscall"
 
 	cryptoutilBusinessLogic "cryptoutil/internal/businesslogic"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilBarrierService "cryptoutil/internal/crypto/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilOpenapiHandler "cryptoutil/internal/handler"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/repository/sqlrepository"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 	cryptoutilSysinfo "cryptoutil/internal/util/sysinfo"
 
 	"github.com/gofiber/contrib/otelfiber"

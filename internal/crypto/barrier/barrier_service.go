@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"sync"
 
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilContentKeysService "cryptoutil/internal/crypto/barrier/contentkeysservice"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/crypto/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/crypto/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/crypto/barrier/unsealkeysservice"
 	cryptoutilKeygen "cryptoutil/internal/crypto/keygen"
 	cryptoutilOrmRepository "cryptoutil/internal/repository/orm"
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
 )
 
 type BarrierService struct {

@@ -13,7 +13,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	"github.com/stretchr/testify/require"
 )

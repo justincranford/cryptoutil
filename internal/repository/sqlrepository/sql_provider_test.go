@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	cryptoutilTelemetry "cryptoutil/internal/telemetry"
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
