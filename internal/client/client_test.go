@@ -31,17 +31,14 @@ func TestClient(t *testing.T) {
 		suffix := strconv.Itoa(i + 1)
 		openapiCreateKeyPoolRequest := RequireCreateKeyPoolRequest(t, "Name "+suffix, "Description "+suffix, "A256GCM/A256KW", "Internal", false, false, true)
 		openapiCreateKeyPoolResponse := RequireCreateKeyPoolResponse(t, context.Background(), openapiClient, openapiCreateKeyPoolRequest)
-
-		createdKeyPool := openapiCreateKeyPoolResponse.JSON200
-		createdKeyPools = append(createdKeyPools, createdKeyPool)
+		createdKeyPools = append(createdKeyPools, openapiCreateKeyPoolResponse.JSON200)
 	}
 
 	t.Logf("Created %d key pools", len(createdKeyPools))
 	for _, createdKeyPool := range createdKeyPools {
 		responseJson, err := json.MarshalIndent(*createdKeyPool, "", "  ")
 		require.NoError(t, err)
-		require.NotNil(t, responseJson)
-		t.Log(string(responseJson))
+		t.Log(responseJson)
 	}
 }
 
