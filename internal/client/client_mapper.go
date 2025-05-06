@@ -6,10 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"testing"
 )
 
-func MapKeyPoolCreate(t *testing.T, name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiClient.PostKeypoolJSONRequestBody, error) {
+func MapKeyPoolCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.KeyPoolCreate, error) {
 	keyPoolName, err1 := MapKeyPoolName(name)
 	keyPoolDescription, err2 := MapKeyPoolDescription(description)
 	keyPoolAlgorithm, err3 := MapKeyPoolAlgorithm(algorithm)
@@ -18,7 +17,7 @@ func MapKeyPoolCreate(t *testing.T, name string, description string, algorithm s
 	keyPoolKeyPoolImportAllowed := MapKeyPoolImportAllowed(importAllowed)
 	keyPoolKeyPoolVersioningAllowed := MapKeyPoolVersioningAllowed(versioningAllowed)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		t.Fatalf("failed to map key pool: %v", errors.Join(err1, err2, err3, err4))
+		return nil, fmt.Errorf("failed to map key pool: %v", errors.Join(err1, err2, err3, err4))
 	}
 	return &cryptoutilOpenapiModel.KeyPoolCreate{
 		Name:              *keyPoolName,
@@ -29,6 +28,47 @@ func MapKeyPoolCreate(t *testing.T, name string, description string, algorithm s
 		ImportAllowed:     keyPoolKeyPoolImportAllowed,
 		VersioningAllowed: keyPoolKeyPoolVersioningAllowed,
 	}, nil
+}
+
+func MapKeyPool(openapiCreateKeyPoolResponse *cryptoutilOpenapiClient.PostKeypoolResponse) (*cryptoutilOpenapiModel.KeyPool, error) {
+	if openapiCreateKeyPoolResponse == nil {
+		return nil, fmt.Errorf("failed to create key pool, response is nil")
+	} else if openapiCreateKeyPoolResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to create key pool, HTTP response is nil")
+	}
+	switch openapiCreateKeyPoolResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiCreateKeyPoolResponse.Body == nil {
+			return nil, fmt.Errorf("failed to create key pool, body is nil")
+		} else if openapiCreateKeyPoolResponse.JSON200 == nil {
+			return nil, fmt.Errorf("failed to create key pool, JSON200 is nil")
+		}
+		keyPool := openapiCreateKeyPoolResponse.JSON200
+		if keyPool.Id == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.Id is nil")
+		} else if keyPool.Description == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.Description is nil")
+		} else if keyPool.Algorithm == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.Algorithm is nil")
+		} else if keyPool.Provider == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.Provider is nil")
+		} else if keyPool.ExportAllowed == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.ExportAllowed is nil")
+		} else if keyPool.ImportAllowed == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.ImportAllowed is nil")
+		} else if keyPool.VersioningAllowed == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.VersioningAllowed is nil")
+		} else if keyPool.Status == nil {
+			return nil, fmt.Errorf("failed to create key pool, keyPool.Status is nil")
+		}
+		return keyPool, nil
+	default:
+		return nil, fmt.Errorf("failed to create key pool, Status: %v, Message: %s", openapiCreateKeyPoolResponse.HTTPResponse.StatusCode, openapiCreateKeyPoolResponse.HTTPResponse.Status)
+	}
+}
+
+func MapKeyGenerater() (*cryptoutilOpenapiClient.PostKeypoolKeyPoolIDKeyJSONRequestBody, error) {
+	return &cryptoutilOpenapiModel.KeyGenerate{}, nil
 }
 
 func MapKeyPoolName(name string) (*cryptoutilOpenapiModel.KeyPoolName, error) {
@@ -157,6 +197,33 @@ func ValidateString(value string) error {
 		return fmt.Errorf("string can't contain all whitespace")
 	} else if trimmedLength != length {
 		return fmt.Errorf("string can't contain leading or trailing whitespace")
+	}
+	return nil
+}
+
+func ValidateCreateKeyPoolVsKeyPool(keyPoolCreate *cryptoutilOpenapiModel.KeyPoolCreate, keyPool *cryptoutilOpenapiModel.KeyPool) error {
+	if keyPoolCreate == nil {
+		return fmt.Errorf("key pool create is nil")
+	} else if keyPool == nil {
+		return fmt.Errorf("key pool is nil")
+	} else if keyPool.Id == nil {
+		return fmt.Errorf("key pool ID is nil")
+	} else if keyPoolCreate.Name != *keyPool.Name {
+		return fmt.Errorf("name mismatch: expected %s, got %s", keyPoolCreate.Name, *keyPool.Name)
+	} else if keyPoolCreate.Description != *keyPool.Description {
+		return fmt.Errorf("description mismatch: expected %s, got %s", keyPoolCreate.Description, *keyPool.Description)
+	} else if *keyPoolCreate.Algorithm != *keyPool.Algorithm {
+		return fmt.Errorf("algorithm mismatch: expected %s, got %s", *keyPoolCreate.Algorithm, *keyPool.Algorithm)
+	} else if *keyPoolCreate.Provider != *keyPool.Provider {
+		return fmt.Errorf("provider mismatch: expected %s, got %s", *keyPoolCreate.Provider, *keyPool.Provider)
+	} else if *keyPoolCreate.ExportAllowed != *keyPool.ExportAllowed {
+		return fmt.Errorf("exportAllowed mismatch: expected %t, got %t", *keyPoolCreate.ExportAllowed, *keyPool.ExportAllowed)
+	} else if *keyPoolCreate.ImportAllowed != *keyPool.ImportAllowed {
+		return fmt.Errorf("importAllowed mismatch: expected %t, got %t", *keyPoolCreate.ImportAllowed, *keyPool.ImportAllowed)
+	} else if *keyPoolCreate.VersioningAllowed != *keyPool.VersioningAllowed {
+		return fmt.Errorf("versioningAllowed mismatch: expected %t, got %t", *keyPoolCreate.VersioningAllowed, *keyPool.VersioningAllowed)
+	} else if cryptoutilOpenapiModel.Active != *keyPool.Status {
+		return fmt.Errorf("status mismatch: expected %s, got %s", cryptoutilOpenapiModel.Active, *keyPool.Status)
 	}
 	return nil
 }

@@ -2,14 +2,12 @@ package client
 
 import (
 	"context"
-	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilServer "cryptoutil/internal/server/listener"
 	"encoding/json"
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -74,62 +72,19 @@ func TestClient(t *testing.T) {
 	createdKeyPools := make([]*cryptoutilOpenapiModel.KeyPool, 0)
 	for _, testCase := range happyPathTestCases {
 		t.Run("Create Key Pool  "+strings.ReplaceAll(testCase.algorithm, "/", "_"), func(t *testing.T) {
-			openapiCreateKeyPoolRequest := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
-			openapiCreateKeyPoolResponse := RequireCreateKeyPoolResponse(t, context.Background(), openapiClient, openapiCreateKeyPoolRequest)
-			createdKeyPool := openapiCreateKeyPoolResponse.JSON200
-			createdKeyPools = append(createdKeyPools, createdKeyPool)
-			responseJson, err := json.MarshalIndent(*createdKeyPool, "", " ")
+			keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
+			keyPool := RequireCreateKeyPoolResponse(t, context.Background(), openapiClient, keyPoolCreate)
+			if testCase.importAllowed {
+				require.Equal(t, cryptoutilOpenapiModel.PendingImport, *keyPool.Status)
+			} else {
+				require.Equal(t, cryptoutilOpenapiModel.Active, *keyPool.Status)
+			}
+			createdKeyPools = append(createdKeyPools, keyPool)
+			responseJson, err := json.MarshalIndent(*keyPool, "", " ")
 			require.NoError(t, err)
 			t.Log(string(responseJson))
 		})
 	}
 	t.Logf("Created %d key pools", len(createdKeyPools))
 
-}
-
-func RequireClientWithResponses(t *testing.T, baseUrl string) *cryptoutilOpenapiClient.ClientWithResponses {
-	openapiClient, err := cryptoutilOpenapiClient.NewClientWithResponses(baseUrl)
-	require.NoError(t, err)
-	require.NotNil(t, openapiClient)
-	return openapiClient
-}
-
-func RequireCreateKeyPoolRequest(t *testing.T, name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) *cryptoutilOpenapiClient.PostKeypoolJSONRequestBody {
-	openapiCreateKeyPoolRequest, err := MapKeyPoolCreate(t, name, description, algorithm, provider, exportAllowed, importAllowed, versioningAllowed)
-	require.NotNil(t, openapiCreateKeyPoolRequest)
-	require.NoError(t, err)
-	return openapiCreateKeyPoolRequest
-}
-
-func RequireCreateKeyPoolResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, openapiCreateKeyPoolRequest *cryptoutilOpenapiClient.PostKeypoolJSONRequestBody) *cryptoutilOpenapiClient.PostKeypoolResponse {
-	openapiCreateKeyPoolResponse, err := openapiClient.PostKeypoolWithResponse(context, cryptoutilOpenapiClient.PostKeypoolJSONRequestBody(*openapiCreateKeyPoolRequest))
-	require.NoError(t, err)
-	require.NotNil(t, openapiCreateKeyPoolResponse)
-	require.NotNil(t, openapiCreateKeyPoolResponse.HTTPResponse)
-	t.Logf("HTTP Response, Status: %v, Message: %s", openapiCreateKeyPoolResponse.HTTPResponse.StatusCode, openapiCreateKeyPoolResponse.HTTPResponse.Status)
-	switch openapiCreateKeyPoolResponse.HTTPResponse.StatusCode {
-	case 200:
-		require.NotNil(t, openapiCreateKeyPoolResponse.Body)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.Id)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.Name)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.Description)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.Algorithm)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.Provider)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.ExportAllowed)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.ImportAllowed)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.VersioningAllowed)
-		require.NotNil(t, openapiCreateKeyPoolResponse.JSON200.Status)
-		require.Equal(t, openapiCreateKeyPoolRequest.Name, *openapiCreateKeyPoolResponse.JSON200.Name)
-		require.Equal(t, openapiCreateKeyPoolRequest.Description, *openapiCreateKeyPoolResponse.JSON200.Description)
-		require.Equal(t, *openapiCreateKeyPoolRequest.Algorithm, *openapiCreateKeyPoolResponse.JSON200.Algorithm)
-		require.Equal(t, *openapiCreateKeyPoolRequest.Provider, *openapiCreateKeyPoolResponse.JSON200.Provider)
-		require.Equal(t, *openapiCreateKeyPoolRequest.ExportAllowed, *openapiCreateKeyPoolResponse.JSON200.ExportAllowed)
-		require.Equal(t, *openapiCreateKeyPoolRequest.ImportAllowed, *openapiCreateKeyPoolResponse.JSON200.ImportAllowed)
-		require.Equal(t, *openapiCreateKeyPoolRequest.VersioningAllowed, *openapiCreateKeyPoolResponse.JSON200.VersioningAllowed)
-		require.Equal(t, cryptoutilOpenapiModel.Active, *openapiCreateKeyPoolResponse.JSON200.Status)
-	default:
-		assert.FailNowf(t, "", "failed to create key pool, Status: %v, Message: %s", openapiCreateKeyPoolResponse.HTTPResponse.StatusCode, openapiCreateKeyPoolResponse.HTTPResponse.Status)
-	}
-	return openapiCreateKeyPoolResponse
 }
