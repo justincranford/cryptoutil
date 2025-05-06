@@ -67,6 +67,33 @@ func MapKeyPool(openapiCreateKeyPoolResponse *cryptoutilOpenapiClient.PostKeypoo
 	}
 }
 
+func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDKeyResponse) (*cryptoutilOpenapiModel.Key, error) {
+	if openapiKeyGenerateResponse == nil {
+		return nil, fmt.Errorf("failed to generate key, response is nil")
+	} else if openapiKeyGenerateResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to generate key, HTTP response is nil")
+	}
+	switch openapiKeyGenerateResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiKeyGenerateResponse.Body == nil {
+			return nil, fmt.Errorf("failed to generate key, body is nil")
+		} else if openapiKeyGenerateResponse.JSON200 == nil {
+			return nil, fmt.Errorf("failed to generate key, JSON200 is nil")
+		}
+		key := openapiKeyGenerateResponse.JSON200
+		if key.Pool == nil {
+			return nil, fmt.Errorf("failed to generate key, keyPool.Pool is nil")
+		} else if key.Id == nil {
+			return nil, fmt.Errorf("failed to generate key, keyPool.Id is nil")
+		} else if key.GenerateDate == nil {
+			return nil, fmt.Errorf("failed to generate key, keyPool.GenerateDate is nil")
+		}
+		return key, nil
+	default:
+		return nil, fmt.Errorf("failed to generate key, Status: %v, Message: %s", openapiKeyGenerateResponse.HTTPResponse.StatusCode, openapiKeyGenerateResponse.HTTPResponse.Status)
+	}
+}
+
 func MapKeyGenerater() (*cryptoutilOpenapiClient.PostKeypoolKeyPoolIDKeyJSONRequestBody, error) {
 	return &cryptoutilOpenapiModel.KeyGenerate{}, nil
 }

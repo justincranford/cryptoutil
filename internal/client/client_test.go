@@ -79,25 +79,38 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestClient(t *testing.T) {
+func TestAllKeyPoolAlgorithms(t *testing.T) {
+	context := context.Background()
 	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
 
 	createdKeyPools := make([]*cryptoutilOpenapiModel.KeyPool, 0)
-	for _, testCase := range happyPathTestCases {
-		t.Run("Create Key Pool  "+strings.ReplaceAll(testCase.algorithm, "/", "_"), func(t *testing.T) {
+	createdKeys := make([]*cryptoutilOpenapiModel.Key, 0)
+	for i, testCase := range happyPathTestCases {
+		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Create Key Pool", func(t *testing.T) {
 			keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
-			keyPool := RequireCreateKeyPoolResponse(t, context.Background(), openapiClient, keyPoolCreate)
-			if testCase.importAllowed {
-				require.Equal(t, cryptoutilOpenapiModel.PendingImport, *keyPool.Status)
-			} else {
-				require.Equal(t, cryptoutilOpenapiModel.Active, *keyPool.Status)
-			}
+			keyPool := RequireCreateKeyPoolResponse(t, context, openapiClient, keyPoolCreate)
 			createdKeyPools = append(createdKeyPools, keyPool)
-			responseJson, err := json.MarshalIndent(*keyPool, "", " ")
-			require.NoError(t, err)
-			t.Log(string(responseJson))
+			logObjectAsJson(t, keyPool)
 		})
+		keyPool := createdKeyPools[i]
+
+		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Generate Key", func(t *testing.T) {
+			keyGenerate := RequireKeyGenerateRequest(t)
+			key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
+			createdKeys = append(createdKeys, key)
+			logObjectAsJson(t, key)
+		})
+		key := createdKeys[i]
+
+		require.NotNil(t, key)
 	}
 	t.Logf("Created %d key pools", len(createdKeyPools))
+	t.Logf("Created %d keys", len(createdKeys))
 
+}
+
+func logObjectAsJson(t *testing.T, object any) {
+	jsonString, err := json.MarshalIndent(object, "", " ")
+	require.NoError(t, err)
+	t.Log(string(jsonString))
 }

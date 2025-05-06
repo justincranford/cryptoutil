@@ -18,10 +18,10 @@ func RequireClientWithResponses(t *testing.T, baseUrl string) *cryptoutilOpenapi
 }
 
 func RequireCreateKeyPoolRequest(t *testing.T, name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) *cryptoutilOpenapiModel.KeyPoolCreate {
-	openapiCreateKeyPoolRequest, err := MapKeyPoolCreate(name, description, algorithm, provider, exportAllowed, importAllowed, versioningAllowed)
-	require.NotNil(t, openapiCreateKeyPoolRequest)
+	keyPoolCreate, err := MapKeyPoolCreate(name, description, algorithm, provider, exportAllowed, importAllowed, versioningAllowed)
+	require.NotNil(t, keyPoolCreate)
 	require.NoError(t, err)
-	return openapiCreateKeyPoolRequest
+	return keyPoolCreate
 }
 
 func RequireCreateKeyPoolResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolCreate *cryptoutilOpenapiModel.KeyPoolCreate) *cryptoutilOpenapiModel.KeyPool {
@@ -36,6 +36,22 @@ func RequireCreateKeyPoolResponse(t *testing.T, context context.Context, openapi
 	require.NoError(t, err)
 
 	return keyPool
+}
+
+// TODO Support generate settings (e.g. expiration)
+func RequireKeyGenerateRequest(t *testing.T) *cryptoutilOpenapiModel.KeyGenerate {
+	keyGenerate := cryptoutilOpenapiModel.KeyGenerate{}
+	return &keyGenerate
+}
+
+func RequireKeyGenerateResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, keyGenerate *cryptoutilOpenapiModel.KeyGenerate) *cryptoutilOpenapiModel.Key {
+	openapiKeyGenerateResponse, err := openapiClient.PostKeypoolKeyPoolIDKeyWithResponse(context, *keyPoolId, *keyGenerate)
+	require.NoError(t, err)
+
+	key, err := MapKeyGenerate(openapiKeyGenerateResponse)
+	require.NoError(t, err)
+
+	return key
 }
 
 func ValidateCreateKeyPoolVsKeyPool(keyPoolCreate *cryptoutilOpenapiModel.KeyPoolCreate, keyPool *cryptoutilOpenapiModel.KeyPool) error {
@@ -61,6 +77,15 @@ func ValidateCreateKeyPoolVsKeyPool(keyPoolCreate *cryptoutilOpenapiModel.KeyPoo
 		return fmt.Errorf("versioningAllowed mismatch: expected %t, got %t", *keyPoolCreate.VersioningAllowed, *keyPool.VersioningAllowed)
 	} else if cryptoutilOpenapiModel.Active != *keyPool.Status {
 		return fmt.Errorf("status mismatch: expected %s, got %s", cryptoutilOpenapiModel.Active, *keyPool.Status)
+	}
+	if *keyPool.ImportAllowed {
+		if cryptoutilOpenapiModel.PendingImport != *keyPool.Status {
+			return fmt.Errorf("status mismatch: expected %v, got %v", cryptoutilOpenapiModel.PendingImport, *keyPool.Status)
+		}
+	} else {
+		if cryptoutilOpenapiModel.Active != *keyPool.Status {
+			return fmt.Errorf("status mismatch: expected %v, got %v", cryptoutilOpenapiModel.Active, *keyPool.Status)
+		}
 	}
 	return nil
 }
