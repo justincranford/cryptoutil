@@ -5,6 +5,9 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilServer "cryptoutil/internal/server/listener"
 	"encoding/json"
+	"log"
+	"os"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -59,15 +62,25 @@ var happyPathTestCases = []TestCase{
 	{name: "Key Pool 30", description: "Description 30", algorithm: "A128CBC-HS256/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 }
 
-func TestClient(t *testing.T) {
-	start, stop, err := cryptoutilServer.NewHttpListener("localhost", 8080, true)
+var (
+	testServerHostname = "localhost"
+	testServerPort     = 8080
+	testServerBaseUrl  = "http://" + testServerHostname + ":" + strconv.Itoa(testServerPort) + "/"
+)
+
+func TestMain(m *testing.M) {
+	start, stop, err := cryptoutilServer.NewHttpListener(testServerHostname, testServerPort, true)
 	if err != nil {
-		t.Fatalf("failed to create listener: %v", err)
+		log.Fatalf("failed to create listener: %v", err)
 	}
 	go start()
 	defer stop()
 
-	openapiClient := RequireClientWithResponses(t, "http://localhost:8080/")
+	os.Exit(m.Run())
+}
+
+func TestClient(t *testing.T) {
+	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
 
 	createdKeyPools := make([]*cryptoutilOpenapiModel.KeyPool, 0)
 	for _, testCase := range happyPathTestCases {
