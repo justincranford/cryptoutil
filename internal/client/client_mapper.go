@@ -94,6 +94,33 @@ func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostKeyp
 	}
 }
 
+func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptResponse) (*string, error) {
+	if openapiEncryptResponse == nil {
+		return nil, fmt.Errorf("failed to generate key, response is nil")
+	} else if openapiEncryptResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to generate key, HTTP response is nil")
+	}
+	switch openapiEncryptResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiEncryptResponse.Body == nil {
+			return nil, fmt.Errorf("failed to generate key, body is nil")
+		}
+		ciphertext := string(openapiEncryptResponse.Body)
+		return &ciphertext, nil
+	default:
+		return nil, fmt.Errorf("failed to generate key, Status: %v, Message: %s", openapiEncryptResponse.HTTPResponse.StatusCode, openapiEncryptResponse.HTTPResponse.Status)
+	}
+}
+
+func MapSymmetricEncryptParams(symmetricEncryptParams *cryptoutilOpenapiModel.SymmetricEncryptParams) cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams {
+	keypoolKeyPoolIDEncryptParams := cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams{}
+	if symmetricEncryptParams != nil {
+		keypoolKeyPoolIDEncryptParams.Iv = symmetricEncryptParams.Iv
+		keypoolKeyPoolIDEncryptParams.Aad = symmetricEncryptParams.Aad
+	}
+	return keypoolKeyPoolIDEncryptParams
+}
+
 func MapKeyGenerater() (*cryptoutilOpenapiClient.PostKeypoolKeyPoolIDKeyJSONRequestBody, error) {
 	return &cryptoutilOpenapiModel.KeyGenerate{}, nil
 }

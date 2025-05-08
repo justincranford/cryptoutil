@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,6 +86,7 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 
 	createdKeyPools := make([]*cryptoutilOpenapiModel.KeyPool, 0)
 	createdKeys := make([]*cryptoutilOpenapiModel.Key, 0)
+	ciphertexts := make([]*string, 0)
 	for i, testCase := range happyPathTestCases {
 		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Create Key Pool", func(t *testing.T) {
 			keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
@@ -100,12 +102,22 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 			createdKeys = append(createdKeys, key)
 			logObjectAsJson(t, key)
 		})
-		key := createdKeys[i]
+		// key := createdKeys[i]
 
-		require.NotNil(t, key)
+		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Encrypt", func(t *testing.T) {
+			cleartext := "Hello World " + strconv.Itoa(i)
+			encryptRequest := RequireEncryptRequest(t, &cleartext)
+			ciphertext := RequireEncryptResponse(t, context, openapiClient, keyPool.Id, nil, encryptRequest)
+			ciphertexts = append(ciphertexts, ciphertext)
+			logJwe(t, ciphertext)
+		})
+		ciphertext := ciphertexts[i]
+
+		require.NotNil(t, ciphertext)
 	}
 	t.Logf("Created %d key pools", len(createdKeyPools))
 	t.Logf("Created %d keys", len(createdKeys))
+	t.Logf("Created %d ciphertexts", len(createdKeys))
 
 }
 
@@ -113,4 +125,10 @@ func logObjectAsJson(t *testing.T, object any) {
 	jsonString, err := json.MarshalIndent(object, "", " ")
 	require.NoError(t, err)
 	t.Log(string(jsonString))
+}
+
+func logJwe(t *testing.T, encodedJweMessage *string) {
+	jweMessage, err := joseJwe.Parse([]byte(*encodedJweMessage))
+	require.NoError(t, err)
+	logObjectAsJson(t, jweMessage)
 }
