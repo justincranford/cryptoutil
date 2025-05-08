@@ -86,7 +86,9 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 
 	createdKeyPools := make([]*cryptoutilOpenapiModel.KeyPool, 0)
 	createdKeys := make([]*cryptoutilOpenapiModel.Key, 0)
+	cleartexts := make([]*string, 0)
 	ciphertexts := make([]*string, 0)
+	decryptedtexts := make([]*string, 0)
 	for i, testCase := range happyPathTestCases {
 		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Create Key Pool", func(t *testing.T) {
 			keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
@@ -106,19 +108,26 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 
 		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Encrypt", func(t *testing.T) {
 			cleartext := "Hello World " + strconv.Itoa(i)
+			cleartexts = append(cleartexts, &cleartext)
 			encryptRequest := RequireEncryptRequest(t, &cleartext)
 			ciphertext := RequireEncryptResponse(t, context, openapiClient, keyPool.Id, nil, encryptRequest)
 			ciphertexts = append(ciphertexts, ciphertext)
 			logJwe(t, ciphertext)
 		})
+		cleartext := cleartexts[i]
 		ciphertext := ciphertexts[i]
 
-		require.NotNil(t, ciphertext)
-	}
-	t.Logf("Created %d key pools", len(createdKeyPools))
-	t.Logf("Created %d keys", len(createdKeys))
-	t.Logf("Created %d ciphertexts", len(createdKeys))
+		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Decrypt", func(t *testing.T) {
+			decryptRequest := RequireDecryptRequest(t, ciphertext)
+			decryptedtext := RequireDecryptResponse(t, context, openapiClient, keyPool.Id, decryptRequest)
+			decryptedtexts = append(decryptedtexts, decryptedtext)
+		})
+		decryptedtext := decryptedtexts[i]
 
+		require.NotNil(t, decryptedtext)
+		require.Equal(t, *decryptedtext, *cleartext)
+	}
+	t.Logf("Created %d key pools, %d keys, %d cleartexts, %d ciphertexts, %d decryptedtexts", len(createdKeyPools), len(createdKeys), len(cleartexts), len(createdKeys), len(decryptedtexts))
 }
 
 func logObjectAsJson(t *testing.T, object any) {

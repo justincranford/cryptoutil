@@ -94,24 +94,6 @@ func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostKeyp
 	}
 }
 
-func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptResponse) (*string, error) {
-	if openapiEncryptResponse == nil {
-		return nil, fmt.Errorf("failed to generate key, response is nil")
-	} else if openapiEncryptResponse.HTTPResponse == nil {
-		return nil, fmt.Errorf("failed to generate key, HTTP response is nil")
-	}
-	switch openapiEncryptResponse.HTTPResponse.StatusCode {
-	case 200:
-		if openapiEncryptResponse.Body == nil {
-			return nil, fmt.Errorf("failed to generate key, body is nil")
-		}
-		ciphertext := string(openapiEncryptResponse.Body)
-		return &ciphertext, nil
-	default:
-		return nil, fmt.Errorf("failed to generate key, Status: %v, Message: %s", openapiEncryptResponse.HTTPResponse.StatusCode, openapiEncryptResponse.HTTPResponse.Status)
-	}
-}
-
 func MapSymmetricEncryptParams(symmetricEncryptParams *cryptoutilOpenapiModel.SymmetricEncryptParams) cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams {
 	keypoolKeyPoolIDEncryptParams := cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams{}
 	if symmetricEncryptParams != nil {
@@ -119,6 +101,42 @@ func MapSymmetricEncryptParams(symmetricEncryptParams *cryptoutilOpenapiModel.Sy
 		keypoolKeyPoolIDEncryptParams.Aad = symmetricEncryptParams.Aad
 	}
 	return keypoolKeyPoolIDEncryptParams
+}
+
+func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptResponse) (*string, error) {
+	if openapiEncryptResponse == nil {
+		return nil, fmt.Errorf("failed to encrypt, response is nil")
+	} else if openapiEncryptResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to encrypt, HTTP response is nil")
+	}
+	switch openapiEncryptResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiEncryptResponse.Body == nil {
+			return nil, fmt.Errorf("failed to encrypt, body is nil")
+		}
+		ciphertext := string(openapiEncryptResponse.Body)
+		return &ciphertext, nil
+	default:
+		return nil, fmt.Errorf("failed to encrypt, Status: %v, Message: %s", openapiEncryptResponse.HTTPResponse.StatusCode, openapiEncryptResponse.HTTPResponse.Status)
+	}
+}
+
+func MapDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDDecryptResponse) (*string, error) {
+	if openapiDecryptResponse == nil {
+		return nil, fmt.Errorf("failed to decrypt, response is nil")
+	} else if openapiDecryptResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to decrypt, HTTP response is nil")
+	}
+	switch openapiDecryptResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiDecryptResponse.Body == nil {
+			return nil, fmt.Errorf("failed to decrypt, body is nil")
+		}
+		decrypted := string(openapiDecryptResponse.Body)
+		return &decrypted, nil
+	default:
+		return nil, fmt.Errorf("failed to decrypt, Status: %v, Message: %s", openapiDecryptResponse.HTTPResponse.StatusCode, openapiDecryptResponse.HTTPResponse.Status)
+	}
 }
 
 func MapKeyGenerater() (*cryptoutilOpenapiClient.PostKeypoolKeyPoolIDKeyJSONRequestBody, error) {

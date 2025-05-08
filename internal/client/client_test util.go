@@ -70,6 +70,21 @@ func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient
 	return encrypted
 }
 
+func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiModel.SymmetricDecryptRequest {
+	symmetricDecryptRequest := cryptoutilOpenapiModel.SymmetricDecryptRequest(*ciphertext)
+	return &symmetricDecryptRequest
+}
+
+func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, symmetricDecryptRequest *cryptoutilOpenapiModel.SymmetricDecryptRequest) *string {
+	openapiDecryptResponse, err := openapiClient.PostKeypoolKeyPoolIDDecryptWithTextBodyWithResponse(context, *keyPoolId, *symmetricDecryptRequest)
+	require.NoError(t, err)
+
+	decrypted, err := MapDecryptResponse(openapiDecryptResponse)
+	require.NoError(t, err)
+
+	return decrypted
+}
+
 func ValidateCreateKeyPoolVsKeyPool(keyPoolCreate *cryptoutilOpenapiModel.KeyPoolCreate, keyPool *cryptoutilOpenapiModel.KeyPool) error {
 	if keyPoolCreate == nil {
 		return fmt.Errorf("key pool create is nil")
