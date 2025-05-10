@@ -55,7 +55,7 @@ var happyPathTestCases = []struct {
 func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
-			actualKeyKid, cek, encodedAesJwk, err := GenerateAesJWK(testCase.enc, testCase.alg)
+			actualKeyKid, cek, encodedAesJwk, err := GenerateEncryptionJWK(testCase.enc, testCase.alg)
 			require.NoError(t, err)
 			require.NotNil(t, cek)
 			require.NotEmpty(t, encodedAesJwk)
@@ -113,10 +113,10 @@ func Test_HappyPath_Bytes(t *testing.T) {
 func Test_HappyPath_Key(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
-			_, kek, encodedKek, _ := GenerateAesJWK(testCase.enc, testCase.alg)
+			_, kek, encodedKek, _ := GenerateEncryptionJWK(testCase.enc, testCase.alg)
 			log.Printf("KEK: %s", string(encodedKek))
 
-			_, originalKey, encodedKey, _ := GenerateAesJWK(testCase.enc, testCase.alg)
+			_, originalKey, encodedKey, _ := GenerateEncryptionJWK(testCase.enc, testCase.alg)
 			log.Printf("Original Key: %s", string(encodedKey))
 
 			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{kek}, originalKey)
@@ -139,7 +139,7 @@ func Test_HappyPath_Key(t *testing.T) {
 
 func Test_SadPath_GenerateAesJWK_UnsupportedAlg(t *testing.T) {
 	invalidAlg := joseJwa.RSA_OAEP()
-	key, raw, kid, err := GenerateAesJWK(&EncA256GCM, &invalidAlg)
+	key, raw, kid, err := GenerateEncryptionJWK(&EncA256GCM, &invalidAlg)
 	require.Error(t, err)
 	require.Nil(t, kid)
 	require.Nil(t, key)
@@ -157,7 +157,7 @@ func Test_SadPath_DecryptJWE_NilKey(t *testing.T) {
 }
 
 func Test_SadPath_DecryptJWE_InvalidCiphertext(t *testing.T) {
-	kid, key, raw, err := GenerateAesJWK(&EncA256GCM, &AlgA256KW)
+	kid, key, raw, err := GenerateEncryptionJWK(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
 	require.NotNil(t, key)
