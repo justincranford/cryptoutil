@@ -21,7 +21,7 @@ var happyPathJwsTestCases = []struct {
 	// {alg: &AlgPS256},
 	// {alg: &AlgPS384},
 	// {alg: &AlgPS512},
-	// {alg: &AlgES256},
+	// {alg: &AlgES256},go get -u ./...
 	// {alg: &AlgES384},
 	// {alg: &AlgES512},
 	// {alg: &AlgHS256},
