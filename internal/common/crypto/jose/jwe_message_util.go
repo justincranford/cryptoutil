@@ -11,29 +11,15 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-var (
-	KtyOct           = joseJwa.OctetSeq()                                                   // KeyType
-	EncA256GCM       = joseJwa.A256GCM()                                                    // ContentEncryptionAlgorithm
-	EncA192GCM       = joseJwa.A192GCM()                                                    // ContentEncryptionAlgorithm
-	EncA128GCM       = joseJwa.A128GCM()                                                    // ContentEncryptionAlgorithm
-	EncA256CBC_HS512 = joseJwa.A256CBC_HS512()                                              // ContentEncryptionAlgorithm
-	EncA192CBC_HS384 = joseJwa.A192CBC_HS384()                                              // ContentEncryptionAlgorithm
-	EncA128CBC_HS256 = joseJwa.A128CBC_HS256()                                              // ContentEncryptionAlgorithm
-	AlgA256KW        = joseJwa.A256KW()                                                     // KeyEncryptionAlgorithm
-	AlgA192KW        = joseJwa.A192KW()                                                     // KeyEncryptionAlgorithm
-	AlgA128KW        = joseJwa.A128KW()                                                     // KeyEncryptionAlgorithm
-	AlgA256GCMKW     = joseJwa.A256GCMKW()                                                  // KeyEncryptionAlgorithm
-	AlgA192GCMKW     = joseJwa.A192GCMKW()                                                  // KeyEncryptionAlgorithm
-	AlgA128GCMKW     = joseJwa.A128GCMKW()                                                  // KeyEncryptionAlgorithm
-	AlgDir           = joseJwa.DIRECT()                                                     // KeyEncryptionAlgorithm
-	OpsEncDec        = joseJwk.KeyOperationList{joseJwk.KeyOpEncrypt, joseJwk.KeyOpDecrypt} // []KeyOperation
-)
-
 func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
 	if jwks == nil {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeEmpty)
+	} else if clearBytes == nil {
+		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeNil)
+	} else if len(clearBytes) == 0 {
+		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
 
 	encs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
@@ -42,7 +28,7 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
 	}
 	for i, jwk := range jwks {
-		enc, alg, err := getJwkAlgAndEnc(jwk, i)
+		enc, alg, err := jweJwkAlgAndEnc(&jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -56,17 +42,17 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*alg, jwk)) // add ALG+JWK tuple for each JWK
 	}
 
-	encodedJweMessage, err := joseJwe.Encrypt(clearBytes, jweEncryptOptions...)
+	jweMessageBytes, err := joseJwe.Encrypt(clearBytes, jweEncryptOptions...)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt clearBytes: %w", err)
 	}
 
-	jweMessage, err := joseJwe.Parse(encodedJweMessage)
+	jweMessage, err := joseJwe.Parse(jweMessageBytes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse encrypted JWE message bytes: %w", err)
+		return nil, nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
 	}
 
-	return jweMessage, encodedJweMessage, nil
+	return jweMessage, jweMessageBytes, nil
 }
 
 func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
@@ -74,17 +60,21 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
 		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeEmpty)
+	} else if jweMessageBytes == nil {
+		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilAppErr.ErrCantBeNil)
+	} else if len(jweMessageBytes) == 0 {
+		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
 
 	jweMessage, err := joseJwe.Parse(jweMessageBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse encrypted JWE message bytes: %w", err)
+		return nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
 	}
 
 	encs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
 	jweDecryptOptions := make([]joseJwe.DecryptOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		enc, alg, err := getJwkAlgAndEnc(jwk, i)
+		enc, alg, err := jweJwkAlgAndEnc(&jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -124,7 +114,7 @@ func DecryptKey(kdks []joseJwk.Key, encryptedCdkBytes []byte) (joseJwk.Key, erro
 	return decryptedCdk, nil
 }
 
-func JSONHeadersString(jweMessage *joseJwe.Message) (string, error) {
+func JweHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	jweHeadersString, err := json.Marshal(jweMessage.ProtectedHeaders())
 	if err != nil {
 		return "", fmt.Errorf("failed to marshall JWE headers: %w", err)
@@ -132,17 +122,17 @@ func JSONHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	return string(jweHeadersString), err
 }
 
-func getJwkAlgAndEnc(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyAlgorithm, error) {
+func jweJwkAlgAndEnc(jwk *joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyAlgorithm, error) {
 	if jwk == nil {
 		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
 
 	var enc joseJwa.ContentEncryptionAlgorithm
-	err := jwk.Get("enc", &enc) // Example: A256GCM, A192GCM, A128GCM, A256CBC-HS512, A192CBC-HS384, A128CBC-HS256
+	err := (*jwk).Get("enc", &enc) // Example: A256GCM, A192GCM, A128GCM, A256CBC-HS512, A192CBC-HS384, A128CBC-HS256
 	if err != nil {
 		// Workaround: If JWK was serialized (for encryption) and parsed (after decryption), 'enc' header incorrect gets parsed as string, so try getting as string converting it to joseJwa.ContentEncryptionAlgorithm
 		var encString string
-		err = jwk.Get("enc", &encString)
+		err = (*jwk).Get("enc", &encString)
 		if err != nil {
 			return nil, nil, fmt.Errorf("can't get JWK %d 'enc' attribute: %w", i, err)
 		}
@@ -150,7 +140,7 @@ func getJwkAlgAndEnc(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorith
 	}
 
 	var alg joseJwa.KeyAlgorithm
-	err = jwk.Get(joseJwk.AlgorithmKey, &alg) // Example: A256KW, A192KW, A128KW, A256GCMKW, A192GCMKW, A128GCMKW, dir
+	err = (*jwk).Get(joseJwk.AlgorithmKey, &alg) // Example: A256KW, A192KW, A128KW, A256GCMKW, A192GCMKW, A128GCMKW, dir
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
 	}

@@ -370,7 +370,7 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	}
 
 	// envelope encrypt => latestKeyInKeyPool( randomA256GCM(clearBytes) )
-	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateEncryptionJWKFromBytes(&repositoryKeyPoolLatestKey.KeyID, enc, alg, decryptedKeyPoolLatestKeyMaterialBytes)
+	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(&repositoryKeyPoolLatestKey.KeyID, enc, alg, &cryptoutilKeygen.Key{Private: decryptedKeyPoolLatestKeyMaterialBytes})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
 	}
@@ -442,7 +442,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	}
 
 	// envelope encrypt => keyInKeyPool( randomA256GCM(clearBytes) )
-	_, keyInKeyPool, _, err := cryptoutilJose.CreateEncryptionJWKFromBytes(repositoryKeyPoolLatestKeyKidUuid, &enc, &alg, decryptedKeyPoolKeyMaterialBytes)
+	_, keyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(repositoryKeyPoolLatestKeyKidUuid, &enc, &alg, &cryptoutilKeygen.Key{Private: decryptedKeyPoolKeyMaterialBytes})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID from JWE kid UUID: %w", err)
 	}

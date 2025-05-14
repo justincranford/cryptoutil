@@ -38,7 +38,7 @@ func GenerateECDHKeyPair(ecdhCurve ecdh.Curve) (Key, error) {
 	return Key{Private: privateKey, Public: privateKey.PublicKey()}, nil
 }
 
-func GenerateEDKeyPair(edCurve string) (Key, error) {
+func GenerateEDDSAKeyPair(edCurve string) (Key, error) {
 	switch edCurve {
 	case "Ed448":
 		publicKey, privateKey, err := ed448.GenerateKey(rand.Reader)
@@ -61,8 +61,7 @@ func GenerateAESKey(aesBits int) (Key, error) {
 	if aesBits != 128 && aesBits != 192 && aesBits != 256 {
 		return Key{}, fmt.Errorf("invalid AES key size: %d (must be 128, 192, or 256 bits)", aesBits)
 	}
-	key := make([]byte, aesBits/8)
-	_, err := rand.Read(key)
+	key, err := GenerateBytes(aesBits / 8)
 	if err != nil {
 		return Key{}, fmt.Errorf("generate AES %d key failed: %w", aesBits, err)
 	}
@@ -73,8 +72,7 @@ func GenerateAESHSKey(aesHsBits int) (Key, error) {
 	if aesHsBits != 256 && aesHsBits != 384 && aesHsBits != 512 {
 		return Key{}, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be 256, 384, or 512 bits)", aesHsBits)
 	}
-	key := make([]byte, aesHsBits/8)
-	_, err := rand.Read(key)
+	key, err := GenerateBytes(aesHsBits / 8)
 	if err != nil {
 		return Key{}, fmt.Errorf("generate AES HAMC-SHA2 %d key failed: %w", aesHsBits, err)
 	}
@@ -85,8 +83,7 @@ func GenerateHMACKey(hmacBits int) (Key, error) {
 	if hmacBits < 256 {
 		return Key{}, fmt.Errorf("invalid HMAC key size: %d (must be 256 bits or higher)", hmacBits)
 	}
-	key := make([]byte, hmacBits/8)
-	_, err := rand.Read(key)
+	key, err := GenerateBytes(hmacBits / 8)
 	if err != nil {
 		return Key{}, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}
@@ -99,4 +96,13 @@ func GenerateUUIDv7() (Key, error) {
 		return Key{}, fmt.Errorf("failed to generate UUID: %w", err)
 	}
 	return Key{Private: uuidV7}, nil
+}
+
+func GenerateBytes(lengthBytes int) ([]byte, error) {
+	bytes := make([]byte, lengthBytes)
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate %d bytes: %w", lengthBytes, err)
+	}
+	return bytes, nil
 }

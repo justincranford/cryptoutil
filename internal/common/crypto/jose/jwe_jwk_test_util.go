@@ -21,7 +21,7 @@ func GenerateEncryptionKeysForTest(t *testing.T, count int, enc *joseJwa.Content
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, jwk, _, err := GenerateEncryptionJWK(enc, alg)
+			_, jwk, _, err := GenerateEncryptionJweJwkForEncAndAlg(enc, alg)
 			jwkOrErrs <- jwkOrErr{key: jwk, err: err}
 		}()
 	}

@@ -23,7 +23,7 @@ func GenerateECDHKeyPairFunction(ecdhCurve ecdh.Curve) func() (Key, error) {
 }
 
 func GenerateEDKeyPairFunction(edCurve string) func() (Key, error) {
-	return func() (Key, error) { return GenerateEDKeyPair(edCurve) }
+	return func() (Key, error) { return GenerateEDDSAKeyPair(edCurve) }
 }
 
 func GenerateAESKeyFunction(aesBits int) func() (Key, error) {
