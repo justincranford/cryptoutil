@@ -41,20 +41,19 @@ var (
 	AlgECDHESA256KW = joseJwa.ECDH_ES_A256KW() // KeyEncryptionAlgorithm
 	AlgDir          = joseJwa.DIRECT()         // KeyEncryptionAlgorithm
 
-	AlgRS256         = joseJwa.RS256()       // SignatureAlgorithm
-	AlgRS384         = joseJwa.RS384()       // SignatureAlgorithm
-	AlgRS512         = joseJwa.RS512()       // SignatureAlgorithm
-	AlgPS256         = joseJwa.PS256()       // SignatureAlgorithm
-	AlgPS384         = joseJwa.PS384()       // SignatureAlgorithm
-	AlgPS512         = joseJwa.PS512()       // SignatureAlgorithm
-	AlgES256         = joseJwa.ES256()       // SignatureAlgorithm
-	AlgES384         = joseJwa.ES384()       // SignatureAlgorithm
-	AlgES512         = joseJwa.ES512()       // SignatureAlgorithm
-	AlgHS256         = joseJwa.HS256()       // SignatureAlgorithm
-	AlgHS384         = joseJwa.HS384()       // SignatureAlgorithm
-	AlgHS512         = joseJwa.HS512()       // SignatureAlgorithm
-	AlgEdDSA         = joseJwa.EdDSA()       // SignatureAlgorithm
-	AlgNoNoSignature = joseJwa.NoSignature() // SignatureAlgorithm
+	AlgRS256 = joseJwa.RS256() // SignatureAlgorithm
+	AlgRS384 = joseJwa.RS384() // SignatureAlgorithm
+	AlgRS512 = joseJwa.RS512() // SignatureAlgorithm
+	AlgPS256 = joseJwa.PS256() // SignatureAlgorithm
+	AlgPS384 = joseJwa.PS384() // SignatureAlgorithm
+	AlgPS512 = joseJwa.PS512() // SignatureAlgorithm
+	AlgES256 = joseJwa.ES256() // SignatureAlgorithm
+	AlgES384 = joseJwa.ES384() // SignatureAlgorithm
+	AlgES512 = joseJwa.ES512() // SignatureAlgorithm
+	AlgHS256 = joseJwa.HS256() // SignatureAlgorithm
+	AlgHS384 = joseJwa.HS384() // SignatureAlgorithm
+	AlgHS512 = joseJwa.HS512() // SignatureAlgorithm
+	AlgEdDSA = joseJwa.EdDSA() // SignatureAlgorithm
 
 	OpsEncDec = joseJwk.KeyOperationList{joseJwk.KeyOpEncrypt, joseJwk.KeyOpDecrypt} // []KeyOperation
 	OpsSigVer = joseJwk.KeyOperationList{joseJwk.KeyOpSign, joseJwk.KeyOpVerify}     // []KeyOperation
