@@ -16,19 +16,18 @@ var happyPathJwsTestCases = []struct {
 	alg *joseJwa.SignatureAlgorithm
 }{
 	{alg: &AlgRS256},
-	// {alg: &AlgRS384},
-	// {alg: &AlgRS512},
-	// {alg: &AlgPS256},
-	// {alg: &AlgPS384},
-	// {alg: &AlgPS512},
-	// {alg: &AlgES256},go get -u ./...
-	// {alg: &AlgES384},
-	// {alg: &AlgES512},
-	// {alg: &AlgHS256},
-	// {alg: &AlgHS384},
-	// {alg: &AlgHS512},
-	// {alg: &AlgEdDSA},
-	// {alg: &AlgNoNoSignature},
+	{alg: &AlgRS384},
+	{alg: &AlgRS512},
+	{alg: &AlgPS256},
+	{alg: &AlgPS384},
+	{alg: &AlgPS512},
+	{alg: &AlgES256},
+	{alg: &AlgES384},
+	{alg: &AlgES512},
+	{alg: &AlgHS256},
+	{alg: &AlgHS384},
+	{alg: &AlgHS512},
+	{alg: &AlgEdDSA},
 }
 
 func Test_HappyPath_Jws_Jwk(t *testing.T) {
@@ -36,9 +35,9 @@ func Test_HappyPath_Jws_Jwk(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
 			jwsJwkKid, jwsJwk, encodedJwsJwk, err := GenerateJwsJwkForAlg(testCase.alg)
 			require.NoError(t, err)
+			require.NotEmpty(t, jwsJwkKid)
 			require.NotNil(t, jwsJwk)
 			require.NotEmpty(t, encodedJwsJwk)
-			require.NotEmpty(t, jwsJwkKid)
 			log.Printf("Generated: %s", encodedJwsJwk)
 
 			var actualJwkAlg joseJwa.KeyAlgorithm
@@ -84,12 +83,3 @@ func Test_HappyPath_Jws_Jwk(t *testing.T) {
 		})
 	}
 }
-
-// func contains(slice) bool {
-// 	for _, kty := range []joseJwa.KeyType{KtyRsa, KtyEC, KtyOkp, KtyOct} {
-// 		if actualJwkKty == kty {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
