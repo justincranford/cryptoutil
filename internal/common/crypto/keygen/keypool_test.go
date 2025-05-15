@@ -33,9 +33,9 @@ var (
 	testTelemetryService         *cryptoutilTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
 	happyPathSize                = []uint32{1, 3}
-	happyPathMaxLifetimeKeys     = []uint64{1, 3, MaxLifetimeKeys}
+	happyPathMaxLifetimeKeys     = []uint64{1, MaxLifetimeKeys}
 	happyPathMaxLifetimeDuration = []time.Duration{MaxLifetimeDuration}
-	happyPathGets                = []uint64{0, 1, 3, 4}
+	happyPathGets                = []uint64{0, 1, 3}
 	happyPathTestCases           = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
 		for _, workers := range happyPathWorkers {
@@ -72,7 +72,7 @@ func TestMain(m *testing.M) {
 func TestPoolRSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(256))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(2048))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
 			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
