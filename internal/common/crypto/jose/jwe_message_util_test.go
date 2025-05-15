@@ -55,6 +55,7 @@ var happyPathTestCases = []struct {
 func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
+			t.Parallel()
 			actualKeyKid, cek, encodedAesJwk, err := GenerateEncryptionJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
 			require.NotNil(t, cek)

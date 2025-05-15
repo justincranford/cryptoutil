@@ -72,6 +72,7 @@ func TestMain(m *testing.M) {
 func TestPoolRSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(2048))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)

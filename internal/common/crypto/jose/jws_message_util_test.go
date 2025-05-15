@@ -33,6 +33,7 @@ var happyPathJwsTestCases = []struct {
 func Test_HappyPath_Jws_Jwk(t *testing.T) {
 	for _, testCase := range happyPathJwsTestCases {
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
+			t.Parallel()
 			jwsJwkKid, jwsJwk, encodedJwsJwk, err := GenerateJwsJwkForAlg(testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJwkKid)
