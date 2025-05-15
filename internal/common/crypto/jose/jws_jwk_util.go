@@ -17,7 +17,7 @@ import (
 
 func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	kid := googleUuid.Must(googleUuid.NewV7())
-	key, err := ValidateJwsJwkHeaders(&kid, alg, nil, true) // true => generates enc key of the correct length
+	key, err := validateJwsJwkHeaders(&kid, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWK headers: %w", err)
 	}
@@ -31,7 +31,7 @@ func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, keyGenPool *cryp
 }
 
 func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, rawKey *cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	_, err := ValidateJwsJwkHeaders(kid, alg, rawKey, false)
+	_, err := validateJwsJwkHeaders(kid, alg, rawKey, false)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWS JWK headers: %w", err)
 	}
@@ -64,7 +64,7 @@ func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 	return kid, jwk, encodedJwk, nil
 }
 
-func ValidateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, rawKey *cryptoutilKeygen.Key, isNilRawKeyOk bool) (*cryptoutilKeygen.Key, error) {
+func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, rawKey *cryptoutilKeygen.Key, isNilRawKeyOk bool) (*cryptoutilKeygen.Key, error) {
 	if err := cryptoutilUtil.ValidateUUID(kid, "invalid kid"); err != nil {
 		return nil, fmt.Errorf("kid must be valid: %w", err)
 	} else if alg == nil {
@@ -93,8 +93,6 @@ func ValidateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 		return validateOrGenerateJwsHmacJwk(nil, alg, 384)
 	case AlgHS256:
 		return validateOrGenerateJwsHmacJwk(nil, alg, 256)
-	case AlgNoNoSignature:
-		return nil, nil
 	default:
 		return nil, fmt.Errorf("unsupported algorithm: %s", alg)
 	}
