@@ -15,7 +15,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-func GenerateEncryptionJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	kid := googleUuid.Must(googleUuid.NewV7())
 	key, err := validateJweJwkHeaders(&kid, enc, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {
@@ -33,53 +33,53 @@ func GenerateJweJwkFromKeyPool(enc *joseJwa.ContentEncryptionAlgorithm, alg *jos
 func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, rawKey *cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	_, err := validateJweJwkHeaders(kid, enc, alg, rawKey, false)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("invalid JWK headers: %w", err)
+		return nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)
 	}
 	jwk, err := joseJwk.Import(rawKey.Private) // []byte, RSA, EC, OctetSeq (AES/HMAC)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to import key into JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to import key material into JWE JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to set `kid` header in JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set `kid` header in JWE JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.AlgorithmKey, *alg); err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWE JWK: %w", err)
 	}
 	if err = jwk.Set("enc", *enc); err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWE JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to set `enc` header in JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set `enc` header in JWE JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.KeyOpsKey, OpsEncDec); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWK: %w", err)
 	}
 	// TODO RSA, EC, OctetSeq
 	if err = jwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWE JWK: %w", err)
 	}
 
 	encodedJwk, err := json.Marshal(jwk)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to serialize JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to serialize JWE JWK: %w", err)
 	}
 
 	return kid, jwk, encodedJwk, nil
 }
 
 func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, rawKey *cryptoutilKeygen.Key, isNilRawKeyOk bool) (*cryptoutilKeygen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, "invalid kid"); err != nil {
-		return nil, fmt.Errorf("kid must be valid: %w", err)
+	if err := cryptoutilUtil.ValidateUUID(kid, "invalid JWE JWK kid"); err != nil {
+		return nil, fmt.Errorf("JWE JWK kid must be valid: %w", err)
 	} else if alg == nil {
-		return nil, fmt.Errorf("alg must be non-nil")
+		return nil, fmt.Errorf("JWE JWK alg must be non-nil")
 	} else if enc == nil {
-		return nil, fmt.Errorf("enc must be non-nil")
+		return nil, fmt.Errorf("JWE JWK enc must be non-nil")
 	} else if !isNilRawKeyOk && rawKey == nil {
-		return nil, fmt.Errorf("key must be non-nil")
+		return nil, fmt.Errorf("JWE JWK key must be non-nil")
 	}
 	encKeyBitsLength, err := EncToBitsLength(enc)
 	if err != nil {
-		return nil, fmt.Errorf("unsupported enc %s: %w", *enc, err)
+		return nil, fmt.Errorf("JWE JWK length error: %w", err)
 	}
 
 	switch *alg {
@@ -107,27 +107,27 @@ func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 	case AlgECDHESA128KW:
 		return validateOrGenerateJweEcdhJwk(rawKey, enc, alg, ecdh.P256(), &EncA128GCM, &EncA128CBC_HS256)
 	default:
-		return nil, fmt.Errorf("unsupported alg %s", *alg)
+		return nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
 	}
 }
 
 func validateOrGenerateJweAesJwk(key *cryptoutilKeygen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeygen.Key, error) {
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
-		return nil, fmt.Errorf("valid alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
+		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
 		keyBytes, err := cryptoutilKeygen.GenerateBytes(keyBitsLength / 8)
 		if err != nil {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but failed to generate AES %d key: %w", *enc, *alg, keyBitsLength, err)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate AES %d key: %w", *enc, *alg, keyBitsLength, err)
 		}
 		key = &cryptoutilKeygen.Key{Private: keyBytes}
 	} else {
 		aesKey, ok := key.Private.([]byte)
 		if !ok {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid key type %T; use []byte", *enc, *alg, key.Private)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use []byte", *enc, *alg, key.Private)
 		} else if aesKey == nil {
 			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid nil key bytes", *enc, *alg)
 		} else if len(aesKey) != keyBitsLength/8 {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid key length %d; use AES %d", *enc, *alg, len(aesKey), keyBitsLength)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but invalid key length %d; use AES %d", *enc, *alg, len(aesKey), keyBitsLength)
 		}
 	}
 	return key, nil
@@ -135,25 +135,25 @@ func validateOrGenerateJweAesJwk(key *cryptoutilKeygen.Key, enc *joseJwa.Content
 
 func validateOrGenerateJweRsaJwk(key *cryptoutilKeygen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeygen.Key, error) {
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
-		return nil, fmt.Errorf("valid alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
+		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
 		generatedKey, err := keygen.GenerateRSAKeyPair(keyBitsLength)
 		if err != nil {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but failed to generate RSA %d key: %w", *enc, *alg, keyBitsLength, err)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate RSA %d key: %w", *enc, *alg, keyBitsLength, err)
 		}
 		key = &generatedKey
 	} else {
 		rsaPrivateKey, ok := key.Private.(*rsa.PrivateKey)
 		if !ok {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid key type %T; use *rsa.PrivateKey", *enc, *alg, key.Private)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *rsa.PrivateKey", *enc, *alg, key.Private)
 		} else if rsaPrivateKey == nil {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid nil RSA private key", *enc, *alg)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but invalid nil RSA private key", *enc, *alg)
 		}
 		rsaPublicKey, ok := key.Public.(*rsa.PublicKey)
 		if !ok {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid key type %T; use *rsa.PublicKey", *enc, *alg, key.Public)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *rsa.PublicKey", *enc, *alg, key.Public)
 		} else if rsaPublicKey == nil {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid nil RSA public key", *enc, *alg)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but invalid nil RSA public key", *enc, *alg)
 		}
 	}
 	return key, nil
@@ -161,25 +161,25 @@ func validateOrGenerateJweRsaJwk(key *cryptoutilKeygen.Key, enc *joseJwa.Content
 
 func validateOrGenerateJweEcdhJwk(key *cryptoutilKeygen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, ecdhCurve ecdh.Curve, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeygen.Key, error) {
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
-		return nil, fmt.Errorf("valid alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
+		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
 		generatedEcdhKeyPair, err := keygen.GenerateECDHKeyPair(ecdhCurve)
 		if err != nil {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but failed to generate ECDH %s key: %w", *enc, *alg, ecdhCurve, err)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate ECDH %s key: %w", *enc, *alg, ecdhCurve, err)
 		}
 		key = &generatedEcdhKeyPair
 	} else {
 		ecdhPrivateKey, ok := key.Private.(*ecdh.PrivateKey)
 		if !ok {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid key type %T; use *ecdh.PrivateKey", *enc, *alg, key.Private)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *ecdh.PrivateKey", *enc, *alg, key.Private)
 		} else if ecdhPrivateKey == nil {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid nil ECDH private key", *enc, *alg)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported nil ECDH private key", *enc, *alg)
 		}
 		ecdhPublicKey, ok := key.Public.(*ecdh.PublicKey)
 		if !ok {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid key type %T; use *ecdh.PublicKey", *enc, *alg, key.Public)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use *ecdh.PublicKey", *enc, *alg, key.Public)
 		} else if ecdhPublicKey == nil {
-			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid nil ECDH public key", *enc, *alg)
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported nil ECDH public key", *enc, *alg)
 		}
 	}
 	return key, nil
@@ -200,6 +200,6 @@ func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	case EncA128CBC_HS256:
 		return 256, nil
 	default:
-		return 0, fmt.Errorf("invalid enc %s", *enc)
+		return 0, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
 	}
 }

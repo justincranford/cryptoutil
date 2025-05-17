@@ -56,12 +56,12 @@ func Test_HappyPath_Bytes(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
-			actualKeyKid, cek, encodedAesJwk, err := GenerateEncryptionJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			actualKeyKid, cek, encodedJweJwk, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
 			require.NotNil(t, cek)
-			require.NotEmpty(t, encodedAesJwk)
+			require.NotEmpty(t, encodedJweJwk)
 			require.NotEmpty(t, actualKeyKid)
-			log.Printf("Generated: %s", encodedAesJwk)
+			log.Printf("Generated: %s", encodedJweJwk)
 
 			var actualJwkAlg joseJwa.KeyAlgorithm
 			require.NoError(t, cek.Get(joseJwk.AlgorithmKey, &actualJwkAlg))
@@ -114,10 +114,10 @@ func Test_HappyPath_Bytes(t *testing.T) {
 func Test_HappyPath_Key(t *testing.T) {
 	for _, testCase := range happyPathTestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
-			_, kek, encodedKek, _ := GenerateEncryptionJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			_, kek, encodedKek, _ := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			log.Printf("KEK: %s", string(encodedKek))
 
-			_, originalKey, encodedKey, _ := GenerateEncryptionJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			_, originalKey, encodedKey, _ := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			log.Printf("Original Key: %s", string(encodedKey))
 
 			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{kek}, originalKey)
@@ -138,27 +138,36 @@ func Test_HappyPath_Key(t *testing.T) {
 	}
 }
 
-func Test_SadPath_GenerateAesJWK_UnsupportedAlg(t *testing.T) {
-	invalidAlg := joseJwa.RSA_OAEP()
-	key, raw, kid, err := GenerateEncryptionJweJwkForEncAndAlg(&EncA256GCM, &invalidAlg)
+func Test_SadPath_GenerateJweJwk_UnsupportedEnc(t *testing.T) {
+	key, raw, kid, err := GenerateJweJwkForEncAndAlg(&EncInvalid, &AlgA256KW)
 	require.Error(t, err)
+	require.Equal(t, "invalid JWE JWK headers: JWE JWK length error: unsupported JWE JWK enc invalid", err.Error())
 	require.Nil(t, kid)
 	require.Nil(t, key)
 	require.Nil(t, raw)
 }
 
-func Test_SadPath_EncryptJWE_NilKey(t *testing.T) {
+func Test_SadPath_GenerateJweJwk_UnsupportedAlg(t *testing.T) {
+	key, raw, kid, err := GenerateJweJwkForEncAndAlg(&EncA256GCM, &AlgEncInvalid)
+	require.Error(t, err)
+	require.Equal(t, "invalid JWE JWK headers: unsupported JWE JWK alg invalid", err.Error())
+	require.Nil(t, kid)
+	require.Nil(t, key)
+	require.Nil(t, raw)
+}
+
+func Test_SadPath_EncryptBytes_NilKey(t *testing.T) {
 	_, _, err := EncryptBytes(nil, []byte("test"))
 	require.Error(t, err)
 }
 
-func Test_SadPath_DecryptJWE_NilKey(t *testing.T) {
+func Test_SadPath_DecryptBytes_NilKey(t *testing.T) {
 	_, err := DecryptBytes(nil, []byte("ciphertext"))
 	require.Error(t, err)
 }
 
-func Test_SadPath_DecryptJWE_InvalidCiphertext(t *testing.T) {
-	kid, key, raw, err := GenerateEncryptionJweJwkForEncAndAlg(&EncA256GCM, &AlgA256KW)
+func Test_SadPath_DecryptBytes_InvalidCiphertext(t *testing.T) {
+	kid, key, raw, err := GenerateJweJwkForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
 	require.NotNil(t, key)

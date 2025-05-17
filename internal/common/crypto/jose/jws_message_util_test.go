@@ -84,3 +84,12 @@ func Test_HappyPath_Jws_Jwk(t *testing.T) {
 		})
 	}
 }
+
+func Test_SadPath_GenerateJwsJwk_UnsupportedAlg(t *testing.T) {
+	key, raw, kid, err := GenerateJwsJwkForAlg(&AlgSigInvalid)
+	require.Error(t, err)
+	require.Equal(t, "invalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
+	require.Nil(t, kid)
+	require.Nil(t, key)
+	require.Nil(t, raw)
+}
