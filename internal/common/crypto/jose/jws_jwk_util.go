@@ -37,7 +37,7 @@ func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 	}
 	jwk, err := joseJwk.Import(rawKey.Private) // []byte, RSA, EC, OctetSeq (AES/HMAC)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to import key into JWS JWK: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to import key material into JWS JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `kid` header in JWS JWK: %w", err)

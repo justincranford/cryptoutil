@@ -36,7 +36,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
-	unsealJwks := cryptoutilJose.GenerateJweJwksForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealJwks, err := cryptoutilJose.GenerateJweJwksForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
 	require.NotNil(t, unsealJwks)
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)

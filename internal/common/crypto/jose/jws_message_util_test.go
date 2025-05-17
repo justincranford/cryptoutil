@@ -30,10 +30,12 @@ var happyPathJwsTestCases = []struct {
 	{alg: &AlgEdDSA},
 }
 
-func Test_HappyPath_Jws_Jwk(t *testing.T) {
+func Test_HappyPath_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 	for _, testCase := range happyPathJwsTestCases {
+		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
 			t.Parallel()
+
 			jwsJwkKid, jwsJwk, encodedJwsJwk, err := GenerateJwsJwkForAlg(testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJwkKid)
@@ -57,7 +59,6 @@ func Test_HappyPath_Jws_Jwk(t *testing.T) {
 			require.NoError(t, jwsJwk.Get(joseJwk.KeyTypeKey, &actualJwkKty))
 			require.True(t, cryptoutilUtil.Contains([]*joseJwa.KeyType{&KtyRsa, &KtyEC, &KtyOkp, &KtyOct}, &actualJwkKty))
 
-			plaintext := []byte("hello, world!")
 			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{jwsJwk}, plaintext)
 			require.NoError(t, err)
 			require.NotEmpty(t, encodedJwsMessage)
@@ -85,6 +86,16 @@ func Test_HappyPath_Jws_Jwk(t *testing.T) {
 	}
 }
 
+func Test_SadPath_SignBytes_NilKey(t *testing.T) {
+	_, _, err := SignBytes(nil, []byte("test"))
+	require.Error(t, err)
+}
+
+func Test_SadPath_VerifyBytes_NilKey(t *testing.T) {
+	_, err := VerifyBytes(nil, []byte("ciphertext"))
+	require.Error(t, err)
+}
+
 func Test_SadPath_GenerateJwsJwk_UnsupportedAlg(t *testing.T) {
 	key, raw, kid, err := GenerateJwsJwkForAlg(&AlgSigInvalid)
 	require.Error(t, err)
@@ -92,4 +103,11 @@ func Test_SadPath_GenerateJwsJwk_UnsupportedAlg(t *testing.T) {
 	require.Nil(t, kid)
 	require.Nil(t, key)
 	require.Nil(t, raw)
+}
+
+func Test_SadPath_ConcurrentGenerateJwsJwk_UnsupportedAlg(t *testing.T) {
+	jwks, err := GenerateJwsJwksForTest(t, 2, &AlgSigInvalid)
+	require.Error(t, err)
+	require.Equal(t, "unexpected 2 errors: invalid JWS JWK headers: unsupported JWS JWK alg: invalid\ninvalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
+	require.Nil(t, jwks)
 }

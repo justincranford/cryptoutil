@@ -51,7 +51,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	unsealJwks := cryptoutilJose.GenerateJweJwksForTest(t, 2, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealJwks, err := cryptoutilJose.GenerateJweJwksForTest(t, 2, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NotNil(t, unsealJwks)
 
 	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)
