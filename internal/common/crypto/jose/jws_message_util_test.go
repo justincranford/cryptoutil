@@ -15,19 +15,19 @@ import (
 var happyPathJwsTestCases = []struct {
 	alg *joseJwa.SignatureAlgorithm
 }{
-	{alg: &AlgRS256},
-	{alg: &AlgRS384},
-	{alg: &AlgRS512},
-	{alg: &AlgPS256},
-	{alg: &AlgPS384},
-	{alg: &AlgPS512},
-	{alg: &AlgES256},
-	{alg: &AlgES384},
-	{alg: &AlgES512},
-	{alg: &AlgHS256},
-	{alg: &AlgHS384},
-	{alg: &AlgHS512},
-	{alg: &AlgEdDSA},
+	{alg: &AlgRS256}, // RSA 1.5 & SHA-256
+	{alg: &AlgRS384}, // RSA 1.5 & SHA-384
+	{alg: &AlgRS512}, // RSA 1.5 & SHA-512
+	{alg: &AlgPS256}, // RSA 2.0 & SHA-256
+	{alg: &AlgPS384}, // RSA 2.0 & SHA-384
+	{alg: &AlgPS512}, // RSA 2.0 & SHA-512
+	{alg: &AlgES256}, // EC P-256 & SHA-256
+	{alg: &AlgES384}, // EC P-394 & SHA-384
+	{alg: &AlgES512}, // EC P-521 & SHA-512
+	{alg: &AlgHS256}, // HMAC with SHA-256 & SHA-512
+	{alg: &AlgHS384}, // HMAC with SHA-384 & SHA-512
+	{alg: &AlgHS512}, // HMAC with SHA-512 & SHA-512
+	{alg: &AlgEdDSA}, // ED25519 & SHA-256
 }
 
 func Test_HappyPath_Jws_Jwk_SignVerifyBytes(t *testing.T) {
