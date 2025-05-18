@@ -2,6 +2,8 @@ package jose
 
 import (
 	"crypto/ecdh"
+	"crypto/ecdsa"
+	"crypto/ed25519"
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
+	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -73,9 +76,32 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	if err = jwk.Set(joseJwk.KeyOpsKey, OpsEncDec); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWK: %w", err)
 	}
-	// TODO RSA, EC, OctetSeq
-	if err = jwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWE JWK: %w", err)
+	if rawKey.Secret != nil {
+		switch rawKey.Secret.(type) {
+		case []byte: // AES, AESCBC-HS, HMAC
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'oct' in JWE JWK: %w", err)
+			}
+		default:
+			return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWE JWK: unexpected key type %T", rawKey.Secret)
+		}
+	} else if rawKey.Private != nil {
+		switch rawKey.Private.(type) {
+		case *rsa.PrivateKey: // RSA
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyRsa); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'rsa' in JWE JWK: %w", err)
+			}
+		case *ecdsa.PrivateKey, *ecdh.PrivateKey: // ECDSA, ECDH
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyEC); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'ec' in JWE JWK: %w", err)
+			}
+		case ed25519.PrivateKey, ed448.PrivateKey: // ED25519, ED448
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOkp); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'okp' in JWE JWK: %w", err)
+			}
+		default:
+			return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWE JWK: unexpected key type %T", rawKey.Secret)
+		}
 	}
 
 	encodedJwk, err := json.Marshal(jwk)
@@ -125,6 +151,7 @@ func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 		return validateOrGenerateJweEcdhJwk(rawKey, enc, alg, ecdh.P384(), &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
 	case AlgECDHESA128KW:
 		return validateOrGenerateJweEcdhJwk(rawKey, enc, alg, ecdh.P256(), &EncA128GCM, &EncA128CBC_HS256)
+
 	default:
 		return nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
 	}

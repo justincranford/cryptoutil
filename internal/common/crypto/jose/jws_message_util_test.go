@@ -1,7 +1,6 @@
 package jose
 
 import (
-	cryptoutilUtil "cryptoutil/internal/common/util"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -13,21 +12,22 @@ import (
 )
 
 var happyPathJwsTestCases = []struct {
-	alg *joseJwa.SignatureAlgorithm
+	alg          *joseJwa.SignatureAlgorithm
+	expectedType joseJwa.KeyType
 }{
-	{alg: &AlgRS256}, // RSA 1.5 & SHA-256
-	{alg: &AlgRS384}, // RSA 1.5 & SHA-384
-	{alg: &AlgRS512}, // RSA 1.5 & SHA-512
-	{alg: &AlgPS256}, // RSA 2.0 & SHA-256
-	{alg: &AlgPS384}, // RSA 2.0 & SHA-384
-	{alg: &AlgPS512}, // RSA 2.0 & SHA-512
-	{alg: &AlgES256}, // EC P-256 & SHA-256
-	{alg: &AlgES384}, // EC P-394 & SHA-384
-	{alg: &AlgES512}, // EC P-521 & SHA-512
-	{alg: &AlgHS256}, // HMAC with SHA-256 & SHA-512
-	{alg: &AlgHS384}, // HMAC with SHA-384 & SHA-512
-	{alg: &AlgHS512}, // HMAC with SHA-512 & SHA-512
-	{alg: &AlgEdDSA}, // ED25519 & SHA-256
+	{alg: &AlgRS256, expectedType: KtyRsa}, // RSA 1.5 & SHA-256
+	{alg: &AlgRS384, expectedType: KtyRsa}, // RSA 1.5 & SHA-384
+	{alg: &AlgRS512, expectedType: KtyRsa}, // RSA 1.5 & SHA-512
+	{alg: &AlgPS256, expectedType: KtyRsa}, // RSA 2.0 & SHA-256
+	{alg: &AlgPS384, expectedType: KtyRsa}, // RSA 2.0 & SHA-384
+	{alg: &AlgPS512, expectedType: KtyRsa}, // RSA 2.0 & SHA-512
+	{alg: &AlgES256, expectedType: KtyEC},  // EC P-256 & SHA-256
+	{alg: &AlgES384, expectedType: KtyEC},  // EC P-394 & SHA-384
+	{alg: &AlgES512, expectedType: KtyEC},  // EC P-521 & SHA-512
+	{alg: &AlgHS256, expectedType: KtyOct}, // HMAC with SHA-256 & SHA-512
+	{alg: &AlgHS384, expectedType: KtyOct}, // HMAC with SHA-384 & SHA-512
+	{alg: &AlgHS512, expectedType: KtyOct}, // HMAC with SHA-512 & SHA-512
+	{alg: &AlgEdDSA, expectedType: KtyOkp}, // ED25519 & SHA-256
 }
 
 func Test_HappyPath_Jws_Jwk_SignVerifyBytes(t *testing.T) {
@@ -57,7 +57,7 @@ func Test_HappyPath_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 
 			var actualJwkKty joseJwa.KeyType
 			require.NoError(t, jwsJwk.Get(joseJwk.KeyTypeKey, &actualJwkKty))
-			require.True(t, cryptoutilUtil.Contains([]*joseJwa.KeyType{&KtyRsa, &KtyEC, &KtyOkp, &KtyOct}, &actualJwkKty))
+			require.Equal(t, testCase.expectedType, actualJwkKty)
 
 			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{jwsJwk}, plaintext)
 			require.NoError(t, err)

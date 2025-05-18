@@ -1,6 +1,7 @@
 package jose
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -10,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -67,10 +69,33 @@ func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 	if err = jwk.Set(joseJwk.KeyOpsKey, OpsSigVer); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWS JWK: %w", err)
 	}
-	// TODO RSA, EC, OctetSeq
-	// if err = jwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
-	// 	return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWS JWK: %w", err)
-	// }
+	if rawKey.Secret != nil {
+		switch rawKey.Secret.(type) {
+		case []byte: // AES, AESCBC-HS, HMAC
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'oct' in JWE JWK: %w", err)
+			}
+		default:
+			return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWE JWK: unexpected key type %T", rawKey.Secret)
+		}
+	} else if rawKey.Private != nil {
+		switch rawKey.Private.(type) {
+		case *rsa.PrivateKey: // RSA
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyRsa); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'rsa' in JWE JWK: %w", err)
+			}
+		case *ecdsa.PrivateKey, *ecdh.PrivateKey: // ECDSA, ECDH
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyEC); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'ec' in JWE JWK: %w", err)
+			}
+		case ed25519.PrivateKey, ed448.PrivateKey: // ED25519, ED448
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOkp); err != nil {
+				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'okp' in JWE JWK: %w", err)
+			}
+		default:
+			return nil, nil, nil, fmt.Errorf("failed to set 'kty' header in JWE JWK: unexpected key type %T", rawKey.Secret)
+		}
+	}
 
 	encodedJwk, err := json.Marshal(jwk)
 	if err != nil {

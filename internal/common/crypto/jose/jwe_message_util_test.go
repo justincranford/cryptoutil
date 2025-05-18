@@ -12,44 +12,103 @@ import (
 )
 
 var happyPathTestCases = []struct {
-	enc *joseJwa.ContentEncryptionAlgorithm
-	alg *joseJwa.KeyEncryptionAlgorithm
+	enc          *joseJwa.ContentEncryptionAlgorithm
+	alg          *joseJwa.KeyEncryptionAlgorithm
+	expectedType joseJwa.KeyType
 }{
-	{enc: &EncA256GCM, alg: &AlgA256KW},
-	{enc: &EncA192GCM, alg: &AlgA256KW},
-	{enc: &EncA128GCM, alg: &AlgA256KW},
-	{enc: &EncA192GCM, alg: &AlgA192KW},
-	{enc: &EncA128GCM, alg: &AlgA192KW},
-	{enc: &EncA128GCM, alg: &AlgA128KW},
+	{enc: &EncA256GCM, alg: &AlgA256KW, expectedType: KtyOct},
+	{enc: &EncA192GCM, alg: &AlgA256KW, expectedType: KtyOct},
+	{enc: &EncA128GCM, alg: &AlgA256KW, expectedType: KtyOct},
+	{enc: &EncA192GCM, alg: &AlgA192KW, expectedType: KtyOct},
+	{enc: &EncA128GCM, alg: &AlgA192KW, expectedType: KtyOct},
+	{enc: &EncA128GCM, alg: &AlgA128KW, expectedType: KtyOct},
 
-	{enc: &EncA256GCM, alg: &AlgA256GCMKW},
-	{enc: &EncA192GCM, alg: &AlgA256GCMKW},
-	{enc: &EncA128GCM, alg: &AlgA256GCMKW},
-	{enc: &EncA192GCM, alg: &AlgA192GCMKW},
-	{enc: &EncA128GCM, alg: &AlgA192GCMKW},
-	{enc: &EncA128GCM, alg: &AlgA128GCMKW},
+	{enc: &EncA256GCM, alg: &AlgA256GCMKW, expectedType: KtyOct},
+	{enc: &EncA192GCM, alg: &AlgA256GCMKW, expectedType: KtyOct},
+	{enc: &EncA128GCM, alg: &AlgA256GCMKW, expectedType: KtyOct},
+	{enc: &EncA192GCM, alg: &AlgA192GCMKW, expectedType: KtyOct},
+	{enc: &EncA128GCM, alg: &AlgA192GCMKW, expectedType: KtyOct},
+	{enc: &EncA128GCM, alg: &AlgA128GCMKW, expectedType: KtyOct},
 
-	{enc: &EncA256GCM, alg: &AlgDir},
-	{enc: &EncA192GCM, alg: &AlgDir},
-	{enc: &EncA128GCM, alg: &AlgDir},
+	// {enc: &EncA256GCM, alg: &AlgRSA15, expectedType: KtyRsa},
+	// {enc: &EncA192GCM, alg: &AlgRSA15, expectedType: KtyRsa},
+	{enc: &EncA128GCM, alg: &AlgRSA15, expectedType: KtyRsa},
+	// {enc: &EncA256GCM, alg: &AlgRSAOAEP, expectedType: KtyRsa},
+	// {enc: &EncA192GCM, alg: &AlgRSAOAEP, expectedType: KtyRsa},
+	{enc: &EncA128GCM, alg: &AlgRSAOAEP, expectedType: KtyRsa},
+	// {enc: &EncA256GCM, alg: &AlgRSAOAEP256, expectedType: KtyRsa},
+	// {enc: &EncA192GCM, alg: &AlgRSAOAEP256, expectedType: KtyRsa},
+	{enc: &EncA128GCM, alg: &AlgRSAOAEP256, expectedType: KtyRsa},
+	// {enc: &EncA256GCM, alg: &AlgRSAOAEP384, expectedType: KtyRsa},
+	{enc: &EncA192GCM, alg: &AlgRSAOAEP384, expectedType: KtyRsa},
+	{enc: &EncA128GCM, alg: &AlgRSAOAEP384, expectedType: KtyRsa},
+	{enc: &EncA256GCM, alg: &AlgRSAOAEP512, expectedType: KtyRsa},
+	{enc: &EncA192GCM, alg: &AlgRSAOAEP512, expectedType: KtyRsa},
+	{enc: &EncA128GCM, alg: &AlgRSAOAEP512, expectedType: KtyRsa},
 
-	{enc: &EncA256CBC_HS512, alg: &AlgA256KW},
-	{enc: &EncA192CBC_HS384, alg: &AlgA256KW},
-	{enc: &EncA128CBC_HS256, alg: &AlgA256KW},
-	{enc: &EncA192CBC_HS384, alg: &AlgA192KW},
-	{enc: &EncA128CBC_HS256, alg: &AlgA192KW},
-	{enc: &EncA128CBC_HS256, alg: &AlgA128KW},
+	// {enc: &EncA256GCM, alg: &AlgECDHES, expectedType: KtyEC},
+	// {enc: &EncA192GCM, alg: &AlgECDHES, expectedType: KtyEC},
+	{enc: &EncA128GCM, alg: &AlgECDHES, expectedType: KtyEC},
+	// {enc: &EncA256GCM, alg: &AlgECDHESA128KW, expectedType: KtyEC},
+	// {enc: &EncA192GCM, alg: &AlgECDHESA128KW, expectedType: KtyEC},
+	{enc: &EncA128GCM, alg: &AlgECDHESA128KW, expectedType: KtyEC},
+	// {enc: &EncA256GCM, alg: &AlgECDHESA192KW, expectedType: KtyEC},
+	{enc: &EncA192GCM, alg: &AlgECDHESA192KW, expectedType: KtyEC},
+	{enc: &EncA128GCM, alg: &AlgECDHESA192KW, expectedType: KtyEC},
+	{enc: &EncA256GCM, alg: &AlgECDHESA256KW, expectedType: KtyEC},
+	{enc: &EncA192GCM, alg: &AlgECDHESA256KW, expectedType: KtyEC},
+	{enc: &EncA128GCM, alg: &AlgECDHESA256KW, expectedType: KtyEC},
 
-	{enc: &EncA256CBC_HS512, alg: &AlgA256GCMKW},
-	{enc: &EncA192CBC_HS384, alg: &AlgA256GCMKW},
-	{enc: &EncA128CBC_HS256, alg: &AlgA256GCMKW},
-	{enc: &EncA192CBC_HS384, alg: &AlgA192GCMKW},
-	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW},
-	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW},
+	{enc: &EncA256GCM, alg: &AlgDir, expectedType: KtyOct},
+	{enc: &EncA192GCM, alg: &AlgDir, expectedType: KtyOct},
+	{enc: &EncA128GCM, alg: &AlgDir, expectedType: KtyOct},
 
-	{enc: &EncA256CBC_HS512, alg: &AlgDir},
-	{enc: &EncA192CBC_HS384, alg: &AlgDir},
-	{enc: &EncA128CBC_HS256, alg: &AlgDir},
+	{enc: &EncA256CBC_HS512, alg: &AlgA256KW, expectedType: KtyOct},
+	{enc: &EncA192CBC_HS384, alg: &AlgA256KW, expectedType: KtyOct},
+	{enc: &EncA128CBC_HS256, alg: &AlgA256KW, expectedType: KtyOct},
+	{enc: &EncA192CBC_HS384, alg: &AlgA192KW, expectedType: KtyOct},
+	{enc: &EncA128CBC_HS256, alg: &AlgA192KW, expectedType: KtyOct},
+	{enc: &EncA128CBC_HS256, alg: &AlgA128KW, expectedType: KtyOct},
+
+	{enc: &EncA256CBC_HS512, alg: &AlgA256GCMKW, expectedType: KtyOct},
+	{enc: &EncA192CBC_HS384, alg: &AlgA256GCMKW, expectedType: KtyOct},
+	{enc: &EncA128CBC_HS256, alg: &AlgA256GCMKW, expectedType: KtyOct},
+	{enc: &EncA192CBC_HS384, alg: &AlgA192GCMKW, expectedType: KtyOct},
+	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW, expectedType: KtyOct},
+	{enc: &EncA128CBC_HS256, alg: &AlgA192GCMKW, expectedType: KtyOct},
+
+	// {enc: &EncA256CBC_HS512, alg: &AlgRSA15, expectedType: KtyRsa},
+	// {enc: &EncA192CBC_HS384, alg: &AlgRSA15, expectedType: KtyRsa},
+	{enc: &EncA128CBC_HS256, alg: &AlgRSA15, expectedType: KtyRsa},
+	// {enc: &EncA256CBC_HS512, alg: &AlgRSAOAEP, expectedType: KtyRsa},
+	// {enc: &EncA192CBC_HS384, alg: &AlgRSAOAEP, expectedType: KtyRsa},
+	{enc: &EncA128CBC_HS256, alg: &AlgRSAOAEP, expectedType: KtyRsa},
+	// {enc: &EncA256CBC_HS512, alg: &AlgRSAOAEP256, expectedType: KtyRsa},
+	// {enc: &EncA192CBC_HS384, alg: &AlgRSAOAEP256, expectedType: KtyRsa},
+	{enc: &EncA128CBC_HS256, alg: &AlgRSAOAEP256, expectedType: KtyRsa},
+	// {enc: &EncA256CBC_HS512, alg: &AlgRSAOAEP384, expectedType: KtyRsa},
+	{enc: &EncA192CBC_HS384, alg: &AlgRSAOAEP384, expectedType: KtyRsa},
+	{enc: &EncA128CBC_HS256, alg: &AlgRSAOAEP384, expectedType: KtyRsa},
+	{enc: &EncA256CBC_HS512, alg: &AlgRSAOAEP512, expectedType: KtyRsa},
+	{enc: &EncA192CBC_HS384, alg: &AlgRSAOAEP512, expectedType: KtyRsa},
+	{enc: &EncA128CBC_HS256, alg: &AlgRSAOAEP512, expectedType: KtyRsa},
+
+	// {enc: &EncA256CBC_HS512, alg: &AlgECDHES, expectedType: KtyEC},
+	// {enc: &EncA192CBC_HS384, alg: &AlgECDHES, expectedType: KtyEC},
+	{enc: &EncA128CBC_HS256, alg: &AlgECDHES, expectedType: KtyEC},
+	// {enc: &EncA256CBC_HS512, alg: &AlgECDHESA128KW, expectedType: KtyEC},
+	// {enc: &EncA192CBC_HS384, alg: &AlgECDHESA128KW, expectedType: KtyEC},
+	{enc: &EncA128CBC_HS256, alg: &AlgECDHESA128KW, expectedType: KtyEC},
+	// {enc: &EncA256CBC_HS512, alg: &AlgECDHESA192KW, expectedType: KtyEC},
+	{enc: &EncA192CBC_HS384, alg: &AlgECDHESA192KW, expectedType: KtyEC},
+	{enc: &EncA128CBC_HS256, alg: &AlgECDHESA192KW, expectedType: KtyEC},
+	{enc: &EncA256CBC_HS512, alg: &AlgECDHESA256KW, expectedType: KtyEC},
+	{enc: &EncA192CBC_HS384, alg: &AlgECDHESA256KW, expectedType: KtyEC},
+	{enc: &EncA128CBC_HS256, alg: &AlgECDHESA256KW, expectedType: KtyEC},
+
+	{enc: &EncA256CBC_HS512, alg: &AlgDir, expectedType: KtyOct},
+	{enc: &EncA192CBC_HS384, alg: &AlgDir, expectedType: KtyOct},
+	{enc: &EncA128CBC_HS256, alg: &AlgDir, expectedType: KtyOct},
 }
 
 func Test_HappyPath_EncryptDecryptBytes(t *testing.T) {
@@ -79,7 +138,7 @@ func Test_HappyPath_EncryptDecryptBytes(t *testing.T) {
 
 			var actualJwkKty joseJwa.KeyType
 			require.NoError(t, cek.Get(joseJwk.KeyTypeKey, &actualJwkKty))
-			require.Equal(t, KtyOct, actualJwkKty)
+			require.Equal(t, testCase.expectedType, actualJwkKty)
 
 			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{cek}, plaintext)
 			require.NoError(t, err)
