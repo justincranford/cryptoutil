@@ -115,25 +115,25 @@ func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	}
 	switch *alg {
 	case AlgRS512, AlgPS512:
-		return validateOrGenerateJwsRsaJwk(nil, alg, 4096)
+		return validateOrGenerateJwsRsaJwk(rawKey, alg, 4096)
 	case AlgRS384, AlgPS384:
-		return validateOrGenerateJwsRsaJwk(nil, alg, 3072)
+		return validateOrGenerateJwsRsaJwk(rawKey, alg, 3072)
 	case AlgRS256, AlgPS256:
-		return validateOrGenerateJwsRsaJwk(nil, alg, 2048)
+		return validateOrGenerateJwsRsaJwk(rawKey, alg, 2048)
 	case AlgES256:
-		return validateOrGenerateJwsEcdsaJwk(nil, alg, elliptic.P521())
+		return validateOrGenerateJwsEcdsaJwk(rawKey, alg, elliptic.P521())
 	case AlgES384:
-		return validateOrGenerateJwsEcdsaJwk(nil, alg, elliptic.P384())
+		return validateOrGenerateJwsEcdsaJwk(rawKey, alg, elliptic.P384())
 	case AlgES512:
-		return validateOrGenerateJwsEcdsaJwk(nil, alg, elliptic.P256())
+		return validateOrGenerateJwsEcdsaJwk(rawKey, alg, elliptic.P256())
 	case AlgEdDSA:
-		return validateOrGenerateJwsEddsaJwk(nil, alg, "Ed25519")
+		return validateOrGenerateJwsEddsaJwk(rawKey, alg, "Ed25519")
 	case AlgHS512:
-		return validateOrGenerateJwsHmacJwk(nil, alg, 512)
+		return validateOrGenerateJwsHmacJwk(rawKey, alg, 512)
 	case AlgHS384:
-		return validateOrGenerateJwsHmacJwk(nil, alg, 384)
+		return validateOrGenerateJwsHmacJwk(rawKey, alg, 384)
 	case AlgHS256:
-		return validateOrGenerateJwsHmacJwk(nil, alg, 256)
+		return validateOrGenerateJwsHmacJwk(rawKey, alg, 256)
 	default:
 		return nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}
