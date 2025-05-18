@@ -32,10 +32,26 @@ func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, keyGenPool *cryp
 
 func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, rawKey *cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	_, err := validateJwsJwkHeaders(kid, alg, rawKey, false)
+	var jwk joseJwk.Key
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWS JWK headers: %w", err)
+	} else if rawKey.Secret != nil {
+		if rawKey.Private != nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Secret and non-nil Private: %w", err)
+		} else if rawKey.Public != nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Secret and non-nil Public: %w", err)
+		}
+		jwk, err = joseJwk.Import(rawKey.Secret) // []byte, OctetSeq (AES/HMAC)
+	} else if rawKey.Private != nil {
+		if rawKey.Public == nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Private and nil Public: %w", err)
+		} else if rawKey.Secret != nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Private and non-nil Secret: %w", err)
+		}
+		jwk, err = joseJwk.Import(rawKey.Private) // RSA, EC, ED
+	} else {
+		return nil, nil, nil, fmt.Errorf("missing Secret and Private: %w", err)
 	}
-	jwk, err := joseJwk.Import(rawKey.Private) // []byte, RSA, EC, OctetSeq (AES/HMAC)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to import key material into JWS JWK: %w", err)
 	}
@@ -176,11 +192,11 @@ func validateOrGenerateJwsHmacJwk(key *cryptoutilKeygen.Key, alg *joseJwa.Signat
 		if err != nil {
 			return nil, fmt.Errorf("valid JWS JWK alg %s, but failed to generate AES %d key: %w", *alg, keyBitsLength, err)
 		}
-		key = &cryptoutilKeygen.Key{Private: keyBytes}
+		key = &cryptoutilKeygen.Key{Secret: keyBytes}
 	} else {
-		aesKey, ok := key.Private.([]byte)
+		aesKey, ok := key.Secret.([]byte)
 		if !ok {
-			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key type %T; use []byte", *alg, key.Private)
+			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key type %T; use []byte", *alg, key.Secret)
 		} else if aesKey == nil {
 			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid nil key bytes", *alg)
 		} else if len(aesKey) != keyBitsLength/8 {

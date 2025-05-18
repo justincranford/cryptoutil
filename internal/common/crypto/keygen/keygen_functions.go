@@ -1,13 +1,17 @@
 package keygen
 
 import (
+	"crypto"
 	"crypto/ecdh"
 	"crypto/elliptic"
 )
 
+type SecretKey any // []byte, googleUuid.UUID
+
 type Key struct {
-	Private any
-	Public  any
+	Private crypto.PrivateKey
+	Public  crypto.PublicKey
+	Secret  SecretKey
 }
 
 func GenerateRSAKeyPairFunction(rsaBits int) func() (Key, error) {

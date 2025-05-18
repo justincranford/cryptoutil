@@ -35,7 +35,26 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)
 	}
-	jwk, err := joseJwk.Import(rawKey.Private) // []byte, RSA, EC, OctetSeq (AES/HMAC)
+	var jwk joseJwk.Key
+	if rawKey == nil {
+		return nil, nil, nil, fmt.Errorf("JWE JWK key must be non-nil")
+	} else if rawKey.Secret != nil {
+		if rawKey.Private != nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Secret and non-nil Private: %w", err)
+		} else if rawKey.Public != nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Secret and non-nil Public: %w", err)
+		}
+		jwk, err = joseJwk.Import(rawKey.Secret) // []byte, OctetSeq (AES/HMAC)
+	} else if rawKey.Private != nil {
+		if rawKey.Public == nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Private and nil Public: %w", err)
+		} else if rawKey.Secret != nil {
+			return nil, nil, nil, fmt.Errorf("invalid mix of non-nil Private and non-nil Secret: %w", err)
+		}
+		jwk, err = joseJwk.Import(rawKey.Private) // RSA, EC, ED
+	} else {
+		return nil, nil, nil, fmt.Errorf("missing Secret and Private: %w", err)
+	}
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to import key material into JWE JWK: %w", err)
 	}
@@ -115,19 +134,19 @@ func validateOrGenerateJweAesJwk(key *cryptoutilKeygen.Key, enc *joseJwa.Content
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
-		keyBytes, err := cryptoutilKeygen.GenerateBytes(keyBitsLength / 8)
+		aesKeyBytes, err := cryptoutilKeygen.GenerateBytes(keyBitsLength / 8)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate AES %d key: %w", *enc, *alg, keyBitsLength, err)
 		}
-		key = &cryptoutilKeygen.Key{Private: keyBytes}
+		key = &cryptoutilKeygen.Key{Secret: aesKeyBytes}
 	} else {
-		aesKey, ok := key.Private.([]byte)
+		aesKeyBytes, ok := key.Secret.([]byte)
 		if !ok {
-			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use []byte", *enc, *alg, key.Private)
-		} else if aesKey == nil {
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but unsupported key type %T; use []byte", *enc, *alg, key.Secret)
+		} else if aesKeyBytes == nil {
 			return nil, fmt.Errorf("valid enc %s and alg %s, but invalid nil key bytes", *enc, *alg)
-		} else if len(aesKey) != keyBitsLength/8 {
-			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but invalid key length %d; use AES %d", *enc, *alg, len(aesKey), keyBitsLength)
+		} else if len(aesKeyBytes) != keyBitsLength/8 {
+			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but invalid key length %d; use AES %d", *enc, *alg, len(aesKeyBytes), keyBitsLength)
 		}
 	}
 	return key, nil

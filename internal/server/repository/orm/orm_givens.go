@@ -29,11 +29,11 @@ func (g *Givens) Shutdown() {
 }
 
 func (g *Givens) UUIDv7() googleUuid.UUID {
-	return g.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
+	return g.uuidV7KeyGenPool.Get().Secret.(googleUuid.UUID)
 }
 
 func (g *Givens) A256() []byte {
-	return g.aes256KeyGenPool.Get().Private.([]byte)
+	return g.aes256KeyGenPool.Get().Secret.([]byte)
 }
 
 func (g *Givens) Aes256KeyPool(versioningAllowed, importAllowed, exportAllowed bool) *KeyPool {

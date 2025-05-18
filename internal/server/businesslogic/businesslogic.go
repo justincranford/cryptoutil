@@ -60,7 +60,7 @@ func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTe
 }
 
 func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) (*cryptoutilBusinessLogicModel.KeyPool, error) {
-	keyPoolID := s.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
+	keyPoolID := s.uuidV7KeyGenPool.Get().Secret.(googleUuid.UUID)
 	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(keyPoolID, openapiKeyPoolCreate)
 
 	var insertedKeyPool *cryptoutilOrmRepository.KeyPool
@@ -370,7 +370,7 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	}
 
 	// envelope encrypt => latestKeyInKeyPool( randomA256GCM(clearBytes) )
-	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(&repositoryKeyPoolLatestKey.KeyID, enc, alg, &cryptoutilKeygen.Key{Private: decryptedKeyPoolLatestKeyMaterialBytes})
+	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(&repositoryKeyPoolLatestKey.KeyID, enc, alg, &cryptoutilKeygen.Key{Secret: decryptedKeyPoolLatestKeyMaterialBytes})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
 	}
@@ -442,7 +442,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	}
 
 	// envelope encrypt => keyInKeyPool( randomA256GCM(clearBytes) )
-	_, keyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(repositoryKeyPoolLatestKeyKidUuid, &enc, &alg, &cryptoutilKeygen.Key{Private: decryptedKeyPoolKeyMaterialBytes})
+	_, keyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(repositoryKeyPoolLatestKeyKidUuid, &enc, &alg, &cryptoutilKeygen.Key{Secret: decryptedKeyPoolKeyMaterialBytes})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID from JWE kid UUID: %w", err)
 	}
@@ -456,7 +456,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 }
 
 func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) (*cryptoutilOrmRepository.Key, error) {
-	keyID := s.uuidV7KeyGenPool.Get().Private.(googleUuid.UUID)
+	keyID := s.uuidV7KeyGenPool.Get().Secret.(googleUuid.UUID)
 
 	// TODO Generate JWK instead of []byte
 	clearKeyMaterial, err := s.GenerateKeyMaterial(keyPoolAlgorithm)
@@ -485,25 +485,25 @@ func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOr
 		cryptoutilOrmRepository.A256CBCHS512_A256KW, cryptoutilOrmRepository.A192CBCHS384_A256KW, cryptoutilOrmRepository.A128CBCHS256_A256KW,
 		cryptoutilOrmRepository.A256CBCHS512_A256GCMKW, cryptoutilOrmRepository.A192CBCHS384_A256GCMKW, cryptoutilOrmRepository.A128CBCHS256_A256GCMKW,
 		cryptoutilOrmRepository.A256GCM_dir:
-		return s.aes256KeyGenPool.Get().Private.([]byte), nil
+		return s.aes256KeyGenPool.Get().Secret.([]byte), nil
 	case cryptoutilOrmRepository.A192GCM_A192KW, cryptoutilOrmRepository.A128GCM_A192KW,
 		cryptoutilOrmRepository.A192GCM_A192GCMKW, cryptoutilOrmRepository.A128GCM_A192GCMKW,
 		cryptoutilOrmRepository.A192CBCHS384_A192KW, cryptoutilOrmRepository.A128CBCHS256_A192KW,
 		cryptoutilOrmRepository.A192CBCHS384_A192GCMKW, cryptoutilOrmRepository.A128CBCHS256_A192GCMKW,
 		cryptoutilOrmRepository.A192GCM_dir:
-		return s.aes192KeyGenPool.Get().Private.([]byte), nil
+		return s.aes192KeyGenPool.Get().Secret.([]byte), nil
 	case cryptoutilOrmRepository.A128GCM_A128KW,
 		cryptoutilOrmRepository.A128GCM_A128GCMKW,
 		cryptoutilOrmRepository.A128CBCHS256_A128KW,
 		cryptoutilOrmRepository.A128CBCHS256_A128GCMKW,
 		cryptoutilOrmRepository.A128GCM_dir:
-		return s.aes128KeyGenPool.Get().Private.([]byte), nil
+		return s.aes128KeyGenPool.Get().Secret.([]byte), nil
 	case cryptoutilOrmRepository.A256CBCHS512_dir:
-		return s.aes256HS512KeyGenPool.Get().Private.([]byte), nil
+		return s.aes256HS512KeyGenPool.Get().Secret.([]byte), nil
 	case cryptoutilOrmRepository.A192CBCHS384_dir:
-		return s.aes192HS384KeyGenPool.Get().Private.([]byte), nil
+		return s.aes192HS384KeyGenPool.Get().Secret.([]byte), nil
 	case cryptoutilOrmRepository.A128CBCHS256_dir:
-		return s.aes128HS256KeyGenPool.Get().Private.([]byte), nil
+		return s.aes128HS256KeyGenPool.Get().Secret.([]byte), nil
 	default:
 		return nil, fmt.Errorf("unsuppported keyPoolAlgorithm: %s", keyPoolAlgorithm)
 	}

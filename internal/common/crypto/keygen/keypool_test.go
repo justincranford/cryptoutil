@@ -85,6 +85,7 @@ func TestPoolRSA(t *testing.T) {
 				keyPair := keyGenPool.Get()
 				require.IsType(t, &rsa.PrivateKey{}, keyPair.Private)
 				require.IsType(t, &rsa.PublicKey{}, keyPair.Public)
+				require.Nil(t, keyPair.Secret)
 			}
 		})
 	}
@@ -105,6 +106,7 @@ func TestPoolEcDSA(t *testing.T) {
 				keyPair := keyGenPool.Get()
 				require.IsType(t, &ecdsa.PrivateKey{}, keyPair.Private)
 				require.IsType(t, &ecdsa.PublicKey{}, keyPair.Public)
+				require.Nil(t, keyPair.Secret)
 			}
 		})
 	}
@@ -125,6 +127,7 @@ func TestPoolEcDH(t *testing.T) {
 				keyPair := keyGenPool.Get()
 				require.IsType(t, &ecdh.PrivateKey{}, keyPair.Private)
 				require.IsType(t, &ecdh.PublicKey{}, keyPair.Public)
+				require.Nil(t, keyPair.Secret)
 			}
 		})
 	}
@@ -145,6 +148,7 @@ func TestPoolEdDSA(t *testing.T) {
 				keyPair := keyGenPool.Get()
 				require.IsType(t, ed25519.PrivateKey{}, keyPair.Private)
 				require.IsType(t, ed25519.PublicKey{}, keyPair.Public)
+				require.Nil(t, keyPair.Secret)
 			}
 		})
 	}
@@ -163,7 +167,29 @@ func TestPoolAES(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				require.IsType(t, []byte{}, keyPair.Private)
+				require.IsType(t, []byte{}, keyPair.Secret)
+				require.Nil(t, keyPair.Private)
+				require.Nil(t, keyPair.Public)
+			}
+		})
+	}
+}
+
+func TestPoolAESHS(t *testing.T) {
+	for _, tc := range happyPathTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESHSKeyFunction(256))
+			require.NoError(t, err)
+			require.NotNil(t, keyGenPoolConfig)
+			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			require.NoError(t, err)
+			require.NotNil(t, keyGenPool)
+			defer keyGenPool.Close()
+
+			for i := uint64(0); i < tc.gets; i++ {
+				keyPair := keyGenPool.Get()
+				require.IsType(t, []byte{}, keyPair.Secret)
+				require.Nil(t, keyPair.Private)
 				require.Nil(t, keyPair.Public)
 			}
 		})
@@ -183,7 +209,8 @@ func TestPoolHMAC(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				require.IsType(t, []byte{}, keyPair.Private)
+				require.IsType(t, []byte{}, keyPair.Secret)
+				require.Nil(t, keyPair.Private)
 				require.Nil(t, keyPair.Public)
 			}
 		})
@@ -203,7 +230,8 @@ func TestPoolUUIDv7(t *testing.T) {
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
-				require.IsType(t, googleUuid.UUID{}, keyPair.Private)
+				require.IsType(t, googleUuid.UUID{}, keyPair.Secret)
+				require.Nil(t, keyPair.Private)
 				require.Nil(t, keyPair.Public)
 			}
 		})

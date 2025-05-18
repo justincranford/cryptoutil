@@ -65,7 +65,7 @@ func GenerateAESKey(aesBits int) (Key, error) {
 	if err != nil {
 		return Key{}, fmt.Errorf("generate AES %d key failed: %w", aesBits, err)
 	}
-	return Key{Private: key}, nil
+	return Key{Secret: key}, nil
 }
 
 func GenerateAESHSKey(aesHsBits int) (Key, error) {
@@ -76,7 +76,7 @@ func GenerateAESHSKey(aesHsBits int) (Key, error) {
 	if err != nil {
 		return Key{}, fmt.Errorf("generate AES HAMC-SHA2 %d key failed: %w", aesHsBits, err)
 	}
-	return Key{Private: key}, nil
+	return Key{Secret: key}, nil
 }
 
 func GenerateHMACKey(hmacBits int) (Key, error) {
@@ -87,7 +87,7 @@ func GenerateHMACKey(hmacBits int) (Key, error) {
 	if err != nil {
 		return Key{}, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}
-	return Key{Private: key}, nil
+	return Key{Secret: key}, nil
 }
 
 func GenerateUUIDv7() (Key, error) {
@@ -95,7 +95,7 @@ func GenerateUUIDv7() (Key, error) {
 	if err != nil {
 		return Key{}, fmt.Errorf("failed to generate UUID: %w", err)
 	}
-	return Key{Private: uuidV7}, nil
+	return Key{Secret: uuidV7}, nil
 }
 
 func GenerateBytes(lengthBytes int) ([]byte, error) {
