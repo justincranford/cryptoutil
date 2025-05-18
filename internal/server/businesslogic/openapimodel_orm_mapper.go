@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 )
 
 type serviceOrmMapper struct{}
@@ -326,4 +328,71 @@ func toStrings[T any](items *[]T, toString func(T) string) []string {
 		converted = append(converted, toString(item))
 	}
 	return converted
+}
+
+func (*BusinessLogicService) toEncAndAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+	switch *ormKeyPoolAlgorithm {
+	case cryptoutilOrmRepository.A256GCM_A256KW:
+		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A192GCM_A256KW:
+		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A128GCM_A256KW:
+		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A192GCM_A192KW:
+		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA192KW, nil
+	case cryptoutilOrmRepository.A128GCM_A192KW:
+		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA192KW, nil
+	case cryptoutilOrmRepository.A128GCM_A128KW:
+		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA128KW, nil
+	case cryptoutilOrmRepository.A256GCM_A256GCMKW:
+		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A192GCM_A256GCMKW:
+		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A128GCM_A256GCMKW:
+		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A192GCM_A192GCMKW:
+		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA192GCMKW, nil
+	case cryptoutilOrmRepository.A128GCM_A192GCMKW:
+		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA192GCMKW, nil
+	case cryptoutilOrmRepository.A128GCM_A128GCMKW:
+		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA128GCMKW, nil
+	case cryptoutilOrmRepository.A256GCM_dir:
+		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, nil
+	case cryptoutilOrmRepository.A192GCM_dir:
+		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgDir, nil
+	case cryptoutilOrmRepository.A128GCM_dir:
+		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgDir, nil
+	case cryptoutilOrmRepository.A256CBCHS512_A256KW:
+		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A192CBCHS384_A256KW:
+		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A128CBCHS256_A256KW:
+		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A192CBCHS384_A192KW:
+		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA192KW, nil
+	case cryptoutilOrmRepository.A128CBCHS256_A192KW:
+		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA192KW, nil
+	case cryptoutilOrmRepository.A128CBCHS256_A128KW:
+		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA128KW, nil
+	case cryptoutilOrmRepository.A256CBCHS512_A256GCMKW:
+		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A192CBCHS384_A256GCMKW:
+		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A128CBCHS256_A256GCMKW:
+		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A192CBCHS384_A192GCMKW:
+		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA192GCMKW, nil
+	case cryptoutilOrmRepository.A128CBCHS256_A192GCMKW:
+		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA192GCMKW, nil
+	case cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
+		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA128GCMKW, nil
+	case cryptoutilOrmRepository.A256CBCHS512_dir:
+		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgDir, nil
+	case cryptoutilOrmRepository.A192CBCHS384_dir:
+		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgDir, nil
+	case cryptoutilOrmRepository.A128CBCHS256_dir:
+		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgDir, nil
+	default:
+		return nil, nil, fmt.Errorf("unsupported keyPool algorithm '%s'", *ormKeyPoolAlgorithm)
+	}
 }

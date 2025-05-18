@@ -272,101 +272,9 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 
 	// TODO Use encryptParams for encryption? IV, AAD (N.B. Already using ALG below)
 
-	var enc *joseJwa.ContentEncryptionAlgorithm
-	var alg *joseJwa.KeyEncryptionAlgorithm
-	switch repositoryKeyPool.KeyPoolAlgorithm {
-	case cryptoutilOrmRepository.A256GCM_A256KW:
-		enc = &cryptoutilJose.EncA256GCM
-		alg = &cryptoutilJose.AlgA256KW
-	case cryptoutilOrmRepository.A192GCM_A256KW:
-		enc = &cryptoutilJose.EncA192GCM
-		alg = &cryptoutilJose.AlgA256KW
-	case cryptoutilOrmRepository.A128GCM_A256KW:
-		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgA256KW
-	case cryptoutilOrmRepository.A192GCM_A192KW:
-		enc = &cryptoutilJose.EncA192GCM
-		alg = &cryptoutilJose.AlgA192KW
-	case cryptoutilOrmRepository.A128GCM_A192KW:
-		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgA192KW
-	case cryptoutilOrmRepository.A128GCM_A128KW:
-		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgA128KW
-	case cryptoutilOrmRepository.A256GCM_A256GCMKW:
-		enc = &cryptoutilJose.EncA256GCM
-		alg = &cryptoutilJose.AlgA256GCMKW
-	case cryptoutilOrmRepository.A192GCM_A256GCMKW:
-		enc = &cryptoutilJose.EncA192GCM
-		alg = &cryptoutilJose.AlgA256GCMKW
-	case cryptoutilOrmRepository.A128GCM_A256GCMKW:
-		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgA256GCMKW
-	case cryptoutilOrmRepository.A192GCM_A192GCMKW:
-		enc = &cryptoutilJose.EncA192GCM
-		alg = &cryptoutilJose.AlgA192GCMKW
-	case cryptoutilOrmRepository.A128GCM_A192GCMKW:
-		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgA192GCMKW
-	case cryptoutilOrmRepository.A128GCM_A128GCMKW:
-		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgA128GCMKW
-	case cryptoutilOrmRepository.A256GCM_dir:
-		enc = &cryptoutilJose.EncA256GCM
-		alg = &cryptoutilJose.AlgDir
-	case cryptoutilOrmRepository.A192GCM_dir:
-		enc = &cryptoutilJose.EncA192GCM
-		alg = &cryptoutilJose.AlgDir
-	case cryptoutilOrmRepository.A128GCM_dir:
-		enc = &cryptoutilJose.EncA128GCM
-		alg = &cryptoutilJose.AlgDir
-	case cryptoutilOrmRepository.A256CBCHS512_A256KW:
-		enc = &cryptoutilJose.EncA256CBC_HS512
-		alg = &cryptoutilJose.AlgA256KW
-	case cryptoutilOrmRepository.A192CBCHS384_A256KW:
-		enc = &cryptoutilJose.EncA192CBC_HS384
-		alg = &cryptoutilJose.AlgA256KW
-	case cryptoutilOrmRepository.A128CBCHS256_A256KW:
-		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgA256KW
-	case cryptoutilOrmRepository.A192CBCHS384_A192KW:
-		enc = &cryptoutilJose.EncA192CBC_HS384
-		alg = &cryptoutilJose.AlgA192KW
-	case cryptoutilOrmRepository.A128CBCHS256_A192KW:
-		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgA192KW
-	case cryptoutilOrmRepository.A128CBCHS256_A128KW:
-		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgA128KW
-	case cryptoutilOrmRepository.A256CBCHS512_A256GCMKW:
-		enc = &cryptoutilJose.EncA256CBC_HS512
-		alg = &cryptoutilJose.AlgA256GCMKW
-	case cryptoutilOrmRepository.A192CBCHS384_A256GCMKW:
-		enc = &cryptoutilJose.EncA192CBC_HS384
-		alg = &cryptoutilJose.AlgA256GCMKW
-	case cryptoutilOrmRepository.A128CBCHS256_A256GCMKW:
-		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgA256GCMKW
-	case cryptoutilOrmRepository.A192CBCHS384_A192GCMKW:
-		enc = &cryptoutilJose.EncA192CBC_HS384
-		alg = &cryptoutilJose.AlgA192GCMKW
-	case cryptoutilOrmRepository.A128CBCHS256_A192GCMKW:
-		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgA192GCMKW
-	case cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
-		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgA128GCMKW
-	case cryptoutilOrmRepository.A256CBCHS512_dir:
-		enc = &cryptoutilJose.EncA256CBC_HS512
-		alg = &cryptoutilJose.AlgDir
-	case cryptoutilOrmRepository.A192CBCHS384_dir:
-		enc = &cryptoutilJose.EncA192CBC_HS384
-		alg = &cryptoutilJose.AlgDir
-	case cryptoutilOrmRepository.A128CBCHS256_dir:
-		enc = &cryptoutilJose.EncA128CBC_HS256
-		alg = &cryptoutilJose.AlgDir
-	default:
-		return nil, fmt.Errorf("keyPool key type algorithm '%s' not supported", repositoryKeyPool.KeyPoolAlgorithm)
+	enc, alg, err := s.toEncAndAlg(&repositoryKeyPool.KeyPoolAlgorithm)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get Key Pool Algorithm from Key Pool for KeyPoolID: %w", err)
 	}
 
 	// envelope encrypt => latestKeyInKeyPool( randomA256GCM(clearBytes) )
@@ -374,10 +282,6 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
 	}
-
-	// TODO Debug
-	// failed to encrypt: failed to encrypt bytes with latest Key for KeyPoolID: failed to encrypt clearBytes: jwe.Encrypt: failed to encrypt payload: failed to crypt content:
-	// failed to fetch AEAD: cipher: failed to create AES cipher for CBC: failed to execute block cipher function: crypto/aes: invalid key size 8
 
 	// JWE Headers: alg=A256GCMKW, enc=A256GCM, iv=Uy6bFPp_mflirpPN (base64url-encoded 12-byte nonce), tag=c8f7buGvHOV9FK0ls3cSug (base64url-encoded 16-byte tag), kid=019656e9-6ee4-729f-abfb-6c6986eaa3f4 (uuid v7)
 	_, encryptedJweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{latestKeyInKeyPool}, clearPayloadBytes)
