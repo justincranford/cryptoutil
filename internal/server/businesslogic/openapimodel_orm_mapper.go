@@ -393,6 +393,43 @@ func (*BusinessLogicService) toEncAndAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepos
 	case cryptoutilOrmRepository.A128CBCHS256_dir:
 		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgDir, nil
 	default:
-		return nil, nil, fmt.Errorf("unsupported keyPool algorithm '%s'", *ormKeyPoolAlgorithm)
+		return nil, nil, fmt.Errorf("unsupported keyPool encryption algorithm '%s'", *ormKeyPoolAlgorithm)
+	}
+}
+
+func (*BusinessLogicService) toAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
+	switch *ormKeyPoolAlgorithm {
+	case cryptoutilOrmRepository.RS512:
+		return &cryptoutilJose.AlgRS512, nil
+	case cryptoutilOrmRepository.RS384:
+		return &cryptoutilJose.AlgRS384, nil
+	case cryptoutilOrmRepository.RS256:
+		return &cryptoutilJose.AlgRS256, nil
+
+	case cryptoutilOrmRepository.PS512:
+		return &cryptoutilJose.AlgPS512, nil
+	case cryptoutilOrmRepository.PS384:
+		return &cryptoutilJose.AlgPS384, nil
+	case cryptoutilOrmRepository.PS256:
+		return &cryptoutilJose.AlgPS256, nil
+
+	case cryptoutilOrmRepository.ES512:
+		return &cryptoutilJose.AlgES512, nil
+	case cryptoutilOrmRepository.ES384:
+		return &cryptoutilJose.AlgES384, nil
+	case cryptoutilOrmRepository.ES256:
+		return &cryptoutilJose.AlgES256, nil
+
+	case cryptoutilOrmRepository.HS512:
+		return &cryptoutilJose.AlgHS512, nil
+	case cryptoutilOrmRepository.HS384:
+		return &cryptoutilJose.AlgHS384, nil
+	case cryptoutilOrmRepository.HS256:
+		return &cryptoutilJose.AlgHS256, nil
+
+	case cryptoutilOrmRepository.EdDSA:
+		return &cryptoutilJose.AlgEdDSA, nil
+	default:
+		return nil, fmt.Errorf("unsupported keyPool signature algorithm '%s'", *ormKeyPoolAlgorithm)
 	}
 }
