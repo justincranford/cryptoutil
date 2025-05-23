@@ -26,7 +26,7 @@ func GenerateECDHKeyPairFunction(ecdhCurve ecdh.Curve) func() (Key, error) {
 	return func() (Key, error) { return GenerateECDHKeyPair(ecdhCurve) }
 }
 
-func GenerateEDKeyPairFunction(edCurve string) func() (Key, error) {
+func GenerateEDDSAKeyPairFunction(edCurve string) func() (Key, error) {
 	return func() (Key, error) { return GenerateEDDSAKeyPair(edCurve) }
 }
 

@@ -136,7 +136,7 @@ func TestPoolEcDH(t *testing.T) {
 func TestPoolEdDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDKeyPairFunction("Ed25519"))
+			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDDSAKeyPairFunction("Ed25519"))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
 			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
