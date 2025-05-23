@@ -14,7 +14,6 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
-	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
@@ -243,120 +242,59 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 }
 
 func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadBytes []byte) ([]byte, error) {
-	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
-	var repositoryKeyPoolLatestKey *cryptoutilOrmRepository.Key
-	var decryptedKeyPoolLatestKeyMaterialBytes []byte
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		var err error
-		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
-		if err != nil {
-			return fmt.Errorf("failed to get KeyPool for KeyPoolID: %w", err)
-		}
-		repositoryKeyPoolLatestKey, err = sqlTransaction.GetKeyPoolLatestKey(keyPoolID)
-		if err != nil {
-			return fmt.Errorf("failed to latest Key material for KeyPoolID: %w", err)
-		}
-		decryptedKeyPoolLatestKeyMaterialBytes, err = s.barrierService.DecryptContent(sqlTransaction, repositoryKeyPoolLatestKey.KeyMaterial)
-		if err != nil {
-			return fmt.Errorf("failed to decrypt latest Key material for KeyPoolID: %w", err)
-		}
-		return nil
-	})
+	keyPool, keyPoolKey, decryptedKeyPoolKeyMaterialBytes, err := s.getAndDecryptKeyPoolKeyMaterial(ctx, &keyPoolID, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get latest Key material for KeyPoolID: %w", err)
+		return nil, fmt.Errorf("failed to get and decrypt latest Key from Key Pool for KeyPoolID: %w", err)
 	}
-
-	if repositoryKeyPool.KeyPoolProvider != "Internal" {
+	if keyPool.KeyPoolProvider != "Internal" {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
-
-	// TODO Use encryptParams for encryption? IV, AAD (N.B. Already using ALG below)
-
-	enc, alg, err := s.toEncAndAlg(&repositoryKeyPool.KeyPoolAlgorithm)
+	enc, alg, err := s.toEncAndAlg(&keyPool.KeyPoolAlgorithm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get Key Pool Algorithm from Key Pool for KeyPoolID: %w", err)
+		return nil, fmt.Errorf("failed to map enc and alg from Key Pool Algorithm: %w", err)
 	}
-
-	// envelope encrypt => latestKeyInKeyPool( randomA256GCM(clearBytes) )
-	_, latestKeyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(&repositoryKeyPoolLatestKey.KeyID, enc, alg, &cryptoutilKeygen.Key{Secret: decryptedKeyPoolLatestKeyMaterialBytes})
+	_, jweJwk, _, err := cryptoutilJose.CreateJweJwkFromKey(&keyPoolKey.KeyID, enc, alg, &cryptoutilKeygen.Key{Secret: decryptedKeyPoolKeyMaterialBytes})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID: %w", err)
 	}
-
-	// JWE Headers: alg=A256GCMKW, enc=A256GCM, iv=Uy6bFPp_mflirpPN (base64url-encoded 12-byte nonce), tag=c8f7buGvHOV9FK0ls3cSug (base64url-encoded 16-byte tag), kid=019656e9-6ee4-729f-abfb-6c6986eaa3f4 (uuid v7)
-	_, encryptedJweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{latestKeyInKeyPool}, clearPayloadBytes)
+	// TODO Use encryptParams for encryption? IV, AAD
+	_, jweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{jweJwk}, clearPayloadBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt bytes with latest Key for KeyPoolID: %w", err)
 	}
-	return encryptedJweMessageBytes, nil
+	return jweMessageBytes, nil
 }
 
-func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayload []byte) ([]byte, error) {
-	jweMessage, err := joseJwe.Parse(encryptedPayload)
+func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayloadBytes []byte) ([]byte, error) {
+	jweMessage, err := joseJwe.Parse(encryptedPayloadBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse encrypted JWE message bytes: %w", err)
+		return nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
 	}
-	var jweMessageKidUuidString string
-	err = jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &jweMessageKidUuidString)
+	kidUuid, enc, alg, err := cryptoutilJose.ExtractKidEncAlgFromJweMessage(jweMessage)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get encrypted JWE kid UUID: %w", err)
+		return nil, fmt.Errorf("failed to get kid, enc, and alg from JWE message: %w", err)
 	}
-	jweMessageKidUuid, err := googleUuid.Parse(jweMessageKidUuidString)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse encrypted JWE kid UUID: %w", err)
-	}
-	var alg joseJwa.KeyEncryptionAlgorithm
-	err = jweMessage.ProtectedHeaders().Get(joseJwk.AlgorithmKey, &alg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get encrypted JWE kid UUID: %w", err)
-	}
-	var enc joseJwa.ContentEncryptionAlgorithm
-	err = jweMessage.ProtectedHeaders().Get("enc", &enc)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get encrypted JWE kid UUID: %w", err)
-	}
-
-	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
-	var repositoryKeyPoolKey *cryptoutilOrmRepository.Key
-	var decryptedKeyPoolKeyMaterialBytes []byte
-	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		var err error
-		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
-		if err != nil {
-			return fmt.Errorf("failed to get KeyPool for KeyPoolID: %w", err)
-		}
-		repositoryKeyPoolKey, err = sqlTransaction.GetKeyPoolKey(keyPoolID, jweMessageKidUuid)
-		if err != nil {
-			return fmt.Errorf("failed to Key material for KeyPoolID from JWE kid UUID: %w", err)
-		}
-		decryptedKeyPoolKeyMaterialBytes, err = s.barrierService.DecryptContent(sqlTransaction, repositoryKeyPoolKey.KeyMaterial)
-		if err != nil {
-			return fmt.Errorf("failed to decrypt Key material for KeyPoolID from JWE kid UUID: %w", err)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get latest Key material for KeyPoolID from JWE kid UUID: %w", err)
-	}
-	keyPoolProvider := repositoryKeyPool.KeyPoolProvider
-	repositoryKeyPoolLatestKeyKidUuid := &repositoryKeyPoolKey.KeyID
-
-	if keyPoolProvider != "Internal" {
+	keyPool, keyPoolKey, decryptedKeyPoolKeyMaterialBytes, err := s.getAndDecryptKeyPoolKeyMaterial(ctx, &keyPoolID, kidUuid)
+	if keyPool.KeyPoolProvider != "Internal" {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
-
-	// envelope encrypt => keyInKeyPool( randomA256GCM(clearBytes) )
-	_, keyInKeyPool, _, err := cryptoutilJose.CreateJweJwkFromKey(repositoryKeyPoolLatestKeyKidUuid, &enc, &alg, &cryptoutilKeygen.Key{Secret: decryptedKeyPoolKeyMaterialBytes})
+	_, jweJwk, _, err := cryptoutilJose.CreateJweJwkFromKey(&keyPoolKey.KeyID, enc, alg, &cryptoutilKeygen.Key{Secret: decryptedKeyPoolKeyMaterialBytes})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Key from latest Key material for KeyPoolID from JWE kid UUID: %w", err)
 	}
-
-	// JWE Headers: alg=A256GCMKW, enc=A256GCM, iv=Uy6bFPp_mflirpPN (base64url-encoded 12-byte nonce), tag=c8f7buGvHOV9FK0ls3cSug (base64url-encoded 16-byte tag), kid=019656e9-6ee4-729f-abfb-6c6986eaa3f4 (uuid v7)
-	decryptedJweMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{keyInKeyPool}, encryptedPayload)
+	decryptedJweMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{jweJwk}, encryptedPayloadBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt bytes with Key for KeyPoolID from JWE kid UUID: %w", err)
 	}
 	return decryptedJweMessageBytes, nil
+}
+
+func (s *BusinessLogicService) PostKeypoolKeyPoolIDSign(ctx context.Context, clearPayloadBytes []byte) ([]byte, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (s *BusinessLogicService) PostKeypoolKeyPoolIDVerify(ctx context.Context, signedPayloadBytes []byte) (bool, error) {
+	return false, fmt.Errorf("not implemented")
 }
 
 func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) (*cryptoutilOrmRepository.Key, error) {
@@ -411,4 +349,37 @@ func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOr
 	default:
 		return nil, fmt.Errorf("unsuppported keyPoolAlgorithm: %s", keyPoolAlgorithm)
 	}
+}
+
+func (s *BusinessLogicService) getAndDecryptKeyPoolKeyMaterial(ctx context.Context, keyPoolID *googleUuid.UUID, kidUuid *googleUuid.UUID) (*cryptoutilOrmRepository.KeyPool, *cryptoutilOrmRepository.Key, []byte, error) {
+	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
+	var repositoryKeyPoolKey *cryptoutilOrmRepository.Key
+	var decryptedKeyPoolKeyMaterialBytes []byte
+	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		repositoryKeyPool, err = sqlTransaction.GetKeyPool(*keyPoolID)
+		if err != nil {
+			return fmt.Errorf("failed to get KeyPool from KeyPool: %w", err)
+		}
+		if kidUuid == nil {
+			repositoryKeyPoolKey, err = sqlTransaction.GetKeyPoolLatestKey(*keyPoolID)
+			if err != nil {
+				return fmt.Errorf("failed to latest Key from KeyPool: %w", err)
+			}
+		} else {
+			repositoryKeyPoolKey, err = sqlTransaction.GetKeyPoolKey(*keyPoolID, *kidUuid)
+			if err != nil {
+				return fmt.Errorf("failed to specified Key from KeyPool: %w", err)
+			}
+		}
+		decryptedKeyPoolKeyMaterialBytes, err = s.barrierService.DecryptContent(sqlTransaction, repositoryKeyPoolKey.KeyMaterial)
+		if err != nil {
+			return fmt.Errorf("failed to decrypt Key material from KeyPool: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get and decrypt Key material from KeyPool: %w", err)
+	}
+	return repositoryKeyPool, repositoryKeyPoolKey, decryptedKeyPoolKeyMaterialBytes, nil
 }

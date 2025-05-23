@@ -54,12 +54,12 @@ func RequireKeyGenerateResponse(t *testing.T, context context.Context, openapiCl
 	return key
 }
 
-func RequireEncryptRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.SymmetricEncryptRequest {
-	symmetricEncryptRequest := cryptoutilOpenapiModel.SymmetricEncryptRequest(*cleartext)
+func RequireEncryptRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
+	symmetricEncryptRequest := cryptoutilOpenapiModel.EncryptRequest(*cleartext)
 	return &symmetricEncryptRequest
 }
 
-func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, symmetricEncryptParams *cryptoutilOpenapiModel.SymmetricEncryptParams, symmetricEncryptRequest *cryptoutilOpenapiModel.SymmetricEncryptRequest) *string {
+func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, symmetricEncryptParams *cryptoutilOpenapiModel.SymmetricEncryptParams, symmetricEncryptRequest *cryptoutilOpenapiModel.EncryptRequest) *string {
 	keypoolKeyPoolIDEncryptParams := MapSymmetricEncryptParams(symmetricEncryptParams)
 	openapiEncryptResponse, err := openapiClient.PostKeypoolKeyPoolIDEncryptWithTextBodyWithResponse(context, *keyPoolId, &keypoolKeyPoolIDEncryptParams, *symmetricEncryptRequest)
 	require.NoError(t, err)
@@ -70,12 +70,12 @@ func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient
 	return encrypted
 }
 
-func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiModel.SymmetricDecryptRequest {
-	symmetricDecryptRequest := cryptoutilOpenapiModel.SymmetricDecryptRequest(*ciphertext)
+func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
+	symmetricDecryptRequest := cryptoutilOpenapiModel.DecryptRequest(*ciphertext)
 	return &symmetricDecryptRequest
 }
 
-func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, symmetricDecryptRequest *cryptoutilOpenapiModel.SymmetricDecryptRequest) *string {
+func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, symmetricDecryptRequest *cryptoutilOpenapiModel.DecryptRequest) *string {
 	openapiDecryptResponse, err := openapiClient.PostKeypoolKeyPoolIDDecryptWithTextBodyWithResponse(context, *keyPoolId, *symmetricDecryptRequest)
 	require.NoError(t, err)
 

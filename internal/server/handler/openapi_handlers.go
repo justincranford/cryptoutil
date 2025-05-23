@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
@@ -76,4 +77,12 @@ func (s *StrictServer) PostKeypoolKeyPoolIDDecrypt(ctx context.Context, openapiP
 	encryptedBytes := []byte(*openapiPostKeypoolKeyPoolIDDecryptRequestObject.Body)
 	decryptedBytes, err := s.businessLogicService.PostDecryptByKeyPoolIDAndKeyID(ctx, keyPoolID, encryptedBytes)
 	return s.openapiMapper.toPostDecryptResponse(err, decryptedBytes)
+}
+
+func (s *StrictServer) PostKeypoolKeyPoolIDSign(ctx context.Context, openapiPostKeypoolKeyPoolIDSignRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSignRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSignResponseObject, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
+func (s *StrictServer) PostKeypoolKeyPoolIDVerify(ctx context.Context, openapiPostKeypoolKeyPoolIDVerifyRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyResponseObject, error) {
+	return nil, fmt.Errorf("not implemented")
 }

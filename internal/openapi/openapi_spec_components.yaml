@@ -481,10 +481,10 @@ components:
         aad:
           $ref: '#/components/schemas/SymmetricCipherAdditionalAuthenticatedData'
 
-    SymmetricEncryptRequest:
+    EncryptRequest:
       type: string
       description: Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
-    SymmetricEncryptResponse:
+    EncryptResponse:
       type: string
       pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$'
       description: >
@@ -495,7 +495,7 @@ components:
         - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV.
         - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext.
         - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
-    SymmetricDecryptRequest:
+    DecryptRequest:
       type: string
       pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$'
       description: >
@@ -506,9 +506,31 @@ components:
         - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV.
         - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext.
         - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
-    SymmetricDecryptResponse:
+    DecryptResponse:
       type: string
       description: Encrypted text to be decrypted. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; ese the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+
+    SignRequest:
+      type: string
+      description: Clear text to be signed. Can be JSON-encoded to create a JWT, or freeform to create a JWS. If you need freeform, encode as text (e.g. Base64-URL, Base64-MIME, Base64, Hexadecimal, etc).
+    SignResponse:
+      type: string
+      pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+      description: >
+        Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details.
+        Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'.
+        - Header: Required base64Url-encoded JSON key/values for the JWS.
+        - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT).
+        - Signature: Required base64Url-encoded signature.
+    VerifyRequest:
+      type: string
+      pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
+      description: >
+        Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details.
+        Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'.
+        - Header: Required base64Url-encoded JSON key/values for the JWS.
+        - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT).
+        - Signature: Required base64Url-encoded signature.
 
     HTTPError:
       type: object

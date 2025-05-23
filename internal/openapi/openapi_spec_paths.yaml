@@ -287,10 +287,11 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
   /keypool/{keyPoolID}/encrypt:
     post:
-      summary: Encrypt binary data using a specific key.
-      description: Encrypts raw binary data using the selected algorithm.
+      summary: Encrypt clear text data using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+      description: Encrypts clear text data using the selected algorithm.
       parameters:
         - name: keyPoolID
           in: path
@@ -312,14 +313,14 @@ paths:
         content:
           text/plain:
             schema:
-              $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricEncryptRequest'
+              $ref: './openapi_spec_components.yaml#/components/schemas/EncryptRequest'
       responses:
         '200':
-          description: Raw JWE ciphertext.
+          description: Ciphertext in JWE format.
           content:
             text/plain:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricEncryptResponse'
+                $ref: './openapi_spec_components.yaml#/components/schemas/EncryptResponse'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -341,8 +342,8 @@ paths:
 
   /keypool/{keyPoolID}/decrypt:
     post:
-      summary: Decrypt raw JWE ciphertext using a specific key.
-      description: Accepts a raw JWE (binary) ciphertext and returns raw decrypted plaintext.
+      summary: Decrypt ciphertext using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+      description: Decrypts ciphertext and returns decrypted plaintext.
       parameters:
         - name: keyPoolID
           in: path
@@ -354,14 +355,94 @@ paths:
         content:
           text/plain:
             schema:
-              $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricDecryptRequest'
+              $ref: './openapi_spec_components.yaml#/components/schemas/DecryptRequest'
       responses:
         '200':
-          description: Raw decrypted plaintext.
+          description: Decrypted plaintext.
           content:
             text/plain:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricDecryptResponse'
+                $ref: './openapi_spec_components.yaml#/components/schemas/DecryptResponse'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
+  /keypool/{keyPoolID}/sign:
+    post:
+      summary: Sign clear text using a specific key. The key material in the key pool is identified by the JWS message kid header.
+      description: Signs text using the selected algorithm.
+      parameters:
+        - name: keyPoolID
+          in: path
+          required: true
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/SignRequest'
+      responses:
+        '200':
+          description: JWS message
+          content:
+            text/plain:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/SignResponse'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
+  /keypool/{keyPoolID}/verify:
+    post:
+      summary: Verify JWS message using a specific key pool. The key material in the key pool is identified by the JWS message kid header.
+      description: Accepts a JWS message and returns HTTP 204 if the signature is valid.
+      parameters:
+        - name: keyPoolID
+          in: path
+          required: true
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              $ref: './openapi_spec_components.yaml#/components/schemas/VerifyRequest'
+      responses:
+        '204':
+          description: Signature is valid. No content is returned.
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':

@@ -6,6 +6,7 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 
+	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -28,7 +29,7 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
 	}
 	for i, jwk := range jwks {
-		enc, alg, err := jweJwkAlgAndEnc(&jwk, i)
+		enc, alg, err := extractedAlgEncFromJweJwk(&jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -74,7 +75,7 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	encs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
 	jweDecryptOptions := make([]joseJwe.DecryptOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		enc, alg, err := jweJwkAlgAndEnc(&jwk, i)
+		enc, alg, err := extractedAlgEncFromJweJwk(&jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -122,7 +123,7 @@ func JweHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	return string(jweHeadersString), err
 }
 
-func jweJwkAlgAndEnc(jwk *joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyAlgorithm, error) {
+func extractedAlgEncFromJweJwk(jwk *joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyAlgorithm, error) {
 	if jwk == nil {
 		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
@@ -146,4 +147,28 @@ func jweJwkAlgAndEnc(jwk *joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorit
 	}
 
 	return &enc, &alg, nil
+}
+
+func ExtractKidEncAlgFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, *joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+	var kidUuidString string
+	err := jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &kidUuidString)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
+	}
+	kidUuid, err := googleUuid.Parse(kidUuidString)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to parse kid UUID: %w", err)
+	}
+
+	var enc joseJwa.ContentEncryptionAlgorithm
+	err = jweMessage.ProtectedHeaders().Get("enc", &enc)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get enc: %w", err)
+	}
+	var alg joseJwa.KeyEncryptionAlgorithm
+	err = jweMessage.ProtectedHeaders().Get(joseJwk.AlgorithmKey, &alg)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get alg: %w", err)
+	}
+	return &kidUuid, &enc, &alg, nil
 }
