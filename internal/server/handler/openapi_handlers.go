@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
@@ -68,21 +67,27 @@ func (s *StrictServer) PostKeypoolKeyPoolIDEncrypt(ctx context.Context, openapiP
 	keyPoolID := openapiPostKeypoolKeyPoolIDEncryptRequestObject.KeyPoolID
 	encryptParams := s.openapiMapper.toBusinessLogicModelPostEncryptQueryParams(&openapiPostKeypoolKeyPoolIDEncryptRequestObject.Params)
 	clearBytes := []byte(*openapiPostKeypoolKeyPoolIDEncryptRequestObject.Body)
-	encryptedBytes, err := s.businessLogicService.PostEncryptByKeyPoolIDAndKeyID(ctx, keyPoolID, encryptParams, clearBytes)
+	encryptedBytes, err := s.businessLogicService.PostEncryptByKeyPoolID(ctx, keyPoolID, encryptParams, clearBytes)
 	return s.openapiMapper.toPostEncryptResponse(err, encryptedBytes)
 }
 
 func (s *StrictServer) PostKeypoolKeyPoolIDDecrypt(ctx context.Context, openapiPostKeypoolKeyPoolIDDecryptRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptResponseObject, error) {
 	keyPoolID := openapiPostKeypoolKeyPoolIDDecryptRequestObject.KeyPoolID
 	encryptedBytes := []byte(*openapiPostKeypoolKeyPoolIDDecryptRequestObject.Body)
-	decryptedBytes, err := s.businessLogicService.PostDecryptByKeyPoolIDAndKeyID(ctx, keyPoolID, encryptedBytes)
+	decryptedBytes, err := s.businessLogicService.PostDecryptByKeyPoolID(ctx, keyPoolID, encryptedBytes)
 	return s.openapiMapper.toPostDecryptResponse(err, decryptedBytes)
 }
 
 func (s *StrictServer) PostKeypoolKeyPoolIDSign(ctx context.Context, openapiPostKeypoolKeyPoolIDSignRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSignRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSignResponseObject, error) {
-	return nil, fmt.Errorf("not implemented")
+	keyPoolID := openapiPostKeypoolKeyPoolIDSignRequestObject.KeyPoolID
+	clearBytes := []byte(*openapiPostKeypoolKeyPoolIDSignRequestObject.Body)
+	signedBytes, err := s.businessLogicService.PostSignByKeyPoolID(ctx, keyPoolID, clearBytes)
+	return s.openapiMapper.toPostSignResponse(err, signedBytes)
 }
 
 func (s *StrictServer) PostKeypoolKeyPoolIDVerify(ctx context.Context, openapiPostKeypoolKeyPoolIDVerifyRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyResponseObject, error) {
-	return nil, fmt.Errorf("not implemented")
+	keyPoolID := openapiPostKeypoolKeyPoolIDVerifyRequestObject.KeyPoolID
+	signedBytes := []byte(*openapiPostKeypoolKeyPoolIDVerifyRequestObject.Body)
+	err := s.businessLogicService.PostVerifyByKeyPoolID(ctx, keyPoolID, signedBytes)
+	return s.openapiMapper.toPostVerifyResponse(err)
 }

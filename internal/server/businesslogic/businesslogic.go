@@ -241,7 +241,7 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
 }
 
-func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadBytes []byte) ([]byte, error) {
+func (s *BusinessLogicService) PostEncryptByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadBytes []byte) ([]byte, error) {
 	keyPool, keyPoolKey, decryptedKeyPoolKeyMaterialBytes, err := s.getAndDecryptKeyPoolKeyMaterial(ctx, &keyPoolID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest Key from Key Pool for KeyPoolID: %w", err)
@@ -265,7 +265,7 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolIDAndKeyID(ctx context.Contex
 	return jweMessageBytes, nil
 }
 
-func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayloadBytes []byte) ([]byte, error) {
+func (s *BusinessLogicService) PostDecryptByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayloadBytes []byte) ([]byte, error) {
 	jweMessage, err := joseJwe.Parse(encryptedPayloadBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
@@ -289,12 +289,12 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolIDAndKeyID(ctx context.Contex
 	return decryptedJweMessageBytes, nil
 }
 
-func (s *BusinessLogicService) PostKeypoolKeyPoolIDSign(ctx context.Context, clearPayloadBytes []byte) ([]byte, error) {
+func (s *BusinessLogicService) PostSignByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, clearPayloadBytes []byte) ([]byte, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
-func (s *BusinessLogicService) PostKeypoolKeyPoolIDVerify(ctx context.Context, signedPayloadBytes []byte) (bool, error) {
-	return false, fmt.Errorf("not implemented")
+func (s *BusinessLogicService) PostVerifyByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, signedPayloadBytes []byte) error {
+	return fmt.Errorf("not implemented")
 }
 
 func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) (*cryptoutilOrmRepository.Key, error) {

@@ -223,9 +223,45 @@ func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, decryptedB
 				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to encrypt: %w", err)
+		return nil, fmt.Errorf("failed to decrypt: %w", err)
 	}
 	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt200TextResponse(decryptedBytes), err
+}
+
+func (m *openapiBusinessLogicMapper) toPostSignResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSignResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+			}
+		}
+		return nil, fmt.Errorf("failed to sign: %w", err)
+	}
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign200TextResponse(encryptedBytes), err
+}
+
+func (m *openapiBusinessLogicMapper) toPostVerifyResponse(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+			}
+		}
+		return nil, fmt.Errorf("failed to verify: %w", err)
+	}
+	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify204Response{}, err
 }
 
 // Helper methods
