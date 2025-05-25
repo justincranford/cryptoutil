@@ -30,7 +30,7 @@ var happyPathJwsTestCases = []struct {
 	{alg: &AlgEdDSA, expectedType: KtyOkp}, // ED25519 & SHA-256
 }
 
-func Test_HappyPath_Jws_Jwk_SignVerifyBytes(t *testing.T) {
+func Test_HappyPath_NonJwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 	for _, testCase := range happyPathJwsTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {

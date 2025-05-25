@@ -45,26 +45,26 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 	} else if telemetryService == nil {
 		return nil, fmt.Errorf("telemetry service must be non-nil")
 	}
-	rsa4096KeyGenPoolConfig, err1 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 4096", 1, 2, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(4096))
-	rsa3072KeyGenPoolConfig, err2 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 3072", 1, 2, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(3072))
-	rsa2048KeyGenPoolConfig, err3 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 2048", 1, 2, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(2048))
-	ecdsaP521KeyGenPoolConfig, err4 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P521", 1, 1, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P521()))
-	ecdsaP384KeyGenPoolConfig, err5 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P384", 1, 1, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P384()))
-	ecdsaP256KeyGenPoolConfig, err6 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P256", 1, 1, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P256()))
-	ecdhP521KeyGenPoolConfig, err7 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDH-P521", 1, 1, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDHKeyPairFunction(ecdh.P521()))
-	ecdhP384KeyGenPoolConfig, err8 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECSH-P384", 1, 1, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDHKeyPairFunction(ecdh.P384()))
-	ecdhP256KeyGenPoolConfig, err9 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDH-P256", 1, 1, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDHKeyPairFunction(ecdh.P256()))
-	ed25519KeyGenPoolConfig, err10 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service Ed25519", 1, 1, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateEDDSAKeyPairFunction("Ed25519"))
-	aes256KeyGenPoolConfig, err11 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-GCM", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	aes192KeyGenPoolConfig, err12 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-GCM", 1, 4, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
-	aes128KeyGenPoolConfig, err13 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-GCM", 1, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
-	aes256HS512KeyGenPoolConfig, err14 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-CBC HS-512", 1, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(512))
-	aes192HS384KeyGenPoolConfig, err15 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-CBC HS-384", 1, 4, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(384))
-	aes128HS256KeyGenPoolConfig, err16 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-CBC HS-256", 1, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(256))
-	hmac512KeyGenPoolConfig, err17 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-CBC HS-512", 1, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(512))
-	hmac384KeyGenPoolConfig, err18 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-CBC HS-384", 1, 4, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(384))
-	hmac256KeyGenPoolConfig, err19 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-CBC HS-256", 1, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(256))
-	uuidV7KeyGenPoolConfig, err20 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	rsa4096KeyGenPoolConfig, err1 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 4096", 9, 9, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(4096))
+	rsa3072KeyGenPoolConfig, err2 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 3072", 6, 6, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(3072))
+	rsa2048KeyGenPoolConfig, err3 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 2048", 3, 3, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(2048))
+	ecdsaP521KeyGenPoolConfig, err4 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P521", 3, 9, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P521()))
+	ecdsaP384KeyGenPoolConfig, err5 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P384", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P384()))
+	ecdsaP256KeyGenPoolConfig, err6 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P256", 1, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P256()))
+	ecdhP521KeyGenPoolConfig, err7 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDH-P521", 3, 9, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDHKeyPairFunction(ecdh.P521()))
+	ecdhP384KeyGenPoolConfig, err8 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECSH-P384", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDHKeyPairFunction(ecdh.P384()))
+	ecdhP256KeyGenPoolConfig, err9 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDH-P256", 1, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDHKeyPairFunction(ecdh.P256()))
+	ed25519KeyGenPoolConfig, err10 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service Ed25519", 1, 2, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateEDDSAKeyPairFunction("Ed25519"))
+	aes256KeyGenPoolConfig, err11 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-GCM", 3, 9, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
+	aes192KeyGenPoolConfig, err12 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-GCM", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(192))
+	aes128KeyGenPoolConfig, err13 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-GCM", 1, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(128))
+	aes256HS512KeyGenPoolConfig, err14 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-CBC HS-512", 3, 9, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(512))
+	aes192HS384KeyGenPoolConfig, err15 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-CBC HS-384", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(384))
+	aes128HS256KeyGenPoolConfig, err16 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-CBC HS-256", 1, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESHSKeyFunction(256))
+	hmac512KeyGenPoolConfig, err17 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-256-CBC HS-512", 3, 9, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(512))
+	hmac384KeyGenPoolConfig, err18 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-192-CBC HS-384", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(384))
+	hmac256KeyGenPoolConfig, err19 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service AES-128-CBC HS-256", 1, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(256))
+	uuidV7KeyGenPoolConfig, err20 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 20, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil || err8 != nil || err9 != nil || err10 != nil || err11 != nil || err12 != nil || err13 != nil || err14 != nil || err15 != nil || err16 != nil || err17 != nil || err18 != nil || err19 != nil || err20 != nil {
 		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12, err13, err14, err15, err16, err17, err18, err19, err20))
 	}
@@ -85,10 +85,10 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 	aes256HS512KeyGenPool, err14 := cryptoutilKeygen.NewGenKeyPool(aes256HS512KeyGenPoolConfig)
 	aes192HS384KeyGenPool, err15 := cryptoutilKeygen.NewGenKeyPool(aes192HS384KeyGenPoolConfig)
 	aes128HS256KeyGenPool, err16 := cryptoutilKeygen.NewGenKeyPool(aes128HS256KeyGenPoolConfig)
-	hmac512KeyGenPool, err14 := cryptoutilKeygen.NewGenKeyPool(hmac512KeyGenPoolConfig)
-	hmac384KeyGenPool, err15 := cryptoutilKeygen.NewGenKeyPool(hmac384KeyGenPoolConfig)
-	hmac256KeyGenPool, err16 := cryptoutilKeygen.NewGenKeyPool(hmac256KeyGenPoolConfig)
-	uuidV7KeyGenPool, err17 := cryptoutilKeygen.NewGenKeyPool(uuidV7KeyGenPoolConfig)
+	hmac512KeyGenPool, err17 := cryptoutilKeygen.NewGenKeyPool(hmac512KeyGenPoolConfig)
+	hmac384KeyGenPool, err18 := cryptoutilKeygen.NewGenKeyPool(hmac384KeyGenPoolConfig)
+	hmac256KeyGenPool, err19 := cryptoutilKeygen.NewGenKeyPool(hmac256KeyGenPoolConfig)
+	uuidV7KeyGenPool, err20 := cryptoutilKeygen.NewGenKeyPool(uuidV7KeyGenPoolConfig)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil || err8 != nil || err9 != nil || err10 != nil || err11 != nil || err12 != nil || err13 != nil || err14 != nil || err15 != nil || err16 != nil || err17 != nil || err18 != nil || err19 != nil || err20 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12, err13, err14, err15, err16, err17, err18, err19, err20))
 	}
@@ -182,9 +182,9 @@ func (s *JwkGenService) Shutdown() {
 	}
 }
 
-func (s *JwkGenService) GenerateJweJwkFunction(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) func() (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	return func() (*googleUuid.UUID, joseJwk.Key, []byte, error) { return s.GenerateJweJwk(enc, alg) }
-}
+// func (s *JwkGenService) GenerateJweJwkFunction(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) func() (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+// 	return func() (*googleUuid.UUID, joseJwk.Key, []byte, error) { return s.GenerateJweJwk(enc, alg) }
+// }
 
 func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	switch *alg {

@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var happyPathTestCases = []struct {
+var happyPathJweTestCases = []struct {
 	enc          *joseJwa.ContentEncryptionAlgorithm
 	alg          *joseJwa.KeyEncryptionAlgorithm
 	expectedType joseJwa.KeyType
@@ -111,8 +111,8 @@ var happyPathTestCases = []struct {
 	{enc: &EncA128CBC_HS256, alg: &AlgDir, expectedType: KtyOct},
 }
 
-func Test_HappyPath_EncryptDecryptBytes(t *testing.T) {
-	for _, testCase := range happyPathTestCases {
+func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
+	for _, testCase := range happyPathJweTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world enc=%s alg=%s!", testCase.enc, testCase.alg)
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
@@ -171,8 +171,8 @@ func Test_HappyPath_EncryptDecryptBytes(t *testing.T) {
 	}
 }
 
-func Test_HappyPath_EncryptDecryptKey(t *testing.T) {
-	for _, testCase := range happyPathTestCases {
+func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptKey(t *testing.T) {
+	for _, testCase := range happyPathJweTestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
