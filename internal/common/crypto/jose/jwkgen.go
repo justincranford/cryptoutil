@@ -20,7 +20,7 @@ import (
 
 func GenerateRSAJwk(rsaBits int) (joseJwk.Key, error) {
 	raw, err := rsa.GenerateKey(rand.Reader, rsaBits)
-	return buildJwk(KtyRsa, raw, err)
+	return buildJwk(KtyRSA, raw, err)
 }
 
 func GenerateECDSAJwk(ecdsaCurve elliptic.Curve) (joseJwk.Key, error) {
@@ -37,10 +37,10 @@ func GenerateEDDSAJwk(edCurve string) (joseJwk.Key, error) {
 	switch edCurve {
 	case "Ed448":
 		_, raw, err := ed448.GenerateKey(rand.Reader)
-		return buildJwk(KtyOkp, raw, err)
+		return buildJwk(KtyOKP, raw, err)
 	case "Ed25519":
 		_, raw, err := ed25519.GenerateKey(rand.Reader)
-		return buildJwk(KtyOkp, raw, err)
+		return buildJwk(KtyOKP, raw, err)
 	default:
 		return nil, errors.New("unsupported Ed curve")
 	}
@@ -51,7 +51,7 @@ func GenerateAESJwk(aesBits int) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("invalid AES key size: %d (must be 128, 192, or 256 bits)", aesBits)
 	}
 	raw, err := keygen.GenerateBytes(aesBits / 8)
-	return buildJwk(KtyOct, raw, err)
+	return buildJwk(KtyOCT, raw, err)
 }
 
 func GenerateAESHSJwk(aesHsBits int) (joseJwk.Key, error) {
@@ -59,7 +59,7 @@ func GenerateAESHSJwk(aesHsBits int) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be 256, 384, or 512 bits)", aesHsBits)
 	}
 	raw, err := keygen.GenerateBytes(aesHsBits / 8)
-	return buildJwk(KtyOct, raw, err)
+	return buildJwk(KtyOCT, raw, err)
 }
 
 func GenerateHMACJwk(hmacBits int) (joseJwk.Key, error) {
@@ -67,7 +67,7 @@ func GenerateHMACJwk(hmacBits int) (joseJwk.Key, error) {
 		return nil, fmt.Errorf("invalid HMAC key size: %d (must be 256 bits or higher)", hmacBits)
 	}
 	raw, err := keygen.GenerateBytes(hmacBits / 8)
-	return buildJwk(KtyOct, raw, err)
+	return buildJwk(KtyOCT, raw, err)
 }
 
 func buildJwk(kty joseJwa.KeyType, raw any, err error) (joseJwk.Key, error) {

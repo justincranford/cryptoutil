@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	KtyOct = joseJwa.OctetSeq() // KeyType
-	KtyRsa = joseJwa.RSA()      // KeyType
+	KtyOCT = joseJwa.OctetSeq() // KeyType
+	KtyRSA = joseJwa.RSA()      // KeyType
 	KtyEC  = joseJwa.EC()       // KeyType
-	KtyOkp = joseJwa.OKP()      // KeyType
+	KtyOKP = joseJwa.OKP()      // KeyType
 
 	EncA256GCM       = joseJwa.A256GCM()                                // ContentEncryptionAlgorithm
 	EncA192GCM       = joseJwa.A192GCM()                                // ContentEncryptionAlgorithm

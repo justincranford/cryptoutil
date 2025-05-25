@@ -86,7 +86,7 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	if rawKey.Secret != nil {
 		switch rawKey.Secret.(type) {
 		case []byte: // AES, AESCBC-HS, HMAC
-			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOct); err != nil {
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOCT); err != nil {
 				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'oct' in JWE JWK: %w", err)
 			}
 		default:
@@ -95,7 +95,7 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	} else if rawKey.Private != nil {
 		switch rawKey.Private.(type) {
 		case *rsa.PrivateKey: // RSA
-			if err = jwk.Set(joseJwk.KeyTypeKey, KtyRsa); err != nil {
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyRSA); err != nil {
 				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'rsa' in JWE JWK: %w", err)
 			}
 		case *ecdsa.PrivateKey, *ecdh.PrivateKey: // ECDSA, ECDH
@@ -103,7 +103,7 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'ec' in JWE JWK: %w", err)
 			}
 		case ed25519.PrivateKey, ed448.PrivateKey: // ED25519, ED448
-			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOkp); err != nil {
+			if err = jwk.Set(joseJwk.KeyTypeKey, KtyOKP); err != nil {
 				return nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'okp' in JWE JWK: %w", err)
 			}
 		default:

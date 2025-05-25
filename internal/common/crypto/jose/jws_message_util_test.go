@@ -15,19 +15,19 @@ var happyPathJwsTestCases = []struct {
 	alg          *joseJwa.SignatureAlgorithm
 	expectedType joseJwa.KeyType
 }{
-	{alg: &AlgRS256, expectedType: KtyRsa}, // RSA 1.5 & SHA-256
-	{alg: &AlgRS384, expectedType: KtyRsa}, // RSA 1.5 & SHA-384
-	{alg: &AlgRS512, expectedType: KtyRsa}, // RSA 1.5 & SHA-512
-	{alg: &AlgPS256, expectedType: KtyRsa}, // RSA 2.0 & SHA-256
-	{alg: &AlgPS384, expectedType: KtyRsa}, // RSA 2.0 & SHA-384
-	{alg: &AlgPS512, expectedType: KtyRsa}, // RSA 2.0 & SHA-512
+	{alg: &AlgRS256, expectedType: KtyRSA}, // RSA 1.5 & SHA-256
+	{alg: &AlgRS384, expectedType: KtyRSA}, // RSA 1.5 & SHA-384
+	{alg: &AlgRS512, expectedType: KtyRSA}, // RSA 1.5 & SHA-512
+	{alg: &AlgPS256, expectedType: KtyRSA}, // RSA 2.0 & SHA-256
+	{alg: &AlgPS384, expectedType: KtyRSA}, // RSA 2.0 & SHA-384
+	{alg: &AlgPS512, expectedType: KtyRSA}, // RSA 2.0 & SHA-512
 	{alg: &AlgES256, expectedType: KtyEC},  // EC P-256 & SHA-256
 	{alg: &AlgES384, expectedType: KtyEC},  // EC P-394 & SHA-384
 	{alg: &AlgES512, expectedType: KtyEC},  // EC P-521 & SHA-512
-	{alg: &AlgHS256, expectedType: KtyOct}, // HMAC with SHA-256 & SHA-512
-	{alg: &AlgHS384, expectedType: KtyOct}, // HMAC with SHA-384 & SHA-512
-	{alg: &AlgHS512, expectedType: KtyOct}, // HMAC with SHA-512 & SHA-512
-	{alg: &AlgEdDSA, expectedType: KtyOkp}, // ED25519 & SHA-256
+	{alg: &AlgHS256, expectedType: KtyOCT}, // HMAC with SHA-256 & SHA-512
+	{alg: &AlgHS384, expectedType: KtyOCT}, // HMAC with SHA-384 & SHA-512
+	{alg: &AlgHS512, expectedType: KtyOCT}, // HMAC with SHA-512 & SHA-512
+	{alg: &AlgEdDSA, expectedType: KtyOKP}, // ED25519 & SHA-256
 }
 
 func Test_HappyPath_NonJwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
