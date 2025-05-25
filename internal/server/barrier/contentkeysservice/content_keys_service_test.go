@@ -23,6 +23,7 @@ var (
 	testSqlRepository           *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
 	testDbType                  = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	testUuidV7KeyGenPool        *cryptoutilKeygen.KeyGenPool
 	testAes256KeyGenPool        *cryptoutilKeygen.KeyGenPool
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
 	testIntermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
@@ -41,20 +42,23 @@ func TestMain(m *testing.M) {
 	unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
 	defer unsealKeysService.Shutdown()
 
+	testUuidV7KeyGenPool = cryptoutilKeygen.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
+	defer testUuidV7KeyGenPool.Close()
+
 	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
-	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testAes256KeyGenPool)
+	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	defer testRootKeysService.Shutdown()
 
-	testIntermediateKeysService = cryptoutilIntermediateKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, testRootKeysService, testAes256KeyGenPool)
+	testIntermediateKeysService = cryptoutilIntermediateKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, testRootKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	defer testIntermediateKeysService.Shutdown()
 
 	os.Exit(m.Run())
 }
 
 func TestContentKeysService_HappyPath(t *testing.T) {
-	contentKeysService, err := NewContentKeysService(testTelemetryService, testOrmRepository, testIntermediateKeysService, testAes256KeyGenPool)
+	contentKeysService, err := NewContentKeysService(testTelemetryService, testOrmRepository, testIntermediateKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	require.NoError(t, err)
 	require.NotNil(t, contentKeysService)
 	defer contentKeysService.Shutdown()

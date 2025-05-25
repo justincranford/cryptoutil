@@ -27,10 +27,14 @@ func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *jo
 	return CreateJweJwkFromKey(&kid, enc, alg, key)
 }
 
-func GenerateJweJwkFromKeyPool(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	kid := googleUuid.Must(googleUuid.NewV7())
+func GenerateJweJwkFromKeyPool(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, kidGenPool *cryptoutilKeygen.KeyGenPool, keyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	kid := kidGenPool.Get()
+	kidUuid, ok := kid.Secret.(googleUuid.UUID)
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("invalid kid UUID type %T; use uuid.UUID", kid.Secret)
+	}
 	key := keyGenPool.Get()
-	return CreateJweJwkFromKey(&kid, enc, alg, &key)
+	return CreateJweJwkFromKey(&kidUuid, enc, alg, &key)
 }
 
 func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, rawKey *cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {

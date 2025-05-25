@@ -22,12 +22,16 @@ var (
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	testUuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool
 	testAes256KeyGenPool *cryptoutilKeygen.KeyGenPool
 )
 
 func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "root_keys_service_test", false, false)
 	defer testTelemetryService.Shutdown()
+
+	testUuidV7KeyGenPool = cryptoutilKeygen.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
+	defer testUuidV7KeyGenPool.Close()
 
 	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
@@ -51,7 +55,7 @@ func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testAes256KeyGenPool)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	require.NoError(t, err)
 	require.NotNil(t, rootKeysService)
 	defer rootKeysService.Shutdown()
@@ -68,7 +72,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testAes256KeyGenPool)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	require.Error(t, err)
 	require.Nil(t, rootKeysService)
 	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid JWKs: jwks can't be empty")
@@ -85,7 +89,7 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testAes256KeyGenPool)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	require.Error(t, err)
 	require.Nil(t, rootKeysService)
 	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid JWKs: jwks can't be nil")

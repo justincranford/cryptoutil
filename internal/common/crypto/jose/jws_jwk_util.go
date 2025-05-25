@@ -26,8 +26,8 @@ func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, jo
 	return CreateJwsJwkFromKey(&kid, alg, key)
 }
 
-func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, keyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	kid := googleUuid.Must(googleUuid.NewV7())
+func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, kidGenPool *cryptoutilKeygen.KeyGenPool, keyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	kid := kidGenPool.Get().Secret.(googleUuid.UUID)
 	key := keyGenPool.Get()
 	return CreateJwsJwkFromKey(&kid, alg, &key)
 }
@@ -219,13 +219,13 @@ func validateOrGenerateJwsHmacJwk(key *cryptoutilKeygen.Key, alg *joseJwa.Signat
 		}
 		key = &cryptoutilKeygen.Key{Secret: keyBytes}
 	} else {
-		aesKey, ok := key.Secret.([]byte)
+		hmacKey, ok := key.Secret.([]byte)
 		if !ok {
 			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key type %T; use []byte", *alg, key.Secret)
-		} else if aesKey == nil {
+		} else if hmacKey == nil {
 			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid nil key bytes", *alg)
-		} else if len(aesKey) != keyBitsLength/8 {
-			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key length %d; use AES %d", *alg, len(aesKey), keyBitsLength)
+		} else if len(hmacKey) != keyBitsLength/8 {
+			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key length %d; use AES %d", *alg, len(hmacKey), keyBitsLength)
 		}
 	}
 	return key, nil

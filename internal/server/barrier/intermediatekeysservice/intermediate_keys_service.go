@@ -21,28 +21,31 @@ import (
 type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
+	uuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool
 	aes256KeyGenPool *cryptoutilKeygen.KeyGenPool
 	rootKeysService  *cryptoutilRootKeysService.RootKeysService
 }
 
-func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*IntermediateKeysService, error) {
+func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {
 		return nil, fmt.Errorf("ormRepository must be non-nil")
 	} else if rootKeysService == nil {
 		return nil, fmt.Errorf("rootKeysService must be non-nil")
+	} else if uuidV7KeyGenPool == nil {
+		return nil, fmt.Errorf("uuidV7KeyGenPool must be non-nil")
 	} else if aes256KeyGenPool == nil {
 		return nil, fmt.Errorf("aes256KeyGenPool must be non-nil")
 	}
-	err := initializeFirstIntermediateJwk(ormRepository, rootKeysService, aes256KeyGenPool)
+	err := initializeFirstIntermediateJwk(ormRepository, rootKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first intermediate JWK: %w", err)
 	}
-	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, aes256KeyGenPool: aes256KeyGenPool}, nil
+	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, uuidV7KeyGenPool: uuidV7KeyGenPool, aes256KeyGenPool: aes256KeyGenPool}, nil
 }
 
-func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) error {
+func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool, aes256KeyGenPool *cryptoutilKeygen.KeyGenPool) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -53,7 +56,7 @@ func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRe
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		intermediateKeyKidUuid, clearIntermediateKey, _, err := cryptoutilJose.GenerateJweJwkFromKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, aes256KeyGenPool)
+		intermediateKeyKidUuid, clearIntermediateKey, _, err := cryptoutilJose.GenerateJweJwkFromKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, uuidV7KeyGenPool, aes256KeyGenPool)
 		if err != nil {
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
@@ -128,6 +131,8 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmReposi
 }
 
 func (i *IntermediateKeysService) Shutdown() {
+	i.aes256KeyGenPool = nil
+	i.uuidV7KeyGenPool = nil
 	i.telemetryService = nil
 	i.ormRepository = nil
 	i.rootKeysService = nil

@@ -24,6 +24,7 @@ var (
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	testUuidV7KeyGenPool *cryptoutilKeygen.KeyGenPool
 	testAes256KeyGenPool *cryptoutilKeygen.KeyGenPool
 	testRootKeysService  *cryptoutilRootKeysService.RootKeysService
 )
@@ -41,22 +42,25 @@ func TestMain(m *testing.M) {
 	unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
 	defer unsealKeysService.Shutdown()
 
+	testUuidV7KeyGenPool = cryptoutilKeygen.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
+	defer testUuidV7KeyGenPool.Close()
+
 	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
-	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testAes256KeyGenPool)
+	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	defer testRootKeysService.Shutdown()
 
 	os.Exit(m.Run())
 }
 
 func TestIntermediateKeysService_HappyPath(t *testing.T) {
-	intermediateKeysService, err := NewIntermediateKeysService(testTelemetryService, testOrmRepository, testRootKeysService, testAes256KeyGenPool)
+	intermediateKeysService, err := NewIntermediateKeysService(testTelemetryService, testOrmRepository, testRootKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	require.NoError(t, err)
 	require.NotNil(t, intermediateKeysService)
 	defer intermediateKeysService.Shutdown()
 
-	_, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, testAes256KeyGenPool)
+	_, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	require.NoError(t, err)
 	require.NotNil(t, clearContentKey)
 
