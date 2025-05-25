@@ -19,7 +19,10 @@ import (
 )
 
 func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	kid := googleUuid.Must(googleUuid.NewV7())
+	kid, err := googleUuid.NewV7()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to create uuid v7: %w", err)
+	}
 	key, err := validateJweJwkHeaders(&kid, enc, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)
