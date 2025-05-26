@@ -7,6 +7,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rsa"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
+	"cryptoutil/internal/common/pool"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	"encoding/json"
 	"fmt"
@@ -29,7 +30,7 @@ func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, jo
 	return CreateJwsJwkFromKey(&kid, alg, key)
 }
 
-func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, kidGenPool *cryptoutilKeygen.KeyGenPool, keyGenPool *cryptoutilKeygen.KeyGenPool) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, kidGenPool *pool.ValueGenPool[cryptoutilKeygen.Key], keyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	kid := kidGenPool.Get().Secret.(googleUuid.UUID)
 	key := keyGenPool.Get()
 	return CreateJwsJwkFromKey(&kid, alg, &key)

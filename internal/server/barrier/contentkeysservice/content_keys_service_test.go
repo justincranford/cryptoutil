@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
+	"cryptoutil/internal/common/crypto/keygen/keypooltest"
+	"cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
@@ -23,8 +25,8 @@ var (
 	testSqlRepository           *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
 	testDbType                  = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
-	testUuidV7KeyGenPool        *cryptoutilKeygen.KeyGenPool
-	testAes256KeyGenPool        *cryptoutilKeygen.KeyGenPool
+	testUuidV7KeyGenPool        *pool.ValueGenPool[cryptoutilKeygen.Key]
+	testAes256KeyGenPool        *pool.ValueGenPool[cryptoutilKeygen.Key]
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
 	testIntermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 )
@@ -42,10 +44,10 @@ func TestMain(m *testing.M) {
 	unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
 	defer unsealKeysService.Shutdown()
 
-	testUuidV7KeyGenPool = cryptoutilKeygen.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
+	testUuidV7KeyGenPool = keypooltest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
 	defer testUuidV7KeyGenPool.Close()
 
-	testAes256KeyGenPool = cryptoutilKeygen.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
+	testAes256KeyGenPool = keypooltest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
 	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)

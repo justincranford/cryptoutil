@@ -1,4 +1,4 @@
-package keygen
+package keypooltest
 
 import (
 	"context"
@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"cryptoutil/internal/common/crypto/keygen"
+	"cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	googleUuid "github.com/google/uuid"
@@ -33,8 +35,8 @@ var (
 	testTelemetryService         *cryptoutilTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
 	happyPathSize                = []uint32{1, 3}
-	happyPathMaxLifetimeKeys     = []uint64{1, MaxLifetimeKeys}
-	happyPathMaxLifetimeDuration = []time.Duration{MaxLifetimeDuration}
+	happyPathMaxLifetimeKeys     = []uint64{1, pool.MaxLifetimeValues}
+	happyPathMaxLifetimeDuration = []time.Duration{pool.MaxLifetimeDuration}
 	happyPathGets                = []uint64{0, 1, 3}
 	happyPathTestCases           = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
@@ -73,10 +75,10 @@ func TestPoolRSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateRSAKeyPairFunction(2048))
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateRSAKeyPairFunction(2048))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
@@ -94,10 +96,10 @@ func TestPoolRSA(t *testing.T) {
 func TestPoolEcDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDSAKeyPairFunction(elliptic.P256()))
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateECDSAKeyPairFunction(elliptic.P256()))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
@@ -115,10 +117,10 @@ func TestPoolEcDSA(t *testing.T) {
 func TestPoolEcDH(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateECDHKeyPairFunction(ecdh.P256()))
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateECDHKeyPairFunction(ecdh.P256()))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
@@ -136,10 +138,10 @@ func TestPoolEcDH(t *testing.T) {
 func TestPoolEdDSA(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateEDDSAKeyPairFunction("Ed25519"))
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateEDDSAKeyPairFunction("Ed25519"))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
@@ -157,10 +159,10 @@ func TestPoolEdDSA(t *testing.T) {
 func TestPoolAES(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESKeyFunction(128))
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateAESKeyFunction(128))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
@@ -178,10 +180,10 @@ func TestPoolAES(t *testing.T) {
 func TestPoolAESHS(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateAESHSKeyFunction(256))
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateAESHSKeyFunction(256))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
@@ -199,10 +201,10 @@ func TestPoolAESHS(t *testing.T) {
 func TestPoolHMAC(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateHMACKeyFunction(256))
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateHMACKeyFunction(256))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
@@ -220,10 +222,10 @@ func TestPoolHMAC(t *testing.T) {
 func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
-			keyGenPoolConfig, err := NewKeyGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, GenerateUUIDv7Function())
+			keyGenPoolConfig, err := pool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, keygen.GenerateUUIDv7Function())
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPoolConfig)
-			keyGenPool, err := NewGenKeyPool(keyGenPoolConfig)
+			keyGenPool, err := pool.NewValueGenPool(keyGenPoolConfig)
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
 			defer keyGenPool.Close()
