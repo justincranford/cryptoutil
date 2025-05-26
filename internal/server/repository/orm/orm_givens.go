@@ -16,7 +16,7 @@ import (
 type Givens struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
-	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
 func RequireNewGivensForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) *Givens {
@@ -31,7 +31,7 @@ func (g *Givens) Shutdown() {
 }
 
 func (g *Givens) UUIDv7() googleUuid.UUID {
-	return g.uuidV7KeyGenPool.Get().Secret.(googleUuid.UUID)
+	return *g.uuidV7KeyGenPool.Get()
 }
 
 func (g *Givens) A256() []byte {

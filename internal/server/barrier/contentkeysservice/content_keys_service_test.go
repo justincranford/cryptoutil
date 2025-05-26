@@ -25,7 +25,7 @@ var (
 	testSqlRepository           *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
 	testDbType                  = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
-	testUuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	testUuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	testAes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
 	testIntermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService

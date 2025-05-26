@@ -20,11 +20,11 @@ type ContentKeysService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
-	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 }
 
-func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*ContentKeysService, error) {
+func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {

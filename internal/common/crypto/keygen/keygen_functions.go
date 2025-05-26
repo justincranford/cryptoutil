@@ -4,6 +4,8 @@ import (
 	"crypto"
 	"crypto/ecdh"
 	"crypto/elliptic"
+
+	googleUuid "github.com/google/uuid"
 )
 
 type SecretKey any // []byte, googleUuid.UUID
@@ -42,6 +44,6 @@ func GenerateHMACKeyFunction(hmacBits int) func() (Key, error) {
 	return func() (Key, error) { return GenerateHMACKey(hmacBits) }
 }
 
-func GenerateUUIDv7Function() func() (Key, error) {
-	return func() (Key, error) { return GenerateUUIDv7() }
+func GenerateUUIDv7Function() func() (*googleUuid.UUID, error) {
+	return func() (*googleUuid.UUID, error) { return GenerateUUIDv7() }
 }

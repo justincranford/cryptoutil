@@ -11,6 +11,7 @@ import (
 
 	"gorm.io/gorm"
 
+	googleUuid "github.com/google/uuid"
 	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
 )
@@ -20,7 +21,7 @@ var ormEntities = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierCo
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	sqlRepository    *cryptoutilSqlRepository.SqlRepository
-	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }

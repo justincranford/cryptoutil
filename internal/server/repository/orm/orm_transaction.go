@@ -110,13 +110,13 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 		return fmt.Errorf("transaction already started")
 	}
 
-	txID := tx.ormRepository.uuidV7KeyGenPool.Get().Secret.(googleUuid.UUID)
-	gormTx, err := tx.beginImplementation(ctx, transactionMode, txID)
+	txID := tx.ormRepository.uuidV7KeyGenPool.Get()
+	gormTx, err := tx.beginImplementation(ctx, transactionMode, *txID)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	tx.state = &OrmTransactionState{ctx: ctx, txMode: transactionMode, txID: txID, gormTx: gormTx}
+	tx.state = &OrmTransactionState{ctx: ctx, txMode: transactionMode, txID: *txID, gormTx: gormTx}
 	tx.ormRepository.telemetryService.Slogger.Info("started transaction", "txID", txID, "mode", transactionMode)
 	return nil
 }

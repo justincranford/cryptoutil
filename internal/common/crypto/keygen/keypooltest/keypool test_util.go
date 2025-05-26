@@ -9,6 +9,8 @@ import (
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+
+	googleUuid "github.com/google/uuid"
 )
 
 func RequireNewRsa4096GenKeyPoolForTest(telemetryService *cryptoutilTelemetry.TelemetryService) *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.Key] {
@@ -75,11 +77,11 @@ func RequireNewA128CbcHs256GenKeyPoolForTest(telemetryService *cryptoutilTelemet
 	return requireNewGenKeyPoolForTest(cryptoutilPool.NewValueGenPoolConfig(context.Background(), telemetryService, "Test A128CBC-HS256", 1, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(256)))
 }
 
-func RequireNewUuidV7GenKeyPoolForTest(telemetryService *cryptoutilTelemetry.TelemetryService) *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.Key] {
+func RequireNewUuidV7GenKeyPoolForTest(telemetryService *cryptoutilTelemetry.TelemetryService) *cryptoutilPool.ValueGenPool[*googleUuid.UUID] {
 	return requireNewGenKeyPoolForTest(cryptoutilPool.NewValueGenPoolConfig(context.Background(), telemetryService, "Test UUIDv7", 1, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateUUIDv7Function()))
 }
 
-func requireNewGenKeyPoolForTest(config *cryptoutilPool.ValueGenPoolConfig[cryptoutilKeyGen.Key], err error) *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.Key] {
+func requireNewGenKeyPoolForTest[T any](config *cryptoutilPool.ValueGenPoolConfig[T], err error) *cryptoutilPool.ValueGenPool[T] {
 	cryptoutilAppErr.RequireNoError(err, "failed to create key gen pool config")
 	keyGenPool, err := cryptoutilPool.NewValueGenPool(config)
 	cryptoutilAppErr.RequireNoError(err, "failed to create key gen pool")

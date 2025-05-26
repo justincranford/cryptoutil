@@ -37,7 +37,7 @@ type JwkGenService struct {
 	hmac512KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key] // 64-bytes HS512
 	hmac384KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key] // 48-bytes HS384
 	hmac256KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key] // 32-bytes HS256
-	uuidV7KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool      *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
 func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) (*JwkGenService, error) {

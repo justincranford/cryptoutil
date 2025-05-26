@@ -31,10 +31,10 @@ func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, jo
 	return CreateJwsJwkFromKey(&kid, alg, key)
 }
 
-func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, kidGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key], keyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	kid := kidGenPool.Get().Secret.(googleUuid.UUID)
+func GenerateJwsJwkFromKeyPool(alg *joseJwa.SignatureAlgorithm, kidGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], keyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	kid := kidGenPool.Get()
 	key := keyGenPool.Get()
-	return CreateJwsJwkFromKey(&kid, alg, &key)
+	return CreateJwsJwkFromKey(kid, alg, &key)
 }
 
 func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, rawKey *cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {

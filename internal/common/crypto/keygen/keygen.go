@@ -90,12 +90,12 @@ func GenerateHMACKey(hmacBits int) (Key, error) {
 	return Key{Secret: key}, nil
 }
 
-func GenerateUUIDv7() (Key, error) {
+func GenerateUUIDv7() (*googleUuid.UUID, error) {
 	uuidV7, err := googleUuid.NewV7()
 	if err != nil {
-		return Key{}, fmt.Errorf("failed to generate UUID: %w", err)
+		return nil, fmt.Errorf("failed to generate UUID: %w", err)
 	}
-	return Key{Secret: uuidV7}, nil
+	return &uuidV7, nil
 }
 
 func GenerateBytes(lengthBytes int) ([]byte, error) {

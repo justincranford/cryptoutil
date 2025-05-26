@@ -13,12 +13,14 @@ import (
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
+
+	googleUuid "github.com/google/uuid"
 )
 
 type BarrierService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
-	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *cryptoutilRootKeysService.RootKeysService

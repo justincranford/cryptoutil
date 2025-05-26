@@ -231,10 +231,8 @@ func TestPoolUUIDv7(t *testing.T) {
 			defer keyGenPool.Close()
 
 			for i := uint64(0); i < tc.gets; i++ {
-				keyPair := keyGenPool.Get()
-				require.IsType(t, googleUuid.UUID{}, keyPair.Secret)
-				require.Nil(t, keyPair.Private)
-				require.Nil(t, keyPair.Public)
+				uuidv7 := keyGenPool.Get()
+				require.IsType(t, googleUuid.UUID{}, *uuidv7)
 			}
 		})
 	}

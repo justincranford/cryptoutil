@@ -14,6 +14,7 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
+	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
 )
@@ -24,7 +25,7 @@ var (
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
-	testUuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	testUuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	testAes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 )
 

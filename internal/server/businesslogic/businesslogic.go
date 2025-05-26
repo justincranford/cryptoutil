@@ -42,7 +42,7 @@ type BusinessLogicService struct {
 	aes256HS512KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key] // 32-bytes A256CBC + 32-bytes HS512 (half of 64-bytes)
 	aes192HS384KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key] // 24-bytes A192CBC + 24-bytes HS384 (half of 48-bytes)
 	aes128HS256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key] // 16-bytes A128CBC + 16-bytes HS256 (half of 32-bytes)
-	uuidV7KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool      *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
 func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
@@ -113,8 +113,8 @@ func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTe
 }
 
 func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) (*cryptoutilBusinessLogicModel.KeyPool, error) {
-	keyPoolID := s.uuidV7KeyGenPool.Get().Secret.(googleUuid.UUID)
-	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(keyPoolID, openapiKeyPoolCreate)
+	keyPoolID := s.uuidV7KeyGenPool.Get()
+	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(*keyPoolID, openapiKeyPoolCreate)
 
 	var insertedKeyPool *cryptoutilOrmRepository.KeyPool
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -133,7 +133,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 		}
 
 		// generate first key automatically now
-		repositoryKey, err := s.generateKeyPoolKeyForInsert(sqlTransaction, keyPoolID, repositoryKeyPoolToInsert.KeyPoolAlgorithm)
+		repositoryKey, err := s.generateKeyPoolKeyForInsert(sqlTransaction, *keyPoolID, repositoryKeyPoolToInsert.KeyPoolAlgorithm)
 		if err != nil {
 			return fmt.Errorf("failed to generate key material: %w", err)
 		}
@@ -143,12 +143,12 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 			return fmt.Errorf("failed to add key: %w", err)
 		}
 
-		err = sqlTransaction.UpdateKeyPoolStatus(keyPoolID, cryptoutilOrmRepository.Active)
+		err = sqlTransaction.UpdateKeyPoolStatus(*keyPoolID, cryptoutilOrmRepository.Active)
 		if err != nil {
 			return fmt.Errorf("failed to update KeyPoolStatus to active: %w", err)
 		}
 
-		insertedKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
+		insertedKeyPool, err = sqlTransaction.GetKeyPool(*keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get updated KeyPool from DB: %w", err)
 		}
@@ -352,7 +352,7 @@ func (s *BusinessLogicService) PostVerifyByKeyPoolID(ctx context.Context, keyPoo
 }
 
 func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) (*cryptoutilOrmRepository.Key, error) {
-	keyID := s.uuidV7KeyGenPool.Get().Secret.(googleUuid.UUID)
+	keyID := s.uuidV7KeyGenPool.Get()
 
 	// TODO Generate JWK instead of []byte
 	clearKeyMaterial, err := s.GenerateKeyMaterial(keyPoolAlgorithm)
@@ -368,7 +368,7 @@ func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *crypt
 
 	return &cryptoutilOrmRepository.Key{
 		KeyPoolID:       keyPoolID,
-		KeyID:           keyID,
+		KeyID:           *keyID,
 		KeyMaterial:     encryptedKeyMaterial,
 		KeyGenerateDate: &repositoryKeyGenerateDate,
 	}, nil
