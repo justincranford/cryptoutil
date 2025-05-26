@@ -5,7 +5,7 @@ import (
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	"cryptoutil/internal/common/pool"
+	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
@@ -20,11 +20,11 @@ type ContentKeysService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
-	uuidV7KeyGenPool        *pool.ValueGenPool[cryptoutilKeygen.Key]
-	aes256KeyGenPool        *pool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 }
 
-func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, uuidV7KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key], aes256KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]) (*ContentKeysService, error) {
+func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {

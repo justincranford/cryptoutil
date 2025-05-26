@@ -11,7 +11,7 @@ import (
 	"github.com/cloudflare/circl/sign/ed448"
 
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	"cryptoutil/internal/common/pool"
+	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	googleUuid "github.com/google/uuid"
@@ -31,7 +31,7 @@ func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *jo
 	return CreateJweJwkFromKey(&kid, enc, alg, key)
 }
 
-func GenerateJweJwkFromKeyPool(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, kidGenPool *pool.ValueGenPool[cryptoutilKeygen.Key], keyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func GenerateJweJwkFromKeyPool(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, kidGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key], keyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	kid := kidGenPool.Get()
 	kidUuid, ok := kid.Secret.(googleUuid.UUID)
 	if !ok {

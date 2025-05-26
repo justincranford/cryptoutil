@@ -290,7 +290,7 @@ paths:
 
   /keypool/{keyPoolID}/encrypt:
     post:
-      summary: Encrypt clear text data using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+      summary: Encrypt clear text data using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
       description: Encrypts clear text data using the selected algorithm.
       parameters:
         - name: keyPoolID
@@ -342,7 +342,7 @@ paths:
 
   /keypool/{keyPoolID}/decrypt:
     post:
-      summary: Decrypt ciphertext using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+      summary: Decrypt ciphertext using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
       description: Decrypts ciphertext and returns decrypted plaintext.
       parameters:
         - name: keyPoolID
@@ -426,7 +426,7 @@ paths:
 
   /keypool/{keyPoolID}/verify:
     post:
-      summary: Verify JWS message using a specific key pool. The key material in the key pool is identified by the JWS message kid header.
+      summary: Verify JWS message using a specific key cryptoutilPool. The key material in the key pool is identified by the JWS message kid header.
       description: Accepts a JWS message and returns HTTP 204 if the signature is valid.
       parameters:
         - name: keyPoolID

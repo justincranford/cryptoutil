@@ -1,11 +1,12 @@
 package client
 
 import (
-	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	"errors"
 	"fmt"
 	"strings"
+
+	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 )
 
 func MapKeyPoolCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.KeyPoolCreate, error) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	"cryptoutil/internal/common/pool"
+	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
@@ -20,17 +20,17 @@ var ormEntities = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierCo
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	sqlRepository    *cryptoutilSqlRepository.SqlRepository
-	uuidV7KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
 func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
-	uuidV7KeyGenPoolConfig, err := pool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, pool.MaxLifetimeValues, pool.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	uuidV7KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool config: %w", err)
 	}
-	uuidV7KeyGenPool, err := pool.NewValueGenPool(uuidV7KeyGenPoolConfig)
+	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(uuidV7KeyGenPoolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool: %w", err)
 	}

@@ -7,7 +7,7 @@ import (
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	"cryptoutil/internal/common/pool"
+	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
@@ -22,12 +22,12 @@ import (
 type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
-	uuidV7KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]
-	aes256KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 	rootKeysService  *cryptoutilRootKeysService.RootKeysService
 }
 
-func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key], aes256KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]) (*IntermediateKeysService, error) {
+func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {
@@ -46,7 +46,7 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, uuidV7KeyGenPool: uuidV7KeyGenPool, aes256KeyGenPool: aes256KeyGenPool}, nil
 }
 
-func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key], aes256KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]) error {
+func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {

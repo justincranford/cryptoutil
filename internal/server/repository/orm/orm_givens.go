@@ -6,8 +6,8 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	"cryptoutil/internal/common/crypto/keygen/keypooltest"
-	"cryptoutil/internal/common/pool"
+	cryptoutilKeyPoolTest "cryptoutil/internal/common/crypto/keygen/keypooltest"
+	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	googleUuid "github.com/google/uuid"
@@ -15,13 +15,13 @@ import (
 
 type Givens struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
-	aes256KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]
-	uuidV7KeyGenPool *pool.ValueGenPool[cryptoutilKeygen.Key]
+	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
 }
 
 func RequireNewGivensForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) *Givens {
-	aes256KeyGenPool := keypooltest.RequireNewAes256GcmGenKeyPoolForTest(telemetryService)
-	uuidV7KeyGenPool := keypooltest.RequireNewUuidV7GenKeyPoolForTest(telemetryService)
+	aes256KeyGenPool := cryptoutilKeyPoolTest.RequireNewAes256GcmGenKeyPoolForTest(telemetryService)
+	uuidV7KeyGenPool := cryptoutilKeyPoolTest.RequireNewUuidV7GenKeyPoolForTest(telemetryService)
 	return &Givens{telemetryService: telemetryService, aes256KeyGenPool: aes256KeyGenPool, uuidV7KeyGenPool: uuidV7KeyGenPool}
 }
 

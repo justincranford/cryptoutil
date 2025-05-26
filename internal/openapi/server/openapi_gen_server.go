@@ -121,10 +121,10 @@ type ServerInterface interface {
 	// Get a Key Pool.
 	// (GET /keypool/{keyPoolID})
 	GetKeypoolKeyPoolID(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId) error
-	// Decrypt ciphertext using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+	// Decrypt ciphertext using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
 	// (POST /keypool/{keyPoolID}/decrypt)
 	PostKeypoolKeyPoolIDDecrypt(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId) error
-	// Encrypt clear text data using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+	// Encrypt clear text data using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
 	// (POST /keypool/{keyPoolID}/encrypt)
 	PostKeypoolKeyPoolIDEncrypt(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId, params PostKeypoolKeyPoolIDEncryptParams) error
 	// Generate a new Key in a Key Pool.
@@ -139,7 +139,7 @@ type ServerInterface interface {
 	// Sign clear text using a specific key. The key material in the key pool is identified by the JWS message kid header.
 	// (POST /keypool/{keyPoolID}/sign)
 	PostKeypoolKeyPoolIDSign(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId) error
-	// Verify JWS message using a specific key pool. The key material in the key pool is identified by the JWS message kid header.
+	// Verify JWS message using a specific key cryptoutilPool. The key material in the key pool is identified by the JWS message kid header.
 	// (POST /keypool/{keyPoolID}/verify)
 	PostKeypoolKeyPoolIDVerify(c *fiber.Ctx, keyPoolID externalRef0.KeyPoolId) error
 	// Find Key Pools. Supports optional filtering, sorting, and paging.
@@ -1784,10 +1784,10 @@ type StrictServerInterface interface {
 	// Get a Key Pool.
 	// (GET /keypool/{keyPoolID})
 	GetKeypoolKeyPoolID(ctx context.Context, request GetKeypoolKeyPoolIDRequestObject) (GetKeypoolKeyPoolIDResponseObject, error)
-	// Decrypt ciphertext using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+	// Decrypt ciphertext using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
 	// (POST /keypool/{keyPoolID}/decrypt)
 	PostKeypoolKeyPoolIDDecrypt(ctx context.Context, request PostKeypoolKeyPoolIDDecryptRequestObject) (PostKeypoolKeyPoolIDDecryptResponseObject, error)
-	// Encrypt clear text data using a specific key pool. The key material in the key pool is identified by the JWE message kid header.
+	// Encrypt clear text data using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
 	// (POST /keypool/{keyPoolID}/encrypt)
 	PostKeypoolKeyPoolIDEncrypt(ctx context.Context, request PostKeypoolKeyPoolIDEncryptRequestObject) (PostKeypoolKeyPoolIDEncryptResponseObject, error)
 	// Generate a new Key in a Key Pool.
@@ -1802,7 +1802,7 @@ type StrictServerInterface interface {
 	// Sign clear text using a specific key. The key material in the key pool is identified by the JWS message kid header.
 	// (POST /keypool/{keyPoolID}/sign)
 	PostKeypoolKeyPoolIDSign(ctx context.Context, request PostKeypoolKeyPoolIDSignRequestObject) (PostKeypoolKeyPoolIDSignResponseObject, error)
-	// Verify JWS message using a specific key pool. The key material in the key pool is identified by the JWS message kid header.
+	// Verify JWS message using a specific key cryptoutilPool. The key material in the key pool is identified by the JWS message kid header.
 	// (POST /keypool/{keyPoolID}/verify)
 	PostKeypoolKeyPoolIDVerify(ctx context.Context, request PostKeypoolKeyPoolIDVerifyRequestObject) (PostKeypoolKeyPoolIDVerifyResponseObject, error)
 	// Find Key Pools. Supports optional filtering, sorting, and paging.
