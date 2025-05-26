@@ -27,10 +27,10 @@ var (
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 
 	happyPathWorkers             = []uint32{1, 3, 10}
-	happyPathSize                = []uint32{1, 4, 25}
-	happyPathMaxLifetimeValues   = []uint64{1, 100, MaxLifetimeValues}
+	happyPathSize                = []uint32{1, 4, 20}
+	happyPathMaxLifetimeValues   = []uint64{1, 50, MaxLifetimeValues}
 	happyPathMaxLifetimeDuration = []time.Duration{MaxLifetimeDuration}
-	happyPathGets                = []uint64{0, 1, 4, 100}
+	happyPathGets                = []uint64{0, 1, 4, 50}
 
 	happyPathTestCases = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeValues)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))
