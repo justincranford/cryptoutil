@@ -15,7 +15,7 @@ const (
 	MaxLifetimeDuration = time.Duration(int64(^uint64(0) >> 1)) // Max int64  (= 2^63-1 =  9,223,372,036,854,775,807 nanoseconds = 292.47 years)
 )
 
-type KeyPoolConfig struct {
+type KeyGenPoolConfig struct {
 	ctx                 context.Context
 	telemetryService    *cryptoutilTelemetry.TelemetryService // Observability providers (i.e. logs, metrics, traces); supports publishing to STDOUT and/or OLTP+gRPC (e.g. OpenTelemetry sidecar container http://127.0.0.1:4317/)
 	poolName            string
@@ -32,7 +32,7 @@ func (c *KeyGenPool) Name() string {
 
 type KeyGenPool struct {
 	poolStartTime         time.Time
-	cfg                   *KeyPoolConfig
+	cfg                   *KeyGenPoolConfig
 	wrappedCtx            context.Context    // Close() calls cancelWorkersFunction which makes Done() signal available to all of the N generateWorker threads and 1 monitorShutdown thread
 	cancelWorkersFunction context.CancelFunc // This is the associated cancel function for wrappedCtx; the cancel function is called by Close()
 	permissionChannel     chan struct{}      // N generateWorker threads block wait before generating Key, because Key generation (e.g. RSA-4096) can be CPU & Memory expensive
@@ -44,7 +44,7 @@ type KeyGenPool struct {
 }
 
 // NewGenKeyPool supports finite or indefinite pools
-func NewGenKeyPool(config *KeyPoolConfig) (*KeyGenPool, error) {
+func NewGenKeyPool(config *KeyGenPoolConfig) (*KeyGenPool, error) {
 	poolStartTime := time.Now() // used to enforce maxLifetimeDuration in N generateWorker threads and 1 monitorShutdown thread
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
@@ -70,8 +70,8 @@ func NewGenKeyPool(config *KeyPoolConfig) (*KeyGenPool, error) {
 	return keyGenPool, nil
 }
 
-func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyPoolConfig, error) {
-	config := &KeyPoolConfig{
+func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeKeys uint64, maxLifetimeDuration time.Duration, generateFunction func() (Key, error)) (*KeyGenPoolConfig, error) {
+	config := &KeyGenPoolConfig{
 		ctx:                 ctx,
 		telemetryService:    telemetryService,
 		poolName:            poolName,
@@ -87,9 +87,9 @@ func NewKeyGenPoolConfig(ctx context.Context, telemetryService *cryptoutilTeleme
 	return config, nil
 }
 
-func validateConfig(config *KeyPoolConfig) error {
+func validateConfig(config *KeyGenPoolConfig) error {
 	if config == nil {
-		return fmt.Errorf("keyPoolConfig can't be nil")
+		return fmt.Errorf("keyGenPoolConfig can't be nil")
 	} else if config.ctx == nil {
 		return fmt.Errorf("context can't be nil")
 	} else if config.telemetryService == nil {
