@@ -2,14 +2,15 @@ package client
 
 import (
 	"context"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
-	cryptoutilServer "cryptoutil/internal/server/listener"
 	"encoding/json"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+	cryptoutilServer "cryptoutil/internal/server/listener"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	"github.com/stretchr/testify/require"

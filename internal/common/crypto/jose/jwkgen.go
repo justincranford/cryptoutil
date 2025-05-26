@@ -7,11 +7,12 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	"errors"
 	"fmt"
 
 	"github.com/cloudflare/circl/sign/ed448"
+
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"

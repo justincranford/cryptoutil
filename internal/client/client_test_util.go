@@ -2,10 +2,11 @@ package client
 
 import (
 	"context"
-	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	"fmt"
 	"testing"
+
+	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
 	"github.com/stretchr/testify/require"
 )
