@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/ecdh"
 	"crypto/elliptic"
-	"cryptoutil/internal/common/crypto/keygen"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	"errors"
@@ -45,9 +44,9 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 	} else if telemetryService == nil {
 		return nil, fmt.Errorf("telemetry service must be non-nil")
 	}
-	rsa4096KeyGenPoolConfig, err1 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 4096", 9, 9, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(4096))
-	rsa3072KeyGenPoolConfig, err2 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 3072", 6, 6, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(3072))
-	rsa2048KeyGenPoolConfig, err3 := keygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 2048", 3, 3, keygen.MaxLifetimeKeys, keygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(2048))
+	rsa4096KeyGenPoolConfig, err1 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 4096", 9, 9, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(4096))
+	rsa3072KeyGenPoolConfig, err2 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 3072", 6, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(3072))
+	rsa2048KeyGenPoolConfig, err3 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "RSA 2048", 3, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(2048))
 	ecdsaP521KeyGenPoolConfig, err4 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P521", 3, 9, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P521()))
 	ecdsaP384KeyGenPoolConfig, err5 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P384", 2, 6, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P384()))
 	ecdsaP256KeyGenPoolConfig, err6 := cryptoutilKeygen.NewKeyGenPoolConfig(ctx, telemetryService, "Service ECDSA-P256", 1, 3, cryptoutilKeygen.MaxLifetimeKeys, cryptoutilKeygen.MaxLifetimeDuration, cryptoutilKeygen.GenerateECDSAKeyPairFunction(elliptic.P256()))
@@ -69,9 +68,9 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12, err13, err14, err15, err16, err17, err18, err19, err20))
 	}
 
-	rsa4096KeyGenPool, err1 := keygen.NewGenKeyPool(rsa4096KeyGenPoolConfig)
-	rsa3072KeyGenPool, err2 := keygen.NewGenKeyPool(rsa3072KeyGenPoolConfig)
-	rsa2048KeyGenPool, err3 := keygen.NewGenKeyPool(rsa2048KeyGenPoolConfig)
+	rsa4096KeyGenPool, err1 := cryptoutilKeygen.NewGenKeyPool(rsa4096KeyGenPoolConfig)
+	rsa3072KeyGenPool, err2 := cryptoutilKeygen.NewGenKeyPool(rsa3072KeyGenPoolConfig)
+	rsa2048KeyGenPool, err3 := cryptoutilKeygen.NewGenKeyPool(rsa2048KeyGenPoolConfig)
 	ecdsaP521KeyGenPool, err4 := cryptoutilKeygen.NewGenKeyPool(ecdsaP521KeyGenPoolConfig)
 	ecdsaP384KeyGenPool, err5 := cryptoutilKeygen.NewGenKeyPool(ecdsaP384KeyGenPoolConfig)
 	ecdsaP256KeyGenPool, err6 := cryptoutilKeygen.NewGenKeyPool(ecdsaP256KeyGenPoolConfig)

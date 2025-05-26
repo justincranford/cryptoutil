@@ -8,11 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"cryptoutil/internal/common/crypto/keygen"
+	"github.com/cloudflare/circl/sign/ed448"
+
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
-	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -190,7 +190,7 @@ func validateOrGenerateJweRsaJwk(key *cryptoutilKeygen.Key, enc *joseJwa.Content
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
-		generatedKey, err := keygen.GenerateRSAKeyPair(keyBitsLength)
+		generatedKey, err := cryptoutilKeygen.GenerateRSAKeyPair(keyBitsLength)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate RSA %d key: %w", *enc, *alg, keyBitsLength, err)
 		}
@@ -216,7 +216,7 @@ func validateOrGenerateJweEcdhJwk(key *cryptoutilKeygen.Key, enc *joseJwa.Conten
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
-		generatedEcdhKeyPair, err := keygen.GenerateECDHKeyPair(ecdhCurve)
+		generatedEcdhKeyPair, err := cryptoutilKeygen.GenerateECDHKeyPair(ecdhCurve)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate ECDH %s key: %w", *enc, *alg, ecdhCurve, err)
 		}
