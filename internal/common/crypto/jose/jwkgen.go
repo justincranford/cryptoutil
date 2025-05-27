@@ -2,16 +2,10 @@ package jose
 
 import (
 	"crypto/ecdh"
-	"crypto/ecdsa"
-	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
-	"crypto/rsa"
-	"errors"
 	"fmt"
 
-	"github.com/cloudflare/circl/sign/ed448"
-
+	"cryptoutil/internal/common/crypto/keygen"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 
 	googleUuid "github.com/google/uuid"
@@ -24,8 +18,8 @@ func GenerateRSAJwkFunction(rsaBits int) func() (joseJwk.Key, error) {
 }
 
 func GenerateRSAJwk(rsaBits int) (joseJwk.Key, error) {
-	raw, err := rsa.GenerateKey(rand.Reader, rsaBits)
-	return buildJwk(KtyRSA, raw, err)
+	raw, err := keygen.GenerateRSAKeyPair(rsaBits)
+	return buildJwk(KtyRSA, raw.Private, err)
 }
 
 func GenerateECDSAJwkFunction(ecdsaCurve elliptic.Curve) func() (joseJwk.Key, error) {
@@ -33,8 +27,8 @@ func GenerateECDSAJwkFunction(ecdsaCurve elliptic.Curve) func() (joseJwk.Key, er
 }
 
 func GenerateECDSAJwk(ecdsaCurve elliptic.Curve) (joseJwk.Key, error) {
-	raw, err := ecdsa.GenerateKey(ecdsaCurve, rand.Reader)
-	return buildJwk(KtyEC, raw, err)
+	raw, err := keygen.GenerateECDSAKeyPair(ecdsaCurve)
+	return buildJwk(KtyEC, raw.Private, err)
 }
 
 func GenerateECDHJwkFunction(ecdhCurve ecdh.Curve) func() (joseJwk.Key, error) {
@@ -42,8 +36,8 @@ func GenerateECDHJwkFunction(ecdhCurve ecdh.Curve) func() (joseJwk.Key, error) {
 }
 
 func GenerateECDHJwk(ecdhCurve ecdh.Curve) (joseJwk.Key, error) {
-	raw, err := ecdhCurve.GenerateKey(rand.Reader)
-	return buildJwk(KtyEC, raw, err)
+	raw, err := keygen.GenerateECDHKeyPair(ecdhCurve)
+	return buildJwk(KtyEC, raw.Private, err)
 }
 
 func GenerateEDDSAJwkFunction(edCurve string) func() (joseJwk.Key, error) {
@@ -51,16 +45,8 @@ func GenerateEDDSAJwkFunction(edCurve string) func() (joseJwk.Key, error) {
 }
 
 func GenerateEDDSAJwk(edCurve string) (joseJwk.Key, error) {
-	switch edCurve {
-	case "Ed448":
-		_, raw, err := ed448.GenerateKey(rand.Reader)
-		return buildJwk(KtyOKP, raw, err)
-	case "Ed25519":
-		_, raw, err := ed25519.GenerateKey(rand.Reader)
-		return buildJwk(KtyOKP, raw, err)
-	default:
-		return nil, errors.New("unsupported Ed curve")
-	}
+	raw, err := keygen.GenerateEDDSAKeyPair(edCurve)
+	return buildJwk(KtyOKP, raw.Private, err)
 }
 
 func GenerateAESJwkFunction(aesBits int) func() (joseJwk.Key, error) {
@@ -69,7 +55,7 @@ func GenerateAESJwkFunction(aesBits int) func() (joseJwk.Key, error) {
 
 func GenerateAESJwk(aesBits int) (joseJwk.Key, error) {
 	raw, err := cryptoutilKeygen.GenerateAESKey(aesBits)
-	return buildJwk(KtyOCT, raw, err)
+	return buildJwk(KtyOCT, raw.Secret, err)
 }
 
 func GenerateAESHSJwkFunction(aesHsBits int) func() (joseJwk.Key, error) {
@@ -78,7 +64,7 @@ func GenerateAESHSJwkFunction(aesHsBits int) func() (joseJwk.Key, error) {
 
 func GenerateAESHSJwk(aesHsBits int) (joseJwk.Key, error) {
 	raw, err := cryptoutilKeygen.GenerateAESHSKey(aesHsBits)
-	return buildJwk(KtyOCT, raw, err)
+	return buildJwk(KtyOCT, raw.Secret, err)
 }
 
 func GenerateHMACJwkFunction(hmacBits int) func() (joseJwk.Key, error) {
@@ -87,7 +73,7 @@ func GenerateHMACJwkFunction(hmacBits int) func() (joseJwk.Key, error) {
 
 func GenerateHMACJwk(hmacBits int) (joseJwk.Key, error) {
 	raw, err := cryptoutilKeygen.GenerateHMACKey(hmacBits)
-	return buildJwk(KtyOCT, raw, err)
+	return buildJwk(KtyOCT, raw.Secret, err)
 }
 
 func buildJwk(kty joseJwa.KeyType, raw any, err error) (joseJwk.Key, error) {
