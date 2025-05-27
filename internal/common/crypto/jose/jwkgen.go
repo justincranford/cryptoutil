@@ -19,9 +19,17 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+func GenerateRSAJwkFunction(rsaBits int) func() (joseJwk.Key, error) {
+	return func() (joseJwk.Key, error) { return GenerateRSAJwk(rsaBits) }
+}
+
 func GenerateRSAJwk(rsaBits int) (joseJwk.Key, error) {
 	raw, err := rsa.GenerateKey(rand.Reader, rsaBits)
 	return buildJwk(KtyRSA, raw, err)
+}
+
+func GenerateECDSAJwkFunction(ecdsaCurve elliptic.Curve) func() (joseJwk.Key, error) {
+	return func() (joseJwk.Key, error) { return GenerateECDSAJwk(ecdsaCurve) }
 }
 
 func GenerateECDSAJwk(ecdsaCurve elliptic.Curve) (joseJwk.Key, error) {
@@ -29,9 +37,17 @@ func GenerateECDSAJwk(ecdsaCurve elliptic.Curve) (joseJwk.Key, error) {
 	return buildJwk(KtyEC, raw, err)
 }
 
+func GenerateECDHJwkFunction(ecdhCurve ecdh.Curve) func() (joseJwk.Key, error) {
+	return func() (joseJwk.Key, error) { return GenerateECDHJwk(ecdhCurve) }
+}
+
 func GenerateECDHJwk(ecdhCurve ecdh.Curve) (joseJwk.Key, error) {
 	raw, err := ecdhCurve.GenerateKey(rand.Reader)
 	return buildJwk(KtyEC, raw, err)
+}
+
+func GenerateEDDSAJwkFunction(edCurve string) func() (joseJwk.Key, error) {
+	return func() (joseJwk.Key, error) { return GenerateEDDSAJwk(edCurve) }
 }
 
 func GenerateEDDSAJwk(edCurve string) (joseJwk.Key, error) {
@@ -47,14 +63,26 @@ func GenerateEDDSAJwk(edCurve string) (joseJwk.Key, error) {
 	}
 }
 
+func GenerateAESJwkFunction(aesBits int) func() (joseJwk.Key, error) {
+	return func() (joseJwk.Key, error) { return GenerateAESJwk(aesBits) }
+}
+
 func GenerateAESJwk(aesBits int) (joseJwk.Key, error) {
 	raw, err := cryptoutilKeygen.GenerateAESKey(aesBits)
 	return buildJwk(KtyOCT, raw, err)
 }
 
+func GenerateAESHSJwkFunction(aesHsBits int) func() (joseJwk.Key, error) {
+	return func() (joseJwk.Key, error) { return GenerateAESHSJwk(aesHsBits) }
+}
+
 func GenerateAESHSJwk(aesHsBits int) (joseJwk.Key, error) {
 	raw, err := cryptoutilKeygen.GenerateAESHSKey(aesHsBits)
 	return buildJwk(KtyOCT, raw, err)
+}
+
+func GenerateHMACJwkFunction(hmacBits int) func() (joseJwk.Key, error) {
+	return func() (joseJwk.Key, error) { return GenerateHMACJwk(hmacBits) }
 }
 
 func GenerateHMACJwk(hmacBits int) (joseJwk.Key, error) {
