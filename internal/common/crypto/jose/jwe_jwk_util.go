@@ -165,11 +165,25 @@ func validateOrGenerateJweAesJwk(key *cryptoutilKeygen.Key, enc *joseJwa.Content
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
-		aesKeyBytes, err := cryptoutilUtil.GenerateBytes(keyBitsLength / 8)
+		var generatedKey cryptoutilKeygen.Key
+		var err error
+		switch *alg {
+		case AlgA256KW, AlgA256GCMKW, AlgA192KW, AlgA192GCMKW, AlgA128KW, AlgA128GCMKW:
+			generatedKey, err = cryptoutilKeygen.GenerateAESKey(keyBitsLength)
+		case AlgDir:
+			switch *enc {
+			case EncA256GCM, EncA192GCM, EncA128GCM:
+				generatedKey, err = cryptoutilKeygen.GenerateAESKey(keyBitsLength)
+			case EncA256CBC_HS512, EncA192CBC_HS384, EncA128CBC_HS256:
+				generatedKey, err = cryptoutilKeygen.GenerateAESHSKey(keyBitsLength)
+			default:
+				return nil, fmt.Errorf("valid JWE JWK alg %s, but invalid enc %s", *enc, *alg)
+			}
+		}
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate AES %d key: %w", *enc, *alg, keyBitsLength, err)
 		}
-		key = &cryptoutilKeygen.Key{Secret: aesKeyBytes}
+		key = &generatedKey
 	} else {
 		aesKeyBytes, ok := key.Secret.([]byte)
 		if !ok {

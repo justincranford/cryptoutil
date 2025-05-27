@@ -12,7 +12,7 @@ import (
 
 	"github.com/cloudflare/circl/sign/ed448"
 
-	cryptoutilUtil "cryptoutil/internal/common/util"
+	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -48,26 +48,17 @@ func GenerateEDDSAJwk(edCurve string) (joseJwk.Key, error) {
 }
 
 func GenerateAESJwk(aesBits int) (joseJwk.Key, error) {
-	if aesBits != 128 && aesBits != 192 && aesBits != 256 {
-		return nil, fmt.Errorf("invalid AES key size: %d (must be 128, 192, or 256 bits)", aesBits)
-	}
-	raw, err := cryptoutilUtil.GenerateBytes(aesBits / 8)
+	raw, err := cryptoutilKeygen.GenerateAESKey(aesBits)
 	return buildJwk(KtyOCT, raw, err)
 }
 
 func GenerateAESHSJwk(aesHsBits int) (joseJwk.Key, error) {
-	if aesHsBits != 256 && aesHsBits != 384 && aesHsBits != 512 {
-		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be 256, 384, or 512 bits)", aesHsBits)
-	}
-	raw, err := cryptoutilUtil.GenerateBytes(aesHsBits / 8)
+	raw, err := cryptoutilKeygen.GenerateAESHSKey(aesHsBits)
 	return buildJwk(KtyOCT, raw, err)
 }
 
 func GenerateHMACJwk(hmacBits int) (joseJwk.Key, error) {
-	if hmacBits < 256 {
-		return nil, fmt.Errorf("invalid HMAC key size: %d (must be 256 bits or higher)", hmacBits)
-	}
-	raw, err := cryptoutilUtil.GenerateBytes(hmacBits / 8)
+	raw, err := cryptoutilKeygen.GenerateHMACKey(hmacBits)
 	return buildJwk(KtyOCT, raw, err)
 }
 
