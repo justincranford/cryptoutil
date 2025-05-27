@@ -1,6 +1,18 @@
 package util
 
-import "encoding/binary"
+import (
+	"crypto/rand"
+	"encoding/binary"
+	"fmt"
+)
+
+func GenerateBytes(lengthBytes int) ([]byte, error) {
+	bytes := make([]byte, lengthBytes)
+	if _, err := rand.Read(bytes); err != nil {
+		return nil, fmt.Errorf("failed to generate %d bytes: %w", lengthBytes, err)
+	}
+	return bytes, nil
+}
 
 func ConcatBytes(list [][]byte) []byte {
 	var combined []byte

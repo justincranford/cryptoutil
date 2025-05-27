@@ -165,7 +165,7 @@ func validateOrGenerateJweAesJwk(key *cryptoutilKeygen.Key, enc *joseJwa.Content
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
-		aesKeyBytes, err := cryptoutilKeygen.GenerateBytes(keyBitsLength / 8)
+		aesKeyBytes, err := cryptoutilUtil.GenerateBytes(keyBitsLength / 8)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWE JWK enc %s and alg %s, but failed to generate AES %d key: %w", *enc, *alg, keyBitsLength, err)
 		}

@@ -218,7 +218,7 @@ func validateOrGenerateJwsEddsaJwk(key *cryptoutilKeygen.Key, alg *joseJwa.Signa
 
 func validateOrGenerateJwsHmacJwk(key *cryptoutilKeygen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (*cryptoutilKeygen.Key, error) {
 	if key == nil {
-		keyBytes, err := cryptoutilKeygen.GenerateBytes(keyBitsLength / 8)
+		keyBytes, err := cryptoutilUtil.GenerateBytes(keyBitsLength / 8)
 		if err != nil {
 			return nil, fmt.Errorf("valid JWS JWK alg %s, but failed to generate AES %d key: %w", *alg, keyBitsLength, err)
 		}
