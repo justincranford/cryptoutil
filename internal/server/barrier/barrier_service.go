@@ -8,6 +8,7 @@ import (
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilContentKeysService "cryptoutil/internal/server/barrier/contentkeysservice"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
@@ -41,7 +42,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
 
-	uuidV7KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service UUIDv7", 2, 2, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	uuidV7KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service UUIDv7", 2, 2, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID pool config: %w", err)
 	}

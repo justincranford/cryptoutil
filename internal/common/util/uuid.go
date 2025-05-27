@@ -8,6 +8,18 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+func GenerateUUIDv7Function() func() (*googleUuid.UUID, error) {
+	return func() (*googleUuid.UUID, error) { return GenerateUUIDv7() }
+}
+
+func GenerateUUIDv7() (*googleUuid.UUID, error) {
+	uuidV7, err := googleUuid.NewV7()
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate UUID: %w", err)
+	}
+	return &uuidV7, nil
+}
+
 func ValidateUUID(uuid *googleUuid.UUID, msg string) error {
 	if uuid == nil {
 		return fmt.Errorf("%s: %w", msg, cryptoutilAppErr.ErrUUIDCantBeNil)

@@ -10,6 +10,7 @@ import (
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -65,7 +66,7 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 	hmac512KeyGenPoolConfig, err17 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service AES-256-CBC HS-512", 3, 9, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(512))
 	hmac384KeyGenPoolConfig, err18 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service AES-192-CBC HS-384", 2, 6, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(384))
 	hmac256KeyGenPoolConfig, err19 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service AES-128-CBC HS-256", 1, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateHMACKeyFunction(256))
-	uuidV7KeyGenPoolConfig, err20 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 20, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	uuidV7KeyGenPoolConfig, err20 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service UUIDv7", 2, 20, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function())
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil || err8 != nil || err9 != nil || err10 != nil || err11 != nil || err12 != nil || err13 != nil || err14 != nil || err15 != nil || err16 != nil || err17 != nil || err18 != nil || err19 != nil || err20 != nil {
 		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12, err13, err14, err15, err16, err17, err18, err19, err20))
 	}

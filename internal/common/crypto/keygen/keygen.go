@@ -1,6 +1,7 @@
 package keygen
 
 import (
+	"crypto"
 	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
@@ -11,8 +12,19 @@ import (
 	"fmt"
 
 	"github.com/cloudflare/circl/sign/ed448"
-	googleUuid "github.com/google/uuid"
 )
+
+type SecretKey any // []byte, googleUuid.UUID
+
+type Key struct {
+	Private crypto.PrivateKey
+	Public  crypto.PublicKey
+	Secret  SecretKey
+}
+
+func GenerateRSAKeyPairFunction(rsaBits int) func() (Key, error) {
+	return func() (Key, error) { return GenerateRSAKeyPair(rsaBits) }
+}
 
 func GenerateRSAKeyPair(rsaBits int) (Key, error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, rsaBits)
@@ -20,6 +32,10 @@ func GenerateRSAKeyPair(rsaBits int) (Key, error) {
 		return Key{}, fmt.Errorf("generate RSA key pair failed: %w", err)
 	}
 	return Key{Private: privateKey, Public: &privateKey.PublicKey}, nil
+}
+
+func GenerateECDSAKeyPairFunction(ecdsaCurve elliptic.Curve) func() (Key, error) {
+	return func() (Key, error) { return GenerateECDSAKeyPair(ecdsaCurve) }
 }
 
 func GenerateECDSAKeyPair(ecdsaCurve elliptic.Curve) (Key, error) {
@@ -30,12 +46,20 @@ func GenerateECDSAKeyPair(ecdsaCurve elliptic.Curve) (Key, error) {
 	return Key{Private: privateKey, Public: &privateKey.PublicKey}, nil
 }
 
+func GenerateECDHKeyPairFunction(ecdhCurve ecdh.Curve) func() (Key, error) {
+	return func() (Key, error) { return GenerateECDHKeyPair(ecdhCurve) }
+}
+
 func GenerateECDHKeyPair(ecdhCurve ecdh.Curve) (Key, error) {
 	privateKey, err := ecdhCurve.GenerateKey(rand.Reader)
 	if err != nil {
 		return Key{}, fmt.Errorf("generate ECDH key pair failed: %w", err)
 	}
 	return Key{Private: privateKey, Public: privateKey.PublicKey()}, nil
+}
+
+func GenerateEDDSAKeyPairFunction(edCurve string) func() (Key, error) {
+	return func() (Key, error) { return GenerateEDDSAKeyPair(edCurve) }
 }
 
 func GenerateEDDSAKeyPair(edCurve string) (Key, error) {
@@ -57,6 +81,10 @@ func GenerateEDDSAKeyPair(edCurve string) (Key, error) {
 	}
 }
 
+func GenerateAESKeyFunction(aesBits int) func() (Key, error) {
+	return func() (Key, error) { return GenerateAESKey(aesBits) }
+}
+
 func GenerateAESKey(aesBits int) (Key, error) {
 	if aesBits != 128 && aesBits != 192 && aesBits != 256 {
 		return Key{}, fmt.Errorf("invalid AES key size: %d (must be 128, 192, or 256 bits)", aesBits)
@@ -66,6 +94,10 @@ func GenerateAESKey(aesBits int) (Key, error) {
 		return Key{}, fmt.Errorf("generate AES %d key failed: %w", aesBits, err)
 	}
 	return Key{Secret: key}, nil
+}
+
+func GenerateAESHSKeyFunction(aesHsBits int) func() (Key, error) {
+	return func() (Key, error) { return GenerateAESHSKey(aesHsBits) }
 }
 
 func GenerateAESHSKey(aesHsBits int) (Key, error) {
@@ -79,6 +111,10 @@ func GenerateAESHSKey(aesHsBits int) (Key, error) {
 	return Key{Secret: key}, nil
 }
 
+func GenerateHMACKeyFunction(hmacBits int) func() (Key, error) {
+	return func() (Key, error) { return GenerateHMACKey(hmacBits) }
+}
+
 func GenerateHMACKey(hmacBits int) (Key, error) {
 	if hmacBits < 256 {
 		return Key{}, fmt.Errorf("invalid HMAC key size: %d (must be 256 bits or higher)", hmacBits)
@@ -88,14 +124,6 @@ func GenerateHMACKey(hmacBits int) (Key, error) {
 		return Key{}, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}
 	return Key{Secret: key}, nil
-}
-
-func GenerateUUIDv7() (*googleUuid.UUID, error) {
-	uuidV7, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate UUID: %w", err)
-	}
-	return &uuidV7, nil
 }
 
 func GenerateBytes(lengthBytes int) ([]byte, error) {

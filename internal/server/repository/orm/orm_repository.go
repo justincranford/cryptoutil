@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	"gorm.io/gorm"
@@ -27,7 +27,7 @@ type OrmRepository struct {
 }
 
 func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
-	uuidV7KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateUUIDv7Function())
+	uuidV7KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool config: %w", err)
 	}
