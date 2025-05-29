@@ -3,7 +3,7 @@ package unsealkeysservice
 import (
 	"testing"
 
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"github.com/stretchr/testify/require"
 )
@@ -11,7 +11,7 @@ import (
 const sharedSecretCount = 10
 
 func TestNewUnsealKeysServiceSharedSecrets_HappyPath(t *testing.T) {
-	unsealKeys, err := cryptoutilKeygen.GenerateSharedSecrets(sharedSecretCount, 32)
+	unsealKeys, err := cryptoutilUtil.GenerateMultipleBytes(sharedSecretCount, 32)
 	require.NoError(t, err)
 	unsealKeysService, err := NewUnsealKeysServiceSharedSecrets(unsealKeys, sharedSecretCount-1)
 	require.NoError(t, err)

@@ -14,6 +14,26 @@ func GenerateBytes(lengthBytes int) ([]byte, error) {
 	return bytes, nil
 }
 
+func GenerateMultipleBytes(count, lengthBytes int) ([][]byte, error) {
+	if count < 1 {
+		return nil, fmt.Errorf("count can't be less than 1")
+	} else if lengthBytes < 1 {
+		return nil, fmt.Errorf("length can't be less than 1")
+	}
+
+	concatSharedSecrets := make([]byte, count*lengthBytes) // max 255 * 64
+	if _, err := rand.Read(concatSharedSecrets); err != nil {
+		return nil, fmt.Errorf("failed to generate consecutive byte slices: %w", err)
+	}
+
+	nBytes := make([][]byte, count)
+	for i := range count {
+		startOffset := i * lengthBytes
+		nBytes[i] = concatSharedSecrets[startOffset : startOffset+lengthBytes]
+	}
+	return nBytes, nil
+}
+
 func ConcatBytes(list [][]byte) []byte {
 	var combined []byte
 	for _, b := range list {
