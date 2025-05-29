@@ -22,7 +22,7 @@ type KeyPair struct {
 }
 type SecretKey []byte
 
-type KeyPointer interface { // &KeyPair or SecretKey
+type Key interface { // &KeyPair or SecretKey
 	isKey()
 }
 
