@@ -22,7 +22,7 @@ type BarrierService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *cryptoutilRootKeysService.RootKeysService
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService

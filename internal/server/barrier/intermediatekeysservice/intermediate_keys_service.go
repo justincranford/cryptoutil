@@ -23,11 +23,11 @@ type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 	rootKeysService  *cryptoutilRootKeysService.RootKeysService
 }
 
-func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*IntermediateKeysService, error) {
+func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {
@@ -46,7 +46,7 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 	return &IntermediateKeysService{telemetryService: telemetryService, ormRepository: ormRepository, rootKeysService: rootKeysService, uuidV7KeyGenPool: uuidV7KeyGenPool, aes256KeyGenPool: aes256KeyGenPool}, nil
 }
 
-func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) error {
+func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -57,7 +57,7 @@ func initializeFirstIntermediateJwk(ormRepository *cryptoutilOrmRepository.OrmRe
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		intermediateKeyKidUuid, clearIntermediateKey, _, err := cryptoutilJose.GenerateJweJwkFromKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, uuidV7KeyGenPool, aes256KeyGenPool)
+		intermediateKeyKidUuid, clearIntermediateKey, _, err := cryptoutilJose.GenerateJweJwkFromSecretKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, uuidV7KeyGenPool, aes256KeyGenPool)
 		if err != nil {
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}

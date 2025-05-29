@@ -27,7 +27,7 @@ var (
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	testUuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	testAes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	testAes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 	testRootKeysService  *cryptoutilRootKeysService.RootKeysService
 )
 
@@ -62,7 +62,7 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	require.NotNil(t, intermediateKeysService)
 	defer intermediateKeysService.Shutdown()
 
-	_, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, testUuidV7KeyGenPool, testAes256KeyGenPool)
+	_, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromSecretKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	require.NoError(t, err)
 	require.NotNil(t, clearContentKey)
 

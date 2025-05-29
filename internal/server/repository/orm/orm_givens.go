@@ -15,7 +15,7 @@ import (
 
 type Givens struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
-	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
@@ -35,7 +35,7 @@ func (g *Givens) UUIDv7() googleUuid.UUID {
 }
 
 func (g *Givens) A256() []byte {
-	return g.aes256KeyGenPool.Get().Secret.([]byte)
+	return g.aes256KeyGenPool.Get()
 }
 
 func (g *Givens) Aes256KeyPool(versioningAllowed, importAllowed, exportAllowed bool) *KeyPool {

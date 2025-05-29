@@ -26,7 +26,7 @@ var (
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	testUuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	testAes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	testAes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 )
 
 func TestMain(m *testing.M) {

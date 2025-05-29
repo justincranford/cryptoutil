@@ -21,10 +21,10 @@ type ContentKeysService struct {
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]
+	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 }
 
-func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.Key]) (*ContentKeysService, error) {
+func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if ormRepository == nil {
@@ -40,7 +40,7 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 }
 
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	contentKeyKidUuid, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, s.uuidV7KeyGenPool, s.aes256KeyGenPool)
+	contentKeyKidUuid, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromSecretKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, s.uuidV7KeyGenPool, s.aes256KeyGenPool)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}

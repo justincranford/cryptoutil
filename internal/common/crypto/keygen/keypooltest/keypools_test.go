@@ -42,7 +42,7 @@ func TestPoolsExample(t *testing.T) {
 	readKeys(&tempDir, telemetryService, keys)
 }
 
-func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) ([]cryptoutilKeyGen.Key, error) {
+func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) ([]any, error) {
 	rsaKeyGenPoolConfig, err1 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(2048))
 	ecdsaKeyGenPoolConfig, err2 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()))
 	ecdhKeyGenPoolConfig, err3 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256()))
@@ -73,7 +73,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	defer aesHsKeyGenPool.Close()
 	defer hmacKeyGenPool.Close()
 
-	keys := make([]cryptoutilKeyGen.Key, 0, 7*exampleMaxLifetimeKeys) // 7 pools * K keys per pool
+	keys := make([]any, 0, 7*exampleMaxLifetimeKeys) // 7 pools * K keys per pool
 	for range exampleMaxLifetimeKeys {
 		telemetryService.Slogger.Info("Getting keys")
 		keys = append(keys, rsaKeyGenPool.Get())
@@ -88,84 +88,94 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	return keys, nil
 }
 
-func writeKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []cryptoutilKeyGen.Key) {
+func writeKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []any) {
 	var err error
-	for i, key := range keys {
+	for i, keyAny := range keys {
 		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))
 
-		if key.Private != nil {
-			privatePemFilename := baseFilename + "_private.pem"
-			privateDerFilename := baseFilename + "_private.der"
+		keyPair, ok := keyAny.(cryptoutilKeyGen.KeyPair)
+		if ok {
+			if keyPair.Private != nil {
+				privatePemFilename := baseFilename + "_private.pem"
+				privateDerFilename := baseFilename + "_private.der"
 
-			err = cryptoutilAsn1.PemWrite(key.Private, privatePemFilename)
-			cryptoutilAppErr.RequireNoError(err, "Write failed "+privatePemFilename)
+				err = cryptoutilAsn1.PemWrite(keyPair.Private, privatePemFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+privatePemFilename)
 
-			err = cryptoutilAsn1.DerWrite(key.Private, privateDerFilename)
-			cryptoutilAppErr.RequireNoError(err, "Write failed "+privateDerFilename)
+				err = cryptoutilAsn1.DerWrite(keyPair.Private, privateDerFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+privateDerFilename)
+			}
+
+			if keyPair.Public != nil {
+				publicPemFilename := baseFilename + "_public.pem"
+				publicDerFilename := baseFilename + "_public.der"
+
+				err = cryptoutilAsn1.PemWrite(keyPair.Public, publicPemFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.pem")
+
+				err = cryptoutilAsn1.DerWrite(keyPair.Public, publicDerFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.der")
+			}
 		}
+		secretKey, ok := keyAny.([]byte)
+		if ok {
+			if secretKey != nil {
+				secretPemFilename := baseFilename + "_secret.pem"
+				secretDerFilename := baseFilename + "_secret.der"
 
-		if key.Public != nil {
-			publicPemFilename := baseFilename + "_public.pem"
-			publicDerFilename := baseFilename + "_public.der"
+				err = cryptoutilAsn1.PemWrite(secretKey, secretPemFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretPemFilename)
 
-			err = cryptoutilAsn1.PemWrite(key.Public, publicPemFilename)
-			cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.pem")
-
-			err = cryptoutilAsn1.DerWrite(key.Public, publicDerFilename)
-			cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.der")
-		}
-
-		if key.Secret != nil {
-			secretPemFilename := baseFilename + "_secret.pem"
-			secretDerFilename := baseFilename + "_secret.der"
-
-			err = cryptoutilAsn1.PemWrite(key.Secret, secretPemFilename)
-			cryptoutilAppErr.RequireNoError(err, "Write failed "+secretPemFilename)
-
-			err = cryptoutilAsn1.DerWrite(key.Secret, secretDerFilename)
-			cryptoutilAppErr.RequireNoError(err, "Write failed "+secretDerFilename)
+				err = cryptoutilAsn1.DerWrite(secretKey, secretDerFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretDerFilename)
+			}
 		}
 	}
 }
 
-func readKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []cryptoutilKeyGen.Key) {
+func readKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []any) {
 	var err error
-	for i, key := range keys {
+	for i, keyAny := range keys {
 		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))
 
-		if key.Private != nil {
-			privatePemFilename := baseFilename + "_private.pem"
-			privateDerFilename := baseFilename + "_private.der"
+		keyPair, ok := keyAny.(cryptoutilKeyGen.KeyPair)
+		if ok {
+			if keyPair.Private != nil {
+				privatePemFilename := baseFilename + "_private.pem"
+				privateDerFilename := baseFilename + "_private.der"
 
-			_, err := cryptoutilAsn1.PemRead(privatePemFilename)
-			cryptoutilAppErr.RequireNoError(err, "Read failed "+privatePemFilename)
+				_, err := cryptoutilAsn1.PemRead(privatePemFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+privatePemFilename)
 
-			_, _, err = cryptoutilAsn1.DerRead(privateDerFilename)
-			cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDerFilename)
+				_, _, err = cryptoutilAsn1.DerRead(privateDerFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDerFilename)
 
+			}
+
+			if keyPair.Public != nil {
+				publicPemFilename := baseFilename + "_public.pem"
+				publicDerFilename := baseFilename + "_public.der"
+
+				_, err = cryptoutilAsn1.PemRead(publicPemFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicPemFilename)
+
+				_, _, err = cryptoutilAsn1.DerRead(publicDerFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicDerFilename)
+			}
 		}
 
-		if key.Public != nil {
-			publicPemFilename := baseFilename + "_public.pem"
-			publicDerFilename := baseFilename + "_public.der"
+		secretKey, ok := keyAny.([]byte)
+		if ok {
+			if secretKey != nil {
+				secretPemFilename := baseFilename + "_secret.pem"
+				secretDerFilename := baseFilename + "_secret.der"
 
-			_, err = cryptoutilAsn1.PemRead(publicPemFilename)
-			cryptoutilAppErr.RequireNoError(err, "Read failed "+publicPemFilename)
+				_, err := cryptoutilAsn1.PemRead(secretPemFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretPemFilename)
 
-			_, _, err = cryptoutilAsn1.DerRead(publicDerFilename)
-			cryptoutilAppErr.RequireNoError(err, "Read failed "+publicDerFilename)
-		}
-
-		if key.Secret != nil {
-			secretPemFilename := baseFilename + "_secret.pem"
-			secretDerFilename := baseFilename + "_secret.der"
-
-			_, err := cryptoutilAsn1.PemRead(secretPemFilename)
-			cryptoutilAppErr.RequireNoError(err, "Read failed "+secretPemFilename)
-
-			_, _, err = cryptoutilAsn1.DerRead(secretDerFilename)
-			cryptoutilAppErr.RequireNoError(err, "Read failed "+secretDerFilename)
-
+				_, _, err = cryptoutilAsn1.DerRead(secretDerFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretDerFilename)
+			}
 		}
 	}
 }
