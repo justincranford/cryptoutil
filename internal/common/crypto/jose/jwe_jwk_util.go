@@ -43,8 +43,6 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	_, err := validateJweJwkHeaders(kid, enc, alg, key, false)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)
-	} else if key == nil {
-		return nil, nil, nil, fmt.Errorf("JWE JWK key must be non-nil")
 	}
 	var jwk joseJwk.Key
 	switch typedKey := key.(type) {
