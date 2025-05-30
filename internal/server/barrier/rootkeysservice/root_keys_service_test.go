@@ -7,7 +7,7 @@ import (
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilKeyPoolTest "cryptoutil/internal/common/crypto/keygen/keypooltest"
+	cryptoutilKeyGenPoolTest "cryptoutil/internal/common/crypto/keygenpooltest"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
@@ -33,10 +33,10 @@ func TestMain(m *testing.M) {
 	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "root_keys_service_test", false, false)
 	defer testTelemetryService.Shutdown()
 
-	testUuidV7KeyGenPool = cryptoutilKeyPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
+	testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
 	defer testUuidV7KeyGenPool.Close()
 
-	testAes256KeyGenPool = cryptoutilKeyPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
+	testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
 	defer testAes256KeyGenPool.Close()
 
 	os.Exit(m.Run())
