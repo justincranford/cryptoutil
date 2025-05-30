@@ -16,7 +16,7 @@ const (
 )
 
 type ValueGenPool[T any] struct {
-	poolStartTime         time.Time
+	poolStartTime         time.Time // used to enforce maxLifetimeDuration in N generateWorker threads and 1 monitorShutdown thread
 	cfg                   *ValueGenPoolConfig[T]
 	wrappedCtx            context.Context    // Close() calls cancelWorkersFunction which makes Done() signal available to all of the N generateWorker threads and 1 monitorShutdown thread
 	cancelWorkersFunction context.CancelFunc // This is the associated cancel function for wrappedCtx; the cancel function is called by Close()
@@ -41,10 +41,10 @@ type ValueGenPoolConfig[T any] struct {
 
 // NewValueGenPool supports finite or indefinite pools
 func NewValueGenPool[T any](config *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
+	poolStartTime := time.Now()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create pool config: %w", err)
 	}
-	poolStartTime := time.Now() // used to enforce maxLifetimeDuration in N generateWorker threads and 1 monitorShutdown thread
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
@@ -88,7 +88,7 @@ func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptou
 
 func validateConfig[T any](config *ValueGenPoolConfig[T]) error {
 	if config == nil {
-		return fmt.Errorf("valuePoolConfig can't be nil")
+		return fmt.Errorf("config can't be nil")
 	} else if config.ctx == nil {
 		return fmt.Errorf("context can't be nil")
 	} else if config.telemetryService == nil {
@@ -170,12 +170,14 @@ func (pool *ValueGenPool[T]) generateValueAndReleasePermission(workerNum uint32,
 	generateCounter := atomic.AddUint64(&pool.generateCounter, 1)
 	if (pool.cfg.maxLifetimeValues > 0 && generateCounter > pool.cfg.maxLifetimeValues) || (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration) {
 		pool.cfg.telemetryService.Slogger.Warn("Limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		// pool.Close()
 		return
 	}
 
 	value, err := pool.cfg.generateFunction()
 	if err != nil {
 		pool.cfg.telemetryService.Slogger.Error("Value generation failed", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
+		// pool.Close()
 		return
 	}
 	pool.cfg.telemetryService.Slogger.Debug("Generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
