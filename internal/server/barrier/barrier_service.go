@@ -54,20 +54,20 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 
 	rootKeysService, err := cryptoutilRootKeysService.NewRootKeysService(telemetryService, ormRepository, unsealKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
 	if err != nil {
-		aes256KeyGenPool.Close()
+		aes256KeyGenPool.Cancel()
 		return nil, fmt.Errorf("failed to create root keys service: %w", err)
 	}
 
 	intermediateKeysService, err := cryptoutilIntermediateKeysService.NewIntermediateKeysService(telemetryService, ormRepository, rootKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
 	if err != nil {
-		aes256KeyGenPool.Close()
+		aes256KeyGenPool.Cancel()
 		rootKeysService.Shutdown()
 		return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
 	}
 
 	contentKeysService, err := cryptoutilContentKeysService.NewContentKeysService(telemetryService, ormRepository, intermediateKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
 	if err != nil {
-		aes256KeyGenPool.Close()
+		aes256KeyGenPool.Cancel()
 		rootKeysService.Shutdown()
 		intermediateKeysService.Shutdown()
 		return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
@@ -112,11 +112,11 @@ func (d *BarrierService) Shutdown() {
 	d.shutdownOnce.Do(func() {
 		d.closed = true
 		if d.aes256KeyGenPool != nil {
-			d.aes256KeyGenPool.Close()
+			d.aes256KeyGenPool.Cancel()
 			d.aes256KeyGenPool = nil
 		}
 		if d.uuidV7KeyGenPool != nil {
-			d.uuidV7KeyGenPool.Close()
+			d.uuidV7KeyGenPool.Cancel()
 			d.uuidV7KeyGenPool = nil
 		}
 		if d.contentKeysService != nil {

@@ -54,13 +54,13 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
 	}
 
-	defer rsaKeyGenPool.Close()
-	defer ecdsaKeyGenPool.Close()
-	defer ecdhKeyGenPool.Close()
-	defer eddsaKeyGenPool.Close()
-	defer aesKeyGenPool.Close()
-	defer aesHsKeyGenPool.Close()
-	defer hmacKeyGenPool.Close()
+	defer rsaKeyGenPool.Cancel()
+	defer ecdsaKeyGenPool.Cancel()
+	defer ecdhKeyGenPool.Cancel()
+	defer eddsaKeyGenPool.Cancel()
+	defer aesKeyGenPool.Cancel()
+	defer aesHsKeyGenPool.Cancel()
+	defer hmacKeyGenPool.Cancel()
 
 	keys := make([]any, 0, 7*exampleMaxLifetimeKeys) // 7 pools * K keys per pool
 	for range exampleMaxLifetimeKeys {

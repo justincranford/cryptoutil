@@ -45,10 +45,10 @@ func TestMain(m *testing.M) {
 	defer unsealKeysService.Shutdown()
 
 	testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
-	defer testUuidV7KeyGenPool.Close()
+	defer testUuidV7KeyGenPool.Cancel()
 
 	testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
-	defer testAes256KeyGenPool.Close()
+	defer testAes256KeyGenPool.Cancel()
 
 	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
 	defer testRootKeysService.Shutdown()

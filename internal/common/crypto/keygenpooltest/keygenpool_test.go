@@ -79,7 +79,7 @@ func TestPoolRSA(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(2048)))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
@@ -96,7 +96,7 @@ func TestPoolEcDSA(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256())))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
@@ -113,7 +113,7 @@ func TestPoolEcDH(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256())))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
@@ -130,7 +130,7 @@ func TestPoolEdDSA(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519")))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				keyPair := keyGenPool.Get()
@@ -147,7 +147,7 @@ func TestPoolAES(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(128)))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				secretKey := keyGenPool.Get()
@@ -164,7 +164,7 @@ func TestPoolAESHS(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(256)))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				secretKey := keyGenPool.Get()
@@ -181,7 +181,7 @@ func TestPoolHMAC(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(256)))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				secretKey := keyGenPool.Get()
@@ -198,7 +198,7 @@ func TestPoolUUIDv7(t *testing.T) {
 			keyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeKeys, tc.maxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
 			require.NoError(t, err)
 			require.NotNil(t, keyGenPool)
-			defer keyGenPool.Close()
+			defer keyGenPool.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				uuidv7 := keyGenPool.Get()

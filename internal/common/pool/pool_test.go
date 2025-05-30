@@ -65,14 +65,14 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestPoolUUIDv7(t *testing.T) {
+func TestHappyPath(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
 			require.NoError(t, err)
 			require.NotNil(t, poolInstance)
-			defer poolInstance.Close()
+			defer poolInstance.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
 				generated := poolInstance.Get()
@@ -80,4 +80,21 @@ func TestPoolUUIDv7(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGenerateError(t *testing.T) {
+	const numGets = 3
+	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "Fail", 1, 1, numGets, time.Second, generateErrorFunction()))
+	require.NoError(t, err)
+	require.NotNil(t, poolInstance)
+	defer poolInstance.Cancel()
+
+	for i := uint64(0); i < numGets; i++ {
+		generated := poolInstance.Get()
+		require.Nil(t, generated)
+	}
+}
+
+func generateErrorFunction() func() (any, error) {
+	return func() (any, error) { return nil, fmt.Errorf("generate error") }
 }

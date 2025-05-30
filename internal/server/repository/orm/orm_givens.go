@@ -26,8 +26,8 @@ func RequireNewGivensForTest(ctx context.Context, telemetryService *cryptoutilTe
 }
 
 func (g *Givens) Shutdown() {
-	g.uuidV7KeyGenPool.Close()
-	g.aes256KeyGenPool.Close()
+	g.uuidV7KeyGenPool.Cancel()
+	g.aes256KeyGenPool.Cancel()
 }
 
 func (g *Givens) UUIDv7() googleUuid.UUID {

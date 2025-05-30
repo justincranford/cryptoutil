@@ -34,10 +34,10 @@ func TestMain(m *testing.M) {
 	defer testTelemetryService.Shutdown()
 
 	testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
-	defer testUuidV7KeyGenPool.Close()
+	defer testUuidV7KeyGenPool.Cancel()
 
 	testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
-	defer testAes256KeyGenPool.Close()
+	defer testAes256KeyGenPool.Cancel()
 
 	os.Exit(m.Run())
 }
