@@ -8,8 +8,8 @@ import (
 	"time"
 
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 
-	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -69,7 +69,7 @@ func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, GenerateUUIDv7Function()))
+			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
 			require.NoError(t, err)
 			require.NotNil(t, poolInstance)
 			defer poolInstance.Close()
@@ -80,16 +80,4 @@ func TestPoolUUIDv7(t *testing.T) {
 			}
 		})
 	}
-}
-
-func GenerateUUIDv7Function() func() (*googleUuid.UUID, error) {
-	return func() (*googleUuid.UUID, error) { return GenerateUUIDv7() }
-}
-
-func GenerateUUIDv7() (*googleUuid.UUID, error) {
-	uuidV7, err := googleUuid.NewV7()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate UUID: %w", err)
-	}
-	return &uuidV7, nil
 }
