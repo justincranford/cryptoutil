@@ -69,10 +69,7 @@ func TestPoolUUIDv7(t *testing.T) {
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			poolConfig, err := NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, GenerateUUIDv7Function())
-			require.NoError(t, err)
-			require.NotNil(t, poolConfig)
-			poolInstance, err := NewValueGenPool(poolConfig)
+			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, GenerateUUIDv7Function()))
 			require.NoError(t, err)
 			require.NotNil(t, poolInstance)
 			defer poolInstance.Close()

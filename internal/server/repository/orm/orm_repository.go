@@ -27,11 +27,7 @@ type OrmRepository struct {
 }
 
 func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
-	uuidV7KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function())
-	if err != nil {
-		return nil, fmt.Errorf("failed to create UUID V7 pool config: %w", err)
-	}
-	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(uuidV7KeyGenPoolConfig)
+	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool: %w", err)
 	}

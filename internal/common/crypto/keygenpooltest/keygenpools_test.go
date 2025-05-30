@@ -43,24 +43,13 @@ func TestPoolsExample(t *testing.T) {
 }
 
 func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) ([]any, error) {
-	rsaKeyGenPoolConfig, err1 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(2048))
-	ecdsaKeyGenPoolConfig, err2 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()))
-	ecdhKeyGenPoolConfig, err3 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256()))
-	eddsaKeyGenPoolConfig, err4 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519"))
-	aesKeyGenPoolConfig, err5 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES 128 GCM", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(128))
-	aesHsKeyGenPoolConfig, err6 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES HS 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(256))
-	hmacKeyGenPoolConfig, err7 := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(256))
-	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
-		return nil, fmt.Errorf("failed to create pool configs: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
-	}
-
-	rsaKeyGenPool, err1 := cryptoutilPool.NewValueGenPool(rsaKeyGenPoolConfig)
-	ecdsaKeyGenPool, err2 := cryptoutilPool.NewValueGenPool(ecdsaKeyGenPoolConfig)
-	ecdhKeyGenPool, err3 := cryptoutilPool.NewValueGenPool(ecdhKeyGenPoolConfig)
-	eddsaKeyGenPool, err4 := cryptoutilPool.NewValueGenPool(eddsaKeyGenPoolConfig)
-	aesKeyGenPool, err5 := cryptoutilPool.NewValueGenPool(aesKeyGenPoolConfig)
-	aesHsKeyGenPool, err6 := cryptoutilPool.NewValueGenPool(aesHsKeyGenPoolConfig)
-	hmacKeyGenPool, err7 := cryptoutilPool.NewValueGenPool(hmacKeyGenPoolConfig)
+	rsaKeyGenPool, err1 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test RSA 2048", exampleNumWorkersRsa, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(2048)))
+	ecdsaKeyGenPool, err2 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDSA P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256())))
+	ecdhKeyGenPool, err3 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test ECDH P256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256())))
+	eddsaKeyGenPool, err4 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test EdDSA Ed25519", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519")))
+	aesKeyGenPool, err5 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES 128 GCM", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(128)))
+	aesHsKeyGenPool, err6 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES HS 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(256)))
+	hmacKeyGenPool, err7 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(256)))
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
 	}

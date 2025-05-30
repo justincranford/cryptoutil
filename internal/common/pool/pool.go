@@ -40,7 +40,10 @@ type ValueGenPoolConfig[T any] struct {
 }
 
 // NewValueGenPool supports finite or indefinite pools
-func NewValueGenPool[T any](config *ValueGenPoolConfig[T]) (*ValueGenPool[T], error) {
+func NewValueGenPool[T any](config *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
+	if err != nil {
+		return nil, fmt.Errorf("failed to create pool config: %w", err)
+	}
 	poolStartTime := time.Now() // used to enforce maxLifetimeDuration in N generateWorker threads and 1 monitorShutdown thread
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)

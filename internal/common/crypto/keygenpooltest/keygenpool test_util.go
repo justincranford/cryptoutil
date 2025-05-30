@@ -83,8 +83,7 @@ func RequireNewUuidV7GenKeyPoolForTest(telemetryService *cryptoutilTelemetry.Tel
 }
 
 func requireNewGenKeyPoolForTest[T any](config *cryptoutilPool.ValueGenPoolConfig[T], err error) *cryptoutilPool.ValueGenPool[T] {
-	cryptoutilAppErr.RequireNoError(err, "failed to create key gen pool config")
-	keyGenPool, err := cryptoutilPool.NewValueGenPool(config)
+	keyGenPool, err := cryptoutilPool.NewValueGenPool(config, err)
 	cryptoutilAppErr.RequireNoError(err, "failed to create key gen pool")
 	return keyGenPool
 }

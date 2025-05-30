@@ -42,20 +42,12 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
 
-	uuidV7KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service UUIDv7", 2, 2, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function())
-	if err != nil {
-		return nil, fmt.Errorf("failed to create UUID pool config: %w", err)
-	}
-	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(uuidV7KeyGenPoolConfig)
+	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service UUIDv7", 2, 2, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID pool: %w", err)
 	}
 
-	aes256KeyGenPoolConfig, err := cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service Keys AES-256-GCM", 3, 6, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create AES-256 pool config: %w", err)
-	}
-	aes256KeyGenPool, err := cryptoutilPool.NewValueGenPool(aes256KeyGenPoolConfig)
+	aes256KeyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service Keys AES-256-GCM", 3, 6, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256)))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
 	}
