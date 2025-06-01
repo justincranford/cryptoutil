@@ -34,23 +34,23 @@ import (
 
 // TelemetryService Composite of OpenTelemetry providers for Logs, Metrics, and Traces
 type TelemetryService struct {
-	StartTime         time.Time
-	StopTime          time.Time
-	Slogger           *stdoutLogExporter.Logger
-	LogsProvider      logApi.LoggerProvider
-	MetricsProvider   metricApi.MeterProvider
-	TracesProvider    traceApi.TracerProvider
-	TextMapPropagator *propagationApi.TextMapPropagator
-	logsProvider      *logSdk.LoggerProvider   // Not exported, but still needed to do shutdown
-	metricsProvider   *metricSdk.MeterProvider // Not exported, but still needed to do shutdown
-	tracesProvider    *traceSdk.TracerProvider // Not exported, but still needed to do shutdown
+	StartTime          time.Time
+	Slogger            *stdoutLogExporter.Logger
+	LogsProvider       logApi.LoggerProvider
+	MetricsProvider    metricApi.MeterProvider
+	TracesProvider     traceApi.TracerProvider
+	TextMapPropagator  *propagationApi.TextMapPropagator
+	logsProviderSdk    *logSdk.LoggerProvider   // Not exported, but still needed to do shutdown
+	metricsProviderSdk *metricSdk.MeterProvider // Not exported, but still needed to do shutdown
+	tracesProviderSdk  *traceSdk.TracerProvider // Not exported, but still needed to do shutdown
 }
 
 const (
-	OtelGrpcPush   = "127.0.0.1:4317"
-	LogsTimeout    = 500 * time.Millisecond
-	MetricsTimeout = 500 * time.Millisecond
-	TracesTimeout  = 500 * time.Millisecond
+	OtelGrpcPush      = "127.0.0.1:4317"
+	LogsTimeout       = 500 * time.Millisecond
+	MetricsTimeout    = 500 * time.Millisecond
+	TracesTimeout     = 500 * time.Millisecond
+	ForceFlushTimeout = 3 * time.Second
 )
 
 var (
@@ -106,44 +106,81 @@ func NewTelemetryService(ctx context.Context, scope string, enableOtel, enableSt
 	}
 	doExampleTracesSpans(ctx, tracesProvider, slogger)
 	return &TelemetryService{
-		StartTime:         startTime,
-		Slogger:           slogger,
-		LogsProvider:      logsProvider,
-		MetricsProvider:   metricsProvider,
-		TracesProvider:    tracesProvider,
-		TextMapPropagator: textMapPropagator,
-		logsProvider:      logsProvider,
-		metricsProvider:   metricsProvider,
-		tracesProvider:    tracesProvider,
+		StartTime:          startTime,
+		Slogger:            slogger,
+		LogsProvider:       logsProvider,
+		MetricsProvider:    metricsProvider,
+		TracesProvider:     tracesProvider,
+		TextMapPropagator:  textMapPropagator,
+		logsProviderSdk:    logsProvider,
+		metricsProviderSdk: metricsProvider,
+		tracesProviderSdk:  tracesProvider,
 	}, nil
 }
 
 func (s *TelemetryService) Shutdown() {
 	s.Slogger.Debug("stopping telemetry")
-	ctx := context.Background()
+
+	forceFlushCtx, forceFlushCancelDueToTimeout := context.WithTimeout(context.Background(), ForceFlushTimeout)
+	defer forceFlushCancelDueToTimeout()
+	if s.tracesProviderSdk != nil {
+		s.Slogger.Debug("traces provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
+		startTimeForceFlush := time.Now().UTC()
+		if err := s.tracesProviderSdk.ForceFlush(forceFlushCtx); err != nil {
+			s.Slogger.Error("traces provider force flush failed", "error", fmt.Errorf("traces provider force flush error: %w", err))
+		}
+		s.Slogger.Debug("traces provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
+	}
+	if s.metricsProviderSdk != nil {
+		s.Slogger.Debug("metrics provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
+		startTimeForceFlush := time.Now().UTC()
+		if err := s.metricsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
+			s.Slogger.Error("metrics provider force flush failed", "error", fmt.Errorf("metrics provider force flush error: %w", err))
+		}
+		s.Slogger.Info("metrics provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
+	}
+	if s.logsProviderSdk != nil {
+		s.Slogger.Debug("logs provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
+		startTimeForceFlush := time.Now().UTC()
+		if err := s.logsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
+			s.Slogger.Error("logs provider force flush failed", "error", fmt.Errorf("logs provider force flush error: %w", err))
+		}
+		s.Slogger.Debug("logs provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
+	}
+
+	shutdownCtx := context.Background()
 	s.TextMapPropagator = nil
-	if s.TracesProvider != nil {
-		if err := s.tracesProvider.Shutdown(ctx); err != nil {
+	if s.tracesProviderSdk != nil {
+		s.Slogger.Debug("traces provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
+		startTimeShutdown := time.Now().UTC()
+		if err := s.tracesProviderSdk.Shutdown(shutdownCtx); err != nil {
 			s.Slogger.Error("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
 		}
+		s.Slogger.Debug("traces provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
+		s.tracesProviderSdk = nil
 		s.TracesProvider = nil
 	}
-	if s.MetricsProvider != nil {
-		if err := s.metricsProvider.Shutdown(ctx); err != nil {
+	if s.metricsProviderSdk != nil {
+		s.Slogger.Debug("metrics provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
+		startTimeShutdown := time.Now().UTC()
+		if err := s.metricsProviderSdk.Shutdown(shutdownCtx); err != nil {
 			s.Slogger.Error("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
 		}
+		s.Slogger.Debug("metrics provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
+		s.metricsProviderSdk = nil
 		s.MetricsProvider = nil
 	}
-	if s.LogsProvider != nil {
-		s.Slogger.Debug("stopped telemetry", "uptime", time.Since(s.StartTime).Seconds())
-		if err := s.logsProvider.Shutdown(ctx); err != nil {
+	if s.logsProviderSdk != nil {
+		s.Slogger.Debug("logs provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
+		startTimeShutdown := time.Now().UTC()
+		if err := s.logsProviderSdk.Shutdown(shutdownCtx); err != nil {
 			s.Slogger.Error("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
 		}
-		s.Slogger.Debug("stop telemetry duration", "duration", time.Now().UTC().Sub(s.StartTime))
+		s.Slogger.Debug("logs provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
 		s.Slogger = nil
+		s.logsProviderSdk = nil
 		s.LogsProvider = nil
 	}
-	s.StopTime = time.Now().UTC()
 }
 
 func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
