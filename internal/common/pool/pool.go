@@ -16,16 +16,15 @@ const (
 )
 
 type ValueGenPool[T any] struct {
-	poolStartTime     time.Time // used to enforce maxLifetimeDuration in N generateWorker threads and 1 monitorShutdown thread
-	cfg               *ValueGenPoolConfig[T]
-	cancellableCtx    context.Context    // Cancel() calls cancelWorkersFunction which makes Done() signal available to all of the N generateWorker threads and 1 monitorShutdown thread
-	cancelFunction    context.CancelFunc // This is the associated cancel function for wrappedCtx; the cancel function is called by Cancel()
-	permissionChannel chan struct{}      // N generateWorker threads block wait on this channel before generating value, because value generation (e.g. RSA-4096) can be resource expensive
-	valueChannel      chan T             // N generateWorker threads publish generated Values to this channel
-	waitForWorkers    sync.WaitGroup     // Cancel() uses this to wait for N generateWorker threads to finish before closing valueChannel and permissionChannel
-	cancelOnce        sync.Once
-	generateCounter   uint64
-	getCounter        uint64
+	poolStartTime     time.Time              // needed to enforce maxLifetimeDuration in N generateWorker threads and 1 closeChannelsThread thread
+	cfg               *ValueGenPoolConfig[T] // container for all configuration parameters, including telemetryService and poolName
+	cancellableCtx    context.Context        // Exposes Done() signal to N workers, 1 closeChannelsThread, and M getters
+	cancelFunction    context.CancelFunc     // Cancel() invokes this to raise the Done() signal
+	permissionChannel chan struct{}          // N workers use this channel to get and release permissions (up to pool size); generate can be expensive (e.g. RSA-4096)
+	valueChannel      chan T                 // N workers use this channel to publish generated Values
+	cancelOnce        sync.Once              // Cancel() uses this to guard raising the Done() signal, and log if Cancel() was already called
+	generateCounter   uint64                 // needed to enforce maxLifetimeValues in N workers amd 1 closeChannelsThread thread
+	getCounter        uint64                 // metrics for how many times Get() was called successfully
 }
 
 type ValueGenPoolConfig[T any] struct {
@@ -39,13 +38,12 @@ type ValueGenPoolConfig[T any] struct {
 	generateFunction    func() (T, error)
 }
 
-// NewValueGenPool supports finite or indefinite pools
+// NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues
 func NewValueGenPool[T any](config *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
 	poolStartTime := time.Now()
-	if err != nil {
+	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check for error
 		return nil, fmt.Errorf("failed to create pool config: %w", err)
-	}
-	if err := validateConfig(config); err != nil {
+	} else if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
@@ -58,11 +56,13 @@ func NewValueGenPool[T any](config *ValueGenPoolConfig[T], err error) (*ValueGen
 		permissionChannel: make(chan struct{}, config.poolSize),
 		valueChannel:      make(chan T, config.poolSize),
 	}
-	go valuePool.closeChannelsThread()
+
+	var waitForWorkers sync.WaitGroup                 // closeChannelsThread uses this to wait for N worker to finish, so it is safe to close permissionChannel and valueChannel
+	go valuePool.closeChannelsThread(&waitForWorkers) // close channels when it is safe; after all workers are done
 	for workerNum := uint32(1); workerNum <= valuePool.cfg.numWorkers; workerNum++ {
-		valuePool.waitForWorkers.Add(1)
+		waitForWorkers.Add(1)
 		go func() {
-			defer valuePool.waitForWorkers.Done()
+			defer waitForWorkers.Done()
 			valuePool.generateWorker(workerNum)
 		}()
 	}
@@ -142,7 +142,7 @@ func (pool *ValueGenPool[T]) Cancel() {
 		defer func() {
 			pool.cfg.telemetryService.Slogger.Debug("cancelled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 		}()
-		pool.cancelFunction() // send Done() signal to N generateWorker threads and 1 monitorShutdown thread (if they are still listening to the shared context.WithCancel)
+		pool.cancelFunction() // send Done() signal to N generateWorker threads and 1 closeChannelsThread thread (if they are still listening to the shared context.WithCancel)
 		pool.cancelFunction = nil
 		didCancel = true
 	})
@@ -216,7 +216,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	return nil
 }
 
-func (pool *ValueGenPool[T]) closeChannelsThread() {
+func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup) {
 	// periodically wake up and check pool limits, because all workers might be waiting and all getters might be idle
 	ticker := time.NewTicker(500 * time.Millisecond) // time keeps on ticking ticking ticking... into the future
 	defer ticker.Stop()
@@ -224,7 +224,7 @@ func (pool *ValueGenPool[T]) closeChannelsThread() {
 		select {
 		case <-pool.cancellableCtx.Done(): // someone called Cancel()
 			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName)
-			pool.closeChannels()
+			pool.closeChannels(waitForWorkers)
 			return
 		case <-ticker.C:
 			timeLimitReached := (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration)
@@ -235,16 +235,16 @@ func (pool *ValueGenPool[T]) closeChannelsThread() {
 					pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName)
 				}
 				pool.Cancel() // signal to all workers to stop
-				pool.closeChannels()
+				pool.closeChannels(waitForWorkers)
 				return
 			}
 		}
 	}
 }
 
-func (pool *ValueGenPool[T]) closeChannels() {
+func (pool *ValueGenPool[T]) closeChannels(waitForWorkers *sync.WaitGroup) {
 	pool.cfg.telemetryService.Slogger.Debug("waiting for workers", "pool", pool.cfg.poolName)
-	pool.waitForWorkers.Wait() // wait for all workers to stop before closing their channels
+	waitForWorkers.Wait() // wait for all workers to stop before closing their channels
 	pool.cfg.telemetryService.Slogger.Debug("closing channels", "pool", pool.cfg.poolName)
 	close(pool.valueChannel)
 	close(pool.permissionChannel)
