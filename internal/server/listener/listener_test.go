@@ -1,32 +1,41 @@
 package listener
 
 import (
+	"cryptoutil/internal/client"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	testServerHostname = "localhost"
+	testServerPort     = 8081
+	testServerBaseUrl  = "http://" + testServerHostname + ":" + strconv.Itoa(testServerPort) + "/"
+)
+
 func TestHttpGetHttp200(t *testing.T) {
-	start, stop, err := NewHttpListener("localhost", 8080, true)
+	start, stop, err := NewHttpListener("localhost", testServerPort, true)
 	if err != nil {
 		t.Fatalf("failed to create listener: %v", err)
 	}
 	go start()
 	defer stop()
+	client.WaitUntilReady(testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
 
 	testCases := []struct {
 		name string
 		url  string
 	}{
-		{name: "Swagger UI root", url: "http://localhost:8080/swagger"},
-		{name: "Swagger UI index.html", url: "http://localhost:8080/swagger/index.html"},
-		{name: "OpenAPI Spec", url: "http://localhost:8080/swagger/doc.json"},
-		{name: "GET Key Pools", url: "http://localhost:8080/keypools"},
+		{name: "Swagger UI root", url: testServerBaseUrl + "swagger"},
+		{name: "Swagger UI index.html", url: testServerBaseUrl + "swagger/index.html"},
+		{name: "OpenAPI Spec", url: testServerBaseUrl + "swagger/doc.json"},
+		{name: "GET Key Pools", url: testServerBaseUrl + "keypools"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {

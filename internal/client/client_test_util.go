@@ -3,13 +3,52 @@ package client
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"testing"
+	"time"
 
 	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
 	"github.com/stretchr/testify/require"
 )
+
+func WaitUntilReady(baseURL string, maxTime time.Duration, retryTime time.Duration) {
+	giveUpTime := time.Now().Add(maxTime)
+	for {
+		log.Printf("Checking if server is ready")
+		if err := CheckReadyz(baseURL); err == nil {
+			log.Printf("Server is ready")
+			break
+		}
+		time.Sleep(retryTime)
+		if !time.Now().Before(giveUpTime) {
+			log.Fatalf("server not ready after %v", maxTime)
+		}
+	}
+}
+
+func CheckHealthz(baseURL string) error {
+	return httpGet(baseURL+"healthz", 2*time.Second)
+}
+
+func CheckReadyz(baseURL string) error {
+	return httpGet(baseURL+"readyz", 2*time.Second)
+}
+
+func httpGet(url string, timeout time.Duration) error {
+	client := http.Client{Timeout: timeout}
+	resp, err := client.Get(url)
+	if err != nil {
+		return fmt.Errorf("get %s failed: %w", url, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("%s returned %d", url, resp.StatusCode)
+	}
+	return nil
+}
 
 func RequireClientWithResponses(t *testing.T, baseUrl string) *cryptoutilOpenapiClient.ClientWithResponses {
 	openapiClient, err := cryptoutilOpenapiClient.NewClientWithResponses(baseUrl)

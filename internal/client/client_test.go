@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilServer "cryptoutil/internal/server/listener"
@@ -77,6 +78,7 @@ func TestMain(m *testing.M) {
 	}
 	go start()
 	defer stop()
+	WaitUntilReady(testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
 
 	os.Exit(m.Run())
 }

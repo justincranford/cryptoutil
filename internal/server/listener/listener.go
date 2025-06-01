@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"sync/atomic"
 	"syscall"
 
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -24,6 +25,8 @@ import (
 	"github.com/gofiber/swagger"
 	fibermiddleware "github.com/oapi-codegen/fiber-middleware"
 )
+
+var ready atomic.Bool
 
 func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
 	ctx := context.Background()
@@ -95,6 +98,15 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 		otelfiber.WithServerName(listenHost),
 		otelfiber.WithPort(listenPort),
 	))
+	app.Get("/healthz", func(c *fiber.Ctx) error {
+		return c.SendStatus(fiber.StatusOK)
+	})
+	app.Get("/readyz", func(c *fiber.Ctx) error {
+		if ready.Load() {
+			return c.SendStatus(fiber.StatusOK)
+		}
+		return c.SendStatus(fiber.StatusServiceUnavailable)
+	})
 	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
@@ -119,6 +131,7 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 func startServerFunc(err error, listenAddress string, app *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
 	return func() {
 		telemetryService.Slogger.Debug("starting server")
+		ready.Store(true)
 		err = app.Listen(listenAddress) // blocks until fiber app is stopped (e.g. stopServerFunc called by unit test or stopServerSignalFunc)
 		if err != nil {
 			telemetryService.Slogger.Error("failed to start fiber server", "error", err)
