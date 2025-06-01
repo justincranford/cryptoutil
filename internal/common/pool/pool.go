@@ -10,26 +10,27 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
+// useful constants for indefinite pools; use smaller values for finite pools
 const (
 	MaxLifetimeValues   = ^uint64(0)                            // Max uint64 (= 2^64-1 = 18,446,744,073,709,551,615)
 	MaxLifetimeDuration = time.Duration(int64(^uint64(0) >> 1)) // Max int64  (= 2^63-1 =  9,223,372,036,854,775,807 nanoseconds = 292.47 years)
 )
 
 type ValueGenPool[T any] struct {
-	poolStartTime     time.Time              // needed to enforce maxLifetimeDuration in N generateWorker threads and 1 closeChannelsThread thread
+	poolStartTime     time.Time              // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
+	generateCounter   uint64                 // needed to enforce maxLifetimeValues in N workers amd 1 closeChannelsThread thread
+	getCounter        uint64                 // metrics for how many times Get() was called successfully
 	cfg               *ValueGenPoolConfig[T] // container for all configuration parameters, including telemetryService and poolName
 	cancellableCtx    context.Context        // Exposes Done() signal to N workers, 1 closeChannelsThread, and M getters
 	cancelFunction    context.CancelFunc     // Cancel() invokes this to raise the Done() signal
 	permissionChannel chan struct{}          // N workers use this channel to get and release permissions (up to pool size); generate can be expensive (e.g. RSA-4096)
 	valueChannel      chan T                 // N workers use this channel to publish generated Values
 	cancelOnce        sync.Once              // Cancel() uses this to guard raising the Done() signal, and log if Cancel() was already called
-	generateCounter   uint64                 // needed to enforce maxLifetimeValues in N workers amd 1 closeChannelsThread thread
-	getCounter        uint64                 // metrics for how many times Get() was called successfully
 }
 
 type ValueGenPoolConfig[T any] struct {
 	ctx                 context.Context
-	telemetryService    *cryptoutilTelemetry.TelemetryService
+	telemetryService    *cryptoutilTelemetry.TelemetryService // TODO change generateCounter and getCounter to telemetryService.MetricsProvider.Counter()
 	poolName            string
 	numWorkers          uint32
 	poolSize            uint32
@@ -41,9 +42,9 @@ type ValueGenPoolConfig[T any] struct {
 // NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues
 func NewValueGenPool[T any](config *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
 	poolStartTime := time.Now()
-	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check for error
+	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check the error value
 		return nil, fmt.Errorf("failed to create pool config: %w", err)
-	} else if err := validateConfig(config); err != nil {
+	} else if err := validateConfig(config); err != nil { // check the config value
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
@@ -86,33 +87,6 @@ func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptou
 	return config, nil
 }
 
-func validateConfig[T any](config *ValueGenPoolConfig[T]) error {
-	if config == nil {
-		return fmt.Errorf("config can't be nil")
-	} else if config.ctx == nil {
-		return fmt.Errorf("context can't be nil")
-	} else if config.telemetryService == nil {
-		return fmt.Errorf("telemetry service can't be nil")
-	} else if len(config.poolName) == 0 {
-		return fmt.Errorf("name can't be empty")
-	} else if config.numWorkers == 0 {
-		return fmt.Errorf("number of workers can't be 0")
-	} else if config.poolSize == 0 {
-		return fmt.Errorf("pool size can't be 0")
-	} else if config.maxLifetimeValues == 0 {
-		return fmt.Errorf("max lifetime values can't be 0")
-	} else if config.maxLifetimeDuration <= 0 {
-		return fmt.Errorf("max lifetime duration must be positive and non-zero")
-	} else if config.numWorkers > config.poolSize {
-		return fmt.Errorf("number of workers can't be greater than pool size")
-	} else if uint64(config.poolSize) > config.maxLifetimeValues {
-		return fmt.Errorf("pool size can't be greater than max lifetime values")
-	} else if config.generateFunction == nil {
-		return fmt.Errorf("generate function can't be nil")
-	}
-	return nil
-}
-
 func (pool *ValueGenPool[T]) Name() string {
 	return pool.cfg.poolName
 }
@@ -125,7 +99,7 @@ func (pool *ValueGenPool[T]) Get() T {
 		pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName, "worker", time.Since(startTime).Seconds())
 		var zero T
 		return zero
-	case value := <-pool.valueChannel:
+	case value := <-pool.valueChannel: // block wait for a generated value to be published by a worker
 		pool.cfg.telemetryService.Slogger.Debug("received", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 		getCounter := atomic.AddUint64(&pool.getCounter, 1)
 		defer func() {
@@ -159,15 +133,16 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 		}
 		pool.cfg.telemetryService.Slogger.Debug("worker done", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}()
+
 	pool.cfg.telemetryService.Slogger.Debug("worker started", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	for {
-		pool.cfg.telemetryService.Slogger.Debug("check", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Debug("wait for permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		select {
 		case <-pool.cancellableCtx.Done(): // someone called Cancel()
 			pool.cfg.telemetryService.Slogger.Debug("worker canceled before generate", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
-			err := pool.generatePublishRelease(workerNum, startTime) // Use method with defer to guarantee permission release even if there is an error or panic
+			err := pool.generatePublishRelease(workerNum, startTime) // worker has permission; attempt to generate, but always release permission, even if there is an error or panic
 			if err != nil {
 				pool.cfg.telemetryService.Slogger.Debug("worker stopped", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
 				return
@@ -195,20 +170,20 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 			pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName)
 		}
 		pool.cfg.telemetryService.Slogger.Warn("limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-		// pool.Cancel() // don't call Cancel(), getters need to be able to get generated values before the pool is closed
+		// pool.Cancel() // IMPORTANT: don't call Cancel(), otherwise getters won't finish getting generated values from this finite pool
 		return fmt.Errorf("pool %s reached max lifetime values %d or max lifetime duration %s", pool.cfg.poolName, pool.cfg.maxLifetimeValues, pool.cfg.maxLifetimeDuration)
 	}
 
 	value, err := pool.cfg.generateFunction()
 	if err != nil {
 		pool.cfg.telemetryService.Slogger.Error("generation failed", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
-		pool.Cancel() // signal to all workers to stop
+		pool.Cancel() // signal all workers to stop (e.g. does generateFunction() have a bug?)
 		return fmt.Errorf("pool %s worker %d failed to generate value: %w", pool.cfg.poolName, workerNum, err)
 	}
 	pool.cfg.telemetryService.Slogger.Debug("Generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 
 	select {
-	case <-pool.cancellableCtx.Done(): // someone called Cancel()
+	case <-pool.cancellableCtx.Done(): // someone called Cancel(), skip the blocking wait to publish the generated value, and throw away the generated value
 		pool.cfg.telemetryService.Slogger.Debug("canceled before publish", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	case pool.valueChannel <- value:
 		pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
@@ -217,7 +192,17 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 }
 
 func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup) {
-	// periodically wake up and check pool limits, because all workers might be waiting and all getters might be idle
+	if pool.cfg.maxLifetimeDuration == 0 && pool.cfg.maxLifetimeValues == 0 {
+		// this is an infinite pool; no need to periodically wake up to check limits, because there are no limits
+		select {
+		case <-pool.cancellableCtx.Done(): // block waiting indefinitely until someone calls Cancel()
+			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName)
+			pool.closeChannels(waitForWorkers)
+			return
+		}
+	}
+
+	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
 	ticker := time.NewTicker(500 * time.Millisecond) // time keeps on ticking ticking ticking... into the future
 	defer ticker.Stop()
 	for {
@@ -226,7 +211,7 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName)
 			pool.closeChannels(waitForWorkers)
 			return
-		case <-ticker.C:
+		case <-ticker.C: // wake up and check the limits
 			timeLimitReached := (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration)
 			if timeLimitReached || (pool.cfg.maxLifetimeValues > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.cfg.maxLifetimeValues) {
 				if timeLimitReached {
@@ -244,8 +229,35 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 
 func (pool *ValueGenPool[T]) closeChannels(waitForWorkers *sync.WaitGroup) {
 	pool.cfg.telemetryService.Slogger.Debug("waiting for workers", "pool", pool.cfg.poolName)
-	waitForWorkers.Wait() // wait for all workers to stop before closing their channels
+	waitForWorkers.Wait() // wait for all workers to stop before closing permissionChannel and valueChannel
 	pool.cfg.telemetryService.Slogger.Debug("closing channels", "pool", pool.cfg.poolName)
 	close(pool.valueChannel)
 	close(pool.permissionChannel)
+}
+
+func validateConfig[T any](config *ValueGenPoolConfig[T]) error {
+	if config == nil {
+		return fmt.Errorf("config can't be nil")
+	} else if config.ctx == nil {
+		return fmt.Errorf("context can't be nil")
+	} else if config.telemetryService == nil {
+		return fmt.Errorf("telemetry service can't be nil")
+	} else if len(config.poolName) == 0 {
+		return fmt.Errorf("name can't be empty")
+	} else if config.numWorkers == 0 {
+		return fmt.Errorf("number of workers can't be 0")
+	} else if config.poolSize == 0 {
+		return fmt.Errorf("pool size can't be 0")
+	} else if config.maxLifetimeValues == 0 {
+		return fmt.Errorf("max lifetime values can't be 0")
+	} else if config.maxLifetimeDuration <= 0 {
+		return fmt.Errorf("max lifetime duration must be positive and non-zero")
+	} else if config.numWorkers > config.poolSize {
+		return fmt.Errorf("number of workers can't be greater than pool size")
+	} else if uint64(config.poolSize) > config.maxLifetimeValues {
+		return fmt.Errorf("pool size can't be greater than max lifetime values")
+	} else if config.generateFunction == nil {
+		return fmt.Errorf("generate function can't be nil")
+	}
+	return nil
 }
