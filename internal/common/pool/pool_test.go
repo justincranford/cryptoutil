@@ -60,7 +60,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "pool_test", false, false)
+	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "pool_test", false, true)
 	defer testTelemetryService.Shutdown()
 	os.Exit(m.Run())
 }
