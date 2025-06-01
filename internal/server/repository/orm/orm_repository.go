@@ -55,7 +55,5 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 }
 
 func (s *OrmRepository) Shutdown() {
-	s.telemetryService.Slogger.Debug("stopping ORM repository")
-	s.sqlRepository.Shutdown()
-	s.telemetryService.Slogger.Debug("stopped ORM repository")
+	// no-op
 }
