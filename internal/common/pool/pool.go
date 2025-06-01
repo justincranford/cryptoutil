@@ -140,14 +140,14 @@ func (pool *ValueGenPool[T]) Cancel() {
 	didCancel := false
 	pool.cancelOnce.Do(func() {
 		defer func() {
-			pool.cfg.telemetryService.Slogger.Info("cancelled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+			pool.cfg.telemetryService.Slogger.Debug("cancelled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 		}()
 		pool.cancelFunction() // send Done() signal to N generateWorker threads and 1 monitorShutdown thread (if they are still listening to the shared context.WithCancel)
 		pool.cancelFunction = nil
 		didCancel = true
 	})
 	if !didCancel {
-		pool.cfg.telemetryService.Slogger.Info("already cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+		pool.cfg.telemetryService.Slogger.Warn("already cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	}
 }
 

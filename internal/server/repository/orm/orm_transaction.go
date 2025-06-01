@@ -103,7 +103,7 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
-	tx.ormRepository.telemetryService.Slogger.Info("beginning transaction", "mode", transactionMode)
+	tx.ormRepository.telemetryService.Slogger.Debug("beginning transaction", "mode", transactionMode)
 
 	if tx.state != nil {
 		tx.ormRepository.telemetryService.Slogger.Error("transaction already started", "txID", tx.ID(), "mode", tx.Mode())
@@ -117,7 +117,7 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 	}
 
 	tx.state = &OrmTransactionState{ctx: ctx, txMode: transactionMode, txID: *txID, gormTx: gormTx}
-	tx.ormRepository.telemetryService.Slogger.Info("started transaction", "txID", txID, "mode", transactionMode)
+	tx.ormRepository.telemetryService.Slogger.Debug("started transaction", "txID", txID, "mode", transactionMode)
 	return nil
 }
 
@@ -125,7 +125,7 @@ func (tx *OrmTransaction) commit() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
-	tx.ormRepository.telemetryService.Slogger.Info("committing transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Debug("committing transaction", "txID", tx.ID(), "mode", tx.Mode())
 
 	if tx.state == nil {
 		tx.ormRepository.telemetryService.Slogger.Error("can't commit because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
@@ -140,7 +140,7 @@ func (tx *OrmTransaction) commit() error {
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
-	tx.ormRepository.telemetryService.Slogger.Info("committed transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Debug("committed transaction", "txID", tx.ID(), "mode", tx.Mode())
 	tx.state = nil
 	return nil
 }
@@ -149,7 +149,7 @@ func (tx *OrmTransaction) rollback() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
-	tx.ormRepository.telemetryService.Slogger.Info("rolling back transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Debug("rolling back transaction", "txID", tx.ID(), "mode", tx.Mode())
 
 	if tx.state == nil {
 		tx.ormRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
@@ -164,7 +164,7 @@ func (tx *OrmTransaction) rollback() error {
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 
-	tx.ormRepository.telemetryService.Slogger.Info("rolled back transaction", "txID", tx.ID(), "mode", tx.Mode())
+	tx.ormRepository.telemetryService.Slogger.Debug("rolled back transaction", "txID", tx.ID(), "mode", tx.Mode())
 	tx.state = nil
 	return nil
 }

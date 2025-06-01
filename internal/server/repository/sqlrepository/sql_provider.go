@@ -112,9 +112,9 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 }
 
 func (s *SqlRepository) Shutdown() {
-	s.telemetryService.Slogger.Error("shutting down SQL Provider")
+	s.telemetryService.Slogger.Debug("shutting down SQL Provider")
 	s.shutdownDBContainer() // This call does it's own logging
-	s.telemetryService.Slogger.Error("shutting down SQL connection")
+	s.telemetryService.Slogger.Debug("shutting down SQL Connection")
 	if err := s.sqlDB.Close(); err != nil {
 		s.telemetryService.Slogger.Error("failed to close SQL DB", "error", err)
 	}

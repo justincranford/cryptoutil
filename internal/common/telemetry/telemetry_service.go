@@ -135,11 +135,11 @@ func (s *TelemetryService) Shutdown() {
 		s.MetricsProvider = nil
 	}
 	if s.LogsProvider != nil {
-		s.Slogger.Info("stopped telemetry", "uptime", time.Since(s.StartTime).Seconds())
+		s.Slogger.Debug("stopped telemetry", "uptime", time.Since(s.StartTime).Seconds())
 		if err := s.logsProvider.Shutdown(ctx); err != nil {
 			s.Slogger.Error("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
 		}
-		s.Slogger.Info("stop telemetry duration", "duration", time.Now().UTC().Sub(s.StartTime))
+		s.Slogger.Debug("stop telemetry duration", "duration", time.Now().UTC().Sub(s.StartTime))
 		s.Slogger = nil
 		s.LogsProvider = nil
 	}
