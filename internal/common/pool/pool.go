@@ -95,7 +95,7 @@ func (pool *ValueGenPool[T]) Get() T {
 	startTime := time.Now()
 	pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	select {
-	case <-pool.cancellableCtx.Done(): // someone called pool.Cancel()
+	case <-pool.cancellableCtx.Done(): // someone called Cancel()
 		pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName, "worker", time.Since(startTime).Seconds())
 		var zero T
 		return zero
@@ -116,7 +116,7 @@ func (pool *ValueGenPool[T]) Cancel() {
 		defer func() {
 			pool.cfg.telemetryService.Slogger.Debug("cancelled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 		}()
-		pool.cancelFunction() // send Done() signal to N generateWorker threads and 1 closeChannelsThread thread (if they are still listening to the shared context.WithCancel)
+		pool.cancelFunction() // raise Done() signal to N workers, 1 closeChannelsThread, and M getters
 		pool.cancelFunction = nil
 		didCancel = true
 	})
@@ -183,7 +183,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	pool.cfg.telemetryService.Slogger.Debug("Generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 
 	select {
-	case <-pool.cancellableCtx.Done(): // someone called Cancel(), skip the blocking wait to publish the generated value, and throw away the generated value
+	case <-pool.cancellableCtx.Done(): // someone called Cancel(), skip the blocking wait to publish the generated value (i.e. throw it away)
 		pool.cfg.telemetryService.Slogger.Debug("canceled before publish", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	case pool.valueChannel <- value:
 		pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
