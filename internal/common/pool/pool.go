@@ -15,24 +15,25 @@ import (
 
 // useful constants for indefinite pools; use smaller values for finite pools
 const (
-	MaxLifetimeValues   = uint64(int64(^uint64(0) >> 1))        // Max uint64  (= 2^63-1 =  9,223,372,036,854,775,807)
-	MaxLifetimeDuration = time.Duration(int64(^uint64(0) >> 1)) // Max uint64  (= 2^63-1 =  9,223,372,036,854,775,807 nanoseconds = 292.47 years)
+	maxInt64            = int64(^uint64(0) >> 1)  // Max int64 (= 2^63-1 = 9,223,372,036,854,775,807)
+	MaxLifetimeValues   = uint64(maxInt64)        // Max int64 as uint64
+	MaxLifetimeDuration = time.Duration(maxInt64) // Max int64 as nanoseconds (= 292.47 years)
 )
 
 type ValueGenPool[T any] struct {
-	poolStartTime               time.Time              // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
-	generateCounter             uint64                 // needed to enforce maxLifetimeValues in N workers amd 1 closeChannelsThread thread
-	getCounter                  uint64                 // metrics for how many times Get() was called successfully
-	cfg                         *ValueGenPoolConfig[T] // container for all configuration parameters, including telemetryService and poolName
-	cancellableCtx              context.Context        // Exposes Done() signal to N workers, 1 closeChannelsThread, and M getters
-	cancelFunction              context.CancelFunc     // Cancel() invokes this to raise the Done() signal
-	permissionChannel           chan struct{}          // N workers use this channel to get and release permissions (up to pool size); generate can be expensive (e.g. RSA-4096)
-	valueChannel                chan T                 // N workers use this channel to publish generated Values
-	cancelOnce                  sync.Once              // Cancel() uses this to guard raising the Done() signal, and log if Cancel() was already called
-	meter                       metric.Meter
-	getDurationHistogram        metric.Float64Histogram
-	permissionDurationHistogram metric.Float64Histogram
-	generateDurationHistogram   metric.Float64Histogram
+	poolStartTime               time.Time               // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
+	generateCounter             uint64                  // needed to enforce maxLifetimeValues   in N workers amd 1 closeChannelsThread thread, and log metrics
+	getCounter                  uint64                  // log metrics for how many times Get() was called successfully
+	cfg                         *ValueGenPoolConfig[T]  // container for all configuration parameters, including telemetryService and poolName
+	cancellableCtx              context.Context         // Exposes Done() signal to N workers, 1 closeChannelsThread, and M getters
+	cancelFunction              context.CancelFunc      // Cancel() invokes this to raise the Done() signal
+	permissionChannel           chan struct{}           // N workers use this channel to get and release permissions (up to pool size); generate can be expensive (e.g. RSA-4096)
+	valueChannel                chan T                  // N workers use this channel to publish generated Values
+	cancelOnce                  sync.Once               // Cancel() uses this to guard raising the Done() signal, and log if Cancel() was already called
+	meter                       metric.Meter            // Shared telemetry metric settings for this pool instance
+	getDurationHistogram        metric.Float64Histogram // telemetry histogram metric (i.e. cumulative time & count, average, time buckets & percentiles) of wait for get
+	permissionDurationHistogram metric.Float64Histogram // telemetry histogram metric (i.e. cumulative time & count, average, time buckets & percentiles) of wait for generate permission
+	generateDurationHistogram   metric.Float64Histogram // telemetry histogram metric (i.e. cumulative time & count, average, time buckets & percentiles) of wait for generate completed
 }
 
 type ValueGenPoolConfig[T any] struct {
