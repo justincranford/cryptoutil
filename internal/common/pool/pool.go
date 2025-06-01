@@ -8,6 +8,9 @@ import (
 	"time"
 
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 )
 
 // useful constants for indefinite pools; use smaller values for finite pools
@@ -17,15 +20,19 @@ const (
 )
 
 type ValueGenPool[T any] struct {
-	poolStartTime     time.Time              // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
-	generateCounter   uint64                 // needed to enforce maxLifetimeValues in N workers amd 1 closeChannelsThread thread
-	getCounter        uint64                 // metrics for how many times Get() was called successfully
-	cfg               *ValueGenPoolConfig[T] // container for all configuration parameters, including telemetryService and poolName
-	cancellableCtx    context.Context        // Exposes Done() signal to N workers, 1 closeChannelsThread, and M getters
-	cancelFunction    context.CancelFunc     // Cancel() invokes this to raise the Done() signal
-	permissionChannel chan struct{}          // N workers use this channel to get and release permissions (up to pool size); generate can be expensive (e.g. RSA-4096)
-	valueChannel      chan T                 // N workers use this channel to publish generated Values
-	cancelOnce        sync.Once              // Cancel() uses this to guard raising the Done() signal, and log if Cancel() was already called
+	poolStartTime               time.Time              // needed to enforce maxLifetimeDuration in N workers and 1 closeChannelsThread thread
+	generateCounter             uint64                 // needed to enforce maxLifetimeValues in N workers amd 1 closeChannelsThread thread
+	getCounter                  uint64                 // metrics for how many times Get() was called successfully
+	cfg                         *ValueGenPoolConfig[T] // container for all configuration parameters, including telemetryService and poolName
+	cancellableCtx              context.Context        // Exposes Done() signal to N workers, 1 closeChannelsThread, and M getters
+	cancelFunction              context.CancelFunc     // Cancel() invokes this to raise the Done() signal
+	permissionChannel           chan struct{}          // N workers use this channel to get and release permissions (up to pool size); generate can be expensive (e.g. RSA-4096)
+	valueChannel                chan T                 // N workers use this channel to publish generated Values
+	cancelOnce                  sync.Once              // Cancel() uses this to guard raising the Done() signal, and log if Cancel() was already called
+	meter                       metric.Meter
+	getDurationHistogram        metric.Float64Histogram
+	permissionDurationHistogram metric.Float64Histogram
+	generateDurationHistogram   metric.Float64Histogram
 }
 
 type ValueGenPoolConfig[T any] struct {
@@ -40,22 +47,37 @@ type ValueGenPoolConfig[T any] struct {
 }
 
 // NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues
-func NewValueGenPool[T any](config *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
+func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
 	poolStartTime := time.Now()
 	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check the error value
 		return nil, fmt.Errorf("failed to create pool config: %w", err)
-	} else if err := validateConfig(config); err != nil { // check the config value
+	} else if err := validateConfig(cfg); err != nil { // check the config value
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
-	cancellableCtx, cancelFunction := context.WithCancel(config.ctx)
+	meter := cfg.telemetryService.MetricsProvider.Meter("cryptoutil.pool."+cfg.poolName, []metric.MeterOption{
+		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "workers", Value: attribute.IntValue(int(cfg.numWorkers))}),
+		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "size", Value: attribute.IntValue(int(cfg.poolSize))}),
+		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "values", Value: attribute.Int64Value(int64(cfg.maxLifetimeValues))}),
+		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "duration", Value: attribute.Int64Value(int64(cfg.maxLifetimeDuration))}),
+		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "type", Value: attribute.StringValue(fmt.Sprintf("%T", *new(T)))}), // record the type of T in the metric attributes
+	}...)
+	getDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.get", metric.WithUnit("s"))
+	permissionDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.permission", metric.WithUnit("s"))
+	generateDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.generate", metric.WithUnit("s"))
+
+	cancellableCtx, cancelFunction := context.WithCancel(cfg.ctx)
 	valuePool := &ValueGenPool[T]{
-		poolStartTime:     poolStartTime,
-		cfg:               config,
-		cancellableCtx:    cancellableCtx,
-		cancelFunction:    cancelFunction,
-		permissionChannel: make(chan struct{}, config.poolSize),
-		valueChannel:      make(chan T, config.poolSize),
+		poolStartTime:               poolStartTime,
+		cfg:                         cfg,
+		cancellableCtx:              cancellableCtx,
+		cancelFunction:              cancelFunction,
+		permissionChannel:           make(chan struct{}, cfg.poolSize),
+		valueChannel:                make(chan T, cfg.poolSize),
+		meter:                       meter,
+		getDurationHistogram:        getDurationHistogram,
+		permissionDurationHistogram: permissionDurationHistogram,
+		generateDurationHistogram:   generateDurationHistogram,
 	}
 
 	var waitForWorkers sync.WaitGroup                 // closeChannelsThread uses this to wait for N worker to finish, so it is safe to close permissionChannel and valueChannel
@@ -104,6 +126,7 @@ func (pool *ValueGenPool[T]) Get() T {
 		getCounter := atomic.AddUint64(&pool.getCounter, 1)
 		defer func() {
 			pool.cfg.telemetryService.Slogger.Debug("got", "pool", pool.cfg.poolName, "get", getCounter, "duration", time.Since(startTime).Seconds())
+			pool.getDurationHistogram.Record(pool.cfg.ctx, time.Since(startTime).Seconds())
 		}()
 		return value
 	}
@@ -136,12 +159,14 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 
 	pool.cfg.telemetryService.Slogger.Debug("worker started", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	for {
+		startPermissionTime := time.Now()
 		pool.cfg.telemetryService.Slogger.Debug("wait for permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		select {
 		case <-pool.cancellableCtx.Done(): // someone called Cancel()
 			pool.cfg.telemetryService.Slogger.Debug("worker canceled before generate", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
+			pool.generateDurationHistogram.Record(pool.cfg.ctx, time.Since(startPermissionTime).Seconds())
 			err := pool.generatePublishRelease(workerNum, startTime) // worker has permission; attempt to generate, but always release permission, even if there is an error or panic
 			if err != nil {
 				pool.cfg.telemetryService.Slogger.Debug("worker stopped", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
@@ -162,6 +187,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	pool.cfg.telemetryService.Slogger.Debug("permission granted", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 
 	generateCounter := atomic.AddUint64(&pool.generateCounter, 1)
+
 	timeLimitReached := (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration)
 	if timeLimitReached || (pool.cfg.maxLifetimeValues > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.cfg.maxLifetimeValues) {
 		if timeLimitReached {
@@ -174,7 +200,12 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 		return fmt.Errorf("pool %s reached max lifetime values %d or max lifetime duration %s", pool.cfg.poolName, pool.cfg.maxLifetimeValues, pool.cfg.maxLifetimeDuration)
 	}
 
+	generateStartTime := time.Now() // reset startTime to measure the duration of the generation
 	value, err := pool.cfg.generateFunction()
+	generateDuration := time.Since(generateStartTime).Seconds()
+	defer func() {
+		pool.generateDurationHistogram.Record(pool.cfg.ctx, generateDuration)
+	}()
 	if err != nil {
 		pool.cfg.telemetryService.Slogger.Error("generation failed", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
 		pool.Cancel() // signal all workers to stop (e.g. does generateFunction() have a bug?)
