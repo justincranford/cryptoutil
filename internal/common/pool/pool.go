@@ -15,8 +15,8 @@ import (
 
 // useful constants for indefinite pools; use smaller values for finite pools
 const (
-	MaxLifetimeValues   = ^uint64(0)                            // Max uint64 (= 2^64-1 = 18,446,744,073,709,551,615)
-	MaxLifetimeDuration = time.Duration(int64(^uint64(0) >> 1)) // Max int64  (= 2^63-1 =  9,223,372,036,854,775,807 nanoseconds = 292.47 years)
+	MaxLifetimeValues   = uint64(int64(^uint64(0) >> 1))        // Max uint64  (= 2^63-1 =  9,223,372,036,854,775,807)
+	MaxLifetimeDuration = time.Duration(int64(^uint64(0) >> 1)) // Max uint64  (= 2^63-1 =  9,223,372,036,854,775,807 nanoseconds = 292.47 years)
 )
 
 type ValueGenPool[T any] struct {
