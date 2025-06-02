@@ -47,7 +47,7 @@ func TestHttpGetHttp200(t *testing.T) {
 			if err == nil {
 				t.Logf("PASS: %s, Contents: %s", testCase.url, contentString)
 			} else {
-				t.Errorf("FAILED: %s, Contents: %s", testCase.url, contentString)
+				t.Errorf("FAILED: %s, Contents: %s, Error: %v", testCase.url, contentString, err)
 			}
 		})
 	}
@@ -69,7 +69,7 @@ func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string) ([]b
 	require.NoError(t, err, "failed to make GET request")
 	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")
 	if resp.StatusCode != expectedStatusCode {
-		return nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, body)
+		return nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, string(body))
 	}
 	t.Logf("HTTP Status code: %d, response body: %d bytes", resp.StatusCode, len(body))
 	return body, nil
