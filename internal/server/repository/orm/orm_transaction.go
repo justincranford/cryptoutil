@@ -111,7 +111,7 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 	}
 
 	txID := tx.ormRepository.uuidV7KeyGenPool.Get()
-	gormTx, err := tx.beginImplementation(ctx, transactionMode, *txID)
+	gormTx, err := tx.beginImplementation(ctx, transactionMode)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
@@ -171,7 +171,7 @@ func (tx *OrmTransaction) rollback() error {
 
 // Implementation using Gorm
 
-func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode, txID googleUuid.UUID) (*gorm.DB, error) {
+func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode) (*gorm.DB, error) {
 	gormTx := tx.ormRepository.gormDB.WithContext(ctx)
 	if transactionMode == AutoCommit {
 		return gormTx, nil
