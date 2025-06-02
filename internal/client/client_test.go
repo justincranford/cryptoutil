@@ -92,37 +92,40 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
 
 	for i, testCase := range happyPathTestCases {
-		var keyPool *cryptoutilOpenapiModel.KeyPool
-		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Create Key Pool", func(t *testing.T) {
-			keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
-			keyPool = RequireCreateKeyPoolResponse(t, context, openapiClient, keyPoolCreate)
-			logObjectAsJson(t, keyPool)
-		})
+		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
+		t.Run(testCaseNamePrefix, func(t *testing.T) {
+			var keyPool *cryptoutilOpenapiModel.KeyPool
+			t.Run(testCaseNamePrefix+"  Create Key Pool", func(t *testing.T) {
+				keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
+				keyPool = RequireCreateKeyPoolResponse(t, context, openapiClient, keyPoolCreate)
+				logObjectAsJson(t, keyPool)
+			})
 
-		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Generate Key", func(t *testing.T) {
-			keyGenerate := RequireKeyGenerateRequest(t)
-			key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
-			logObjectAsJson(t, key)
-		})
+			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
+				keyGenerate := RequireKeyGenerateRequest(t)
+				key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
+				logObjectAsJson(t, key)
+			})
 
-		var cleartext *string
-		var ciphertext *string
-		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Encrypt", func(t *testing.T) {
-			str := "Hello World " + strconv.Itoa(i)
-			cleartext = &str
-			encryptRequest := RequireEncryptRequest(t, cleartext)
-			ciphertext = RequireEncryptResponse(t, context, openapiClient, keyPool.Id, nil, encryptRequest)
-			logJwe(t, ciphertext)
-		})
+			var cleartext *string
+			var ciphertext *string
+			t.Run(testCaseNamePrefix+"  Encrypt", func(t *testing.T) {
+				str := "Hello World " + strconv.Itoa(i)
+				cleartext = &str
+				encryptRequest := RequireEncryptRequest(t, cleartext)
+				ciphertext = RequireEncryptResponse(t, context, openapiClient, keyPool.Id, nil, encryptRequest)
+				logJwe(t, ciphertext)
+			})
 
-		var decryptedtext *string
-		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Decrypt", func(t *testing.T) {
-			decryptRequest := RequireDecryptRequest(t, ciphertext)
-			decryptedtext = RequireDecryptResponse(t, context, openapiClient, keyPool.Id, decryptRequest)
-		})
+			var decryptedtext *string
+			t.Run(testCaseNamePrefix+"  Decrypt", func(t *testing.T) {
+				decryptRequest := RequireDecryptRequest(t, ciphertext)
+				decryptedtext = RequireDecryptResponse(t, context, openapiClient, keyPool.Id, decryptRequest)
+			})
 
-		require.NotNil(t, decryptedtext)
-		require.Equal(t, *cleartext, *decryptedtext)
+			require.NotNil(t, decryptedtext)
+			require.Equal(t, *cleartext, *decryptedtext)
+		})
 	}
 }
 
