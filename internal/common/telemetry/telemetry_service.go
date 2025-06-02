@@ -137,7 +137,7 @@ func (s *TelemetryService) Shutdown() {
 		if err := s.metricsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
 			s.Slogger.Error("metrics provider force flush failed", "error", fmt.Errorf("metrics provider force flush error: %w", err))
 		}
-		s.Slogger.Info("metrics provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
+		s.Slogger.Debug("metrics provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
 	}
 	if s.logsProviderSdk != nil {
 		s.Slogger.Debug("logs provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
