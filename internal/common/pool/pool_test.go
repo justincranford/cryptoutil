@@ -60,9 +60,13 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "pool_test", false, true)
-	defer testTelemetryService.Shutdown()
-	os.Exit(m.Run())
+	var rc int
+	func() {
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "pool_test", false, true)
+		defer testTelemetryService.Shutdown() // this needs to run before os.Exit
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func TestHappyPath(t *testing.T) {
