@@ -56,6 +56,7 @@ func TestHttpGetHttp200(t *testing.T) {
 func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	require.NoError(t, err, "failed to create GET request")
+	req.Header.Set("Accept", "*/*")
 	resp, err := http.DefaultClient.Do(req)
 	require.NoError(t, err, "failed to make GET request")
 	defer func(Body io.ReadCloser) {
@@ -66,7 +67,6 @@ func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string) ([]b
 	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err, "failed to make GET request")
 	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")
 	if resp.StatusCode != expectedStatusCode {
 		return nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, string(body))
