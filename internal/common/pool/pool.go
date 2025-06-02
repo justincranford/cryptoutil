@@ -63,9 +63,9 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "duration", Value: attribute.Int64Value(int64(cfg.maxLifetimeDuration))}),
 		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "type", Value: attribute.StringValue(fmt.Sprintf("%T", *new(T)))}), // record the type of T in the metric attributes
 	}...)
-	getDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.get", metric.WithUnit("s"))
-	permissionDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.permission", metric.WithUnit("s"))
-	generateDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.generate", metric.WithUnit("s"))
+	getDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.get", metric.WithUnit("ms"))
+	permissionDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.permission", metric.WithUnit("ms"))
+	generateDurationHistogram, err := meter.Float64Histogram("cryptoutil.pool.generate", metric.WithUnit("ms"))
 
 	cancellableCtx, cancelFunction := context.WithCancel(cfg.ctx)
 	valuePool := &ValueGenPool[T]{
@@ -127,7 +127,7 @@ func (pool *ValueGenPool[T]) Get() T {
 		getCounter := atomic.AddUint64(&pool.getCounter, 1)
 		defer func() {
 			pool.cfg.telemetryService.Slogger.Debug("got", "pool", pool.cfg.poolName, "get", getCounter, "duration", time.Since(startTime).Seconds())
-			pool.getDurationHistogram.Record(pool.cfg.ctx, time.Since(startTime).Seconds())
+			pool.getDurationHistogram.Record(pool.cfg.ctx, float64(time.Since(startTime).Milliseconds()))
 		}()
 		return value
 	}
@@ -167,7 +167,7 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 			pool.cfg.telemetryService.Slogger.Debug("worker canceled before generate", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 			return
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
-			pool.generateDurationHistogram.Record(pool.cfg.ctx, time.Since(startPermissionTime).Seconds())
+			pool.generateDurationHistogram.Record(pool.cfg.ctx, float64(time.Since(startPermissionTime).Milliseconds()))
 			err := pool.generatePublishRelease(workerNum, startTime) // worker has permission; attempt to generate, but always release permission, even if there is an error or panic
 			if err != nil {
 				pool.cfg.telemetryService.Slogger.Debug("worker stopped", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
@@ -203,7 +203,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 
 	generateStartTime := time.Now() // reset startTime to measure the duration of the generation
 	value, err := pool.cfg.generateFunction()
-	generateDuration := time.Since(generateStartTime).Seconds()
+	generateDuration := float64(time.Since(generateStartTime).Milliseconds())
 	defer func() {
 		pool.generateDurationHistogram.Record(pool.cfg.ctx, generateDuration)
 	}()
