@@ -91,50 +91,39 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 	context := context.Background()
 	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
 
-	createdKeyPools := make([]*cryptoutilOpenapiModel.KeyPool, 0)
-	createdKeys := make([]*cryptoutilOpenapiModel.Key, 0)
-	cleartexts := make([]*string, 0)
-	ciphertexts := make([]*string, 0)
-	decryptedtexts := make([]*string, 0)
 	for i, testCase := range happyPathTestCases {
+		var keyPool *cryptoutilOpenapiModel.KeyPool
 		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Create Key Pool", func(t *testing.T) {
 			keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
-			keyPool := RequireCreateKeyPoolResponse(t, context, openapiClient, keyPoolCreate)
-			createdKeyPools = append(createdKeyPools, keyPool)
+			keyPool = RequireCreateKeyPoolResponse(t, context, openapiClient, keyPoolCreate)
 			logObjectAsJson(t, keyPool)
 		})
-		keyPool := createdKeyPools[i]
 
 		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Generate Key", func(t *testing.T) {
 			keyGenerate := RequireKeyGenerateRequest(t)
 			key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
-			createdKeys = append(createdKeys, key)
 			logObjectAsJson(t, key)
 		})
-		// key := createdKeys[i]
 
+		var cleartext *string
+		var ciphertext *string
 		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Encrypt", func(t *testing.T) {
-			cleartext := "Hello World " + strconv.Itoa(i)
-			cleartexts = append(cleartexts, &cleartext)
-			encryptRequest := RequireEncryptRequest(t, &cleartext)
-			ciphertext := RequireEncryptResponse(t, context, openapiClient, keyPool.Id, nil, encryptRequest)
-			ciphertexts = append(ciphertexts, ciphertext)
+			str := "Hello World " + strconv.Itoa(i)
+			cleartext = &str
+			encryptRequest := RequireEncryptRequest(t, cleartext)
+			ciphertext = RequireEncryptResponse(t, context, openapiClient, keyPool.Id, nil, encryptRequest)
 			logJwe(t, ciphertext)
 		})
-		cleartext := cleartexts[i]
-		ciphertext := ciphertexts[i]
 
+		var decryptedtext *string
 		t.Run(strings.ReplaceAll(testCase.algorithm, "/", "_")+"  Decrypt", func(t *testing.T) {
 			decryptRequest := RequireDecryptRequest(t, ciphertext)
-			decryptedtext := RequireDecryptResponse(t, context, openapiClient, keyPool.Id, decryptRequest)
-			decryptedtexts = append(decryptedtexts, decryptedtext)
+			decryptedtext = RequireDecryptResponse(t, context, openapiClient, keyPool.Id, decryptRequest)
 		})
-		decryptedtext := decryptedtexts[i]
 
 		require.NotNil(t, decryptedtext)
-		require.Equal(t, *decryptedtext, *cleartext)
+		require.Equal(t, *cleartext, *decryptedtext)
 	}
-	t.Logf("Created %d key pools, %d keys, %d cleartexts, %d ciphertexts, %d decryptedtexts", len(createdKeyPools), len(createdKeys), len(cleartexts), len(createdKeys), len(decryptedtexts))
 }
 
 func logObjectAsJson(t *testing.T, object any) {
