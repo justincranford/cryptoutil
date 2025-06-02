@@ -2,13 +2,24 @@ package sqlrepository
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
+)
+
+const (
+	gormLoggerSlowThreshold             = 200 * time.Millisecond
+	gormLoggerLogLevel                  = logger.Info
+	gormLoggerIgnoreRecordNotFoundError = false
+	gormLoggerColorful                  = true
 )
 
 func CreateGormDB(sqlRepository *SqlRepository) (*gorm.DB, error) {
@@ -22,7 +33,13 @@ func CreateGormDB(sqlRepository *SqlRepository) (*gorm.DB, error) {
 		return nil, fmt.Errorf("unsupported database type: %s", sqlRepository.dbType)
 	}
 
-	gormDB, err := gorm.Open(gormDialector, &gorm.Config{})
+	gormLogger := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold:             gormLoggerSlowThreshold,
+		LogLevel:                  gormLoggerLogLevel,
+		IgnoreRecordNotFoundError: gormLoggerIgnoreRecordNotFoundError,
+		Colorful:                  gormLoggerColorful,
+	})
+	gormDB, err := gorm.Open(gormDialector, &gorm.Config{Logger: gormLogger})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gormDB: %w", err)
 	}
