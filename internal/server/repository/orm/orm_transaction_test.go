@@ -26,19 +26,23 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "gorm_transaction_test", false, false)
-	defer testTelemetryService.Shutdown()
+	var rc int
+	func() {
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "gorm_transaction_test", false, false)
+		defer testTelemetryService.Shutdown()
 
-	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
-	defer testSqlRepository.Shutdown()
+		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+		defer testSqlRepository.Shutdown()
 
-	testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
-	defer testOrmRepository.Shutdown()
+		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+		defer testOrmRepository.Shutdown()
 
-	testGivens = RequireNewGivensForTest(testCtx, testTelemetryService)
-	defer testGivens.Shutdown()
+		testGivens = RequireNewGivensForTest(testCtx, testTelemetryService)
+		defer testGivens.Shutdown()
 
-	os.Exit(m.Run())
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func TestSqlTransaction_PanicRecovery(t *testing.T) {

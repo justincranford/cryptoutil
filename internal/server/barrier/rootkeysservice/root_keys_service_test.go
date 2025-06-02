@@ -30,16 +30,20 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "root_keys_service_test", false, false)
-	defer testTelemetryService.Shutdown()
+	var rc int
+	func() {
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "root_keys_service_test", false, false)
+		defer testTelemetryService.Shutdown()
 
-	testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
-	defer testUuidV7KeyGenPool.Cancel()
+		testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
+		defer testUuidV7KeyGenPool.Cancel()
 
-	testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
-	defer testAes256KeyGenPool.Cancel()
+		testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
+		defer testAes256KeyGenPool.Cancel()
 
-	os.Exit(m.Run())
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {

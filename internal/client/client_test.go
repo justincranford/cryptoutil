@@ -72,15 +72,19 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	start, stop, err := cryptoutilServer.NewHttpListener(testServerHostname, testServerPort, true)
-	if err != nil {
-		log.Fatalf("failed to create listener: %v", err)
-	}
-	go start()
-	defer stop()
-	WaitUntilReady(testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
+	var rc int
+	func() {
+		start, stop, err := cryptoutilServer.NewHttpListener(testServerHostname, testServerPort, true)
+		if err != nil {
+			log.Fatalf("failed to create listener: %v", err)
+		}
+		go start()
+		defer stop()
+		WaitUntilReady(testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
 
-	os.Exit(m.Run())
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func TestAllKeyPoolAlgorithms(t *testing.T) {

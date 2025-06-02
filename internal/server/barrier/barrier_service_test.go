@@ -25,9 +25,14 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "barrier_service_test", false, false)
-	defer testTelemetryService.Shutdown()
-	os.Exit(m.Run())
+	var rc int
+	func() {
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "barrier_service_test", false, false)
+		defer testTelemetryService.Shutdown()
+
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func Test_HappyPath_SameUnsealJwks(t *testing.T) {

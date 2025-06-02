@@ -32,28 +32,32 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "intermediate_keys_service_test", false, false)
-	defer testTelemetryService.Shutdown()
+	var rc int
+	func() {
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "intermediate_keys_service_test", false, false)
+		defer testTelemetryService.Shutdown()
 
-	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
-	defer testSqlRepository.Shutdown()
+		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+		defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
-	defer testOrmRepository.Shutdown()
+		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+		defer testOrmRepository.Shutdown()
 
-	unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
-	defer unsealKeysService.Shutdown()
+		unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
+		defer unsealKeysService.Shutdown()
 
-	testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
-	defer testUuidV7KeyGenPool.Cancel()
+		testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
+		defer testUuidV7KeyGenPool.Cancel()
 
-	testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
-	defer testAes256KeyGenPool.Cancel()
+		testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
+		defer testAes256KeyGenPool.Cancel()
 
-	testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
-	defer testRootKeysService.Shutdown()
+		testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
+		defer testRootKeysService.Shutdown()
 
-	os.Exit(m.Run())
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func TestIntermediateKeysService_HappyPath(t *testing.T) {

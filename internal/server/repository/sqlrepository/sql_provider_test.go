@@ -20,14 +20,18 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "sql_provider_test", false, false)
-	defer testTelemetryService.Shutdown()
+	var rc int
+	func() {
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "sql_provider_test", false, false)
+		defer testTelemetryService.Shutdown()
 
-	testSqlRepository = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)
-	defer testSqlRepository.Shutdown()
-	testSqlRepository.logConnectionPoolSettings()
+		testSqlRepository = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)
+		defer testSqlRepository.Shutdown()
+		testSqlRepository.logConnectionPoolSettings()
 
-	os.Exit(m.Run())
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func TestSqlRepository_UnsupportedDatabaseType(t *testing.T) {

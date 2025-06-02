@@ -15,9 +15,14 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = RequireNewForTest(testCtx, "telemetry_test", false, false)
-	defer testTelemetryService.Shutdown()
-	os.Exit(m.Run())
+	var rc int
+	func() {
+		testTelemetryService = RequireNewForTest(testCtx, "telemetry_test", false, false)
+		defer testTelemetryService.Shutdown()
+
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func TestLogger(t *testing.T) {

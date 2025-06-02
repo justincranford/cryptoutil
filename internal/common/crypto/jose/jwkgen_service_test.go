@@ -23,15 +23,19 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "asn1_test", false, false)
-	defer testTelemetryService.Shutdown()
+	var rc int
+	func() {
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "asn1_test", false, false)
+		defer testTelemetryService.Shutdown()
 
-	var err error
-	testJwkGenService, err = NewJwkGenService(testCtx, testTelemetryService)
-	cryptoutilAppErr.RequireNoError(err, "failed to initialize NewJwkGenService")
-	defer testJwkGenService.Shutdown()
+		var err error
+		testJwkGenService, err = NewJwkGenService(testCtx, testTelemetryService)
+		cryptoutilAppErr.RequireNoError(err, "failed to initialize NewJwkGenService")
+		defer testJwkGenService.Shutdown()
 
-	os.Exit(m.Run())
+		rc = m.Run()
+	}()
+	os.Exit(rc)
 }
 
 func Test_HappyPath_JwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
