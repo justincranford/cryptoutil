@@ -6,7 +6,7 @@ info:
   description: >
     Crypto REST API
 servers:
-  - url: http://localhost:8080/
+  - url: /
 
 paths:
   /keypool:
