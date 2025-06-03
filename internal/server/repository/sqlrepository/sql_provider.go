@@ -33,8 +33,9 @@ const (
 	ContainerModePreferred ContainerMode = "preferred"
 	ContainerModeRequired  ContainerMode = "required"
 
-	maxDbPingAttempts     = 3
-	nextDbPingAttemptWait = 1 * time.Second
+	firstDbPingAttemptWait = 750 * time.Millisecond
+	maxDbPingAttempts      = 3
+	nextDbPingAttemptWait  = 1 * time.Second
 )
 
 var (
@@ -74,7 +75,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		} else if containerMode == ContainerModeRequired { // container is required, so this error is fatal; give up and return the errors
 			telemetryService.Slogger.Warn("failed to start database container", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrContainerModeRequiredButContainerNotStarted, err))
 			return nil, errors.Join(ErrContainerModeRequiredButContainerNotStarted, fmt.Errorf("dbType: %s", string(dbType)))
-		} else { // container was required, so this error not is fatal; fall through and try to connect with the provided databaseUrl parameter
+		} else { // container was preferred, so this error not is fatal; fall through and try to connect with the provided databaseUrl parameter
 			telemetryService.Slogger.Warn("failed to start database container", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrContainerModePreferredButContainerNotStarted, err))
 		}
 	}
@@ -89,6 +90,9 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	sqlRepository := &SqlRepository{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer}
 	sqlRepository.logConnectionPoolSettings()
 
+	if dbType != DBTypeSQLite && firstDbPingAttemptWait > 0 {
+		time.Sleep(firstDbPingAttemptWait)
+	}
 	for attempt, attemptsRemaining := 1, maxDbPingAttempts; attemptsRemaining > 0; attemptsRemaining-- {
 		err = sqlDB.Ping()
 		if err == nil {
