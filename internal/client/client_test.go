@@ -94,6 +94,7 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 	for i, testCase := range happyPathTestCases {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
 		t.Run(testCaseNamePrefix, func(t *testing.T) {
+			//t.Parallel() // DB concurrency is only supported by PostgreSQL, not SQLite
 			var keyPool *cryptoutilOpenapiModel.KeyPool
 			t.Run(testCaseNamePrefix+"  Create Key Pool", func(t *testing.T) {
 				keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
