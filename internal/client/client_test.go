@@ -118,6 +118,12 @@ func TestAllKeyPoolAlgorithms(t *testing.T) {
 				logJwe(t, ciphertext)
 			})
 
+			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
+				keyGenerate := RequireKeyGenerateRequest(t)
+				key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
+				logObjectAsJson(t, key)
+			})
+
 			var decryptedtext *string
 			t.Run(testCaseNamePrefix+"  Decrypt", func(t *testing.T) {
 				decryptRequest := RequireDecryptRequest(t, ciphertext)
