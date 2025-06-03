@@ -36,9 +36,10 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 		return nil, nil, fmt.Errorf("failed to initailize telemetry: %w", err)
 	}
 
-	const dbType = cryptoutilSqlRepository.DBTypeSQLite // DBTypeSQLite or DBTypePostgres
-	const dbUrl = ":memory:"                            // ":memory:" for SQLite, full URL for Postgres
-	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, dbType, dbUrl, cryptoutilSqlRepository.ContainerModeDisabled)
+	const dbType = cryptoutilSqlRepository.DBTypePostgres // DBTypeSQLite or DBTypePostgres
+	const dbUrl = ":memory:"                              // ":memory:" for SQLite, full URL for Postgres
+	const containerMode = cryptoutilSqlRepository.ContainerModeRequired
+	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, dbType, dbUrl, containerMode)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
 		stopServerFunc(telemetryService, nil, nil, nil, nil, nil)()
