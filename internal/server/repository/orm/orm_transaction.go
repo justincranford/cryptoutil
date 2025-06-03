@@ -176,9 +176,9 @@ func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMo
 	if transactionMode == AutoCommit {
 		return gormTx, nil
 	} else if transactionMode == ReadWrite {
-		gormTx = gormTx.Begin()
+		gormTx = gormTx.Begin(&sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	} else {
-		gormTx = gormTx.Begin(&sql.TxOptions{ReadOnly: true})
+		gormTx = gormTx.Begin(&sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true})
 	}
 	if gormTx.Error != nil {
 		return nil, fmt.Errorf("failed to begin gorm transaction: %w", gormTx.Error)
