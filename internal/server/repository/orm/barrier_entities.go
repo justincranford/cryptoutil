@@ -10,14 +10,14 @@ import (
 // Root Keys are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is posible but infrequent.
 type BarrierRootKey struct {
 	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Encrypted string          `gorm:"type:json;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
+	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null"`
 }
 
 // Intermediate Keys are wrapped by root Keys. Rotation is encouraged and can be frequent.
 type BarrierIntermediateKey struct {
 	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	Encrypted string          `gorm:"type:json;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
+	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
 }
 
@@ -25,7 +25,7 @@ type BarrierIntermediateKey struct {
 type BarrierContentKey struct {
 	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`
-	Encrypted string          `gorm:"type:json;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
+	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:IntermediateKEKUUID;references:UUID"`
 }
 
