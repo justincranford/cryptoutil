@@ -84,15 +84,26 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	if err != nil {
 		telemetryService.Slogger.Error("failed to open database", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 		shutdownDBContainer()
-		return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s", string(dbType)))
+		return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
 	}
 
 	sqlRepository := &SqlRepository{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer}
-	sqlRepository.logConnectionPoolSettings()
 
-	if dbType != DBTypeSQLite && firstDbPingAttemptWait > 0 {
+	if dbType == DBTypeSQLite {
+		sqlDB.SetMaxOpenConns(1) // SQLite doesn't support concurrent writers; workaround is to limit the pool connections size to 1, but not good for read concurrency
+		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+			telemetryService.Slogger.Error("failed to enable WAL mode", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
+			return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
+		}
+		if _, err := sqlDB.Exec("PRAGMA busy_timeout = 5000;"); err != nil {
+			telemetryService.Slogger.Error("failed to set busy timeout", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
+			return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
+		}
+	} else if firstDbPingAttemptWait > 0 {
 		time.Sleep(firstDbPingAttemptWait)
 	}
+	sqlRepository.logConnectionPoolSettings()
+
 	for attempt, attemptsRemaining := 1, maxDbPingAttempts; attemptsRemaining > 0; attemptsRemaining-- {
 		err = sqlDB.Ping()
 		if err == nil {

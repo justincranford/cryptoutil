@@ -19,67 +19,98 @@ func LogSchema(sqlRepository *SqlRepository) error {
 }
 
 func logSqliteSchema(sqlRepository *SqlRepository) error {
-	rows, err := sqlRepository.sqlDB.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`)
+	tableNames, err := func() ([]string, error) {
+		queryResults, err := sqlRepository.sqlDB.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`)
+		if err != nil {
+			return nil, fmt.Errorf("failed to query SQLite table names: %w", err)
+		}
+		defer queryResults.Close() // Ensure query results are closed before for first loop body
+
+		var tableNames []string
+		for queryResults.Next() {
+			var tableName string
+			if err := queryResults.Scan(&tableName); err != nil {
+				return nil, fmt.Errorf("failed to scan table name: %w", err)
+			}
+			tableNames = append(tableNames, tableName)
+		}
+		return tableNames, nil
+	}()
 	if err != nil {
-		return fmt.Errorf("failed to query SQLite schema: %w", err)
+		return fmt.Errorf("failed to query table names: %w", err)
 	}
-	defer rows.Close()
 
 	fmt.Println("SQLite Schema:")
-	for rows.Next() {
-		var tableName string
-		if err := rows.Scan(&tableName); err != nil {
-			return fmt.Errorf("failed to scan table name: %w", err)
-		}
+	for _, tableName := range tableNames {
 		fmt.Printf("Table: %s\n", tableName)
-
-		columns, err := sqlRepository.sqlDB.Query(fmt.Sprintf("PRAGMA table_info(%s);", tableName))
-		if err != nil {
-			return fmt.Errorf("failed to query table info for %s: %w", tableName, err)
-		}
-		defer columns.Close()
-
-		for columns.Next() {
-			var cid int
-			var name, ctype string
-			var notnull, pk int
-			var dfltValue interface{}
-			if err := columns.Scan(&cid, &name, &ctype, &notnull, &dfltValue, &pk); err != nil {
-				return fmt.Errorf("failed to scan column info: %w", err)
+		err = func() error {
+			queryResults, err := sqlRepository.sqlDB.Query(fmt.Sprintf("PRAGMA table_info(%s);", tableName))
+			if err != nil {
+				return fmt.Errorf("failed to query table info for %s: %w", tableName, err)
 			}
-			fmt.Printf("  Column: %s, Type: %s, NotNull: %d, PrimaryKey: %d\n", name, ctype, notnull, pk)
+			defer queryResults.Close() // Ensure query results are closed before next loop body
+
+			for queryResults.Next() {
+				var cid int
+				var name, ctype string
+				var notnull, pk int
+				var dfltValue any
+				if err := queryResults.Scan(&cid, &name, &ctype, &notnull, &dfltValue, &pk); err != nil {
+					return fmt.Errorf("failed to scan column info: %w", err)
+				}
+				fmt.Printf("  Column: %s, Type: %s, NotNull: %d, PrimaryKey: %d\n", name, ctype, notnull, pk)
+			}
+			return nil
+		}()
+		if err != nil {
+			return fmt.Errorf("failed to log columns for table %s: %w", tableName, err)
 		}
 	}
 	return nil
 }
 
 func logPostgresSchema(sqlRepository *SqlRepository) error {
-	rows, err := sqlRepository.sqlDB.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';`)
-	if err != nil {
-		return fmt.Errorf("failed to query PostgreSQL schema: %w", err)
-	}
-	defer rows.Close()
-
-	fmt.Println("PostgreSQL Schema:")
-	for rows.Next() {
-		var tableName string
-		if err := rows.Scan(&tableName); err != nil {
-			return fmt.Errorf("failed to scan table name: %w", err)
-		}
-		fmt.Printf("Table: %s\n", tableName)
-
-		columns, err := sqlRepository.sqlDB.Query(fmt.Sprintf(`SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = '%s';`, tableName))
+	tableNames, err := func() ([]string, error) {
+		queryResults, err := sqlRepository.sqlDB.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';`)
 		if err != nil {
-			return fmt.Errorf("failed to query column info for %s: %w", tableName, err)
+			return nil, fmt.Errorf("failed to query PostgreSQL table names: %w", err)
 		}
-		defer columns.Close()
+		defer queryResults.Close() // Ensure query results are closed before for first loop body
 
-		for columns.Next() {
-			var columnName, dataType, isNullable string
-			if err := columns.Scan(&columnName, &dataType, &isNullable); err != nil {
-				return fmt.Errorf("failed to scan column info: %w", err)
+		var tableNames []string
+		for queryResults.Next() {
+			var tableName string
+			if err := queryResults.Scan(&tableName); err != nil {
+				return nil, fmt.Errorf("failed to scan table name: %w", err)
 			}
-			fmt.Printf("  Column: %s, Type: %s, Nullable: %s\n", columnName, dataType, isNullable)
+			tableNames = append(tableNames, tableName)
+		}
+		return tableNames, nil
+	}()
+	if err != nil {
+		return fmt.Errorf("failed to query table names: %w", err)
+	}
+
+	for _, tableName := range tableNames {
+		fmt.Printf("Table: %s\n", tableName)
+		err = func() error {
+			queryResults, err := sqlRepository.sqlDB.Query(fmt.Sprintf(`SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = '%s';`, tableName))
+			if err != nil {
+				return fmt.Errorf("failed to query column info for %s: %w", tableName, err)
+			}
+			defer queryResults.Close() // Ensure query results are closed before next loop body
+
+			for queryResults.Next() {
+				var columnName, dataType, isNullable string
+				if err := queryResults.Scan(&columnName, &dataType, &isNullable); err != nil {
+					return fmt.Errorf("failed to scan column info: %w", err)
+				}
+				fmt.Printf("  Column: %s, Type: %s, Nullable: %s\n", columnName, dataType, isNullable)
+			}
+			return nil
+		}()
+		if err != nil {
+			return fmt.Errorf("failed to log columns for table %s: %w", tableName, err)
 		}
 	}
 	return nil
