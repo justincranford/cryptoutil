@@ -52,7 +52,7 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
 
-	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, sqlRepository, applyMigrations)
+	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, jwkGenService, sqlRepository, applyMigrations)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create ORM repository", "error", err)
 		stopServerFunc(telemetryService, jwkGenService, sqlRepository, nil, nil, nil, nil)()
@@ -66,14 +66,14 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 		return nil, nil, fmt.Errorf("failed to create unseal repository: %w", err)
 	}
 
-	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, ormRepository, unsealKeysService)
+	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, jwkGenService, ormRepository, unsealKeysService)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
 		stopServerFunc(telemetryService, jwkGenService, sqlRepository, ormRepository, unsealKeysService, nil, nil)()
 		return nil, nil, fmt.Errorf("failed to create barrier service: %w", err)
 	}
 
-	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, telemetryService, ormRepository, barrierService)
+	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, telemetryService, jwkGenService, ormRepository, barrierService)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
 		stopServerFunc(telemetryService, jwkGenService, sqlRepository, ormRepository, unsealKeysService, barrierService, nil)()

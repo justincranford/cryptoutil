@@ -24,6 +24,8 @@ import (
 
 // BusinessLogicService implements methods in StrictServerInterface
 type BusinessLogicService struct {
+	telemetryService      *cryptoutilTelemetry.TelemetryService
+	jwkGenService         *cryptoutilJose.JwkGenService
 	ormRepository         *cryptoutilOrmRepository.OrmRepository
 	serviceOrmMapper      *serviceOrmMapper
 	barrierService        *cryptoutilBarrierService.BarrierService
@@ -46,7 +48,9 @@ type BusinessLogicService struct {
 	uuidV7KeyGenPool      *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
-func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
+func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
+	// TODO add nil checks
+
 	rsa4096KeyGenPool, err1 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service RSA-4096", 1, 1, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(4096)))
 	rsa3072KeyGenPool, err2 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service RSA-3072", 1, 1, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(3072)))
 	rsa2048KeyGenPool, err3 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service RSA-2048", 1, 1, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(2048)))
@@ -69,6 +73,8 @@ func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTe
 	}
 
 	return &BusinessLogicService{
+		telemetryService:      telemetryService,
+		jwkGenService:         jwkGenService,
 		ormRepository:         ormRepository,
 		serviceOrmMapper:      NewMapper(),
 		barrierService:        barrierService,

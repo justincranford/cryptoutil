@@ -22,6 +22,7 @@ import (
 var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testJwkGenService    *cryptoutilJose.JwkGenService
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
@@ -34,6 +35,9 @@ func TestMain(m *testing.M) {
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "root_keys_service_test", false, false)
 		defer testTelemetryService.Shutdown()
+
+		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		defer testJwkGenService.Shutdown()
 
 		testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
 		defer testUuidV7KeyGenPool.Cancel()
@@ -59,7 +63,7 @@ func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
 	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testUuidV7KeyGenPool, testAes256KeyGenPool)
@@ -76,7 +80,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testUuidV7KeyGenPool, testAes256KeyGenPool)
@@ -93,7 +97,7 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testOrmRepository, unsealKeysServiceSimple, testUuidV7KeyGenPool, testAes256KeyGenPool)

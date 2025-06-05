@@ -21,6 +21,7 @@ import (
 var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testJwkGenService    *cryptoutilJose.JwkGenService
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 )
 
@@ -29,6 +30,9 @@ func TestMain(m *testing.M) {
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "barrier_service_test", false, false)
 		defer testTelemetryService.Shutdown()
+
+		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		defer testJwkGenService.Shutdown()
 
 		rc = m.Run()
 	}()
@@ -39,7 +43,7 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
 	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
@@ -53,7 +57,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 	defer testOrmRepository.Shutdown()
 
 	unsealJwks, err := cryptoutilJose.GenerateJweJwksForTest(t, 2, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
@@ -99,7 +103,7 @@ func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository 
 	plaintext := []byte("hello, world!")
 
 	// start service
-	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testOrmRepository, originalUnsealKeysService)
+	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testJwkGenService, testOrmRepository, originalUnsealKeysService)
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 
@@ -146,7 +150,7 @@ func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository 
 	require.Error(t, err)
 
 	// restart new service with same unseal key repository
-	barrierService, err = NewBarrierService(testCtx, testTelemetryService, testOrmRepository, restartedUnsealKeysService)
+	barrierService, err = NewBarrierService(testCtx, testTelemetryService, testJwkGenService, testOrmRepository, restartedUnsealKeysService)
 	require.NoError(t, err)
 	defer barrierService.Shutdown()
 

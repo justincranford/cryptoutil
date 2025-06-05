@@ -23,6 +23,7 @@ import (
 var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testJwkGenService    *cryptoutilJose.JwkGenService
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
@@ -37,10 +38,13 @@ func TestMain(m *testing.M) {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "intermediate_keys_service_test", false, false)
 		defer testTelemetryService.Shutdown()
 
+		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		defer testJwkGenService.Shutdown()
+
 		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 		defer testSqlRepository.Shutdown()
 
-		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 		defer testOrmRepository.Shutdown()
 
 		unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()

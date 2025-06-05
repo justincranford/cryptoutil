@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
@@ -20,13 +21,16 @@ var ormEntities = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierCo
 
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
+	jwkGenService    *cryptoutilJose.JwkGenService
 	sqlRepository    *cryptoutilSqlRepository.SqlRepository
 	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
+	// TODO add nil checks
+
 	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UUID V7 pool: %w", err)
@@ -51,7 +55,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to log schemas: %w", err)
 	}
 
-	return &OrmRepository{telemetryService: telemetryService, sqlRepository: sqlRepository, uuidV7KeyGenPool: uuidV7KeyGenPool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
+	return &OrmRepository{telemetryService: telemetryService, jwkGenService: jwkGenService, sqlRepository: sqlRepository, uuidV7KeyGenPool: uuidV7KeyGenPool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
 func (s *OrmRepository) Shutdown() {

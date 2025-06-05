@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
@@ -18,6 +19,7 @@ import (
 var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
+	testJwkGenService    *cryptoutilJose.JwkGenService
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *OrmRepository
 	testGivens           *Givens
@@ -31,10 +33,13 @@ func TestMain(m *testing.M) {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "gorm_transaction_test", false, false)
 		defer testTelemetryService.Shutdown()
 
+		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		defer testJwkGenService.Shutdown()
+
 		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
 		defer testSqlRepository.Shutdown()
 
-		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, true)
+		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 		defer testOrmRepository.Shutdown()
 
 		testGivens = RequireNewGivensForTest(testCtx, testTelemetryService)

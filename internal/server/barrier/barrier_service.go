@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -20,6 +21,7 @@ import (
 
 type BarrierService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
+	jwkGenService           *cryptoutilJose.JwkGenService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
@@ -31,11 +33,13 @@ type BarrierService struct {
 	shutdownOnce            sync.Once
 }
 
-func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
+func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if jwkGenService == nil {
+		return nil, fmt.Errorf("jwkGenService must be non-nil")
 	} else if ormRepository == nil {
 		return nil, fmt.Errorf("ormRepository must be non-nil")
 	} else if unsealKeysService == nil {
@@ -75,6 +79,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 
 	return &BarrierService{
 		telemetryService:        telemetryService,
+		jwkGenService:           jwkGenService,
 		ormRepository:           ormRepository,
 		unsealKeysService:       unsealKeysService,
 		uuidV7KeyGenPool:        uuidV7KeyGenPool,
