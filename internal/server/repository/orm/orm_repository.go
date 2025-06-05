@@ -5,14 +5,11 @@ import (
 	"fmt"
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
-	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	"gorm.io/gorm"
 
-	googleUuid "github.com/google/uuid"
 	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
 )
@@ -23,18 +20,12 @@ type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JwkGenService
 	sqlRepository    *cryptoutilSqlRepository.SqlRepository
-	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
 func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
 	// TODO add nil checks
-
-	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Orm UUIDv7", 2, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create UUID V7 pool: %w", err)
-	}
 
 	gormDB, err := cryptoutilSqlRepository.CreateGormDB(sqlRepository)
 	if err != nil {
@@ -55,7 +46,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to log schemas: %w", err)
 	}
 
-	return &OrmRepository{telemetryService: telemetryService, jwkGenService: jwkGenService, sqlRepository: sqlRepository, uuidV7KeyGenPool: uuidV7KeyGenPool, gormDB: gormDB, applyMigrations: applyMigrations}, nil
+	return &OrmRepository{telemetryService: telemetryService, jwkGenService: jwkGenService, sqlRepository: sqlRepository, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
 func (s *OrmRepository) Shutdown() {

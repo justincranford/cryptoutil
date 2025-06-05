@@ -110,7 +110,7 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 		return fmt.Errorf("transaction already started")
 	}
 
-	txID := tx.ormRepository.uuidV7KeyGenPool.Get()
+	txID := tx.ormRepository.jwkGenService.GenerateUUIDv7()
 	gormTx, err := tx.beginImplementation(ctx, transactionMode)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)

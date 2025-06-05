@@ -232,3 +232,7 @@ func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*google
 		return nil, nil, nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}
 }
+
+func (s *JwkGenService) GenerateUUIDv7() *googleUuid.UUID {
+	return s.uuidV7KeyGenPool.Get()
+}
