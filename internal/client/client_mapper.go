@@ -164,6 +164,7 @@ func MapKeyPoolAlgorithm(algorithm string) (*cryptoutilOpenapiModel.KeyPoolAlgor
 	if err := ValidateString(algorithm); err != nil {
 		return nil, fmt.Errorf("invalid key pool algorithm: %w", err)
 	}
+	// TODO Add asymmetric algorithms
 	var keyPoolAlgorithm cryptoutilOpenapiModel.KeyPoolAlgorithm
 	switch algorithm {
 	case string(cryptoutilOpenapiModel.A128CBCHS256A128GCMKW):
@@ -226,6 +227,32 @@ func MapKeyPoolAlgorithm(algorithm string) (*cryptoutilOpenapiModel.KeyPoolAlgor
 		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMA256KW
 	case string(cryptoutilOpenapiModel.A256GCMdir):
 		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMdir
+	case string(cryptoutilOpenapiModel.RS256):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.RS256
+	case string(cryptoutilOpenapiModel.RS384):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.RS384
+	case string(cryptoutilOpenapiModel.RS512):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.RS512
+	case string(cryptoutilOpenapiModel.PS256):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.PS256
+	case string(cryptoutilOpenapiModel.PS384):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.PS384
+	case string(cryptoutilOpenapiModel.PS512):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.PS512
+	case string(cryptoutilOpenapiModel.ES256):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.ES256
+	case string(cryptoutilOpenapiModel.ES384):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.ES384
+	case string(cryptoutilOpenapiModel.ES512):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.ES512
+	case string(cryptoutilOpenapiModel.HS256):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.HS256
+	case string(cryptoutilOpenapiModel.HS384):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.HS384
+	case string(cryptoutilOpenapiModel.HS512):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.HS512
+	case string(cryptoutilOpenapiModel.EdDSA):
+		keyPoolAlgorithm = cryptoutilOpenapiModel.EdDSA
 	default:
 		return nil, fmt.Errorf("invalid key pool algorithm: %s", algorithm)
 	}

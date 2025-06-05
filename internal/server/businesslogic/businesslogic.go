@@ -380,6 +380,29 @@ func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOr
 		return s.aes192HS384KeyGenPool.Get(), nil
 	case cryptoutilOrmRepository.A128CBCHS256_dir:
 		return s.aes128HS256KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.RS512, cryptoutilOrmRepository.PS512:
+	// 	return s.rsa4096KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.RS384, cryptoutilOrmRepository.PS384:
+	// 	return s.rsa3072KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.RS256, cryptoutilOrmRepository.PS256:
+	// 	return s.rsa2048KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.ES512:
+	// 	return s.ecdsaP521KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.ES384:
+	// 	return s.ecdsaP384KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.ES256:
+	// 	return s.ecdsaP256KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.HS512:
+	// 	return nil, fmt.Errorf("not suppported yet: %s", keyPoolAlgorithm)
+	// 	// return s.ecdsaP521KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.HS384:
+	// 	return nil, fmt.Errorf("not suppported yet: %s", keyPoolAlgorithm)
+	// 	// return s.ecdsaP384KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.HS256:
+	// 	return nil, fmt.Errorf("not suppported yet: %s", keyPoolAlgorithm)
+	// 	// return s.ecdsaP256KeyGenPool.Get(), nil
+	// case cryptoutilOrmRepository.EdDSA:
+	// 	return s.ed25519KeyGenPool.Get(), nil
 	default:
 		return nil, fmt.Errorf("unsuppported keyPoolAlgorithm: %s", keyPoolAlgorithm)
 	}

@@ -6,12 +6,13 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+// TODO Add asymmetric key support
 type KeyPool struct {
 	KeyPoolID                googleUuid.UUID  `gorm:"type:uuid;primaryKey"`
 	KeyPoolName              string           `gorm:"size:63;not null;check:length(key_pool_name) >= 1;unique"`
 	KeyPoolDescription       string           `gorm:"size:255;not null;check:length(key_pool_description) >= 1"`
 	KeyPoolProvider          KeyPoolProvider  `gorm:"size:8;not null;check:key_pool_provider IN ('Internal')"`
-	KeyPoolAlgorithm         KeyPoolAlgorithm `gorm:"size:23;not null;check:key_pool_algorithm IN ('A256GCM/A256KW', 'A192GCM/A256KW', 'A128GCM/A256KW', 'A192GCM/A192KW', 'A128GCM/A192KW', 'A128GCM/A128KW', 'A256GCM/A256GCMKW', 'A192GCM/A256GCMKW', 'A128GCM/A256GCMKW', 'A192GCM/A192GCMKW', 'A128GCM/A192GCMKW', 'A128GCM/A128GCMKW', 'A256GCM/dir', 'A192GCM/dir', 'A128GCM/dir', 'A256CBC-HS512/A256KW', 'A192CBC-HS384/A256KW', 'A128CBC-HS256/A256KW', 'A192CBC-HS384/A192KW', 'A128CBC-HS256/A192KW', 'A128CBC-HS256/A128KW', 'A256CBC-HS512/A256GCMKW', 'A192CBC-HS384/A256GCMKW', 'A128CBC-HS256/A256GCMKW', 'A192CBC-HS384/A192GCMKW', 'A128CBC-HS256/A192GCMKW', 'A128CBC-HS256/A128GCMKW', 'A256CBC-HS512/dir', 'A192CBC-HS384/dir', 'A128CBC-HS256/dir')"`
+	KeyPoolAlgorithm         KeyPoolAlgorithm `gorm:"size:23;not null;check:key_pool_algorithm IN ('A256GCM/A256KW', 'A192GCM/A256KW', 'A128GCM/A256KW', 'A192GCM/A192KW', 'A128GCM/A192KW', 'A128GCM/A128KW', 'A256GCM/A256GCMKW', 'A192GCM/A256GCMKW', 'A128GCM/A256GCMKW', 'A192GCM/A192GCMKW', 'A128GCM/A192GCMKW', 'A128GCM/A128GCMKW', 'A256GCM/dir', 'A192GCM/dir', 'A128GCM/dir', 'A256CBC-HS512/A256KW', 'A192CBC-HS384/A256KW', 'A128CBC-HS256/A256KW', 'A192CBC-HS384/A192KW', 'A128CBC-HS256/A192KW', 'A128CBC-HS256/A128KW', 'A256CBC-HS512/A256GCMKW', 'A192CBC-HS384/A256GCMKW', 'A128CBC-HS256/A256GCMKW', 'A192CBC-HS384/A192GCMKW', 'A128CBC-HS256/A192GCMKW', 'A128CBC-HS256/A128GCMKW', 'A256CBC-HS512/dir', 'A192CBC-HS384/dir', 'A128CBC-HS256/dir', 'RS256', 'RS384', 'RS512', 'PS256', 'PS384', 'PS512', 'ES256', 'ES384', 'ES512', 'HS256', 'HS384', 'HS512', 'EdDSA')"`
 	KeyPoolVersioningAllowed bool             `gorm:"not null;check:key_pool_versioning_allowed IN (TRUE, FALSE)"`
 	KeyPoolImportAllowed     bool             `gorm:"not null;check:key_pool_import_allowed IN (TRUE, FALSE)"`
 	KeyPoolExportAllowed     bool             `gorm:"not null;check:key_pool_export_allowed IN (TRUE, FALSE)"`
