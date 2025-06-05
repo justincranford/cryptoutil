@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"github.com/cloudflare/circl/sign/ed448"
@@ -28,14 +27,6 @@ func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, jo
 		return nil, nil, nil, fmt.Errorf("invalid JWS JWK headers: %w", err)
 	}
 	return CreateJwsJwkFromKey(&kid, alg, key)
-}
-
-func GenerateJwsJwkFromSecretKeyPool(alg *joseJwa.SignatureAlgorithm, kidGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], keyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	return CreateJwsJwkFromKey(kidGenPool.Get(), alg, keyGenPool.Get())
-}
-
-func GenerateJwsJwkFromKeyPairPool(alg *joseJwa.SignatureAlgorithm, kidGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], keyGenPool *cryptoutilPool.ValueGenPool[*cryptoutilKeygen.KeyPair]) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	return CreateJwsJwkFromKey(kidGenPool.Get(), alg, keyGenPool.Get())
 }
 
 func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {

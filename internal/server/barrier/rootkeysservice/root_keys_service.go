@@ -51,7 +51,7 @@ func initializeFirstRootJwk(jwkGenService *cryptoutilJose.JwkGenService, ormRepo
 		return fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
 	}
 	if encryptedRootKeyLatest == nil {
-		rootKeyKidUuid, clearRootKey, _, err := cryptoutilJose.GenerateJweJwkFromSecretKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, jwkGenService.GetUUIDv7KeyGenPool(), jwkGenService.GetAes256KeyGenPool())
+		rootKeyKidUuid, clearRootKey, _, err := cryptoutilJose.GenerateJweJwkForEncAndAlg(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
 			return fmt.Errorf("failed to generate first root JWK latest: %w", err)
 		}
