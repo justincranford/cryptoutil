@@ -2,17 +2,14 @@ package rootkeysservice
 
 import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilPool "cryptoutil/internal/common/pool"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-
-	googleUuid "github.com/google/uuid"
 )
 
-func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]) *RootKeysService {
-	rootKeysService, err := NewRootKeysService(telemetryService, ormRepository, unsealKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
+func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) *RootKeysService {
+	rootKeysService, err := NewRootKeysService(telemetryService, jwkGenService, ormRepository, unsealKeysService)
 	cryptoutilAppErr.RequireNoError(err, "failed to create rootKeysService")
 	return rootKeysService
 }

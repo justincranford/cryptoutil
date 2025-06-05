@@ -6,9 +6,6 @@ import (
 	"testing"
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilKeyGenPoolTest "cryptoutil/internal/common/crypto/keygenpooltest"
-	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
@@ -27,8 +24,6 @@ var (
 	testSqlRepository           *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
 	testDbType                  = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
-	testUuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	testAes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
 	testIntermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 )
@@ -51,16 +46,10 @@ func TestMain(m *testing.M) {
 		unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()
 		defer unsealKeysService.Shutdown()
 
-		testUuidV7KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewUuidV7GenKeyPoolForTest(testTelemetryService)
-		defer testUuidV7KeyGenPool.Cancel()
-
-		testAes256KeyGenPool = cryptoutilKeyGenPoolTest.RequireNewAes256GcmGenKeyPoolForTest(testTelemetryService)
-		defer testAes256KeyGenPool.Cancel()
-
-		testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, unsealKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
+		testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testJwkGenService, testOrmRepository, unsealKeysService)
 		defer testRootKeysService.Shutdown()
 
-		testIntermediateKeysService = cryptoutilIntermediateKeysService.RequireNewForTest(testTelemetryService, testOrmRepository, testRootKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
+		testIntermediateKeysService = cryptoutilIntermediateKeysService.RequireNewForTest(testTelemetryService, testJwkGenService, testOrmRepository, testRootKeysService)
 		defer testIntermediateKeysService.Shutdown()
 
 		rc = m.Run()
@@ -69,7 +58,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestContentKeysService_HappyPath(t *testing.T) {
-	contentKeysService, err := NewContentKeysService(testTelemetryService, testOrmRepository, testIntermediateKeysService, testUuidV7KeyGenPool, testAes256KeyGenPool)
+	contentKeysService, err := NewContentKeysService(testTelemetryService, testJwkGenService, testOrmRepository, testIntermediateKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, contentKeysService)
 	defer contentKeysService.Shutdown()

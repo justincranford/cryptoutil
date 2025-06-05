@@ -2,17 +2,14 @@ package intermediatekeysservice
 
 import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilPool "cryptoutil/internal/common/pool"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-
-	googleUuid "github.com/google/uuid"
 )
 
-func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]) *IntermediateKeysService {
-	intermediateKeysService, err := NewIntermediateKeysService(telemetryService, ormRepository, rootKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
+func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) *IntermediateKeysService {
+	intermediateKeysService, err := NewIntermediateKeysService(telemetryService, jwkGenService, ormRepository, rootKeysService)
 	cryptoutilAppErr.RequireNoError(err, "failed to create intermediateKeysService")
 	return intermediateKeysService
 }

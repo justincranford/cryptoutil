@@ -6,25 +6,18 @@ import (
 	"sync"
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilContentKeysService "cryptoutil/internal/server/barrier/contentkeysservice"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-
-	googleUuid "github.com/google/uuid"
 )
 
 type BarrierService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
 	jwkGenService           *cryptoutilJose.JwkGenService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
-	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *cryptoutilRootKeysService.RootKeysService
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
@@ -46,32 +39,19 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
 
-	uuidV7KeyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service UUIDv7", 2, 2, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function()))
+	rootKeysService, err := cryptoutilRootKeysService.NewRootKeysService(telemetryService, jwkGenService, ormRepository, unsealKeysService)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create UUID pool: %w", err)
-	}
-
-	aes256KeyGenPool, err := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Barrier Service Keys AES-256-GCM", 3, 6, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateAESKeyFunction(256)))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create AES-256 pool: %w", err)
-	}
-
-	rootKeysService, err := cryptoutilRootKeysService.NewRootKeysService(telemetryService, ormRepository, unsealKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
-	if err != nil {
-		aes256KeyGenPool.Cancel()
 		return nil, fmt.Errorf("failed to create root keys service: %w", err)
 	}
 
-	intermediateKeysService, err := cryptoutilIntermediateKeysService.NewIntermediateKeysService(telemetryService, ormRepository, rootKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
+	intermediateKeysService, err := cryptoutilIntermediateKeysService.NewIntermediateKeysService(telemetryService, jwkGenService, ormRepository, rootKeysService)
 	if err != nil {
-		aes256KeyGenPool.Cancel()
 		rootKeysService.Shutdown()
 		return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
 	}
 
-	contentKeysService, err := cryptoutilContentKeysService.NewContentKeysService(telemetryService, ormRepository, intermediateKeysService, uuidV7KeyGenPool, aes256KeyGenPool)
+	contentKeysService, err := cryptoutilContentKeysService.NewContentKeysService(telemetryService, jwkGenService, ormRepository, intermediateKeysService)
 	if err != nil {
-		aes256KeyGenPool.Cancel()
 		rootKeysService.Shutdown()
 		intermediateKeysService.Shutdown()
 		return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
@@ -82,8 +62,6 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 		jwkGenService:           jwkGenService,
 		ormRepository:           ormRepository,
 		unsealKeysService:       unsealKeysService,
-		uuidV7KeyGenPool:        uuidV7KeyGenPool,
-		aes256KeyGenPool:        aes256KeyGenPool,
 		rootKeysService:         rootKeysService,
 		intermediateKeysService: intermediateKeysService,
 		contentKeysService:      contentKeysService,
@@ -116,14 +94,6 @@ func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.
 func (d *BarrierService) Shutdown() {
 	d.shutdownOnce.Do(func() {
 		d.closed = true
-		if d.aes256KeyGenPool != nil {
-			d.aes256KeyGenPool.Cancel()
-			d.aes256KeyGenPool = nil
-		}
-		if d.uuidV7KeyGenPool != nil {
-			d.uuidV7KeyGenPool.Cancel()
-			d.uuidV7KeyGenPool = nil
-		}
 		if d.contentKeysService != nil {
 			d.contentKeysService.Shutdown()
 			d.contentKeysService = nil

@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
-	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
@@ -18,29 +16,26 @@ import (
 
 type ContentKeysService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
+	jwkGenService           *cryptoutilJose.JwkGenService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
-	uuidV7KeyGenPool        *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
-	aes256KeyGenPool        *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
 }
 
-func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService, uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID], aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]) (*ContentKeysService, error) {
+func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if jwkGenService == nil {
+		return nil, fmt.Errorf("jwkGenService must be non-nil")
 	} else if ormRepository == nil {
 		return nil, fmt.Errorf("ormRepository must be non-nil")
 	} else if intermediateKeysService == nil {
 		return nil, fmt.Errorf("intermediateKeysService must be non-nil")
-	} else if uuidV7KeyGenPool == nil {
-		return nil, fmt.Errorf("uuidV7KeyGenPool must be non-nil")
-	} else if aes256KeyGenPool == nil {
-		return nil, fmt.Errorf("aes256KeyGenPool must be non-nil")
 	}
-	return &ContentKeysService{telemetryService: telemetryService, ormRepository: ormRepository, intermediateKeysService: intermediateKeysService, uuidV7KeyGenPool: uuidV7KeyGenPool, aes256KeyGenPool: aes256KeyGenPool}, nil
+	return &ContentKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, ormRepository: ormRepository, intermediateKeysService: intermediateKeysService}, nil
 }
 
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	contentKeyKidUuid, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromSecretKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, s.uuidV7KeyGenPool, s.aes256KeyGenPool)
+	contentKeyKidUuid, clearContentKey, _, err := cryptoutilJose.GenerateJweJwkFromSecretKeyPool(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, s.jwkGenService.GetUUIDv7KeyGenPool(), s.jwkGenService.GetAes256KeyGenPool())
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
@@ -89,8 +84,6 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmReposit
 }
 
 func (s *ContentKeysService) Shutdown() {
-	s.aes256KeyGenPool = nil
-	s.uuidV7KeyGenPool = nil
 	s.telemetryService = nil
 	s.ormRepository = nil
 	s.intermediateKeysService = nil
