@@ -54,6 +54,12 @@ var (
 )
 
 func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbType SupportedDBType, databaseUrl string, containerMode ContainerMode) (*SqlRepository, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("ctx must be non-nil")
+	} else if telemetryService == nil {
+		return nil, fmt.Errorf("telemetryService must be non-nil")
+	}
+
 	var shutdownDBContainer func() = func() {} // no-op by default
 
 	if containerMode != ContainerModeDisabled { // containerMode is required or preferred

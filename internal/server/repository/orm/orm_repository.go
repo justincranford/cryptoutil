@@ -25,7 +25,15 @@ type OrmRepository struct {
 }
 
 func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
-	// TODO add nil checks
+	if ctx == nil {
+		return nil, fmt.Errorf("ctx must be non-nil")
+	} else if telemetryService == nil {
+		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if jwkGenService == nil {
+		return nil, fmt.Errorf("jwkGenService must be non-nil")
+	} else if sqlRepository == nil {
+		return nil, fmt.Errorf("sqlRepository must be non-nil")
+	}
 
 	gormDB, err := cryptoutilSqlRepository.CreateGormDB(sqlRepository)
 	if err != nil {

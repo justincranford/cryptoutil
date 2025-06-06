@@ -82,6 +82,10 @@ var slogStdoutAttributes = func() []stdoutLogExporter.Attr {
 }()
 
 func NewTelemetryService(ctx context.Context, scope string, enableOtel, enableStdout bool) (*TelemetryService, error) {
+	if ctx == nil {
+		return nil, fmt.Errorf("ctx must be non-nil")
+	}
+
 	startTime := time.Now().UTC()
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")

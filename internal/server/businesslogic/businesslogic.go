@@ -49,7 +49,17 @@ type BusinessLogicService struct {
 }
 
 func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
-	// TODO add nil checks
+	if ctx == nil {
+		return nil, fmt.Errorf("ctx must be non-nil")
+	} else if telemetryService == nil {
+		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if jwkGenService == nil {
+		return nil, fmt.Errorf("jwkGenService must be non-nil")
+	} else if ormRepository == nil {
+		return nil, fmt.Errorf("ormRepository must be non-nil")
+	} else if barrierService == nil {
+		return nil, fmt.Errorf("ubarrierService must be non-nil")
+	}
 
 	rsa4096KeyGenPool, err1 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service RSA-4096", 1, 1, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(4096)))
 	rsa3072KeyGenPool, err2 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Service RSA-3072", 1, 1, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeygen.GenerateRSAKeyPairFunction(3072)))
