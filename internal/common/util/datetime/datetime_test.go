@@ -7,7 +7,7 @@ import (
 
 func TestISO8601Time2String(t *testing.T) {
 	// Happy path
-	now := time.Now()
+	now := time.Now().UTC()
 	expected := now.Format(utcFormat)
 	result := ISO8601Time2String(&now)
 	if result == nil || *result != expected {
@@ -24,7 +24,7 @@ func TestISO8601Time2String(t *testing.T) {
 
 func TestISO8601String2Time(t *testing.T) {
 	// Happy path
-	now := time.Now().Format(utcFormat)
+	now := time.Now().UTC().Format(utcFormat)
 	expected, err := time.Parse(utcFormat, now)
 	if err != nil {
 		t.Fatalf("failed to parse date: %v", err)

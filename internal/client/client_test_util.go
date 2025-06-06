@@ -15,7 +15,7 @@ import (
 )
 
 func WaitUntilReady(baseURL string, maxTime time.Duration, retryTime time.Duration) {
-	giveUpTime := time.Now().Add(maxTime)
+	giveUpTime := time.Now().UTC().Add(maxTime)
 	for {
 		log.Printf("Checking if server is ready")
 		if err := CheckReadyz(baseURL); err == nil {
@@ -23,7 +23,7 @@ func WaitUntilReady(baseURL string, maxTime time.Duration, retryTime time.Durati
 			break
 		}
 		time.Sleep(retryTime)
-		if !time.Now().Before(giveUpTime) {
+		if !time.Now().UTC().Before(giveUpTime) {
 			log.Fatalf("server not ready after %v", maxTime)
 		}
 	}

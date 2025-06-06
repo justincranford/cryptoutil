@@ -12,7 +12,7 @@ var testSysInfoProviders = []SysInfoProvider{mockSysInfoProvider, defaultSysInfo
 
 func TestRuntimeGoArch(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		arch := testSysInfoProvider.RuntimeGoArch()
 		fmt.Printf("Time: %.3f msec >>> RuntimeGoArch: %s\n", float32(time.Since(start).Microseconds())/1000, arch)
 		require.NotEmpty(t, arch)
@@ -21,7 +21,7 @@ func TestRuntimeGoArch(t *testing.T) {
 
 func TestRuntimeGoOS(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		os := testSysInfoProvider.RuntimeGoOS()
 		fmt.Printf("Time: %.3f msec >>> RuntimeGoOS: %s\n", float32(time.Since(start).Microseconds())/1000, os)
 		require.NotEmpty(t, os)
@@ -30,7 +30,7 @@ func TestRuntimeGoOS(t *testing.T) {
 
 func TestRuntimeNumCPU(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		numCPU := testSysInfoProvider.RuntimeNumCPU()
 		fmt.Printf("Time: %.3f msec >>> RuntimeNumCPU: %d\n", float32(time.Since(start).Microseconds())/1000, numCPU)
 		require.NotZero(t, numCPU)
@@ -39,7 +39,7 @@ func TestRuntimeNumCPU(t *testing.T) {
 
 func TestCPUInfo(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		vendorID, family, physicalID, modelName, err := testSysInfoProvider.CPUInfo()
 		fmt.Printf("Time: %.3f msec >>> CPUInfo: VendorID=%s, Family=%s, PhysicalID=%s, ModelName=%s\n", float32(time.Since(start).Microseconds())/1000, vendorID, family, physicalID, modelName)
 		require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestCPUInfo(t *testing.T) {
 
 func TestRAMSize(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		ramSize, err := testSysInfoProvider.RAMSize()
 		fmt.Printf("Time: %.3f msec >>> RAMSize: %d\n", float32(time.Since(start).Microseconds())/1000, ramSize)
 		require.NoError(t, err)
@@ -62,7 +62,7 @@ func TestRAMSize(t *testing.T) {
 
 func TestOSHostname(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		hostname, err := testSysInfoProvider.OSHostname()
 		fmt.Printf("Time: %.3f msec >>> OSHostname: %s\n", float32(time.Since(start).Microseconds())/1000, hostname)
 		require.NoError(t, err)
@@ -72,7 +72,7 @@ func TestOSHostname(t *testing.T) {
 
 func TestHostID(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		hostID, err := testSysInfoProvider.HostID()
 		fmt.Printf("Time: %.3f msec >>> HostID: %s\n", float32(time.Since(start).Microseconds())/1000, hostID)
 		require.NoError(t, err)
@@ -82,7 +82,7 @@ func TestHostID(t *testing.T) {
 
 func TestUserInfo(t *testing.T) {
 	for _, testSysInfoProvider := range testSysInfoProviders {
-		start := time.Now()
+		start := time.Now().UTC()
 		userID, groupID, username, err := testSysInfoProvider.UserInfo()
 		fmt.Printf("Time: %.3f msec >>> UserInfo: UserID=%s, GroupID=%s, Username=%s\n", float32(time.Since(start).Microseconds())/1000, userID, groupID, username)
 		require.NoError(t, err)

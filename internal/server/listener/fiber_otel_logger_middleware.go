@@ -10,7 +10,7 @@ import (
 
 func fiberOtelLoggerMiddleware(logger *slog.Logger) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		start := time.Now()
+		start := time.Now().UTC()
 		err := c.Next()
 
 		// Extract tracing information

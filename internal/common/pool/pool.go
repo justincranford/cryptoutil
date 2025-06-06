@@ -49,7 +49,7 @@ type ValueGenPoolConfig[T any] struct {
 
 // NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues
 func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
-	poolStartTime := time.Now()
+	poolStartTime := time.Now().UTC()
 	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check the error value
 		return nil, fmt.Errorf("failed to create pool config: %w", err)
 	} else if err := validateConfig(cfg); err != nil { // check the config value
@@ -115,7 +115,7 @@ func (pool *ValueGenPool[T]) Name() string {
 }
 
 func (pool *ValueGenPool[T]) Get() T {
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 	pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	select {
 	case <-pool.cancellableCtx.Done(): // someone called Cancel()
@@ -134,7 +134,7 @@ func (pool *ValueGenPool[T]) Get() T {
 }
 
 func (pool *ValueGenPool[T]) Cancel() {
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 	didCancel := false
 	pool.cancelOnce.Do(func() {
 		defer func() {
@@ -150,7 +150,7 @@ func (pool *ValueGenPool[T]) Cancel() {
 }
 
 func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 	defer func() {
 		if r := recover(); r != nil {
 			pool.cfg.telemetryService.Slogger.Error("worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", r)
@@ -160,7 +160,7 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 
 	pool.cfg.telemetryService.Slogger.Debug("worker started", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	for {
-		startPermissionTime := time.Now()
+		startPermissionTime := time.Now().UTC()
 		pool.cfg.telemetryService.Slogger.Debug("wait for permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		select {
 		case <-pool.cancellableCtx.Done(): // someone called Cancel()
@@ -201,7 +201,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 		return fmt.Errorf("pool %s reached max lifetime values %d or max lifetime duration %s", pool.cfg.poolName, pool.cfg.maxLifetimeValues, pool.cfg.maxLifetimeDuration)
 	}
 
-	generateStartTime := time.Now() // reset startTime to measure the duration of the generation
+	generateStartTime := time.Now().UTC() // reset startTime to measure the duration of the generation
 	value, err := pool.cfg.generateFunction()
 	generateDuration := float64(time.Since(generateStartTime).Milliseconds())
 	defer func() {
