@@ -27,59 +27,104 @@ type TestCase struct {
 	versioningAllowed bool
 }
 
-// TODO Add asymmetric key pool tests
+var i = 0
+
+func nextKeyPoolName() string {
+	i++
+	return "Client Test Key Pool " + strconv.Itoa(i)
+}
+func nextKeyPoolDesc() string {
+	return "Client Test Key Pool Description" + strconv.Itoa(i)
+}
+
 var happyPathTestCasesEncrypt = []TestCase{
-	{name: "Key Pool E01", description: "Description 01", algorithm: "A256GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E02", description: "Description 02", algorithm: "A192GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E03", description: "Description 03", algorithm: "A128GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E04", description: "Description 04", algorithm: "A192GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E05", description: "Description 05", algorithm: "A128GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E06", description: "Description 06", algorithm: "A128GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: "Key Pool E07", description: "Description 07", algorithm: "A256GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E08", description: "Description 08", algorithm: "A192GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E09", description: "Description 09", algorithm: "A128GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E10", description: "Description 10", algorithm: "A192GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E11", description: "Description 11", algorithm: "A128GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E12", description: "Description 12", algorithm: "A128GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: "Key Pool E13", description: "Description 13", algorithm: "A256GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E14", description: "Description 14", algorithm: "A192GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E15", description: "Description 15", algorithm: "A128GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: "Key Pool E16", description: "Description 16", algorithm: "A256CBC-HS512/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E17", description: "Description 17", algorithm: "A192CBC-HS384/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E18", description: "Description 18", algorithm: "A128CBC-HS256/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E19", description: "Description 19", algorithm: "A192CBC-HS384/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E20", description: "Description 20", algorithm: "A128CBC-HS256/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E21", description: "Description 21", algorithm: "A128CBC-HS256/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: "Key Pool E22", description: "Description 22", algorithm: "A256CBC-HS512/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E23", description: "Description 23", algorithm: "A192CBC-HS384/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E24", description: "Description 24", algorithm: "A128CBC-HS256/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E25", description: "Description 25", algorithm: "A192CBC-HS384/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E26", description: "Description 26", algorithm: "A128CBC-HS256/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E27", description: "Description 27", algorithm: "A128CBC-HS256/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: "Key Pool E28", description: "Description 28", algorithm: "A256CBC-HS512/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E29", description: "Description 29", algorithm: "A192CBC-HS384/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: "Key Pool E30", description: "Description 30", algorithm: "A128CBC-HS256/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+
+	// Fix businesslogic.go GenerateKeyMaterial before uncomment these tests
+
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/RSA_OAEP_512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/RSA_OAEP_512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/RSA_OAEP_512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/RSA_OAEP_384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/RSA_OAEP_384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/RSA_OAEP_384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/RSA_OAEP_256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/RSA_OAEP_256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/RSA_OAEP_256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/RSA_OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/RSA_OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/RSA_OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/RSA_OAEP_512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/RSA_OAEP_512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/RSA_OAEP_512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/RSA_OAEP_384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/RSA_OAEP_384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/RSA_OAEP_384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/RSA_OAEP_256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/RSA_OAEP_256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/RSA_OAEP_256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/RSA_OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/RSA_OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/RSA_OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A256CBC-HS512/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A192CBC-HS384/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: nextKeyPoolName(), description: nextKeyPoolDesc(), algorithm: "A128CBC-HS256/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+
+	// TODO Add asymmetric ES encryption tests
 }
 
 var happyPathTestCasesSign = []TestCase{
-	{name: "Key Pool S01", description: "Description 01", algorithm: "RS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S02", description: "Description 02", algorithm: "RS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S03", description: "Description 03", algorithm: "RS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S04", description: "Description 04", algorithm: "PS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S05", description: "Description 05", algorithm: "PS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S06", description: "Description 06", algorithm: "PS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S07", description: "Description 07", algorithm: "ES256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S08", description: "Description 08", algorithm: "ES384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S09", description: "Description 09", algorithm: "ES512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S10", description: "Description 10", algorithm: "HS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S11", description: "Description 11", algorithm: "HS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S12", description: "Description 12", algorithm: "HS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S13", description: "Description 13", algorithm: "EdDSA", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S01", description: nextKeyPoolDesc(), algorithm: "RS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S02", description: nextKeyPoolDesc(), algorithm: "RS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S03", description: nextKeyPoolDesc(), algorithm: "RS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S04", description: nextKeyPoolDesc(), algorithm: "PS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S05", description: nextKeyPoolDesc(), algorithm: "PS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S06", description: nextKeyPoolDesc(), algorithm: "PS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S07", description: nextKeyPoolDesc(), algorithm: "ES256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S08", description: nextKeyPoolDesc(), algorithm: "ES384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S09", description: nextKeyPoolDesc(), algorithm: "ES512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S10", description: nextKeyPoolDesc(), algorithm: "HS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S11", description: nextKeyPoolDesc(), algorithm: "HS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S12", description: nextKeyPoolDesc(), algorithm: "HS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	// {name: "Key Pool S13", description: nextKeyPoolDesc(), algorithm: "EdDSA", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 }
 
 var (
