@@ -371,6 +371,7 @@ func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *crypt
 }
 
 func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) ([]byte, error) {
+	// TODO Add asymmetric algorithms to unblock client tests
 	switch keyPoolAlgorithm {
 	case cryptoutilOrmRepository.A256GCM_A256KW, cryptoutilOrmRepository.A192GCM_A256KW, cryptoutilOrmRepository.A128GCM_A256KW,
 		cryptoutilOrmRepository.A256GCM_A256GCMKW, cryptoutilOrmRepository.A192GCM_A256GCMKW, cryptoutilOrmRepository.A128GCM_A256GCMKW,
