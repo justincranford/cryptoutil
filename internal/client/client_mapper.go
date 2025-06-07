@@ -9,6 +9,84 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 )
 
+var (
+	validAlgorithms = map[string]cryptoutilOpenapiModel.KeyPoolAlgorithm{
+		string(cryptoutilOpenapiModel.A256GCMA256KW):          cryptoutilOpenapiModel.A256GCMA256KW,
+		string(cryptoutilOpenapiModel.A192GCMA256KW):          cryptoutilOpenapiModel.A192GCMA256KW,
+		string(cryptoutilOpenapiModel.A128GCMA256KW):          cryptoutilOpenapiModel.A128GCMA256KW,
+		string(cryptoutilOpenapiModel.A192GCMA192KW):          cryptoutilOpenapiModel.A192GCMA192KW,
+		string(cryptoutilOpenapiModel.A128GCMA192KW):          cryptoutilOpenapiModel.A128GCMA192KW,
+		string(cryptoutilOpenapiModel.A128GCMA128KW):          cryptoutilOpenapiModel.A128GCMA128KW,
+		string(cryptoutilOpenapiModel.A256GCMA256GCMKW):       cryptoutilOpenapiModel.A256GCMA256GCMKW,
+		string(cryptoutilOpenapiModel.A192GCMA256GCMKW):       cryptoutilOpenapiModel.A192GCMA256GCMKW,
+		string(cryptoutilOpenapiModel.A128GCMA256GCMKW):       cryptoutilOpenapiModel.A128GCMA256GCMKW,
+		string(cryptoutilOpenapiModel.A192GCMA192GCMKW):       cryptoutilOpenapiModel.A192GCMA192GCMKW,
+		string(cryptoutilOpenapiModel.A128GCMA192GCMKW):       cryptoutilOpenapiModel.A128GCMA192GCMKW,
+		string(cryptoutilOpenapiModel.A128GCMA128GCMKW):       cryptoutilOpenapiModel.A128GCMA128GCMKW,
+		string(cryptoutilOpenapiModel.A256GCMdir):             cryptoutilOpenapiModel.A256GCMdir,
+		string(cryptoutilOpenapiModel.A192GCMdir):             cryptoutilOpenapiModel.A192GCMdir,
+		string(cryptoutilOpenapiModel.A128GCMdir):             cryptoutilOpenapiModel.A128GCMdir,
+		string(cryptoutilOpenapiModel.A256CBCHS512A256KW):     cryptoutilOpenapiModel.A256CBCHS512A256KW,
+		string(cryptoutilOpenapiModel.A192CBCHS384A256KW):     cryptoutilOpenapiModel.A192CBCHS384A256KW,
+		string(cryptoutilOpenapiModel.A128CBCHS256A256KW):     cryptoutilOpenapiModel.A128CBCHS256A256KW,
+		string(cryptoutilOpenapiModel.A192CBCHS384A192KW):     cryptoutilOpenapiModel.A192CBCHS384A192KW,
+		string(cryptoutilOpenapiModel.A128CBCHS256A192KW):     cryptoutilOpenapiModel.A128CBCHS256A192KW,
+		string(cryptoutilOpenapiModel.A128CBCHS256A128KW):     cryptoutilOpenapiModel.A128CBCHS256A128KW,
+		string(cryptoutilOpenapiModel.A256CBCHS512A256GCMKW):  cryptoutilOpenapiModel.A256CBCHS512A256GCMKW,
+		string(cryptoutilOpenapiModel.A192CBCHS384A256GCMKW):  cryptoutilOpenapiModel.A192CBCHS384A256GCMKW,
+		string(cryptoutilOpenapiModel.A128CBCHS256A256GCMKW):  cryptoutilOpenapiModel.A128CBCHS256A256GCMKW,
+		string(cryptoutilOpenapiModel.A192CBCHS384A192GCMKW):  cryptoutilOpenapiModel.A192CBCHS384A192GCMKW,
+		string(cryptoutilOpenapiModel.A128CBCHS256A192GCMKW):  cryptoutilOpenapiModel.A128CBCHS256A192GCMKW,
+		string(cryptoutilOpenapiModel.A128CBCHS256A128GCMKW):  cryptoutilOpenapiModel.A128CBCHS256A128GCMKW,
+		string(cryptoutilOpenapiModel.A256CBCHS512dir):        cryptoutilOpenapiModel.A256CBCHS512dir,
+		string(cryptoutilOpenapiModel.A192CBCHS384dir):        cryptoutilOpenapiModel.A192CBCHS384dir,
+		string(cryptoutilOpenapiModel.A128CBCHS256dir):        cryptoutilOpenapiModel.A128CBCHS256dir,
+		string(cryptoutilOpenapiModel.A256GCMRSAOAEP512):      cryptoutilOpenapiModel.A256GCMRSAOAEP512,
+		string(cryptoutilOpenapiModel.A192GCMRSAOAEP512):      cryptoutilOpenapiModel.A192GCMRSAOAEP512,
+		string(cryptoutilOpenapiModel.A128GCMRSAOAEP512):      cryptoutilOpenapiModel.A128GCMRSAOAEP512,
+		string(cryptoutilOpenapiModel.A256GCMRSAOAEP384):      cryptoutilOpenapiModel.A256GCMRSAOAEP384,
+		string(cryptoutilOpenapiModel.A192GCMRSAOAEP384):      cryptoutilOpenapiModel.A192GCMRSAOAEP384,
+		string(cryptoutilOpenapiModel.A128GCMRSAOAEP384):      cryptoutilOpenapiModel.A128GCMRSAOAEP384,
+		string(cryptoutilOpenapiModel.A256GCMRSAOAEP256):      cryptoutilOpenapiModel.A256GCMRSAOAEP256,
+		string(cryptoutilOpenapiModel.A192GCMRSAOAEP256):      cryptoutilOpenapiModel.A192GCMRSAOAEP256,
+		string(cryptoutilOpenapiModel.A128GCMRSAOAEP256):      cryptoutilOpenapiModel.A128GCMRSAOAEP256,
+		string(cryptoutilOpenapiModel.A256GCMRSAOAEP):         cryptoutilOpenapiModel.A256GCMRSAOAEP,
+		string(cryptoutilOpenapiModel.A192GCMRSAOAEP):         cryptoutilOpenapiModel.A192GCMRSAOAEP,
+		string(cryptoutilOpenapiModel.A128GCMRSAOAEP):         cryptoutilOpenapiModel.A128GCMRSAOAEP,
+		string(cryptoutilOpenapiModel.A256GCMRSA15):           cryptoutilOpenapiModel.A256GCMRSA15,
+		string(cryptoutilOpenapiModel.A192GCMRSA15):           cryptoutilOpenapiModel.A192GCMRSA15,
+		string(cryptoutilOpenapiModel.A128GCMRSA15):           cryptoutilOpenapiModel.A128GCMRSA15,
+		string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512,
+		string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512,
+		string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512,
+		string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384,
+		string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384,
+		string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384,
+		string(cryptoutilOpenapiModel.A256CBCHS256RSAOAEP256): cryptoutilOpenapiModel.A256CBCHS256RSAOAEP256,
+		string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256,
+		string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256,
+		string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP):    cryptoutilOpenapiModel.A256CBCHS512RSAOAEP,
+		string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP):    cryptoutilOpenapiModel.A192CBCHS384RSAOAEP,
+		string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP):    cryptoutilOpenapiModel.A128CBCHS256RSAOAEP,
+		string(cryptoutilOpenapiModel.A256CBCHS512RSA15):      cryptoutilOpenapiModel.A256CBCHS512RSA15,
+		string(cryptoutilOpenapiModel.A192CBCHS384RSA15):      cryptoutilOpenapiModel.A192CBCHS384RSA15,
+		string(cryptoutilOpenapiModel.A128CBCHS256RSA15):      cryptoutilOpenapiModel.A128CBCHS256RSA15,
+		string(cryptoutilOpenapiModel.RS256):                  cryptoutilOpenapiModel.RS256,
+		string(cryptoutilOpenapiModel.RS384):                  cryptoutilOpenapiModel.RS384,
+		string(cryptoutilOpenapiModel.RS512):                  cryptoutilOpenapiModel.RS512,
+		string(cryptoutilOpenapiModel.PS256):                  cryptoutilOpenapiModel.PS256,
+		string(cryptoutilOpenapiModel.PS384):                  cryptoutilOpenapiModel.PS384,
+		string(cryptoutilOpenapiModel.PS512):                  cryptoutilOpenapiModel.PS512,
+		string(cryptoutilOpenapiModel.ES256):                  cryptoutilOpenapiModel.ES256,
+		string(cryptoutilOpenapiModel.ES384):                  cryptoutilOpenapiModel.ES384,
+		string(cryptoutilOpenapiModel.ES512):                  cryptoutilOpenapiModel.ES512,
+		string(cryptoutilOpenapiModel.HS256):                  cryptoutilOpenapiModel.HS256,
+		string(cryptoutilOpenapiModel.HS384):                  cryptoutilOpenapiModel.HS384,
+		string(cryptoutilOpenapiModel.HS512):                  cryptoutilOpenapiModel.HS512,
+		string(cryptoutilOpenapiModel.EdDSA):                  cryptoutilOpenapiModel.EdDSA,
+	}
+)
+
 func MapKeyPoolCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.KeyPoolCreate, error) {
 	keyPoolName, err1 := MapKeyPoolName(name)
 	keyPoolDescription, err2 := MapKeyPoolDescription(description)
@@ -164,169 +242,10 @@ func MapKeyPoolAlgorithm(algorithm string) (*cryptoutilOpenapiModel.KeyPoolAlgor
 	if err := ValidateString(algorithm); err != nil {
 		return nil, fmt.Errorf("invalid key pool algorithm: %w", err)
 	}
-	// TODO Add asymmetric algorithms
-	var keyPoolAlgorithm cryptoutilOpenapiModel.KeyPoolAlgorithm
-	switch algorithm {
-
-	case string(cryptoutilOpenapiModel.A256GCMA256KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMA256KW
-	case string(cryptoutilOpenapiModel.A192GCMA256KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMA256KW
-	case string(cryptoutilOpenapiModel.A128GCMA256KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMA256KW
-	case string(cryptoutilOpenapiModel.A192GCMA192KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMA192KW
-	case string(cryptoutilOpenapiModel.A128GCMA192KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMA192KW
-	case string(cryptoutilOpenapiModel.A128GCMA128KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMA128KW
-
-	case string(cryptoutilOpenapiModel.A256GCMA256GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMA256GCMKW
-	case string(cryptoutilOpenapiModel.A192GCMA256GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMA256GCMKW
-	case string(cryptoutilOpenapiModel.A128GCMA256GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMA256GCMKW
-	case string(cryptoutilOpenapiModel.A192GCMA192GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMA192GCMKW
-	case string(cryptoutilOpenapiModel.A128GCMA192GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMA192GCMKW
-	case string(cryptoutilOpenapiModel.A128GCMA128GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMA128GCMKW
-
-	case string(cryptoutilOpenapiModel.A256GCMdir):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMdir
-	case string(cryptoutilOpenapiModel.A192GCMdir):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMdir
-	case string(cryptoutilOpenapiModel.A128GCMdir):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMdir
-
-	case string(cryptoutilOpenapiModel.A256CBCHS512A256KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256CBCHS512A256KW
-	case string(cryptoutilOpenapiModel.A192CBCHS384A256KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384A256KW
-	case string(cryptoutilOpenapiModel.A128CBCHS256A256KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256A256KW
-	case string(cryptoutilOpenapiModel.A192CBCHS384A192KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384A192KW
-	case string(cryptoutilOpenapiModel.A128CBCHS256A192KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256A192KW
-	case string(cryptoutilOpenapiModel.A128CBCHS256A128KW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256A128KW
-
-	case string(cryptoutilOpenapiModel.A256CBCHS512A256GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256CBCHS512A256GCMKW
-	case string(cryptoutilOpenapiModel.A192CBCHS384A256GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384A256GCMKW
-	case string(cryptoutilOpenapiModel.A128CBCHS256A256GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256A256GCMKW
-	case string(cryptoutilOpenapiModel.A192CBCHS384A192GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384A192GCMKW
-	case string(cryptoutilOpenapiModel.A128CBCHS256A192GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256A192GCMKW
-	case string(cryptoutilOpenapiModel.A128CBCHS256A128GCMKW):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256A128GCMKW
-
-	case string(cryptoutilOpenapiModel.A256CBCHS512dir):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256CBCHS512dir
-	case string(cryptoutilOpenapiModel.A192CBCHS384dir):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384dir
-	case string(cryptoutilOpenapiModel.A128CBCHS256dir):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256dir
-
-	case string(cryptoutilOpenapiModel.A256GCMRSAOAEP512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMRSAOAEP512
-	case string(cryptoutilOpenapiModel.A192GCMRSAOAEP512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMRSAOAEP512
-	case string(cryptoutilOpenapiModel.A128GCMRSAOAEP512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMRSAOAEP512
-	case string(cryptoutilOpenapiModel.A256GCMRSAOAEP384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMRSAOAEP384
-	case string(cryptoutilOpenapiModel.A192GCMRSAOAEP384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMRSAOAEP384
-	case string(cryptoutilOpenapiModel.A128GCMRSAOAEP384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMRSAOAEP256
-	case string(cryptoutilOpenapiModel.A256GCMRSAOAEP256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMRSAOAEP256
-	case string(cryptoutilOpenapiModel.A192GCMRSAOAEP256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMRSAOAEP256
-	case string(cryptoutilOpenapiModel.A128GCMRSAOAEP256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMRSAOAEP256
-	case string(cryptoutilOpenapiModel.A256GCMRSAOAEP):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMRSAOAEP
-	case string(cryptoutilOpenapiModel.A192GCMRSAOAEP):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMRSAOAEP
-	case string(cryptoutilOpenapiModel.A128GCMRSAOAEP):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMRSAOAEP
-	case string(cryptoutilOpenapiModel.A256GCMRSA15):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMRSA15
-	case string(cryptoutilOpenapiModel.A192GCMRSA15):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192GCMRSA15
-	case string(cryptoutilOpenapiModel.A128GCMRSA15):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128GCMRSA15
-
-	case string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256GCMRSAOAEP512
-	case string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512
-	case string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512
-	case string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384
-	case string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384
-	case string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384
-	case string(cryptoutilOpenapiModel.A256CBCHS256RSAOAEP256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256CBCHS256RSAOAEP256
-	case string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256
-	case string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256
-	case string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256CBCHS512RSAOAEP
-	case string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384RSAOAEP
-	case string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256RSAOAEP
-	case string(cryptoutilOpenapiModel.A256CBCHS512RSA15):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A256CBCHS512RSA15
-	case string(cryptoutilOpenapiModel.A192CBCHS384RSA15):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A192CBCHS384RSA15
-	case string(cryptoutilOpenapiModel.A128CBCHS256RSA15):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.A128CBCHS256RSA15
-
-	case string(cryptoutilOpenapiModel.RS256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.RS256
-	case string(cryptoutilOpenapiModel.RS384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.RS384
-	case string(cryptoutilOpenapiModel.RS512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.RS512
-	case string(cryptoutilOpenapiModel.PS256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.PS256
-	case string(cryptoutilOpenapiModel.PS384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.PS384
-	case string(cryptoutilOpenapiModel.PS512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.PS512
-	case string(cryptoutilOpenapiModel.ES256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.ES256
-	case string(cryptoutilOpenapiModel.ES384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.ES384
-	case string(cryptoutilOpenapiModel.ES512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.ES512
-	case string(cryptoutilOpenapiModel.HS256):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.HS256
-	case string(cryptoutilOpenapiModel.HS384):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.HS384
-	case string(cryptoutilOpenapiModel.HS512):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.HS512
-	case string(cryptoutilOpenapiModel.EdDSA):
-		keyPoolAlgorithm = cryptoutilOpenapiModel.EdDSA
-
-	default:
-		return nil, fmt.Errorf("invalid key pool algorithm: %s", algorithm)
+	if alg, exists := validAlgorithms[algorithm]; exists {
+		return &alg, nil
 	}
-	return &keyPoolAlgorithm, nil
+	return nil, fmt.Errorf("invalid key pool algorithm: %s", algorithm)
 }
 
 func MapKeyPoolProvider(provider string) (*cryptoutilOpenapiModel.KeyPoolProvider, error) {
