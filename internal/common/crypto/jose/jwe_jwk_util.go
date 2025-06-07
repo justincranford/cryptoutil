@@ -114,9 +114,9 @@ func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 	case AlgA256KW, AlgA256GCMKW:
 		return validateOrGenerateJweAesJwk(key, enc, alg, 256, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
 	case AlgA192KW, AlgA192GCMKW:
-		return validateOrGenerateJweAesJwk(key, enc, alg, 192, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweAesJwk(key, enc, alg, 192, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
 	case AlgA128KW, AlgA128GCMKW:
-		return validateOrGenerateJweAesJwk(key, enc, alg, 128, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweAesJwk(key, enc, alg, 128, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
 
 	case AlgRSAOAEP512:
 		return validateOrGenerateJweRsaJwk(key, enc, alg, 4096, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
@@ -132,9 +132,9 @@ func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 	case AlgECDHES, AlgECDHESA256KW:
 		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P521(), &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
 	case AlgECDHESA192KW:
-		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P384(), &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P384(), &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
 	case AlgECDHESA128KW:
-		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P256(), &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P256(), &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
 
 	default:
 		return nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
