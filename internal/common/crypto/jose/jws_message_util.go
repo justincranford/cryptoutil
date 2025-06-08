@@ -6,7 +6,6 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 
-	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 )
@@ -27,7 +26,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
 	}
 	for i, jwk := range jwks {
-		alg, err := jwsJwkAlg(&jwk, i)
+		alg, err := ExtractJwsJwkAlg(&jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -65,7 +64,7 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 
 	jwsVerifyOptions := make([]joseJws.VerifyOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		alg, err := jwsJwkAlg(&jwk, i)
+		alg, err := ExtractJwsJwkAlg(&jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -94,20 +93,6 @@ func JwsHeadersString(jwsMessage *joseJws.Message) (string, error) {
 		}
 	}
 	return jwsSignaturesHeadersString, nil
-}
-
-func jwsJwkAlg(jwk *joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
-	if jwk == nil {
-		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
-	}
-
-	var alg joseJwa.SignatureAlgorithm
-	err := (*jwk).Get(joseJwk.AlgorithmKey, &alg) // Example: RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512
-	if err != nil {
-		return nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
-	}
-
-	return &alg, nil
 }
 
 func LogJwsInfo(jwsMessage *joseJws.Message) error {

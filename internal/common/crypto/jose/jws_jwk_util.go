@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
@@ -224,4 +225,18 @@ func validateOrGenerateJwsHmacJwk(key cryptoutilKeygen.Key, alg *joseJwa.Signatu
 		}
 		return hmacKey, nil
 	}
+}
+
+func ExtractJwsJwkAlg(jwk *joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
+	if jwk == nil {
+		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+	}
+
+	var alg joseJwa.SignatureAlgorithm
+	err := (*jwk).Get(joseJwk.AlgorithmKey, &alg) // Example: RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512
+	if err != nil {
+		return nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
+	}
+
+	return &alg, nil
 }
