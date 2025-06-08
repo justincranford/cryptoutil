@@ -88,6 +88,6 @@ func (s *StrictServer) PostKeypoolKeyPoolIDSign(ctx context.Context, openapiPost
 func (s *StrictServer) PostKeypoolKeyPoolIDVerify(ctx context.Context, openapiPostKeypoolKeyPoolIDVerifyRequestObject cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyRequestObject) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyResponseObject, error) {
 	keyPoolID := openapiPostKeypoolKeyPoolIDVerifyRequestObject.KeyPoolID
 	signedBytes := []byte(*openapiPostKeypoolKeyPoolIDVerifyRequestObject.Body)
-	err := s.businessLogicService.PostVerifyByKeyPoolID(ctx, keyPoolID, signedBytes)
-	return s.openapiMapper.toPostVerifyResponse(err)
+	verifiedBytes, err := s.businessLogicService.PostVerifyByKeyPoolID(ctx, keyPoolID, signedBytes)
+	return s.openapiMapper.toPostVerifyResponse(err, verifiedBytes)
 }

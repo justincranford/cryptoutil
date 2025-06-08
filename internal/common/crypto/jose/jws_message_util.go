@@ -6,6 +6,8 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 
+	googleUuid "github.com/google/uuid"
+	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 )
@@ -72,12 +74,12 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 	}
 	jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithMessage(jwsMessage))
 
-	decryptedBytes, err := joseJws.Verify(jwsMessageBytes, jwsVerifyOptions...)
+	verifiedBytes, err := joseJws.Verify(jwsMessageBytes, jwsVerifyOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify JWS message bytes: %w", err)
 	}
 
-	return decryptedBytes, nil
+	return verifiedBytes, nil
 }
 
 func JwsHeadersString(jwsMessage *joseJws.Message) (string, error) {
@@ -93,6 +95,33 @@ func JwsHeadersString(jwsMessage *joseJws.Message) (string, error) {
 		}
 	}
 	return jwsSignaturesHeadersString, nil
+}
+
+func ExtractKidAlgFromJwsMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, error) {
+	if len(jwsMessage.Signatures()) > 1 { // TODO support multiple signatures
+		return nil, nil, fmt.Errorf("unsupported extract kid and alg from JWS with multiple signatures")
+	}
+	for _, jwsMessageSignature := range jwsMessage.Signatures() {
+		jwsMessageProtectedHeaders := jwsMessageSignature.ProtectedHeaders()
+
+		var kidUuidString string
+		err := jwsMessageProtectedHeaders.Get(joseJwk.KeyIDKey, &kidUuidString)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
+		}
+		kidUuid, err := googleUuid.Parse(kidUuidString)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to parse kid UUID: %w", err)
+		}
+
+		var alg joseJwa.SignatureAlgorithm
+		err = jwsMessageProtectedHeaders.Get(joseJwk.AlgorithmKey, &alg)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get alg: %w", err)
+		}
+		return &kidUuid, &alg, nil
+	}
+	return nil, nil, nil
 }
 
 func LogJwsInfo(jwsMessage *joseJws.Message) error {

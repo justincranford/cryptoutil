@@ -274,13 +274,13 @@ func TestAllKeyPoolSignatureAlgorithms(t *testing.T) {
 				logObjectAsJson(t, key)
 			})
 
-			// var verified bool
-			// t.Run(testCaseNamePrefix+"  Decrypt", func(t *testing.T) {
-			// 	verifyRequest := RequireVerifyRequest(t, signedtext)
-			// 	verified = RequireVerifyResponse(t, context, openapiClient, keyPool.Id, verifyRequest)
-			// })
+			var verifiedtest *string
+			t.Run(testCaseNamePrefix+"  Verify", func(t *testing.T) {
+				verifyRequest := RequireVerifyRequest(t, signedtext)
+				verifiedtest = RequireVerifyResponse(t, context, openapiClient, keyPool.Id, verifyRequest)
+			})
 
-			// require.True(t, verified)
+			require.NotNil(t, *verifiedtest)
 		})
 	}
 }

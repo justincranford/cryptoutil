@@ -245,7 +245,7 @@ func (m *openapiBusinessLogicMapper) toPostSignResponse(err error, encryptedByte
 	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign200TextResponse(encryptedBytes), err
 }
 
-func (m *openapiBusinessLogicMapper) toPostVerifyResponse(err error) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostVerifyResponse(err error, verifiedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {

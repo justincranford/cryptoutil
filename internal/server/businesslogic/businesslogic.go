@@ -12,8 +12,10 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
+
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
+	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 )
 
 // BusinessLogicService implements methods in StrictServerInterface
@@ -250,8 +252,8 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolID(ctx context.Context, keyPo
 	return jweMessageBytes, nil
 }
 
-func (s *BusinessLogicService) PostDecryptByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, encryptedPayloadBytes []byte) ([]byte, error) {
-	jweMessage, err := joseJwe.Parse(encryptedPayloadBytes)
+func (s *BusinessLogicService) PostDecryptByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, jweMessageBytes []byte) ([]byte, error) {
+	jweMessage, err := joseJwe.Parse(jweMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
 	}
@@ -268,7 +270,7 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolID(ctx context.Context, keyPo
 	if err != nil {
 		return nil, fmt.Errorf("decrypted JWK doesn't have expected enc and alg headers: %w", err)
 	}
-	decryptedJweMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedJweJwk}, encryptedPayloadBytes)
+	decryptedJweMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedJweJwk}, jweMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt bytes with Key for KeyPoolID from JWE kid UUID: %w", err)
 	}
@@ -294,8 +296,29 @@ func (s *BusinessLogicService) PostSignByKeyPoolID(ctx context.Context, keyPoolI
 	return jwsMessageBytes, nil
 }
 
-func (s *BusinessLogicService) PostVerifyByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, signedPayloadBytes []byte) error {
-	return fmt.Errorf("not implemented")
+func (s *BusinessLogicService) PostVerifyByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, jwsMessageBytes []byte) ([]byte, error) {
+	jwsMessage, err := joseJws.Parse(jwsMessageBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse JWS message bytes: %w", err)
+	}
+	kidUuid, _, err := cryptoutilJose.ExtractKidAlgFromJwsMessage(jwsMessage)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get kid, enc, and alg from JWE message: %w", err)
+	}
+	keyPool, _, decryptedJwsJwk, err := s.getAndDecryptKeyPoolJwk(ctx, &keyPoolID, kidUuid)
+	// TODO validate decrypted JWK is a JWS JWK
+	if keyPool.KeyPoolProvider != "Internal" {
+		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
+	}
+	_, err = cryptoutilJose.ExtractAlgFromJwsJwk(&decryptedJwsJwk, 0)
+	if err != nil {
+		return nil, fmt.Errorf("decrypted JWK doesn't have expected alg header: %w", err)
+	}
+	verifiedJwsMessageBytes, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{decryptedJwsJwk}, jwsMessageBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt bytes with Key for KeyPoolID from JWE kid UUID: %w", err)
+	}
+	return verifiedJwsMessageBytes, nil
 }
 
 func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) (*cryptoutilOrmRepository.Key, error) {
