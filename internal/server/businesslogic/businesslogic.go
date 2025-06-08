@@ -235,15 +235,10 @@ func (s *BusinessLogicService) PostEncryptByKeyPoolID(ctx context.Context, keyPo
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest JWE JWK from Key Pool for KeyPoolID: %w", err)
 	}
-	// TODO validate decrypted JWK is a JWE JWK
-	// jweJwkAlg, ok := decryptedJweJwk.Algorithm()
-	// if !ok {
-	// 	return nil, fmt.Errorf("failed to get algorithm from decrypted JWK")
-	// }
-	// decryptedKeyPoolAlgorithm := cryptoutilOrmRepository.KeyPoolAlgorithm(jweJwkAlg.String())
-	// if !s.serviceOrmMapper.isJwe(&decryptedKeyPoolAlgorithm) {
-	// 	return nil, fmt.Errorf("decrypted JWK algorithm is not for a JWE")
-	// }
+	_, _, err = cryptoutilJose.ExtractAlgEncFromJweJwk(&decryptedJweJwk, 0)
+	if err != nil {
+		return nil, fmt.Errorf("decrypted JWK doesn't have expected enc and alg headers: %w", err)
+	}
 	if keyPool.KeyPoolProvider != "Internal" {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
@@ -268,6 +263,10 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolID(ctx context.Context, keyPo
 	// TODO validate decrypted JWK is a JWE JWK
 	if keyPool.KeyPoolProvider != "Internal" {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
+	}
+	_, _, err = cryptoutilJose.ExtractAlgEncFromJweJwk(&decryptedJweJwk, 0)
+	if err != nil {
+		return nil, fmt.Errorf("decrypted JWK doesn't have expected enc and alg headers: %w", err)
 	}
 	decryptedJweMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedJweJwk}, encryptedPayloadBytes)
 	if err != nil {

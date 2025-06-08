@@ -10,6 +10,7 @@ import (
 
 	"github.com/cloudflare/circl/sign/ed448"
 
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
@@ -255,4 +256,31 @@ func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	default:
 		return 0, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
 	}
+}
+
+// TODO Pointer is not necessary for interface
+func ExtractAlgEncFromJweJwk(jwk *joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyAlgorithm, error) {
+	if jwk == nil {
+		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+	}
+
+	var enc joseJwa.ContentEncryptionAlgorithm
+	err := (*jwk).Get("enc", &enc) // Example: A256GCM, A192GCM, A128GCM, A256CBC-HS512, A192CBC-HS384, A128CBC-HS256
+	if err != nil {
+		// Workaround: If JWK was serialized (for encryption) and parsed (after decryption), 'enc' header incorrect gets parsed as string, so try getting as string converting it to joseJwa.ContentEncryptionAlgorithm
+		var encString string
+		err = (*jwk).Get("enc", &encString)
+		if err != nil {
+			return nil, nil, fmt.Errorf("can't get JWK %d 'enc' attribute: %w", i, err)
+		}
+		enc = joseJwa.NewContentEncryptionAlgorithm(encString)
+	}
+
+	var alg joseJwa.KeyAlgorithm
+	err = (*jwk).Get(joseJwk.AlgorithmKey, &alg) // Example: A256KW, A192KW, A128KW, A256GCMKW, A192GCMKW, A128GCMKW, dir
+	if err != nil {
+		return nil, nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
+	}
+
+	return &enc, &alg, nil
 }
