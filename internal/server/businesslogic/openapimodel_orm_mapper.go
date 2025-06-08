@@ -338,54 +338,83 @@ func (*BusinessLogicService) toEncAndAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepos
 		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA256KW, nil
 	case cryptoutilOrmRepository.A128GCM_A256KW:
 		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A256GCM_A192KW:
+		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA192KW, nil
 	case cryptoutilOrmRepository.A192GCM_A192KW:
 		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA192KW, nil
 	case cryptoutilOrmRepository.A128GCM_A192KW:
 		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA192KW, nil
+	case cryptoutilOrmRepository.A256GCM_A128KW:
+		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA128KW, nil
+	case cryptoutilOrmRepository.A192GCM_A128KW:
+		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA128KW, nil
 	case cryptoutilOrmRepository.A128GCM_A128KW:
 		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA128KW, nil
+
 	case cryptoutilOrmRepository.A256GCM_A256GCMKW:
 		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256GCMKW, nil
 	case cryptoutilOrmRepository.A192GCM_A256GCMKW:
 		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA256GCMKW, nil
 	case cryptoutilOrmRepository.A128GCM_A256GCMKW:
 		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A256GCM_A192GCMKW:
+		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA192GCMKW, nil
 	case cryptoutilOrmRepository.A192GCM_A192GCMKW:
 		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA192GCMKW, nil
 	case cryptoutilOrmRepository.A128GCM_A192GCMKW:
 		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA192GCMKW, nil
+	case cryptoutilOrmRepository.A256GCM_A128GCMKW:
+		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA128GCMKW, nil
+	case cryptoutilOrmRepository.A192GCM_A128GCMKW:
+		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgA128GCMKW, nil
 	case cryptoutilOrmRepository.A128GCM_A128GCMKW:
 		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgA128GCMKW, nil
+
 	case cryptoutilOrmRepository.A256GCM_dir:
 		return &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir, nil
 	case cryptoutilOrmRepository.A192GCM_dir:
 		return &cryptoutilJose.EncA192GCM, &cryptoutilJose.AlgDir, nil
 	case cryptoutilOrmRepository.A128GCM_dir:
 		return &cryptoutilJose.EncA128GCM, &cryptoutilJose.AlgDir, nil
+
 	case cryptoutilOrmRepository.A256CBCHS512_A256KW:
 		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA256KW, nil
 	case cryptoutilOrmRepository.A192CBCHS384_A256KW:
 		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA256KW, nil
 	case cryptoutilOrmRepository.A128CBCHS256_A256KW:
 		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA256KW, nil
+	case cryptoutilOrmRepository.A256CBCHS512_A192KW:
+		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA192KW, nil
 	case cryptoutilOrmRepository.A192CBCHS384_A192KW:
 		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA192KW, nil
 	case cryptoutilOrmRepository.A128CBCHS256_A192KW:
 		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA192KW, nil
+	case cryptoutilOrmRepository.A256CBCHS512_A128KW:
+		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA128KW, nil
+	case cryptoutilOrmRepository.A192CBCHS384_A128KW:
+		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA128KW, nil
 	case cryptoutilOrmRepository.A128CBCHS256_A128KW:
 		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA128KW, nil
+
 	case cryptoutilOrmRepository.A256CBCHS512_A256GCMKW:
 		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA256GCMKW, nil
 	case cryptoutilOrmRepository.A192CBCHS384_A256GCMKW:
 		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA256GCMKW, nil
 	case cryptoutilOrmRepository.A128CBCHS256_A256GCMKW:
 		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA256GCMKW, nil
+	case cryptoutilOrmRepository.A256CBCHS512_A192GCMKW:
+		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA192GCMKW, nil
 	case cryptoutilOrmRepository.A192CBCHS384_A192GCMKW:
 		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA192GCMKW, nil
 	case cryptoutilOrmRepository.A128CBCHS256_A192GCMKW:
 		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA192GCMKW, nil
+	case cryptoutilOrmRepository.A256CBCHS512_A128GCMKW:
+		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgA128GCMKW, nil
+	case cryptoutilOrmRepository.A192CBCHS384_A128GCMKW:
+		return &cryptoutilJose.EncA192CBC_HS384, &cryptoutilJose.AlgA128GCMKW, nil
 	case cryptoutilOrmRepository.A128CBCHS256_A128GCMKW:
 		return &cryptoutilJose.EncA128CBC_HS256, &cryptoutilJose.AlgA128GCMKW, nil
+
 	case cryptoutilOrmRepository.A256CBCHS512_dir:
 		return &cryptoutilJose.EncA256CBC_HS512, &cryptoutilJose.AlgDir, nil
 	case cryptoutilOrmRepository.A192CBCHS384_dir:

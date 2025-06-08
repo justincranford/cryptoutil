@@ -379,16 +379,16 @@ func (s *BusinessLogicService) GenerateKeyMaterial(keyPoolAlgorithm cryptoutilOr
 		cryptoutilOrmRepository.A256CBCHS512_A256GCMKW, cryptoutilOrmRepository.A192CBCHS384_A256GCMKW, cryptoutilOrmRepository.A128CBCHS256_A256GCMKW,
 		cryptoutilOrmRepository.A256GCM_dir:
 		return s.aes256KeyGenPool.Get(), nil
-	case cryptoutilOrmRepository.A192GCM_A192KW, cryptoutilOrmRepository.A128GCM_A192KW,
-		cryptoutilOrmRepository.A192GCM_A192GCMKW, cryptoutilOrmRepository.A128GCM_A192GCMKW,
-		cryptoutilOrmRepository.A192CBCHS384_A192KW, cryptoutilOrmRepository.A128CBCHS256_A192KW,
-		cryptoutilOrmRepository.A192CBCHS384_A192GCMKW, cryptoutilOrmRepository.A128CBCHS256_A192GCMKW,
+	case cryptoutilOrmRepository.A256GCM_A192KW, cryptoutilOrmRepository.A192GCM_A192KW, cryptoutilOrmRepository.A128GCM_A192KW,
+		cryptoutilOrmRepository.A256GCM_A192GCMKW, cryptoutilOrmRepository.A192GCM_A192GCMKW, cryptoutilOrmRepository.A128GCM_A192GCMKW,
+		cryptoutilOrmRepository.A256CBCHS512_A192KW, cryptoutilOrmRepository.A192CBCHS384_A192KW, cryptoutilOrmRepository.A128CBCHS256_A192KW,
+		cryptoutilOrmRepository.A256CBCHS512_A192GCMKW, cryptoutilOrmRepository.A192CBCHS384_A192GCMKW, cryptoutilOrmRepository.A128CBCHS256_A192GCMKW,
 		cryptoutilOrmRepository.A192GCM_dir:
 		return s.aes192KeyGenPool.Get(), nil
-	case cryptoutilOrmRepository.A128GCM_A128KW,
-		cryptoutilOrmRepository.A128GCM_A128GCMKW,
-		cryptoutilOrmRepository.A128CBCHS256_A128KW,
-		cryptoutilOrmRepository.A128CBCHS256_A128GCMKW,
+	case cryptoutilOrmRepository.A256GCM_A128KW, cryptoutilOrmRepository.A192GCM_A128KW, cryptoutilOrmRepository.A128GCM_A128KW,
+		cryptoutilOrmRepository.A256GCM_A128GCMKW, cryptoutilOrmRepository.A192GCM_A128GCMKW, cryptoutilOrmRepository.A128GCM_A128GCMKW,
+		cryptoutilOrmRepository.A256CBCHS512_A128KW, cryptoutilOrmRepository.A192CBCHS384_A128KW, cryptoutilOrmRepository.A128CBCHS256_A128KW,
+		cryptoutilOrmRepository.A256CBCHS512_A128GCMKW, cryptoutilOrmRepository.A192CBCHS384_A128GCMKW, cryptoutilOrmRepository.A128CBCHS256_A128GCMKW,
 		cryptoutilOrmRepository.A128GCM_dir:
 		return s.aes128KeyGenPool.Get(), nil
 	case cryptoutilOrmRepository.A256CBCHS512_dir:
