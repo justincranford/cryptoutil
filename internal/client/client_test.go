@@ -144,18 +144,18 @@ var happyPathTestCasesEncrypt = []TestCase{
 
 var happyPathTestCasesSign = []TestCase{
 	{name: "Key Pool S01", description: nextKeyPoolDesc(), algorithm: "RS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S02", description: nextKeyPoolDesc(), algorithm: "RS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S03", description: nextKeyPoolDesc(), algorithm: "RS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S04", description: nextKeyPoolDesc(), algorithm: "PS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S05", description: nextKeyPoolDesc(), algorithm: "PS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S06", description: nextKeyPoolDesc(), algorithm: "PS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S07", description: nextKeyPoolDesc(), algorithm: "ES256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S08", description: nextKeyPoolDesc(), algorithm: "ES384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S09", description: nextKeyPoolDesc(), algorithm: "ES512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S10", description: nextKeyPoolDesc(), algorithm: "HS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S11", description: nextKeyPoolDesc(), algorithm: "HS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S12", description: nextKeyPoolDesc(), algorithm: "HS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	// {name: "Key Pool S13", description: nextKeyPoolDesc(), algorithm: "EdDSA", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S02", description: nextKeyPoolDesc(), algorithm: "RS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S03", description: nextKeyPoolDesc(), algorithm: "RS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S04", description: nextKeyPoolDesc(), algorithm: "PS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S05", description: nextKeyPoolDesc(), algorithm: "PS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S06", description: nextKeyPoolDesc(), algorithm: "PS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S07", description: nextKeyPoolDesc(), algorithm: "ES256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S08", description: nextKeyPoolDesc(), algorithm: "ES384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S09", description: nextKeyPoolDesc(), algorithm: "ES512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S10", description: nextKeyPoolDesc(), algorithm: "HS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S11", description: nextKeyPoolDesc(), algorithm: "HS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S12", description: nextKeyPoolDesc(), algorithm: "HS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: "Key Pool S13", description: nextKeyPoolDesc(), algorithm: "EdDSA", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 }
 
 var (
@@ -232,57 +232,56 @@ func TestAllKeyPoolCipherAlgorithms(t *testing.T) {
 	}
 }
 
-// func TestAllKeyPoolSignatureAlgorithms(t *testing.T) {
-// 	context := context.Background()
-// 	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
+func TestAllKeyPoolSignatureAlgorithms(t *testing.T) {
+	context := context.Background()
+	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
 
-// 	for _, testCase := range happyPathTestCasesSign {
-// 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
-// 		t.Run(testCaseNamePrefix, func(t *testing.T) {
-// 			// t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
-// 			var keyPool *cryptoutilOpenapiModel.KeyPool
-// 			t.Run(testCaseNamePrefix+"  Create Key Pool", func(t *testing.T) {
-// 				keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
-// 				keyPool = RequireCreateKeyPoolResponse(t, context, openapiClient, keyPoolCreate)
-// 				logObjectAsJson(t, keyPool)
-// 			})
-// 			if keyPool == nil {
-// 				return
-// 			}
+	for _, testCase := range happyPathTestCasesSign {
+		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
+		t.Run(testCaseNamePrefix, func(t *testing.T) {
+			// t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
+			var keyPool *cryptoutilOpenapiModel.KeyPool
+			t.Run(testCaseNamePrefix+"  Create Key Pool", func(t *testing.T) {
+				keyPoolCreate := RequireCreateKeyPoolRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
+				keyPool = RequireCreateKeyPoolResponse(t, context, openapiClient, keyPoolCreate)
+				logObjectAsJson(t, keyPool)
+			})
+			if keyPool == nil {
+				return
+			}
 
-// 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
-// 				keyGenerate := RequireKeyGenerateRequest(t)
-// 				key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
-// 				logObjectAsJson(t, key)
-// 			})
+			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
+				keyGenerate := RequireKeyGenerateRequest(t)
+				key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
+				logObjectAsJson(t, key)
+			})
 
-// 			// var cleartext *string
-// 			// var ciphertext *string
-// 			// t.Run(testCaseNamePrefix+"  Sign", func(t *testing.T) {
-// 			// 	str := "Hello World " + strconv.Itoa(i)
-// 			// 	cleartext = &str
-// 			// 	encryptRequest := RequireEncryptRequest(t, cleartext)
-// 			// 	ciphertext = RequireEncryptResponse(t, context, openapiClient, keyPool.Id, nil, encryptRequest)
-// 			// 	logJwe(t, ciphertext)
-// 			// })
+			// var cleartext *string
+			// var signedtext *string
+			// t.Run(testCaseNamePrefix+"  Sign", func(t *testing.T) {
+			// 	str := "Hello World " + strconv.Itoa(i)
+			// 	cleartext = &str
+			// 	signRequest := RequireSignRequest(t, cleartext)
+			// 	signedtext = RequireSignResponse(t, context, openapiClient, keyPool.Id, nil, signRequest)
+			// 	logJws(t, signedtext)
+			// })
 
-// 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
-// 				keyGenerate := RequireKeyGenerateRequest(t)
-// 				key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
-// 				logObjectAsJson(t, key)
-// 			})
+			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
+				keyGenerate := RequireKeyGenerateRequest(t)
+				key := RequireKeyGenerateResponse(t, context, openapiClient, keyPool.Id, keyGenerate)
+				logObjectAsJson(t, key)
+			})
 
-// 			// var decryptedtext *string
-// 			// t.Run(testCaseNamePrefix+"  Decrypt", func(t *testing.T) {
-// 			// 	decryptRequest := RequireDecryptRequest(t, ciphertext)
-// 			// 	decryptedtext = RequireDecryptResponse(t, context, openapiClient, keyPool.Id, decryptRequest)
-// 			// })
+			// var verified bool
+			// t.Run(testCaseNamePrefix+"  Decrypt", func(t *testing.T) {
+			// 	verifyRequest := RequireVerifyRequest(t, signedtext)
+			// 	verified = RequireVerifyResponse(t, context, openapiClient, keyPool.Id, verifyRequest)
+			// })
 
-// 			// require.NotNil(t, decryptedtext)
-// 			// require.Equal(t, *cleartext, *decryptedtext)
-// 		})
-// 	}
-// }
+			// require.True(t, verified)
+		})
+	}
+}
 
 func logObjectAsJson(t *testing.T, object any) {
 	jsonString, err := json.MarshalIndent(object, "", " ")
