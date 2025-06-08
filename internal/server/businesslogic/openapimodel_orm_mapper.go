@@ -396,16 +396,26 @@ func toStrings[T any](items *[]T, toString func(T) string) []string {
 	return converted
 }
 
-func (*BusinessLogicService) toEncAndAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+func (m *serviceOrmMapper) isJwe(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) bool {
+	_, ok := ormKeyPoolAlgorithmToJoseEncAndAlg[*ormKeyPoolAlgorithm]
+	return ok
+}
+
+func (m *serviceOrmMapper) toJweEncAndAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	if encAndAlg, ok := ormKeyPoolAlgorithmToJoseEncAndAlg[*ormKeyPoolAlgorithm]; ok {
 		return encAndAlg.enc, encAndAlg.alg, nil
 	}
-	return nil, nil, fmt.Errorf("unsupported keyPool encryption algorithm '%s'", *ormKeyPoolAlgorithm)
+	return nil, nil, fmt.Errorf("unsupported JWE KeyPoolAlgorithm '%s'", *ormKeyPoolAlgorithm)
 }
 
-func (*BusinessLogicService) toAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
+func (m *serviceOrmMapper) isJws(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) bool {
+	_, ok := ormKeyPoolAlgorithmToJoseAlg[*ormKeyPoolAlgorithm]
+	return ok
+}
+
+func (m *serviceOrmMapper) toJwsAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
 	if alg, ok := ormKeyPoolAlgorithmToJoseAlg[*ormKeyPoolAlgorithm]; ok {
 		return alg, nil
 	}
-	return nil, fmt.Errorf("unsupported keyPool signature algorithm '%s'", *ormKeyPoolAlgorithm)
+	return nil, fmt.Errorf("unsupported JWS KeyPoolAlgorithm '%s'", *ormKeyPoolAlgorithm)
 }
