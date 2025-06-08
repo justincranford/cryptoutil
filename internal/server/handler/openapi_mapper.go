@@ -184,10 +184,9 @@ func (m *openapiBusinessLogicMapper) toGetKeysResponse(err error, keys []cryptou
 	return cryptoutilOpenapiServer.GetKeys200JSONResponse(keys), err
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject *cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptParams) *cryptoutilBusinessLogicModel.SymmetricEncryptParams {
-	filters := cryptoutilBusinessLogicModel.SymmetricEncryptParams{
-		Iv:  openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Iv,
-		Aad: openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Aad,
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject *cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptParams) *cryptoutilBusinessLogicModel.EncryptParams {
+	filters := cryptoutilBusinessLogicModel.EncryptParams{
+		Context: openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Context,
 	}
 	return &filters
 }

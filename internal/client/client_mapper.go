@@ -9,6 +9,13 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 )
 
+type ClientMapper struct{}
+
+// TODO Change all func to method
+func NewClientMapper() *ClientMapper {
+	return &ClientMapper{}
+}
+
 var (
 	validAlgorithms = map[string]cryptoutilOpenapiModel.KeyPoolAlgorithm{
 		string(cryptoutilOpenapiModel.A256GCMA256KW): cryptoutilOpenapiModel.A256GCMA256KW,
@@ -219,13 +226,17 @@ func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostKeyp
 	}
 }
 
-func MapSymmetricEncryptParams(symmetricEncryptParams *cryptoutilOpenapiModel.SymmetricEncryptParams) cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams {
+func MapEncryptParams(encryptParams *cryptoutilOpenapiModel.EncryptParams) cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams {
 	keypoolKeyPoolIDEncryptParams := cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams{}
-	if symmetricEncryptParams != nil {
-		keypoolKeyPoolIDEncryptParams.Iv = symmetricEncryptParams.Iv
-		keypoolKeyPoolIDEncryptParams.Aad = symmetricEncryptParams.Aad
+	if encryptParams != nil {
+		keypoolKeyPoolIDEncryptParams.Context = encryptParams.Context
 	}
 	return keypoolKeyPoolIDEncryptParams
+}
+
+func MapEncryptRequest(cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
+	encryptRequest := cryptoutilOpenapiModel.EncryptRequest(*cleartext)
+	return &encryptRequest
 }
 
 func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptResponse) (*string, error) {
@@ -246,6 +257,11 @@ func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostKeyp
 	}
 }
 
+func MapDecryptRequest(ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
+	decryptRequest := cryptoutilOpenapiModel.DecryptRequest(*ciphertext)
+	return &decryptRequest
+}
+
 func MapDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDDecryptResponse) (*string, error) {
 	if openapiDecryptResponse == nil {
 		return nil, fmt.Errorf("failed to decrypt, response is nil")
@@ -261,6 +277,60 @@ func MapDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostKeyp
 		return &decrypted, nil
 	default:
 		return nil, fmt.Errorf("failed to decrypt, Status: %v, Message: %s", openapiDecryptResponse.HTTPResponse.StatusCode, openapiDecryptResponse.HTTPResponse.Status)
+	}
+}
+
+func MapSignParams(signParams *cryptoutilOpenapiModel.SignParams) cryptoutilOpenapiClient.PostKeypoolKeyPoolIDSignParams {
+	keypoolKeyPoolIDSignParams := cryptoutilOpenapiClient.PostKeypoolKeyPoolIDSignParams{}
+	if signParams != nil {
+		keypoolKeyPoolIDSignParams.Context = signParams.Context
+	}
+	return keypoolKeyPoolIDSignParams
+}
+
+func MapSignRequest(cleartext *string) *cryptoutilOpenapiModel.SignRequest {
+	signRequest := cryptoutilOpenapiModel.SignRequest(*cleartext)
+	return &signRequest
+}
+
+func MapSignResponse(openapiSignResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDSignResponse) (*string, error) {
+	if openapiSignResponse == nil {
+		return nil, fmt.Errorf("failed to sign, response is nil")
+	} else if openapiSignResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to sign, HTTP response is nil")
+	}
+	switch openapiSignResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiSignResponse.Body == nil {
+			return nil, fmt.Errorf("failed to sign, body is nil")
+		}
+		ciphertext := string(openapiSignResponse.Body)
+		return &ciphertext, nil
+	default:
+		return nil, fmt.Errorf("failed to sign, Status: %v, Message: %s", openapiSignResponse.HTTPResponse.StatusCode, openapiSignResponse.HTTPResponse.Status)
+	}
+}
+
+func MapVerifyRequest(signedtext *string) *cryptoutilOpenapiModel.VerifyRequest {
+	verifyRequest := cryptoutilOpenapiModel.VerifyRequest(*signedtext)
+	return &verifyRequest
+}
+
+func MapVerifyResponse(openapiVerifyResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDVerifyResponse) (*string, error) {
+	if openapiVerifyResponse == nil {
+		return nil, fmt.Errorf("failed to verify, response is nil")
+	} else if openapiVerifyResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to verify, HTTP response is nil")
+	}
+	switch openapiVerifyResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiVerifyResponse.Body == nil {
+			return nil, fmt.Errorf("failed to verify, body is nil")
+		}
+		decrypted := string(openapiVerifyResponse.Body)
+		return &decrypted, nil
+	default:
+		return nil, fmt.Errorf("failed to verify, Status: %v, Message: %s", openapiVerifyResponse.HTTPResponse.StatusCode, openapiVerifyResponse.HTTPResponse.Status)
 	}
 }
 

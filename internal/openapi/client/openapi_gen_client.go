@@ -24,8 +24,7 @@ import (
 
 // PostKeypoolKeyPoolIDEncryptParams defines parameters for PostKeypoolKeyPoolIDEncrypt.
 type PostKeypoolKeyPoolIDEncryptParams struct {
-	Iv  *externalRef0.SymmetricCipherInitializationVector        `form:"iv,omitempty" json:"iv,omitempty"`
-	Aad *externalRef0.SymmetricCipherAdditionalAuthenticatedData `form:"aad,omitempty" json:"aad,omitempty"`
+	Context *externalRef0.EncryptContext `form:"context,omitempty" json:"context,omitempty"`
 }
 
 // GetKeypoolKeyPoolIDKeysParams defines parameters for GetKeypoolKeyPoolIDKeys.
@@ -43,6 +42,11 @@ type GetKeypoolKeyPoolIDKeysParams struct {
 	Sort *externalRef0.KeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
 	Page *externalRef0.KeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
 	Size *externalRef0.KeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
+}
+
+// PostKeypoolKeyPoolIDSignParams defines parameters for PostKeypoolKeyPoolIDSign.
+type PostKeypoolKeyPoolIDSignParams struct {
+	Context *externalRef0.SignContext `form:"context,omitempty" json:"context,omitempty"`
 }
 
 // GetKeypoolsParams defines parameters for GetKeypools.
@@ -218,9 +222,9 @@ type ClientInterface interface {
 	GetKeypoolKeyPoolIDKeys(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostKeypoolKeyPoolIDSignWithBody request with any body
-	PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKeypoolKeyPoolIDSignWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostKeypoolKeyPoolIDSignWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// PostKeypoolKeyPoolIDVerifyWithBody request with any body
 	PostKeypoolKeyPoolIDVerifyWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -366,8 +370,8 @@ func (c *Client) GetKeypoolKeyPoolIDKeys(ctx context.Context, keyPoolID external
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDSignRequestWithBody(c.Server, keyPoolID, contentType, body)
+func (c *Client) PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostKeypoolKeyPoolIDSignRequestWithBody(c.Server, keyPoolID, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -378,8 +382,8 @@ func (c *Client) PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDSignWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDSignRequestWithTextBody(c.Server, keyPoolID, body)
+func (c *Client) PostKeypoolKeyPoolIDSignWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostKeypoolKeyPoolIDSignRequestWithTextBody(c.Server, keyPoolID, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -591,25 +595,9 @@ func NewPostKeypoolKeyPoolIDEncryptRequestWithBody(server string, keyPoolID exte
 	if params != nil {
 		queryValues := queryURL.Query()
 
-		if params.Iv != nil {
+		if params.Context != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "iv", runtime.ParamLocationQuery, *params.Iv); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Aad != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "aad", runtime.ParamLocationQuery, *params.Aad); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -861,14 +849,14 @@ func NewGetKeypoolKeyPoolIDKeysRequest(server string, keyPoolID externalRef0.Key
 }
 
 // NewPostKeypoolKeyPoolIDSignRequestWithTextBody calls the generic PostKeypoolKeyPoolIDSign builder with text/plain body
-func NewPostKeypoolKeyPoolIDSignRequestWithTextBody(server string, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDSignTextRequestBody) (*http.Request, error) {
+func NewPostKeypoolKeyPoolIDSignRequestWithTextBody(server string, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	bodyReader = strings.NewReader(string(body))
-	return NewPostKeypoolKeyPoolIDSignRequestWithBody(server, keyPoolID, "text/plain", bodyReader)
+	return NewPostKeypoolKeyPoolIDSignRequestWithBody(server, keyPoolID, params, "text/plain", bodyReader)
 }
 
 // NewPostKeypoolKeyPoolIDSignRequestWithBody generates requests for PostKeypoolKeyPoolIDSign with any type of body
-func NewPostKeypoolKeyPoolIDSignRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader) (*http.Request, error) {
+func NewPostKeypoolKeyPoolIDSignRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -891,6 +879,28 @@ func NewPostKeypoolKeyPoolIDSignRequestWithBody(server string, keyPoolID externa
 	queryURL, err := serverURL.Parse(operationPath)
 	if err != nil {
 		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if params.Context != nil {
+
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
+				return nil, err
+			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+				return nil, err
+			} else {
+				for k, v := range parsed {
+					for _, v2 := range v {
+						queryValues.Add(k, v2)
+					}
+				}
+			}
+
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
 	}
 
 	req, err := http.NewRequest("POST", queryURL.String(), body)
@@ -1373,9 +1383,9 @@ type ClientWithResponsesInterface interface {
 	GetKeypoolKeyPoolIDKeysWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeysResponse, error)
 
 	// PostKeypoolKeyPoolIDSignWithBodyWithResponse request with any body
-	PostKeypoolKeyPoolIDSignWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error)
+	PostKeypoolKeyPoolIDSignWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error)
 
-	PostKeypoolKeyPoolIDSignWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error)
+	PostKeypoolKeyPoolIDSignWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error)
 
 	// PostKeypoolKeyPoolIDVerifyWithBodyWithResponse request with any body
 	PostKeypoolKeyPoolIDVerifyWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDVerifyResponse, error)
@@ -1822,16 +1832,16 @@ func (c *ClientWithResponses) GetKeypoolKeyPoolIDKeysWithResponse(ctx context.Co
 }
 
 // PostKeypoolKeyPoolIDSignWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDSignResponse
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDSignWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDSignWithBody(ctx, keyPoolID, contentType, body, reqEditors...)
+func (c *ClientWithResponses) PostKeypoolKeyPoolIDSignWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error) {
+	rsp, err := c.PostKeypoolKeyPoolIDSignWithBody(ctx, keyPoolID, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
 	return ParsePostKeypoolKeyPoolIDSignResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDSignWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDSignWithTextBody(ctx, keyPoolID, body, reqEditors...)
+func (c *ClientWithResponses) PostKeypoolKeyPoolIDSignWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error) {
+	rsp, err := c.PostKeypoolKeyPoolIDSignWithTextBody(ctx, keyPoolID, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
@@ -2827,88 +2837,87 @@ func ParseGetKeysResponse(rsp *http.Response) (*GetKeysResponse, error) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

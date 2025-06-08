@@ -230,7 +230,7 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
 }
 
-func (s *BusinessLogicService) PostEncryptByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.SymmetricEncryptParams, clearPayloadBytes []byte) ([]byte, error) {
+func (s *BusinessLogicService) PostEncryptByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
 	keyPool, _, decryptedJweJwk, err := s.getAndDecryptKeyPoolJwk(ctx, &keyPoolID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest JWE JWK from Key Pool for KeyPoolID: %w", err)
@@ -276,7 +276,22 @@ func (s *BusinessLogicService) PostDecryptByKeyPoolID(ctx context.Context, keyPo
 }
 
 func (s *BusinessLogicService) PostSignByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, clearPayloadBytes []byte) ([]byte, error) {
-	return nil, fmt.Errorf("not implemented")
+	keyPool, _, decryptedJwsJwk, err := s.getAndDecryptKeyPoolJwk(ctx, &keyPoolID, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get and decrypt latest JWS JWK from Key Pool for KeyPoolID: %w", err)
+	}
+	_, err = cryptoutilJose.ExtractAlgFromJwsJwk(&decryptedJwsJwk, 0)
+	if err != nil {
+		return nil, fmt.Errorf("decrypted JWK doesn't have expected alg header: %w", err)
+	}
+	if keyPool.KeyPoolProvider != "Internal" {
+		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
+	}
+	_, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{decryptedJwsJwk}, clearPayloadBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign bytes with latest Key for KeyPoolID: %w", err)
+	}
+	return jwsMessageBytes, nil
 }
 
 func (s *BusinessLogicService) PostVerifyByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, signedPayloadBytes []byte) error {

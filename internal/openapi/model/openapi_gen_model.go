@@ -189,8 +189,17 @@ const (
 // DecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
 type DecryptRequest = string
 
-// DecryptResponse Encrypted text to be decrypted. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; ese the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+// DecryptResponse Decrypted text. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; use the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
 type DecryptResponse = string
+
+// EncryptContext Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+type EncryptContext = string
+
+// EncryptParams defines model for EncryptParams.
+type EncryptParams struct {
+	// Context Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+	Context *EncryptContext `json:"context,omitempty"`
+}
 
 // EncryptRequest Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
 type EncryptRequest = string
@@ -404,29 +413,26 @@ type PageNumber = int
 // PageSize Page number.
 type PageSize = int
 
+// SignContext Base64URL-encoded context Authenticated Data (AAD). This is non-secret data used for integrity checking during verify (e.g. namespace, context).
+type SignContext = string
+
+// SignParams defines model for SignParams.
+type SignParams struct {
+	// Context Base64URL-encoded context Authenticated Data (AAD). This is non-secret data used for integrity checking during verify (e.g. namespace, context).
+	Context *SignContext `json:"context,omitempty"`
+}
+
 // SignRequest Clear text to be signed. Can be JSON-encoded to create a JWT, or freeform to create a JWS. If you need freeform, encode as text (e.g. Base64-URL, Base64-MIME, Base64, Hexadecimal, etc).
 type SignRequest = string
 
 // SignResponse Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'. - Header: Required base64Url-encoded JSON key/values for the JWS. - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT). - Signature: Required base64Url-encoded signature.
 type SignResponse = string
 
-// SymmetricCipherAdditionalAuthenticatedData Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
-type SymmetricCipherAdditionalAuthenticatedData = string
-
-// SymmetricCipherInitializationVector Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
-type SymmetricCipherInitializationVector = string
-
-// SymmetricEncryptParams defines model for SymmetricEncryptParams.
-type SymmetricEncryptParams struct {
-	// Aad Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
-	Aad *SymmetricCipherAdditionalAuthenticatedData `json:"aad,omitempty"`
-
-	// Iv Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
-	Iv *SymmetricCipherInitializationVector `json:"iv,omitempty"`
-}
-
 // VerifyRequest Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'. - Header: Required base64Url-encoded JSON key/values for the JWS. - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT). - Signature: Required base64Url-encoded signature.
 type VerifyRequest = string
+
+// VerifyResponse Optional message about verification result
+type VerifyResponse = string
 
 // KeyPoolQueryParamAlgorithms defines model for KeyPoolQueryParamAlgorithms.
 type KeyPoolQueryParamAlgorithms = []KeyPoolAlgorithm
@@ -548,73 +554,72 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

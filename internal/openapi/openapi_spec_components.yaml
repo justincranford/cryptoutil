@@ -461,14 +461,15 @@ components:
         - "generate_date:ASC"
         - "generate_date:DESC"
 
-    SymmetricCipherInitializationVector:
+    EncryptContext:
       type: string
       pattern: '^[A-Za-z0-9_-]+$'
-      description: Base64URL-encoded Nonce (e.g. 12-bytes AES-GCM or AES-GCM-SIV) or Initialization Vector (e.g. 16-bytes AES-CBC). This is non-secret data used for encryption/decryption, as well as authentication and integrity checking during decryption (e.g. namespace, context).
-    SymmetricCipherAdditionalAuthenticatedData:
+      description: Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+
+    SignContext:
       type: string
       pattern: '^[A-Za-z0-9_-]+$'
-      description: Base64URL-encoded Additional Authenticated Data (AAD). This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+      description: Base64URL-encoded context Authenticated Data (AAD). This is non-secret data used for integrity checking during verify (e.g. namespace, context).
 
     KeyPoolsQueryParams:
       type: object
@@ -552,13 +553,11 @@ components:
         size:
           $ref: '#/components/schemas/PageSize'
 
-    SymmetricEncryptParams:
+    EncryptParams:
       type: object
       properties:
-        iv:
-          $ref: '#/components/schemas/SymmetricCipherInitializationVector'
-        aad:
-          $ref: '#/components/schemas/SymmetricCipherAdditionalAuthenticatedData'
+        context:
+          $ref: '#/components/schemas/EncryptContext'
 
     EncryptRequest:
       type: string
@@ -587,7 +586,13 @@ components:
         - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
     DecryptResponse:
       type: string
-      description: Encrypted text to be decrypted. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; ese the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+      description: Decrypted text. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; use the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+
+    SignParams:
+      type: object
+      properties:
+        context:
+          $ref: '#/components/schemas/SignContext'
 
     SignRequest:
       type: string
@@ -610,6 +615,9 @@ components:
         - Header: Required base64Url-encoded JSON key/values for the JWS.
         - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT).
         - Signature: Required base64Url-encoded signature.
+    VerifyResponse:
+      type: string
+      description: Optional message about verification result
 
     HTTPError:
       type: object

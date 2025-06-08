@@ -26,7 +26,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
 	}
 	for i, jwk := range jwks {
-		alg, err := ExtractJwsJwkAlg(&jwk, i)
+		alg, err := ExtractAlgFromJwsJwk(&jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -64,7 +64,7 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 
 	jwsVerifyOptions := make([]joseJws.VerifyOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		alg, err := ExtractJwsJwkAlg(&jwk, i)
+		alg, err := ExtractAlgFromJwsJwk(&jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}

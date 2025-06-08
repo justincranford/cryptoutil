@@ -298,16 +298,11 @@ paths:
           required: true
           schema:
             $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
-        - name: iv
+        - name: context
           in: query
           required: false
           schema:
-            $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricCipherInitializationVector'
-        - name: aad
-          in: query
-          required: false
-          schema:
-            $ref: './openapi_spec_components.yaml#/components/schemas/SymmetricCipherAdditionalAuthenticatedData'
+            $ref: './openapi_spec_components.yaml#/components/schemas/EncryptContext'
       requestBody:
         required: true
         content:
@@ -392,6 +387,11 @@ paths:
           required: true
           schema:
             $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+        - name: context
+          in: query
+          required: false
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/SignContext'
       requestBody:
         required: true
         content:

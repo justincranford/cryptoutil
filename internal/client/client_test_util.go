@@ -95,13 +95,12 @@ func RequireKeyGenerateResponse(t *testing.T, context context.Context, openapiCl
 }
 
 func RequireEncryptRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
-	symmetricEncryptRequest := cryptoutilOpenapiModel.EncryptRequest(*cleartext)
-	return &symmetricEncryptRequest
+	return MapEncryptRequest(cleartext)
 }
 
-func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, symmetricEncryptParams *cryptoutilOpenapiModel.SymmetricEncryptParams, symmetricEncryptRequest *cryptoutilOpenapiModel.EncryptRequest) *string {
-	keypoolKeyPoolIDEncryptParams := MapSymmetricEncryptParams(symmetricEncryptParams)
-	openapiEncryptResponse, err := openapiClient.PostKeypoolKeyPoolIDEncryptWithTextBodyWithResponse(context, *keyPoolId, &keypoolKeyPoolIDEncryptParams, *symmetricEncryptRequest)
+func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, encryptParams *cryptoutilOpenapiModel.EncryptParams, encryptRequest *cryptoutilOpenapiModel.EncryptRequest) *string {
+	keypoolKeyPoolIDEncryptParams := MapEncryptParams(encryptParams)
+	openapiEncryptResponse, err := openapiClient.PostKeypoolKeyPoolIDEncryptWithTextBodyWithResponse(context, *keyPoolId, &keypoolKeyPoolIDEncryptParams, *encryptRequest)
 	require.NoError(t, err)
 
 	encrypted, err := MapEncryptResponse(openapiEncryptResponse)
@@ -111,18 +110,46 @@ func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient
 }
 
 func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
-	symmetricDecryptRequest := cryptoutilOpenapiModel.DecryptRequest(*ciphertext)
-	return &symmetricDecryptRequest
+	return MapDecryptRequest(ciphertext)
 }
 
-func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, symmetricDecryptRequest *cryptoutilOpenapiModel.DecryptRequest) *string {
-	openapiDecryptResponse, err := openapiClient.PostKeypoolKeyPoolIDDecryptWithTextBodyWithResponse(context, *keyPoolId, *symmetricDecryptRequest)
+func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, decryptRequest *cryptoutilOpenapiModel.DecryptRequest) *string {
+	openapiDecryptResponse, err := openapiClient.PostKeypoolKeyPoolIDDecryptWithTextBodyWithResponse(context, *keyPoolId, *decryptRequest)
 	require.NoError(t, err)
 
 	decrypted, err := MapDecryptResponse(openapiDecryptResponse)
 	require.NoError(t, err)
 
 	return decrypted
+}
+
+func RequireSignRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.SignRequest {
+	return MapSignRequest(cleartext)
+}
+
+func RequireSignResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, signParams *cryptoutilOpenapiModel.SignParams, signRequest *cryptoutilOpenapiModel.SignRequest) *string {
+	keypoolKeyPoolIDSignParams := MapSignParams(signParams)
+	openapiSignResponse, err := openapiClient.PostKeypoolKeyPoolIDSignWithTextBodyWithResponse(context, *keyPoolId, &keypoolKeyPoolIDSignParams, *signRequest)
+	require.NoError(t, err)
+
+	signed, err := MapSignResponse(openapiSignResponse)
+	require.NoError(t, err)
+
+	return signed
+}
+
+func RequireVerifyRequest(t *testing.T, signedtext *string) *cryptoutilOpenapiModel.VerifyRequest {
+	return MapVerifyRequest(signedtext)
+}
+
+func RequireVerifyResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, keyPoolId *cryptoutilOpenapiModel.KeyPoolId, verifyRequest *cryptoutilOpenapiModel.VerifyRequest) *string {
+	openapiVerifyResponse, err := openapiClient.PostKeypoolKeyPoolIDVerifyWithTextBodyWithResponse(context, *keyPoolId, *verifyRequest)
+	require.NoError(t, err)
+
+	verified, err := MapVerifyResponse(openapiVerifyResponse)
+	require.NoError(t, err)
+
+	return verified
 }
 
 func ValidateCreateKeyPoolVsKeyPool(keyPoolCreate *cryptoutilOpenapiModel.KeyPoolCreate, keyPool *cryptoutilOpenapiModel.KeyPool) error {
