@@ -52,7 +52,7 @@ func initializeFirstIntermediateJwk(jwkGenService *cryptoutilJose.JwkGenService,
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		intermediateKeyKidUuid, clearIntermediateKey, _, err := cryptoutilJose.GenerateJweJwkForEncAndAlg(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+		intermediateKeyKidUuid, clearIntermediateKey, _, err := jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
