@@ -39,11 +39,11 @@ func TestMain(m *testing.M) {
 }
 
 func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
-	unsealJwks, err := cryptoutilJose.GenerateJweJwksForTest(t, 1, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, unsealJwk, _, err := testJwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
-	require.NotNil(t, unsealJwks)
+	require.NotNil(t, unsealJwk)
 
-	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple(unsealJwks)
+	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJwk})
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
