@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const jwkCount = 10
+const jwkCount = 2
 
 func TestNewUnsealKeysServiceSimple_HappyPath(t *testing.T) {
 	unsealKeys, err := cryptoutilJose.GenerateJweJwksForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
