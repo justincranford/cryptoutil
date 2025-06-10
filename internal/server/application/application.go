@@ -1,4 +1,4 @@
-package listener
+package application
 
 import (
 	"context"
@@ -29,7 +29,7 @@ import (
 
 var ready atomic.Bool
 
-func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
+func StartServerApplication(listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
 	ctx := context.Background()
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, "cryptoutil", false, false)
@@ -137,12 +137,13 @@ func NewHttpListener(listenHost string, listenPort int, applyMigrations bool) (f
 
 func startServerFunc(err error, listenAddress string, app *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
 	return func() {
-		telemetryService.Slogger.Debug("starting server")
+		telemetryService.Slogger.Debug("starting fiber listener")
 		ready.Store(true)
 		err = app.Listen(listenAddress) // blocks until fiber app is stopped (e.g. stopServerFunc called by unit test or stopServerSignalFunc)
 		if err != nil {
-			telemetryService.Slogger.Error("failed to start fiber server", "error", err)
+			telemetryService.Slogger.Error("failed to start fiber listener", "error", err)
 		}
+		telemetryService.Slogger.Debug("listener fiber stopped")
 	}
 }
 
@@ -152,9 +153,6 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, jwkG
 			telemetryService.Slogger.Debug("stopping server")
 		}
 		if app != nil {
-			if telemetryService != nil {
-				telemetryService.Slogger.Debug("stopping fiber server")
-			}
 			err := app.Shutdown()
 			if err != nil {
 				telemetryService.Slogger.Error("failed to stop fiber server", "error", err)

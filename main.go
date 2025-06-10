@@ -3,13 +3,13 @@ package main
 import (
 	"log"
 
-	cryptoutilServer "cryptoutil/internal/server/listener"
+	cryptoutilServerApplication "cryptoutil/internal/server/application"
 )
 
 func main() {
-	start, _, err := cryptoutilServer.NewHttpListener("localhost", 8080, true)
+	start, _, err := cryptoutilServerApplication.StartServerApplication("localhost", 8080, true)
 	if err != nil {
-		log.Fatalf("failed to create listener: %v", err)
+		log.Fatalf("failed to start server application: %v", err)
 	}
 	start()
 }

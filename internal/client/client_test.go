@@ -11,7 +11,7 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
-	cryptoutilServer "cryptoutil/internal/server/listener"
+	cryptoutilServerApplication "cryptoutil/internal/server/application"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
@@ -169,9 +169,9 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		start, stop, err := cryptoutilServer.NewHttpListener(testServerHostname, testServerPort, true)
+		start, stop, err := cryptoutilServerApplication.StartServerApplication(testServerHostname, testServerPort, true)
 		if err != nil {
-			log.Fatalf("failed to create listener: %v", err)
+			log.Fatalf("failed to start server application: %v", err)
 		}
 		go start()
 		defer stop()

@@ -1,4 +1,4 @@
-package listener
+package application
 
 import (
 	"cryptoutil/internal/client"
@@ -20,9 +20,9 @@ var (
 )
 
 func TestHttpGetHttp200(t *testing.T) {
-	start, stop, err := NewHttpListener("localhost", testServerPort, true)
+	start, stop, err := StartServerApplication("localhost", testServerPort, true)
 	if err != nil {
-		t.Fatalf("failed to create listener: %v", err)
+		t.Fatalf("failed to start server application: %v", err)
 	}
 	go start()
 	defer stop()
