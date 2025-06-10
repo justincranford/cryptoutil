@@ -227,13 +227,13 @@ func validateOrGenerateJwsHmacJwk(key cryptoutilKeygen.Key, alg *joseJwa.Signatu
 	}
 }
 
-func ExtractAlgFromJwsJwk(jwk *joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
+func ExtractAlgFromJwsJwk(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
 	if jwk == nil {
 		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
 
 	var alg joseJwa.SignatureAlgorithm
-	err := (*jwk).Get(joseJwk.AlgorithmKey, &alg) // Example: RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, EdDSA
+	err := jwk.Get(joseJwk.AlgorithmKey, &alg) // Example: RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512, EdDSA
 	if err != nil {
 		return nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)
 	}

@@ -29,7 +29,7 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithJSON())
 	}
 	for i, jwk := range jwks {
-		enc, alg, err := ExtractAlgEncFromJweJwk(&jwk, i)
+		enc, alg, err := ExtractAlgEncFromJweJwk(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -75,7 +75,7 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	encs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
 	jweDecryptOptions := make([]joseJwe.DecryptOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		enc, alg, err := ExtractAlgEncFromJweJwk(&jwk, i)
+		enc, alg, err := ExtractAlgEncFromJweJwk(jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
