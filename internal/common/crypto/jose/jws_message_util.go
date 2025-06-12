@@ -23,6 +23,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
 
+	algs := make(map[joseJwa.SignatureAlgorithm]struct{})
 	jwsSignOptions := make([]joseJws.SignOption, 0, len(jwks))
 	if len(jwks) > 1 {
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
@@ -31,6 +32,10 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		alg, err := ExtractAlgFromJwsJwk(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
+		}
+		algs[*alg] = struct{}{} // track SignatureAlgorithm counts
+		if len(algs) != 1 {     // validate that one-and-only-one SignatureAlgorithm is used across all JWKs
+			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithKey(*alg, jwk)) // add ALG+JWK tuple for each JWK
 	}
@@ -64,15 +69,23 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("failed to parse JWS message bytes: %w", err)
 	}
 
+	algs := make(map[joseJwa.SignatureAlgorithm]struct{})
 	jwsVerifyOptions := make([]joseJws.VerifyOption, 0, len(jwks))
 	for i, jwk := range jwks {
 		alg, err := ExtractAlgFromJwsJwk(jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
-		jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKey(*alg, jwk))
+		algs[*alg] = struct{}{} // track SignatureAlgorithm counts
+		if len(algs) != 1 {     // validate that one-and-only-one SignatureAlgorithm is used across all JWKs
+			return nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
+		}
+		// jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKey(*alg, jwk))
 	}
-	jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithMessage(jwsMessage))
+	jwkSet := joseJwk.NewSet()
+	jwkSet.Set("keys", jwks)
+	jwkSetOptions := []joseJws.WithKeySetSuboption{joseJws.WithRequireKid(true)}
+	jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKeySet(jwkSet, jwkSetOptions...), joseJws.WithMessage(jwsMessage))
 
 	verifiedBytes, err := joseJws.Verify(jwsMessageBytes, jwsVerifyOptions...)
 	if err != nil {

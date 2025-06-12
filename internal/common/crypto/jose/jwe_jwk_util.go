@@ -266,7 +266,7 @@ func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	}
 }
 
-func ExtractAlgEncFromJweJwk(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyAlgorithm, error) {
+func ExtractAlgEncFromJweJwk(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	if jwk == nil {
 		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
@@ -283,7 +283,7 @@ func ExtractAlgEncFromJweJwk(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryption
 		enc = joseJwa.NewContentEncryptionAlgorithm(encString)
 	}
 
-	var alg joseJwa.KeyAlgorithm
+	var alg joseJwa.KeyEncryptionAlgorithm
 	err = jwk.Get(joseJwk.AlgorithmKey, &alg) // Example: A256KW, A192KW, A128KW, A256GCMKW, A192GCMKW, A128GCMKW, dir
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't get JWK %d 'alg' attribute: %w", i, err)

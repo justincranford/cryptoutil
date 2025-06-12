@@ -207,7 +207,7 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptKey(t *testing.T) {
 			require.NoError(t, err)
 			log.Printf("Decrypted Key: %s", string(decryptedEncodedKey))
 
-			require.Equal(t, originalKey.Keys(), decryptedKey.Keys())
+			require.ElementsMatch(t, originalKey.Keys(), decryptedKey.Keys())
 		})
 	}
 }

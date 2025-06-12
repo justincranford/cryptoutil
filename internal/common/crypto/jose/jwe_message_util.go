@@ -24,6 +24,7 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 	}
 
 	encs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
+	algs := make(map[joseJwa.KeyEncryptionAlgorithm]struct{})
 	jweEncryptOptions := make([]joseJwe.EncryptOption, 0, len(jwks))
 	if len(jwks) > 1 { // more than one JWK requires using JSON encoding, instead of default Compact encoding
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithJSON())
@@ -38,7 +39,11 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		}
 		encs[*enc] = struct{}{} // track ContentEncryptionAlgorithm counts
 		if len(encs) != 1 {     // validate that one-and-only-one ContentEncryptionAlgorithm is used across all JWKs
-			return nil, nil, fmt.Errorf("can't use JWK %d 'enc' attributes; only one unique 'enc' attribute is allowed", i)
+			return nil, nil, fmt.Errorf("can't use JWK %d 'enc' attribute; only one unique 'enc' attribute is allowed", i)
+		}
+		algs[*alg] = struct{}{} // track KeyEncryptionAlgorithm counts
+		if len(algs) != 1 {     // validate that one-and-only-one KeyEncryptionAlgorithm is used across all JWKs
+			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*alg, jwk)) // add ALG+JWK tuple for each JWK
 	}
@@ -73,6 +78,7 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	}
 
 	encs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
+	algs := make(map[joseJwa.KeyEncryptionAlgorithm]struct{})
 	jweDecryptOptions := make([]joseJwe.DecryptOption, 0, len(jwks))
 	for i, jwk := range jwks {
 		enc, alg, err := ExtractAlgEncFromJweJwk(jwk, i)
@@ -81,11 +87,18 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 		}
 		encs[*enc] = struct{}{}
 		if len(encs) != 1 {
-			return nil, fmt.Errorf("can't use JWK %d 'enc' attributes; only one unique 'enc' attribute is allowed", i)
+			return nil, fmt.Errorf("can't use JWK %d 'enc' attribute; only one unique 'enc' attribute is allowed", i)
 		}
-		jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithKey(*alg, jwk))
+		algs[*alg] = struct{}{} // track KeyEncryptionAlgorithm counts
+		if len(algs) != 1 {     // validate that one-and-only-one KeyEncryptionAlgorithm is used across all JWKs
+			return nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
+		}
+		// jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithKey(*alg, jwk))
 	}
-	jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithMessage(jweMessage))
+	jwkSet := joseJwk.NewSet()
+	jwkSet.Set("keys", jwks)
+	jwkSetOptions := []joseJwe.WithKeySetSuboption{joseJwe.WithRequireKid(true)}
+	jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithKeySet(jwkSet, jwkSetOptions...), joseJwe.WithMessage(jweMessage))
 
 	decryptedBytes, err := joseJwe.Decrypt(jweMessageBytes, jweDecryptOptions...)
 	if err != nil {
