@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/cloudflare/circl/sign/ed448"
 
@@ -32,6 +33,7 @@ func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *jo
 }
 
 func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	now := time.Now().UTC().String()
 	_, err := validateJweJwkHeaders(kid, enc, alg, key, false)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)
@@ -77,6 +79,12 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	}
 	if err = jwk.Set("enc", *enc); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWE JWK: %w", err)
+	}
+	if err = jwk.Set("iat", now); err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWE JWK: %w", err)
+	}
+	if err = jwk.Set("nbf", now); err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to set `nbf` header in JWE JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `enc` header in JWE JWK: %w", err)

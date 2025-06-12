@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
@@ -31,6 +32,7 @@ func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, jo
 }
 
 func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+	now := time.Now().UTC().String()
 	_, err := validateJwsJwkHeaders(kid, alg, key, false)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWS JWK headers: %w", err)
@@ -73,6 +75,12 @@ func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 	}
 	if err = jwk.Set(joseJwk.AlgorithmKey, *alg); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWS JWK: %w", err)
+	}
+	if err = jwk.Set("iat", now); err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWS JWK: %w", err)
+	}
+	if err = jwk.Set("nbf", now); err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to set `nbf` header in JWS JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.KeyUsageKey, "sig"); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `use` header in JWS JWK: %w", err)
