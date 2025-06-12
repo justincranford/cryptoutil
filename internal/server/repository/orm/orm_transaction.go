@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	googleUuid "github.com/google/uuid"
@@ -49,7 +50,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 			}
 		}
 		if recover := recover(); recover != nil {
-			r.telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "mode", tx.Mode(), "panic", recover)
+			r.telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "mode", tx.Mode(), "panic", recover, "stack", string(debug.Stack()))
 			panic(recover)
 		}
 	}()

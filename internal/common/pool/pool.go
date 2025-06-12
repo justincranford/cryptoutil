@@ -3,6 +3,7 @@ package pool
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -152,8 +153,8 @@ func (pool *ValueGenPool[T]) Cancel() {
 func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 	startTime := time.Now().UTC()
 	defer func() {
-		if r := recover(); r != nil {
-			pool.cfg.telemetryService.Slogger.Error("worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", r)
+		if recover := recover(); recover != nil {
+			pool.cfg.telemetryService.Slogger.Error("worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", recover, "stack", string(debug.Stack()))
 		}
 		pool.cfg.telemetryService.Slogger.Debug("worker done", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}()
@@ -179,8 +180,8 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 
 func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime time.Time) error {
 	defer func() { // always release permission, even if there was an error or panic
-		if r := recover(); r != nil {
-			pool.cfg.telemetryService.Slogger.Error("recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", r)
+		if recover := recover(); recover != nil {
+			pool.cfg.telemetryService.Slogger.Error("recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", recover, "stack", string(debug.Stack()))
 		}
 		<-pool.permissionChannel
 		pool.cfg.telemetryService.Slogger.Debug("released permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())

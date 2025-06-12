@@ -47,8 +47,8 @@ func TestSqlRepository_PingFailure(t *testing.T) {
 
 func TestSqlTransaction_PanicRecovery(t *testing.T) {
 	defer func() {
-		if r := recover(); r != nil {
-			require.NotNil(t, r)
+		if recover := recover(); recover != nil {
+			require.NotNil(t, recover)
 		}
 	}()
 

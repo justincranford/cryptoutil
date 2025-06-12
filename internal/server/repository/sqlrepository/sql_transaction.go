@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	googleUuid "github.com/google/uuid"
@@ -53,9 +54,9 @@ func (sqlRepository *SqlRepository) WithTransaction(ctx context.Context, readOnl
 				sqlRepository.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 			}
 		}
-		if r := recover(); r != nil {
-			sqlRepository.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", r)
-			panic(r) // re-throw the panic after rollback
+		if recover := recover(); recover != nil {
+			sqlRepository.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", recover, "stack", string(debug.Stack()))
+			panic(recover) // re-throw the panic after rollback
 		}
 	}()
 
