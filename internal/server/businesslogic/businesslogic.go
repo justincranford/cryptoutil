@@ -53,26 +53,39 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 	keyPoolID := s.jwkGenService.GenerateUUIDv7()
 	repositoryKeyPoolToInsert := s.serviceOrmMapper.toOrmAddKeyPool(*keyPoolID, openapiKeyPoolCreate)
 
+	if repositoryKeyPoolToInsert.KeyPoolImportAllowed {
+		return nil, fmt.Errorf("KeyPoolImportAllowed=true not supported yet")
+	}
+
+	// generate first key automatically
+	keyID, _, clearKeyBytes, err := s.generateJweJwk(&repositoryKeyPoolToInsert.KeyPoolAlgorithm)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate KeyPool Key: %w", err)
+	}
+	repositoryKeyGenerateDate := time.Now().UTC()
+
 	var insertedKeyPool *cryptoutilOrmRepository.KeyPool
-	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		err := sqlTransaction.AddKeyPool(repositoryKeyPoolToInsert)
 		if err != nil {
 			return fmt.Errorf("failed to add KeyPool: %w", err)
 		}
 
 		err = TransitionState(cryptoutilBusinessLogicModel.Creating, cryptoutilBusinessLogicModel.KeyPoolStatus(repositoryKeyPoolToInsert.KeyPoolStatus))
-		if repositoryKeyPoolToInsert.KeyPoolStatus != cryptoutilOrmRepository.PendingGenerate {
+		if err != nil {
 			return fmt.Errorf("invalid KeyPoolStatus transition: %w", err)
 		}
 
-		if repositoryKeyPoolToInsert.KeyPoolStatus != cryptoutilOrmRepository.PendingGenerate {
-			return nil // import first key manually later
+		encryptedKeyBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearKeyBytes)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt KeyPool Key: %w", err)
 		}
 
-		// generate first key automatically now
-		repositoryKey, err := s.generateKeyPoolKeyForInsert(sqlTransaction, *keyPoolID, repositoryKeyPoolToInsert.KeyPoolAlgorithm)
-		if err != nil {
-			return fmt.Errorf("failed to generate first key: %w", err)
+		repositoryKey := &cryptoutilOrmRepository.Key{
+			KeyPoolID:       *keyPoolID,
+			KeyID:           *keyID,
+			KeyMaterial:     encryptedKeyBytes,          // nil if repositoryKeyPoolToInsert.KeyPoolImportAllowed=true
+			KeyGenerateDate: &repositoryKeyGenerateDate, // nil if repositoryKeyPoolToInsert.KeyPoolImportAllowed=true
 		}
 
 		err = sqlTransaction.AddKeyPoolKey(repositoryKey)
@@ -150,9 +163,22 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 			return fmt.Errorf("invalid KeyPoolStatus: %w", err)
 		}
 
-		repositoryKey, err = s.generateKeyPoolKeyForInsert(sqlTransaction, repositoryKeyPool.KeyPoolID, repositoryKeyPool.KeyPoolAlgorithm)
+		keyID, _, clearKeyBytes, err := s.generateJweJwk(&repositoryKeyPool.KeyPoolAlgorithm)
 		if err != nil {
-			return fmt.Errorf("failed to generate key: %w", err)
+			return fmt.Errorf("failed to generate KeyPool Key: %w", err)
+		}
+		repositoryKeyGenerateDate := time.Now().UTC()
+
+		encryptedKeyBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearKeyBytes)
+		if err != nil {
+			return fmt.Errorf("failed to encrypt KeyPool Key: %w", err)
+		}
+
+		repositoryKey = &cryptoutilOrmRepository.Key{
+			KeyPoolID:       keyPoolID,
+			KeyID:           *keyID,
+			KeyMaterial:     encryptedKeyBytes,
+			KeyGenerateDate: &repositoryKeyGenerateDate,
 		}
 
 		err = sqlTransaction.AddKeyPoolKey(repositoryKey)
@@ -304,44 +330,34 @@ func (s *BusinessLogicService) PostVerifyByKeyPoolID(ctx context.Context, keyPoo
 	return verifiedJwsMessageBytes, nil
 }
 
-func (s *BusinessLogicService) generateKeyPoolKeyForInsert(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, keyPoolID googleUuid.UUID, keyPoolAlgorithm cryptoutilOrmRepository.KeyPoolAlgorithm) (*cryptoutilOrmRepository.Key, error) {
+func (s *BusinessLogicService) generateJweJwk(keyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	var keyID *googleUuid.UUID
+	var jweJwk joseJwk.Key
 	var clearKeyBytes []byte
 
-	if s.serviceOrmMapper.isJwe(&keyPoolAlgorithm) {
-		enc, alg, err := s.serviceOrmMapper.toJweEncAndAlg(&keyPoolAlgorithm)
+	if s.serviceOrmMapper.isJwe(keyPoolAlgorithm) {
+		enc, alg, err := s.serviceOrmMapper.toJweEncAndAlg(keyPoolAlgorithm)
 		if err != nil {
-			return nil, fmt.Errorf("failed to map JWE Key Pool Algorithm: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to map JWE Key Pool Algorithm: %w", err)
 		}
-		keyID, _, clearKeyBytes, err = s.jwkGenService.GenerateJweJwk(enc, alg)
+		keyID, jweJwk, clearKeyBytes, err = s.jwkGenService.GenerateJweJwk(enc, alg)
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate JWE: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to generate JWE: %w", err)
 		}
-	} else if s.serviceOrmMapper.isJws(&keyPoolAlgorithm) {
-		alg, err := s.serviceOrmMapper.toJwsAlg(&keyPoolAlgorithm)
+	} else if s.serviceOrmMapper.isJws(keyPoolAlgorithm) {
+		alg, err := s.serviceOrmMapper.toJwsAlg(keyPoolAlgorithm)
 		if err != nil {
-			return nil, fmt.Errorf("failed to map JWS Key Pool Algorithm: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to map JWS Key Pool Algorithm: %w", err)
 		}
-		keyID, _, clearKeyBytes, err = s.jwkGenService.GenerateJwsJwk(alg)
+		keyID, jweJwk, clearKeyBytes, err = s.jwkGenService.GenerateJwsJwk(alg)
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate JWS: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to generate JWS: %w", err)
 		}
 	} else {
-		return nil, fmt.Errorf("unsupported KeyPoolAlgorithm %s", keyPoolAlgorithm)
+		return nil, nil, nil, fmt.Errorf("unsupported KeyPoolAlgorithm %v", keyPoolAlgorithm)
 	}
 
-	repositoryKeyGenerateDate := time.Now().UTC()
-	encryptedKeyBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearKeyBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to encrypt JWK: %w", err)
-	}
-
-	return &cryptoutilOrmRepository.Key{
-		KeyPoolID:       keyPoolID,
-		KeyID:           *keyID,
-		KeyMaterial:     encryptedKeyBytes,
-		KeyGenerateDate: &repositoryKeyGenerateDate,
-	}, nil
+	return keyID, jweJwk, clearKeyBytes, nil
 }
 
 func (s *BusinessLogicService) getAndDecryptKeyPoolJwk(ctx context.Context, keyPoolID *googleUuid.UUID, kidUuid *googleUuid.UUID) (*cryptoutilOrmRepository.KeyPool, *cryptoutilOrmRepository.Key, joseJwk.Key, error) {
