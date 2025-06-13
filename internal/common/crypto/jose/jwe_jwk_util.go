@@ -33,7 +33,7 @@ func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *jo
 }
 
 func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	now := time.Now().UTC().String()
+	now := time.Now().UTC().Unix()
 	_, err := validateJweJwkHeaders(kid, enc, alg, key, false)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)

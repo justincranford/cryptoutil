@@ -32,7 +32,7 @@ func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, jo
 }
 
 func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeygen.Key) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
-	now := time.Now().UTC().String()
+	now := time.Now().UTC().Unix()
 	_, err := validateJwsJwkHeaders(kid, alg, key, false)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("invalid JWS JWK headers: %w", err)
