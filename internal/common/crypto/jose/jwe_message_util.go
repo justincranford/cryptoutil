@@ -3,6 +3,7 @@ package jose
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 
@@ -29,7 +30,14 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 	if len(jwks) > 1 { // more than one JWK requires using JSON encoding, instead of default Compact encoding
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithJSON())
 	}
+	jweProtectedHeaders := joseJwe.NewHeaders()
+	jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
+	jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithProtectedHeaders(jweProtectedHeaders))
 	for i, jwk := range jwks {
+		kid, err := ExtractKidUuid(jwk)
+		if err != nil {
+			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
+		}
 		enc, alg, err := ExtractAlgEncFromJweJwk(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
@@ -45,7 +53,11 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		if len(algs) != 1 {     // validate that one-and-only-one KeyEncryptionAlgorithm is used across all JWKs
 			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
-		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*alg, jwk)) // add ALG+JWK tuple for each JWK
+		jweProtectedHeaders := joseJwe.NewHeaders()
+		jweProtectedHeaders.Set(joseJwk.KeyIDKey, *kid)
+		jweProtectedHeaders.Set(`enc`, *enc)
+		jweProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg)
+		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*alg, jwk, joseJwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 	}
 
 	jweMessageBytes, err := joseJwe.Encrypt(clearBytes, jweEncryptOptions...)
