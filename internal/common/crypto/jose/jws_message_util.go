@@ -3,6 +3,7 @@ package jose
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 
@@ -28,7 +29,12 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 	if len(jwks) > 1 {
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
 	}
+	iat := time.Now().UTC().Unix()
 	for i, jwk := range jwks {
+		kid, err := ExtractKidUuid(jwk)
+		if err != nil {
+			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
+		}
 		alg, err := ExtractAlgFromJwsJwk(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
@@ -37,7 +43,11 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		if len(algs) != 1 {     // validate that one-and-only-one SignatureAlgorithm is used across all JWKs
 			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
-		jwsSignOptions = append(jwsSignOptions, joseJws.WithKey(*alg, jwk)) // add ALG+JWK tuple for each JWK
+		jwsProtectedHeaders := joseJws.NewHeaders()
+		jwsProtectedHeaders.Set(`iat`, iat)
+		jwsProtectedHeaders.Set(joseJwk.KeyIDKey, *kid)
+		jwsProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg)
+		jwsSignOptions = append(jwsSignOptions, joseJws.WithKey(*alg, jwk, joseJws.WithProtectedHeaders(jwsProtectedHeaders)))
 	}
 
 	jwsMessageBytes, err := joseJws.Sign(clearBytes, jwsSignOptions...)
