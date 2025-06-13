@@ -49,7 +49,7 @@ func Test_HappyPath_NonJwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 
 			var actualJwkUse string
 			require.NoError(t, jwsJwk.Get(joseJwk.KeyUsageKey, &actualJwkUse))
-			require.Equal(t, "sig", actualJwkUse)
+			require.Equal(t, joseJwk.ForSignature.String(), actualJwkUse)
 
 			var actualJwkOps joseJwk.KeyOperationList
 			require.NoError(t, jwsJwk.Get(joseJwk.KeyOpsKey, &actualJwkOps))

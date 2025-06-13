@@ -57,7 +57,7 @@ func Test_HappyPath_JwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 
 			var actualJwkUse string
 			require.NoError(t, cek.Get(joseJwk.KeyUsageKey, &actualJwkUse))
-			require.Equal(t, "enc", actualJwkUse)
+			require.Equal(t, joseJwk.ForEncryption.String(), actualJwkUse)
 
 			var actualJwkOps joseJwk.KeyOperationList
 			require.NoError(t, cek.Get(joseJwk.KeyOpsKey, &actualJwkOps))
@@ -117,7 +117,7 @@ func Test_HappyPath_JwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 
 			var actualJwkUse string
 			require.NoError(t, jwsJwk.Get(joseJwk.KeyUsageKey, &actualJwkUse))
-			require.Equal(t, "sig", actualJwkUse)
+			require.Equal(t, joseJwk.ForSignature.String(), actualJwkUse)
 
 			var actualJwkOps joseJwk.KeyOperationList
 			require.NoError(t, jwsJwk.Get(joseJwk.KeyOpsKey, &actualJwkOps))

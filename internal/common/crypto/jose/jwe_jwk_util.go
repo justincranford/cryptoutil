@@ -86,7 +86,7 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	if err = jwk.Set("nbf", now); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `nbf` header in JWE JWK: %w", err)
 	}
-	if err = jwk.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
+	if err = jwk.Set(joseJwk.KeyUsageKey, joseJwk.ForEncryption.String()); err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to set `enc` header in JWE JWK: %w", err)
 	}
 	if err = jwk.Set(joseJwk.KeyOpsKey, OpsEncDec); err != nil {
