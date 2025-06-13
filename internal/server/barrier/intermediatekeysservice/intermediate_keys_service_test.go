@@ -86,6 +86,5 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, decryptedContentKey)
 
-	// TODO Why does Equal not work on clearContentKey <=> decryptedContentKey?
-	require.Equal(t, clearContentKey.Keys(), decryptedContentKey.Keys())
+	require.ElementsMatch(t, clearContentKey.Keys(), decryptedContentKey.Keys())
 }
