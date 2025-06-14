@@ -142,6 +142,48 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/KeyGenerateDate'
+    KeyQueryParamMinimumImportDate:
+      name: min_import_date
+      in: query
+      description: Filter by the Key minimum import date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyImportDate'
+    KeyQueryParamMaximumImportDate:
+      name: max_import_date
+      in: query
+      description: Filter by the Key maximum import date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyImportDate'
+    KeyQueryParamMinimumExpirationDate:
+      name: min_expiration_date
+      in: query
+      description: Filter by the Key minimum expiration date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyExpirationDate'
+    KeyQueryParamMaximumExpirationDate:
+      name: max_expiration_date
+      in: query
+      description: Filter by the Key maximum expiration date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyExpirationDate'
+    KeyQueryParamMinimumRevocationDate:
+      name: min_revocation_date
+      in: query
+      description: Filter by the Key minimum revocation date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyRevocationDate'
+    KeyQueryParamMaximumRevocationDate:
+      name: max_revocation_date
+      in: query
+      description: Filter by the Key maximum revocation date (inclusive).
+      required: false
+      schema:
+        $ref: '#/components/schemas/KeyRevocationDate'
     KeyQueryParamSorts:
       name: sort
       in: query
@@ -242,6 +284,7 @@ components:
 
     Key:
       type: object
+      required: [ pool, id ]
       properties:
         pool:
           $ref: '#/components/schemas/KeyPoolId'
@@ -249,7 +292,19 @@ components:
           $ref: '#/components/schemas/KeyId'
         generate_date:
           $ref: '#/components/schemas/KeyGenerateDate'
-
+        import_date:
+          $ref: '#/components/schemas/KeyImportDate'
+        expiration_date:
+          $ref: '#/components/schemas/KeyExpirationDate'
+        revocation_date:
+          $ref: '#/components/schemas/KeyRevocationDate'
+        public:
+          $ref: '#/components/schemas/KeyMaterialPublic'
+        encrypted:
+          $ref: '#/components/schemas/KeyMaterialEncrypted'
+        decrypted:
+          $ref: '#/components/schemas/KeyMaterialDecrypted'
+          
     KeyPoolId:
       type: string
       format: uuid
@@ -448,6 +503,32 @@ components:
       format: date-time
       example: "2025-03-14T12:00:00Z"
       description: ISO 8601 UTC timestamp of Key generation.
+    KeyImportDate:
+      type: string
+      format: date-time
+      example: "2025-03-14T12:00:00Z"
+      description: ISO 8601 UTC timestamp of Key generation.
+    KeyExpirationDate:
+      type: string
+      format: date-time
+      example: "2025-03-14T12:00:00Z"
+      description: ISO 8601 UTC timestamp of Key generation.
+    KeyRevocationDate:
+      type: string
+      format: date-time
+      example: "2025-03-14T12:00:00Z"
+      description: ISO 8601 UTC timestamp of Key generation.
+    KeyMaterialPublic:
+      type: string
+      description: Clear public key material (if applicable)
+    KeyMaterialEncrypted:
+      type: string
+      description: Encrypted private or secret key material (if KeyPool exportAllowed=true)
+      nullable: true
+    KeyMaterialDecrypted:
+      type: string
+      description: Clear private or secret key material (if KeyPool exportAllowed=true)
+      nullable: true
     KeySort:
       type: string
       enum:
@@ -520,6 +601,18 @@ components:
           $ref: '#/components/schemas/KeyGenerateDate'
         max_generate_date:
           $ref: '#/components/schemas/KeyGenerateDate'
+        min_import_date:
+          $ref: '#/components/schemas/KeyImportDate'
+        max_import_date:
+          $ref: '#/components/schemas/KeyImportDate'
+        min_expiration_date:
+          $ref: '#/components/schemas/KeyExpirationDate'
+        max_expiration_date:
+          $ref: '#/components/schemas/KeyExpirationDate'
+        min_revocation_date:
+          $ref: '#/components/schemas/KeyRevocationDate'
+        max_revocation_date:
+          $ref: '#/components/schemas/KeyRevocationDate'
         sort:
           type: array
           items:
@@ -544,6 +637,18 @@ components:
           $ref: '#/components/schemas/KeyGenerateDate'
         max_generate_date:
           $ref: '#/components/schemas/KeyGenerateDate'
+        min_import_date:
+          $ref: '#/components/schemas/KeyImportDate'
+        max_import_date:
+          $ref: '#/components/schemas/KeyImportDate'
+        min_expiration_date:
+          $ref: '#/components/schemas/KeyExpirationDate'
+        max_expiration_date:
+          $ref: '#/components/schemas/KeyExpirationDate'
+        min_revocation_date:
+          $ref: '#/components/schemas/KeyRevocationDate'
+        max_revocation_date:
+          $ref: '#/components/schemas/KeyRevocationDate'
         sort:
           type: array
           items:

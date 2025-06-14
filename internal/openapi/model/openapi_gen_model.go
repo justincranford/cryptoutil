@@ -220,16 +220,37 @@ type HTTPError struct {
 }
 
 // Key defines model for Key.
+// Decrypted Clear private or secret key material (if KeyPool exportAllowed=true)
 type Key struct {
+	Decrypted *KeyMaterialDecrypted `json:"decrypted"`
+
+	// Encrypted Encrypted private or secret key material (if KeyPool exportAllowed=true)
+	Encrypted *KeyMaterialEncrypted `json:"encrypted"`
+
+	// ExpirationDate ISO 8601 UTC timestamp of Key generation.
+	ExpirationDate *KeyExpirationDate `json:"expiration_date,omitempty"`
+
 	// GenerateDate ISO 8601 UTC timestamp of Key generation.
 	GenerateDate *KeyGenerateDate `json:"generate_date,omitempty"`
 
 	// Id Unique UUID for a Key.
-	Id *KeyId `json:"id,omitempty"`
+	Id KeyId `json:"id"`
+
+	// ImportDate ISO 8601 UTC timestamp of Key generation.
+	ImportDate *KeyImportDate `json:"import_date,omitempty"`
 
 	// Pool Unique UUID for a Key Pool.
-	Pool *KeyPoolId `json:"pool,omitempty"`
+	Pool KeyPoolId `json:"pool"`
+
+	// Public Clear public key material (if applicable)
+	Public *KeyMaterialPublic `json:"public,omitempty"`
+
+	// RevocationDate ISO 8601 UTC timestamp of Key generation.
+	RevocationDate *KeyRevocationDate `json:"revocation_date,omitempty"`
 }
+
+// KeyExpirationDate ISO 8601 UTC timestamp of Key generation.
+type KeyExpirationDate = time.Time
 
 // KeyGenerate defines model for KeyGenerate.
 type KeyGenerate = map[string]interface{}
@@ -239,6 +260,18 @@ type KeyGenerateDate = time.Time
 
 // KeyId Unique UUID for a Key.
 type KeyId = openapi_types.UUID
+
+// KeyImportDate ISO 8601 UTC timestamp of Key generation.
+type KeyImportDate = time.Time
+
+// KeyMaterialDecrypted Clear private or secret key material (if KeyPool exportAllowed=true)
+type KeyMaterialDecrypted = string
+
+// KeyMaterialEncrypted Encrypted private or secret key material (if KeyPool exportAllowed=true)
+type KeyMaterialEncrypted = string
+
+// KeyMaterialPublic Clear public key material (if applicable)
+type KeyMaterialPublic = string
 
 // KeyPool defines model for KeyPool.
 type KeyPool struct {
@@ -313,11 +346,29 @@ type KeyPoolImportAllowed = bool
 type KeyPoolKeysQueryParams struct {
 	Id *[]KeyId `json:"id,omitempty"`
 
+	// MaxExpirationDate ISO 8601 UTC timestamp of Key generation.
+	MaxExpirationDate *KeyExpirationDate `json:"max_expiration_date,omitempty"`
+
 	// MaxGenerateDate ISO 8601 UTC timestamp of Key generation.
 	MaxGenerateDate *KeyGenerateDate `json:"max_generate_date,omitempty"`
 
+	// MaxImportDate ISO 8601 UTC timestamp of Key generation.
+	MaxImportDate *KeyImportDate `json:"max_import_date,omitempty"`
+
+	// MaxRevocationDate ISO 8601 UTC timestamp of Key generation.
+	MaxRevocationDate *KeyRevocationDate `json:"max_revocation_date,omitempty"`
+
+	// MinExpirationDate ISO 8601 UTC timestamp of Key generation.
+	MinExpirationDate *KeyExpirationDate `json:"min_expiration_date,omitempty"`
+
 	// MinGenerateDate ISO 8601 UTC timestamp of Key generation.
 	MinGenerateDate *KeyGenerateDate `json:"min_generate_date,omitempty"`
+
+	// MinImportDate ISO 8601 UTC timestamp of Key generation.
+	MinImportDate *KeyImportDate `json:"min_import_date,omitempty"`
+
+	// MinRevocationDate ISO 8601 UTC timestamp of Key generation.
+	MinRevocationDate *KeyRevocationDate `json:"min_revocation_date,omitempty"`
 
 	// Page Page number starting at 0.
 	Page *PageNumber `json:"page,omitempty"`
@@ -376,6 +427,9 @@ type KeyPoolsQueryParams struct {
 	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
+// KeyRevocationDate ISO 8601 UTC timestamp of Key generation.
+type KeyRevocationDate = time.Time
+
 // KeySort defines model for KeySort.
 type KeySort string
 
@@ -392,11 +446,29 @@ type KeyUpdate struct {
 type KeysQueryParams struct {
 	Id *[]KeyId `json:"id,omitempty"`
 
+	// MaxExpirationDate ISO 8601 UTC timestamp of Key generation.
+	MaxExpirationDate *KeyExpirationDate `json:"max_expiration_date,omitempty"`
+
 	// MaxGenerateDate ISO 8601 UTC timestamp of Key generation.
 	MaxGenerateDate *KeyGenerateDate `json:"max_generate_date,omitempty"`
 
+	// MaxImportDate ISO 8601 UTC timestamp of Key generation.
+	MaxImportDate *KeyImportDate `json:"max_import_date,omitempty"`
+
+	// MaxRevocationDate ISO 8601 UTC timestamp of Key generation.
+	MaxRevocationDate *KeyRevocationDate `json:"max_revocation_date,omitempty"`
+
+	// MinExpirationDate ISO 8601 UTC timestamp of Key generation.
+	MinExpirationDate *KeyExpirationDate `json:"min_expiration_date,omitempty"`
+
 	// MinGenerateDate ISO 8601 UTC timestamp of Key generation.
 	MinGenerateDate *KeyGenerateDate `json:"min_generate_date,omitempty"`
+
+	// MinImportDate ISO 8601 UTC timestamp of Key generation.
+	MinImportDate *KeyImportDate `json:"min_import_date,omitempty"`
+
+	// MinRevocationDate ISO 8601 UTC timestamp of Key generation.
+	MinRevocationDate *KeyRevocationDate `json:"min_revocation_date,omitempty"`
 
 	// Page Page number starting at 0.
 	Page *PageNumber  `json:"page,omitempty"`
@@ -473,11 +545,29 @@ type KeyQueryParamIds = []KeyId
 // KeyQueryParamKeyPoolIds defines model for KeyQueryParamKeyPoolIds.
 type KeyQueryParamKeyPoolIds = []KeyPoolId
 
+// KeyQueryParamMaximumExpirationDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMaximumExpirationDate = KeyExpirationDate
+
 // KeyQueryParamMaximumGenerateDate ISO 8601 UTC timestamp of Key generation.
 type KeyQueryParamMaximumGenerateDate = KeyGenerateDate
 
+// KeyQueryParamMaximumImportDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMaximumImportDate = KeyImportDate
+
+// KeyQueryParamMaximumRevocationDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMaximumRevocationDate = KeyRevocationDate
+
+// KeyQueryParamMinimumExpirationDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMinimumExpirationDate = KeyExpirationDate
+
 // KeyQueryParamMinimumGenerateDate ISO 8601 UTC timestamp of Key generation.
 type KeyQueryParamMinimumGenerateDate = KeyGenerateDate
+
+// KeyQueryParamMinimumImportDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMinimumImportDate = KeyImportDate
+
+// KeyQueryParamMinimumRevocationDate ISO 8601 UTC timestamp of Key generation.
+type KeyQueryParamMinimumRevocationDate = KeyRevocationDate
 
 // KeyQueryParamPageNumber Page number starting at 0.
 type KeyQueryParamPageNumber = PageNumber
@@ -554,72 +644,77 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

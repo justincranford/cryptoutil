@@ -217,20 +217,32 @@ func (m *serviceOrmMapper) toServiceKeyPoolStatus(ormKeyPoolStatus *cryptoutilOr
 	return &serviceKeyPoolStatus
 }
 
-func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key) []cryptoutilBusinessLogicModel.Key {
+func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, repositoryKeyMaterials []*ExportableKeyMaterial) ([]cryptoutilBusinessLogicModel.Key, error) {
 	serviceKeys := make([]cryptoutilBusinessLogicModel.Key, len(ormKeys))
+	var serviceKey *cryptoutilBusinessLogicModel.Key
+	var err error
 	for i, ormKey := range ormKeys {
-		serviceKeys[i] = *m.toServiceKey(&ormKey)
+		serviceKey, err = m.toServiceKey(&ormKey, repositoryKeyMaterials[i])
+		if err != nil {
+			return nil, fmt.Errorf("failed to get service key: %w", err)
+		}
+		serviceKeys[i] = *serviceKey
 	}
-	return serviceKeys
+	return serviceKeys, nil
 }
 
-func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key) *cryptoutilBusinessLogicModel.Key {
+func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, repositoryKeyMaterial *ExportableKeyMaterial) (*cryptoutilBusinessLogicModel.Key, error) {
 	return &cryptoutilBusinessLogicModel.Key{
-		Pool:         (*cryptoutilBusinessLogicModel.KeyPoolId)(&ormKey.KeyPoolID),
-		Id:           &ormKey.KeyID,
-		GenerateDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
-	}
+		Pool:           cryptoutilBusinessLogicModel.KeyPoolId(ormKey.KeyPoolID),
+		Id:             ormKey.KeyID,
+		GenerateDate:   (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
+		ImportDate:     (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyImportDate),
+		ExpirationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyExpirationDate),
+		RevocationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyRevocationDate),
+		Public:         &repositoryKeyMaterial.public,
+		Encrypted:      &repositoryKeyMaterial.encrypted,
+		Decrypted:      &repositoryKeyMaterial.decrypted,
+	}, nil
 }
 
 func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilBusinessLogicModel.KeyPoolsQueryParams) (*cryptoutilOrmRepository.GetKeyPoolsFilters, error) {

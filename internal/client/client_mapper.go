@@ -7,6 +7,8 @@ import (
 
 	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+
+	googleUuid "github.com/google/uuid"
 )
 
 type ClientMapper struct{}
@@ -213,12 +215,12 @@ func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostKeyp
 			return nil, fmt.Errorf("failed to generate key, JSON200 is nil")
 		}
 		key := openapiKeyGenerateResponse.JSON200
-		if key.Pool == nil {
-			return nil, fmt.Errorf("failed to generate key, keyPool.Pool is nil")
-		} else if key.Id == nil {
-			return nil, fmt.Errorf("failed to generate key, keyPool.Id is nil")
+		if key.Pool == googleUuid.Nil {
+			return nil, fmt.Errorf("failed to generate key, keyPool.Pool is zero")
+		} else if key.Id == googleUuid.Nil {
+			return nil, fmt.Errorf("failed to generate key, keyPool.Id is zero")
 		} else if key.GenerateDate == nil {
-			return nil, fmt.Errorf("failed to generate key, keyPool.GenerateDate is nil")
+			return nil, fmt.Errorf("failed to generate key, keyPool.GenerateDate is nil") // TODO nil allowed if import not nil
 		}
 		return key, nil
 	default:

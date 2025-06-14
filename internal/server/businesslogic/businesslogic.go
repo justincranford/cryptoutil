@@ -27,6 +27,12 @@ type BusinessLogicService struct {
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
+type ExportableKeyMaterial struct {
+	public    string
+	encrypted string
+	decrypted string
+}
+
 func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
@@ -151,10 +157,12 @@ func (s *BusinessLogicService) GetKeyPools(ctx context.Context, keyPoolQueryPara
 }
 
 func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPoolID googleUuid.UUID, _ *cryptoutilBusinessLogicModel.KeyGenerate) (*cryptoutilBusinessLogicModel.Key, error) {
+	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 	var repositoryKey *cryptoutilOrmRepository.Key
+	var repositoryExportableKeyMaterial *ExportableKeyMaterial
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
-		repositoryKeyPool, err := sqlTransaction.GetKeyPool(keyPoolID)
+		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
 		if err != nil {
 			return fmt.Errorf("failed to get KeyPool by KeyPoolID: %w", err)
 		}
@@ -163,7 +171,8 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 			return fmt.Errorf("invalid KeyPoolStatus: %w", err)
 		}
 
-		keyID, _, clearKeyBytes, err := s.generateJweJwk(&repositoryKeyPool.KeyPoolAlgorithm)
+		var keyID *googleUuid.UUID
+		keyID, jwk, clearKeyBytes, err := s.generateJweJwk(&repositoryKeyPool.KeyPoolAlgorithm)
 		if err != nil {
 			return fmt.Errorf("failed to generate KeyPool Key: %w", err)
 		}
@@ -181,6 +190,13 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 			KeyGenerateDate: &repositoryKeyGenerateDate,
 		}
 
+		// TODO
+		repositoryExportableKeyMaterial = &ExportableKeyMaterial{
+			public:    jwk.KeyType().String(),
+			encrypted: "",
+			decrypted: "",
+		}
+
 		err = sqlTransaction.AddKeyPoolKey(repositoryKey)
 		if err != nil {
 			return fmt.Errorf("failed to insert Key: %w", err)
@@ -192,8 +208,12 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 		return nil, fmt.Errorf("failed to generate key in KeyPool: %w", err)
 	}
 
-	openapiPostKeypoolKeyPoolIDKeyResponseObject := *s.serviceOrmMapper.toServiceKey(repositoryKey)
-	return &openapiPostKeypoolKeyPoolIDKeyResponseObject, nil
+	openapiPostKeypoolKeyPoolIDKeyResponseObject, err := s.serviceOrmMapper.toServiceKey(repositoryKey, repositoryExportableKeyMaterial)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map key in KeyPool: %w", err)
+	}
+
+	return openapiPostKeypoolKeyPoolIDKeyResponseObject, nil
 }
 
 func (s *BusinessLogicService) GetKeysByKeyPool(ctx context.Context, keyPoolID googleUuid.UUID, keyPoolKeysQueryParams *cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams) ([]cryptoutilBusinessLogicModel.Key, error) {
@@ -201,13 +221,50 @@ func (s *BusinessLogicService) GetKeysByKeyPool(ctx context.Context, keyPoolID g
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Key Pool Keys parameters: %w", err)
 	}
+	var repositoryKeyPool *cryptoutilOrmRepository.KeyPool
 	var repositoryKeys []cryptoutilOrmRepository.Key
+	var repositoryExportableKeyMaterials []*ExportableKeyMaterial
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
+		repositoryKeyPool, err = sqlTransaction.GetKeyPool(keyPoolID)
+		if err != nil {
+			return fmt.Errorf("failed to get KeyPool by KeyPoolID: %w", err)
+		}
+
 		repositoryKeys, err = sqlTransaction.GetKeyPoolKeys(keyPoolID, ormKeyPoolKeysQueryParams)
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 		}
+
+		exportableKeyMaterial := &ExportableKeyMaterial{
+			public:    "",
+			encrypted: "",
+			decrypted: "",
+		}
+
+		// var public *string
+		// var encrypted *string
+		// var decrypted *string
+		if repositoryKeyPool.KeyPoolExportAllowed {
+			// 	encryptedKeyString := string(encryptedKeyBytes)
+			// 	decryptedKeyString := string(clearKeyBytes)
+			// 	encrypted = &encryptedKeyString
+			// 	decrypted = &decryptedKeyString
+
+			// 	// TODO handle secret key
+			// 	publicJwk, err := jwk.PublicKey()
+			// 	if err != nil {
+			// 		return nil, fmt.Errorf("failed to get public key: %w", err)
+			// 	}
+			// 	publicKeyBytes, err := publicJwk.KeyType().MarshalJSON()
+			// 	if err != nil {
+			// 		return nil, fmt.Errorf("failed to encode public key: %w", err)
+			// 	}
+			// 	publicKeyString := string(publicKeyBytes)
+			// 	public = &publicKeyString
+		}
+
+		repositoryExportableKeyMaterials = append(repositoryExportableKeyMaterials, exportableKeyMaterial)
 
 		return nil
 	})
@@ -215,7 +272,12 @@ func (s *BusinessLogicService) GetKeysByKeyPool(ctx context.Context, keyPoolID g
 		return nil, fmt.Errorf("failed to generate key in KeyPool: %w", err)
 	}
 
-	return s.serviceOrmMapper.toServiceKeys(repositoryKeys), nil
+	openapiPostKeypoolKeyPoolIDKeyResponseObjects, err := s.serviceOrmMapper.toServiceKeys(repositoryKeys, repositoryExportableKeyMaterials)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map keys in KeyPool: %w", err)
+	}
+
+	return openapiPostKeypoolKeyPoolIDKeyResponseObjects, err
 }
 
 func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cryptoutilBusinessLogicModel.KeysQueryParams) ([]cryptoutilBusinessLogicModel.Key, error) {
@@ -224,6 +286,7 @@ func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cry
 		return nil, fmt.Errorf("invalid Get Keys parameters: %w", err)
 	}
 	var repositoryKeys []cryptoutilOrmRepository.Key
+	var repositoryExportableKeyMaterials []*ExportableKeyMaterial
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKeys, err = sqlTransaction.GetKeys(ormKeysQueryParams)
@@ -231,17 +294,25 @@ func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cry
 			return fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
 		}
 
+		// TODO
+
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate key in KeyPool: %w", err)
+		return nil, fmt.Errorf("failed to list keys in KeyPool: %w", err)
 	}
 
-	return s.serviceOrmMapper.toServiceKeys(repositoryKeys), nil
+	openapiPostKeypoolKeyPoolIDKeyResponseObjects, err := s.serviceOrmMapper.toServiceKeys(repositoryKeys, repositoryExportableKeyMaterials)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map keys in KeyPool: %w", err)
+	}
+
+	return openapiPostKeypoolKeyPoolIDKeyResponseObjects, err
 }
 
 func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*cryptoutilBusinessLogicModel.Key, error) {
 	var repositoryKey *cryptoutilOrmRepository.Key
+	var repositoryExportableKeyMaterial *ExportableKeyMaterial
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		repositoryKey, err = sqlTransaction.GetKeyPoolKey(keyPoolID, keyID)
@@ -249,13 +320,20 @@ func (s *BusinessLogicService) GetKeyByKeyPoolAndKeyID(ctx context.Context, keyP
 			return fmt.Errorf("failed to get Key by KeyPoolID and KeyID: %w", err)
 		}
 
+		// TODO
+
 		return nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate key in KeyPool: %w", err)
 	}
 
-	return s.serviceOrmMapper.toServiceKey(repositoryKey), nil
+	openapiPostKeypoolKeyPoolIDKeyResponseObject, err := s.serviceOrmMapper.toServiceKey(repositoryKey, repositoryExportableKeyMaterial)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map keys in KeyPool: %w", err)
+	}
+
+	return openapiPostKeypoolKeyPoolIDKeyResponseObject, nil
 }
 
 func (s *BusinessLogicService) PostEncryptByKeyPoolID(ctx context.Context, keyPoolID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
