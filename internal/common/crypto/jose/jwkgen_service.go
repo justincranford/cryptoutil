@@ -98,66 +98,30 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 func (s *JwkGenService) Shutdown() {
 	s.telemetryService.Slogger.Debug("stopping JwkGenService")
-	if s.rsa4096KeyGenPool != nil {
-		s.rsa4096KeyGenPool.Cancel()
-	}
-	if s.rsa3072KeyGenPool != nil {
-		s.rsa3072KeyGenPool.Cancel()
-	}
-	if s.rsa2048KeyGenPool != nil {
-		s.rsa2048KeyGenPool.Cancel()
-	}
-	if s.ecdsaP521KeyGenPool != nil {
-		s.ecdsaP521KeyGenPool.Cancel()
-	}
-	if s.ecdsaP384KeyGenPool != nil {
-		s.ecdsaP384KeyGenPool.Cancel()
-	}
-	if s.ecdsaP256KeyGenPool != nil {
-		s.ecdsaP256KeyGenPool.Cancel()
-	}
-	if s.ecdhP521KeyGenPool != nil {
-		s.ecdhP521KeyGenPool.Cancel()
-	}
-	if s.ecdhP384KeyGenPool != nil {
-		s.ecdhP384KeyGenPool.Cancel()
-	}
-	if s.ecdhP256KeyGenPool != nil {
-		s.ecdhP256KeyGenPool.Cancel()
-	}
-	if s.ed25519KeyGenPool != nil {
-		s.ed25519KeyGenPool.Cancel()
-	}
-	if s.aes256KeyGenPool != nil {
-		s.aes256KeyGenPool.Cancel()
-	}
-	if s.aes192KeyGenPool != nil {
-		s.aes192KeyGenPool.Cancel()
-	}
-	if s.aes128KeyGenPool != nil {
-		s.aes128KeyGenPool.Cancel()
-	}
-	if s.aes256HS512KeyGenPool != nil {
-		s.aes256HS512KeyGenPool.Cancel()
-	}
-	if s.aes192HS384KeyGenPool != nil {
-		s.aes192HS384KeyGenPool.Cancel()
-	}
-	if s.aes128HS256KeyGenPool != nil {
-		s.aes128HS256KeyGenPool.Cancel()
-	}
-	if s.hmac512KeyGenPool != nil {
-		s.hmac512KeyGenPool.Cancel()
-	}
-	if s.hmac384KeyGenPool != nil {
-		s.hmac384KeyGenPool.Cancel()
-	}
-	if s.hmac256KeyGenPool != nil {
-		s.hmac256KeyGenPool.Cancel()
-	}
-	if s.uuidV7KeyGenPool != nil {
-		s.uuidV7KeyGenPool.Cancel()
-	}
+	cryptoutilPool.CloseAll([]*cryptoutilPool.ValueGenPool[*cryptoutilKeygen.KeyPair]{
+		s.rsa4096KeyGenPool,
+		s.rsa3072KeyGenPool,
+		s.rsa2048KeyGenPool,
+		s.ecdsaP521KeyGenPool,
+		s.ecdsaP384KeyGenPool,
+		s.ecdsaP256KeyGenPool,
+		s.ecdhP521KeyGenPool,
+		s.ecdhP384KeyGenPool,
+		s.ecdhP256KeyGenPool,
+		s.ed25519KeyGenPool,
+	})
+	cryptoutilPool.CloseAll([]*cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]{
+		s.aes256KeyGenPool,
+		s.aes192KeyGenPool,
+		s.aes128KeyGenPool,
+		s.aes256HS512KeyGenPool,
+		s.aes192HS384KeyGenPool,
+		s.aes128HS256KeyGenPool,
+		s.hmac512KeyGenPool,
+		s.hmac384KeyGenPool,
+		s.hmac256KeyGenPool,
+	})
+	cryptoutilPool.Close(s.uuidV7KeyGenPool)
 }
 
 func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
