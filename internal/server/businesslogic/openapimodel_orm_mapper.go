@@ -217,7 +217,7 @@ func (m *serviceOrmMapper) toServiceKeyPoolStatus(ormKeyPoolStatus *cryptoutilOr
 	return &serviceKeyPoolStatus
 }
 
-func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, repositoryKeyMaterials []*ExportableKeyMaterial) ([]cryptoutilBusinessLogicModel.Key, error) {
+func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, repositoryKeyMaterials []*keyExportableMaterial) ([]cryptoutilBusinessLogicModel.Key, error) {
 	serviceKeys := make([]cryptoutilBusinessLogicModel.Key, len(ormKeys))
 	var serviceKey *cryptoutilBusinessLogicModel.Key
 	var err error
@@ -231,7 +231,7 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, 
 	return serviceKeys, nil
 }
 
-func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, repositoryKeyMaterial *ExportableKeyMaterial) (*cryptoutilBusinessLogicModel.Key, error) {
+func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, repositoryKeyMaterial *keyExportableMaterial) (*cryptoutilBusinessLogicModel.Key, error) {
 	return &cryptoutilBusinessLogicModel.Key{
 		Pool:           cryptoutilBusinessLogicModel.KeyPoolId(ormKey.KeyPoolID),
 		Id:             ormKey.KeyID,
@@ -240,7 +240,6 @@ func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, rep
 		ExpirationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyExpirationDate),
 		RevocationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyRevocationDate),
 		Public:         &repositoryKeyMaterial.public,
-		Encrypted:      &repositoryKeyMaterial.encrypted,
 		Decrypted:      &repositoryKeyMaterial.decrypted,
 	}, nil
 }

@@ -24,8 +24,8 @@ import (
 // 	kid                       *googleUuid.UUID
 // 	privateOrSecretJwk        joseJwk.Key
 // 	publicKey                 joseJwk.Key
-// 	encodedPrivateOrSecretJwk []byte
-// 	encodedPublicKey          []byte
+// 	clearPrivateOrSecretJwk []byte
+// 	clearPublicKey          []byte
 // }
 
 // func GenerateJweJwkForEncAndAlgFunction(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) func() (*generateJweJwkResult, error) {
@@ -85,13 +85,13 @@ import (
 // 		if err != nil {
 // 			return nil, fmt.Errorf("failed to generate private or secret key: %w", err)
 // 		}
-// 		kid, privateOrSecretJwk, publicKey, encodedPrivateOrSecretJwk, encodedPublicKey, err := CreateJweJwkFromKey(&kid1, enc, alg, key)
+// 		kid, privateOrSecretJwk, publicKey, clearPrivateOrSecretJwk, clearPublicKey, err := CreateJweJwkFromKey(&kid1, enc, alg, key)
 // 		generateJweJwkResult := generateJweJwkResult{
 // 			kid:                       kid,
 // 			privateOrSecretJwk:        privateOrSecretJwk,
 // 			publicKey:                 publicKey,
-// 			encodedPrivateOrSecretJwk: encodedPrivateOrSecretJwk,
-// 			encodedPublicKey:          encodedPublicKey,
+// 			clearPrivateOrSecretJwk: clearPrivateOrSecretJwk,
+// 			clearPublicKey:          clearPublicKey,
 // 		}
 // 		if err != nil {
 // 			return nil, fmt.Errorf("failed to create JWE JWK: %w", err)
@@ -170,13 +170,13 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWE JWK: %w", err)
 	}
 
-	encodedPrivateOrSecretJwk, err := json.Marshal(privateOrSecretJwk)
+	clearPrivateOrSecretJwk, err := json.Marshal(privateOrSecretJwk)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to serialize private or secret JWE JWK: %w", err)
 	}
 
 	var publicJwk joseJwk.Key
-	var encodedPublicJwk []byte
+	var clearPublicJwk []byte
 	if _, ok := key.(*cryptoutilKeygen.KeyPair); ok { // RSA, EC, ED
 		publicJwk, err = privateOrSecretJwk.PublicKey()
 		if err != nil {
@@ -185,13 +185,13 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 		if err = publicJwk.Set(joseJwk.KeyOpsKey, OpsEnc); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWE JWK: %w", err)
 		}
-		encodedPublicJwk, err = json.Marshal(publicJwk)
+		clearPublicJwk, err = json.Marshal(publicJwk)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to serialize public JWE JWK: %w", err)
 		}
 	}
 
-	return kid, privateOrSecretJwk, publicJwk, encodedPrivateOrSecretJwk, encodedPublicJwk, nil
+	return kid, privateOrSecretJwk, publicJwk, clearPrivateOrSecretJwk, clearPublicJwk, nil
 }
 
 func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeygen.Key, isNilRawKeyOk bool) (cryptoutilKeygen.Key, error) {
