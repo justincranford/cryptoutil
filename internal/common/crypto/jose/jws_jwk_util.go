@@ -79,9 +79,6 @@ func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 	if err = privateOrSecretJwk.Set("iat", now); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWS JWK: %w", err)
 	}
-	if err = privateOrSecretJwk.Set("nbf", now); err != nil {
-		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `nbf` header in JWS JWK: %w", err)
-	}
 	if err = privateOrSecretJwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `use` header in JWS JWK: %w", err)
 	}
