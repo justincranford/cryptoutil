@@ -160,7 +160,7 @@ func (s *JwkGenService) Shutdown() {
 	}
 }
 
-func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch *alg {
 	case AlgDir:
 		switch *enc {
@@ -177,7 +177,7 @@ func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, 
 		case EncA128CBC_HS256:
 			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes128HS256KeyGenPool.Get())
 		default:
-			return nil, nil, nil, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
+			return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
 		}
 
 	case AlgA256KW, AlgA256GCMKW:
@@ -206,11 +206,11 @@ func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, 
 		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.ecdhP256KeyGenPool.Get())
 
 	default:
-		return nil, nil, nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
+		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
 	}
 }
 
-func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch *alg {
 	case AlgRS512, AlgPS512:
 		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa4096KeyGenPool.Get())
@@ -233,7 +233,7 @@ func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*google
 	case AlgHS256:
 		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.hmac256KeyGenPool.Get())
 	default:
-		return nil, nil, nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
+		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}
 }
 

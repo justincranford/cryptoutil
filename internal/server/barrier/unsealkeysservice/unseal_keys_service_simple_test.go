@@ -12,7 +12,7 @@ import (
 const jwkCount = 2
 
 func TestNewUnsealKeysServiceSimple_HappyPath(t *testing.T) {
-	unsealKeys, err := cryptoutilJose.GenerateJweJwksForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilJose.GenerateJweJwksForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
 	unsealKeysService, err := NewUnsealKeysServiceSimple(unsealKeys)
 	require.NoError(t, err)

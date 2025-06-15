@@ -64,7 +64,7 @@ func (s *BusinessLogicService) AddKeyPool(ctx context.Context, openapiKeyPoolCre
 	}
 
 	// generate first key automatically
-	keyID, _, clearKeyBytes, err := s.generateJweJwk(&repositoryKeyPoolToInsert.KeyPoolAlgorithm)
+	keyID, _, clearKeyBytes, err := s.generateJwk(&repositoryKeyPoolToInsert.KeyPoolAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate KeyPool Key: %w", err)
 	}
@@ -172,7 +172,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 		}
 
 		var keyID *googleUuid.UUID
-		keyID, jwk, clearKeyBytes, err := s.generateJweJwk(&repositoryKeyPool.KeyPoolAlgorithm)
+		keyID, jwk, clearKeyBytes, err := s.generateJwk(&repositoryKeyPool.KeyPoolAlgorithm)
 		if err != nil {
 			return fmt.Errorf("failed to generate KeyPool Key: %w", err)
 		}
@@ -408,7 +408,7 @@ func (s *BusinessLogicService) PostVerifyByKeyPoolID(ctx context.Context, keyPoo
 	return verifiedJwsMessageBytes, nil
 }
 
-func (s *BusinessLogicService) generateJweJwk(keyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
+func (s *BusinessLogicService) generateJwk(keyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*googleUuid.UUID, joseJwk.Key, []byte, error) {
 	var keyID *googleUuid.UUID
 	var jweJwk joseJwk.Key
 	var clearKeyBytes []byte
@@ -418,7 +418,7 @@ func (s *BusinessLogicService) generateJweJwk(keyPoolAlgorithm *cryptoutilOrmRep
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("failed to map JWE Key Pool Algorithm: %w", err)
 		}
-		keyID, jweJwk, clearKeyBytes, err = s.jwkGenService.GenerateJweJwk(enc, alg)
+		keyID, jweJwk, _, clearKeyBytes, _, err = s.jwkGenService.GenerateJweJwk(enc, alg)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("failed to generate JWE: %w", err)
 		}
@@ -427,7 +427,7 @@ func (s *BusinessLogicService) generateJweJwk(keyPoolAlgorithm *cryptoutilOrmRep
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("failed to map JWS Key Pool Algorithm: %w", err)
 		}
-		keyID, jweJwk, clearKeyBytes, err = s.jwkGenService.GenerateJwsJwk(alg)
+		keyID, jweJwk, _, clearKeyBytes, _, err = s.jwkGenService.GenerateJwsJwk(alg)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("failed to generate JWS: %w", err)
 		}
