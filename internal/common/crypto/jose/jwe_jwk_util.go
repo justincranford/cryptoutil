@@ -20,6 +20,86 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+// type generateJweJwkResult struct {
+// 	kid                       *googleUuid.UUID
+// 	privateOrSecretJwk        joseJwk.Key
+// 	publicKey                 joseJwk.Key
+// 	encodedPrivateOrSecretJwk []byte
+// 	encodedPublicKey          []byte
+// }
+
+// func GenerateJweJwkForEncAndAlgFunction(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) func() (*generateJweJwkResult, error) {
+// 	return func() (*generateJweJwkResult, error) {
+// 		kid1, err := googleUuid.NewV7()
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to create JWE JWK kid UUID: %w", err)
+// 		}
+// 		var key cryptoutilKeygen.Key
+// 		switch *alg {
+// 		case AlgDir:
+// 			switch *enc {
+// 			case EncA256GCM:
+// 				key, err = cryptoutilKeygen.GenerateAESKey(256)
+// 			case EncA192GCM:
+// 				key, err = cryptoutilKeygen.GenerateAESKey(192)
+// 			case EncA128GCM:
+// 				key, err = cryptoutilKeygen.GenerateAESKey(128)
+// 			case EncA256CBC_HS512:
+// 				key, err = cryptoutilKeygen.GenerateAESHSKey(512)
+// 			case EncA192CBC_HS384:
+// 				key, err = cryptoutilKeygen.GenerateAESHSKey(384)
+// 			case EncA128CBC_HS256:
+// 				key, err = cryptoutilKeygen.GenerateAESHSKey(256)
+// 			default:
+// 				return nil, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
+// 			}
+
+// 		case AlgA256KW, AlgA256GCMKW:
+// 			key, err = cryptoutilKeygen.GenerateAESKey(256)
+// 		case AlgA192KW, AlgA192GCMKW:
+// 			key, err = cryptoutilKeygen.GenerateAESKey(192)
+// 		case AlgA128KW, AlgA128GCMKW:
+// 			key, err = cryptoutilKeygen.GenerateAESKey(128)
+
+// 		case AlgRSAOAEP512:
+// 			key, err = cryptoutilKeygen.GenerateRSAKeyPair(4096)
+// 		case AlgRSAOAEP384:
+// 			key, err = cryptoutilKeygen.GenerateRSAKeyPair(3072)
+// 		case AlgRSAOAEP256:
+// 			key, err = cryptoutilKeygen.GenerateRSAKeyPair(2048)
+// 		case AlgRSAOAEP:
+// 			key, err = cryptoutilKeygen.GenerateRSAKeyPair(2048)
+// 		case AlgRSA15:
+// 			key, err = cryptoutilKeygen.GenerateRSAKeyPair(2048)
+
+// 		case AlgECDHES, AlgECDHESA256KW:
+// 			key, err = cryptoutilKeygen.GenerateECDHKeyPair(ecdh.P521())
+// 		case AlgECDHESA192KW:
+// 			key, err = cryptoutilKeygen.GenerateECDHKeyPair(ecdh.P384())
+// 		case AlgECDHESA128KW:
+// 			key, err = cryptoutilKeygen.GenerateECDHKeyPair(ecdh.P256())
+
+// 		default:
+// 			return nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
+// 		}
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to generate private or secret key: %w", err)
+// 		}
+// 		kid, privateOrSecretJwk, publicKey, encodedPrivateOrSecretJwk, encodedPublicKey, err := CreateJweJwkFromKey(&kid1, enc, alg, key)
+// 		generateJweJwkResult := generateJweJwkResult{
+// 			kid:                       kid,
+// 			privateOrSecretJwk:        privateOrSecretJwk,
+// 			publicKey:                 publicKey,
+// 			encodedPrivateOrSecretJwk: encodedPrivateOrSecretJwk,
+// 			encodedPublicKey:          encodedPublicKey,
+// 		}
+// 		if err != nil {
+// 			return nil, fmt.Errorf("failed to create JWE JWK: %w", err)
+// 		}
+// 		return &generateJweJwkResult, nil
+// 	}
+// }
+
 func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
