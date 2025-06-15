@@ -524,11 +524,9 @@ components:
     KeyMaterialEncrypted:
       type: string
       description: Encrypted private or secret key material (if KeyPool exportAllowed=true)
-      nullable: true
     KeyMaterialDecrypted:
       type: string
       description: Clear private or secret key material (if KeyPool exportAllowed=true)
-      nullable: true
     KeySort:
       type: string
       enum:

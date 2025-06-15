@@ -239,8 +239,8 @@ func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, rep
 		ImportDate:     (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyImportDate),
 		ExpirationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyExpirationDate),
 		RevocationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyRevocationDate),
-		Public:         &repositoryKeyMaterial.public,
-		Decrypted:      &repositoryKeyMaterial.decrypted,
+		Public:         repositoryKeyMaterial.public,
+		Decrypted:      repositoryKeyMaterial.decrypted,
 	}, nil
 }
 

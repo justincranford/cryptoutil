@@ -29,8 +29,8 @@ type BusinessLogicService struct {
 }
 
 type keyExportableMaterial struct {
-	public    string
-	decrypted string
+	public    *string
+	decrypted *string
 }
 
 var (
@@ -216,13 +216,15 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, keyPool
 }
 
 func (*BusinessLogicService) prepareKeyExportableMaterial(clearPublicBytes []byte, clearPrivateOrSecretBytes []byte, repositoryKeyPool *cryptoutilOrmRepository.KeyPool) *keyExportableMaterial {
-	var public string
-	if cryptoutilOrmRepository.IsAsymmetric(&repositoryKeyPool.KeyPoolAlgorithm) {
-		public = string(clearPublicBytes)
+	var public *string
+	if cryptoutilOrmRepository.IsAsymmetric(&repositoryKeyPool.KeyPoolAlgorithm) && len(clearPublicBytes) > 0 {
+		newVar := string(clearPublicBytes)
+		public = &newVar
 	}
-	var decrypted string
-	if repositoryKeyPool.KeyPoolExportAllowed {
-		decrypted = string(clearPrivateOrSecretBytes)
+	var decrypted *string
+	if repositoryKeyPool.KeyPoolExportAllowed && len(clearPrivateOrSecretBytes) > 0 {
+		newVar := string(clearPrivateOrSecretBytes)
+		decrypted = &newVar
 	}
 	return &keyExportableMaterial{
 		public:    public,
