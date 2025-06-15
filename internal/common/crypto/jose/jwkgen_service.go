@@ -204,11 +204,3 @@ func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*google
 func (s *JwkGenService) GenerateUUIDv7() *googleUuid.UUID {
 	return s.uuidV7KeyGenPool.Get()
 }
-
-func (s *JwkGenService) GetAes256KeyGenPool() *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey] {
-	return s.aes256KeyGenPool
-}
-
-func (s *JwkGenService) GetUUIDv7KeyGenPool() *cryptoutilPool.ValueGenPool[*googleUuid.UUID] {
-	return s.uuidV7KeyGenPool
-}
