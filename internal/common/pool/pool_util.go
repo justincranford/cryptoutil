@@ -1,12 +1,12 @@
 package pool
 
-func CloseAll[T any](keyGenPools []*ValueGenPool[T]) {
+func CloseAllNotNil[T any](keyGenPools []*ValueGenPool[T]) {
 	for _, keyGenPool := range keyGenPools {
-		Close(keyGenPool)
+		CloseNotNil(keyGenPool)
 	}
 }
 
-func Close[T any](keyGenPool *ValueGenPool[T]) {
+func CloseNotNil[T any](keyGenPool *ValueGenPool[T]) {
 	if keyGenPool != nil {
 		keyGenPool.Cancel()
 	}
