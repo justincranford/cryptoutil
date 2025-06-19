@@ -131,7 +131,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 	for _, testCase := range tests {
 		testTelemetryService.Slogger.Info("Executing test case", "mode", testCase.txMode, "expectError", testCase.expectError)
 
-		addedKeyPools := []*KeyPool{}
+		addedElasticKeys := []*ElasticKey{}
 		addedKeys := []*Key{}
 		err := testOrmRepository.WithTransaction(testCtx, testCase.txMode, func(ormTransaction *OrmTransaction) error {
 			require.NotNil(t, ormTransaction)
@@ -139,17 +139,17 @@ func TestSqlTransaction_Success(t *testing.T) {
 			require.NotNil(t, ormTransaction.Context())
 			require.Equal(t, testCase.txMode, *ormTransaction.Mode())
 
-			keyPool := testGivens.Aes256KeyPool(true, true, true)
-			err := ormTransaction.AddKeyPool(keyPool)
+			elasticKey := testGivens.Aes256ElasticKey(true, true, true)
+			err := ormTransaction.AddElasticKey(elasticKey)
 			if err != nil {
-				return fmt.Errorf("failed to add Key Pool: %w", err)
+				return fmt.Errorf("failed to add Elastic Key: %w", err)
 			}
-			addedKeyPools = append(addedKeyPools, keyPool)
+			addedElasticKeys = append(addedElasticKeys, elasticKey)
 
 			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
 				now := time.Now().UTC()
-				key := testGivens.Aes256Key(keyPool.KeyPoolID, &now, nil, nil, nil)
-				err = ormTransaction.AddKeyPoolKey(key)
+				key := testGivens.Aes256Key(elasticKey.ElasticKeyID, &now, nil, nil, nil)
+				err = ormTransaction.AddElasticKeyKey(key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
 				}
@@ -165,18 +165,18 @@ func TestSqlTransaction_Success(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		for _, addedKeyPool := range addedKeyPools {
+		for _, addedElasticKey := range addedElasticKeys {
 			err = testOrmRepository.WithTransaction(testCtx, ReadOnly, func(ormTransaction *OrmTransaction) error {
 				require.NotNil(t, ormTransaction)
 				require.NotNil(t, ormTransaction.ID())
 				require.NotNil(t, ormTransaction.Context())
 				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedKeyPool, err := ormTransaction.GetKeyPool(addedKeyPool.KeyPoolID)
+				retrievedElasticKey, err := ormTransaction.GetElasticKey(addedElasticKey.ElasticKeyID)
 				if err != nil {
-					return fmt.Errorf("failed to get Key Pool: %w", err)
+					return fmt.Errorf("failed to get Elastic Key: %w", err)
 				}
-				require.Equal(t, addedKeyPool, retrievedKeyPool)
+				require.Equal(t, addedElasticKey, retrievedElasticKey)
 
 				return nil
 			})
@@ -190,7 +190,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 				require.NotNil(t, ormTransaction.Context())
 				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedKey, err := ormTransaction.GetKeyPoolKey(addedKey.KeyPoolID, addedKey.KeyID)
+				retrievedKey, err := ormTransaction.GetElasticKeyKey(addedKey.ElasticKeyID, addedKey.KeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}

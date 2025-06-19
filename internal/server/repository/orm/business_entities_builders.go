@@ -6,24 +6,24 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-func BuildKeyPool(keyPoolID googleUuid.UUID, name, description string, provider KeyPoolProvider, algorithm KeyPoolAlgorithm, versioningAllowed, importAllowed, exportAllowed bool, status string) (*KeyPool, error) {
-	keyPool := KeyPool{
-		KeyPoolID:                keyPoolID,
-		KeyPoolName:              name,
-		KeyPoolDescription:       description,
-		KeyPoolProvider:          provider,
-		KeyPoolAlgorithm:         algorithm,
-		KeyPoolVersioningAllowed: versioningAllowed,
-		KeyPoolImportAllowed:     importAllowed,
-		KeyPoolExportAllowed:     exportAllowed,
-		KeyPoolStatus:            KeyPoolStatus(status),
+func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider ElasticKeyProvider, algorithm ElasticKeyAlgorithm, versioningAllowed, importAllowed, exportAllowed bool, status string) (*ElasticKey, error) {
+	elasticKey := ElasticKey{
+		ElasticKeyID:                elasticKeyID,
+		ElasticKeyName:              name,
+		ElasticKeyDescription:       description,
+		ElasticKeyProvider:          provider,
+		ElasticKeyAlgorithm:         algorithm,
+		ElasticKeyVersioningAllowed: versioningAllowed,
+		ElasticKeyImportAllowed:     importAllowed,
+		ElasticKeyExportAllowed:     exportAllowed,
+		ElasticKeyStatus:            ElasticKeyStatus(status),
 	}
-	return &keyPool, nil
+	return &elasticKey, nil
 }
 
-func BuildKey(keyPoolID googleUuid.UUID, keyID googleUuid.UUID, keyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
+func BuildKey(elasticKeyID googleUuid.UUID, keyID googleUuid.UUID, keyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
 	key := Key{
-		KeyPoolID:         keyPoolID,
+		ElasticKeyID:      elasticKeyID,
 		KeyID:             keyID,
 		KeyMaterial:       keyMaterial,
 		KeyGenerateDate:   generateDate,
@@ -34,7 +34,7 @@ func BuildKey(keyPoolID googleUuid.UUID, keyID googleUuid.UUID, keyMaterial []by
 	return &key
 }
 
-func KeyPoolStatusInitial(importAllowed bool) string {
+func ElasticKeyStatusInitial(importAllowed bool) string {
 	if importAllowed {
 		return string(PendingImport)
 	}

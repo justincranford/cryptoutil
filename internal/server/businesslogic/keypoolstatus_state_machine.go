@@ -7,8 +7,8 @@ import (
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
 )
 
-var validTransitions = func() map[cryptoutilBusinessLogicModel.KeyPoolStatus]map[cryptoutilBusinessLogicModel.KeyPoolStatus]bool {
-	transitions := map[cryptoutilBusinessLogicModel.KeyPoolStatus][]cryptoutilBusinessLogicModel.KeyPoolStatus{
+var validTransitions = func() map[cryptoutilBusinessLogicModel.ElasticKeyStatus]map[cryptoutilBusinessLogicModel.ElasticKeyStatus]bool {
+	transitions := map[cryptoutilBusinessLogicModel.ElasticKeyStatus][]cryptoutilBusinessLogicModel.ElasticKeyStatus{
 		cryptoutilBusinessLogicModel.Creating:                       {cryptoutilBusinessLogicModel.PendingGenerate, cryptoutilBusinessLogicModel.PendingImport},
 		cryptoutilBusinessLogicModel.ImportFailed:                   {cryptoutilBusinessLogicModel.PendingDeleteWasImportFailed, cryptoutilBusinessLogicModel.PendingImport},
 		cryptoutilBusinessLogicModel.PendingImport:                  {cryptoutilBusinessLogicModel.PendingDeleteWasPendingImport, cryptoutilBusinessLogicModel.ImportFailed, cryptoutilBusinessLogicModel.Active},
@@ -24,9 +24,9 @@ var validTransitions = func() map[cryptoutilBusinessLogicModel.KeyPoolStatus]map
 		cryptoutilBusinessLogicModel.StartedDelete:                  {cryptoutilBusinessLogicModel.FinishedDelete},
 		cryptoutilBusinessLogicModel.FinishedDelete:                 {},
 	}
-	convertedTransitions := make(map[cryptoutilBusinessLogicModel.KeyPoolStatus]map[cryptoutilBusinessLogicModel.KeyPoolStatus]bool)
+	convertedTransitions := make(map[cryptoutilBusinessLogicModel.ElasticKeyStatus]map[cryptoutilBusinessLogicModel.ElasticKeyStatus]bool)
 	for current, nextStates := range transitions {
-		convertedTransitions[current] = make(map[cryptoutilBusinessLogicModel.KeyPoolStatus]bool)
+		convertedTransitions[current] = make(map[cryptoutilBusinessLogicModel.ElasticKeyStatus]bool)
 		for _, next := range nextStates {
 			convertedTransitions[current][next] = true
 		}
@@ -34,7 +34,7 @@ var validTransitions = func() map[cryptoutilBusinessLogicModel.KeyPoolStatus]map
 	return convertedTransitions
 }()
 
-func TransitionState(current cryptoutilBusinessLogicModel.KeyPoolStatus, next cryptoutilBusinessLogicModel.KeyPoolStatus) error {
+func TransitionState(current cryptoutilBusinessLogicModel.ElasticKeyStatus, next cryptoutilBusinessLogicModel.ElasticKeyStatus) error {
 	allowedTransitions, exists := validTransitions[current]
 	if !exists {
 		return errors.New("invalid current state")

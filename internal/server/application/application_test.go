@@ -35,7 +35,7 @@ func TestHttpGetHttp200(t *testing.T) {
 		{name: "Swagger UI root", url: testServerBaseUrl + "swagger"},
 		{name: "Swagger UI index.html", url: testServerBaseUrl + "swagger/index.html"},
 		{name: "OpenAPI Spec", url: testServerBaseUrl + "swagger/doc.json"},
-		{name: "GET Key Pools", url: testServerBaseUrl + "keypools"},
+		{name: "GET Elastic Keys", url: testServerBaseUrl + "elastickeys"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {

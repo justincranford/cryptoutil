@@ -9,23 +9,23 @@ servers:
   - url: /
 
 paths:
-  /keypool:
+  /elastickey:
     post:
-      summary: Create a new Key Pool.
-      description: Create a new Key Pool. Depending on the provider, a Key Pool may be contained to one Key or many Keys.
+      summary: Create a new Elastic Key.
+      description: Create a new Elastic Key. Depending on the provider, a Elastic Key may be contained to one Key or many Keys.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolCreate'
+              $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyCreate'
       responses:
         '200':
-          description: Key Pool created successfully.
+          description: Elastic Key created successfully.
           content:
             application/json:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/KeyPool'
+                $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKey'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -44,23 +44,23 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /keypool/{keyPoolID}:
+  /elastickey/{elasticKeyID}:
     parameters:
-      - name: keyPoolID
+      - name: elasticKeyID
         in: path
         required: true
         schema:
-          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
     get:
-      summary: Get a Key Pool.
-      description: Get a Key Pool.
+      summary: Get a Elastic Key.
+      description: Get a Elastic Key.
       responses:
         '200':
-          description: Key Pool retrieved successfully.
+          description: Elastic Key retrieved successfully.
           content:
             application/json:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/KeyPool'
+                $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKey'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -79,31 +79,31 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /keypools:
+  /elastickeys:
     get:
-      summary: Find Key Pools. Supports optional filtering, sorting, and paging.
-      description: Find Key Pools. Supports optional filtering, sorting, and paging.
+      summary: Find Elastic Keys. Supports optional filtering, sorting, and paging.
+      description: Find Elastic Keys. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamIds'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamNames'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamProviders'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamAlgorithms'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamVersioningAllowed'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamImportAllowed'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamExportAllowed'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamStatuses'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamSorts'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamPageNumber'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyPoolQueryParamPageSize'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamNames'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamProviders'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamAlgorithms'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamVersioningAllowed'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamImportAllowed'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamExportAllowed'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamStatuses'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamSorts'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamPageNumber'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamPageSize'
       responses:
         '200':
-          description: A JSON array of 0, 1, or many Key Pools.
+          description: A JSON array of 0, 1, or many Elastic Keys.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: './openapi_spec_components.yaml#/components/schemas/KeyPool'
+                  $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKey'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -123,16 +123,16 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
-  /keypool/{keyPoolID}/key:
+  /elastickey/{elasticKeyID}/key:
     parameters:
-      - name: keyPoolID
+      - name: elasticKeyID
         in: path
         required: true
         schema:
-          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
     post:
-      summary: Generate a new Key in a Key Pool.
-      description: Generate a new Key in a Key Pool.
+      summary: Generate a new Key in a Elastic Key.
+      description: Generate a new Key in a Elastic Key.
       requestBody:
         required: true
         content:
@@ -164,24 +164,24 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /keypool/{keyPoolID}/key/{keyID}:
+  /elastickey/{elasticKeyID}/key/{keyID}:
     parameters:
-      - name: keyPoolID
+      - name: elasticKeyID
         in: path
         required: true
         schema:
-          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
       - name: keyID
         in: path
         required: true
         schema:
           $ref: './openapi_spec_components.yaml#/components/schemas/KeyId'
     get:
-      summary: Get Key in Key Pool.
-      description: Get Key in Key Pool.
+      summary: Get Key in Elastic Key.
+      description: Get Key in Elastic Key.
       responses:
         '200':
-          description: A JSON array of 0, 1, or many Keys in a Key Pool.
+          description: A JSON array of 0, 1, or many Keys in a Elastic Key.
           content:
             application/json:
               schema:
@@ -204,16 +204,16 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /keypool/{keyPoolID}/keys:
+  /elastickey/{elasticKeyID}/keys:
     parameters:
-      - name: keyPoolID
+      - name: elasticKeyID
         in: path
         required: true
         schema:
-          $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+          $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
     get:
-      summary: Find Keys in Key Pool. Supports optional filtering, sorting, and paging.
-      description: Find Keys in Key Pool. Supports optional filtering, sorting, and paging.
+      summary: Find Keys in Elastic Key. Supports optional filtering, sorting, and paging.
+      description: Find Keys in Elastic Key. Supports optional filtering, sorting, and paging.
       parameters:
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamIds'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMinimumGenerateDate'
@@ -223,7 +223,7 @@ paths:
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageSize'
       responses:
         '200':
-          description: A JSON array of 0, 1, or many Keys in a Key Pool.
+          description: A JSON array of 0, 1, or many Keys in a Elastic Key.
           content:
             application/json:
               schema:
@@ -253,7 +253,7 @@ paths:
       summary: Find Keys. Supports optional filtering, sorting, and paging.
       description: Find Keys. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamKeyPoolIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamElasticKeyIds'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamIds'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMinimumGenerateDate'
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMaximumGenerateDate'
@@ -262,7 +262,7 @@ paths:
         - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageSize'
       responses:
         '200':
-          description: A JSON array of 0, 1, or many Keys in a Key Pool.
+          description: A JSON array of 0, 1, or many Keys in a Elastic Key.
           content:
             application/json:
               schema:
@@ -288,16 +288,16 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
-  /keypool/{keyPoolID}/encrypt:
+  /elastickey/{elasticKeyID}/encrypt:
     post:
-      summary: Encrypt clear text data using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
+      summary: Encrypt clear text data using a specific key cryptoutilPool. The key material in the elastic Key is identified by the JWE message kid header.
       description: Encrypts clear text data using the selected algorithm.
       parameters:
-        - name: keyPoolID
+        - name: elasticKeyID
           in: path
           required: true
           schema:
-            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+            $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
         - name: context
           in: query
           required: false
@@ -335,16 +335,16 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
-  /keypool/{keyPoolID}/decrypt:
+  /elastickey/{elasticKeyID}/decrypt:
     post:
-      summary: Decrypt ciphertext using a specific key cryptoutilPool. The key material in the key pool is identified by the JWE message kid header.
+      summary: Decrypt ciphertext using a specific key cryptoutilPool. The key material in the elastic Key is identified by the JWE message kid header.
       description: Decrypts ciphertext and returns decrypted plaintext.
       parameters:
-        - name: keyPoolID
+        - name: elasticKeyID
           in: path
           required: true
           schema:
-            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+            $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
       requestBody:
         required: true
         content:
@@ -377,16 +377,16 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
-  /keypool/{keyPoolID}/sign:
+  /elastickey/{elasticKeyID}/sign:
     post:
-      summary: Sign clear text using a specific key. The key material in the key pool is identified by the JWS message kid header.
+      summary: Sign clear text using a specific key. The key material in the elastic Key is identified by the JWS message kid header.
       description: Signs text using the selected algorithm.
       parameters:
-        - name: keyPoolID
+        - name: elasticKeyID
           in: path
           required: true
           schema:
-            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+            $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
         - name: context
           in: query
           required: false
@@ -424,16 +424,16 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
-  /keypool/{keyPoolID}/verify:
+  /elastickey/{elasticKeyID}/verify:
     post:
-      summary: Verify JWS message using a specific key cryptoutilPool. The key material in the key pool is identified by the JWS message kid header.
+      summary: Verify JWS message using a specific key cryptoutilPool. The key material in the elastic Key is identified by the JWS message kid header.
       description: Accepts a JWS message and returns HTTP 204 if the signature is valid.
       parameters:
-        - name: keyPoolID
+        - name: elasticKeyID
           in: path
           required: true
           schema:
-            $ref: './openapi_spec_components.yaml#/components/schemas/KeyPoolId'
+            $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
       requestBody:
         required: true
         content:

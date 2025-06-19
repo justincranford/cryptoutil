@@ -22,13 +22,13 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// PostKeypoolKeyPoolIDEncryptParams defines parameters for PostKeypoolKeyPoolIDEncrypt.
-type PostKeypoolKeyPoolIDEncryptParams struct {
+// PostElastickeyElasticKeyIDEncryptParams defines parameters for PostElastickeyElasticKeyIDEncrypt.
+type PostElastickeyElasticKeyIDEncryptParams struct {
 	Context *externalRef0.EncryptContext `form:"context,omitempty" json:"context,omitempty"`
 }
 
-// GetKeypoolKeyPoolIDKeysParams defines parameters for GetKeypoolKeyPoolIDKeys.
-type GetKeypoolKeyPoolIDKeysParams struct {
+// GetElastickeyElasticKeyIDKeysParams defines parameters for GetElastickeyElasticKeyIDKeys.
+type GetElastickeyElasticKeyIDKeysParams struct {
 	// Id Filter by the Key ID.
 	Id *externalRef0.KeyQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
 
@@ -44,47 +44,47 @@ type GetKeypoolKeyPoolIDKeysParams struct {
 	Size *externalRef0.KeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
-// PostKeypoolKeyPoolIDSignParams defines parameters for PostKeypoolKeyPoolIDSign.
-type PostKeypoolKeyPoolIDSignParams struct {
+// PostElastickeyElasticKeyIDSignParams defines parameters for PostElastickeyElasticKeyIDSign.
+type PostElastickeyElasticKeyIDSignParams struct {
 	Context *externalRef0.SignContext `form:"context,omitempty" json:"context,omitempty"`
 }
 
-// GetKeypoolsParams defines parameters for GetKeypools.
-type GetKeypoolsParams struct {
-	// Id Filter by the Key Pool ID (UUID).
-	Id *externalRef0.KeyPoolQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
+// GetElastickeysParams defines parameters for GetElastickeys.
+type GetElastickeysParams struct {
+	// Id Filter by the Elastic Key ID (UUID).
+	Id *externalRef0.ElasticKeyQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
 
-	// Name Filter by the Key Pool name.
-	Name *externalRef0.KeyPoolQueryParamNames `form:"name,omitempty" json:"name,omitempty"`
+	// Name Filter by the Elastic Key name.
+	Name *externalRef0.ElasticKeyQueryParamNames `form:"name,omitempty" json:"name,omitempty"`
 
-	// Provider Filter by Key Pool provider.
-	Provider *externalRef0.KeyPoolQueryParamProviders `form:"provider,omitempty" json:"provider,omitempty"`
+	// Provider Filter by Elastic Key provider.
+	Provider *externalRef0.ElasticKeyQueryParamProviders `form:"provider,omitempty" json:"provider,omitempty"`
 
 	// Algorithm Filter by cryptographic algorithm.
-	Algorithm *externalRef0.KeyPoolQueryParamAlgorithms `form:"algorithm,omitempty" json:"algorithm,omitempty"`
+	Algorithm *externalRef0.ElasticKeyQueryParamAlgorithms `form:"algorithm,omitempty" json:"algorithm,omitempty"`
 
 	// VersioningAllowed Filter by whether versioning is allowed.
-	VersioningAllowed *externalRef0.KeyPoolQueryParamVersioningAllowed `form:"versioning_allowed,omitempty" json:"versioning_allowed,omitempty"`
+	VersioningAllowed *externalRef0.ElasticKeyQueryParamVersioningAllowed `form:"versioning_allowed,omitempty" json:"versioning_allowed,omitempty"`
 
 	// ImportAllowed Filter by whether import is allowed.
-	ImportAllowed *externalRef0.KeyPoolQueryParamImportAllowed `form:"import_allowed,omitempty" json:"import_allowed,omitempty"`
+	ImportAllowed *externalRef0.ElasticKeyQueryParamImportAllowed `form:"import_allowed,omitempty" json:"import_allowed,omitempty"`
 
 	// ExportAllowed Filter by whether export is allowed.
-	ExportAllowed *externalRef0.KeyPoolQueryParamExportAllowed `form:"export_allowed,omitempty" json:"export_allowed,omitempty"`
+	ExportAllowed *externalRef0.ElasticKeyQueryParamExportAllowed `form:"export_allowed,omitempty" json:"export_allowed,omitempty"`
 
-	// Status Filter by the Key Pool status.
-	Status *externalRef0.KeyPoolQueryParamStatuses `form:"status,omitempty" json:"status,omitempty"`
+	// Status Filter by the Elastic Key status.
+	Status *externalRef0.ElasticKeyQueryParamStatuses `form:"status,omitempty" json:"status,omitempty"`
 
 	// Sort Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
-	Sort *externalRef0.KeyPoolQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
-	Page *externalRef0.KeyPoolQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
-	Size *externalRef0.KeyPoolQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
+	Sort *externalRef0.ElasticKeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
+	Page *externalRef0.ElasticKeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
+	Size *externalRef0.ElasticKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
 // GetKeysParams defines parameters for GetKeys.
 type GetKeysParams struct {
-	// Pool Filter by the Key Pool ID (uuid).
-	Pool *externalRef0.KeyQueryParamKeyPoolIds `form:"pool,omitempty" json:"pool,omitempty"`
+	// Pool Filter by the Elastic Key ID (uuid).
+	Pool *externalRef0.KeyQueryParamElasticKeyIds `form:"pool,omitempty" json:"pool,omitempty"`
 
 	// Id Filter by the Key ID.
 	Id *externalRef0.KeyQueryParamIds `form:"id,omitempty" json:"id,omitempty"`
@@ -101,23 +101,23 @@ type GetKeysParams struct {
 	Size *externalRef0.KeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
 }
 
-// PostKeypoolJSONRequestBody defines body for PostKeypool for application/json ContentType.
-type PostKeypoolJSONRequestBody = externalRef0.KeyPoolCreate
+// PostElastickeyJSONRequestBody defines body for PostElastickey for application/json ContentType.
+type PostElastickeyJSONRequestBody = externalRef0.ElasticKeyCreate
 
-// PostKeypoolKeyPoolIDDecryptTextRequestBody defines body for PostKeypoolKeyPoolIDDecrypt for text/plain ContentType.
-type PostKeypoolKeyPoolIDDecryptTextRequestBody = externalRef0.DecryptRequest
+// PostElastickeyElasticKeyIDDecryptTextRequestBody defines body for PostElastickeyElasticKeyIDDecrypt for text/plain ContentType.
+type PostElastickeyElasticKeyIDDecryptTextRequestBody = externalRef0.DecryptRequest
 
-// PostKeypoolKeyPoolIDEncryptTextRequestBody defines body for PostKeypoolKeyPoolIDEncrypt for text/plain ContentType.
-type PostKeypoolKeyPoolIDEncryptTextRequestBody = externalRef0.EncryptRequest
+// PostElastickeyElasticKeyIDEncryptTextRequestBody defines body for PostElastickeyElasticKeyIDEncrypt for text/plain ContentType.
+type PostElastickeyElasticKeyIDEncryptTextRequestBody = externalRef0.EncryptRequest
 
-// PostKeypoolKeyPoolIDKeyJSONRequestBody defines body for PostKeypoolKeyPoolIDKey for application/json ContentType.
-type PostKeypoolKeyPoolIDKeyJSONRequestBody = externalRef0.KeyGenerate
+// PostElastickeyElasticKeyIDKeyJSONRequestBody defines body for PostElastickeyElasticKeyIDKey for application/json ContentType.
+type PostElastickeyElasticKeyIDKeyJSONRequestBody = externalRef0.KeyGenerate
 
-// PostKeypoolKeyPoolIDSignTextRequestBody defines body for PostKeypoolKeyPoolIDSign for text/plain ContentType.
-type PostKeypoolKeyPoolIDSignTextRequestBody = externalRef0.SignRequest
+// PostElastickeyElasticKeyIDSignTextRequestBody defines body for PostElastickeyElasticKeyIDSign for text/plain ContentType.
+type PostElastickeyElasticKeyIDSignTextRequestBody = externalRef0.SignRequest
 
-// PostKeypoolKeyPoolIDVerifyTextRequestBody defines body for PostKeypoolKeyPoolIDVerify for text/plain ContentType.
-type PostKeypoolKeyPoolIDVerifyTextRequestBody = externalRef0.VerifyRequest
+// PostElastickeyElasticKeyIDVerifyTextRequestBody defines body for PostElastickeyElasticKeyIDVerify for text/plain ContentType.
+type PostElastickeyElasticKeyIDVerifyTextRequestBody = externalRef0.VerifyRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -192,54 +192,54 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 
 // The interface specification for the client above.
 type ClientInterface interface {
-	// PostKeypoolWithBody request with any body
-	PostKeypoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElastickeyWithBody request with any body
+	PostElastickeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKeypool(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElastickey(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetKeypoolKeyPoolID request
-	GetKeypoolKeyPoolID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElastickeyElasticKeyID request
+	GetElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostKeypoolKeyPoolIDDecryptWithBody request with any body
-	PostKeypoolKeyPoolIDDecryptWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElastickeyElasticKeyIDDecryptWithBody request with any body
+	PostElastickeyElasticKeyIDDecryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKeypoolKeyPoolIDDecryptWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElastickeyElasticKeyIDDecryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostKeypoolKeyPoolIDEncryptWithBody request with any body
-	PostKeypoolKeyPoolIDEncryptWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElastickeyElasticKeyIDEncryptWithBody request with any body
+	PostElastickeyElasticKeyIDEncryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKeypoolKeyPoolIDEncryptWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, body PostKeypoolKeyPoolIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElastickeyElasticKeyIDEncryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostKeypoolKeyPoolIDKeyWithBody request with any body
-	PostKeypoolKeyPoolIDKeyWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElastickeyElasticKeyIDKeyWithBody request with any body
+	PostElastickeyElasticKeyIDKeyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElastickeyElasticKeyIDKey(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetKeypoolKeyPoolIDKeyKeyID request
-	GetKeypoolKeyPoolIDKeyKeyID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElastickeyElasticKeyIDKeyKeyID request
+	GetElastickeyElasticKeyIDKeyKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetKeypoolKeyPoolIDKeys request
-	GetKeypoolKeyPoolIDKeys(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElastickeyElasticKeyIDKeys request
+	GetElastickeyElasticKeyIDKeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *GetElastickeyElasticKeyIDKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostKeypoolKeyPoolIDSignWithBody request with any body
-	PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElastickeyElasticKeyIDSignWithBody request with any body
+	PostElastickeyElasticKeyIDSignWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKeypoolKeyPoolIDSignWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElastickeyElasticKeyIDSignWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// PostKeypoolKeyPoolIDVerifyWithBody request with any body
-	PostKeypoolKeyPoolIDVerifyWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostElastickeyElasticKeyIDVerifyWithBody request with any body
+	PostElastickeyElasticKeyIDVerifyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	PostKeypoolKeyPoolIDVerifyWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+	PostElastickeyElasticKeyIDVerifyWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetKeypools request
-	GetKeypools(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// GetElastickeys request
+	GetElastickeys(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetKeys request
 	GetKeys(ctx context.Context, params *GetKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
-func (c *Client) PostKeypoolWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolRequestWithBody(c.Server, contentType, body)
+func (c *Client) PostElastickeyWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyRequestWithBody(c.Server, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -250,8 +250,8 @@ func (c *Client) PostKeypoolWithBody(ctx context.Context, contentType string, bo
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypool(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolRequest(c.Server, body)
+func (c *Client) PostElastickey(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -262,8 +262,8 @@ func (c *Client) PostKeypool(ctx context.Context, body PostKeypoolJSONRequestBod
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetKeypoolKeyPoolID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKeypoolKeyPoolIDRequest(c.Server, keyPoolID)
+func (c *Client) GetElastickeyElasticKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElastickeyElasticKeyIDRequest(c.Server, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -274,8 +274,8 @@ func (c *Client) GetKeypoolKeyPoolID(ctx context.Context, keyPoolID externalRef0
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDDecryptWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDDecryptRequestWithBody(c.Server, keyPoolID, contentType, body)
+func (c *Client) PostElastickeyElasticKeyIDDecryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDDecryptRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -286,8 +286,8 @@ func (c *Client) PostKeypoolKeyPoolIDDecryptWithBody(ctx context.Context, keyPoo
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDDecryptWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDDecryptRequestWithTextBody(c.Server, keyPoolID, body)
+func (c *Client) PostElastickeyElasticKeyIDDecryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDDecryptRequestWithTextBody(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -298,8 +298,8 @@ func (c *Client) PostKeypoolKeyPoolIDDecryptWithTextBody(ctx context.Context, ke
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDEncryptWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDEncryptRequestWithBody(c.Server, keyPoolID, params, contentType, body)
+func (c *Client) PostElastickeyElasticKeyIDEncryptWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDEncryptRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -310,8 +310,8 @@ func (c *Client) PostKeypoolKeyPoolIDEncryptWithBody(ctx context.Context, keyPoo
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDEncryptWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, body PostKeypoolKeyPoolIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDEncryptRequestWithTextBody(c.Server, keyPoolID, params, body)
+func (c *Client) PostElastickeyElasticKeyIDEncryptWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDEncryptRequestWithTextBody(c.Server, elasticKeyID, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -322,8 +322,8 @@ func (c *Client) PostKeypoolKeyPoolIDEncryptWithTextBody(ctx context.Context, ke
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDKeyWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDKeyRequestWithBody(c.Server, keyPoolID, contentType, body)
+func (c *Client) PostElastickeyElasticKeyIDKeyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDKeyRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -334,8 +334,8 @@ func (c *Client) PostKeypoolKeyPoolIDKeyWithBody(ctx context.Context, keyPoolID 
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDKeyRequest(c.Server, keyPoolID, body)
+func (c *Client) PostElastickeyElasticKeyIDKey(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDKeyRequest(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -346,8 +346,8 @@ func (c *Client) PostKeypoolKeyPoolIDKey(ctx context.Context, keyPoolID external
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetKeypoolKeyPoolIDKeyKeyID(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKeypoolKeyPoolIDKeyKeyIDRequest(c.Server, keyPoolID, keyID)
+func (c *Client) GetElastickeyElasticKeyIDKeyKeyID(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElastickeyElasticKeyIDKeyKeyIDRequest(c.Server, elasticKeyID, keyID)
 	if err != nil {
 		return nil, err
 	}
@@ -358,8 +358,8 @@ func (c *Client) GetKeypoolKeyPoolIDKeyKeyID(ctx context.Context, keyPoolID exte
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetKeypoolKeyPoolIDKeys(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKeypoolKeyPoolIDKeysRequest(c.Server, keyPoolID, params)
+func (c *Client) GetElastickeyElasticKeyIDKeys(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *GetElastickeyElasticKeyIDKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElastickeyElasticKeyIDKeysRequest(c.Server, elasticKeyID, params)
 	if err != nil {
 		return nil, err
 	}
@@ -370,8 +370,8 @@ func (c *Client) GetKeypoolKeyPoolIDKeys(ctx context.Context, keyPoolID external
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDSignRequestWithBody(c.Server, keyPoolID, params, contentType, body)
+func (c *Client) PostElastickeyElasticKeyIDSignWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDSignRequestWithBody(c.Server, elasticKeyID, params, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -382,8 +382,8 @@ func (c *Client) PostKeypoolKeyPoolIDSignWithBody(ctx context.Context, keyPoolID
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDSignWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDSignRequestWithTextBody(c.Server, keyPoolID, params, body)
+func (c *Client) PostElastickeyElasticKeyIDSignWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDSignRequestWithTextBody(c.Server, elasticKeyID, params, body)
 	if err != nil {
 		return nil, err
 	}
@@ -394,8 +394,8 @@ func (c *Client) PostKeypoolKeyPoolIDSignWithTextBody(ctx context.Context, keyPo
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDVerifyWithBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDVerifyRequestWithBody(c.Server, keyPoolID, contentType, body)
+func (c *Client) PostElastickeyElasticKeyIDVerifyWithBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDVerifyRequestWithBody(c.Server, elasticKeyID, contentType, body)
 	if err != nil {
 		return nil, err
 	}
@@ -406,8 +406,8 @@ func (c *Client) PostKeypoolKeyPoolIDVerifyWithBody(ctx context.Context, keyPool
 	return c.Client.Do(req)
 }
 
-func (c *Client) PostKeypoolKeyPoolIDVerifyWithTextBody(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewPostKeypoolKeyPoolIDVerifyRequestWithTextBody(c.Server, keyPoolID, body)
+func (c *Client) PostElastickeyElasticKeyIDVerifyWithTextBody(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostElastickeyElasticKeyIDVerifyRequestWithTextBody(c.Server, elasticKeyID, body)
 	if err != nil {
 		return nil, err
 	}
@@ -418,8 +418,8 @@ func (c *Client) PostKeypoolKeyPoolIDVerifyWithTextBody(ctx context.Context, key
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetKeypools(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetKeypoolsRequest(c.Server, params)
+func (c *Client) GetElastickeys(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetElastickeysRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -442,19 +442,19 @@ func (c *Client) GetKeys(ctx context.Context, params *GetKeysParams, reqEditors 
 	return c.Client.Do(req)
 }
 
-// NewPostKeypoolRequest calls the generic PostKeypool builder with application/json body
-func NewPostKeypoolRequest(server string, body PostKeypoolJSONRequestBody) (*http.Request, error) {
+// NewPostElastickeyRequest calls the generic PostElastickey builder with application/json body
+func NewPostElastickeyRequest(server string, body PostElastickeyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostKeypoolRequestWithBody(server, "application/json", bodyReader)
+	return NewPostElastickeyRequestWithBody(server, "application/json", bodyReader)
 }
 
-// NewPostKeypoolRequestWithBody generates requests for PostKeypool with any type of body
-func NewPostKeypoolRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostElastickeyRequestWithBody generates requests for PostElastickey with any type of body
+func NewPostElastickeyRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -462,7 +462,7 @@ func NewPostKeypoolRequestWithBody(server string, contentType string, body io.Re
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool")
+	operationPath := fmt.Sprintf("/elastickey")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -482,13 +482,13 @@ func NewPostKeypoolRequestWithBody(server string, contentType string, body io.Re
 	return req, nil
 }
 
-// NewGetKeypoolKeyPoolIDRequest generates requests for GetKeypoolKeyPoolID
-func NewGetKeypoolKeyPoolIDRequest(server string, keyPoolID externalRef0.KeyPoolId) (*http.Request, error) {
+// NewGetElastickeyElasticKeyIDRequest generates requests for GetElastickeyElasticKeyID
+func NewGetElastickeyElasticKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyId) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -498,7 +498,7 @@ func NewGetKeypoolKeyPoolIDRequest(server string, keyPoolID externalRef0.KeyPool
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s", pathParam0)
+	operationPath := fmt.Sprintf("/elastickey/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -516,20 +516,20 @@ func NewGetKeypoolKeyPoolIDRequest(server string, keyPoolID externalRef0.KeyPool
 	return req, nil
 }
 
-// NewPostKeypoolKeyPoolIDDecryptRequestWithTextBody calls the generic PostKeypoolKeyPoolIDDecrypt builder with text/plain body
-func NewPostKeypoolKeyPoolIDDecryptRequestWithTextBody(server string, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDDecryptTextRequestBody) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDDecryptRequestWithTextBody calls the generic PostElastickeyElasticKeyIDDecrypt builder with text/plain body
+func NewPostElastickeyElasticKeyIDDecryptRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDDecryptTextRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	bodyReader = strings.NewReader(string(body))
-	return NewPostKeypoolKeyPoolIDDecryptRequestWithBody(server, keyPoolID, "text/plain", bodyReader)
+	return NewPostElastickeyElasticKeyIDDecryptRequestWithBody(server, elasticKeyID, "text/plain", bodyReader)
 }
 
-// NewPostKeypoolKeyPoolIDDecryptRequestWithBody generates requests for PostKeypoolKeyPoolIDDecrypt with any type of body
-func NewPostKeypoolKeyPoolIDDecryptRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDDecryptRequestWithBody generates requests for PostElastickeyElasticKeyIDDecrypt with any type of body
+func NewPostElastickeyElasticKeyIDDecryptRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -539,7 +539,7 @@ func NewPostKeypoolKeyPoolIDDecryptRequestWithBody(server string, keyPoolID exte
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s/decrypt", pathParam0)
+	operationPath := fmt.Sprintf("/elastickey/%s/decrypt", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -559,20 +559,20 @@ func NewPostKeypoolKeyPoolIDDecryptRequestWithBody(server string, keyPoolID exte
 	return req, nil
 }
 
-// NewPostKeypoolKeyPoolIDEncryptRequestWithTextBody calls the generic PostKeypoolKeyPoolIDEncrypt builder with text/plain body
-func NewPostKeypoolKeyPoolIDEncryptRequestWithTextBody(server string, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, body PostKeypoolKeyPoolIDEncryptTextRequestBody) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDEncryptRequestWithTextBody calls the generic PostElastickeyElasticKeyIDEncrypt builder with text/plain body
+func NewPostElastickeyElasticKeyIDEncryptRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	bodyReader = strings.NewReader(string(body))
-	return NewPostKeypoolKeyPoolIDEncryptRequestWithBody(server, keyPoolID, params, "text/plain", bodyReader)
+	return NewPostElastickeyElasticKeyIDEncryptRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
 }
 
-// NewPostKeypoolKeyPoolIDEncryptRequestWithBody generates requests for PostKeypoolKeyPoolIDEncrypt with any type of body
-func NewPostKeypoolKeyPoolIDEncryptRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDEncryptRequestWithBody generates requests for PostElastickeyElasticKeyIDEncrypt with any type of body
+func NewPostElastickeyElasticKeyIDEncryptRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -582,7 +582,7 @@ func NewPostKeypoolKeyPoolIDEncryptRequestWithBody(server string, keyPoolID exte
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s/encrypt", pathParam0)
+	operationPath := fmt.Sprintf("/elastickey/%s/encrypt", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -624,24 +624,24 @@ func NewPostKeypoolKeyPoolIDEncryptRequestWithBody(server string, keyPoolID exte
 	return req, nil
 }
 
-// NewPostKeypoolKeyPoolIDKeyRequest calls the generic PostKeypoolKeyPoolIDKey builder with application/json body
-func NewPostKeypoolKeyPoolIDKeyRequest(server string, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDKeyRequest calls the generic PostElastickeyElasticKeyIDKey builder with application/json body
+func NewPostElastickeyElasticKeyIDKeyRequest(server string, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDKeyJSONRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	buf, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 	bodyReader = bytes.NewReader(buf)
-	return NewPostKeypoolKeyPoolIDKeyRequestWithBody(server, keyPoolID, "application/json", bodyReader)
+	return NewPostElastickeyElasticKeyIDKeyRequestWithBody(server, elasticKeyID, "application/json", bodyReader)
 }
 
-// NewPostKeypoolKeyPoolIDKeyRequestWithBody generates requests for PostKeypoolKeyPoolIDKey with any type of body
-func NewPostKeypoolKeyPoolIDKeyRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDKeyRequestWithBody generates requests for PostElastickeyElasticKeyIDKey with any type of body
+func NewPostElastickeyElasticKeyIDKeyRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -651,7 +651,7 @@ func NewPostKeypoolKeyPoolIDKeyRequestWithBody(server string, keyPoolID external
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s/key", pathParam0)
+	operationPath := fmt.Sprintf("/elastickey/%s/key", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -671,13 +671,13 @@ func NewPostKeypoolKeyPoolIDKeyRequestWithBody(server string, keyPoolID external
 	return req, nil
 }
 
-// NewGetKeypoolKeyPoolIDKeyKeyIDRequest generates requests for GetKeypoolKeyPoolIDKeyKeyID
-func NewGetKeypoolKeyPoolIDKeyKeyIDRequest(server string, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId) (*http.Request, error) {
+// NewGetElastickeyElasticKeyIDKeyKeyIDRequest generates requests for GetElastickeyElasticKeyIDKeyKeyID
+func NewGetElastickeyElasticKeyIDKeyKeyIDRequest(server string, elasticKeyID externalRef0.ElasticKeyId, keyID externalRef0.KeyId) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -694,7 +694,7 @@ func NewGetKeypoolKeyPoolIDKeyKeyIDRequest(server string, keyPoolID externalRef0
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s/key/%s", pathParam0, pathParam1)
+	operationPath := fmt.Sprintf("/elastickey/%s/key/%s", pathParam0, pathParam1)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -712,13 +712,13 @@ func NewGetKeypoolKeyPoolIDKeyKeyIDRequest(server string, keyPoolID externalRef0
 	return req, nil
 }
 
-// NewGetKeypoolKeyPoolIDKeysRequest generates requests for GetKeypoolKeyPoolIDKeys
-func NewGetKeypoolKeyPoolIDKeysRequest(server string, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams) (*http.Request, error) {
+// NewGetElastickeyElasticKeyIDKeysRequest generates requests for GetElastickeyElasticKeyIDKeys
+func NewGetElastickeyElasticKeyIDKeysRequest(server string, elasticKeyID externalRef0.ElasticKeyId, params *GetElastickeyElasticKeyIDKeysParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -728,7 +728,7 @@ func NewGetKeypoolKeyPoolIDKeysRequest(server string, keyPoolID externalRef0.Key
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s/keys", pathParam0)
+	operationPath := fmt.Sprintf("/elastickey/%s/keys", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -848,20 +848,20 @@ func NewGetKeypoolKeyPoolIDKeysRequest(server string, keyPoolID externalRef0.Key
 	return req, nil
 }
 
-// NewPostKeypoolKeyPoolIDSignRequestWithTextBody calls the generic PostKeypoolKeyPoolIDSign builder with text/plain body
-func NewPostKeypoolKeyPoolIDSignRequestWithTextBody(server string, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDSignRequestWithTextBody calls the generic PostElastickeyElasticKeyIDSign builder with text/plain body
+func NewPostElastickeyElasticKeyIDSignRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	bodyReader = strings.NewReader(string(body))
-	return NewPostKeypoolKeyPoolIDSignRequestWithBody(server, keyPoolID, params, "text/plain", bodyReader)
+	return NewPostElastickeyElasticKeyIDSignRequestWithBody(server, elasticKeyID, params, "text/plain", bodyReader)
 }
 
-// NewPostKeypoolKeyPoolIDSignRequestWithBody generates requests for PostKeypoolKeyPoolIDSign with any type of body
-func NewPostKeypoolKeyPoolIDSignRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDSignRequestWithBody generates requests for PostElastickeyElasticKeyIDSign with any type of body
+func NewPostElastickeyElasticKeyIDSignRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -871,7 +871,7 @@ func NewPostKeypoolKeyPoolIDSignRequestWithBody(server string, keyPoolID externa
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s/sign", pathParam0)
+	operationPath := fmt.Sprintf("/elastickey/%s/sign", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -913,20 +913,20 @@ func NewPostKeypoolKeyPoolIDSignRequestWithBody(server string, keyPoolID externa
 	return req, nil
 }
 
-// NewPostKeypoolKeyPoolIDVerifyRequestWithTextBody calls the generic PostKeypoolKeyPoolIDVerify builder with text/plain body
-func NewPostKeypoolKeyPoolIDVerifyRequestWithTextBody(server string, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDVerifyTextRequestBody) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDVerifyRequestWithTextBody calls the generic PostElastickeyElasticKeyIDVerify builder with text/plain body
+func NewPostElastickeyElasticKeyIDVerifyRequestWithTextBody(server string, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDVerifyTextRequestBody) (*http.Request, error) {
 	var bodyReader io.Reader
 	bodyReader = strings.NewReader(string(body))
-	return NewPostKeypoolKeyPoolIDVerifyRequestWithBody(server, keyPoolID, "text/plain", bodyReader)
+	return NewPostElastickeyElasticKeyIDVerifyRequestWithBody(server, elasticKeyID, "text/plain", bodyReader)
 }
 
-// NewPostKeypoolKeyPoolIDVerifyRequestWithBody generates requests for PostKeypoolKeyPoolIDVerify with any type of body
-func NewPostKeypoolKeyPoolIDVerifyRequestWithBody(server string, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader) (*http.Request, error) {
+// NewPostElastickeyElasticKeyIDVerifyRequestWithBody generates requests for PostElastickeyElasticKeyIDVerify with any type of body
+func NewPostElastickeyElasticKeyIDVerifyRequestWithBody(server string, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
 
-	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "keyPoolID", runtime.ParamLocationPath, keyPoolID)
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "elasticKeyID", runtime.ParamLocationPath, elasticKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -936,7 +936,7 @@ func NewPostKeypoolKeyPoolIDVerifyRequestWithBody(server string, keyPoolID exter
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypool/%s/verify", pathParam0)
+	operationPath := fmt.Sprintf("/elastickey/%s/verify", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -956,8 +956,8 @@ func NewPostKeypoolKeyPoolIDVerifyRequestWithBody(server string, keyPoolID exter
 	return req, nil
 }
 
-// NewGetKeypoolsRequest generates requests for GetKeypools
-func NewGetKeypoolsRequest(server string, params *GetKeypoolsParams) (*http.Request, error) {
+// NewGetElastickeysRequest generates requests for GetElastickeys
+func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -965,7 +965,7 @@ func NewGetKeypoolsRequest(server string, params *GetKeypoolsParams) (*http.Requ
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/keypools")
+	operationPath := fmt.Sprintf("/elastickeys")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -1353,56 +1353,56 @@ func WithBaseURL(baseURL string) ClientOption {
 
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
-	// PostKeypoolWithBodyWithResponse request with any body
-	PostKeypoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error)
+	// PostElastickeyWithBodyWithResponse request with any body
+	PostElastickeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error)
 
-	PostKeypoolWithResponse(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error)
+	PostElastickeyWithResponse(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error)
 
-	// GetKeypoolKeyPoolIDWithResponse request
-	GetKeypoolKeyPoolIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDResponse, error)
+	// GetElastickeyElasticKeyIDWithResponse request
+	GetElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDResponse, error)
 
-	// PostKeypoolKeyPoolIDDecryptWithBodyWithResponse request with any body
-	PostKeypoolKeyPoolIDDecryptWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDDecryptResponse, error)
+	// PostElastickeyElasticKeyIDDecryptWithBodyWithResponse request with any body
+	PostElastickeyElasticKeyIDDecryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error)
 
-	PostKeypoolKeyPoolIDDecryptWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDDecryptResponse, error)
+	PostElastickeyElasticKeyIDDecryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error)
 
-	// PostKeypoolKeyPoolIDEncryptWithBodyWithResponse request with any body
-	PostKeypoolKeyPoolIDEncryptWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDEncryptResponse, error)
+	// PostElastickeyElasticKeyIDEncryptWithBodyWithResponse request with any body
+	PostElastickeyElasticKeyIDEncryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error)
 
-	PostKeypoolKeyPoolIDEncryptWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, body PostKeypoolKeyPoolIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDEncryptResponse, error)
+	PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error)
 
-	// PostKeypoolKeyPoolIDKeyWithBodyWithResponse request with any body
-	PostKeypoolKeyPoolIDKeyWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error)
+	// PostElastickeyElasticKeyIDKeyWithBodyWithResponse request with any body
+	PostElastickeyElasticKeyIDKeyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDKeyResponse, error)
 
-	PostKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error)
+	PostElastickeyElasticKeyIDKeyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDKeyResponse, error)
 
-	// GetKeypoolKeyPoolIDKeyKeyIDWithResponse request
-	GetKeypoolKeyPoolIDKeyKeyIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyKeyIDResponse, error)
+	// GetElastickeyElasticKeyIDKeyKeyIDWithResponse request
+	GetElastickeyElasticKeyIDKeyKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDKeyKeyIDResponse, error)
 
-	// GetKeypoolKeyPoolIDKeysWithResponse request
-	GetKeypoolKeyPoolIDKeysWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeysResponse, error)
+	// GetElastickeyElasticKeyIDKeysWithResponse request
+	GetElastickeyElasticKeyIDKeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *GetElastickeyElasticKeyIDKeysParams, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDKeysResponse, error)
 
-	// PostKeypoolKeyPoolIDSignWithBodyWithResponse request with any body
-	PostKeypoolKeyPoolIDSignWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error)
+	// PostElastickeyElasticKeyIDSignWithBodyWithResponse request with any body
+	PostElastickeyElasticKeyIDSignWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error)
 
-	PostKeypoolKeyPoolIDSignWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error)
+	PostElastickeyElasticKeyIDSignWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error)
 
-	// PostKeypoolKeyPoolIDVerifyWithBodyWithResponse request with any body
-	PostKeypoolKeyPoolIDVerifyWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDVerifyResponse, error)
+	// PostElastickeyElasticKeyIDVerifyWithBodyWithResponse request with any body
+	PostElastickeyElasticKeyIDVerifyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error)
 
-	PostKeypoolKeyPoolIDVerifyWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDVerifyResponse, error)
+	PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error)
 
-	// GetKeypoolsWithResponse request
-	GetKeypoolsWithResponse(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*GetKeypoolsResponse, error)
+	// GetElastickeysWithResponse request
+	GetElastickeysWithResponse(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*GetElastickeysResponse, error)
 
 	// GetKeysWithResponse request
 	GetKeysWithResponse(ctx context.Context, params *GetKeysParams, reqEditors ...RequestEditorFn) (*GetKeysResponse, error)
 }
 
-type PostKeypoolResponse struct {
+type PostElastickeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.KeyPool
+	JSON200      *externalRef0.ElasticKey
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -1415,7 +1415,7 @@ type PostKeypoolResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostKeypoolResponse) Status() string {
+func (r PostElastickeyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1423,17 +1423,17 @@ func (r PostKeypoolResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostKeypoolResponse) StatusCode() int {
+func (r PostElastickeyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetKeypoolKeyPoolIDResponse struct {
+type GetElastickeyElasticKeyIDResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.KeyPool
+	JSON200      *externalRef0.ElasticKey
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -1446,7 +1446,7 @@ type GetKeypoolKeyPoolIDResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetKeypoolKeyPoolIDResponse) Status() string {
+func (r GetElastickeyElasticKeyIDResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1454,44 +1454,14 @@ func (r GetKeypoolKeyPoolIDResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetKeypoolKeyPoolIDResponse) StatusCode() int {
+func (r GetElastickeyElasticKeyIDResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostKeypoolKeyPoolIDDecryptResponse struct {
-	Body         []byte
-	HTTPResponse *http.Response
-	JSON400      *externalRef0.HTTP400BadRequest
-	JSON401      *externalRef0.HTTP401Unauthorized
-	JSON403      *externalRef0.HTTP403Forbidden
-	JSON404      *externalRef0.HTTP404NotFound
-	JSON429      *externalRef0.HTTP429TooManyRequests
-	JSON500      *externalRef0.HTTP500InternalServerError
-	JSON502      *externalRef0.HTTP502BadGateway
-	JSON503      *externalRef0.HTTP503ServiceUnavailable
-	JSON504      *externalRef0.HTTP504GatewayTimeout
-}
-
-// Status returns HTTPResponse.Status
-func (r PostKeypoolKeyPoolIDDecryptResponse) Status() string {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.Status
-	}
-	return http.StatusText(0)
-}
-
-// StatusCode returns HTTPResponse.StatusCode
-func (r PostKeypoolKeyPoolIDDecryptResponse) StatusCode() int {
-	if r.HTTPResponse != nil {
-		return r.HTTPResponse.StatusCode
-	}
-	return 0
-}
-
-type PostKeypoolKeyPoolIDEncryptResponse struct {
+type PostElastickeyElasticKeyIDDecryptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -1506,7 +1476,7 @@ type PostKeypoolKeyPoolIDEncryptResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostKeypoolKeyPoolIDEncryptResponse) Status() string {
+func (r PostElastickeyElasticKeyIDDecryptResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1514,17 +1484,16 @@ func (r PostKeypoolKeyPoolIDEncryptResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostKeypoolKeyPoolIDEncryptResponse) StatusCode() int {
+func (r PostElastickeyElasticKeyIDDecryptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostKeypoolKeyPoolIDKeyResponse struct {
+type PostElastickeyElasticKeyIDEncryptResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *externalRef0.Key
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -1537,7 +1506,7 @@ type PostKeypoolKeyPoolIDKeyResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostKeypoolKeyPoolIDKeyResponse) Status() string {
+func (r PostElastickeyElasticKeyIDEncryptResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1545,14 +1514,14 @@ func (r PostKeypoolKeyPoolIDKeyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostKeypoolKeyPoolIDKeyResponse) StatusCode() int {
+func (r PostElastickeyElasticKeyIDEncryptResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetKeypoolKeyPoolIDKeyKeyIDResponse struct {
+type PostElastickeyElasticKeyIDKeyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *externalRef0.Key
@@ -1568,7 +1537,7 @@ type GetKeypoolKeyPoolIDKeyKeyIDResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetKeypoolKeyPoolIDKeyKeyIDResponse) Status() string {
+func (r PostElastickeyElasticKeyIDKeyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1576,14 +1545,45 @@ func (r GetKeypoolKeyPoolIDKeyKeyIDResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetKeypoolKeyPoolIDKeyKeyIDResponse) StatusCode() int {
+func (r PostElastickeyElasticKeyIDKeyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetKeypoolKeyPoolIDKeysResponse struct {
+type GetElastickeyElasticKeyIDKeyKeyIDResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *externalRef0.Key
+	JSON400      *externalRef0.HTTP400BadRequest
+	JSON401      *externalRef0.HTTP401Unauthorized
+	JSON403      *externalRef0.HTTP403Forbidden
+	JSON404      *externalRef0.HTTP404NotFound
+	JSON429      *externalRef0.HTTP429TooManyRequests
+	JSON500      *externalRef0.HTTP500InternalServerError
+	JSON502      *externalRef0.HTTP502BadGateway
+	JSON503      *externalRef0.HTTP503ServiceUnavailable
+	JSON504      *externalRef0.HTTP504GatewayTimeout
+}
+
+// Status returns HTTPResponse.Status
+func (r GetElastickeyElasticKeyIDKeyKeyIDResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetElastickeyElasticKeyIDKeyKeyIDResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type GetElastickeyElasticKeyIDKeysResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *[]externalRef0.Key
@@ -1599,7 +1599,7 @@ type GetKeypoolKeyPoolIDKeysResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetKeypoolKeyPoolIDKeysResponse) Status() string {
+func (r GetElastickeyElasticKeyIDKeysResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1607,14 +1607,14 @@ func (r GetKeypoolKeyPoolIDKeysResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetKeypoolKeyPoolIDKeysResponse) StatusCode() int {
+func (r GetElastickeyElasticKeyIDKeysResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostKeypoolKeyPoolIDSignResponse struct {
+type PostElastickeyElasticKeyIDSignResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -1629,7 +1629,7 @@ type PostKeypoolKeyPoolIDSignResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostKeypoolKeyPoolIDSignResponse) Status() string {
+func (r PostElastickeyElasticKeyIDSignResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1637,14 +1637,14 @@ func (r PostKeypoolKeyPoolIDSignResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostKeypoolKeyPoolIDSignResponse) StatusCode() int {
+func (r PostElastickeyElasticKeyIDSignResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type PostKeypoolKeyPoolIDVerifyResponse struct {
+type PostElastickeyElasticKeyIDVerifyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *externalRef0.HTTP400BadRequest
@@ -1659,7 +1659,7 @@ type PostKeypoolKeyPoolIDVerifyResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r PostKeypoolKeyPoolIDVerifyResponse) Status() string {
+func (r PostElastickeyElasticKeyIDVerifyResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1667,17 +1667,17 @@ func (r PostKeypoolKeyPoolIDVerifyResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r PostKeypoolKeyPoolIDVerifyResponse) StatusCode() int {
+func (r PostElastickeyElasticKeyIDVerifyResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type GetKeypoolsResponse struct {
+type GetElastickeysResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef0.KeyPool
+	JSON200      *[]externalRef0.ElasticKey
 	JSON400      *externalRef0.HTTP400BadRequest
 	JSON401      *externalRef0.HTTP401Unauthorized
 	JSON403      *externalRef0.HTTP403Forbidden
@@ -1690,7 +1690,7 @@ type GetKeypoolsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r GetKeypoolsResponse) Status() string {
+func (r GetElastickeysResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1698,7 +1698,7 @@ func (r GetKeypoolsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetKeypoolsResponse) StatusCode() int {
+func (r GetElastickeysResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1736,142 +1736,142 @@ func (r GetKeysResponse) StatusCode() int {
 	return 0
 }
 
-// PostKeypoolWithBodyWithResponse request with arbitrary body returning *PostKeypoolResponse
-func (c *ClientWithResponses) PostKeypoolWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error) {
-	rsp, err := c.PostKeypoolWithBody(ctx, contentType, body, reqEditors...)
+// PostElastickeyWithBodyWithResponse request with arbitrary body returning *PostElastickeyResponse
+func (c *ClientWithResponses) PostElastickeyWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error) {
+	rsp, err := c.PostElastickeyWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolResponse(rsp)
+	return ParsePostElastickeyResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKeypoolWithResponse(ctx context.Context, body PostKeypoolJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolResponse, error) {
-	rsp, err := c.PostKeypool(ctx, body, reqEditors...)
+func (c *ClientWithResponses) PostElastickeyWithResponse(ctx context.Context, body PostElastickeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyResponse, error) {
+	rsp, err := c.PostElastickey(ctx, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolResponse(rsp)
+	return ParsePostElastickeyResponse(rsp)
 }
 
-// GetKeypoolKeyPoolIDWithResponse request returning *GetKeypoolKeyPoolIDResponse
-func (c *ClientWithResponses) GetKeypoolKeyPoolIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDResponse, error) {
-	rsp, err := c.GetKeypoolKeyPoolID(ctx, keyPoolID, reqEditors...)
+// GetElastickeyElasticKeyIDWithResponse request returning *GetElastickeyElasticKeyIDResponse
+func (c *ClientWithResponses) GetElastickeyElasticKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDResponse, error) {
+	rsp, err := c.GetElastickeyElasticKeyID(ctx, elasticKeyID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetKeypoolKeyPoolIDResponse(rsp)
+	return ParseGetElastickeyElasticKeyIDResponse(rsp)
 }
 
-// PostKeypoolKeyPoolIDDecryptWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDDecryptResponse
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDDecryptWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDDecryptResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDDecryptWithBody(ctx, keyPoolID, contentType, body, reqEditors...)
+// PostElastickeyElasticKeyIDDecryptWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDDecryptResponse
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDDecryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDDecryptWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDDecryptResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDDecryptResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDDecryptWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDDecryptResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDDecryptWithTextBody(ctx, keyPoolID, body, reqEditors...)
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDDecryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDDecryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDDecryptResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDDecryptWithTextBody(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDDecryptResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDDecryptResponse(rsp)
 }
 
-// PostKeypoolKeyPoolIDEncryptWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDEncryptResponse
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDEncryptWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDEncryptResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDEncryptWithBody(ctx, keyPoolID, params, contentType, body, reqEditors...)
+// PostElastickeyElasticKeyIDEncryptWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDEncryptResponse
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDEncryptWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDEncryptWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDEncryptResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDEncryptResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDEncryptWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDEncryptParams, body PostKeypoolKeyPoolIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDEncryptResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDEncryptWithTextBody(ctx, keyPoolID, params, body, reqEditors...)
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDEncryptParams, body PostElastickeyElasticKeyIDEncryptTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDEncryptResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDEncryptWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDEncryptResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDEncryptResponse(rsp)
 }
 
-// PostKeypoolKeyPoolIDKeyWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDKeyResponse
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDKeyWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDKeyWithBody(ctx, keyPoolID, contentType, body, reqEditors...)
+// PostElastickeyElasticKeyIDKeyWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDKeyResponse
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDKeyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDKeyResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDKeyWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDKeyResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDKeyResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDKeyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDKeyResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDKey(ctx, keyPoolID, body, reqEditors...)
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDKeyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDKeyJSONRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDKeyResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDKey(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDKeyResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDKeyResponse(rsp)
 }
 
-// GetKeypoolKeyPoolIDKeyKeyIDWithResponse request returning *GetKeypoolKeyPoolIDKeyKeyIDResponse
-func (c *ClientWithResponses) GetKeypoolKeyPoolIDKeyKeyIDWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeyKeyIDResponse, error) {
-	rsp, err := c.GetKeypoolKeyPoolIDKeyKeyID(ctx, keyPoolID, keyID, reqEditors...)
+// GetElastickeyElasticKeyIDKeyKeyIDWithResponse request returning *GetElastickeyElasticKeyIDKeyKeyIDResponse
+func (c *ClientWithResponses) GetElastickeyElasticKeyIDKeyKeyIDWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, keyID externalRef0.KeyId, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDKeyKeyIDResponse, error) {
+	rsp, err := c.GetElastickeyElasticKeyIDKeyKeyID(ctx, elasticKeyID, keyID, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetKeypoolKeyPoolIDKeyKeyIDResponse(rsp)
+	return ParseGetElastickeyElasticKeyIDKeyKeyIDResponse(rsp)
 }
 
-// GetKeypoolKeyPoolIDKeysWithResponse request returning *GetKeypoolKeyPoolIDKeysResponse
-func (c *ClientWithResponses) GetKeypoolKeyPoolIDKeysWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *GetKeypoolKeyPoolIDKeysParams, reqEditors ...RequestEditorFn) (*GetKeypoolKeyPoolIDKeysResponse, error) {
-	rsp, err := c.GetKeypoolKeyPoolIDKeys(ctx, keyPoolID, params, reqEditors...)
+// GetElastickeyElasticKeyIDKeysWithResponse request returning *GetElastickeyElasticKeyIDKeysResponse
+func (c *ClientWithResponses) GetElastickeyElasticKeyIDKeysWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *GetElastickeyElasticKeyIDKeysParams, reqEditors ...RequestEditorFn) (*GetElastickeyElasticKeyIDKeysResponse, error) {
+	rsp, err := c.GetElastickeyElasticKeyIDKeys(ctx, elasticKeyID, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetKeypoolKeyPoolIDKeysResponse(rsp)
+	return ParseGetElastickeyElasticKeyIDKeysResponse(rsp)
 }
 
-// PostKeypoolKeyPoolIDSignWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDSignResponse
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDSignWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDSignWithBody(ctx, keyPoolID, params, contentType, body, reqEditors...)
+// PostElastickeyElasticKeyIDSignWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDSignResponse
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDSignWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDSignWithBody(ctx, elasticKeyID, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDSignResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDSignResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDSignWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, params *PostKeypoolKeyPoolIDSignParams, body PostKeypoolKeyPoolIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDSignResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDSignWithTextBody(ctx, keyPoolID, params, body, reqEditors...)
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDSignWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, params *PostElastickeyElasticKeyIDSignParams, body PostElastickeyElasticKeyIDSignTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDSignResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDSignWithTextBody(ctx, elasticKeyID, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDSignResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDSignResponse(rsp)
 }
 
-// PostKeypoolKeyPoolIDVerifyWithBodyWithResponse request with arbitrary body returning *PostKeypoolKeyPoolIDVerifyResponse
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDVerifyWithBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDVerifyResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDVerifyWithBody(ctx, keyPoolID, contentType, body, reqEditors...)
+// PostElastickeyElasticKeyIDVerifyWithBodyWithResponse request with arbitrary body returning *PostElastickeyElasticKeyIDVerifyResponse
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDVerifyWithBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDVerifyWithBody(ctx, elasticKeyID, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDVerifyResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDVerifyResponse(rsp)
 }
 
-func (c *ClientWithResponses) PostKeypoolKeyPoolIDVerifyWithTextBodyWithResponse(ctx context.Context, keyPoolID externalRef0.KeyPoolId, body PostKeypoolKeyPoolIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostKeypoolKeyPoolIDVerifyResponse, error) {
-	rsp, err := c.PostKeypoolKeyPoolIDVerifyWithTextBody(ctx, keyPoolID, body, reqEditors...)
+func (c *ClientWithResponses) PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(ctx context.Context, elasticKeyID externalRef0.ElasticKeyId, body PostElastickeyElasticKeyIDVerifyTextRequestBody, reqEditors ...RequestEditorFn) (*PostElastickeyElasticKeyIDVerifyResponse, error) {
+	rsp, err := c.PostElastickeyElasticKeyIDVerifyWithTextBody(ctx, elasticKeyID, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParsePostKeypoolKeyPoolIDVerifyResponse(rsp)
+	return ParsePostElastickeyElasticKeyIDVerifyResponse(rsp)
 }
 
-// GetKeypoolsWithResponse request returning *GetKeypoolsResponse
-func (c *ClientWithResponses) GetKeypoolsWithResponse(ctx context.Context, params *GetKeypoolsParams, reqEditors ...RequestEditorFn) (*GetKeypoolsResponse, error) {
-	rsp, err := c.GetKeypools(ctx, params, reqEditors...)
+// GetElastickeysWithResponse request returning *GetElastickeysResponse
+func (c *ClientWithResponses) GetElastickeysWithResponse(ctx context.Context, params *GetElastickeysParams, reqEditors ...RequestEditorFn) (*GetElastickeysResponse, error) {
+	rsp, err := c.GetElastickeys(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetKeypoolsResponse(rsp)
+	return ParseGetElastickeysResponse(rsp)
 }
 
 // GetKeysWithResponse request returning *GetKeysResponse
@@ -1883,22 +1883,22 @@ func (c *ClientWithResponses) GetKeysWithResponse(ctx context.Context, params *G
 	return ParseGetKeysResponse(rsp)
 }
 
-// ParsePostKeypoolResponse parses an HTTP response from a PostKeypoolWithResponse call
-func ParsePostKeypoolResponse(rsp *http.Response) (*PostKeypoolResponse, error) {
+// ParsePostElastickeyResponse parses an HTTP response from a PostElastickeyWithResponse call
+func ParsePostElastickeyResponse(rsp *http.Response) (*PostElastickeyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKeypoolResponse{
+	response := &PostElastickeyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.KeyPool
+		var dest externalRef0.ElasticKey
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -1972,22 +1972,22 @@ func ParsePostKeypoolResponse(rsp *http.Response) (*PostKeypoolResponse, error) 
 	return response, nil
 }
 
-// ParseGetKeypoolKeyPoolIDResponse parses an HTTP response from a GetKeypoolKeyPoolIDWithResponse call
-func ParseGetKeypoolKeyPoolIDResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDResponse, error) {
+// ParseGetElastickeyElasticKeyIDResponse parses an HTTP response from a GetElastickeyElasticKeyIDWithResponse call
+func ParseGetElastickeyElasticKeyIDResponse(rsp *http.Response) (*GetElastickeyElasticKeyIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetKeypoolKeyPoolIDResponse{
+	response := &GetElastickeyElasticKeyIDResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.KeyPool
+		var dest externalRef0.ElasticKey
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2061,15 +2061,15 @@ func ParseGetKeypoolKeyPoolIDResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDR
 	return response, nil
 }
 
-// ParsePostKeypoolKeyPoolIDDecryptResponse parses an HTTP response from a PostKeypoolKeyPoolIDDecryptWithResponse call
-func ParsePostKeypoolKeyPoolIDDecryptResponse(rsp *http.Response) (*PostKeypoolKeyPoolIDDecryptResponse, error) {
+// ParsePostElastickeyElasticKeyIDDecryptResponse parses an HTTP response from a PostElastickeyElasticKeyIDDecryptWithResponse call
+func ParsePostElastickeyElasticKeyIDDecryptResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDDecryptResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKeypoolKeyPoolIDDecryptResponse{
+	response := &PostElastickeyElasticKeyIDDecryptResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2143,15 +2143,15 @@ func ParsePostKeypoolKeyPoolIDDecryptResponse(rsp *http.Response) (*PostKeypoolK
 	return response, nil
 }
 
-// ParsePostKeypoolKeyPoolIDEncryptResponse parses an HTTP response from a PostKeypoolKeyPoolIDEncryptWithResponse call
-func ParsePostKeypoolKeyPoolIDEncryptResponse(rsp *http.Response) (*PostKeypoolKeyPoolIDEncryptResponse, error) {
+// ParsePostElastickeyElasticKeyIDEncryptResponse parses an HTTP response from a PostElastickeyElasticKeyIDEncryptWithResponse call
+func ParsePostElastickeyElasticKeyIDEncryptResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDEncryptResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKeypoolKeyPoolIDEncryptResponse{
+	response := &PostElastickeyElasticKeyIDEncryptResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2225,104 +2225,15 @@ func ParsePostKeypoolKeyPoolIDEncryptResponse(rsp *http.Response) (*PostKeypoolK
 	return response, nil
 }
 
-// ParsePostKeypoolKeyPoolIDKeyResponse parses an HTTP response from a PostKeypoolKeyPoolIDKeyWithResponse call
-func ParsePostKeypoolKeyPoolIDKeyResponse(rsp *http.Response) (*PostKeypoolKeyPoolIDKeyResponse, error) {
+// ParsePostElastickeyElasticKeyIDKeyResponse parses an HTTP response from a PostElastickeyElasticKeyIDKeyWithResponse call
+func ParsePostElastickeyElasticKeyIDKeyResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDKeyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKeypoolKeyPoolIDKeyResponse{
-		Body:         bodyBytes,
-		HTTPResponse: rsp,
-	}
-
-	switch {
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest externalRef0.Key
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON200 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
-		var dest externalRef0.HTTP400BadRequest
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON400 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
-		var dest externalRef0.HTTP401Unauthorized
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON401 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
-		var dest externalRef0.HTTP403Forbidden
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON403 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest externalRef0.HTTP404NotFound
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON404 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
-		var dest externalRef0.HTTP429TooManyRequests
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON429 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
-		var dest externalRef0.HTTP500InternalServerError
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
-		var dest externalRef0.HTTP502BadGateway
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON502 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
-		var dest externalRef0.HTTP503ServiceUnavailable
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON503 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
-		var dest externalRef0.HTTP504GatewayTimeout
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.JSON504 = &dest
-
-	}
-
-	return response, nil
-}
-
-// ParseGetKeypoolKeyPoolIDKeyKeyIDResponse parses an HTTP response from a GetKeypoolKeyPoolIDKeyKeyIDWithResponse call
-func ParseGetKeypoolKeyPoolIDKeyKeyIDResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDKeyKeyIDResponse, error) {
-	bodyBytes, err := io.ReadAll(rsp.Body)
-	defer func() { _ = rsp.Body.Close() }()
-	if err != nil {
-		return nil, err
-	}
-
-	response := &GetKeypoolKeyPoolIDKeyKeyIDResponse{
+	response := &PostElastickeyElasticKeyIDKeyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2403,15 +2314,104 @@ func ParseGetKeypoolKeyPoolIDKeyKeyIDResponse(rsp *http.Response) (*GetKeypoolKe
 	return response, nil
 }
 
-// ParseGetKeypoolKeyPoolIDKeysResponse parses an HTTP response from a GetKeypoolKeyPoolIDKeysWithResponse call
-func ParseGetKeypoolKeyPoolIDKeysResponse(rsp *http.Response) (*GetKeypoolKeyPoolIDKeysResponse, error) {
+// ParseGetElastickeyElasticKeyIDKeyKeyIDResponse parses an HTTP response from a GetElastickeyElasticKeyIDKeyKeyIDWithResponse call
+func ParseGetElastickeyElasticKeyIDKeyKeyIDResponse(rsp *http.Response) (*GetElastickeyElasticKeyIDKeyKeyIDResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetKeypoolKeyPoolIDKeysResponse{
+	response := &GetElastickeyElasticKeyIDKeyKeyIDResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef0.Key
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest externalRef0.HTTP400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest externalRef0.HTTP401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest externalRef0.HTTP403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest externalRef0.HTTP404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest externalRef0.HTTP429TooManyRequests
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest externalRef0.HTTP500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 502:
+		var dest externalRef0.HTTP502BadGateway
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON502 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest externalRef0.HTTP503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 504:
+		var dest externalRef0.HTTP504GatewayTimeout
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON504 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetElastickeyElasticKeyIDKeysResponse parses an HTTP response from a GetElastickeyElasticKeyIDKeysWithResponse call
+func ParseGetElastickeyElasticKeyIDKeysResponse(rsp *http.Response) (*GetElastickeyElasticKeyIDKeysResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetElastickeyElasticKeyIDKeysResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2492,15 +2492,15 @@ func ParseGetKeypoolKeyPoolIDKeysResponse(rsp *http.Response) (*GetKeypoolKeyPoo
 	return response, nil
 }
 
-// ParsePostKeypoolKeyPoolIDSignResponse parses an HTTP response from a PostKeypoolKeyPoolIDSignWithResponse call
-func ParsePostKeypoolKeyPoolIDSignResponse(rsp *http.Response) (*PostKeypoolKeyPoolIDSignResponse, error) {
+// ParsePostElastickeyElasticKeyIDSignResponse parses an HTTP response from a PostElastickeyElasticKeyIDSignWithResponse call
+func ParsePostElastickeyElasticKeyIDSignResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDSignResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKeypoolKeyPoolIDSignResponse{
+	response := &PostElastickeyElasticKeyIDSignResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2574,15 +2574,15 @@ func ParsePostKeypoolKeyPoolIDSignResponse(rsp *http.Response) (*PostKeypoolKeyP
 	return response, nil
 }
 
-// ParsePostKeypoolKeyPoolIDVerifyResponse parses an HTTP response from a PostKeypoolKeyPoolIDVerifyWithResponse call
-func ParsePostKeypoolKeyPoolIDVerifyResponse(rsp *http.Response) (*PostKeypoolKeyPoolIDVerifyResponse, error) {
+// ParsePostElastickeyElasticKeyIDVerifyResponse parses an HTTP response from a PostElastickeyElasticKeyIDVerifyWithResponse call
+func ParsePostElastickeyElasticKeyIDVerifyResponse(rsp *http.Response) (*PostElastickeyElasticKeyIDVerifyResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &PostKeypoolKeyPoolIDVerifyResponse{
+	response := &PostElastickeyElasticKeyIDVerifyResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2656,22 +2656,22 @@ func ParsePostKeypoolKeyPoolIDVerifyResponse(rsp *http.Response) (*PostKeypoolKe
 	return response, nil
 }
 
-// ParseGetKeypoolsResponse parses an HTTP response from a GetKeypoolsWithResponse call
-func ParseGetKeypoolsResponse(rsp *http.Response) (*GetKeypoolsResponse, error) {
+// ParseGetElastickeysResponse parses an HTTP response from a GetElastickeysWithResponse call
+func ParseGetElastickeysResponse(rsp *http.Response) (*GetElastickeysResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetKeypoolsResponse{
+	response := &GetElastickeysResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef0.KeyPool
+		var dest []externalRef0.ElasticKey
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -2837,90 +2837,90 @@ func ParseGetKeysResponse(rsp *http.Response) (*GetKeysResponse, error) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

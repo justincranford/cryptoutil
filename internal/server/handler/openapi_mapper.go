@@ -16,141 +16,141 @@ func NewOpenapiBusinessLogicMapper() *openapiBusinessLogicMapper {
 	return &openapiBusinessLogicMapper{}
 }
 
-func (m *openapiBusinessLogicMapper) toPostKeyResponse(err error, addedKeyPool *cryptoutilBusinessLogicModel.KeyPool) (cryptoutilOpenapiServer.PostKeypoolResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostKeyResponse(err error, addedElasticKey *cryptoutilBusinessLogicModel.ElasticKey) (cryptoutilOpenapiServer.PostElastickeyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypool400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickey400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypool404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickey404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypool500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickey500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to add KeyPool: %w", err)
+		return nil, fmt.Errorf("failed to add ElasticKey: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypool200JSONResponse(*addedKeyPool), nil
+	return cryptoutilOpenapiServer.PostElastickey200JSONResponse(*addedElasticKey), nil
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetKeyPoolQueryParams(openapiGetKeyPoolQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolsParams) *cryptoutilBusinessLogicModel.KeyPoolsQueryParams {
-	filters := cryptoutilBusinessLogicModel.KeyPoolsQueryParams{
-		Id:                openapiGetKeyPoolQueryParamsObject.Id,
-		Name:              openapiGetKeyPoolQueryParamsObject.Name,
-		Provider:          openapiGetKeyPoolQueryParamsObject.Provider,
-		Algorithm:         openapiGetKeyPoolQueryParamsObject.Algorithm,
-		VersioningAllowed: openapiGetKeyPoolQueryParamsObject.VersioningAllowed,
-		ImportAllowed:     openapiGetKeyPoolQueryParamsObject.ImportAllowed,
-		ExportAllowed:     openapiGetKeyPoolQueryParamsObject.ExportAllowed,
-		Status:            openapiGetKeyPoolQueryParamsObject.Status,
-		Sort:              openapiGetKeyPoolQueryParamsObject.Sort,
-		Page:              openapiGetKeyPoolQueryParamsObject.Page,
-		Size:              openapiGetKeyPoolQueryParamsObject.Size,
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyQueryParams(openapiGetElasticKeyQueryParamsObject *cryptoutilOpenapiServer.GetElastickeysParams) *cryptoutilBusinessLogicModel.ElasticKeysQueryParams {
+	filters := cryptoutilBusinessLogicModel.ElasticKeysQueryParams{
+		Id:                openapiGetElasticKeyQueryParamsObject.Id,
+		Name:              openapiGetElasticKeyQueryParamsObject.Name,
+		Provider:          openapiGetElasticKeyQueryParamsObject.Provider,
+		Algorithm:         openapiGetElasticKeyQueryParamsObject.Algorithm,
+		VersioningAllowed: openapiGetElasticKeyQueryParamsObject.VersioningAllowed,
+		ImportAllowed:     openapiGetElasticKeyQueryParamsObject.ImportAllowed,
+		ExportAllowed:     openapiGetElasticKeyQueryParamsObject.ExportAllowed,
+		Status:            openapiGetElasticKeyQueryParamsObject.Status,
+		Sort:              openapiGetElasticKeyQueryParamsObject.Sort,
+		Page:              openapiGetElasticKeyQueryParamsObject.Page,
+		Size:              openapiGetElasticKeyQueryParamsObject.Size,
 	}
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toGetKeypoolsResponse(err error, keyPools []cryptoutilBusinessLogicModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolsResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeysResponse(err error, elasticKeys []cryptoutilBusinessLogicModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypools400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeys400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypools404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeys404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypools500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeys500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to get KeyPools: %w", err)
+		return nil, fmt.Errorf("failed to get ElasticKeys: %w", err)
 	}
-	return cryptoutilOpenapiServer.GetKeypools200JSONResponse(keyPools), err
+	return cryptoutilOpenapiServer.GetElastickeys200JSONResponse(elasticKeys), err
 }
 
-func (m *openapiBusinessLogicMapper) toGetKeypoolKeyPoolIDResponse(err error, keyPool *cryptoutilBusinessLogicModel.KeyPool) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDResponse(err error, elasticKey *cryptoutilBusinessLogicModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyID400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyID404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolID500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyID500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to get KeyPool by KeyPoolID: %w", err)
+		return nil, fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 	}
-	return cryptoutilOpenapiServer.GetKeypoolKeyPoolID200JSONResponse(*keyPool), err
+	return cryptoutilOpenapiServer.GetElastickeyElasticKeyID200JSONResponse(*elasticKey), err
 }
 
-func (m *openapiBusinessLogicMapper) toPostKeypoolKeyPoolIDKeyResponse(err error, generateKeyInKeyPoolResponse *cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKeyResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostElastickeyElasticKeyIDKeyResponse(err error, generateKeyInElasticKeyResponse *cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDKeyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDKey400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDKey404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDKey500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to generate Key by KeyPoolID: %w", err)
+		return nil, fmt.Errorf("failed to generate Key by ElasticKeyID: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDKey200JSONResponse(*generateKeyInKeyPoolResponse), err
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDKey200JSONResponse(*generateKeyInElasticKeyResponse), err
 }
 
-func (m *openapiBusinessLogicMapper) toGetKeypoolKeyPoolIDKeyKeyIDResponse(err error, key *cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyIDResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDKeyKeyIDResponse(err error, key *cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeyKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeyKeyID400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeyKeyID404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeyKeyID500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to get Keys by KeyPoolID and KeyID: %w", err)
+		return nil, fmt.Errorf("failed to get Keys by ElasticKeyID and KeyID: %w", err)
 	}
-	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeyKeyID200JSONResponse(*key), err
+	return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeyKeyID200JSONResponse(*key), err
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetKeyPoolKeysQueryParams(openapiGetKeyPoolKeysQueryParamsObject *cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysParams) *cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams {
-	filters := cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams{
-		Id:              openapiGetKeyPoolKeysQueryParamsObject.Id,
-		MinGenerateDate: openapiGetKeyPoolKeysQueryParamsObject.MinGenerateDate,
-		MaxGenerateDate: openapiGetKeyPoolKeysQueryParamsObject.MaxGenerateDate,
-		Sort:            openapiGetKeyPoolKeysQueryParamsObject.Sort,
-		Page:            openapiGetKeyPoolKeysQueryParamsObject.Page,
-		Size:            openapiGetKeyPoolKeysQueryParamsObject.Size,
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyKeysQueryParams(openapiGetElasticKeyKeysQueryParamsObject *cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeysParams) *cryptoutilBusinessLogicModel.ElasticKeyKeysQueryParams {
+	filters := cryptoutilBusinessLogicModel.ElasticKeyKeysQueryParams{
+		Id:              openapiGetElasticKeyKeysQueryParamsObject.Id,
+		MinGenerateDate: openapiGetElasticKeyKeysQueryParamsObject.MinGenerateDate,
+		MaxGenerateDate: openapiGetElasticKeyKeysQueryParamsObject.MaxGenerateDate,
+		Sort:            openapiGetElasticKeyKeysQueryParamsObject.Sort,
+		Page:            openapiGetElasticKeyKeysQueryParamsObject.Page,
+		Size:            openapiGetElasticKeyKeysQueryParamsObject.Size,
 	}
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toGetKeypoolKeyPoolIDKeysResponse(err error, keys []cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeysResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDKeysResponse(err error, keys []cryptoutilBusinessLogicModel.Key) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeys400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeys404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeys500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
+		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
-	return cryptoutilOpenapiServer.GetKeypoolKeyPoolIDKeys200JSONResponse(keys), err
+	return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDKeys200JSONResponse(keys), err
 }
 
 func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetKeysQueryParams(openapiGetKeyQueryParamsObject *cryptoutilOpenapiServer.GetKeysParams) *cryptoutilBusinessLogicModel.KeysQueryParams {
@@ -179,88 +179,88 @@ func (m *openapiBusinessLogicMapper) toGetKeysResponse(err error, keys []cryptou
 				return cryptoutilOpenapiServer.GetKeys500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
-		return nil, fmt.Errorf("failed to list Keys by KeyPoolID: %w", err)
+		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
 	return cryptoutilOpenapiServer.GetKeys200JSONResponse(keys), err
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject *cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptParams) *cryptoutilBusinessLogicModel.EncryptParams {
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(openapiPostElastickeyElasticKeyIDKeyKeyIDEncryptParamsObject *cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptParams) *cryptoutilBusinessLogicModel.EncryptParams {
 	filters := cryptoutilBusinessLogicModel.EncryptParams{
-		Context: openapiPostKeypoolKeyPoolIDKeyKeyIDEncryptParamsObject.Context,
+		Context: openapiPostElastickeyElasticKeyIDKeyKeyIDEncryptParamsObject.Context,
 	}
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncryptResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDEncrypt200TextResponse(encryptedBytes), err
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt200TextResponse(encryptedBytes), err
 }
 
-func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, decryptedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecryptResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, decryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to decrypt: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDDecrypt200TextResponse(decryptedBytes), err
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt200TextResponse(decryptedBytes), err
 }
 
-func (m *openapiBusinessLogicMapper) toPostSignResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSignResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostSignResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSign400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSign404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSign500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to sign: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDSign200TextResponse(encryptedBytes), err
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSign200TextResponse(encryptedBytes), err
 }
 
-func (m *openapiBusinessLogicMapper) toPostVerifyResponse(err error, verifiedBytes []byte) (cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerifyResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostVerifyResponse(err error, verifiedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerify400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerify404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerify500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to verify: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostKeypoolKeyPoolIDVerify204Response{}, err
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerify204Response{}, err
 }
 
 // Helper methods

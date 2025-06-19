@@ -11,7 +11,7 @@ import (
 )
 
 var happyPathTestCases = []struct {
-	actual   KeyPoolAlgorithm
+	actual   ElasticKeyAlgorithm
 	expected string
 }{
 	{actual: A256GCM_A256KW, expected: cryptoutilJose.EncA256GCM.String() + "/" + cryptoutilJose.AlgA256KW.String()},

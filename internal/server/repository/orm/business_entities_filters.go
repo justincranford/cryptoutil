@@ -6,7 +6,7 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-type GetKeyPoolsFilters struct {
+type GetElasticKeysFilters struct {
 	ID                []googleUuid.UUID `validate:"optional,min=1"`
 	Name              []string          `validate:"optional,min=1"`
 	Algorithm         []string          `validate:"optional,min=1"`
@@ -18,7 +18,7 @@ type GetKeyPoolsFilters struct {
 	PageSize          int               `validate:"min=1"`
 }
 
-type GetKeyPoolKeysFilters struct {
+type GetElasticKeyKeysFilters struct {
 	ID                  []googleUuid.UUID `validate:"optional,min=1"`
 	MinimumGenerateDate *time.Time        `validate:"optional"`
 	MaximumGenerateDate *time.Time        `validate:"optional"`

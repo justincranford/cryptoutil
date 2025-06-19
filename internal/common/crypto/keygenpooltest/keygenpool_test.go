@@ -1,4 +1,4 @@
-package keypooltest
+package elastickeytest
 
 import (
 	"context"
@@ -69,7 +69,7 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "keypool_test", false, false)
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "elastickey_test", false, false)
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()

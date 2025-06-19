@@ -8,40 +8,40 @@ info:
 
 components:
   parameters:
-    KeyPoolQueryParamIds:
+    ElasticKeyQueryParamIds:
       name: id
       in: query
-      description: Filter by the Key Pool ID (UUID).
+      description: Filter by the Elastic Key ID (UUID).
       required: false
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyPoolId'
+          $ref: '#/components/schemas/ElasticKeyId'
       style: form
       explode: true
-    KeyPoolQueryParamNames:
+    ElasticKeyQueryParamNames:
       name: name
       in: query
-      description: Filter by the Key Pool name.
+      description: Filter by the Elastic Key name.
       required: false
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyPoolName'
+          $ref: '#/components/schemas/ElasticKeyName'
       style: form
       explode: true
-    KeyPoolQueryParamProviders:
+    ElasticKeyQueryParamProviders:
       name: provider
       in: query
-      description: Filter by Key Pool provider.
+      description: Filter by Elastic Key provider.
       required: false
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyPoolProvider'
+          $ref: '#/components/schemas/ElasticKeyProvider'
       style: form
       explode: true
-    KeyPoolQueryParamAlgorithms:
+    ElasticKeyQueryParamAlgorithms:
       name: algorithm
       in: query
       description: Filter by cryptographic algorithm.
@@ -49,42 +49,42 @@ components:
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyPoolAlgorithm'
+          $ref: '#/components/schemas/ElasticKeyAlgorithm'
       style: form
       explode: true
-    KeyPoolQueryParamVersioningAllowed:
+    ElasticKeyQueryParamVersioningAllowed:
       name: versioning_allowed
       in: query
       description: Filter by whether versioning is allowed.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolVersioningAllowed'
-    KeyPoolQueryParamImportAllowed:
+        $ref: '#/components/schemas/ElasticKeyVersioningAllowed'
+    ElasticKeyQueryParamImportAllowed:
       name: import_allowed
       in: query
       description: Filter by whether import is allowed.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolImportAllowed'
-    KeyPoolQueryParamExportAllowed:
+        $ref: '#/components/schemas/ElasticKeyImportAllowed'
+    ElasticKeyQueryParamExportAllowed:
       name: export_allowed
       in: query
       description: Filter by whether export is allowed.
       required: false
       schema:
-        $ref: '#/components/schemas/KeyPoolExportAllowed'
-    KeyPoolQueryParamStatuses:
+        $ref: '#/components/schemas/ElasticKeyExportAllowed'
+    ElasticKeyQueryParamStatuses:
       name: status
       in: query
-      description: Filter by the Key Pool status.
+      description: Filter by the Elastic Key status.
       required: false
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyPoolStatus'
+          $ref: '#/components/schemas/ElasticKeyStatus'
       style: form
       explode: true
-    KeyPoolQueryParamSorts:
+    ElasticKeyQueryParamSorts:
       name: sort
       in: query
       description: Specify sorting as `fieldName:direction` (e.g., `name:asc`). Repeat parameter for multiple sort fields.
@@ -92,29 +92,29 @@ components:
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyPoolSort'
+          $ref: '#/components/schemas/ElasticKeySort'
       style: form
       explode: true
-    KeyPoolQueryParamPageNumber:
+    ElasticKeyQueryParamPageNumber:
       name: page
       in: query
       schema:
         $ref: '#/components/schemas/PageNumber'
-    KeyPoolQueryParamPageSize:
+    ElasticKeyQueryParamPageSize:
       name: size
       in: query
       schema:
         $ref: '#/components/schemas/PageSize'
 
-    KeyQueryParamKeyPoolIds:
+    KeyQueryParamElasticKeyIds:
       name: pool
       in: query
-      description: Filter by the Key Pool ID (uuid).
+      description: Filter by the Elastic Key ID (uuid).
       required: false
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyPoolId'
+          $ref: '#/components/schemas/ElasticKeyId'
       style: form
       explode: true
     KeyQueryParamIds:
@@ -219,55 +219,55 @@ components:
       maximum: 50
       example: 25
 
-    KeyPoolCreate:
+    ElasticKeyCreate:
       type: object
       required: [ name, description ]
       properties:
         name:
-          $ref: '#/components/schemas/KeyPoolName'
+          $ref: '#/components/schemas/ElasticKeyName'
         description:
-          $ref: '#/components/schemas/KeyPoolDescription'
+          $ref: '#/components/schemas/ElasticKeyDescription'
         algorithm:
-          $ref: '#/components/schemas/KeyPoolAlgorithm'
+          $ref: '#/components/schemas/ElasticKeyAlgorithm'
         provider:
-          $ref: '#/components/schemas/KeyPoolProvider'
+          $ref: '#/components/schemas/ElasticKeyProvider'
         versioning_allowed:
-          $ref: '#/components/schemas/KeyPoolVersioningAllowed'
+          $ref: '#/components/schemas/ElasticKeyVersioningAllowed'
         import_allowed:
-          $ref: '#/components/schemas/KeyPoolImportAllowed'
+          $ref: '#/components/schemas/ElasticKeyImportAllowed'
         export_allowed:
-          $ref: '#/components/schemas/KeyPoolExportAllowed'
+          $ref: '#/components/schemas/ElasticKeyExportAllowed'
 
-    KeyPool:
+    ElasticKey:
       type: object
       properties:
         id:
-          $ref: '#/components/schemas/KeyPoolId'
+          $ref: '#/components/schemas/ElasticKeyId'
         name:
-          $ref: '#/components/schemas/KeyPoolName'
+          $ref: '#/components/schemas/ElasticKeyName'
         description:
-          $ref: '#/components/schemas/KeyPoolDescription'
+          $ref: '#/components/schemas/ElasticKeyDescription'
         provider:
-          $ref: '#/components/schemas/KeyPoolProvider'
+          $ref: '#/components/schemas/ElasticKeyProvider'
         algorithm:
-          $ref: '#/components/schemas/KeyPoolAlgorithm'
+          $ref: '#/components/schemas/ElasticKeyAlgorithm'
         versioning_allowed:
-          $ref: '#/components/schemas/KeyPoolVersioningAllowed'
+          $ref: '#/components/schemas/ElasticKeyVersioningAllowed'
         import_allowed:
-          $ref: '#/components/schemas/KeyPoolImportAllowed'
+          $ref: '#/components/schemas/ElasticKeyImportAllowed'
         export_allowed:
-          $ref: '#/components/schemas/KeyPoolExportAllowed'
+          $ref: '#/components/schemas/ElasticKeyExportAllowed'
         status:
-          $ref: '#/components/schemas/KeyPoolStatus'
+          $ref: '#/components/schemas/ElasticKeyStatus'
 
-    KeyPoolUpdate:
+    ElasticKeyUpdate:
       type: object
       required: [ name, description ]
       properties:
         name:
-          $ref: '#/components/schemas/KeyPoolName'
+          $ref: '#/components/schemas/ElasticKeyName'
         description:
-          $ref: '#/components/schemas/KeyPoolDescription'
+          $ref: '#/components/schemas/ElasticKeyDescription'
 
     KeyGenerate:
       type: object
@@ -278,7 +278,7 @@ components:
       required: [ pool, id ]
       properties:
         pool:
-          $ref: '#/components/schemas/KeyPoolId'
+          $ref: '#/components/schemas/ElasticKeyId'
         id:
           $ref: '#/components/schemas/KeyId'
 
@@ -287,7 +287,7 @@ components:
       required: [ pool, id ]
       properties:
         pool:
-          $ref: '#/components/schemas/KeyPoolId'
+          $ref: '#/components/schemas/ElasticKeyId'
         id:
           $ref: '#/components/schemas/KeyId'
         generate_date:
@@ -305,23 +305,23 @@ components:
         decrypted:
           $ref: '#/components/schemas/KeyMaterialDecrypted'
           
-    KeyPoolId:
+    ElasticKeyId:
       type: string
       format: uuid
-      description: Unique UUID for a Key Pool.
-    KeyPoolName:
+      description: Unique UUID for a Elastic Key.
+    ElasticKeyName:
       type: string
-      description: Friendly name for a Key Pool.
+      description: Friendly name for a Elastic Key.
       example: Payroll Database
       minLength: 1
       maxLength: 63
-    KeyPoolDescription:
+    ElasticKeyDescription:
       type: string
-      description: Description for a Key Pool.
-      example: This Key Pool is used to encrypt the Payroll Database
+      description: Description for a Elastic Key.
+      example: This Elastic Key is used to encrypt the Payroll Database
       minLength: 1
       maxLength: 255
-    KeyPoolAlgorithm:
+    ElasticKeyAlgorithm:
       type: string
       enum: 
         - "A256GCM/A256KW"
@@ -434,28 +434,28 @@ components:
         - "HS512"
         - "EdDSA"
       example: "A256GCM/A256KW"
-      description: Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
-                   If key encryption algorithm is 'dir', the Key Pool Key is directly used on values. direct encryption is useful for small values.
-                   If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
+      description: Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
+                   If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values.
+                   If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
                    If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
-    KeyPoolProvider:
+    ElasticKeyProvider:
       type: string
       enum: [ Internal ]
       example: "Internal"
-      description: Provider of the Key Pool management service.
-    KeyPoolVersioningAllowed:
+      description: Provider of the Elastic Key management service.
+    ElasticKeyVersioningAllowed:
       type: boolean
       example: true
-      description: Indicates if the Key Pool supports versioning.
-    KeyPoolImportAllowed:
+      description: Indicates if the Elastic Key supports versioning.
+    ElasticKeyImportAllowed:
       type: boolean
       example: false
-      description: Indicates if the Key Pool supports import (BYOK).
-    KeyPoolExportAllowed:
+      description: Indicates if the Elastic Key supports import (BYOK).
+    ElasticKeyExportAllowed:
       type: boolean
       example: false
-      description: Indicates if the Key Pool supports export.
-    KeyPoolStatus:
+      description: Indicates if the Elastic Key supports export.
+    ElasticKeyStatus:
       type: string
       enum:
         - "creating"
@@ -473,8 +473,8 @@ components:
         - "started_delete"
         - "finished_delete"
       example: "creating"
-      description: Status of the Key Pool.
-    KeyPoolSort:
+      description: Status of the Elastic Key.
+    ElasticKeySort:
       type: string
       enum:
         - "id:ASC"
@@ -523,10 +523,10 @@ components:
       description: Clear public key material (if applicable)
     KeyMaterialEncrypted:
       type: string
-      description: Encrypted private or secret key material (if KeyPool exportAllowed=true)
+      description: Encrypted private or secret key material (if ElasticKey exportAllowed=true)
     KeyMaterialDecrypted:
       type: string
-      description: Clear private or secret key material (if KeyPool exportAllowed=true)
+      description: Clear private or secret key material (if ElasticKey exportAllowed=true)
     KeySort:
       type: string
       enum:
@@ -550,45 +550,45 @@ components:
       pattern: '^[A-Za-z0-9_-]+$'
       description: Base64URL-encoded context Authenticated Data (AAD). This is non-secret data used for integrity checking during verify (e.g. namespace, context).
 
-    KeyPoolsQueryParams:
+    ElasticKeysQueryParams:
       type: object
       properties:
         id:
           type: array
           items:
-            $ref: '#/components/schemas/KeyPoolId'
+            $ref: '#/components/schemas/ElasticKeyId'
         name:
           type: array
           items:
-            $ref: '#/components/schemas/KeyPoolName'
+            $ref: '#/components/schemas/ElasticKeyName'
         provider:
           type: array
           items:
-            $ref: '#/components/schemas/KeyPoolProvider'
+            $ref: '#/components/schemas/ElasticKeyProvider'
         algorithm:
           type: array
           items:
-            $ref: '#/components/schemas/KeyPoolAlgorithm'
+            $ref: '#/components/schemas/ElasticKeyAlgorithm'
         versioning_allowed:
-          $ref: '#/components/schemas/KeyPoolVersioningAllowed'
+          $ref: '#/components/schemas/ElasticKeyVersioningAllowed'
         import_allowed:
-          $ref: '#/components/schemas/KeyPoolImportAllowed'
+          $ref: '#/components/schemas/ElasticKeyImportAllowed'
         export_allowed:
-          $ref: '#/components/schemas/KeyPoolExportAllowed'
+          $ref: '#/components/schemas/ElasticKeyExportAllowed'
         status:
           type: array
           items:
-            $ref: '#/components/schemas/KeyPoolStatus'
+            $ref: '#/components/schemas/ElasticKeyStatus'
         sort:
           type: array
           items:
-            $ref: '#/components/schemas/KeyPoolSort'
+            $ref: '#/components/schemas/ElasticKeySort'
         page:
           $ref: '#/components/schemas/PageNumber'
         size:
           $ref: '#/components/schemas/PageSize'
 
-    KeyPoolKeysQueryParams:
+    ElasticKeyKeysQueryParams:
       type: object
       properties:
         id:
@@ -626,7 +626,7 @@ components:
         pool:
           type: array
           items:
-            $ref: '#/components/schemas/KeyPoolId'
+            $ref: '#/components/schemas/ElasticKeyId'
         id:
           type: array
           items:

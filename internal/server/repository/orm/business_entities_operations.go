@@ -16,63 +16,63 @@ import (
 
 // Service-Repository calls
 
-func (tx *OrmTransaction) AddKeyPool(keyPool *KeyPool) error {
-	if err := cryptoutilUtil.ValidateUUID(&keyPool.KeyPoolID, "invalid Key Pool ID"); err != nil {
-		return tx.toAppErr("failed to add Key Pool", err)
+func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
+	if err := cryptoutilUtil.ValidateUUID(&elasticKey.ElasticKeyID, "invalid Elastic Key ID"); err != nil {
+		return tx.toAppErr("failed to add Elastic Key", err)
 	}
-	err := tx.state.gormTx.Create(keyPool).Error
+	err := tx.state.gormTx.Create(elasticKey).Error
 	if err != nil {
-		return tx.toAppErr("failed to add Key Pool", err)
+		return tx.toAppErr("failed to add Elastic Key", err)
 	}
 	return nil
 }
 
-func (tx *OrmTransaction) GetKeyPool(keyPoolID googleUuid.UUID) (*KeyPool, error) {
-	if err := cryptoutilUtil.ValidateUUID(&keyPoolID, "invalid Key Pool ID"); err != nil {
-		return nil, tx.toAppErr("failed to get Key Pool by Key Pool ID", err)
+func (tx *OrmTransaction) GetElasticKey(elasticKeyID googleUuid.UUID) (*ElasticKey, error) {
+	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
+		return nil, tx.toAppErr("failed to get Elastic Key by Elastic Key ID", err)
 	}
-	var keyPool KeyPool
-	err := tx.state.gormTx.First(&keyPool, "key_pool_id=?", keyPoolID).Error
+	var elasticKey ElasticKey
+	err := tx.state.gormTx.First(&elasticKey, "elastic_key_id=?", elasticKeyID).Error
 	if err != nil {
-		return nil, tx.toAppErr("failed to get Key Pool by Key Pool ID", err)
+		return nil, tx.toAppErr("failed to get Elastic Key by Elastic Key ID", err)
 	}
-	return &keyPool, nil
+	return &elasticKey, nil
 }
 
-func (tx *OrmTransaction) UpdateKeyPool(keyPool *KeyPool) error {
-	if err := cryptoutilUtil.ValidateUUID(&keyPool.KeyPoolID, "invalid Key Pool ID"); err != nil {
-		return tx.toAppErr("failed to update Key Pool by Key Pool ID", err)
+func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
+	if err := cryptoutilUtil.ValidateUUID(&elasticKey.ElasticKeyID, "invalid Elastic Key ID"); err != nil {
+		return tx.toAppErr("failed to update Elastic Key by Elastic Key ID", err)
 	}
-	err := tx.state.gormTx.UpdateColumns(keyPool).Error
+	err := tx.state.gormTx.UpdateColumns(elasticKey).Error
 	if err != nil {
-		return tx.toAppErr("failed to update Key Pool", err)
+		return tx.toAppErr("failed to update Elastic Key", err)
 	}
 	return nil
 }
 
-func (tx *OrmTransaction) UpdateKeyPoolStatus(keyPoolID googleUuid.UUID, keyPoolStatus KeyPoolStatus) error {
-	if err := cryptoutilUtil.ValidateUUID(&keyPoolID, "invalid Key Pool ID"); err != nil {
-		return tx.toAppErr("failed to update Key Pool Status by Key Pool ID", err)
+func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus ElasticKeyStatus) error {
+	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
+		return tx.toAppErr("failed to update Elastic Key Status by Elastic Key ID", err)
 	}
-	err := tx.state.gormTx.Model(&KeyPool{}).Where("key_pool_id=?", keyPoolID).Update("key_pool_status", keyPoolStatus).Error
+	err := tx.state.gormTx.Model(&ElasticKey{}).Where("elastic_key_id=?", elasticKeyID).Update("elastic_key_status", elasticKeyStatus).Error
 	if err != nil {
-		return tx.toAppErr("failed to update Key Pool Status", err)
+		return tx.toAppErr("failed to update Elastic Key Status", err)
 	}
 	return nil
 }
 
-func (tx *OrmTransaction) GetKeyPools(getKeyPoolsFilters *GetKeyPoolsFilters) ([]KeyPool, error) {
-	var keyPools []KeyPool
+func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFilters) ([]ElasticKey, error) {
+	var elasticKeys []ElasticKey
 	query := tx.state.gormTx
-	err := applyGetKeyPoolsFilters(query, getKeyPoolsFilters).Find(&keyPools).Error
+	err := applyGetElasticKeysFilters(query, getElasticKeysFilters).Find(&elasticKeys).Error
 	if err != nil {
-		return nil, tx.toAppErr("failed to get Key Pools", err)
+		return nil, tx.toAppErr("failed to get Elastic Keys", err)
 	}
-	return keyPools, nil
+	return elasticKeys, nil
 }
 
-func (tx *OrmTransaction) AddKeyPoolKey(key *Key) error {
-	if err := cryptoutilUtil.ValidateUUID(&key.KeyPoolID, "invalid Key Pool ID"); err != nil {
+func (tx *OrmTransaction) AddElasticKeyKey(key *Key) error {
+	if err := cryptoutilUtil.ValidateUUID(&key.ElasticKeyID, "invalid Elastic Key ID"); err != nil {
 		return tx.toAppErr("failed to add Key", err)
 	} else if err := cryptoutilUtil.ValidateUUID(&key.KeyID, "invalid Key ID"); err != nil {
 		return tx.toAppErr("failed to add Key", err)
@@ -84,15 +84,15 @@ func (tx *OrmTransaction) AddKeyPoolKey(key *Key) error {
 	return nil
 }
 
-func (tx *OrmTransaction) GetKeyPoolKeys(keyPoolID googleUuid.UUID, getKeyPoolKeysFilters *GetKeyPoolKeysFilters) ([]Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(&keyPoolID, "failed to get Keys by Key Pool ID"); err != nil {
-		return nil, tx.toAppErr("invalid Key Pool ID", err)
+func (tx *OrmTransaction) GetElasticKeyKeys(elasticKeyID googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyKeysFilters) ([]Key, error) {
+	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "failed to get Keys by Elastic Key ID"); err != nil {
+		return nil, tx.toAppErr("invalid Elastic Key ID", err)
 	}
 	var keys []Key
-	query := tx.state.gormTx.Where("key_pool_id=?", keyPoolID)
-	err := applyGetKeyPoolKeysFilters(query, getKeyPoolKeysFilters).Find(&keys).Error
+	query := tx.state.gormTx.Where("elastic_key_id=?", elasticKeyID)
+	err := applyGetElasticKeyKeysFilters(query, getElasticKeyKeysFilters).Find(&keys).Error
 	if err != nil {
-		return nil, tx.toAppErr("failed to get Keys by Key Pool ID", err)
+		return nil, tx.toAppErr("failed to get Keys by Elastic Key ID", err)
 	}
 	return keys, nil
 }
@@ -107,28 +107,28 @@ func (tx *OrmTransaction) GetKeys(getKeysFilters *GetKeysFilters) ([]Key, error)
 	return keys, nil
 }
 
-func (tx *OrmTransaction) GetKeyPoolKey(keyPoolID googleUuid.UUID, keyID googleUuid.UUID) (*Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(&keyPoolID, "invalid Key Pool ID"); err != nil {
-		return nil, tx.toAppErr("failed to get Key by Key Pool ID and Key ID", err)
+func (tx *OrmTransaction) GetElasticKeyKey(elasticKeyID googleUuid.UUID, keyID googleUuid.UUID) (*Key, error) {
+	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
+		return nil, tx.toAppErr("failed to get Key by Elastic Key ID and Key ID", err)
 	} else if err := cryptoutilUtil.ValidateUUID(&keyID, "invalid Key ID"); err != nil {
-		return nil, tx.toAppErr("failed to get Key by Key Pool ID and Key ID", err)
+		return nil, tx.toAppErr("failed to get Key by Elastic Key ID and Key ID", err)
 	}
 	var key Key
-	err := tx.state.gormTx.First(&key, "key_pool_id=? AND key_id=?", keyPoolID, keyID).Error
+	err := tx.state.gormTx.First(&key, "elastic_key_id=? AND key_id=?", elasticKeyID, keyID).Error
 	if err != nil {
-		return nil, tx.toAppErr("failed to get Key by Key Pool ID and Key ID", err)
+		return nil, tx.toAppErr("failed to get Key by Elastic Key ID and Key ID", err)
 	}
 	return &key, nil
 }
 
-func (tx *OrmTransaction) GetKeyPoolLatestKey(keyPoolID googleUuid.UUID) (*Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(&keyPoolID, "invalid Key Pool ID"); err != nil {
-		return nil, tx.toAppErr("failed to get latest Key by Key Pool ID", err)
+func (tx *OrmTransaction) GetElasticKeyLatestKey(elasticKeyID googleUuid.UUID) (*Key, error) {
+	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
+		return nil, tx.toAppErr("failed to get latest Key by Elastic Key ID", err)
 	}
 	var key Key
-	err := tx.state.gormTx.Order("key_id DESC").First(&key, "key_pool_id=?", keyPoolID).Error
+	err := tx.state.gormTx.Order("key_id DESC").First(&key, "elastic_key_id=?", elasticKeyID).Error
 	if err != nil {
-		return nil, tx.toAppErr("failed to get latest Key by Key Pool ID", err)
+		return nil, tx.toAppErr("failed to get latest Key by Elastic Key ID", err)
 	}
 	return &key, nil
 }
@@ -190,27 +190,27 @@ func (tx *OrmTransaction) toAppErr(msg string, err error) error {
 	return cryptoutilAppErr.NewHTTP500InternalServerError(msg, fmt.Errorf("%s: %w", msg, err))
 }
 
-func applyGetKeyPoolsFilters(db *gorm.DB, filters *GetKeyPoolsFilters) *gorm.DB {
+func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *gorm.DB {
 	if filters == nil {
 		return db
 	}
 	if len(filters.ID) > 0 {
-		db = db.Where("key_pool_id IN ?", filters.ID)
+		db = db.Where("elastic_key_id IN ?", filters.ID)
 	}
 	if len(filters.Name) > 0 {
-		db = db.Where("key_pool_name IN ?", filters.Name)
+		db = db.Where("elastic_key_name IN ?", filters.Name)
 	}
 	if len(filters.Algorithm) > 0 {
-		db = db.Where("key_pool_algorithm IN ?", filters.Algorithm)
+		db = db.Where("elastic_key_algorithm IN ?", filters.Algorithm)
 	}
 	if filters.VersioningAllowed != nil {
-		db = db.Where("key_pool_versioning_allowed=?", *filters.VersioningAllowed)
+		db = db.Where("elastic_key_versioning_allowed=?", *filters.VersioningAllowed)
 	}
 	if filters.ImportAllowed != nil {
-		db = db.Where("key_pool_import_allowed=?", *filters.ImportAllowed)
+		db = db.Where("elastic_key_import_allowed=?", *filters.ImportAllowed)
 	}
 	if filters.ExportAllowed != nil {
-		db = db.Where("key_pool_export_allowed=?", *filters.ExportAllowed)
+		db = db.Where("elastic_key_export_allowed=?", *filters.ExportAllowed)
 	}
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
@@ -230,7 +230,7 @@ func applyKeyFilters(db *gorm.DB, filters *GetKeysFilters) *gorm.DB {
 		db = db.Where("key_id IN ?", filters.ID)
 	}
 	if len(filters.Pool) > 0 {
-		db = db.Where("key_pool_id IN ?", filters.Pool)
+		db = db.Where("elastic_key_id IN ?", filters.Pool)
 	}
 	if filters.MinimumGenerateDate != nil {
 		db = db.Where("key_generate_date>=?", *filters.MinimumGenerateDate)
@@ -248,7 +248,7 @@ func applyKeyFilters(db *gorm.DB, filters *GetKeysFilters) *gorm.DB {
 	return db
 }
 
-func applyGetKeyPoolKeysFilters(db *gorm.DB, filters *GetKeyPoolKeysFilters) *gorm.DB {
+func applyGetElasticKeyKeysFilters(db *gorm.DB, filters *GetElasticKeyKeysFilters) *gorm.DB {
 	if filters == nil {
 		return db
 	}

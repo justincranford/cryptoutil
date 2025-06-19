@@ -19,7 +19,7 @@ func NewClientMapper() *ClientMapper {
 }
 
 var (
-	validAlgorithms = map[string]cryptoutilOpenapiModel.KeyPoolAlgorithm{
+	validAlgorithms = map[string]cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 		string(cryptoutilOpenapiModel.A256GCMA256KW): cryptoutilOpenapiModel.A256GCMA256KW,
 		string(cryptoutilOpenapiModel.A192GCMA256KW): cryptoutilOpenapiModel.A192GCMA256KW,
 		string(cryptoutilOpenapiModel.A128GCMA256KW): cryptoutilOpenapiModel.A128GCMA256KW,
@@ -142,66 +142,66 @@ var (
 	}
 )
 
-func MapKeyPoolCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.KeyPoolCreate, error) {
-	keyPoolName, err1 := MapKeyPoolName(name)
-	keyPoolDescription, err2 := MapKeyPoolDescription(description)
-	keyPoolAlgorithm, err3 := MapKeyPoolAlgorithm(algorithm)
-	keyPoolProvider, err4 := MapKeyPoolProvider(provider)
-	keyPoolKeyPoolExportAllowed := MapKeyPoolExportAllowed(exportAllowed)
-	keyPoolKeyPoolImportAllowed := MapKeyPoolImportAllowed(importAllowed)
-	keyPoolKeyPoolVersioningAllowed := MapKeyPoolVersioningAllowed(versioningAllowed)
+func MapElasticKeyCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
+	elasticKeyName, err1 := MapElasticKeyName(name)
+	elasticKeyDescription, err2 := MapElasticKeyDescription(description)
+	elasticKeyAlgorithm, err3 := MapElasticKeyAlgorithm(algorithm)
+	elasticKeyProvider, err4 := MapElasticKeyProvider(provider)
+	elasticKeyElasticKeyExportAllowed := MapElasticKeyExportAllowed(exportAllowed)
+	elasticKeyElasticKeyImportAllowed := MapElasticKeyImportAllowed(importAllowed)
+	elasticKeyElasticKeyVersioningAllowed := MapElasticKeyVersioningAllowed(versioningAllowed)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
-		return nil, fmt.Errorf("failed to map key pool: %v", errors.Join(err1, err2, err3, err4))
+		return nil, fmt.Errorf("failed to map elastic Key: %v", errors.Join(err1, err2, err3, err4))
 	}
-	return &cryptoutilOpenapiModel.KeyPoolCreate{
-		Name:              *keyPoolName,
-		Description:       *keyPoolDescription,
-		Provider:          keyPoolProvider,
-		Algorithm:         keyPoolAlgorithm,
-		ExportAllowed:     keyPoolKeyPoolExportAllowed,
-		ImportAllowed:     keyPoolKeyPoolImportAllowed,
-		VersioningAllowed: keyPoolKeyPoolVersioningAllowed,
+	return &cryptoutilOpenapiModel.ElasticKeyCreate{
+		Name:              *elasticKeyName,
+		Description:       *elasticKeyDescription,
+		Provider:          elasticKeyProvider,
+		Algorithm:         elasticKeyAlgorithm,
+		ExportAllowed:     elasticKeyElasticKeyExportAllowed,
+		ImportAllowed:     elasticKeyElasticKeyImportAllowed,
+		VersioningAllowed: elasticKeyElasticKeyVersioningAllowed,
 	}, nil
 }
 
-func MapKeyPool(openapiCreateKeyPoolResponse *cryptoutilOpenapiClient.PostKeypoolResponse) (*cryptoutilOpenapiModel.KeyPool, error) {
-	if openapiCreateKeyPoolResponse == nil {
-		return nil, fmt.Errorf("failed to create key pool, response is nil")
-	} else if openapiCreateKeyPoolResponse.HTTPResponse == nil {
-		return nil, fmt.Errorf("failed to create key pool, HTTP response is nil")
+func MapElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.PostElastickeyResponse) (*cryptoutilOpenapiModel.ElasticKey, error) {
+	if openapiCreateElasticKeyResponse == nil {
+		return nil, fmt.Errorf("failed to create elastic Key, response is nil")
+	} else if openapiCreateElasticKeyResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to create elastic Key, HTTP response is nil")
 	}
-	switch openapiCreateKeyPoolResponse.HTTPResponse.StatusCode {
+	switch openapiCreateElasticKeyResponse.HTTPResponse.StatusCode {
 	case 200:
-		if openapiCreateKeyPoolResponse.Body == nil {
-			return nil, fmt.Errorf("failed to create key pool, body is nil")
-		} else if openapiCreateKeyPoolResponse.JSON200 == nil {
-			return nil, fmt.Errorf("failed to create key pool, JSON200 is nil")
+		if openapiCreateElasticKeyResponse.Body == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, body is nil")
+		} else if openapiCreateElasticKeyResponse.JSON200 == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, JSON200 is nil")
 		}
-		keyPool := openapiCreateKeyPoolResponse.JSON200
-		if keyPool.Id == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.Id is nil")
-		} else if keyPool.Description == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.Description is nil")
-		} else if keyPool.Algorithm == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.Algorithm is nil")
-		} else if keyPool.Provider == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.Provider is nil")
-		} else if keyPool.ExportAllowed == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.ExportAllowed is nil")
-		} else if keyPool.ImportAllowed == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.ImportAllowed is nil")
-		} else if keyPool.VersioningAllowed == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.VersioningAllowed is nil")
-		} else if keyPool.Status == nil {
-			return nil, fmt.Errorf("failed to create key pool, keyPool.Status is nil")
+		elasticKey := openapiCreateElasticKeyResponse.JSON200
+		if elasticKey.Id == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Id is nil")
+		} else if elasticKey.Description == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Description is nil")
+		} else if elasticKey.Algorithm == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Algorithm is nil")
+		} else if elasticKey.Provider == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Provider is nil")
+		} else if elasticKey.ExportAllowed == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.ExportAllowed is nil")
+		} else if elasticKey.ImportAllowed == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.ImportAllowed is nil")
+		} else if elasticKey.VersioningAllowed == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.VersioningAllowed is nil")
+		} else if elasticKey.Status == nil {
+			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Status is nil")
 		}
-		return keyPool, nil
+		return elasticKey, nil
 	default:
-		return nil, fmt.Errorf("failed to create key pool, nextKeyPoolName(), Status: %v, Message: %s, Body: %s", openapiCreateKeyPoolResponse.HTTPResponse.StatusCode, openapiCreateKeyPoolResponse.HTTPResponse.Status, openapiCreateKeyPoolResponse.Body)
+		return nil, fmt.Errorf("failed to create elastic Key, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiCreateElasticKeyResponse.HTTPResponse.StatusCode, openapiCreateElasticKeyResponse.HTTPResponse.Status, openapiCreateElasticKeyResponse.Body)
 	}
 }
 
-func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDKeyResponse) (*cryptoutilOpenapiModel.Key, error) {
+func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDKeyResponse) (*cryptoutilOpenapiModel.Key, error) {
 	if openapiKeyGenerateResponse == nil {
 		return nil, fmt.Errorf("failed to generate key, response is nil")
 	} else if openapiKeyGenerateResponse.HTTPResponse == nil {
@@ -216,24 +216,24 @@ func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostKeyp
 		}
 		key := openapiKeyGenerateResponse.JSON200
 		if key.Pool == googleUuid.Nil {
-			return nil, fmt.Errorf("failed to generate key, keyPool.Pool is zero")
+			return nil, fmt.Errorf("failed to generate key, elasticKey.Pool is zero")
 		} else if key.Id == googleUuid.Nil {
-			return nil, fmt.Errorf("failed to generate key, keyPool.Id is zero")
+			return nil, fmt.Errorf("failed to generate key, elasticKey.Id is zero")
 		} else if key.GenerateDate == nil {
-			return nil, fmt.Errorf("failed to generate key, keyPool.GenerateDate is nil") // TODO nil allowed if import not nil
+			return nil, fmt.Errorf("failed to generate key, elasticKey.GenerateDate is nil") // TODO nil allowed if import not nil
 		}
 		return key, nil
 	default:
-		return nil, fmt.Errorf("failed to generate key, nextKeyPoolName(), Status: %v, Message: %s, Body: %s", openapiKeyGenerateResponse.HTTPResponse.StatusCode, openapiKeyGenerateResponse.HTTPResponse.Status, openapiKeyGenerateResponse.Body)
+		return nil, fmt.Errorf("failed to generate key, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiKeyGenerateResponse.HTTPResponse.StatusCode, openapiKeyGenerateResponse.HTTPResponse.Status, openapiKeyGenerateResponse.Body)
 	}
 }
 
-func MapEncryptParams(encryptParams *cryptoutilOpenapiModel.EncryptParams) cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams {
-	keypoolKeyPoolIDEncryptParams := cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptParams{}
+func MapEncryptParams(encryptParams *cryptoutilOpenapiModel.EncryptParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptParams {
+	elastickeyElasticKeyIDEncryptParams := cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptParams{}
 	if encryptParams != nil {
-		keypoolKeyPoolIDEncryptParams.Context = encryptParams.Context
+		elastickeyElasticKeyIDEncryptParams.Context = encryptParams.Context
 	}
-	return keypoolKeyPoolIDEncryptParams
+	return elastickeyElasticKeyIDEncryptParams
 }
 
 func MapEncryptRequest(cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
@@ -241,7 +241,7 @@ func MapEncryptRequest(cleartext *string) *cryptoutilOpenapiModel.EncryptRequest
 	return &encryptRequest
 }
 
-func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDEncryptResponse) (*string, error) {
+func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptResponse) (*string, error) {
 	if openapiEncryptResponse == nil {
 		return nil, fmt.Errorf("failed to encrypt, response is nil")
 	} else if openapiEncryptResponse.HTTPResponse == nil {
@@ -255,7 +255,7 @@ func MapEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostKeyp
 		ciphertext := string(openapiEncryptResponse.Body)
 		return &ciphertext, nil
 	default:
-		return nil, fmt.Errorf("failed to encrypt, nextKeyPoolName(), Status: %v, Message: %s, Body: %s", openapiEncryptResponse.HTTPResponse.StatusCode, openapiEncryptResponse.HTTPResponse.Status, openapiEncryptResponse.Body)
+		return nil, fmt.Errorf("failed to encrypt, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiEncryptResponse.HTTPResponse.StatusCode, openapiEncryptResponse.HTTPResponse.Status, openapiEncryptResponse.Body)
 	}
 }
 
@@ -264,7 +264,7 @@ func MapDecryptRequest(ciphertext *string) *cryptoutilOpenapiModel.DecryptReques
 	return &decryptRequest
 }
 
-func MapDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDDecryptResponse) (*string, error) {
+func MapDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDDecryptResponse) (*string, error) {
 	if openapiDecryptResponse == nil {
 		return nil, fmt.Errorf("failed to decrypt, response is nil")
 	} else if openapiDecryptResponse.HTTPResponse == nil {
@@ -278,16 +278,16 @@ func MapDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostKeyp
 		decrypted := string(openapiDecryptResponse.Body)
 		return &decrypted, nil
 	default:
-		return nil, fmt.Errorf("failed to decrypt, nextKeyPoolName(), Status: %v, Message: %s, Body: %s", openapiDecryptResponse.HTTPResponse.StatusCode, openapiDecryptResponse.HTTPResponse.Status, openapiDecryptResponse.Body)
+		return nil, fmt.Errorf("failed to decrypt, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiDecryptResponse.HTTPResponse.StatusCode, openapiDecryptResponse.HTTPResponse.Status, openapiDecryptResponse.Body)
 	}
 }
 
-func MapSignParams(signParams *cryptoutilOpenapiModel.SignParams) cryptoutilOpenapiClient.PostKeypoolKeyPoolIDSignParams {
-	keypoolKeyPoolIDSignParams := cryptoutilOpenapiClient.PostKeypoolKeyPoolIDSignParams{}
+func MapSignParams(signParams *cryptoutilOpenapiModel.SignParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignParams {
+	elastickeyElasticKeyIDSignParams := cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignParams{}
 	if signParams != nil {
-		keypoolKeyPoolIDSignParams.Context = signParams.Context
+		elastickeyElasticKeyIDSignParams.Context = signParams.Context
 	}
-	return keypoolKeyPoolIDSignParams
+	return elastickeyElasticKeyIDSignParams
 }
 
 func MapSignRequest(cleartext *string) *cryptoutilOpenapiModel.SignRequest {
@@ -295,7 +295,7 @@ func MapSignRequest(cleartext *string) *cryptoutilOpenapiModel.SignRequest {
 	return &signRequest
 }
 
-func MapSignResponse(openapiSignResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDSignResponse) (*string, error) {
+func MapSignResponse(openapiSignResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignResponse) (*string, error) {
 	if openapiSignResponse == nil {
 		return nil, fmt.Errorf("failed to sign, response is nil")
 	} else if openapiSignResponse.HTTPResponse == nil {
@@ -309,7 +309,7 @@ func MapSignResponse(openapiSignResponse *cryptoutilOpenapiClient.PostKeypoolKey
 		ciphertext := string(openapiSignResponse.Body)
 		return &ciphertext, nil
 	default:
-		return nil, fmt.Errorf("failed to sign, nextKeyPoolName(), Status: %v, Message: %s, Body: %s", openapiSignResponse.HTTPResponse.StatusCode, openapiSignResponse.HTTPResponse.Status, openapiSignResponse.Body)
+		return nil, fmt.Errorf("failed to sign, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiSignResponse.HTTPResponse.StatusCode, openapiSignResponse.HTTPResponse.Status, openapiSignResponse.Body)
 	}
 }
 
@@ -318,7 +318,7 @@ func MapVerifyRequest(signedtext *string) *cryptoutilOpenapiModel.VerifyRequest 
 	return &verifyRequest
 }
 
-func MapVerifyResponse(openapiVerifyResponse *cryptoutilOpenapiClient.PostKeypoolKeyPoolIDVerifyResponse) (*string, error) {
+func MapVerifyResponse(openapiVerifyResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDVerifyResponse) (*string, error) {
 	if openapiVerifyResponse == nil {
 		return nil, fmt.Errorf("failed to verify, response is nil")
 	} else if openapiVerifyResponse.HTTPResponse == nil {
@@ -332,67 +332,67 @@ func MapVerifyResponse(openapiVerifyResponse *cryptoutilOpenapiClient.PostKeypoo
 		verified := string(openapiVerifyResponse.Body)
 		return &verified, nil
 	default:
-		return nil, fmt.Errorf("failed to verify, nextKeyPoolName(), Status: %v, Message: %s, Body: %s", openapiVerifyResponse.HTTPResponse.StatusCode, openapiVerifyResponse.HTTPResponse.Status, openapiVerifyResponse.Body)
+		return nil, fmt.Errorf("failed to verify, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiVerifyResponse.HTTPResponse.StatusCode, openapiVerifyResponse.HTTPResponse.Status, openapiVerifyResponse.Body)
 	}
 }
 
-func MapKeyGenerater() (*cryptoutilOpenapiClient.PostKeypoolKeyPoolIDKeyJSONRequestBody, error) {
+func MapKeyGenerater() (*cryptoutilOpenapiClient.PostElastickeyElasticKeyIDKeyJSONRequestBody, error) {
 	return &cryptoutilOpenapiModel.KeyGenerate{}, nil
 }
 
-func MapKeyPoolName(name string) (*cryptoutilOpenapiModel.KeyPoolName, error) {
+func MapElasticKeyName(name string) (*cryptoutilOpenapiModel.ElasticKeyName, error) {
 	if err := ValidateString(name); err != nil {
-		return nil, fmt.Errorf("invalid key pool name: %w", err)
+		return nil, fmt.Errorf("invalid elastic Key name: %w", err)
 	}
-	keyPoolName := cryptoutilOpenapiModel.KeyPoolName(name)
-	return &keyPoolName, nil
+	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName(name)
+	return &elasticKeyName, nil
 }
 
-func MapKeyPoolDescription(description string) (*cryptoutilOpenapiModel.KeyPoolDescription, error) {
+func MapElasticKeyDescription(description string) (*cryptoutilOpenapiModel.ElasticKeyDescription, error) {
 	if err := ValidateString(description); err != nil {
-		return nil, fmt.Errorf("invalid key pool description: %w", err)
+		return nil, fmt.Errorf("invalid elastic Key description: %w", err)
 	}
-	keyPoolDescription := cryptoutilOpenapiModel.KeyPoolDescription(description)
-	return &keyPoolDescription, nil
+	elasticKeyDescription := cryptoutilOpenapiModel.ElasticKeyDescription(description)
+	return &elasticKeyDescription, nil
 }
 
-func MapKeyPoolAlgorithm(algorithm string) (*cryptoutilOpenapiModel.KeyPoolAlgorithm, error) {
+func MapElasticKeyAlgorithm(algorithm string) (*cryptoutilOpenapiModel.ElasticKeyAlgorithm, error) {
 	if err := ValidateString(algorithm); err != nil {
-		return nil, fmt.Errorf("invalid key pool algorithm: %w", err)
+		return nil, fmt.Errorf("invalid elastic Key algorithm: %w", err)
 	}
 	if alg, exists := validAlgorithms[algorithm]; exists {
 		return &alg, nil
 	}
-	return nil, fmt.Errorf("invalid key pool algorithm: %s", algorithm)
+	return nil, fmt.Errorf("invalid elastic Key algorithm: %s", algorithm)
 }
 
-func MapKeyPoolProvider(provider string) (*cryptoutilOpenapiModel.KeyPoolProvider, error) {
+func MapElasticKeyProvider(provider string) (*cryptoutilOpenapiModel.ElasticKeyProvider, error) {
 	if err := ValidateString(provider); err != nil {
-		return nil, fmt.Errorf("invalid key pool provider value: %w", err)
+		return nil, fmt.Errorf("invalid elastic Key provider value: %w", err)
 	}
-	var keyPoolProvider cryptoutilOpenapiModel.KeyPoolProvider
+	var elasticKeyProvider cryptoutilOpenapiModel.ElasticKeyProvider
 	switch provider {
 	case string(cryptoutilOpenapiModel.Internal):
-		keyPoolProvider = cryptoutilOpenapiModel.Internal
+		elasticKeyProvider = cryptoutilOpenapiModel.Internal
 	default:
-		return nil, fmt.Errorf("invalid key pool provider option: %s", provider)
+		return nil, fmt.Errorf("invalid elastic Key provider option: %s", provider)
 	}
-	return &keyPoolProvider, nil
+	return &elasticKeyProvider, nil
 }
 
-func MapKeyPoolImportAllowed(importAllowed bool) *cryptoutilOpenapiModel.KeyPoolImportAllowed {
-	keyPoolKeyPoolImportAllowed := cryptoutilOpenapiModel.KeyPoolImportAllowed(importAllowed)
-	return &keyPoolKeyPoolImportAllowed
+func MapElasticKeyImportAllowed(importAllowed bool) *cryptoutilOpenapiModel.ElasticKeyImportAllowed {
+	elasticKeyElasticKeyImportAllowed := cryptoutilOpenapiModel.ElasticKeyImportAllowed(importAllowed)
+	return &elasticKeyElasticKeyImportAllowed
 }
 
-func MapKeyPoolExportAllowed(exportAllowed bool) *cryptoutilOpenapiModel.KeyPoolExportAllowed {
-	keyPoolKeyPoolExportAllowed := cryptoutilOpenapiModel.KeyPoolExportAllowed(exportAllowed)
-	return &keyPoolKeyPoolExportAllowed
+func MapElasticKeyExportAllowed(exportAllowed bool) *cryptoutilOpenapiModel.ElasticKeyExportAllowed {
+	elasticKeyElasticKeyExportAllowed := cryptoutilOpenapiModel.ElasticKeyExportAllowed(exportAllowed)
+	return &elasticKeyElasticKeyExportAllowed
 }
 
-func MapKeyPoolVersioningAllowed(versioningAllowed bool) *cryptoutilOpenapiModel.KeyPoolVersioningAllowed {
-	keyPoolKeyPoolVersioningAllowed := cryptoutilOpenapiModel.KeyPoolVersioningAllowed(versioningAllowed)
-	return &keyPoolKeyPoolVersioningAllowed
+func MapElasticKeyVersioningAllowed(versioningAllowed bool) *cryptoutilOpenapiModel.ElasticKeyVersioningAllowed {
+	elasticKeyElasticKeyVersioningAllowed := cryptoutilOpenapiModel.ElasticKeyVersioningAllowed(versioningAllowed)
+	return &elasticKeyElasticKeyVersioningAllowed
 }
 
 func ValidateString(value string) error {

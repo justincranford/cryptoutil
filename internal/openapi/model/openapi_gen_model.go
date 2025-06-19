@@ -17,160 +17,160 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// Defines values for KeyPoolAlgorithm.
+// Defines values for ElasticKeyAlgorithm.
 const (
-	A128CBCHS256A128GCMKW    KeyPoolAlgorithm = "A128CBC-HS256/A128GCMKW"
-	A128CBCHS256A128KW       KeyPoolAlgorithm = "A128CBC-HS256/A128KW"
-	A128CBCHS256A192GCMKW    KeyPoolAlgorithm = "A128CBC-HS256/A192GCMKW"
-	A128CBCHS256A192KW       KeyPoolAlgorithm = "A128CBC-HS256/A192KW"
-	A128CBCHS256A256GCMKW    KeyPoolAlgorithm = "A128CBC-HS256/A256GCMKW"
-	A128CBCHS256A256KW       KeyPoolAlgorithm = "A128CBC-HS256/A256KW"
-	A128CBCHS256ECDHES       KeyPoolAlgorithm = "A128CBC-HS256/ECDH-ES"
-	A128CBCHS256ECDHESA128KW KeyPoolAlgorithm = "A128CBC-HS256/ECDH-ES+A128KW"
-	A128CBCHS256ECDHESA192KW KeyPoolAlgorithm = "A128CBC-HS256/ECDH-ES+A192KW"
-	A128CBCHS256ECDHESA256KW KeyPoolAlgorithm = "A128CBC-HS256/ECDH-ES+A256KW"
-	A128CBCHS256RSA15        KeyPoolAlgorithm = "A128CBC-HS256/RSA1_5"
-	A128CBCHS256RSAOAEP      KeyPoolAlgorithm = "A128CBC-HS256/RSA-OAEP"
-	A128CBCHS256RSAOAEP256   KeyPoolAlgorithm = "A128CBC-HS256/RSA-OAEP-256"
-	A128CBCHS256RSAOAEP384   KeyPoolAlgorithm = "A128CBC-HS256/RSA-OAEP-384"
-	A128CBCHS256RSAOAEP512   KeyPoolAlgorithm = "A128CBC-HS256/RSA-OAEP-512"
-	A128CBCHS256dir          KeyPoolAlgorithm = "A128CBC-HS256/dir"
-	A128GCMA128GCMKW         KeyPoolAlgorithm = "A128GCM/A128GCMKW"
-	A128GCMA128KW            KeyPoolAlgorithm = "A128GCM/A128KW"
-	A128GCMA192GCMKW         KeyPoolAlgorithm = "A128GCM/A192GCMKW"
-	A128GCMA192KW            KeyPoolAlgorithm = "A128GCM/A192KW"
-	A128GCMA256GCMKW         KeyPoolAlgorithm = "A128GCM/A256GCMKW"
-	A128GCMA256KW            KeyPoolAlgorithm = "A128GCM/A256KW"
-	A128GCMECDHES            KeyPoolAlgorithm = "A128GCM/ECDH-ES"
-	A128GCMECDHESA128KW      KeyPoolAlgorithm = "A128GCM/ECDH-ES+A128KW"
-	A128GCMECDHESA192KW      KeyPoolAlgorithm = "A128GCM/ECDH-ES+A192KW"
-	A128GCMECDHESA256KW      KeyPoolAlgorithm = "A128GCM/ECDH-ES+A256KW"
-	A128GCMRSA15             KeyPoolAlgorithm = "A128GCM/RSA1_5"
-	A128GCMRSAOAEP           KeyPoolAlgorithm = "A128GCM/RSA-OAEP"
-	A128GCMRSAOAEP256        KeyPoolAlgorithm = "A128GCM/RSA-OAEP-256"
-	A128GCMRSAOAEP384        KeyPoolAlgorithm = "A128GCM/RSA-OAEP-384"
-	A128GCMRSAOAEP512        KeyPoolAlgorithm = "A128GCM/RSA-OAEP-512"
-	A128GCMdir               KeyPoolAlgorithm = "A128GCM/dir"
-	A192CBCHS384A128GCMKW    KeyPoolAlgorithm = "A192CBC-HS384/A128GCMKW"
-	A192CBCHS384A128KW       KeyPoolAlgorithm = "A192CBC-HS384/A128KW"
-	A192CBCHS384A192GCMKW    KeyPoolAlgorithm = "A192CBC-HS384/A192GCMKW"
-	A192CBCHS384A192KW       KeyPoolAlgorithm = "A192CBC-HS384/A192KW"
-	A192CBCHS384A256GCMKW    KeyPoolAlgorithm = "A192CBC-HS384/A256GCMKW"
-	A192CBCHS384A256KW       KeyPoolAlgorithm = "A192CBC-HS384/A256KW"
-	A192CBCHS384ECDHES       KeyPoolAlgorithm = "A192CBC-HS384/ECDH-ES"
-	A192CBCHS384ECDHESA128KW KeyPoolAlgorithm = "A192CBC-HS384/ECDH-ES+A128KW"
-	A192CBCHS384ECDHESA192KW KeyPoolAlgorithm = "A192CBC-HS384/ECDH-ES+A192KW"
-	A192CBCHS384ECDHESA256KW KeyPoolAlgorithm = "A192CBC-HS384/ECDH-ES+A256KW"
-	A192CBCHS384RSA15        KeyPoolAlgorithm = "A192CBC-HS384/RSA1_5"
-	A192CBCHS384RSAOAEP      KeyPoolAlgorithm = "A192CBC-HS384/RSA-OAEP"
-	A192CBCHS384RSAOAEP256   KeyPoolAlgorithm = "A192CBC-HS384/RSA-OAEP-256"
-	A192CBCHS384RSAOAEP384   KeyPoolAlgorithm = "A192CBC-HS384/RSA-OAEP-384"
-	A192CBCHS384RSAOAEP512   KeyPoolAlgorithm = "A192CBC-HS384/RSA-OAEP-512"
-	A192CBCHS384dir          KeyPoolAlgorithm = "A192CBC-HS384/dir"
-	A192GCMA128GCMKW         KeyPoolAlgorithm = "A192GCM/A128GCMKW"
-	A192GCMA128KW            KeyPoolAlgorithm = "A192GCM/A128KW"
-	A192GCMA192GCMKW         KeyPoolAlgorithm = "A192GCM/A192GCMKW"
-	A192GCMA192KW            KeyPoolAlgorithm = "A192GCM/A192KW"
-	A192GCMA256GCMKW         KeyPoolAlgorithm = "A192GCM/A256GCMKW"
-	A192GCMA256KW            KeyPoolAlgorithm = "A192GCM/A256KW"
-	A192GCMECDHES            KeyPoolAlgorithm = "A192GCM/ECDH-ES"
-	A192GCMECDHESA128KW      KeyPoolAlgorithm = "A192GCM/ECDH-ES+A128KW"
-	A192GCMECDHESA192KW      KeyPoolAlgorithm = "A192GCM/ECDH-ES+A192KW"
-	A192GCMECDHESA256KW      KeyPoolAlgorithm = "A192GCM/ECDH-ES+A256KW"
-	A192GCMRSA15             KeyPoolAlgorithm = "A192GCM/RSA1_5"
-	A192GCMRSAOAEP           KeyPoolAlgorithm = "A192GCM/RSA-OAEP"
-	A192GCMRSAOAEP256        KeyPoolAlgorithm = "A192GCM/RSA-OAEP-256"
-	A192GCMRSAOAEP384        KeyPoolAlgorithm = "A192GCM/RSA-OAEP-384"
-	A192GCMRSAOAEP512        KeyPoolAlgorithm = "A192GCM/RSA-OAEP-512"
-	A192GCMdir               KeyPoolAlgorithm = "A192GCM/dir"
-	A256CBCHS512A128GCMKW    KeyPoolAlgorithm = "A256CBC-HS512/A128GCMKW"
-	A256CBCHS512A128KW       KeyPoolAlgorithm = "A256CBC-HS512/A128KW"
-	A256CBCHS512A192GCMKW    KeyPoolAlgorithm = "A256CBC-HS512/A192GCMKW"
-	A256CBCHS512A192KW       KeyPoolAlgorithm = "A256CBC-HS512/A192KW"
-	A256CBCHS512A256GCMKW    KeyPoolAlgorithm = "A256CBC-HS512/A256GCMKW"
-	A256CBCHS512A256KW       KeyPoolAlgorithm = "A256CBC-HS512/A256KW"
-	A256CBCHS512ECDHES       KeyPoolAlgorithm = "A256CBC-HS512/ECDH-ES"
-	A256CBCHS512ECDHESA128KW KeyPoolAlgorithm = "A256CBC-HS512/ECDH-ES+A128KW"
-	A256CBCHS512ECDHESA192KW KeyPoolAlgorithm = "A256CBC-HS512/ECDH-ES+A192KW"
-	A256CBCHS512ECDHESA256KW KeyPoolAlgorithm = "A256CBC-HS512/ECDH-ES+A256KW"
-	A256CBCHS512RSA15        KeyPoolAlgorithm = "A256CBC-HS512/RSA1_5"
-	A256CBCHS512RSAOAEP      KeyPoolAlgorithm = "A256CBC-HS512/RSA-OAEP"
-	A256CBCHS512RSAOAEP256   KeyPoolAlgorithm = "A256CBC-HS512/RSA-OAEP-256"
-	A256CBCHS512RSAOAEP384   KeyPoolAlgorithm = "A256CBC-HS512/RSA-OAEP-384"
-	A256CBCHS512RSAOAEP512   KeyPoolAlgorithm = "A256CBC-HS512/RSA-OAEP-512"
-	A256CBCHS512dir          KeyPoolAlgorithm = "A256CBC-HS512/dir"
-	A256GCMA128GCMKW         KeyPoolAlgorithm = "A256GCM/A128GCMKW"
-	A256GCMA128KW            KeyPoolAlgorithm = "A256GCM/A128KW"
-	A256GCMA192GCMKW         KeyPoolAlgorithm = "A256GCM/A192GCMKW"
-	A256GCMA192KW            KeyPoolAlgorithm = "A256GCM/A192KW"
-	A256GCMA256GCMKW         KeyPoolAlgorithm = "A256GCM/A256GCMKW"
-	A256GCMA256KW            KeyPoolAlgorithm = "A256GCM/A256KW"
-	A256GCMECDHES            KeyPoolAlgorithm = "A256GCM/ECDH-ES"
-	A256GCMECDHESA128KW      KeyPoolAlgorithm = "A256GCM/ECDH-ES+A128KW"
-	A256GCMECDHESA192KW      KeyPoolAlgorithm = "A256GCM/ECDH-ES+A192KW"
-	A256GCMECDHESA256KW      KeyPoolAlgorithm = "A256GCM/ECDH-ES+A256KW"
-	A256GCMRSA15             KeyPoolAlgorithm = "A256GCM/RSA1_5"
-	A256GCMRSAOAEP           KeyPoolAlgorithm = "A256GCM/RSA-OAEP"
-	A256GCMRSAOAEP256        KeyPoolAlgorithm = "A256GCM/RSA-OAEP-256"
-	A256GCMRSAOAEP384        KeyPoolAlgorithm = "A256GCM/RSA-OAEP-384"
-	A256GCMRSAOAEP512        KeyPoolAlgorithm = "A256GCM/RSA-OAEP-512"
-	A256GCMdir               KeyPoolAlgorithm = "A256GCM/dir"
-	ES256                    KeyPoolAlgorithm = "ES256"
-	ES384                    KeyPoolAlgorithm = "ES384"
-	ES512                    KeyPoolAlgorithm = "ES512"
-	EdDSA                    KeyPoolAlgorithm = "EdDSA"
-	HS256                    KeyPoolAlgorithm = "HS256"
-	HS384                    KeyPoolAlgorithm = "HS384"
-	HS512                    KeyPoolAlgorithm = "HS512"
-	PS256                    KeyPoolAlgorithm = "PS256"
-	PS384                    KeyPoolAlgorithm = "PS384"
-	PS512                    KeyPoolAlgorithm = "PS512"
-	RS256                    KeyPoolAlgorithm = "RS256"
-	RS384                    KeyPoolAlgorithm = "RS384"
-	RS512                    KeyPoolAlgorithm = "RS512"
+	A128CBCHS256A128GCMKW    ElasticKeyAlgorithm = "A128CBC-HS256/A128GCMKW"
+	A128CBCHS256A128KW       ElasticKeyAlgorithm = "A128CBC-HS256/A128KW"
+	A128CBCHS256A192GCMKW    ElasticKeyAlgorithm = "A128CBC-HS256/A192GCMKW"
+	A128CBCHS256A192KW       ElasticKeyAlgorithm = "A128CBC-HS256/A192KW"
+	A128CBCHS256A256GCMKW    ElasticKeyAlgorithm = "A128CBC-HS256/A256GCMKW"
+	A128CBCHS256A256KW       ElasticKeyAlgorithm = "A128CBC-HS256/A256KW"
+	A128CBCHS256ECDHES       ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES"
+	A128CBCHS256ECDHESA128KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A128KW"
+	A128CBCHS256ECDHESA192KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A192KW"
+	A128CBCHS256ECDHESA256KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A256KW"
+	A128CBCHS256RSA15        ElasticKeyAlgorithm = "A128CBC-HS256/RSA1_5"
+	A128CBCHS256RSAOAEP      ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP"
+	A128CBCHS256RSAOAEP256   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-256"
+	A128CBCHS256RSAOAEP384   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-384"
+	A128CBCHS256RSAOAEP512   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-512"
+	A128CBCHS256dir          ElasticKeyAlgorithm = "A128CBC-HS256/dir"
+	A128GCMA128GCMKW         ElasticKeyAlgorithm = "A128GCM/A128GCMKW"
+	A128GCMA128KW            ElasticKeyAlgorithm = "A128GCM/A128KW"
+	A128GCMA192GCMKW         ElasticKeyAlgorithm = "A128GCM/A192GCMKW"
+	A128GCMA192KW            ElasticKeyAlgorithm = "A128GCM/A192KW"
+	A128GCMA256GCMKW         ElasticKeyAlgorithm = "A128GCM/A256GCMKW"
+	A128GCMA256KW            ElasticKeyAlgorithm = "A128GCM/A256KW"
+	A128GCMECDHES            ElasticKeyAlgorithm = "A128GCM/ECDH-ES"
+	A128GCMECDHESA128KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A128KW"
+	A128GCMECDHESA192KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A192KW"
+	A128GCMECDHESA256KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A256KW"
+	A128GCMRSA15             ElasticKeyAlgorithm = "A128GCM/RSA1_5"
+	A128GCMRSAOAEP           ElasticKeyAlgorithm = "A128GCM/RSA-OAEP"
+	A128GCMRSAOAEP256        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-256"
+	A128GCMRSAOAEP384        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-384"
+	A128GCMRSAOAEP512        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-512"
+	A128GCMdir               ElasticKeyAlgorithm = "A128GCM/dir"
+	A192CBCHS384A128GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A128GCMKW"
+	A192CBCHS384A128KW       ElasticKeyAlgorithm = "A192CBC-HS384/A128KW"
+	A192CBCHS384A192GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A192GCMKW"
+	A192CBCHS384A192KW       ElasticKeyAlgorithm = "A192CBC-HS384/A192KW"
+	A192CBCHS384A256GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A256GCMKW"
+	A192CBCHS384A256KW       ElasticKeyAlgorithm = "A192CBC-HS384/A256KW"
+	A192CBCHS384ECDHES       ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES"
+	A192CBCHS384ECDHESA128KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A128KW"
+	A192CBCHS384ECDHESA192KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A192KW"
+	A192CBCHS384ECDHESA256KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A256KW"
+	A192CBCHS384RSA15        ElasticKeyAlgorithm = "A192CBC-HS384/RSA1_5"
+	A192CBCHS384RSAOAEP      ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP"
+	A192CBCHS384RSAOAEP256   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-256"
+	A192CBCHS384RSAOAEP384   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-384"
+	A192CBCHS384RSAOAEP512   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-512"
+	A192CBCHS384dir          ElasticKeyAlgorithm = "A192CBC-HS384/dir"
+	A192GCMA128GCMKW         ElasticKeyAlgorithm = "A192GCM/A128GCMKW"
+	A192GCMA128KW            ElasticKeyAlgorithm = "A192GCM/A128KW"
+	A192GCMA192GCMKW         ElasticKeyAlgorithm = "A192GCM/A192GCMKW"
+	A192GCMA192KW            ElasticKeyAlgorithm = "A192GCM/A192KW"
+	A192GCMA256GCMKW         ElasticKeyAlgorithm = "A192GCM/A256GCMKW"
+	A192GCMA256KW            ElasticKeyAlgorithm = "A192GCM/A256KW"
+	A192GCMECDHES            ElasticKeyAlgorithm = "A192GCM/ECDH-ES"
+	A192GCMECDHESA128KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A128KW"
+	A192GCMECDHESA192KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A192KW"
+	A192GCMECDHESA256KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A256KW"
+	A192GCMRSA15             ElasticKeyAlgorithm = "A192GCM/RSA1_5"
+	A192GCMRSAOAEP           ElasticKeyAlgorithm = "A192GCM/RSA-OAEP"
+	A192GCMRSAOAEP256        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-256"
+	A192GCMRSAOAEP384        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-384"
+	A192GCMRSAOAEP512        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-512"
+	A192GCMdir               ElasticKeyAlgorithm = "A192GCM/dir"
+	A256CBCHS512A128GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A128GCMKW"
+	A256CBCHS512A128KW       ElasticKeyAlgorithm = "A256CBC-HS512/A128KW"
+	A256CBCHS512A192GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A192GCMKW"
+	A256CBCHS512A192KW       ElasticKeyAlgorithm = "A256CBC-HS512/A192KW"
+	A256CBCHS512A256GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A256GCMKW"
+	A256CBCHS512A256KW       ElasticKeyAlgorithm = "A256CBC-HS512/A256KW"
+	A256CBCHS512ECDHES       ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES"
+	A256CBCHS512ECDHESA128KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A128KW"
+	A256CBCHS512ECDHESA192KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A192KW"
+	A256CBCHS512ECDHESA256KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A256KW"
+	A256CBCHS512RSA15        ElasticKeyAlgorithm = "A256CBC-HS512/RSA1_5"
+	A256CBCHS512RSAOAEP      ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP"
+	A256CBCHS512RSAOAEP256   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-256"
+	A256CBCHS512RSAOAEP384   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-384"
+	A256CBCHS512RSAOAEP512   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-512"
+	A256CBCHS512dir          ElasticKeyAlgorithm = "A256CBC-HS512/dir"
+	A256GCMA128GCMKW         ElasticKeyAlgorithm = "A256GCM/A128GCMKW"
+	A256GCMA128KW            ElasticKeyAlgorithm = "A256GCM/A128KW"
+	A256GCMA192GCMKW         ElasticKeyAlgorithm = "A256GCM/A192GCMKW"
+	A256GCMA192KW            ElasticKeyAlgorithm = "A256GCM/A192KW"
+	A256GCMA256GCMKW         ElasticKeyAlgorithm = "A256GCM/A256GCMKW"
+	A256GCMA256KW            ElasticKeyAlgorithm = "A256GCM/A256KW"
+	A256GCMECDHES            ElasticKeyAlgorithm = "A256GCM/ECDH-ES"
+	A256GCMECDHESA128KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A128KW"
+	A256GCMECDHESA192KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A192KW"
+	A256GCMECDHESA256KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A256KW"
+	A256GCMRSA15             ElasticKeyAlgorithm = "A256GCM/RSA1_5"
+	A256GCMRSAOAEP           ElasticKeyAlgorithm = "A256GCM/RSA-OAEP"
+	A256GCMRSAOAEP256        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-256"
+	A256GCMRSAOAEP384        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-384"
+	A256GCMRSAOAEP512        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-512"
+	A256GCMdir               ElasticKeyAlgorithm = "A256GCM/dir"
+	ES256                    ElasticKeyAlgorithm = "ES256"
+	ES384                    ElasticKeyAlgorithm = "ES384"
+	ES512                    ElasticKeyAlgorithm = "ES512"
+	EdDSA                    ElasticKeyAlgorithm = "EdDSA"
+	HS256                    ElasticKeyAlgorithm = "HS256"
+	HS384                    ElasticKeyAlgorithm = "HS384"
+	HS512                    ElasticKeyAlgorithm = "HS512"
+	PS256                    ElasticKeyAlgorithm = "PS256"
+	PS384                    ElasticKeyAlgorithm = "PS384"
+	PS512                    ElasticKeyAlgorithm = "PS512"
+	RS256                    ElasticKeyAlgorithm = "RS256"
+	RS384                    ElasticKeyAlgorithm = "RS384"
+	RS512                    ElasticKeyAlgorithm = "RS512"
 )
 
-// Defines values for KeyPoolProvider.
+// Defines values for ElasticKeyProvider.
 const (
-	Internal KeyPoolProvider = "Internal"
+	Internal ElasticKeyProvider = "Internal"
 )
 
-// Defines values for KeyPoolSort.
+// Defines values for ElasticKeySort.
 const (
-	KeyPoolSortAlgorithmASC          KeyPoolSort = "algorithm:ASC"
-	KeyPoolSortAlgorithmDESC         KeyPoolSort = "algorithm:DESC"
-	KeyPoolSortExportAllowedASC      KeyPoolSort = "export_allowed:ASC"
-	KeyPoolSortExportAllowedDESC     KeyPoolSort = "export_allowed:DESC"
-	KeyPoolSortIdASC                 KeyPoolSort = "id:ASC"
-	KeyPoolSortIdDESC                KeyPoolSort = "id:DESC"
-	KeyPoolSortImportAllowedASC      KeyPoolSort = "import_allowed:ASC"
-	KeyPoolSortImportAllowedDESC     KeyPoolSort = "import_allowed:DESC"
-	KeyPoolSortNameASC               KeyPoolSort = "name:ASC"
-	KeyPoolSortNameDESC              KeyPoolSort = "name:DESC"
-	KeyPoolSortProviderASC           KeyPoolSort = "provider:ASC"
-	KeyPoolSortProviderDESC          KeyPoolSort = "provider:DESC"
-	KeyPoolSortStatusASC             KeyPoolSort = "status:ASC"
-	KeyPoolSortStatusDESC            KeyPoolSort = "status:DESC"
-	KeyPoolSortVersioningAllowedASC  KeyPoolSort = "versioning_allowed:ASC"
-	KeyPoolSortVersioningAllowedDESC KeyPoolSort = "versioning_allowed:DESC"
+	ElasticKeySortAlgorithmASC          ElasticKeySort = "algorithm:ASC"
+	ElasticKeySortAlgorithmDESC         ElasticKeySort = "algorithm:DESC"
+	ElasticKeySortExportAllowedASC      ElasticKeySort = "export_allowed:ASC"
+	ElasticKeySortExportAllowedDESC     ElasticKeySort = "export_allowed:DESC"
+	ElasticKeySortIdASC                 ElasticKeySort = "id:ASC"
+	ElasticKeySortIdDESC                ElasticKeySort = "id:DESC"
+	ElasticKeySortImportAllowedASC      ElasticKeySort = "import_allowed:ASC"
+	ElasticKeySortImportAllowedDESC     ElasticKeySort = "import_allowed:DESC"
+	ElasticKeySortNameASC               ElasticKeySort = "name:ASC"
+	ElasticKeySortNameDESC              ElasticKeySort = "name:DESC"
+	ElasticKeySortProviderASC           ElasticKeySort = "provider:ASC"
+	ElasticKeySortProviderDESC          ElasticKeySort = "provider:DESC"
+	ElasticKeySortStatusASC             ElasticKeySort = "status:ASC"
+	ElasticKeySortStatusDESC            ElasticKeySort = "status:DESC"
+	ElasticKeySortVersioningAllowedASC  ElasticKeySort = "versioning_allowed:ASC"
+	ElasticKeySortVersioningAllowedDESC ElasticKeySort = "versioning_allowed:DESC"
 )
 
-// Defines values for KeyPoolStatus.
+// Defines values for ElasticKeyStatus.
 const (
-	Active                         KeyPoolStatus = "active"
-	Creating                       KeyPoolStatus = "creating"
-	Disabled                       KeyPoolStatus = "disabled"
-	FinishedDelete                 KeyPoolStatus = "finished_delete"
-	GenerateFailed                 KeyPoolStatus = "generate_failed"
-	ImportFailed                   KeyPoolStatus = "import_failed"
-	PendingDeleteWasActive         KeyPoolStatus = "pending_delete_was_active"
-	PendingDeleteWasDisabled       KeyPoolStatus = "pending_delete_was_disabled"
-	PendingDeleteWasGenerateFailed KeyPoolStatus = "pending_delete_was_generate_failed"
-	PendingDeleteWasImportFailed   KeyPoolStatus = "pending_delete_was_import_failed"
-	PendingDeleteWasPendingImport  KeyPoolStatus = "pending_delete_was_pending_import"
-	PendingGenerate                KeyPoolStatus = "pending_generate"
-	PendingImport                  KeyPoolStatus = "pending_import"
-	StartedDelete                  KeyPoolStatus = "started_delete"
+	Active                         ElasticKeyStatus = "active"
+	Creating                       ElasticKeyStatus = "creating"
+	Disabled                       ElasticKeyStatus = "disabled"
+	FinishedDelete                 ElasticKeyStatus = "finished_delete"
+	GenerateFailed                 ElasticKeyStatus = "generate_failed"
+	ImportFailed                   ElasticKeyStatus = "import_failed"
+	PendingDeleteWasActive         ElasticKeyStatus = "pending_delete_was_active"
+	PendingDeleteWasDisabled       ElasticKeyStatus = "pending_delete_was_disabled"
+	PendingDeleteWasGenerateFailed ElasticKeyStatus = "pending_delete_was_generate_failed"
+	PendingDeleteWasImportFailed   ElasticKeyStatus = "pending_delete_was_import_failed"
+	PendingDeleteWasPendingImport  ElasticKeyStatus = "pending_delete_was_pending_import"
+	PendingGenerate                ElasticKeyStatus = "pending_generate"
+	PendingImport                  ElasticKeyStatus = "pending_import"
+	StartedDelete                  ElasticKeyStatus = "started_delete"
 )
 
 // Defines values for KeySort.
@@ -192,158 +192,77 @@ type DecryptRequest = string
 // DecryptResponse Decrypted text. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; use the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
 type DecryptResponse = string
 
-// EncryptContext Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
-type EncryptContext = string
+// ElasticKey defines model for ElasticKey.
+type ElasticKey struct {
+	// Algorithm Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+	Algorithm *ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 
-// EncryptParams defines model for EncryptParams.
-type EncryptParams struct {
-	// Context Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
-	Context *EncryptContext `json:"context,omitempty"`
+	// Description Description for a Elastic Key.
+	Description *ElasticKeyDescription `json:"description,omitempty"`
+
+	// ExportAllowed Indicates if the Elastic Key supports export.
+	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
+
+	// Id Unique UUID for a Elastic Key.
+	Id *ElasticKeyId `json:"id,omitempty"`
+
+	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
+	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
+
+	// Name Friendly name for a Elastic Key.
+	Name *ElasticKeyName `json:"name,omitempty"`
+
+	// Provider Provider of the Elastic Key management service.
+	Provider *ElasticKeyProvider `json:"provider,omitempty"`
+
+	// Status Status of the Elastic Key.
+	Status *ElasticKeyStatus `json:"status,omitempty"`
+
+	// VersioningAllowed Indicates if the Elastic Key supports versioning.
+	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// EncryptRequest Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
-type EncryptRequest = string
+// ElasticKeyAlgorithm Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+type ElasticKeyAlgorithm string
 
-// EncryptResponse Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
-type EncryptResponse = string
+// ElasticKeyCreate defines model for ElasticKeyCreate.
+type ElasticKeyCreate struct {
+	// Algorithm Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+	Algorithm *ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 
-// HTTPError defines model for HTTPError.
-type HTTPError struct {
-	// Error HTTP status message
-	Error string `json:"error"`
+	// Description Description for a Elastic Key.
+	Description ElasticKeyDescription `json:"description"`
 
-	// Message Detailed error message
-	Message string `json:"message"`
+	// ExportAllowed Indicates if the Elastic Key supports export.
+	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
 
-	// Status HTTP status code
-	Status int `json:"status"`
+	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
+	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
+
+	// Name Friendly name for a Elastic Key.
+	Name ElasticKeyName `json:"name"`
+
+	// Provider Provider of the Elastic Key management service.
+	Provider *ElasticKeyProvider `json:"provider,omitempty"`
+
+	// VersioningAllowed Indicates if the Elastic Key supports versioning.
+	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// Key defines model for Key.
-type Key struct {
-	// Decrypted Clear private or secret key material (if KeyPool exportAllowed=true)
-	Decrypted *KeyMaterialDecrypted `json:"decrypted,omitempty"`
+// ElasticKeyDescription Description for a Elastic Key.
+type ElasticKeyDescription = string
 
-	// Encrypted Encrypted private or secret key material (if KeyPool exportAllowed=true)
-	Encrypted *KeyMaterialEncrypted `json:"encrypted,omitempty"`
+// ElasticKeyExportAllowed Indicates if the Elastic Key supports export.
+type ElasticKeyExportAllowed = bool
 
-	// ExpirationDate ISO 8601 UTC timestamp of Key generation.
-	ExpirationDate *KeyExpirationDate `json:"expiration_date,omitempty"`
+// ElasticKeyId Unique UUID for a Elastic Key.
+type ElasticKeyId = openapi_types.UUID
 
-	// GenerateDate ISO 8601 UTC timestamp of Key generation.
-	GenerateDate *KeyGenerateDate `json:"generate_date,omitempty"`
+// ElasticKeyImportAllowed Indicates if the Elastic Key supports import (BYOK).
+type ElasticKeyImportAllowed = bool
 
-	// Id Unique UUID for a Key.
-	Id KeyId `json:"id"`
-
-	// ImportDate ISO 8601 UTC timestamp of Key generation.
-	ImportDate *KeyImportDate `json:"import_date,omitempty"`
-
-	// Pool Unique UUID for a Key Pool.
-	Pool KeyPoolId `json:"pool"`
-
-	// Public Clear public key material (if applicable)
-	Public *KeyMaterialPublic `json:"public,omitempty"`
-
-	// RevocationDate ISO 8601 UTC timestamp of Key generation.
-	RevocationDate *KeyRevocationDate `json:"revocation_date,omitempty"`
-}
-
-// KeyExpirationDate ISO 8601 UTC timestamp of Key generation.
-type KeyExpirationDate = time.Time
-
-// KeyGenerate defines model for KeyGenerate.
-type KeyGenerate = map[string]interface{}
-
-// KeyGenerateDate ISO 8601 UTC timestamp of Key generation.
-type KeyGenerateDate = time.Time
-
-// KeyId Unique UUID for a Key.
-type KeyId = openapi_types.UUID
-
-// KeyImportDate ISO 8601 UTC timestamp of Key generation.
-type KeyImportDate = time.Time
-
-// KeyMaterialDecrypted Clear private or secret key material (if KeyPool exportAllowed=true)
-type KeyMaterialDecrypted = string
-
-// KeyMaterialEncrypted Encrypted private or secret key material (if KeyPool exportAllowed=true)
-type KeyMaterialEncrypted = string
-
-// KeyMaterialPublic Clear public key material (if applicable)
-type KeyMaterialPublic = string
-
-// KeyPool defines model for KeyPool.
-type KeyPool struct {
-	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Key Pool Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
-	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
-
-	// Description Description for a Key Pool.
-	Description *KeyPoolDescription `json:"description,omitempty"`
-
-	// ExportAllowed Indicates if the Key Pool supports export.
-	ExportAllowed *KeyPoolExportAllowed `json:"export_allowed,omitempty"`
-
-	// Id Unique UUID for a Key Pool.
-	Id *KeyPoolId `json:"id,omitempty"`
-
-	// ImportAllowed Indicates if the Key Pool supports import (BYOK).
-	ImportAllowed *KeyPoolImportAllowed `json:"import_allowed,omitempty"`
-
-	// Name Friendly name for a Key Pool.
-	Name *KeyPoolName `json:"name,omitempty"`
-
-	// Provider Provider of the Key Pool management service.
-	Provider *KeyPoolProvider `json:"provider,omitempty"`
-
-	// Status Status of the Key Pool.
-	Status *KeyPoolStatus `json:"status,omitempty"`
-
-	// VersioningAllowed Indicates if the Key Pool supports versioning.
-	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
-}
-
-// KeyPoolAlgorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Key Pool Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
-type KeyPoolAlgorithm string
-
-// KeyPoolCreate defines model for KeyPoolCreate.
-type KeyPoolCreate struct {
-	// Algorithm Cryptographic algorithm(s) used for Keys in the Key Pool. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Key Pool Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Key Pool Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
-	Algorithm *KeyPoolAlgorithm `json:"algorithm,omitempty"`
-
-	// Description Description for a Key Pool.
-	Description KeyPoolDescription `json:"description"`
-
-	// ExportAllowed Indicates if the Key Pool supports export.
-	ExportAllowed *KeyPoolExportAllowed `json:"export_allowed,omitempty"`
-
-	// ImportAllowed Indicates if the Key Pool supports import (BYOK).
-	ImportAllowed *KeyPoolImportAllowed `json:"import_allowed,omitempty"`
-
-	// Name Friendly name for a Key Pool.
-	Name KeyPoolName `json:"name"`
-
-	// Provider Provider of the Key Pool management service.
-	Provider *KeyPoolProvider `json:"provider,omitempty"`
-
-	// VersioningAllowed Indicates if the Key Pool supports versioning.
-	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
-}
-
-// KeyPoolDescription Description for a Key Pool.
-type KeyPoolDescription = string
-
-// KeyPoolExportAllowed Indicates if the Key Pool supports export.
-type KeyPoolExportAllowed = bool
-
-// KeyPoolId Unique UUID for a Key Pool.
-type KeyPoolId = openapi_types.UUID
-
-// KeyPoolImportAllowed Indicates if the Key Pool supports import (BYOK).
-type KeyPoolImportAllowed = bool
-
-// KeyPoolKeysQueryParams defines model for KeyPoolKeysQueryParams.
-type KeyPoolKeysQueryParams struct {
+// ElasticKeyKeysQueryParams defines model for ElasticKeyKeysQueryParams.
+type ElasticKeyKeysQueryParams struct {
 	Id *[]KeyId `json:"id,omitempty"`
 
 	// MaxExpirationDate ISO 8601 UTC timestamp of Key generation.
@@ -378,54 +297,135 @@ type KeyPoolKeysQueryParams struct {
 	Sort *[]KeySort `json:"sort,omitempty"`
 }
 
-// KeyPoolName Friendly name for a Key Pool.
-type KeyPoolName = string
+// ElasticKeyName Friendly name for a Elastic Key.
+type ElasticKeyName = string
 
-// KeyPoolProvider Provider of the Key Pool management service.
-type KeyPoolProvider string
+// ElasticKeyProvider Provider of the Elastic Key management service.
+type ElasticKeyProvider string
 
-// KeyPoolSort defines model for KeyPoolSort.
-type KeyPoolSort string
+// ElasticKeySort defines model for ElasticKeySort.
+type ElasticKeySort string
 
-// KeyPoolStatus Status of the Key Pool.
-type KeyPoolStatus string
+// ElasticKeyStatus Status of the Elastic Key.
+type ElasticKeyStatus string
 
-// KeyPoolUpdate defines model for KeyPoolUpdate.
-type KeyPoolUpdate struct {
-	// Description Description for a Key Pool.
-	Description KeyPoolDescription `json:"description"`
+// ElasticKeyUpdate defines model for ElasticKeyUpdate.
+type ElasticKeyUpdate struct {
+	// Description Description for a Elastic Key.
+	Description ElasticKeyDescription `json:"description"`
 
-	// Name Friendly name for a Key Pool.
-	Name KeyPoolName `json:"name"`
+	// Name Friendly name for a Elastic Key.
+	Name ElasticKeyName `json:"name"`
 }
 
-// KeyPoolVersioningAllowed Indicates if the Key Pool supports versioning.
-type KeyPoolVersioningAllowed = bool
+// ElasticKeyVersioningAllowed Indicates if the Elastic Key supports versioning.
+type ElasticKeyVersioningAllowed = bool
 
-// KeyPoolsQueryParams defines model for KeyPoolsQueryParams.
-type KeyPoolsQueryParams struct {
-	Algorithm *[]KeyPoolAlgorithm `json:"algorithm,omitempty"`
+// ElasticKeysQueryParams defines model for ElasticKeysQueryParams.
+type ElasticKeysQueryParams struct {
+	Algorithm *[]ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 
-	// ExportAllowed Indicates if the Key Pool supports export.
-	ExportAllowed *KeyPoolExportAllowed `json:"export_allowed,omitempty"`
-	Id            *[]KeyPoolId          `json:"id,omitempty"`
+	// ExportAllowed Indicates if the Elastic Key supports export.
+	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
+	Id            *[]ElasticKeyId          `json:"id,omitempty"`
 
-	// ImportAllowed Indicates if the Key Pool supports import (BYOK).
-	ImportAllowed *KeyPoolImportAllowed `json:"import_allowed,omitempty"`
-	Name          *[]KeyPoolName        `json:"name,omitempty"`
+	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
+	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
+	Name          *[]ElasticKeyName        `json:"name,omitempty"`
 
 	// Page Page number starting at 0.
-	Page     *PageNumber        `json:"page,omitempty"`
-	Provider *[]KeyPoolProvider `json:"provider,omitempty"`
+	Page     *PageNumber           `json:"page,omitempty"`
+	Provider *[]ElasticKeyProvider `json:"provider,omitempty"`
 
 	// Size Page number.
-	Size   *PageSize        `json:"size,omitempty"`
-	Sort   *[]KeyPoolSort   `json:"sort,omitempty"`
-	Status *[]KeyPoolStatus `json:"status,omitempty"`
+	Size   *PageSize           `json:"size,omitempty"`
+	Sort   *[]ElasticKeySort   `json:"sort,omitempty"`
+	Status *[]ElasticKeyStatus `json:"status,omitempty"`
 
-	// VersioningAllowed Indicates if the Key Pool supports versioning.
-	VersioningAllowed *KeyPoolVersioningAllowed `json:"versioning_allowed,omitempty"`
+	// VersioningAllowed Indicates if the Elastic Key supports versioning.
+	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
+
+// EncryptContext Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+type EncryptContext = string
+
+// EncryptParams defines model for EncryptParams.
+type EncryptParams struct {
+	// Context Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+	Context *EncryptContext `json:"context,omitempty"`
+}
+
+// EncryptRequest Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+type EncryptRequest = string
+
+// EncryptResponse Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
+type EncryptResponse = string
+
+// HTTPError defines model for HTTPError.
+type HTTPError struct {
+	// Error HTTP status message
+	Error string `json:"error"`
+
+	// Message Detailed error message
+	Message string `json:"message"`
+
+	// Status HTTP status code
+	Status int `json:"status"`
+}
+
+// Key defines model for Key.
+type Key struct {
+	// Decrypted Clear private or secret key material (if ElasticKey exportAllowed=true)
+	Decrypted *KeyMaterialDecrypted `json:"decrypted,omitempty"`
+
+	// Encrypted Encrypted private or secret key material (if ElasticKey exportAllowed=true)
+	Encrypted *KeyMaterialEncrypted `json:"encrypted,omitempty"`
+
+	// ExpirationDate ISO 8601 UTC timestamp of Key generation.
+	ExpirationDate *KeyExpirationDate `json:"expiration_date,omitempty"`
+
+	// GenerateDate ISO 8601 UTC timestamp of Key generation.
+	GenerateDate *KeyGenerateDate `json:"generate_date,omitempty"`
+
+	// Id Unique UUID for a Key.
+	Id KeyId `json:"id"`
+
+	// ImportDate ISO 8601 UTC timestamp of Key generation.
+	ImportDate *KeyImportDate `json:"import_date,omitempty"`
+
+	// Pool Unique UUID for a Elastic Key.
+	Pool ElasticKeyId `json:"pool"`
+
+	// Public Clear public key material (if applicable)
+	Public *KeyMaterialPublic `json:"public,omitempty"`
+
+	// RevocationDate ISO 8601 UTC timestamp of Key generation.
+	RevocationDate *KeyRevocationDate `json:"revocation_date,omitempty"`
+}
+
+// KeyExpirationDate ISO 8601 UTC timestamp of Key generation.
+type KeyExpirationDate = time.Time
+
+// KeyGenerate defines model for KeyGenerate.
+type KeyGenerate = map[string]interface{}
+
+// KeyGenerateDate ISO 8601 UTC timestamp of Key generation.
+type KeyGenerateDate = time.Time
+
+// KeyId Unique UUID for a Key.
+type KeyId = openapi_types.UUID
+
+// KeyImportDate ISO 8601 UTC timestamp of Key generation.
+type KeyImportDate = time.Time
+
+// KeyMaterialDecrypted Clear private or secret key material (if ElasticKey exportAllowed=true)
+type KeyMaterialDecrypted = string
+
+// KeyMaterialEncrypted Encrypted private or secret key material (if ElasticKey exportAllowed=true)
+type KeyMaterialEncrypted = string
+
+// KeyMaterialPublic Clear public key material (if applicable)
+type KeyMaterialPublic = string
 
 // KeyRevocationDate ISO 8601 UTC timestamp of Key generation.
 type KeyRevocationDate = time.Time
@@ -438,8 +438,8 @@ type KeyUpdate struct {
 	// Id Unique UUID for a Key.
 	Id KeyId `json:"id"`
 
-	// Pool Unique UUID for a Key Pool.
-	Pool KeyPoolId `json:"pool"`
+	// Pool Unique UUID for a Elastic Key.
+	Pool ElasticKeyId `json:"pool"`
 }
 
 // KeysQueryParams defines model for KeysQueryParams.
@@ -471,8 +471,8 @@ type KeysQueryParams struct {
 	MinRevocationDate *KeyRevocationDate `json:"min_revocation_date,omitempty"`
 
 	// Page Page number starting at 0.
-	Page *PageNumber  `json:"page,omitempty"`
-	Pool *[]KeyPoolId `json:"pool,omitempty"`
+	Page *PageNumber     `json:"page,omitempty"`
+	Pool *[]ElasticKeyId `json:"pool,omitempty"`
 
 	// Size Page number.
 	Size *PageSize  `json:"size,omitempty"`
@@ -506,44 +506,44 @@ type VerifyRequest = string
 // VerifyResponse Optional message about verification result
 type VerifyResponse = string
 
-// KeyPoolQueryParamAlgorithms defines model for KeyPoolQueryParamAlgorithms.
-type KeyPoolQueryParamAlgorithms = []KeyPoolAlgorithm
+// ElasticKeyQueryParamAlgorithms defines model for ElasticKeyQueryParamAlgorithms.
+type ElasticKeyQueryParamAlgorithms = []ElasticKeyAlgorithm
 
-// KeyPoolQueryParamExportAllowed Indicates if the Key Pool supports export.
-type KeyPoolQueryParamExportAllowed = KeyPoolExportAllowed
+// ElasticKeyQueryParamExportAllowed Indicates if the Elastic Key supports export.
+type ElasticKeyQueryParamExportAllowed = ElasticKeyExportAllowed
 
-// KeyPoolQueryParamIds defines model for KeyPoolQueryParamIds.
-type KeyPoolQueryParamIds = []KeyPoolId
+// ElasticKeyQueryParamIds defines model for ElasticKeyQueryParamIds.
+type ElasticKeyQueryParamIds = []ElasticKeyId
 
-// KeyPoolQueryParamImportAllowed Indicates if the Key Pool supports import (BYOK).
-type KeyPoolQueryParamImportAllowed = KeyPoolImportAllowed
+// ElasticKeyQueryParamImportAllowed Indicates if the Elastic Key supports import (BYOK).
+type ElasticKeyQueryParamImportAllowed = ElasticKeyImportAllowed
 
-// KeyPoolQueryParamNames defines model for KeyPoolQueryParamNames.
-type KeyPoolQueryParamNames = []KeyPoolName
+// ElasticKeyQueryParamNames defines model for ElasticKeyQueryParamNames.
+type ElasticKeyQueryParamNames = []ElasticKeyName
 
-// KeyPoolQueryParamPageNumber Page number starting at 0.
-type KeyPoolQueryParamPageNumber = PageNumber
+// ElasticKeyQueryParamPageNumber Page number starting at 0.
+type ElasticKeyQueryParamPageNumber = PageNumber
 
-// KeyPoolQueryParamPageSize Page number.
-type KeyPoolQueryParamPageSize = PageSize
+// ElasticKeyQueryParamPageSize Page number.
+type ElasticKeyQueryParamPageSize = PageSize
 
-// KeyPoolQueryParamProviders defines model for KeyPoolQueryParamProviders.
-type KeyPoolQueryParamProviders = []KeyPoolProvider
+// ElasticKeyQueryParamProviders defines model for ElasticKeyQueryParamProviders.
+type ElasticKeyQueryParamProviders = []ElasticKeyProvider
 
-// KeyPoolQueryParamSorts defines model for KeyPoolQueryParamSorts.
-type KeyPoolQueryParamSorts = []KeyPoolSort
+// ElasticKeyQueryParamSorts defines model for ElasticKeyQueryParamSorts.
+type ElasticKeyQueryParamSorts = []ElasticKeySort
 
-// KeyPoolQueryParamStatuses defines model for KeyPoolQueryParamStatuses.
-type KeyPoolQueryParamStatuses = []KeyPoolStatus
+// ElasticKeyQueryParamStatuses defines model for ElasticKeyQueryParamStatuses.
+type ElasticKeyQueryParamStatuses = []ElasticKeyStatus
 
-// KeyPoolQueryParamVersioningAllowed Indicates if the Key Pool supports versioning.
-type KeyPoolQueryParamVersioningAllowed = KeyPoolVersioningAllowed
+// ElasticKeyQueryParamVersioningAllowed Indicates if the Elastic Key supports versioning.
+type ElasticKeyQueryParamVersioningAllowed = ElasticKeyVersioningAllowed
+
+// KeyQueryParamElasticKeyIds defines model for KeyQueryParamElasticKeyIds.
+type KeyQueryParamElasticKeyIds = []ElasticKeyId
 
 // KeyQueryParamIds defines model for KeyQueryParamIds.
 type KeyQueryParamIds = []KeyId
-
-// KeyQueryParamKeyPoolIds defines model for KeyQueryParamKeyPoolIds.
-type KeyQueryParamKeyPoolIds = []KeyPoolId
 
 // KeyQueryParamMaximumExpirationDate ISO 8601 UTC timestamp of Key generation.
 type KeyQueryParamMaximumExpirationDate = KeyExpirationDate
@@ -644,77 +644,77 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

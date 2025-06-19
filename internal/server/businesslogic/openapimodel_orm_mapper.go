@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	ormKeyPoolAlgorithmToJoseEncAndAlg = map[cryptoutilOrmRepository.KeyPoolAlgorithm]struct {
+	ormElasticKeyAlgorithmToJoseEncAndAlg = map[cryptoutilOrmRepository.ElasticKeyAlgorithm]struct {
 		enc *joseJwa.ContentEncryptionAlgorithm
 		alg *joseJwa.KeyEncryptionAlgorithm
 	}{
@@ -119,7 +119,7 @@ var (
 		cryptoutilOrmRepository.A128CBC_HS256_ECDHES:       {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHES},
 	}
 
-	ormKeyPoolAlgorithmToJoseAlg = map[cryptoutilOrmRepository.KeyPoolAlgorithm]*joseJwa.SignatureAlgorithm{
+	ormElasticKeyAlgorithmToJoseAlg = map[cryptoutilOrmRepository.ElasticKeyAlgorithm]*joseJwa.SignatureAlgorithm{
 		cryptoutilOrmRepository.RS512: &cryptoutilJose.AlgRS512,
 		cryptoutilOrmRepository.RS384: &cryptoutilJose.AlgRS384,
 		cryptoutilOrmRepository.RS256: &cryptoutilJose.AlgRS256,
@@ -144,77 +144,77 @@ func NewMapper() *serviceOrmMapper {
 
 // service => orm
 
-func (m *serviceOrmMapper) toOrmAddKeyPool(keyPoolID googleUuid.UUID, serviceKeyPoolCreate *cryptoutilBusinessLogicModel.KeyPoolCreate) *cryptoutilOrmRepository.KeyPool {
-	return &cryptoutilOrmRepository.KeyPool{
-		KeyPoolID:                keyPoolID,
-		KeyPoolName:              serviceKeyPoolCreate.Name,
-		KeyPoolDescription:       serviceKeyPoolCreate.Description,
-		KeyPoolProvider:          *m.toOrmKeyPoolProvider(serviceKeyPoolCreate.Provider),
-		KeyPoolAlgorithm:         *m.toOrmKeyPoolAlgorithm(serviceKeyPoolCreate.Algorithm),
-		KeyPoolVersioningAllowed: *serviceKeyPoolCreate.VersioningAllowed,
-		KeyPoolImportAllowed:     *serviceKeyPoolCreate.ImportAllowed,
-		KeyPoolExportAllowed:     *serviceKeyPoolCreate.ExportAllowed,
-		KeyPoolStatus:            *m.toKeyPoolInitialStatus(serviceKeyPoolCreate.ImportAllowed),
+func (m *serviceOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, serviceElasticKeyCreate *cryptoutilBusinessLogicModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
+	return &cryptoutilOrmRepository.ElasticKey{
+		ElasticKeyID:                elasticKeyID,
+		ElasticKeyName:              serviceElasticKeyCreate.Name,
+		ElasticKeyDescription:       serviceElasticKeyCreate.Description,
+		ElasticKeyProvider:          *m.toOrmElasticKeyProvider(serviceElasticKeyCreate.Provider),
+		ElasticKeyAlgorithm:         *m.toOrmElasticKeyAlgorithm(serviceElasticKeyCreate.Algorithm),
+		ElasticKeyVersioningAllowed: *serviceElasticKeyCreate.VersioningAllowed,
+		ElasticKeyImportAllowed:     *serviceElasticKeyCreate.ImportAllowed,
+		ElasticKeyExportAllowed:     *serviceElasticKeyCreate.ExportAllowed,
+		ElasticKeyStatus:            *m.toElasticKeyInitialStatus(serviceElasticKeyCreate.ImportAllowed),
 	}
 }
 
-func (m *serviceOrmMapper) toOrmKeyPoolProvider(serviceKeyPoolProvider *cryptoutilBusinessLogicModel.KeyPoolProvider) *cryptoutilOrmRepository.KeyPoolProvider {
-	ormKeyPoolProvider := cryptoutilOrmRepository.KeyPoolProvider(*serviceKeyPoolProvider)
-	return &ormKeyPoolProvider
+func (m *serviceOrmMapper) toOrmElasticKeyProvider(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyProvider) *cryptoutilOrmRepository.ElasticKeyProvider {
+	ormElasticKeyProvider := cryptoutilOrmRepository.ElasticKeyProvider(*serviceElasticKeyProvider)
+	return &ormElasticKeyProvider
 }
 
-func (m *serviceOrmMapper) toOrmKeyPoolAlgorithm(serviceKeyPoolProvider *cryptoutilBusinessLogicModel.KeyPoolAlgorithm) *cryptoutilOrmRepository.KeyPoolAlgorithm {
-	ormKeyPoolAlgorithm := cryptoutilOrmRepository.KeyPoolAlgorithm(*serviceKeyPoolProvider)
-	return &ormKeyPoolAlgorithm
+func (m *serviceOrmMapper) toOrmElasticKeyAlgorithm(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) *cryptoutilOrmRepository.ElasticKeyAlgorithm {
+	ormElasticKeyAlgorithm := cryptoutilOrmRepository.ElasticKeyAlgorithm(*serviceElasticKeyProvider)
+	return &ormElasticKeyAlgorithm
 }
 
-func (m *serviceOrmMapper) toKeyPoolInitialStatus(serviceKeyPoolImportAllowed *cryptoutilBusinessLogicModel.KeyPoolImportAllowed) *cryptoutilOrmRepository.KeyPoolStatus {
-	var ormKeyPoolStatus cryptoutilOrmRepository.KeyPoolStatus
-	if *serviceKeyPoolImportAllowed {
-		ormKeyPoolStatus = cryptoutilOrmRepository.KeyPoolStatus("pending_import")
+func (m *serviceOrmMapper) toElasticKeyInitialStatus(serviceElasticKeyImportAllowed *cryptoutilBusinessLogicModel.ElasticKeyImportAllowed) *cryptoutilOrmRepository.ElasticKeyStatus {
+	var ormElasticKeyStatus cryptoutilOrmRepository.ElasticKeyStatus
+	if *serviceElasticKeyImportAllowed {
+		ormElasticKeyStatus = cryptoutilOrmRepository.ElasticKeyStatus("pending_import")
 	} else {
-		ormKeyPoolStatus = cryptoutilOrmRepository.KeyPoolStatus("pending_generate")
+		ormElasticKeyStatus = cryptoutilOrmRepository.ElasticKeyStatus("pending_generate")
 	}
-	return &ormKeyPoolStatus
+	return &ormElasticKeyStatus
 }
 
 // orm => service
 
-func (m *serviceOrmMapper) toServiceKeyPools(ormKeyPools []cryptoutilOrmRepository.KeyPool) []cryptoutilBusinessLogicModel.KeyPool {
-	serviceKeyPools := make([]cryptoutilBusinessLogicModel.KeyPool, len(ormKeyPools))
-	for i, ormKeyPool := range ormKeyPools {
-		serviceKeyPools[i] = *m.toServiceKeyPool(&ormKeyPool)
+func (m *serviceOrmMapper) toServiceElasticKeys(ormElasticKeys []cryptoutilOrmRepository.ElasticKey) []cryptoutilBusinessLogicModel.ElasticKey {
+	serviceElasticKeys := make([]cryptoutilBusinessLogicModel.ElasticKey, len(ormElasticKeys))
+	for i, ormElasticKey := range ormElasticKeys {
+		serviceElasticKeys[i] = *m.toServiceElasticKey(&ormElasticKey)
 	}
-	return serviceKeyPools
+	return serviceElasticKeys
 }
 
-func (s *serviceOrmMapper) toServiceKeyPool(ormKeyPool *cryptoutilOrmRepository.KeyPool) *cryptoutilBusinessLogicModel.KeyPool {
-	return &cryptoutilBusinessLogicModel.KeyPool{
-		Id:                (*cryptoutilBusinessLogicModel.KeyPoolId)(&ormKeyPool.KeyPoolID),
-		Name:              &ormKeyPool.KeyPoolName,
-		Description:       &ormKeyPool.KeyPoolDescription,
-		Algorithm:         s.toServiceKeyPoolAlgorithm(&ormKeyPool.KeyPoolAlgorithm),
-		Provider:          s.toServiceKeyPoolProvider(&ormKeyPool.KeyPoolProvider),
-		VersioningAllowed: &ormKeyPool.KeyPoolVersioningAllowed,
-		ImportAllowed:     &ormKeyPool.KeyPoolImportAllowed,
-		ExportAllowed:     &ormKeyPool.KeyPoolExportAllowed,
-		Status:            s.toServiceKeyPoolStatus(&ormKeyPool.KeyPoolStatus),
+func (s *serviceOrmMapper) toServiceElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilBusinessLogicModel.ElasticKey {
+	return &cryptoutilBusinessLogicModel.ElasticKey{
+		Id:                (*cryptoutilBusinessLogicModel.ElasticKeyId)(&ormElasticKey.ElasticKeyID),
+		Name:              &ormElasticKey.ElasticKeyName,
+		Description:       &ormElasticKey.ElasticKeyDescription,
+		Algorithm:         s.toServiceElasticKeyAlgorithm(&ormElasticKey.ElasticKeyAlgorithm),
+		Provider:          s.toServiceElasticKeyProvider(&ormElasticKey.ElasticKeyProvider),
+		VersioningAllowed: &ormElasticKey.ElasticKeyVersioningAllowed,
+		ImportAllowed:     &ormElasticKey.ElasticKeyImportAllowed,
+		ExportAllowed:     &ormElasticKey.ElasticKeyExportAllowed,
+		Status:            s.toServiceElasticKeyStatus(&ormElasticKey.ElasticKeyStatus),
 	}
 }
 
-func (m *serviceOrmMapper) toServiceKeyPoolAlgorithm(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) *cryptoutilBusinessLogicModel.KeyPoolAlgorithm {
-	serviceKeyPoolAlgorithm := cryptoutilBusinessLogicModel.KeyPoolAlgorithm(*ormKeyPoolAlgorithm)
-	return &serviceKeyPoolAlgorithm
+func (m *serviceOrmMapper) toServiceElasticKeyAlgorithm(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm {
+	serviceElasticKeyAlgorithm := cryptoutilBusinessLogicModel.ElasticKeyAlgorithm(*ormElasticKeyAlgorithm)
+	return &serviceElasticKeyAlgorithm
 }
 
-func (m *serviceOrmMapper) toServiceKeyPoolProvider(ormKeyPoolProvider *cryptoutilOrmRepository.KeyPoolProvider) *cryptoutilBusinessLogicModel.KeyPoolProvider {
-	serviceKeyPoolProvider := cryptoutilBusinessLogicModel.KeyPoolProvider(*ormKeyPoolProvider)
-	return &serviceKeyPoolProvider
+func (m *serviceOrmMapper) toServiceElasticKeyProvider(ormElasticKeyProvider *cryptoutilOrmRepository.ElasticKeyProvider) *cryptoutilBusinessLogicModel.ElasticKeyProvider {
+	serviceElasticKeyProvider := cryptoutilBusinessLogicModel.ElasticKeyProvider(*ormElasticKeyProvider)
+	return &serviceElasticKeyProvider
 }
 
-func (m *serviceOrmMapper) toServiceKeyPoolStatus(ormKeyPoolStatus *cryptoutilOrmRepository.KeyPoolStatus) *cryptoutilBusinessLogicModel.KeyPoolStatus {
-	serviceKeyPoolStatus := cryptoutilBusinessLogicModel.KeyPoolStatus(*ormKeyPoolStatus)
-	return &serviceKeyPoolStatus
+func (m *serviceOrmMapper) toServiceElasticKeyStatus(ormElasticKeyStatus *cryptoutilOrmRepository.ElasticKeyStatus) *cryptoutilBusinessLogicModel.ElasticKeyStatus {
+	serviceElasticKeyStatus := cryptoutilBusinessLogicModel.ElasticKeyStatus(*ormElasticKeyStatus)
+	return &serviceElasticKeyStatus
 }
 
 func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, repositoryKeyMaterials []*keyExportableMaterial) ([]cryptoutilBusinessLogicModel.Key, error) {
@@ -233,7 +233,7 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, 
 
 func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, repositoryKeyMaterial *keyExportableMaterial) (*cryptoutilBusinessLogicModel.Key, error) {
 	return &cryptoutilBusinessLogicModel.Key{
-		Pool:           cryptoutilBusinessLogicModel.KeyPoolId(ormKey.KeyPoolID),
+		Pool:           cryptoutilBusinessLogicModel.ElasticKeyId(ormKey.ElasticKeyID),
 		Id:             ormKey.KeyID,
 		GenerateDate:   (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
 		ImportDate:     (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyImportDate),
@@ -244,26 +244,26 @@ func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, rep
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilBusinessLogicModel.KeyPoolsQueryParams) (*cryptoutilOrmRepository.GetKeyPoolsFilters, error) {
+func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
 	var errs []error
-	keyPoolIDs, err := m.toOptionalOrmUUIDs(params.Id)
+	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.Id)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("invalid Key Pool ID: %w", err))
+		errs = append(errs, fmt.Errorf("invalid Elastic Key ID: %w", err))
 	}
 	names, err := m.toOptionalOrmStrings(params.Name)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("invalid Key Pool Name: %w", err))
+		errs = append(errs, fmt.Errorf("invalid Elastic Key Name: %w", err))
 	}
 	algorithms, err := m.toOrmAlgorithms(params.Algorithm)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("invalid Key Pool Algorithm: %w", err))
+		errs = append(errs, fmt.Errorf("invalid Elastic Key Algorithm: %w", err))
 	}
-	sorts, err := m.toOrmKeyPoolSorts(params.Sort)
+	sorts, err := m.toOrmElasticKeySorts(params.Sort)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("invalid Key Pool Sort: %w", err))
+		errs = append(errs, fmt.Errorf("invalid Elastic Key Sort: %w", err))
 	}
 	pageNumber, err := m.toOrmPageNumber(params.Page)
 	if err != nil {
@@ -274,11 +274,11 @@ func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilBusines
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("invalid Get Key Pools parameters: %w", errors.Join(errs...))
+		return nil, fmt.Errorf("invalid Get Elastic Keys parameters: %w", errors.Join(errs...))
 	}
 
-	return &cryptoutilOrmRepository.GetKeyPoolsFilters{
-		ID:                keyPoolIDs,
+	return &cryptoutilOrmRepository.GetElasticKeysFilters{
+		ID:                elasticKeyIDs,
 		Name:              names,
 		Algorithm:         algorithms,
 		VersioningAllowed: params.VersioningAllowed,
@@ -290,7 +290,7 @@ func (m *serviceOrmMapper) toOrmGetKeyPoolsQueryParams(params *cryptoutilBusines
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetKeyPoolKeysQueryParams(params *cryptoutilBusinessLogicModel.KeyPoolKeysQueryParams) (*cryptoutilOrmRepository.GetKeyPoolKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetElasticKeyKeysQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeyKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -316,9 +316,9 @@ func (m *serviceOrmMapper) toOrmGetKeyPoolKeysQueryParams(params *cryptoutilBusi
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
 	if len(errs) > 0 {
-		return nil, fmt.Errorf("invalid Get Key Pool Keys parameters: %w", errors.Join(errs...))
+		return nil, fmt.Errorf("invalid Get Elastic Key Keys parameters: %w", errors.Join(errs...))
 	}
-	return &cryptoutilOrmRepository.GetKeyPoolKeysFilters{
+	return &cryptoutilOrmRepository.GetElasticKeyKeysFilters{
 		ID:                  keyIDs,
 		MinimumGenerateDate: minGenerateDate,
 		MaximumGenerateDate: maxGenerateDate,
@@ -333,9 +333,9 @@ func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLog
 		return nil, nil
 	}
 	var errs []error
-	keyPoolIDs, err := m.toOptionalOrmUUIDs(params.Pool)
+	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.Pool)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("invalid KeyPoolID: %w", err))
+		errs = append(errs, fmt.Errorf("invalid ElasticKeyID: %w", err))
 	}
 	keyIDs, err := m.toOptionalOrmUUIDs(params.Id)
 	if err != nil {
@@ -362,7 +362,7 @@ func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLog
 	}
 
 	return &cryptoutilOrmRepository.GetKeysFilters{
-		Pool:                keyPoolIDs,
+		Pool:                elasticKeyIDs,
 		ID:                  keyIDs,
 		MinimumGenerateDate: minGenerateDate,
 		MaximumGenerateDate: maxGenerateDate,
@@ -417,15 +417,15 @@ func (*serviceOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) 
 	return minDate, maxDate, errors.Join(errs...)
 }
 
-func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilBusinessLogicModel.KeyPoolAlgorithm) ([]string, error) {
-	newVar := toStrings(algorithms, func(algorithm cryptoutilBusinessLogicModel.KeyPoolAlgorithm) string {
+func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) ([]string, error) {
+	newVar := toStrings(algorithms, func(algorithm cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) string {
 		return string(algorithm)
 	})
 	return newVar, nil
 }
 
-func (m *serviceOrmMapper) toOrmKeyPoolSorts(keyPoolSorts *[]cryptoutilBusinessLogicModel.KeyPoolSort) ([]string, error) {
-	newVar := toStrings(keyPoolSorts, func(keyPoolSort cryptoutilBusinessLogicModel.KeyPoolSort) string { return string(keyPoolSort) })
+func (m *serviceOrmMapper) toOrmElasticKeySorts(elasticKeySorts *[]cryptoutilBusinessLogicModel.ElasticKeySort) ([]string, error) {
+	newVar := toStrings(elasticKeySorts, func(elasticKeySort cryptoutilBusinessLogicModel.ElasticKeySort) string { return string(elasticKeySort) })
 	return newVar, nil
 }
 
@@ -463,26 +463,26 @@ func toStrings[T any](items *[]T, toString func(T) string) []string {
 	return converted
 }
 
-func (m *serviceOrmMapper) isJwe(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) bool {
-	_, ok := ormKeyPoolAlgorithmToJoseEncAndAlg[*ormKeyPoolAlgorithm]
+func (m *serviceOrmMapper) isJwe(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) bool {
+	_, ok := ormElasticKeyAlgorithmToJoseEncAndAlg[*ormElasticKeyAlgorithm]
 	return ok
 }
 
-func (m *serviceOrmMapper) toJweEncAndAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
-	if encAndAlg, ok := ormKeyPoolAlgorithmToJoseEncAndAlg[*ormKeyPoolAlgorithm]; ok {
+func (m *serviceOrmMapper) toJweEncAndAlg(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+	if encAndAlg, ok := ormElasticKeyAlgorithmToJoseEncAndAlg[*ormElasticKeyAlgorithm]; ok {
 		return encAndAlg.enc, encAndAlg.alg, nil
 	}
-	return nil, nil, fmt.Errorf("unsupported JWE KeyPoolAlgorithm '%s'", *ormKeyPoolAlgorithm)
+	return nil, nil, fmt.Errorf("unsupported JWE ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
 }
 
-func (m *serviceOrmMapper) isJws(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) bool {
-	_, ok := ormKeyPoolAlgorithmToJoseAlg[*ormKeyPoolAlgorithm]
+func (m *serviceOrmMapper) isJws(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) bool {
+	_, ok := ormElasticKeyAlgorithmToJoseAlg[*ormElasticKeyAlgorithm]
 	return ok
 }
 
-func (m *serviceOrmMapper) toJwsAlg(ormKeyPoolAlgorithm *cryptoutilOrmRepository.KeyPoolAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
-	if alg, ok := ormKeyPoolAlgorithmToJoseAlg[*ormKeyPoolAlgorithm]; ok {
+func (m *serviceOrmMapper) toJwsAlg(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
+	if alg, ok := ormElasticKeyAlgorithmToJoseAlg[*ormElasticKeyAlgorithm]; ok {
 		return alg, nil
 	}
-	return nil, fmt.Errorf("unsupported JWS KeyPoolAlgorithm '%s'", *ormKeyPoolAlgorithm)
+	return nil, fmt.Errorf("unsupported JWS ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
 }
