@@ -15,7 +15,7 @@ paths:
       description: Create a new Elastic Key. Depending on the provider, an Elastic Key may contain zero, one, or many Material Keys.
       requestBody:
         required: true
-        content:/post
+        content:
           application/json:
             schema:
               $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyCreate'
@@ -164,14 +164,14 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}:
+  /elastickey/{elasticKeyID}/materialkey/{material_key_id}:
     parameters:
       - name: elasticKeyID
         in: path
         required: true
         schema:
           $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
-      - name: materialKeyID
+      - name: material_key_id
         in: path
         required: true
         schema:

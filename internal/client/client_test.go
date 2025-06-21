@@ -202,7 +202,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyId, keyGenerate)
 				logObjectAsJson(t, key)
 			})
 
@@ -212,20 +212,20 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 				str := "Hello World " + strconv.Itoa(i)
 				cleartext = &str
 				encryptRequest := RequireEncryptRequest(t, cleartext)
-				ciphertext = RequireEncryptResponse(t, context, openapiClient, elasticKey.ElasticKeyID, nil, encryptRequest)
+				ciphertext = RequireEncryptResponse(t, context, openapiClient, elasticKey.ElasticKeyId, nil, encryptRequest)
 				logJwe(t, ciphertext)
 			})
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyId, keyGenerate)
 				logObjectAsJson(t, key)
 			})
 
 			var decryptedtext *string
 			t.Run(testCaseNamePrefix+"  Decrypt", func(t *testing.T) {
 				decryptRequest := RequireDecryptRequest(t, ciphertext)
-				decryptedtext = RequireDecryptResponse(t, context, openapiClient, elasticKey.ElasticKeyID, decryptRequest)
+				decryptedtext = RequireDecryptResponse(t, context, openapiClient, elasticKey.ElasticKeyId, decryptRequest)
 			})
 
 			require.NotNil(t, decryptedtext)
@@ -254,7 +254,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyId, keyGenerate)
 				logObjectAsJson(t, key)
 			})
 
@@ -264,20 +264,20 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				str := "Hello World " + strconv.Itoa(i)
 				cleartext = &str
 				signRequest := RequireSignRequest(t, cleartext)
-				signedtext = RequireSignResponse(t, context, openapiClient, elasticKey.ElasticKeyID, nil, signRequest)
+				signedtext = RequireSignResponse(t, context, openapiClient, elasticKey.ElasticKeyId, nil, signRequest)
 				logJws(t, signedtext)
 			})
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
-				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyId, keyGenerate)
 				logObjectAsJson(t, key)
 			})
 
 			var verifiedtest *string
 			t.Run(testCaseNamePrefix+"  Verify", func(t *testing.T) {
 				verifyRequest := RequireVerifyRequest(t, signedtext)
-				verifiedtest = RequireVerifyResponse(t, context, openapiClient, elasticKey.ElasticKeyID, verifyRequest)
+				verifiedtest = RequireVerifyResponse(t, context, openapiClient, elasticKey.ElasticKeyId, verifyRequest)
 			})
 
 			require.NotNil(t, *verifiedtest)

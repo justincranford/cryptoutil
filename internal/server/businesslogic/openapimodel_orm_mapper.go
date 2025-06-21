@@ -190,7 +190,7 @@ func (m *serviceOrmMapper) toServiceElasticKeys(ormElasticKeys []cryptoutilOrmRe
 
 func (s *serviceOrmMapper) toServiceElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilBusinessLogicModel.ElasticKey {
 	return &cryptoutilBusinessLogicModel.ElasticKey{
-		ElasticKeyID:      (*cryptoutilBusinessLogicModel.ElasticKeyId)(&ormElasticKey.ElasticKeyID),
+		ElasticKeyId:      (*cryptoutilBusinessLogicModel.ElasticKeyId)(&ormElasticKey.ElasticKeyID),
 		Name:              &ormElasticKey.ElasticKeyName,
 		Description:       &ormElasticKey.ElasticKeyDescription,
 		Algorithm:         s.toServiceElasticKeyAlgorithm(&ormElasticKey.ElasticKeyAlgorithm),
@@ -233,8 +233,8 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Mater
 
 func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *keyExportableMaterial) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
 	return &cryptoutilBusinessLogicModel.MaterialKey{
-		ElasticKeyID:   cryptoutilBusinessLogicModel.ElasticKeyId(ormKey.ElasticKeyID),
-		MaterialKeyID:  ormKey.MaterialKeyID,
+		ElasticKeyId:   cryptoutilBusinessLogicModel.ElasticKeyId(ormKey.ElasticKeyID),
+		MaterialKeyId:  ormKey.MaterialKeyID,
 		GenerateDate:   (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyGenerateDate),
 		ImportDate:     (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyImportDate),
 		ExpirationDate: (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyExpirationDate),
@@ -249,7 +249,7 @@ func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusi
 		return nil, nil
 	}
 	var errs []error
-	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyID)
+	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyId)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Elastic Key ID: %w", err))
 	}
@@ -295,7 +295,7 @@ func (m *serviceOrmMapper) toOrmGetElasticKeyMaterialKeysQueryParams(params *cry
 		return nil, nil
 	}
 	var errs []error
-	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyID)
+	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyId)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid MaterialKeyID: %w", err))
 	}
@@ -333,11 +333,11 @@ func (m *serviceOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilBus
 		return nil, nil
 	}
 	var errs []error
-	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyID)
+	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyId)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid ElasticKeyID: %w", err))
 	}
-	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyID)
+	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyId)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid MaterialKeyID: %w", err))
 	}

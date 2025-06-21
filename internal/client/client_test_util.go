@@ -157,7 +157,7 @@ func ValidateCreateElasticKeyVsElasticKey(elasticKeyCreate *cryptoutilOpenapiMod
 		return fmt.Errorf("elastic Key create is nil")
 	} else if elasticKey == nil {
 		return fmt.Errorf("elastic Key is nil")
-	} else if elasticKey.ElasticKeyID == nil {
+	} else if elasticKey.ElasticKeyId == nil {
 		return fmt.Errorf("elastic Key ID is nil")
 	} else if elasticKeyCreate.Name != *elasticKey.Name {
 		return fmt.Errorf("name mismatch: expected %s, got %s", elasticKeyCreate.Name, *elasticKey.Name)

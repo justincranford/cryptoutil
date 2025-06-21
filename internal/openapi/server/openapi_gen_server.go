@@ -27,8 +27,8 @@ type PostElastickeyElasticKeyIDEncryptParams struct {
 
 // GetElastickeyElasticKeyIDMaterialkeysParams defines parameters for GetElastickeyElasticKeyIDMaterialkeys.
 type GetElastickeyElasticKeyIDMaterialkeysParams struct {
-	// MaterialKeyID Filter by the Material Key ID.
-	MaterialKeyID *externalRef0.MaterialKeyQueryParamMaterialKeyIds `form:"materialKeyID,omitempty" json:"materialKeyID,omitempty"`
+	// MaterialKeyId Filter by the Material Key ID.
+	MaterialKeyId *externalRef0.MaterialKeyQueryParamMaterialKeyIds `form:"material_key_id,omitempty" json:"material_key_id,omitempty"`
 
 	// MinGenerateDate Filter by the Material Key minimum generate date (inclusive).
 	MinGenerateDate *externalRef0.MaterialKeyQueryParamMinimumGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
@@ -36,7 +36,7 @@ type GetElastickeyElasticKeyIDMaterialkeysParams struct {
 	// MaxGenerateDate Filter by the Material Key maximum generate date (inclusive).
 	MaxGenerateDate *externalRef0.MaterialKeyQueryParamMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
 
-	// Sort Specify sorting as `fieldName:direction` (e.g., `materialKeyID:asc`). Repeat parameter for multiple sort fields.
+	// Sort Specify sorting as `fieldName:direction` (e.g., `material_key_id:asc`). Repeat parameter for multiple sort fields.
 	Sort *externalRef0.MaterialKeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
 	Page *externalRef0.MaterialKeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
 	Size *externalRef0.MaterialKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
@@ -49,8 +49,8 @@ type PostElastickeyElasticKeyIDSignParams struct {
 
 // GetElastickeysParams defines parameters for GetElastickeys.
 type GetElastickeysParams struct {
-	// ElasticKeyID Filter by the Elastic Key ID (UUID).
-	ElasticKeyID *externalRef0.ElasticKeyQueryParamElasticKeyIds `form:"elasticKeyID,omitempty" json:"elasticKeyID,omitempty"`
+	// ElasticKeyId Filter by the Elastic Key ID (UUID).
+	ElasticKeyId *externalRef0.ElasticKeyQueryParamElasticKeyIds `form:"elastic_key_id,omitempty" json:"elastic_key_id,omitempty"`
 
 	// Name Filter by the Elastic Key name.
 	Name *externalRef0.ElasticKeyQueryParamNames `form:"name,omitempty" json:"name,omitempty"`
@@ -81,11 +81,11 @@ type GetElastickeysParams struct {
 
 // GetMaterialkeysParams defines parameters for GetMaterialkeys.
 type GetMaterialkeysParams struct {
-	// ElasticKeyID Filter by the Elastic Key ID (uuid).
-	ElasticKeyID *externalRef0.MaterialKeyQueryParamElasticKeyIds `form:"elasticKeyID,omitempty" json:"elasticKeyID,omitempty"`
+	// ElasticKeyId Filter by the Elastic Key ID (uuid).
+	ElasticKeyId *externalRef0.MaterialKeyQueryParamElasticKeyIds `form:"elastic_key_id,omitempty" json:"elastic_key_id,omitempty"`
 
-	// MaterialKeyID Filter by the Material Key ID.
-	MaterialKeyID *externalRef0.MaterialKeyQueryParamMaterialKeyIds `form:"materialKeyID,omitempty" json:"materialKeyID,omitempty"`
+	// MaterialKeyId Filter by the Material Key ID.
+	MaterialKeyId *externalRef0.MaterialKeyQueryParamMaterialKeyIds `form:"material_key_id,omitempty" json:"material_key_id,omitempty"`
 
 	// MinGenerateDate Filter by the Material Key minimum generate date (inclusive).
 	MinGenerateDate *externalRef0.MaterialKeyQueryParamMinimumGenerateDate `form:"min_generate_date,omitempty" json:"min_generate_date,omitempty"`
@@ -93,7 +93,7 @@ type GetMaterialkeysParams struct {
 	// MaxGenerateDate Filter by the Material Key maximum generate date (inclusive).
 	MaxGenerateDate *externalRef0.MaterialKeyQueryParamMaximumGenerateDate `form:"max_generate_date,omitempty" json:"max_generate_date,omitempty"`
 
-	// Sort Specify sorting as `fieldName:direction` (e.g., `materialKeyID:asc`). Repeat parameter for multiple sort fields.
+	// Sort Specify sorting as `fieldName:direction` (e.g., `material_key_id:asc`). Repeat parameter for multiple sort fields.
 	Sort *externalRef0.MaterialKeyQueryParamSorts      `form:"sort,omitempty" json:"sort,omitempty"`
 	Page *externalRef0.MaterialKeyQueryParamPageNumber `form:"page,omitempty" json:"page,omitempty"`
 	Size *externalRef0.MaterialKeyQueryParamPageSize   `form:"size,omitempty" json:"size,omitempty"`
@@ -135,8 +135,8 @@ type ServerInterface interface {
 	// (POST /elastickey/{elasticKeyID}/materialkey)
 	PostElastickeyElasticKeyIDMaterialkey(c *fiber.Ctx, elasticKeyID externalRef0.ElasticKeyId) error
 	// Get Material Key in Elastic Key.
-	// (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
-	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c *fiber.Ctx, elasticKeyID externalRef0.ElasticKeyId, materialKeyID externalRef0.MaterialKeyId) error
+	// (GET /elastickey/{elasticKeyID}/materialkey/{material_key_id})
+	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId(c *fiber.Ctx, elasticKeyID externalRef0.ElasticKeyId, materialKeyId externalRef0.MaterialKeyId) error
 	// Find Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
 	// (GET /elastickey/{elasticKeyID}/materialkeys)
 	GetElastickeyElasticKeyIDMaterialkeys(c *fiber.Ctx, elasticKeyID externalRef0.ElasticKeyId, params GetElastickeyElasticKeyIDMaterialkeysParams) error
@@ -247,8 +247,8 @@ func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDMaterialkey(c *fibe
 	return siw.Handler.PostElastickeyElasticKeyIDMaterialkey(c, elasticKeyID)
 }
 
-// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID operation middleware
-func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c *fiber.Ctx) error {
+// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId operation middleware
+func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId(c *fiber.Ctx) error {
 
 	var err error
 
@@ -260,15 +260,15 @@ func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeyMaterialK
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
 	}
 
-	// ------------- Path parameter "materialKeyID" -------------
-	var materialKeyID externalRef0.MaterialKeyId
+	// ------------- Path parameter "material_key_id" -------------
+	var materialKeyId externalRef0.MaterialKeyId
 
-	err = runtime.BindStyledParameterWithOptions("simple", "materialKeyID", c.Params("materialKeyID"), &materialKeyID, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "material_key_id", c.Params("material_key_id"), &materialKeyId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter material_key_id: %w", err).Error())
 	}
 
-	return siw.Handler.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c, elasticKeyID, materialKeyID)
+	return siw.Handler.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId(c, elasticKeyID, materialKeyId)
 }
 
 // GetElastickeyElasticKeyIDMaterialkeys operation middleware
@@ -293,11 +293,11 @@ func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeys(c *fibe
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "materialKeyID" -------------
+	// ------------- Optional query parameter "material_key_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "materialKeyID", query, &params.MaterialKeyID)
+	err = runtime.BindQueryParameter("form", true, false, "material_key_id", query, &params.MaterialKeyId)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter material_key_id: %w", err).Error())
 	}
 
 	// ------------- Optional query parameter "min_generate_date" -------------
@@ -400,11 +400,11 @@ func (siw *ServerInterfaceWrapper) GetElastickeys(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "elasticKeyID" -------------
+	// ------------- Optional query parameter "elastic_key_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "elasticKeyID", query, &params.ElasticKeyID)
+	err = runtime.BindQueryParameter("form", true, false, "elastic_key_id", query, &params.ElasticKeyId)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elastic_key_id: %w", err).Error())
 	}
 
 	// ------------- Optional query parameter "name" -------------
@@ -494,18 +494,18 @@ func (siw *ServerInterfaceWrapper) GetMaterialkeys(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for query string: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "elasticKeyID" -------------
+	// ------------- Optional query parameter "elastic_key_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "elasticKeyID", query, &params.ElasticKeyID)
+	err = runtime.BindQueryParameter("form", true, false, "elastic_key_id", query, &params.ElasticKeyId)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elasticKeyID: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter elastic_key_id: %w", err).Error())
 	}
 
-	// ------------- Optional query parameter "materialKeyID" -------------
+	// ------------- Optional query parameter "material_key_id" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "materialKeyID", query, &params.MaterialKeyID)
+	err = runtime.BindQueryParameter("form", true, false, "material_key_id", query, &params.MaterialKeyId)
 	if err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter materialKeyID: %w", err).Error())
+		return fiber.NewError(fiber.StatusBadRequest, fmt.Errorf("Invalid format for parameter material_key_id: %w", err).Error())
 	}
 
 	// ------------- Optional query parameter "min_generate_date" -------------
@@ -577,7 +577,7 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 
 	router.Post(options.BaseURL+"/elastickey/:elasticKeyID/materialkey", wrapper.PostElastickeyElasticKeyIDMaterialkey)
 
-	router.Get(options.BaseURL+"/elastickey/:elasticKeyID/materialkey/:materialKeyID", wrapper.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID)
+	router.Get(options.BaseURL+"/elastickey/:elasticKeyID/materialkey/:material_key_id", wrapper.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId)
 
 	router.Get(options.BaseURL+"/elastickey/:elasticKeyID/materialkeys", wrapper.GetElastickeyElasticKeyIDMaterialkeys)
 
@@ -1137,109 +1137,109 @@ func (response PostElastickeyElasticKeyIDMaterialkey504JSONResponse) VisitPostEl
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject struct {
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdRequestObject struct {
 	ElasticKeyID  externalRef0.ElasticKeyId  `json:"elasticKeyID"`
-	MaterialKeyID externalRef0.MaterialKeyId `json:"materialKeyID"`
+	MaterialKeyId externalRef0.MaterialKeyId `json:"material_key_id"`
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject interface {
-	VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponseObject interface {
+	VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse externalRef0.MaterialKey
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId200JSONResponse externalRef0.MaterialKey
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId200JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(200)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse struct{ externalRef0.HTTP400BadRequest }
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId400JSONResponse struct{ externalRef0.HTTP400BadRequest }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId400JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(400)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID401JSONResponse struct {
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId401JSONResponse struct {
 	externalRef0.HTTP401Unauthorized
 }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID401JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId401JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(401)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID403JSONResponse struct{ externalRef0.HTTP403Forbidden }
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId403JSONResponse struct{ externalRef0.HTTP403Forbidden }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID403JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId403JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(403)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse struct{ externalRef0.HTTP404NotFound }
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId404JSONResponse struct{ externalRef0.HTTP404NotFound }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId404JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(404)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID429JSONResponse struct {
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId429JSONResponse struct {
 	externalRef0.HTTP429TooManyRequests
 }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID429JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId429JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(429)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse struct {
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId500JSONResponse struct {
 	externalRef0.HTTP500InternalServerError
 }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId500JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(500)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID502JSONResponse struct{ externalRef0.HTTP502BadGateway }
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId502JSONResponse struct{ externalRef0.HTTP502BadGateway }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID502JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId502JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(502)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID503JSONResponse struct {
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId503JSONResponse struct {
 	externalRef0.HTTP503ServiceUnavailable
 }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID503JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId503JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(503)
 
 	return ctx.JSON(&response)
 }
 
-type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID504JSONResponse struct {
+type GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId504JSONResponse struct {
 	externalRef0.HTTP504GatewayTimeout
 }
 
-func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID504JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx *fiber.Ctx) error {
+func (response GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId504JSONResponse) VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx *fiber.Ctx) error {
 	ctx.Response().Header.Set("Content-Type", "application/json")
 	ctx.Status(504)
 
@@ -1808,8 +1808,8 @@ type StrictServerInterface interface {
 	// (POST /elastickey/{elasticKeyID}/materialkey)
 	PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request PostElastickeyElasticKeyIDMaterialkeyRequestObject) (PostElastickeyElasticKeyIDMaterialkeyResponseObject, error)
 	// Get Material Key in Elastic Key.
-	// (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
-	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error)
+	// (GET /elastickey/{elasticKeyID}/materialkey/{material_key_id})
+	GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId(ctx context.Context, request GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdRequestObject) (GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponseObject, error)
 	// Find Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
 	// (GET /elastickey/{elasticKeyID}/materialkeys)
 	GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, request GetElastickeyElasticKeyIDMaterialkeysRequestObject) (GetElastickeyElasticKeyIDMaterialkeysResponseObject, error)
@@ -1994,26 +1994,26 @@ func (sh *strictHandler) PostElastickeyElasticKeyIDMaterialkey(ctx *fiber.Ctx, e
 	return nil
 }
 
-// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID operation middleware
-func (sh *strictHandler) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx *fiber.Ctx, elasticKeyID externalRef0.ElasticKeyId, materialKeyID externalRef0.MaterialKeyId) error {
-	var request GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject
+// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId operation middleware
+func (sh *strictHandler) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId(ctx *fiber.Ctx, elasticKeyID externalRef0.ElasticKeyId, materialKeyId externalRef0.MaterialKeyId) error {
+	var request GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdRequestObject
 
 	request.ElasticKeyID = elasticKeyID
-	request.MaterialKeyID = materialKeyID
+	request.MaterialKeyId = materialKeyId
 
 	handler := func(ctx *fiber.Ctx, request interface{}) (interface{}, error) {
-		return sh.ssi.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx.UserContext(), request.(GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject))
+		return sh.ssi.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId(ctx.UserContext(), request.(GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID")
+		handler = middleware(handler, "GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId")
 	}
 
 	response, err := handler(ctx, request)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
-	} else if validResponse, ok := response.(GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject); ok {
-		if err := validResponse.VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(ctx); err != nil {
+	} else if validResponse, ok := response.(GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponseObject); ok {
+		if err := validResponse.VisitGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(ctx); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 	} else if response != nil {
@@ -2170,91 +2170,91 @@ func (sh *strictHandler) GetMaterialkeys(ctx *fiber.Ctx, params GetMaterialkeysP
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"FwAA//8ActGV56MAAA==",
+	"H4sIAAAAAAAC/+x9b3PbNtL4V8HwdzO2r7Isy1Z+jW7uhWMriZMm8WM58dy1eVyYXEm4kKAKgI7VjL/7",
+	"M/hDEqAgWX/oVL3qRWIRBBaLXWB3sbsAvwVhmoxTClTwoPstGGOGExDA1FM6BorH5IaPIbwpK970YswF",
+	"Cd/C5H8yYJML2egkHqaMiFGiWkbAQ0bGgqQ06AYvSSyAodsJCtlkLNIhw+MRCRHO2zSDRgD34ziNIOgK",
+	"lkEjILLhbxJ80AgoTiDoBkX9oBHwcAQJln0RAbrTvzEYBN3g/x2UqB7oavzg8aEUAwgeGoGYjFWHjOGJ",
+	"fOZiEsuCQcrU+2UoU5adR3OJI0aATGX0Fibo/Aztfvx4fra3IHlAt735ApMbEj0Fjc6j2olzP06ZOInj",
+	"9CtE84jzdQRiBAyBaoAIR1g3ksTxUkNVvDG1HGqsRwQX5YclB3yeLDlgkiw4YF3xCQbsorzsgN/jBJaa",
+	"9nI4C8549ecJ5rnEue6ZfoGH8D5LboEpRD2jGeMhrM02q5uHFTDsk99hFn5cvqsDP9XJ0tix9I5ERjPN",
+	"mkv2PBqbBgvOpbz6U8ynHPe651Q/ZcJDj/4YQjKYIJ4yQegQYY5+HRCIIzmvuxFhEMqav6JdaA6bDfSr",
+	"JEEX8/DXvSa6hDFggQpLAA1ShpIsFmQcgwKJFCy+IF1li6egqRx77fQUWGR8OXHFVZtFiaEqPwk5NOSa",
+	"CfIJGCcpJXS4hMa6KxotoLXKyk+guabRnyd13mEBjOC4Pusty0j032K9ealjFS5Anry2oc+ChElMq9op",
+	"4yD/BKS5J0mWvAIKDAs4wwKWok+i26OhAYAi+d8uoWGccXIHe7NWVILvb/JGN7LR2gvKGp8znKUX0ztC",
+	"16OJbr8CTQjdVJpsll04E8XNMAy96NVlBVUEzZ/DILIosphF9NAIGPBxSo2dMwvw66uri+NW6wWOLuG3",
+	"DLiQlcOUCqDqJx6PYxJiScKD/3BJ8W/WmHAcfxgE3Z9XG5Tsu8dYKg3mb9IyHwMTROMLqlz+uMfJWA3s",
+	"BY5QjmQxfC4YoUM5/gQ4l0vIaXM1AsR0GxSmWRwhmgp0CyijcpMh0jRCKUNfMUcJ4VxOIFmdMIjKqaBY",
+	"PtWfMfLs7o5brUZgJHr+pGWZeTJACBUwNEvUFKW3/4FQBA+fH2ShO8Xtgc9ZNZqVhx8pzsQoZeR3bcdt",
+	"JjMdLBfl5kkmRkCFGQIaYBKD4l/GgaEoBa7YO8J3gMbAFEdTytVSllomAq44i5VIWJyrhw5XDx2uHq7K",
+	"VYcCj7L16GXKbkkUAd1cnpYorshQnoUhQAQRus2E4hguK0DkYzMOQ+AciVRVZ8DTjIWwOGuPHNYeOaw9",
+	"WpW1JSEe5evx+1S8TDO6wUv1fSqQRnEFqQtRwRRXAA8kxMX5dOzw6djh0/GqfCpH9hif2s+v0vQdphMj",
+	"h/nmsusqTZHEFBWoLsq2f6WZXlQcqEAiTVEi4RhOckQowmhI7oAinKQZFSgdIEGSxZdb+7nNRvVUsFE+",
+	"rcbG6RE/ws5Oq3VOBTCK4z6wO2C9nIybydIcWaSxRbrpwkKWoozC/RhCuRoVeJSGYcakKkypEpxcAV6U",
+	"jx3Hzuk4dk5ndTvHP8xHedl+gaNXWMBXPNls4zVHchkxqhmDGIRA7qTpQhGhdzgmSq4q+x4NWJooLmZj",
+	"LhjgZGl2th12th12ttcxW/MhP8rEI8lzEsJHiu8wifFtDJvLTIMrspFdgamEI7UKqYgnKKMSjDRkRphG",
+	"8pe1dYky9UZAMk4ZZhOU3gGLU6yM3wRLxlBMF7d7Oo7d03Hsns7qdo+PLo9y/tjMkSuSQJpt8P7T4Ily",
+	"RFfgeES0/WOWM8JKfcaTOtfyscPZY4ezK1tK1bHLGoa887wLZ6BSQSzXQlVEcHh2/JHF+0DDVBr+b/of",
+	"3qNruEU9qprKbcHum+venrI1RoBAl8s9wkQAR7uYSprSfQ4hA4FCMh4Bszbve9JukTjhUEhiEhzLLZfc",
+	"FCZYNFEfAF2+PEX/v3P4bE73yh2UMrmJFJjEvIlOZ8GUC3vnNeAIWLOXo/sWJs3zT81ThZ6Ae9F0Nz9X",
+	"eLjTRFcjYIAwAzSQ82OaPmPMBEdyzBzkGDUh0E5zp4n6aQKmQoipNLIhGYsJimAMNCJ0mGv7HRwPdxSQ",
+	"HaDhDhopXLnt8UD7SI+gq6wqtW2+9XPrC0wO7nCcQbnRfnPdkxDswXfRB0VOHPvgXPckfzG12MsnSQKC",
+	"kVB2ILd+kRSB5r3qZYwnUgZKqhEuiS6ngR6yRAToHcTpuJgyipfQHDYRjof/xO3Os2GYfPm615BCtGym",
+	"XYb+RhFhe3Jg55/mkuWcEqGmhN7WfoJQpAztnn/a0+PQ2OXwm+hlytBJr7//6vQdKn/u988/ISKQlIaY",
+	"UI4wOmzv61lPUynti4anL06rNZ+ZmuefJMLltJuLuEV9vZoUjCY6N5kpX/HEovLCiHOcAKLKLS3ZrBHD",
+	"XDMxVurrXkg0p5bEXGyx6z0QeLgueXOiTUN2aL3/+t1JleDvTVP1aoT5qPkLDRrBGAtp1Abd4H9/Ptn/",
+	"N97/vbX//Gb/8w+//NJ0Cv5eLVigxt98SuFRWaw1zbQwNhXkOlPsOB+gSZqhMYOC4nqIyhK5l7v4gRSI",
+	"PLtNiFDOdzGCpEL+BmKQgGK9SFEEEpD8pUD9QzJMb0DkFFHdSDhKtYDqPhylHJyulFPPLMrXcI8jCEmC",
+	"44aRlvnf/Y+XPxW/352/6zUQiHCvuQzNyqiqSpt0LIQyTbHepESHKetCPrOAPTSq0eeaYs2VHLy6U+8a",
+	"1Zy3ulPd8phNXflkRY5RrRlFpbFXVwqJJynjiXIxKhbmIgvuxF5erqA69acX73JLvdoBZeW5qiRuKFML",
+	"DQjjSrXJt2bXYWv+AnZDWUvaUxKmNMrbpLlNI20UX0MlRme9VIZiRNhOYyqvRP4j3BgjsbF/Uoq0odX0",
+	"WCmEy0qDLFbj5wmO46L2Yzi8/fv1TgNhxDCN0gSdGkpYRrDEZ/e093bP9BOVqBVYlUTyjMRnwJ323jbV",
+	"+68MjysDiDEbggFshP2AxLKT2zi95UaYy5ERiqI0uxUNqZGJtDYGSsNI1bJz0u48e3X67kD+fXu9o0CX",
+	"lPmHaaKDQwOcxUKFd6ncLv0cuI2DRnBy+LxdKWj/6BbkTQ6ft90mZYFpUhQUTdo/VpoUBXmTvMBC7NXp",
+	"uyncyrISvaLMwnCqrVNW4jndVr2bwna6rVVm2kaEWa3yJ13fPJmal/2T/Q8nvYv9zmHbajJVrNtWi6tA",
+	"jn489gHJiytATHEVSLvzzAckL64AMcUVIB4AnsZuw8ObjtssLygamQLTpHd69nq/1/9hauZ6XmgQ0y+q",
+	"oKoz2vOiAqo6w8sXlZnueVEFVZn55sU0jOnGppWy2/udw7a7nHXx0Y/H7qLWxe3OM3dpW0BsclhAbGJY",
+	"QGxS2EAsQthALDLYQCwiuMOxF6M7IntJuoOyF6Y7rhnQKsLBHd0saK6gcMc4C5orNEpopego4ZQCpIRQ",
+	"ipGyrUeYlEA8IqWE5hEsHrClePGALYWMB2wpajxgS4HjAVuKHQ/YUvhMg50JciY4H6hSKDmAStHkgCkF",
+	"VAnEK6ZKYF5hVQL1iiwPcP9K9YovD3D/yvWKMh9w70r2irUp4LOgzgIXNILLvmb7ZV/Pqsu+nrQXpvzC",
+	"lF+Y8p4p75nynil/bcpfm/LXef3orH8SfG7Y4cWqkbTC7vqUgUkS/S/YY293w99hN/z99q55PqDcEJiT",
+	"aPb0+bzS7vbMnYBVR1zxpPcr1Nm5Bg0nuES4s92asdW6wBOWxjE6wwLfYi5HkeD7n4AOxSjotjsdFSfK",
+	"nw9XWsWPnPI8p5HK4+KIDKbP12Rj2Zibk5/OIAc45lBgdJumMWC6GErnHjw+UvJbBujjx/OzGeTVYZyg",
+	"G2QZiVaTaI8cAF2MFuZQ6O6Lf314u1cXSd6b1V1JWWMEaBTrc5mPzrr5s+nZUQ2T6cISGy6q+Zs8ImiT",
+	"LsEUDyEBqsJyd0SHxPP9fJ5g4iqwonQlPFU6dvdb0YfrYu2e9E+Dqt+1e9ZTpeo83kn50xTnAtO8Kh7N",
+	"60Inmvfls6kwLRpNTc8L08RVKaZ6pdBUddVbPr57X1XtsTRVzIN69Xk1ShcO0ErWgSr3zAab9aG0MGRX",
+	"xbh09rAksA6O3uhyqyA/ShI0guJUSdEKh4LcKWVAOL51IUUQg4Cbr5jfzOrMqjKzf6tO0Zvn3XwEpjHn",
+	"AjMBkakkxR2hhI/KEmd1WIRbgWcLnCxcTBSWc9eRRPr8xRJiUKtE5eC8n52QcPlTEfIKUxOdtIPMJjoa",
+	"YYFLl3MlaIhphFSWBSNigsIRhF8IHaIoY+oPVMLLUgLwMQ6hkXepJP7M+OFSsT8z7Jl5GKcxYKaDeiJV",
+	"iQN5ILgIA1JwjQoVv2vokB2YwJ/ypmOuAX2fAB19JKi5zTDZZphsM0y2GSbbDJOnzzAp8ym7M9MpXeks",
+	"W5irFVCeO/no3sFKsqzum4U+EaZz3BcGyGcYljZ2cj4Edmbl8+cLHO6zfQfFpRBgsvdz/JbxIFjnQKeJ",
+	"HOUJPDWcMi2SgZ4wbYTWh26hB4wHjjC1rvQh8BrAFxD16W9rQ1BTD+7p8mKTUhN07Y3IYVevWqjrYoVx",
+	"dhuTsAZwFxqQWkB3aVgrKy8LiMVBfnuVTt3PUSXWiqv1zF6bPuN7zMgdFiDVh9GM0ihx7kXYJQNULiLj",
+	"KTP7qn/KndDeMtLau3qmkCte/bEIuutveg/Z/4B+fNY6RB+vTlVKPRc4GUtLwMHPLFpz9rfc47Zb7c5+",
+	"62j/8PjqsN1ttbqt1r9tN6CcevsS7Iro54tbhTSiiGgr9cIS3q4/b6mZNf+ajQ2nzEL+WQfVtfyzfpH4",
+	"ZyPaRSFnvYJEvfUvTnOa5jZeeSVWxOefjXTzvbXTntp57tvpG4uqV4uc+OrlzasX1TjPpqlbtrTv1L10",
+	"puJFx8Nix6Q8guryFIFaDkPsk50eE3d+1/llMjM7drpqd5yDS1bH7WU67pMhXd69Z+8LIVJxDbR7cnK2",
+	"t4Dfb7aT7w4YGUy+h4NPjnpx7x4nQwpRE51qH86b/of3BUFEipTLFxBGb66vlOtiwADkEqy87LvOwbxW",
+	"4RR0PYEznX65V9BxFS7tCdQUWMENKBtikTFAu2+u+4UXMCyJtrB3rzMb6orOvQvjgCrAOR48MWKwrAtv",
+	"Ta9bX0K4yD0qc4GUFJzt3jEzsJhghgXMnZO7b66vlFesIMPcjnlea0kHyQ/ruT8+qdW+ylnH7RTcTsEl",
+	"pqDcsxI6SGedjECXvf4VOrk4V30LInSe1sV5GQMOukGr2WoeWvM56AZHzVbzSKM7Uh6lA2P5fDHuptSr",
+	"XnKNQOGre8TirBoWyGPZjUp2AUrwJHd1ot+BpQ2UUmjo0+3UNWTVbVxy56TMR7mBCC5SLnolpnpHD1y8",
+	"SKPlroRYz61lstgeXJ+C3PdWb2Nrt1rfEa/Ac6DbJr5W6ZG+fonzQRbHk6acGccaTV/vxXAOFr9ZTkE8",
+	"XBfiYfXirOPW0bowj5wbm45bx+sCLK91kvDaz9eEN3390EMj6KzLnRnX4CjQ7XVB27eyKIhH60L0XRGi",
+	"IB+vC7l6BYW63SBLEswm8+SbqmeJyINvULq4zx4kVkPwCMxXIDzZVa5IewWWRLM852fBRosSBoIRuNsK",
+	"k60w2QoTnzDxrf2HhvNFnp/N9bvSCpu6OLyUAbZ9UeNXQKLg4eHzXLl2YOKMsy1CE+zgJlVG7WDkVoCB",
+	"yBjlqAhUWrH5R4w6WwQa8MHGkW2e4SkHeaCGu748rlyrs5LB+ST4GPeLR0mc+Vi+1QpbrbDVCuXqsOVl",
+	"pi6jxoir+81JOH15gRNQmb7hABGOSARUkAHRzheTN5cnxqAvJDKJeY+ZsgcmV2O2yDdxYm47rYyb3FwM",
+	"gzjE+gpK54Nwiwp908HGCf2G/7J84+Jf/ysnbsLyd1QylZzhP1zJVFN9PUqmzEGU60FOdeMh3WqarabZ",
+	"appJKadniOlNUTd5yDz3O2+ame/XgXkmjnEVVQn2mMtntu57Z5Hj+zq3fUlMG+LftlNhPbrAl26ydUtt",
+	"1cJWLfjdUkuJrsXF98G3SvrTfLd4tePVfOSWvHRzDTdPTJ3oQLf6ihNKB6jVQIcz4p5eRmwF2FaAbQXY",
+	"AsLjYVMdBy4G00ml9SJRObTxmKvfkuR8puB+SWg0LaqcDUQ/P8ddXJg5UN9/JHTYyD/dp6+PHOOhOeS9",
+	"vLDn094hH43KKgfrfAZVcrBW8J7PZtbeh+dzpXX3oT/UWDdU+8uWTwBaf5Py85oGQl3feJz+vuPWctha",
+	"DlvL4SkshyfRXn+2kD4nQzo7uNMnQ2py+esK50iQf7VYjn005TsGcuyzIX94FMc5puHRam+u+8XB/a2K",
+	"2qqorYoy8teO2DxZsKa/SrBGn3KbrT1OwhDGgusjY0UHdj6Yumij3TrObwArTk9IPNXHDpdRLfoczl83",
+	"O8w9h7SQxD/26/wKD9D7tPhIBuGGexBt9xJbQb0V1EpQ66XnyLk/VlY/4rSzuuG1O+nq88aVkrR02tjS",
+	"dS1vkw/4e5xA7UDze2trB1xcbV47ZM+N2PV2UL17vN4pcv+EwPWts/XPkrW9p96pV4vzdBbkDfCd2ieU",
+	"1nWdOkJxa9tsbZutbTOpy2BQ5smKQcWaDJTvFy+szUTZRiO30chtNHKrZbda9i8YjVxNzUqgisxarWUs",
+	"DrrBQfDw+eH/AgAA//+n+mR+DaQAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

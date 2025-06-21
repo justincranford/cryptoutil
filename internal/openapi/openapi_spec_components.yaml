@@ -9,7 +9,7 @@ info:
 components:
   parameters:
     ElasticKeyQueryParamElasticKeyIds:
-      name: elasticKeyID
+      name: elastic_key_id
       in: query
       description: Filter by the Elastic Key ID (UUID).
       required: false
@@ -107,7 +107,7 @@ components:
         $ref: '#/components/schemas/PageSize'
 
     MaterialKeyQueryParamElasticKeyIds:
-      name: elasticKeyID
+      name: elastic_key_id
       in: query
       description: Filter by the Elastic Key ID (uuid).
       required: false
@@ -118,7 +118,7 @@ components:
       style: form
       explode: true
     MaterialKeyQueryParamMaterialKeyIds:
-      name: materialKeyID
+      name: material_key_id
       in: query
       description: Filter by the Material Key ID.
       required: false
@@ -187,7 +187,7 @@ components:
     MaterialKeyQueryParamSorts:
       name: sort
       in: query
-      description: Specify sorting as `fieldName:direction` (e.g., `materialKeyID:asc`). Repeat parameter for multiple sort fields.
+      description: Specify sorting as `fieldName:direction` (e.g., `material_key_id:asc`). Repeat parameter for multiple sort fields.
       required: false
       schema:
         type: array
@@ -241,7 +241,7 @@ components:
     ElasticKey:
       type: object
       properties:
-        elasticKeyID:
+        elastic_key_id:
           $ref: '#/components/schemas/ElasticKeyId'
         name:
           $ref: '#/components/schemas/ElasticKeyName'
@@ -275,20 +275,20 @@ components:
 
     MaterialKeyUpdate:
       type: object
-      required: [ elasticKeyID, materialKeyID ]
+      required: [ elastic_key_id, material_key_id ]
       properties:
-        elasticKeyID:
+        elastic_key_id:
           $ref: '#/components/schemas/ElasticKeyId'
-        materialKeyID:
+        material_key_id:
           $ref: '#/components/schemas/MaterialKeyId'
 
     MaterialKey:
       type: object
-      required: [ elasticKeyID, materialKeyID ]
+      required: [ elastic_key_id, material_key_id ]
       properties:
-        elasticKeyID:
+        elastic_key_id:
           $ref: '#/components/schemas/ElasticKeyId'
-        materialKeyID:
+        material_key_id:
           $ref: '#/components/schemas/MaterialKeyId'
         generate_date:
           $ref: '#/components/schemas/MaterialKeyGenerateDate'
@@ -477,8 +477,8 @@ components:
     ElasticKeySort:
       type: string
       enum:
-        - "elasticKeyID:ASC"
-        - "elasticKeyID:DESC"
+        - "elastic_key_id:ASC"
+        - "elastic_key_id:DESC"
         - "name:ASC"
         - "name:DESC"
         - "provider:ASC"
@@ -530,12 +530,12 @@ components:
     MaterialKeySort:
       type: string
       enum:
-        - "elasticKeyID"
-        - "elasticKeyID:ASC"
-        - "elasticKeyID:DESC"
-        - "materialKeyID"
-        - "materialKeyID:ASC"
-        - "materialKeyID:DESC"
+        - "elastic_key_id"
+        - "elastic_key_id:ASC"
+        - "elastic_key_id:DESC"
+        - "material_key_id"
+        - "material_key_id:ASC"
+        - "material_key_id:DESC"
         - "generate_date"
         - "generate_date:ASC"
         - "generate_date:DESC"
@@ -553,7 +553,7 @@ components:
     ElasticKeysQueryParams:
       type: object
       properties:
-        elasticKeyID:
+        elastic_key_id:
           type: array
           items:
             $ref: '#/components/schemas/ElasticKeyId'
@@ -591,7 +591,7 @@ components:
     ElasticKeyMaterialKeysQueryParams:
       type: object
       properties:
-        materialKeyID:
+        material_key_id:
           type: array
           items:
             $ref: '#/components/schemas/MaterialKeyId'
@@ -623,11 +623,11 @@ components:
     MaterialKeysQueryParams:
       type: object
       properties:
-        elasticKeyID:
+        elastic_key_id:
           type: array
           items:
             $ref: '#/components/schemas/ElasticKeyId'
-        materialKeyID:
+        material_key_id:
           type: array
           items:
             $ref: '#/components/schemas/MaterialKeyId'

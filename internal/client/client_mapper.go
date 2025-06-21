@@ -178,7 +178,7 @@ func MapElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.Post
 			return nil, fmt.Errorf("failed to create elastic Key, JSON200 is nil")
 		}
 		elasticKey := openapiCreateElasticKeyResponse.JSON200
-		if elasticKey.ElasticKeyID == nil {
+		if elasticKey.ElasticKeyId == nil {
 			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Id is nil")
 		} else if elasticKey.Description == nil {
 			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Description is nil")
@@ -215,9 +215,9 @@ func MapMaterialKeyGenerate(openapiMaterialKeyGenerateResponse *cryptoutilOpenap
 			return nil, fmt.Errorf("failed to generate key, JSON200 is nil")
 		}
 		key := openapiMaterialKeyGenerateResponse.JSON200
-		if key.ElasticKeyID == googleUuid.Nil {
+		if key.ElasticKeyId == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.Pool is zero")
-		} else if key.MaterialKeyID == googleUuid.Nil {
+		} else if key.MaterialKeyId == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.Id is zero")
 		} else if key.GenerateDate == nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.GenerateDate is nil") // TODO nil allowed if import not nil

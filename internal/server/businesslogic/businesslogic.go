@@ -357,7 +357,7 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, keysQueryPar
 	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObjects, err
 }
 
-func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx context.Context, elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
+func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyId(ctx context.Context, elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
 	var repositoryElasticKey *cryptoutilOrmRepository.ElasticKey
 	var repositoryKey *cryptoutilOrmRepository.MaterialKey
 	var repositoryKeyExportableMaterial *keyExportableMaterial

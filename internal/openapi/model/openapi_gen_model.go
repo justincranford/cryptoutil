@@ -139,8 +139,8 @@ const (
 const (
 	ElasticKeySortAlgorithmASC          ElasticKeySort = "algorithm:ASC"
 	ElasticKeySortAlgorithmDESC         ElasticKeySort = "algorithm:DESC"
-	ElasticKeySortElasticKeyIDASC       ElasticKeySort = "elasticKeyID:ASC"
-	ElasticKeySortElasticKeyIDDESC      ElasticKeySort = "elasticKeyID:DESC"
+	ElasticKeySortElasticKeyIdASC       ElasticKeySort = "elastic_key_id:ASC"
+	ElasticKeySortElasticKeyIdDESC      ElasticKeySort = "elastic_key_id:DESC"
 	ElasticKeySortExportAllowedASC      ElasticKeySort = "export_allowed:ASC"
 	ElasticKeySortExportAllowedDESC     ElasticKeySort = "export_allowed:DESC"
 	ElasticKeySortImportAllowedASC      ElasticKeySort = "import_allowed:ASC"
@@ -175,15 +175,15 @@ const (
 
 // Defines values for MaterialKeySort.
 const (
-	MaterialKeySortElasticKeyID      MaterialKeySort = "elasticKeyID"
-	MaterialKeySortElasticKeyIDASC   MaterialKeySort = "elasticKeyID:ASC"
-	MaterialKeySortElasticKeyIDDESC  MaterialKeySort = "elasticKeyID:DESC"
+	MaterialKeySortElasticKeyId      MaterialKeySort = "elastic_key_id"
+	MaterialKeySortElasticKeyIdASC   MaterialKeySort = "elastic_key_id:ASC"
+	MaterialKeySortElasticKeyIdDESC  MaterialKeySort = "elastic_key_id:DESC"
 	MaterialKeySortGenerateDate      MaterialKeySort = "generate_date"
 	MaterialKeySortGenerateDateASC   MaterialKeySort = "generate_date:ASC"
 	MaterialKeySortGenerateDateDESC  MaterialKeySort = "generate_date:DESC"
-	MaterialKeySortMaterialKeyID     MaterialKeySort = "materialKeyID"
-	MaterialKeySortMaterialKeyIDASC  MaterialKeySort = "materialKeyID:ASC"
-	MaterialKeySortMaterialKeyIDDESC MaterialKeySort = "materialKeyID:DESC"
+	MaterialKeySortMaterialKeyId     MaterialKeySort = "material_key_id"
+	MaterialKeySortMaterialKeyIdASC  MaterialKeySort = "material_key_id:ASC"
+	MaterialKeySortMaterialKeyIdDESC MaterialKeySort = "material_key_id:DESC"
 )
 
 // DecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
@@ -200,8 +200,8 @@ type ElasticKey struct {
 	// Description Description for an Elastic Key.
 	Description *ElasticKeyDescription `json:"description,omitempty"`
 
-	// ElasticKeyID Unique UUID for an Elastic Key.
-	ElasticKeyID *ElasticKeyId `json:"elasticKeyID,omitempty"`
+	// ElasticKeyId Unique UUID for an Elastic Key.
+	ElasticKeyId *ElasticKeyId `json:"elastic_key_id,omitempty"`
 
 	// ExportAllowed Indicates if the Elastic Key supports export.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
@@ -263,7 +263,7 @@ type ElasticKeyImportAllowed = bool
 
 // ElasticKeyMaterialKeysQueryParams defines model for ElasticKeyMaterialKeysQueryParams.
 type ElasticKeyMaterialKeysQueryParams struct {
-	MaterialKeyID *[]MaterialKeyId `json:"materialKeyID,omitempty"`
+	MaterialKeyId *[]MaterialKeyId `json:"material_key_id,omitempty"`
 
 	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
 	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
@@ -324,7 +324,7 @@ type ElasticKeyVersioningAllowed = bool
 // ElasticKeysQueryParams defines model for ElasticKeysQueryParams.
 type ElasticKeysQueryParams struct {
 	Algorithm    *[]ElasticKeyAlgorithm `json:"algorithm,omitempty"`
-	ElasticKeyID *[]ElasticKeyId        `json:"elasticKeyID,omitempty"`
+	ElasticKeyId *[]ElasticKeyId        `json:"elastic_key_id,omitempty"`
 
 	// ExportAllowed Indicates if the Elastic Key supports export.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
@@ -378,8 +378,8 @@ type MaterialKey struct {
 	// Decrypted Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
 	Decrypted *MaterialKeyDecrypted `json:"decrypted,omitempty"`
 
-	// ElasticKeyID Unique UUID for an Elastic Key.
-	ElasticKeyID ElasticKeyId `json:"elasticKeyID"`
+	// ElasticKeyId Unique UUID for an Elastic Key.
+	ElasticKeyId ElasticKeyId `json:"elastic_key_id"`
 
 	// Encrypted Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
 	Encrypted *MaterialKeyEncrypted `json:"encrypted,omitempty"`
@@ -393,8 +393,8 @@ type MaterialKey struct {
 	// ImportDate ISO 8601 UTC timestamp of Material Key generation.
 	ImportDate *MaterialKeyImportDate `json:"import_date,omitempty"`
 
-	// MaterialKeyID Unique UUID for a Material Key.
-	MaterialKeyID MaterialKeyId `json:"materialKeyID"`
+	// MaterialKeyId Unique UUID for a Material Key.
+	MaterialKeyId MaterialKeyId `json:"material_key_id"`
 
 	// Public Clear public key Material Key (if applicable)
 	Public *MaterialKeyPublic `json:"public,omitempty"`
@@ -435,17 +435,17 @@ type MaterialKeySort string
 
 // MaterialKeyUpdate defines model for MaterialKeyUpdate.
 type MaterialKeyUpdate struct {
-	// ElasticKeyID Unique UUID for an Elastic Key.
-	ElasticKeyID ElasticKeyId `json:"elasticKeyID"`
+	// ElasticKeyId Unique UUID for an Elastic Key.
+	ElasticKeyId ElasticKeyId `json:"elastic_key_id"`
 
-	// MaterialKeyID Unique UUID for a Material Key.
-	MaterialKeyID MaterialKeyId `json:"materialKeyID"`
+	// MaterialKeyId Unique UUID for a Material Key.
+	MaterialKeyId MaterialKeyId `json:"material_key_id"`
 }
 
 // MaterialKeysQueryParams defines model for MaterialKeysQueryParams.
 type MaterialKeysQueryParams struct {
-	ElasticKeyID  *[]ElasticKeyId  `json:"elasticKeyID,omitempty"`
-	MaterialKeyID *[]MaterialKeyId `json:"materialKeyID,omitempty"`
+	ElasticKeyId  *[]ElasticKeyId  `json:"elastic_key_id,omitempty"`
+	MaterialKeyId *[]MaterialKeyId `json:"material_key_id,omitempty"`
 
 	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
 	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
@@ -644,78 +644,78 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"FdVmAAA=",
+	"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",
+	"AP//MqWCEAdnAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
