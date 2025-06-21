@@ -20,13 +20,16 @@ output-options:
     - GCM
     - CBC
     - RSA
+    - EC
     - HMAC
     - SHA
     - TLS
     - IP
     - AI
     - ML
+    - KEM
     - PEM
+    - DER
     - DSA
 import-mapping:
   "./openapi_spec_components.yaml": cryptoutil/internal/openapi/model

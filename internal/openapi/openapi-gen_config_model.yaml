@@ -19,11 +19,14 @@ output-options:
     - GCM
     - CBC
     - RSA
+    - EC
     - HMAC
     - SHA
     - TLS
     - IP
     - AI
     - ML
+    - KEM
     - PEM
+    - DER
     - DSA
