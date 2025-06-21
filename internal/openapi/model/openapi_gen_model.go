@@ -139,10 +139,10 @@ const (
 const (
 	ElasticKeySortAlgorithmASC          ElasticKeySort = "algorithm:ASC"
 	ElasticKeySortAlgorithmDESC         ElasticKeySort = "algorithm:DESC"
+	ElasticKeySortElasticKeyIDASC       ElasticKeySort = "elasticKeyID:ASC"
+	ElasticKeySortElasticKeyIDDESC      ElasticKeySort = "elasticKeyID:DESC"
 	ElasticKeySortExportAllowedASC      ElasticKeySort = "export_allowed:ASC"
 	ElasticKeySortExportAllowedDESC     ElasticKeySort = "export_allowed:DESC"
-	ElasticKeySortIdASC                 ElasticKeySort = "id:ASC"
-	ElasticKeySortIdDESC                ElasticKeySort = "id:DESC"
 	ElasticKeySortImportAllowedASC      ElasticKeySort = "import_allowed:ASC"
 	ElasticKeySortImportAllowedDESC     ElasticKeySort = "import_allowed:DESC"
 	ElasticKeySortNameASC               ElasticKeySort = "name:ASC"
@@ -173,17 +173,17 @@ const (
 	StartedDelete                  ElasticKeyStatus = "started_delete"
 )
 
-// Defines values for KeySort.
+// Defines values for MaterialKeySort.
 const (
-	KeySortGenerateDate     KeySort = "generate_date"
-	KeySortGenerateDateASC  KeySort = "generate_date:ASC"
-	KeySortGenerateDateDESC KeySort = "generate_date:DESC"
-	KeySortId               KeySort = "id"
-	KeySortIdASC            KeySort = "id:ASC"
-	KeySortIdDESC           KeySort = "id:DESC"
-	KeySortPool             KeySort = "pool"
-	KeySortPoolASC          KeySort = "pool:ASC"
-	KeySortPoolDESC         KeySort = "pool:DESC"
+	MaterialKeySortElasticKeyID      MaterialKeySort = "elasticKeyID"
+	MaterialKeySortElasticKeyIDASC   MaterialKeySort = "elasticKeyID:ASC"
+	MaterialKeySortElasticKeyIDDESC  MaterialKeySort = "elasticKeyID:DESC"
+	MaterialKeySortGenerateDate      MaterialKeySort = "generate_date"
+	MaterialKeySortGenerateDateASC   MaterialKeySort = "generate_date:ASC"
+	MaterialKeySortGenerateDateDESC  MaterialKeySort = "generate_date:DESC"
+	MaterialKeySortMaterialKeyID     MaterialKeySort = "materialKeyID"
+	MaterialKeySortMaterialKeyIDASC  MaterialKeySort = "materialKeyID:ASC"
+	MaterialKeySortMaterialKeyIDDESC MaterialKeySort = "materialKeyID:DESC"
 )
 
 // DecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
@@ -194,22 +194,22 @@ type DecryptResponse = string
 
 // ElasticKey defines model for ElasticKey.
 type ElasticKey struct {
-	// Algorithm Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+	// Algorithm Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
 	Algorithm *ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description for a Elastic Key.
+	// Description Description for an Elastic Key.
 	Description *ElasticKeyDescription `json:"description,omitempty"`
+
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID *ElasticKeyId `json:"elasticKeyID,omitempty"`
 
 	// ExportAllowed Indicates if the Elastic Key supports export.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
 
-	// Id Unique UUID for a Elastic Key.
-	Id *ElasticKeyId `json:"id,omitempty"`
-
 	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
 	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
 
-	// Name Friendly name for a Elastic Key.
+	// Name Friendly name for an Elastic Key.
 	Name *ElasticKeyName `json:"name,omitempty"`
 
 	// Provider Provider of the Elastic Key management service.
@@ -222,15 +222,15 @@ type ElasticKey struct {
 	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// ElasticKeyAlgorithm Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+// ElasticKeyAlgorithm Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
 type ElasticKeyAlgorithm string
 
 // ElasticKeyCreate defines model for ElasticKeyCreate.
 type ElasticKeyCreate struct {
-	// Algorithm Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
+	// Algorithm Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm. If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values. If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc). If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
 	Algorithm *ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 
-	// Description Description for a Elastic Key.
+	// Description Description for an Elastic Key.
 	Description ElasticKeyDescription `json:"description"`
 
 	// ExportAllowed Indicates if the Elastic Key supports export.
@@ -239,7 +239,7 @@ type ElasticKeyCreate struct {
 	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
 	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
 
-	// Name Friendly name for a Elastic Key.
+	// Name Friendly name for an Elastic Key.
 	Name ElasticKeyName `json:"name"`
 
 	// Provider Provider of the Elastic Key management service.
@@ -249,55 +249,55 @@ type ElasticKeyCreate struct {
 	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// ElasticKeyDescription Description for a Elastic Key.
+// ElasticKeyDescription Description for an Elastic Key.
 type ElasticKeyDescription = string
 
 // ElasticKeyExportAllowed Indicates if the Elastic Key supports export.
 type ElasticKeyExportAllowed = bool
 
-// ElasticKeyId Unique UUID for a Elastic Key.
+// ElasticKeyId Unique UUID for an Elastic Key.
 type ElasticKeyId = openapi_types.UUID
 
 // ElasticKeyImportAllowed Indicates if the Elastic Key supports import (BYOK).
 type ElasticKeyImportAllowed = bool
 
-// ElasticKeyKeysQueryParams defines model for ElasticKeyKeysQueryParams.
-type ElasticKeyKeysQueryParams struct {
-	Id *[]KeyId `json:"id,omitempty"`
+// ElasticKeyMaterialKeysQueryParams defines model for ElasticKeyMaterialKeysQueryParams.
+type ElasticKeyMaterialKeysQueryParams struct {
+	MaterialKeyID *[]MaterialKeyId `json:"materialKeyID,omitempty"`
 
-	// MaxExpirationDate ISO 8601 UTC timestamp of Key generation.
-	MaxExpirationDate *KeyExpirationDate `json:"max_expiration_date,omitempty"`
+	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
 
-	// MaxGenerateDate ISO 8601 UTC timestamp of Key generation.
-	MaxGenerateDate *KeyGenerateDate `json:"max_generate_date,omitempty"`
+	// MaxGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxGenerateDate *MaterialKeyGenerateDate `json:"max_generate_date,omitempty"`
 
-	// MaxImportDate ISO 8601 UTC timestamp of Key generation.
-	MaxImportDate *KeyImportDate `json:"max_import_date,omitempty"`
+	// MaxImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxImportDate *MaterialKeyImportDate `json:"max_import_date,omitempty"`
 
-	// MaxRevocationDate ISO 8601 UTC timestamp of Key generation.
-	MaxRevocationDate *KeyRevocationDate `json:"max_revocation_date,omitempty"`
+	// MaxRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxRevocationDate *MaterialKeyRevocationDate `json:"max_revocation_date,omitempty"`
 
-	// MinExpirationDate ISO 8601 UTC timestamp of Key generation.
-	MinExpirationDate *KeyExpirationDate `json:"min_expiration_date,omitempty"`
+	// MinExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinExpirationDate *MaterialKeyExpirationDate `json:"min_expiration_date,omitempty"`
 
-	// MinGenerateDate ISO 8601 UTC timestamp of Key generation.
-	MinGenerateDate *KeyGenerateDate `json:"min_generate_date,omitempty"`
+	// MinGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MinGenerateDate *MaterialKeyGenerateDate `json:"min_generate_date,omitempty"`
 
-	// MinImportDate ISO 8601 UTC timestamp of Key generation.
-	MinImportDate *KeyImportDate `json:"min_import_date,omitempty"`
+	// MinImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MinImportDate *MaterialKeyImportDate `json:"min_import_date,omitempty"`
 
-	// MinRevocationDate ISO 8601 UTC timestamp of Key generation.
-	MinRevocationDate *KeyRevocationDate `json:"min_revocation_date,omitempty"`
+	// MinRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinRevocationDate *MaterialKeyRevocationDate `json:"min_revocation_date,omitempty"`
 
 	// Page Page number starting at 0.
 	Page *PageNumber `json:"page,omitempty"`
 
 	// Size Page number.
-	Size *PageSize  `json:"size,omitempty"`
-	Sort *[]KeySort `json:"sort,omitempty"`
+	Size *PageSize          `json:"size,omitempty"`
+	Sort *[]MaterialKeySort `json:"sort,omitempty"`
 }
 
-// ElasticKeyName Friendly name for a Elastic Key.
+// ElasticKeyName Friendly name for an Elastic Key.
 type ElasticKeyName = string
 
 // ElasticKeyProvider Provider of the Elastic Key management service.
@@ -311,10 +311,10 @@ type ElasticKeyStatus string
 
 // ElasticKeyUpdate defines model for ElasticKeyUpdate.
 type ElasticKeyUpdate struct {
-	// Description Description for a Elastic Key.
+	// Description Description for an Elastic Key.
 	Description ElasticKeyDescription `json:"description"`
 
-	// Name Friendly name for a Elastic Key.
+	// Name Friendly name for an Elastic Key.
 	Name ElasticKeyName `json:"name"`
 }
 
@@ -323,11 +323,11 @@ type ElasticKeyVersioningAllowed = bool
 
 // ElasticKeysQueryParams defines model for ElasticKeysQueryParams.
 type ElasticKeysQueryParams struct {
-	Algorithm *[]ElasticKeyAlgorithm `json:"algorithm,omitempty"`
+	Algorithm    *[]ElasticKeyAlgorithm `json:"algorithm,omitempty"`
+	ElasticKeyID *[]ElasticKeyId        `json:"elasticKeyID,omitempty"`
 
 	// ExportAllowed Indicates if the Elastic Key supports export.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
-	Id            *[]ElasticKeyId          `json:"id,omitempty"`
 
 	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
 	ImportAllowed *ElasticKeyImportAllowed `json:"import_allowed,omitempty"`
@@ -373,110 +373,110 @@ type HTTPError struct {
 	Status int `json:"status"`
 }
 
-// Key defines model for Key.
-type Key struct {
-	// Decrypted Clear private or secret key material (if ElasticKey exportAllowed=true)
-	Decrypted *KeyMaterialDecrypted `json:"decrypted,omitempty"`
+// MaterialKey defines model for MaterialKey.
+type MaterialKey struct {
+	// Decrypted Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
+	Decrypted *MaterialKeyDecrypted `json:"decrypted,omitempty"`
 
-	// Encrypted Encrypted private or secret key material (if ElasticKey exportAllowed=true)
-	Encrypted *KeyMaterialEncrypted `json:"encrypted,omitempty"`
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID ElasticKeyId `json:"elasticKeyID"`
 
-	// ExpirationDate ISO 8601 UTC timestamp of Key generation.
-	ExpirationDate *KeyExpirationDate `json:"expiration_date,omitempty"`
+	// Encrypted Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
+	Encrypted *MaterialKeyEncrypted `json:"encrypted,omitempty"`
 
-	// GenerateDate ISO 8601 UTC timestamp of Key generation.
-	GenerateDate *KeyGenerateDate `json:"generate_date,omitempty"`
+	// ExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	ExpirationDate *MaterialKeyExpirationDate `json:"expiration_date,omitempty"`
 
-	// Id Unique UUID for a Key.
-	Id KeyId `json:"id"`
+	// GenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	GenerateDate *MaterialKeyGenerateDate `json:"generate_date,omitempty"`
 
-	// ImportDate ISO 8601 UTC timestamp of Key generation.
-	ImportDate *KeyImportDate `json:"import_date,omitempty"`
+	// ImportDate ISO 8601 UTC timestamp of Material Key generation.
+	ImportDate *MaterialKeyImportDate `json:"import_date,omitempty"`
 
-	// Pool Unique UUID for a Elastic Key.
-	Pool ElasticKeyId `json:"pool"`
+	// MaterialKeyID Unique UUID for a Material Key.
+	MaterialKeyID MaterialKeyId `json:"materialKeyID"`
 
-	// Public Clear public key material (if applicable)
-	Public *KeyMaterialPublic `json:"public,omitempty"`
+	// Public Clear public key Material Key (if applicable)
+	Public *MaterialKeyPublic `json:"public,omitempty"`
 
-	// RevocationDate ISO 8601 UTC timestamp of Key generation.
-	RevocationDate *KeyRevocationDate `json:"revocation_date,omitempty"`
+	// RevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	RevocationDate *MaterialKeyRevocationDate `json:"revocation_date,omitempty"`
 }
 
-// KeyExpirationDate ISO 8601 UTC timestamp of Key generation.
-type KeyExpirationDate = time.Time
+// MaterialKeyDecrypted Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
+type MaterialKeyDecrypted = string
 
-// KeyGenerate defines model for KeyGenerate.
-type KeyGenerate = map[string]interface{}
+// MaterialKeyEncrypted Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
+type MaterialKeyEncrypted = string
 
-// KeyGenerateDate ISO 8601 UTC timestamp of Key generation.
-type KeyGenerateDate = time.Time
+// MaterialKeyExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyExpirationDate = time.Time
 
-// KeyId Unique UUID for a Key.
-type KeyId = openapi_types.UUID
+// MaterialKeyGenerate defines model for MaterialKeyGenerate.
+type MaterialKeyGenerate = map[string]interface{}
 
-// KeyImportDate ISO 8601 UTC timestamp of Key generation.
-type KeyImportDate = time.Time
+// MaterialKeyGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyGenerateDate = time.Time
 
-// KeyMaterialDecrypted Clear private or secret key material (if ElasticKey exportAllowed=true)
-type KeyMaterialDecrypted = string
+// MaterialKeyId Unique UUID for a Material Key.
+type MaterialKeyId = openapi_types.UUID
 
-// KeyMaterialEncrypted Encrypted private or secret key material (if ElasticKey exportAllowed=true)
-type KeyMaterialEncrypted = string
+// MaterialKeyImportDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyImportDate = time.Time
 
-// KeyMaterialPublic Clear public key material (if applicable)
-type KeyMaterialPublic = string
+// MaterialKeyPublic Clear public key Material Key (if applicable)
+type MaterialKeyPublic = string
 
-// KeyRevocationDate ISO 8601 UTC timestamp of Key generation.
-type KeyRevocationDate = time.Time
+// MaterialKeyRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyRevocationDate = time.Time
 
-// KeySort defines model for KeySort.
-type KeySort string
+// MaterialKeySort defines model for MaterialKeySort.
+type MaterialKeySort string
 
-// KeyUpdate defines model for KeyUpdate.
-type KeyUpdate struct {
-	// Id Unique UUID for a Key.
-	Id KeyId `json:"id"`
+// MaterialKeyUpdate defines model for MaterialKeyUpdate.
+type MaterialKeyUpdate struct {
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID ElasticKeyId `json:"elasticKeyID"`
 
-	// Pool Unique UUID for a Elastic Key.
-	Pool ElasticKeyId `json:"pool"`
+	// MaterialKeyID Unique UUID for a Material Key.
+	MaterialKeyID MaterialKeyId `json:"materialKeyID"`
 }
 
-// KeysQueryParams defines model for KeysQueryParams.
-type KeysQueryParams struct {
-	Id *[]KeyId `json:"id,omitempty"`
+// MaterialKeysQueryParams defines model for MaterialKeysQueryParams.
+type MaterialKeysQueryParams struct {
+	ElasticKeyID  *[]ElasticKeyId  `json:"elasticKeyID,omitempty"`
+	MaterialKeyID *[]MaterialKeyId `json:"materialKeyID,omitempty"`
 
-	// MaxExpirationDate ISO 8601 UTC timestamp of Key generation.
-	MaxExpirationDate *KeyExpirationDate `json:"max_expiration_date,omitempty"`
+	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
 
-	// MaxGenerateDate ISO 8601 UTC timestamp of Key generation.
-	MaxGenerateDate *KeyGenerateDate `json:"max_generate_date,omitempty"`
+	// MaxGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxGenerateDate *MaterialKeyGenerateDate `json:"max_generate_date,omitempty"`
 
-	// MaxImportDate ISO 8601 UTC timestamp of Key generation.
-	MaxImportDate *KeyImportDate `json:"max_import_date,omitempty"`
+	// MaxImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxImportDate *MaterialKeyImportDate `json:"max_import_date,omitempty"`
 
-	// MaxRevocationDate ISO 8601 UTC timestamp of Key generation.
-	MaxRevocationDate *KeyRevocationDate `json:"max_revocation_date,omitempty"`
+	// MaxRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MaxRevocationDate *MaterialKeyRevocationDate `json:"max_revocation_date,omitempty"`
 
-	// MinExpirationDate ISO 8601 UTC timestamp of Key generation.
-	MinExpirationDate *KeyExpirationDate `json:"min_expiration_date,omitempty"`
+	// MinExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinExpirationDate *MaterialKeyExpirationDate `json:"min_expiration_date,omitempty"`
 
-	// MinGenerateDate ISO 8601 UTC timestamp of Key generation.
-	MinGenerateDate *KeyGenerateDate `json:"min_generate_date,omitempty"`
+	// MinGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+	MinGenerateDate *MaterialKeyGenerateDate `json:"min_generate_date,omitempty"`
 
-	// MinImportDate ISO 8601 UTC timestamp of Key generation.
-	MinImportDate *KeyImportDate `json:"min_import_date,omitempty"`
+	// MinImportDate ISO 8601 UTC timestamp of Material Key generation.
+	MinImportDate *MaterialKeyImportDate `json:"min_import_date,omitempty"`
 
-	// MinRevocationDate ISO 8601 UTC timestamp of Key generation.
-	MinRevocationDate *KeyRevocationDate `json:"min_revocation_date,omitempty"`
+	// MinRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+	MinRevocationDate *MaterialKeyRevocationDate `json:"min_revocation_date,omitempty"`
 
 	// Page Page number starting at 0.
-	Page *PageNumber     `json:"page,omitempty"`
-	Pool *[]ElasticKeyId `json:"pool,omitempty"`
+	Page *PageNumber `json:"page,omitempty"`
 
 	// Size Page number.
-	Size *PageSize  `json:"size,omitempty"`
-	Sort *[]KeySort `json:"sort,omitempty"`
+	Size *PageSize          `json:"size,omitempty"`
+	Sort *[]MaterialKeySort `json:"sort,omitempty"`
 }
 
 // PageNumber Page number starting at 0.
@@ -509,11 +509,11 @@ type VerifyResponse = string
 // ElasticKeyQueryParamAlgorithms defines model for ElasticKeyQueryParamAlgorithms.
 type ElasticKeyQueryParamAlgorithms = []ElasticKeyAlgorithm
 
+// ElasticKeyQueryParamElasticKeyIds defines model for ElasticKeyQueryParamElasticKeyIds.
+type ElasticKeyQueryParamElasticKeyIds = []ElasticKeyId
+
 // ElasticKeyQueryParamExportAllowed Indicates if the Elastic Key supports export.
 type ElasticKeyQueryParamExportAllowed = ElasticKeyExportAllowed
-
-// ElasticKeyQueryParamIds defines model for ElasticKeyQueryParamIds.
-type ElasticKeyQueryParamIds = []ElasticKeyId
 
 // ElasticKeyQueryParamImportAllowed Indicates if the Elastic Key supports import (BYOK).
 type ElasticKeyQueryParamImportAllowed = ElasticKeyImportAllowed
@@ -539,44 +539,44 @@ type ElasticKeyQueryParamStatuses = []ElasticKeyStatus
 // ElasticKeyQueryParamVersioningAllowed Indicates if the Elastic Key supports versioning.
 type ElasticKeyQueryParamVersioningAllowed = ElasticKeyVersioningAllowed
 
-// KeyQueryParamElasticKeyIds defines model for KeyQueryParamElasticKeyIds.
-type KeyQueryParamElasticKeyIds = []ElasticKeyId
+// MaterialKeyQueryParamElasticKeyIds defines model for MaterialKeyQueryParamElasticKeyIds.
+type MaterialKeyQueryParamElasticKeyIds = []ElasticKeyId
 
-// KeyQueryParamIds defines model for KeyQueryParamIds.
-type KeyQueryParamIds = []KeyId
+// MaterialKeyQueryParamMaterialKeyIds defines model for MaterialKeyQueryParamMaterialKeyIds.
+type MaterialKeyQueryParamMaterialKeyIds = []MaterialKeyId
 
-// KeyQueryParamMaximumExpirationDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMaximumExpirationDate = KeyExpirationDate
+// MaterialKeyQueryParamMaximumExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumExpirationDate = MaterialKeyExpirationDate
 
-// KeyQueryParamMaximumGenerateDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMaximumGenerateDate = KeyGenerateDate
+// MaterialKeyQueryParamMaximumGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumGenerateDate = MaterialKeyGenerateDate
 
-// KeyQueryParamMaximumImportDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMaximumImportDate = KeyImportDate
+// MaterialKeyQueryParamMaximumImportDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumImportDate = MaterialKeyImportDate
 
-// KeyQueryParamMaximumRevocationDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMaximumRevocationDate = KeyRevocationDate
+// MaterialKeyQueryParamMaximumRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMaximumRevocationDate = MaterialKeyRevocationDate
 
-// KeyQueryParamMinimumExpirationDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMinimumExpirationDate = KeyExpirationDate
+// MaterialKeyQueryParamMinimumExpirationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumExpirationDate = MaterialKeyExpirationDate
 
-// KeyQueryParamMinimumGenerateDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMinimumGenerateDate = KeyGenerateDate
+// MaterialKeyQueryParamMinimumGenerateDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumGenerateDate = MaterialKeyGenerateDate
 
-// KeyQueryParamMinimumImportDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMinimumImportDate = KeyImportDate
+// MaterialKeyQueryParamMinimumImportDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumImportDate = MaterialKeyImportDate
 
-// KeyQueryParamMinimumRevocationDate ISO 8601 UTC timestamp of Key generation.
-type KeyQueryParamMinimumRevocationDate = KeyRevocationDate
+// MaterialKeyQueryParamMinimumRevocationDate ISO 8601 UTC timestamp of Material Key generation.
+type MaterialKeyQueryParamMinimumRevocationDate = MaterialKeyRevocationDate
 
-// KeyQueryParamPageNumber Page number starting at 0.
-type KeyQueryParamPageNumber = PageNumber
+// MaterialKeyQueryParamPageNumber Page number starting at 0.
+type MaterialKeyQueryParamPageNumber = PageNumber
 
-// KeyQueryParamPageSize Page number.
-type KeyQueryParamPageSize = PageSize
+// MaterialKeyQueryParamPageSize Page number.
+type MaterialKeyQueryParamPageSize = PageSize
 
-// KeyQueryParamSorts defines model for KeyQueryParamSorts.
-type KeyQueryParamSorts = []KeySort
+// MaterialKeyQueryParamSorts defines model for MaterialKeyQueryParamSorts.
+type MaterialKeyQueryParamSorts = []MaterialKeySort
 
 // HTTP400BadRequest defines model for HTTP400BadRequest.
 type HTTP400BadRequest struct {
@@ -644,77 +644,78 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"FdVmAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -178,7 +178,7 @@ func MapElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.Post
 			return nil, fmt.Errorf("failed to create elastic Key, JSON200 is nil")
 		}
 		elasticKey := openapiCreateElasticKeyResponse.JSON200
-		if elasticKey.Id == nil {
+		if elasticKey.ElasticKeyID == nil {
 			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Id is nil")
 		} else if elasticKey.Description == nil {
 			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Description is nil")
@@ -201,30 +201,30 @@ func MapElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.Post
 	}
 }
 
-func MapKeyGenerate(openapiKeyGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDKeyResponse) (*cryptoutilOpenapiModel.Key, error) {
-	if openapiKeyGenerateResponse == nil {
+func MapMaterialKeyGenerate(openapiMaterialKeyGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDMaterialkeyResponse) (*cryptoutilOpenapiModel.MaterialKey, error) {
+	if openapiMaterialKeyGenerateResponse == nil {
 		return nil, fmt.Errorf("failed to generate key, response is nil")
-	} else if openapiKeyGenerateResponse.HTTPResponse == nil {
+	} else if openapiMaterialKeyGenerateResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to generate key, HTTP response is nil")
 	}
-	switch openapiKeyGenerateResponse.HTTPResponse.StatusCode {
+	switch openapiMaterialKeyGenerateResponse.HTTPResponse.StatusCode {
 	case 200:
-		if openapiKeyGenerateResponse.Body == nil {
+		if openapiMaterialKeyGenerateResponse.Body == nil {
 			return nil, fmt.Errorf("failed to generate key, body is nil")
-		} else if openapiKeyGenerateResponse.JSON200 == nil {
+		} else if openapiMaterialKeyGenerateResponse.JSON200 == nil {
 			return nil, fmt.Errorf("failed to generate key, JSON200 is nil")
 		}
-		key := openapiKeyGenerateResponse.JSON200
-		if key.Pool == googleUuid.Nil {
+		key := openapiMaterialKeyGenerateResponse.JSON200
+		if key.ElasticKeyID == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.Pool is zero")
-		} else if key.Id == googleUuid.Nil {
+		} else if key.MaterialKeyID == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.Id is zero")
 		} else if key.GenerateDate == nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.GenerateDate is nil") // TODO nil allowed if import not nil
 		}
 		return key, nil
 	default:
-		return nil, fmt.Errorf("failed to generate key, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiKeyGenerateResponse.HTTPResponse.StatusCode, openapiKeyGenerateResponse.HTTPResponse.Status, openapiKeyGenerateResponse.Body)
+		return nil, fmt.Errorf("failed to generate key, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiMaterialKeyGenerateResponse.HTTPResponse.StatusCode, openapiMaterialKeyGenerateResponse.HTTPResponse.Status, openapiMaterialKeyGenerateResponse.Body)
 	}
 }
 
@@ -336,8 +336,8 @@ func MapVerifyResponse(openapiVerifyResponse *cryptoutilOpenapiClient.PostElasti
 	}
 }
 
-func MapKeyGenerater() (*cryptoutilOpenapiClient.PostElastickeyElasticKeyIDKeyJSONRequestBody, error) {
-	return &cryptoutilOpenapiModel.KeyGenerate{}, nil
+func MapMaterialKeyGenerater() (*cryptoutilOpenapiClient.PostElastickeyElasticKeyIDMaterialkeyJSONRequestBody, error) {
+	return &cryptoutilOpenapiModel.MaterialKeyGenerate{}, nil
 }
 
 func MapElasticKeyName(name string) (*cryptoutilOpenapiModel.ElasticKeyName, error) {

@@ -71,10 +71,10 @@ func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFi
 	return elasticKeys, nil
 }
 
-func (tx *OrmTransaction) AddElasticKeyKey(key *Key) error {
+func (tx *OrmTransaction) AddElasticKeyKey(key *MaterialKey) error {
 	if err := cryptoutilUtil.ValidateUUID(&key.ElasticKeyID, "invalid Elastic Key ID"); err != nil {
 		return tx.toAppErr("failed to add Key", err)
-	} else if err := cryptoutilUtil.ValidateUUID(&key.KeyID, "invalid Key ID"); err != nil {
+	} else if err := cryptoutilUtil.ValidateUUID(&key.MaterialKeyID, "invalid Key ID"); err != nil {
 		return tx.toAppErr("failed to add Key", err)
 	}
 	err := tx.state.gormTx.Create(key).Error
@@ -84,11 +84,11 @@ func (tx *OrmTransaction) AddElasticKeyKey(key *Key) error {
 	return nil
 }
 
-func (tx *OrmTransaction) GetElasticKeyKeys(elasticKeyID googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyKeysFilters) ([]Key, error) {
+func (tx *OrmTransaction) GetElasticKeyKeys(elasticKeyID googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyMaterialKeysFilters) ([]MaterialKey, error) {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "failed to get Keys by Elastic Key ID"); err != nil {
 		return nil, tx.toAppErr("invalid Elastic Key ID", err)
 	}
-	var keys []Key
+	var keys []MaterialKey
 	query := tx.state.gormTx.Where("elastic_key_id=?", elasticKeyID)
 	err := applyGetElasticKeyKeysFilters(query, getElasticKeyKeysFilters).Find(&keys).Error
 	if err != nil {
@@ -97,8 +97,8 @@ func (tx *OrmTransaction) GetElasticKeyKeys(elasticKeyID googleUuid.UUID, getEla
 	return keys, nil
 }
 
-func (tx *OrmTransaction) GetKeys(getKeysFilters *GetKeysFilters) ([]Key, error) {
-	var keys []Key
+func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters) ([]MaterialKey, error) {
+	var keys []MaterialKey
 	query := tx.state.gormTx
 	err := applyKeyFilters(query, getKeysFilters).Find(&keys).Error
 	if err != nil {
@@ -107,26 +107,26 @@ func (tx *OrmTransaction) GetKeys(getKeysFilters *GetKeysFilters) ([]Key, error)
 	return keys, nil
 }
 
-func (tx *OrmTransaction) GetElasticKeyKey(elasticKeyID googleUuid.UUID, keyID googleUuid.UUID) (*Key, error) {
+func (tx *OrmTransaction) GetElasticKeyKey(elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
 		return nil, tx.toAppErr("failed to get Key by Elastic Key ID and Key ID", err)
-	} else if err := cryptoutilUtil.ValidateUUID(&keyID, "invalid Key ID"); err != nil {
+	} else if err := cryptoutilUtil.ValidateUUID(&materialKeyID, "invalid Key ID"); err != nil {
 		return nil, tx.toAppErr("failed to get Key by Elastic Key ID and Key ID", err)
 	}
-	var key Key
-	err := tx.state.gormTx.First(&key, "elastic_key_id=? AND key_id=?", elasticKeyID, keyID).Error
+	var key MaterialKey
+	err := tx.state.gormTx.First(&key, "elastic_key_id=? AND material_key_id=?", elasticKeyID, materialKeyID).Error
 	if err != nil {
 		return nil, tx.toAppErr("failed to get Key by Elastic Key ID and Key ID", err)
 	}
 	return &key, nil
 }
 
-func (tx *OrmTransaction) GetElasticKeyLatestKey(elasticKeyID googleUuid.UUID) (*Key, error) {
+func (tx *OrmTransaction) GetElasticKeyLatestKey(elasticKeyID googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
 		return nil, tx.toAppErr("failed to get latest Key by Elastic Key ID", err)
 	}
-	var key Key
-	err := tx.state.gormTx.Order("key_id DESC").First(&key, "elastic_key_id=?", elasticKeyID).Error
+	var key MaterialKey
+	err := tx.state.gormTx.Order("material_key_id DESC").First(&key, "elastic_key_id=?", elasticKeyID).Error
 	if err != nil {
 		return nil, tx.toAppErr("failed to get latest Key by Elastic Key ID", err)
 	}
@@ -194,8 +194,8 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 	if filters == nil {
 		return db
 	}
-	if len(filters.ID) > 0 {
-		db = db.Where("elastic_key_id IN ?", filters.ID)
+	if len(filters.ElasticKeyID) > 0 {
+		db = db.Where("elastic_key_id IN ?", filters.ElasticKeyID)
 	}
 	if len(filters.Name) > 0 {
 		db = db.Where("elastic_key_name IN ?", filters.Name)
@@ -222,21 +222,21 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 	return db
 }
 
-func applyKeyFilters(db *gorm.DB, filters *GetKeysFilters) *gorm.DB {
+func applyKeyFilters(db *gorm.DB, filters *GetMaterialKeysFilters) *gorm.DB {
 	if filters == nil {
 		return db
 	}
-	if len(filters.ID) > 0 {
-		db = db.Where("key_id IN ?", filters.ID)
+	if len(filters.MaterialKeyID) > 0 {
+		db = db.Where("material_key_id IN ?", filters.MaterialKeyID)
 	}
-	if len(filters.Pool) > 0 {
-		db = db.Where("elastic_key_id IN ?", filters.Pool)
+	if len(filters.ElasticKeyID) > 0 {
+		db = db.Where("elastic_key_id IN ?", filters.ElasticKeyID)
 	}
 	if filters.MinimumGenerateDate != nil {
-		db = db.Where("key_generate_date>=?", *filters.MinimumGenerateDate)
+		db = db.Where("material_key_generate_date>=?", *filters.MinimumGenerateDate)
 	}
 	if filters.MaximumGenerateDate != nil {
-		db = db.Where("key_generate_date<=?", *filters.MaximumGenerateDate)
+		db = db.Where("material_key_generate_date<=?", *filters.MaximumGenerateDate)
 	}
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
@@ -248,18 +248,18 @@ func applyKeyFilters(db *gorm.DB, filters *GetKeysFilters) *gorm.DB {
 	return db
 }
 
-func applyGetElasticKeyKeysFilters(db *gorm.DB, filters *GetElasticKeyKeysFilters) *gorm.DB {
+func applyGetElasticKeyKeysFilters(db *gorm.DB, filters *GetElasticKeyMaterialKeysFilters) *gorm.DB {
 	if filters == nil {
 		return db
 	}
-	if len(filters.ID) > 0 {
-		db = db.Where("key_id IN ?", filters.ID)
+	if len(filters.ElasticKeyID) > 0 {
+		db = db.Where("elastic_key_id IN ?", filters.ElasticKeyID)
 	}
 	if filters.MinimumGenerateDate != nil {
-		db = db.Where("key_generate_date>=?", *filters.MinimumGenerateDate)
+		db = db.Where("material_key_generate_date>=?", *filters.MinimumGenerateDate)
 	}
 	if filters.MaximumGenerateDate != nil {
-		db = db.Where("key_generate_date<=?", *filters.MaximumGenerateDate)
+		db = db.Where("material_key_generate_date<=?", *filters.MaximumGenerateDate)
 	}
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {

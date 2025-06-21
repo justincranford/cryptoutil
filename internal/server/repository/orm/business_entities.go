@@ -18,14 +18,14 @@ type ElasticKey struct {
 	ElasticKeyStatus            ElasticKeyStatus    `gorm:"size:34;not null;check:elastic_key_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
 }
 
-type Key struct {
-	ElasticKeyID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	KeyID             googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	KeyMaterial       []byte          `gorm:"not null;check(length(key_material) >= 1)"`
-	KeyGenerateDate   *time.Time
-	KeyImportDate     *time.Time
-	KeyExpirationDate *time.Time
-	KeyRevocationDate *time.Time
+type MaterialKey struct {
+	ElasticKeyID              googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	MaterialKeyID             googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	KeyMaterial               []byte          `gorm:"not null;check(length(key_material) >= 1)"`
+	MaterialKeyGenerateDate   *time.Time
+	MaterialKeyImportDate     *time.Time
+	MaterialKeyExpirationDate *time.Time
+	MaterialKeyRevocationDate *time.Time
 }
 
 type ElasticKeyAlgorithm string

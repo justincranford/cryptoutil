@@ -79,16 +79,16 @@ func RequireCreateElasticKeyResponse(t *testing.T, context context.Context, open
 }
 
 // TODO Support generate settings (e.g. expiration)
-func RequireKeyGenerateRequest(t *testing.T) *cryptoutilOpenapiModel.KeyGenerate {
-	keyGenerate := cryptoutilOpenapiModel.KeyGenerate{}
+func RequireMaterialKeyGenerateRequest(t *testing.T) *cryptoutilOpenapiModel.MaterialKeyGenerate {
+	keyGenerate := cryptoutilOpenapiModel.MaterialKeyGenerate{}
 	return &keyGenerate
 }
 
-func RequireKeyGenerateResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyId *cryptoutilOpenapiModel.ElasticKeyId, keyGenerate *cryptoutilOpenapiModel.KeyGenerate) *cryptoutilOpenapiModel.Key {
-	openapiKeyGenerateResponse, err := openapiClient.PostElastickeyElasticKeyIDKeyWithResponse(context, *elasticKeyId, *keyGenerate)
+func RequireMaterialKeyGenerateResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyId *cryptoutilOpenapiModel.ElasticKeyId, keyGenerate *cryptoutilOpenapiModel.MaterialKeyGenerate) *cryptoutilOpenapiModel.MaterialKey {
+	openapiMaterialKeyGenerateResponse, err := openapiClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(context, *elasticKeyId, *keyGenerate)
 	require.NoError(t, err)
 
-	key, err := MapKeyGenerate(openapiKeyGenerateResponse)
+	key, err := MapMaterialKeyGenerate(openapiMaterialKeyGenerateResponse)
 	require.NoError(t, err)
 
 	return key
@@ -157,7 +157,7 @@ func ValidateCreateElasticKeyVsElasticKey(elasticKeyCreate *cryptoutilOpenapiMod
 		return fmt.Errorf("elastic Key create is nil")
 	} else if elasticKey == nil {
 		return fmt.Errorf("elastic Key is nil")
-	} else if elasticKey.Id == nil {
+	} else if elasticKey.ElasticKeyID == nil {
 		return fmt.Errorf("elastic Key ID is nil")
 	} else if elasticKeyCreate.Name != *elasticKey.Name {
 		return fmt.Errorf("name mismatch: expected %s, got %s", elasticKeyCreate.Name, *elasticKey.Name)

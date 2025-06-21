@@ -7,7 +7,7 @@ import (
 )
 
 type GetElasticKeysFilters struct {
-	ID                []googleUuid.UUID `validate:"optional,min=1"`
+	ElasticKeyID      []googleUuid.UUID `validate:"optional,min=1"`
 	Name              []string          `validate:"optional,min=1"`
 	Algorithm         []string          `validate:"optional,min=1"`
 	VersioningAllowed *bool             `validate:"optional"`
@@ -18,8 +18,8 @@ type GetElasticKeysFilters struct {
 	PageSize          int               `validate:"min=1"`
 }
 
-type GetElasticKeyKeysFilters struct {
-	ID                  []googleUuid.UUID `validate:"optional,min=1"`
+type GetElasticKeyMaterialKeysFilters struct {
+	ElasticKeyID        []googleUuid.UUID `validate:"optional,min=1"`
 	MinimumGenerateDate *time.Time        `validate:"optional"`
 	MaximumGenerateDate *time.Time        `validate:"optional"`
 	Sort                []string          `validate:"optional,min=1"`
@@ -27,9 +27,9 @@ type GetElasticKeyKeysFilters struct {
 	PageSize            int               `validate:"min=1"`
 }
 
-type GetKeysFilters struct {
-	Pool                []googleUuid.UUID `validate:"optional,min=1"`
-	ID                  []googleUuid.UUID `validate:"optional,min=1"`
+type GetMaterialKeysFilters struct {
+	ElasticKeyID        []googleUuid.UUID `validate:"optional,min=1"`
+	MaterialKeyID       []googleUuid.UUID `validate:"optional,min=1"`
 	MinimumGenerateDate *time.Time        `validate:"optional"`
 	MaximumGenerateDate *time.Time        `validate:"optional"`
 	Sort                []string          `validate:"optional,min=1"`

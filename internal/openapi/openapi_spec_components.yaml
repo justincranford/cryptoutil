@@ -8,8 +8,8 @@ info:
 
 components:
   parameters:
-    ElasticKeyQueryParamIds:
-      name: id
+    ElasticKeyQueryParamElasticKeyIds:
+      name: elasticKeyID
       in: query
       description: Filter by the Elastic Key ID (UUID).
       required: false
@@ -106,8 +106,8 @@ components:
       schema:
         $ref: '#/components/schemas/PageSize'
 
-    KeyQueryParamElasticKeyIds:
-      name: pool
+    MaterialKeyQueryParamElasticKeyIds:
+      name: elasticKeyID
       in: query
       description: Filter by the Elastic Key ID (uuid).
       required: false
@@ -117,90 +117,90 @@ components:
           $ref: '#/components/schemas/ElasticKeyId'
       style: form
       explode: true
-    KeyQueryParamIds:
-      name: id
+    MaterialKeyQueryParamMaterialKeyIds:
+      name: materialKeyID
       in: query
-      description: Filter by the Key ID.
+      description: Filter by the Material Key ID.
       required: false
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeyId'
+          $ref: '#/components/schemas/MaterialKeyId'
       style: form
       explode: true
-    KeyQueryParamMinimumGenerateDate:
+    MaterialKeyQueryParamMinimumGenerateDate:
       name: min_generate_date
       in: query
-      description: Filter by the Key minimum generate date (inclusive).
+      description: Filter by the Material Key minimum generate date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyGenerateDate'
-    KeyQueryParamMaximumGenerateDate:
+        $ref: '#/components/schemas/MaterialKeyGenerateDate'
+    MaterialKeyQueryParamMaximumGenerateDate:
       name: max_generate_date
       in: query
-      description: Filter by the Key maximum generate date (inclusive).
+      description: Filter by the Material Key maximum generate date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyGenerateDate'
-    KeyQueryParamMinimumImportDate:
+        $ref: '#/components/schemas/MaterialKeyGenerateDate'
+    MaterialKeyQueryParamMinimumImportDate:
       name: min_import_date
       in: query
-      description: Filter by the Key minimum import date (inclusive).
+      description: Filter by the Material Key minimum import date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyImportDate'
-    KeyQueryParamMaximumImportDate:
+        $ref: '#/components/schemas/MaterialKeyImportDate'
+    MaterialKeyQueryParamMaximumImportDate:
       name: max_import_date
       in: query
-      description: Filter by the Key maximum import date (inclusive).
+      description: Filter by the Material Key maximum import date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyImportDate'
-    KeyQueryParamMinimumExpirationDate:
+        $ref: '#/components/schemas/MaterialKeyImportDate'
+    MaterialKeyQueryParamMinimumExpirationDate:
       name: min_expiration_date
       in: query
-      description: Filter by the Key minimum expiration date (inclusive).
+      description: Filter by the Material Key minimum expiration date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyExpirationDate'
-    KeyQueryParamMaximumExpirationDate:
+        $ref: '#/components/schemas/MaterialKeyExpirationDate'
+    MaterialKeyQueryParamMaximumExpirationDate:
       name: max_expiration_date
       in: query
-      description: Filter by the Key maximum expiration date (inclusive).
+      description: Filter by the Material Key maximum expiration date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyExpirationDate'
-    KeyQueryParamMinimumRevocationDate:
+        $ref: '#/components/schemas/MaterialKeyExpirationDate'
+    MaterialKeyQueryParamMinimumRevocationDate:
       name: min_revocation_date
       in: query
-      description: Filter by the Key minimum revocation date (inclusive).
+      description: Filter by the Material Key minimum revocation date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyRevocationDate'
-    KeyQueryParamMaximumRevocationDate:
+        $ref: '#/components/schemas/MaterialKeyRevocationDate'
+    MaterialKeyQueryParamMaximumRevocationDate:
       name: max_revocation_date
       in: query
-      description: Filter by the Key maximum revocation date (inclusive).
+      description: Filter by the Material Key maximum revocation date (inclusive).
       required: false
       schema:
-        $ref: '#/components/schemas/KeyRevocationDate'
-    KeyQueryParamSorts:
+        $ref: '#/components/schemas/MaterialKeyRevocationDate'
+    MaterialKeyQueryParamSorts:
       name: sort
       in: query
-      description: Specify sorting as `fieldName:direction` (e.g., `id:asc`). Repeat parameter for multiple sort fields.
+      description: Specify sorting as `fieldName:direction` (e.g., `materialKeyID:asc`). Repeat parameter for multiple sort fields.
       required: false
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/KeySort'
+          $ref: '#/components/schemas/MaterialKeySort'
       style: form
       explode: true
-    KeyQueryParamPageNumber:
+    MaterialKeyQueryParamPageNumber:
       name: page
       in: query
       schema:
         $ref: '#/components/schemas/PageNumber'
-    KeyQueryParamPageSize:
+    MaterialKeyQueryParamPageSize:
       name: size
       in: query
       schema:
@@ -241,7 +241,7 @@ components:
     ElasticKey:
       type: object
       properties:
-        id:
+        elasticKeyID:
           $ref: '#/components/schemas/ElasticKeyId'
         name:
           $ref: '#/components/schemas/ElasticKeyName'
@@ -269,55 +269,55 @@ components:
         description:
           $ref: '#/components/schemas/ElasticKeyDescription'
 
-    KeyGenerate:
+    MaterialKeyGenerate:
       type: object
       additionalProperties: false
 
-    KeyUpdate:
+    MaterialKeyUpdate:
       type: object
-      required: [ pool, id ]
+      required: [ elasticKeyID, materialKeyID ]
       properties:
-        pool:
+        elasticKeyID:
           $ref: '#/components/schemas/ElasticKeyId'
-        id:
-          $ref: '#/components/schemas/KeyId'
+        materialKeyID:
+          $ref: '#/components/schemas/MaterialKeyId'
 
-    Key:
+    MaterialKey:
       type: object
-      required: [ pool, id ]
+      required: [ elasticKeyID, materialKeyID ]
       properties:
-        pool:
+        elasticKeyID:
           $ref: '#/components/schemas/ElasticKeyId'
-        id:
-          $ref: '#/components/schemas/KeyId'
+        materialKeyID:
+          $ref: '#/components/schemas/MaterialKeyId'
         generate_date:
-          $ref: '#/components/schemas/KeyGenerateDate'
+          $ref: '#/components/schemas/MaterialKeyGenerateDate'
         import_date:
-          $ref: '#/components/schemas/KeyImportDate'
+          $ref: '#/components/schemas/MaterialKeyImportDate'
         expiration_date:
-          $ref: '#/components/schemas/KeyExpirationDate'
+          $ref: '#/components/schemas/MaterialKeyExpirationDate'
         revocation_date:
-          $ref: '#/components/schemas/KeyRevocationDate'
+          $ref: '#/components/schemas/MaterialKeyRevocationDate'
         public:
-          $ref: '#/components/schemas/KeyMaterialPublic'
+          $ref: '#/components/schemas/MaterialKeyPublic'
         encrypted:
-          $ref: '#/components/schemas/KeyMaterialEncrypted'
+          $ref: '#/components/schemas/MaterialKeyEncrypted'
         decrypted:
-          $ref: '#/components/schemas/KeyMaterialDecrypted'
+          $ref: '#/components/schemas/MaterialKeyDecrypted'
           
     ElasticKeyId:
       type: string
       format: uuid
-      description: Unique UUID for a Elastic Key.
+      description: Unique UUID for an Elastic Key.
     ElasticKeyName:
       type: string
-      description: Friendly name for a Elastic Key.
+      description: Friendly name for an Elastic Key.
       example: Payroll Database
       minLength: 1
       maxLength: 63
     ElasticKeyDescription:
       type: string
-      description: Description for a Elastic Key.
+      description: Description for an Elastic Key.
       example: This Elastic Key is used to encrypt the Payroll Database
       minLength: 1
       maxLength: 255
@@ -434,7 +434,7 @@ components:
         - "HS512"
         - "EdDSA"
       example: "A256GCM/A256KW"
-      description: Cryptographic algorithm(s) used for Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
+      description: Cryptographic algorithm(s) used for Material Keys in the Elastic Key. The first is the content encryption algorithm, and the second is the optional key encryption algorithm.
                    If key encryption algorithm is 'dir', the Elastic Key Key is directly used on values. direct encryption is useful for small values.
                    If key encryption algorithm is 'K*W', a random Content Encryption Key (CEK) is used directly on values, and the Elastic Key Key is used to encrypt the CEK. Key wrap is useful for large values (e.g. files, blobs, etc).
                    If in doubt, it is safe to use 'A256GCM/A256KW' for all values; it is the default.
@@ -477,8 +477,8 @@ components:
     ElasticKeySort:
       type: string
       enum:
-        - "id:ASC"
-        - "id:DESC"
+        - "elasticKeyID:ASC"
+        - "elasticKeyID:DESC"
         - "name:ASC"
         - "name:DESC"
         - "provider:ASC"
@@ -494,48 +494,48 @@ components:
         - "status:ASC"
         - "status:DESC"
 
-    KeyId:
+    MaterialKeyId:
       type: string
       format: uuid
-      description: Unique UUID for a Key.
-    KeyGenerateDate:
+      description: Unique UUID for a Material Key.
+    MaterialKeyGenerateDate:
       type: string
       format: date-time
       example: "2025-03-14T12:00:00Z"
-      description: ISO 8601 UTC timestamp of Key generation.
-    KeyImportDate:
+      description: ISO 8601 UTC timestamp of Material Key generation.
+    MaterialKeyImportDate:
       type: string
       format: date-time
       example: "2025-03-14T12:00:00Z"
-      description: ISO 8601 UTC timestamp of Key generation.
-    KeyExpirationDate:
+      description: ISO 8601 UTC timestamp of Material Key generation.
+    MaterialKeyExpirationDate:
       type: string
       format: date-time
       example: "2025-03-14T12:00:00Z"
-      description: ISO 8601 UTC timestamp of Key generation.
-    KeyRevocationDate:
+      description: ISO 8601 UTC timestamp of Material Key generation.
+    MaterialKeyRevocationDate:
       type: string
       format: date-time
       example: "2025-03-14T12:00:00Z"
-      description: ISO 8601 UTC timestamp of Key generation.
-    KeyMaterialPublic:
+      description: ISO 8601 UTC timestamp of Material Key generation.
+    MaterialKeyPublic:
       type: string
-      description: Clear public key material (if applicable)
-    KeyMaterialEncrypted:
+      description: Clear public key Material Key (if applicable)
+    MaterialKeyEncrypted:
       type: string
-      description: Encrypted private or secret key material (if ElasticKey exportAllowed=true)
-    KeyMaterialDecrypted:
+      description: Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
+    MaterialKeyDecrypted:
       type: string
-      description: Clear private or secret key material (if ElasticKey exportAllowed=true)
-    KeySort:
+      description: Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
+    MaterialKeySort:
       type: string
       enum:
-        - "pool"
-        - "pool:ASC"
-        - "pool:DESC"
-        - "id"
-        - "id:ASC"
-        - "id:DESC"
+        - "elasticKeyID"
+        - "elasticKeyID:ASC"
+        - "elasticKeyID:DESC"
+        - "materialKeyID"
+        - "materialKeyID:ASC"
+        - "materialKeyID:DESC"
         - "generate_date"
         - "generate_date:ASC"
         - "generate_date:DESC"
@@ -553,7 +553,7 @@ components:
     ElasticKeysQueryParams:
       type: object
       properties:
-        id:
+        elasticKeyID:
           type: array
           items:
             $ref: '#/components/schemas/ElasticKeyId'
@@ -588,69 +588,69 @@ components:
         size:
           $ref: '#/components/schemas/PageSize'
 
-    ElasticKeyKeysQueryParams:
+    ElasticKeyMaterialKeysQueryParams:
       type: object
       properties:
-        id:
+        materialKeyID:
           type: array
           items:
-            $ref: '#/components/schemas/KeyId'
+            $ref: '#/components/schemas/MaterialKeyId'
         min_generate_date:
-          $ref: '#/components/schemas/KeyGenerateDate'
+          $ref: '#/components/schemas/MaterialKeyGenerateDate'
         max_generate_date:
-          $ref: '#/components/schemas/KeyGenerateDate'
+          $ref: '#/components/schemas/MaterialKeyGenerateDate'
         min_import_date:
-          $ref: '#/components/schemas/KeyImportDate'
+          $ref: '#/components/schemas/MaterialKeyImportDate'
         max_import_date:
-          $ref: '#/components/schemas/KeyImportDate'
+          $ref: '#/components/schemas/MaterialKeyImportDate'
         min_expiration_date:
-          $ref: '#/components/schemas/KeyExpirationDate'
+          $ref: '#/components/schemas/MaterialKeyExpirationDate'
         max_expiration_date:
-          $ref: '#/components/schemas/KeyExpirationDate'
+          $ref: '#/components/schemas/MaterialKeyExpirationDate'
         min_revocation_date:
-          $ref: '#/components/schemas/KeyRevocationDate'
+          $ref: '#/components/schemas/MaterialKeyRevocationDate'
         max_revocation_date:
-          $ref: '#/components/schemas/KeyRevocationDate'
+          $ref: '#/components/schemas/MaterialKeyRevocationDate'
         sort:
           type: array
           items:
-            $ref: '#/components/schemas/KeySort'
+            $ref: '#/components/schemas/MaterialKeySort'
         page:
           $ref: '#/components/schemas/PageNumber'
         size:
           $ref: '#/components/schemas/PageSize'
 
-    KeysQueryParams:
+    MaterialKeysQueryParams:
       type: object
       properties:
-        pool:
+        elasticKeyID:
           type: array
           items:
             $ref: '#/components/schemas/ElasticKeyId'
-        id:
+        materialKeyID:
           type: array
           items:
-            $ref: '#/components/schemas/KeyId'
+            $ref: '#/components/schemas/MaterialKeyId'
         min_generate_date:
-          $ref: '#/components/schemas/KeyGenerateDate'
+          $ref: '#/components/schemas/MaterialKeyGenerateDate'
         max_generate_date:
-          $ref: '#/components/schemas/KeyGenerateDate'
+          $ref: '#/components/schemas/MaterialKeyGenerateDate'
         min_import_date:
-          $ref: '#/components/schemas/KeyImportDate'
+          $ref: '#/components/schemas/MaterialKeyImportDate'
         max_import_date:
-          $ref: '#/components/schemas/KeyImportDate'
+          $ref: '#/components/schemas/MaterialKeyImportDate'
         min_expiration_date:
-          $ref: '#/components/schemas/KeyExpirationDate'
+          $ref: '#/components/schemas/MaterialKeyExpirationDate'
         max_expiration_date:
-          $ref: '#/components/schemas/KeyExpirationDate'
+          $ref: '#/components/schemas/MaterialKeyExpirationDate'
         min_revocation_date:
-          $ref: '#/components/schemas/KeyRevocationDate'
+          $ref: '#/components/schemas/MaterialKeyRevocationDate'
         max_revocation_date:
-          $ref: '#/components/schemas/KeyRevocationDate'
+          $ref: '#/components/schemas/MaterialKeyRevocationDate'
         sort:
           type: array
           items:
-            $ref: '#/components/schemas/KeySort'
+            $ref: '#/components/schemas/MaterialKeySort'
         page:
           $ref: '#/components/schemas/PageNumber'
         size:

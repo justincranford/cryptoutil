@@ -132,7 +132,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 		testTelemetryService.Slogger.Info("Executing test case", "mode", testCase.txMode, "expectError", testCase.expectError)
 
 		addedElasticKeys := []*ElasticKey{}
-		addedKeys := []*Key{}
+		addedKeys := []*MaterialKey{}
 		err := testOrmRepository.WithTransaction(testCtx, testCase.txMode, func(ormTransaction *OrmTransaction) error {
 			require.NotNil(t, ormTransaction)
 			require.NotNil(t, ormTransaction.ID())
@@ -190,7 +190,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 				require.NotNil(t, ormTransaction.Context())
 				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedKey, err := ormTransaction.GetElasticKeyKey(addedKey.ElasticKeyID, addedKey.KeyID)
+				retrievedKey, err := ormTransaction.GetElasticKeyKey(addedKey.ElasticKeyID, addedKey.MaterialKeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}

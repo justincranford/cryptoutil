@@ -12,10 +12,10 @@ paths:
   /elastickey:
     post:
       summary: Create a new Elastic Key.
-      description: Create a new Elastic Key. Depending on the provider, a Elastic Key may be contained to one Key or many Keys.
+      description: Create a new Elastic Key. Depending on the provider, an Elastic Key may contain zero, one, or many Material Keys.
       requestBody:
         required: true
-        content:
+        content:/post
           application/json:
             schema:
               $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyCreate'
@@ -52,8 +52,8 @@ paths:
         schema:
           $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
     get:
-      summary: Get a Elastic Key.
-      description: Get a Elastic Key.
+      summary: Get an Elastic Key.
+      description: Get an Elastic Key.
       responses:
         '200':
           description: Elastic Key retrieved successfully.
@@ -84,7 +84,7 @@ paths:
       summary: Find Elastic Keys. Supports optional filtering, sorting, and paging.
       description: Find Elastic Keys. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamElasticKeyIds'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamNames'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamProviders'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamAlgorithms'
@@ -123,7 +123,7 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
-  /elastickey/{elasticKeyID}/key:
+  /elastickey/{elasticKeyID}/materialkey:
     parameters:
       - name: elasticKeyID
         in: path
@@ -131,21 +131,21 @@ paths:
         schema:
           $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
     post:
-      summary: Generate a new Key in a Elastic Key.
-      description: Generate a new Key in a Elastic Key.
+      summary: Generate a new Material Key in an Elastic Key.
+      description: Generate a new Material Key in an Elastic Key.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: './openapi_spec_components.yaml#/components/schemas/KeyGenerate'
+              $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKeyGenerate'
       responses:
         '200':
-          description: Key generated successfully.
+          description: Material Key generated successfully.
           content:
             application/json:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/Key'
+                $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKey'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -164,28 +164,28 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /elastickey/{elasticKeyID}/key/{keyID}:
+  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}:
     parameters:
       - name: elasticKeyID
         in: path
         required: true
         schema:
           $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
-      - name: keyID
+      - name: materialKeyID
         in: path
         required: true
         schema:
-          $ref: './openapi_spec_components.yaml#/components/schemas/KeyId'
+          $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKeyId'
     get:
-      summary: Get Key in Elastic Key.
-      description: Get Key in Elastic Key.
+      summary: Get Material Key in Elastic Key.
+      description: Get Material Key in Elastic Key.
       responses:
         '200':
-          description: A JSON array of 0, 1, or many Keys in a Elastic Key.
+          description: A JSON array of 0, 1, or many Material Keys in an Elastic Key.
           content:
             application/json:
               schema:
-                $ref: './openapi_spec_components.yaml#/components/schemas/Key'
+                $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKey'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -204,7 +204,7 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /elastickey/{elasticKeyID}/keys:
+  /elastickey/{elasticKeyID}/materialkeys:
     parameters:
       - name: elasticKeyID
         in: path
@@ -212,24 +212,24 @@ paths:
         schema:
           $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyId'
     get:
-      summary: Find Keys in Elastic Key. Supports optional filtering, sorting, and paging.
-      description: Find Keys in Elastic Key. Supports optional filtering, sorting, and paging.
+      summary: Find Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
+      description: Find Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamIds'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMinimumGenerateDate'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMaximumGenerateDate'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamSorts'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageNumber'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageSize'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamMaterialKeyIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamMinimumGenerateDate'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamMaximumGenerateDate'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamSorts'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamPageNumber'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamPageSize'
       responses:
         '200':
-          description: A JSON array of 0, 1, or many Keys in a Elastic Key.
+          description: A JSON array of 0, 1, or many Material Keys in an Elastic Key.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: './openapi_spec_components.yaml#/components/schemas/Key'
+                  $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKey'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -248,27 +248,27 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /keys:
+  /materialkeys:
     get:
-      summary: Find Keys. Supports optional filtering, sorting, and paging.
-      description: Find Keys. Supports optional filtering, sorting, and paging.
+      summary: Find Material Keys. Supports optional filtering, sorting, and paging.
+      description: Find Material Keys. Supports optional filtering, sorting, and paging.
       parameters:
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamElasticKeyIds'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamIds'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMinimumGenerateDate'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamMaximumGenerateDate'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamSorts'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageNumber'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/KeyQueryParamPageSize'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamElasticKeyIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamMaterialKeyIds'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamMinimumGenerateDate'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamMaximumGenerateDate'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamSorts'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamPageNumber'
+        - $ref: './openapi_spec_components.yaml#/components/parameters/MaterialKeyQueryParamPageSize'
       responses:
         '200':
-          description: A JSON array of 0, 1, or many Keys in a Elastic Key.
+          description: A JSON array of 0, 1, or many Material Keys in an Elastic Key.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: './openapi_spec_components.yaml#/components/schemas/Key'
+                  $ref: './openapi_spec_components.yaml#/components/schemas/MaterialKey'
         '400':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
         '401':
@@ -290,7 +290,7 @@ paths:
 
   /elastickey/{elasticKeyID}/encrypt:
     post:
-      summary: Encrypt clear text data using a specific key cryptoutilPool. The key material in the elastic Key is identified by the JWE message kid header.
+      summary: Encrypt clear text data using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
       description: Encrypts clear text data using the selected algorithm.
       parameters:
         - name: elasticKeyID
@@ -337,7 +337,7 @@ paths:
 
   /elastickey/{elasticKeyID}/decrypt:
     post:
-      summary: Decrypt ciphertext using a specific key cryptoutilPool. The key material in the elastic Key is identified by the JWE message kid header.
+      summary: Decrypt ciphertext using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
       description: Decrypts ciphertext and returns decrypted plaintext.
       parameters:
         - name: elasticKeyID
@@ -379,7 +379,7 @@ paths:
 
   /elastickey/{elasticKeyID}/sign:
     post:
-      summary: Sign clear text using a specific key. The key material in the elastic Key is identified by the JWS message kid header.
+      summary: Sign clear text using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
       description: Signs text using the selected algorithm.
       parameters:
         - name: elasticKeyID
@@ -426,7 +426,7 @@ paths:
 
   /elastickey/{elasticKeyID}/verify:
     post:
-      summary: Verify JWS message using a specific key cryptoutilPool. The key material in the elastic Key is identified by the JWS message kid header.
+      summary: Verify JWS message using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
       description: Accepts a JWS message and returns HTTP 204 if the signature is valid.
       parameters:
         - name: elasticKeyID

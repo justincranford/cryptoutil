@@ -68,11 +68,11 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 	}
 
 	// generate first key automatically
-	keyID, _, _, encodedPrivateOrSecretJwk, _, err := s.generateJwk(&repositoryElasticKeyToInsert.ElasticKeyAlgorithm)
+	materialKeyID, _, _, encodedPrivateOrSecretJwk, _, err := s.generateJwk(&repositoryElasticKeyToInsert.ElasticKeyAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate ElasticKey Key: %w", err)
 	}
-	repositoryKeyGenerateDate := time.Now().UTC()
+	repositoryMaterialKeyGenerateDate := time.Now().UTC()
 
 	var insertedElasticKey *cryptoutilOrmRepository.ElasticKey
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -91,11 +91,11 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to encrypt ElasticKey Key: %w", err)
 		}
 
-		repositoryKey := &cryptoutilOrmRepository.Key{
-			ElasticKeyID:    *elasticKeyID,
-			KeyID:           *keyID,
-			KeyMaterial:     encryptedKeyBytes,          // nil if repositoryElasticKeyToInsert.ElasticKeyImportAllowed=true
-			KeyGenerateDate: &repositoryKeyGenerateDate, // nil if repositoryElasticKeyToInsert.ElasticKeyImportAllowed=true
+		repositoryKey := &cryptoutilOrmRepository.MaterialKey{
+			ElasticKeyID:            *elasticKeyID,
+			MaterialKeyID:           *materialKeyID,
+			KeyMaterial:             encryptedKeyBytes,                  // nil if repositoryElasticKeyToInsert.ElasticKeyImportAllowed=true
+			MaterialKeyGenerateDate: &repositoryMaterialKeyGenerateDate, // nil if repositoryElasticKeyToInsert.ElasticKeyImportAllowed=true
 		}
 
 		err = sqlTransaction.AddElasticKeyKey(repositoryKey)
@@ -160,9 +160,9 @@ func (s *BusinessLogicService) GetElasticKeys(ctx context.Context, elasticKeyQue
 	return s.serviceOrmMapper.toServiceElasticKeys(repositoryElasticKeys), nil
 }
 
-func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elasticKeyID googleUuid.UUID, _ *cryptoutilBusinessLogicModel.KeyGenerate) (*cryptoutilBusinessLogicModel.Key, error) {
+func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elasticKeyID googleUuid.UUID, _ *cryptoutilBusinessLogicModel.MaterialKeyGenerate) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
 	var repositoryElasticKey *cryptoutilOrmRepository.ElasticKey
-	var repositoryKey *cryptoutilOrmRepository.Key
+	var repositoryKey *cryptoutilOrmRepository.MaterialKey
 	var repositoryKeyExportableMaterial *keyExportableMaterial
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
@@ -175,22 +175,22 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elastic
 			return fmt.Errorf("invalid ElasticKeyStatus: %w", err)
 		}
 
-		keyID, _, _, clearPrivateOrSecretJwkBytes, clearPublicJwkBytes, err := s.generateJwk(&repositoryElasticKey.ElasticKeyAlgorithm)
+		materialKeyID, _, _, clearPrivateOrSecretJwkBytes, clearPublicJwkBytes, err := s.generateJwk(&repositoryElasticKey.ElasticKeyAlgorithm)
 		if err != nil {
 			return fmt.Errorf("failed to generate ElasticKey Key: %w", err)
 		}
-		repositoryKeyGenerateDate := time.Now().UTC()
+		repositoryMaterialKeyGenerateDate := time.Now().UTC()
 
 		encryptedPrivateOrPublicJwkBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearPrivateOrSecretJwkBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt ElasticKey Key: %w", err)
 		}
 
-		repositoryKey = &cryptoutilOrmRepository.Key{
-			ElasticKeyID:    elasticKeyID,
-			KeyID:           *keyID,
-			KeyMaterial:     encryptedPrivateOrPublicJwkBytes,
-			KeyGenerateDate: &repositoryKeyGenerateDate,
+		repositoryKey = &cryptoutilOrmRepository.MaterialKey{
+			ElasticKeyID:            elasticKeyID,
+			MaterialKeyID:           *materialKeyID,
+			KeyMaterial:             encryptedPrivateOrPublicJwkBytes,
+			MaterialKeyGenerateDate: &repositoryMaterialKeyGenerateDate,
 		}
 
 		// TODO test publicKey and export
@@ -207,12 +207,12 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elastic
 		return nil, fmt.Errorf("failed to generate key in ElasticKey: %w", err)
 	}
 
-	openapiPostElastickeyElasticKeyIDKeyResponseObject, err := s.serviceOrmMapper.toServiceKey(repositoryKey, repositoryKeyExportableMaterial)
+	openapiPostElastickeyElasticKeyIDMaterialkeyResponseObject, err := s.serviceOrmMapper.toServiceKey(repositoryKey, repositoryKeyExportableMaterial)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map key in ElasticKey: %w", err)
 	}
 
-	return openapiPostElastickeyElasticKeyIDKeyResponseObject, nil
+	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObject, nil
 }
 
 func (*BusinessLogicService) prepareKeyExportableMaterial(clearPublicBytes []byte, clearPrivateOrSecretBytes []byte, repositoryElasticKey *cryptoutilOrmRepository.ElasticKey) *keyExportableMaterial {
@@ -232,13 +232,13 @@ func (*BusinessLogicService) prepareKeyExportableMaterial(clearPublicBytes []byt
 	}
 }
 
-func (s *BusinessLogicService) GetKeysByElasticKey(ctx context.Context, elasticKeyID googleUuid.UUID, elasticKeyKeysQueryParams *cryptoutilBusinessLogicModel.ElasticKeyKeysQueryParams) ([]cryptoutilBusinessLogicModel.Key, error) {
-	ormElasticKeyKeysQueryParams, err := s.serviceOrmMapper.toOrmGetElasticKeyKeysQueryParams(elasticKeyKeysQueryParams)
+func (s *BusinessLogicService) GetMaterialKeysByElasticKey(ctx context.Context, elasticKeyID googleUuid.UUID, elasticKeyMaterialKeysQueryParams *cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
+	ormElasticKeyMaterialKeysQueryParams, err := s.serviceOrmMapper.toOrmGetElasticKeyMaterialKeysQueryParams(elasticKeyMaterialKeysQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Elastic Key Keys parameters: %w", err)
 	}
 	var repositoryElasticKey *cryptoutilOrmRepository.ElasticKey
-	var repositoryKeys []cryptoutilOrmRepository.Key
+	var repositoryKeys []cryptoutilOrmRepository.MaterialKey
 	var repositoryKeyExportableMaterials []*keyExportableMaterial
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
@@ -247,7 +247,7 @@ func (s *BusinessLogicService) GetKeysByElasticKey(ctx context.Context, elasticK
 			return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 		}
 
-		repositoryKeys, err = sqlTransaction.GetElasticKeyKeys(elasticKeyID, ormElasticKeyKeysQueryParams)
+		repositoryKeys, err = sqlTransaction.GetElasticKeyKeys(elasticKeyID, ormElasticKeyMaterialKeysQueryParams)
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 		}
@@ -288,24 +288,24 @@ func (s *BusinessLogicService) GetKeysByElasticKey(ctx context.Context, elasticK
 		return nil, fmt.Errorf("failed to generate key in ElasticKey: %w", err)
 	}
 
-	openapiPostElastickeyElasticKeyIDKeyResponseObjects, err := s.serviceOrmMapper.toServiceKeys(repositoryKeys, repositoryKeyExportableMaterials)
+	openapiPostElastickeyElasticKeyIDMaterialkeyResponseObjects, err := s.serviceOrmMapper.toServiceKeys(repositoryKeys, repositoryKeyExportableMaterials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map keys in ElasticKey: %w", err)
 	}
 
-	return openapiPostElastickeyElasticKeyIDKeyResponseObjects, err
+	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObjects, err
 }
 
-func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cryptoutilBusinessLogicModel.KeysQueryParams) ([]cryptoutilBusinessLogicModel.Key, error) {
-	ormKeysQueryParams, err := s.serviceOrmMapper.toOrmGetKeysQueryParams(keysQueryParams)
+func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, keysQueryParams *cryptoutilBusinessLogicModel.MaterialKeysQueryParams) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
+	ormMaterialKeysQueryParams, err := s.serviceOrmMapper.toOrmGetMaterialKeysQueryParams(keysQueryParams)
 	if err != nil {
 		return nil, fmt.Errorf("invalid Get Keys parameters: %w", err)
 	}
 	var repositoryElasticKey *cryptoutilOrmRepository.ElasticKey
-	var repositoryKeys []cryptoutilOrmRepository.Key
+	var repositoryKeys []cryptoutilOrmRepository.MaterialKey
 	var repositoryKeyExportableMaterials []*keyExportableMaterial
 	err = s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		repositoryKeys, err = sqlTransaction.GetKeys(ormKeysQueryParams)
+		repositoryKeys, err = sqlTransaction.GetMaterialKeys(ormMaterialKeysQueryParams)
 		if err != nil {
 			return fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 		}
@@ -349,17 +349,17 @@ func (s *BusinessLogicService) GetKeys(ctx context.Context, keysQueryParams *cry
 		return nil, fmt.Errorf("failed to list keys in ElasticKey: %w", err)
 	}
 
-	openapiPostElastickeyElasticKeyIDKeyResponseObjects, err := s.serviceOrmMapper.toServiceKeys(repositoryKeys, repositoryKeyExportableMaterials)
+	openapiPostElastickeyElasticKeyIDMaterialkeyResponseObjects, err := s.serviceOrmMapper.toServiceKeys(repositoryKeys, repositoryKeyExportableMaterials)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map keys in ElasticKey: %w", err)
 	}
 
-	return openapiPostElastickeyElasticKeyIDKeyResponseObjects, err
+	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObjects, err
 }
 
-func (s *BusinessLogicService) GetKeyByElasticKeyAndKeyID(ctx context.Context, elasticKeyID googleUuid.UUID, keyID googleUuid.UUID) (*cryptoutilBusinessLogicModel.Key, error) {
+func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx context.Context, elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
 	var repositoryElasticKey *cryptoutilOrmRepository.ElasticKey
-	var repositoryKey *cryptoutilOrmRepository.Key
+	var repositoryKey *cryptoutilOrmRepository.MaterialKey
 	var repositoryKeyExportableMaterial *keyExportableMaterial
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
@@ -368,9 +368,9 @@ func (s *BusinessLogicService) GetKeyByElasticKeyAndKeyID(ctx context.Context, e
 			return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 		}
 
-		repositoryKey, err = sqlTransaction.GetElasticKeyKey(elasticKeyID, keyID)
+		repositoryKey, err = sqlTransaction.GetElasticKeyKey(elasticKeyID, materialKeyID)
 		if err != nil {
-			return fmt.Errorf("failed to get Key by ElasticKeyID and KeyID: %w", err)
+			return fmt.Errorf("failed to get Key by ElasticKeyID and MaterialKeyID: %w", err)
 		}
 
 		// TODO test publicKey and export
@@ -404,12 +404,12 @@ func (s *BusinessLogicService) GetKeyByElasticKeyAndKeyID(ctx context.Context, e
 		return nil, fmt.Errorf("failed to generate key in ElasticKey: %w", err)
 	}
 
-	openapiPostElastickeyElasticKeyIDKeyResponseObject, err := s.serviceOrmMapper.toServiceKey(repositoryKey, repositoryKeyExportableMaterial)
+	openapiPostElastickeyElasticKeyIDMaterialkeyResponseObject, err := s.serviceOrmMapper.toServiceKey(repositoryKey, repositoryKeyExportableMaterial)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map keys in ElasticKey: %w", err)
 	}
 
-	return openapiPostElastickeyElasticKeyIDKeyResponseObject, nil
+	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObject, nil
 }
 
 func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, elasticKeyID googleUuid.UUID, encryptParams *cryptoutilBusinessLogicModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
@@ -485,7 +485,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 }
 
 func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
-	var keyID *googleUuid.UUID
+	var materialKeyID *googleUuid.UUID
 	var privateOrSecretJwk joseJwk.Key
 	var publicJwk joseJwk.Key
 	var encodedPrivateOrSecretJwk []byte
@@ -496,7 +496,7 @@ func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOrmRep
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to map JWE Elastic Key Algorithm: %w", err)
 		}
-		keyID, privateOrSecretJwk, publicJwk, encodedPrivateOrSecretJwk, encodedPublicJwk, err = s.jwkGenService.GenerateJweJwk(enc, alg)
+		materialKeyID, privateOrSecretJwk, publicJwk, encodedPrivateOrSecretJwk, encodedPublicJwk, err = s.jwkGenService.GenerateJweJwk(enc, alg)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to generate JWE: %w", err)
 		}
@@ -505,7 +505,7 @@ func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOrmRep
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to map JWS Elastic Key Algorithm: %w", err)
 		}
-		keyID, privateOrSecretJwk, publicJwk, encodedPrivateOrSecretJwk, encodedPublicJwk, err = s.jwkGenService.GenerateJwsJwk(alg)
+		materialKeyID, privateOrSecretJwk, publicJwk, encodedPrivateOrSecretJwk, encodedPublicJwk, err = s.jwkGenService.GenerateJwsJwk(alg)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to generate JWS: %w", err)
 		}
@@ -513,12 +513,12 @@ func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOrmRep
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported ElasticKeyAlgorithm %v", elasticKeyAlgorithm)
 	}
 
-	return keyID, privateOrSecretJwk, publicJwk, encodedPrivateOrSecretJwk, encodedPublicJwk, nil
+	return materialKeyID, privateOrSecretJwk, publicJwk, encodedPrivateOrSecretJwk, encodedPublicJwk, nil
 }
 
-func (s *BusinessLogicService) getAndDecryptElasticKeyJwk(ctx context.Context, elasticKeyID *googleUuid.UUID, kidUuid *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.Key, joseJwk.Key, error) {
+func (s *BusinessLogicService) getAndDecryptElasticKeyJwk(ctx context.Context, elasticKeyID *googleUuid.UUID, kidUuid *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.MaterialKey, joseJwk.Key, error) {
 	var repositoryElasticKey *cryptoutilOrmRepository.ElasticKey
-	var repositoryElasticKeyKey *cryptoutilOrmRepository.Key
+	var repositoryElasticKeyKey *cryptoutilOrmRepository.MaterialKey
 	var decryptedJwkBytes []byte
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error

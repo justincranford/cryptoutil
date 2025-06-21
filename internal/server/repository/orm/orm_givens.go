@@ -45,6 +45,6 @@ func (g *Givens) Aes256ElasticKey(versioningAllowed, importAllowed, exportAllowe
 	return elasticKey
 }
 
-func (g *Givens) Aes256Key(elasticKeyID googleUuid.UUID, generateDate, importDate, expirationDate, revocationDate *time.Time) *Key {
+func (g *Givens) Aes256Key(elasticKeyID googleUuid.UUID, generateDate, importDate, expirationDate, revocationDate *time.Time) *MaterialKey {
 	return BuildKey(elasticKeyID, g.UUIDv7(), g.A256(), generateDate, importDate, expirationDate, revocationDate)
 }

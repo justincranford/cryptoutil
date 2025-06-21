@@ -190,7 +190,7 @@ func (m *serviceOrmMapper) toServiceElasticKeys(ormElasticKeys []cryptoutilOrmRe
 
 func (s *serviceOrmMapper) toServiceElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilBusinessLogicModel.ElasticKey {
 	return &cryptoutilBusinessLogicModel.ElasticKey{
-		Id:                (*cryptoutilBusinessLogicModel.ElasticKeyId)(&ormElasticKey.ElasticKeyID),
+		ElasticKeyID:      (*cryptoutilBusinessLogicModel.ElasticKeyId)(&ormElasticKey.ElasticKeyID),
 		Name:              &ormElasticKey.ElasticKeyName,
 		Description:       &ormElasticKey.ElasticKeyDescription,
 		Algorithm:         s.toServiceElasticKeyAlgorithm(&ormElasticKey.ElasticKeyAlgorithm),
@@ -217,9 +217,9 @@ func (m *serviceOrmMapper) toServiceElasticKeyStatus(ormElasticKeyStatus *crypto
 	return &serviceElasticKeyStatus
 }
 
-func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, repositoryKeyMaterials []*keyExportableMaterial) ([]cryptoutilBusinessLogicModel.Key, error) {
-	serviceKeys := make([]cryptoutilBusinessLogicModel.Key, len(ormKeys))
-	var serviceKey *cryptoutilBusinessLogicModel.Key
+func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*keyExportableMaterial) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
+	serviceKeys := make([]cryptoutilBusinessLogicModel.MaterialKey, len(ormKeys))
+	var serviceKey *cryptoutilBusinessLogicModel.MaterialKey
 	var err error
 	for i, ormKey := range ormKeys {
 		serviceKey, err = m.toServiceKey(&ormKey, repositoryKeyMaterials[i])
@@ -231,14 +231,14 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Key, 
 	return serviceKeys, nil
 }
 
-func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Key, repositoryKeyMaterial *keyExportableMaterial) (*cryptoutilBusinessLogicModel.Key, error) {
-	return &cryptoutilBusinessLogicModel.Key{
-		Pool:           cryptoutilBusinessLogicModel.ElasticKeyId(ormKey.ElasticKeyID),
-		Id:             ormKey.KeyID,
-		GenerateDate:   (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyGenerateDate),
-		ImportDate:     (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyImportDate),
-		ExpirationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyExpirationDate),
-		RevocationDate: (*cryptoutilBusinessLogicModel.KeyGenerateDate)(ormKey.KeyRevocationDate),
+func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *keyExportableMaterial) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
+	return &cryptoutilBusinessLogicModel.MaterialKey{
+		ElasticKeyID:   cryptoutilBusinessLogicModel.ElasticKeyId(ormKey.ElasticKeyID),
+		MaterialKeyID:  ormKey.MaterialKeyID,
+		GenerateDate:   (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyGenerateDate),
+		ImportDate:     (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyImportDate),
+		ExpirationDate: (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyExpirationDate),
+		RevocationDate: (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyRevocationDate),
 		Public:         repositoryKeyMaterial.public,
 		Decrypted:      repositoryKeyMaterial.decrypted,
 	}, nil
@@ -249,7 +249,7 @@ func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusi
 		return nil, nil
 	}
 	var errs []error
-	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.Id)
+	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyID)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Elastic Key ID: %w", err))
 	}
@@ -278,7 +278,7 @@ func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusi
 	}
 
 	return &cryptoutilOrmRepository.GetElasticKeysFilters{
-		ID:                elasticKeyIDs,
+		ElasticKeyID:      elasticKeyIDs,
 		Name:              names,
 		Algorithm:         algorithms,
 		VersioningAllowed: params.VersioningAllowed,
@@ -290,20 +290,20 @@ func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusi
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetElasticKeyKeysQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeyKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetElasticKeyMaterialKeysQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
 	var errs []error
-	keyIDs, err := m.toOptionalOrmUUIDs(params.Id)
+	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyID)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
+		errs = append(errs, fmt.Errorf("invalid MaterialKeyID: %w", err))
 	}
 	minGenerateDate, maxGenerateDate, err := m.toOrmDateRange(params.MinGenerateDate, params.MaxGenerateDate)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
 	}
-	sorts, err := m.toOrmKeySorts(params.Sort)
+	sorts, err := m.toOrmMaterialKeySorts(params.Sort)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Key Sort: %w", err))
 	}
@@ -318,8 +318,8 @@ func (m *serviceOrmMapper) toOrmGetElasticKeyKeysQueryParams(params *cryptoutilB
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("invalid Get Elastic Key Keys parameters: %w", errors.Join(errs...))
 	}
-	return &cryptoutilOrmRepository.GetElasticKeyKeysFilters{
-		ID:                  keyIDs,
+	return &cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters{
+		ElasticKeyID:        materialKeyIDs,
 		MinimumGenerateDate: minGenerateDate,
 		MaximumGenerateDate: maxGenerateDate,
 		Sort:                sorts,
@@ -328,24 +328,24 @@ func (m *serviceOrmMapper) toOrmGetElasticKeyKeysQueryParams(params *cryptoutilB
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLogicModel.KeysQueryParams) (*cryptoutilOrmRepository.GetKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilBusinessLogicModel.MaterialKeysQueryParams) (*cryptoutilOrmRepository.GetMaterialKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
 	var errs []error
-	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.Pool)
+	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyID)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid ElasticKeyID: %w", err))
 	}
-	keyIDs, err := m.toOptionalOrmUUIDs(params.Id)
+	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyID)
 	if err != nil {
-		errs = append(errs, fmt.Errorf("invalid KeyID: %w", err))
+		errs = append(errs, fmt.Errorf("invalid MaterialKeyID: %w", err))
 	}
 	minGenerateDate, maxGenerateDate, err := m.toOrmDateRange(params.MinGenerateDate, params.MaxGenerateDate)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
 	}
-	sorts, err := m.toOrmKeySorts(params.Sort)
+	sorts, err := m.toOrmMaterialKeySorts(params.Sort)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Key Sort: %w", err))
 	}
@@ -361,9 +361,9 @@ func (m *serviceOrmMapper) toOrmGetKeysQueryParams(params *cryptoutilBusinessLog
 		return nil, fmt.Errorf("invalid Get Keys parameters: %w", errors.Join(errs...))
 	}
 
-	return &cryptoutilOrmRepository.GetKeysFilters{
-		Pool:                elasticKeyIDs,
-		ID:                  keyIDs,
+	return &cryptoutilOrmRepository.GetMaterialKeysFilters{
+		ElasticKeyID:        elasticKeyIDs,
+		MaterialKeyID:       materialKeyIDs,
 		MinimumGenerateDate: minGenerateDate,
 		MaximumGenerateDate: maxGenerateDate,
 		Sort:                sorts,
@@ -424,13 +424,15 @@ func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilBusinessLogic
 	return newVar, nil
 }
 
-func (m *serviceOrmMapper) toOrmElasticKeySorts(elasticKeySorts *[]cryptoutilBusinessLogicModel.ElasticKeySort) ([]string, error) {
-	newVar := toStrings(elasticKeySorts, func(elasticKeySort cryptoutilBusinessLogicModel.ElasticKeySort) string { return string(elasticKeySort) })
+func (m *serviceOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptoutilBusinessLogicModel.ElasticKeySort) ([]string, error) {
+	newVar := toStrings(elasticMaterialKeySorts, func(elasticMaterialKeySort cryptoutilBusinessLogicModel.ElasticKeySort) string {
+		return string(elasticMaterialKeySort)
+	})
 	return newVar, nil
 }
 
-func (m *serviceOrmMapper) toOrmKeySorts(keySorts *[]cryptoutilBusinessLogicModel.KeySort) ([]string, error) {
-	newVar := toStrings(keySorts, func(keySort cryptoutilBusinessLogicModel.KeySort) string { return string(keySort) })
+func (m *serviceOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilBusinessLogicModel.MaterialKeySort) ([]string, error) {
+	newVar := toStrings(keySorts, func(keySort cryptoutilBusinessLogicModel.MaterialKeySort) string { return string(keySort) })
 	return newVar, nil
 }
 
