@@ -113,27 +113,27 @@ func (m *openapiBusinessLogicMapper) toPostElastickeyElasticKeyIDMaterialkeyResp
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkey200JSONResponse(*generateKeyInElasticKeyResponse), err
 }
 
-func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(err error, key *cryptoutilBusinessLogicModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err error, key *cryptoutilBusinessLogicModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
 			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
 			case http.StatusBadRequest:
-				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID400JSONResponse{HTTP400BadRequest: m.toHTTP400Response(appErr)}, nil
 			case http.StatusNotFound:
-				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID404JSONResponse{HTTP404NotFound: m.toHTTP404Response(appErr)}, nil
 			case http.StatusInternalServerError:
-				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
+				return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID500JSONResponse{HTTP500InternalServerError: m.toHTTP500Response(appErr)}, nil
 			}
 		}
 		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
-	return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId200JSONResponse(*key), err
+	return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse(*key), err
 }
 
 func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyMaterialKeysQueryParams(openapiParams *cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysParams) *cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams {
 	filters := cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams{
-		MaterialKeyId:   openapiParams.MaterialKeyId,
+		MaterialKeyID:   openapiParams.MaterialKeyID,
 		MinGenerateDate: openapiParams.MinGenerateDate,
 		MaxGenerateDate: openapiParams.MaxGenerateDate,
 		Sort:            openapiParams.Sort,
@@ -199,7 +199,7 @@ func (m *openapiBusinessLogicMapper) toPostVerifyResponse(err error, verifiedByt
 
 func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyQueryParams(openapiParams *cryptoutilOpenapiServer.GetElastickeysParams) *cryptoutilBusinessLogicModel.ElasticKeysQueryParams {
 	filters := cryptoutilBusinessLogicModel.ElasticKeysQueryParams{
-		ElasticKeyId:      openapiParams.ElasticKeyId,
+		ElasticKeyID:      openapiParams.ElasticKeyID,
 		Name:              openapiParams.Name,
 		Provider:          openapiParams.Provider,
 		Algorithm:         openapiParams.Algorithm,
@@ -234,8 +234,8 @@ func (m *openapiBusinessLogicMapper) toGetElastickeysResponse(err error, elastic
 
 func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetMaterialKeysQueryParams(openapiParams *cryptoutilOpenapiServer.GetMaterialkeysParams) *cryptoutilBusinessLogicModel.MaterialKeysQueryParams {
 	filters := cryptoutilBusinessLogicModel.MaterialKeysQueryParams{
-		ElasticKeyId:    openapiParams.ElasticKeyId,
-		MaterialKeyId:   openapiParams.MaterialKeyId,
+		ElasticKeyID:    openapiParams.ElasticKeyID,
+		MaterialKeyID:   openapiParams.MaterialKeyID,
 		MinGenerateDate: openapiParams.MinGenerateDate,
 		MaxGenerateDate: openapiParams.MaxGenerateDate,
 		Sort:            openapiParams.Sort,

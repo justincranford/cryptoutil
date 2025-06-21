@@ -7,5 +7,6 @@ generate:
   embedded-spec: true
 output-options:
   skip-prune: true
+  name-normalizer: ToCamelCaseWithInitialisms
 import-mapping:
   "./openapi_spec_components.yaml": cryptoutil/internal/openapi/model

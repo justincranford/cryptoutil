@@ -25,6 +25,7 @@ const (
 	A128CBCHS256A192KW       ElasticKeyAlgorithm = "A128CBC-HS256/A192KW"
 	A128CBCHS256A256GCMKW    ElasticKeyAlgorithm = "A128CBC-HS256/A256GCMKW"
 	A128CBCHS256A256KW       ElasticKeyAlgorithm = "A128CBC-HS256/A256KW"
+	A128CBCHS256Dir          ElasticKeyAlgorithm = "A128CBC-HS256/dir"
 	A128CBCHS256ECDHES       ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES"
 	A128CBCHS256ECDHESA128KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A128KW"
 	A128CBCHS256ECDHESA192KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A192KW"
@@ -34,13 +35,13 @@ const (
 	A128CBCHS256RSAOAEP256   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-256"
 	A128CBCHS256RSAOAEP384   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-384"
 	A128CBCHS256RSAOAEP512   ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-512"
-	A128CBCHS256dir          ElasticKeyAlgorithm = "A128CBC-HS256/dir"
 	A128GCMA128GCMKW         ElasticKeyAlgorithm = "A128GCM/A128GCMKW"
 	A128GCMA128KW            ElasticKeyAlgorithm = "A128GCM/A128KW"
 	A128GCMA192GCMKW         ElasticKeyAlgorithm = "A128GCM/A192GCMKW"
 	A128GCMA192KW            ElasticKeyAlgorithm = "A128GCM/A192KW"
 	A128GCMA256GCMKW         ElasticKeyAlgorithm = "A128GCM/A256GCMKW"
 	A128GCMA256KW            ElasticKeyAlgorithm = "A128GCM/A256KW"
+	A128GCMDir               ElasticKeyAlgorithm = "A128GCM/dir"
 	A128GCMECDHES            ElasticKeyAlgorithm = "A128GCM/ECDH-ES"
 	A128GCMECDHESA128KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A128KW"
 	A128GCMECDHESA192KW      ElasticKeyAlgorithm = "A128GCM/ECDH-ES+A192KW"
@@ -50,13 +51,13 @@ const (
 	A128GCMRSAOAEP256        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-256"
 	A128GCMRSAOAEP384        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-384"
 	A128GCMRSAOAEP512        ElasticKeyAlgorithm = "A128GCM/RSA-OAEP-512"
-	A128GCMdir               ElasticKeyAlgorithm = "A128GCM/dir"
 	A192CBCHS384A128GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A128GCMKW"
 	A192CBCHS384A128KW       ElasticKeyAlgorithm = "A192CBC-HS384/A128KW"
 	A192CBCHS384A192GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A192GCMKW"
 	A192CBCHS384A192KW       ElasticKeyAlgorithm = "A192CBC-HS384/A192KW"
 	A192CBCHS384A256GCMKW    ElasticKeyAlgorithm = "A192CBC-HS384/A256GCMKW"
 	A192CBCHS384A256KW       ElasticKeyAlgorithm = "A192CBC-HS384/A256KW"
+	A192CBCHS384Dir          ElasticKeyAlgorithm = "A192CBC-HS384/dir"
 	A192CBCHS384ECDHES       ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES"
 	A192CBCHS384ECDHESA128KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A128KW"
 	A192CBCHS384ECDHESA192KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A192KW"
@@ -66,13 +67,13 @@ const (
 	A192CBCHS384RSAOAEP256   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-256"
 	A192CBCHS384RSAOAEP384   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-384"
 	A192CBCHS384RSAOAEP512   ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-512"
-	A192CBCHS384dir          ElasticKeyAlgorithm = "A192CBC-HS384/dir"
 	A192GCMA128GCMKW         ElasticKeyAlgorithm = "A192GCM/A128GCMKW"
 	A192GCMA128KW            ElasticKeyAlgorithm = "A192GCM/A128KW"
 	A192GCMA192GCMKW         ElasticKeyAlgorithm = "A192GCM/A192GCMKW"
 	A192GCMA192KW            ElasticKeyAlgorithm = "A192GCM/A192KW"
 	A192GCMA256GCMKW         ElasticKeyAlgorithm = "A192GCM/A256GCMKW"
 	A192GCMA256KW            ElasticKeyAlgorithm = "A192GCM/A256KW"
+	A192GCMDir               ElasticKeyAlgorithm = "A192GCM/dir"
 	A192GCMECDHES            ElasticKeyAlgorithm = "A192GCM/ECDH-ES"
 	A192GCMECDHESA128KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A128KW"
 	A192GCMECDHESA192KW      ElasticKeyAlgorithm = "A192GCM/ECDH-ES+A192KW"
@@ -82,13 +83,13 @@ const (
 	A192GCMRSAOAEP256        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-256"
 	A192GCMRSAOAEP384        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-384"
 	A192GCMRSAOAEP512        ElasticKeyAlgorithm = "A192GCM/RSA-OAEP-512"
-	A192GCMdir               ElasticKeyAlgorithm = "A192GCM/dir"
 	A256CBCHS512A128GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A128GCMKW"
 	A256CBCHS512A128KW       ElasticKeyAlgorithm = "A256CBC-HS512/A128KW"
 	A256CBCHS512A192GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A192GCMKW"
 	A256CBCHS512A192KW       ElasticKeyAlgorithm = "A256CBC-HS512/A192KW"
 	A256CBCHS512A256GCMKW    ElasticKeyAlgorithm = "A256CBC-HS512/A256GCMKW"
 	A256CBCHS512A256KW       ElasticKeyAlgorithm = "A256CBC-HS512/A256KW"
+	A256CBCHS512Dir          ElasticKeyAlgorithm = "A256CBC-HS512/dir"
 	A256CBCHS512ECDHES       ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES"
 	A256CBCHS512ECDHESA128KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A128KW"
 	A256CBCHS512ECDHESA192KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A192KW"
@@ -98,13 +99,13 @@ const (
 	A256CBCHS512RSAOAEP256   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-256"
 	A256CBCHS512RSAOAEP384   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-384"
 	A256CBCHS512RSAOAEP512   ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-512"
-	A256CBCHS512dir          ElasticKeyAlgorithm = "A256CBC-HS512/dir"
 	A256GCMA128GCMKW         ElasticKeyAlgorithm = "A256GCM/A128GCMKW"
 	A256GCMA128KW            ElasticKeyAlgorithm = "A256GCM/A128KW"
 	A256GCMA192GCMKW         ElasticKeyAlgorithm = "A256GCM/A192GCMKW"
 	A256GCMA192KW            ElasticKeyAlgorithm = "A256GCM/A192KW"
 	A256GCMA256GCMKW         ElasticKeyAlgorithm = "A256GCM/A256GCMKW"
 	A256GCMA256KW            ElasticKeyAlgorithm = "A256GCM/A256KW"
+	A256GCMDir               ElasticKeyAlgorithm = "A256GCM/dir"
 	A256GCMECDHES            ElasticKeyAlgorithm = "A256GCM/ECDH-ES"
 	A256GCMECDHESA128KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A128KW"
 	A256GCMECDHESA192KW      ElasticKeyAlgorithm = "A256GCM/ECDH-ES+A192KW"
@@ -114,7 +115,6 @@ const (
 	A256GCMRSAOAEP256        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-256"
 	A256GCMRSAOAEP384        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-384"
 	A256GCMRSAOAEP512        ElasticKeyAlgorithm = "A256GCM/RSA-OAEP-512"
-	A256GCMdir               ElasticKeyAlgorithm = "A256GCM/dir"
 	ES256                    ElasticKeyAlgorithm = "ES256"
 	ES384                    ElasticKeyAlgorithm = "ES384"
 	ES512                    ElasticKeyAlgorithm = "ES512"
@@ -139,8 +139,8 @@ const (
 const (
 	ElasticKeySortAlgorithmASC          ElasticKeySort = "algorithm:ASC"
 	ElasticKeySortAlgorithmDESC         ElasticKeySort = "algorithm:DESC"
-	ElasticKeySortElasticKeyIdASC       ElasticKeySort = "elastic_key_id:ASC"
-	ElasticKeySortElasticKeyIdDESC      ElasticKeySort = "elastic_key_id:DESC"
+	ElasticKeySortElasticKeyIDASC       ElasticKeySort = "elastic_key_id:ASC"
+	ElasticKeySortElasticKeyIDDESC      ElasticKeySort = "elastic_key_id:DESC"
 	ElasticKeySortExportAllowedASC      ElasticKeySort = "export_allowed:ASC"
 	ElasticKeySortExportAllowedDESC     ElasticKeySort = "export_allowed:DESC"
 	ElasticKeySortImportAllowedASC      ElasticKeySort = "import_allowed:ASC"
@@ -175,15 +175,15 @@ const (
 
 // Defines values for MaterialKeySort.
 const (
-	MaterialKeySortElasticKeyId      MaterialKeySort = "elastic_key_id"
-	MaterialKeySortElasticKeyIdASC   MaterialKeySort = "elastic_key_id:ASC"
-	MaterialKeySortElasticKeyIdDESC  MaterialKeySort = "elastic_key_id:DESC"
+	MaterialKeySortElasticKeyID      MaterialKeySort = "elastic_key_id"
+	MaterialKeySortElasticKeyIDASC   MaterialKeySort = "elastic_key_id:ASC"
+	MaterialKeySortElasticKeyIDDESC  MaterialKeySort = "elastic_key_id:DESC"
 	MaterialKeySortGenerateDate      MaterialKeySort = "generate_date"
 	MaterialKeySortGenerateDateASC   MaterialKeySort = "generate_date:ASC"
 	MaterialKeySortGenerateDateDESC  MaterialKeySort = "generate_date:DESC"
-	MaterialKeySortMaterialKeyId     MaterialKeySort = "material_key_id"
-	MaterialKeySortMaterialKeyIdASC  MaterialKeySort = "material_key_id:ASC"
-	MaterialKeySortMaterialKeyIdDESC MaterialKeySort = "material_key_id:DESC"
+	MaterialKeySortMaterialKeyID     MaterialKeySort = "material_key_id"
+	MaterialKeySortMaterialKeyIDASC  MaterialKeySort = "material_key_id:ASC"
+	MaterialKeySortMaterialKeyIDDESC MaterialKeySort = "material_key_id:DESC"
 )
 
 // DecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
@@ -200,8 +200,8 @@ type ElasticKey struct {
 	// Description Description for an Elastic Key.
 	Description *ElasticKeyDescription `json:"description,omitempty"`
 
-	// ElasticKeyId Unique UUID for an Elastic Key.
-	ElasticKeyId *ElasticKeyId `json:"elastic_key_id,omitempty"`
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID *ElasticKeyID `json:"elastic_key_id,omitempty"`
 
 	// ExportAllowed Indicates if the Elastic Key supports export.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
@@ -255,15 +255,15 @@ type ElasticKeyDescription = string
 // ElasticKeyExportAllowed Indicates if the Elastic Key supports export.
 type ElasticKeyExportAllowed = bool
 
-// ElasticKeyId Unique UUID for an Elastic Key.
-type ElasticKeyId = openapi_types.UUID
+// ElasticKeyID Unique UUID for an Elastic Key.
+type ElasticKeyID = openapi_types.UUID
 
 // ElasticKeyImportAllowed Indicates if the Elastic Key supports import (BYOK).
 type ElasticKeyImportAllowed = bool
 
 // ElasticKeyMaterialKeysQueryParams defines model for ElasticKeyMaterialKeysQueryParams.
 type ElasticKeyMaterialKeysQueryParams struct {
-	MaterialKeyId *[]MaterialKeyId `json:"material_key_id,omitempty"`
+	MaterialKeyID *[]MaterialKeyID `json:"material_key_id,omitempty"`
 
 	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
 	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
@@ -324,7 +324,7 @@ type ElasticKeyVersioningAllowed = bool
 // ElasticKeysQueryParams defines model for ElasticKeysQueryParams.
 type ElasticKeysQueryParams struct {
 	Algorithm    *[]ElasticKeyAlgorithm `json:"algorithm,omitempty"`
-	ElasticKeyId *[]ElasticKeyId        `json:"elastic_key_id,omitempty"`
+	ElasticKeyID *[]ElasticKeyID        `json:"elastic_key_id,omitempty"`
 
 	// ExportAllowed Indicates if the Elastic Key supports export.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
@@ -378,8 +378,8 @@ type MaterialKey struct {
 	// Decrypted Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
 	Decrypted *MaterialKeyDecrypted `json:"decrypted,omitempty"`
 
-	// ElasticKeyId Unique UUID for an Elastic Key.
-	ElasticKeyId ElasticKeyId `json:"elastic_key_id"`
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID ElasticKeyID `json:"elastic_key_id"`
 
 	// Encrypted Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
 	Encrypted *MaterialKeyEncrypted `json:"encrypted,omitempty"`
@@ -393,8 +393,8 @@ type MaterialKey struct {
 	// ImportDate ISO 8601 UTC timestamp of Material Key generation.
 	ImportDate *MaterialKeyImportDate `json:"import_date,omitempty"`
 
-	// MaterialKeyId Unique UUID for a Material Key.
-	MaterialKeyId MaterialKeyId `json:"material_key_id"`
+	// MaterialKeyID Unique UUID for a Material Key.
+	MaterialKeyID MaterialKeyID `json:"material_key_id"`
 
 	// Public Clear public key Material Key (if applicable)
 	Public *MaterialKeyPublic `json:"public,omitempty"`
@@ -418,8 +418,8 @@ type MaterialKeyGenerate = map[string]interface{}
 // MaterialKeyGenerateDate ISO 8601 UTC timestamp of Material Key generation.
 type MaterialKeyGenerateDate = time.Time
 
-// MaterialKeyId Unique UUID for a Material Key.
-type MaterialKeyId = openapi_types.UUID
+// MaterialKeyID Unique UUID for a Material Key.
+type MaterialKeyID = openapi_types.UUID
 
 // MaterialKeyImportDate ISO 8601 UTC timestamp of Material Key generation.
 type MaterialKeyImportDate = time.Time
@@ -435,17 +435,17 @@ type MaterialKeySort string
 
 // MaterialKeyUpdate defines model for MaterialKeyUpdate.
 type MaterialKeyUpdate struct {
-	// ElasticKeyId Unique UUID for an Elastic Key.
-	ElasticKeyId ElasticKeyId `json:"elastic_key_id"`
+	// ElasticKeyID Unique UUID for an Elastic Key.
+	ElasticKeyID ElasticKeyID `json:"elastic_key_id"`
 
-	// MaterialKeyId Unique UUID for a Material Key.
-	MaterialKeyId MaterialKeyId `json:"material_key_id"`
+	// MaterialKeyID Unique UUID for a Material Key.
+	MaterialKeyID MaterialKeyID `json:"material_key_id"`
 }
 
 // MaterialKeysQueryParams defines model for MaterialKeysQueryParams.
 type MaterialKeysQueryParams struct {
-	ElasticKeyId  *[]ElasticKeyId  `json:"elastic_key_id,omitempty"`
-	MaterialKeyId *[]MaterialKeyId `json:"material_key_id,omitempty"`
+	ElasticKeyID  *[]ElasticKeyID  `json:"elastic_key_id,omitempty"`
+	MaterialKeyID *[]MaterialKeyID `json:"material_key_id,omitempty"`
 
 	// MaxExpirationDate ISO 8601 UTC timestamp of Material Key generation.
 	MaxExpirationDate *MaterialKeyExpirationDate `json:"max_expiration_date,omitempty"`
@@ -510,7 +510,7 @@ type VerifyResponse = string
 type ElasticKeyQueryParamAlgorithms = []ElasticKeyAlgorithm
 
 // ElasticKeyQueryParamElasticKeyIds defines model for ElasticKeyQueryParamElasticKeyIds.
-type ElasticKeyQueryParamElasticKeyIds = []ElasticKeyId
+type ElasticKeyQueryParamElasticKeyIds = []ElasticKeyID
 
 // ElasticKeyQueryParamExportAllowed Indicates if the Elastic Key supports export.
 type ElasticKeyQueryParamExportAllowed = ElasticKeyExportAllowed
@@ -540,10 +540,10 @@ type ElasticKeyQueryParamStatuses = []ElasticKeyStatus
 type ElasticKeyQueryParamVersioningAllowed = ElasticKeyVersioningAllowed
 
 // MaterialKeyQueryParamElasticKeyIds defines model for MaterialKeyQueryParamElasticKeyIds.
-type MaterialKeyQueryParamElasticKeyIds = []ElasticKeyId
+type MaterialKeyQueryParamElasticKeyIds = []ElasticKeyID
 
 // MaterialKeyQueryParamMaterialKeyIds defines model for MaterialKeyQueryParamMaterialKeyIds.
-type MaterialKeyQueryParamMaterialKeyIds = []MaterialKeyId
+type MaterialKeyQueryParamMaterialKeyIds = []MaterialKeyID
 
 // MaterialKeyQueryParamMaximumExpirationDate ISO 8601 UTC timestamp of Material Key generation.
 type MaterialKeyQueryParamMaximumExpirationDate = MaterialKeyExpirationDate

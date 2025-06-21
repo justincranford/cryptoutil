@@ -64,11 +64,11 @@ func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context
 
 // Get Material Key in Elastic Key.
 // (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
-func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyId(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponseObject, error) {
+func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
 	elasticKeyID := request.ElasticKeyID
-	materialKeyID := request.MaterialKeyId
-	key, err := s.businessLogicService.GetMaterialKeyByElasticKeyAndMaterialKeyId(ctx, elasticKeyID, materialKeyID)
-	return s.openapiMapper.toGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIdResponse(err, key)
+	materialKeyID := request.MaterialKeyID
+	key, err := s.businessLogicService.GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx, elasticKeyID, materialKeyID)
+	return s.openapiMapper.toGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err, key)
 }
 
 // Find Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.

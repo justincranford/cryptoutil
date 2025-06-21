@@ -40,9 +40,9 @@ var (
 		string(cryptoutilOpenapiModel.A192GCMA128GCMKW): cryptoutilOpenapiModel.A192GCMA128GCMKW,
 		string(cryptoutilOpenapiModel.A128GCMA128GCMKW): cryptoutilOpenapiModel.A128GCMA128GCMKW,
 
-		string(cryptoutilOpenapiModel.A256GCMdir): cryptoutilOpenapiModel.A256GCMdir,
-		string(cryptoutilOpenapiModel.A192GCMdir): cryptoutilOpenapiModel.A192GCMdir,
-		string(cryptoutilOpenapiModel.A128GCMdir): cryptoutilOpenapiModel.A128GCMdir,
+		string(cryptoutilOpenapiModel.A256GCMDir): cryptoutilOpenapiModel.A256GCMDir,
+		string(cryptoutilOpenapiModel.A192GCMDir): cryptoutilOpenapiModel.A192GCMDir,
+		string(cryptoutilOpenapiModel.A128GCMDir): cryptoutilOpenapiModel.A128GCMDir,
 
 		string(cryptoutilOpenapiModel.A256GCMRSAOAEP512): cryptoutilOpenapiModel.A256GCMRSAOAEP512,
 		string(cryptoutilOpenapiModel.A192GCMRSAOAEP512): cryptoutilOpenapiModel.A192GCMRSAOAEP512,
@@ -93,9 +93,9 @@ var (
 		string(cryptoutilOpenapiModel.A192CBCHS384A128GCMKW): cryptoutilOpenapiModel.A192CBCHS384A128GCMKW,
 		string(cryptoutilOpenapiModel.A128CBCHS256A128GCMKW): cryptoutilOpenapiModel.A128CBCHS256A128GCMKW,
 
-		string(cryptoutilOpenapiModel.A256CBCHS512dir): cryptoutilOpenapiModel.A256CBCHS512dir,
-		string(cryptoutilOpenapiModel.A192CBCHS384dir): cryptoutilOpenapiModel.A192CBCHS384dir,
-		string(cryptoutilOpenapiModel.A128CBCHS256dir): cryptoutilOpenapiModel.A128CBCHS256dir,
+		string(cryptoutilOpenapiModel.A256CBCHS512Dir): cryptoutilOpenapiModel.A256CBCHS512Dir,
+		string(cryptoutilOpenapiModel.A192CBCHS384Dir): cryptoutilOpenapiModel.A192CBCHS384Dir,
+		string(cryptoutilOpenapiModel.A128CBCHS256Dir): cryptoutilOpenapiModel.A128CBCHS256Dir,
 
 		string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512,
 		string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512,
@@ -178,7 +178,7 @@ func MapElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.Post
 			return nil, fmt.Errorf("failed to create elastic Key, JSON200 is nil")
 		}
 		elasticKey := openapiCreateElasticKeyResponse.JSON200
-		if elasticKey.ElasticKeyId == nil {
+		if elasticKey.ElasticKeyID == nil {
 			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Id is nil")
 		} else if elasticKey.Description == nil {
 			return nil, fmt.Errorf("failed to create elastic Key, elasticKey.Description is nil")
@@ -215,9 +215,9 @@ func MapMaterialKeyGenerate(openapiMaterialKeyGenerateResponse *cryptoutilOpenap
 			return nil, fmt.Errorf("failed to generate key, JSON200 is nil")
 		}
 		key := openapiMaterialKeyGenerateResponse.JSON200
-		if key.ElasticKeyId == googleUuid.Nil {
+		if key.ElasticKeyID == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.Pool is zero")
-		} else if key.MaterialKeyId == googleUuid.Nil {
+		} else if key.MaterialKeyID == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.Id is zero")
 		} else if key.GenerateDate == nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.GenerateDate is nil") // TODO nil allowed if import not nil
