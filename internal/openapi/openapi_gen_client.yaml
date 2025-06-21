@@ -8,5 +8,25 @@ generate:
 output-options:
   skip-prune: true
   name-normalizer: ToCamelCaseWithInitialisms
+  additional-initialisms:
+    - IDS
+    - JWT
+    - JWK
+    - JWE
+    - JWS
+    - OIDC
+    - SAML
+    - AES
+    - GCM
+    - CBC
+    - RSA
+    - HMAC
+    - SHA
+    - TLS
+    - IP
+    - AI
+    - ML
+    - PEM
+    - DSA
 import-mapping:
   "./openapi_spec_components.yaml": cryptoutil/internal/openapi/model
