@@ -3,7 +3,9 @@ package telemetry
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
+	"runtime/debug"
 	"time"
 
 	googleUuid "github.com/google/uuid"
@@ -123,6 +125,9 @@ func NewTelemetryService(ctx context.Context, scope string, enableOtel, enableSt
 }
 
 func (s *TelemetryService) Shutdown() {
+	if s.Slogger == nil {
+		log.Fatalf("telemetry service shutdown called, but Slogger is nil\nStack trace:\n%s", string(debug.Stack()))
+	}
 	s.Slogger.Debug("stopping telemetry")
 
 	forceFlushCtx, forceFlushCancelDueToTimeout := context.WithTimeout(context.Background(), ForceFlushTimeout)

@@ -174,7 +174,6 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, jwkG
 			jwkGenService.Shutdown() // does its own logging
 		}
 		if telemetryService != nil {
-			telemetryService.Slogger.Debug("stopped server")
 			telemetryService.Shutdown() // does its own logging
 		}
 	}
