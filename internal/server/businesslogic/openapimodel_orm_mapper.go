@@ -217,7 +217,7 @@ func (m *serviceOrmMapper) toServiceElasticKeyStatus(ormElasticKeyStatus *crypto
 	return &serviceElasticKeyStatus
 }
 
-func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*keyExportableMaterial) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
+func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*materialKeyExportedDetails) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
 	serviceKeys := make([]cryptoutilBusinessLogicModel.MaterialKey, len(ormKeys))
 	var serviceKey *cryptoutilBusinessLogicModel.MaterialKey
 	var err error
@@ -231,7 +231,7 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Mater
 	return serviceKeys, nil
 }
 
-func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *keyExportableMaterial) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
+func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *materialKeyExportedDetails) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
 	return &cryptoutilBusinessLogicModel.MaterialKey{
 		ElasticKeyID:   cryptoutilBusinessLogicModel.ElasticKeyID(ormKey.ElasticKeyID),
 		MaterialKeyID:  ormKey.MaterialKeyID,
@@ -290,7 +290,7 @@ func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusi
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetElasticKeyMaterialKeysQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
+func (m *serviceOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}

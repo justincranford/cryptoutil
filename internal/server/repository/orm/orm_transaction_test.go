@@ -190,7 +190,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 				require.NotNil(t, ormTransaction.Context())
 				require.Equal(t, ReadOnly, *ormTransaction.Mode())
 
-				retrievedKey, err := ormTransaction.GetElasticKeyKey(addedKey.ElasticKeyID, addedKey.MaterialKeyID)
+				retrievedKey, err := ormTransaction.GetElasticKeyMaterialKeyVersion(addedKey.ElasticKeyID, addedKey.MaterialKeyID)
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}

@@ -84,7 +84,7 @@ func (tx *OrmTransaction) AddElasticKeyKey(key *MaterialKey) error {
 	return nil
 }
 
-func (tx *OrmTransaction) GetElasticKeyKeys(elasticKeyID googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyMaterialKeysFilters) ([]MaterialKey, error) {
+func (tx *OrmTransaction) GetMaterialKeysForElasticKey(elasticKeyID googleUuid.UUID, getElasticKeyKeysFilters *GetElasticKeyMaterialKeysFilters) ([]MaterialKey, error) {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "failed to get Keys by Elastic Key ID"); err != nil {
 		return nil, tx.toAppErr("invalid Elastic Key ID", err)
 	}
@@ -107,7 +107,7 @@ func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters
 	return keys, nil
 }
 
-func (tx *OrmTransaction) GetElasticKeyKey(elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID) (*MaterialKey, error) {
+func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
 		return nil, tx.toAppErr("failed to get Key by Elastic Key ID and Key ID", err)
 	} else if err := cryptoutilUtil.ValidateUUID(&materialKeyID, "invalid Key ID"); err != nil {
@@ -121,7 +121,7 @@ func (tx *OrmTransaction) GetElasticKeyKey(elasticKeyID googleUuid.UUID, materia
 	return &key, nil
 }
 
-func (tx *OrmTransaction) GetElasticKeyLatestKey(elasticKeyID googleUuid.UUID) (*MaterialKey, error) {
+func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
 		return nil, tx.toAppErr("failed to get latest Key by Elastic Key ID", err)
 	}

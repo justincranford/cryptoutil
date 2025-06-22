@@ -76,7 +76,7 @@ func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx con
 func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
 	elasticKeyID := request.ElasticKeyID
 	elasticKeyMaterialKeysQueryParams := s.openapiMapper.toBusinessLogicModelGetElasticKeyMaterialKeysQueryParams(&request.Params)
-	keys, err := s.businessLogicService.GetMaterialKeysByElasticKey(ctx, elasticKeyID, elasticKeyMaterialKeysQueryParams)
+	keys, err := s.businessLogicService.GetMaterialKeysForElasticKey(ctx, elasticKeyID, elasticKeyMaterialKeysQueryParams)
 	return s.openapiMapper.toGetElastickeyElasticKeyIDMaterialkeysResponse(err, keys)
 }
 
