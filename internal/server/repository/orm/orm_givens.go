@@ -5,7 +5,7 @@ import (
 	"time"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilKeygen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilKeyGenPoolTest "cryptoutil/internal/common/crypto/keygenpooltest"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -15,7 +15,7 @@ import (
 
 type Givens struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
-	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeygen.SecretKey]
+	aes256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey]
 	uuidV7KeyGenPool *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 

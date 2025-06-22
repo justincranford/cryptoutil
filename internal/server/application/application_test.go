@@ -1,7 +1,6 @@
 package application
 
 import (
-	"cryptoutil/internal/client"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +8,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	cryptoutilClient "cryptoutil/internal/client"
 
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +27,7 @@ func TestHttpGetHttp200(t *testing.T) {
 	}
 	go start()
 	defer stop()
-	client.WaitUntilReady(testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
+	cryptoutilClient.WaitUntilReady(testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
 
 	testCases := []struct {
 		name string
