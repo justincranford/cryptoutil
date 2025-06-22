@@ -175,21 +175,30 @@ const (
 
 // Defines values for MaterialKeySort.
 const (
-	MaterialKeySortElasticKeyID      MaterialKeySort = "elastic_key_id"
-	MaterialKeySortElasticKeyIDASC   MaterialKeySort = "elastic_key_id:ASC"
-	MaterialKeySortElasticKeyIDDESC  MaterialKeySort = "elastic_key_id:DESC"
-	MaterialKeySortGenerateDate      MaterialKeySort = "generate_date"
-	MaterialKeySortGenerateDateASC   MaterialKeySort = "generate_date:ASC"
-	MaterialKeySortGenerateDateDESC  MaterialKeySort = "generate_date:DESC"
-	MaterialKeySortMaterialKeyID     MaterialKeySort = "material_key_id"
-	MaterialKeySortMaterialKeyIDASC  MaterialKeySort = "material_key_id:ASC"
-	MaterialKeySortMaterialKeyIDDESC MaterialKeySort = "material_key_id:DESC"
+	MaterialKeySortElasticKeyID       MaterialKeySort = "elastic_key_id"
+	MaterialKeySortElasticKeyIDASC    MaterialKeySort = "elastic_key_id:ASC"
+	MaterialKeySortElasticKeyIDDESC   MaterialKeySort = "elastic_key_id:DESC"
+	MaterialKeySortExpirationDate     MaterialKeySort = "expiration_date"
+	MaterialKeySortExpirationDateASC  MaterialKeySort = "expiration_date:ASC"
+	MaterialKeySortExpirationDateDESC MaterialKeySort = "expiration_date:DESC"
+	MaterialKeySortGenerateDate       MaterialKeySort = "generate_date"
+	MaterialKeySortGenerateDateASC    MaterialKeySort = "generate_date:ASC"
+	MaterialKeySortGenerateDateDESC   MaterialKeySort = "generate_date:DESC"
+	MaterialKeySortImportDate         MaterialKeySort = "import_date"
+	MaterialKeySortImportDateASC      MaterialKeySort = "import_date:ASC"
+	MaterialKeySortImportDateDESC     MaterialKeySort = "import_date:DESC"
+	MaterialKeySortMaterialKeyID      MaterialKeySort = "material_key_id"
+	MaterialKeySortMaterialKeyIDASC   MaterialKeySort = "material_key_id:ASC"
+	MaterialKeySortMaterialKeyIDDESC  MaterialKeySort = "material_key_id:DESC"
+	MaterialKeySortRevocationDate     MaterialKeySort = "revocation_date"
+	MaterialKeySortRevocationDateASC  MaterialKeySort = "revocation_date:ASC"
+	MaterialKeySortRevocationDateDESC MaterialKeySort = "revocation_date:DESC"
 )
 
-// DecryptRequest Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
+// DecryptRequest JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers. - Header: Required base64Url-encoded JSON key/values for the JWE message. - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted bytes. - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
 type DecryptRequest = string
 
-// DecryptResponse Decrypted text. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; use the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+// DecryptResponse Decrypted string. For bytes, decode from text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc) back to bytes.
 type DecryptResponse = string
 
 // ElasticKey defines model for ElasticKey.
@@ -203,7 +212,7 @@ type ElasticKey struct {
 	// ElasticKeyID Unique UUID for an Elastic Key.
 	ElasticKeyID *ElasticKeyID `json:"elastic_key_id,omitempty"`
 
-	// ExportAllowed Indicates if the Elastic Key supports export.
+	// ExportAllowed Indicates if the Elastic Key supports export of Material Key. Always use default false for production. If true, the Elastic Key should only be used for testing or development.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
 
 	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
@@ -233,7 +242,7 @@ type ElasticKeyCreate struct {
 	// Description Description for an Elastic Key.
 	Description ElasticKeyDescription `json:"description"`
 
-	// ExportAllowed Indicates if the Elastic Key supports export.
+	// ExportAllowed Indicates if the Elastic Key supports export of Material Key. Always use default false for production. If true, the Elastic Key should only be used for testing or development.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
 
 	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
@@ -252,7 +261,7 @@ type ElasticKeyCreate struct {
 // ElasticKeyDescription Description for an Elastic Key.
 type ElasticKeyDescription = string
 
-// ElasticKeyExportAllowed Indicates if the Elastic Key supports export.
+// ElasticKeyExportAllowed Indicates if the Elastic Key supports export of Material Key. Always use default false for production. If true, the Elastic Key should only be used for testing or development.
 type ElasticKeyExportAllowed = bool
 
 // ElasticKeyID Unique UUID for an Elastic Key.
@@ -326,7 +335,7 @@ type ElasticKeysQueryParams struct {
 	Algorithm    *[]ElasticKeyAlgorithm `json:"algorithm,omitempty"`
 	ElasticKeyID *[]ElasticKeyID        `json:"elastic_key_id,omitempty"`
 
-	// ExportAllowed Indicates if the Elastic Key supports export.
+	// ExportAllowed Indicates if the Elastic Key supports export of Material Key. Always use default false for production. If true, the Elastic Key should only be used for testing or development.
 	ExportAllowed *ElasticKeyExportAllowed `json:"export_allowed,omitempty"`
 
 	// ImportAllowed Indicates if the Elastic Key supports import (BYOK).
@@ -346,19 +355,19 @@ type ElasticKeysQueryParams struct {
 	VersioningAllowed *ElasticKeyVersioningAllowed `json:"versioning_allowed,omitempty"`
 }
 
-// EncryptContext Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+// EncryptContext Base64URL-encoded context. This is clear data used for authentication and integrity checking during decryption (e.g. namespace, context).
 type EncryptContext = string
 
 // EncryptParams defines model for EncryptParams.
 type EncryptParams struct {
-	// Context Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+	// Context Base64URL-encoded context. This is clear data used for authentication and integrity checking during decryption (e.g. namespace, context).
 	Context *EncryptContext `json:"context,omitempty"`
 }
 
-// EncryptRequest Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+// EncryptRequest Clear string to be encrypted. For bytes, pre-encode as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
 type EncryptRequest = string
 
-// EncryptResponse Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext. - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
+// EncryptResponse JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details. Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers. - Header: Required base64Url-encoded JSON key/values for the JWE. - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir). - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV. - Ciphertext: Required base64Url-encoded encrypted bytes. - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
 type EncryptResponse = string
 
 // HTTPError defines model for HTTPError.
@@ -485,22 +494,22 @@ type PageNumber = int
 // PageSize Page number.
 type PageSize = int
 
-// SignContext Base64URL-encoded context Authenticated Data (AAD). This is non-secret data used for integrity checking during verify (e.g. namespace, context).
+// SignContext Base64URL-encoded context. This is clear data used for integrity checking during verify (e.g. namespace, context).
 type SignContext = string
 
 // SignParams defines model for SignParams.
 type SignParams struct {
-	// Context Base64URL-encoded context Authenticated Data (AAD). This is non-secret data used for integrity checking during verify (e.g. namespace, context).
+	// Context Base64URL-encoded context. This is clear data used for integrity checking during verify (e.g. namespace, context).
 	Context *SignContext `json:"context,omitempty"`
 }
 
 // SignRequest Clear text to be signed. Can be JSON-encoded to create a JWT, or freeform to create a JWS. If you need freeform, encode as text (e.g. Base64-URL, Base64-MIME, Base64, Hexadecimal, etc).
 type SignRequest = string
 
-// SignResponse Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'. - Header: Required base64Url-encoded JSON key/values for the JWS. - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT). - Signature: Required base64Url-encoded signature.
+// SignResponse JSON Web Signature (JWS) message in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. Each section is Base64Url-encoded. All parts are non-empty. - Header: Required base64Url-encoded JSON key/values for the JWS message. - Plaintext: Required base64Url-encoded clear text. Payload can be freeform (JWS), or in a special case it can be JSON (JWT). - Signature: Required base64Url-encoded signature.
 type SignResponse = string
 
-// VerifyRequest Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'. - Header: Required base64Url-encoded JSON key/values for the JWS. - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT). - Signature: Required base64Url-encoded signature.
+// VerifyRequest JSON Web Signature (JWS) message in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details. Compact serialized format is 'Header.Payload.Signature'. Each section is Base64Url-encoded. All parts are non-empty. - Header: Required base64Url-encoded JSON key/values for the JWS message. - Plaintext: Required base64Url-encoded clear text. Payload can be freeform (JWS), or in a special case it can be JSON (JWT). - Signature: Required base64Url-encoded signature.
 type VerifyRequest = string
 
 // VerifyResponse Optional message about verification result
@@ -509,10 +518,10 @@ type VerifyResponse = string
 // ElasticKeyQueryParamAlgorithms defines model for ElasticKeyQueryParamAlgorithms.
 type ElasticKeyQueryParamAlgorithms = []ElasticKeyAlgorithm
 
-// ElasticKeyQueryParamElasticKeyIDS defines model for ElasticKeyQueryParamElasticKeyIds.
+// ElasticKeyQueryParamElasticKeyIDS defines model for ElasticKeyQueryParamElasticKeyIDS.
 type ElasticKeyQueryParamElasticKeyIDS = []ElasticKeyID
 
-// ElasticKeyQueryParamExportAllowed Indicates if the Elastic Key supports export.
+// ElasticKeyQueryParamExportAllowed Indicates if the Elastic Key supports export of Material Key. Always use default false for production. If true, the Elastic Key should only be used for testing or development.
 type ElasticKeyQueryParamExportAllowed = ElasticKeyExportAllowed
 
 // ElasticKeyQueryParamImportAllowed Indicates if the Elastic Key supports import (BYOK).
@@ -539,10 +548,10 @@ type ElasticKeyQueryParamStatuses = []ElasticKeyStatus
 // ElasticKeyQueryParamVersioningAllowed Indicates if the Elastic Key supports versioning.
 type ElasticKeyQueryParamVersioningAllowed = ElasticKeyVersioningAllowed
 
-// MaterialKeyQueryParamElasticKeyIDS defines model for MaterialKeyQueryParamElasticKeyIds.
+// MaterialKeyQueryParamElasticKeyIDS defines model for MaterialKeyQueryParamElasticKeyIDS.
 type MaterialKeyQueryParamElasticKeyIDS = []ElasticKeyID
 
-// MaterialKeyQueryParamMaterialKeyIDS defines model for MaterialKeyQueryParamMaterialKeyIds.
+// MaterialKeyQueryParamMaterialKeyIDS defines model for MaterialKeyQueryParamMaterialKeyIDS.
 type MaterialKeyQueryParamMaterialKeyIDS = []MaterialKeyID
 
 // MaterialKeyQueryParamMaximumExpirationDate ISO 8601 UTC timestamp of Material Key generation.
@@ -644,78 +653,78 @@ type HTTP504GatewayTimeout struct {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AP//MqWCEAdnAAA=",
+	"H4sIAAAAAAAC/+w87XLbOJKvguJtle0dWbFlKzfR1v5QZCVRMk58lp3U7kwuA5EtCRsS4ACgY82U3/0K",
+	"IPgBCpIoSklcdfnhsgigG/0BNLobTf7l+SyKGQUqhdf7y4sxxxFI4PppGGIhif8GFv+TAF9cqc5+OGOc",
+	"yHmkRwQgfE5iSRj1et4LEkrgaLJABhK9gQXCGUTba3lwH4csAK8neQItjyiwPxRyr+VRHIHX8/LxXssT",
+	"/hwirGYiEtIp/8Zh6vW8/3pSUP4kHSaeFATnZHoPLU8uYo2Yc7xQz0IuQtUwZVz3u/gs2kYX43WsyjlY",
+	"7I4u0OHt7ejiqCa7kMJ++gyLTyTYhefRRWNm72PGZT8M2RcI1jH7ZQ5yDhyBBkBEIJwCKWad3OmBn8wo",
+	"i7t6TNmkPaxgYBRtyQCJajKQDtyBAZu0VQy8xRGIbZaZIq/mCtP/dlhXiramK+sKz+BtEk2A64kd1MV4",
+	"BrXFWkL3sGbGMfkTVs0nVN8282lkK2fj7I4Exl7WsYaxAaipu2z4LvrLaGyqwzHj0sHfOAafTBdIMC4J",
+	"nSEs0O9TAmGg1ksvIBx8NfJ3dAjtWbuFflcs9bDwfz9qo2uIAUuUnzdoyjiKklCSOASNEmlcoqacFMQu",
+	"MlI8NpaPxDIR221foWHqMqcH78ReiqEhg++BC8IoobMtLOxdDlTDyhaDd7C0y2SqXXuJJXCCw/2d7klC",
+	"gsd6uju5LTXWYDcbbfityWhkoBpzahG5A6v3JEqUQ0M4VuxdYAlbcRylGJSLY1CgAEtAh4T6YSLIHRyt",
+	"WsURvv9UgH1SYLWXcYmbCvEPG3h9CRQ4ltCY05lBsBWfGVBjLi2yN/GYOlGNOTTe3jb8Gb+vKXclgjfx",
+	"dg13zN9trfIcxVY8FmCN+awQv5pXQnfdlymGRvuS0G+6L1NKm+9Lw+n2+5LQb7YvUxqb7kvD4bb7ktBv",
+	"si9T6nbZl4a/JvuS0G+5L79ufLZyyq8ToDmn21f0UnFwHlcgU+K8XiTz0PI4iJhRE7e8urm5Oj85eY6D",
+	"a/gjASFVo8+oBKp/4jgOSbqgnvxHKAn+VaIRh+G7qdf7dT2Rao4h50wFon+pyDYGLkk6P+h29eMeR7Em",
+	"9DkOUEZMzo6QnNCZ4icCIdTStGBu5oB4CoN8loQBokyiCaCEqiBdMhYgxtEXLFBEhFCKV8MJh6BQoVbV",
+	"0nwmCCtPd35y0vLMGZw9pTvfPBkkhEqYmS1hmtjkP+BL7+Hjg2q0l2aZ8YeWUc3pLcWJnDNO/kzjr++r",
+	"HIuautrpJ3IOVBpS0RSTELQ+EgEcBQyEVtcc3wGKgWsNMSr0llI2NgChNYX11qyvpVNLS6eWlk6basmS",
+	"QK6msxeMT0gQAP3+OipIaaggkfg+QAABmiRSawAXAyBwqQ37PgiBJNPDOQiWcB/qq+rMUtWZpaqzpqoq",
+	"BJHr6fwtky9YQh/BVnrLJEpJaWDlIMiFbBu8qcJYX+7nltzPLbmfN5V7wVkm986zG8YuMV0Y+ya+v/hv",
+	"GEOKIpSTVFcN/2JJuugFUIkkYyhSeIxmBCIUYTQjd0ARjlhCJWJTJElUfzt0npXVop9ytainZmpZ5tio",
+	"p3tyMqISOMXhGPgd8GEmru+roowolFKFUtDaRo2ihMJ9DL7aLRo9Yr6fcHWUMKoNldCI6+qla537Xevc",
+	"7zY/991s5rrpPMfBSyzhC148DucsI2Ybs5UKGnHwgdypo5wiQu9wSLQd0/4omnIWaa0ksZAccLS1ejqW",
+	"ejqWejq7uGUZy7lSzpSuiA+3FN9hEuJJCN9fOYYmVCaqgZKIQHqXUBkuUEIVGnWwzzEN1K+Sqx0kukeC",
+	"iq4xXyB2BzxkWDt3EVaCppjW9wO6lh/QtfyAbnM/wCWXXJPnRrc3JAKWPIL4x9CDMoIaaDAgqT9gthvC",
+	"+vgJF/vca+eWps4tTTX2HKq8qxFGjGr6C/D5IpalUNUGfz1+9xZ9gAkaUj1QObOHrz8Mj5CRmDqblYaw",
+	"LxXDBIfKjVeBRoRlG40B0PWLAfrv7ulTtBqZDvUZV4GJxCQUbTRYhVNtpoNXgAPgbYMHgjewaI/etwck",
+	"ngOXcC/btgN+g2cHbTTE/hyJNB2h0DzHAp6e3/LwGKjPAgj+gcYsAhW/SoF8TJX7B1EsFyiAGGigolxG",
+	"0QEOZwcI0wAdAPUP0FxTI9roGKWE9bRDoCOsSXWOVAqfYfHkDocJFDHZ6w/DTKgKU5m3HnqnpYVDBz42",
+	"VbYfsuFILKIIJCe+mkRFFoGyKKZfzxTjhTIpbXTJ6HHKnyIC6B2ELIZsrFYPtGdthMPZP3Gn+3TmR5+/",
+	"HLWULSrA0gyPGygg/EgxM3q/ViQjSqTWchotvQdfMo4OR++P1tP/gnHUH46PXw4uUfHzeDx6j4hEyuhg",
+	"QgXC6LRzPFlIHV4p45kDDp4PqiOfmpGj94rwYkWtZaCQvgZWkEsLcC0CbMeLEs82cHdgEbsOfPB8cPzq",
+	"sl9hlKL+sH+BdMcci3n7NxXcxlgqz8nref/7a//43/j4z5PjZ5+OP/70229tq+Hv1YYaI/7msoS5AUrN",
+	"6LIFMgPUwtZAKWOa7RYKQInP2F64l2bpvYJ7HIBPIhy2zC7P/h/fXv+S/74cXQ5bCKR/hCbY/6zWWao/",
+	"F6XFBbKu77MOnaLSrlldncVyXQwXJaCHVvWCfMvr8Ep5WdOqsla1zKtpdVeWxt22tCov82lU1FOcy9tW",
+	"gzjqLnYst6gc7uUF2C8vN3u7DNRmYTOO4znxi4rRQ2FMqbLY5RsWHVxXajPaSHk+U8KFPm1Vr3HgylY+",
+	"x93SR2Ea/PmMBhkMy84sdQ65ANtoNF3Zqc/5gPCD1lLpiPojwhw8oTnjGEXpgdp2nEhEqEHTJNT8iwiH",
+	"YT56Ew1v/v7hoIUw4pgGLEIDI4mSD6PoORwM3xyZeYKCtJyqQkgOTlyH3GD4pq37v3AcVxgIMZ+BQWxM",
+	"3pSEapJJyCYiNWmaM0JRwJKJbCnrTwQSeKoDjEQAOuh3uk9fDi6fqP9vPhxo1IVk/mFA0nzxFCeh1Dcv",
+	"VHmkv3o2sNfy+qfPOpWGzs92QwZy+qxjgxQNBiRvyEE6P1dA8oYMJGsoEfZycLlEW9FWkJe3lShcgrXa",
+	"CjqXYXXfErXLsKU2AxsQXoLKntLx5smMvB73j9/1h1fH3dNOCWSpOYWtNleRnP187kKSNVeQmOYqkk73",
+	"qQtJ1lxBYporSBwIHMA24Omnrg2WNeRApsGADAcXr46H45+WVq6jI0Wx3FFFVV3Rjo4KquoKLzoqK93R",
+	"UUVVWfmmYxnHMrCB0j7iuHvasbdz2nz287m9qdPmTvepvbVLSMriKCEpC6OEpCyKMpKSIMpISmIoIykJ",
+	"wWanvBltjspb0maqvDFtvlZgqxgHm7tV2GxDYfO4CpttNApsheko8BQGpMBQmJEC1mFMCiQOk1JgcxgW",
+	"B9rCvDjQFkbGgbYwNQ60hcFxoC3MjgNtYXyW0a5EuRKdC1VhlCxEhWmy0BQGqkDiNFMFMqexKpA6TZYD",
+	"uXunOs2XA7l75zpNmQu5cyc7zdoS8lVYV6HzWt71OFX79ThdVdfjdNFemfYr035l2oemfWjah6b9lWl/",
+	"ZdpfZeODi3Hf+9gq35hUnaQ1UeWAg6mOeoSx5Y/o8KvEeFnJjHKozctFZXV9XBsFXtiKraZN8qfUr6dW",
+	"hOe1rDw3EVZYsiIkucILzsIQXWCJJ1goaiN8/wvQmZx7vU63q1PW2fPp2tW+4UW5EQ10aYRAZLr8ykcS",
+	"K2CRvTzHplZI20b98AteaB6yyAVNcShASyLmLEjSuhcVIekCsuUp5roEgNFwoYuestBZgtBFboyjAHS6",
+	"NAIqLXHqmXLeJ4yFgKnN/OhimeNbSv5IAN3eji5WKCzNf3s9L0lIsN6WbHiLr550TU3p4fN/vXtztC2L",
+	"pTo6UZQQimXzVn3dYW9vObjeIWheotxy1Oo3LQVuLdXFNyu7bTlrz5uXtrac9d07yWypjnoHmVVqlhvL",
+	"zFEXvIvMYnNvWLeat5XW5dYux22llax7K2Bdn1p8a87VSt0XJ0CDMH1ZduN5sv6ceHq2xTFxVTqwbZKy",
+	"Hl0KVDFhEaZ4Bsoy60tYkt6XZ5mrrDrEdtXy1rX0jI0qMlx20r3XHw+8aia+dzHUrfqlzX7x0zRnLonp",
+	"yh9Nd+79mf7i2QxYdkrMSEeHAbGdMDO80miG2o5fxt+9a2iaOzdDzIPu+rheonnKvVJioNsd2i2r0lc+",
+	"s0KZ05+WwipBpve1xmSUGjJ75LW83DTlUNiX5E67YUTgiY0pgBAkfPqCxadVk5WGrJy/NCafzdG3noBl",
+	"yoXEXEJgBil3gVAi5kWLtdpLglujm9s4cIYk+wgpmjjwu3rMNV6/recaFXvLsnzpywjr3KL1vpAV6u3z",
+	"Ox3Ld4N7eWf28YaFe/oww/ZneznC3OfXBb6my1Dn5f3MSO/tdflvcWGaxq76xu7eUdxk6n+uf8nLMPx0",
+	"aBvpkJgI5IeAOQqwxEUMWCm2wDRAuiiLE7lA/hz8zypCDBKu/0GlLEatUBFjH1rZbDq2Wll54ayaMJyt",
+	"siN+wfFagdryWSfDlQViAy2glDJdPwFFMYxVqhFzMGJGWOxWrNFeI5LVhSQ/Stm+ZSnbjxK2HyVs/09K",
+	"2Ipq5N7KYmTbFCkI8+GazPh4G4PiUolyNdUr0/f/0jcyaiMUKyKvMnVKtV65LvnZsxqvZpad9PyTO2De",
+	"Ncnoc7nqpeSFK+owK3SLFEhePbiHCjm6/fS5BTTe8t4Sa/tKqu0nCbmUwd0qcRsnk5D4W4BdpQB6oe0r",
+	"j1dZtUtfG6oyuWH1XpTXqstjijm5wxKUVRTgc5D6qLO+fXBIpqhYhOaywzi8/1Sh5pHLGjlX3xIRede3",
+	"IWTDx0pG43fo56cnp+j2ZqBfrBASR3H1Xif7jId5Y7lIZnROOt3jk7Pj0/Ob007v5KR3cvLv8n2JWhrH",
+	"Cu0GMrPNoUPxICCpv3JVMkL2xYdT8+s/VvJIOK11AWVfqtW5gHKbiMcqhKvc7jg3qO51bwbzDtMk3Ljy",
+	"N3365JGIYn1aezmlvS7Pvfz9suoHP/qucRl49bM71rMBtdvsrLYBKz3ZCe4yyPKnjCotRcLbajXgy1+X",
+	"qbQY8Grryqx4SSOrUq+7+TC7HdV7PiPX50K/Usryx3Xzj+vmH9fN3/m62f5WVuVeF88AUd2J9J2W/qaU",
+	"RCfWyVf+UIAjBk2nyL6NtXICC2Wna71/W5qg45pgTGZ035nl1WnkO+BkuthnClnRv2P+uCwCp57VgA2Z",
+	"Y50ITvPGgswoBG00SLOVr8fv3ubikwzpK0tAGL3+cKPzd1MOoDydSudYl3UtWIIoKLmaUS3kzD6vTDRn",
+	"mWgrPb0y+5xyujH1rIZhmXBAh68/jBtknrtoJa6Giecrk4nM0dXJLrdRPwxNchlzQDTLwu6cOB6X34G+",
+	"CvUXDzZkLv18IbWR4SbLeOdLRItIrxr9LRkRg698ax8L0EnFYsmpoTc645tLZO3sIhu1Zfrxp3rJxfd6",
+	"429+P//HyvqxspqtrFVGK7+vyZYSnrBEpidRlqXnIJLQ8UENdRoQOmXLWK+H4xvUvxrlRWTRBALF7ZvL",
+	"MbokPmco+7iI5loSmVbSX42Kmiav5520T9qnig0WA8Ux8XreWfukfZYKai68Hk3C8OH/AgAA//8t5JGG",
+	"l2UAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

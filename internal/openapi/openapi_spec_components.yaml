@@ -4,11 +4,11 @@ info:
   title: API
   version: "0.0.1"
   description: >
-    Crypto REST API
+    REST API for an Embedded KMS Micro Service 
 
 components:
   parameters:
-    ElasticKeyQueryParamElasticKeyIds:
+    ElasticKeyQueryParamElasticKeyIDS:
       name: elastic_key_id
       in: query
       description: Filter by the Elastic Key ID (UUID).
@@ -16,7 +16,7 @@ components:
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/ElasticKeyId'
+          $ref: '#/components/schemas/ElasticKeyID'
       style: form
       explode: true
     ElasticKeyQueryParamNames:
@@ -44,7 +44,7 @@ components:
     ElasticKeyQueryParamAlgorithms:
       name: algorithm
       in: query
-      description: Filter by cryptographic algorithm.
+      description: Filter by Elastic Key algorithm.
       required: false
       schema:
         type: array
@@ -106,7 +106,7 @@ components:
       schema:
         $ref: '#/components/schemas/PageSize'
 
-    MaterialKeyQueryParamElasticKeyIds:
+    MaterialKeyQueryParamElasticKeyIDS:
       name: elastic_key_id
       in: query
       description: Filter by the Elastic Key ID (uuid).
@@ -114,10 +114,10 @@ components:
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/ElasticKeyId'
+          $ref: '#/components/schemas/ElasticKeyID'
       style: form
       explode: true
-    MaterialKeyQueryParamMaterialKeyIds:
+    MaterialKeyQueryParamMaterialKeyIDS:
       name: material_key_id
       in: query
       description: Filter by the Material Key ID.
@@ -125,7 +125,7 @@ components:
       schema:
         type: array
         items:
-          $ref: '#/components/schemas/MaterialKeyId'
+          $ref: '#/components/schemas/MaterialKeyID'
       style: form
       explode: true
     MaterialKeyQueryParamMinimumGenerateDate:
@@ -242,7 +242,7 @@ components:
       type: object
       properties:
         elastic_key_id:
-          $ref: '#/components/schemas/ElasticKeyId'
+          $ref: '#/components/schemas/ElasticKeyID'
         name:
           $ref: '#/components/schemas/ElasticKeyName'
         description:
@@ -278,18 +278,18 @@ components:
       required: [ elastic_key_id, material_key_id ]
       properties:
         elastic_key_id:
-          $ref: '#/components/schemas/ElasticKeyId'
+          $ref: '#/components/schemas/ElasticKeyID'
         material_key_id:
-          $ref: '#/components/schemas/MaterialKeyId'
+          $ref: '#/components/schemas/MaterialKeyID'
 
     MaterialKey:
       type: object
       required: [ elastic_key_id, material_key_id ]
       properties:
         elastic_key_id:
-          $ref: '#/components/schemas/ElasticKeyId'
+          $ref: '#/components/schemas/ElasticKeyID'
         material_key_id:
-          $ref: '#/components/schemas/MaterialKeyId'
+          $ref: '#/components/schemas/MaterialKeyID'
         generate_date:
           $ref: '#/components/schemas/MaterialKeyGenerateDate'
         import_date:
@@ -305,7 +305,7 @@ components:
         decrypted:
           $ref: '#/components/schemas/MaterialKeyDecrypted'
           
-    ElasticKeyId:
+    ElasticKeyID:
       type: string
       format: uuid
       description: Unique UUID for an Elastic Key.
@@ -454,7 +454,7 @@ components:
     ElasticKeyExportAllowed:
       type: boolean
       example: false
-      description: Indicates if the Elastic Key supports export.
+      description: Indicates if the Elastic Key supports export of Material Key. Always use default false for production. If true, the Elastic Key should only be used for testing or development.
     ElasticKeyStatus:
       type: string
       enum:
@@ -494,7 +494,7 @@ components:
         - "status:ASC"
         - "status:DESC"
 
-    MaterialKeyId:
+    MaterialKeyID:
       type: string
       format: uuid
       description: Unique UUID for a Material Key.
@@ -539,16 +539,25 @@ components:
         - "generate_date"
         - "generate_date:ASC"
         - "generate_date:DESC"
+        - "import_date"
+        - "import_date:ASC"
+        - "import_date:DESC"
+        - "expiration_date"
+        - "expiration_date:ASC"
+        - "expiration_date:DESC"
+        - "revocation_date"
+        - "revocation_date:ASC"
+        - "revocation_date:DESC"
 
     EncryptContext:
       type: string
       pattern: '^[A-Za-z0-9_-]+$'
-      description: Base64URL-encoded context. This is non-secret data used for authentication and integrity checking during decryption (e.g. namespace, context).
+      description: Base64URL-encoded context. This is clear data used for authentication and integrity checking during decryption (e.g. namespace, context).
 
     SignContext:
       type: string
       pattern: '^[A-Za-z0-9_-]+$'
-      description: Base64URL-encoded context Authenticated Data (AAD). This is non-secret data used for integrity checking during verify (e.g. namespace, context).
+      description: Base64URL-encoded context. This is clear data used for integrity checking during verify (e.g. namespace, context).
 
     ElasticKeysQueryParams:
       type: object
@@ -556,7 +565,7 @@ components:
         elastic_key_id:
           type: array
           items:
-            $ref: '#/components/schemas/ElasticKeyId'
+            $ref: '#/components/schemas/ElasticKeyID'
         name:
           type: array
           items:
@@ -594,7 +603,7 @@ components:
         material_key_id:
           type: array
           items:
-            $ref: '#/components/schemas/MaterialKeyId'
+            $ref: '#/components/schemas/MaterialKeyID'
         min_generate_date:
           $ref: '#/components/schemas/MaterialKeyGenerateDate'
         max_generate_date:
@@ -626,11 +635,11 @@ components:
         elastic_key_id:
           type: array
           items:
-            $ref: '#/components/schemas/ElasticKeyId'
+            $ref: '#/components/schemas/ElasticKeyID'
         material_key_id:
           type: array
           items:
-            $ref: '#/components/schemas/MaterialKeyId'
+            $ref: '#/components/schemas/MaterialKeyID'
         min_generate_date:
           $ref: '#/components/schemas/MaterialKeyGenerateDate'
         max_generate_date:
@@ -664,32 +673,32 @@ components:
 
     EncryptRequest:
       type: string
-      description: Clear text to be encrypted. If you need to encrypt bytes, encode them first as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+      description: Clear string to be encrypted. For bytes, pre-encode as text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
     EncryptResponse:
       type: string
       pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$'
       description: >
-        Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details.
-        Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters.
+        JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details.
+        Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers.
         - Header: Required base64Url-encoded JSON key/values for the JWE.
-        - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir).
-        - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV.
-        - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext.
-        - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
+        - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir).
+        - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV.
+        - Ciphertext: Required base64Url-encoded encrypted bytes.
+        - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
     DecryptRequest:
       type: string
       pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$'
       description: >
-        Base64Url-encoded JSON Web Encryption (JWE) of the encrypted bytes (and non-secret cipher parameters) in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details.
-        Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. There are five Base64Url-encoded parts and separated by '.'. Some parts can be empty depending on the 'alg' and 'enc' headers parameters.
-        - Header: Required base64Url-encoded JSON key/values for the JWE.
-        - EncryptedKey: Optional base64Url-encoded JWE of an encrypted symmetric key used to encrypt the payload. This is non-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir).
-        - IV: Required base64Url-encoded Initialization Vector (IV) used for encryption. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV.
-        - Ciphertext: Required base64Url-encoded encrypted secret bytes. It is always non-empty. For AES-GCM or AES-GCM-SIV it contains same number of bytes as the plaintext.
-        - AuthenticationTag: Required base64Url-encoded authentication tag used for encryption. For AES-GCM or AES-GCM-SIV it contains a 16-bytes authentication tag. For AES-CBC-HMAC it contains a N-bytes HMAC hash.
+        JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details.
+        Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers.
+        - Header: Required base64Url-encoded JSON key/values for the JWE message.
+        - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir).
+        - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV.
+        - Ciphertext: Required base64Url-encoded encrypted bytes.
+        - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
     DecryptResponse:
       type: string
-      description: Decrypted text. If you pre-encoded bytes to text before submitting them for encryption, remember to decode to bytes; use the same encoding scheme you chose before submission (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc).
+      description: Decrypted string. For bytes, decode from text (e.g. Hexadecimal, Base64, Base64-URL, Base64-MIME, etc) back to bytes.
 
     SignParams:
       type: object
@@ -704,19 +713,19 @@ components:
       type: string
       pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
       description: >
-        Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details.
-        Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'.
-        - Header: Required base64Url-encoded JSON key/values for the JWS.
-        - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT).
+        JSON Web Signature (JWS) message in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details.
+        Compact serialized format is 'Header.Payload.Signature'. Each section is Base64Url-encoded. All parts are non-empty.
+        - Header: Required base64Url-encoded JSON key/values for the JWS message.
+        - Plaintext: Required base64Url-encoded clear text. Payload can be freeform (JWS), or in a special case it can be JSON (JWT).
         - Signature: Required base64Url-encoded signature.
     VerifyRequest:
       type: string
       pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$'
       description: >
-        Base64Url-encoded JSON Web Signature (JWS) of the clear text in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details.
-        Compact serialized format is 'Header.Payload.Signature'. There are three Base64Url-encoded parts and separated by '.'.
-        - Header: Required base64Url-encoded JSON key/values for the JWS.
-        - Plaintext: Required base64Url-encoded clear text. It is always non-empty. Can be freeform (JWS) or JSON-encoded (JWT).
+        JSON Web Signature (JWS) message in compact serialized format. See RFC 7515 JSON Web Signature (JWS) for more details.
+        Compact serialized format is 'Header.Payload.Signature'. Each section is Base64Url-encoded. All parts are non-empty.
+        - Header: Required base64Url-encoded JSON key/values for the JWS message.
+        - Plaintext: Required base64Url-encoded clear text. Payload can be freeform (JWS), or in a special case it can be JSON (JWT).
         - Signature: Required base64Url-encoded signature.
     VerifyResponse:
       type: string
