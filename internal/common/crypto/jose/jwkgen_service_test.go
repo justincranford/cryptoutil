@@ -43,22 +43,22 @@ func Test_HappyPath_JwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			actualKeyKid, privateOrSecretJweJwk, publicJweJwk, encodedPrivateOrSecretJweJwk, encodedPublicJweJwk, err := testJwkGenService.GenerateJweJwk(testCase.enc, testCase.alg)
+			actualKeyKid, nonPublicJweJwk, publicJweJwk, clearNonPublicJweJwkBytes, clearPublicJweJwkBytes, err := testJwkGenService.GenerateJweJwk(testCase.enc, testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, actualKeyKid)
-			require.NotNil(t, privateOrSecretJweJwk)
+			require.NotNil(t, nonPublicJweJwk)
 			// TODO Util to check AsymmetricJWK vs SymmetricJWK
 			// require.NotNil(t, publicJweJwk)
-			require.NotEmpty(t, encodedPrivateOrSecretJweJwk)
+			require.NotEmpty(t, clearNonPublicJweJwkBytes)
 			// require.NotEmpty(t, encodedPublicJweJwk)
-			log.Printf("Generated:\n%s\n%s", encodedPrivateOrSecretJweJwk, encodedPublicJweJwk)
+			log.Printf("Generated:\n%s\n%s", clearNonPublicJweJwkBytes, clearPublicJweJwkBytes)
 
-			requireJweJwkHeaders(t, privateOrSecretJweJwk, OpsEncDec, &testCase)
+			requireJweJwkHeaders(t, nonPublicJweJwk, OpsEncDec, &testCase)
 			if publicJweJwk != nil {
 				requireJweJwkHeaders(t, publicJweJwk, OpsEnc, &testCase)
 			}
 
-			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{privateOrSecretJweJwk}, plaintext)
+			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{nonPublicJweJwk}, plaintext)
 			require.NoError(t, err)
 			require.NotEmpty(t, encodedJweMessage)
 			log.Printf("JWE Message: %s", string(encodedJweMessage))
@@ -70,7 +70,7 @@ func Test_HappyPath_JwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 
 			requireJweMessageHeaders(t, jweMessage, actualKeyKid, &testCase)
 
-			decrypted, err := DecryptBytes([]joseJwk.Key{privateOrSecretJweJwk}, encodedJweMessage)
+			decrypted, err := DecryptBytes([]joseJwk.Key{nonPublicJweJwk}, encodedJweMessage)
 			require.NoError(t, err)
 			require.Equal(t, plaintext, decrypted)
 		})
@@ -83,29 +83,29 @@ func Test_HappyPath_JwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			jwsJwkKid, privateOrSecretJwsJwk, publicJwsJwk, encodedPrivateOrSecretJwsJwk, _, err := testJwkGenService.GenerateJwsJwk(testCase.alg)
+			jwsJwkKid, nonPublicJwsJwk, publicJwsJwk, clearNonPublicJwsJwkBytes, _, err := testJwkGenService.GenerateJwsJwk(testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJwkKid)
-			require.NotNil(t, privateOrSecretJwsJwk)
+			require.NotNil(t, nonPublicJwsJwk)
 			// TODO Util to check AsymmetricJWK vs SymmetricJWK
 			// require.NotNil(t, publicJwsJwk)
-			require.NotEmpty(t, encodedPrivateOrSecretJwsJwk)
+			require.NotEmpty(t, clearNonPublicJwsJwkBytes)
 			// require.NotEmpty(t, encodedPublicJwsJwk)
-			log.Printf("Generated: %s", encodedPrivateOrSecretJwsJwk)
+			log.Printf("Generated: %s", clearNonPublicJwsJwkBytes)
 
-			requireJwsJwkHeaders(t, privateOrSecretJwsJwk, OpsSigVer, &testCase)
+			requireJwsJwkHeaders(t, nonPublicJwsJwk, OpsSigVer, &testCase)
 			if publicJwsJwk != nil {
 				requireJwsJwkHeaders(t, publicJwsJwk, OpsVer, &testCase)
 			}
 
-			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{privateOrSecretJwsJwk}, plaintext)
+			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{nonPublicJwsJwk}, plaintext)
 			require.NoError(t, err)
 			require.NotEmpty(t, encodedJwsMessage)
 			log.Printf("JWS Message: %s", string(encodedJwsMessage))
 
 			requireJwsMessageHeaders(t, jwsMessage, jwsJwkKid, &testCase)
 
-			verified, err := VerifyBytes([]joseJwk.Key{privateOrSecretJwsJwk}, encodedJwsMessage)
+			verified, err := VerifyBytes([]joseJwk.Key{nonPublicJwsJwk}, encodedJwsMessage)
 			require.NoError(t, err)
 			require.NotNil(t, verified)
 		})

@@ -21,15 +21,15 @@ func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, pro
 	return &elasticKey, nil
 }
 
-func BuildKey(elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID, keyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *MaterialKey {
+func BuildKey(elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID, encryptedNonPublicKeyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *MaterialKey {
 	key := MaterialKey{
-		ElasticKeyID:              elasticKeyID,
-		MaterialKeyID:             materialKeyID,
-		KeyMaterial:               keyMaterial,
-		MaterialKeyGenerateDate:   generateDate,
-		MaterialKeyImportDate:     importDate,
-		MaterialKeyExpirationDate: expirationDate,
-		MaterialKeyRevocationDate: revocationDate,
+		ElasticKeyID:                  elasticKeyID,
+		MaterialKeyID:                 materialKeyID,
+		EncryptedNonPublicKeyMaterial: encryptedNonPublicKeyMaterial,
+		MaterialKeyGenerateDate:       generateDate,
+		MaterialKeyImportDate:         importDate,
+		MaterialKeyExpirationDate:     expirationDate,
+		MaterialKeyRevocationDate:     revocationDate,
 	}
 	return &key
 }

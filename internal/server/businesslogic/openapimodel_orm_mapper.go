@@ -134,6 +134,107 @@ var (
 		cryptoutilOrmRepository.HS256: &cryptoutilJose.AlgHS256,
 		cryptoutilOrmRepository.EdDSA: &cryptoutilJose.AlgEdDSA,
 	}
+
+	isSymmetric = map[cryptoutilOrmRepository.ElasticKeyAlgorithm]bool{
+		cryptoutilOrmRepository.A256GCM_A256KW:    true,
+		cryptoutilOrmRepository.A192GCM_A256KW:    true,
+		cryptoutilOrmRepository.A128GCM_A256KW:    true,
+		cryptoutilOrmRepository.A256GCM_A192KW:    true,
+		cryptoutilOrmRepository.A192GCM_A192KW:    true,
+		cryptoutilOrmRepository.A128GCM_A192KW:    true,
+		cryptoutilOrmRepository.A256GCM_A128KW:    true,
+		cryptoutilOrmRepository.A192GCM_A128KW:    true,
+		cryptoutilOrmRepository.A128GCM_A128KW:    true,
+		cryptoutilOrmRepository.A256GCM_A256GCMKW: true,
+		cryptoutilOrmRepository.A192GCM_A256GCMKW: true,
+		cryptoutilOrmRepository.A128GCM_A256GCMKW: true,
+		cryptoutilOrmRepository.A256GCM_A192GCMKW: true,
+		cryptoutilOrmRepository.A192GCM_A192GCMKW: true,
+		cryptoutilOrmRepository.A128GCM_A192GCMKW: true,
+		cryptoutilOrmRepository.A256GCM_A128GCMKW: true,
+		cryptoutilOrmRepository.A192GCM_A128GCMKW: true,
+		cryptoutilOrmRepository.A128GCM_A128GCMKW: true,
+		cryptoutilOrmRepository.A256GCM_dir:       true,
+		cryptoutilOrmRepository.A192GCM_dir:       true,
+		cryptoutilOrmRepository.A128GCM_dir:       true,
+
+		cryptoutilOrmRepository.A256GCM_RSAOAEP512: false,
+		cryptoutilOrmRepository.A192GCM_RSAOAEP512: false,
+		cryptoutilOrmRepository.A128GCM_RSAOAEP512: false,
+		cryptoutilOrmRepository.A256GCM_RSAOAEP384: false,
+		cryptoutilOrmRepository.A192GCM_RSAOAEP384: false,
+		cryptoutilOrmRepository.A128GCM_RSAOAEP384: false,
+		cryptoutilOrmRepository.A256GCM_RSAOAEP256: false,
+		cryptoutilOrmRepository.A192GCM_RSAOAEP256: false,
+		cryptoutilOrmRepository.A128GCM_RSAOAEP256: false,
+		cryptoutilOrmRepository.A256GCM_RSAOAEP:    false,
+		cryptoutilOrmRepository.A192GCM_RSAOAEP:    false,
+		cryptoutilOrmRepository.A128GCM_RSAOAEP:    false,
+		cryptoutilOrmRepository.A256GCM_RSA15:      false,
+		cryptoutilOrmRepository.A192GCM_RSA15:      false,
+		cryptoutilOrmRepository.A128GCM_RSA15:      false,
+
+		cryptoutilOrmRepository.A256GCM_ECDHESA256KW: false,
+		cryptoutilOrmRepository.A192GCM_ECDHESA256KW: false,
+		cryptoutilOrmRepository.A128GCM_ECDHESA256KW: false,
+		cryptoutilOrmRepository.A256GCM_ECDHESA192KW: false,
+		cryptoutilOrmRepository.A192GCM_ECDHESA192KW: false,
+		cryptoutilOrmRepository.A128GCM_ECDHESA192KW: false,
+		cryptoutilOrmRepository.A256GCM_ECDHESA128KW: false,
+		cryptoutilOrmRepository.A192GCM_ECDHESA128KW: false,
+		cryptoutilOrmRepository.A128GCM_ECDHESA128KW: false,
+		cryptoutilOrmRepository.A256GCM_ECDHES:       false,
+		cryptoutilOrmRepository.A192GCM_ECDHES:       false,
+		cryptoutilOrmRepository.A128GCM_ECDHES:       false,
+
+		cryptoutilOrmRepository.A256CBCHS512_A256KW:    true,
+		cryptoutilOrmRepository.A192CBCHS384_A256KW:    true,
+		cryptoutilOrmRepository.A128CBCHS256_A256KW:    true,
+		cryptoutilOrmRepository.A256CBCHS512_A192KW:    true,
+		cryptoutilOrmRepository.A192CBCHS384_A192KW:    true,
+		cryptoutilOrmRepository.A128CBCHS256_A192KW:    true,
+		cryptoutilOrmRepository.A256CBCHS512_A128KW:    true,
+		cryptoutilOrmRepository.A192CBCHS384_A128KW:    true,
+		cryptoutilOrmRepository.A128CBCHS256_A128KW:    true,
+		cryptoutilOrmRepository.A256CBCHS512_A256GCMKW: true,
+		cryptoutilOrmRepository.A192CBCHS384_A256GCMKW: true,
+		cryptoutilOrmRepository.A128CBCHS256_A256GCMKW: true,
+		cryptoutilOrmRepository.A256CBCHS512_A192GCMKW: true,
+		cryptoutilOrmRepository.A192CBCHS384_A192GCMKW: true,
+		cryptoutilOrmRepository.A128CBCHS256_A192GCMKW: true,
+		cryptoutilOrmRepository.A256CBCHS512_A128GCMKW: true,
+		cryptoutilOrmRepository.A192CBCHS384_A128GCMKW: true,
+		cryptoutilOrmRepository.A128CBCHS256_A128GCMKW: true,
+		cryptoutilOrmRepository.A256CBCHS512_dir:       true,
+		cryptoutilOrmRepository.A192CBCHS384_dir:       true,
+		cryptoutilOrmRepository.A128CBCHS256_dir:       true,
+
+		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP512: false,
+		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP512: false,
+		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP512: false,
+		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP384: false,
+		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP384: false,
+		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP384: false,
+		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP256: false,
+		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP256: false,
+		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP256: false,
+		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP:    false,
+		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP:    false,
+		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP:    false,
+		cryptoutilOrmRepository.A256CBC_HS512_RSA15:      false,
+		cryptoutilOrmRepository.A192CBC_HS384_RSA15:      false,
+		cryptoutilOrmRepository.A128CBC_HS256_RSA15:      false,
+
+		cryptoutilOrmRepository.A256CBC_HS512_ECDHESA256KW: false,
+		cryptoutilOrmRepository.A192CBC_HS384_ECDHESA256KW: false,
+		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA256KW: false,
+		cryptoutilOrmRepository.A192CBC_HS384_ECDHESA192KW: false,
+		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA192KW: false,
+		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA128KW: false,
+		cryptoutilOrmRepository.A256CBC_HS512_ECDHES:       false,
+		cryptoutilOrmRepository.A192CBC_HS384_ECDHES:       false,
+		cryptoutilOrmRepository.A128CBC_HS256_ECDHES:       false,
+	}
 )
 
 type serviceOrmMapper struct{}
@@ -217,7 +318,7 @@ func (m *serviceOrmMapper) toServiceElasticKeyStatus(ormElasticKeyStatus *crypto
 	return &serviceElasticKeyStatus
 }
 
-func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*materialKeyExportedDetails) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
+func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*materialKeyExport) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
 	serviceKeys := make([]cryptoutilBusinessLogicModel.MaterialKey, len(ormKeys))
 	var serviceKey *cryptoutilBusinessLogicModel.MaterialKey
 	var err error
@@ -231,7 +332,7 @@ func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.Mater
 	return serviceKeys, nil
 }
 
-func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *materialKeyExportedDetails) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
+func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *materialKeyExport) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
 	return &cryptoutilBusinessLogicModel.MaterialKey{
 		ElasticKeyID:   cryptoutilBusinessLogicModel.ElasticKeyID(ormKey.ElasticKeyID),
 		MaterialKeyID:  ormKey.MaterialKeyID,
@@ -239,8 +340,8 @@ func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.Material
 		ImportDate:     (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyImportDate),
 		ExpirationDate: (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyExpirationDate),
 		RevocationDate: (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyRevocationDate),
-		Public:         repositoryKeyMaterial.public,
-		Decrypted:      repositoryKeyMaterial.decrypted,
+		Public:         repositoryKeyMaterial.clearPublic,
+		Decrypted:      repositoryKeyMaterial.clearNonPublic,
 	}, nil
 }
 
@@ -487,4 +588,20 @@ func (m *serviceOrmMapper) toJwsAlg(ormElasticKeyAlgorithm *cryptoutilOrmReposit
 		return alg, nil
 	}
 	return nil, fmt.Errorf("unsupported JWS ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
+}
+
+func (m *serviceOrmMapper) isSymmetric(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (bool, error) {
+	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
+	if ok {
+		return isSymmetric, nil
+	}
+	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
+}
+
+func (m *serviceOrmMapper) isAsymmetric(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (bool, error) {
+	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
+	if ok {
+		return !isSymmetric, nil
+	}
+	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
 }

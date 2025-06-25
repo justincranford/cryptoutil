@@ -133,50 +133,51 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			actualKeyKid, privateOrSecretJweJwk, publicJweJwk, encodedPrivateOrSecretJweJwk, encodedPublicJweJwk, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			actualKeyKid, nonPublicJweJwk, publicJweJwk, clearNonPublicJweJwkBytes, clearPublicJweJwkBytes, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
-			require.NotNil(t, privateOrSecretJweJwk)
+			require.NotNil(t, nonPublicJweJwk)
 			// TODO Util to check AsymmetricJWK vs SymmetricJWK
 			// require.NotNil(t, publicJweJwk)
-			require.NotEmpty(t, encodedPrivateOrSecretJweJwk)
+			require.NotEmpty(t, clearNonPublicJweJwkBytes)
 			// require.NotEmpty(t, encodedPublicJweJwk)
 			require.NotEmpty(t, actualKeyKid)
-			log.Printf("Generated:\n%s\n%s", encodedPrivateOrSecretJweJwk, encodedPublicJweJwk)
+			log.Printf("Generated:\n%s\n%s", clearNonPublicJweJwkBytes, clearPublicJweJwkBytes)
 
-			requireJweJwkHeaders(t, privateOrSecretJweJwk, OpsEncDec, &testCase)
+			// TODO Asymmetric check
+			requireJweJwkHeaders(t, nonPublicJweJwk, OpsEncDec, &testCase)
 			if publicJweJwk != nil {
 				requireJweJwkHeaders(t, publicJweJwk, OpsEnc, &testCase)
 			}
 
-			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{privateOrSecretJweJwk}, cleartext)
+			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{nonPublicJweJwk}, cleartext)
 			require.NoError(t, err)
 			require.NotEmpty(t, encodedJweMessage)
 			log.Printf("JWE Message: %s", string(encodedJweMessage))
 
 			requireJweMessageHeaders(t, jweMessage, actualKeyKid, &testCase)
 
-			decryptedtext, err := DecryptBytes([]joseJwk.Key{privateOrSecretJweJwk}, encodedJweMessage)
+			decryptedtext, err := DecryptBytes([]joseJwk.Key{nonPublicJweJwk}, encodedJweMessage)
 			require.NoError(t, err)
 			require.Equal(t, cleartext, decryptedtext)
 		})
 	}
 }
 
-func requireJweJwkHeaders(t *testing.T, privateOrSecretJweJwk joseJwk.Key, expectedJweJwkOps joseJwk.KeyOperationList, testCase *happyPathJweTestCase) {
+func requireJweJwkHeaders(t *testing.T, nonPublicJweJwk joseJwk.Key, expectedJweJwkOps joseJwk.KeyOperationList, testCase *happyPathJweTestCase) {
 	var actualJwkAlg joseJwa.KeyEncryptionAlgorithm
-	require.NoError(t, privateOrSecretJweJwk.Get(joseJwk.AlgorithmKey, &actualJwkAlg))
+	require.NoError(t, nonPublicJweJwk.Get(joseJwk.AlgorithmKey, &actualJwkAlg))
 	require.Equal(t, *testCase.alg, actualJwkAlg)
 
 	var actualJwkOps joseJwk.KeyOperationList
-	require.NoError(t, privateOrSecretJweJwk.Get(joseJwk.KeyOpsKey, &actualJwkOps))
+	require.NoError(t, nonPublicJweJwk.Get(joseJwk.KeyOpsKey, &actualJwkOps))
 	require.Equal(t, expectedJweJwkOps, actualJwkOps)
 
 	var actualJwkKty joseJwa.KeyType
-	require.NoError(t, privateOrSecretJweJwk.Get(joseJwk.KeyTypeKey, &actualJwkKty))
+	require.NoError(t, nonPublicJweJwk.Get(joseJwk.KeyTypeKey, &actualJwkKty))
 	require.Equal(t, testCase.expectedType, actualJwkKty)
 
 	var actualJwkUse string
-	require.NoError(t, privateOrSecretJweJwk.Get(joseJwk.KeyUsageKey, &actualJwkUse))
+	require.NoError(t, nonPublicJweJwk.Get(joseJwk.KeyUsageKey, &actualJwkUse))
 	require.Equal(t, "enc", actualJwkUse)
 }
 
@@ -205,28 +206,28 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptKey(t *testing.T) {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			_, privateOrSecretJwsJwkKek, _, encodedPrivateOrSecretJwsKekJwk, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			_, nonPublicJwsJwkKek, _, clearNonPublicJwsKekJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
-			log.Printf("KEK: %s", string(encodedPrivateOrSecretJwsKekJwk))
+			log.Printf("KEK: %s", string(clearNonPublicJwsKekJwkBytes))
 
-			_, privateOrSecretJwsJwk, _, encodedPrivateOrSecretJwsJwk, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			_, nonPublicJwsJwk, _, clearNonPublicJwsJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
-			log.Printf("Original Key: %s", string(encodedPrivateOrSecretJwsJwk))
+			log.Printf("Original Key: %s", string(clearNonPublicJwsJwkBytes))
 
-			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{privateOrSecretJwsJwkKek}, privateOrSecretJwsJwk)
+			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{nonPublicJwsJwkKek}, nonPublicJwsJwk)
 			require.NoError(t, err)
 			jsonHeaders, err := JweHeadersString(jweMessage)
 			require.NoError(t, err)
 			log.Printf("JWE Message Headers: %s", jsonHeaders)
 
-			decryptedPrivateOrSecretJwsJwk, err := DecryptKey([]joseJwk.Key{privateOrSecretJwsJwkKek}, encodedJweMessage)
+			decryptedNonPublicJwsJwk, err := DecryptKey([]joseJwk.Key{nonPublicJwsJwkKek}, encodedJweMessage)
 			require.NoError(t, err)
 
-			decryptedEncodedKey, err := json.Marshal(decryptedPrivateOrSecretJwsJwk)
+			decryptedEncodedKey, err := json.Marshal(decryptedNonPublicJwsJwk)
 			require.NoError(t, err)
 			log.Printf("Decrypted Key: %s", string(decryptedEncodedKey))
 
-			require.ElementsMatch(t, privateOrSecretJwsJwk.Keys(), decryptedPrivateOrSecretJwsJwk.Keys())
+			require.ElementsMatch(t, nonPublicJwsJwk.Keys(), decryptedNonPublicJwsJwk.Keys())
 		})
 	}
 }
@@ -242,53 +243,53 @@ func Test_SadPath_DecryptBytes_NilKey(t *testing.T) {
 }
 
 func Test_SadPath_DecryptBytes_InvalidJweMessage(t *testing.T) {
-	kid, privateOrSecretJweJwk, _, encodedPrivateOrSecretJweJwk, _, err := GenerateJweJwkForEncAndAlg(&EncA256GCM, &AlgA256KW)
+	kid, nonPublicJweJwk, _, clearNonPublicJweJwkBytes, _, err := GenerateJweJwkForEncAndAlg(&EncA256GCM, &AlgA256KW)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
-	require.NotNil(t, privateOrSecretJweJwk)
+	require.NotNil(t, nonPublicJweJwk)
 	// TODO Util to check AsymmetricJWK vs SymmetricJWK
 	// require.NotNil(t, publicJweJwk)
-	require.NotNil(t, encodedPrivateOrSecretJweJwk)
+	require.NotNil(t, clearNonPublicJweJwkBytes)
 	// require.NotNil(t, encodedPublicJweJwk)
 
-	_, err = DecryptBytes([]joseJwk.Key{privateOrSecretJweJwk}, []byte("this-is-not-a-valid-jwe-message"))
+	_, err = DecryptBytes([]joseJwk.Key{nonPublicJweJwk}, []byte("this-is-not-a-valid-jwe-message"))
 	require.Error(t, err)
 }
 
 func Test_SadPath_GenerateJweJwk_UnsupportedEnc(t *testing.T) {
-	kid, privateOrSecretJweJwk, publicJweJwk, encodedPrivateOrSecretJweJwk, encodedPublicJweJwk, err := GenerateJweJwkForEncAndAlg(&EncInvalid, &AlgA256KW)
+	kid, nonPublicJweJwk, publicJweJwk, clearNonPublicJweJwkBytes, clearPublicJweJwkBytes, err := GenerateJweJwkForEncAndAlg(&EncInvalid, &AlgA256KW)
 	require.Error(t, err)
 	require.Equal(t, "invalid JWE JWK headers: JWE JWK length error: unsupported JWE JWK enc invalid", err.Error())
 	require.Nil(t, kid)
-	require.Nil(t, privateOrSecretJweJwk)
+	require.Nil(t, nonPublicJweJwk)
 	require.Nil(t, publicJweJwk)
-	require.Nil(t, encodedPrivateOrSecretJweJwk)
-	require.Nil(t, encodedPublicJweJwk)
+	require.Nil(t, clearNonPublicJweJwkBytes)
+	require.Nil(t, clearPublicJweJwkBytes)
 }
 
 func Test_SadPath_GenerateJweJwk_UnsupportedAlg(t *testing.T) {
-	kid, privateOrSecretJweJwk, publicJweJwk, encodedPrivateOrSecretJweJwk, encodedPublicJweJwk, err := GenerateJweJwkForEncAndAlg(&EncA256GCM, &AlgEncInvalid)
+	kid, nonPublicJweJwk, publicJweJwk, clearNonPublicJweJwkBytes, clearPublicJweJwkBytes, err := GenerateJweJwkForEncAndAlg(&EncA256GCM, &AlgEncInvalid)
 	require.Error(t, err)
 	require.Equal(t, "invalid JWE JWK headers: unsupported JWE JWK alg invalid", err.Error())
 	require.Nil(t, kid)
-	require.Nil(t, privateOrSecretJweJwk)
+	require.Nil(t, nonPublicJweJwk)
 	require.Nil(t, publicJweJwk)
-	require.Nil(t, encodedPrivateOrSecretJweJwk)
-	require.Nil(t, encodedPublicJweJwk)
+	require.Nil(t, clearNonPublicJweJwkBytes)
+	require.Nil(t, clearPublicJweJwkBytes)
 }
 
 func Test_SadPath_ConcurrentGenerateJweJwk_UnsupportedEnc(t *testing.T) {
-	privateOrSecretJweJwks, publicJweJwks, err := GenerateJweJwksForTest(t, 2, &EncInvalid, &AlgA256KW)
+	nonPublicJweJwks, publicJweJwks, err := GenerateJweJwksForTest(t, 2, &EncInvalid, &AlgA256KW)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWE JWK headers: JWE JWK length error: unsupported JWE JWK enc invalid\ninvalid JWE JWK headers: JWE JWK length error: unsupported JWE JWK enc invalid", err.Error())
-	require.Nil(t, privateOrSecretJweJwks)
+	require.Nil(t, nonPublicJweJwks)
 	require.Nil(t, publicJweJwks)
 }
 
 func Test_SadPath_ConcurrentGenerateJweJwk_UnsupportedAlg(t *testing.T) {
-	privateOrSecretJweJwks, publicJweJwks, err := GenerateJweJwksForTest(t, 2, &EncA256GCM, &AlgEncInvalid)
+	nonPublicJweJwks, publicJweJwks, err := GenerateJweJwksForTest(t, 2, &EncA256GCM, &AlgEncInvalid)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWE JWK headers: unsupported JWE JWK alg invalid\ninvalid JWE JWK headers: unsupported JWE JWK alg invalid", err.Error())
-	require.Nil(t, privateOrSecretJweJwks)
+	require.Nil(t, nonPublicJweJwks)
 	require.Nil(t, publicJweJwks)
 }

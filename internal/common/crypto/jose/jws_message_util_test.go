@@ -42,50 +42,50 @@ func Test_HappyPath_NonJwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			jwsJwkKid, privateOrSecretJwsJwk, publicJwsJwk, encodedPrivateOrSecretJwsJwk, _, err := GenerateJwsJwkForAlg(testCase.alg)
+			jwsJwkKid, nonPublicJwsJwk, publicJwsJwk, clearNonPublicJwsJwkBytes, _, err := GenerateJwsJwkForAlg(testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJwkKid)
-			require.NotNil(t, privateOrSecretJwsJwk)
+			require.NotNil(t, nonPublicJwsJwk)
 			// TODO Util to check AsymmetricJWK vs SymmetricJWK
 			// require.NotNil(t, publicJwsJwk)
-			require.NotEmpty(t, encodedPrivateOrSecretJwsJwk)
+			require.NotEmpty(t, clearNonPublicJwsJwkBytes)
 			// require.NotEmpty(t, encodedPublicJwsJwk)
-			log.Printf("Generated: %s", encodedPrivateOrSecretJwsJwk)
+			log.Printf("Generated: %s", clearNonPublicJwsJwkBytes)
 
-			requireJwsJwkHeaders(t, privateOrSecretJwsJwk, OpsSigVer, &testCase)
+			requireJwsJwkHeaders(t, nonPublicJwsJwk, OpsSigVer, &testCase)
 			if publicJwsJwk != nil {
 				requireJwsJwkHeaders(t, publicJwsJwk, OpsVer, &testCase)
 			}
 
-			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{privateOrSecretJwsJwk}, plaintext)
+			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{nonPublicJwsJwk}, plaintext)
 			require.NoError(t, err)
 			require.NotEmpty(t, encodedJwsMessage)
 			log.Printf("JWS Message: %s", string(encodedJwsMessage))
 
 			requireJwsMessageHeaders(t, jwsMessage, jwsJwkKid, &testCase)
 
-			verified, err := VerifyBytes([]joseJwk.Key{privateOrSecretJwsJwk}, encodedJwsMessage)
+			verified, err := VerifyBytes([]joseJwk.Key{nonPublicJwsJwk}, encodedJwsMessage)
 			require.NoError(t, err)
 			require.NotNil(t, verified)
 		})
 	}
 }
 
-func requireJwsJwkHeaders(t *testing.T, privateOrSecretJwsJwk joseJwk.Key, expectedJwsJwkOps joseJwk.KeyOperationList, testCase *happyPathJwsTestCase) {
+func requireJwsJwkHeaders(t *testing.T, nonPublicJwsJwk joseJwk.Key, expectedJwsJwkOps joseJwk.KeyOperationList, testCase *happyPathJwsTestCase) {
 	var actualJwkAlg joseJwa.KeyAlgorithm
-	require.NoError(t, privateOrSecretJwsJwk.Get(joseJwk.AlgorithmKey, &actualJwkAlg))
+	require.NoError(t, nonPublicJwsJwk.Get(joseJwk.AlgorithmKey, &actualJwkAlg))
 	require.Equal(t, *testCase.alg, actualJwkAlg)
 
 	var actualJwkUse string
-	require.NoError(t, privateOrSecretJwsJwk.Get(joseJwk.KeyUsageKey, &actualJwkUse))
+	require.NoError(t, nonPublicJwsJwk.Get(joseJwk.KeyUsageKey, &actualJwkUse))
 	require.Equal(t, joseJwk.ForSignature.String(), actualJwkUse)
 
 	var actualJwkOps joseJwk.KeyOperationList
-	require.NoError(t, privateOrSecretJwsJwk.Get(joseJwk.KeyOpsKey, &actualJwkOps))
+	require.NoError(t, nonPublicJwsJwk.Get(joseJwk.KeyOpsKey, &actualJwkOps))
 	require.Equal(t, expectedJwsJwkOps, actualJwkOps)
 
 	var actualJwkKty joseJwa.KeyType
-	require.NoError(t, privateOrSecretJwsJwk.Get(joseJwk.KeyTypeKey, &actualJwkKty))
+	require.NoError(t, nonPublicJwsJwk.Get(joseJwk.KeyTypeKey, &actualJwkKty))
 	require.Equal(t, testCase.expectedType, actualJwkKty)
 }
 
@@ -116,34 +116,34 @@ func Test_SadPath_VerifyBytes_NilKey(t *testing.T) {
 }
 
 func Test_SadPath_VerifyBytes_InvalidJwsMessage(t *testing.T) {
-	kid, privateOrSecretJwsJwk, _, encodedPrivateOrSecretJwsJwk, _, err := GenerateJwsJwkForAlg(&AlgHS256)
+	kid, nonPublicJwsJwk, _, clearNonPublicJwsJwkBytes, _, err := GenerateJwsJwkForAlg(&AlgHS256)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
-	require.NotNil(t, privateOrSecretJwsJwk)
+	require.NotNil(t, nonPublicJwsJwk)
 	// TODO Util to check AsymmetricJWK vs SymmetricJWK
 	// require.NotNil(t, publicJweJwk)
-	require.NotNil(t, encodedPrivateOrSecretJwsJwk)
+	require.NotNil(t, clearNonPublicJwsJwkBytes)
 	// require.NotNil(t, encodedPublicJweJwk)
 
-	_, err = VerifyBytes([]joseJwk.Key{privateOrSecretJwsJwk}, []byte("this-is-not-a-valid-jws-message"))
+	_, err = VerifyBytes([]joseJwk.Key{nonPublicJwsJwk}, []byte("this-is-not-a-valid-jws-message"))
 	require.Error(t, err)
 }
 
 func Test_SadPath_GenerateJwsJwk_UnsupportedAlg(t *testing.T) {
-	kid, privateOrSecretJwsJwk, publicJwsJwk, encodedPrivateOrSecretJwsJwk, encodedPublicJwsJwk, err := GenerateJwsJwkForAlg(&AlgSigInvalid)
+	kid, nonPublicJwsJwk, publicJwsJwk, clearNonPublicJwsJwkBytes, clearPublicJwsJwkBytes, err := GenerateJwsJwkForAlg(&AlgSigInvalid)
 	require.Error(t, err)
 	require.Equal(t, "invalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
 	require.Nil(t, kid)
-	require.Nil(t, privateOrSecretJwsJwk)
+	require.Nil(t, nonPublicJwsJwk)
 	require.Nil(t, publicJwsJwk)
-	require.Nil(t, encodedPrivateOrSecretJwsJwk)
-	require.Nil(t, encodedPublicJwsJwk)
+	require.Nil(t, clearNonPublicJwsJwkBytes)
+	require.Nil(t, clearPublicJwsJwkBytes)
 }
 
 func Test_SadPath_ConcurrentGenerateJwsJwk_UnsupportedAlg(t *testing.T) {
-	privateOrSecretJweJwks, publicJweJwks, err := GenerateJwsJwksForTest(t, 2, &AlgSigInvalid)
+	nonPublicJweJwks, publicJweJwks, err := GenerateJwsJwksForTest(t, 2, &AlgSigInvalid)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWS JWK headers: unsupported JWS JWK alg: invalid\ninvalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
-	require.Nil(t, privateOrSecretJweJwks)
+	require.Nil(t, nonPublicJweJwks)
 	require.Nil(t, publicJweJwks)
 }

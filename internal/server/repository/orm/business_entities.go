@@ -19,13 +19,13 @@ type ElasticKey struct {
 }
 
 type MaterialKey struct {
-	ElasticKeyID              googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	MaterialKeyID             googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	KeyMaterial               []byte          `gorm:"not null;check(length(key_material) >= 1)"`
-	MaterialKeyGenerateDate   *time.Time
-	MaterialKeyImportDate     *time.Time
-	MaterialKeyExpirationDate *time.Time
-	MaterialKeyRevocationDate *time.Time
+	ElasticKeyID                  googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	MaterialKeyID                 googleUuid.UUID `gorm:"type:uuid;primaryKey"`
+	EncryptedNonPublicKeyMaterial []byte          `gorm:"not null;check(length(encrypted_non_public_key_material) >= 1)"`
+	MaterialKeyGenerateDate       *time.Time
+	MaterialKeyImportDate         *time.Time
+	MaterialKeyExpirationDate     *time.Time
+	MaterialKeyRevocationDate     *time.Time
 }
 
 type ElasticKeyAlgorithm string
