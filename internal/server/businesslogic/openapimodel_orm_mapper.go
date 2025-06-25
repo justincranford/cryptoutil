@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"cryptoutil/internal/common/constant"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
@@ -15,225 +16,225 @@ import (
 )
 
 var (
-	ormElasticKeyAlgorithmToJoseEncAndAlg = map[cryptoutilOrmRepository.ElasticKeyAlgorithm]struct {
+	ormElasticKeyAlgorithmToJoseEncAndAlg = map[constant.ElasticKeyAlgorithm]struct {
 		enc *joseJwa.ContentEncryptionAlgorithm
 		alg *joseJwa.KeyEncryptionAlgorithm
 	}{
-		cryptoutilOrmRepository.A256GCM_A256KW:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA256KW},
-		cryptoutilOrmRepository.A192GCM_A256KW:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA256KW},
-		cryptoutilOrmRepository.A128GCM_A256KW:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA256KW},
-		cryptoutilOrmRepository.A256GCM_A192KW:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA192KW},
-		cryptoutilOrmRepository.A192GCM_A192KW:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA192KW},
-		cryptoutilOrmRepository.A128GCM_A192KW:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA192KW},
-		cryptoutilOrmRepository.A256GCM_A128KW:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA128KW},
-		cryptoutilOrmRepository.A192GCM_A128KW:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA128KW},
-		cryptoutilOrmRepository.A128GCM_A128KW:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA128KW},
-		cryptoutilOrmRepository.A256GCM_A256GCMKW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA256GCMKW},
-		cryptoutilOrmRepository.A192GCM_A256GCMKW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA256GCMKW},
-		cryptoutilOrmRepository.A128GCM_A256GCMKW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA256GCMKW},
-		cryptoutilOrmRepository.A256GCM_A192GCMKW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA192GCMKW},
-		cryptoutilOrmRepository.A192GCM_A192GCMKW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA192GCMKW},
-		cryptoutilOrmRepository.A128GCM_A192GCMKW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA192GCMKW},
-		cryptoutilOrmRepository.A256GCM_A128GCMKW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA128GCMKW},
-		cryptoutilOrmRepository.A192GCM_A128GCMKW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA128GCMKW},
-		cryptoutilOrmRepository.A128GCM_A128GCMKW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA128GCMKW},
-		cryptoutilOrmRepository.A256GCM_dir:       {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgDir},
-		cryptoutilOrmRepository.A192GCM_dir:       {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgDir},
-		cryptoutilOrmRepository.A128GCM_dir:       {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgDir},
+		constant.A256GCM_A256KW:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA256KW},
+		constant.A192GCM_A256KW:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA256KW},
+		constant.A128GCM_A256KW:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA256KW},
+		constant.A256GCM_A192KW:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA192KW},
+		constant.A192GCM_A192KW:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA192KW},
+		constant.A128GCM_A192KW:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA192KW},
+		constant.A256GCM_A128KW:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA128KW},
+		constant.A192GCM_A128KW:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA128KW},
+		constant.A128GCM_A128KW:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA128KW},
+		constant.A256GCM_A256GCMKW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA256GCMKW},
+		constant.A192GCM_A256GCMKW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA256GCMKW},
+		constant.A128GCM_A256GCMKW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA256GCMKW},
+		constant.A256GCM_A192GCMKW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA192GCMKW},
+		constant.A192GCM_A192GCMKW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA192GCMKW},
+		constant.A128GCM_A192GCMKW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA192GCMKW},
+		constant.A256GCM_A128GCMKW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgA128GCMKW},
+		constant.A192GCM_A128GCMKW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgA128GCMKW},
+		constant.A128GCM_A128GCMKW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgA128GCMKW},
+		constant.A256GCM_dir:       {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgDir},
+		constant.A192GCM_dir:       {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgDir},
+		constant.A128GCM_dir:       {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgDir},
 
-		cryptoutilOrmRepository.A256GCM_RSAOAEP512: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP512},
-		cryptoutilOrmRepository.A192GCM_RSAOAEP512: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP512},
-		cryptoutilOrmRepository.A128GCM_RSAOAEP512: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP512},
-		cryptoutilOrmRepository.A256GCM_RSAOAEP384: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP384},
-		cryptoutilOrmRepository.A192GCM_RSAOAEP384: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP384},
-		cryptoutilOrmRepository.A128GCM_RSAOAEP384: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP384},
-		cryptoutilOrmRepository.A256GCM_RSAOAEP256: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP256},
-		cryptoutilOrmRepository.A192GCM_RSAOAEP256: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP256},
-		cryptoutilOrmRepository.A128GCM_RSAOAEP256: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP256},
-		cryptoutilOrmRepository.A256GCM_RSAOAEP:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP},
-		cryptoutilOrmRepository.A192GCM_RSAOAEP:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP},
-		cryptoutilOrmRepository.A128GCM_RSAOAEP:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP},
-		cryptoutilOrmRepository.A256GCM_RSA15:      {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSA15},
-		cryptoutilOrmRepository.A192GCM_RSA15:      {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSA15},
-		cryptoutilOrmRepository.A128GCM_RSA15:      {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSA15},
+		constant.A256GCM_RSAOAEP512: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP512},
+		constant.A192GCM_RSAOAEP512: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP512},
+		constant.A128GCM_RSAOAEP512: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP512},
+		constant.A256GCM_RSAOAEP384: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP384},
+		constant.A192GCM_RSAOAEP384: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP384},
+		constant.A128GCM_RSAOAEP384: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP384},
+		constant.A256GCM_RSAOAEP256: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP256},
+		constant.A192GCM_RSAOAEP256: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP256},
+		constant.A128GCM_RSAOAEP256: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP256},
+		constant.A256GCM_RSAOAEP:    {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSAOAEP},
+		constant.A192GCM_RSAOAEP:    {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSAOAEP},
+		constant.A128GCM_RSAOAEP:    {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSAOAEP},
+		constant.A256GCM_RSA15:      {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgRSA15},
+		constant.A192GCM_RSA15:      {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgRSA15},
+		constant.A128GCM_RSA15:      {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgRSA15},
 
-		cryptoutilOrmRepository.A256GCM_ECDHESA256KW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHESA256KW},
-		cryptoutilOrmRepository.A192GCM_ECDHESA256KW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHESA256KW},
-		cryptoutilOrmRepository.A128GCM_ECDHESA256KW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHESA256KW},
-		cryptoutilOrmRepository.A256GCM_ECDHESA192KW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHESA192KW},
-		cryptoutilOrmRepository.A192GCM_ECDHESA192KW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHESA192KW},
-		cryptoutilOrmRepository.A128GCM_ECDHESA192KW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHESA192KW},
-		cryptoutilOrmRepository.A256GCM_ECDHESA128KW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHESA128KW},
-		cryptoutilOrmRepository.A192GCM_ECDHESA128KW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHESA128KW},
-		cryptoutilOrmRepository.A128GCM_ECDHESA128KW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHESA128KW},
-		cryptoutilOrmRepository.A256GCM_ECDHES:       {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHES},
-		cryptoutilOrmRepository.A192GCM_ECDHES:       {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHES},
-		cryptoutilOrmRepository.A128GCM_ECDHES:       {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHES},
+		constant.A256GCM_ECDHESA256KW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHESA256KW},
+		constant.A192GCM_ECDHESA256KW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHESA256KW},
+		constant.A128GCM_ECDHESA256KW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHESA256KW},
+		constant.A256GCM_ECDHESA192KW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHESA192KW},
+		constant.A192GCM_ECDHESA192KW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHESA192KW},
+		constant.A128GCM_ECDHESA192KW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHESA192KW},
+		constant.A256GCM_ECDHESA128KW: {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHESA128KW},
+		constant.A192GCM_ECDHESA128KW: {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHESA128KW},
+		constant.A128GCM_ECDHESA128KW: {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHESA128KW},
+		constant.A256GCM_ECDHES:       {enc: &cryptoutilJose.EncA256GCM, alg: &cryptoutilJose.AlgECDHES},
+		constant.A192GCM_ECDHES:       {enc: &cryptoutilJose.EncA192GCM, alg: &cryptoutilJose.AlgECDHES},
+		constant.A128GCM_ECDHES:       {enc: &cryptoutilJose.EncA128GCM, alg: &cryptoutilJose.AlgECDHES},
 
-		cryptoutilOrmRepository.A256CBCHS512_A256KW:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA256KW},
-		cryptoutilOrmRepository.A192CBCHS384_A256KW:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA256KW},
-		cryptoutilOrmRepository.A128CBCHS256_A256KW:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA256KW},
-		cryptoutilOrmRepository.A256CBCHS512_A192KW:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA192KW},
-		cryptoutilOrmRepository.A192CBCHS384_A192KW:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA192KW},
-		cryptoutilOrmRepository.A128CBCHS256_A192KW:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA192KW},
-		cryptoutilOrmRepository.A256CBCHS512_A128KW:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA128KW},
-		cryptoutilOrmRepository.A192CBCHS384_A128KW:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA128KW},
-		cryptoutilOrmRepository.A128CBCHS256_A128KW:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA128KW},
-		cryptoutilOrmRepository.A256CBCHS512_A256GCMKW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA256GCMKW},
-		cryptoutilOrmRepository.A192CBCHS384_A256GCMKW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA256GCMKW},
-		cryptoutilOrmRepository.A128CBCHS256_A256GCMKW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA256GCMKW},
-		cryptoutilOrmRepository.A256CBCHS512_A192GCMKW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA192GCMKW},
-		cryptoutilOrmRepository.A192CBCHS384_A192GCMKW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA192GCMKW},
-		cryptoutilOrmRepository.A128CBCHS256_A192GCMKW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA192GCMKW},
-		cryptoutilOrmRepository.A256CBCHS512_A128GCMKW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA128GCMKW},
-		cryptoutilOrmRepository.A192CBCHS384_A128GCMKW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA128GCMKW},
-		cryptoutilOrmRepository.A128CBCHS256_A128GCMKW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA128GCMKW},
-		cryptoutilOrmRepository.A256CBCHS512_dir:       {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgDir},
-		cryptoutilOrmRepository.A192CBCHS384_dir:       {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgDir},
-		cryptoutilOrmRepository.A128CBCHS256_dir:       {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgDir},
+		constant.A256CBCHS512_A256KW:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA256KW},
+		constant.A192CBCHS384_A256KW:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA256KW},
+		constant.A128CBCHS256_A256KW:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA256KW},
+		constant.A256CBCHS512_A192KW:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA192KW},
+		constant.A192CBCHS384_A192KW:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA192KW},
+		constant.A128CBCHS256_A192KW:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA192KW},
+		constant.A256CBCHS512_A128KW:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA128KW},
+		constant.A192CBCHS384_A128KW:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA128KW},
+		constant.A128CBCHS256_A128KW:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA128KW},
+		constant.A256CBCHS512_A256GCMKW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA256GCMKW},
+		constant.A192CBCHS384_A256GCMKW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA256GCMKW},
+		constant.A128CBCHS256_A256GCMKW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA256GCMKW},
+		constant.A256CBCHS512_A192GCMKW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA192GCMKW},
+		constant.A192CBCHS384_A192GCMKW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA192GCMKW},
+		constant.A128CBCHS256_A192GCMKW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA192GCMKW},
+		constant.A256CBCHS512_A128GCMKW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgA128GCMKW},
+		constant.A192CBCHS384_A128GCMKW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgA128GCMKW},
+		constant.A128CBCHS256_A128GCMKW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgA128GCMKW},
+		constant.A256CBCHS512_dir:       {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgDir},
+		constant.A192CBCHS384_dir:       {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgDir},
+		constant.A128CBCHS256_dir:       {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgDir},
 
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP512: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP512},
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP512: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP512},
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP512: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP512},
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP384: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP384},
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP384: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP384},
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP384: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP384},
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP256: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP256},
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP256: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP256},
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP256: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP256},
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP},
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP},
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP},
-		cryptoutilOrmRepository.A256CBC_HS512_RSA15:      {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSA15},
-		cryptoutilOrmRepository.A192CBC_HS384_RSA15:      {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSA15},
-		cryptoutilOrmRepository.A128CBC_HS256_RSA15:      {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSA15},
+		constant.A256CBC_HS512_RSAOAEP512: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP512},
+		constant.A192CBC_HS384_RSAOAEP512: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP512},
+		constant.A128CBC_HS256_RSAOAEP512: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP512},
+		constant.A256CBC_HS512_RSAOAEP384: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP384},
+		constant.A192CBC_HS384_RSAOAEP384: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP384},
+		constant.A128CBC_HS256_RSAOAEP384: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP384},
+		constant.A256CBC_HS512_RSAOAEP256: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP256},
+		constant.A192CBC_HS384_RSAOAEP256: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP256},
+		constant.A128CBC_HS256_RSAOAEP256: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP256},
+		constant.A256CBC_HS512_RSAOAEP:    {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSAOAEP},
+		constant.A192CBC_HS384_RSAOAEP:    {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSAOAEP},
+		constant.A128CBC_HS256_RSAOAEP:    {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSAOAEP},
+		constant.A256CBC_HS512_RSA15:      {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgRSA15},
+		constant.A192CBC_HS384_RSA15:      {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgRSA15},
+		constant.A128CBC_HS256_RSA15:      {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgRSA15},
 
-		cryptoutilOrmRepository.A256CBC_HS512_ECDHESA256KW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgECDHESA256KW},
-		cryptoutilOrmRepository.A192CBC_HS384_ECDHESA256KW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgECDHESA256KW},
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA256KW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHESA256KW},
-		cryptoutilOrmRepository.A192CBC_HS384_ECDHESA192KW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgECDHESA192KW},
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA192KW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHESA192KW},
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA128KW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHESA128KW},
-		cryptoutilOrmRepository.A256CBC_HS512_ECDHES:       {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgECDHES},
-		cryptoutilOrmRepository.A192CBC_HS384_ECDHES:       {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgECDHES},
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHES:       {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHES},
+		constant.A256CBC_HS512_ECDHESA256KW: {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgECDHESA256KW},
+		constant.A192CBC_HS384_ECDHESA256KW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgECDHESA256KW},
+		constant.A128CBC_HS256_ECDHESA256KW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHESA256KW},
+		constant.A192CBC_HS384_ECDHESA192KW: {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgECDHESA192KW},
+		constant.A128CBC_HS256_ECDHESA192KW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHESA192KW},
+		constant.A128CBC_HS256_ECDHESA128KW: {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHESA128KW},
+		constant.A256CBC_HS512_ECDHES:       {enc: &cryptoutilJose.EncA256CBC_HS512, alg: &cryptoutilJose.AlgECDHES},
+		constant.A192CBC_HS384_ECDHES:       {enc: &cryptoutilJose.EncA192CBC_HS384, alg: &cryptoutilJose.AlgECDHES},
+		constant.A128CBC_HS256_ECDHES:       {enc: &cryptoutilJose.EncA128CBC_HS256, alg: &cryptoutilJose.AlgECDHES},
 	}
 
-	ormElasticKeyAlgorithmToJoseAlg = map[cryptoutilOrmRepository.ElasticKeyAlgorithm]*joseJwa.SignatureAlgorithm{
-		cryptoutilOrmRepository.RS512: &cryptoutilJose.AlgRS512,
-		cryptoutilOrmRepository.RS384: &cryptoutilJose.AlgRS384,
-		cryptoutilOrmRepository.RS256: &cryptoutilJose.AlgRS256,
-		cryptoutilOrmRepository.PS512: &cryptoutilJose.AlgPS512,
-		cryptoutilOrmRepository.PS384: &cryptoutilJose.AlgPS384,
-		cryptoutilOrmRepository.PS256: &cryptoutilJose.AlgPS256,
-		cryptoutilOrmRepository.ES512: &cryptoutilJose.AlgES512,
-		cryptoutilOrmRepository.ES384: &cryptoutilJose.AlgES384,
-		cryptoutilOrmRepository.ES256: &cryptoutilJose.AlgES256,
-		cryptoutilOrmRepository.HS512: &cryptoutilJose.AlgHS512,
-		cryptoutilOrmRepository.HS384: &cryptoutilJose.AlgHS384,
-		cryptoutilOrmRepository.HS256: &cryptoutilJose.AlgHS256,
-		cryptoutilOrmRepository.EdDSA: &cryptoutilJose.AlgEdDSA,
+	ormElasticKeyAlgorithmToJoseAlg = map[constant.ElasticKeyAlgorithm]*joseJwa.SignatureAlgorithm{
+		constant.RS512: &cryptoutilJose.AlgRS512,
+		constant.RS384: &cryptoutilJose.AlgRS384,
+		constant.RS256: &cryptoutilJose.AlgRS256,
+		constant.PS512: &cryptoutilJose.AlgPS512,
+		constant.PS384: &cryptoutilJose.AlgPS384,
+		constant.PS256: &cryptoutilJose.AlgPS256,
+		constant.ES512: &cryptoutilJose.AlgES512,
+		constant.ES384: &cryptoutilJose.AlgES384,
+		constant.ES256: &cryptoutilJose.AlgES256,
+		constant.HS512: &cryptoutilJose.AlgHS512,
+		constant.HS384: &cryptoutilJose.AlgHS384,
+		constant.HS256: &cryptoutilJose.AlgHS256,
+		constant.EdDSA: &cryptoutilJose.AlgEdDSA,
 	}
 
-	isSymmetric = map[cryptoutilOrmRepository.ElasticKeyAlgorithm]bool{
-		cryptoutilOrmRepository.A256GCM_A256KW:    true,
-		cryptoutilOrmRepository.A192GCM_A256KW:    true,
-		cryptoutilOrmRepository.A128GCM_A256KW:    true,
-		cryptoutilOrmRepository.A256GCM_A192KW:    true,
-		cryptoutilOrmRepository.A192GCM_A192KW:    true,
-		cryptoutilOrmRepository.A128GCM_A192KW:    true,
-		cryptoutilOrmRepository.A256GCM_A128KW:    true,
-		cryptoutilOrmRepository.A192GCM_A128KW:    true,
-		cryptoutilOrmRepository.A128GCM_A128KW:    true,
-		cryptoutilOrmRepository.A256GCM_A256GCMKW: true,
-		cryptoutilOrmRepository.A192GCM_A256GCMKW: true,
-		cryptoutilOrmRepository.A128GCM_A256GCMKW: true,
-		cryptoutilOrmRepository.A256GCM_A192GCMKW: true,
-		cryptoutilOrmRepository.A192GCM_A192GCMKW: true,
-		cryptoutilOrmRepository.A128GCM_A192GCMKW: true,
-		cryptoutilOrmRepository.A256GCM_A128GCMKW: true,
-		cryptoutilOrmRepository.A192GCM_A128GCMKW: true,
-		cryptoutilOrmRepository.A128GCM_A128GCMKW: true,
-		cryptoutilOrmRepository.A256GCM_dir:       true,
-		cryptoutilOrmRepository.A192GCM_dir:       true,
-		cryptoutilOrmRepository.A128GCM_dir:       true,
+	isSymmetric = map[constant.ElasticKeyAlgorithm]bool{
+		constant.A256GCM_A256KW:    true,
+		constant.A192GCM_A256KW:    true,
+		constant.A128GCM_A256KW:    true,
+		constant.A256GCM_A192KW:    true,
+		constant.A192GCM_A192KW:    true,
+		constant.A128GCM_A192KW:    true,
+		constant.A256GCM_A128KW:    true,
+		constant.A192GCM_A128KW:    true,
+		constant.A128GCM_A128KW:    true,
+		constant.A256GCM_A256GCMKW: true,
+		constant.A192GCM_A256GCMKW: true,
+		constant.A128GCM_A256GCMKW: true,
+		constant.A256GCM_A192GCMKW: true,
+		constant.A192GCM_A192GCMKW: true,
+		constant.A128GCM_A192GCMKW: true,
+		constant.A256GCM_A128GCMKW: true,
+		constant.A192GCM_A128GCMKW: true,
+		constant.A128GCM_A128GCMKW: true,
+		constant.A256GCM_dir:       true,
+		constant.A192GCM_dir:       true,
+		constant.A128GCM_dir:       true,
 
-		cryptoutilOrmRepository.A256GCM_RSAOAEP512: false,
-		cryptoutilOrmRepository.A192GCM_RSAOAEP512: false,
-		cryptoutilOrmRepository.A128GCM_RSAOAEP512: false,
-		cryptoutilOrmRepository.A256GCM_RSAOAEP384: false,
-		cryptoutilOrmRepository.A192GCM_RSAOAEP384: false,
-		cryptoutilOrmRepository.A128GCM_RSAOAEP384: false,
-		cryptoutilOrmRepository.A256GCM_RSAOAEP256: false,
-		cryptoutilOrmRepository.A192GCM_RSAOAEP256: false,
-		cryptoutilOrmRepository.A128GCM_RSAOAEP256: false,
-		cryptoutilOrmRepository.A256GCM_RSAOAEP:    false,
-		cryptoutilOrmRepository.A192GCM_RSAOAEP:    false,
-		cryptoutilOrmRepository.A128GCM_RSAOAEP:    false,
-		cryptoutilOrmRepository.A256GCM_RSA15:      false,
-		cryptoutilOrmRepository.A192GCM_RSA15:      false,
-		cryptoutilOrmRepository.A128GCM_RSA15:      false,
+		constant.A256GCM_RSAOAEP512: false,
+		constant.A192GCM_RSAOAEP512: false,
+		constant.A128GCM_RSAOAEP512: false,
+		constant.A256GCM_RSAOAEP384: false,
+		constant.A192GCM_RSAOAEP384: false,
+		constant.A128GCM_RSAOAEP384: false,
+		constant.A256GCM_RSAOAEP256: false,
+		constant.A192GCM_RSAOAEP256: false,
+		constant.A128GCM_RSAOAEP256: false,
+		constant.A256GCM_RSAOAEP:    false,
+		constant.A192GCM_RSAOAEP:    false,
+		constant.A128GCM_RSAOAEP:    false,
+		constant.A256GCM_RSA15:      false,
+		constant.A192GCM_RSA15:      false,
+		constant.A128GCM_RSA15:      false,
 
-		cryptoutilOrmRepository.A256GCM_ECDHESA256KW: false,
-		cryptoutilOrmRepository.A192GCM_ECDHESA256KW: false,
-		cryptoutilOrmRepository.A128GCM_ECDHESA256KW: false,
-		cryptoutilOrmRepository.A256GCM_ECDHESA192KW: false,
-		cryptoutilOrmRepository.A192GCM_ECDHESA192KW: false,
-		cryptoutilOrmRepository.A128GCM_ECDHESA192KW: false,
-		cryptoutilOrmRepository.A256GCM_ECDHESA128KW: false,
-		cryptoutilOrmRepository.A192GCM_ECDHESA128KW: false,
-		cryptoutilOrmRepository.A128GCM_ECDHESA128KW: false,
-		cryptoutilOrmRepository.A256GCM_ECDHES:       false,
-		cryptoutilOrmRepository.A192GCM_ECDHES:       false,
-		cryptoutilOrmRepository.A128GCM_ECDHES:       false,
+		constant.A256GCM_ECDHESA256KW: false,
+		constant.A192GCM_ECDHESA256KW: false,
+		constant.A128GCM_ECDHESA256KW: false,
+		constant.A256GCM_ECDHESA192KW: false,
+		constant.A192GCM_ECDHESA192KW: false,
+		constant.A128GCM_ECDHESA192KW: false,
+		constant.A256GCM_ECDHESA128KW: false,
+		constant.A192GCM_ECDHESA128KW: false,
+		constant.A128GCM_ECDHESA128KW: false,
+		constant.A256GCM_ECDHES:       false,
+		constant.A192GCM_ECDHES:       false,
+		constant.A128GCM_ECDHES:       false,
 
-		cryptoutilOrmRepository.A256CBCHS512_A256KW:    true,
-		cryptoutilOrmRepository.A192CBCHS384_A256KW:    true,
-		cryptoutilOrmRepository.A128CBCHS256_A256KW:    true,
-		cryptoutilOrmRepository.A256CBCHS512_A192KW:    true,
-		cryptoutilOrmRepository.A192CBCHS384_A192KW:    true,
-		cryptoutilOrmRepository.A128CBCHS256_A192KW:    true,
-		cryptoutilOrmRepository.A256CBCHS512_A128KW:    true,
-		cryptoutilOrmRepository.A192CBCHS384_A128KW:    true,
-		cryptoutilOrmRepository.A128CBCHS256_A128KW:    true,
-		cryptoutilOrmRepository.A256CBCHS512_A256GCMKW: true,
-		cryptoutilOrmRepository.A192CBCHS384_A256GCMKW: true,
-		cryptoutilOrmRepository.A128CBCHS256_A256GCMKW: true,
-		cryptoutilOrmRepository.A256CBCHS512_A192GCMKW: true,
-		cryptoutilOrmRepository.A192CBCHS384_A192GCMKW: true,
-		cryptoutilOrmRepository.A128CBCHS256_A192GCMKW: true,
-		cryptoutilOrmRepository.A256CBCHS512_A128GCMKW: true,
-		cryptoutilOrmRepository.A192CBCHS384_A128GCMKW: true,
-		cryptoutilOrmRepository.A128CBCHS256_A128GCMKW: true,
-		cryptoutilOrmRepository.A256CBCHS512_dir:       true,
-		cryptoutilOrmRepository.A192CBCHS384_dir:       true,
-		cryptoutilOrmRepository.A128CBCHS256_dir:       true,
+		constant.A256CBCHS512_A256KW:    true,
+		constant.A192CBCHS384_A256KW:    true,
+		constant.A128CBCHS256_A256KW:    true,
+		constant.A256CBCHS512_A192KW:    true,
+		constant.A192CBCHS384_A192KW:    true,
+		constant.A128CBCHS256_A192KW:    true,
+		constant.A256CBCHS512_A128KW:    true,
+		constant.A192CBCHS384_A128KW:    true,
+		constant.A128CBCHS256_A128KW:    true,
+		constant.A256CBCHS512_A256GCMKW: true,
+		constant.A192CBCHS384_A256GCMKW: true,
+		constant.A128CBCHS256_A256GCMKW: true,
+		constant.A256CBCHS512_A192GCMKW: true,
+		constant.A192CBCHS384_A192GCMKW: true,
+		constant.A128CBCHS256_A192GCMKW: true,
+		constant.A256CBCHS512_A128GCMKW: true,
+		constant.A192CBCHS384_A128GCMKW: true,
+		constant.A128CBCHS256_A128GCMKW: true,
+		constant.A256CBCHS512_dir:       true,
+		constant.A192CBCHS384_dir:       true,
+		constant.A128CBCHS256_dir:       true,
 
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP512: false,
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP512: false,
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP512: false,
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP384: false,
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP384: false,
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP384: false,
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP256: false,
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP256: false,
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP256: false,
-		cryptoutilOrmRepository.A256CBC_HS512_RSAOAEP:    false,
-		cryptoutilOrmRepository.A192CBC_HS384_RSAOAEP:    false,
-		cryptoutilOrmRepository.A128CBC_HS256_RSAOAEP:    false,
-		cryptoutilOrmRepository.A256CBC_HS512_RSA15:      false,
-		cryptoutilOrmRepository.A192CBC_HS384_RSA15:      false,
-		cryptoutilOrmRepository.A128CBC_HS256_RSA15:      false,
+		constant.A256CBC_HS512_RSAOAEP512: false,
+		constant.A192CBC_HS384_RSAOAEP512: false,
+		constant.A128CBC_HS256_RSAOAEP512: false,
+		constant.A256CBC_HS512_RSAOAEP384: false,
+		constant.A192CBC_HS384_RSAOAEP384: false,
+		constant.A128CBC_HS256_RSAOAEP384: false,
+		constant.A256CBC_HS512_RSAOAEP256: false,
+		constant.A192CBC_HS384_RSAOAEP256: false,
+		constant.A128CBC_HS256_RSAOAEP256: false,
+		constant.A256CBC_HS512_RSAOAEP:    false,
+		constant.A192CBC_HS384_RSAOAEP:    false,
+		constant.A128CBC_HS256_RSAOAEP:    false,
+		constant.A256CBC_HS512_RSA15:      false,
+		constant.A192CBC_HS384_RSA15:      false,
+		constant.A128CBC_HS256_RSA15:      false,
 
-		cryptoutilOrmRepository.A256CBC_HS512_ECDHESA256KW: false,
-		cryptoutilOrmRepository.A192CBC_HS384_ECDHESA256KW: false,
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA256KW: false,
-		cryptoutilOrmRepository.A192CBC_HS384_ECDHESA192KW: false,
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA192KW: false,
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHESA128KW: false,
-		cryptoutilOrmRepository.A256CBC_HS512_ECDHES:       false,
-		cryptoutilOrmRepository.A192CBC_HS384_ECDHES:       false,
-		cryptoutilOrmRepository.A128CBC_HS256_ECDHES:       false,
+		constant.A256CBC_HS512_ECDHESA256KW: false,
+		constant.A192CBC_HS384_ECDHESA256KW: false,
+		constant.A128CBC_HS256_ECDHESA256KW: false,
+		constant.A192CBC_HS384_ECDHESA192KW: false,
+		constant.A128CBC_HS256_ECDHESA192KW: false,
+		constant.A128CBC_HS256_ECDHESA128KW: false,
+		constant.A256CBC_HS512_ECDHES:       false,
+		constant.A192CBC_HS384_ECDHES:       false,
+		constant.A128CBC_HS256_ECDHES:       false,
 	}
 )
 
@@ -259,22 +260,22 @@ func (m *serviceOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, serv
 	}
 }
 
-func (m *serviceOrmMapper) toOrmElasticKeyProvider(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyProvider) *cryptoutilOrmRepository.ElasticKeyProvider {
-	ormElasticKeyProvider := cryptoutilOrmRepository.ElasticKeyProvider(*serviceElasticKeyProvider)
+func (m *serviceOrmMapper) toOrmElasticKeyProvider(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyProvider) *constant.ElasticKeyProvider {
+	ormElasticKeyProvider := constant.ElasticKeyProvider(*serviceElasticKeyProvider)
 	return &ormElasticKeyProvider
 }
 
-func (m *serviceOrmMapper) toOrmElasticKeyAlgorithm(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) *cryptoutilOrmRepository.ElasticKeyAlgorithm {
-	ormElasticKeyAlgorithm := cryptoutilOrmRepository.ElasticKeyAlgorithm(*serviceElasticKeyProvider)
+func (m *serviceOrmMapper) toOrmElasticKeyAlgorithm(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) *constant.ElasticKeyAlgorithm {
+	ormElasticKeyAlgorithm := constant.ElasticKeyAlgorithm(*serviceElasticKeyProvider)
 	return &ormElasticKeyAlgorithm
 }
 
-func (m *serviceOrmMapper) toElasticKeyInitialStatus(serviceElasticKeyImportAllowed *cryptoutilBusinessLogicModel.ElasticKeyImportAllowed) *cryptoutilOrmRepository.ElasticKeyStatus {
-	var ormElasticKeyStatus cryptoutilOrmRepository.ElasticKeyStatus
+func (m *serviceOrmMapper) toElasticKeyInitialStatus(serviceElasticKeyImportAllowed *cryptoutilBusinessLogicModel.ElasticKeyImportAllowed) *constant.ElasticKeyStatus {
+	var ormElasticKeyStatus constant.ElasticKeyStatus
 	if *serviceElasticKeyImportAllowed {
-		ormElasticKeyStatus = cryptoutilOrmRepository.ElasticKeyStatus("pending_import")
+		ormElasticKeyStatus = constant.ElasticKeyStatus("pending_import")
 	} else {
-		ormElasticKeyStatus = cryptoutilOrmRepository.ElasticKeyStatus("pending_generate")
+		ormElasticKeyStatus = constant.ElasticKeyStatus("pending_generate")
 	}
 	return &ormElasticKeyStatus
 }
@@ -303,17 +304,17 @@ func (s *serviceOrmMapper) toServiceElasticKey(ormElasticKey *cryptoutilOrmRepos
 	}
 }
 
-func (m *serviceOrmMapper) toServiceElasticKeyAlgorithm(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm {
+func (m *serviceOrmMapper) toServiceElasticKeyAlgorithm(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm {
 	serviceElasticKeyAlgorithm := cryptoutilBusinessLogicModel.ElasticKeyAlgorithm(*ormElasticKeyAlgorithm)
 	return &serviceElasticKeyAlgorithm
 }
 
-func (m *serviceOrmMapper) toServiceElasticKeyProvider(ormElasticKeyProvider *cryptoutilOrmRepository.ElasticKeyProvider) *cryptoutilBusinessLogicModel.ElasticKeyProvider {
+func (m *serviceOrmMapper) toServiceElasticKeyProvider(ormElasticKeyProvider *constant.ElasticKeyProvider) *cryptoutilBusinessLogicModel.ElasticKeyProvider {
 	serviceElasticKeyProvider := cryptoutilBusinessLogicModel.ElasticKeyProvider(*ormElasticKeyProvider)
 	return &serviceElasticKeyProvider
 }
 
-func (m *serviceOrmMapper) toServiceElasticKeyStatus(ormElasticKeyStatus *cryptoutilOrmRepository.ElasticKeyStatus) *cryptoutilBusinessLogicModel.ElasticKeyStatus {
+func (m *serviceOrmMapper) toServiceElasticKeyStatus(ormElasticKeyStatus *constant.ElasticKeyStatus) *cryptoutilBusinessLogicModel.ElasticKeyStatus {
 	serviceElasticKeyStatus := cryptoutilBusinessLogicModel.ElasticKeyStatus(*ormElasticKeyStatus)
 	return &serviceElasticKeyStatus
 }
@@ -566,31 +567,31 @@ func toStrings[T any](items *[]T, toString func(T) string) []string {
 	return converted
 }
 
-func (m *serviceOrmMapper) isJwe(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) bool {
+func (m *serviceOrmMapper) isJwe(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) bool {
 	_, ok := ormElasticKeyAlgorithmToJoseEncAndAlg[*ormElasticKeyAlgorithm]
 	return ok
 }
 
-func (m *serviceOrmMapper) toJweEncAndAlg(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+func (m *serviceOrmMapper) toJweEncAndAlg(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	if encAndAlg, ok := ormElasticKeyAlgorithmToJoseEncAndAlg[*ormElasticKeyAlgorithm]; ok {
 		return encAndAlg.enc, encAndAlg.alg, nil
 	}
 	return nil, nil, fmt.Errorf("unsupported JWE ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
 }
 
-func (m *serviceOrmMapper) isJws(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) bool {
+func (m *serviceOrmMapper) isJws(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) bool {
 	_, ok := ormElasticKeyAlgorithmToJoseAlg[*ormElasticKeyAlgorithm]
 	return ok
 }
 
-func (m *serviceOrmMapper) toJwsAlg(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
+func (m *serviceOrmMapper) toJwsAlg(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
 	if alg, ok := ormElasticKeyAlgorithmToJoseAlg[*ormElasticKeyAlgorithm]; ok {
 		return alg, nil
 	}
 	return nil, fmt.Errorf("unsupported JWS ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
 }
 
-func (m *serviceOrmMapper) isSymmetric(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (bool, error) {
+func (m *serviceOrmMapper) isSymmetric(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (bool, error) {
 	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
 	if ok {
 		return isSymmetric, nil
@@ -598,7 +599,7 @@ func (m *serviceOrmMapper) isSymmetric(ormElasticKeyAlgorithm *cryptoutilOrmRepo
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
 }
 
-func (m *serviceOrmMapper) isAsymmetric(ormElasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (bool, error) {
+func (m *serviceOrmMapper) isAsymmetric(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (bool, error) {
 	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
 	if ok {
 		return !isSymmetric, nil

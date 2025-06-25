@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	"cryptoutil/internal/common/constant"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"gorm.io/gorm"
@@ -50,7 +51,7 @@ func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
 	return nil
 }
 
-func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus ElasticKeyStatus) error {
+func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, elasticKeyStatus constant.ElasticKeyStatus) error {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, "invalid Elastic Key ID"); err != nil {
 		return tx.toAppErr("failed to update Elastic Key Status by Elastic Key ID", err)
 	}

@@ -1,10 +1,12 @@
 package orm
 
 import (
+	"cryptoutil/internal/common/constant"
+
 	googleUuid "github.com/google/uuid"
 )
 
-func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider ElasticKeyProvider, algorithm ElasticKeyAlgorithm, versioningAllowed, importAllowed, exportAllowed bool, status string) (*ElasticKey, error) {
+func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, provider constant.ElasticKeyProvider, algorithm constant.ElasticKeyAlgorithm, versioningAllowed, importAllowed, exportAllowed bool, status string) (*ElasticKey, error) {
 	elasticKey := ElasticKey{
 		ElasticKeyID:                elasticKeyID,
 		ElasticKeyName:              name,
@@ -14,14 +16,14 @@ func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, pro
 		ElasticKeyVersioningAllowed: versioningAllowed,
 		ElasticKeyImportAllowed:     importAllowed,
 		ElasticKeyExportAllowed:     exportAllowed,
-		ElasticKeyStatus:            ElasticKeyStatus(status),
+		ElasticKeyStatus:            constant.ElasticKeyStatus(status),
 	}
 	return &elasticKey, nil
 }
 
 func ElasticKeyStatusInitial(importAllowed bool) string {
 	if importAllowed {
-		return string(PendingImport)
+		return string(constant.PendingImport)
 	}
-	return string(PendingGenerate)
+	return string(constant.PendingGenerate)
 }

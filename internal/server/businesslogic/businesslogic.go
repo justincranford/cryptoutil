@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"cryptoutil/internal/common/constant"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
@@ -105,7 +106,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to add key: %w", err)
 		}
 
-		err = sqlTransaction.UpdateElasticKeyStatus(*elasticKeyID, cryptoutilOrmRepository.Active)
+		err = sqlTransaction.UpdateElasticKeyStatus(*elasticKeyID, constant.Active)
 		if err != nil {
 			return fmt.Errorf("failed to update ElasticKeyStatus to active: %w", err)
 		}
@@ -173,7 +174,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elastic
 			return fmt.Errorf("failed to get Elastic Key by ElasticKeyID: %w", err)
 		}
 
-		if repositoryElasticKey.ElasticKeyStatus != cryptoutilOrmRepository.PendingGenerate && repositoryElasticKey.ElasticKeyStatus != cryptoutilOrmRepository.Active {
+		if repositoryElasticKey.ElasticKeyStatus != constant.PendingGenerate && repositoryElasticKey.ElasticKeyStatus != constant.Active {
 			return fmt.Errorf("invalid Elastic Key Status: %w", err)
 		}
 
@@ -219,7 +220,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elastic
 
 func (*BusinessLogicService) prepareMaterialKeyExportableDetails(clearPublicBytes []byte, clearNonPublicBytes []byte, repositoryElasticKey *cryptoutilOrmRepository.ElasticKey) *materialKeyExport {
 	var clearPublicStringPointer *string
-	if cryptoutilOrmRepository.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) && len(clearPublicBytes) > 0 {
+	if constant.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) && len(clearPublicBytes) > 0 {
 		clearPublicString := string(clearPublicBytes)
 		clearPublicStringPointer = &clearPublicString
 	}
@@ -252,7 +253,7 @@ func (s *BusinessLogicService) GetMaterialKeysForElasticKey(ctx context.Context,
 			return fmt.Errorf("failed to list Material Keys by ElasticKeyID: %w", err)
 		}
 
-		if cryptoutilOrmRepository.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) || repositoryElasticKey.ElasticKeyExportAllowed {
+		if constant.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) || repositoryElasticKey.ElasticKeyExportAllowed {
 			// asymmetric => always export clear public key, optionally export clear private key
 			// symmetric => optionally export clear secret key
 			for _, repositoryKey := range repositoryMaterialKeys {
@@ -315,7 +316,7 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, keysQueryPar
 			if err != nil {
 				return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 			}
-			if cryptoutilOrmRepository.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) || repositoryElasticKey.ElasticKeyExportAllowed {
+			if constant.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) || repositoryElasticKey.ElasticKeyExportAllowed {
 				// asymmetric => optionally export clear private key, and extract public key from it
 				// symmetric => optionally export clear secret key
 				clearNonPublicJwkBytes, err := s.barrierService.DecryptContent(sqlTransaction, repositoryKey.EncryptedNonPublicKeyMaterial)
@@ -371,7 +372,7 @@ func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx co
 			return fmt.Errorf("failed to get Key by ElasticKeyID and MaterialKeyID: %w", err)
 		}
 
-		if cryptoutilOrmRepository.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) || repositoryElasticKey.ElasticKeyExportAllowed {
+		if constant.IsAsymmetric(&repositoryElasticKey.ElasticKeyAlgorithm) || repositoryElasticKey.ElasticKeyExportAllowed {
 			// asymmetric => always export clear public key, optionally export clear private key
 			// symmetric => optionally export clear secret key
 			clearNonPublicJwkBytes, err := s.barrierService.DecryptContent(sqlTransaction, repositoryMaterialKey.EncryptedNonPublicKeyMaterial)
@@ -481,7 +482,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	return verifiedJwsMessageBytes, nil
 }
 
-func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOrmRepository.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	var materialKeyID *googleUuid.UUID
 	var materialKeyNonPublicJwk joseJwk.Key
 	var materialKeyPublicJwk joseJwk.Key
