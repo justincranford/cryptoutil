@@ -7,8 +7,10 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	_ "github.com/lib/pq"
@@ -22,9 +24,9 @@ var (
 	testJwkGenService    *cryptoutilJose.JwkGenService
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *OrmRepository
-	testGivens           *Givens
 	skipReadOnlyTxTests  = true                                 // true for DBTypeSQLite, false for DBTypePostgres
 	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
+	numMaterialKeys      = 10
 )
 
 func TestMain(m *testing.M) {
@@ -41,9 +43,6 @@ func TestMain(m *testing.M) {
 
 		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
 		defer testOrmRepository.Shutdown()
-
-		testGivens = RequireNewGivensForTest(testCtx, testTelemetryService)
-		defer testGivens.Shutdown()
 
 		rc = m.Run()
 	}()
@@ -139,17 +138,29 @@ func TestSqlTransaction_Success(t *testing.T) {
 			require.NotNil(t, ormTransaction.Context())
 			require.Equal(t, testCase.txMode, *ormTransaction.Mode())
 
-			elasticKey := testGivens.Aes256ElasticKey(true, true, true)
-			err := ormTransaction.AddElasticKey(elasticKey)
-			if err != nil {
-				return fmt.Errorf("failed to add Elastic Key: %w", err)
-			}
+			uuidV7 := testJwkGenService.GenerateUUIDv7()
+			elasticKey, err := BuildElasticKey(*uuidV7, string("Elastic Key Name "+uuidV7.String()), string("Elastic Key Description "+uuidV7.String()), Internal, A256GCM_dir, true, true, true, string(Creating))
+			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 elastic Key")
+			err = ormTransaction.AddElasticKey(elasticKey)
+			cryptoutilAppErr.RequireNoError(err, "failed to add AES 256 elastic Key")
 			addedElasticKeys = append(addedElasticKeys, elasticKey)
 
-			for nextKeyId := 1; nextKeyId <= 10; nextKeyId++ {
+			multipleByteSlices, err := cryptoutilUtil.GenerateMultipleBytes(numMaterialKeys, 32)
+			cryptoutilAppErr.RequireNoError(err, "failed to generate AES 256 key materials")
+			for nextKeyId := 1; nextKeyId <= numMaterialKeys; nextKeyId++ {
 				now := time.Now().UTC()
-				key := testGivens.Aes256Key(elasticKey.ElasticKeyID, &now, nil, nil, nil)
-				err = ormTransaction.AddElasticKeyKey(key)
+				key := MaterialKey{
+					ElasticKeyID:                  elasticKey.ElasticKeyID,
+					MaterialKeyID:                 *testJwkGenService.GenerateUUIDv7(),
+					ClearPublicKeyMaterial:        nil,
+					EncryptedNonPublicKeyMaterial: multipleByteSlices[nextKeyId-1],
+					MaterialKeyGenerateDate:       &now,
+					MaterialKeyImportDate:         nil,
+					MaterialKeyExpirationDate:     nil,
+					MaterialKeyRevocationDate:     nil,
+				}
+
+				err = ormTransaction.AddElasticKeyKey(&key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
 				}
