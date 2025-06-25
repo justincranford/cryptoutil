@@ -28,6 +28,7 @@ type BusinessLogicService struct {
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
+// TODO Remove clearPublic
 type materialKeyExport struct {
 	clearPublic    *string
 	clearNonPublic *string
@@ -68,7 +69,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 	}
 
 	// generate first Material Key automatically
-	materialKeyID, _, _, materialKeyNonPublicJwkBytes, _, err := s.generateJwk(&repositoryElasticKeyToInsert.ElasticKeyAlgorithm)
+	materialKeyID, _, _, clearMaterialKeyNonPublicJwkBytes, clearMaterialKeyPublicJwkBytes, err := s.generateJwk(&repositoryElasticKeyToInsert.ElasticKeyAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate ElasticKey Key: %w", err)
 	}
@@ -86,7 +87,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("invalid ElasticKeyStatus transition: %w", err)
 		}
 
-		encryptedKeyBytes, err := s.barrierService.EncryptContent(sqlTransaction, materialKeyNonPublicJwkBytes)
+		encryptedKeyBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearMaterialKeyNonPublicJwkBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt ElasticKey Key: %w", err)
 		}
@@ -94,6 +95,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 		repositoryKey := &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  *elasticKeyID,
 			MaterialKeyID:                 *materialKeyID,
+			ClearPublicKeyMaterial:        clearMaterialKeyPublicJwkBytes,     // nil if repositoryElasticKeyToInsert.ElasticKeyAlgorithm is Symmetric
 			EncryptedNonPublicKeyMaterial: encryptedKeyBytes,                  // nil if repositoryElasticKeyToInsert.ElasticKeyImportAllowed=true
 			MaterialKeyGenerateDate:       &repositoryMaterialKeyGenerateDate, // nil if repositoryElasticKeyToInsert.ElasticKeyImportAllowed=true
 		}
@@ -189,6 +191,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elastic
 		repositoryMaterialKey = &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  elasticKeyID,
 			MaterialKeyID:                 *materialKeyKidUuid,
+			ClearPublicKeyMaterial:        clearPublicJwkBytes,
 			EncryptedNonPublicKeyMaterial: encryptedMaterialKeyPrivateOrPublicJwkBytes,
 			MaterialKeyGenerateDate:       &materialKeyGenerateDate,
 		}

@@ -1,8 +1,6 @@
 package orm
 
 import (
-	"time"
-
 	googleUuid "github.com/google/uuid"
 )
 
@@ -19,19 +17,6 @@ func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, pro
 		ElasticKeyStatus:            ElasticKeyStatus(status),
 	}
 	return &elasticKey, nil
-}
-
-func BuildKey(elasticKeyID googleUuid.UUID, materialKeyID googleUuid.UUID, encryptedNonPublicKeyMaterial []byte, generateDate, importDate, expirationDate, revocationDate *time.Time) *MaterialKey {
-	key := MaterialKey{
-		ElasticKeyID:                  elasticKeyID,
-		MaterialKeyID:                 materialKeyID,
-		EncryptedNonPublicKeyMaterial: encryptedNonPublicKeyMaterial,
-		MaterialKeyGenerateDate:       generateDate,
-		MaterialKeyImportDate:         importDate,
-		MaterialKeyExpirationDate:     expirationDate,
-		MaterialKeyRevocationDate:     revocationDate,
-	}
-	return &key
 }
 
 func ElasticKeyStatusInitial(importAllowed bool) string {

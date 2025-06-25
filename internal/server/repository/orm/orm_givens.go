@@ -46,5 +46,15 @@ func (g *Givens) Aes256ElasticKey(versioningAllowed, importAllowed, exportAllowe
 }
 
 func (g *Givens) Aes256Key(elasticKeyID googleUuid.UUID, generateDate, importDate, expirationDate, revocationDate *time.Time) *MaterialKey {
-	return BuildKey(elasticKeyID, g.UUIDv7(), g.A256(), generateDate, importDate, expirationDate, revocationDate)
+	key := MaterialKey{
+		ElasticKeyID:                  elasticKeyID,
+		MaterialKeyID:                 g.UUIDv7(),
+		ClearPublicKeyMaterial:        nil,
+		EncryptedNonPublicKeyMaterial: g.A256(),
+		MaterialKeyGenerateDate:       generateDate,
+		MaterialKeyImportDate:         importDate,
+		MaterialKeyExpirationDate:     expirationDate,
+		MaterialKeyRevocationDate:     revocationDate,
+	}
+	return &key
 }
