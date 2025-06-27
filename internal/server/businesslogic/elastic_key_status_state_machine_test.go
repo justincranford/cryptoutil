@@ -1,4 +1,4 @@
-package businessmodel
+package businesslogic
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestTransitionInvalidState(t *testing.T) {
-	err := EkasticKeyStatusTransition("DoesNotExist", cryptoutilBusinessLogicModel.Creating)
+	err := TransitionElasticKeyStatus("DoesNotExist", cryptoutilBusinessLogicModel.Creating)
 	if err == nil {
 		t.Errorf("Expected transition from DoesNotExist to %s to fail, but it succeeded", cryptoutilBusinessLogicModel.Creating)
 	}
@@ -17,7 +17,7 @@ func TestTransitionValidStateNextValid(t *testing.T) {
 	for current, allowedNextStatuses := range validTransitions {
 		for next := range allowedNextStatuses {
 			t.Run("valid_"+string(current)+"_to_"+string(next), func(t *testing.T) {
-				err := EkasticKeyStatusTransition(current, next)
+				err := TransitionElasticKeyStatus(current, next)
 				if err != nil {
 					t.Errorf("Expected transition from %s to %s to succeed, but it failed with error: %v", current, next, err)
 				}
@@ -34,7 +34,7 @@ func TestTransitionValidStateNextInvalid(t *testing.T) {
 			}
 			if !validTransitions[current][potentialNext] {
 				t.Run("invalid_"+string(current)+"_to_"+string(potentialNext), func(t *testing.T) {
-					err := EkasticKeyStatusTransition(current, potentialNext)
+					err := TransitionElasticKeyStatus(current, potentialNext)
 					if err == nil {
 						t.Errorf("Expected transition from %s to %s to fail, but it succeeded", current, potentialNext)
 					}
@@ -47,7 +47,7 @@ func TestTransitionValidStateNextInvalid(t *testing.T) {
 func TestTransitionValidStateNextSelfInvalid(t *testing.T) {
 	for current := range validTransitions {
 		t.Run("self_"+string(current), func(t *testing.T) {
-			err := EkasticKeyStatusTransition(current, current)
+			err := TransitionElasticKeyStatus(current, current)
 			if err == nil {
 				t.Errorf("Expected self-transition for %s to fail, but it succeeded", current)
 			}

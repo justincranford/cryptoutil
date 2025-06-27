@@ -1,4 +1,4 @@
-package businessmodel
+package businesslogic
 
 import (
 	"errors"
@@ -34,7 +34,7 @@ var validTransitions = func() map[cryptoutilBusinessLogicModel.ElasticKeyStatus]
 	return convertedTransitions
 }()
 
-func EkasticKeyStatusTransition(current cryptoutilBusinessLogicModel.ElasticKeyStatus, next cryptoutilBusinessLogicModel.ElasticKeyStatus) error {
+func TransitionElasticKeyStatus(current cryptoutilBusinessLogicModel.ElasticKeyStatus, next cryptoutilBusinessLogicModel.ElasticKeyStatus) error {
 	allowedTransitions, exists := validTransitions[current]
 	if !exists {
 		return errors.New("invalid current state")
