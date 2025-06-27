@@ -385,13 +385,13 @@ type HTTPError struct {
 // MaterialKey defines model for MaterialKey.
 type MaterialKey struct {
 	// Decrypted Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
-	Decrypted *MaterialKeyDecrypted `json:"decrypted,omitempty"`
+	Decrypted *MaterialKeyClearNonPublic `json:"decrypted,omitempty"`
 
 	// ElasticKeyID Unique UUID for an Elastic Key.
 	ElasticKeyID ElasticKeyID `json:"elastic_key_id"`
 
 	// Encrypted Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
-	Encrypted *MaterialKeyEncrypted `json:"encrypted,omitempty"`
+	Encrypted *MaterialKeyEncryptedNonPublic `json:"encrypted,omitempty"`
 
 	// ExpirationDate ISO 8601 UTC timestamp of Material Key generation.
 	ExpirationDate *MaterialKeyExpirationDate `json:"expiration_date,omitempty"`
@@ -406,17 +406,17 @@ type MaterialKey struct {
 	MaterialKeyID MaterialKeyID `json:"material_key_id"`
 
 	// Public Clear public key Material Key (if applicable)
-	Public *MaterialKeyPublic `json:"public,omitempty"`
+	Public *MaterialKeyClearPublic `json:"public,omitempty"`
 
 	// RevocationDate ISO 8601 UTC timestamp of Material Key generation.
 	RevocationDate *MaterialKeyRevocationDate `json:"revocation_date,omitempty"`
 }
 
-// MaterialKeyDecrypted Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
-type MaterialKeyDecrypted = string
+// MaterialKeyClearNonPublic Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
+type MaterialKeyClearNonPublic = string
 
-// MaterialKeyEncrypted Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
-type MaterialKeyEncrypted = string
+// MaterialKeyEncryptedNonPublic Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
+type MaterialKeyEncryptedNonPublic = string
 
 // MaterialKeyExpirationDate ISO 8601 UTC timestamp of Material Key generation.
 type MaterialKeyExpirationDate = time.Time
@@ -433,8 +433,8 @@ type MaterialKeyID = openapi_types.UUID
 // MaterialKeyImportDate ISO 8601 UTC timestamp of Material Key generation.
 type MaterialKeyImportDate = time.Time
 
-// MaterialKeyPublic Clear public key Material Key (if applicable)
-type MaterialKeyPublic = string
+// MaterialKeyClearPublic Clear public key Material Key (if applicable)
+type MaterialKeyClearPublic = string
 
 // MaterialKeyRevocationDate ISO 8601 UTC timestamp of Material Key generation.
 type MaterialKeyRevocationDate = time.Time

@@ -153,8 +153,8 @@ func TestSqlTransaction_Success(t *testing.T) {
 				key := MaterialKey{
 					ElasticKeyID:                  elasticKey.ElasticKeyID,
 					MaterialKeyID:                 *testJwkGenService.GenerateUUIDv7(),
-					ClearPublicKeyMaterial:        nil,
-					EncryptedNonPublicKeyMaterial: multipleByteSlices[nextKeyId-1],
+					MaterialKeyClearPublic:        nil,
+					MaterialKeyEncryptedNonPublic: multipleByteSlices[nextKeyId-1],
 					MaterialKeyGenerateDate:       &now,
 					MaterialKeyImportDate:         nil,
 					MaterialKeyExpirationDate:     nil,

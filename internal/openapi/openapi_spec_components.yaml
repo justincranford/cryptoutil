@@ -298,12 +298,12 @@ components:
           $ref: '#/components/schemas/MaterialKeyExpirationDate'
         revocation_date:
           $ref: '#/components/schemas/MaterialKeyRevocationDate'
-        public:
-          $ref: '#/components/schemas/MaterialKeyPublic'
-        encrypted:
-          $ref: '#/components/schemas/MaterialKeyEncrypted'
-        decrypted:
-          $ref: '#/components/schemas/MaterialKeyDecrypted'
+        clear_public:
+          $ref: '#/components/schemas/MaterialKeyClearPublic'
+        encrypted_non_public:
+          $ref: '#/components/schemas/MaterialKeyEncryptedNonPublic'
+        clear_non_public:
+          $ref: '#/components/schemas/MaterialKeyClearNonPublic'
           
     ElasticKeyID:
       type: string
@@ -518,13 +518,13 @@ components:
       format: date-time
       example: "2025-03-14T12:00:00Z"
       description: ISO 8601 UTC timestamp of Material Key generation.
-    MaterialKeyPublic:
+    MaterialKeyClearPublic:
       type: string
       description: Clear public key Material Key (if applicable)
-    MaterialKeyEncrypted:
+    MaterialKeyEncryptedNonPublic:
       type: string
       description: Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
-    MaterialKeyDecrypted:
+    MaterialKeyClearNonPublic:
       type: string
       description: Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
     MaterialKeySort:

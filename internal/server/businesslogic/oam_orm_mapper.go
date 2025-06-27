@@ -84,12 +84,12 @@ func (m *oamOrmMapper) toOamElasticKeyStatus(ormElasticKeyStatus *cryptoutilBusi
 	return &oamElasticKeyStatus
 }
 
-func (m *oamOrmMapper) toOamKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*materialKeyExport) ([]cryptoutilOpenapiModel.MaterialKey, error) {
+func (m *oamOrmMapper) toOamKeys(ormKeys []cryptoutilOrmRepository.MaterialKey) ([]cryptoutilOpenapiModel.MaterialKey, error) {
 	oamKeys := make([]cryptoutilOpenapiModel.MaterialKey, len(ormKeys))
 	var oamKey *cryptoutilOpenapiModel.MaterialKey
 	var err error
 	for i, ormKey := range ormKeys {
-		oamKey, err = m.toOamKey(&ormKey, repositoryKeyMaterials[i])
+		oamKey, err = m.toOamKey(&ormKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get oam key: %w", err)
 		}
@@ -98,7 +98,8 @@ func (m *oamOrmMapper) toOamKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, 
 	return oamKeys, nil
 }
 
-func (m *oamOrmMapper) toOamKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *materialKeyExport) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (m *oamOrmMapper) toOamKey(ormKey *cryptoutilOrmRepository.MaterialKey) (*cryptoutilOpenapiModel.MaterialKey, error) {
+	materialKeyClearPublic := string(ormKey.MaterialKeyClearPublic)
 	return &cryptoutilOpenapiModel.MaterialKey{
 		ElasticKeyID:   cryptoutilOpenapiModel.ElasticKeyID(ormKey.ElasticKeyID),
 		MaterialKeyID:  ormKey.MaterialKeyID,
@@ -106,8 +107,7 @@ func (m *oamOrmMapper) toOamKey(ormKey *cryptoutilOrmRepository.MaterialKey, rep
 		ImportDate:     (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyImportDate),
 		ExpirationDate: (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyExpirationDate),
 		RevocationDate: (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyRevocationDate),
-		Public:         repositoryKeyMaterial.clearPublic,
-		Decrypted:      repositoryKeyMaterial.clearNonPublic,
+		Public:         &materialKeyClearPublic,
 	}, nil
 }
 
