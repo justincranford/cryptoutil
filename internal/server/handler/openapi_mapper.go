@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 )
 
@@ -16,7 +16,7 @@ func NewOpenapiBusinessLogicMapper() *openapiBusinessLogicMapper {
 	return &openapiBusinessLogicMapper{}
 }
 
-func (m *openapiBusinessLogicMapper) toPostKeyResponse(err error, addedElasticKey *cryptoutilBusinessLogicModel.ElasticKey) (cryptoutilOpenapiServer.PostElastickeyResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostKeyResponse(err error, addedElasticKey *cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.PostElastickeyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -34,7 +34,7 @@ func (m *openapiBusinessLogicMapper) toPostKeyResponse(err error, addedElasticKe
 	return cryptoutilOpenapiServer.PostElastickey200JSONResponse(*addedElasticKey), nil
 }
 
-func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDResponse(err error, elasticKey *cryptoutilBusinessLogicModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDResponse(err error, elasticKey *cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -70,8 +70,8 @@ func (m *openapiBusinessLogicMapper) toPostDecryptResponse(err error, decryptedB
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt200TextResponse(decryptedBytes), err
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(openapiParams *cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptParams) *cryptoutilBusinessLogicModel.EncryptParams {
-	filters := cryptoutilBusinessLogicModel.EncryptParams{
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelPostEncryptQueryParams(openapiParams *cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptParams) *cryptoutilOpenapiModel.EncryptParams {
+	filters := cryptoutilOpenapiModel.EncryptParams{
 		Context: openapiParams.Context,
 	}
 	return &filters
@@ -95,7 +95,7 @@ func (m *openapiBusinessLogicMapper) toPostEncryptResponse(err error, encryptedB
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt200TextResponse(encryptedBytes), err
 }
 
-func (m *openapiBusinessLogicMapper) toPostElastickeyElasticKeyIDMaterialkeyResponse(err error, generateKeyInElasticKeyResponse *cryptoutilBusinessLogicModel.MaterialKey) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toPostElastickeyElasticKeyIDMaterialkeyResponse(err error, generateKeyInElasticKeyResponse *cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -113,7 +113,7 @@ func (m *openapiBusinessLogicMapper) toPostElastickeyElasticKeyIDMaterialkeyResp
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkey200JSONResponse(*generateKeyInElasticKeyResponse), err
 }
 
-func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err error, key *cryptoutilBusinessLogicModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err error, key *cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -131,8 +131,8 @@ func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDMaterialkeyMater
 	return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse(*key), err
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyMaterialKeysQueryParams(openapiParams *cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysParams) *cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams {
-	filters := cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams{
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyMaterialKeysQueryParams(openapiParams *cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysParams) *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams {
+	filters := cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams{
 		MaterialKeyID:   openapiParams.MaterialKeyID,
 		MinGenerateDate: openapiParams.MinGenerateDate,
 		MaxGenerateDate: openapiParams.MaxGenerateDate,
@@ -143,7 +143,7 @@ func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyMaterialKe
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDMaterialkeysResponse(err error, keys []cryptoutilBusinessLogicModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeyElasticKeyIDMaterialkeysResponse(err error, keys []cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -197,8 +197,8 @@ func (m *openapiBusinessLogicMapper) toPostVerifyResponse(err error, verifiedByt
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerify204Response{}, err
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyQueryParams(openapiParams *cryptoutilOpenapiServer.GetElastickeysParams) *cryptoutilBusinessLogicModel.ElasticKeysQueryParams {
-	filters := cryptoutilBusinessLogicModel.ElasticKeysQueryParams{
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyQueryParams(openapiParams *cryptoutilOpenapiServer.GetElastickeysParams) *cryptoutilOpenapiModel.ElasticKeysQueryParams {
+	filters := cryptoutilOpenapiModel.ElasticKeysQueryParams{
 		ElasticKeyID:      openapiParams.ElasticKeyID,
 		Name:              openapiParams.Name,
 		Provider:          openapiParams.Provider,
@@ -214,7 +214,7 @@ func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetElasticKeyQueryParam
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toGetElastickeysResponse(err error, elasticKeys []cryptoutilBusinessLogicModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeysResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetElastickeysResponse(err error, elasticKeys []cryptoutilOpenapiModel.ElasticKey) (cryptoutilOpenapiServer.GetElastickeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -232,8 +232,8 @@ func (m *openapiBusinessLogicMapper) toGetElastickeysResponse(err error, elastic
 	return cryptoutilOpenapiServer.GetElastickeys200JSONResponse(elasticKeys), err
 }
 
-func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetMaterialKeysQueryParams(openapiParams *cryptoutilOpenapiServer.GetMaterialkeysParams) *cryptoutilBusinessLogicModel.MaterialKeysQueryParams {
-	filters := cryptoutilBusinessLogicModel.MaterialKeysQueryParams{
+func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetMaterialKeysQueryParams(openapiParams *cryptoutilOpenapiServer.GetMaterialkeysParams) *cryptoutilOpenapiModel.MaterialKeysQueryParams {
+	filters := cryptoutilOpenapiModel.MaterialKeysQueryParams{
 		ElasticKeyID:    openapiParams.ElasticKeyID,
 		MaterialKeyID:   openapiParams.MaterialKeyID,
 		MinGenerateDate: openapiParams.MinGenerateDate,
@@ -245,7 +245,7 @@ func (m *openapiBusinessLogicMapper) toBusinessLogicModelGetMaterialKeysQueryPar
 	return &filters
 }
 
-func (m *openapiBusinessLogicMapper) toGetMaterialKeysResponse(err error, keys []cryptoutilBusinessLogicModel.MaterialKey) (cryptoutilOpenapiServer.GetMaterialkeysResponseObject, error) {
+func (m *openapiBusinessLogicMapper) toGetMaterialKeysResponse(err error, keys []cryptoutilOpenapiModel.MaterialKey) (cryptoutilOpenapiServer.GetMaterialkeysResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -265,20 +265,20 @@ func (m *openapiBusinessLogicMapper) toGetMaterialKeysResponse(err error, keys [
 
 // Helper methods
 
-func (m *openapiBusinessLogicMapper) toHTTP400Response(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTP400BadRequest {
-	return cryptoutilBusinessLogicModel.HTTP400BadRequest(m.toHTTPErrorResponse(appErr))
+func (m *openapiBusinessLogicMapper) toHTTP400Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP400BadRequest {
+	return cryptoutilOpenapiModel.HTTP400BadRequest(m.toHTTPErrorResponse(appErr))
 }
 
-func (m *openapiBusinessLogicMapper) toHTTP404Response(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTP404NotFound {
-	return cryptoutilBusinessLogicModel.HTTP404NotFound(m.toHTTPErrorResponse(appErr))
+func (m *openapiBusinessLogicMapper) toHTTP404Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP404NotFound {
+	return cryptoutilOpenapiModel.HTTP404NotFound(m.toHTTPErrorResponse(appErr))
 }
 
-func (m *openapiBusinessLogicMapper) toHTTP500Response(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTP500InternalServerError {
-	return cryptoutilBusinessLogicModel.HTTP500InternalServerError(m.toHTTPErrorResponse(appErr))
+func (m *openapiBusinessLogicMapper) toHTTP500Response(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTP500InternalServerError {
+	return cryptoutilOpenapiModel.HTTP500InternalServerError(m.toHTTPErrorResponse(appErr))
 }
 
-func (*openapiBusinessLogicMapper) toHTTPErrorResponse(appErr *cryptoutilAppErr.Error) cryptoutilBusinessLogicModel.HTTPError {
-	return cryptoutilBusinessLogicModel.HTTPError{
+func (*openapiBusinessLogicMapper) toHTTPErrorResponse(appErr *cryptoutilAppErr.Error) cryptoutilOpenapiModel.HTTPError {
+	return cryptoutilOpenapiModel.HTTPError{
 		Error:   string(appErr.HTTPStatusLineAndCode.StatusLine.ReasonPhrase),
 		Message: appErr.Error(),
 		Status:  int(appErr.HTTPStatusLineAndCode.StatusLine.StatusCode),

@@ -3,13 +3,13 @@ package businesslogic
 import (
 	"testing"
 
-	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 )
 
 func TestTransitionInvalidState(t *testing.T) {
-	err := TransitionElasticKeyStatus("DoesNotExist", cryptoutilBusinessLogicModel.Creating)
+	err := TransitionElasticKeyStatus("DoesNotExist", cryptoutilOpenapiModel.Creating)
 	if err == nil {
-		t.Errorf("Expected transition from DoesNotExist to %s to fail, but it succeeded", cryptoutilBusinessLogicModel.Creating)
+		t.Errorf("Expected transition from DoesNotExist to %s to fail, but it succeeded", cryptoutilOpenapiModel.Creating)
 	}
 }
 

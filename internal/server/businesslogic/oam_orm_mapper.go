@@ -7,47 +7,47 @@ import (
 
 	"cryptoutil/internal/common/businessmodel"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilBusinessLogicModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
 )
 
-type serviceOrmMapper struct{}
+type oamOrmMapper struct{} // Mapper between OpenAPI Model models and ORM objects
 
-func NewMapper() *serviceOrmMapper {
-	return &serviceOrmMapper{}
+func NewOamOrmMapper() *oamOrmMapper {
+	return &oamOrmMapper{}
 }
 
-// service => orm
+// oam => orm
 
-func (m *serviceOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, serviceElasticKeyCreate *cryptoutilBusinessLogicModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
+func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
 	return &cryptoutilOrmRepository.ElasticKey{
 		ElasticKeyID:                elasticKeyID,
-		ElasticKeyName:              serviceElasticKeyCreate.Name,
-		ElasticKeyDescription:       serviceElasticKeyCreate.Description,
-		ElasticKeyProvider:          *m.toOrmElasticKeyProvider(serviceElasticKeyCreate.Provider),
-		ElasticKeyAlgorithm:         *m.toOrmElasticKeyAlgorithm(serviceElasticKeyCreate.Algorithm),
-		ElasticKeyVersioningAllowed: *serviceElasticKeyCreate.VersioningAllowed,
-		ElasticKeyImportAllowed:     *serviceElasticKeyCreate.ImportAllowed,
-		ElasticKeyExportAllowed:     *serviceElasticKeyCreate.ExportAllowed,
-		ElasticKeyStatus:            *m.toElasticKeyInitialStatus(serviceElasticKeyCreate.ImportAllowed),
+		ElasticKeyName:              oamElasticKeyCreate.Name,
+		ElasticKeyDescription:       oamElasticKeyCreate.Description,
+		ElasticKeyProvider:          *m.toOrmElasticKeyProvider(oamElasticKeyCreate.Provider),
+		ElasticKeyAlgorithm:         *m.toOrmElasticKeyAlgorithm(oamElasticKeyCreate.Algorithm),
+		ElasticKeyVersioningAllowed: *oamElasticKeyCreate.VersioningAllowed,
+		ElasticKeyImportAllowed:     *oamElasticKeyCreate.ImportAllowed,
+		ElasticKeyExportAllowed:     *oamElasticKeyCreate.ExportAllowed,
+		ElasticKeyStatus:            *m.toElasticKeyInitialStatus(oamElasticKeyCreate.ImportAllowed),
 	}
 }
 
-func (m *serviceOrmMapper) toOrmElasticKeyProvider(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyProvider) *businessmodel.ElasticKeyProvider {
-	ormElasticKeyProvider := businessmodel.ElasticKeyProvider(*serviceElasticKeyProvider)
+func (m *oamOrmMapper) toOrmElasticKeyProvider(oamElasticKeyProvider *cryptoutilOpenapiModel.ElasticKeyProvider) *businessmodel.ElasticKeyProvider {
+	ormElasticKeyProvider := businessmodel.ElasticKeyProvider(*oamElasticKeyProvider)
 	return &ormElasticKeyProvider
 }
 
-func (m *serviceOrmMapper) toOrmElasticKeyAlgorithm(serviceElasticKeyProvider *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) *businessmodel.ElasticKeyAlgorithm {
-	ormElasticKeyAlgorithm := businessmodel.ElasticKeyAlgorithm(*serviceElasticKeyProvider)
+func (m *oamOrmMapper) toOrmElasticKeyAlgorithm(oamElasticKeyProvider *cryptoutilOpenapiModel.ElasticKeyAlgorithm) *businessmodel.ElasticKeyAlgorithm {
+	ormElasticKeyAlgorithm := businessmodel.ElasticKeyAlgorithm(*oamElasticKeyProvider)
 	return &ormElasticKeyAlgorithm
 }
 
-func (m *serviceOrmMapper) toElasticKeyInitialStatus(serviceElasticKeyImportAllowed *cryptoutilBusinessLogicModel.ElasticKeyImportAllowed) *businessmodel.ElasticKeyStatus {
+func (m *oamOrmMapper) toElasticKeyInitialStatus(oamElasticKeyImportAllowed *cryptoutilOpenapiModel.ElasticKeyImportAllowed) *businessmodel.ElasticKeyStatus {
 	var ormElasticKeyStatus businessmodel.ElasticKeyStatus
-	if *serviceElasticKeyImportAllowed {
+	if *oamElasticKeyImportAllowed {
 		ormElasticKeyStatus = businessmodel.ElasticKeyStatus("pending_import")
 	} else {
 		ormElasticKeyStatus = businessmodel.ElasticKeyStatus("pending_generate")
@@ -55,73 +55,75 @@ func (m *serviceOrmMapper) toElasticKeyInitialStatus(serviceElasticKeyImportAllo
 	return &ormElasticKeyStatus
 }
 
-// orm => service
+// orm => oam
 
-func (m *serviceOrmMapper) toServiceElasticKeys(ormElasticKeys []cryptoutilOrmRepository.ElasticKey) []cryptoutilBusinessLogicModel.ElasticKey {
-	serviceElasticKeys := make([]cryptoutilBusinessLogicModel.ElasticKey, len(ormElasticKeys))
+func (m *oamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository.ElasticKey) []cryptoutilOpenapiModel.ElasticKey {
+	oamElasticKeys := make([]cryptoutilOpenapiModel.ElasticKey, len(ormElasticKeys))
 	for i, ormElasticKey := range ormElasticKeys {
-		serviceElasticKeys[i] = *m.toServiceElasticKey(&ormElasticKey)
+		oamElasticKeys[i] = *m.toOamElasticKey(&ormElasticKey)
 	}
-	return serviceElasticKeys
+	return oamElasticKeys
 }
 
-func (s *serviceOrmMapper) toServiceElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilBusinessLogicModel.ElasticKey {
-	return &cryptoutilBusinessLogicModel.ElasticKey{
-		ElasticKeyID:      (*cryptoutilBusinessLogicModel.ElasticKeyID)(&ormElasticKey.ElasticKeyID),
+func (s *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilOpenapiModel.ElasticKey {
+	return &cryptoutilOpenapiModel.ElasticKey{
+		ElasticKeyID:      (*cryptoutilOpenapiModel.ElasticKeyID)(&ormElasticKey.ElasticKeyID),
 		Name:              &ormElasticKey.ElasticKeyName,
 		Description:       &ormElasticKey.ElasticKeyDescription,
-		Algorithm:         s.toServiceElasticKeyAlgorithm(&ormElasticKey.ElasticKeyAlgorithm),
-		Provider:          s.toServiceElasticKeyProvider(&ormElasticKey.ElasticKeyProvider),
+		Algorithm:         s.toOamElasticKeyAlgorithm(&ormElasticKey.ElasticKeyAlgorithm),
+		Provider:          s.toOamElasticKeyProvider(&ormElasticKey.ElasticKeyProvider),
 		VersioningAllowed: &ormElasticKey.ElasticKeyVersioningAllowed,
 		ImportAllowed:     &ormElasticKey.ElasticKeyImportAllowed,
 		ExportAllowed:     &ormElasticKey.ElasticKeyExportAllowed,
-		Status:            s.toServiceElasticKeyStatus(&ormElasticKey.ElasticKeyStatus),
+		Status:            s.toOamElasticKeyStatus(&ormElasticKey.ElasticKeyStatus),
 	}
 }
 
-func (m *serviceOrmMapper) toServiceElasticKeyAlgorithm(ormElasticKeyAlgorithm *businessmodel.ElasticKeyAlgorithm) *cryptoutilBusinessLogicModel.ElasticKeyAlgorithm {
-	serviceElasticKeyAlgorithm := cryptoutilBusinessLogicModel.ElasticKeyAlgorithm(*ormElasticKeyAlgorithm)
-	return &serviceElasticKeyAlgorithm
+func (m *oamOrmMapper) toOamElasticKeyAlgorithm(ormElasticKeyAlgorithm *businessmodel.ElasticKeyAlgorithm) *cryptoutilOpenapiModel.ElasticKeyAlgorithm {
+	oamElasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(*ormElasticKeyAlgorithm)
+	return &oamElasticKeyAlgorithm
 }
 
-func (m *serviceOrmMapper) toServiceElasticKeyProvider(ormElasticKeyProvider *businessmodel.ElasticKeyProvider) *cryptoutilBusinessLogicModel.ElasticKeyProvider {
-	serviceElasticKeyProvider := cryptoutilBusinessLogicModel.ElasticKeyProvider(*ormElasticKeyProvider)
-	return &serviceElasticKeyProvider
+func (m *oamOrmMapper) toOamElasticKeyProvider(ormElasticKeyProvider *businessmodel.ElasticKeyProvider) *cryptoutilOpenapiModel.ElasticKeyProvider {
+	oamElasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(*ormElasticKeyProvider)
+	return &oamElasticKeyProvider
 }
 
-func (m *serviceOrmMapper) toServiceElasticKeyStatus(ormElasticKeyStatus *businessmodel.ElasticKeyStatus) *cryptoutilBusinessLogicModel.ElasticKeyStatus {
-	serviceElasticKeyStatus := cryptoutilBusinessLogicModel.ElasticKeyStatus(*ormElasticKeyStatus)
-	return &serviceElasticKeyStatus
+func (m *oamOrmMapper) toOamElasticKeyStatus(ormElasticKeyStatus *businessmodel.ElasticKeyStatus) *cryptoutilOpenapiModel.ElasticKeyStatus {
+	oamElasticKeyStatus := cryptoutilOpenapiModel.ElasticKeyStatus(*ormElasticKeyStatus)
+	return &oamElasticKeyStatus
 }
 
-func (m *serviceOrmMapper) toServiceKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*materialKeyExport) ([]cryptoutilBusinessLogicModel.MaterialKey, error) {
-	serviceKeys := make([]cryptoutilBusinessLogicModel.MaterialKey, len(ormKeys))
-	var serviceKey *cryptoutilBusinessLogicModel.MaterialKey
+func (m *oamOrmMapper) toOamKeys(ormKeys []cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterials []*materialKeyExport) ([]cryptoutilOpenapiModel.MaterialKey, error) {
+	oamKeys := make([]cryptoutilOpenapiModel.MaterialKey, len(ormKeys))
+	var oamKey *cryptoutilOpenapiModel.MaterialKey
 	var err error
 	for i, ormKey := range ormKeys {
-		serviceKey, err = m.toServiceKey(&ormKey, repositoryKeyMaterials[i])
+		oamKey, err = m.toOamKey(&ormKey, repositoryKeyMaterials[i])
 		if err != nil {
-			return nil, fmt.Errorf("failed to get service key: %w", err)
+			return nil, fmt.Errorf("failed to get oam key: %w", err)
 		}
-		serviceKeys[i] = *serviceKey
+		oamKeys[i] = *oamKey
 	}
-	return serviceKeys, nil
+	return oamKeys, nil
 }
 
-func (m *serviceOrmMapper) toServiceKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *materialKeyExport) (*cryptoutilBusinessLogicModel.MaterialKey, error) {
-	return &cryptoutilBusinessLogicModel.MaterialKey{
-		ElasticKeyID:   cryptoutilBusinessLogicModel.ElasticKeyID(ormKey.ElasticKeyID),
+func (m *oamOrmMapper) toOamKey(ormKey *cryptoutilOrmRepository.MaterialKey, repositoryKeyMaterial *materialKeyExport) (*cryptoutilOpenapiModel.MaterialKey, error) {
+	return &cryptoutilOpenapiModel.MaterialKey{
+		ElasticKeyID:   cryptoutilOpenapiModel.ElasticKeyID(ormKey.ElasticKeyID),
 		MaterialKeyID:  ormKey.MaterialKeyID,
-		GenerateDate:   (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyGenerateDate),
-		ImportDate:     (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyImportDate),
-		ExpirationDate: (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyExpirationDate),
-		RevocationDate: (*cryptoutilBusinessLogicModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyRevocationDate),
+		GenerateDate:   (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyGenerateDate),
+		ImportDate:     (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyImportDate),
+		ExpirationDate: (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyExpirationDate),
+		RevocationDate: (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormKey.MaterialKeyRevocationDate),
 		Public:         repositoryKeyMaterial.clearPublic,
 		Decrypted:      repositoryKeyMaterial.clearNonPublic,
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
+// Helper methods
+
+func (m *oamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiModel.ElasticKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -167,7 +169,7 @@ func (m *serviceOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilBusi
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryptoutilBusinessLogicModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
+func (m *oamOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryptoutilOpenapiModel.ElasticKeyMaterialKeysQueryParams) (*cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -205,7 +207,7 @@ func (m *serviceOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *
 	}, nil
 }
 
-func (m *serviceOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilBusinessLogicModel.MaterialKeysQueryParams) (*cryptoutilOrmRepository.GetMaterialKeysFilters, error) {
+func (m *oamOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilOpenapiModel.MaterialKeysQueryParams) (*cryptoutilOrmRepository.GetMaterialKeysFilters, error) {
 	if params == nil {
 		return nil, nil
 	}
@@ -249,9 +251,7 @@ func (m *serviceOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilBus
 	}, nil
 }
 
-// Helper methods
-
-func (*serviceOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID, error) {
+func (*oamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.UUID, error) {
 	if uuids == nil || len(*uuids) == 0 {
 		return nil, nil
 	}
@@ -261,7 +261,7 @@ func (*serviceOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleU
 	return *uuids, nil
 }
 
-func (*serviceOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
+func (*oamOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
 	if strings == nil || len(*strings) == 0 {
 		return nil, nil
 	}
@@ -273,7 +273,7 @@ func (*serviceOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, erro
 	return *strings, nil
 }
 
-func (*serviceOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) (*time.Time, *time.Time, error) {
+func (*oamOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) (*time.Time, *time.Time, error) {
 	var errs []error
 	nonNullMinDate := minDate != nil
 	nonNullMaxDate := maxDate != nil
@@ -294,26 +294,26 @@ func (*serviceOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) 
 	return minDate, maxDate, errors.Join(errs...)
 }
 
-func (m *serviceOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) ([]string, error) {
-	newVar := toStrings(algorithms, func(algorithm cryptoutilBusinessLogicModel.ElasticKeyAlgorithm) string {
+func (m *oamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.ElasticKeyAlgorithm) ([]string, error) {
+	newVar := toStrings(algorithms, func(algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm) string {
 		return string(algorithm)
 	})
 	return newVar, nil
 }
 
-func (m *serviceOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptoutilBusinessLogicModel.ElasticKeySort) ([]string, error) {
-	newVar := toStrings(elasticMaterialKeySorts, func(elasticMaterialKeySort cryptoutilBusinessLogicModel.ElasticKeySort) string {
+func (m *oamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptoutilOpenapiModel.ElasticKeySort) ([]string, error) {
+	newVar := toStrings(elasticMaterialKeySorts, func(elasticMaterialKeySort cryptoutilOpenapiModel.ElasticKeySort) string {
 		return string(elasticMaterialKeySort)
 	})
 	return newVar, nil
 }
 
-func (m *serviceOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilBusinessLogicModel.MaterialKeySort) ([]string, error) {
-	newVar := toStrings(keySorts, func(keySort cryptoutilBusinessLogicModel.MaterialKeySort) string { return string(keySort) })
+func (m *oamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.MaterialKeySort) ([]string, error) {
+	newVar := toStrings(keySorts, func(keySort cryptoutilOpenapiModel.MaterialKeySort) string { return string(keySort) })
 	return newVar, nil
 }
 
-func (*serviceOrmMapper) toOrmPageNumber(pageNumber *cryptoutilBusinessLogicModel.PageNumber) (int, error) {
+func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumber) (int, error) {
 	if pageNumber == nil {
 		return 0, nil
 	} else if *pageNumber >= 0 {
@@ -322,7 +322,7 @@ func (*serviceOrmMapper) toOrmPageNumber(pageNumber *cryptoutilBusinessLogicMode
 	return 0, fmt.Errorf("Page Number must be zero or higher")
 }
 
-func (*serviceOrmMapper) toOrmPageSize(pageSize *cryptoutilBusinessLogicModel.PageSize) (int, error) {
+func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
 	if pageSize == nil {
 		return 25, nil
 	} else if *pageSize >= 1 {
