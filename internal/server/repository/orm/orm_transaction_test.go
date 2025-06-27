@@ -8,7 +8,7 @@ import (
 	"time"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	"cryptoutil/internal/common/constant"
+	"cryptoutil/internal/common/businessmodel"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
@@ -140,7 +140,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 			require.Equal(t, testCase.txMode, *ormTransaction.Mode())
 
 			uuidV7 := testJwkGenService.GenerateUUIDv7()
-			elasticKey, err := BuildElasticKey(*uuidV7, string("Elastic Key Name "+uuidV7.String()), string("Elastic Key Description "+uuidV7.String()), constant.Internal, constant.A256GCM_dir, true, true, true, string(constant.Creating))
+			elasticKey, err := BuildElasticKey(*uuidV7, string("Elastic Key Name "+uuidV7.String()), string("Elastic Key Description "+uuidV7.String()), businessmodel.Internal, businessmodel.A256GCM_dir, true, true, true, string(businessmodel.Creating))
 			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
 			cryptoutilAppErr.RequireNoError(err, "failed to add AES 256 elastic Key")

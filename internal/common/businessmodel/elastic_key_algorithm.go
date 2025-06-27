@@ -1,4 +1,4 @@
-package constant
+package businessmodel
 
 type ElasticKeyAlgorithm string
 
@@ -153,6 +153,17 @@ var symmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
 	A256GCM_A128GCMKW: true, A192GCM_A128GCMKW: true, A128GCM_A128GCMKW: true,
 	A256GCM_dir: true, A192GCM_dir: true, A128GCM_dir: true,
 
+	A256GCM_RSAOAEP512: false, A192GCM_RSAOAEP512: false, A128GCM_RSAOAEP512: false,
+	A256GCM_RSAOAEP384: false, A192GCM_RSAOAEP384: false, A128GCM_RSAOAEP384: false,
+	A256GCM_RSAOAEP256: false, A192GCM_RSAOAEP256: false, A128GCM_RSAOAEP256: false,
+	A256GCM_RSAOAEP: false, A192GCM_RSAOAEP: false, A128GCM_RSAOAEP: false,
+	A256GCM_RSA15: false, A192GCM_RSA15: false, A128GCM_RSA15: false,
+
+	A256GCM_ECDHESA256KW: false, A192GCM_ECDHESA256KW: false, A128GCM_ECDHESA256KW: false,
+	A256GCM_ECDHESA192KW: false, A192GCM_ECDHESA192KW: false, A128GCM_ECDHESA192KW: false,
+	A256GCM_ECDHESA128KW: false, A192GCM_ECDHESA128KW: false, A128GCM_ECDHESA128KW: false,
+	A256GCM_ECDHES: false, A192GCM_ECDHES: false, A128GCM_ECDHES: false,
+
 	A256CBCHS512_A256KW: true, A192CBCHS384_A256KW: true, A128CBCHS256_A256KW: true,
 	A256CBCHS512_A192KW: true, A192CBCHS384_A192KW: true, A128CBCHS256_A192KW: true,
 	A256CBCHS512_A128KW: true, A192CBCHS384_A128KW: true, A128CBCHS256_A128KW: true,
@@ -160,7 +171,39 @@ var symmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
 	A256CBCHS512_A192GCMKW: true, A192CBCHS384_A192GCMKW: true, A128CBCHS256_A192GCMKW: true,
 	A256CBCHS512_A128GCMKW: true, A192CBCHS384_A128GCMKW: true, A128CBCHS256_A128GCMKW: true,
 	A256CBCHS512_dir: true, A192CBCHS384_dir: true, A128CBCHS256_dir: true,
+
+	A256CBC_HS512_RSAOAEP512: false, A192CBC_HS384_RSAOAEP512: false, A128CBC_HS256_RSAOAEP512: false,
+	A256CBC_HS512_RSAOAEP384: false, A192CBC_HS384_RSAOAEP384: false, A128CBC_HS256_RSAOAEP384: false,
+	A256CBC_HS512_RSAOAEP256: false, A192CBC_HS384_RSAOAEP256: false, A128CBC_HS256_RSAOAEP256: false,
+	A256CBC_HS512_RSAOAEP: false, A192CBC_HS384_RSAOAEP: false, A128CBC_HS256_RSAOAEP: false,
+	A256CBC_HS512_RSA15: false, A192CBC_HS384_RSA15: false, A128CBC_HS256_RSA15: false,
+
+	A256CBC_HS512_ECDHESA256KW: false, A192CBC_HS384_ECDHESA256KW: false, A128CBC_HS256_ECDHESA256KW: false,
+	A192CBC_HS384_ECDHESA192KW: false, A128CBC_HS256_ECDHESA192KW: false, A128CBC_HS256_ECDHESA128KW: false,
+	A256CBC_HS512_ECDHES: false, A192CBC_HS384_ECDHES: false, A128CBC_HS256_ECDHES: false,
+
+	RS512: false, RS384: false, RS256: false,
+	PS512: false, PS384: false, PS256: false,
+	ES512: false, ES384: false, ES256: false,
+	HS512: true, HS384: true, HS256: true,
+	EdDSA: false,
 }
+
+// func IsSymmetric(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (bool, error) {
+// 	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
+// 	if ok {
+// 		return isSymmetric, nil
+// 	}
+// 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
+// }
+
+// func isAsymmetric(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (bool, error) {
+// 	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
+// 	if ok {
+// 		return !isSymmetric, nil
+// 	}
+// 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
+// }
 
 func IsAsymmetric(alg *ElasticKeyAlgorithm) bool {
 	return asymmetricElasticKeyAlgorithm[*alg]
