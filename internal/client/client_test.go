@@ -10,10 +10,12 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilBusinessModel "cryptoutil/internal/common/businessmodel"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilServerApplication "cryptoutil/internal/server/application"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
+	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 
 	"github.com/stretchr/testify/require"
@@ -251,10 +253,23 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			if elasticKey == nil {
 				return
 			}
+			oamElasticKeyAlgorithm, err := cryptoutilBusinessModel.MapElasticKeyAlgorithm(testCase.algorithm)
+			require.NoError(t, err)
+			require.NotNil(t, oamElasticKeyAlgorithm)
+			elasticKeyAlgorithm := cryptoutilBusinessModel.ElasticKeyAlgorithm(testCase.algorithm)
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				if cryptoutilBusinessModel.IsAsymmetric(&elasticKeyAlgorithm) {
+					require.NotNil(t, key.ClearPublic)
+					jwk, err := joseJwk.ParseKey([]byte(string(*key.ClearPublic)))
+					require.NoError(t, err)
+					require.NotNil(t, jwk)
+					// TODO validate public key does not contain any private key or secret key material
+				} else {
+					require.Nil(t, key.ClearPublic)
+				}
 				logObjectAsJson(t, key)
 			})
 
