@@ -300,10 +300,6 @@ components:
           $ref: '#/components/schemas/MaterialKeyRevocationDate'
         clear_public:
           $ref: '#/components/schemas/MaterialKeyClearPublic'
-        encrypted_non_public:
-          $ref: '#/components/schemas/MaterialKeyEncryptedNonPublic'
-        clear_non_public:
-          $ref: '#/components/schemas/MaterialKeyClearNonPublic'
           
     ElasticKeyID:
       type: string
@@ -521,12 +517,6 @@ components:
     MaterialKeyClearPublic:
       type: string
       description: Clear public key Material Key (if applicable)
-    MaterialKeyEncryptedNonPublic:
-      type: string
-      description: Encrypted private or secret key Material Key (if ElasticKey exportAllowed=true)
-    MaterialKeyClearNonPublic:
-      type: string
-      description: Clear private or secret key Material Key (if ElasticKey exportAllowed=true)
     MaterialKeySort:
       type: string
       enum:

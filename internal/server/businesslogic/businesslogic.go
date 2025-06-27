@@ -82,7 +82,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to encrypt ElasticKey Key: %w", err)
 		}
 
-		repositoryKey := &cryptoutilOrmRepository.MaterialKey{
+		repositoryMaterialKey := &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  *elasticKeyID,
 			MaterialKeyID:                 *materialKeyID,
 			MaterialKeyClearPublic:        materialKeyClearPublicJwkBytes,        // nil if repositoryElasticKeyToInsert.ElasticKeyAlgorithm is Symmetric
@@ -90,7 +90,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			MaterialKeyGenerateDate:       &repositoryMaterialKeyGenerateDate,    // nil if repositoryElasticKeyToInsert.ElasticKeyImportAllowed=true
 		}
 
-		err = sqlTransaction.AddElasticKeyKey(repositoryKey)
+		err = sqlTransaction.AddElasticKeyKey(repositoryMaterialKey)
 		if err != nil {
 			return fmt.Errorf("failed to add key: %w", err)
 		}
