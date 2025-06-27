@@ -58,7 +58,7 @@ func RequireClientWithResponses(t *testing.T, baseUrl string) *cryptoutilOpenapi
 }
 
 func RequireCreateElasticKeyRequest(t *testing.T, name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) *cryptoutilOpenapiModel.ElasticKeyCreate {
-	elasticKeyCreate, err := MapElasticKeyCreate(name, description, algorithm, provider, exportAllowed, importAllowed, versioningAllowed)
+	elasticKeyCreate, err := toOamElasticKeyCreate(name, description, algorithm, provider, exportAllowed, importAllowed, versioningAllowed)
 	require.NotNil(t, elasticKeyCreate)
 	require.NoError(t, err)
 	return elasticKeyCreate
@@ -68,7 +68,7 @@ func RequireCreateElasticKeyResponse(t *testing.T, context context.Context, open
 	openapiCreateElasticKeyResponse, err := openapiClient.PostElastickeyWithResponse(context, cryptoutilOpenapiClient.PostElastickeyJSONRequestBody(*elasticKeyCreate))
 	require.NoError(t, err)
 
-	elasticKey, err := MapElasticKey(openapiCreateElasticKeyResponse)
+	elasticKey, err := toOamElasticKey(openapiCreateElasticKeyResponse)
 	require.NoError(t, err)
 	require.NotNil(t, elasticKey)
 
@@ -88,65 +88,65 @@ func RequireMaterialKeyGenerateResponse(t *testing.T, context context.Context, o
 	openapiMaterialKeyGenerateResponse, err := openapiClient.PostElastickeyElasticKeyIDMaterialkeyWithResponse(context, *elasticKeyId, *keyGenerate)
 	require.NoError(t, err)
 
-	key, err := MapMaterialKeyGenerate(openapiMaterialKeyGenerateResponse)
+	key, err := toOamMaterialKeyGenerate(openapiMaterialKeyGenerateResponse)
 	require.NoError(t, err)
 
 	return key
 }
 
 func RequireEncryptRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
-	return MapEncryptRequest(cleartext)
+	return toOamEncryptRequest(cleartext)
 }
 
 func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyId *cryptoutilOpenapiModel.ElasticKeyID, encryptParams *cryptoutilOpenapiModel.EncryptParams, encryptRequest *cryptoutilOpenapiModel.EncryptRequest) *string {
-	elastickeyElasticKeyIDEncryptParams := MapEncryptParams(encryptParams)
+	elastickeyElasticKeyIDEncryptParams := toOacEncryptParams(encryptParams)
 	openapiEncryptResponse, err := openapiClient.PostElastickeyElasticKeyIDEncryptWithTextBodyWithResponse(context, *elasticKeyId, &elastickeyElasticKeyIDEncryptParams, *encryptRequest)
 	require.NoError(t, err)
 
-	encrypted, err := MapEncryptResponse(openapiEncryptResponse)
+	encrypted, err := toPlainEncryptResponse(openapiEncryptResponse)
 	require.NoError(t, err)
 
 	return encrypted
 }
 
 func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
-	return MapDecryptRequest(ciphertext)
+	return toOamDecryptRequest(ciphertext)
 }
 
 func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyId *cryptoutilOpenapiModel.ElasticKeyID, decryptRequest *cryptoutilOpenapiModel.DecryptRequest) *string {
 	openapiDecryptResponse, err := openapiClient.PostElastickeyElasticKeyIDDecryptWithTextBodyWithResponse(context, *elasticKeyId, *decryptRequest)
 	require.NoError(t, err)
 
-	decrypted, err := MapDecryptResponse(openapiDecryptResponse)
+	decrypted, err := toPlainDecryptResponse(openapiDecryptResponse)
 	require.NoError(t, err)
 
 	return decrypted
 }
 
 func RequireSignRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.SignRequest {
-	return MapSignRequest(cleartext)
+	return toOamSignRequest(cleartext)
 }
 
 func RequireSignResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyId *cryptoutilOpenapiModel.ElasticKeyID, signParams *cryptoutilOpenapiModel.SignParams, signRequest *cryptoutilOpenapiModel.SignRequest) *string {
-	elastickeyElasticKeyIDSignParams := MapSignParams(signParams)
+	elastickeyElasticKeyIDSignParams := toOacSignParams(signParams)
 	openapiSignResponse, err := openapiClient.PostElastickeyElasticKeyIDSignWithTextBodyWithResponse(context, *elasticKeyId, &elastickeyElasticKeyIDSignParams, *signRequest)
 	require.NoError(t, err)
 
-	signed, err := MapSignResponse(openapiSignResponse)
+	signed, err := toPlainSignResponse(openapiSignResponse)
 	require.NoError(t, err)
 
 	return signed
 }
 
 func RequireVerifyRequest(t *testing.T, signedtext *string) *cryptoutilOpenapiModel.VerifyRequest {
-	return MapVerifyRequest(signedtext)
+	return toOamVerifyRequest(signedtext)
 }
 
 func RequireVerifyResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyId *cryptoutilOpenapiModel.ElasticKeyID, verifyRequest *cryptoutilOpenapiModel.VerifyRequest) *string {
 	openapiVerifyResponse, err := openapiClient.PostElastickeyElasticKeyIDVerifyWithTextBodyWithResponse(context, *elasticKeyId, *verifyRequest)
 	require.NoError(t, err)
 
-	verified, err := MapVerifyResponse(openapiVerifyResponse)
+	verified, err := toPlainVerifyResponse(openapiVerifyResponse)
 	require.NoError(t, err)
 
 	return verified
