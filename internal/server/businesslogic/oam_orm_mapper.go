@@ -285,22 +285,21 @@ func (*oamOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) (*ti
 }
 
 func (m *oamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.ElasticKeyAlgorithm) ([]string, error) {
-	newVar := toStrings(algorithms, func(algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm) string {
+	return toStrings(algorithms, func(algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm) string {
 		return string(algorithm)
-	})
-	return newVar, nil
+	}), nil
 }
 
 func (m *oamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptoutilOpenapiModel.ElasticKeySort) ([]string, error) {
-	newVar := toStrings(elasticMaterialKeySorts, func(elasticMaterialKeySort cryptoutilOpenapiModel.ElasticKeySort) string {
+	return toStrings(elasticMaterialKeySorts, func(elasticMaterialKeySort cryptoutilOpenapiModel.ElasticKeySort) string {
 		return string(elasticMaterialKeySort)
-	})
-	return newVar, nil
+	}), nil
 }
 
 func (m *oamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.MaterialKeySort) ([]string, error) {
-	newVar := toStrings(keySorts, func(keySort cryptoutilOpenapiModel.MaterialKeySort) string { return string(keySort) })
-	return newVar, nil
+	return toStrings(keySorts, func(keySort cryptoutilOpenapiModel.MaterialKeySort) string {
+		return string(keySort)
+	}), nil
 }
 
 func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumber) (int, error) {
