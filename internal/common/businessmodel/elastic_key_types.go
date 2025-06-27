@@ -33,3 +33,13 @@ type (
 	ElasticKeyVersioningAllowed bool
 	ElasticKeyName              string
 )
+
+func ToElasticKeyInitialStatus(isImportAllowed bool) *ElasticKeyStatus {
+	var ormElasticKeyStatus ElasticKeyStatus
+	if isImportAllowed {
+		ormElasticKeyStatus = PendingImport
+	} else {
+		ormElasticKeyStatus = PendingGenerate
+	}
+	return &ormElasticKeyStatus
+}
