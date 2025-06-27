@@ -83,7 +83,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to add ElasticKey: %w", err)
 		}
 
-		err = TransitionState(cryptoutilBusinessLogicModel.Creating, cryptoutilBusinessLogicModel.ElasticKeyStatus(repositoryElasticKeyToInsert.ElasticKeyStatus))
+		err = businessmodel.EkasticKeyStatusTransition(cryptoutilBusinessLogicModel.Creating, cryptoutilBusinessLogicModel.ElasticKeyStatus(repositoryElasticKeyToInsert.ElasticKeyStatus))
 		if err != nil {
 			return fmt.Errorf("invalid ElasticKeyStatus transition: %w", err)
 		}
