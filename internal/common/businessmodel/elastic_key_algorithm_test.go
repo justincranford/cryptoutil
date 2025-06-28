@@ -1,6 +1,7 @@
 package businessmodel
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -57,11 +58,22 @@ var happyPathTestCases = []TestCase{
 	{EdDSA, false, true},
 }
 
-func Test_SymmetricElasticKeyAlgorithm_MapAndFuncs(t *testing.T) {
+func Test_ElasticKeyAlgorithm_Symmetric(t *testing.T) {
 	for _, alg := range happyPathTestCases {
-		t.Run(string(alg.actualElasticKeyAlgorithm), func(t *testing.T) {
-			require.Equal(t, alg.expectedIsSymmetric, IsSymmetric(&alg.actualElasticKeyAlgorithm), "IsSymmetric(%q)", alg.actualElasticKeyAlgorithm)
-			require.Equal(t, alg.expectedIsAsymmetric, IsAsymmetric(&alg.actualElasticKeyAlgorithm), "IsAsymmetric(%q)", alg.actualElasticKeyAlgorithm)
+		t.Run(strings.ReplaceAll(string(alg.actualElasticKeyAlgorithm), "/", "_"), func(t *testing.T) {
+			isSymmetric, err := IsSymmetric(&alg.actualElasticKeyAlgorithm)
+			require.NoError(t, err, "IsSymmetric(%q)", alg.actualElasticKeyAlgorithm)
+			require.Equal(t, alg.expectedIsSymmetric, isSymmetric, "IsSymmetric(%q)", alg.actualElasticKeyAlgorithm)
+		})
+	}
+}
+
+func Test_ElasticKeyAlgorithm_Asymmetric(t *testing.T) {
+	for _, alg := range happyPathTestCases {
+		t.Run(strings.ReplaceAll(string(alg.actualElasticKeyAlgorithm), "/", "_"), func(t *testing.T) {
+			isAsymmetric, err := IsAsymmetric(&alg.actualElasticKeyAlgorithm)
+			require.NoError(t, err, "IsAsymmetric(%q)", alg.actualElasticKeyAlgorithm)
+			require.Equal(t, alg.expectedIsAsymmetric, isAsymmetric, "IsAsymmetric(%q)", alg.actualElasticKeyAlgorithm)
 		})
 	}
 }

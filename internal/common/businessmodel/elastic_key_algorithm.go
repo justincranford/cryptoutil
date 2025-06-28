@@ -246,6 +246,14 @@ var elasticKeyAlgorithms = map[string]cryptoutilOpenapiModel.ElasticKeyAlgorithm
 }
 
 var asymmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
+	A256GCM_A256KW: false, A192GCM_A256KW: false, A128GCM_A256KW: false,
+	A256GCM_A192KW: false, A192GCM_A192KW: false, A128GCM_A192KW: false,
+	A256GCM_A128KW: false, A192GCM_A128KW: false, A128GCM_A128KW: false,
+	A256GCM_A256GCMKW: false, A192GCM_A256GCMKW: false, A128GCM_A256GCMKW: false,
+	A256GCM_A192GCMKW: false, A192GCM_A192GCMKW: false, A128GCM_A192GCMKW: false,
+	A256GCM_A128GCMKW: false, A192GCM_A128GCMKW: false, A128GCM_A128GCMKW: false,
+	A256GCM_dir: false, A192GCM_dir: false, A128GCM_dir: false,
+
 	A256GCM_RSAOAEP512: true, A192GCM_RSAOAEP512: true, A128GCM_RSAOAEP512: true,
 	A256GCM_RSAOAEP384: true, A192GCM_RSAOAEP384: true, A128GCM_RSAOAEP384: true,
 	A256GCM_RSAOAEP256: true, A192GCM_RSAOAEP256: true, A128GCM_RSAOAEP256: true,
@@ -257,6 +265,14 @@ var asymmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
 	A256GCM_ECDHESA128KW: true, A192GCM_ECDHESA128KW: true, A128GCM_ECDHESA128KW: true,
 	A256GCM_ECDHES: true, A192GCM_ECDHES: true, A128GCM_ECDHES: true,
 
+	A256CBCHS512_A256KW: false, A192CBCHS384_A256KW: false, A128CBCHS256_A256KW: false,
+	A256CBCHS512_A192KW: false, A192CBCHS384_A192KW: false, A128CBCHS256_A192KW: false,
+	A256CBCHS512_A128KW: false, A192CBCHS384_A128KW: false, A128CBCHS256_A128KW: false,
+	A256CBCHS512_A256GCMKW: false, A192CBCHS384_A256GCMKW: false, A128CBCHS256_A256GCMKW: false,
+	A256CBCHS512_A192GCMKW: false, A192CBCHS384_A192GCMKW: false, A128CBCHS256_A192GCMKW: false,
+	A256CBCHS512_A128GCMKW: false, A192CBCHS384_A128GCMKW: false, A128CBCHS256_A128GCMKW: false,
+	A256CBCHS512_dir: false, A192CBCHS384_dir: false, A128CBCHS256_dir: false,
+
 	A256CBC_HS512_RSAOAEP512: true, A192CBC_HS384_RSAOAEP512: true, A128CBC_HS256_RSAOAEP512: true,
 	A256CBC_HS512_RSAOAEP384: true, A192CBC_HS384_RSAOAEP384: true, A128CBC_HS256_RSAOAEP384: true,
 	A256CBC_HS512_RSAOAEP256: true, A192CBC_HS384_RSAOAEP256: true, A128CBC_HS256_RSAOAEP256: true,
@@ -267,7 +283,11 @@ var asymmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
 	A192CBC_HS384_ECDHESA192KW: true, A128CBC_HS256_ECDHESA192KW: true, A128CBC_HS256_ECDHESA128KW: true,
 	A256CBC_HS512_ECDHES: true, A192CBC_HS384_ECDHES: true, A128CBC_HS256_ECDHES: true,
 
-	RS512: true, RS384: true, RS256: true, PS512: true, PS384: true, PS256: true, ES512: true, ES384: true, ES256: true, EdDSA: true,
+	RS512: true, RS384: true, RS256: true,
+	PS512: true, PS384: true, PS256: true,
+	ES512: true, ES384: true, ES256: true,
+	HS512: false, HS384: false, HS256: false,
+	EdDSA: true,
 }
 
 var symmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
@@ -325,26 +345,18 @@ func MapElasticKeyAlgorithm(algorithm string) (*cryptoutilOpenapiModel.ElasticKe
 	return nil, fmt.Errorf("invalid elastic Key algorithm: %s", algorithm)
 }
 
-// func IsSymmetric(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (bool, error) {
-// 	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
-// 	if ok {
-// 		return isSymmetric, nil
-// 	}
-// 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
-// }
-
-// func isAsymmetric(ormElasticKeyAlgorithm *constant.ElasticKeyAlgorithm) (bool, error) {
-// 	isSymmetric, ok := isSymmetric[*ormElasticKeyAlgorithm]
-// 	if ok {
-// 		return !isSymmetric, nil
-// 	}
-// 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *ormElasticKeyAlgorithm)
-// }
-
-func IsAsymmetric(alg *ElasticKeyAlgorithm) bool {
-	return asymmetricElasticKeyAlgorithm[*alg]
+func IsSymmetric(elasticKeyAlgorithm *ElasticKeyAlgorithm) (bool, error) {
+	isSymmetric, ok := symmetricElasticKeyAlgorithm[*elasticKeyAlgorithm]
+	if ok {
+		return isSymmetric, nil
+	}
+	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
-func IsSymmetric(alg *ElasticKeyAlgorithm) bool {
-	return symmetricElasticKeyAlgorithm[*alg]
+func IsAsymmetric(elasticKeyAlgorithm *ElasticKeyAlgorithm) (bool, error) {
+	isAsymmetric, ok := asymmetricElasticKeyAlgorithm[*elasticKeyAlgorithm]
+	if ok {
+		return isAsymmetric, nil
+	}
+	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }

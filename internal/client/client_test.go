@@ -261,7 +261,9 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
-				if cryptoutilBusinessModel.IsAsymmetric(&elasticKeyAlgorithm) {
+				isAsymmetric, err := cryptoutilBusinessModel.IsAsymmetric(&elasticKeyAlgorithm)
+				require.NoError(t, err)
+				if isAsymmetric {
 					require.NotNil(t, key.ClearPublic)
 					jwk, err := joseJwk.ParseKey([]byte(string(*key.ClearPublic)))
 					require.NoError(t, err)
