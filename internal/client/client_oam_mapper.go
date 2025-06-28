@@ -19,19 +19,19 @@ func NewOamOacMapper() *oamOacMapper {
 }
 
 func toOamElasticKeyCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
-	elasticKeyName, err1 := cryptoutilBusinessModel.MapElasticKeyName(name)
-	elasticKeyDescription, err2 := cryptoutilBusinessModel.MapElasticKeyDescription(description)
-	elasticKeyAlgorithm, err3 := cryptoutilBusinessModel.MapElasticKeyAlgorithm(algorithm)
-	elasticKeyProvider, err4 := cryptoutilBusinessModel.MapElasticKeyProvider(provider)
-	elasticKeyElasticKeyImportAllowed := cryptoutilBusinessModel.MapElasticKeyImportAllowed(importAllowed)
-	elasticKeyElasticKeyExportAllowed := cryptoutilBusinessModel.MapElasticKeyExportAllowed(exportAllowed)
-	elasticKeyElasticKeyVersioningAllowed := cryptoutilBusinessModel.MapElasticKeyVersioningAllowed(versioningAllowed)
+	elasticKeyName, err1 := cryptoutilBusinessModel.ToElasticKeyName(name)
+	elasticKeyDescription, err2 := cryptoutilBusinessModel.ToElasticKeyDescription(description)
+	elasticKeyAlgorithm, err3 := cryptoutilBusinessModel.ToElasticKeyAlgorithm(algorithm)
+	elasticKeyProvider, err4 := cryptoutilBusinessModel.ToElasticKeyProvider(provider)
+	elasticKeyElasticKeyImportAllowed := cryptoutilBusinessModel.ToElasticKeyImportAllowed(importAllowed)
+	elasticKeyElasticKeyExportAllowed := cryptoutilBusinessModel.ToElasticKeyExportAllowed(exportAllowed)
+	elasticKeyElasticKeyVersioningAllowed := cryptoutilBusinessModel.ToElasticKeyVersioningAllowed(versioningAllowed)
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
 		return nil, fmt.Errorf("failed to map elastic Key: %v", errors.Join(err1, err2, err3, err4))
 	}
 	return &cryptoutilOpenapiModel.ElasticKeyCreate{
-		Name:              cryptoutilOpenapiModel.ElasticKeyName(*elasticKeyName),
-		Description:       cryptoutilOpenapiModel.ElasticKeyDescription(*elasticKeyDescription),
+		Name:              (cryptoutilOpenapiModel.ElasticKeyName)(*elasticKeyName),
+		Description:       (cryptoutilOpenapiModel.ElasticKeyDescription)(*elasticKeyDescription),
 		Algorithm:         (*cryptoutilOpenapiModel.ElasticKeyAlgorithm)(elasticKeyAlgorithm),
 		Provider:          (*cryptoutilOpenapiModel.ElasticKeyProvider)(elasticKeyProvider),
 		ImportAllowed:     (*cryptoutilOpenapiModel.ElasticKeyImportAllowed)(elasticKeyElasticKeyImportAllowed),

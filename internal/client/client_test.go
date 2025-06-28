@@ -253,7 +253,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			if elasticKey == nil {
 				return
 			}
-			oamElasticKeyAlgorithm, err := cryptoutilBusinessModel.MapElasticKeyAlgorithm(testCase.algorithm)
+			oamElasticKeyAlgorithm, err := cryptoutilBusinessModel.ToElasticKeyAlgorithm(testCase.algorithm)
 			require.NoError(t, err)
 			require.NotNil(t, oamElasticKeyAlgorithm)
 			elasticKeyAlgorithm := cryptoutilBusinessModel.ElasticKeyAlgorithm(testCase.algorithm)
