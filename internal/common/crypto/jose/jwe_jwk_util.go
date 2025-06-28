@@ -131,32 +131,32 @@ func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 
 	switch *alg {
 	case AlgDir:
-		return validateOrGenerateJweAesJwk(key, enc, alg, encKeyBitsLength, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweAesJwk(key, enc, alg, encKeyBitsLength, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgA256KW, AlgA256GCMKW:
-		return validateOrGenerateJweAesJwk(key, enc, alg, 256, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweAesJwk(key, enc, alg, 256, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA192KW, AlgA192GCMKW:
-		return validateOrGenerateJweAesJwk(key, enc, alg, 192, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweAesJwk(key, enc, alg, 192, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA128KW, AlgA128GCMKW:
-		return validateOrGenerateJweAesJwk(key, enc, alg, 128, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweAesJwk(key, enc, alg, 128, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgRSAOAEP512:
-		return validateOrGenerateJweRsaJwk(key, enc, alg, 4096, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweRsaJwk(key, enc, alg, 4096, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP384:
-		return validateOrGenerateJweRsaJwk(key, enc, alg, 3072, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweRsaJwk(key, enc, alg, 3072, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP256:
-		return validateOrGenerateJweRsaJwk(key, enc, alg, 2048, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweRsaJwk(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP:
-		return validateOrGenerateJweRsaJwk(key, enc, alg, 2048, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweRsaJwk(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSA15:
-		return validateOrGenerateJweRsaJwk(key, enc, alg, 2048, &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweRsaJwk(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgECDHES, AlgECDHESA256KW:
-		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P521(), &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P521(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgECDHESA192KW:
-		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P384(), &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P384(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgECDHESA128KW:
-		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P256(), &EncA256GCM, &EncA256CBC_HS512, &EncA192GCM, &EncA192CBC_HS384, &EncA128GCM, &EncA128CBC_HS256)
+		return validateOrGenerateJweEcdhJwk(key, enc, alg, ecdh.P256(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	default:
 		return nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
@@ -177,7 +177,7 @@ func validateOrGenerateJweAesJwk(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 			switch *enc {
 			case EncA256GCM, EncA192GCM, EncA128GCM:
 				keyBytes, err = cryptoutilKeyGen.GenerateAESKey(keyBitsLength)
-			case EncA256CBC_HS512, EncA192CBC_HS384, EncA128CBC_HS256:
+			case EncA256CBCHS512, EncA192CBCHS384, EncA128CBCHS256:
 				keyBytes, err = cryptoutilKeyGen.GenerateAESHSKey(keyBitsLength)
 			default:
 				return nil, fmt.Errorf("valid JWE JWK alg %s, but invalid enc %s", *enc, *alg)
@@ -268,11 +268,11 @@ func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 		return 192, nil
 	case EncA128GCM:
 		return 128, nil
-	case EncA256CBC_HS512:
+	case EncA256CBCHS512:
 		return 512, nil
-	case EncA192CBC_HS384:
+	case EncA192CBCHS384:
 		return 384, nil
-	case EncA128CBC_HS256:
+	case EncA128CBCHS256:
 		return 256, nil
 	default:
 		return 0, fmt.Errorf("unsupported JWE JWK enc %s", *enc)

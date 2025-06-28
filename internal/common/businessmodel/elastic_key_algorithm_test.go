@@ -41,15 +41,15 @@ var happyPathTestCases = []TestCase{
 	{A256CBCHS512_A128GCMKW, true, false}, {A192CBCHS384_A128GCMKW, true, false}, {A128CBCHS256_A128GCMKW, true, false},
 	{A256CBCHS512_dir, true, false}, {A192CBCHS384_dir, true, false}, {A128CBCHS256_dir, true, false},
 
-	{A256CBC_HS512_RSAOAEP512, false, true}, {A192CBC_HS384_RSAOAEP512, false, true}, {A128CBC_HS256_RSAOAEP512, false, true},
-	{A256CBC_HS512_RSAOAEP384, false, true}, {A192CBC_HS384_RSAOAEP384, false, true}, {A128CBC_HS256_RSAOAEP384, false, true},
-	{A256CBC_HS512_RSAOAEP256, false, true}, {A192CBC_HS384_RSAOAEP256, false, true}, {A128CBC_HS256_RSAOAEP256, false, true},
-	{A256CBC_HS512_RSAOAEP, false, true}, {A192CBC_HS384_RSAOAEP, false, true}, {A128CBC_HS256_RSAOAEP, false, true},
-	{A256CBC_HS512_RSA15, false, true}, {A192CBC_HS384_RSA15, false, true}, {A128CBC_HS256_RSA15, false, true},
+	{A256CBCHS512_RSAOAEP512, false, true}, {A192CBCHS384_RSAOAEP512, false, true}, {A128CBCHS256_RSAOAEP512, false, true},
+	{A256CBCHS512_RSAOAEP384, false, true}, {A192CBCHS384_RSAOAEP384, false, true}, {A128CBCHS256_RSAOAEP384, false, true},
+	{A256CBCHS512_RSAOAEP256, false, true}, {A192CBCHS384_RSAOAEP256, false, true}, {A128CBCHS256_RSAOAEP256, false, true},
+	{A256CBCHS512_RSAOAEP, false, true}, {A192CBCHS384_RSAOAEP, false, true}, {A128CBCHS256_RSAOAEP, false, true},
+	{A256CBCHS512_RSA15, false, true}, {A192CBCHS384_RSA15, false, true}, {A128CBCHS256_RSA15, false, true},
 
-	{A256CBC_HS512_ECDHESA256KW, false, true}, {A192CBC_HS384_ECDHESA256KW, false, true}, {A128CBC_HS256_ECDHESA256KW, false, true},
-	{A192CBC_HS384_ECDHESA192KW, false, true}, {A128CBC_HS256_ECDHESA192KW, false, true}, {A128CBC_HS256_ECDHESA128KW, false, true},
-	{A256CBC_HS512_ECDHES, false, true}, {A192CBC_HS384_ECDHES, false, true}, {A128CBC_HS256_ECDHES, false, true},
+	{A256CBCHS512_ECDHESA256KW, false, true}, {A192CBCHS384_ECDHESA256KW, false, true}, {A128CBCHS256_ECDHESA256KW, false, true},
+	{A192CBCHS384_ECDHESA192KW, false, true}, {A128CBCHS256_ECDHESA192KW, false, true}, {A128CBCHS256_ECDHESA128KW, false, true},
+	{A256CBCHS512_ECDHES, false, true}, {A192CBCHS384_ECDHES, false, true}, {A128CBCHS256_ECDHES, false, true},
 
 	{RS512, false, true}, {RS384, false, true}, {RS256, false, true},
 	{PS512, false, true}, {PS384, false, true}, {PS256, false, true},

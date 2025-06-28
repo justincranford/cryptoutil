@@ -82,31 +82,35 @@ const (
 	A192CBCHS384_dir       ElasticKeyAlgorithm = "A192CBC-HS384/dir"
 	A128CBCHS256_dir       ElasticKeyAlgorithm = "A128CBC-HS256/dir"
 
-	A256CBC_HS512_RSAOAEP512 ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-512"
-	A192CBC_HS384_RSAOAEP512 ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-512"
-	A128CBC_HS256_RSAOAEP512 ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-512"
-	A256CBC_HS512_RSAOAEP384 ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-384"
-	A192CBC_HS384_RSAOAEP384 ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-384"
-	A128CBC_HS256_RSAOAEP384 ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-384"
-	A256CBC_HS512_RSAOAEP256 ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-256"
-	A192CBC_HS384_RSAOAEP256 ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-256"
-	A128CBC_HS256_RSAOAEP256 ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-256"
-	A256CBC_HS512_RSAOAEP    ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP"
-	A192CBC_HS384_RSAOAEP    ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP"
-	A128CBC_HS256_RSAOAEP    ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP"
-	A256CBC_HS512_RSA15      ElasticKeyAlgorithm = "A256CBC-HS512/RSA1_5"
-	A192CBC_HS384_RSA15      ElasticKeyAlgorithm = "A192CBC-HS384/RSA1_5"
-	A128CBC_HS256_RSA15      ElasticKeyAlgorithm = "A128CBC-HS256/RSA1_5"
+	A256CBCHS512_RSAOAEP512 ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-512"
+	A192CBCHS384_RSAOAEP512 ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-512"
+	A128CBCHS256_RSAOAEP512 ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-512"
+	A256CBCHS512_RSAOAEP384 ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-384"
+	A192CBCHS384_RSAOAEP384 ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-384"
+	A128CBCHS256_RSAOAEP384 ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-384"
+	A256CBCHS512_RSAOAEP256 ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP-256"
+	A192CBCHS384_RSAOAEP256 ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP-256"
+	A128CBCHS256_RSAOAEP256 ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP-256"
+	A256CBCHS512_RSAOAEP    ElasticKeyAlgorithm = "A256CBC-HS512/RSA-OAEP"
+	A192CBCHS384_RSAOAEP    ElasticKeyAlgorithm = "A192CBC-HS384/RSA-OAEP"
+	A128CBCHS256_RSAOAEP    ElasticKeyAlgorithm = "A128CBC-HS256/RSA-OAEP"
+	A256CBCHS512_RSA15      ElasticKeyAlgorithm = "A256CBC-HS512/RSA1_5"
+	A192CBCHS384_RSA15      ElasticKeyAlgorithm = "A192CBC-HS384/RSA1_5"
+	A128CBCHS256_RSA15      ElasticKeyAlgorithm = "A128CBC-HS256/RSA1_5"
 
-	A256CBC_HS512_ECDHESA256KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A256KW"
-	A192CBC_HS384_ECDHESA256KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A256KW"
-	A128CBC_HS256_ECDHESA256KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A256KW"
-	A192CBC_HS384_ECDHESA192KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A192KW"
-	A128CBC_HS256_ECDHESA192KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A192KW"
-	A128CBC_HS256_ECDHESA128KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A128KW"
-	A256CBC_HS512_ECDHES       ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES"
-	A192CBC_HS384_ECDHES       ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES"
-	A128CBC_HS256_ECDHES       ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES"
+	A256CBCHS512_ECDHESA256KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A256KW"
+	A192CBCHS384_ECDHESA256KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A256KW"
+	A128CBCHS256_ECDHESA256KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A256KW"
+	A256CBCHS512_ECDHESA192KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A192KW"
+	A192CBCHS384_ECDHESA192KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A192KW"
+	A128CBCHS256_ECDHESA192KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A192KW"
+	A256CBCHS512_ECDHESA128KW ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES+A128KW"
+	A192CBCHS384_ECDHESA128KW ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES+A128KW"
+	A128CBCHS256_ECDHESA128KW ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES+A128KW"
+
+	A256CBCHS512_ECDHES ElasticKeyAlgorithm = "A256CBC-HS512/ECDH-ES"
+	A192CBCHS384_ECDHES ElasticKeyAlgorithm = "A192CBC-HS384/ECDH-ES"
+	A128CBCHS256_ECDHES ElasticKeyAlgorithm = "A128CBC-HS256/ECDH-ES"
 
 	RS512 ElasticKeyAlgorithm = "RS512"
 	RS384 ElasticKeyAlgorithm = "RS384"
@@ -124,125 +128,125 @@ const (
 )
 
 var elasticKeyAlgorithms = map[string]cryptoutilOpenapiModel.ElasticKeyAlgorithm{
-	string(cryptoutilOpenapiModel.A256GCMA256KW): cryptoutilOpenapiModel.A256GCMA256KW,
-	string(cryptoutilOpenapiModel.A192GCMA256KW): cryptoutilOpenapiModel.A192GCMA256KW,
-	string(cryptoutilOpenapiModel.A128GCMA256KW): cryptoutilOpenapiModel.A128GCMA256KW,
-	string(cryptoutilOpenapiModel.A256GCMA192KW): cryptoutilOpenapiModel.A256GCMA192KW,
-	string(cryptoutilOpenapiModel.A192GCMA192KW): cryptoutilOpenapiModel.A192GCMA192KW,
-	string(cryptoutilOpenapiModel.A128GCMA192KW): cryptoutilOpenapiModel.A128GCMA192KW,
-	string(cryptoutilOpenapiModel.A256GCMA128KW): cryptoutilOpenapiModel.A256GCMA128KW,
-	string(cryptoutilOpenapiModel.A192GCMA128KW): cryptoutilOpenapiModel.A192GCMA128KW,
-	string(cryptoutilOpenapiModel.A128GCMA128KW): cryptoutilOpenapiModel.A128GCMA128KW,
+	string(A256GCM_A256KW): cryptoutilOpenapiModel.A256GCMA256KW,
+	string(A192GCM_A256KW): cryptoutilOpenapiModel.A192GCMA256KW,
+	string(A128GCM_A256KW): cryptoutilOpenapiModel.A128GCMA256KW,
+	string(A256GCM_A192KW): cryptoutilOpenapiModel.A256GCMA192KW,
+	string(A192GCM_A192KW): cryptoutilOpenapiModel.A192GCMA192KW,
+	string(A128GCM_A192KW): cryptoutilOpenapiModel.A128GCMA192KW,
+	string(A256GCM_A128KW): cryptoutilOpenapiModel.A256GCMA128KW,
+	string(A192GCM_A128KW): cryptoutilOpenapiModel.A192GCMA128KW,
+	string(A128GCM_A128KW): cryptoutilOpenapiModel.A128GCMA128KW,
 
-	string(cryptoutilOpenapiModel.A256GCMA256GCMKW): cryptoutilOpenapiModel.A256GCMA256GCMKW,
-	string(cryptoutilOpenapiModel.A192GCMA256GCMKW): cryptoutilOpenapiModel.A192GCMA256GCMKW,
-	string(cryptoutilOpenapiModel.A128GCMA256GCMKW): cryptoutilOpenapiModel.A128GCMA256GCMKW,
-	string(cryptoutilOpenapiModel.A256GCMA192GCMKW): cryptoutilOpenapiModel.A256GCMA192GCMKW,
-	string(cryptoutilOpenapiModel.A192GCMA192GCMKW): cryptoutilOpenapiModel.A192GCMA192GCMKW,
-	string(cryptoutilOpenapiModel.A128GCMA192GCMKW): cryptoutilOpenapiModel.A128GCMA192GCMKW,
-	string(cryptoutilOpenapiModel.A256GCMA128GCMKW): cryptoutilOpenapiModel.A256GCMA128GCMKW,
-	string(cryptoutilOpenapiModel.A192GCMA128GCMKW): cryptoutilOpenapiModel.A192GCMA128GCMKW,
-	string(cryptoutilOpenapiModel.A128GCMA128GCMKW): cryptoutilOpenapiModel.A128GCMA128GCMKW,
+	string(A256GCM_A256GCMKW): cryptoutilOpenapiModel.A256GCMA256GCMKW,
+	string(A192GCM_A256GCMKW): cryptoutilOpenapiModel.A192GCMA256GCMKW,
+	string(A128GCM_A256GCMKW): cryptoutilOpenapiModel.A128GCMA256GCMKW,
+	string(A256GCM_A192GCMKW): cryptoutilOpenapiModel.A256GCMA192GCMKW,
+	string(A192GCM_A192GCMKW): cryptoutilOpenapiModel.A192GCMA192GCMKW,
+	string(A128GCM_A192GCMKW): cryptoutilOpenapiModel.A128GCMA192GCMKW,
+	string(A256GCM_A128GCMKW): cryptoutilOpenapiModel.A256GCMA128GCMKW,
+	string(A192GCM_A128GCMKW): cryptoutilOpenapiModel.A192GCMA128GCMKW,
+	string(A128GCM_A128GCMKW): cryptoutilOpenapiModel.A128GCMA128GCMKW,
 
-	string(cryptoutilOpenapiModel.A256GCMDir): cryptoutilOpenapiModel.A256GCMDir,
-	string(cryptoutilOpenapiModel.A192GCMDir): cryptoutilOpenapiModel.A192GCMDir,
-	string(cryptoutilOpenapiModel.A128GCMDir): cryptoutilOpenapiModel.A128GCMDir,
+	string(A256GCM_dir): cryptoutilOpenapiModel.A256GCMDir,
+	string(A192GCM_dir): cryptoutilOpenapiModel.A192GCMDir,
+	string(A128GCM_dir): cryptoutilOpenapiModel.A128GCMDir,
 
-	string(cryptoutilOpenapiModel.A256GCMRSAOAEP512): cryptoutilOpenapiModel.A256GCMRSAOAEP512,
-	string(cryptoutilOpenapiModel.A192GCMRSAOAEP512): cryptoutilOpenapiModel.A192GCMRSAOAEP512,
-	string(cryptoutilOpenapiModel.A128GCMRSAOAEP512): cryptoutilOpenapiModel.A128GCMRSAOAEP512,
-	string(cryptoutilOpenapiModel.A256GCMRSAOAEP384): cryptoutilOpenapiModel.A256GCMRSAOAEP384,
-	string(cryptoutilOpenapiModel.A192GCMRSAOAEP384): cryptoutilOpenapiModel.A192GCMRSAOAEP384,
-	string(cryptoutilOpenapiModel.A128GCMRSAOAEP384): cryptoutilOpenapiModel.A128GCMRSAOAEP384,
-	string(cryptoutilOpenapiModel.A256GCMRSAOAEP256): cryptoutilOpenapiModel.A256GCMRSAOAEP256,
-	string(cryptoutilOpenapiModel.A192GCMRSAOAEP256): cryptoutilOpenapiModel.A192GCMRSAOAEP256,
-	string(cryptoutilOpenapiModel.A128GCMRSAOAEP256): cryptoutilOpenapiModel.A128GCMRSAOAEP256,
-	string(cryptoutilOpenapiModel.A256GCMRSAOAEP):    cryptoutilOpenapiModel.A256GCMRSAOAEP,
-	string(cryptoutilOpenapiModel.A192GCMRSAOAEP):    cryptoutilOpenapiModel.A192GCMRSAOAEP,
-	string(cryptoutilOpenapiModel.A128GCMRSAOAEP):    cryptoutilOpenapiModel.A128GCMRSAOAEP,
-	string(cryptoutilOpenapiModel.A256GCMRSA15):      cryptoutilOpenapiModel.A256GCMRSA15,
-	string(cryptoutilOpenapiModel.A192GCMRSA15):      cryptoutilOpenapiModel.A192GCMRSA15,
-	string(cryptoutilOpenapiModel.A128GCMRSA15):      cryptoutilOpenapiModel.A128GCMRSA15,
+	string(A256GCM_RSAOAEP512): cryptoutilOpenapiModel.A256GCMRSAOAEP512,
+	string(A192GCM_RSAOAEP512): cryptoutilOpenapiModel.A192GCMRSAOAEP512,
+	string(A128GCM_RSAOAEP512): cryptoutilOpenapiModel.A128GCMRSAOAEP512,
+	string(A256GCM_RSAOAEP384): cryptoutilOpenapiModel.A256GCMRSAOAEP384,
+	string(A192GCM_RSAOAEP384): cryptoutilOpenapiModel.A192GCMRSAOAEP384,
+	string(A128GCM_RSAOAEP384): cryptoutilOpenapiModel.A128GCMRSAOAEP384,
+	string(A256GCM_RSAOAEP256): cryptoutilOpenapiModel.A256GCMRSAOAEP256,
+	string(A192GCM_RSAOAEP256): cryptoutilOpenapiModel.A192GCMRSAOAEP256,
+	string(A128GCM_RSAOAEP256): cryptoutilOpenapiModel.A128GCMRSAOAEP256,
+	string(A256GCM_RSAOAEP):    cryptoutilOpenapiModel.A256GCMRSAOAEP,
+	string(A192GCM_RSAOAEP):    cryptoutilOpenapiModel.A192GCMRSAOAEP,
+	string(A128GCM_RSAOAEP):    cryptoutilOpenapiModel.A128GCMRSAOAEP,
+	string(A256GCM_RSA15):      cryptoutilOpenapiModel.A256GCMRSA15,
+	string(A192GCM_RSA15):      cryptoutilOpenapiModel.A192GCMRSA15,
+	string(A128GCM_RSA15):      cryptoutilOpenapiModel.A128GCMRSA15,
 
-	string(cryptoutilOpenapiModel.A256GCMECDHESA256KW): cryptoutilOpenapiModel.A256GCMECDHESA256KW,
-	string(cryptoutilOpenapiModel.A192GCMECDHESA256KW): cryptoutilOpenapiModel.A192GCMECDHESA256KW,
-	string(cryptoutilOpenapiModel.A128GCMECDHESA256KW): cryptoutilOpenapiModel.A128GCMECDHESA256KW,
-	string(cryptoutilOpenapiModel.A256GCMECDHESA192KW): cryptoutilOpenapiModel.A256GCMECDHESA192KW,
-	string(cryptoutilOpenapiModel.A192GCMECDHESA192KW): cryptoutilOpenapiModel.A192GCMECDHESA192KW,
-	string(cryptoutilOpenapiModel.A128GCMECDHESA192KW): cryptoutilOpenapiModel.A128GCMECDHESA192KW,
-	string(cryptoutilOpenapiModel.A256GCMECDHESA128KW): cryptoutilOpenapiModel.A256GCMECDHESA128KW,
-	string(cryptoutilOpenapiModel.A192GCMECDHESA128KW): cryptoutilOpenapiModel.A192GCMECDHESA128KW,
-	string(cryptoutilOpenapiModel.A128GCMECDHESA128KW): cryptoutilOpenapiModel.A128GCMECDHESA128KW,
-	string(cryptoutilOpenapiModel.A256GCMECDHES):       cryptoutilOpenapiModel.A256GCMECDHES,
-	string(cryptoutilOpenapiModel.A192GCMECDHES):       cryptoutilOpenapiModel.A192GCMECDHES,
-	string(cryptoutilOpenapiModel.A128GCMECDHES):       cryptoutilOpenapiModel.A128GCMECDHES,
+	string(A256GCM_ECDHESA256KW): cryptoutilOpenapiModel.A256GCMECDHESA256KW,
+	string(A192GCM_ECDHESA256KW): cryptoutilOpenapiModel.A192GCMECDHESA256KW,
+	string(A128GCM_ECDHESA256KW): cryptoutilOpenapiModel.A128GCMECDHESA256KW,
+	string(A256GCM_ECDHESA192KW): cryptoutilOpenapiModel.A256GCMECDHESA192KW,
+	string(A192GCM_ECDHESA192KW): cryptoutilOpenapiModel.A192GCMECDHESA192KW,
+	string(A128GCM_ECDHESA192KW): cryptoutilOpenapiModel.A128GCMECDHESA192KW,
+	string(A256GCM_ECDHESA128KW): cryptoutilOpenapiModel.A256GCMECDHESA128KW,
+	string(A192GCM_ECDHESA128KW): cryptoutilOpenapiModel.A192GCMECDHESA128KW,
+	string(A128GCM_ECDHESA128KW): cryptoutilOpenapiModel.A128GCMECDHESA128KW,
+	string(A256GCM_ECDHES):       cryptoutilOpenapiModel.A256GCMECDHES,
+	string(A192GCM_ECDHES):       cryptoutilOpenapiModel.A192GCMECDHES,
+	string(A128GCM_ECDHES):       cryptoutilOpenapiModel.A128GCMECDHES,
 
-	string(cryptoutilOpenapiModel.A256CBCHS512A256KW): cryptoutilOpenapiModel.A256CBCHS512A256KW,
-	string(cryptoutilOpenapiModel.A192CBCHS384A256KW): cryptoutilOpenapiModel.A192CBCHS384A256KW,
-	string(cryptoutilOpenapiModel.A128CBCHS256A256KW): cryptoutilOpenapiModel.A128CBCHS256A256KW,
-	string(cryptoutilOpenapiModel.A256CBCHS512A192KW): cryptoutilOpenapiModel.A256CBCHS512A192KW,
-	string(cryptoutilOpenapiModel.A192CBCHS384A192KW): cryptoutilOpenapiModel.A192CBCHS384A192KW,
-	string(cryptoutilOpenapiModel.A128CBCHS256A192KW): cryptoutilOpenapiModel.A128CBCHS256A192KW,
-	string(cryptoutilOpenapiModel.A256CBCHS512A128KW): cryptoutilOpenapiModel.A256CBCHS512A128KW,
-	string(cryptoutilOpenapiModel.A192CBCHS384A128KW): cryptoutilOpenapiModel.A192CBCHS384A128KW,
-	string(cryptoutilOpenapiModel.A128CBCHS256A128KW): cryptoutilOpenapiModel.A128CBCHS256A128KW,
+	string(A256CBCHS512_A256KW): cryptoutilOpenapiModel.A256CBCHS512A256KW,
+	string(A192CBCHS384_A256KW): cryptoutilOpenapiModel.A192CBCHS384A256KW,
+	string(A128CBCHS256_A256KW): cryptoutilOpenapiModel.A128CBCHS256A256KW,
+	string(A256CBCHS512_A192KW): cryptoutilOpenapiModel.A256CBCHS512A192KW,
+	string(A192CBCHS384_A192KW): cryptoutilOpenapiModel.A192CBCHS384A192KW,
+	string(A128CBCHS256_A192KW): cryptoutilOpenapiModel.A128CBCHS256A192KW,
+	string(A256CBCHS512_A128KW): cryptoutilOpenapiModel.A256CBCHS512A128KW,
+	string(A192CBCHS384_A128KW): cryptoutilOpenapiModel.A192CBCHS384A128KW,
+	string(A128CBCHS256_A128KW): cryptoutilOpenapiModel.A128CBCHS256A128KW,
 
-	string(cryptoutilOpenapiModel.A256CBCHS512A256GCMKW): cryptoutilOpenapiModel.A256CBCHS512A256GCMKW,
-	string(cryptoutilOpenapiModel.A192CBCHS384A256GCMKW): cryptoutilOpenapiModel.A192CBCHS384A256GCMKW,
-	string(cryptoutilOpenapiModel.A128CBCHS256A256GCMKW): cryptoutilOpenapiModel.A128CBCHS256A256GCMKW,
-	string(cryptoutilOpenapiModel.A256CBCHS512A192GCMKW): cryptoutilOpenapiModel.A256CBCHS512A192GCMKW,
-	string(cryptoutilOpenapiModel.A192CBCHS384A192GCMKW): cryptoutilOpenapiModel.A192CBCHS384A192GCMKW,
-	string(cryptoutilOpenapiModel.A128CBCHS256A192GCMKW): cryptoutilOpenapiModel.A128CBCHS256A192GCMKW,
-	string(cryptoutilOpenapiModel.A256CBCHS512A128GCMKW): cryptoutilOpenapiModel.A256CBCHS512A128GCMKW,
-	string(cryptoutilOpenapiModel.A192CBCHS384A128GCMKW): cryptoutilOpenapiModel.A192CBCHS384A128GCMKW,
-	string(cryptoutilOpenapiModel.A128CBCHS256A128GCMKW): cryptoutilOpenapiModel.A128CBCHS256A128GCMKW,
+	string(A256CBCHS512_A256GCMKW): cryptoutilOpenapiModel.A256CBCHS512A256GCMKW,
+	string(A192CBCHS384_A256GCMKW): cryptoutilOpenapiModel.A192CBCHS384A256GCMKW,
+	string(A128CBCHS256_A256GCMKW): cryptoutilOpenapiModel.A128CBCHS256A256GCMKW,
+	string(A256CBCHS512_A192GCMKW): cryptoutilOpenapiModel.A256CBCHS512A192GCMKW,
+	string(A192CBCHS384_A192GCMKW): cryptoutilOpenapiModel.A192CBCHS384A192GCMKW,
+	string(A128CBCHS256_A192GCMKW): cryptoutilOpenapiModel.A128CBCHS256A192GCMKW,
+	string(A256CBCHS512_A128GCMKW): cryptoutilOpenapiModel.A256CBCHS512A128GCMKW,
+	string(A192CBCHS384_A128GCMKW): cryptoutilOpenapiModel.A192CBCHS384A128GCMKW,
+	string(A128CBCHS256_A128GCMKW): cryptoutilOpenapiModel.A128CBCHS256A128GCMKW,
 
-	string(cryptoutilOpenapiModel.A256CBCHS512Dir): cryptoutilOpenapiModel.A256CBCHS512Dir,
-	string(cryptoutilOpenapiModel.A192CBCHS384Dir): cryptoutilOpenapiModel.A192CBCHS384Dir,
-	string(cryptoutilOpenapiModel.A128CBCHS256Dir): cryptoutilOpenapiModel.A128CBCHS256Dir,
+	string(A256CBCHS512_dir): cryptoutilOpenapiModel.A256CBCHS512Dir,
+	string(A192CBCHS384_dir): cryptoutilOpenapiModel.A192CBCHS384Dir,
+	string(A128CBCHS256_dir): cryptoutilOpenapiModel.A128CBCHS256Dir,
 
-	string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512,
-	string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512,
-	string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512,
-	string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384,
-	string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384,
-	string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384,
-	string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP256): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP256,
-	string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256,
-	string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256,
-	string(cryptoutilOpenapiModel.A256CBCHS512RSAOAEP):    cryptoutilOpenapiModel.A256CBCHS512RSAOAEP,
-	string(cryptoutilOpenapiModel.A192CBCHS384RSAOAEP):    cryptoutilOpenapiModel.A192CBCHS384RSAOAEP,
-	string(cryptoutilOpenapiModel.A128CBCHS256RSAOAEP):    cryptoutilOpenapiModel.A128CBCHS256RSAOAEP,
-	string(cryptoutilOpenapiModel.A256CBCHS512RSA15):      cryptoutilOpenapiModel.A256CBCHS512RSA15,
-	string(cryptoutilOpenapiModel.A192CBCHS384RSA15):      cryptoutilOpenapiModel.A192CBCHS384RSA15,
-	string(cryptoutilOpenapiModel.A128CBCHS256RSA15):      cryptoutilOpenapiModel.A128CBCHS256RSA15,
+	string(A256CBCHS512_RSAOAEP512): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512,
+	string(A192CBCHS384_RSAOAEP512): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512,
+	string(A128CBCHS256_RSAOAEP512): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512,
+	string(A256CBCHS512_RSAOAEP384): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384,
+	string(A192CBCHS384_RSAOAEP384): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384,
+	string(A128CBCHS256_RSAOAEP384): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384,
+	string(A256CBCHS512_RSAOAEP256): cryptoutilOpenapiModel.A256CBCHS512RSAOAEP256,
+	string(A192CBCHS384_RSAOAEP256): cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256,
+	string(A128CBCHS256_RSAOAEP256): cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256,
+	string(A256CBCHS512_RSAOAEP):    cryptoutilOpenapiModel.A256CBCHS512RSAOAEP,
+	string(A192CBCHS384_RSAOAEP):    cryptoutilOpenapiModel.A192CBCHS384RSAOAEP,
+	string(A128CBCHS256_RSAOAEP):    cryptoutilOpenapiModel.A128CBCHS256RSAOAEP,
+	string(A256CBCHS512_RSA15):      cryptoutilOpenapiModel.A256CBCHS512RSA15,
+	string(A192CBCHS384_RSA15):      cryptoutilOpenapiModel.A192CBCHS384RSA15,
+	string(A128CBCHS256_RSA15):      cryptoutilOpenapiModel.A128CBCHS256RSA15,
 
-	string(cryptoutilOpenapiModel.A256CBCHS512ECDHESA256KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA256KW,
-	string(cryptoutilOpenapiModel.A192CBCHS384ECDHESA256KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA256KW,
-	string(cryptoutilOpenapiModel.A128CBCHS256ECDHESA256KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA256KW,
-	string(cryptoutilOpenapiModel.A256CBCHS512ECDHESA192KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA192KW,
-	string(cryptoutilOpenapiModel.A192CBCHS384ECDHESA192KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA192KW,
-	string(cryptoutilOpenapiModel.A128CBCHS256ECDHESA192KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA192KW,
-	string(cryptoutilOpenapiModel.A256CBCHS512ECDHESA128KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA128KW,
-	string(cryptoutilOpenapiModel.A192CBCHS384ECDHESA128KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA128KW,
-	string(cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW,
-	string(cryptoutilOpenapiModel.A256CBCHS512ECDHES):       cryptoutilOpenapiModel.A256CBCHS512ECDHES,
-	string(cryptoutilOpenapiModel.A192CBCHS384ECDHES):       cryptoutilOpenapiModel.A192CBCHS384ECDHES,
-	string(cryptoutilOpenapiModel.A128CBCHS256ECDHES):       cryptoutilOpenapiModel.A128CBCHS256ECDHES,
+	string(A256CBCHS512_ECDHESA256KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA256KW,
+	string(A192CBCHS384_ECDHESA256KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA256KW,
+	string(A128CBCHS256_ECDHESA256KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA256KW,
+	string(A256CBCHS512_ECDHESA192KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA192KW,
+	string(A192CBCHS384_ECDHESA192KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA192KW,
+	string(A128CBCHS256_ECDHESA192KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA192KW,
+	string(A256CBCHS512_ECDHESA128KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA128KW,
+	string(A192CBCHS384_ECDHESA128KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA128KW,
+	string(A128CBCHS256_ECDHESA128KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW,
+	string(A256CBCHS512_ECDHES):       cryptoutilOpenapiModel.A256CBCHS512ECDHES,
+	string(A192CBCHS384_ECDHES):       cryptoutilOpenapiModel.A192CBCHS384ECDHES,
+	string(A128CBCHS256_ECDHES):       cryptoutilOpenapiModel.A128CBCHS256ECDHES,
 
-	string(cryptoutilOpenapiModel.RS256): cryptoutilOpenapiModel.RS256,
-	string(cryptoutilOpenapiModel.RS384): cryptoutilOpenapiModel.RS384,
-	string(cryptoutilOpenapiModel.RS512): cryptoutilOpenapiModel.RS512,
-	string(cryptoutilOpenapiModel.PS256): cryptoutilOpenapiModel.PS256,
-	string(cryptoutilOpenapiModel.PS384): cryptoutilOpenapiModel.PS384,
-	string(cryptoutilOpenapiModel.PS512): cryptoutilOpenapiModel.PS512,
-	string(cryptoutilOpenapiModel.ES256): cryptoutilOpenapiModel.ES256,
-	string(cryptoutilOpenapiModel.ES384): cryptoutilOpenapiModel.ES384,
-	string(cryptoutilOpenapiModel.ES512): cryptoutilOpenapiModel.ES512,
-	string(cryptoutilOpenapiModel.HS256): cryptoutilOpenapiModel.HS256,
-	string(cryptoutilOpenapiModel.HS384): cryptoutilOpenapiModel.HS384,
-	string(cryptoutilOpenapiModel.HS512): cryptoutilOpenapiModel.HS512,
-	string(cryptoutilOpenapiModel.EdDSA): cryptoutilOpenapiModel.EdDSA,
+	string(RS256): cryptoutilOpenapiModel.RS256,
+	string(RS384): cryptoutilOpenapiModel.RS384,
+	string(RS512): cryptoutilOpenapiModel.RS512,
+	string(PS256): cryptoutilOpenapiModel.PS256,
+	string(PS384): cryptoutilOpenapiModel.PS384,
+	string(PS512): cryptoutilOpenapiModel.PS512,
+	string(ES256): cryptoutilOpenapiModel.ES256,
+	string(ES384): cryptoutilOpenapiModel.ES384,
+	string(ES512): cryptoutilOpenapiModel.ES512,
+	string(HS256): cryptoutilOpenapiModel.HS256,
+	string(HS384): cryptoutilOpenapiModel.HS384,
+	string(HS512): cryptoutilOpenapiModel.HS512,
+	string(EdDSA): cryptoutilOpenapiModel.EdDSA,
 }
 
 var asymmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
@@ -273,15 +277,16 @@ var asymmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
 	A256CBCHS512_A128GCMKW: false, A192CBCHS384_A128GCMKW: false, A128CBCHS256_A128GCMKW: false,
 	A256CBCHS512_dir: false, A192CBCHS384_dir: false, A128CBCHS256_dir: false,
 
-	A256CBC_HS512_RSAOAEP512: true, A192CBC_HS384_RSAOAEP512: true, A128CBC_HS256_RSAOAEP512: true,
-	A256CBC_HS512_RSAOAEP384: true, A192CBC_HS384_RSAOAEP384: true, A128CBC_HS256_RSAOAEP384: true,
-	A256CBC_HS512_RSAOAEP256: true, A192CBC_HS384_RSAOAEP256: true, A128CBC_HS256_RSAOAEP256: true,
-	A256CBC_HS512_RSAOAEP: true, A192CBC_HS384_RSAOAEP: true, A128CBC_HS256_RSAOAEP: true,
-	A256CBC_HS512_RSA15: true, A192CBC_HS384_RSA15: true, A128CBC_HS256_RSA15: true,
+	A256CBCHS512_RSAOAEP512: true, A192CBCHS384_RSAOAEP512: true, A128CBCHS256_RSAOAEP512: true,
+	A256CBCHS512_RSAOAEP384: true, A192CBCHS384_RSAOAEP384: true, A128CBCHS256_RSAOAEP384: true,
+	A256CBCHS512_RSAOAEP256: true, A192CBCHS384_RSAOAEP256: true, A128CBCHS256_RSAOAEP256: true,
+	A256CBCHS512_RSAOAEP: true, A192CBCHS384_RSAOAEP: true, A128CBCHS256_RSAOAEP: true,
+	A256CBCHS512_RSA15: true, A192CBCHS384_RSA15: true, A128CBCHS256_RSA15: true,
 
-	A256CBC_HS512_ECDHESA256KW: true, A192CBC_HS384_ECDHESA256KW: true, A128CBC_HS256_ECDHESA256KW: true,
-	A192CBC_HS384_ECDHESA192KW: true, A128CBC_HS256_ECDHESA192KW: true, A128CBC_HS256_ECDHESA128KW: true,
-	A256CBC_HS512_ECDHES: true, A192CBC_HS384_ECDHES: true, A128CBC_HS256_ECDHES: true,
+	A256CBCHS512_ECDHESA256KW: true, A192CBCHS384_ECDHESA256KW: true, A128CBCHS256_ECDHESA256KW: true,
+	A256CBCHS512_ECDHESA192KW: true, A192CBCHS384_ECDHESA192KW: true, A128CBCHS256_ECDHESA192KW: true,
+	A256CBCHS512_ECDHESA128KW: true, A192CBCHS384_ECDHESA128KW: true, A128CBCHS256_ECDHESA128KW: true,
+	A256CBCHS512_ECDHES: true, A192CBCHS384_ECDHES: true, A128CBCHS256_ECDHES: true,
 
 	RS512: true, RS384: true, RS256: true,
 	PS512: true, PS384: true, PS256: true,
@@ -318,15 +323,16 @@ var symmetricElasticKeyAlgorithm = map[ElasticKeyAlgorithm]bool{
 	A256CBCHS512_A128GCMKW: true, A192CBCHS384_A128GCMKW: true, A128CBCHS256_A128GCMKW: true,
 	A256CBCHS512_dir: true, A192CBCHS384_dir: true, A128CBCHS256_dir: true,
 
-	A256CBC_HS512_RSAOAEP512: false, A192CBC_HS384_RSAOAEP512: false, A128CBC_HS256_RSAOAEP512: false,
-	A256CBC_HS512_RSAOAEP384: false, A192CBC_HS384_RSAOAEP384: false, A128CBC_HS256_RSAOAEP384: false,
-	A256CBC_HS512_RSAOAEP256: false, A192CBC_HS384_RSAOAEP256: false, A128CBC_HS256_RSAOAEP256: false,
-	A256CBC_HS512_RSAOAEP: false, A192CBC_HS384_RSAOAEP: false, A128CBC_HS256_RSAOAEP: false,
-	A256CBC_HS512_RSA15: false, A192CBC_HS384_RSA15: false, A128CBC_HS256_RSA15: false,
+	A256CBCHS512_RSAOAEP512: false, A192CBCHS384_RSAOAEP512: false, A128CBCHS256_RSAOAEP512: false,
+	A256CBCHS512_RSAOAEP384: false, A192CBCHS384_RSAOAEP384: false, A128CBCHS256_RSAOAEP384: false,
+	A256CBCHS512_RSAOAEP256: false, A192CBCHS384_RSAOAEP256: false, A128CBCHS256_RSAOAEP256: false,
+	A256CBCHS512_RSAOAEP: false, A192CBCHS384_RSAOAEP: false, A128CBCHS256_RSAOAEP: false,
+	A256CBCHS512_RSA15: false, A192CBCHS384_RSA15: false, A128CBCHS256_RSA15: false,
 
-	A256CBC_HS512_ECDHESA256KW: false, A192CBC_HS384_ECDHESA256KW: false, A128CBC_HS256_ECDHESA256KW: false,
-	A192CBC_HS384_ECDHESA192KW: false, A128CBC_HS256_ECDHESA192KW: false, A128CBC_HS256_ECDHESA128KW: false,
-	A256CBC_HS512_ECDHES: false, A192CBC_HS384_ECDHES: false, A128CBC_HS256_ECDHES: false,
+	A256CBCHS512_ECDHESA256KW: false, A192CBCHS384_ECDHESA256KW: false, A128CBCHS256_ECDHESA256KW: false,
+	A256CBCHS512_ECDHESA192KW: false, A192CBCHS384_ECDHESA192KW: false, A128CBCHS256_ECDHESA192KW: false,
+	A256CBCHS512_ECDHESA128KW: false, A192CBCHS384_ECDHESA128KW: false, A128CBCHS256_ECDHESA128KW: false,
+	A256CBCHS512_ECDHES: false, A192CBCHS384_ECDHES: false, A128CBCHS256_ECDHES: false,
 
 	RS512: false, RS384: false, RS256: false,
 	PS512: false, PS384: false, PS256: false,

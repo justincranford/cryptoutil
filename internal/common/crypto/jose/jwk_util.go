@@ -17,13 +17,13 @@ var (
 	KtyEC  = joseJwa.EC()       // KeyType
 	KtyOKP = joseJwa.OKP()      // KeyType
 
-	EncA256GCM       = joseJwa.A256GCM()                                // ContentEncryptionAlgorithm
-	EncA192GCM       = joseJwa.A192GCM()                                // ContentEncryptionAlgorithm
-	EncA128GCM       = joseJwa.A128GCM()                                // ContentEncryptionAlgorithm
-	EncA256CBC_HS512 = joseJwa.A256CBC_HS512()                          // ContentEncryptionAlgorithm
-	EncA192CBC_HS384 = joseJwa.A192CBC_HS384()                          // ContentEncryptionAlgorithm
-	EncA128CBC_HS256 = joseJwa.A128CBC_HS256()                          // ContentEncryptionAlgorithm
-	EncInvalid       = joseJwa.NewContentEncryptionAlgorithm("invalid") // ContentEncryptionAlgorithm
+	EncA256GCM      = joseJwa.A256GCM()                                // ContentEncryptionAlgorithm
+	EncA192GCM      = joseJwa.A192GCM()                                // ContentEncryptionAlgorithm
+	EncA128GCM      = joseJwa.A128GCM()                                // ContentEncryptionAlgorithm
+	EncA256CBCHS512 = joseJwa.A256CBC_HS512()                          // ContentEncryptionAlgorithm
+	EncA192CBCHS384 = joseJwa.A192CBC_HS384()                          // ContentEncryptionAlgorithm
+	EncA128CBCHS256 = joseJwa.A128CBC_HS256()                          // ContentEncryptionAlgorithm
+	EncInvalid      = joseJwa.NewContentEncryptionAlgorithm("invalid") // ContentEncryptionAlgorithm
 
 	AlgA256KW       = joseJwa.A256KW()                             // KeyEncryptionAlgorithm
 	AlgA192KW       = joseJwa.A192KW()                             // KeyEncryptionAlgorithm

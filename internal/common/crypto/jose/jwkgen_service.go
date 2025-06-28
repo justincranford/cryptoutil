@@ -134,11 +134,11 @@ func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, 
 			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes192KeyGenPool.Get())
 		case EncA128GCM:
 			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes128KeyGenPool.Get())
-		case EncA256CBC_HS512:
+		case EncA256CBCHS512:
 			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes256HS512KeyGenPool.Get())
-		case EncA192CBC_HS384:
+		case EncA192CBCHS384:
 			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes192HS384KeyGenPool.Get())
-		case EncA128CBC_HS256:
+		case EncA128CBCHS256:
 			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes128HS256KeyGenPool.Get())
 		default:
 			return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
