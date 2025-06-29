@@ -4,37 +4,6 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 )
 
-type (
-	ElasticKeyId                string
-	ElasticKeyName              string
-	ElasticKeyDescription       string
-	ElasticKeyAlgorithm         string
-	ElasticKeyProvider          string
-	ElasticKeyStatus            string
-	ElasticKeyImportAllowed     bool
-	ElasticKeyExportAllowed     bool
-	ElasticKeyVersioningAllowed bool
-)
-
-const (
-	Internal ElasticKeyProvider = "Internal"
-
-	Creating                       ElasticKeyStatus = "creating"
-	ImportFailed                   ElasticKeyStatus = "import_failed"
-	PendingImport                  ElasticKeyStatus = "pending_import"
-	PendingGenerate                ElasticKeyStatus = "pending_generate"
-	GenerateFailed                 ElasticKeyStatus = "generate_failed"
-	Active                         ElasticKeyStatus = "active"
-	Disabled                       ElasticKeyStatus = "disabled"
-	PendingDeleteWasImportFailed   ElasticKeyStatus = "pending_delete_was_import_failed"
-	PendingDeleteWasPendingImport  ElasticKeyStatus = "pending_delete_was_pending_import"
-	PendingDeleteWasActive         ElasticKeyStatus = "pending_delete_was_active"
-	PendingDeleteWasDisabled       ElasticKeyStatus = "pending_delete_was_disabled"
-	PendingDeleteWasGenerateFailed ElasticKeyStatus = "pending_delete_was_generate_failed"
-	StartedDelete                  ElasticKeyStatus = "started_delete"
-	FinishedDelete                 ElasticKeyStatus = "finished_delete"
-)
-
 var elasticKeyAlgorithms = map[string]cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 	string(cryptoutilOpenapiModel.A256GCMA256KW): cryptoutilOpenapiModel.A256GCMA256KW,
 	string(cryptoutilOpenapiModel.A192GCMA256KW): cryptoutilOpenapiModel.A192GCMA256KW,

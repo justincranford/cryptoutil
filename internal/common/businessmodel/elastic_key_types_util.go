@@ -7,29 +7,29 @@ import (
 	"strings"
 )
 
-func ToElasticKeyInitialStatus(isImportAllowed bool) *ElasticKeyStatus {
-	var ormElasticKeyStatus ElasticKeyStatus
+func ToElasticKeyInitialStatus(isImportAllowed bool) *cryptoutilOpenapiModel.ElasticKeyStatus {
+	var ormElasticKeyStatus cryptoutilOpenapiModel.ElasticKeyStatus
 	if isImportAllowed {
-		ormElasticKeyStatus = PendingImport
+		ormElasticKeyStatus = cryptoutilOpenapiModel.PendingImport
 	} else {
-		ormElasticKeyStatus = PendingGenerate
+		ormElasticKeyStatus = cryptoutilOpenapiModel.PendingGenerate
 	}
 	return &ormElasticKeyStatus
 }
 
-func ToElasticKeyName(name string) (*ElasticKeyName, error) {
+func ToElasticKeyName(name string) (*cryptoutilOpenapiModel.ElasticKeyName, error) {
 	if err := validateString(name); err != nil {
 		return nil, fmt.Errorf("invalid elastic Key name: %w", err)
 	}
-	elasticKeyName := ElasticKeyName(name)
+	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName(name)
 	return &elasticKeyName, nil
 }
 
-func ToElasticKeyDescription(description string) (*ElasticKeyDescription, error) {
+func ToElasticKeyDescription(description string) (*cryptoutilOpenapiModel.ElasticKeyDescription, error) {
 	if err := validateString(description); err != nil {
 		return nil, fmt.Errorf("invalid elastic Key description: %w", err)
 	}
-	elasticKeyDescription := ElasticKeyDescription(description)
+	elasticKeyDescription := cryptoutilOpenapiModel.ElasticKeyDescription(description)
 	return &elasticKeyDescription, nil
 }
 
@@ -59,32 +59,32 @@ func IsAsymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorith
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
-func ToElasticKeyProvider(provider string) (*ElasticKeyProvider, error) {
+func ToElasticKeyProvider(provider string) (*cryptoutilOpenapiModel.ElasticKeyProvider, error) {
 	if err := validateString(provider); err != nil {
 		return nil, fmt.Errorf("invalid elastic Key provider value: %w", err)
 	}
-	var elasticKeyProvider ElasticKeyProvider
+	var elasticKeyProvider cryptoutilOpenapiModel.ElasticKeyProvider
 	switch provider {
-	case string(Internal):
-		elasticKeyProvider = Internal
+	case string(cryptoutilOpenapiModel.Internal):
+		elasticKeyProvider = cryptoutilOpenapiModel.Internal
 	default:
 		return nil, fmt.Errorf("invalid elastic Key provider option: %s", provider)
 	}
 	return &elasticKeyProvider, nil
 }
 
-func ToElasticKeyImportAllowed(importAllowed bool) *ElasticKeyImportAllowed {
-	elasticKeyElasticKeyImportAllowed := ElasticKeyImportAllowed(importAllowed)
+func ToElasticKeyImportAllowed(importAllowed bool) *cryptoutilOpenapiModel.ElasticKeyImportAllowed {
+	elasticKeyElasticKeyImportAllowed := cryptoutilOpenapiModel.ElasticKeyImportAllowed(importAllowed)
 	return &elasticKeyElasticKeyImportAllowed
 }
 
-func ToElasticKeyExportAllowed(exportAllowed bool) *ElasticKeyExportAllowed {
-	elasticKeyElasticKeyExportAllowed := ElasticKeyExportAllowed(exportAllowed)
+func ToElasticKeyExportAllowed(exportAllowed bool) *cryptoutilOpenapiModel.ElasticKeyExportAllowed {
+	elasticKeyElasticKeyExportAllowed := cryptoutilOpenapiModel.ElasticKeyExportAllowed(exportAllowed)
 	return &elasticKeyElasticKeyExportAllowed
 }
 
-func ToElasticKeyVersioningAllowed(versioningAllowed bool) *ElasticKeyVersioningAllowed {
-	elasticKeyElasticKeyVersioningAllowed := ElasticKeyVersioningAllowed(versioningAllowed)
+func ToElasticKeyVersioningAllowed(versioningAllowed bool) *cryptoutilOpenapiModel.ElasticKeyVersioningAllowed {
+	elasticKeyElasticKeyVersioningAllowed := cryptoutilOpenapiModel.ElasticKeyVersioningAllowed(versioningAllowed)
 	return &elasticKeyElasticKeyVersioningAllowed
 }
 

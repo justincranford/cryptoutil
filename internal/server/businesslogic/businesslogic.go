@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilBusinessModel "cryptoutil/internal/common/businessmodel"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
@@ -95,7 +94,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to add key: %w", err)
 		}
 
-		err = sqlTransaction.UpdateElasticKeyStatus(*elasticKeyID, cryptoutilBusinessModel.Active)
+		err = sqlTransaction.UpdateElasticKeyStatus(*elasticKeyID, cryptoutilOpenapiModel.Active)
 		if err != nil {
 			return fmt.Errorf("failed to update ElasticKeyStatus to active: %w", err)
 		}
@@ -162,7 +161,7 @@ func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elastic
 			return fmt.Errorf("failed to get Elastic Key by ElasticKeyID: %w", err)
 		}
 
-		if repositoryElasticKey.ElasticKeyStatus != cryptoutilBusinessModel.PendingGenerate && repositoryElasticKey.ElasticKeyStatus != cryptoutilBusinessModel.Active {
+		if repositoryElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.PendingGenerate && repositoryElasticKey.ElasticKeyStatus != cryptoutilOpenapiModel.Active {
 			return fmt.Errorf("invalid Elastic Key Status: %w", err)
 		}
 

@@ -35,8 +35,8 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, oamElast
 	}
 }
 
-func (m *oamOrmMapper) toOrmElasticKeyProvider(oamElasticKeyProvider *cryptoutilOpenapiModel.ElasticKeyProvider) *cryptoutilBusinessModel.ElasticKeyProvider {
-	ormElasticKeyProvider := cryptoutilBusinessModel.ElasticKeyProvider(*oamElasticKeyProvider)
+func (m *oamOrmMapper) toOrmElasticKeyProvider(oamElasticKeyProvider *cryptoutilOpenapiModel.ElasticKeyProvider) *cryptoutilOpenapiModel.ElasticKeyProvider {
+	ormElasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(*oamElasticKeyProvider)
 	return &ormElasticKeyProvider
 }
 
@@ -56,27 +56,12 @@ func (s *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.El
 		Name:              &ormElasticKey.ElasticKeyName,
 		Description:       &ormElasticKey.ElasticKeyDescription,
 		Algorithm:         &ormElasticKey.ElasticKeyAlgorithm,
-		Provider:          s.toOamElasticKeyProvider(&ormElasticKey.ElasticKeyProvider),
+		Provider:          &ormElasticKey.ElasticKeyProvider,
 		VersioningAllowed: &ormElasticKey.ElasticKeyVersioningAllowed,
 		ImportAllowed:     &ormElasticKey.ElasticKeyImportAllowed,
 		ExportAllowed:     &ormElasticKey.ElasticKeyExportAllowed,
-		Status:            s.toOamElasticKeyStatus(&ormElasticKey.ElasticKeyStatus),
+		Status:            &ormElasticKey.ElasticKeyStatus,
 	}
-}
-
-func (m *oamOrmMapper) toOamElasticKeyAlgorithm(ormElasticKeyAlgorithm *cryptoutilBusinessModel.ElasticKeyAlgorithm) *cryptoutilOpenapiModel.ElasticKeyAlgorithm {
-	oamElasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(*ormElasticKeyAlgorithm)
-	return &oamElasticKeyAlgorithm
-}
-
-func (m *oamOrmMapper) toOamElasticKeyProvider(ormElasticKeyProvider *cryptoutilBusinessModel.ElasticKeyProvider) *cryptoutilOpenapiModel.ElasticKeyProvider {
-	oamElasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(*ormElasticKeyProvider)
-	return &oamElasticKeyProvider
-}
-
-func (m *oamOrmMapper) toOamElasticKeyStatus(ormElasticKeyStatus *cryptoutilBusinessModel.ElasticKeyStatus) *cryptoutilOpenapiModel.ElasticKeyStatus {
-	oamElasticKeyStatus := cryptoutilOpenapiModel.ElasticKeyStatus(*ormElasticKeyStatus)
-	return &oamElasticKeyStatus
 }
 
 func (m *oamOrmMapper) toOamKeys(ormKeys []cryptoutilOrmRepository.MaterialKey) ([]cryptoutilOpenapiModel.MaterialKey, error) {
