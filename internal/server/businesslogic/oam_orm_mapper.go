@@ -27,7 +27,7 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, oamElast
 		ElasticKeyName:              oamElasticKeyCreate.Name,
 		ElasticKeyDescription:       oamElasticKeyCreate.Description,
 		ElasticKeyProvider:          *m.toOrmElasticKeyProvider(oamElasticKeyCreate.Provider),
-		ElasticKeyAlgorithm:         *m.toOrmElasticKeyAlgorithm(oamElasticKeyCreate.Algorithm),
+		ElasticKeyAlgorithm:         *oamElasticKeyCreate.Algorithm,
 		ElasticKeyVersioningAllowed: *oamElasticKeyCreate.VersioningAllowed,
 		ElasticKeyImportAllowed:     *oamElasticKeyCreate.ImportAllowed,
 		ElasticKeyExportAllowed:     *oamElasticKeyCreate.ExportAllowed,
@@ -38,11 +38,6 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, oamElast
 func (m *oamOrmMapper) toOrmElasticKeyProvider(oamElasticKeyProvider *cryptoutilOpenapiModel.ElasticKeyProvider) *cryptoutilBusinessModel.ElasticKeyProvider {
 	ormElasticKeyProvider := cryptoutilBusinessModel.ElasticKeyProvider(*oamElasticKeyProvider)
 	return &ormElasticKeyProvider
-}
-
-func (m *oamOrmMapper) toOrmElasticKeyAlgorithm(oamElasticKeyProvider *cryptoutilOpenapiModel.ElasticKeyAlgorithm) *cryptoutilBusinessModel.ElasticKeyAlgorithm {
-	ormElasticKeyAlgorithm := cryptoutilBusinessModel.ElasticKeyAlgorithm(*oamElasticKeyProvider)
-	return &ormElasticKeyAlgorithm
 }
 
 // orm => oam
@@ -60,7 +55,7 @@ func (s *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.El
 		ElasticKeyID:      (*cryptoutilOpenapiModel.ElasticKeyID)(&ormElasticKey.ElasticKeyID),
 		Name:              &ormElasticKey.ElasticKeyName,
 		Description:       &ormElasticKey.ElasticKeyDescription,
-		Algorithm:         s.toOamElasticKeyAlgorithm(&ormElasticKey.ElasticKeyAlgorithm),
+		Algorithm:         &ormElasticKey.ElasticKeyAlgorithm,
 		Provider:          s.toOamElasticKeyProvider(&ormElasticKey.ElasticKeyProvider),
 		VersioningAllowed: &ormElasticKey.ElasticKeyVersioningAllowed,
 		ImportAllowed:     &ormElasticKey.ElasticKeyImportAllowed,

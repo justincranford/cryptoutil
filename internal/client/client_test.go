@@ -256,7 +256,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			oamElasticKeyAlgorithm, err := cryptoutilBusinessModel.ToElasticKeyAlgorithm(testCase.algorithm)
 			require.NoError(t, err)
 			require.NotNil(t, oamElasticKeyAlgorithm)
-			elasticKeyAlgorithm := cryptoutilBusinessModel.ElasticKeyAlgorithm(testCase.algorithm)
+			elasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(testCase.algorithm)
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)

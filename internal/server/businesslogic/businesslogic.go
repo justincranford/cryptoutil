@@ -377,7 +377,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	return verifiedJwsMessageBytes, nil
 }
 
-func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilBusinessModel.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	var materialKeyID *googleUuid.UUID
 	var materialKeyNonPublicJwk joseJwk.Key
 	var materialKeyPublicJwk joseJwk.Key

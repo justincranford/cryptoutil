@@ -2,6 +2,7 @@ package businessmodel
 
 import (
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+
 	"fmt"
 	"strings"
 )
@@ -42,7 +43,7 @@ func ToElasticKeyAlgorithm(algorithm string) (*cryptoutilOpenapiModel.ElasticKey
 	return nil, fmt.Errorf("invalid elastic Key algorithm: %s", algorithm)
 }
 
-func IsSymmetric(elasticKeyAlgorithm *ElasticKeyAlgorithm) (bool, error) {
+func IsSymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (bool, error) {
 	isSymmetric, ok := symmetricElasticKeyAlgorithm[*elasticKeyAlgorithm]
 	if ok {
 		return isSymmetric, nil
@@ -50,7 +51,7 @@ func IsSymmetric(elasticKeyAlgorithm *ElasticKeyAlgorithm) (bool, error) {
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
-func IsAsymmetric(elasticKeyAlgorithm *ElasticKeyAlgorithm) (bool, error) {
+func IsAsymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (bool, error) {
 	isAsymmetric, ok := asymmetricElasticKeyAlgorithm[*elasticKeyAlgorithm]
 	if ok {
 		return isAsymmetric, nil

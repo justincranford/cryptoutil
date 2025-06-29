@@ -1,6 +1,8 @@
 package businessmodel
 
 import (
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+
 	"strings"
 	"testing"
 
@@ -8,54 +10,54 @@ import (
 )
 
 type TestCase struct {
-	actualElasticKeyAlgorithm ElasticKeyAlgorithm
+	actualElasticKeyAlgorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm
 	expectedIsSymmetric       bool
 	expectedIsAsymmetric      bool
 }
 
 var happyPathTestCases = []TestCase{
-	{A256GCM_A256KW, true, false}, {A192GCM_A256KW, true, false}, {A128GCM_A256KW, true, false},
-	{A256GCM_A192KW, true, false}, {A192GCM_A192KW, true, false}, {A128GCM_A192KW, true, false},
-	{A256GCM_A128KW, true, false}, {A192GCM_A128KW, true, false}, {A128GCM_A128KW, true, false},
-	{A256GCM_A256GCMKW, true, false}, {A192GCM_A256GCMKW, true, false}, {A128GCM_A256GCMKW, true, false},
-	{A256GCM_A192GCMKW, true, false}, {A192GCM_A192GCMKW, true, false}, {A128GCM_A192GCMKW, true, false},
-	{A256GCM_A128GCMKW, true, false}, {A192GCM_A128GCMKW, true, false}, {A128GCM_A128GCMKW, true, false},
-	{A256GCM_dir, true, false}, {A192GCM_dir, true, false}, {A128GCM_dir, true, false},
+	{cryptoutilOpenapiModel.A256GCMA256KW, true, false}, {cryptoutilOpenapiModel.A192GCMA256KW, true, false}, {cryptoutilOpenapiModel.A128GCMA256KW, true, false},
+	{cryptoutilOpenapiModel.A256GCMA192KW, true, false}, {cryptoutilOpenapiModel.A192GCMA192KW, true, false}, {cryptoutilOpenapiModel.A128GCMA192KW, true, false},
+	{cryptoutilOpenapiModel.A256GCMA128KW, true, false}, {cryptoutilOpenapiModel.A192GCMA128KW, true, false}, {cryptoutilOpenapiModel.A128GCMA128KW, true, false},
+	{cryptoutilOpenapiModel.A256GCMA256GCMKW, true, false}, {cryptoutilOpenapiModel.A192GCMA256GCMKW, true, false}, {cryptoutilOpenapiModel.A128GCMA256GCMKW, true, false},
+	{cryptoutilOpenapiModel.A256GCMA192GCMKW, true, false}, {cryptoutilOpenapiModel.A192GCMA192GCMKW, true, false}, {cryptoutilOpenapiModel.A128GCMA192GCMKW, true, false},
+	{cryptoutilOpenapiModel.A256GCMA128GCMKW, true, false}, {cryptoutilOpenapiModel.A192GCMA128GCMKW, true, false}, {cryptoutilOpenapiModel.A128GCMA128GCMKW, true, false},
+	{cryptoutilOpenapiModel.A256GCMDir, true, false}, {cryptoutilOpenapiModel.A192GCMDir, true, false}, {cryptoutilOpenapiModel.A128GCMDir, true, false},
 
-	{A256GCM_RSAOAEP512, false, true}, {A192GCM_RSAOAEP512, false, true}, {A128GCM_RSAOAEP512, false, true},
-	{A256GCM_RSAOAEP384, false, true}, {A192GCM_RSAOAEP384, false, true}, {A128GCM_RSAOAEP384, false, true},
-	{A256GCM_RSAOAEP256, false, true}, {A192GCM_RSAOAEP256, false, true}, {A128GCM_RSAOAEP256, false, true},
-	{A256GCM_RSAOAEP, false, true}, {A192GCM_RSAOAEP, false, true}, {A128GCM_RSAOAEP, false, true},
-	{A256GCM_RSA15, false, true}, {A192GCM_RSA15, false, true}, {A128GCM_RSA15, false, true},
+	{cryptoutilOpenapiModel.A256GCMRSAOAEP512, false, true}, {cryptoutilOpenapiModel.A192GCMRSAOAEP512, false, true}, {cryptoutilOpenapiModel.A128GCMRSAOAEP512, false, true},
+	{cryptoutilOpenapiModel.A256GCMRSAOAEP384, false, true}, {cryptoutilOpenapiModel.A192GCMRSAOAEP384, false, true}, {cryptoutilOpenapiModel.A128GCMRSAOAEP384, false, true},
+	{cryptoutilOpenapiModel.A256GCMRSAOAEP256, false, true}, {cryptoutilOpenapiModel.A192GCMRSAOAEP256, false, true}, {cryptoutilOpenapiModel.A128GCMRSAOAEP256, false, true},
+	{cryptoutilOpenapiModel.A256GCMRSAOAEP, false, true}, {cryptoutilOpenapiModel.A192GCMRSAOAEP, false, true}, {cryptoutilOpenapiModel.A128GCMRSAOAEP, false, true},
+	{cryptoutilOpenapiModel.A256GCMRSA15, false, true}, {cryptoutilOpenapiModel.A192GCMRSA15, false, true}, {cryptoutilOpenapiModel.A128GCMRSA15, false, true},
 
-	{A256GCM_ECDHESA256KW, false, true}, {A192GCM_ECDHESA256KW, false, true}, {A128GCM_ECDHESA256KW, false, true},
-	{A256GCM_ECDHESA192KW, false, true}, {A192GCM_ECDHESA192KW, false, true}, {A128GCM_ECDHESA192KW, false, true},
-	{A256GCM_ECDHESA128KW, false, true}, {A192GCM_ECDHESA128KW, false, true}, {A128GCM_ECDHESA128KW, false, true},
-	{A256GCM_ECDHES, false, true}, {A192GCM_ECDHES, false, true}, {A128GCM_ECDHES, false, true},
+	{cryptoutilOpenapiModel.A256GCMECDHESA256KW, false, true}, {cryptoutilOpenapiModel.A192GCMECDHESA256KW, false, true}, {cryptoutilOpenapiModel.A128GCMECDHESA256KW, false, true},
+	{cryptoutilOpenapiModel.A256GCMECDHESA192KW, false, true}, {cryptoutilOpenapiModel.A192GCMECDHESA192KW, false, true}, {cryptoutilOpenapiModel.A128GCMECDHESA192KW, false, true},
+	{cryptoutilOpenapiModel.A256GCMECDHESA128KW, false, true}, {cryptoutilOpenapiModel.A192GCMECDHESA128KW, false, true}, {cryptoutilOpenapiModel.A128GCMECDHESA128KW, false, true},
+	{cryptoutilOpenapiModel.A256GCMECDHES, false, true}, {cryptoutilOpenapiModel.A192GCMECDHES, false, true}, {cryptoutilOpenapiModel.A128GCMECDHES, false, true},
 
-	{A256CBCHS512_A256KW, true, false}, {A192CBCHS384_A256KW, true, false}, {A128CBCHS256_A256KW, true, false},
-	{A256CBCHS512_A192KW, true, false}, {A192CBCHS384_A192KW, true, false}, {A128CBCHS256_A192KW, true, false},
-	{A256CBCHS512_A128KW, true, false}, {A192CBCHS384_A128KW, true, false}, {A128CBCHS256_A128KW, true, false},
-	{A256CBCHS512_A256GCMKW, true, false}, {A192CBCHS384_A256GCMKW, true, false}, {A128CBCHS256_A256GCMKW, true, false},
-	{A256CBCHS512_A192GCMKW, true, false}, {A192CBCHS384_A192GCMKW, true, false}, {A128CBCHS256_A192GCMKW, true, false},
-	{A256CBCHS512_A128GCMKW, true, false}, {A192CBCHS384_A128GCMKW, true, false}, {A128CBCHS256_A128GCMKW, true, false},
-	{A256CBCHS512_dir, true, false}, {A192CBCHS384_dir, true, false}, {A128CBCHS256_dir, true, false},
+	{cryptoutilOpenapiModel.A256CBCHS512A256KW, true, false}, {cryptoutilOpenapiModel.A192CBCHS384A256KW, true, false}, {cryptoutilOpenapiModel.A128CBCHS256A256KW, true, false},
+	{cryptoutilOpenapiModel.A256CBCHS512A192KW, true, false}, {cryptoutilOpenapiModel.A192CBCHS384A192KW, true, false}, {cryptoutilOpenapiModel.A128CBCHS256A192KW, true, false},
+	{cryptoutilOpenapiModel.A256CBCHS512A128KW, true, false}, {cryptoutilOpenapiModel.A192CBCHS384A128KW, true, false}, {cryptoutilOpenapiModel.A128CBCHS256A128KW, true, false},
+	{cryptoutilOpenapiModel.A256CBCHS512A256GCMKW, true, false}, {cryptoutilOpenapiModel.A192CBCHS384A256GCMKW, true, false}, {cryptoutilOpenapiModel.A128CBCHS256A256GCMKW, true, false},
+	{cryptoutilOpenapiModel.A256CBCHS512A192GCMKW, true, false}, {cryptoutilOpenapiModel.A192CBCHS384A192GCMKW, true, false}, {cryptoutilOpenapiModel.A128CBCHS256A192GCMKW, true, false},
+	{cryptoutilOpenapiModel.A256CBCHS512A128GCMKW, true, false}, {cryptoutilOpenapiModel.A192CBCHS384A128GCMKW, true, false}, {cryptoutilOpenapiModel.A128CBCHS256A128GCMKW, true, false},
+	{cryptoutilOpenapiModel.A256CBCHS512Dir, true, false}, {cryptoutilOpenapiModel.A192CBCHS384Dir, true, false}, {cryptoutilOpenapiModel.A128CBCHS256Dir, true, false},
 
-	{A256CBCHS512_RSAOAEP512, false, true}, {A192CBCHS384_RSAOAEP512, false, true}, {A128CBCHS256_RSAOAEP512, false, true},
-	{A256CBCHS512_RSAOAEP384, false, true}, {A192CBCHS384_RSAOAEP384, false, true}, {A128CBCHS256_RSAOAEP384, false, true},
-	{A256CBCHS512_RSAOAEP256, false, true}, {A192CBCHS384_RSAOAEP256, false, true}, {A128CBCHS256_RSAOAEP256, false, true},
-	{A256CBCHS512_RSAOAEP, false, true}, {A192CBCHS384_RSAOAEP, false, true}, {A128CBCHS256_RSAOAEP, false, true},
-	{A256CBCHS512_RSA15, false, true}, {A192CBCHS384_RSA15, false, true}, {A128CBCHS256_RSA15, false, true},
+	{cryptoutilOpenapiModel.A256CBCHS512RSAOAEP512, false, true}, {cryptoutilOpenapiModel.A192CBCHS384RSAOAEP512, false, true}, {cryptoutilOpenapiModel.A128CBCHS256RSAOAEP512, false, true},
+	{cryptoutilOpenapiModel.A256CBCHS512RSAOAEP384, false, true}, {cryptoutilOpenapiModel.A192CBCHS384RSAOAEP384, false, true}, {cryptoutilOpenapiModel.A128CBCHS256RSAOAEP384, false, true},
+	{cryptoutilOpenapiModel.A256CBCHS512RSAOAEP256, false, true}, {cryptoutilOpenapiModel.A192CBCHS384RSAOAEP256, false, true}, {cryptoutilOpenapiModel.A128CBCHS256RSAOAEP256, false, true},
+	{cryptoutilOpenapiModel.A256CBCHS512RSAOAEP, false, true}, {cryptoutilOpenapiModel.A192CBCHS384RSAOAEP, false, true}, {cryptoutilOpenapiModel.A128CBCHS256RSAOAEP, false, true},
+	{cryptoutilOpenapiModel.A256CBCHS512RSA15, false, true}, {cryptoutilOpenapiModel.A192CBCHS384RSA15, false, true}, {cryptoutilOpenapiModel.A128CBCHS256RSA15, false, true},
 
-	{A256CBCHS512_ECDHESA256KW, false, true}, {A192CBCHS384_ECDHESA256KW, false, true}, {A128CBCHS256_ECDHESA256KW, false, true},
-	{A192CBCHS384_ECDHESA192KW, false, true}, {A128CBCHS256_ECDHESA192KW, false, true}, {A128CBCHS256_ECDHESA128KW, false, true},
-	{A256CBCHS512_ECDHES, false, true}, {A192CBCHS384_ECDHES, false, true}, {A128CBCHS256_ECDHES, false, true},
+	{cryptoutilOpenapiModel.A256CBCHS512ECDHESA256KW, false, true}, {cryptoutilOpenapiModel.A192CBCHS384ECDHESA256KW, false, true}, {cryptoutilOpenapiModel.A128CBCHS256ECDHESA256KW, false, true},
+	{cryptoutilOpenapiModel.A192CBCHS384ECDHESA192KW, false, true}, {cryptoutilOpenapiModel.A128CBCHS256ECDHESA192KW, false, true}, {cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW, false, true},
+	{cryptoutilOpenapiModel.A256CBCHS512ECDHES, false, true}, {cryptoutilOpenapiModel.A192CBCHS384ECDHES, false, true}, {cryptoutilOpenapiModel.A128CBCHS256ECDHES, false, true},
 
-	{RS512, false, true}, {RS384, false, true}, {RS256, false, true},
-	{PS512, false, true}, {PS384, false, true}, {PS256, false, true},
-	{ES512, false, true}, {ES384, false, true}, {ES256, false, true},
-	{HS512, true, false}, {HS384, true, false}, {HS256, true, false},
-	{EdDSA, false, true},
+	{cryptoutilOpenapiModel.RS512, false, true}, {cryptoutilOpenapiModel.RS384, false, true}, {cryptoutilOpenapiModel.RS256, false, true},
+	{cryptoutilOpenapiModel.PS512, false, true}, {cryptoutilOpenapiModel.PS384, false, true}, {cryptoutilOpenapiModel.PS256, false, true},
+	{cryptoutilOpenapiModel.ES512, false, true}, {cryptoutilOpenapiModel.ES384, false, true}, {cryptoutilOpenapiModel.ES256, false, true},
+	{cryptoutilOpenapiModel.HS512, true, false}, {cryptoutilOpenapiModel.HS384, true, false}, {cryptoutilOpenapiModel.HS256, true, false},
+	{cryptoutilOpenapiModel.EdDSA, false, true},
 }
 
 func Test_ElasticKeyAlgorithm_Symmetric(t *testing.T) {
@@ -68,7 +70,7 @@ func Test_ElasticKeyAlgorithm_Symmetric(t *testing.T) {
 	}
 }
 
-func Test_ElasticKeyAlgorithm_Asymmetric(t *testing.T) {
+func Test_ElasticKeyAlgorithmAsymmetric(t *testing.T) {
 	for _, alg := range happyPathTestCases {
 		t.Run(strings.ReplaceAll(string(alg.actualElasticKeyAlgorithm), "/", "_"), func(t *testing.T) {
 			isAsymmetric, err := IsAsymmetric(&alg.actualElasticKeyAlgorithm)
