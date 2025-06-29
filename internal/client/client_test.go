@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilBusinessModel "cryptoutil/internal/common/businessmodel"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilServerApplication "cryptoutil/internal/server/application"
 
@@ -253,7 +253,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			if elasticKey == nil {
 				return
 			}
-			oamElasticKeyAlgorithm, err := cryptoutilBusinessModel.ToElasticKeyAlgorithm(testCase.algorithm)
+			oamElasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(testCase.algorithm)
 			require.NoError(t, err)
 			require.NotNil(t, oamElasticKeyAlgorithm)
 			elasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(testCase.algorithm)
@@ -261,7 +261,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
-				isAsymmetric, err := cryptoutilBusinessModel.IsAsymmetric(&elasticKeyAlgorithm)
+				isAsymmetric, err := cryptoutilJose.IsAsymmetric(&elasticKeyAlgorithm)
 				require.NoError(t, err)
 				if isAsymmetric {
 					require.NotNil(t, key.ClearPublic)

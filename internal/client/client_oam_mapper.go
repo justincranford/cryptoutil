@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilBusinessModel "cryptoutil/internal/common/businessmodel"
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
@@ -21,7 +21,7 @@ func NewOamOacMapper() *oamOacMapper {
 func toOamElasticKeyCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
 	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName(name)
 	elasticKeyDescription := cryptoutilOpenapiModel.ElasticKeyDescription(description)
-	elasticKeyAlgorithm, err3 := cryptoutilBusinessModel.ToElasticKeyAlgorithm(algorithm)
+	elasticKeyAlgorithm, err3 := cryptoutilJose.ToElasticKeyAlgorithm(algorithm)
 	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(provider)
 	elasticKeyElasticKeyImportAllowed := cryptoutilOpenapiModel.ElasticKeyImportAllowed(importAllowed)
 	elasticKeyElasticKeyExportAllowed := cryptoutilOpenapiModel.ElasticKeyExportAllowed(exportAllowed)

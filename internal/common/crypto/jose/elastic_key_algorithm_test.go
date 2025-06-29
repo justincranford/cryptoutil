@@ -1,4 +1,4 @@
-package businessmodel
+package jose
 
 import (
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
@@ -15,7 +15,7 @@ type TestCase struct {
 	expectedIsAsymmetric      bool
 }
 
-var happyPathTestCases = []TestCase{
+var happyPathTestCases2 = []TestCase{
 	{cryptoutilOpenapiModel.A256GCMA256KW, true, false}, {cryptoutilOpenapiModel.A192GCMA256KW, true, false}, {cryptoutilOpenapiModel.A128GCMA256KW, true, false},
 	{cryptoutilOpenapiModel.A256GCMA192KW, true, false}, {cryptoutilOpenapiModel.A192GCMA192KW, true, false}, {cryptoutilOpenapiModel.A128GCMA192KW, true, false},
 	{cryptoutilOpenapiModel.A256GCMA128KW, true, false}, {cryptoutilOpenapiModel.A192GCMA128KW, true, false}, {cryptoutilOpenapiModel.A128GCMA128KW, true, false},
@@ -61,7 +61,7 @@ var happyPathTestCases = []TestCase{
 }
 
 func Test_ElasticKeyAlgorithm_Symmetric(t *testing.T) {
-	for _, alg := range happyPathTestCases {
+	for _, alg := range happyPathTestCases2 {
 		t.Run(strings.ReplaceAll(string(alg.actualElasticKeyAlgorithm), "/", "_"), func(t *testing.T) {
 			isSymmetric, err := IsSymmetric(&alg.actualElasticKeyAlgorithm)
 			require.NoError(t, err, "IsSymmetric(%q)", alg.actualElasticKeyAlgorithm)
@@ -71,7 +71,7 @@ func Test_ElasticKeyAlgorithm_Symmetric(t *testing.T) {
 }
 
 func Test_ElasticKeyAlgorithmAsymmetric(t *testing.T) {
-	for _, alg := range happyPathTestCases {
+	for _, alg := range happyPathTestCases2 {
 		t.Run(strings.ReplaceAll(string(alg.actualElasticKeyAlgorithm), "/", "_"), func(t *testing.T) {
 			isAsymmetric, err := IsAsymmetric(&alg.actualElasticKeyAlgorithm)
 			require.NoError(t, err, "IsAsymmetric(%q)", alg.actualElasticKeyAlgorithm)
