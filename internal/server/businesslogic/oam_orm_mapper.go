@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	cryptoutilBusinessModel "cryptoutil/internal/common/businessmodel"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
@@ -26,18 +25,23 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, oamElast
 		ElasticKeyID:                elasticKeyID,
 		ElasticKeyName:              oamElasticKeyCreate.Name,
 		ElasticKeyDescription:       oamElasticKeyCreate.Description,
-		ElasticKeyProvider:          *m.toOrmElasticKeyProvider(oamElasticKeyCreate.Provider),
+		ElasticKeyProvider:          *oamElasticKeyCreate.Provider,
 		ElasticKeyAlgorithm:         *oamElasticKeyCreate.Algorithm,
 		ElasticKeyVersioningAllowed: *oamElasticKeyCreate.VersioningAllowed,
 		ElasticKeyImportAllowed:     *oamElasticKeyCreate.ImportAllowed,
 		ElasticKeyExportAllowed:     *oamElasticKeyCreate.ExportAllowed,
-		ElasticKeyStatus:            *cryptoutilBusinessModel.ToElasticKeyInitialStatus(bool(*oamElasticKeyCreate.ImportAllowed)),
+		ElasticKeyStatus:            *toOamElasticKeyStatus(oamElasticKeyCreate.ImportAllowed),
 	}
 }
 
-func (m *oamOrmMapper) toOrmElasticKeyProvider(oamElasticKeyProvider *cryptoutilOpenapiModel.ElasticKeyProvider) *cryptoutilOpenapiModel.ElasticKeyProvider {
-	ormElasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(*oamElasticKeyProvider)
-	return &ormElasticKeyProvider
+func toOamElasticKeyStatus(isImportAllowed *bool) *cryptoutilOpenapiModel.ElasticKeyStatus {
+	var ormElasticKeyStatus cryptoutilOpenapiModel.ElasticKeyStatus
+	if *isImportAllowed {
+		ormElasticKeyStatus = cryptoutilOpenapiModel.PendingImport
+	} else {
+		ormElasticKeyStatus = cryptoutilOpenapiModel.PendingGenerate
+	}
+	return &ormElasticKeyStatus
 }
 
 // orm => oam

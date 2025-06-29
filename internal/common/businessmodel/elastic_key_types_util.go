@@ -6,16 +6,6 @@ import (
 	"fmt"
 )
 
-func ToElasticKeyInitialStatus(isImportAllowed bool) *cryptoutilOpenapiModel.ElasticKeyStatus {
-	var ormElasticKeyStatus cryptoutilOpenapiModel.ElasticKeyStatus
-	if isImportAllowed {
-		ormElasticKeyStatus = cryptoutilOpenapiModel.PendingImport
-	} else {
-		ormElasticKeyStatus = cryptoutilOpenapiModel.PendingGenerate
-	}
-	return &ormElasticKeyStatus
-}
-
 func ToElasticKeyAlgorithm(algorithm string) (*cryptoutilOpenapiModel.ElasticKeyAlgorithm, error) {
 	if alg, exists := elasticKeyAlgorithms[algorithm]; exists {
 		return &alg, nil
