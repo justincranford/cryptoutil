@@ -19,6 +19,8 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+var ErrInvalidJwsJwkKidUuid = "invalid JWS JWK kid UUID"
+
 func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
@@ -111,7 +113,7 @@ func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 }
 
 func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, "invalid JWS JWK kid"); err != nil {
+	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJwsJwkKidUuid); err != nil {
 		return nil, fmt.Errorf("JWS JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWS JWK alg must be non-nil")

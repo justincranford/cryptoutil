@@ -12,6 +12,8 @@ import (
 )
 
 var (
+	ErrInvalidJwkKidUuid = "invalid JWK kid UUID"
+
 	KtyOCT = joseJwa.OctetSeq() // KeyType
 	KtyRSA = joseJwa.RSA()      // KeyType
 	KtyEC  = joseJwa.EC()       // KeyType
@@ -77,7 +79,7 @@ func ExtractKidUuid(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	if kidUuid, err = googleUuid.Parse(kidString); err != nil {
 		return nil, fmt.Errorf("failed to parse kid as UUID: %w", err)
 	}
-	if err = cryptoutilUtil.ValidateUUID(&kidUuid, "invalid kid"); err != nil {
+	if err = cryptoutilUtil.ValidateUUID(&kidUuid, &ErrInvalidJwkKidUuid); err != nil {
 		return nil, err
 	}
 	return &kidUuid, nil

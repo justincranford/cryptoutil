@@ -20,6 +20,8 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+var ErrInvalidJweJwkKidUuid = "invalid JWE JWK kid UUID"
+
 func GenerateJweJwkForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
@@ -115,7 +117,7 @@ func CreateJweJwkFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 }
 
 func validateJweJwkHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, "invalid JWE JWK kid"); err != nil {
+	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJweJwkKidUuid); err != nil {
 		return nil, fmt.Errorf("JWE JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWE JWK alg must be non-nil")
