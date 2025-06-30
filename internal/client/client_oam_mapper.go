@@ -18,17 +18,17 @@ func NewOamOacMapper() *oamOacMapper {
 	return &oamOacMapper{}
 }
 
-func toOamElasticKeyCreate(name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
-	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName(name)
-	elasticKeyDescription := cryptoutilOpenapiModel.ElasticKeyDescription(description)
-	elasticKeyAlgorithm, err3 := cryptoutilJose.ToElasticKeyAlgorithm(algorithm)
-	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(provider)
-	elasticKeyElasticKeyImportAllowed := cryptoutilOpenapiModel.ElasticKeyImportAllowed(importAllowed)
-	elasticKeyElasticKeyExportAllowed := cryptoutilOpenapiModel.ElasticKeyExportAllowed(exportAllowed)
-	elasticKeyElasticKeyVersioningAllowed := cryptoutilOpenapiModel.ElasticKeyVersioningAllowed(versioningAllowed)
-	if err3 != nil {
-		return nil, fmt.Errorf("failed to map elastic Key: %v", errors.Join(err3))
+func toOamElasticKeyCreate(name *string, description *string, algorithm *string, provider *string, exportAllowed *bool, importAllowed *bool, versioningAllowed *bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
+	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName(*name)
+	elasticKeyDescription := cryptoutilOpenapiModel.ElasticKeyDescription(*description)
+	elasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(algorithm)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map elastic Key: %v", errors.Join(err))
 	}
+	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(*provider)
+	elasticKeyElasticKeyImportAllowed := cryptoutilOpenapiModel.ElasticKeyImportAllowed(*importAllowed)
+	elasticKeyElasticKeyExportAllowed := cryptoutilOpenapiModel.ElasticKeyExportAllowed(*exportAllowed)
+	elasticKeyElasticKeyVersioningAllowed := cryptoutilOpenapiModel.ElasticKeyVersioningAllowed(*versioningAllowed)
 	return &cryptoutilOpenapiModel.ElasticKeyCreate{
 		Name:              elasticKeyName,
 		Description:       elasticKeyDescription,

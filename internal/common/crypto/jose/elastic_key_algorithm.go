@@ -384,9 +384,9 @@ func IsAsymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorith
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
-func ToElasticKeyAlgorithm(algorithm string) (*cryptoutilOpenapiModel.ElasticKeyAlgorithm, error) {
-	if alg, exists := elasticKeyAlgorithms[algorithm]; exists {
+func ToElasticKeyAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.ElasticKeyAlgorithm, error) {
+	if alg, exists := elasticKeyAlgorithms[*algorithm]; exists {
 		return &alg, nil
 	}
-	return nil, fmt.Errorf("invalid elastic Key algorithm: %s", algorithm)
+	return nil, fmt.Errorf("invalid elastic Key algorithm: %v", algorithm)
 }

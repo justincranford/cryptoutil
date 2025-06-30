@@ -57,7 +57,7 @@ func RequireClientWithResponses(t *testing.T, baseUrl string) *cryptoutilOpenapi
 	return openapiClient
 }
 
-func RequireCreateElasticKeyRequest(t *testing.T, name string, description string, algorithm string, provider string, exportAllowed bool, importAllowed bool, versioningAllowed bool) *cryptoutilOpenapiModel.ElasticKeyCreate {
+func RequireCreateElasticKeyRequest(t *testing.T, name *string, description *string, algorithm *string, provider *string, exportAllowed *bool, importAllowed *bool, versioningAllowed *bool) *cryptoutilOpenapiModel.ElasticKeyCreate {
 	elasticKeyCreate, err := toOamElasticKeyCreate(name, description, algorithm, provider, exportAllowed, importAllowed, versioningAllowed)
 	require.NotNil(t, elasticKeyCreate)
 	require.NoError(t, err)

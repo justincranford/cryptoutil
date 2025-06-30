@@ -194,7 +194,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 			var elasticKey *cryptoutilOpenapiModel.ElasticKey
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
-				elasticKeyCreate := RequireCreateElasticKeyRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
+				elasticKeyCreate := RequireCreateElasticKeyRequest(t, &testCase.name, &testCase.description, &testCase.algorithm, &testCase.provider, &testCase.exportAllowed, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
 				logObjectAsJson(t, elasticKey)
 			})
@@ -246,14 +246,14 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			// t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 			var elasticKey *cryptoutilOpenapiModel.ElasticKey
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
-				elasticKeyCreate := RequireCreateElasticKeyRequest(t, testCase.name, testCase.description, testCase.algorithm, testCase.provider, testCase.exportAllowed, testCase.importAllowed, testCase.versioningAllowed)
+				elasticKeyCreate := RequireCreateElasticKeyRequest(t, &testCase.name, &testCase.description, &testCase.algorithm, &testCase.provider, &testCase.exportAllowed, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
 				logObjectAsJson(t, elasticKey)
 			})
 			if elasticKey == nil {
 				return
 			}
-			oamElasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(testCase.algorithm)
+			oamElasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(&testCase.algorithm)
 			require.NoError(t, err)
 			require.NotNil(t, oamElasticKeyAlgorithm)
 			elasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(testCase.algorithm)
