@@ -33,133 +33,135 @@ type TestCase struct {
 
 var uniqueTestNum = 0
 
-func nextElasticKeyName() string {
+func nextElasticKeyName() *string {
 	uniqueTestNum++
-	return "Client Test Elastic Key " + strconv.Itoa(uniqueTestNum)
+	nextElasticKeyName := "Client Test Elastic Key " + strconv.Itoa(uniqueTestNum)
+	return &nextElasticKeyName
 }
-func nextElasticKeyDesc() string {
-	return "Client Test Elastic Key Description" + strconv.Itoa(uniqueTestNum)
+func nextElasticKeyDesc() *string {
+	nextElasticKeyDesc := "Client Test Elastic Key Description" + strconv.Itoa(uniqueTestNum)
+	return &nextElasticKeyDesc
 }
 
 var happyPathTestCasesEncrypt = []TestCase{
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256GCM/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192GCM/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128GCM/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A256GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A192GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/A128GCMKW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/dir", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP-256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA-OAEP", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/RSA1_5", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A256CBC-HS512/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A256KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A192KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES+A128KW", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A256CBC-HS512/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A192CBC-HS384/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "A128CBC-HS256/ECDH-ES", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 }
 
 var happyPathTestCasesSign = []TestCase{
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "RS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "RS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "RS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "PS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "PS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "PS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "ES256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "ES384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "ES512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "HS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "HS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "HS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
-	{name: nextElasticKeyName(), description: nextElasticKeyDesc(), algorithm: "EdDSA", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "RS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "RS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "RS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "PS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "PS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "PS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "ES256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "ES384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "ES512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "HS256", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "HS384", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "HS512", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
+	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "EdDSA", provider: "Internal", exportAllowed: false, importAllowed: false, versioningAllowed: true},
 }
 
 var (
@@ -177,7 +179,7 @@ func TestMain(m *testing.M) {
 		}
 		go start()
 		defer stop()
-		WaitUntilReady(testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
+		WaitUntilReady(&testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
 
 		rc = m.Run()
 	}()
@@ -186,7 +188,7 @@ func TestMain(m *testing.M) {
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 	context := context.Background()
-	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
+	openapiClient := RequireClientWithResponses(t, &testServerBaseUrl)
 
 	for i, testCase := range happyPathTestCasesEncrypt {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
@@ -238,7 +240,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	context := context.Background()
-	openapiClient := RequireClientWithResponses(t, testServerBaseUrl)
+	openapiClient := RequireClientWithResponses(t, &testServerBaseUrl)
 
 	for i, testCase := range happyPathTestCasesSign {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
