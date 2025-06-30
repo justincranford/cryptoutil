@@ -103,7 +103,7 @@ func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	encryptedRootKey, err := sqlTransaction.GetRootKey(rootKeyKidUuid)
+	encryptedRootKey, err := sqlTransaction.GetRootKey(&rootKeyKidUuid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get root key: %w", err)
 	}

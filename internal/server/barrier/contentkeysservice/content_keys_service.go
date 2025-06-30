@@ -68,7 +68,7 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmReposit
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	encryptedContentKey, err := sqlTransaction.GetContentKey(encryptedContentKeyKidUuid)
+	encryptedContentKey, err := sqlTransaction.GetContentKey(&encryptedContentKeyKidUuid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get encrypted content key: %w", err)
 	}

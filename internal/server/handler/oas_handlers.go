@@ -29,72 +29,63 @@ func (s *StrictServer) PostElastickey(ctx context.Context, request cryptoutilOpe
 // Get an Elastic Key.
 // (GET /elastickey/{elasticKeyID})
 func (s *StrictServer) GetElastickeyElasticKeyID(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
-	elasticKey, err := s.businessLogicService.GetElasticKeyByElasticKeyID(ctx, elasticKeyID)
+	elasticKey, err := s.businessLogicService.GetElasticKeyByElasticKeyID(ctx, &request.ElasticKeyID)
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDResponse(err, elasticKey)
 }
 
 // Decrypt ciphertext using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
 // (POST /elastickey/{elasticKeyID}/decrypt)
 func (s *StrictServer) PostElastickeyElasticKeyIDDecrypt(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
 	encryptedBytes := []byte(*request.Body)
-	decryptedBytes, err := s.businessLogicService.PostDecryptByElasticKeyID(ctx, elasticKeyID, encryptedBytes)
+	decryptedBytes, err := s.businessLogicService.PostDecryptByElasticKeyID(ctx, &request.ElasticKeyID, encryptedBytes)
 	return s.oasOamMapper.toOasPostDecryptResponse(err, decryptedBytes)
 }
 
 // Encrypt clear text data using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
 // (POST /elastickey/{elasticKeyID}/encrypt)
 func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
 	encryptParams := s.oasOamMapper.toOamPostEncryptQueryParams(&request.Params)
 	clearBytes := []byte(*request.Body)
-	encryptedBytes, err := s.businessLogicService.PostEncryptByElasticKeyID(ctx, elasticKeyID, encryptParams, clearBytes)
+	encryptedBytes, err := s.businessLogicService.PostEncryptByElasticKeyID(ctx, &request.ElasticKeyID, encryptParams, clearBytes)
 	return s.oasOamMapper.toOasPostEncryptResponse(err, encryptedBytes)
 }
 
 // Generate a new Material Key in an Elastic Key.
 // (POST /elastickey/{elasticKeyID}/materialkey)
 func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
 	keyGenerateRequest := cryptoutilOpenapiModel.MaterialKeyGenerate(*request.Body)
-	key, err := s.businessLogicService.GenerateKeyInPoolKey(ctx, elasticKeyID, &keyGenerateRequest)
+	key, err := s.businessLogicService.GenerateKeyInPoolKey(ctx, &request.ElasticKeyID, &keyGenerateRequest)
 	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err, key)
 }
 
 // Get Material Key in Elastic Key.
 // (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
 func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
-	materialKeyID := request.MaterialKeyID
-	key, err := s.businessLogicService.GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx, elasticKeyID, materialKeyID)
+	key, err := s.businessLogicService.GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx, &request.ElasticKeyID, &request.MaterialKeyID)
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err, key)
 }
 
 // Find Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
 // (GET /elastickey/{elasticKeyID}/materialkeys)
 func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
 	elasticKeyMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeyMaterialKeysQueryParams(&request.Params)
-	keys, err := s.businessLogicService.GetMaterialKeysForElasticKey(ctx, elasticKeyID, elasticKeyMaterialKeysQueryParams)
+	keys, err := s.businessLogicService.GetMaterialKeysForElasticKey(ctx, &request.ElasticKeyID, elasticKeyMaterialKeysQueryParams)
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err, keys)
 }
 
 // Sign clear text using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
 // (POST /elastickey/{elasticKeyID}/sign)
 func (s *StrictServer) PostElastickeyElasticKeyIDSign(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
 	clearBytes := []byte(*request.Body)
-	signedBytes, err := s.businessLogicService.PostSignByElasticKeyID(ctx, elasticKeyID, clearBytes)
+	signedBytes, err := s.businessLogicService.PostSignByElasticKeyID(ctx, &request.ElasticKeyID, clearBytes)
 	return s.oasOamMapper.toOasPostSignResponse(err, signedBytes)
 }
 
 // Verify JWS message using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
 // (POST /elastickey/{elasticKeyID}/verify)
 func (s *StrictServer) PostElastickeyElasticKeyIDVerify(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
-	elasticKeyID := request.ElasticKeyID
 	signedBytes := []byte(*request.Body)
-	verifiedBytes, err := s.businessLogicService.PostVerifyByElasticKeyID(ctx, elasticKeyID, signedBytes)
+	verifiedBytes, err := s.businessLogicService.PostVerifyByElasticKeyID(ctx, &request.ElasticKeyID, signedBytes)
 	return s.oasOamMapper.toOasPostVerifyResponse(err, verifiedBytes)
 }
 

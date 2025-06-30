@@ -109,7 +109,7 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmReposi
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	encryptedIntermediateKey, err := sqlTransaction.GetIntermediateKey(intermediateKeyKidUuid)
+	encryptedIntermediateKey, err := sqlTransaction.GetIntermediateKey(&intermediateKeyKidUuid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get intermediate key: %w", err)
 	}

@@ -31,7 +31,7 @@ func (tx *OrmTransaction) GetRootKeyLatest() (*BarrierRootKey, error) {
 	return &rootKey, nil
 }
 
-func (tx *OrmTransaction) GetRootKey(uuid googleUuid.UUID) (*BarrierRootKey, error) {
+func (tx *OrmTransaction) GetRootKey(uuid *googleUuid.UUID) (*BarrierRootKey, error) {
 	var rootKey BarrierRootKey
 	if err := tx.state.gormTx.Where("uuid=?", uuid).First(&rootKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
@@ -39,7 +39,7 @@ func (tx *OrmTransaction) GetRootKey(uuid googleUuid.UUID) (*BarrierRootKey, err
 	return &rootKey, nil
 }
 
-func (tx *OrmTransaction) DeleteRootKey(uuid googleUuid.UUID) (*BarrierRootKey, error) {
+func (tx *OrmTransaction) DeleteRootKey(uuid *googleUuid.UUID) (*BarrierRootKey, error) {
 	var rootKey BarrierRootKey
 	if err := tx.state.gormTx.Where("uuid=?", uuid).Delete(&rootKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to delete root key with UUID %s: %w", uuid, err)
@@ -72,7 +72,7 @@ func (tx *OrmTransaction) GetIntermediateKeyLatest() (*BarrierIntermediateKey, e
 	return &intermediateKey, nil
 }
 
-func (tx *OrmTransaction) GetIntermediateKey(uuid googleUuid.UUID) (*BarrierIntermediateKey, error) {
+func (tx *OrmTransaction) GetIntermediateKey(uuid *googleUuid.UUID) (*BarrierIntermediateKey, error) {
 	var intermediateKey BarrierIntermediateKey
 	if err := tx.state.gormTx.Where("uuid=?", uuid).First(&intermediateKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
@@ -80,7 +80,7 @@ func (tx *OrmTransaction) GetIntermediateKey(uuid googleUuid.UUID) (*BarrierInte
 	return &intermediateKey, nil
 }
 
-func (tx *OrmTransaction) DeleteIntermediateKey(uuid googleUuid.UUID) (*BarrierIntermediateKey, error) {
+func (tx *OrmTransaction) DeleteIntermediateKey(uuid *googleUuid.UUID) (*BarrierIntermediateKey, error) {
 	var intermediateKey BarrierIntermediateKey
 	if err := tx.state.gormTx.Where("uuid=?", uuid).Delete(&intermediateKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to delete intermediate key with UUID %s: %w", uuid, err)
@@ -113,7 +113,7 @@ func (tx *OrmTransaction) GetContentKeyLatest() (*BarrierContentKey, error) {
 	return &contentKey, nil
 }
 
-func (tx *OrmTransaction) GetContentKey(uuid googleUuid.UUID) (*BarrierContentKey, error) {
+func (tx *OrmTransaction) GetContentKey(uuid *googleUuid.UUID) (*BarrierContentKey, error) {
 	var contentKey BarrierContentKey
 	if err := tx.state.gormTx.Where("uuid=?", uuid).First(&contentKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to load key key with UUID %s: %w", uuid, err)
@@ -121,7 +121,7 @@ func (tx *OrmTransaction) GetContentKey(uuid googleUuid.UUID) (*BarrierContentKe
 	return &contentKey, nil
 }
 
-func (tx *OrmTransaction) DeleteContentKey(uuid googleUuid.UUID) (*BarrierContentKey, error) {
+func (tx *OrmTransaction) DeleteContentKey(uuid *googleUuid.UUID) (*BarrierContentKey, error) {
 	var contentKey BarrierContentKey
 	if err := tx.state.gormTx.Where("uuid=?", uuid).Delete(&contentKey).Error; err != nil {
 		return nil, fmt.Errorf("failed to delete content key with UUID %s: %w", uuid, err)

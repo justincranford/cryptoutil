@@ -20,9 +20,9 @@ func NewOamOrmMapper() *oamOrmMapper {
 
 // oam => orm
 
-func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
+func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOrmRepository.ElasticKey {
 	return &cryptoutilOrmRepository.ElasticKey{
-		ElasticKeyID:                elasticKeyID,
+		ElasticKeyID:                *elasticKeyID,
 		ElasticKeyName:              oamElasticKeyCreate.Name,
 		ElasticKeyDescription:       oamElasticKeyCreate.Description,
 		ElasticKeyProvider:          *oamElasticKeyCreate.Provider,
