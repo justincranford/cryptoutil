@@ -6,7 +6,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/google/uuid"
+	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -181,7 +181,7 @@ func requireJweJwkHeaders(t *testing.T, nonPublicJweJwk joseJwk.Key, expectedJwe
 	require.Equal(t, "enc", actualJwkUse)
 }
 
-func requireJweMessageHeaders(t *testing.T, jweMessage *joseJwe.Message, actualKeyKid *uuid.UUID, testCase *happyPathJweTestCase) {
+func requireJweMessageHeaders(t *testing.T, jweMessage *joseJwe.Message, actualKeyKid *googleUuid.UUID, testCase *happyPathJweTestCase) {
 	jweHeaders := jweMessage.ProtectedHeaders()
 	encodedJweHeaders, err := json.Marshal(jweHeaders)
 	require.NoError(t, err)
