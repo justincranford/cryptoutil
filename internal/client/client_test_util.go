@@ -43,11 +43,11 @@ func httpGet(url *string, timeout time.Duration) error {
 	client := http.Client{Timeout: timeout}
 	resp, err := client.Get(*url)
 	if err != nil {
-		return fmt.Errorf("get %s failed: %w", url, err)
+		return fmt.Errorf("get %v failed: %w", url, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("%s returned %d", url, resp.StatusCode)
+		return fmt.Errorf("%v returned %d", url, resp.StatusCode)
 	}
 	return nil
 }
