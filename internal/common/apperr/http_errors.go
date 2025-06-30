@@ -15,18 +15,16 @@ type Error struct {
 	Err                   error                 // Optional error
 }
 
+// implement Error() method for built-in error interface
 func (e *Error) Error() string {
 	timestamp := e.Timestamp.UTC().Format(time.RFC3339Nano)
 	id := e.ID.String()
 	code := e.HTTPStatusLineAndCode.Code
 	summary := e.Summary
-	var err string
-	if e.Err == nil {
-		err = fmt.Sprintf("%s %s %s %s", timestamp, code, summary, id)
-	} else {
-		err = fmt.Sprintf("[%s] [%s] [%s] [%s]: %v", timestamp, code, summary, id, e.Err)
+	if e.Err != nil {
+		return fmt.Sprintf("[%s] [%s] [%s] [%s]: %v", timestamp, code, summary, id, e.Err)
 	}
-	return err
+	return fmt.Sprintf("%s %s %s %s", timestamp, code, summary, id)
 }
 
 func New(httpStatusLineAndCode *HTTPStatusLineAndCode, summary *string, err error) *Error {
