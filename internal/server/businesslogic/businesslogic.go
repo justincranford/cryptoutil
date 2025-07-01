@@ -294,6 +294,18 @@ func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx co
 	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObject, nil
 }
 
+func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, generateParams *cryptoutilOpenapiModel.GenerateParams) ([]byte, error) {
+	_, err := cryptoutilJose.ToGenerateAlgorithm((*string)(generateParams.Alg))
+	if err != nil {
+		return nil, fmt.Errorf("failed to map generate algorithm: %w", err)
+	}
+
+	// TODO generate JWK
+	clearPayloadBytes := []byte{}
+
+	return s.PostEncryptByElasticKeyID(ctx, elasticKeyID, &cryptoutilOpenapiModel.EncryptParams{Context: generateParams.Context}, clearPayloadBytes)
+}
+
 func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, encryptParams *cryptoutilOpenapiModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
 	elasticKey, _, decryptedMaterialKeyNonPublicJwsJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
 	if err != nil {

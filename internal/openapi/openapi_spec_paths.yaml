@@ -287,6 +287,54 @@ paths:
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
 
+  /elastickey/{elasticKeyID}/generate:
+    post:
+      summary: Generate a random Secret Key, Key Pair, or other algorithm. It will be in JWK format, returned in encrypted form as a JWE message.
+      description: Send the JWE message to the decrypt API to get the clear JWK. Use the JWK as-is for JWE or JWS operations, or programmatically convert it to other formats.
+      parameters:
+        - name: elasticKeyID
+          in: path
+          required: true
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyID'
+        - name: context
+          in: query
+          required: false
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/EncryptContext'
+        - name: alg
+          in: query
+          required: true
+          schema:
+            $ref: './openapi_spec_components.yaml#/components/schemas/GenerateAlgorithm'
+      requestBody:
+        required: true
+      responses:
+        '200':
+          description: Encrypted JWK.
+          content:
+            text/plain:
+              schema:
+                $ref: './openapi_spec_components.yaml#/components/schemas/GenerateResponse'
+        '400':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP400BadRequest'
+        '401':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP401Unauthorized'
+        '403':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP403Forbidden'
+        '404':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP404NotFound'
+        '429':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP429TooManyRequests'
+        '500':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP500InternalServerError'
+        '502':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP502BadGateway'
+        '503':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
+        '504':
+          $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
+
   /elastickey/{elasticKeyID}/encrypt:
     post:
       summary: Encrypt clear text data using latest Material Key from a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.

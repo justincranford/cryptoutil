@@ -524,6 +524,26 @@ components:
         - "revocation_date:ASC"
         - "revocation_date:DESC"
 
+    GenerateAlgorithm:
+      type: string
+      enum: 
+        - "RSA/4096"
+        - "RSA/3072"
+        - "RSA/2048"
+        - "EC/P521"
+        - "EC/P384"
+        - "EC/P256"
+        - "OKP/Ed25519"
+        - "oct/512"
+        - "oct/384"
+        - "oct/256"
+        - "oct/192"
+        - "oct/128"
+        - "oct/UUIDv7"
+        - "oct/UUIDv4"
+      example: "oct/256"
+      description: Key, Key Pair, or other algorithm.
+
     EncryptContext:
       type: string
       pattern: '^[A-Za-z0-9_-]+$'
@@ -643,6 +663,26 @@ components:
       properties:
         context:
           $ref: '#/components/schemas/EncryptContext'
+
+    GenerateParams:
+      type: object
+      properties:
+        context:
+          $ref: '#/components/schemas/EncryptContext'
+        alg:
+          $ref: '#/components/schemas/GenerateAlgorithm'
+
+    GenerateResponse:
+      type: string
+      pattern: '^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+$'
+      description: >
+        JSON Web Encryption (JWE) message in compact serialized format. See RFC 7516 JSON Web Encryption (JWE) for more details.
+        Compact serialized format is 'Header.EncryptedKey.IV.Ciphertext.AuthenticationTag'. Each section is Base64Url-encoded; Some parts can be empty depending on 'alg' and 'enc' headers.
+        - Header: Required base64Url-encoded JSON key/values for the JWE.
+        - EncryptedKey: Optional base64Url-encoded of an encrypted symmetric key used to encrypt the payload. Mon-empty for envelope encryption (e.g. alg=a256gcmkw), or empty for direct encryption (e.g. alg=dir).
+        - IV: Required base64Url-encoded Initialization Vector (IV) used to encrypt the payload. For AES-GCM or AES-GCM-SIV it contains a 12-bytes nonce. For AES-CBC it contains a 16-bytes IV.
+        - Ciphertext: Required base64Url-encoded encrypted bytes.
+        - AuthenticationTag: Required base64Url-encoded authentication tag. For AES-GCM or AES-GCM-SIV it's a 16-bytes authentication tag. For AES-CBC-HMAC it contains an AEAD HMAC hash.
 
     EncryptRequest:
       type: string

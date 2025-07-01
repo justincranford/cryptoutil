@@ -50,6 +50,14 @@ func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, re
 	return s.oasOamMapper.toOasPostEncryptResponse(err, encryptedBytes)
 }
 
+// Generate a random Secret Key, Key Pair, or other algorithm. It will be in JWK format, returned in encrypted form as a JWE message.
+// (POST /elastickey/{elasticKeyID}/generate)
+func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
+	generateParams := s.oasOamMapper.toOamPostGenerateQueryParams(&request.Params)
+	encryptedBytes, err := s.businessLogicService.PostGenerateByElasticKeyID(ctx, &request.ElasticKeyID, generateParams)
+	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedBytes)
+}
+
 // Generate a new Material Key in an Elastic Key.
 // (POST /elastickey/{elasticKeyID}/materialkey)
 func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {

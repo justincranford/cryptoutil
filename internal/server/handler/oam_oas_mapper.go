@@ -70,11 +70,37 @@ func (m *oamOasMapper) toOasPostDecryptResponse(err error, decryptedBytes []byte
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt200TextResponse(decryptedBytes), err
 }
 
+func (m *oamOasMapper) toOamPostGenerateQueryParams(openapiParams *cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateParams) *cryptoutilOpenapiModel.GenerateParams {
+	generateParams := cryptoutilOpenapiModel.GenerateParams{
+		Context: openapiParams.Context,
+		Alg:     &openapiParams.Alg,
+	}
+	return &generateParams
+}
+
+func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
+	if err != nil {
+		var appErr *cryptoutilAppErr.Error
+		if errors.As(err, &appErr) {
+			switch appErr.HTTPStatusLineAndCode.StatusLine.StatusCode {
+			case http.StatusBadRequest:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate400JSONResponse{HTTP400BadRequest: m.toOasHTTP400Response(appErr)}, nil
+			case http.StatusNotFound:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate404JSONResponse{HTTP404NotFound: m.toOasHTTP404Response(appErr)}, nil
+			case http.StatusInternalServerError:
+				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
+			}
+		}
+		return nil, fmt.Errorf("failed to encrypt: %w", err)
+	}
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate200TextResponse(encryptedBytes), err
+}
+
 func (m *oamOasMapper) toOamPostEncryptQueryParams(openapiParams *cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptParams) *cryptoutilOpenapiModel.EncryptParams {
-	filters := cryptoutilOpenapiModel.EncryptParams{
+	encryptParams := cryptoutilOpenapiModel.EncryptParams{
 		Context: openapiParams.Context,
 	}
-	return &filters
+	return &encryptParams
 }
 
 func (m *oamOasMapper) toOasPostEncryptResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptResponseObject, error) {

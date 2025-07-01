@@ -9,6 +9,23 @@ import (
 )
 
 var (
+	generateAlgorithms = map[string]cryptoutilOpenapiModel.GenerateAlgorithm{
+		string(cryptoutilOpenapiModel.RSA4096):    cryptoutilOpenapiModel.RSA4096,
+		string(cryptoutilOpenapiModel.RSA3072):    cryptoutilOpenapiModel.RSA3072,
+		string(cryptoutilOpenapiModel.RSA2048):    cryptoutilOpenapiModel.RSA2048,
+		string(cryptoutilOpenapiModel.ECP521):     cryptoutilOpenapiModel.ECP521,
+		string(cryptoutilOpenapiModel.ECP384):     cryptoutilOpenapiModel.ECP384,
+		string(cryptoutilOpenapiModel.ECP256):     cryptoutilOpenapiModel.ECP256,
+		string(cryptoutilOpenapiModel.OKPEd25519): cryptoutilOpenapiModel.OKPEd25519,
+		string(cryptoutilOpenapiModel.Oct512):     cryptoutilOpenapiModel.Oct512,
+		string(cryptoutilOpenapiModel.Oct384):     cryptoutilOpenapiModel.Oct384,
+		string(cryptoutilOpenapiModel.Oct256):     cryptoutilOpenapiModel.Oct256,
+		string(cryptoutilOpenapiModel.Oct192):     cryptoutilOpenapiModel.Oct192,
+		string(cryptoutilOpenapiModel.Oct128):     cryptoutilOpenapiModel.Oct128,
+		string(cryptoutilOpenapiModel.OctUUIDv7):  cryptoutilOpenapiModel.OctUUIDv7,
+		string(cryptoutilOpenapiModel.OctUUIDv4):  cryptoutilOpenapiModel.OctUUIDv4,
+	}
+
 	elasticKeyAlgorithms = map[string]cryptoutilOpenapiModel.ElasticKeyAlgorithm{
 		string(cryptoutilOpenapiModel.A256GCMA256KW): cryptoutilOpenapiModel.A256GCMA256KW,
 		string(cryptoutilOpenapiModel.A192GCMA256KW): cryptoutilOpenapiModel.A192GCMA256KW,
@@ -389,4 +406,11 @@ func ToElasticKeyAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.ElasticKe
 		return &alg, nil
 	}
 	return nil, fmt.Errorf("invalid elastic Key algorithm: %v", algorithm)
+}
+
+func ToGenerateAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.GenerateAlgorithm, error) {
+	if alg, exists := generateAlgorithms[*algorithm]; exists {
+		return &alg, nil
+	}
+	return nil, fmt.Errorf("invalid generate algorithm: %v", algorithm)
 }
