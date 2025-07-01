@@ -85,7 +85,7 @@ func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFi
 	return elasticKeys, nil
 }
 
-func (tx *OrmTransaction) AddElasticKeyKey(key *MaterialKey) error {
+func (tx *OrmTransaction) AddElasticKeyMaterialKey(key *MaterialKey) error {
 	if err := cryptoutilUtil.ValidateUUID(&key.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
 	} else if err := cryptoutilUtil.ValidateUUID(&key.MaterialKeyID, &ErrInvalidMaterialKeyID); err != nil {

@@ -161,7 +161,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 					MaterialKeyRevocationDate:     nil,
 				}
 
-				err = ormTransaction.AddElasticKeyKey(&key)
+				err = ormTransaction.AddElasticKeyMaterialKey(&key)
 				if err != nil {
 					return fmt.Errorf("failed to add Key: %w", err)
 				}
