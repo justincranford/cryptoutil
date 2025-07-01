@@ -141,9 +141,9 @@ func TestSqlTransaction_Success(t *testing.T) {
 
 			uuidV7 := testJwkGenService.GenerateUUIDv7()
 			elasticKey, err := BuildElasticKey(*uuidV7, string("Elastic Key Name "+uuidV7.String()), string("Elastic Key Description "+uuidV7.String()), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilOpenapiModel.Creating))
-			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 elastic Key")
+			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 Elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
-			cryptoutilAppErr.RequireNoError(err, "failed to add AES 256 elastic Key")
+			cryptoutilAppErr.RequireNoError(err, "failed to add AES 256 Elastic Key")
 			addedElasticKeys = append(addedElasticKeys, elasticKey)
 
 			multipleByteSlices, err := cryptoutilUtil.GenerateMultipleBytes(numMaterialKeys, 32)

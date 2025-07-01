@@ -54,7 +54,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, re
 // (POST /elastickey/{elasticKeyID}/materialkey)
 func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
 	keyGenerateRequest := cryptoutilOpenapiModel.MaterialKeyGenerate(*request.Body)
-	key, err := s.businessLogicService.GenerateKeyInPoolKey(ctx, &request.ElasticKeyID, &keyGenerateRequest)
+	key, err := s.businessLogicService.GenerateMaterialKeyInElasticKey(ctx, &request.ElasticKeyID, &keyGenerateRequest)
 	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err, key)
 }
 

@@ -91,7 +91,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 
 		err = sqlTransaction.AddElasticKeyKey(repositoryMaterialKey)
 		if err != nil {
-			return fmt.Errorf("failed to add key: %w", err)
+			return fmt.Errorf("failed to add ElasticKey: %w", err)
 		}
 
 		err = sqlTransaction.UpdateElasticKeyStatus(*elasticKeyID, cryptoutilOpenapiModel.Active)
@@ -107,7 +107,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 		return nil
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to add elastic Key: %w", err)
+		return nil, fmt.Errorf("failed to add ElasticKey: %w", err)
 	}
 
 	return s.oamOrmMapper.toOamElasticKey(insertedElasticKey), nil
@@ -151,7 +151,7 @@ func (s *BusinessLogicService) GetElasticKeys(ctx context.Context, elasticKeyQue
 	return s.oamOrmMapper.toOamElasticKeys(repositoryElasticKeys), nil
 }
 
-func (s *BusinessLogicService) GenerateKeyInPoolKey(ctx context.Context, elasticKeyID *googleUuid.UUID, _ *cryptoutilOpenapiModel.MaterialKeyGenerate) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, _ *cryptoutilOpenapiModel.MaterialKeyGenerate) (*cryptoutilOpenapiModel.MaterialKey, error) {
 	var repositoryElasticKey *cryptoutilOrmRepository.ElasticKey
 	var repositoryMaterialKey *cryptoutilOrmRepository.MaterialKey
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
