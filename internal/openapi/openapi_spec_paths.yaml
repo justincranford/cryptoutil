@@ -90,7 +90,6 @@ paths:
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamAlgorithms'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamVersioningAllowed'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamImportAllowed'
-        - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamExportAllowed'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamStatuses'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamSorts'
         - $ref: './openapi_spec_components.yaml#/components/parameters/ElasticKeyQueryParamPageNumber'

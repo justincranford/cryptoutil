@@ -31,7 +31,6 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElas
 		ElasticKeyAlgorithm:         *oamElasticKeyCreate.Algorithm,
 		ElasticKeyVersioningAllowed: *oamElasticKeyCreate.VersioningAllowed,
 		ElasticKeyImportAllowed:     *oamElasticKeyCreate.ImportAllowed,
-		ElasticKeyExportAllowed:     *oamElasticKeyCreate.ExportAllowed,
 		ElasticKeyStatus:            *toOamElasticKeyStatus(oamElasticKeyCreate.ImportAllowed),
 	}
 }
@@ -75,7 +74,6 @@ func (s *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.El
 		Provider:          &ormElasticKey.ElasticKeyProvider,
 		VersioningAllowed: &ormElasticKey.ElasticKeyVersioningAllowed,
 		ImportAllowed:     &ormElasticKey.ElasticKeyImportAllowed,
-		ExportAllowed:     &ormElasticKey.ElasticKeyExportAllowed,
 		Status:            &ormElasticKey.ElasticKeyStatus,
 	}
 }
@@ -152,7 +150,6 @@ func (m *oamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiM
 		Algorithm:         algorithms,
 		VersioningAllowed: params.VersioningAllowed,
 		ImportAllowed:     params.ImportAllowed,
-		ExportAllowed:     params.ExportAllowed,
 		Sort:              sorts,
 		PageNumber:        pageNumber,
 		PageSize:          pageSize,

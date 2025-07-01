@@ -15,7 +15,6 @@ func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, pro
 		ElasticKeyAlgorithm:         algorithm,
 		ElasticKeyVersioningAllowed: versioningAllowed,
 		ElasticKeyImportAllowed:     importAllowed,
-		ElasticKeyExportAllowed:     exportAllowed,
 		ElasticKeyStatus:            ElasticKeyStatusInitial(importAllowed),
 	}
 	return &elasticKey, nil

@@ -16,7 +16,6 @@ type ElasticKey struct {
 	ElasticKeyAlgorithm         cryptoutilOpenapiModel.ElasticKeyAlgorithm `gorm:"size:26;not null"`
 	ElasticKeyVersioningAllowed bool                                       `gorm:"not null;check:elastic_key_versioning_allowed IN (TRUE, FALSE)"`
 	ElasticKeyImportAllowed     bool                                       `gorm:"not null;check:elastic_key_import_allowed IN (TRUE, FALSE)"`
-	ElasticKeyExportAllowed     bool                                       `gorm:"not null;check:elastic_key_export_allowed IN (TRUE, FALSE)"`
 	ElasticKeyStatus            cryptoutilOpenapiModel.ElasticKeyStatus    `gorm:"size:34;not null;check:elastic_key_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')"`
 }
 

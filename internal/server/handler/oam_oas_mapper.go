@@ -205,7 +205,6 @@ func (m *oamOasMapper) toOamGetElasticKeyQueryParams(openapiParams *cryptoutilOp
 		Algorithm:         openapiParams.Algorithm,
 		VersioningAllowed: openapiParams.VersioningAllowed,
 		ImportAllowed:     openapiParams.ImportAllowed,
-		ExportAllowed:     openapiParams.ExportAllowed,
 		Status:            openapiParams.Status,
 		Sort:              openapiParams.Sort,
 		Page:              openapiParams.Page,

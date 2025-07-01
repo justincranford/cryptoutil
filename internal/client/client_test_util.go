@@ -169,8 +169,6 @@ func ValidateCreateElasticKeyVsElasticKey(elasticKeyCreate *cryptoutilOpenapiMod
 		return fmt.Errorf("algorithm mismatch: expected %s, got %s", *elasticKeyCreate.Algorithm, *elasticKey.Algorithm)
 	} else if *elasticKeyCreate.Provider != *elasticKey.Provider {
 		return fmt.Errorf("provider mismatch: expected %s, got %s", *elasticKeyCreate.Provider, *elasticKey.Provider)
-	} else if *elasticKeyCreate.ExportAllowed != *elasticKey.ExportAllowed {
-		return fmt.Errorf("exportAllowed mismatch: expected %t, got %t", *elasticKeyCreate.ExportAllowed, *elasticKey.ExportAllowed)
 	} else if *elasticKeyCreate.ImportAllowed != *elasticKey.ImportAllowed {
 		return fmt.Errorf("importAllowed mismatch: expected %t, got %t", *elasticKeyCreate.ImportAllowed, *elasticKey.ImportAllowed)
 	} else if *elasticKeyCreate.VersioningAllowed != *elasticKey.VersioningAllowed {

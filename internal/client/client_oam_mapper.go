@@ -27,7 +27,6 @@ func toOamElasticKeyCreate(name *string, description *string, algorithm *string,
 	}
 	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(*provider)
 	elasticKeyElasticKeyImportAllowed := cryptoutilOpenapiModel.ElasticKeyImportAllowed(*importAllowed)
-	elasticKeyElasticKeyExportAllowed := cryptoutilOpenapiModel.ElasticKeyExportAllowed(*exportAllowed)
 	elasticKeyElasticKeyVersioningAllowed := cryptoutilOpenapiModel.ElasticKeyVersioningAllowed(*versioningAllowed)
 	return &cryptoutilOpenapiModel.ElasticKeyCreate{
 		Name:              elasticKeyName,
@@ -35,7 +34,6 @@ func toOamElasticKeyCreate(name *string, description *string, algorithm *string,
 		Algorithm:         (*cryptoutilOpenapiModel.ElasticKeyAlgorithm)(elasticKeyAlgorithm),
 		Provider:          &elasticKeyProvider,
 		ImportAllowed:     &elasticKeyElasticKeyImportAllowed,
-		ExportAllowed:     &elasticKeyElasticKeyExportAllowed,
 		VersioningAllowed: &elasticKeyElasticKeyVersioningAllowed,
 	}, nil
 }
@@ -62,8 +60,6 @@ func toOamElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.Po
 			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.Algorithm is nil")
 		} else if elasticKey.Provider == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.Provider is nil")
-		} else if elasticKey.ExportAllowed == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.ExportAllowed is nil")
 		} else if elasticKey.ImportAllowed == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.ImportAllowed is nil")
 		} else if elasticKey.VersioningAllowed == nil {

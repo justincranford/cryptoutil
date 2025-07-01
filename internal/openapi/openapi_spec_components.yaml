@@ -66,13 +66,6 @@ components:
       required: false
       schema:
         $ref: '#/components/schemas/ElasticKeyImportAllowed'
-    ElasticKeyQueryParamExportAllowed:
-      name: export_allowed
-      in: query
-      description: Filter by whether export is allowed.
-      required: false
-      schema:
-        $ref: '#/components/schemas/ElasticKeyExportAllowed'
     ElasticKeyQueryParamStatuses:
       name: status
       in: query
@@ -235,8 +228,6 @@ components:
           $ref: '#/components/schemas/ElasticKeyVersioningAllowed'
         import_allowed:
           $ref: '#/components/schemas/ElasticKeyImportAllowed'
-        export_allowed:
-          $ref: '#/components/schemas/ElasticKeyExportAllowed'
 
     ElasticKey:
       type: object
@@ -255,8 +246,6 @@ components:
           $ref: '#/components/schemas/ElasticKeyVersioningAllowed'
         import_allowed:
           $ref: '#/components/schemas/ElasticKeyImportAllowed'
-        export_allowed:
-          $ref: '#/components/schemas/ElasticKeyExportAllowed'
         status:
           $ref: '#/components/schemas/ElasticKeyStatus'
 
@@ -447,10 +436,6 @@ components:
       type: boolean
       example: false
       description: Indicates if the Elastic Key supports import (BYOK).
-    ElasticKeyExportAllowed:
-      type: boolean
-      example: false
-      description: Indicates if the Elastic Key supports export of Material Key. Always use default false for production. If true, the Elastic Key should only be used for testing or development.
     ElasticKeyStatus:
       type: string
       enum:
@@ -572,8 +557,6 @@ components:
           $ref: '#/components/schemas/ElasticKeyVersioningAllowed'
         import_allowed:
           $ref: '#/components/schemas/ElasticKeyImportAllowed'
-        export_allowed:
-          $ref: '#/components/schemas/ElasticKeyExportAllowed'
         status:
           type: array
           items:
