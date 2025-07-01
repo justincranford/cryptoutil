@@ -306,3 +306,12 @@ func ExtractAlgEncFromJweJwk(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryption
 
 	return &enc, &alg, nil
 }
+
+func IsJweAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
+	if alg == nil {
+		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+	}
+
+	_, ok := (*alg).(joseJwa.KeyEncryptionAlgorithm)
+	return ok, nil
+}

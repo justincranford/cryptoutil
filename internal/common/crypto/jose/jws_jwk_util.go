@@ -263,3 +263,12 @@ func ExtractAlgFromJwsJwk(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, 
 
 	return &alg, nil
 }
+
+func IsJwsAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
+	if alg == nil {
+		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
+	}
+
+	_, ok := (*alg).(joseJwa.SignatureAlgorithm)
+	return ok, nil
+}

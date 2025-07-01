@@ -148,15 +148,23 @@ func JweHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	return string(jweHeadersString), err
 }
 
-func ExtractKidEncAlgFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, *joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+func ExtractKidFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, error) {
 	var kidUuidString string
 	err := jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &kidUuidString)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
+		return nil, fmt.Errorf("failed to get kid UUID: %w", err)
 	}
 	kidUuid, err := googleUuid.Parse(kidUuidString)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to parse kid UUID: %w", err)
+		return nil, fmt.Errorf("failed to parse kid UUID: %w", err)
+	}
+	return &kidUuid, nil
+}
+
+func ExtractKidEncAlgFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, *joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+	kidUuid, err := ExtractKidFromJweMessage(jweMessage)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
 	}
 
 	var enc joseJwa.ContentEncryptionAlgorithm
@@ -164,10 +172,12 @@ func ExtractKidEncAlgFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UU
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get enc: %w", err)
 	}
+
 	var alg joseJwa.KeyEncryptionAlgorithm
 	err = jweMessage.ProtectedHeaders().Get(joseJwk.AlgorithmKey, &alg)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get alg: %w", err)
 	}
-	return &kidUuid, &enc, &alg, nil
+
+	return kidUuid, &enc, &alg, nil
 }
