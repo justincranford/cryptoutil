@@ -163,14 +163,14 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-  /elastickey/{elasticKeyID}/materialkey/{material_key_id}:
+  /elastickey/{elasticKeyID}/materialkey/{materialKeyID}:
     parameters:
       - name: elasticKeyID
         in: path
         required: true
         schema:
           $ref: './openapi_spec_components.yaml#/components/schemas/ElasticKeyID'
-      - name: material_key_id
+      - name: materialKeyID
         in: path
         required: true
         schema:
