@@ -78,7 +78,7 @@ func (m *oamOasMapper) toOamPostGenerateQueryParams(openapiParams *cryptoutilOpe
 	return &generateParams
 }
 
-func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
+func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJwkBytes []byte, clearNonPublicJwkBytes []byte, clearPublicJwkBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -93,7 +93,7 @@ func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedBytes []byt
 		}
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
-	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate200TextResponse(encryptedBytes), err
+	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate200TextResponse(encryptedNonPublicJwkBytes), err
 }
 
 func (m *oamOasMapper) toOamPostEncryptQueryParams(openapiParams *cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptParams) *cryptoutilOpenapiModel.EncryptParams {

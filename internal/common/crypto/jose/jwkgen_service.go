@@ -11,6 +11,7 @@ import (
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
+	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
@@ -198,6 +199,40 @@ func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*google
 		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.hmac256KeyGenPool.Get())
 	default:
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
+	}
+}
+
+func (s *JwkGenService) GenerateJwk(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+	switch *alg {
+	case cryptoutilOpenapiModel.RSA4096:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa4096KeyGenPool.Get())
+	case cryptoutilOpenapiModel.RSA3072:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa3072KeyGenPool.Get())
+	case cryptoutilOpenapiModel.RSA2048:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa2048KeyGenPool.Get())
+	case cryptoutilOpenapiModel.ECP521:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP521KeyGenPool.Get())
+	case cryptoutilOpenapiModel.ECP384:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP384KeyGenPool.Get())
+	case cryptoutilOpenapiModel.ECP256:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP256KeyGenPool.Get())
+	case cryptoutilOpenapiModel.OKPEd25519:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ed25519KeyGenPool.Get())
+	case cryptoutilOpenapiModel.Oct512:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes256HS512KeyGenPool.Get())
+	case cryptoutilOpenapiModel.Oct384:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes192HS384KeyGenPool.Get())
+	case cryptoutilOpenapiModel.Oct256:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes128HS256KeyGenPool.Get())
+	case cryptoutilOpenapiModel.Oct192:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes192KeyGenPool.Get())
+	case cryptoutilOpenapiModel.Oct128:
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes128KeyGenPool.Get())
+	case cryptoutilOpenapiModel.OctUUIDv7:
+		uuidV7 := *s.uuidV7KeyGenPool.Get()
+		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, cryptoutilKeyGen.SecretKey(uuidV7[:]))
+	default:
+		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWK alg: %v", alg)
 	}
 }
 

@@ -54,8 +54,8 @@ func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, re
 // (POST /elastickey/{elasticKeyID}/generate)
 func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
 	generateParams := s.oasOamMapper.toOamPostGenerateQueryParams(&request.Params)
-	encryptedBytes, err := s.businessLogicService.PostGenerateByElasticKeyID(ctx, &request.ElasticKeyID, generateParams)
-	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedBytes)
+	encryptedNonPublicJwkBytes, clearNonPublicJwkBytes, clearPublicJwkBytes, err := s.businessLogicService.PostGenerateByElasticKeyID(ctx, &request.ElasticKeyID, generateParams)
+	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedNonPublicJwkBytes, clearNonPublicJwkBytes, clearPublicJwkBytes)
 }
 
 // Generate a new Material Key in an Elastic Key.

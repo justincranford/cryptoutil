@@ -294,16 +294,23 @@ func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx co
 	return openapiPostElastickeyElasticKeyIDMaterialkeyResponseObject, nil
 }
 
-func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, generateParams *cryptoutilOpenapiModel.GenerateParams) ([]byte, error) {
-	_, err := cryptoutilJose.ToGenerateAlgorithm((*string)(generateParams.Alg))
+func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, generateParams *cryptoutilOpenapiModel.GenerateParams) ([]byte, []byte, []byte, error) {
+	alg, err := cryptoutilJose.ToGenerateAlgorithm((*string)(generateParams.Alg))
 	if err != nil {
-		return nil, fmt.Errorf("failed to map generate algorithm: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to map generate algorithm: %w", err)
 	}
 
-	// TODO generate JWK
-	clearPayloadBytes := []byte{}
+	_, _, _, clearNonPublicJwkBytes, clearPublicJwkBytes, err := cryptoutilJose.GenerateJwkForAlg(alg)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to generate key from algorithm: %w", err)
+	}
 
-	return s.PostEncryptByElasticKeyID(ctx, elasticKeyID, &cryptoutilOpenapiModel.EncryptParams{Context: generateParams.Context}, clearPayloadBytes)
+	encryptedNonPublicJwkBytes, err := s.PostEncryptByElasticKeyID(ctx, elasticKeyID, &cryptoutilOpenapiModel.EncryptParams{Context: generateParams.Context}, clearNonPublicJwkBytes)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to encrypt generated key: %w", err)
+	}
+
+	return encryptedNonPublicJwkBytes, clearNonPublicJwkBytes, clearPublicJwkBytes, nil
 }
 
 func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, encryptParams *cryptoutilOpenapiModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
