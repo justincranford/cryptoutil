@@ -73,7 +73,7 @@ func (m *oamOasMapper) toOasPostDecryptResponse(err error, decryptedBytes []byte
 func (m *oamOasMapper) toOamPostGenerateQueryParams(openapiParams *cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateParams) *cryptoutilOpenapiModel.GenerateParams {
 	generateParams := cryptoutilOpenapiModel.GenerateParams{
 		Context: openapiParams.Context,
-		Alg:     &openapiParams.Alg,
+		Alg:     openapiParams.Alg,
 	}
 	return &generateParams
 }

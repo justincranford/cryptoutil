@@ -96,6 +96,19 @@ func RequireMaterialKeyGenerateResponse(t *testing.T, context context.Context, o
 	return key
 }
 
+func RequireGenerateResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyId *cryptoutilOpenapiModel.ElasticKeyID, generateParams *cryptoutilOpenapiModel.GenerateParams) *string {
+	elastickeyElasticKeyIDGenerateParams := toOacGenerateParams(generateParams)
+	// failed to encrypt, nextElasticKeyName(), Status: 400, Message: 400 Bad Request, Body: error in openapi3filter.RequestError: request body has an error: value is required but missing
+
+	openapiGenerateResponse, err := openapiClient.PostElastickeyElasticKeyIDGenerateWithBodyWithResponse(context, *elasticKeyId, &elastickeyElasticKeyIDGenerateParams, "text/plain", nil)
+	require.NoError(t, err)
+
+	encrypted, err := toPlainGenerateResponse(openapiGenerateResponse)
+	require.NoError(t, err)
+
+	return encrypted
+}
+
 func RequireEncryptRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
 	return toOamEncryptRequest(cleartext)
 }

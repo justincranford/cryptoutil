@@ -304,11 +304,11 @@ paths:
             $ref: './openapi_spec_components.yaml#/components/schemas/EncryptContext'
         - name: alg
           in: query
-          required: true
+          required: false
           schema:
             $ref: './openapi_spec_components.yaml#/components/schemas/GenerateAlgorithm'
       requestBody:
-        required: true
+        required: false
       responses:
         '200':
           description: Encrypted JWK.

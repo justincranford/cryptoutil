@@ -100,6 +100,38 @@ func toOamMaterialKeyGenerate(openapiMaterialKeyGenerateResponse *cryptoutilOpen
 	}
 }
 
+func toOacGenerateParams(generateParams *cryptoutilOpenapiModel.GenerateParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams {
+	elastickeyElasticKeyIDGenerateParams := cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams{}
+	if generateParams != nil {
+		elastickeyElasticKeyIDGenerateParams.Context = generateParams.Context
+		elastickeyElasticKeyIDGenerateParams.Alg = generateParams.Alg
+	}
+	return elastickeyElasticKeyIDGenerateParams
+}
+
+// func toOamGenerateRequest(cleartext *string) *cryptoutilOpenapiModel.GenerateRequest {
+// 	encryptRequest := cryptoutilOpenapiModel.GenerateRequest(*cleartext)
+// 	return &encryptRequest
+// }
+
+func toPlainGenerateResponse(openapiGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateResponse) (*string, error) {
+	if openapiGenerateResponse == nil {
+		return nil, fmt.Errorf("failed to encrypt, response is nil")
+	} else if openapiGenerateResponse.HTTPResponse == nil {
+		return nil, fmt.Errorf("failed to encrypt, HTTP response is nil")
+	}
+	switch openapiGenerateResponse.HTTPResponse.StatusCode {
+	case 200:
+		if openapiGenerateResponse.Body == nil {
+			return nil, fmt.Errorf("failed to encrypt, body is nil")
+		}
+		ciphertext := string(openapiGenerateResponse.Body)
+		return &ciphertext, nil
+	default:
+		return nil, fmt.Errorf("failed to encrypt, nextElasticKeyName(), Status: %v, Message: %s, Body: %s", openapiGenerateResponse.HTTPResponse.StatusCode, openapiGenerateResponse.HTTPResponse.Status, openapiGenerateResponse.Body)
+	}
+}
+
 func toOacEncryptParams(encryptParams *cryptoutilOpenapiModel.EncryptParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptParams {
 	elastickeyElasticKeyIDEncryptParams := cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptParams{}
 	if encryptParams != nil {
