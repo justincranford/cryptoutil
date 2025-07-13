@@ -2,12 +2,13 @@ package sysinfo
 
 import (
 	"testing"
+	"time"
 )
 
 const expectedSysInfos = 13
 
 func TestSysInfoAll(t *testing.T) {
-	all, err := GetAllInfo(mockSysInfoProvider)
+	all, err := GetAllInfoWithTimeout(mockSysInfoProvider, 5*time.Second)
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
