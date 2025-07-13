@@ -3,6 +3,7 @@
 cryptoutil is an embedded Key Management System (KMS), and a library for cryptographic operations. It is designed for extensibility, testability, and integration with modern Go frameworks.
 
 ## Main Features
+- Only use NIST FIPS 140-3 approved algorithms and key sizes (e.g., RSA ≥ 2048 bits, AES ≥ 128 bits, EC NIST curves, EdDSA)
 - Key generation for RSA, ECDSA, ECDH, EdDSA, AES, HMAC, UUIDv7
 - Generic key pools for efficient concurrent key generation
 - OpenAPI-driven API generation and documentation
@@ -71,10 +72,6 @@ gofumpt -l -w .
 ```
 
 # Placeholder for some TO DO tasks
-
-## Security
-- Review cryptographic practices for compliance and best practices
-- Avoid fallback values for cryptographic operations
 
 ## Performance
 - Benchmark pool and key generation under load
