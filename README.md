@@ -1,13 +1,26 @@
 # cryptoutil
-Golang util for crypto
 
-Requires Go 1.24+
+cryptoutil is an embedded Key Management System (KMS), and a library for cryptographic operations. It is designed for extensibility, testability, and integration with modern Go frameworks.
+
+## Main Features
+- Key generation for RSA, ECDSA, ECDH, EdDSA, AES, HMAC, UUIDv7
+- Generic key pools for efficient concurrent key generation
+- OpenAPI-driven API generation and documentation
+- Fiber-based HTTP server with strict OpenAPI endpoints
+- Integrated telemetry, including OpenTelemetry OTLP for logging, metrics, and tracing
+
+## Extensibility
+- OpenAPI specs can be used to add and generate components and handlers
+- Generic key pools can be used for concurrent generation of more key types and algorithms
 
 # Setup Project
+
+Requires Go 1.24+
 
 ## Initialize
 ```sh
 go mod init github.com/justincranford/cryptoutil
+go mod tidy
 ```
 
 ## Generate OpenAPI Handlers & Models
@@ -23,7 +36,7 @@ go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
 go generate ./...
 ```
 
-Look at [internal/openapi/generate.go](https://github.com/justincranford/cryptoutil/blob/main/internal/openapi/generate.go) for the commands used to generate internal/openapi/{model|server|client}/*.go code from OpenAPI spec files.
+Generate will find and run oapi-codegen commands embedded in [internal/openapi/generate.go](https://github.com/justincranford/cryptoutil/blob/main/internal/openapi/generate.go). The commands use OpenAPI spec files to generate code in internal/openapi/{model|server|client}/*.go.
 
 ## Testing
 
@@ -56,3 +69,19 @@ go install mvdan.cc/gofumpt@latest
 golangci-lint run
 gofumpt -l -w .
 ```
+
+# Placeholder for some TO DO tasks
+
+## Security
+- Review cryptographic practices for compliance and best practices
+- Avoid fallback values for cryptographic operations
+
+## Performance
+- Benchmark pool and key generation under load
+
+## Error Reporting
+- Ensure all errors are logged and surfaced to clients appropriately
+
+## Recommendations
+- Expand documentation with usage examples and architecture diagrams
+- Maintain clear instructions for setup, crypto usage, testing, and error reporting
