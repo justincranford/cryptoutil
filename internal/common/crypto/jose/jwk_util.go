@@ -94,6 +94,34 @@ func ExtractKidUuid(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	return &kidUuid, nil
 }
 
+func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, error) {
+	if jwk == nil {
+		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	var err error
+	var algString string
+	if err = jwk.Get(joseJwk.AlgorithmKey, &algString); err != nil {
+		return nil, fmt.Errorf("failed to get alg header: %w", err)
+	}
+	generateAlg, err := ToGenerateAlgorithm(&algString)
+	if err != nil {
+		return nil, fmt.Errorf("failed to map to generate alg: %w", err)
+	}
+	return generateAlg, nil
+}
+
+func ExtractKty(jwk joseJwk.Key) (*joseJwa.KeyType, error) {
+	if jwk == nil {
+		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	var err error
+	var kty joseJwa.KeyType
+	if err = jwk.Get(joseJwk.KeyTypeKey, &kty); err != nil {
+		return nil, fmt.Errorf("failed to get kty header: %w", err)
+	}
+	return &kty, nil
+}
+
 func GenerateJwkForAlg(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
