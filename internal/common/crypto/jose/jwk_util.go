@@ -201,11 +201,11 @@ func validateJwkHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 	case cryptoutilOpenapiModel.Oct384:
 		return validateOrGenerateHmacJwk(key, 384)
 	case cryptoutilOpenapiModel.Oct256:
-		return validateOrGenerateHmacJwk(key, 256)
+		return validateOrGenerateAESJwk(key, 256)
 	case cryptoutilOpenapiModel.Oct192:
-		return validateOrGenerateHmacJwk(key, 192)
+		return validateOrGenerateAESJwk(key, 192)
 	case cryptoutilOpenapiModel.Oct128:
-		return validateOrGenerateHmacJwk(key, 128)
+		return validateOrGenerateAESJwk(key, 128)
 	// case cryptoutilOpenapiModel.OctUUIDv7:
 	default:
 		return nil, fmt.Errorf("unsupported JWK alg: %v", alg)
@@ -300,7 +300,7 @@ func validateOrGenerateHmacJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (cry
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateHMACKey(keyBitsLength)
 		if err != nil {
-			return nil, fmt.Errorf("failed to generate AES %d key: %w", keyBitsLength, err)
+			return nil, fmt.Errorf("failed to generate HMAC %d key: %w", keyBitsLength, err)
 		}
 		return generatedKey, nil
 	} else {
@@ -310,8 +310,28 @@ func validateOrGenerateHmacJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (cry
 		} else if hmacKey == nil {
 			return nil, fmt.Errorf("invalid nil key bytes")
 		} else if len(hmacKey) != keyBitsLength/8 {
-			return nil, fmt.Errorf("invalid key length %d; use AES %d", len(hmacKey), keyBitsLength)
+			return nil, fmt.Errorf("invalid key length %d; use HMAC %d", len(hmacKey), keyBitsLength)
 		}
 		return hmacKey, nil
+	}
+}
+
+func validateOrGenerateAESJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
+	if key == nil {
+		generatedKey, err := cryptoutilKeyGen.GenerateAESKey(keyBitsLength)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate AES %d key: %w", keyBitsLength, err)
+		}
+		return generatedKey, nil
+	} else {
+		aesKey, ok := key.(cryptoutilKeyGen.SecretKey)
+		if !ok {
+			return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key)
+		} else if aesKey == nil {
+			return nil, fmt.Errorf("invalid nil key bytes")
+		} else if len(aesKey) != keyBitsLength/8 {
+			return nil, fmt.Errorf("invalid key length %d; use AES %d", len(aesKey), keyBitsLength)
+		}
+		return aesKey, nil
 	}
 }
