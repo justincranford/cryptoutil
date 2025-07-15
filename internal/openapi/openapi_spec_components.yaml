@@ -539,10 +539,8 @@ components:
         - "oct/256"
         - "oct/192"
         - "oct/128"
-        - "oct/UUIDv7"
-        - "oct/UUIDv4"
       example: "oct/256"
-      description: Key, Key Pair, or other algorithm.
+      description: Key or Key Pair algorithm.
 
     EncryptContext:
       type: string

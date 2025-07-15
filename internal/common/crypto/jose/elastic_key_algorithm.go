@@ -22,8 +22,6 @@ var (
 		string(cryptoutilOpenapiModel.Oct256):     cryptoutilOpenapiModel.Oct256,
 		string(cryptoutilOpenapiModel.Oct192):     cryptoutilOpenapiModel.Oct192,
 		string(cryptoutilOpenapiModel.Oct128):     cryptoutilOpenapiModel.Oct128,
-		string(cryptoutilOpenapiModel.OctUUIDv7):  cryptoutilOpenapiModel.OctUUIDv7,
-		string(cryptoutilOpenapiModel.OctUUIDv4):  cryptoutilOpenapiModel.OctUUIDv4,
 	}
 
 	elasticKeyAlgorithms = map[string]cryptoutilOpenapiModel.ElasticKeyAlgorithm{

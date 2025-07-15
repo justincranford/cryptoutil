@@ -228,9 +228,6 @@ func (s *JwkGenService) GenerateJwk(alg *cryptoutilOpenapiModel.GenerateAlgorith
 		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes192KeyGenPool.Get())
 	case cryptoutilOpenapiModel.Oct128:
 		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes128KeyGenPool.Get())
-	case cryptoutilOpenapiModel.OctUUIDv7:
-		uuidV7 := *s.uuidV7KeyGenPool.Get()
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, cryptoutilKeyGen.SecretKey(uuidV7[:]))
 	default:
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWK alg: %v", alg)
 	}

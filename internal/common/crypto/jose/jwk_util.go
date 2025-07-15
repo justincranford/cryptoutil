@@ -234,7 +234,6 @@ func validateJwkHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 		return validateOrGenerateAESJwk(key, 192)
 	case cryptoutilOpenapiModel.Oct128:
 		return validateOrGenerateAESJwk(key, 128)
-	// case cryptoutilOpenapiModel.OctUUIDv7:
 	default:
 		return nil, fmt.Errorf("unsupported JWK alg: %v", alg)
 	}

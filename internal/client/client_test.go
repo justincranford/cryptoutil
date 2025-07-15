@@ -55,7 +55,6 @@ var happyPathGenerateAlgorithmTestCases = []cryptoutilOpenapiModel.GenerateAlgor
 	cryptoutilOpenapiModel.Oct256,
 	cryptoutilOpenapiModel.Oct192,
 	cryptoutilOpenapiModel.Oct128,
-	// cryptoutilOpenapiModel.OctUUIDv7,
 }
 
 var happyPathElasticKeyTestCasesEncrypt = []elasticKeyTestCase{
