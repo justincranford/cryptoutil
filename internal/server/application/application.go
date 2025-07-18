@@ -3,11 +3,13 @@ package application
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"sync/atomic"
 	"syscall"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
@@ -29,8 +31,13 @@ import (
 
 var ready atomic.Bool
 
-func StartServerApplication(listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
+func StartServerApplication(settings *cryptoutilConfig.Settings, listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
 	ctx := context.Background()
+
+	settings, err := cryptoutilConfig.Parse()
+	if err != nil {
+		log.Fatal("Error parsing config:", err)
+	}
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, "cryptoutil", false, false)
 	if err != nil {

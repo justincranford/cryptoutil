@@ -10,6 +10,7 @@ import (
 	"time"
 
 	cryptoutilClient "cryptoutil/internal/client"
+	cryptoutilConfig "cryptoutil/internal/common/config"
 
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +22,9 @@ var (
 )
 
 func TestHttpGetHttp200(t *testing.T) {
-	start, stop, err := StartServerApplication("localhost", testServerPort, true)
+	testSettings := &cryptoutilConfig.Settings{}
+
+	start, stop, err := StartServerApplication(testSettings, "localhost", testServerPort, true)
 	if err != nil {
 		t.Fatalf("failed to start server application: %v", err)
 	}

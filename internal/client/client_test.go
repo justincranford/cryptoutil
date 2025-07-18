@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilServerApplication "cryptoutil/internal/server/application"
@@ -187,7 +188,9 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		start, stop, err := cryptoutilServerApplication.StartServerApplication(testServerHostname, testServerPort, true)
+		testSettings := &cryptoutilConfig.Settings{}
+
+		start, stop, err := cryptoutilServerApplication.StartServerApplication(testSettings, testServerHostname, testServerPort, true)
 		if err != nil {
 			log.Fatalf("failed to start server application: %v", err)
 		}
