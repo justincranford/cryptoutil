@@ -54,7 +54,7 @@ var (
 	logLevel = Setting{
 		name:      "log-level",
 		shorthand: "l",
-		value:     "TRACE",
+		value:     "INFO",
 		usage:     "log level: TRACE, DEBUG, INFO, WARN, ERROR, FATAL",
 	}
 	verboseMode = Setting{
