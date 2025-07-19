@@ -85,7 +85,7 @@ var (
 	otlpScope = Setting{
 		name:      "otlp-scope",
 		shorthand: "s",
-		value:     false,
+		value:     "cryptoutil",
 		usage:     "OTLP scope",
 	}
 	bindAddress = Setting{
@@ -230,7 +230,7 @@ func Parse() (*Settings, error) {
 	pflag.BoolP(devMode.name, devMode.shorthand, devMode.value.(bool), devMode.usage)
 	pflag.BoolP(otlp.name, otlp.shorthand, otlp.value.(bool), otlp.usage)
 	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, otlpConsole.value.(bool), otlpConsole.usage)
-	pflag.BoolP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(bool), otlpScope.usage)
+	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)
 	pflag.StringP(bindAddress.name, bindAddress.shorthand, bindAddress.value.(string), bindAddress.usage)
 	pflag.Uint16P(bindPort.name, bindPort.shorthand, bindPort.value.(uint16), bindPort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)

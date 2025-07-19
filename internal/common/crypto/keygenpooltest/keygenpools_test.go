@@ -30,7 +30,7 @@ func TestPoolsExample(t *testing.T) {
 	tempDir := t.TempDir()
 
 	ctx := context.Background()
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(testCtx, "elastickeys_test", false, false)
+	telemetryService := cryptoutilTelemetry.RequireNewForTest(testCtx, false, false, "elastickeys_test")
 	defer telemetryService.Shutdown()
 
 	keys, err := generateKeys(ctx, telemetryService)

@@ -62,7 +62,7 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "pool_test", false, true)
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, true, "pool_test")
 		defer testTelemetryService.Shutdown() // this needs to run before os.Exit
 
 		rc = m.Run()

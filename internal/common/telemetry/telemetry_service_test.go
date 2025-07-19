@@ -17,7 +17,7 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = RequireNewForTest(testCtx, "telemetry_test", false, false)
+		testTelemetryService = RequireNewForTest(testCtx, false, false, "telemetry_test")
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()

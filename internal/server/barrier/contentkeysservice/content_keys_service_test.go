@@ -31,7 +31,7 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, "content_keys_service_test", false, false)
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, false, "content_keys_service_test")
 		defer testTelemetryService.Shutdown()
 
 		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
