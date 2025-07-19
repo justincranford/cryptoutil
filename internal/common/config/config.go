@@ -17,6 +17,8 @@ type Settings struct {
 	VerboseMode              bool
 	LogLevel                 string
 	DevMode                  bool
+	EnableTelemetryOTLP      bool
+	EnableTelemetrySTDOUT    bool
 	ConfigFile               string
 	BindAddress              string
 	BindPort                 uint16
@@ -36,10 +38,10 @@ type Settings struct {
 
 // Setting Input values for pflag.*P(name, shortname, value, usage)
 type Setting struct {
-	name      string
-	shorthand string
-	value     any
-	usage     string
+	name      string // unique long name for the flag
+	shorthand string // unique short name for the flag
+	value     any    // default value for the flag
+	usage     string // description of the flag
 }
 
 var (
@@ -66,6 +68,18 @@ var (
 		shorthand: "d",
 		value:     false,
 		usage:     "run in development mode; enables in-memory SQLite and migrations",
+	}
+	enableTelemetryOTLP = Setting{
+		name:      "telemetry-otlp",
+		shorthand: "z",
+		value:     false,
+		usage:     "enable telemetry via OTLP",
+	}
+	enableTelemetrySTDOUT = Setting{
+		name:      "telemetry-stdout",
+		shorthand: "s",
+		value:     false,
+		usage:     "enable telemetry via STDOUT",
 	}
 	bindAddress = Setting{
 		name:      "bind-address",
@@ -207,6 +221,8 @@ func Parse() (*Settings, error) {
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, verboseMode.value.(bool), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, devMode.value.(bool), devMode.usage)
+	pflag.BoolP(enableTelemetryOTLP.name, enableTelemetryOTLP.shorthand, enableTelemetryOTLP.value.(bool), enableTelemetryOTLP.usage)
+	pflag.BoolP(enableTelemetrySTDOUT.name, enableTelemetrySTDOUT.shorthand, enableTelemetrySTDOUT.value.(bool), enableTelemetrySTDOUT.usage)
 	pflag.StringP(bindAddress.name, bindAddress.shorthand, bindAddress.value.(string), bindAddress.usage)
 	pflag.Uint16P(bindPort.name, bindPort.shorthand, bindPort.value.(uint16), bindPort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)
@@ -244,6 +260,8 @@ func Parse() (*Settings, error) {
 		LogLevel:                 viper.GetString(logLevel.name),
 		VerboseMode:              viper.GetBool(verboseMode.name),
 		DevMode:                  viper.GetBool(devMode.name),
+		EnableTelemetryOTLP:      viper.GetBool(enableTelemetryOTLP.name),
+		EnableTelemetrySTDOUT:    viper.GetBool(enableTelemetrySTDOUT.name),
 		BindAddress:              viper.GetString(bindAddress.name),
 		BindPort:                 viper.GetUint16(bindPort.name),
 		ContextPath:              viper.GetString(contextPath.name),
@@ -269,6 +287,8 @@ func logSettings(s *Settings) {
 		log.Info("Log Level: ", s.LogLevel)
 		log.Info("Verbose mode: ", s.VerboseMode)
 		log.Info("Dev mode: ", s.DevMode)
+		log.Info("Enable Telemetry OTLP: ", s.EnableTelemetryOTLP)
+		log.Info("Enable Telemetry STDOUT: ", s.EnableTelemetrySTDOUT)
 		log.Info("Bind Address: ", s.BindAddress)
 		log.Info("Bind Port: ", s.BindPort)
 		log.Info("Context Path: ", s.ContextPath)
