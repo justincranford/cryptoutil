@@ -16,15 +16,18 @@ import (
 )
 
 var (
-	testServerHostname = "localhost"
-	testServerPort     = 8081
-	testServerBaseUrl  = "http://" + testServerHostname + ":" + strconv.Itoa(testServerPort) + "/"
+	testSettings = &cryptoutilConfig.Settings{
+		BindAddress: "localhost",
+		BindPort:    8081,
+		DevMode:     true,
+		Migrations:  true,
+		OTLPScope:   "server_test",
+	}
+	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"
 )
 
 func TestHttpGetHttp200(t *testing.T) {
-	testSettings := &cryptoutilConfig.Settings{}
-
-	start, stop, err := StartServerApplication(testSettings, "localhost", testServerPort, true)
+	start, stop, err := StartServerApplication(testSettings)
 	if err != nil {
 		t.Fatalf("failed to start server application: %v", err)
 	}

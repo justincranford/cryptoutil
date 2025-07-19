@@ -31,7 +31,7 @@ import (
 
 var ready atomic.Bool
 
-func StartServerApplication(settings *cryptoutilConfig.Settings, listenHost string, listenPort int, applyMigrations bool) (func(), func(), error) {
+func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func(), error) {
 	ctx := context.Background()
 
 	settings, err := cryptoutilConfig.Parse()
@@ -59,7 +59,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings, listenHost stri
 		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
 
-	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, jwkGenService, sqlRepository, applyMigrations)
+	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, jwkGenService, sqlRepository, settings.Migrations)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create ORM repository", "error", err)
 		stopServerFunc(telemetryService, jwkGenService, sqlRepository, nil, nil, nil, nil)()
@@ -109,8 +109,8 @@ func StartServerApplication(settings *cryptoutilConfig.Settings, listenHost stri
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
 		otelfiber.WithPropagators(*telemetryService.TextMapPropagator),
-		otelfiber.WithServerName(listenHost),
-		otelfiber.WithPort(listenPort),
+		otelfiber.WithServerName(settings.BindAddress),
+		otelfiber.WithPort(int(settings.BindPort)),
 	))
 	app.Get("/healthz", func(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusOK)
@@ -133,7 +133,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings, listenHost stri
 	}
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, openapiStrictHandler, fiberServerOptions)
 
-	listenAddress := fmt.Sprintf("%s:%d", listenHost, listenPort)
+	listenAddress := fmt.Sprintf("%s:%d", settings.BindAddress, settings.BindPort)
 
 	startServer := startServerFunc(err, listenAddress, app, telemetryService)
 	stopServer := stopServerFunc(telemetryService, jwkGenService, sqlRepository, ormRepository, unsealKeysService, barrierService, app)

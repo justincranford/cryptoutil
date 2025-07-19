@@ -22,6 +22,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	testSettings = &cryptoutilConfig.Settings{
+		BindAddress: "localhost",
+		BindPort:    8080,
+		DevMode:     true,
+		Migrations:  true,
+		OTLPScope:   "client_test",
+	}
+	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"
+)
+
 type elasticKeyTestCase struct {
 	name              string
 	description       string
@@ -179,18 +190,10 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "EdDSA", provider: "Internal", importAllowed: false, versioningAllowed: true},
 }
 
-var (
-	testServerHostname = "localhost"
-	testServerPort     = 8080
-	testServerBaseUrl  = "http://" + testServerHostname + ":" + strconv.Itoa(testServerPort) + "/"
-)
-
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings := &cryptoutilConfig.Settings{}
-
-		start, stop, err := cryptoutilServerApplication.StartServerApplication(testSettings, testServerHostname, testServerPort, true)
+		start, stop, err := cryptoutilServerApplication.StartServerApplication(testSettings)
 		if err != nil {
 			log.Fatalf("failed to start server application: %v", err)
 		}
