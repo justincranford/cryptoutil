@@ -19,6 +19,7 @@ type Settings struct {
 	DevMode                  bool
 	OTLP                     bool
 	OTLPConsole              bool
+	OTLPScope                string
 	ConfigFile               string
 	BindAddress              string
 	BindPort                 uint16
@@ -77,9 +78,15 @@ var (
 	}
 	otlpConsole = Setting{
 		name:      "otlp-console",
-		shorthand: "s",
+		shorthand: "q",
 		value:     false,
 		usage:     "enable OTLP logging to console (STDOUT)",
+	}
+	otlpScope = Setting{
+		name:      "otlp-scope",
+		shorthand: "s",
+		value:     false,
+		usage:     "OTLP scope",
 	}
 	bindAddress = Setting{
 		name:      "bind-address",
@@ -223,6 +230,7 @@ func Parse() (*Settings, error) {
 	pflag.BoolP(devMode.name, devMode.shorthand, devMode.value.(bool), devMode.usage)
 	pflag.BoolP(otlp.name, otlp.shorthand, otlp.value.(bool), otlp.usage)
 	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, otlpConsole.value.(bool), otlpConsole.usage)
+	pflag.BoolP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(bool), otlpScope.usage)
 	pflag.StringP(bindAddress.name, bindAddress.shorthand, bindAddress.value.(string), bindAddress.usage)
 	pflag.Uint16P(bindPort.name, bindPort.shorthand, bindPort.value.(uint16), bindPort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)
@@ -262,6 +270,7 @@ func Parse() (*Settings, error) {
 		DevMode:                  viper.GetBool(devMode.name),
 		OTLP:                     viper.GetBool(otlp.name),
 		OTLPConsole:              viper.GetBool(otlpConsole.name),
+		OTLPScope:                viper.GetString(otlpScope.name),
 		BindAddress:              viper.GetString(bindAddress.name),
 		BindPort:                 viper.GetUint16(bindPort.name),
 		ContextPath:              viper.GetString(contextPath.name),
@@ -289,6 +298,7 @@ func logSettings(s *Settings) {
 		log.Info("Dev mode: ", s.DevMode)
 		log.Info("OTLP Export: ", s.OTLP)
 		log.Info("OTLP Console: ", s.OTLPConsole)
+		log.Info("OTLP Scope: ", s.OTLPScope)
 		log.Info("Bind Address: ", s.BindAddress)
 		log.Info("Bind Port: ", s.BindPort)
 		log.Info("Context Path: ", s.ContextPath)

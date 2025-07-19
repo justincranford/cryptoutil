@@ -41,6 +41,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--dev",
 		"--otlp",
 		"--otlp-console",
+		"--otlp-scope=my-scope",
 		"--bind-address=192.168.1.1",
 		"--bind-port=8080",
 		"--context-path=/custom",
@@ -62,6 +63,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.True(t, s.DevMode)
 	assert.True(t, s.OTLP)
 	assert.True(t, s.OTLPConsole)
+	assert.Equal(t, "my-scope", s.OTLPScope)
 	assert.Equal(t, "192.168.1.1", s.BindAddress)
 	assert.Equal(t, uint16(8080), s.BindPort)
 	assert.Equal(t, "/custom", s.ContextPath)
