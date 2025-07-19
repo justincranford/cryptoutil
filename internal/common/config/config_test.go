@@ -26,7 +26,6 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, rateLimit.value, s.RateLimit)
 	assert.Equal(t, allowedIps.value, s.AllowedIPs)
 	assert.Equal(t, allowedCidrs.value, s.AllowedCIDRs)
-	assert.Equal(t, jwtAccessTokenHmacKey.value, s.JwtAccessTokenHmacKey)
 }
 
 func TestParse_HappyPath_Overrides(t *testing.T) {
@@ -47,7 +46,6 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--rate-limit=100",
 		"--allowed-ips=192.168.1.100",
 		"--allowed-cidrs=10.0.0.0/8",
-		"--jwt-access-token-hmac-key=secret",
 	}
 
 	s, err := Parse()
@@ -66,5 +64,4 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, uint16(100), s.RateLimit)
 	assert.Equal(t, "192.168.1.100", s.AllowedIPs)
 	assert.Equal(t, "10.0.0.0/8", s.AllowedCIDRs)
-	assert.Equal(t, "secret", s.JwtAccessTokenHmacKey)
 }

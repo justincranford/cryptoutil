@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,7 +28,6 @@ type Settings struct {
 	RateLimit                uint16
 	AllowedIPs               string
 	AllowedCIDRs             string
-	JwtAccessTokenHmacKey    string
 	DatabaseURL              string
 	DatabaseInitTotalTimeout time.Duration
 	DatabaseInitRetryWait    time.Duration
@@ -59,13 +59,13 @@ var (
 		name:      "verbose",
 		shorthand: "v",
 		value:     false,
-		usage:     "run with verbose logging",
+		usage:     "verbose modifier for log level",
 	}
 	devMode = Setting{
 		name:      "dev",
 		shorthand: "d",
 		value:     false,
-		usage:     "run in development mode; enables SQLite and migrations",
+		usage:     "run in development mode; enables in-memory SQLite and migrations",
 	}
 	bindAddress = Setting{
 		name:      "bind-address",
@@ -76,7 +76,7 @@ var (
 	bindPort = Setting{
 		name:      "bind-port",
 		shorthand: "p",
-		value:     uint16(5001),
+		value:     uint16(8080),
 		usage:     "default bind port",
 	}
 	contextPath = Setting{
@@ -94,13 +94,13 @@ var (
 	corsMethods = Setting{
 		name:      "cors-methods",
 		shorthand: "m",
-		value:     "POST,OPTIONS",
+		value:     defaultAllowedCORSMethods,
 		usage:     "CORS allowed methods",
 	}
 	corsHeaders = Setting{
 		name:      "cors-headers",
 		shorthand: "h",
-		value:     "Content-Type,Authorization",
+		value:     defaultAllowedCORSHeaders,
 		usage:     "CORS allowed headers",
 	}
 	corsMaxAge = Setting{
@@ -127,16 +127,10 @@ var (
 		value:     defaultAllowedCIDRs,
 		usage:     "comma-separated list of allowed CIDRs",
 	}
-	jwtAccessTokenHmacKey = Setting{
-		name:      "jwt-access-token-hmac-key",
-		shorthand: "J",
-		value:     "", // future
-		usage:     "HMAC key for JWT access token",
-	}
 	databaseURL = Setting{
 		name:      "database-url",
 		shorthand: "u",
-		value:     "postgres://postgres:PASSWORD@localhost:5432/readcommend?sslmode=disable", // show default value, but omit PASSWORD
+		value:     "postgres://postgres:PASSWORD@localhost:5432/readcommend?sslmode=disable", // default is for usage, omit PASSWORD
 		usage:     "database URL",
 	}
 	databaseInitTotalTimeout = Setting{
@@ -160,20 +154,39 @@ var (
 )
 
 var defaultAllowedCORSOrigins = func() string {
+	defaultBindPostString := strconv.Itoa(int(bindPort.value.(uint16)))
 	return strings.Join([]string{
-		"http://localhost:5001",
-		"http://localhost:8080",
-		"http://127.0.0.1:5001",
-		"http://127.0.0.1:8080",
-		"http://[::1]:5001",
-		"http://[::1]:8080",
-		"https://localhost:5001",
-		"https://localhost:8080",
-		"https://127.0.0.1:5001",
-		"https://127.0.0.1:8080",
-		"https://[::1]:5001",
-		"https://[::1]:8080",
+		"http://localhost:" + defaultBindPostString,
+		"http://127.0.0.1:" + defaultBindPostString,
+		"http://[::1]:" + defaultBindPostString,
+		"https://localhost:" + defaultBindPostString,
+		"https://127.0.0.1:" + defaultBindPostString,
+		"https://[::1]:" + defaultBindPostString,
 	}, ",")
+}()
+
+var defaultAllowedCORSMethods = func() string {
+	return strings.Join([]string{
+		"POST",
+		"GET",
+		"PUT",
+		"DELETE",
+		"OPTIONS",
+	}, ",")
+}()
+
+var defaultAllowedCORSHeaders = func() string {
+	defaultHeaders := []string{
+		"Content-Type",
+		"Authorization",
+		"Accept",
+		"Origin",
+		"X-Requested-With",
+		"Cache-Control",
+		"Pragma",
+		"Expires",
+	}
+	return strings.Join(defaultHeaders, ",")
 }()
 
 var defaultAllowedCIDRs = func() string {
@@ -204,7 +217,6 @@ func Parse() (*Settings, error) {
 	pflag.Uint16P(rateLimit.name, rateLimit.shorthand, rateLimit.value.(uint16), rateLimit.usage)
 	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
 	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
-	pflag.StringP(jwtAccessTokenHmacKey.name, jwtAccessTokenHmacKey.shorthand, jwtAccessTokenHmacKey.value.(string), jwtAccessTokenHmacKey.usage)
 	pflag.StringP(databaseURL.name, databaseURL.shorthand, databaseURL.value.(string), databaseURL.usage)
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, databaseInitTotalTimeout.value.(time.Duration), databaseInitTotalTimeout.usage)
 	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, databaseInitRetryWait.value.(time.Duration), databaseInitRetryWait.usage)
@@ -242,7 +254,6 @@ func Parse() (*Settings, error) {
 		RateLimit:                viper.GetUint16(rateLimit.name),
 		AllowedIPs:               viper.GetString(allowedIps.name),
 		AllowedCIDRs:             viper.GetString(allowedCidrs.name),
-		JwtAccessTokenHmacKey:    viper.GetString(jwtAccessTokenHmacKey.name),
 		DatabaseURL:              viper.GetString(databaseURL.name),
 		Migrations:               viper.GetBool(migrations.name),
 		DatabaseInitTotalTimeout: viper.GetDuration(databaseInitTotalTimeout.name),
@@ -270,8 +281,7 @@ func logSettings(s *Settings) {
 		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
 		// only give option to log in dev mode (i.e. don't give option to log in production mode)
 		if s.DevMode {
-			log.Info("JWT Access Token HMAC Key: ", s.JwtAccessTokenHmacKey) // sensitive value (i.e. secret HMAC verify key for JWT access tokens)
-			log.Info("Database URL: ", s.DatabaseURL)                        // sensitive value (i.e. PostgreSQL URLs may contain password)
+			log.Info("Database URL: ", s.DatabaseURL) // sensitive value (i.e. PostgreSQL URLs may contain password)
 		}
 		log.Info("Database Init Total Timeout: ", s.DatabaseInitTotalTimeout)
 		log.Info("Database Init Retry Wait: ", s.DatabaseInitRetryWait)
