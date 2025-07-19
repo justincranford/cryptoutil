@@ -16,8 +16,8 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, logLevel.value, s.LogLevel)
 	assert.Equal(t, verboseMode.value, s.VerboseMode)
 	assert.Equal(t, devMode.value, s.DevMode)
-	assert.Equal(t, enableTelemetryOTLP.value, s.EnableTelemetryOTLP)
-	assert.Equal(t, enableTelemetrySTDOUT.value, s.EnableTelemetrySTDOUT)
+	assert.Equal(t, otlp.value, s.OTLP)
+	assert.Equal(t, otlpConsole.value, s.OTLPConsole)
 	assert.Equal(t, bindAddress.value, s.BindAddress)
 	assert.Equal(t, bindPort.value, s.BindPort)
 	assert.Equal(t, contextPath.value, s.ContextPath)
@@ -39,8 +39,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--log-level=debug",
 		"--verbose",
 		"--dev",
-		"--telemetry-otlp",
-		"--telemetry-stdout",
+		"--otlp",
+		"--otlp-console",
 		"--bind-address=192.168.1.1",
 		"--bind-port=8080",
 		"--context-path=/custom",
@@ -60,8 +60,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "debug", s.LogLevel)
 	assert.True(t, s.VerboseMode)
 	assert.True(t, s.DevMode)
-	assert.True(t, s.EnableTelemetryOTLP)
-	assert.True(t, s.EnableTelemetrySTDOUT)
+	assert.True(t, s.OTLP)
+	assert.True(t, s.OTLPConsole)
 	assert.Equal(t, "192.168.1.1", s.BindAddress)
 	assert.Equal(t, uint16(8080), s.BindPort)
 	assert.Equal(t, "/custom", s.ContextPath)
