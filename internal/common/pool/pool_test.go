@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
@@ -62,7 +63,11 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, true, "pool_test")
+		testSettings := &cryptoutilConfig.Settings{
+			DevMode:   true,
+			OTLPScope: "pool_test",
+		}
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown() // this needs to run before os.Exit
 
 		rc = m.Run()

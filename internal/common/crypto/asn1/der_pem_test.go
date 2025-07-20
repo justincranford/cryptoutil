@@ -13,6 +13,7 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	"github.com/stretchr/testify/require"
@@ -26,7 +27,11 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, false, "asn1_test")
+		testSettings := &cryptoutilConfig.Settings{
+			DevMode:   true,
+			OTLPScope: "der_pem_test",
+		}
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()

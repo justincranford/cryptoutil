@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"
@@ -31,7 +32,11 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, false, "content_keys_service_test")
+		testSettings := &cryptoutilConfig.Settings{
+			DevMode:   true,
+			OTLPScope: "content_keys_service_test",
+		}
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -24,7 +25,11 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, false, "asn1_test")
+		testSettings := &cryptoutilConfig.Settings{
+			DevMode:   true,
+			OTLPScope: "jwkgen_service_test",
+		}
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		var err error

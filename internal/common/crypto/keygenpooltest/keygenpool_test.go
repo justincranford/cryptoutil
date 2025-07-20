@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -69,7 +70,11 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, false, "elastickey_test")
+		testSettings := &cryptoutilConfig.Settings{
+			DevMode:   true,
+			OTLPScope: "keygenpool_test",
+		}
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		rc = m.Run()

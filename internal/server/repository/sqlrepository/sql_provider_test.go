@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	_ "github.com/lib/pq"
@@ -22,7 +23,11 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, false, false, "sql_provider_test")
+		testSettings := &cryptoutilConfig.Settings{
+			DevMode:   true,
+			OTLPScope: "sql_provider_test",
+		}
+		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
 		testSqlRepository = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)

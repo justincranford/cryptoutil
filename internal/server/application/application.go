@@ -39,7 +39,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		log.Fatal("Error parsing config:", err)
 	}
 
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings.OTLP, settings.OTLPConsole, settings.OTLPScope)
+	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to initailize telemetry: %w", err)
 	}

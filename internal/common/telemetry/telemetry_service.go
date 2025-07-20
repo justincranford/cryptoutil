@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
+
 	googleUuid "github.com/google/uuid"
 	slogMulti "github.com/samber/slog-multi"
 	otelSlogBridge "go.opentelemetry.io/contrib/bridges/otelslog"
@@ -83,22 +85,22 @@ var slogStdoutAttributes = func() []stdoutLogExporter.Attr {
 	return slogAttrs
 }()
 
-func NewTelemetryService(ctx context.Context, enableOtel bool, enableStdout bool, scope string) (*TelemetryService, error) {
+func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Settings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")
-	} else if len(scope) == 0 {
+	} else if len(settings.OTLPScope) == 0 {
 		return nil, fmt.Errorf("scope must be non-empty")
 	}
-	slogger, logsProvider, err := initLogger(ctx, enableOtel, scope)
+	slogger, logsProvider, err := initLogger(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init logger: %w", err)
 	}
-	metricsProvider, err := initMetrics(ctx, slogger, enableOtel, enableStdout)
+	metricsProvider, err := initMetrics(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init metrics: %w", err)
 	}
-	tracesProvider, err := initTraces(ctx, slogger, enableOtel, enableStdout)
+	tracesProvider, err := initTraces(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init traces: %w", err)
 	}
@@ -179,7 +181,7 @@ func (s *TelemetryService) Shutdown() {
 	})
 }
 
-func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
+func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
 	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, nil).WithAttrs(slogStdoutAttributes)
 	slogger := stdoutLogExporter.New(stdoutSlogHandler)
 	slogger.Debug("initializing otel logs provider")
@@ -195,8 +197,8 @@ func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*s
 	}
 	otelProvider := logSdk.NewLoggerProvider(otelProviderOptions...)
 
-	if enableOtel {
-		otelSlogHandler := otelSlogBridge.NewHandler(otelLoggerName, otelSlogBridge.WithLoggerProvider(otelProvider))
+	if settings.OTLP {
+		otelSlogHandler := otelSlogBridge.NewHandler(settings.OTLPScope, otelSlogBridge.WithLoggerProvider(otelProvider))
 		slogger = stdoutLogExporter.New(slogMulti.Fanout(stdoutSlogHandler, otelSlogHandler))
 	}
 
@@ -204,7 +206,7 @@ func initLogger(ctx context.Context, enableOtel bool, otelLoggerName string) (*s
 	return slogger, otelProvider, nil
 }
 
-func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, enableOtel bool, enableStdout bool) (*metricSdk.MeterProvider, error) {
+func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.Settings) (*metricSdk.MeterProvider, error) {
 	slogger.Debug("initializing metrics provider")
 
 	var metricsOptions []metricSdk.Option
@@ -215,7 +217,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, enableO
 	}
 	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
-	if enableOtel {
+	if settings.OTLP {
 		otelGrpcMetrics, err := grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(OtelGrpcPush), grpcMetricExporter.WithInsecure())
 		if err != nil {
 			slogger.Error("create Otel GRPC metrics failed", "error", err)
@@ -223,7 +225,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, enableO
 		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(otelGrpcMetrics, metricSdk.WithInterval(MetricsTimeout))))
 	}
 
-	if enableStdout {
+	if settings.OTLPConsole {
 		stdoutMetrics, err := stdoutMetricExporter.New(stdoutMetricExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT metrics failed", "error", err)
@@ -237,7 +239,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, enableO
 	return metricsProvider, nil
 }
 
-func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, enableOtel bool, enableStdout bool) (*traceSdk.TracerProvider, error) {
+func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.Settings) (*traceSdk.TracerProvider, error) {
 	slogger.Debug("initializing traces provider")
 
 	var tracesOptions []traceSdk.TracerProviderOption
@@ -248,7 +250,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, enableOt
 	}
 	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
-	if enableOtel {
+	if settings.OTLP {
 		tracerOtelGrpc, err := grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(OtelGrpcPush), grpcTraceExporterotlptracegrpc.WithInsecure())
 		if err != nil {
 			slogger.Error("create Otel GRPC traces failed", "error", err)
@@ -256,7 +258,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, enableOt
 		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(tracerOtelGrpc, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
 
-	if enableStdout {
+	if settings.OTLPConsole {
 		stdoutTraces, err := stdoutTraceExporter.New(stdoutTraceExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT traces failed", "error", err)
