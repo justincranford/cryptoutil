@@ -27,10 +27,27 @@ var (
 		BindAddress: "localhost",
 		BindPort:    8080,
 		DevMode:     true,
+		Migrations:  true,
 		OTLPScope:   "client_test",
 	}
 	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"
 )
+
+func TestMain(m *testing.M) {
+	var rc int
+	func() {
+		start, stop, err := cryptoutilServerApplication.StartServerApplication(testSettings)
+		if err != nil {
+			log.Fatalf("failed to start server application: %v", err)
+		}
+		go start()
+		defer stop()
+		WaitUntilReady(&testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
+
+		rc = m.Run()
+	}()
+	os.Exit(rc)
+}
 
 type elasticKeyTestCase struct {
 	name              string
@@ -187,22 +204,6 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "HS384", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "HS512", provider: "Internal", importAllowed: false, versioningAllowed: true},
 	{name: *nextElasticKeyName(), description: *nextElasticKeyDesc(), algorithm: "EdDSA", provider: "Internal", importAllowed: false, versioningAllowed: true},
-}
-
-func TestMain(m *testing.M) {
-	var rc int
-	func() {
-		start, stop, err := cryptoutilServerApplication.StartServerApplication(testSettings)
-		if err != nil {
-			log.Fatalf("failed to start server application: %v", err)
-		}
-		go start()
-		defer stop()
-		WaitUntilReady(&testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
-
-		rc = m.Run()
-	}()
-	os.Exit(rc)
 }
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {

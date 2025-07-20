@@ -20,6 +20,7 @@ var (
 		BindAddress: "localhost",
 		BindPort:    8081,
 		DevMode:     true,
+		Migrations:  true,
 		OTLPScope:   "application_test",
 	}
 	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"

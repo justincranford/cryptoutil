@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"sync/atomic"
@@ -33,11 +32,6 @@ var ready atomic.Bool
 
 func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func(), error) {
 	ctx := context.Background()
-
-	settings, err := cryptoutilConfig.Parse()
-	if err != nil {
-		log.Fatal("Error parsing config:", err)
-	}
 
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	if err != nil {
