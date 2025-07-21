@@ -16,16 +16,20 @@ import (
 )
 
 var (
-	testSettings = &cryptoutilConfig.Settings{
-		LogLevel:    "ALL",
-		BindAddress: "localhost",
-		BindPort:    8081,
-		DevMode:     true,
-		Migrations:  true,
-		OTLPScope:   "application_test",
-	}
+	testSettings      = cryptoutilConfig.Default()
 	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"
 )
+
+func TestMain(m *testing.M) {
+	testSettings.DevMode = true
+	testSettings.Migrations = true
+	testSettings.OTLPScope = "application_test"
+
+	exitCode := m.Run()
+	if exitCode != 0 {
+		fmt.Printf("Tests failed with exit code %d\n", exitCode)
+	}
+}
 
 func TestHttpGetHttp200(t *testing.T) {
 	start, stop, err := StartServerApplication(testSettings)

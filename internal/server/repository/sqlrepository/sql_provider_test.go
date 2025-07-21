@@ -23,11 +23,10 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings := &cryptoutilConfig.Settings{
-			LogLevel:  "ALL",
-			DevMode:   true,
-			OTLPScope: "sql_provider_test",
-		}
+		testSettings := cryptoutilConfig.Default()
+		testSettings.DevMode = true
+		testSettings.OTLPScope = "sql_provider_test"
+
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 

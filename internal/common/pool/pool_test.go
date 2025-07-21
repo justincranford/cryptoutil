@@ -24,6 +24,7 @@ type TestCase struct {
 }
 
 var (
+	testSettings         = cryptoutilConfig.Default()
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 
@@ -63,11 +64,10 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings := &cryptoutilConfig.Settings{
-			LogLevel:  "ALL",
-			DevMode:   true,
-			OTLPScope: "pool_test",
-		}
+		testSettings.DevMode = true
+		testSettings.Migrations = true
+		testSettings.OTLPScope = "pool_test"
+
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown() // this needs to run before os.Exit
 

@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
@@ -31,11 +30,11 @@ func TestPoolsExample(t *testing.T) {
 	tempDir := t.TempDir()
 
 	ctx := context.Background()
-	testSettings := &cryptoutilConfig.Settings{
-		LogLevel:  "ALL",
-		DevMode:   true,
-		OTLPScope: "keygenpools_test",
-	}
+
+	testSettings.DevMode = true
+	testSettings.Migrations = true
+	testSettings.OTLPScope = "keygenpools_test"
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 	defer telemetryService.Shutdown()
 
