@@ -28,6 +28,7 @@ func TestMain(m *testing.M) {
 	var rc int
 	func() {
 		testSettings := &cryptoutilConfig.Settings{
+			LogLevel:  "ALL",
 			DevMode:   true,
 			OTLPScope: "der_pem_test",
 		}

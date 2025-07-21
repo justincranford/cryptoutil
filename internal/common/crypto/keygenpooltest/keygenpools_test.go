@@ -32,6 +32,7 @@ func TestPoolsExample(t *testing.T) {
 
 	ctx := context.Background()
 	testSettings := &cryptoutilConfig.Settings{
+		LogLevel:  "ALL",
 		DevMode:   true,
 		OTLPScope: "keygenpools_test",
 	}

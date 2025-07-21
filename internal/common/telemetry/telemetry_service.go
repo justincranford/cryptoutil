@@ -182,7 +182,14 @@ func (s *TelemetryService) Shutdown() {
 }
 
 func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdoutLogExporter.Logger, *logSdk.LoggerProvider, error) {
-	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, nil).WithAttrs(slogStdoutAttributes)
+	slogLevel, err := ParseLogLevel(settings.LogLevel)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse log level: %w", err)
+	}
+	handlerOptions := &stdoutLogExporter.HandlerOptions{
+		Level: slogLevel,
+	}
+	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, handlerOptions).WithAttrs(slogStdoutAttributes)
 	slogger := stdoutLogExporter.New(stdoutSlogHandler)
 	slogger.Debug("initializing otel logs provider")
 
@@ -190,6 +197,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	otelExporter, err := grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(OtelGrpcPush), grpcLogExporter.WithInsecure())
 	if err != nil {
 		slogger.Error("create Otel GRPC logger failed", "error", err)
+		return nil, nil, fmt.Errorf("create Otel GRPC logger failed: %w", err)
 	}
 	otelProviderOptions := []logSdk.LoggerProviderOption{
 		logSdk.WithResource(otelLogsResource),

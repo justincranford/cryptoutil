@@ -24,6 +24,7 @@ import (
 
 var (
 	testSettings = &cryptoutilConfig.Settings{
+		LogLevel:    "ALL",
 		BindAddress: "localhost",
 		BindPort:    8080,
 		DevMode:     true,
