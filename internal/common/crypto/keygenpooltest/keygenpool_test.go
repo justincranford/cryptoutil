@@ -33,7 +33,7 @@ type TestCase struct {
 }
 
 var (
-	testSettings                 = cryptoutilConfig.Default()
+	testSettings                 = cryptoutilConfig.RequireNewForTest("keygenpool_test")
 	testCtx                      = context.Background()
 	testTelemetryService         *cryptoutilTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
@@ -71,10 +71,6 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings.DevMode = true
-		testSettings.Migrations = true
-		testSettings.OTLPScope = "keygenpool_test"
-
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 

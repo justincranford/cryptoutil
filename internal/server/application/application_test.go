@@ -16,15 +16,11 @@ import (
 )
 
 var (
-	testSettings      = cryptoutilConfig.Default()
+	testSettings      = cryptoutilConfig.RequireNewForTest("application_test")
 	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"
 )
 
 func TestMain(m *testing.M) {
-	testSettings.DevMode = true
-	testSettings.Migrations = true
-	testSettings.OTLPScope = "application_test"
-
 	exitCode := m.Run()
 	if exitCode != 0 {
 		fmt.Printf("Tests failed with exit code %d\n", exitCode)

@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.Default()
+	testSettings         = cryptoutilConfig.RequireNewForTest("jwkgen_service_test")
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 	testJwkGenService    *JwkGenService
@@ -26,10 +26,6 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings.DevMode = true
-		testSettings.Migrations = true
-		testSettings.OTLPScope = "jwkgen_service_test"
-
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 

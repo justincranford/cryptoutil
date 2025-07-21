@@ -31,10 +31,6 @@ func TestPoolsExample(t *testing.T) {
 
 	ctx := context.Background()
 
-	testSettings.DevMode = true
-	testSettings.Migrations = true
-	testSettings.OTLPScope = "keygenpools_test"
-
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 	defer telemetryService.Shutdown()
 

@@ -2,7 +2,9 @@ package telemetry
 
 import (
 	"context"
+
 	cryptoutilConfig "cryptoutil/internal/common/config"
+
 	"fmt"
 	"math/rand/v2"
 	"os"
@@ -11,7 +13,7 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.Default()
+	testSettings         = cryptoutilConfig.RequireNewForTest("telemetry_service_test")
 	testCtx              = context.Background()
 	testTelemetryService *TelemetryService
 )
@@ -19,10 +21,6 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings.DevMode = true
-		testSettings.Migrations = true
-		testSettings.OTLPScope = "telemetry_service_test"
-
 		testTelemetryService = RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 

@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.Default()
+	testSettings         = cryptoutilConfig.RequireNewForTest("der_pem_test")
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 )
@@ -28,10 +28,6 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings.DevMode = true
-		testSettings.Migrations = true
-		testSettings.OTLPScope = "der_pem_test"
-
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 

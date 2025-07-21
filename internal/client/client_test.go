@@ -23,17 +23,13 @@ import (
 )
 
 var (
-	testSettings      = cryptoutilConfig.Default()
+	testSettings      = cryptoutilConfig.RequireNewForTest("client_test")
 	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"
 )
 
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		testSettings.DevMode = true
-		testSettings.Migrations = true
-		testSettings.OTLPScope = "client_test"
-
 		start, stop, err := cryptoutilServerApplication.StartServerApplication(testSettings)
 		if err != nil {
 			log.Fatalf("failed to start server application: %v", err)
