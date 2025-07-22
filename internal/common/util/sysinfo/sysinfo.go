@@ -1,10 +1,12 @@
 package sysinfo
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/user"
 	"runtime"
+	"time"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
@@ -27,7 +29,10 @@ func RuntimeNumCPU() int {
 
 // CPUInfo Returns VendorID, Family, Model, PhysicalID, ModelName
 func CPUInfo() (string, string, string, string, error) {
-	cpuInfo, err := cpu.Info()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cpuInfo, err := cpu.InfoWithContext(ctx)
 	if err != nil {
 		return EmptyString, EmptyString, EmptyString, EmptyString, fmt.Errorf("failed to get CPU info: %w", err)
 	}
@@ -38,7 +43,10 @@ func CPUInfo() (string, string, string, string, error) {
 }
 
 func RAMSize() (uint64, error) {
-	vmStats, err := mem.VirtualMemory()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	vmStats, err := mem.VirtualMemoryWithContext(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("failed to get RAM info: %w", err)
 	}
@@ -50,7 +58,10 @@ func OSHostname() (string, error) {
 }
 
 func HostID() (string, error) {
-	hostID, err := host.HostID()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	hostID, err := host.HostIDWithContext(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to get host ID: %w", err)
 	}
