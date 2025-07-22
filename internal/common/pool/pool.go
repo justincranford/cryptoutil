@@ -200,11 +200,10 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	timeLimitReached := (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration)
 	if timeLimitReached || (pool.cfg.maxLifetimeValues > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.cfg.maxLifetimeValues) {
 		if timeLimitReached {
-			pool.cfg.telemetryService.Slogger.Warn("time limit reached", "pool", pool.cfg.poolName)
+			pool.cfg.telemetryService.Slogger.Warn("time limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		} else {
-			pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName)
+			pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		}
-		pool.cfg.telemetryService.Slogger.Warn("limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		// pool.Cancel() // IMPORTANT: don't call Cancel() in this function, it waits for all permissions released, and this function holds permission until it returns
 		return fmt.Errorf("pool %s reached max lifetime values %d or max lifetime duration %s", pool.cfg.poolName, pool.cfg.maxLifetimeValues, pool.cfg.maxLifetimeDuration)
 	}
