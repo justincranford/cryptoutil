@@ -39,7 +39,7 @@ func TestMain(m *testing.M) {
 		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJwkGenService.Shutdown()
 
-		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSqlRepository.Shutdown()
 
 		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)

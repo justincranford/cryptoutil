@@ -23,7 +23,6 @@ var (
 	testJwkGenService    *cryptoutilJose.JwkGenService
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
-	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 )
 
 func TestMain(m *testing.M) {
@@ -50,7 +49,7 @@ func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 
-	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
@@ -67,7 +66,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 
-	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
@@ -84,7 +83,7 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 
-	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)

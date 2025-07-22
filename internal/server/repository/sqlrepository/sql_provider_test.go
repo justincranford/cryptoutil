@@ -27,24 +27,13 @@ func TestMain(m *testing.M) {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testSqlRepository = RequireNewForTest(testCtx, testTelemetryService, DBTypeSQLite)
+		testSqlRepository = RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSqlRepository.Shutdown()
 		testSqlRepository.logConnectionPoolSettings()
 
 		rc = m.Run()
 	}()
 	os.Exit(rc)
-}
-
-func TestSqlRepository_UnsupportedDatabaseType(t *testing.T) {
-	_, err := NewSqlRepository(testCtx, testTelemetryService, "invalidDbType", "", ContainerModeDisabled)
-	require.Error(t, err)
-}
-
-func TestSqlRepository_PingFailure(t *testing.T) {
-	invalidProvider, err := NewSqlRepository(testCtx, testTelemetryService, DBTypeSQLite, "invalid:memory:", ContainerModeDisabled)
-	require.Error(t, err)
-	require.Nil(t, invalidProvider)
 }
 
 func TestSqlTransaction_PanicRecovery(t *testing.T) {

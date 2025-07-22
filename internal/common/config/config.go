@@ -13,6 +13,25 @@ import (
 	"github.com/spf13/viper"
 )
 
+const (
+	httpScheme  = "http://"
+	httpsScheme = "https://"
+
+	localhost    = "localhost"
+	ipv4Loopback = "127.0.0.1"
+	ipv6Loopback = "[::1]"
+
+	localhostCIDRv4     = "127.0.0.0/8"
+	linkLocalCIDRv4     = "169.254.0.0/16"
+	privateClassACIDRv4 = "10.0.0.0/8"
+	privateClassBCIDRv4 = "172.16.0.0/12"
+	privateClassCCIDRv4 = "192.168.0.0/16"
+
+	localhostCIDRv6 = "::1/128"
+	linkLocalCIDRv6 = "fe80::/10"
+	privateLANv6    = "fc00::/7"
+)
+
 type Settings struct {
 	VerboseMode              bool
 	LogLevel                 string
@@ -31,6 +50,7 @@ type Settings struct {
 	RateLimit                uint16
 	AllowedIPs               string
 	AllowedCIDRs             string
+	DatabaseContainer        bool
 	DatabaseURL              string
 	DatabaseInitTotalTimeout time.Duration
 	DatabaseInitRetryWait    time.Duration
@@ -148,6 +168,12 @@ var (
 		value:     defaultAllowedCIDRs,
 		usage:     "comma-separated list of allowed CIDRs",
 	}
+	databaseContainer = Setting{
+		name:      "database-container",
+		shorthand: "D",
+		value:     false,
+		usage:     "database container mode; true to use container, false to use local database",
+	}
 	databaseURL = Setting{
 		name:      "database-url",
 		shorthand: "u",
@@ -177,12 +203,12 @@ var (
 var defaultAllowedCORSOrigins = func() string {
 	defaultBindPostString := strconv.Itoa(int(bindPort.value.(uint16)))
 	return strings.Join([]string{
-		"http://localhost:" + defaultBindPostString,
-		"http://127.0.0.1:" + defaultBindPostString,
-		"http://[::1]:" + defaultBindPostString,
-		"https://localhost:" + defaultBindPostString,
-		"https://127.0.0.1:" + defaultBindPostString,
-		"https://[::1]:" + defaultBindPostString,
+		httpScheme + localhost + ":" + defaultBindPostString,
+		httpScheme + ipv4Loopback + ":" + defaultBindPostString,
+		httpScheme + ipv6Loopback + ":" + defaultBindPostString,
+		httpsScheme + localhost + ":" + defaultBindPostString,
+		httpsScheme + ipv4Loopback + ":" + defaultBindPostString,
+		httpsScheme + ipv6Loopback + ":" + defaultBindPostString,
 	}, ",")
 }()
 
@@ -212,14 +238,14 @@ var defaultAllowedCORSHeaders = func() string {
 
 var defaultAllowedCIDRs = func() string {
 	return strings.Join([]string{
-		"127.0.0.0/8",    // localhost (IPv4)
-		"169.254.0.0/16", // link-local (IPv4)
-		"10.0.0.0/8",     // private LAN class A (IPv4)
-		"172.16.0.0/12",  // private LAN class B (IPv4)
-		"192.168.0.0/16", // private LAN class C (IPv4)
-		"::1/128",        // localhost (IPv6)
-		"fe80::/10",      // link-local (IPv6)
-		"fc00::/7",       // private LAN (IPv6)
+		localhostCIDRv4,     // localhost (IPv4)
+		linkLocalCIDRv4,     // link-local (IPv4)
+		privateClassACIDRv4, // private LAN class A (IPv4)
+		privateClassBCIDRv4, // private LAN class B (IPv4)
+		privateClassCCIDRv4, // private LAN class C (IPv4)
+		localhostCIDRv6,     // localhost (IPv6)
+		linkLocalCIDRv6,     // link-local (IPv6)
+		privateLANv6,        // private LAN (IPv6)
 	}, ",")
 }()
 
@@ -241,6 +267,7 @@ func Parse() (*Settings, error) {
 	pflag.Uint16P(rateLimit.name, rateLimit.shorthand, rateLimit.value.(uint16), rateLimit.usage)
 	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
 	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
+	pflag.BoolP(databaseContainer.name, databaseContainer.shorthand, databaseContainer.value.(bool), databaseContainer.usage)
 	pflag.StringP(databaseURL.name, databaseURL.shorthand, databaseURL.value.(string), databaseURL.usage)
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, databaseInitTotalTimeout.value.(time.Duration), databaseInitTotalTimeout.usage)
 	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, databaseInitRetryWait.value.(time.Duration), databaseInitRetryWait.usage)
@@ -281,6 +308,7 @@ func Parse() (*Settings, error) {
 		RateLimit:                viper.GetUint16(rateLimit.name),
 		AllowedIPs:               viper.GetString(allowedIps.name),
 		AllowedCIDRs:             viper.GetString(allowedCidrs.name),
+		DatabaseContainer:        viper.GetBool(databaseContainer.name),
 		DatabaseURL:              viper.GetString(databaseURL.name),
 		Migrations:               viper.GetBool(migrations.name),
 		DatabaseInitTotalTimeout: viper.GetDuration(databaseInitTotalTimeout.name),
@@ -309,6 +337,7 @@ func logSettings(s *Settings) {
 		log.Info("Rate Limit: ", s.RateLimit)
 		log.Info("Allowed IPs: ", s.AllowedIPs)
 		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
+		log.Info("Database Container: ", s.DatabaseContainer)
 		// only give option to log in dev mode (i.e. don't give option to log in production mode)
 		if s.DevMode {
 			log.Info("Database URL: ", s.DatabaseURL) // sensitive value (i.e. PostgreSQL URLs may contain password)

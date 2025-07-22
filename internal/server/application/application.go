@@ -45,8 +45,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		return nil, nil, fmt.Errorf("failed to create JWK Gen Service: %w", err)
 	}
 
-	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, cryptoutilSqlRepository.DBTypeSQLite, ":memory:", cryptoutilSqlRepository.ContainerModeDisabled)
-	// sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, cryptoutilSqlRepository.DBTypePostgres, nil, cryptoutilSqlRepository.ContainerModeRequired)
+	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, settings)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
 		stopServerFunc(telemetryService, jwkGenService, nil, nil, nil, nil, nil)()

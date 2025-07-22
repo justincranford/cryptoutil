@@ -25,7 +25,6 @@ var (
 	testJwkGenService    *cryptoutilJose.JwkGenService
 	testSqlRepository    *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
-	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	testRootKeysService  *cryptoutilRootKeysService.RootKeysService
 )
 
@@ -38,7 +37,7 @@ func TestMain(m *testing.M) {
 		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJwkGenService.Shutdown()
 
-		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSqlRepository.Shutdown()
 
 		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)

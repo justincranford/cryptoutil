@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 }
 
 func Test_HappyPath_SameUnsealJwks(t *testing.T) {
-	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)
@@ -56,7 +56,7 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 }
 
 func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
-	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testDbType)
+	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testJwkGenService, testSqlRepository, true)

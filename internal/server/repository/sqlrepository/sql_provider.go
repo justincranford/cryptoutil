@@ -8,13 +8,14 @@ import (
 	"math/rand"
 	"time"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilContainer "cryptoutil/internal/common/container"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
 type SqlRepository struct {
 	telemetryService    *cryptoutilTelemetry.TelemetryService
-	dbType              SupportedDBType
+	dbType              SupportedDBType // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	sqlDB               *sql.DB
 	containerMode       ContainerMode
 	shutdownDBContainer func()
@@ -53,12 +54,16 @@ var (
 	ErrMaxPingAttemptsExceeded                      = errors.New("exceeded maximum DB ping attempts")
 )
 
-func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbType SupportedDBType, databaseUrl string, containerMode ContainerMode) (*SqlRepository, error) {
+func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (*SqlRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	}
+
+	dbType := DBTypeSQLite                 // DBTypePostgres
+	databaseUrl := ":memory:"              // nil
+	containerMode := ContainerModeDisabled // ContainerModeRequired
 
 	var shutdownDBContainer func() = func() {} // no-op by default
 
