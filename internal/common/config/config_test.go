@@ -46,7 +46,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--bind-address=192.168.1.1",
 		"--bind-port=8080",
 		"--context-path=/custom",
-		"--database-container=true",
+		"--database-container=required",
 		"--database-url=postgres://user:pass@db:5432/dbname?sslmode=disable",
 		"--cors-origins=https://example.com",
 		"--cors-methods=GET,POST",
@@ -69,7 +69,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "192.168.1.1", s.BindAddress)
 	assert.Equal(t, uint16(8080), s.BindPort)
 	assert.Equal(t, "/custom", s.ContextPath)
-	assert.True(t, s.DatabaseContainer)
+	assert.Equal(t, "required", s.DatabaseContainer)
 	assert.Equal(t, "postgres://user:pass@db:5432/dbname?sslmode=disable", s.DatabaseURL)
 	assert.Equal(t, "https://example.com", s.CorsOrigins)
 	assert.Equal(t, "GET,POST", s.CorsMethods)

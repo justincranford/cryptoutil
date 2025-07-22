@@ -50,7 +50,7 @@ type Settings struct {
 	RateLimit                uint16
 	AllowedIPs               string
 	AllowedCIDRs             string
-	DatabaseContainer        bool
+	DatabaseContainer        string
 	DatabaseURL              string
 	DatabaseInitTotalTimeout time.Duration
 	DatabaseInitRetryWait    time.Duration
@@ -171,7 +171,7 @@ var (
 	databaseContainer = Setting{
 		name:      "database-container",
 		shorthand: "D",
-		value:     false,
+		value:     "disabled",
 		usage:     "database container mode; true to use container, false to use local database",
 	}
 	databaseURL = Setting{
@@ -267,7 +267,7 @@ func Parse() (*Settings, error) {
 	pflag.Uint16P(rateLimit.name, rateLimit.shorthand, rateLimit.value.(uint16), rateLimit.usage)
 	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
 	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
-	pflag.BoolP(databaseContainer.name, databaseContainer.shorthand, databaseContainer.value.(bool), databaseContainer.usage)
+	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, databaseContainer.value.(string), databaseContainer.usage)
 	pflag.StringP(databaseURL.name, databaseURL.shorthand, databaseURL.value.(string), databaseURL.usage)
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, databaseInitTotalTimeout.value.(time.Duration), databaseInitTotalTimeout.usage)
 	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, databaseInitRetryWait.value.(time.Duration), databaseInitRetryWait.usage)
@@ -308,7 +308,7 @@ func Parse() (*Settings, error) {
 		RateLimit:                viper.GetUint16(rateLimit.name),
 		AllowedIPs:               viper.GetString(allowedIps.name),
 		AllowedCIDRs:             viper.GetString(allowedCidrs.name),
-		DatabaseContainer:        viper.GetBool(databaseContainer.name),
+		DatabaseContainer:        viper.GetString(databaseContainer.name),
 		DatabaseURL:              viper.GetString(databaseURL.name),
 		Migrations:               viper.GetBool(migrations.name),
 		DatabaseInitTotalTimeout: viper.GetDuration(databaseInitTotalTimeout.name),
