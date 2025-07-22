@@ -59,7 +59,13 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
+	} else if settings == nil {
+		return nil, fmt.Errorf("settings must be non-nil")
 	}
+
+	// dbType SupportedDBType
+	// databaseUrl string
+	// containerMode ContainerMode
 
 	dbType := DBTypeSQLite                 // DBTypePostgres
 	databaseUrl := ":memory:"              // nil
