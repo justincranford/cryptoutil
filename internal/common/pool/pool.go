@@ -199,18 +199,20 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	}()
 	pool.cfg.telemetryService.Slogger.Debug("permission granted", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 
+	// permission granted, worker is promising to generate a value if time not exceeded, of if this counter value doesn't exceed the generate limit
 	generateCounter := atomic.AddUint64(&pool.generateCounter, 1)
 
 	if pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration {
 		pool.cfg.telemetryService.Slogger.Warn("time limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		info := fmt.Sprintf("pool %s reached max lifetime %s", pool.cfg.poolName, pool.cfg.maxLifetimeDuration)
 		return &info, nil
-	} else if pool.cfg.maxLifetimeValues > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.cfg.maxLifetimeValues {
+	} else if pool.cfg.maxLifetimeValues > 0 && generateCounter > pool.cfg.maxLifetimeValues {
 		pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		info := fmt.Sprintf("pool %s reached generate limit %d", pool.cfg.poolName, pool.cfg.maxLifetimeValues)
 		return &info, nil
 	}
 
+	// at this point, the worker is committed to generating a value, so only stop if there is an error
 	generateStartTime := time.Now().UTC()
 	value, err := pool.cfg.generateFunction()
 	generateDuration := float64(time.Since(generateStartTime).Milliseconds())
@@ -222,21 +224,11 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 		pool.Cancel() // signal all workers to stop (e.g. does generateFunction() have a bug?)
 		return nil, fmt.Errorf("pool %s worker %d failed to generate value: %w", pool.cfg.poolName, workerNum, err)
 	}
+	pool.cfg.telemetryService.Slogger.Debug("Generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
 
-	select {
-	case <-pool.stopGeneratingCtx.Done(): // someone called Cancel(), skip log and throw the generated value away
-		// TODO Change to Debug after reproducing this rare issue
-		pool.cfg.telemetryService.Slogger.Info("canceled after generate", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-	default:
-		pool.cfg.telemetryService.Slogger.Debug("Generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
-	}
+	pool.generateChannel <- value
+	pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 
-	select {
-	case <-pool.stopGeneratingCtx.Done(): // someone called Cancel(), skip waiting to publish and throw the generated value away
-		pool.cfg.telemetryService.Slogger.Debug("canceled before publish", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-	case pool.generateChannel <- value:
-		pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-	}
 	return nil, nil
 }
 
