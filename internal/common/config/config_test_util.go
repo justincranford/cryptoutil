@@ -1,6 +1,17 @@
 package config
 
-import "time"
+import (
+	"sync/atomic"
+	"time"
+)
+
+var (
+	currentBindPort atomic.Uint32
+)
+
+func init() {
+	currentBindPort.Store(uint32(bindPort.value.(uint16)))
+}
 
 func RequireNewForTest(applicationName string) *Settings {
 	settings := &Settings{
@@ -12,7 +23,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		OTLPConsole:              otlpConsole.value.(bool),
 		OTLPScope:                otlpScope.value.(string),
 		BindAddress:              bindAddress.value.(string),
-		BindPort:                 bindPort.value.(uint16),
+		BindPort:                 uint16(currentBindPort.Add(1)),
 		ContextPath:              contextPath.value.(string),
 		CorsOrigins:              corsOrigins.value.(string),
 		CorsMethods:              corsMethods.value.(string),
