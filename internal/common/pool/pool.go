@@ -176,36 +176,39 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 			return
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
 			pool.generateDurationHistogram.Record(pool.cfg.ctx, float64(time.Since(startPermissionTime).Milliseconds()))
-			err := pool.generatePublishRelease(workerNum, startTime) // attempt to generate inside a function, where permission is always released, even if there is an error or panic
-			if err != nil {
-				pool.cfg.telemetryService.Slogger.Debug("worker stopped", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
+			info, err := pool.generatePublishRelease(workerNum, startTime) // attempt to generate inside a function, where permission is always released, even if there is an error or panic
+			if info != nil {
+				pool.cfg.telemetryService.Slogger.Info("worker done", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "info", *info)
+				return // stop the worker if the pool reached its limits
+			} else if err != nil { // if there was an error, log it and stop the worker
+				pool.cfg.telemetryService.Slogger.Error("worker error", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
 				return
 			}
 		}
 	}
 }
 
-func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime time.Time) error {
+// IMPORTANT: don't call Cancel() in this function, because it waits for all permissions to be released, and this function doesn't release its permission until it returns
+func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime time.Time) (*string, error) {
 	defer func() { // always release permission, even if there was an error or panic
 		if recover := recover(); recover != nil {
 			pool.cfg.telemetryService.Slogger.Error("recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", recover, "stack", string(debug.Stack()))
 		}
-		<-pool.permissionChannel
+		<-pool.permissionChannel // release permission to generate, so other workers can generate, or Cancel() can close the channel
 		pool.cfg.telemetryService.Slogger.Debug("released permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}()
 	pool.cfg.telemetryService.Slogger.Debug("permission granted", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 
 	generateCounter := atomic.AddUint64(&pool.generateCounter, 1)
 
-	timeLimitReached := (pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration)
-	if timeLimitReached || (pool.cfg.maxLifetimeValues > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.cfg.maxLifetimeValues) {
-		if timeLimitReached {
-			pool.cfg.telemetryService.Slogger.Warn("time limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-		} else {
-			pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
-		}
-		// pool.Cancel() // IMPORTANT: don't call Cancel() in this function, it waits for all permissions released, and this function holds permission until it returns
-		return fmt.Errorf("pool %s reached max lifetime values %d or max lifetime duration %s", pool.cfg.poolName, pool.cfg.maxLifetimeValues, pool.cfg.maxLifetimeDuration)
+	if pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration {
+		pool.cfg.telemetryService.Slogger.Warn("time limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		info := fmt.Sprintf("pool %s reached max lifetime %s", pool.cfg.poolName, pool.cfg.maxLifetimeDuration)
+		return &info, nil
+	} else if pool.cfg.maxLifetimeValues > 0 && atomic.LoadUint64(&pool.generateCounter) > pool.cfg.maxLifetimeValues {
+		pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		info := fmt.Sprintf("pool %s reached generate limit %d", pool.cfg.poolName, pool.cfg.maxLifetimeValues)
+		return &info, nil
 	}
 
 	generateStartTime := time.Now().UTC()
@@ -217,7 +220,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	if err != nil {
 		pool.cfg.telemetryService.Slogger.Error("generation failed", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "error", err)
 		pool.Cancel() // signal all workers to stop (e.g. does generateFunction() have a bug?)
-		return fmt.Errorf("pool %s worker %d failed to generate value: %w", pool.cfg.poolName, workerNum, err)
+		return nil, fmt.Errorf("pool %s worker %d failed to generate value: %w", pool.cfg.poolName, workerNum, err)
 	}
 
 	select {
@@ -234,7 +237,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	case pool.generateChannel <- value:
 		pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}
-	return nil
+	return nil, nil
 }
 
 func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup) {
