@@ -33,6 +33,7 @@ const (
 )
 
 type Settings struct {
+	Help                     bool
 	ConfigFile               string
 	VerboseMode              bool
 	LogLevel                 string
@@ -66,6 +67,13 @@ type Setting struct {
 }
 
 var (
+	help = Setting{
+		name:      "help",
+		shorthand: "h",
+		value:     false,
+		usage: "print help; you can run the server with parameters like this:\n" +
+			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n",
+	}
 	configFile = Setting{
 		name:      "config",
 		shorthand: "y",
@@ -140,7 +148,7 @@ var (
 	}
 	corsHeaders = Setting{
 		name:      "cors-headers",
-		shorthand: "h",
+		shorthand: "H",
 		value:     defaultAllowedCORSHeaders,
 		usage:     "CORS allowed headers",
 	}
@@ -177,8 +185,8 @@ var (
 	databaseURL = Setting{
 		name:      "database-url",
 		shorthand: "u",
-		value:     "postgres://postgres:PASSWORD@localhost:5432/readcommend?sslmode=disable", // default is for usage, omit PASSWORD
-		usage:     "database URL",
+		value:     "postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
+		usage:     "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n",
 	}
 	databaseInitTotalTimeout = Setting{
 		name:      "database-init-total-timeout",
@@ -250,6 +258,7 @@ var defaultAllowedCIDRs = func() string {
 }()
 
 func Parse() (*Settings, error) {
+	pflag.BoolP(help.name, help.shorthand, help.value.(bool), help.usage)
 	pflag.StringP(configFile.name, configFile.shorthand, configFile.value.(string), configFile.usage)
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, verboseMode.value.(bool), verboseMode.usage)
@@ -291,6 +300,7 @@ func Parse() (*Settings, error) {
 	}
 
 	s := &Settings{
+		Help:                     viper.GetBool(help.name),
 		ConfigFile:               viper.GetString(configFile.name),
 		LogLevel:                 viper.GetString(logLevel.name),
 		VerboseMode:              viper.GetBool(verboseMode.name),
@@ -316,6 +326,12 @@ func Parse() (*Settings, error) {
 	}
 	logSettings(s)
 
+	if s.Help {
+		pflag.CommandLine.SetOutput(os.Stdout)
+		pflag.CommandLine.PrintDefaults()
+		os.Exit(0)
+	}
+
 	if s.DevMode && !s.Migrations {
 		log.Warn("Dev mode on, but migrations off. Migrations are required in dev mode, and will be enabled automatically now.")
 		s.Migrations = true
@@ -325,6 +341,7 @@ func Parse() (*Settings, error) {
 
 func logSettings(s *Settings) {
 	if s.VerboseMode {
+		log.Info("Help: ", s.Help)
 		log.Info("Config file: ", s.ConfigFile)
 		log.Info("Log Level: ", s.LogLevel)
 		log.Info("Verbose mode: ", s.VerboseMode)
