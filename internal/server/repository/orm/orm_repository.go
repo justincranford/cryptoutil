@@ -18,21 +18,21 @@ var ormEntities = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierCo
 
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JwkGenService
 	sqlRepository    *cryptoutilSqlRepository.SqlRepository
+	jwkGenService    *cryptoutilJose.JwkGenService
 	gormDB           *gorm.DB
 	applyMigrations  bool
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, sqlRepository *cryptoutilSqlRepository.SqlRepository, applyMigrations bool) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, jwkGenService *cryptoutilJose.JwkGenService, applyMigrations bool) (*OrmRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
-	} else if jwkGenService == nil {
-		return nil, fmt.Errorf("jwkGenService must be non-nil")
 	} else if sqlRepository == nil {
 		return nil, fmt.Errorf("sqlRepository must be non-nil")
+	} else if jwkGenService == nil {
+		return nil, fmt.Errorf("jwkGenService must be non-nil")
 	}
 
 	gormDB, err := cryptoutilSqlRepository.CreateGormDB(sqlRepository)
@@ -54,7 +54,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to log schemas: %w", err)
 	}
 
-	return &OrmRepository{telemetryService: telemetryService, jwkGenService: jwkGenService, sqlRepository: sqlRepository, gormDB: gormDB, applyMigrations: applyMigrations}, nil
+	return &OrmRepository{telemetryService: telemetryService, sqlRepository: sqlRepository, jwkGenService: jwkGenService, gormDB: gormDB, applyMigrations: applyMigrations}, nil
 }
 
 func (s *OrmRepository) Shutdown() {

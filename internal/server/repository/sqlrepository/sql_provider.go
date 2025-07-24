@@ -63,17 +63,18 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("settings must be non-nil")
 	}
 
-	// dbType SupportedDBType
-	// databaseUrl string
-	// containerMode ContainerMode
+	dbType, databaseUrl, err := mapDbTypeAndUrl(telemetryService, settings.DevMode, settings.DatabaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine database type and URL: %w", err)
+	}
 
-	dbType := DBTypeSQLite                 // DBTypePostgres
-	databaseUrl := ":memory:"              // nil
-	containerMode := ContainerModeDisabled // ContainerModeRequired
+	containerMode, err := mapContainerMode(telemetryService, settings.DatabaseContainer)
+	if err != nil {
+		return nil, fmt.Errorf("failed to determine container mode: %w", err)
+	}
 
 	var shutdownDBContainer func() = func() {}  // no-op by default
 	if containerMode != ContainerModeDisabled { // containerMode is required or preferred
-
 		telemetryService.Slogger.Debug("containerMode is not disabled, so trying to start a container", "dbType", string(dbType), "containerMode", string(containerMode))
 		var containerDatabaseUrl string
 		var err error

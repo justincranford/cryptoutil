@@ -16,8 +16,8 @@ func init() {
 func RequireNewForTest(applicationName string) *Settings {
 	settings := &Settings{
 		ConfigFile:               configFile.value.(string),
-		LogLevel:                 logLevel.value.(string),
 		VerboseMode:              verboseMode.value.(bool),
+		LogLevel:                 logLevel.value.(string),
 		DevMode:                  devMode.value.(bool),
 		OTLP:                     otlp.value.(bool),
 		OTLPConsole:              otlpConsole.value.(bool),
@@ -32,10 +32,11 @@ func RequireNewForTest(applicationName string) *Settings {
 		RateLimit:                rateLimit.value.(uint16),
 		AllowedIPs:               allowedIps.value.(string),
 		AllowedCIDRs:             allowedCidrs.value.(string),
+		DatabaseContainer:        databaseContainer.value.(string),
 		DatabaseURL:              databaseURL.value.(string),
-		Migrations:               migrations.value.(bool),
 		DatabaseInitTotalTimeout: databaseInitTotalTimeout.value.(time.Duration),
 		DatabaseInitRetryWait:    databaseInitRetryWait.value.(time.Duration),
+		Migrations:               migrations.value.(bool),
 	}
 	// Overrides for testing
 	settings.LogLevel = "ALL"

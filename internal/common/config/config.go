@@ -33,13 +33,13 @@ const (
 )
 
 type Settings struct {
+	ConfigFile               string
 	VerboseMode              bool
 	LogLevel                 string
 	DevMode                  bool
 	OTLP                     bool
 	OTLPConsole              bool
 	OTLPScope                string
-	ConfigFile               string
 	BindAddress              string
 	BindPort                 uint16
 	ContextPath              string
@@ -315,6 +315,11 @@ func Parse() (*Settings, error) {
 		DatabaseInitRetryWait:    viper.GetDuration(databaseInitRetryWait.name),
 	}
 	logSettings(s)
+
+	if s.DevMode && !s.Migrations {
+		log.Warn("Dev mode on, but migrations off. Migrations are required in dev mode, and will be enabled automatically now.")
+		s.Migrations = true
+	}
 	return s, nil
 }
 

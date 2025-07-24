@@ -13,10 +13,6 @@ func main() {
 		log.Fatal("Error parsing config:", err)
 	}
 
-	// TODO This is for pre-release testing only, remove before release
-	settings.DevMode = true
-	settings.Migrations = true
-
 	start, _, err := cryptoutilServerApplication.StartServerApplication(settings)
 	if err != nil {
 		log.Fatalf("failed to start server application: %v", err)
