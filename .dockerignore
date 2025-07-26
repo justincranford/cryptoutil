@@ -1,0 +1,29 @@
+# Ignore version control
+.git
+.gitignore
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS/Temp files
+*.log
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Test and coverage artifacts
+**/*_test.go
+coverage.*
+*.out
+
+# Build artifacts
+bin/
+dist/
+
+# Docker Compose (if present)
+docker-compose*.yml
+
+Dockerfile
