@@ -28,7 +28,7 @@ func ParseLogLevel(logLevelString string) (stdoutLogExporter.Level, error) {
 	case "FATAL": // OpenTelemetry FATAL = 12
 		return 12, nil
 	case "OFF": // Log4j OFF, disables logging, highest possible value
-		return 16, nil
+		return math.MaxInt, nil
 	default:
 		return math.MaxInt, fmt.Errorf("invalid log level: %s", logLevelString)
 	}
