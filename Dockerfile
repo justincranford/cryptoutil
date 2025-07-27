@@ -1,3 +1,4 @@
+#############################################################################################
 
 FROM golang:latest AS builder1
 WORKDIR /app
@@ -6,14 +7,28 @@ RUN go mod download
 COPY . .
 RUN go mod vendor
 
+#############################################################################################
+
 FROM golang:latest AS builder2
 WORKDIR /app
 COPY --from=builder1 /go/pkg/mod /go/pkg/mod
 COPY --from=builder1 /app        /app
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o cryptoutil .
 
-FROM scratch
+#############################################################################################
+
+FROM alpine:latest
 WORKDIR /app
-ENV USER=cryptoutil
 COPY --from=builder2 /app/cryptoutil /app/cryptoutil
-ENTRYPOINT ["/app/cryptoutil", "--dev"]
+RUN adduser -D -H -h /app cryptoutil               && \
+    chmod +x /app/cryptoutil                       && \
+    chown -R cryptoutil:cryptoutil /app            && \
+    apk --no-cache add ca-certificates tzdata curl && \
+    update-ca-certificates
+EXPOSE 8080
+USER cryptoutil
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:8080/healthz && curl -f http://localhost:8080/readyz || exit 1
+
+ENTRYPOINT ["/app/cryptoutil", "--dev", "--migrations", "--log-level=INFO", "--bind-address=0.0.0.0"]
