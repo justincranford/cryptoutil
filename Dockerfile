@@ -21,14 +21,14 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder2 /app/cryptoutil /app/cryptoutil
 RUN adduser -D -H -h /app cryptoutil               && \
-    chmod +x /app/cryptoutil                       && \
     chown -R cryptoutil:cryptoutil /app            && \
+    chmod +x /app/cryptoutil                       && \
     apk --no-cache add ca-certificates tzdata curl && \
     update-ca-certificates
 EXPOSE 8080
 USER cryptoutil
 
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD curl -f http://localhost:8080/healthz && curl -f http://localhost:8080/readyz || exit 1
+HEALTHCHECK --start-period=5s --interval=60s --timeout=3s --retries=3 \
+  CMD curl -f http://localhost:8080/readyz || exit 1
 
 ENTRYPOINT ["/app/cryptoutil", "--dev", "--migrations", "--log-level=INFO", "--bind-address=0.0.0.0"]
