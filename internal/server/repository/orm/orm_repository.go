@@ -42,9 +42,16 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 	if applyMigrations {
 		telemetryService.Slogger.Debug("applying migrations")
-		err = gormDB.AutoMigrate(ormEntities...)
-		if err != nil {
-			return nil, fmt.Errorf("failed to run migrations: %w", err)
+		for i, entity := range ormEntities {
+			entityName := fmt.Sprintf("%T", entity)
+			telemetryService.Slogger.Debug(fmt.Sprintf("migrating entity %d: %s", i, entityName))
+
+			err := gormDB.AutoMigrate(entity)
+			if err != nil {
+				telemetryService.Slogger.Error(fmt.Sprintf("migration failed for entity %s: %v", entityName, err))
+				return nil, fmt.Errorf("failed to migrate entity %s: %w", entityName, err)
+			}
+			telemetryService.Slogger.Debug(fmt.Sprintf("successfully migrated entity %s", entityName))
 		}
 	} else {
 		telemetryService.Slogger.Debug("skipping migrations")

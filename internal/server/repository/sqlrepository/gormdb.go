@@ -28,7 +28,9 @@ func CreateGormDB(sqlRepository *SqlRepository) (*gorm.DB, error) {
 	case DBTypeSQLite:
 		gormDialector = sqlite.Dialector{Conn: sqlRepository.sqlDB}
 	case DBTypePostgres:
-		gormDialector = postgres.New(postgres.Config{Conn: sqlRepository.sqlDB})
+		postgresConfig := postgres.Config{
+			Conn: sqlRepository.sqlDB}
+		gormDialector = postgres.New(postgresConfig)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", sqlRepository.dbType)
 	}
@@ -38,10 +40,16 @@ func CreateGormDB(sqlRepository *SqlRepository) (*gorm.DB, error) {
 		LogLevel:                  gormLoggerLogLevel,
 		IgnoreRecordNotFoundError: gormLoggerIgnoreRecordNotFoundError,
 		Colorful:                  gormLoggerColorful,
+		ParameterizedQueries:      true,
 	})
-	gormDB, err := gorm.Open(gormDialector, &gorm.Config{Logger: gormLogger})
+	gormConfig := gorm.Config{
+		Logger:         gormLogger,
+		TranslateError: true,
+	}
+	gormDB, err := gorm.Open(gormDialector, &gormConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gormDB: %w", err)
 	}
+	gormDB = gormDB.Debug()
 	return gormDB, nil
 }
