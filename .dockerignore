@@ -1,4 +1,9 @@
-# Ignore version control
+# Docker
+docker-compose*.yml
+Dockerfile
+.dockerignore
+
+# Version control
 .git
 .gitignore
 
@@ -16,14 +21,10 @@ Thumbs.db
 
 # Test and coverage artifacts
 **/*_test.go
+**/*_test_util.go
 coverage.*
 *.out
 
 # Build artifacts
 bin/
 dist/
-
-# Docker Compose (if present)
-docker-compose*.yml
-
-Dockerfile
