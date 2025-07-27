@@ -1,0 +1,15 @@
+# Development mode - enables in-memory SQLite and migrations
+dev: true
+
+# Run database migrations
+migrations: true
+
+# Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
+log-level: "INFO"
+
+# Binding address - 0.0.0.0 allows connections from any IP
+bind-address: "0.0.0.0"
+bind-port: 8080
+
+# Additional configuration (using defaults)
+context-path: "/api/v1"
