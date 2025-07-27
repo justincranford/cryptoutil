@@ -20,15 +20,14 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o cryptoutil .
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder2 /app/cryptoutil /app/cryptoutil
-RUN adduser -D -H -h /app cryptoutil               && \
-    chown -R cryptoutil:cryptoutil /app            && \
-    chmod +x /app/cryptoutil                       && \
-    apk --no-cache add ca-certificates tzdata curl && \
+RUN adduser -D -H -h /app cryptoutil                            && \
+    chown -R cryptoutil:cryptoutil /app                         && \
+    chmod +x /app/cryptoutil                                    && \
+    apk --no-cache add ca-certificates tzdata curl tini openssl && \
     update-ca-certificates
 EXPOSE 8080
-USER cryptoutil
 
+USER cryptoutil
 HEALTHCHECK --start-period=5s --interval=60s --timeout=3s --retries=3 \
   CMD curl -f http://localhost:8080/readyz || exit 1
-
-ENTRYPOINT ["/app/cryptoutil", "--dev", "--migrations", "--log-level=INFO", "--bind-address=0.0.0.0"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--dev", "--migrations", "--log-level=INFO", "--bind-address=0.0.0.0"]
