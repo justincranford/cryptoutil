@@ -45,6 +45,7 @@ type ValueGenPoolConfig[T any] struct {
 	maxLifetimeValues   uint64
 	maxLifetimeDuration time.Duration
 	generateFunction    func() (T, error)
+	verbose             bool
 }
 
 // NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues
@@ -111,6 +112,7 @@ func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptou
 		maxLifetimeValues:   maxLifetimeValues,
 		maxLifetimeDuration: maxLifetimeDuration,
 		generateFunction:    generateFunction,
+		verbose:             true,
 	}
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
@@ -124,17 +126,25 @@ func (pool *ValueGenPool[T]) Name() string {
 
 func (pool *ValueGenPool[T]) Get() T {
 	startTime := time.Now().UTC()
-	pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+	if pool.cfg.verbose {
+		pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+	}
 	select {
 	case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
-		pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName, "worker", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+		}
 		var zero T
 		return zero
 	case value := <-pool.generateChannel: // block wait for a generated value to be published by a worker
-		pool.cfg.telemetryService.Slogger.Debug("received", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Debug("received", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+		}
 		getCounter := atomic.AddUint64(&pool.getCounter, 1)
 		defer func() {
-			pool.cfg.telemetryService.Slogger.Debug("got", "pool", pool.cfg.poolName, "get", getCounter, "duration", time.Since(startTime).Seconds())
+			if pool.cfg.verbose {
+				pool.cfg.telemetryService.Slogger.Debug("got", "pool", pool.cfg.poolName, "get", getCounter, "duration", time.Since(startTime).Seconds())
+			}
 			pool.getDurationHistogram.Record(pool.cfg.ctx, float64(time.Since(startTime).Milliseconds()))
 		}()
 		return value
@@ -146,14 +156,18 @@ func (pool *ValueGenPool[T]) Cancel() {
 	didCancelThisTime := false
 	pool.stopGeneratingOnce.Do(func() {
 		defer func() {
-			pool.cfg.telemetryService.Slogger.Debug("cancelled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+			if pool.cfg.verbose {
+				pool.cfg.telemetryService.Slogger.Debug("cancelled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+			}
 		}()
 		pool.stopGeneratingFunction() // raise Done() signal to N workers, 1 closeChannelsThread, and M getters
 		pool.stopGeneratingFunction = nil
 		didCancelThisTime = true
 	})
 	if !didCancelThisTime {
-		pool.cfg.telemetryService.Slogger.Warn("already cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Warn("already cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+		}
 	}
 }
 
@@ -163,16 +177,24 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 		if recover := recover(); recover != nil {
 			pool.cfg.telemetryService.Slogger.Error("worker panic recovered", "pool", pool.cfg.poolName, "worker", workerNum, "panic", recover, "stack", string(debug.Stack()))
 		}
-		pool.cfg.telemetryService.Slogger.Debug("worker done", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Debug("worker done", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		}
 	}()
 
-	pool.cfg.telemetryService.Slogger.Debug("worker started", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	if pool.cfg.verbose {
+		pool.cfg.telemetryService.Slogger.Debug("worker started", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	}
 	for {
 		startPermissionTime := time.Now().UTC()
-		pool.cfg.telemetryService.Slogger.Debug("wait for permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Debug("wait for permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		}
 		select {
 		case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
-			pool.cfg.telemetryService.Slogger.Debug("worker canceled before generate", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			if pool.cfg.verbose {
+				pool.cfg.telemetryService.Slogger.Debug("worker canceled before generate", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+			}
 			return
 		case pool.permissionChannel <- struct{}{}: // acquire permission to generate
 			pool.generateDurationHistogram.Record(pool.cfg.ctx, float64(time.Since(startPermissionTime).Milliseconds()))
@@ -195,19 +217,27 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 			pool.cfg.telemetryService.Slogger.Error("recovered from panic", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds(), "panic", recover, "stack", string(debug.Stack()))
 		}
 		<-pool.permissionChannel // release permission to generate, so other workers can generate, or Cancel() can close the channel
-		pool.cfg.telemetryService.Slogger.Debug("released permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Debug("released permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		}
 	}()
-	pool.cfg.telemetryService.Slogger.Debug("permission granted", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	if pool.cfg.verbose {
+		pool.cfg.telemetryService.Slogger.Debug("permission granted", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	}
 
 	// permission granted, worker is promising to generate a value if time not exceeded, of if this counter value doesn't exceed the generate limit
 	generateCounter := atomic.AddUint64(&pool.generateCounter, 1)
 
 	if pool.cfg.maxLifetimeDuration > 0 && time.Since(pool.poolStartTime) >= pool.cfg.maxLifetimeDuration {
-		pool.cfg.telemetryService.Slogger.Warn("time limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Warn("time limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		}
 		info := fmt.Sprintf("pool %s reached max lifetime %s", pool.cfg.poolName, pool.cfg.maxLifetimeDuration)
 		return &info, nil
 	} else if pool.cfg.maxLifetimeValues > 0 && generateCounter > pool.cfg.maxLifetimeValues {
-		pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		if pool.cfg.verbose {
+			pool.cfg.telemetryService.Slogger.Warn("generate limit reached", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+		}
 		info := fmt.Sprintf("pool %s reached generate limit %d", pool.cfg.poolName, pool.cfg.maxLifetimeValues)
 		return &info, nil
 	}
@@ -224,10 +254,14 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 		pool.Cancel() // signal all workers to stop (e.g. does generateFunction() have a bug?)
 		return nil, fmt.Errorf("pool %s worker %d failed to generate value: %w", pool.cfg.poolName, workerNum, err)
 	}
-	pool.cfg.telemetryService.Slogger.Debug("generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+	if pool.cfg.verbose {
+		pool.cfg.telemetryService.Slogger.Debug("generated", "pool", pool.cfg.poolName, "worker", workerNum, "generate", generateCounter, "duration", time.Since(startTime).Seconds())
+	}
 
 	pool.generateChannel <- value
-	pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	if pool.cfg.verbose {
+		pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
+	}
 
 	return nil, nil
 }
