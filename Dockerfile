@@ -34,4 +34,4 @@ USER cryptoutil
 HEALTHCHECK --start-period=5s --interval=60s --timeout=3s --retries=3 \
   CMD curl -f http://localhost:8080/readyz || exit 1
 # ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--dev", "--migrations", "--log-level=INFO", "--bind-address=0.0.0.0"]
-ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--config=/app/sqlite.yaml"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--config=/app/postgresql.yaml"]
