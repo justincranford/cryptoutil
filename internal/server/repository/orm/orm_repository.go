@@ -42,17 +42,20 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 	if applyMigrations {
 		telemetryService.Slogger.Debug("applying migrations")
-		for i, entity := range ormEntities {
-			entityName := fmt.Sprintf("%T", entity)
-			telemetryService.Slogger.Debug(fmt.Sprintf("migrating entity %d: %s", i, entityName))
 
-			err := gormDB.AutoMigrate(entity)
-			if err != nil {
-				telemetryService.Slogger.Error(fmt.Sprintf("migration failed for entity %s: %v", entityName, err))
-				return nil, fmt.Errorf("failed to migrate entity %s: %w", entityName, err)
-			}
-			telemetryService.Slogger.Debug(fmt.Sprintf("successfully migrated entity %s", entityName))
+		// Get the raw SQL DB from GORM
+		sqlDB, err := gormDB.DB()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get SQL DB from GORM: %w", err)
 		}
+
+		// Apply SQL migrations using the embedded migration files
+		err = cryptoutilSqlRepository.ApplyEmbeddedSqlMigrations(telemetryService, sqlDB)
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply SQL migrations: %w", err)
+		}
+
+		telemetryService.Slogger.Debug("migrations completed successfully")
 	} else {
 		telemetryService.Slogger.Debug("skipping migrations")
 	}
