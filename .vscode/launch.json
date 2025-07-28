@@ -18,13 +18,25 @@
             ],
         },
         {
+            "name": "cryptoutil postgres-local",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/main.go",
+            "args": [
+                "--config=${workspaceFolder}/config/postgresql-local-debug.yaml",
+                "--migrations=true",
+                "--log-level=ALL",
+            ],
+        },
+        {
             "name": "cryptoutil postgres",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/main.go",
             "args": [
-                "--database-url=postgres://USR:PWD@postgres:5432/DB?sslmode=disable",
+                "--database-url=postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
                 "--migrations=true",
                 "--log-level=ALL",
             ],

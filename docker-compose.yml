@@ -44,8 +44,8 @@ networks:
 
 secrets:
   postgres_user:
-    file: ./config/postgres_user.txt
+    file: ./config/postgres_user
   postgres_password:
-    file: ./config/postgres_password.txt
+    file: ./config/postgres_password
   postgres_db:
-    file: ./config/postgres_db.txt
+    file: ./config/postgres_db

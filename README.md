@@ -41,6 +41,17 @@ Generate will find and run oapi-codegen commands embedded in [internal/openapi/g
 
 ## Testing
 
+### Running with PostgreSQL
+```sh
+# Run PostgreSQL in Docker
+docker compose up -d postgres
+
+# Run cryptoutil connecting to PostgreSQL
+go run main.go --config=./config/postgresql-local-debug.yaml
+```
+
+For development in VS Code, use the "cryptoutil postgres-local" launch configuration.
+
 ### Automated Tests
 ```sh
 go test ./... -coverprofile=coverage.out          && \
