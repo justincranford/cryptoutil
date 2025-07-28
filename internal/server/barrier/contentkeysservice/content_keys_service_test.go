@@ -42,7 +42,7 @@ func TestMain(m *testing.M) {
 		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSqlRepository.Shutdown()
 
-		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, true)
+		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService)
 		defer testOrmRepository.Shutdown()
 
 		unsealKeysService := cryptoutilUnsealKeysService.RequireNewFromSysInfoForTest()

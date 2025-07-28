@@ -146,6 +146,24 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, errors.Join(ErrPingDatabaseFailed, fmt.Errorf("dbType: %s", string(dbType)))
 	}
 
+	// TODO apply migrations
+
+	if settings.Migrations {
+		telemetryService.Slogger.Debug("applying migrations")
+		err = ApplyEmbeddedSqlMigrations(telemetryService, sqlDB, string(sqlRepository.GetDBType()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to apply SQL migrations: %w", err)
+		}
+		telemetryService.Slogger.Debug("migrations completed successfully")
+	} else {
+		telemetryService.Slogger.Debug("skipping migrations")
+	}
+
+	err = LogSchema(sqlRepository)
+	if err != nil {
+		return nil, fmt.Errorf("failed to log schemas: %w", err)
+	}
+
 	return sqlRepository, nil
 }
 
