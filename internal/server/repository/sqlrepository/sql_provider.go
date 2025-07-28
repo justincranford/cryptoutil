@@ -21,6 +21,11 @@ type SqlRepository struct {
 	shutdownDBContainer func()
 }
 
+// GetDBType returns the database type
+func (s *SqlRepository) GetDBType() SupportedDBType {
+	return s.dbType
+}
+
 type (
 	SupportedDBType string
 	ContainerMode   string

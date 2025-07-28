@@ -1,4 +1,3 @@
--- Drop all tables in reverse order of creation to handle dependencies
 DROP TABLE IF EXISTS material_keys;
 DROP TABLE IF EXISTS elastic_keys;
 DROP TABLE IF EXISTS barrier_content_keys;

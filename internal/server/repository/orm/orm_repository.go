@@ -50,7 +50,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		}
 
 		// Apply SQL migrations using the embedded migration files
-		err = cryptoutilSqlRepository.ApplyEmbeddedSqlMigrations(telemetryService, sqlDB)
+		err = cryptoutilSqlRepository.ApplyEmbeddedSqlMigrations(telemetryService, sqlDB, string(sqlRepository.GetDBType()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply SQL migrations: %w", err)
 		}
