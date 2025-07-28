@@ -5,6 +5,7 @@ services:
       POSTGRES_USER: USR
       POSTGRES_PASSWORD: PWD
       POSTGRES_DB: DB
+    shm_size: 256mb
     # volumes:
     #   - postgres_data:/var/lib/postgresql/data
     healthcheck:
