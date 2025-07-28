@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres_username
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB_FILE: /run/secrets/postgres_database
+    secrets:
+      - postgres_username
+      - postgres_password
+      - postgres_database
+    shm_size: 256mb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_username) -d $$(cat /run/secrets/postgres_database)"]
+      start_period: 5s
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - cryptoutil-network
+
+  cryptoutil:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cryptoutil-network
+
+networks:
+  cryptoutil-network:
+    driver: bridge
+
+volumes:
+ postgres_data:
+
+secrets:
+  postgres_username:
+    file: ../docker/postgres/docker_secret_postgres_username
+  postgres_password:
+    file: ../docker/postgres/docker_secret_postgres_password
+  postgres_database:
+    file: ../docker/postgres/docker_secret_postgres_database
