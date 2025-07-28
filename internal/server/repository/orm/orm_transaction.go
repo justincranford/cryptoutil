@@ -174,11 +174,12 @@ func (tx *OrmTransaction) rollback() error {
 
 func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode) (*gorm.DB, error) {
 	gormTx := tx.ormRepository.gormDB.WithContext(ctx)
-	if transactionMode == AutoCommit {
+	switch transactionMode {
+	case AutoCommit:
 		return gormTx, nil
-	} else if transactionMode == ReadWrite {
+	case ReadWrite:
 		gormTx = gormTx.Begin(&sql.TxOptions{Isolation: sql.LevelReadCommitted})
-	} else {
+	default:
 		gormTx = gormTx.Begin(&sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true})
 	}
 	if gormTx.Error != nil {
