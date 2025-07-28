@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -26,14 +27,48 @@ func main() {
 	// Connection parameters
 	host := "localhost"
 	port := 5432
-	user := "USR"
-	password := "PWD"
-	dbname := "DB"
+
+	// Get project root directory
+	workingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error getting working directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Go up one directory if running from cmd/pgtest
+	var rootDir string
+	if filepath.Base(workingDir) == "pgtest" {
+		rootDir = filepath.Dir(filepath.Dir(workingDir))
+	} else {
+		rootDir = workingDir
+	}
+
+	// Read credentials from secret files
+	configDir := filepath.Join(rootDir, "config")
+	user, err := os.ReadFile(filepath.Join(configDir, "postgres_user"))
+	if err != nil {
+		fmt.Printf("Error reading postgres_user: %v\n", err)
+		os.Exit(1)
+	}
+
+	password, err := os.ReadFile(filepath.Join(configDir, "postgres_password"))
+	if err != nil {
+		fmt.Printf("Error reading postgres_password: %v\n", err)
+		os.Exit(1)
+	}
+
+	dbname, err := os.ReadFile(filepath.Join(configDir, "postgres_db"))
+	if err != nil {
+		fmt.Printf("Error reading postgres_db: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Using credentials from secret files: user=%s, dbname=%s\n", string(user), string(dbname))
 
 	// Try different connections
 	connURLs := []string{
-		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", user, password, host, port, dbname),
-		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname),
+		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", string(user), string(password), host, port, string(dbname)),
+		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, string(user), string(password), string(dbname)),
 	}
 
 	// Try to connect
