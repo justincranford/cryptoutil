@@ -8,5 +8,6 @@
     ".github/instructions/errors.instructions.md"
   ],
   "markdown.preview.scrollEditorWithPreview": true,
-  "markdown.preview.openMarkdownLinks": "inPreview"
+  "markdown.preview.openMarkdownLinks": "inPreview",
+  "files.encoding": "utf8"
 }
