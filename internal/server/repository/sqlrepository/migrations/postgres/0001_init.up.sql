@@ -1,71 +1,30 @@
-﻿--
--- PostgreSQL database dump
---
+﻿-- PostgreSQL initialization
+-- This migration creates the basic database schema for cryptoutil
 
--- Dumped from database version 17.5 (Debian 17.5-1.pgdg120+1)
--- Dumped by pg_dump version 17.5 (Debian 17.5-1.pgdg120+1)
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SELECT pg_catalog.set_config('search_path', '', false);
-SET check_function_bodies = false;
-SET xmloption = content;
-SET client_min_messages = warning;
-SET row_security = off;
-
-SET default_tablespace = '';
-
-SET default_table_access_method = heap;
-
---
--- Name: barrier_content_keys; Type: TABLE; Schema: public; Owner: USR
---
-
+-- Create barrier_content_keys table
 CREATE TABLE public.barrier_content_keys (
-    uuid uuid NOT NULL,
+    uuid uuid NOT NULL PRIMARY KEY,
     encrypted text NOT NULL,
     kek_uuid uuid NOT NULL
 );
 
-
-ALTER TABLE public.barrier_content_keys OWNER TO "USR";
-
---
--- Name: barrier_intermediate_keys; Type: TABLE; Schema: public; Owner: USR
---
-
+-- Create barrier_intermediate_keys table
 CREATE TABLE public.barrier_intermediate_keys (
-    uuid uuid NOT NULL,
+    uuid uuid NOT NULL PRIMARY KEY,
     encrypted text NOT NULL,
     kek_uuid uuid NOT NULL
 );
 
-
-ALTER TABLE public.barrier_intermediate_keys OWNER TO "USR";
-
---
--- Name: barrier_root_keys; Type: TABLE; Schema: public; Owner: USR
---
-
+-- Create barrier_root_keys table
 CREATE TABLE public.barrier_root_keys (
-    uuid uuid NOT NULL,
+    uuid uuid NOT NULL PRIMARY KEY,
     encrypted text NOT NULL,
     kek_uuid uuid NOT NULL
 );
 
-
-ALTER TABLE public.barrier_root_keys OWNER TO "USR";
-
---
--- Name: elastic_keys; Type: TABLE; Schema: public; Owner: USR
---
-
+-- Create elastic_keys table
 CREATE TABLE public.elastic_keys (
-    elastic_key_id uuid NOT NULL,
+    elastic_key_id uuid NOT NULL PRIMARY KEY,
     elastic_key_name character varying(63) NOT NULL,
     elastic_key_description character varying(255) NOT NULL,
     elastic_key_provider character varying(8) NOT NULL,
@@ -73,21 +32,16 @@ CREATE TABLE public.elastic_keys (
     elastic_key_versioning_allowed boolean NOT NULL,
     elastic_key_import_allowed boolean NOT NULL,
     elastic_key_status character varying(34) NOT NULL,
-    CONSTRAINT chk_elastic_keys_elastic_key_description CHECK ((length((elastic_key_description)::text) >= 1)),
-    CONSTRAINT chk_elastic_keys_elastic_key_import_allowed CHECK ((elastic_key_import_allowed = ANY (ARRAY[true, false]))),
-    CONSTRAINT chk_elastic_keys_elastic_key_name CHECK ((length((elastic_key_name)::text) >= 1)),
-    CONSTRAINT chk_elastic_keys_elastic_key_provider CHECK (((elastic_key_provider)::text = 'Internal'::text)),
-    CONSTRAINT chk_elastic_keys_elastic_key_status CHECK (((elastic_key_status)::text = ANY ((ARRAY['creating'::character varying, 'import_failed'::character varying, 'pending_import'::character varying, 'pending_generate'::character varying, 'generate_failed'::character varying, 'active'::character varying, 'disabled'::character varying, 'pending_delete_was_import_failed'::character varying, 'pending_delete_was_pending_import'::character varying, 'pending_delete_was_active'::character varying, 'pending_delete_was_disabled'::character varying, 'pending_delete_was_generate_failed'::character varying, 'started_delete'::character varying, 'finished_delete'::character varying])::text[]))),
-    CONSTRAINT chk_elastic_keys_elastic_key_versioning_allowed CHECK ((elastic_key_versioning_allowed = ANY (ARRAY[true, false])))
+    CONSTRAINT chk_elastic_keys_elastic_key_description CHECK (length(elastic_key_description) >= 1),
+    CONSTRAINT chk_elastic_keys_elastic_key_import_allowed CHECK (elastic_key_import_allowed IN (true, false)),
+    CONSTRAINT chk_elastic_keys_elastic_key_name CHECK (length(elastic_key_name) >= 1),
+    CONSTRAINT chk_elastic_keys_elastic_key_provider CHECK (elastic_key_provider = 'Internal'),
+    CONSTRAINT chk_elastic_keys_elastic_key_status CHECK (elastic_key_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 'pending_delete_was_pending_import', 'pending_delete_was_active', 'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 'started_delete', 'finished_delete')),
+    CONSTRAINT chk_elastic_keys_elastic_key_versioning_allowed CHECK (elastic_key_versioning_allowed IN (true, false)),
+    CONSTRAINT uni_elastic_keys_elastic_key_name UNIQUE (elastic_key_name)
 );
 
-
-ALTER TABLE public.elastic_keys OWNER TO "USR";
-
---
--- Name: material_keys; Type: TABLE; Schema: public; Owner: USR
---
-
+-- Create material_keys table
 CREATE TABLE public.material_keys (
     elastic_key_id uuid NOT NULL,
     material_key_id uuid NOT NULL,
@@ -96,61 +50,7 @@ CREATE TABLE public.material_keys (
     material_key_generate_date timestamp with time zone,
     material_key_import_date timestamp with time zone,
     material_key_expiration_date timestamp with time zone,
-    material_key_revocation_date timestamp with time zone
+    material_key_revocation_date timestamp with time zone,
+    PRIMARY KEY (elastic_key_id, material_key_id),
+    CONSTRAINT fk_material_keys_elastic_key_id FOREIGN KEY (elastic_key_id) REFERENCES public.elastic_keys(elastic_key_id)
 );
-
-
-ALTER TABLE public.material_keys OWNER TO "USR";
-
---
--- Name: barrier_content_keys barrier_content_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: USR
---
-
-ALTER TABLE ONLY public.barrier_content_keys
-    ADD CONSTRAINT barrier_content_keys_pkey PRIMARY KEY (uuid);
-
-
---
--- Name: barrier_intermediate_keys barrier_intermediate_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: USR
---
-
-ALTER TABLE ONLY public.barrier_intermediate_keys
-    ADD CONSTRAINT barrier_intermediate_keys_pkey PRIMARY KEY (uuid);
-
-
---
--- Name: barrier_root_keys barrier_root_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: USR
---
-
-ALTER TABLE ONLY public.barrier_root_keys
-    ADD CONSTRAINT barrier_root_keys_pkey PRIMARY KEY (uuid);
-
-
---
--- Name: elastic_keys elastic_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: USR
---
-
-ALTER TABLE ONLY public.elastic_keys
-    ADD CONSTRAINT elastic_keys_pkey PRIMARY KEY (elastic_key_id);
-
-
---
--- Name: material_keys material_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: USR
---
-
-ALTER TABLE ONLY public.material_keys
-    ADD CONSTRAINT material_keys_pkey PRIMARY KEY (elastic_key_id, material_key_id);
-
-
---
--- Name: elastic_keys uni_elastic_keys_elastic_key_name; Type: CONSTRAINT; Schema: public; Owner: USR
---
-
-ALTER TABLE ONLY public.elastic_keys
-    ADD CONSTRAINT uni_elastic_keys_elastic_key_name UNIQUE (elastic_key_name);
-
-
---
--- PostgreSQL database dump complete
---
-
