@@ -1,6 +1,4 @@
 # Docker
-docker-compose*.yml
-Dockerfile
 .dockerignore
 
 # Version control

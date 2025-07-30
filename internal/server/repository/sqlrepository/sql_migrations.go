@@ -12,11 +12,17 @@ import (
 	"github.com/golang-migrate/migrate/v4/database"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
-//go:embed migrations
-var migrationsFS embed.FS
+var (
+	//go:embed postgres/*.sql
+	postgresMigrationsFS embed.FS
+
+	//go:embed sqlite/*.sql
+	sqliteMigrationsFS embed.FS
+)
 
 func ApplyEmbeddedSqlMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, driverName string) error {
 	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", driverName)
@@ -26,6 +32,7 @@ func ApplyEmbeddedSqlMigrations(telemetryService *cryptoutilTelemetry.TelemetryS
 	var dbType string
 
 	// Determine which driver to use based on the driver name
+	var source source.Driver
 	switch {
 	case strings.Contains(driverName, "postgres"):
 		driver, err = postgres.WithInstance(db, &postgres.Config{})
@@ -33,19 +40,22 @@ func ApplyEmbeddedSqlMigrations(telemetryService *cryptoutilTelemetry.TelemetryS
 		if err != nil {
 			return fmt.Errorf("failed to create postgres driver: %w", err)
 		}
+		source, err = iofs.New(postgresMigrationsFS, "postgres")
+		if err != nil {
+			return fmt.Errorf("failed to create migration source: %w", err)
+		}
 	case strings.Contains(driverName, "sqlite"):
 		driver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
 		dbType = "sqlite"
 		if err != nil {
 			return fmt.Errorf("failed to create sqlite driver: %w", err)
 		}
+		source, err = iofs.New(sqliteMigrationsFS, "sqlite")
+		if err != nil {
+			return fmt.Errorf("failed to create migration source: %w", err)
+		}
 	default:
 		return fmt.Errorf("unsupported database driver: %s", driverName)
-	}
-
-	source, err := iofs.New(migrationsFS, "migrations/"+dbType)
-	if err != nil {
-		return fmt.Errorf("failed to create migration source: %w", err)
 	}
 
 	m, err := migrate.NewWithInstance("iofs", source, dbType, driver)
