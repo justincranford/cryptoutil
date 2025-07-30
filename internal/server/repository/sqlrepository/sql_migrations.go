@@ -3,8 +3,8 @@ package sqlrepository
 import (
 	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
-	"strings"
 
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
@@ -24,49 +24,44 @@ var (
 	sqliteMigrationsFS embed.FS
 )
 
-func ApplyEmbeddedSqlMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, driverName string) error {
-	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", driverName)
+func ApplyEmbeddedSqlMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType) error {
+	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", dbType)
 
-	var driver database.Driver
+	var sourceDriver source.Driver
+	var databaseDriver database.Driver
 	var err error
-	var dbType string
-
-	// Determine which driver to use based on the driver name
-	var source source.Driver
-	switch {
-	case strings.Contains(driverName, "postgres"):
-		driver, err = postgres.WithInstance(db, &postgres.Config{})
-		dbType = "postgres"
+	switch dbType {
+	case DBTypeSQLite:
+		sourceDriver, err = iofs.New(sqliteMigrationsFS, "sqlite")
 		if err != nil {
-			return fmt.Errorf("failed to create postgres driver: %w", err)
+			return fmt.Errorf("failed to create iofs source driver for SQLite migration: %w", err)
 		}
-		source, err = iofs.New(postgresMigrationsFS, "postgres")
-		if err != nil {
-			return fmt.Errorf("failed to create migration source: %w", err)
-		}
-	case strings.Contains(driverName, "sqlite"):
-		driver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
-		dbType = "sqlite"
+		databaseDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
 		if err != nil {
 			return fmt.Errorf("failed to create sqlite driver: %w", err)
 		}
-		source, err = iofs.New(sqliteMigrationsFS, "sqlite")
+	case DBTypePostgres:
+		sourceDriver, err = iofs.New(postgresMigrationsFS, "postgres")
 		if err != nil {
 			return fmt.Errorf("failed to create migration source: %w", err)
 		}
+		databaseDriver, err = postgres.WithInstance(db, &postgres.Config{})
+		if err != nil {
+			return fmt.Errorf("failed to create iofs source driver for PostgreSQL migration: %w", err)
+		}
 	default:
-		return fmt.Errorf("unsupported database driver: %s", driverName)
+		return fmt.Errorf("unsupported database driver: %s", dbType)
 	}
 
-	m, err := migrate.NewWithInstance("iofs", source, dbType, driver)
+	m, err := migrate.NewWithInstance("iofs", sourceDriver, string(dbType), databaseDriver)
 	if err != nil {
 		return fmt.Errorf("failed to create migrate instance: %w", err)
 	}
 
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		return fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	telemetryService.Slogger.Debug("successfully applied SQL migrations", "driver", driverName)
+	telemetryService.Slogger.Debug("successfully applied migrations")
 	return nil
 }

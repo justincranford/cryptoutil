@@ -150,7 +150,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 	if settings.Migrations {
 		telemetryService.Slogger.Debug("applying migrations")
-		err = ApplyEmbeddedSqlMigrations(telemetryService, sqlDB, string(sqlRepository.GetDBType()))
+		err = ApplyEmbeddedSqlMigrations(telemetryService, sqlDB, sqlRepository.GetDBType())
 		if err != nil {
 			return nil, fmt.Errorf("failed to apply SQL migrations: %w", err)
 		}
