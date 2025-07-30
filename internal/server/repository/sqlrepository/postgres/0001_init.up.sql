@@ -1,4 +1,4 @@
-﻿-- PostgreSQL initialization
+-- PostgreSQL initialization
 -- This migration creates the basic database schema for cryptoutil
 
 -- Create barrier_content_keys table
