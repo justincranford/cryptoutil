@@ -35,12 +35,9 @@ const (
 type Settings struct {
 	Help                     bool
 	ConfigFile               string
-	VerboseMode              bool
 	LogLevel                 string
+	VerboseMode              bool
 	DevMode                  bool
-	OTLP                     bool
-	OTLPConsole              bool
-	OTLPScope                string
 	BindAddress              string
 	BindPort                 uint16
 	ContextPath              string
@@ -56,6 +53,9 @@ type Settings struct {
 	DatabaseInitTotalTimeout time.Duration
 	DatabaseInitRetryWait    time.Duration
 	Migrations               bool
+	OTLP                     bool
+	OTLPConsole              bool
+	OTLPScope                string
 }
 
 // Setting Input values for pflag.*P(name, shortname, value, usage)
@@ -97,24 +97,6 @@ var (
 		shorthand: "d",
 		value:     false,
 		usage:     "run in development mode; enables in-memory SQLite and migrations",
-	}
-	otlp = Setting{
-		name:      "otlp",
-		shorthand: "z",
-		value:     false,
-		usage:     "enable OTLP export",
-	}
-	otlpConsole = Setting{
-		name:      "otlp-console",
-		shorthand: "q",
-		value:     false,
-		usage:     "enable OTLP logging to console (STDOUT)",
-	}
-	otlpScope = Setting{
-		name:      "otlp-scope",
-		shorthand: "s",
-		value:     "cryptoutil",
-		usage:     "OTLP scope",
 	}
 	bindAddress = Setting{
 		name:      "bind-address",
@@ -206,6 +188,24 @@ var (
 		value:     false,
 		usage:     "run DB migrations",
 	}
+	otlp = Setting{
+		name:      "otlp",
+		shorthand: "z",
+		value:     false,
+		usage:     "enable OTLP export",
+	}
+	otlpConsole = Setting{
+		name:      "otlp-console",
+		shorthand: "q",
+		value:     false,
+		usage:     "enable OTLP logging to console (STDOUT)",
+	}
+	otlpScope = Setting{
+		name:      "otlp-scope",
+		shorthand: "s",
+		value:     "cryptoutil",
+		usage:     "OTLP scope",
+	}
 )
 
 var defaultAllowedCORSOrigins = func() string {
@@ -263,9 +263,6 @@ func Parse() (*Settings, error) {
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, verboseMode.value.(bool), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, devMode.value.(bool), devMode.usage)
-	pflag.BoolP(otlp.name, otlp.shorthand, otlp.value.(bool), otlp.usage)
-	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, otlpConsole.value.(bool), otlpConsole.usage)
-	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)
 	pflag.StringP(bindAddress.name, bindAddress.shorthand, bindAddress.value.(string), bindAddress.usage)
 	pflag.Uint16P(bindPort.name, bindPort.shorthand, bindPort.value.(uint16), bindPort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)
@@ -281,6 +278,9 @@ func Parse() (*Settings, error) {
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, databaseInitTotalTimeout.value.(time.Duration), databaseInitTotalTimeout.usage)
 	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, databaseInitRetryWait.value.(time.Duration), databaseInitRetryWait.usage)
 	pflag.BoolP(migrations.name, migrations.shorthand, migrations.value.(bool), migrations.usage)
+	pflag.BoolP(otlp.name, otlp.shorthand, otlp.value.(bool), otlp.usage)
+	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, otlpConsole.value.(bool), otlpConsole.usage)
+	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)
 	err := pflag.CommandLine.Parse(os.Args[1:])
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
@@ -305,9 +305,6 @@ func Parse() (*Settings, error) {
 		LogLevel:                 viper.GetString(logLevel.name),
 		VerboseMode:              viper.GetBool(verboseMode.name),
 		DevMode:                  viper.GetBool(devMode.name),
-		OTLP:                     viper.GetBool(otlp.name),
-		OTLPConsole:              viper.GetBool(otlpConsole.name),
-		OTLPScope:                viper.GetString(otlpScope.name),
 		BindAddress:              viper.GetString(bindAddress.name),
 		BindPort:                 viper.GetUint16(bindPort.name),
 		ContextPath:              viper.GetString(contextPath.name),
@@ -320,9 +317,12 @@ func Parse() (*Settings, error) {
 		AllowedCIDRs:             viper.GetString(allowedCidrs.name),
 		DatabaseContainer:        viper.GetString(databaseContainer.name),
 		DatabaseURL:              viper.GetString(databaseURL.name),
-		Migrations:               viper.GetBool(migrations.name),
 		DatabaseInitTotalTimeout: viper.GetDuration(databaseInitTotalTimeout.name),
 		DatabaseInitRetryWait:    viper.GetDuration(databaseInitRetryWait.name),
+		Migrations:               viper.GetBool(migrations.name),
+		OTLP:                     viper.GetBool(otlp.name),
+		OTLPConsole:              viper.GetBool(otlpConsole.name),
+		OTLPScope:                viper.GetString(otlpScope.name),
 	}
 	logSettings(s)
 
@@ -346,9 +346,6 @@ func logSettings(s *Settings) {
 		log.Info("Log Level: ", s.LogLevel)
 		log.Info("Verbose mode: ", s.VerboseMode)
 		log.Info("Dev mode: ", s.DevMode)
-		log.Info("OTLP Export: ", s.OTLP)
-		log.Info("OTLP Console: ", s.OTLPConsole)
-		log.Info("OTLP Scope: ", s.OTLPScope)
 		log.Info("Bind Address: ", s.BindAddress)
 		log.Info("Bind Port: ", s.BindPort)
 		log.Info("Context Path: ", s.ContextPath)
@@ -367,6 +364,9 @@ func logSettings(s *Settings) {
 		log.Info("Database Init Total Timeout: ", s.DatabaseInitTotalTimeout)
 		log.Info("Database Init Retry Wait: ", s.DatabaseInitRetryWait)
 		log.Info("Migrations: ", s.Migrations)
+		log.Info("OTLP Export: ", s.OTLP)
+		log.Info("OTLP Console: ", s.OTLPConsole)
+		log.Info("OTLP Scope: ", s.OTLPScope)
 	}
 }
 

@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -12,17 +13,14 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	os.Args = []string{"cmd"} // No flags
 	s, err := Parse()
 	assert.NoError(t, err)
+	assert.Equal(t, help.value, s.Help)
 	assert.Equal(t, configFile.value, s.ConfigFile)
 	assert.Equal(t, logLevel.value, s.LogLevel)
 	assert.Equal(t, verboseMode.value, s.VerboseMode)
 	assert.Equal(t, devMode.value, s.DevMode)
-	assert.Equal(t, otlp.value, s.OTLP)
-	assert.Equal(t, otlpConsole.value, s.OTLPConsole)
 	assert.Equal(t, bindAddress.value, s.BindAddress)
 	assert.Equal(t, bindPort.value, s.BindPort)
 	assert.Equal(t, contextPath.value, s.ContextPath)
-	assert.Equal(t, databaseContainer.value, s.DatabaseContainer)
-	assert.Equal(t, databaseURL.value, s.DatabaseURL)
 	assert.Equal(t, corsOrigins.value, s.CorsOrigins)
 	assert.Equal(t, corsMethods.value, s.CorsMethods)
 	assert.Equal(t, corsHeaders.value, s.CorsHeaders)
@@ -30,6 +28,23 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, rateLimit.value, s.RateLimit)
 	assert.Equal(t, allowedIps.value, s.AllowedIPs)
 	assert.Equal(t, allowedCidrs.value, s.AllowedCIDRs)
+	assert.Equal(t, databaseContainer.value, s.DatabaseContainer)
+	assert.Equal(t, databaseURL.value, s.DatabaseURL)
+	assert.Equal(t, databaseInitTotalTimeout.value, s.DatabaseInitTotalTimeout)
+	assert.Equal(t, databaseInitRetryWait.value, s.DatabaseInitRetryWait)
+	assert.Equal(t, migrations.value, s.Migrations)
+	assert.Equal(t, otlp.value, s.OTLP)
+	assert.Equal(t, otlpConsole.value, s.OTLPConsole)
+	assert.Equal(t, otlpScope.value, s.OTLPScope)
+}
+
+func TestParse_HappyPath_Help(t *testing.T) {
+	resetFlags()
+	os.Args = []string{"cmd", "--help"}
+
+	s, err := Parse()
+	assert.NoError(t, err)
+	assert.True(t, s.Help)
 }
 
 func TestParse_HappyPath_Overrides(t *testing.T) {
@@ -40,14 +55,9 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--log-level=debug",
 		"--verbose",
 		"--dev",
-		"--otlp",
-		"--otlp-console",
-		"--otlp-scope=my-scope",
 		"--bind-address=192.168.1.1",
 		"--bind-port=8080",
 		"--context-path=/custom",
-		"--database-container=required",
-		"--database-url=postgres://user:pass@db:5432/dbname?sslmode=disable",
 		"--cors-origins=https://example.com",
 		"--cors-methods=GET,POST",
 		"--cors-headers=X-Custom-Header",
@@ -55,22 +65,25 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--rate-limit=100",
 		"--allowed-ips=192.168.1.100",
 		"--allowed-cidrs=10.0.0.0/8",
+		"--database-container=required",
+		"--database-url=postgres://user:pass@db:5432/dbname?sslmode=disable",
+		"--database-init-total-timeout=5m",
+		"--database-init-retry-wait=30s",
+		"--migrations",
+		"--otlp",
+		"--otlp-console",
+		"--otlp-scope=my-scope",
 	}
 
 	s, err := Parse()
 	assert.NoError(t, err)
+	assert.Equal(t, help.value, s.Help)
 	assert.Equal(t, "test.yaml", s.ConfigFile)
 	assert.Equal(t, "debug", s.LogLevel)
 	assert.True(t, s.VerboseMode)
-	assert.True(t, s.DevMode)
-	assert.True(t, s.OTLP)
-	assert.True(t, s.OTLPConsole)
-	assert.Equal(t, "my-scope", s.OTLPScope)
 	assert.Equal(t, "192.168.1.1", s.BindAddress)
 	assert.Equal(t, uint16(8080), s.BindPort)
 	assert.Equal(t, "/custom", s.ContextPath)
-	assert.Equal(t, "required", s.DatabaseContainer)
-	assert.Equal(t, "postgres://user:pass@db:5432/dbname?sslmode=disable", s.DatabaseURL)
 	assert.Equal(t, "https://example.com", s.CorsOrigins)
 	assert.Equal(t, "GET,POST", s.CorsMethods)
 	assert.Equal(t, "X-Custom-Header", s.CorsHeaders)
@@ -78,4 +91,13 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, uint16(100), s.RateLimit)
 	assert.Equal(t, "192.168.1.100", s.AllowedIPs)
 	assert.Equal(t, "10.0.0.0/8", s.AllowedCIDRs)
+	assert.Equal(t, "required", s.DatabaseContainer)
+	assert.Equal(t, "postgres://user:pass@db:5432/dbname?sslmode=disable", s.DatabaseURL)
+	assert.Equal(t, 5*time.Minute, s.DatabaseInitTotalTimeout)
+	assert.Equal(t, 30*time.Second, s.DatabaseInitRetryWait)
+	assert.True(t, s.Migrations)
+	assert.True(t, s.OTLP)
+	assert.True(t, s.OTLPConsole)
+	assert.Equal(t, "my-scope", s.OTLPScope)
+	assert.True(t, s.DevMode)
 }
