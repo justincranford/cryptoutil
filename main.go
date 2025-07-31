@@ -8,13 +8,9 @@ import (
 )
 
 func main() {
-	settings, err := cryptoutilConfig.Parse()
+	settings, err := cryptoutilConfig.Parse(true)
 	if err != nil {
 		log.Fatal("Error parsing config:", err)
-	}
-
-	if settings.Help {
-		cryptoutilConfig.DisplayHelpAndExit()
 	}
 
 	start, _, err := cryptoutilServerApplication.StartServerApplication(settings)

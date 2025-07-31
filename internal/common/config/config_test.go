@@ -11,7 +11,7 @@ import (
 func TestParse_HappyPath_Defaults(t *testing.T) {
 	resetFlags()
 	os.Args = []string{"cmd"} // No flags
-	s, err := Parse()
+	s, err := Parse(true)     // true => If --help is set, help is printed and the program exits
 	assert.NoError(t, err)
 	assert.Equal(t, help.value, s.Help)
 	assert.Equal(t, configFile.value, s.ConfigFile)
@@ -67,7 +67,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--otlp-scope=my-scope",
 	}
 
-	s, err := Parse()
+	s, err := Parse(false) // false => If --help is set, help is printed but the program doesn't exit
 	assert.NoError(t, err)
 	assert.True(t, s.Help)
 	assert.Equal(t, "test.yaml", s.ConfigFile)

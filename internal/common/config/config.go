@@ -257,7 +257,7 @@ var defaultAllowedCIDRs = func() string {
 	}, ",")
 }()
 
-func Parse() (*Settings, error) {
+func Parse(exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(help.name, help.shorthand, help.value.(bool), help.usage)
 	pflag.StringP(configFile.name, configFile.shorthand, configFile.value.(string), configFile.usage)
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
@@ -326,6 +326,14 @@ func Parse() (*Settings, error) {
 	}
 	logSettings(s)
 
+	if s.Help {
+		pflag.CommandLine.SetOutput(os.Stdout)
+		pflag.CommandLine.PrintDefaults()
+		if exitIfHelp {
+			os.Exit(0)
+		}
+	}
+
 	// TODO remove migrations flag, it will always run
 	if s.DevMode && !s.Migrations {
 		log.Warn("Dev mode on, but migrations off. Migrations are required in dev mode, and will be enabled automatically now.")
@@ -333,12 +341,6 @@ func Parse() (*Settings, error) {
 	}
 
 	return s, nil
-}
-
-func DisplayHelpAndExit() {
-	pflag.CommandLine.SetOutput(os.Stdout)
-	pflag.CommandLine.PrintDefaults()
-	os.Exit(0)
 }
 
 func logSettings(s *Settings) {
