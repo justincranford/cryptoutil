@@ -59,6 +59,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		return nil, nil, fmt.Errorf("failed to create ORM repository: %w", err)
 	}
 
+	// TODO configurable unseal keys service
 	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create unseal repository", "error", err)
