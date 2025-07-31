@@ -326,17 +326,19 @@ func Parse() (*Settings, error) {
 	}
 	logSettings(s)
 
-	if s.Help {
-		pflag.CommandLine.SetOutput(os.Stdout)
-		pflag.CommandLine.PrintDefaults()
-		os.Exit(0)
-	}
-
+	// TODO remove migrations flag, it will always run
 	if s.DevMode && !s.Migrations {
 		log.Warn("Dev mode on, but migrations off. Migrations are required in dev mode, and will be enabled automatically now.")
 		s.Migrations = true
 	}
+
 	return s, nil
+}
+
+func DisplayHelpAndExit() {
+	pflag.CommandLine.SetOutput(os.Stdout)
+	pflag.CommandLine.PrintDefaults()
+	os.Exit(0)
 }
 
 func logSettings(s *Settings) {

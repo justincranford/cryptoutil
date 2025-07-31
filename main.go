@@ -13,6 +13,10 @@ func main() {
 		log.Fatal("Error parsing config:", err)
 	}
 
+	if settings.Help {
+		cryptoutilConfig.DisplayHelpAndExit()
+	}
+
 	start, _, err := cryptoutilServerApplication.StartServerApplication(settings)
 	if err != nil {
 		log.Fatalf("failed to start server application: %v", err)
