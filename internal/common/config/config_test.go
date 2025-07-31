@@ -38,19 +38,11 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, otlpScope.value, s.OTLPScope)
 }
 
-func TestParse_HappyPath_Help(t *testing.T) {
-	resetFlags()
-	os.Args = []string{"cmd", "--help"}
-
-	s, err := Parse()
-	assert.NoError(t, err)
-	assert.True(t, s.Help)
-}
-
 func TestParse_HappyPath_Overrides(t *testing.T) {
 	resetFlags()
 	os.Args = []string{
 		"cmd",
+		"--help",
 		"--config=test.yaml",
 		"--log-level=debug",
 		"--verbose",
@@ -77,7 +69,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 
 	s, err := Parse()
 	assert.NoError(t, err)
-	assert.Equal(t, help.value, s.Help)
+	assert.True(t, s.Help)
 	assert.Equal(t, "test.yaml", s.ConfigFile)
 	assert.Equal(t, "debug", s.LogLevel)
 	assert.True(t, s.VerboseMode)
