@@ -56,6 +56,8 @@ type Settings struct {
 	OTLP                     bool
 	OTLPConsole              bool
 	OTLPScope                string
+	UnsealMode               string
+	UnsealFiles              string
 }
 
 // Setting Input values for pflag.*P(name, shortname, value, usage)
@@ -206,6 +208,18 @@ var (
 		value:     "cryptoutil",
 		usage:     "OTLP scope",
 	}
+	unsealMode = Setting{
+		name:      "unseal-mode",
+		shorthand: "U",
+		value:     "1",
+		usage:     "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
+	}
+	unsealFiles = Setting{
+		name:      "unseal-files",
+		shorthand: "F",
+		value:     "./.unseal1",
+		usage:     "unseal files; comma-separated list of unseal inputs file(s); e.g. ./unseal1,./unseal2,./unseal3",
+	}
 )
 
 var defaultAllowedCORSOrigins = func() string {
@@ -281,6 +295,8 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(otlp.name, otlp.shorthand, otlp.value.(bool), otlp.usage)
 	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, otlpConsole.value.(bool), otlpConsole.usage)
 	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)
+	pflag.StringP(unsealMode.name, unsealMode.shorthand, unsealMode.value.(string), unsealMode.usage)
+	pflag.StringP(unsealFiles.name, unsealFiles.shorthand, unsealFiles.value.(string), unsealFiles.usage)
 	err := pflag.CommandLine.Parse(os.Args[1:])
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
@@ -323,6 +339,8 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 		OTLP:                     viper.GetBool(otlp.name),
 		OTLPConsole:              viper.GetBool(otlpConsole.name),
 		OTLPScope:                viper.GetString(otlpScope.name),
+		UnsealMode:               viper.GetString(unsealMode.name),
+		UnsealFiles:              viper.GetString(unsealFiles.name),
 	}
 	logSettings(s)
 
@@ -371,6 +389,8 @@ func logSettings(s *Settings) {
 		log.Info("OTLP Export: ", s.OTLP)
 		log.Info("OTLP Console: ", s.OTLPConsole)
 		log.Info("OTLP Scope: ", s.OTLPScope)
+		log.Info("Unseal Mode: ", s.UnsealMode)
+		log.Info("Unseal Files: ", s.UnsealFiles)
 	}
 }
 
