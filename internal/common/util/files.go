@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func ReadFilesContents(filePaths *string) ([][]byte, error) {
+func ReadFilesBytes(filePaths *string) ([][]byte, error) {
 	fileList := strings.Split(*filePaths, ",")
 	if len(fileList) == 0 {
 		return nil, fmt.Errorf("no files specified")
@@ -22,7 +22,7 @@ func ReadFilesContents(filePaths *string) ([][]byte, error) {
 	filesContents := make([][]byte, 0, len(fileList))
 	for i, filePath := range fileList {
 		filePath = strings.TrimSpace(filePath)
-		fileContents, err := ReadFileContents(filePath)
+		fileContents, err := ReadFileBytes(filePath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(fileList), filePath, err)
 		}
@@ -32,7 +32,7 @@ func ReadFilesContents(filePaths *string) ([][]byte, error) {
 	return filesContents, nil
 }
 
-func ReadFileContents(filePath string) ([]byte, error) {
+func ReadFileBytes(filePath string) ([]byte, error) {
 	fileData, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
