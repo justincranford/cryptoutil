@@ -9,6 +9,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -31,6 +32,16 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 }
 
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
+	if settings.DevMode {
+		randomBytes, err := cryptoutilUtil.GenerateBytes(64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
+		}
+		telemetryService.Slogger.Debug("Generated random unseal secret for dev mode", "length", len(randomBytes))
+		sharedSecretsM := [][]byte{randomBytes}
+		return NewUnsealKeysServiceSharedSecrets(sharedSecretsM, len(sharedSecretsM))
+	}
+
 	telemetryService.Slogger.Info("Creating UnsealKeysService from settings", "mode", settings.UnsealMode, "files", settings.UnsealFiles)
 	// Parse mode - could be "N", "M-of-N", or "sysinfo"
 	switch {
