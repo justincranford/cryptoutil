@@ -211,7 +211,7 @@ var (
 	unsealMode = Setting{
 		name:      "unseal-mode",
 		shorthand: "U",
-		value:     "1",
+		value:     "sysinfo",
 		usage:     "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
 	}
 	unsealFiles = Setting{

@@ -11,7 +11,6 @@ import (
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
@@ -59,8 +58,8 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		return nil, nil, fmt.Errorf("failed to create ORM repository: %w", err)
 	}
 
-	// TODO configurable unseal keys service
-	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
+	// Create unseal keys service based on configuration settings
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create unseal repository", "error", err)
 		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, nil, nil, nil)()
