@@ -34,8 +34,6 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 	telemetryService.Slogger.Info("Creating UnsealKeysService from settings", "mode", settings.UnsealMode, "files", settings.UnsealFiles)
 	// Parse mode - could be "N", "M-of-N", or "sysinfo"
 	switch {
-	case settings.UnsealMode == "":
-		return NewUnsealKeysServiceFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 	case settings.UnsealMode == "sysinfo":
 		return NewUnsealKeysServiceFromSysInfo(&cryptoutilSysinfo.DefaultSysInfoProvider{})
 
@@ -53,6 +51,9 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		if err != nil {
 			return nil, fmt.Errorf("invalid N value in unseal mode %s: %w", settings.UnsealMode, err)
 		}
+		if m <= 0 || n <= 0 || m > n {
+			return nil, fmt.Errorf("invalid M-of-N values in unseal mode %s: M must be > 0, N must be >= M", settings.UnsealMode)
+		}
 
 		filesContents, err := readFilesContents(&settings.UnsealFiles)
 		if err != nil {
@@ -62,11 +63,13 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		}
 
 		return NewUnsealKeysServiceSharedSecrets(filesContents, m)
-
 	default:
 		n, err := strconv.Atoi(settings.UnsealMode) // Try to parse as a number (N mode)
 		if err != nil {
 			return nil, fmt.Errorf("invalid unseal mode %s: %w", settings.UnsealMode, err)
+		}
+		if n <= 0 {
+			return nil, fmt.Errorf("invalid unseal mode %s: N must be > 0", settings.UnsealMode)
 		}
 
 		filesContents, err := readFilesContents(&settings.UnsealFiles)
