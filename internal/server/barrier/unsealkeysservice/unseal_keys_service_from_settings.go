@@ -30,21 +30,6 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 	u.unsealJwks = nil
 }
 
-// readJWKFile reads a JWK from a file
-func readJWKFile(filePath string) (joseJwk.Key, error) {
-	fileData, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read JWK file %s: %w", filePath, err)
-	}
-
-	key, err := joseJwk.ParseKey(fileData)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse JWK from file %s: %w", filePath, err)
-	}
-
-	return key, nil
-}
-
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
 	telemetryService.Slogger.Info("Creating UnsealKeysService from settings", "mode", settings.UnsealMode, "files", settings.UnsealFiles)
 	// Parse mode - could be "N", "M-of-N", or "sysinfo"
@@ -72,8 +57,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		filesContents, err := readFilesContents(&settings.UnsealFiles)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
-		}
-		if len(filesContents) != n {
+		} else if len(filesContents) != n {
 			return nil, fmt.Errorf("expected %d shared secret files, got %d", n, len(filesContents))
 		}
 
@@ -85,40 +69,22 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid unseal mode %s: %w", settings.UnsealMode, err)
 		}
 
-		// Split the file list
-		fileList := strings.Split(settings.UnsealFiles, ",")
-		if len(fileList) == 0 {
-			return nil, fmt.Errorf("no unseal files specified for mode %s", settings.UnsealMode)
-		}
-		if len(fileList) != n {
-			return nil, fmt.Errorf("expected %d files for N mode, got %d", n, len(fileList))
+		filesContents, err := readFilesContents(&settings.UnsealFiles)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
+		} else if len(filesContents) != n {
+			return nil, fmt.Errorf("expected %d shared secret files, got %d", n, len(filesContents))
 		}
 
-		// Read all JWKs
-		unsealJwks := make([]joseJwk.Key, 0, len(fileList))
-		for _, filePath := range fileList {
-			filePath = strings.TrimSpace(filePath)
-			if filePath == "" {
-				continue
-			}
-
-			jwk, err := readJWKFile(filePath)
+		unsealJwks := make([]joseJwk.Key, 0, len(filesContents))
+		for _, fileContents := range filesContents {
+			jwk, err := joseJwk.ParseKey(fileContents)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to parse JWK from file contents: %w", err)
 			}
 			unsealJwks = append(unsealJwks, jwk)
 		}
 
-		if len(unsealJwks) == 0 {
-			return nil, fmt.Errorf("no valid JWK files found")
-		}
-
-		// Verify we have enough keys
-		if n > 0 && len(unsealJwks) < n {
-			return nil, fmt.Errorf("insufficient JWKs: required %d, found %d", n, len(unsealJwks))
-		}
-
-		// Use all the JWKs we found
 		return NewUnsealKeysServiceSimple(unsealJwks)
 	}
 }
