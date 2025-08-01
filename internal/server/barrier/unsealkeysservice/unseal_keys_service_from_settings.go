@@ -3,7 +3,6 @@ package unsealkeysservice
 import (
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -66,7 +65,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid M-of-N values in unseal mode %s: M must be > 0, N must be >= M", settings.UnsealMode)
 		}
 
-		filesContents, err := readFilesContents(&settings.UnsealFiles)
+		filesContents, err := cryptoutilUtil.ReadFilesContents(&settings.UnsealFiles)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {
@@ -83,7 +82,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid unseal mode %s: N must be > 0", settings.UnsealMode)
 		}
 
-		filesContents, err := readFilesContents(&settings.UnsealFiles)
+		filesContents, err := cryptoutilUtil.ReadFilesContents(&settings.UnsealFiles)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {
@@ -101,38 +100,4 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 
 		return NewUnsealKeysServiceSimple(unsealJwks)
 	}
-}
-
-func readFilesContents(filePaths *string) ([][]byte, error) {
-	fileList := strings.Split(*filePaths, ",")
-	if len(fileList) == 0 {
-		return nil, fmt.Errorf("no files specified")
-	}
-
-	for i, filePath := range fileList {
-		filePath = strings.TrimSpace(filePath)
-		if filePath == "" {
-			return nil, fmt.Errorf("empty file path %d of %d in list", i+1, len(fileList))
-		}
-	}
-
-	filesContents := make([][]byte, 0, len(fileList))
-	for i, filePath := range fileList {
-		filePath = strings.TrimSpace(filePath)
-		fileContents, err := readFileContents(filePath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(fileList), filePath, err)
-		}
-		filesContents = append(filesContents, fileContents)
-	}
-
-	return filesContents, nil
-}
-
-func readFileContents(filePath string) ([]byte, error) {
-	fileData, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
-	}
-	return fileData, nil
 }
