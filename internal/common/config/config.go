@@ -217,8 +217,10 @@ var (
 	unsealFiles = Setting{
 		name:      "unseal-files",
 		shorthand: "F",
-		value:     "./.unseal1",
-		usage:     "unseal files; comma-separated list of unseal inputs file(s); e.g. ./unseal1,./unseal2,./unseal3",
+		value:     "",
+		usage: "unseal files; comma-separated unseal file(s); e.g. " +
+			"\"/docker/secrets/unseal_1of3,/docker/secrets/unseal_2of3,/docker/secrets/unseal_3of3\"; " +
+			"used for N unseal keys or M-of-N unseal shared secrets",
 	}
 )
 
