@@ -3,8 +3,18 @@ package util
 import (
 	"crypto/rand"
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 )
+
+func GenerateString(length int) (string, error) {
+	bytesNeeded := (length + 1) / 2
+	randomBytes, err := GenerateBytes(bytesNeeded)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate %d random bytes for string of length %d: %w", bytesNeeded, length, err)
+	}
+	return hex.EncodeToString(randomBytes)[:length], nil
+}
 
 func GenerateBytes(lengthBytes int) ([]byte, error) {
 	bytes := make([]byte, lengthBytes)
