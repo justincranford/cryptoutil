@@ -70,7 +70,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid M-of-N values in unseal mode %s: M must be > 0, N must be >= M", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(&settings.UnsealFiles, MaxFiles, MaxBytesPerFile)
+		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, MaxFiles, MaxBytesPerFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {
@@ -87,7 +87,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid unseal mode %s: N must be > 0", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(&settings.UnsealFiles, MaxFiles, MaxBytesPerFile)
+		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, MaxFiles, MaxBytesPerFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {

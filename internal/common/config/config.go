@@ -57,7 +57,7 @@ type Settings struct {
 	OTLPConsole              bool
 	OTLPScope                string
 	UnsealMode               string
-	UnsealFiles              string
+	UnsealFiles              []string
 }
 
 // Setting Input values for pflag.*P(name, shortname, value, usage)
@@ -217,9 +217,9 @@ var (
 	unsealFiles = Setting{
 		name:      "unseal-files",
 		shorthand: "F",
-		value:     "",
-		usage: "unseal files; comma-separated unseal file(s); e.g. " +
-			"\"/docker/secrets/unseal_1of3,/docker/secrets/unseal_2of3,/docker/secrets/unseal_3of3\"; " +
+		value:     []string{},
+		usage: "unseal files; repeat for multiple files; e.g. " +
+			"\"--unseal-files=/docker/secrets/unseal_1of3 --unseal-files=/docker/secrets/unseal_2of3\"; " +
 			"used for N unseal keys or M-of-N unseal shared secrets",
 	}
 )
@@ -298,7 +298,7 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, otlpConsole.value.(bool), otlpConsole.usage)
 	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)
 	pflag.StringP(unsealMode.name, unsealMode.shorthand, unsealMode.value.(string), unsealMode.usage)
-	pflag.StringP(unsealFiles.name, unsealFiles.shorthand, unsealFiles.value.(string), unsealFiles.usage)
+	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, unsealFiles.value.([]string), unsealFiles.usage)
 	err := pflag.CommandLine.Parse(os.Args[1:])
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
@@ -342,7 +342,7 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 		OTLPConsole:              viper.GetBool(otlpConsole.name),
 		OTLPScope:                viper.GetString(otlpScope.name),
 		UnsealMode:               viper.GetString(unsealMode.name),
-		UnsealFiles:              viper.GetString(unsealFiles.name),
+		UnsealFiles:              viper.GetStringSlice(unsealFiles.name),
 	}
 	logSettings(s)
 

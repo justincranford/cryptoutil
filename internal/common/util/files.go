@@ -6,25 +6,24 @@ import (
 	"strings"
 )
 
-func ReadFilesBytes(filePaths *string) ([][]byte, error) {
-	fileList := strings.Split(*filePaths, ",")
-	if len(fileList) == 0 {
+func ReadFilesBytes(filePaths []string) ([][]byte, error) {
+	if len(filePaths) == 0 {
 		return nil, fmt.Errorf("no files specified")
 	}
 
-	for i, filePath := range fileList {
+	for i, filePath := range filePaths {
 		filePath = strings.TrimSpace(filePath)
 		if filePath == "" {
-			return nil, fmt.Errorf("empty file path %d of %d in list", i+1, len(fileList))
+			return nil, fmt.Errorf("empty file path %d of %d in list", i+1, len(filePaths))
 		}
 	}
 
-	filesContents := make([][]byte, 0, len(fileList))
-	for i, filePath := range fileList {
+	filesContents := make([][]byte, 0, len(filePaths))
+	for i, filePath := range filePaths {
 		filePath = strings.TrimSpace(filePath)
 		fileContents, err := ReadFileBytes(filePath)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(fileList), filePath, err)
+			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(filePaths), filePath, err)
 		}
 		filesContents = append(filesContents, fileContents)
 	}
@@ -40,27 +39,26 @@ func ReadFileBytes(filePath string) ([]byte, error) {
 	return fileData, nil
 }
 
-func ReadFilesBytesLimit(filePaths *string, maxFiles, maxBytesPerFile int64) ([][]byte, error) {
-	fileList := strings.Split(*filePaths, ",")
-	if len(fileList) == 0 {
+func ReadFilesBytesLimit(filePaths []string, maxFiles, maxBytesPerFile int64) ([][]byte, error) {
+	if len(filePaths) == 0 {
 		return nil, fmt.Errorf("no files specified")
-	} else if len(fileList) > int(maxFiles) {
-		return nil, fmt.Errorf("too many files specified: maximum is %d, got %d", maxFiles, len(fileList))
+	} else if len(filePaths) > int(maxFiles) {
+		return nil, fmt.Errorf("too many files specified: maximum is %d, got %d", maxFiles, len(filePaths))
 	}
 
-	for i, filePath := range fileList {
+	for i, filePath := range filePaths {
 		filePath = strings.TrimSpace(filePath)
 		if filePath == "" {
-			return nil, fmt.Errorf("empty file path %d of %d in list", i+1, len(fileList))
+			return nil, fmt.Errorf("empty file path %d of %d in list", i+1, len(filePaths))
 		}
 	}
 
-	filesContents := make([][]byte, 0, len(fileList))
-	for i, filePath := range fileList {
+	filesContents := make([][]byte, 0, len(filePaths))
+	for i, filePath := range filePaths {
 		filePath = strings.TrimSpace(filePath)
 		fileContents, err := ReadFileBytesLimit(filePath, maxBytesPerFile)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(fileList), filePath, err)
+			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(filePaths), filePath, err)
 		}
 		filesContents = append(filesContents, fileContents)
 	}

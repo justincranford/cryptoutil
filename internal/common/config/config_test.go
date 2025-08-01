@@ -37,7 +37,7 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, otlpConsole.value, s.OTLPConsole)
 	assert.Equal(t, otlpScope.value, s.OTLPScope)
 	assert.Equal(t, unsealMode.value, s.UnsealMode)
-	assert.Equal(t, unsealFiles.value, s.UnsealFiles)
+	assert.Equal(t, unsealFiles.value.([]string), s.UnsealFiles)
 }
 
 func TestParse_HappyPath_Overrides(t *testing.T) {
@@ -68,7 +68,9 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--otlp-console",
 		"--otlp-scope=my-scope",
 		"--unseal-mode=2-of-3",
-		"--unseal-files=/docker/secrets/unseal1,/docker/secrets/unseal2,/docker/secrets/unseal3",
+		"--unseal-files=/docker/secrets/unseal1",
+		"--unseal-files=/docker/secrets/unseal2",
+		"--unseal-files=/docker/secrets/unseal3",
 	}
 
 	s, err := Parse(false) // false => If --help is set, help is printed but the program doesn't exit
@@ -97,5 +99,5 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "my-scope", s.OTLPScope)
 	assert.True(t, s.DevMode)
 	assert.Equal(t, "2-of-3", s.UnsealMode)
-	assert.Equal(t, "/docker/secrets/unseal1,/docker/secrets/unseal2,/docker/secrets/unseal3", s.UnsealFiles)
+	assert.Equal(t, []string{"/docker/secrets/unseal1", "/docker/secrets/unseal2", "/docker/secrets/unseal3"}, s.UnsealFiles)
 }
