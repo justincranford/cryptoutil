@@ -52,7 +52,6 @@ type Settings struct {
 	DatabaseURL              string
 	DatabaseInitTotalTimeout time.Duration
 	DatabaseInitRetryWait    time.Duration
-	Migrations               bool
 	OTLP                     bool
 	OTLPConsole              bool
 	OTLPScope                string
@@ -337,7 +336,6 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 		DatabaseURL:              viper.GetString(databaseURL.name),
 		DatabaseInitTotalTimeout: viper.GetDuration(databaseInitTotalTimeout.name),
 		DatabaseInitRetryWait:    viper.GetDuration(databaseInitRetryWait.name),
-		Migrations:               viper.GetBool(migrations.name),
 		OTLP:                     viper.GetBool(otlp.name),
 		OTLPConsole:              viper.GetBool(otlpConsole.name),
 		OTLPScope:                viper.GetString(otlpScope.name),
@@ -352,12 +350,6 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 		if exitIfHelp {
 			os.Exit(0)
 		}
-	}
-
-	// TODO remove migrations flag, it will always run
-	if s.DevMode && !s.Migrations {
-		log.Warn("Dev mode on, but migrations off. Migrations are required in dev mode, and will be enabled automatically now.")
-		s.Migrations = true
 	}
 
 	return s, nil
@@ -387,7 +379,6 @@ func logSettings(s *Settings) {
 		}
 		log.Info("Database Init Total Timeout: ", s.DatabaseInitTotalTimeout)
 		log.Info("Database Init Retry Wait: ", s.DatabaseInitRetryWait)
-		log.Info("Migrations: ", s.Migrations)
 		log.Info("OTLP Export: ", s.OTLP)
 		log.Info("OTLP Console: ", s.OTLPConsole)
 		log.Info("OTLP Scope: ", s.OTLPScope)

@@ -36,12 +36,10 @@ func RequireNewForTest(applicationName string) *Settings {
 		DatabaseURL:              databaseURL.value.(string),
 		DatabaseInitTotalTimeout: databaseInitTotalTimeout.value.(time.Duration),
 		DatabaseInitRetryWait:    databaseInitRetryWait.value.(time.Duration),
-		Migrations:               migrations.value.(bool),
 	}
 	// Overrides for testing
 	settings.LogLevel = "ALL"
 	settings.DevMode = true
-	settings.Migrations = true
 	settings.OTLPScope = applicationName
 	return settings
 }
