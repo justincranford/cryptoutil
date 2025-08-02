@@ -9,3 +9,13 @@ migrations: true
 
 # Binding address - 0.0.0.0 allows connections from any IP
 bind-address: "0.0.0.0"
+
+unseal-mode: "3-of-5"
+
+unseal-files: 
+  - /run/secrets/cryptoutil_unseal_1of5
+  - /run/secrets/cryptoutil_unseal_2of5
+  - /run/secrets/cryptoutil_unseal_3of5
+  - /run/secrets/cryptoutil_unseal_4of5
+  - /run/secrets/cryptoutil_unseal_5of5
+  
