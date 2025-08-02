@@ -37,4 +37,7 @@ HEALTHCHECK --start-period=5s --interval=60s --timeout=3s --retries=3 \
 # TODO Move parameters to docker-compose.yml
 
 # ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--config=/app/sqlite.yaml", "--log-level=debug", "--verbose"]
-ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--config=/app/postgresql.yaml", "--log-level=debug", "--verbose"]
+# ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--config=/app/postgresql.yaml", "--log-level=debug", "--verbose"]
+
+# ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--config=/app/sqlite.yaml"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil", "--config=/app/postgresql.yaml"]
