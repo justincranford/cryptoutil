@@ -20,8 +20,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o cryptoutil .
 FROM alpine:latest
 WORKDIR /app
 COPY --from=builder2 /app/cryptoutil /app/cryptoutil
-COPY ./docker/cryptoutil/sqlite.yaml /app/sqlite.yaml
-COPY ./docker/cryptoutil/postgresql.yaml /app/postgresql.yaml
+COPY ./docker/compose/cryptoutil/sqlite.yaml /app/sqlite.yaml
+COPY ./docker/compose/cryptoutil/postgresql.yaml /app/postgresql.yaml
 
 RUN adduser -D -H -h /app cryptoutil                            && \
     chown -R cryptoutil:cryptoutil /app                         && \
