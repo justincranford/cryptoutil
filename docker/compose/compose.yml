@@ -25,8 +25,8 @@ services:
 
   cryptoutil:
     build:
-      context: ..
-      dockerfile: ../docker/Dockerfile
+      context: ../..
+      dockerfile: docker/Dockerfile
     ports:
       - "8080:8080"
     secrets:
@@ -51,19 +51,19 @@ volumes:
 secrets:
 
   postgres_username:
-    file: ../docker1/compose/postgres/postgres_username
+    file: ../docker/compose/postgres/postgres_username
   postgres_password:
-    file: ../docker1/compose/postgres/postgres_password
+    file: ../docker/compose/postgres/postgres_password
   postgres_database:
-    file: ../docker1/compose/postgres/postgres_database
+    file: ../docker/compose/postgres/postgres_database
 
   cryptoutil_unseal_1of5:
-    file: ../docker1/compose/cryptoutil/cryptoutil_unseal_1of5
+    file: ../docker/compose/cryptoutil/cryptoutil_unseal_1of5
   cryptoutil_unseal_2of5:
-    file: ../docker1/compose/cryptoutil/cryptoutil_unseal_2of5
+    file: ../docker/compose/cryptoutil/cryptoutil_unseal_2of5
   cryptoutil_unseal_3of5:
-    file: ../docker1/compose/cryptoutil/cryptoutil_unseal_3of5
+    file: ../docker/compose/cryptoutil/cryptoutil_unseal_3of5
   cryptoutil_unseal_4of5:
-    file: ../docker1/compose/cryptoutil/cryptoutil_unseal_4of5
+    file: ../docker/compose/cryptoutil/cryptoutil_unseal_4of5
   cryptoutil_unseal_5of5:
-    file: ../docker1/compose/cryptoutil/cryptoutil_unseal_5of5
+    file: ../docker/compose/cryptoutil/cryptoutil_unseal_5of5
