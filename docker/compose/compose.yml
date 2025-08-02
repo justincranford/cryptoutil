@@ -1,4 +1,23 @@
 services:
+
+  cryptoutil:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8080:8080"
+    secrets:
+      - cryptoutil_unseal_1of5
+      - cryptoutil_unseal_2of5
+      - cryptoutil_unseal_3of5
+      - cryptoutil_unseal_4of5
+      - cryptoutil_unseal_5of5
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cryptoutil-network
+
   postgres:
     image: postgres:latest
     environment:
@@ -20,24 +39,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-    networks:
-      - cryptoutil-network
-
-  cryptoutil:
-    build:
-      context: ../..
-      dockerfile: docker/Dockerfile
-    ports:
-      - "8080:8080"
-    secrets:
-      - cryptoutil_unseal_1of5
-      - cryptoutil_unseal_2of5
-      - cryptoutil_unseal_3of5
-      - cryptoutil_unseal_4of5
-      - cryptoutil_unseal_5of5
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - cryptoutil-network
 
