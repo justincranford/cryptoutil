@@ -97,7 +97,7 @@ var (
 		name:      "dev",
 		shorthand: "d",
 		value:     false,
-		usage:     "run in development mode; enables in-memory SQLite and migrations",
+		usage:     "run in development mode; enables in-memory SQLite",
 	}
 	bindAddress = Setting{
 		name:      "bind-address",
@@ -182,12 +182,6 @@ var (
 		shorthand: "W",
 		value:     1 * time.Second,
 		usage:     "database init retry wait",
-	}
-	migrations = Setting{
-		name:      "migrations",
-		shorthand: "M",
-		value:     false,
-		usage:     "run DB migrations",
 	}
 	otlp = Setting{
 		name:      "otlp",
@@ -292,7 +286,6 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(databaseURL.name, databaseURL.shorthand, databaseURL.value.(string), databaseURL.usage)
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, databaseInitTotalTimeout.value.(time.Duration), databaseInitTotalTimeout.usage)
 	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, databaseInitRetryWait.value.(time.Duration), databaseInitRetryWait.usage)
-	pflag.BoolP(migrations.name, migrations.shorthand, migrations.value.(bool), migrations.usage)
 	pflag.BoolP(otlp.name, otlp.shorthand, otlp.value.(bool), otlp.usage)
 	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, otlpConsole.value.(bool), otlpConsole.usage)
 	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)

@@ -13,7 +13,6 @@
             "program": "${workspaceFolder}/main.go",
             "args": [
                 "--dev=true",
-                "--migrations=true",
                 "--log-level=INFO",
             ],
         },
@@ -25,7 +24,6 @@
             "program": "${workspaceFolder}/main.go",
             "args": [
                 "--database-url=postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
-                "--migrations=true",
                 "--log-level=ALL",
             ],
         },

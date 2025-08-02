@@ -62,7 +62,6 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--database-url=postgres://user:pass@db:5432/dbname?sslmode=disable",
 		"--database-init-total-timeout=5m",
 		"--database-init-retry-wait=30s",
-		"--migrations",
 		"--otlp",
 		"--otlp-console",
 		"--otlp-scope=my-scope",

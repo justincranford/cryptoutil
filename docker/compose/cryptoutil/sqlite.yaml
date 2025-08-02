@@ -1,11 +1,8 @@
 # Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
 log-level: "INFO"
 
-# Development mode - enables in-memory SQLite and migrations
+# Development mode - enables in-memory SQLite
 dev: true
-
-# Run database auto-migrations
-migrations: true
 
 # Binding address - 0.0.0.0 allows connections from any IP
 bind-address: "0.0.0.0"
