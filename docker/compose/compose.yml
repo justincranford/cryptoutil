@@ -7,6 +7,9 @@ services:
     command: "--config=/app/postgresql.yaml"
     ports:
       - "8080:8080"
+    volumes:
+      - ./cryptoutil/sqlite.yaml:/app/sqlite.yaml
+      - ./cryptoutil/postgresql.yaml:/app/postgresql.yaml
     secrets:
       - cryptoutil_unseal_1of5
       - cryptoutil_unseal_2of5
