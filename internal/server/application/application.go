@@ -3,11 +3,15 @@ package application
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"sync/atomic"
 	"syscall"
+	"time"
 
+	"cryptoutil/internal/common/config"
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -21,8 +25,13 @@ import (
 
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/swagger"
 	fibermiddleware "github.com/oapi-codegen/fiber-middleware"
 )
@@ -96,8 +105,17 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 
 	app := fiber.New(fiber.Config{Immutable: true})
 	app.Use(recover.New())
+	app.Use(requestid.New())
 	app.Use(logger.New()) // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
 	app.Use(fiberOtelLoggerMiddleware(telemetryService.Slogger))
+	app.Use(ipFilterMiddleware(settings))
+	app.Use(rateLimiterMiddleware(settings))
+	app.Use(cacheControlMiddleware())
+	// app.Use(healthcheck.New())
+	app.Use(corsMiddleware(settings)) // Cross-Origin Resource Sharing
+	app.Use(helmet.New())             // Cross-Site Scripting (XSS)
+	// app.Use(csrf.New()) // Cross-Site Request Forgery (CSRF)
+
 	app.Use(otelfiber.Middleware(
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
@@ -186,5 +204,81 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 		<-c
 		telemetryService.Slogger.Info("received stop server signal")
 		stopServerFunc()
+	}
+}
+
+func ipFilterMiddleware(settings *config.Settings) func(c *fiber.Ctx) error {
+	allowedIPs := make(map[string]bool)
+	if settings.AllowedIPs != "" {
+		for _, ip := range strings.Split(settings.AllowedIPs, ",") {
+			parsedIP := net.ParseIP(ip)
+			if parsedIP == nil {
+				log.Fatal("Invalid IP address:", ip)
+			}
+			allowedIPs[ip] = true
+		}
+	}
+
+	var allowedCIDRs []*net.IPNet
+	if settings.AllowedCIDRs != "" {
+		for _, cidr := range strings.Split(settings.AllowedCIDRs, ",") {
+			_, network, err := net.ParseCIDR(cidr)
+			if err != nil {
+				log.Fatal("Invalid CIDR:", cidr)
+			}
+			allowedCIDRs = append(allowedCIDRs, network)
+		}
+	}
+
+	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
+		clientIP := c.IP()
+		parsedIP := net.ParseIP(clientIP)
+		if parsedIP == nil {
+			log.Debug("Invalid IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			return c.Status(fiber.StatusForbidden).SendString("Invalid IP format")
+		} else if _, allowed := allowedIPs[parsedIP.String()]; allowed {
+			log.Debug("Allowed IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			return c.Next() // IP is contained in the allowed IPs set
+		}
+		for _, cidr := range allowedCIDRs {
+			if cidr.Contains(parsedIP) {
+				log.Debug("Allowed CIDR: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+				return c.Next() // IP is contained in minGenreID of the allowed CIDRs
+			}
+		}
+		log.Debug("Access denied: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+		return c.Status(fiber.StatusForbidden).SendString("Access denied")
+	}
+}
+
+func rateLimiterMiddleware(settings *config.Settings) fiber.Handler {
+	return limiter.New(limiter.Config{ // Mitigate DOS by throttling clients
+		Max:        int(settings.RateLimit),
+		Expiration: time.Second,
+		KeyGenerator: func(c *fiber.Ctx) string {
+			return c.IP() // throttle by IP, could be improved in future (e.g. append JWTClaim.sub or JWTClaim.tenantid)
+		},
+		LimitReached: func(c *fiber.Ctx) error {
+			log.Warn("Rate limited: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", c.IP(), ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			return c.Status(fiber.StatusTooManyRequests).SendString("Rate limit exceeded")
+		},
+	})
+}
+
+func corsMiddleware(settings *config.Settings) fiber.Handler {
+	return cors.New(cors.Config{ // Cross-Origin Resource Sharing (CORS)
+		AllowOrigins: settings.CorsOrigins,
+		AllowMethods: settings.CorsMethods,
+		AllowHeaders: settings.CorsHeaders,
+		MaxAge:       int(settings.CorsMaxAge),
+	})
+}
+
+func cacheControlMiddleware() func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error { // Disable caching of HTTP GET responses
+		c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+		c.Set("Pragma", "no-cache")
+		c.Set("Expires", "0")
+		return c.Next()
 	}
 }
