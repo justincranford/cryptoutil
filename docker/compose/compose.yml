@@ -4,7 +4,6 @@ services:
     build:
       context: ../..
       dockerfile: docker/Dockerfile
-    # Using shell form of command
     entrypoint: ["/sbin/tini", "--"]
     command: /app/cryptoutil --config=/app/sqlite.yaml
     ports:
