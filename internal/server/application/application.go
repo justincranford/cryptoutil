@@ -116,6 +116,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	app.Use(corsMiddleware(settings)) // Cross-Origin Resource Sharing
 	app.Use(helmet.New())             // Cross-Site Scripting (XSS)
 	app.Use(csrf.New(csrf.Config{     // Cross-Site Request Forgery (CSRF)
+		CookieName:     "_csrf",       // Using default cookie name
 		CookieSameSite: "Strict",      // Strict instead of default Lax
 		Expiration:     1 * time.Hour, // 1 hour instead of default 24 hours
 	}))
@@ -148,12 +149,12 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 						
 						if (options && options.method && options.method !== 'GET') {
 							options.headers = options.headers || {};
-							// Extract CSRF token from cookies - using default Fiber CSRF cookie name "_csrf"
+							// Extract CSRF token from cookies - using customized cookie name from CSRF config
 							const cookies = document.cookie.split(';');
 							for (let i = 0; i < cookies.length; i++) {
 								const cookie = cookies[i].trim();
-								if (cookie.startsWith('_csrf=')) {
-									options.headers['X-CSRF-Token'] = cookie.substring('_csrf='.length);
+								if (cookie.startsWith('csrf_=')) {
+									options.headers['X-CSRF-Token'] = cookie.substring('csrf_='.length);
 									console.log('Added CSRF token to request');
 									break;
 								}
