@@ -17,19 +17,19 @@ services:
       dockerfile: docker/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
     command: >
-      sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url) && 
+      sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url.secret) && 
       /app/cryptoutil --config=/app/postgresql.yml --database-url="$$DB_URL"'
     ports:
       - "8080-8089:8080"
     volumes:
       - ./cryptoutil/postgresql.yml:/app/postgresql.yml:ro
     secrets:
-      - cryptoutil_database-url
-      - cryptoutil_unseal_1of5
-      - cryptoutil_unseal_2of5
-      - cryptoutil_unseal_3of5
-      - cryptoutil_unseal_4of5
-      - cryptoutil_unseal_5of5
+      - cryptoutil_database-url.secret
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,20 +39,20 @@ services:
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_DB_FILE: /run/secrets/postgres_database
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
     secrets:
-      - postgres_username
-      - postgres_password
-      - postgres_database
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
     shm_size: 256mb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_username) -d $$(cat /run/secrets/postgres_database)"]
+      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_username.secret) -d $$(cat /run/secrets/postgres_database.secret)"]
       start_period: 5s
       interval: 5s
       timeout: 3s
@@ -70,23 +70,23 @@ volumes:
 
 secrets:
 
-  postgres_username:
-    file: ./postgres/postgres_username
-  postgres_password:
-    file: ./postgres/postgres_password
-  postgres_database:
-    file: ./postgres/postgres_database
+  postgres_username.secret:
+    file: ./postgres/postgres_username.secret
+  postgres_password.secret:
+    file: ./postgres/postgres_password.secret
+  postgres_database.secret:
+    file: ./postgres/postgres_database.secret
 
-  cryptoutil_database-url:
-    file: ./cryptoutil/cryptoutil_database_url
+  cryptoutil_database-url.secret:
+    file: ./cryptoutil/cryptoutil_database_url.secret
 
-  cryptoutil_unseal_1of5:
-    file: ./cryptoutil/cryptoutil_unseal_1of5
-  cryptoutil_unseal_2of5:
-    file: ./cryptoutil/cryptoutil_unseal_2of5
-  cryptoutil_unseal_3of5:
-    file: ./cryptoutil/cryptoutil_unseal_3of5
-  cryptoutil_unseal_4of5:
-    file: ./cryptoutil/cryptoutil_unseal_4of5
-  cryptoutil_unseal_5of5:
-    file: ./cryptoutil/cryptoutil_unseal_5of5
+  cryptoutil_unseal_1of5.secret:
+    file: ./cryptoutil/cryptoutil_unseal_1of5.secret
+  cryptoutil_unseal_2of5.secret:
+    file: ./cryptoutil/cryptoutil_unseal_2of5.secret
+  cryptoutil_unseal_3of5.secret:
+    file: ./cryptoutil/cryptoutil_unseal_3of5.secret
+  cryptoutil_unseal_4of5.secret:
+    file: ./cryptoutil/cryptoutil_unseal_4of5.secret
+  cryptoutil_unseal_5of5.secret:
+    file: ./cryptoutil/cryptoutil_unseal_5of5.secret
