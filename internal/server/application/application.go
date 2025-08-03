@@ -27,6 +27,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
@@ -114,7 +115,13 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	app.Use(cacheControlMiddleware())
 	app.Use(corsMiddleware(settings)) // Cross-Origin Resource Sharing
 	app.Use(helmet.New())             // Cross-Site Scripting (XSS)
-	// app.Use(csrf.New()) // Cross-Site Request Forgery (CSRF)
+	// Configure CSRF middleware with explicit settings
+	app.Use(csrf.New(csrf.Config{
+		KeyLookup:      "header:X-CSRF-Token", // Look for token in X-CSRF-Token header
+		CookieName:     "csrf_",               // Cookie name that will store the CSRF token
+		CookieSameSite: "Strict",              // Strict SameSite policy for security
+		Expiration:     1 * time.Hour,         // Token expires after 1 hour
+	})) // Cross-Site Request Forgery (CSRF)
 	app.Use(healthcheck.New())
 
 	app.Use(otelfiber.Middleware(
@@ -125,7 +132,43 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		otelfiber.WithPort(int(settings.BindPort)),
 	))
 	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
-	app.Get("/swagger/*", swagger.HandlerDefault)
+	app.Get("/swagger/*", swagger.New(swagger.Config{
+		Title:                  "Cryptoutil",
+		TryItOutEnabled:        true,
+		DisplayRequestDuration: true,
+		ShowCommonExtensions:   true,
+		// Add custom JavaScript to inject CSRF token into all non-GET requests
+		CustomScript: `
+			// Wait for Swagger UI to fully load
+			const interval = setInterval(function() {
+				if (window.ui) {
+					clearInterval(interval);
+					
+					// Add CSRF token to all non-GET requests
+					const originalFetch = window.fetch;
+					window.fetch = function(url, options) {
+						options = options || {};
+						
+						if (options && options.method && options.method !== 'GET') {
+							options.headers = options.headers || {};
+							// Extract CSRF token from cookies
+							const cookies = document.cookie.split(';');
+							for (let i = 0; i < cookies.length; i++) {
+								const cookie = cookies[i].trim();
+								if (cookie.startsWith('csrf_=')) {
+									options.headers['X-CSRF-Token'] = cookie.substring('csrf_='.length);
+									console.log('Added CSRF token to request');
+									break;
+								}
+							}
+						}
+						return originalFetch.call(this, url, options);
+					};
+					console.log('CSRF token handling enabled for Swagger UI');
+				}
+			}, 100);
+		`,
+	}))
 
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(businessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
