@@ -11,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"cryptoutil/internal/common/config"
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
@@ -236,7 +235,7 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 	}
 }
 
-func ipFilterMiddleware(settings *config.Settings) func(c *fiber.Ctx) error {
+func ipFilterMiddleware(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
 	if settings.AllowedIPs != "" {
 		for _, ip := range strings.Split(settings.AllowedIPs, ",") {
@@ -280,7 +279,7 @@ func ipFilterMiddleware(settings *config.Settings) func(c *fiber.Ctx) error {
 	}
 }
 
-func ipRateLimiterMiddleware(settings *config.Settings) fiber.Handler {
+func ipRateLimiterMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return limiter.New(limiter.Config{ // Mitigate DOS by throttling clients
 		Max:        int(settings.IPRateLimit),
 		Expiration: time.Second,
@@ -294,21 +293,20 @@ func ipRateLimiterMiddleware(settings *config.Settings) fiber.Handler {
 	})
 }
 
-func corsMiddleware(settings *config.Settings) fiber.Handler {
+func corsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return cors.New(cors.Config{ // Cross-Origin Resource Sharing (CORS)
-		AllowOrigins: settings.CORSAllowedOrigins, // config.defaultAllowedCORSOrigins
-		AllowMethods: settings.CORSAllowedMethods, // config.defaultAllowedCORSMethods
-		AllowHeaders: settings.CORSAllowedHeaders, // config.defaultAllowedCORSHeaders
+		AllowOrigins: settings.CORSAllowedOrigins, // cryptoutilConfig.defaultAllowedCORSOrigins
+		AllowMethods: settings.CORSAllowedMethods, // cryptoutilConfig.defaultAllowedCORSMethods
+		AllowHeaders: settings.CORSAllowedHeaders, // cryptoutilConfig.defaultAllowedCORSHeaders
 		MaxAge:       int(settings.CORSMaxAge),
 	})
 }
 
-func csrfMiddleware(settings *config.Settings) fiber.Handler {
-	// TODO configure CSRF token via settings
-	return csrf.New(csrf.Config{
-		CookieName:     "_csrf",
-		CookieSameSite: "Strict",
-		Expiration:     1 * time.Hour,
+func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
+	return csrf.New(csrf.Config{ // Cross-Site Request Forgery (CSRF)
+		CookieName:     settings.CSRFTokenName,     // cryptoutilConfig.defaultCSRFTokenName
+		CookieSameSite: settings.CSRFTokenSameSite, // cryptoutilConfig.defaultCSRFTokenSameSite
+		Expiration:     settings.CSRFTokenMaxAge,   // cryptoutilConfig.defaultCSRFTokenMaxAge
 	})
 }
 

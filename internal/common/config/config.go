@@ -45,6 +45,9 @@ type Settings struct {
 	CORSAllowedMethods       string
 	CORSAllowedHeaders       string
 	CORSMaxAge               uint16
+	CSRFTokenName            string
+	CSRFTokenSameSite        string
+	CSRFTokenMaxAge          time.Duration
 	IPRateLimit              uint16
 	AllowedIPs               string
 	AllowedCIDRs             string
@@ -140,6 +143,24 @@ var (
 		shorthand: "x",
 		value:     defaultCORSMaxAge,
 		usage:     "CORS max age in seconds",
+	}
+	csrfTokenName = Setting{
+		name:      "csrf-token-name",
+		shorthand: "N",
+		value:     defaultCSRFTokenName,
+		usage:     "CSRF token name",
+	}
+	csrfTokenSameSite = Setting{
+		name:      "csrf-token-same-site",
+		shorthand: "S",
+		value:     defaultCSRFTokenSameSite,
+		usage:     "CSRF token SameSite attribute",
+	}
+	csrfTokenMaxAge = Setting{
+		name:      "csrf-token-max-age",
+		shorthand: "M",
+		value:     defaultCSRFTokenMaxAge,
+		usage:     "CSRF token max age (expiration)",
 	}
 	ipRateLimit = Setting{
 		name:      "rate-limit",
@@ -255,6 +276,12 @@ var defaultCORSAllowedHeaders = func() string {
 
 var defaultCORSMaxAge = uint16(3600)
 
+var defaultCSRFTokenName = "_csrf"
+
+var defaultCSRFTokenSameSite = "Strict"
+
+var defaultCSRFTokenMaxAge = 1 * time.Hour
+
 var defaultAllowedIps = ""
 
 var defaultAllowedCIDRs = func() string {
@@ -283,6 +310,9 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(corsAllowedMethods.name, corsAllowedMethods.shorthand, corsAllowedMethods.value.(string), corsAllowedMethods.usage)
 	pflag.StringP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, corsAllowedHeaders.value.(string), corsAllowedHeaders.usage)
 	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, corsMaxAge.value.(uint16), corsMaxAge.usage)
+	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, csrfTokenName.value.(string), csrfTokenName.usage)
+	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, csrfTokenSameSite.value.(string), csrfTokenSameSite.usage)
+	pflag.DurationP(csrfTokenMaxAge.name, csrfTokenMaxAge.shorthand, csrfTokenMaxAge.value.(time.Duration), csrfTokenMaxAge.usage)
 	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, ipRateLimit.value.(uint16), ipRateLimit.usage)
 	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
 	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
@@ -326,6 +356,9 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 		CORSAllowedMethods:       viper.GetString(corsAllowedMethods.name),
 		CORSAllowedHeaders:       viper.GetString(corsAllowedHeaders.name),
 		CORSMaxAge:               viper.GetUint16(corsMaxAge.name),
+		CSRFTokenName:            viper.GetString(csrfTokenName.name),
+		CSRFTokenSameSite:        viper.GetString(csrfTokenSameSite.name),
+		CSRFTokenMaxAge:          viper.GetDuration(csrfTokenMaxAge.name),
 		IPRateLimit:              viper.GetUint16(ipRateLimit.name),
 		AllowedIPs:               viper.GetString(allowedIps.name),
 		AllowedCIDRs:             viper.GetString(allowedCidrs.name),
@@ -366,6 +399,9 @@ func logSettings(s *Settings) {
 		log.Info("CORS Allowed Methods: ", s.CORSAllowedMethods)
 		log.Info("CORS Allowed Headers: ", s.CORSAllowedHeaders)
 		log.Info("CORS Max Age: ", s.CORSMaxAge)
+		log.Info("CSRF Token Name: ", s.CSRFTokenName)
+		log.Info("CSRF Token SameSite: ", s.CSRFTokenSameSite)
+		log.Info("CSRF Token Max Age: ", s.CSRFTokenMaxAge)
 		log.Info("IP Rate Limit: ", s.IPRateLimit)
 		log.Info("Allowed IPs: ", s.AllowedIPs)
 		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
