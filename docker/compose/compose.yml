@@ -4,7 +4,9 @@ services:
     build:
       context: ../..
       dockerfile: docker/Dockerfile
-    command: "--config=/app/sqlite.yaml"
+    # Using shell form of command
+    entrypoint: ["/sbin/tini", "--"]
+    command: /app/cryptoutil --config=/app/sqlite.yaml
     ports:
       - "8090:8080"
     volumes:
@@ -14,12 +16,15 @@ services:
     build:
       context: ../..
       dockerfile: docker/Dockerfile
-    command: "--config=/app/postgresql.yaml"
+    # Using shell form of command to allow for command substitution
+    entrypoint: ["/sbin/tini", "--"]
+    command: sh -c '/app/cryptoutil --config=/app/postgresql.yaml --database-url="$$(cat /run/secrets/cryptoutil_database-url)"'
     ports:
       - "8080-8089:8080"
     volumes:
       - ./cryptoutil/postgresql.yaml:/app/postgresql.yaml:ro
     secrets:
+      - cryptoutil_database-url
       - cryptoutil_unseal_1of5
       - cryptoutil_unseal_2of5
       - cryptoutil_unseal_3of5
@@ -71,6 +76,9 @@ secrets:
     file: ./postgres/postgres_password
   postgres_database:
     file: ./postgres/postgres_database
+
+  cryptoutil_database-url:
+    file: ./cryptoutil/cryptoutil_database-url
 
   cryptoutil_unseal_1of5:
     file: ./cryptoutil/cryptoutil_unseal_1of5

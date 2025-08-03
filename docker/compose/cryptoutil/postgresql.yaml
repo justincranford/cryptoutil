@@ -1,8 +1,5 @@
 # Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
-log-level: "INFO"
-
-# Database connection - PostgreSQL runs in a separate container or host called postgres
-database-url: postgres://USR:PWD@postgres:5432/DB?sslmode=disable
+# log-level: "INFO"
 
 # Binding address - 0.0.0.0 allows connections from any IP
 bind-address: "0.0.0.0"

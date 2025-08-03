@@ -1,0 +1,1 @@
+postgres://USR:PWD@postgres:5432/DB?sslmode=disable
