@@ -112,7 +112,7 @@ func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptou
 		maxLifetimeValues:   maxLifetimeValues,
 		maxLifetimeDuration: maxLifetimeDuration,
 		generateFunction:    generateFunction,
-		verbose:             true,
+		verbose:             false, // TODO set from settings
 	}
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
