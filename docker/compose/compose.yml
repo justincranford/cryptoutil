@@ -6,9 +6,9 @@ services:
       dockerfile: docker/Dockerfile
     command: "--config=/app/sqlite.yaml"
     ports:
-      - "8081:8080"
+      - "8090:8080"
     volumes:
-      - ./cryptoutil/sqlite.yaml:/app/sqlite.yaml
+      - ./cryptoutil/sqlite.yaml:/app/sqlite.yaml:ro
 
   cryptoutil_postgres:
     build:
@@ -16,9 +16,9 @@ services:
       dockerfile: docker/Dockerfile
     command: "--config=/app/postgresql.yaml"
     ports:
-      - "8080:8080"
+      - "8080-8089:8080"
     volumes:
-      - ./cryptoutil/postgresql.yaml:/app/postgresql.yaml
+      - ./cryptoutil/postgresql.yaml:/app/postgresql.yaml:ro
     secrets:
       - cryptoutil_unseal_1of5
       - cryptoutil_unseal_2of5
