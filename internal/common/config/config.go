@@ -41,11 +41,11 @@ type Settings struct {
 	BindAddress              string
 	BindPort                 uint16
 	ContextPath              string
-	CorsOrigins              string
-	CorsMethods              string
-	CorsHeaders              string
-	CorsMaxAge               uint16
-	RateLimit                uint16
+	CORSAllowedOrigins       string
+	CORSAllowedMethods       string
+	CORSAllowedHeaders       string
+	CORSMaxAge               uint16
+	IPRateLimit              uint16
 	AllowedIPs               string
 	AllowedCIDRs             string
 	DatabaseContainer        string
@@ -117,31 +117,31 @@ var (
 		value:     "/api/v1",
 		usage:     "context path for API",
 	}
-	corsOrigins = Setting{
+	corsAllowedOrigins = Setting{
 		name:      "cors-origins",
 		shorthand: "o",
-		value:     defaultAllowedCORSOrigins,
+		value:     defaultCORSAllowedOrigins,
 		usage:     "CORS allowed origins",
 	}
-	corsMethods = Setting{
+	corsAllowedMethods = Setting{
 		name:      "cors-methods",
 		shorthand: "m",
-		value:     defaultAllowedCORSMethods,
+		value:     defaultCORSAllowedMethods,
 		usage:     "CORS allowed methods",
 	}
-	corsHeaders = Setting{
+	corsAllowedHeaders = Setting{
 		name:      "cors-headers",
 		shorthand: "H",
-		value:     defaultAllowedCORSHeaders,
+		value:     defaultCORSAllowedHeaders,
 		usage:     "CORS allowed headers",
 	}
 	corsMaxAge = Setting{
 		name:      "cors-max-age",
 		shorthand: "x",
-		value:     uint16(3600),
+		value:     defaultCORSMaxAge,
 		usage:     "CORS max age in seconds",
 	}
-	rateLimit = Setting{
+	ipRateLimit = Setting{
 		name:      "rate-limit",
 		shorthand: "r",
 		value:     uint16(50),
@@ -150,7 +150,7 @@ var (
 	allowedIps = Setting{
 		name:      "allowed-ips",
 		shorthand: "I",
-		value:     "",
+		value:     defaultAllowedIps,
 		usage:     "comma-separated list of allowed IPs",
 	}
 	allowedCidrs = Setting{
@@ -217,7 +217,7 @@ var (
 	}
 )
 
-var defaultAllowedCORSOrigins = func() string {
+var defaultCORSAllowedOrigins = func() string {
 	defaultBindPostString := strconv.Itoa(int(bindPort.value.(uint16)))
 	return strings.Join([]string{
 		httpScheme + localhost + ":" + defaultBindPostString,
@@ -229,7 +229,7 @@ var defaultAllowedCORSOrigins = func() string {
 	}, ",")
 }()
 
-var defaultAllowedCORSMethods = func() string {
+var defaultCORSAllowedMethods = func() string {
 	return strings.Join([]string{
 		"POST",
 		"GET",
@@ -239,7 +239,7 @@ var defaultAllowedCORSMethods = func() string {
 	}, ",")
 }()
 
-var defaultAllowedCORSHeaders = func() string {
+var defaultCORSAllowedHeaders = func() string {
 	defaultHeaders := []string{
 		"Content-Type",
 		"Authorization",
@@ -252,6 +252,10 @@ var defaultAllowedCORSHeaders = func() string {
 	}
 	return strings.Join(defaultHeaders, ",")
 }()
+
+var defaultCORSMaxAge = uint16(3600)
+
+var defaultAllowedIps = ""
 
 var defaultAllowedCIDRs = func() string {
 	return strings.Join([]string{
@@ -275,11 +279,11 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(bindAddress.name, bindAddress.shorthand, bindAddress.value.(string), bindAddress.usage)
 	pflag.Uint16P(bindPort.name, bindPort.shorthand, bindPort.value.(uint16), bindPort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)
-	pflag.StringP(corsOrigins.name, corsOrigins.shorthand, corsOrigins.value.(string), corsOrigins.usage)
-	pflag.StringP(corsMethods.name, corsMethods.shorthand, corsMethods.value.(string), corsMethods.usage)
-	pflag.StringP(corsHeaders.name, corsHeaders.shorthand, corsHeaders.value.(string), corsHeaders.usage)
+	pflag.StringP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, corsAllowedOrigins.value.(string), corsAllowedOrigins.usage)
+	pflag.StringP(corsAllowedMethods.name, corsAllowedMethods.shorthand, corsAllowedMethods.value.(string), corsAllowedMethods.usage)
+	pflag.StringP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, corsAllowedHeaders.value.(string), corsAllowedHeaders.usage)
 	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, corsMaxAge.value.(uint16), corsMaxAge.usage)
-	pflag.Uint16P(rateLimit.name, rateLimit.shorthand, rateLimit.value.(uint16), rateLimit.usage)
+	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, ipRateLimit.value.(uint16), ipRateLimit.usage)
 	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
 	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
 	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, databaseContainer.value.(string), databaseContainer.usage)
@@ -318,11 +322,11 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 		BindAddress:              viper.GetString(bindAddress.name),
 		BindPort:                 viper.GetUint16(bindPort.name),
 		ContextPath:              viper.GetString(contextPath.name),
-		CorsOrigins:              viper.GetString(corsOrigins.name),
-		CorsMethods:              viper.GetString(corsMethods.name),
-		CorsHeaders:              viper.GetString(corsHeaders.name),
-		CorsMaxAge:               viper.GetUint16(corsMaxAge.name),
-		RateLimit:                viper.GetUint16(rateLimit.name),
+		CORSAllowedOrigins:       viper.GetString(corsAllowedOrigins.name),
+		CORSAllowedMethods:       viper.GetString(corsAllowedMethods.name),
+		CORSAllowedHeaders:       viper.GetString(corsAllowedHeaders.name),
+		CORSMaxAge:               viper.GetUint16(corsMaxAge.name),
+		IPRateLimit:              viper.GetUint16(ipRateLimit.name),
 		AllowedIPs:               viper.GetString(allowedIps.name),
 		AllowedCIDRs:             viper.GetString(allowedCidrs.name),
 		DatabaseContainer:        viper.GetString(databaseContainer.name),
@@ -358,11 +362,11 @@ func logSettings(s *Settings) {
 		log.Info("Bind Address: ", s.BindAddress)
 		log.Info("Bind Port: ", s.BindPort)
 		log.Info("Context Path: ", s.ContextPath)
-		log.Info("CORS Origins: ", s.CorsOrigins)
-		log.Info("CORS Methods: ", s.CorsMethods)
-		log.Info("CORS Headers: ", s.CorsHeaders)
-		log.Info("CORS Max Age: ", s.CorsMaxAge)
-		log.Info("Rate Limit: ", s.RateLimit)
+		log.Info("CORS Allowed Origins: ", s.CORSAllowedOrigins)
+		log.Info("CORS Allowed Methods: ", s.CORSAllowedMethods)
+		log.Info("CORS Allowed Headers: ", s.CORSAllowedHeaders)
+		log.Info("CORS Max Age: ", s.CORSMaxAge)
+		log.Info("IP Rate Limit: ", s.IPRateLimit)
 		log.Info("Allowed IPs: ", s.AllowedIPs)
 		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
 		log.Info("Database Container: ", s.DatabaseContainer)
