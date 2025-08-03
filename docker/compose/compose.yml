@@ -18,16 +18,8 @@ services:
       dockerfile: docker/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
     command: >
-      sh -c 'echo "Checking for database URL..." &&
-      ls -la /run/secrets/ &&
-      if [ -f "/run/secrets/cryptoutil_database-url" ]; then
-        DB_URL=$$(cat /run/secrets/cryptoutil_database-url) &&
-        echo "Database URL found: $$DB_URL" &&
-        /app/cryptoutil --config=/app/postgresql.yaml --database-url="$$DB_URL"
-      else
-        echo "ERROR: Database URL secret file not found or not readable" &&
-        /app/cryptoutil --config=/app/postgresql.yaml
-      fi'
+      sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url) && 
+      /app/cryptoutil --config=/app/postgresql.yaml --database-url="$$DB_URL"'
     ports:
       - "8080-8089:8080"
     volumes:
