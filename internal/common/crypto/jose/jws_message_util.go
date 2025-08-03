@@ -52,7 +52,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 
 	jwsMessageBytes, err := joseJws.Sign(clearBytes, jwsSignOptions...)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to encrypt clearBytes: %w", err)
+		return nil, nil, fmt.Errorf("failed to sign clearBytes: %w", err)
 	}
 
 	jwsMessage, err := joseJws.Parse(jwsMessageBytes)
