@@ -108,7 +108,10 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	if err != nil {
 		return nil, fmt.Errorf("failed to init text map propagator: %w", err)
 	}
-	doExampleTracesSpans(ctx, tracesProvider, slogger)
+	if settings.VerboseMode {
+		doExampleTracesSpans(ctx, tracesProvider, slogger)
+	}
+
 	return &TelemetryService{
 		StartTime:          startTime,
 		Slogger:            slogger,
@@ -191,7 +194,9 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	}
 	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, handlerOptions).WithAttrs(slogStdoutAttributes)
 	slogger := stdoutLogExporter.New(stdoutSlogHandler)
-	slogger.Debug("initializing otel logs provider")
+	if settings.VerboseMode {
+		slogger.Debug("initializing otel logs provider")
+	}
 
 	otelLogsResource := resourceSdk.NewWithAttributes("", otelLogsAttributes...)
 	otelExporter, err := grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(OtelGrpcPush), grpcLogExporter.WithInsecure())
@@ -215,7 +220,9 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 }
 
 func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.Settings) (*metricSdk.MeterProvider, error) {
-	slogger.Debug("initializing metrics provider")
+	if settings.VerboseMode {
+		slogger.Debug("initializing metrics provider")
+	}
 
 	var metricsOptions []metricSdk.Option
 
@@ -248,7 +255,9 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 }
 
 func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings *cryptoutilConfig.Settings) (*traceSdk.TracerProvider, error) {
-	slogger.Debug("initializing traces provider")
+	if settings.VerboseMode {
+		slogger.Debug("initializing traces provider")
+	}
 
 	var tracesOptions []traceSdk.TracerProviderOption
 
@@ -290,6 +299,7 @@ func initTextMapPropagator(slogger *stdoutLogExporter.Logger) (*propagationApi.T
 func doExampleTracesSpans(ctx context.Context, tracesProvider *traceSdk.TracerProvider, slogger *stdoutLogExporter.Logger) {
 	tracer := tracesProvider.Tracer("fiber-tracer")
 	spanCtx := doExampleTraceSpan(ctx, tracer, slogger, "sample parent trace and span")
+
 	doExampleTraceSpan(spanCtx, tracer, slogger, "sample child trace and span")
 }
 
