@@ -27,6 +27,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -111,10 +112,10 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	app.Use(ipFilterMiddleware(settings))
 	app.Use(rateLimiterMiddleware(settings))
 	app.Use(cacheControlMiddleware())
-	// app.Use(healthcheck.New())
 	app.Use(corsMiddleware(settings)) // Cross-Origin Resource Sharing
 	app.Use(helmet.New())             // Cross-Site Scripting (XSS)
 	// app.Use(csrf.New()) // Cross-Site Request Forgery (CSRF)
+	app.Use(healthcheck.New())
 
 	app.Use(otelfiber.Middleware(
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
@@ -123,15 +124,6 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		otelfiber.WithServerName(settings.BindAddress),
 		otelfiber.WithPort(int(settings.BindPort)),
 	))
-	app.Get("/healthz", func(c *fiber.Ctx) error {
-		return c.SendStatus(fiber.StatusOK)
-	})
-	app.Get("/readyz", func(c *fiber.Ctx) error {
-		if ready.Load() {
-			return c.SendStatus(fiber.StatusOK)
-		}
-		return c.SendStatus(fiber.StatusServiceUnavailable)
-	})
 	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
 	app.Get("/swagger/*", swagger.HandlerDefault)
 
