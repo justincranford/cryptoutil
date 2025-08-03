@@ -5,7 +5,12 @@ services:
       context: ../..
       dockerfile: docker/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
-    command: /app/cryptoutil --config=/app/sqlite.yml
+    command: >
+      sh -c '
+      echo "Container starting. Service available at host port 8090.";
+      echo "Container ID: $$(hostname)";
+      /app/cryptoutil --config=/app/sqlite.yml
+      '
     ports:
       - "8090:8080"
     volumes:
@@ -17,10 +22,12 @@ services:
       dockerfile: docker/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
     command: >
-      sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url.secret) && 
-      /app/cryptoutil --config=/app/postgresql.yml --database-url="$$DB_URL"'
-    ports:
-      - "8080-8089:8080"
+      sh -c '
+      DB_URL=$$(cat /run/secrets/cryptoutil_database-url.secret);
+      echo "Container starting. Check docker container ls for port mapping."; 
+      echo "Container ID: $$(hostname)";
+      /app/cryptoutil --config=/app/postgresql.yml --database-url="$$DB_URL"
+      '
     volumes:
       - ./cryptoutil/postgresql.yml:/app/postgresql.yml:ro
     secrets:
