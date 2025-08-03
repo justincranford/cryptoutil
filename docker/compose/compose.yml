@@ -5,11 +5,11 @@ services:
       context: ../..
       dockerfile: docker/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
-    command: /app/cryptoutil --config=/app/sqlite.yaml
+    command: /app/cryptoutil --config=/app/sqlite.yml
     ports:
       - "8090:8080"
     volumes:
-      - ./cryptoutil/sqlite.yaml:/app/sqlite.yaml:ro
+      - ./cryptoutil/sqlite.yml:/app/sqlite.yml:ro
 
   cryptoutil_postgres:
     build:
@@ -18,11 +18,11 @@ services:
     entrypoint: ["/sbin/tini", "--"]
     command: >
       sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url) && 
-      /app/cryptoutil --config=/app/postgresql.yaml --database-url="$$DB_URL"'
+      /app/cryptoutil --config=/app/postgresql.yml --database-url="$$DB_URL"'
     ports:
       - "8080-8089:8080"
     volumes:
-      - ./cryptoutil/postgresql.yaml:/app/postgresql.yaml:ro
+      - ./cryptoutil/postgresql.yml:/app/postgresql.yml:ro
     secrets:
       - cryptoutil_database-url
       - cryptoutil_unseal_1of5
