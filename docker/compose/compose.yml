@@ -16,9 +16,18 @@ services:
     build:
       context: ../..
       dockerfile: docker/Dockerfile
-    # Using shell form of command to allow for command substitution
     entrypoint: ["/sbin/tini", "--"]
-    command: sh -c '/app/cryptoutil --config=/app/postgresql.yaml --database-url="$$(cat /run/secrets/cryptoutil_database-url)"'
+    command: >
+      sh -c 'echo "Checking for database URL..." &&
+      ls -la /run/secrets/ &&
+      if [ -f "/run/secrets/cryptoutil_database-url" ]; then
+        DB_URL=$$(cat /run/secrets/cryptoutil_database-url) &&
+        echo "Database URL found: $$DB_URL" &&
+        /app/cryptoutil --config=/app/postgresql.yaml --database-url="$$DB_URL"
+      else
+        echo "ERROR: Database URL secret file not found or not readable" &&
+        /app/cryptoutil --config=/app/postgresql.yaml
+      fi'
     ports:
       - "8080-8089:8080"
     volumes:
@@ -78,7 +87,7 @@ secrets:
     file: ./postgres/postgres_database
 
   cryptoutil_database-url:
-    file: ./cryptoutil/cryptoutil_database-url
+    file: ./cryptoutil/cryptoutil_database_url
 
   cryptoutil_unseal_1of5:
     file: ./cryptoutil/cryptoutil_unseal_1of5
