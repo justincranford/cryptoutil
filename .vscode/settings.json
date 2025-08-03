@@ -6,7 +6,8 @@
     ".github/instructions/crypto.instructions.md",
     ".github/instructions/testing.instructions.md",
     ".github/instructions/errors.instructions.md",
-    ".github/instructions/formatting.instructions.md"
+    ".github/instructions/formatting.instructions.md",
+    ".github/instructions/docker.instructions.md"
   ],
   "markdown.preview.scrollEditorWithPreview": true,
   "markdown.preview.openMarkdownLinks": "inPreview",
