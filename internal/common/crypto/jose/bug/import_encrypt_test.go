@@ -32,12 +32,13 @@ func Test_Import_Encrypt(t *testing.T) {
 		t.Run(tc.alg.String(), func(t *testing.T) {
 			jweJWK := importJWK(t, tc.key, tc.enc, tc.alg)
 
-			_, jweMessageBytes, err := encrypt(t, []jwk.Key{jweJWK}, plaintext)
+			_, jweMessageBytes, err := encrypt(t, jweJWK, plaintext)
 			require.NoError(t, err, "failed to encrypt plaintext with JWE")
 			t.Logf("JWE Message:\n%s", string(jweMessageBytes))
 
-			decrypted, err := decrypt(t, jweMessageBytes, jweJWK)
+			decrypted, err := decrypt(t, jweJWK, jweMessageBytes)
 			require.NoError(t, err, "failed to decrypt JWE message")
+
 			require.Equal(t, plaintext, decrypted, "decrypted text should match original plaintext")
 			t.Logf("Successfully encrypted and decrypted with %s", tc.alg.String())
 		})
@@ -86,38 +87,23 @@ func importJWK(t *testing.T, key any, enc jwa.ContentEncryptionAlgorithm, alg jw
 	return recipientJWK
 }
 
-func encrypt(t *testing.T, recipientJwks []jwk.Key, clearBytes []byte) (*jwe.Message, []byte, error) {
-	require.NotNil(t, recipientJwks, "recipient JWKs can't be nil")
-	require.NotEmpty(t, recipientJwks, "recipient JWKs can't be empty")
-	require.NotNil(t, clearBytes, "clearBytes can't be nil")
+func encrypt(t *testing.T, recipientJWK jwk.Key, clearBytes []byte) (*jwe.Message, []byte, error) {
 	require.NotEmpty(t, clearBytes, "clearBytes can't be empty")
 
 	jweProtectedHeaders := jwe.NewHeaders()
 	err := jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
 	require.NoError(t, err, "failed to set 'iat' header in JWE protected headers")
 
-	jweEncryptOptions := make([]jwe.EncryptOption, 0, len(recipientJwks))
-	if len(recipientJwks) > 1 { // more than one JWK requires JSON encoding, not Compact encoding
-		jweEncryptOptions = append(jweEncryptOptions, jwe.WithJSON())
-	}
+	jweEncryptOptions := make([]jwe.EncryptOption, 0, 2)
 	jweEncryptOptions = append(jweEncryptOptions, jwe.WithProtectedHeaders(jweProtectedHeaders))
 
-	// if multiple recipient JWKs, ensure all JWK headers 'enc' and 'alg' are the same
-	encs := make(map[jwa.ContentEncryptionAlgorithm]struct{})
-	algs := make(map[jwa.KeyEncryptionAlgorithm]struct{})
-	for i, recipientJWK := range recipientJwks {
-		kid, enc, alg := extractKidEncAlg(t, recipientJWK)
-		encs[enc] = struct{}{} // track ContentEncryptionAlgorithm counts
-		algs[alg] = struct{}{} // track KeyEncryptionAlgorithm counts
-		require.Equal(t, len(encs), 1, fmt.Sprintf("JWK %d 'enc' attribute must be the same for all JWKs; found %d unique 'enc' attributes", i, len(encs)))
-		require.Equal(t, len(algs), 1, fmt.Sprintf("JWK %d 'alg' attribute must be the same for all JWKs; found %d unique 'alg' attributes", i, len(algs)))
+	kid, enc, alg := extractKidEncAlg(t, recipientJWK)
 
-		jweProtectedHeaders := jwe.NewHeaders()
-		jweProtectedHeaders.Set(jwk.KeyIDKey, kid)
-		jweProtectedHeaders.Set("enc", enc)
-		jweProtectedHeaders.Set(jwk.AlgorithmKey, alg)
-		jweEncryptOptions = append(jweEncryptOptions, jwe.WithKey(alg, recipientJWK, jwe.WithPerRecipientHeaders(jweProtectedHeaders)))
-	}
+	jweProtectedHeaders = jwe.NewHeaders()
+	jweProtectedHeaders.Set(jwk.KeyIDKey, kid)
+	jweProtectedHeaders.Set("enc", enc)
+	jweProtectedHeaders.Set(jwk.AlgorithmKey, alg)
+	jweEncryptOptions = append(jweEncryptOptions, jwe.WithKey(alg, recipientJWK, jwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 
 	jweMessageBytes, err := jwe.Encrypt(clearBytes, jweEncryptOptions...)
 	require.NoError(t, err, fmt.Errorf("failed to encrypt clearBytes: %w", err))
@@ -128,8 +114,7 @@ func encrypt(t *testing.T, recipientJwks []jwk.Key, clearBytes []byte) (*jwe.Mes
 	return jweMessage, jweMessageBytes, nil
 }
 
-func decrypt(t *testing.T, jweMessageBytes []byte, recipientJWK jwk.Key) ([]byte, error) {
-	require.NotNil(t, jweMessageBytes, "jweMessageBytes can't be nil")
+func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	require.NotEmpty(t, jweMessageBytes, "jweMessageBytes can't be empty")
 	require.NotNil(t, recipientJWK, "recipientJWK can't be nil")
 
