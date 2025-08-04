@@ -1,6 +1,7 @@
 package bug
 
 import (
+	"crypto/ecdh"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
@@ -24,11 +25,12 @@ type tc struct {
 func Test_Import_Encrypt(t *testing.T) {
 	aesTC := aesTestCase(t, 256, jwa.A256GCM(), jwa.A256KW())
 	rsaTC := rsaTestCase(t, 2048, jwa.A256GCM(), jwa.RSA_OAEP_256())
+	ecdhTC := ecdhTestCase(t, ecdh.P256(), jwa.A256GCM(), jwa.ECDH_ES_A256KW())
 
 	// Skipping ECDH test due to issues with the library
 
 	plaintext := []byte("Hello, World!")
-	for _, tc := range []tc{rsaTC, aesTC} {
+	for _, tc := range []tc{ecdhTC, rsaTC, aesTC} {
 		t.Run(tc.alg.String(), func(t *testing.T) {
 			jweJWK := importJWK(t, tc.key, tc.enc, tc.alg)
 
@@ -54,6 +56,12 @@ func rsaTestCase(t *testing.T, keyLengthBits int, enc jwa.ContentEncryptionAlgor
 	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, keyLengthBits)
 	require.NoError(t, err, "failed to generate RSA private key")
 	return tc{key: rsaPrivateKey, enc: enc, alg: alg}
+}
+
+func ecdhTestCase(t *testing.T, ecdhCurve ecdh.Curve, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) tc {
+	ecdhPrivateKey, err := ecdhCurve.GenerateKey(rand.Reader)
+	require.NoError(t, err, "failed to generate ECDH private key")
+	return tc{key: ecdhPrivateKey, enc: enc, alg: alg}
 }
 
 func importJWK(t *testing.T, key any, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) jwk.Key {
