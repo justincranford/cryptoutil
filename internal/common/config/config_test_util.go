@@ -45,6 +45,7 @@ func RequireNewForTest(applicationName string) *Settings {
 	// Overrides for testing
 	settings.LogLevel = "ALL"
 	settings.DevMode = true
+	settings.IPRateLimit = 1000
 	settings.OTLPScope = applicationName
 	return settings
 }
