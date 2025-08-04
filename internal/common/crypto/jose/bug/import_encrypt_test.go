@@ -16,191 +16,136 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_Import_Encrypt(t *testing.T) {
-	ecdhPrivateKey, err := ecdh.P256().GenerateKey(rand.Reader)
-	require.NoError(t, err)
-
-	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	require.NoError(t, err)
-	// For A128GCM we need 16 bytes, but for A256GCM we need 32 bytes
-	aes256SecretKey := make([]byte, 32) // 32 bytes = 256 bits for A256GCM
-	_, err = rand.Read(aes256SecretKey)
-	require.NoError(t, err)
-
-	testCases := []struct {
-		name string
-		key  any
-		enc  jwa.ContentEncryptionAlgorithm
-		alg  jwa.KeyEncryptionAlgorithm
-		skip bool
-	}{
-		{
-			name: "ECDH P-256",
-			key:  ecdhPrivateKey,
-			enc:  jwa.A256GCM(),
-			alg:  jwa.ECDH_ES_A256KW(),
-			skip: true, // Skip ECDH test until we can figure out how to properly handle ECDH keys
-		},
-		{
-			name: "RSA 2048",
-			key:  rsaPrivateKey,
-			enc:  jwa.A256GCM(),
-			alg:  jwa.RSA_OAEP_256(),
-			skip: false,
-		},
-		{
-			name: "AES 256",
-			key:  aes256SecretKey,
-			enc:  jwa.A256GCM(),
-			alg:  jwa.A256KW(),
-			skip: false,
-		},
-	}
-
-	plaintext := []byte("Hello, World!")
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			if testCase.skip {
-				t.Skip("Skipping test case")
-				return
-			}
-
-			require.NotNil(t, testCase.key)
-			t.Logf("Key:\n%v", testCase.key)
-
-			nonPublicJWK := jwkImport(t, testCase.key, testCase.enc, testCase.alg)
-			t.Logf("JWK:\n%v", nonPublicJWK)
-
-			jweMessage, jweMessageBytes, err := encrypt(t, []jwk.Key{nonPublicJWK}, plaintext)
-			require.NoError(t, err)
-			require.NotEmpty(t, jweMessage)
-			require.NotEmpty(t, jweMessageBytes)
-			t.Logf("JWE:\n%v", jweMessage)
-			t.Logf("JWE Bytes:\n%s", string(jweMessageBytes))
-		})
-	}
-
+type tc struct {
+	key any
+	enc jwa.ContentEncryptionAlgorithm
+	alg jwa.KeyEncryptionAlgorithm
 }
 
-func jwkImport(t *testing.T, key any, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) jwk.Key {
-	nonPublicJWK, err := jwk.Import(key)
-	require.NoError(t, err)
+func Test_Import_Encrypt(t *testing.T) {
+	aesTC := aesTestCase(t, 256, jwa.A256GCM(), jwa.A256KW())
+	rsaTC := rsaTestCase(t, 2048, jwa.A256GCM(), jwa.RSA_OAEP_256())
+	ecdhTC := ecdhTestCase(t, ecdh.P256(), jwa.A256GCM(), jwa.ECDH_ES_A256KW())
 
-	t.Logf("JWK before attributes:\n%v", nonPublicJWK)
+	plaintext := []byte("Hello, World!")
+	for _, tc := range []tc{ecdhTC, rsaTC, aesTC} {
+		t.Run(tc.alg.String(), func(t *testing.T) {
+			jweJWK := importJWK(t, tc.key, tc.enc, tc.alg)
 
-	// JWK attributes
+			_, jweMessageBytes, err := encrypt(t, []jwk.Key{jweJWK}, plaintext)
+			require.NoError(t, err, "failed to encrypt plaintext with JWE")
+			t.Logf("JWE Message:\n%s", string(jweMessageBytes))
+		})
+	}
+}
+
+func aesTestCase(t *testing.T, keyLengthBits int, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) tc {
+	aesSecretKey := make([]byte, keyLengthBits/8)
+	_, err := rand.Read(aesSecretKey)
+	require.NoError(t, err, "failed to generate AES secret key")
+	return tc{key: aesSecretKey, enc: enc, alg: alg}
+}
+
+func rsaTestCase(t *testing.T, keyLengthBits int, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) tc {
+	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, keyLengthBits)
+	require.NoError(t, err, "failed to generate RSA private key")
+	return tc{key: rsaPrivateKey, enc: enc, alg: alg}
+}
+
+func ecdhTestCase(t *testing.T, ecdhCurve ecdh.Curve, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) tc {
+	ecdhPrivateKey, err := ecdhCurve.GenerateKey(rand.Reader)
+	require.NoError(t, err, "failed to generate ECDH private key")
+	return tc{key: ecdhPrivateKey, enc: enc, alg: alg}
+}
+
+func importJWK(t *testing.T, key any, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) jwk.Key {
+	recipientJWK, err := jwk.Import(key)
+	require.NoError(t, err, "failed to import key into JWK")
+
 	kid, err := uuid.NewV7()
-	require.NoError(t, err)
-	err = nonPublicJWK.Set(jwk.KeyIDKey, kid.String())
-	require.NoError(t, err)
-	err = nonPublicJWK.Set(jwk.AlgorithmKey, alg)
-	require.NoError(t, err)
-	err = nonPublicJWK.Set("enc", enc)
-	require.NoError(t, err)
-	err = nonPublicJWK.Set("iat", time.Now().UTC().Unix())
-	require.NoError(t, err)
-	err = nonPublicJWK.Set("exp", time.Now().UTC().Unix()+(365*24*60*60)) // 365 days expiration (in seconds)
-	require.NoError(t, err)
-	err = nonPublicJWK.Set(jwk.KeyUsageKey, jwk.ForEncryption.String())
-	require.NoError(t, err)
-	err = nonPublicJWK.Set(jwk.KeyOpsKey, jwk.KeyOperationList{jwk.KeyOpEncrypt, jwk.KeyOpDecrypt})
-	require.NoError(t, err)
+	require.NoError(t, err, "failed to generate UUID for JWK 'kid'")
 
-	nonPublicJWKBytes, err := json.Marshal(nonPublicJWK)
-	require.NoError(t, err)
-	require.NotEmpty(t, nonPublicJWKBytes)
-	t.Logf("JWK after attributes:\n%s", string(nonPublicJWKBytes))
+	err = recipientJWK.Set(jwk.KeyIDKey, kid.String())
+	require.NoError(t, err, "failed to set 'kid' in recipient JWK")
+	err = recipientJWK.Set(jwk.AlgorithmKey, alg)
+	require.NoError(t, err, "failed to set 'alg' in recipient JWK")
+	err = recipientJWK.Set("enc", enc)
+	require.NoError(t, err, "failed to set 'enc' in recipient JWK")
+	err = recipientJWK.Set("iat", time.Now().UTC().Unix())
+	require.NoError(t, err, "failed to set 'iat' in recipient JWK")
+	err = recipientJWK.Set("exp", time.Now().UTC().Unix()+(365*24*60*60)) // 365 days expiration (in seconds)
+	require.NoError(t, err, "failed to set 'exp' in recipient JWK")
+	err = recipientJWK.Set(jwk.KeyUsageKey, jwk.ForEncryption.String())
+	require.NoError(t, err, "failed to set 'use' in recipient JWK")
+	err = recipientJWK.Set(jwk.KeyOpsKey, jwk.KeyOperationList{jwk.KeyOpEncrypt, jwk.KeyOpDecrypt})
+	require.NoError(t, err, "failed to set 'key_ops' in recipient JWK")
 
-	return nonPublicJWK
+	recipientJWKBytes, err := json.Marshal(recipientJWK)
+	require.NoError(t, err, "failed to marshal recipient JWK")
+	t.Logf("JWE JWK:\n%s", string(recipientJWKBytes))
+
+	return recipientJWK
 }
 
 func encrypt(t *testing.T, recipientJwks []jwk.Key, clearBytes []byte) (*jwe.Message, []byte, error) {
-	if recipientJwks == nil {
-		return nil, nil, fmt.Errorf("recipient JWKs can't be nil")
-	} else if len(recipientJwks) == 0 {
-		return nil, nil, fmt.Errorf("recipient JWKs can't be empty")
-	} else if clearBytes == nil {
-		return nil, nil, fmt.Errorf("clearBytes can't be nil")
-	} else if len(clearBytes) == 0 {
-		return nil, nil, fmt.Errorf("clearBytes can't be empty")
-	}
+	require.NotNil(t, recipientJwks, "recipient JWKs can't be nil")
+	require.NotEmpty(t, recipientJwks, "recipient JWKs can't be empty")
+	require.NotNil(t, clearBytes, "clearBytes can't be nil")
+	require.NotEmpty(t, clearBytes, "clearBytes can't be empty")
+
+	jweProtectedHeaders := jwe.NewHeaders()
+	err := jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
+	require.NoError(t, err, "failed to set 'iat' header in JWE protected headers")
 
 	jweEncryptOptions := make([]jwe.EncryptOption, 0, len(recipientJwks))
 	if len(recipientJwks) > 1 { // more than one JWK requires JSON encoding, not Compact encoding
 		jweEncryptOptions = append(jweEncryptOptions, jwe.WithJSON())
 	}
+	jweEncryptOptions = append(jweEncryptOptions, jwe.WithProtectedHeaders(jweProtectedHeaders))
 
-	// if multiple JWKs, ensure all 'enc' and 'alg' headers are the same
+	// if multiple recipient JWKs, ensure all JWK headers 'enc' and 'alg' are the same
 	encs := make(map[jwa.ContentEncryptionAlgorithm]struct{})
 	algs := make(map[jwa.KeyEncryptionAlgorithm]struct{})
-
-	jweProtectedHeaders := jwe.NewHeaders()
-	err := jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
-	require.NoError(t, err)
-	jweEncryptOptions = append(jweEncryptOptions, jwe.WithProtectedHeaders(jweProtectedHeaders))
 	for i, recipientJWK := range recipientJwks {
-		// kid
-		var kid string
-		err := recipientJWK.Get(jwk.KeyIDKey, &kid)
-		require.NoError(t, err)
-		require.NotNil(t, kid)
-
-		// enc
-		var enc jwa.ContentEncryptionAlgorithm
-		err = recipientJWK.Get("enc", &enc) // EX: A256GCM, A256CBC-HS512, dir
-		if err != nil {                     // Try workaround to get "enc" header as string
-			var encString string
-			err = recipientJWK.Get("enc", &encString)
-			if err != nil {
-				t.Logf("Warning: No 'enc' header found in JWK %d", i)
-				// Default to A256GCM if no enc header
-				enc = jwa.A256GCM()
-			} else {
-				enc = jwa.NewContentEncryptionAlgorithm(encString) // Go "enc" header as string, convert to ContentEncryptionAlgorithm
-			}
-		}
-		require.NotNil(t, enc)
-
-		// alg
-		var alg jwa.KeyEncryptionAlgorithm
-		err = recipientJWK.Get(jwk.AlgorithmKey, &alg) // EX: A256KW, A256GCMKW, RSA_OAEP_512, RSA1_5, ECDH_ES_A256KW
-		if err != nil {
-			t.Logf("Warning: No 'alg' header found in JWK %d", i)
-			// Choose a default algorithm based on key type
-			if _, ok := recipientJWK.(jwk.ECDSAPrivateKey); ok {
-				alg = jwa.ECDH_ES_A256KW()
-			} else if _, ok := recipientJWK.(jwk.RSAPrivateKey); ok {
-				alg = jwa.RSA_OAEP_256()
-			} else {
-				alg = jwa.DIRECT()
-			}
-		}
-		require.NotNil(t, alg)
-
+		kid, enc, alg := extractKidEncAlg(t, recipientJWK)
 		encs[enc] = struct{}{} // track ContentEncryptionAlgorithm counts
-		if len(encs) != 1 {    // validate that one-and-only-one ContentEncryptionAlgorithm is used across all JWKs
-			return nil, nil, fmt.Errorf("can't use JWK %d 'enc' attribute; only one unique 'enc' attribute is allowed", i)
-		}
 		algs[alg] = struct{}{} // track KeyEncryptionAlgorithm counts
-		if len(algs) != 1 {    // validate that one-and-only-one KeyEncryptionAlgorithm is used across all JWKs
-			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
-		}
+		require.Equal(t, len(encs), 1, fmt.Sprintf("JWK %d 'enc' attribute must be the same for all JWKs; found %d unique 'enc' attributes", i, len(encs)))
+		require.Equal(t, len(algs), 1, fmt.Sprintf("JWK %d 'alg' attribute must be the same for all JWKs; found %d unique 'alg' attributes", i, len(algs)))
+
 		jweProtectedHeaders := jwe.NewHeaders()
 		jweProtectedHeaders.Set(jwk.KeyIDKey, kid)
-		jweProtectedHeaders.Set(`enc`, enc)
+		jweProtectedHeaders.Set("enc", enc)
 		jweProtectedHeaders.Set(jwk.AlgorithmKey, alg)
 		jweEncryptOptions = append(jweEncryptOptions, jwe.WithKey(alg, recipientJWK, jwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 	}
 
 	jweMessageBytes, err := jwe.Encrypt(clearBytes, jweEncryptOptions...)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to encrypt clearBytes: %w", err)
-	}
+	require.NoError(t, err, fmt.Errorf("failed to encrypt clearBytes: %w", err))
 
 	jweMessage, err := jwe.Parse(jweMessageBytes)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse JWE message bytes: %w", err)
-	}
+	require.NoError(t, err, fmt.Errorf("failed to parse JWE message bytes: %w", err))
 
 	return jweMessage, jweMessageBytes, nil
+}
+
+// extractKidEncAlg extracts 'kid', 'enc', and 'alg' headers from recipient JWK. All 3 are assumed to be present in the JWK.
+func extractKidEncAlg(t *testing.T, recipientJWK jwk.Key) (string, jwa.ContentEncryptionAlgorithm, jwa.KeyEncryptionAlgorithm) {
+	var kid string
+	err := recipientJWK.Get(jwk.KeyIDKey, &kid)
+	require.NoError(t, err, "failed to get 'kid' from recipient JWK")
+
+	var enc jwa.ContentEncryptionAlgorithm
+	err = recipientJWK.Get("enc", &enc) // EX: A256GCM, A256CBC-HS512, dir
+	if err != nil {
+		var encString string // Workaround: get 'enc' as string and convert to ContentEncryptionAlgorithm
+		err = recipientJWK.Get("enc", &encString)
+		require.NoError(t, err, "failed to get 'enc' from recipient JWK")
+		enc = jwa.NewContentEncryptionAlgorithm(encString) // Convert string to ContentEncryptionAlgorithm
+	}
+
+	var alg jwa.KeyEncryptionAlgorithm
+	err = recipientJWK.Get(jwk.AlgorithmKey, &alg) // EX: A256KW, A256GCMKW, RSA_OAEP_512, RSA1_5, ECDH_ES_A256KW
+	require.NoError(t, err, "failed to get 'alg' from recipient JWK")
+	return kid, enc, alg
 }
