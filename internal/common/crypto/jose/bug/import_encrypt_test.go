@@ -121,16 +121,22 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, clearBytes []byte) (*jwe.Messag
 }
 
 func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
+	require.NotNil(t, recipientJWK, "recipient JWK can't be nil")
 	require.NotEmpty(t, jweMessage, "JWE message can't be empty")
 
+	recipientJWKBytes, err := json.Marshal(recipientJWK)
+	require.NoError(t, err, "failed to marshal recipient JWK to JSON")
+	parsedRecipientJWK, err := jwk.ParseKey(recipientJWKBytes)
+	require.NoError(t, err, "failed to unmarshal recipient JWK from JSON")
+
 	var alg jwa.KeyEncryptionAlgorithm
-	err := jweMessage.ProtectedHeaders().Get(jwk.AlgorithmKey, &alg)
+	err = jweMessage.ProtectedHeaders().Get(jwk.AlgorithmKey, &alg)
 	require.NoError(t, err, "failed to get algorithm from key")
 
 	jweMessageBytes, err := jweMessage.MarshalJSON()
 	require.NoError(t, err, "failed to marshal JWE message to JSON")
 
-	jweDecryptOptions := []jwe.DecryptOption{jwe.WithKey(alg, recipientJWK)}
+	jweDecryptOptions := []jwe.DecryptOption{jwe.WithKey(alg, parsedRecipientJWK)}
 
 	decryptedBytes, err := jwe.Decrypt(jweMessageBytes, jweDecryptOptions...)
 	require.NoError(t, err, "failed to decrypt JWE message bytes")
