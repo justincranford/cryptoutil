@@ -32,12 +32,10 @@ func Test_Import_Encrypt(t *testing.T) {
 		t.Run(tc.alg.String(), func(t *testing.T) {
 			jweJWK := importJWK(t, tc.key, tc.enc, tc.alg)
 
-			_, jweMessageBytes, err := encrypt(t, jweJWK, plaintext)
-			require.NoError(t, err, "failed to encrypt plaintext with JWE")
+			jweMessage, jweMessageBytes := encrypt(t, jweJWK, plaintext)
 			t.Logf("JWE Message:\n%s", string(jweMessageBytes))
 
-			decrypted, err := decrypt(t, jweJWK, jweMessageBytes)
-			require.NoError(t, err, "failed to decrypt JWE message")
+			decrypted := decrypt(t, jweJWK, jweMessage)
 
 			require.Equal(t, plaintext, decrypted, "decrypted text should match original plaintext")
 			t.Logf("Successfully encrypted and decrypted with %s", tc.alg.String())
@@ -87,7 +85,7 @@ func importJWK(t *testing.T, key any, enc jwa.ContentEncryptionAlgorithm, alg jw
 	return recipientJWK
 }
 
-func encrypt(t *testing.T, recipientJWK jwk.Key, clearBytes []byte) (*jwe.Message, []byte, error) {
+func encrypt(t *testing.T, recipientJWK jwk.Key, clearBytes []byte) (*jwe.Message, []byte) {
 	require.NotEmpty(t, clearBytes, "clearBytes can't be empty")
 
 	jweProtectedHeaders := jwe.NewHeaders()
@@ -111,28 +109,25 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, clearBytes []byte) (*jwe.Messag
 	jweMessage, err := jwe.Parse(jweMessageBytes)
 	require.NoError(t, err, fmt.Errorf("failed to parse JWE message bytes: %w", err))
 
-	return jweMessage, jweMessageBytes, nil
+	return jweMessage, jweMessageBytes
 }
 
-func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessageBytes []byte) ([]byte, error) {
-	require.NotEmpty(t, jweMessageBytes, "jweMessageBytes can't be empty")
-	require.NotNil(t, recipientJWK, "recipientJWK can't be nil")
+func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
+	require.NotEmpty(t, jweMessage, "JWE message can't be empty")
 
-	// Get the algorithm from the key
 	var alg jwa.KeyEncryptionAlgorithm
-	err := recipientJWK.Get(jwk.AlgorithmKey, &alg)
+	err := jweMessage.ProtectedHeaders().Get(jwk.AlgorithmKey, &alg)
 	require.NoError(t, err, "failed to get algorithm from key")
 
-	jweDecryptOptions := []jwe.DecryptOption{
-		jwe.WithKey(alg, recipientJWK),
-	}
+	jweMessageBytes, err := jweMessage.MarshalJSON()
+	require.NoError(t, err, "failed to marshal JWE message to JSON")
+
+	jweDecryptOptions := []jwe.DecryptOption{jwe.WithKey(alg, recipientJWK)}
 
 	decryptedBytes, err := jwe.Decrypt(jweMessageBytes, jweDecryptOptions...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decrypt JWE message bytes: %w", err)
-	}
+	require.NoError(t, err, "failed to decrypt JWE message bytes")
 
-	return decryptedBytes, nil
+	return decryptedBytes
 }
 
 // extractKidEncAlg extracts 'kid', 'enc', and 'alg' headers from recipient JWK. All 3 are assumed to be present in the JWK.
