@@ -154,8 +154,9 @@ func (tx *OrmTransaction) rollback() error {
 	tx.guardState.Lock()
 	defer tx.guardState.Unlock()
 
-	tx.ormRepository.telemetryService.Slogger.Warn("rolling back transaction", "txID", tx.ID(), "mode", tx.Mode())
-
+	if tx.ormRepository.verboseMode {
+		tx.ormRepository.telemetryService.Slogger.Debug("rolling back transaction", "txID", tx.ID(), "mode", tx.Mode())
+	}
 	if tx.state == nil {
 		tx.ormRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
 		return fmt.Errorf("can't rollback because transaction not active")

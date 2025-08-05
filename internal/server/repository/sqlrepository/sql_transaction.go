@@ -156,7 +156,9 @@ func (sqlTransaction *SqlTransaction) rollback() error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
-	sqlTransaction.sqlRepository.telemetryService.Slogger.Warn("rolling back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	if sqlTransaction.sqlRepository.verboseMode {
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Warn("rolling back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	}
 	if sqlTransaction.state == nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 		return fmt.Errorf("can't rollback because transaction not active")
