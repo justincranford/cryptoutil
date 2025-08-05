@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSqlRepository.Shutdown()
 
-		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService)
+		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, testSettings)
 		defer testOrmRepository.Shutdown()
 
 		rc = m.Run()

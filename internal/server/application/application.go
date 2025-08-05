@@ -61,7 +61,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		return nil, nil, fmt.Errorf("failed to create JWK Gen Service: %w", err)
 	}
 
-	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, sqlRepository, jwkGenService)
+	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, sqlRepository, jwkGenService, settings)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create ORM repository", "error", err)
 		stopServerFunc(telemetryService, sqlRepository, jwkGenService, nil, nil, nil, nil)()

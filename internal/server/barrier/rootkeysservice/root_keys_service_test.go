@@ -43,7 +43,7 @@ func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
 	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
 	_, unsealJwk, _, _, _, err := testJwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
@@ -69,7 +69,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJwkGenService, testOrmRepository, unsealKeysServiceSimple)
@@ -86,7 +86,7 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJwkGenService, testOrmRepository, unsealKeysServiceSimple)

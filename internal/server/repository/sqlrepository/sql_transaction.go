@@ -69,7 +69,9 @@ func (sqlRepository *SqlRepository) WithTransaction(ctx context.Context, readOnl
 }
 
 func (sqlRepository *SqlRepository) newTransaction() (*SqlTransaction, error) {
-	sqlRepository.telemetryService.Slogger.Info("new transaction")
+	if sqlRepository.verboseMode {
+		sqlRepository.telemetryService.Slogger.Debug("new transaction")
+	}
 	return &SqlTransaction{sqlRepository: sqlRepository}, nil
 }
 
@@ -102,7 +104,9 @@ func (sqlTransaction *SqlTransaction) begin(ctx context.Context, readOnly bool) 
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
-	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("beginning transaction", "readOnly", readOnly)
+	if sqlTransaction.sqlRepository.verboseMode {
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("beginning transaction", "readOnly", readOnly)
+	}
 	if sqlTransaction.state != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("transaction already started", "transactionID", sqlTransaction.TransactionID())
 		return fmt.Errorf("transaction already started")
@@ -121,7 +125,7 @@ func (sqlTransaction *SqlTransaction) begin(ctx context.Context, readOnly bool) 
 	}
 
 	sqlTransaction.state = &SqlTransactionState{ctx: ctx, readOnly: readOnly, transactionID: transactionID, sqlTx: sqlTx}
-	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("started transaction", "transactionID", transactionID, "readOnly", readOnly)
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("started transaction", "transactionID", transactionID, "readOnly", readOnly)
 	return nil
 }
 
@@ -129,7 +133,9 @@ func (sqlTransaction *SqlTransaction) commit() error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
-	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("committing transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	if sqlTransaction.sqlRepository.verboseMode {
+		sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("committing transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	}
 	if sqlTransaction.state == nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't commit because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 		return fmt.Errorf("can't commit because transaction not active")
@@ -141,7 +147,7 @@ func (sqlTransaction *SqlTransaction) commit() error {
 		return err
 	}
 
-	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("committed transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("committed transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	sqlTransaction.state = nil
 	return nil
 }
@@ -150,7 +156,7 @@ func (sqlTransaction *SqlTransaction) rollback() error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
-	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("rolling back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Warn("rolling back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	if sqlTransaction.state == nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 		return fmt.Errorf("can't rollback because transaction not active")
@@ -162,7 +168,7 @@ func (sqlTransaction *SqlTransaction) rollback() error {
 		return err
 	}
 
-	sqlTransaction.sqlRepository.telemetryService.Slogger.Info("rolled back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+	sqlTransaction.sqlRepository.telemetryService.Slogger.Warn("rolled back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	sqlTransaction.state = nil
 	return nil
 }

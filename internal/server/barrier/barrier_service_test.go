@@ -45,7 +45,7 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 	sqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer sqlRepository.Shutdown()
 
-	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJwkGenService)
+	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJwkGenService, testSettings)
 	defer ormRepository.Shutdown()
 
 	_, nonPublicJweJwk, _, _, _, err := cryptoutilJose.GenerateJweJwkForEncAndAlg(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
@@ -64,7 +64,7 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSqlRepository.Shutdown()
 
-	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService)
+	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
 	// generate three JWKs; 2 valid, 1 invalid

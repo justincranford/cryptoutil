@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
@@ -20,10 +21,11 @@ type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	sqlRepository    *cryptoutilSqlRepository.SqlRepository
 	jwkGenService    *cryptoutilJose.JwkGenService
+	verboseMode      bool
 	gormDB           *gorm.DB
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, jwkGenService *cryptoutilJose.JwkGenService) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, jwkGenService *cryptoutilJose.JwkGenService, settings *cryptoutilConfig.Settings) (*OrmRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
@@ -39,7 +41,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}
 
-	return &OrmRepository{telemetryService: telemetryService, sqlRepository: sqlRepository, jwkGenService: jwkGenService, gormDB: gormDB}, nil
+	return &OrmRepository{telemetryService: telemetryService, sqlRepository: sqlRepository, jwkGenService: jwkGenService, gormDB: gormDB, verboseMode: settings.VerboseMode}, nil
 }
 
 func (s *OrmRepository) Shutdown() {
