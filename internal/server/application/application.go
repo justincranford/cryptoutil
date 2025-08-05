@@ -265,12 +265,16 @@ func ipFilterMiddleware(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) 
 			log.Debug("Invalid IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
 			return c.Status(fiber.StatusForbidden).SendString("Invalid IP format")
 		} else if _, allowed := allowedIPs[parsedIP.String()]; allowed {
-			log.Debug("Allowed IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			if settings.VerboseMode {
+				log.Debug("Allowed IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			}
 			return c.Next() // IP is contained in the allowed IPs set
 		}
 		for _, cidr := range allowedCIDRs {
 			if cidr.Contains(parsedIP) {
-				log.Debug("Allowed CIDR: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+				if settings.VerboseMode {
+					log.Debug("Allowed CIDR: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+				}
 				return c.Next() // IP is contained in minGenreID of the allowed CIDRs
 			}
 		}
