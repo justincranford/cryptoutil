@@ -144,12 +144,16 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 			log.Printf("Generated:\n%s\n%s", clearNonPublicJweJwkBytes, clearPublicJweJwkBytes)
 
 			// TODO Asymmetric check
+			var encryptJWK joseJwk.Key
 			requireJweJwkHeaders(t, nonPublicJweJwk, OpsEncDec, &testCase)
 			if publicJweJwk != nil {
 				requireJweJwkHeaders(t, publicJweJwk, OpsEnc, &testCase)
+				encryptJWK = publicJweJwk
+			} else {
+				encryptJWK = nonPublicJweJwk
 			}
 
-			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{publicJweJwk}, cleartext)
+			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{encryptJWK}, cleartext)
 			require.NoError(t, err)
 			require.NotEmpty(t, encodedJweMessage)
 			log.Printf("JWE Message: %s", string(encodedJweMessage))
