@@ -210,7 +210,7 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptKey(t *testing.T) {
 			require.NoError(t, err)
 			log.Printf("KEK: %s", string(clearNonPublicKekJwkBytes))
 
-			_, nonPublicJwsJwk, _, clearNonPublicJweJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			_, nonPublicJwk, _, clearNonPublicJweJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
 			log.Printf("Original Key: %s", string(clearNonPublicJweJwkBytes))
 
@@ -221,20 +221,20 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptKey(t *testing.T) {
 				encryptJwkKek = publicJweJwkKek
 			}
 
-			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{encryptJwkKek}, nonPublicJwsJwk)
+			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{encryptJwkKek}, nonPublicJwk)
 			require.NoError(t, err)
 			jsonHeaders, err := JweHeadersString(jweMessage)
 			require.NoError(t, err)
 			log.Printf("JWE Message Headers: %s", jsonHeaders)
 
-			decryptedNonPublicJwsJwk, err := DecryptKey([]joseJwk.Key{nonPublicJwkKek}, encodedJweMessage)
+			decryptedNonPublicJwk, err := DecryptKey([]joseJwk.Key{nonPublicJwkKek}, encodedJweMessage)
 			require.NoError(t, err)
 
-			decryptedEncodedKey, err := json.Marshal(decryptedNonPublicJwsJwk)
+			decryptedEncodedKey, err := json.Marshal(decryptedNonPublicJwk)
 			require.NoError(t, err)
 			log.Printf("Decrypted Key: %s", string(decryptedEncodedKey))
 
-			require.ElementsMatch(t, nonPublicJwsJwk.Keys(), decryptedNonPublicJwsJwk.Keys())
+			require.ElementsMatch(t, nonPublicJwk.Keys(), decryptedNonPublicJwk.Keys())
 		})
 	}
 }
