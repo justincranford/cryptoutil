@@ -29,7 +29,7 @@ func fiberOtelLoggerMiddleware(logger *slog.Logger) fiber.Handler {
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
 		}
-		logger.Info("Responded", args...)
+		logger.Info("responded", args...)
 		return err
 	}
 }
