@@ -142,11 +142,11 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 
 			var encryptJWK joseJwk.Key
 			requireJweJwkHeaders(t, nonPublicJweJwk, OpsEncDec, &testCase)
-			if publicJweJwk != nil {
-				requireJweJwkHeaders(t, publicJweJwk, OpsEnc, &testCase)
-				encryptJWK = publicJweJwk
-			} else {
+			if publicJweJwk == nil {
 				encryptJWK = nonPublicJweJwk
+			} else {
+				encryptJWK = publicJweJwk
+				requireJweJwkHeaders(t, publicJweJwk, OpsEnc, &testCase)
 			}
 
 			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{encryptJWK}, cleartext)
@@ -206,21 +206,28 @@ func Test_HappyPath_NonJwkGenService_Jwe_Jwk_EncryptDecryptKey(t *testing.T) {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			_, nonPublicJwsJwkKek, _, clearNonPublicJwsKekJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			_, nonPublicJwkKek, publicJweJwkKek, clearNonPublicKekJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
-			log.Printf("KEK: %s", string(clearNonPublicJwsKekJwkBytes))
+			log.Printf("KEK: %s", string(clearNonPublicKekJwkBytes))
 
-			_, nonPublicJwsJwk, _, clearNonPublicJwsJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
+			_, nonPublicJwsJwk, _, clearNonPublicJweJwkBytes, _, err := GenerateJweJwkForEncAndAlg(testCase.enc, testCase.alg)
 			require.NoError(t, err)
-			log.Printf("Original Key: %s", string(clearNonPublicJwsJwkBytes))
+			log.Printf("Original Key: %s", string(clearNonPublicJweJwkBytes))
 
-			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{nonPublicJwsJwkKek}, nonPublicJwsJwk)
+			var encryptJwkKek joseJwk.Key
+			if publicJweJwkKek == nil {
+				encryptJwkKek = nonPublicJwkKek
+			} else {
+				encryptJwkKek = publicJweJwkKek
+			}
+
+			jweMessage, encodedJweMessage, err := EncryptKey([]joseJwk.Key{encryptJwkKek}, nonPublicJwsJwk)
 			require.NoError(t, err)
 			jsonHeaders, err := JweHeadersString(jweMessage)
 			require.NoError(t, err)
 			log.Printf("JWE Message Headers: %s", jsonHeaders)
 
-			decryptedNonPublicJwsJwk, err := DecryptKey([]joseJwk.Key{nonPublicJwsJwkKek}, encodedJweMessage)
+			decryptedNonPublicJwsJwk, err := DecryptKey([]joseJwk.Key{nonPublicJwkKek}, encodedJweMessage)
 			require.NoError(t, err)
 
 			decryptedEncodedKey, err := json.Marshal(decryptedNonPublicJwsJwk)
