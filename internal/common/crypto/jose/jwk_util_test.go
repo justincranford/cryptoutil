@@ -6,6 +6,7 @@ import (
 	"crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/rsa"
+	"errors"
 	"sync"
 	"testing"
 
@@ -14,7 +15,6 @@ import (
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 type jwkTestKeys struct {
@@ -39,136 +39,65 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 
 	testKeysOnce.Do(func() {
 		testKeys = &jwkTestKeys{}
-
-		rsaGenFunc := cryptoutilKeyGen.GenerateRSAKeyPairFunction(2048)
-		ecdsaGenFunc := cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256())
-		ecdhGenFunc := cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256())
-		eddsaGenFunc := cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519")
-		aesGenFunc := cryptoutilKeyGen.GenerateAESKeyFunction(256)
+		var rsaErr, ecdsaErr, ecdhErr, ed25519Err, aesErr error
 
 		var wg sync.WaitGroup
-		type keyGenResult struct {
-			keyType string
-			key     interface{}
-			err     error
-		}
-		results := make(chan keyGenResult, 5) // Buffer for all results
-
-		wg.Add(1)
+		wg.Add(5)
 		go func() {
 			defer wg.Done()
-			keyPair, err := rsaGenFunc()
-			results <- keyGenResult{"rsa", keyPair, err}
-		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			keyPair, err := ecdsaGenFunc()
-			results <- keyGenResult{"ecdsa", keyPair, err}
-		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			keyPair, err := ecdhGenFunc()
-			results <- keyGenResult{"ecdh", keyPair, err}
-		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			keyPair, err := eddsaGenFunc()
-			results <- keyGenResult{"eddsa", keyPair, err}
-		}()
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			key, err := aesGenFunc()
-			results <- keyGenResult{"aes", key, err}
-		}()
-		go func() {
-			wg.Wait()
-			close(results)
-		}()
-
-		// Process results and generate JWKs
-		var rsaKeyPair, ecdsaKeyPair, ecdhKeyPair, ed25519KeyPair *cryptoutilKeyGen.KeyPair
-		var aesKey cryptoutilKeyGen.SecretKey
-
-		for result := range results {
-			require.NoError(t, result.err, "failed to generate %s key", result.keyType)
-
-			switch result.keyType {
-			case "rsa":
-				rsaKeyPair = result.key.(*cryptoutilKeyGen.KeyPair)
-			case "ecdsa":
-				ecdsaKeyPair = result.key.(*cryptoutilKeyGen.KeyPair)
-			case "ecdh":
-				ecdhKeyPair = result.key.(*cryptoutilKeyGen.KeyPair)
-			case "eddsa":
-				ed25519KeyPair = result.key.(*cryptoutilKeyGen.KeyPair)
-			case "aes":
-				aesKey = result.key.(cryptoutilKeyGen.SecretKey)
+			var rsaKeyPair *cryptoutilKeyGen.KeyPair
+			rsaKeyPair, rsaErr = cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+			if rsaErr == nil {
+				testKeys.rsaPrivJwk, rsaErr = joseJwk.Import(rsaKeyPair.Private.(*rsa.PrivateKey))
+				if rsaErr == nil {
+					testKeys.rsaPubJwk, rsaErr = joseJwk.Import(rsaKeyPair.Public.(*rsa.PublicKey))
+				}
 			}
-		}
-
-		// Create JWKs from the generated keys concurrently
-		type jwkImportResult struct {
-			keyType string
-			jwk     joseJwk.Key
-			err     error
-		}
-
-		jwkResults := make(chan jwkImportResult, 9) // Buffer for all JWK results
-		var jwkWg sync.WaitGroup
-
-		// Helper function for concurrent JWK import
-		importJWK := func(keyType string, rawKey interface{}) {
-			defer jwkWg.Done()
-			jwk, err := joseJwk.Import(rawKey)
-			jwkResults <- jwkImportResult{keyType, jwk, err}
-		}
-
-		// Start all JWK import operations concurrently
-		jwkWg.Add(9)
-		go importJWK("rsaPriv", rsaKeyPair.Private.(*rsa.PrivateKey))
-		go importJWK("rsaPub", rsaKeyPair.Public.(*rsa.PublicKey))
-		go importJWK("ecdsaPriv", ecdsaKeyPair.Private.(*ecdsa.PrivateKey))
-		go importJWK("ecdsaPub", ecdsaKeyPair.Public.(*ecdsa.PublicKey))
-		go importJWK("ecdhPriv", ecdhKeyPair.Private.(*ecdh.PrivateKey))
-		go importJWK("ecdhPub", ecdhKeyPair.Public.(*ecdh.PublicKey))
-		go importJWK("okpPriv", ed25519KeyPair.Private.(ed25519.PrivateKey))
-		go importJWK("okpPub", ed25519KeyPair.Public.(ed25519.PublicKey))
-		go importJWK("sym", []byte(aesKey))
-
-		// Close jwkResults channel when all JWK imports are done
-		go func() {
-			jwkWg.Wait()
-			close(jwkResults)
 		}()
-
-		// Process JWK import results
-		for result := range jwkResults {
-			require.NoError(t, result.err, "failed to import %s key to JWK", result.keyType)
-
-			switch result.keyType {
-			case "rsaPriv":
-				testKeys.rsaPrivJwk = result.jwk
-			case "rsaPub":
-				testKeys.rsaPubJwk = result.jwk
-			case "ecdsaPriv":
-				testKeys.ecdsaPrivJwk = result.jwk
-			case "ecdsaPub":
-				testKeys.ecdsaPubJwk = result.jwk
-			case "ecdhPriv":
-				testKeys.ecdhPrivJwk = result.jwk
-			case "ecdhPub":
-				testKeys.ecdhPubJwk = result.jwk
-			case "okpPriv":
-				testKeys.okpPrivJwk = result.jwk
-			case "okpPub":
-				testKeys.okpPubJwk = result.jwk
-			case "sym":
-				testKeys.symJwk = result.jwk
+		go func() {
+			defer wg.Done()
+			var ecdsaKeyPair *cryptoutilKeyGen.KeyPair
+			ecdsaKeyPair, ecdsaErr = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+			if ecdsaErr == nil {
+				testKeys.ecdsaPrivJwk, ecdsaErr = joseJwk.Import(ecdsaKeyPair.Private.(*ecdsa.PrivateKey))
+				if ecdsaErr == nil {
+					testKeys.ecdsaPubJwk, ecdsaErr = joseJwk.Import(ecdsaKeyPair.Public.(*ecdsa.PublicKey))
+				}
 			}
+		}()
+		go func() {
+			defer wg.Done()
+			var ecdhKeyPair *cryptoutilKeyGen.KeyPair
+			ecdhKeyPair, ecdhErr = cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+			if ecdhErr == nil {
+				testKeys.ecdhPrivJwk, ecdhErr = joseJwk.Import(ecdhKeyPair.Private.(*ecdh.PrivateKey))
+				if ecdhErr == nil {
+					testKeys.ecdhPubJwk, ecdhErr = joseJwk.Import(ecdhKeyPair.Public.(*ecdh.PublicKey))
+				}
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			var ed25519KeyPair *cryptoutilKeyGen.KeyPair
+			ed25519KeyPair, ed25519Err = cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
+			if ed25519Err == nil {
+				testKeys.okpPrivJwk, ed25519Err = joseJwk.Import(ed25519KeyPair.Private.(ed25519.PrivateKey))
+				if ed25519Err == nil {
+					testKeys.okpPubJwk, ed25519Err = joseJwk.Import(ed25519KeyPair.Public.(ed25519.PublicKey))
+				}
+			}
+		}()
+		go func() {
+			defer wg.Done()
+			var aesSecretKey []byte
+			aesSecretKey, aesErr = cryptoutilKeyGen.GenerateAESKey(256)
+			if aesErr == nil {
+				testKeys.symJwk, aesErr = joseJwk.Import(aesSecretKey)
+			}
+		}()
+		wg.Wait()
+		if rsaErr != nil || ecdsaErr != nil || ecdhErr != nil || ed25519Err != nil || aesErr != nil {
+			t.Fatalf("failed to generate keys: %v", errors.Join(rsaErr, ecdsaErr, ecdhErr, ed25519Err, aesErr))
 		}
 	})
 
