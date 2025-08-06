@@ -40,6 +40,7 @@ type TelemetryService struct {
 	StartTime          time.Time
 	shutdownOnce       sync.Once
 	Slogger            *stdoutLogExporter.Logger
+	VerboseMode        bool
 	LogsProvider       logApi.LoggerProvider
 	MetricsProvider    metricApi.MeterProvider
 	TracesProvider     traceApi.TracerProvider
@@ -115,6 +116,7 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	return &TelemetryService{
 		StartTime:          startTime,
 		Slogger:            slogger,
+		VerboseMode:        settings.VerboseMode,
 		LogsProvider:       logsProvider,
 		MetricsProvider:    metricsProvider,
 		TracesProvider:     tracesProvider,
@@ -127,59 +129,85 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 
 func (s *TelemetryService) Shutdown() {
 	s.shutdownOnce.Do(func() {
-		s.Slogger.Debug("stopping telemetry")
-
-		forceFlushCtx, forceFlushCancelDueToTimeout := context.WithTimeout(context.Background(), ForceFlushTimeout)
-		defer forceFlushCancelDueToTimeout()
-		if s.tracesProviderSdk != nil {
-			s.Slogger.Debug("traces provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
-			startTimeForceFlush := time.Now().UTC()
-			if err := s.tracesProviderSdk.ForceFlush(forceFlushCtx); err != nil {
-				s.Slogger.Error("traces provider force flush failed", "error", fmt.Errorf("traces provider force flush error: %w", err))
-			}
-			s.Slogger.Debug("traces provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
-		}
-		if s.metricsProviderSdk != nil {
-			s.Slogger.Debug("metrics provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
-			startTimeForceFlush := time.Now().UTC()
-			if err := s.metricsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
-				s.Slogger.Error("metrics provider force flush failed", "error", fmt.Errorf("metrics provider force flush error: %w", err))
-			}
-			s.Slogger.Debug("metrics provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
-		}
-		if s.logsProviderSdk != nil {
-			s.Slogger.Debug("logs provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
-			startTimeForceFlush := time.Now().UTC()
-			if err := s.logsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
-				s.Slogger.Error("logs provider force flush failed", "error", fmt.Errorf("logs provider force flush error: %w", err))
-			}
-			s.Slogger.Debug("logs provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
+		if s.VerboseMode {
+			s.Slogger.Debug("shutting down telemetry providers", "uptime", time.Since(s.StartTime).Seconds())
 		}
 
-		shutdownCtx := context.Background()
-		if s.tracesProviderSdk != nil {
-			s.Slogger.Debug("traces provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
-			startTimeShutdown := time.Now().UTC()
-			if err := s.tracesProviderSdk.Shutdown(shutdownCtx); err != nil {
-				s.Slogger.Error("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
+		if s.tracesProviderSdk != nil || s.metricsProviderSdk != nil || s.logsProviderSdk != nil {
+			startTimeForceFlush := time.Now().UTC()
+			forceFlushCtx, forceFlushCancelDueToTimeout := context.WithTimeout(context.Background(), ForceFlushTimeout)
+			defer forceFlushCancelDueToTimeout()
+			if s.tracesProviderSdk != nil {
+				if s.VerboseMode {
+					s.Slogger.Debug("traces provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
+				}
+				startTimeForceFlushTracesProvider := time.Now().UTC()
+				if err := s.tracesProviderSdk.ForceFlush(forceFlushCtx); err != nil {
+					s.Slogger.Error("traces provider force flush failed", "error", fmt.Errorf("traces provider force flush error: %w", err))
+				} else if s.VerboseMode {
+					s.Slogger.Debug("traces provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushTracesProvider).Seconds())
+				}
 			}
-			s.Slogger.Debug("traces provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
-		}
-		if s.metricsProviderSdk != nil {
-			s.Slogger.Debug("metrics provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
-			startTimeShutdown := time.Now().UTC()
-			if err := s.metricsProviderSdk.Shutdown(shutdownCtx); err != nil {
-				s.Slogger.Error("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
+			if s.metricsProviderSdk != nil {
+				if s.VerboseMode {
+					s.Slogger.Debug("metrics provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
+				}
+				startTimeForceFlushMetricsProvider := time.Now().UTC()
+				if err := s.metricsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
+					s.Slogger.Error("metrics provider force flush failed", "error", fmt.Errorf("metrics provider force flush error: %w", err))
+				} else if s.VerboseMode {
+					s.Slogger.Debug("metrics provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushMetricsProvider).Seconds())
+				}
 			}
-			s.Slogger.Debug("metrics provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
-		}
-		if s.logsProviderSdk != nil {
-			s.Slogger.Debug("logs provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
-			startTimeShutdown := time.Now().UTC()
-			if err := s.logsProviderSdk.Shutdown(shutdownCtx); err != nil {
-				s.Slogger.Error("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
+			if s.logsProviderSdk != nil {
+				if s.VerboseMode {
+					s.Slogger.Debug("logs provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
+				}
+				startTimeForceFlushLogsProvider := time.Now().UTC()
+				if err := s.logsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
+					s.Slogger.Error("logs provider force flush failed", "error", fmt.Errorf("logs provider force flush error: %w", err))
+				} else if s.VerboseMode {
+					s.Slogger.Debug("logs provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushLogsProvider).Seconds())
+				}
 			}
-			s.Slogger.Debug("logs provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
+			s.Slogger.Debug("telemetry providers force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
+
+			startTimeShutdown := time.Now().UTC()
+			shutdownCtx := context.Background()
+			if s.tracesProviderSdk != nil {
+				if s.VerboseMode {
+					s.Slogger.Debug("traces provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
+				}
+				startTimeShutdownTracesProvider := time.Now().UTC()
+				if err := s.tracesProviderSdk.Shutdown(shutdownCtx); err != nil {
+					s.Slogger.Error("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
+				} else if s.VerboseMode {
+					s.Slogger.Debug("traces provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownTracesProvider).Seconds())
+				}
+			}
+			if s.metricsProviderSdk != nil {
+				if s.VerboseMode {
+					s.Slogger.Debug("metrics provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
+				}
+				startTimeShutdownMetricsProvider := time.Now().UTC()
+				if err := s.metricsProviderSdk.Shutdown(shutdownCtx); err != nil {
+					s.Slogger.Error("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
+				} else if s.VerboseMode {
+					s.Slogger.Debug("metrics provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownMetricsProvider).Seconds())
+				}
+			}
+			if s.logsProviderSdk != nil {
+				if s.VerboseMode {
+					s.Slogger.Debug("logs provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
+				}
+				startTimeShutdownLogsProvider := time.Now().UTC()
+				if err := s.logsProviderSdk.Shutdown(shutdownCtx); err != nil {
+					s.Slogger.Error("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
+				} else if s.VerboseMode {
+					s.Slogger.Debug("logs provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownLogsProvider).Seconds())
+				}
+			}
+			s.Slogger.Debug("telemetry providers shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
 		}
 	})
 }
