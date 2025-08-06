@@ -29,6 +29,13 @@ type jwkTestKeys struct {
 	aesSecretJWK      joseJwk.Key
 }
 
+type testCase struct {
+	name     string
+	jwk      joseJwk.Key
+	expected bool
+	wantErr  error
+}
+
 var (
 	testKeys             *jwkTestKeys
 	testKeysGenerateOnce sync.Once
@@ -104,13 +111,6 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 }
 
 func TestIsPrivateJwk(t *testing.T) {
-	type testCase struct {
-		name     string
-		jwk      joseJwk.Key
-		expected bool
-		wantErr  error
-	}
-
 	keys := getTestKeys(t)
 	tests := []testCase{
 		{
@@ -189,13 +189,6 @@ func TestIsPrivateJwk(t *testing.T) {
 }
 
 func TestIsPublicJwk(t *testing.T) {
-	type testCase struct {
-		name     string
-		jwk      joseJwk.Key
-		expected bool
-		wantErr  error
-	}
-
 	keys := getTestKeys(t)
 	tests := []testCase{
 		{
@@ -274,13 +267,6 @@ func TestIsPublicJwk(t *testing.T) {
 }
 
 func TestIsSymmetricJwk(t *testing.T) {
-	type testCase struct {
-		name     string
-		jwk      joseJwk.Key
-		expected bool
-		wantErr  error
-	}
-
 	keys := getTestKeys(t)
 	tests := []testCase{
 		{
