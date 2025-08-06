@@ -1,6 +1,7 @@
 package jose
 
 import (
+	"crypto/ecdh"
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
@@ -17,79 +18,62 @@ import (
 )
 
 type jwkTestKeys struct {
-	// JWK keys only - we don't need to store references to the raw keys
-	rsaPrivJwk joseJwk.Key
-	rsaPubJwk  joseJwk.Key
-	ecPrivJwk  joseJwk.Key
-	ecPubJwk   joseJwk.Key
-	okpPrivJwk joseJwk.Key
-	okpPubJwk  joseJwk.Key
-	symJwk     joseJwk.Key
+	rsaPrivJwk   joseJwk.Key
+	rsaPubJwk    joseJwk.Key
+	ecdsaPrivJwk joseJwk.Key
+	ecdsaPubJwk  joseJwk.Key
+	ecdhPrivJwk  joseJwk.Key
+	ecdhPubJwk   joseJwk.Key
+	okpPrivJwk   joseJwk.Key
+	okpPubJwk    joseJwk.Key
+	symJwk       joseJwk.Key
 }
 
 var (
-	// Global test keys
 	testKeys     *jwkTestKeys
 	testKeysOnce sync.Once
 )
 
-// getTestKeys generates or returns cached test keys
 func getTestKeys(t *testing.T) *jwkTestKeys {
 	t.Helper()
 
 	testKeysOnce.Do(func() {
+		rsaKeyPair, err := cryptoutilKeyGen.GenerateRSAKeyPair(2048)
+		require.NoError(t, err, "failed to generate RSA key")
+		ecdsaKeyPair, err := cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
+		require.NoError(t, err, "failed to generate ECDSA key")
+		ecdhKeyPair, err := cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
+		require.NoError(t, err, "failed to generate ECDH key")
+		ed25519KeyPair, err := cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
+		require.NoError(t, err, "failed to generate Ed25519 key")
+		aesKey, err := cryptoutilKeyGen.GenerateAESKey(256)
+		require.NoError(t, err, "failed to generate AES key")
+
 		testKeys = &jwkTestKeys{}
-		var err error
-		var keyPair *cryptoutilKeyGen.KeyPair
-
-		// Generate RSA keys using cryptoutil keygen
-		keyPair, err = cryptoutilKeyGen.GenerateRSAKeyPair(2048)
-		require.NoError(t, err, "Failed to generate RSA key")
-		rsaPrivKey := keyPair.Private.(*rsa.PrivateKey)
-		rsaPubKey := keyPair.Public.(*rsa.PublicKey)
-
-		// Generate ECDSA keys using cryptoutil keygen
-		keyPair, err = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
-		require.NoError(t, err, "Failed to generate ECDSA key")
-		ecPrivKey := keyPair.Private.(*ecdsa.PrivateKey)
-		ecPubKey := keyPair.Public.(*ecdsa.PublicKey)
-
-		// Generate EdDSA keys using cryptoutil keygen
-		keyPair, err = cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
-		require.NoError(t, err, "Failed to generate Ed25519 key")
-		edPrivKey := keyPair.Private.(ed25519.PrivateKey)
-		edPubKey := keyPair.Public.(ed25519.PublicKey)
-
-		// Generate symmetric key
-		symKey, err := cryptoutilKeyGen.GenerateAESKey(256)
-		require.NoError(t, err, "Failed to generate AES key")
-
-		// Convert to JWK format
-		testKeys.rsaPrivJwk, err = joseJwk.Import(rsaPrivKey)
-		require.NoError(t, err, "Failed to import RSA private key to JWK")
-		testKeys.rsaPubJwk, err = joseJwk.Import(rsaPubKey)
-		require.NoError(t, err, "Failed to import RSA public key to JWK")
-
-		testKeys.ecPrivJwk, err = joseJwk.Import(ecPrivKey)
-		require.NoError(t, err, "Failed to import ECDSA private key to JWK")
-		testKeys.ecPubJwk, err = joseJwk.Import(ecPubKey)
-		require.NoError(t, err, "Failed to import ECDSA public key to JWK")
-
-		testKeys.okpPrivJwk, err = joseJwk.Import(edPrivKey)
-		require.NoError(t, err, "Failed to import Ed25519 private key to JWK")
-		testKeys.okpPubJwk, err = joseJwk.Import(edPubKey)
-		require.NoError(t, err, "Failed to import Ed25519 public key to JWK")
-
-		testKeys.symJwk, err = joseJwk.Import([]byte(symKey))
-		require.NoError(t, err, "Failed to import symmetric key to JWK")
+		testKeys.rsaPrivJwk, err = joseJwk.Import(rsaKeyPair.Private.(*rsa.PrivateKey))
+		require.NoError(t, err, "failed to import RSA private key to JWK")
+		testKeys.rsaPubJwk, err = joseJwk.Import(rsaKeyPair.Public.(*rsa.PublicKey))
+		require.NoError(t, err, "failed to import RSA public key to JWK")
+		testKeys.ecdsaPrivJwk, err = joseJwk.Import(ecdsaKeyPair.Private.(*ecdsa.PrivateKey))
+		require.NoError(t, err, "failed to import ECDSA private key to JWK")
+		testKeys.ecdsaPubJwk, err = joseJwk.Import(ecdsaKeyPair.Public.(*ecdsa.PublicKey))
+		require.NoError(t, err, "failed to import ECDSA public key to JWK")
+		testKeys.ecdhPrivJwk, err = joseJwk.Import(ecdhKeyPair.Private.(*ecdh.PrivateKey))
+		require.NoError(t, err, "failed to import ECDH private key to JWK")
+		testKeys.ecdhPubJwk, err = joseJwk.Import(ecdhKeyPair.Public.(*ecdh.PublicKey))
+		require.NoError(t, err, "failed to import ECDH public key to JWK")
+		testKeys.okpPrivJwk, err = joseJwk.Import(ed25519KeyPair.Private.(ed25519.PrivateKey))
+		require.NoError(t, err, "failed to import Ed25519 private key to JWK")
+		testKeys.okpPubJwk, err = joseJwk.Import(ed25519KeyPair.Public.(ed25519.PublicKey))
+		require.NoError(t, err, "failed to import Ed25519 public key to JWK")
+		testKeys.symJwk, err = joseJwk.Import([]byte(aesKey))
+		require.NoError(t, err, "failed to import AES secret key to JWK")
 	})
 
 	return testKeys
 }
 
 func TestIsPrivateJwk(t *testing.T) {
-	keys := getTestKeys(t)
-
 	type testCase struct {
 		name     string
 		jwk      joseJwk.Key
@@ -97,6 +81,7 @@ func TestIsPrivateJwk(t *testing.T) {
 		wantErr  error
 	}
 
+	keys := getTestKeys(t)
 	tests := []testCase{
 		{
 			name:     "nil JWK",
@@ -118,13 +103,25 @@ func TestIsPrivateJwk(t *testing.T) {
 		},
 		{
 			name:     "ECDSA private key",
-			jwk:      keys.ecPrivJwk,
+			jwk:      keys.ecdsaPrivJwk,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA public key",
-			jwk:      keys.ecPubJwk,
+			jwk:      keys.ecdsaPubJwk,
+			expected: false,
+			wantErr:  nil,
+		},
+		{
+			name:     "ECDH private key",
+			jwk:      keys.ecdhPrivJwk,
+			expected: true,
+			wantErr:  nil,
+		},
+		{
+			name:     "ECDH public key",
+			jwk:      keys.ecdhPubJwk,
 			expected: false,
 			wantErr:  nil,
 		},
@@ -162,8 +159,6 @@ func TestIsPrivateJwk(t *testing.T) {
 }
 
 func TestIsPublicJwk(t *testing.T) {
-	keys := getTestKeys(t)
-
 	type testCase struct {
 		name     string
 		jwk      joseJwk.Key
@@ -171,6 +166,7 @@ func TestIsPublicJwk(t *testing.T) {
 		wantErr  error
 	}
 
+	keys := getTestKeys(t)
 	tests := []testCase{
 		{
 			name:     "nil JWK",
@@ -192,13 +188,25 @@ func TestIsPublicJwk(t *testing.T) {
 		},
 		{
 			name:     "ECDSA private key",
-			jwk:      keys.ecPrivJwk,
+			jwk:      keys.ecdsaPrivJwk,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA public key",
-			jwk:      keys.ecPubJwk,
+			jwk:      keys.ecdsaPubJwk,
+			expected: true,
+			wantErr:  nil,
+		},
+		{
+			name:     "ECDH private key",
+			jwk:      keys.ecdhPrivJwk,
+			expected: false,
+			wantErr:  nil,
+		},
+		{
+			name:     "ECDH public key",
+			jwk:      keys.ecdhPubJwk,
 			expected: true,
 			wantErr:  nil,
 		},
@@ -236,8 +244,6 @@ func TestIsPublicJwk(t *testing.T) {
 }
 
 func TestIsSymmetricJwk(t *testing.T) {
-	keys := getTestKeys(t)
-
 	type testCase struct {
 		name     string
 		jwk      joseJwk.Key
@@ -245,6 +251,7 @@ func TestIsSymmetricJwk(t *testing.T) {
 		wantErr  error
 	}
 
+	keys := getTestKeys(t)
 	tests := []testCase{
 		{
 			name:     "nil JWK",
@@ -266,13 +273,25 @@ func TestIsSymmetricJwk(t *testing.T) {
 		},
 		{
 			name:     "ECDSA private key",
-			jwk:      keys.ecPrivJwk,
+			jwk:      keys.ecdsaPrivJwk,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA public key",
-			jwk:      keys.ecPubJwk,
+			jwk:      keys.ecdsaPubJwk,
+			expected: false,
+			wantErr:  nil,
+		},
+		{
+			name:     "ECDH private key",
+			jwk:      keys.ecdhPrivJwk,
+			expected: false,
+			wantErr:  nil,
+		},
+		{
+			name:     "ECDH public key",
+			jwk:      keys.ecdhPubJwk,
 			expected: false,
 			wantErr:  nil,
 		},
