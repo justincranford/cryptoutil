@@ -17,14 +17,7 @@ import (
 )
 
 type jwkTestKeys struct {
-	rsaPrivKey *rsa.PrivateKey
-	rsaPubKey  *rsa.PublicKey
-	ecPrivKey  *ecdsa.PrivateKey
-	ecPubKey   *ecdsa.PublicKey
-	edPubKey   ed25519.PublicKey
-	edPrivKey  ed25519.PrivateKey
-	symKey     cryptoutilKeyGen.SecretKey
-
+	// JWK keys only - we don't need to store references to the raw keys
 	rsaPrivJwk joseJwk.Key
 	rsaPubJwk  joseJwk.Key
 	ecPrivJwk  joseJwk.Key
@@ -52,42 +45,42 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 		// Generate RSA keys using cryptoutil keygen
 		keyPair, err = cryptoutilKeyGen.GenerateRSAKeyPair(2048)
 		require.NoError(t, err, "Failed to generate RSA key")
-		testKeys.rsaPrivKey = keyPair.Private.(*rsa.PrivateKey)
-		testKeys.rsaPubKey = keyPair.Public.(*rsa.PublicKey)
+		rsaPrivKey := keyPair.Private.(*rsa.PrivateKey)
+		rsaPubKey := keyPair.Public.(*rsa.PublicKey)
 
 		// Generate ECDSA keys using cryptoutil keygen
 		keyPair, err = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
 		require.NoError(t, err, "Failed to generate ECDSA key")
-		testKeys.ecPrivKey = keyPair.Private.(*ecdsa.PrivateKey)
-		testKeys.ecPubKey = keyPair.Public.(*ecdsa.PublicKey)
+		ecPrivKey := keyPair.Private.(*ecdsa.PrivateKey)
+		ecPubKey := keyPair.Public.(*ecdsa.PublicKey)
 
 		// Generate EdDSA keys using cryptoutil keygen
 		keyPair, err = cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
 		require.NoError(t, err, "Failed to generate Ed25519 key")
-		testKeys.edPrivKey = keyPair.Private.(ed25519.PrivateKey)
-		testKeys.edPubKey = keyPair.Public.(ed25519.PublicKey)
+		edPrivKey := keyPair.Private.(ed25519.PrivateKey)
+		edPubKey := keyPair.Public.(ed25519.PublicKey)
 
 		// Generate symmetric key
-		testKeys.symKey, err = cryptoutilKeyGen.GenerateAESKey(256)
+		symKey, err := cryptoutilKeyGen.GenerateAESKey(256)
 		require.NoError(t, err, "Failed to generate AES key")
 
 		// Convert to JWK format
-		testKeys.rsaPrivJwk, err = joseJwk.Import(testKeys.rsaPrivKey)
+		testKeys.rsaPrivJwk, err = joseJwk.Import(rsaPrivKey)
 		require.NoError(t, err, "Failed to import RSA private key to JWK")
-		testKeys.rsaPubJwk, err = joseJwk.Import(testKeys.rsaPubKey)
+		testKeys.rsaPubJwk, err = joseJwk.Import(rsaPubKey)
 		require.NoError(t, err, "Failed to import RSA public key to JWK")
 
-		testKeys.ecPrivJwk, err = joseJwk.Import(testKeys.ecPrivKey)
+		testKeys.ecPrivJwk, err = joseJwk.Import(ecPrivKey)
 		require.NoError(t, err, "Failed to import ECDSA private key to JWK")
-		testKeys.ecPubJwk, err = joseJwk.Import(testKeys.ecPubKey)
+		testKeys.ecPubJwk, err = joseJwk.Import(ecPubKey)
 		require.NoError(t, err, "Failed to import ECDSA public key to JWK")
 
-		testKeys.okpPrivJwk, err = joseJwk.Import(testKeys.edPrivKey)
+		testKeys.okpPrivJwk, err = joseJwk.Import(edPrivKey)
 		require.NoError(t, err, "Failed to import Ed25519 private key to JWK")
-		testKeys.okpPubJwk, err = joseJwk.Import(testKeys.edPubKey)
+		testKeys.okpPubJwk, err = joseJwk.Import(edPubKey)
 		require.NoError(t, err, "Failed to import Ed25519 public key to JWK")
 
-		testKeys.symJwk, err = joseJwk.Import([]byte(testKeys.symKey))
+		testKeys.symJwk, err = joseJwk.Import([]byte(symKey))
 		require.NoError(t, err, "Failed to import symmetric key to JWK")
 	})
 
