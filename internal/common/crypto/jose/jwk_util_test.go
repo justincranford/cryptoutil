@@ -4,7 +4,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/rsa"
 	"sync"
 	"testing"
@@ -48,20 +47,25 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	testKeysOnce.Do(func() {
 		testKeys = &jwkTestKeys{}
 		var err error
+		var keyPair *cryptoutilKeyGen.KeyPair
 
-		// Generate RSA keys
-		testKeys.rsaPrivKey, err = rsa.GenerateKey(rand.Reader, 2048)
+		// Generate RSA keys using cryptoutil keygen
+		keyPair, err = cryptoutilKeyGen.GenerateRSAKeyPair(2048)
 		require.NoError(t, err, "Failed to generate RSA key")
-		testKeys.rsaPubKey = &testKeys.rsaPrivKey.PublicKey
+		testKeys.rsaPrivKey = keyPair.Private.(*rsa.PrivateKey)
+		testKeys.rsaPubKey = keyPair.Public.(*rsa.PublicKey)
 
-		// Generate ECDSA keys
-		testKeys.ecPrivKey, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		// Generate ECDSA keys using cryptoutil keygen
+		keyPair, err = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
 		require.NoError(t, err, "Failed to generate ECDSA key")
-		testKeys.ecPubKey = &testKeys.ecPrivKey.PublicKey
+		testKeys.ecPrivKey = keyPair.Private.(*ecdsa.PrivateKey)
+		testKeys.ecPubKey = keyPair.Public.(*ecdsa.PublicKey)
 
-		// Generate EdDSA keys
-		testKeys.edPubKey, testKeys.edPrivKey, err = ed25519.GenerateKey(rand.Reader)
+		// Generate EdDSA keys using cryptoutil keygen
+		keyPair, err = cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
 		require.NoError(t, err, "Failed to generate Ed25519 key")
+		testKeys.edPrivKey = keyPair.Private.(ed25519.PrivateKey)
+		testKeys.edPubKey = keyPair.Public.(ed25519.PublicKey)
 
 		// Generate symmetric key
 		testKeys.symKey, err = cryptoutilKeyGen.GenerateAESKey(256)
