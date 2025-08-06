@@ -132,7 +132,7 @@ func (pool *ValueGenPool[T]) Get() T {
 	select {
 	case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
 		if pool.cfg.verbose {
-			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+			pool.cfg.telemetryService.Slogger.Debug("get cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 		}
 		var zero T
 		return zero
