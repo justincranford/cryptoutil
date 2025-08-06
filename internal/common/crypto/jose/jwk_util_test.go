@@ -30,16 +30,150 @@ type jwkTestKeys struct {
 }
 
 type testCase struct {
-	name     string
-	jwk      joseJwk.Key
-	expected bool
-	wantErr  error
+	name                string
+	jwk                 joseJwk.Key
+	expectedIsPrivate   bool
+	expectedIsPublic    bool
+	expectedIsSymmetric bool
+	wantErr             error
 }
 
 var (
 	testKeys             *jwkTestKeys
 	testKeysGenerateOnce sync.Once
 )
+
+func TestIsPrivateJwk(t *testing.T) {
+	tests := getTestCases(t)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			isPrivate, err := IsPrivateJwk(tc.jwk)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedIsPrivate, isPrivate)
+			}
+		})
+	}
+}
+
+func TestIsPublicJwk(t *testing.T) {
+	tests := getTestCases(t)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			isPublic, err := IsPublicJwk(tc.jwk)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedIsPublic, isPublic)
+			}
+		})
+	}
+}
+
+func TestIsSymmetricJwk(t *testing.T) {
+	tests := getTestCases(t)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			isSymmetric, err := IsSymmetricJwk(tc.jwk)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedIsSymmetric, isSymmetric)
+			}
+		})
+	}
+}
+
+func getTestCases(t *testing.T) []testCase {
+	t.Helper()
+	keys := getTestKeys(t)
+	return []testCase{
+		{
+			name:                "nil JWK",
+			jwk:                 nil,
+			expectedIsPrivate:   false,
+			expectedIsPublic:    false,
+			expectedIsSymmetric: false,
+			wantErr:             cryptoutilAppErr.ErrCantBeNil,
+		},
+		{
+			name:                "RSA private key",
+			jwk:                 keys.rsaPrivateJWK,
+			expectedIsPrivate:   true,
+			expectedIsPublic:    false,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "RSA public key",
+			jwk:                 keys.rsaPublicJWK,
+			expectedIsPrivate:   false,
+			expectedIsPublic:    true,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "ECDSA private key",
+			jwk:                 keys.ecdsaPrivateJWK,
+			expectedIsPrivate:   true,
+			expectedIsPublic:    false,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "ECDSA public key",
+			jwk:                 keys.ecdsaPublicJWK,
+			expectedIsPrivate:   false,
+			expectedIsPublic:    true,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "ECDH private key",
+			jwk:                 keys.ecdhPrivateJWK,
+			expectedIsPrivate:   true,
+			expectedIsPublic:    false,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "ECDH public key",
+			jwk:                 keys.ecdhPublicJWK,
+			expectedIsPrivate:   false,
+			expectedIsPublic:    true,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "OKP Ed25519 private key",
+			jwk:                 keys.ed25519PrivateJWK,
+			expectedIsPrivate:   true,
+			expectedIsPublic:    false,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "OKP Ed25519 public key",
+			jwk:                 keys.ed25519PublicJWK,
+			expectedIsPrivate:   false,
+			expectedIsPublic:    true,
+			expectedIsSymmetric: false,
+			wantErr:             nil,
+		},
+		{
+			name:                "Symmetric key",
+			jwk:                 keys.aesSecretJWK,
+			expectedIsPrivate:   false,
+			expectedIsPublic:    false,
+			expectedIsSymmetric: true,
+			wantErr:             nil,
+		},
+	}
+}
 
 func getTestKeys(t *testing.T) *jwkTestKeys {
 	t.Helper()
@@ -108,238 +242,4 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	})
 
 	return testKeys
-}
-
-func TestIsPrivateJwk(t *testing.T) {
-	keys := getTestKeys(t)
-	tests := []testCase{
-		{
-			name:     "nil JWK",
-			jwk:      nil,
-			expected: false,
-			wantErr:  cryptoutilAppErr.ErrCantBeNil,
-		},
-		{
-			name:     "RSA private key",
-			jwk:      keys.rsaPrivateJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "RSA public key",
-			jwk:      keys.rsaPublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDSA private key",
-			jwk:      keys.ecdsaPrivateJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDSA public key",
-			jwk:      keys.ecdsaPublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDH private key",
-			jwk:      keys.ecdhPrivateJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDH public key",
-			jwk:      keys.ecdhPublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "OKP Ed25519 private key",
-			jwk:      keys.ed25519PrivateJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "OKP Ed25519 public key",
-			jwk:      keys.ed25519PublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "Symmetric key",
-			jwk:      keys.aesSecretJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			isPrivate, err := IsPrivateJwk(tc.jwk)
-			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expected, isPrivate)
-			}
-		})
-	}
-}
-
-func TestIsPublicJwk(t *testing.T) {
-	keys := getTestKeys(t)
-	tests := []testCase{
-		{
-			name:     "nil JWK",
-			jwk:      nil,
-			expected: false,
-			wantErr:  cryptoutilAppErr.ErrCantBeNil,
-		},
-		{
-			name:     "RSA private key",
-			jwk:      keys.rsaPrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "RSA public key",
-			jwk:      keys.rsaPublicJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDSA private key",
-			jwk:      keys.ecdsaPrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDSA public key",
-			jwk:      keys.ecdsaPublicJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDH private key",
-			jwk:      keys.ecdhPrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDH public key",
-			jwk:      keys.ecdhPublicJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "OKP Ed25519 private key",
-			jwk:      keys.ed25519PrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "OKP Ed25519 public key",
-			jwk:      keys.ed25519PublicJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-		{
-			name:     "Symmetric key",
-			jwk:      keys.aesSecretJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			isPublic, err := IsPublicJwk(tc.jwk)
-			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expected, isPublic)
-			}
-		})
-	}
-}
-
-func TestIsSymmetricJwk(t *testing.T) {
-	keys := getTestKeys(t)
-	tests := []testCase{
-		{
-			name:     "nil JWK",
-			jwk:      nil,
-			expected: false,
-			wantErr:  cryptoutilAppErr.ErrCantBeNil,
-		},
-		{
-			name:     "RSA private key",
-			jwk:      keys.rsaPrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "RSA public key",
-			jwk:      keys.rsaPublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDSA private key",
-			jwk:      keys.ecdsaPrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDSA public key",
-			jwk:      keys.ecdsaPublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDH private key",
-			jwk:      keys.ecdhPrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "ECDH public key",
-			jwk:      keys.ecdhPublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "OKP Ed25519 private key",
-			jwk:      keys.ed25519PrivateJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "OKP Ed25519 public key",
-			jwk:      keys.ed25519PublicJWK,
-			expected: false,
-			wantErr:  nil,
-		},
-		{
-			name:     "Symmetric key",
-			jwk:      keys.aesSecretJWK,
-			expected: true,
-			wantErr:  nil,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			isSymmetric, err := IsSymmetricJwk(tc.jwk)
-			if tc.wantErr != nil {
-				assert.ErrorIs(t, err, tc.wantErr)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, tc.expected, isSymmetric)
-			}
-		})
-	}
 }
