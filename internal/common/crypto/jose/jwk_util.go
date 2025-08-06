@@ -362,3 +362,45 @@ func validateOrGenerateAESJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (cryp
 		return aesKey, nil
 	}
 }
+
+func IsPublicJwk(jwk joseJwk.Key) (bool, error) {
+	if jwk == nil {
+		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	switch jwk.(type) {
+	case joseJwk.RSAPrivateKey, joseJwk.ECDSAPrivateKey, joseJwk.OKPPrivateKey, joseJwk.SymmetricKey:
+		return false, nil
+	case joseJwk.RSAPublicKey, joseJwk.ECDSAPublicKey, joseJwk.OKPPublicKey:
+		return true, nil
+	default:
+		return false, fmt.Errorf("unsupported JWK type %T", jwk)
+	}
+}
+
+func IsPrivateJwk(jwk joseJwk.Key) (bool, error) {
+	if jwk == nil {
+		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	switch jwk.(type) {
+	case joseJwk.RSAPrivateKey, joseJwk.ECDSAPrivateKey, joseJwk.OKPPrivateKey:
+		return true, nil
+	case joseJwk.RSAPublicKey, joseJwk.ECDSAPublicKey, joseJwk.OKPPublicKey, joseJwk.SymmetricKey:
+		return false, nil
+	default:
+		return false, fmt.Errorf("unsupported JWK type %T", jwk)
+	}
+}
+
+func IsSymmetricJwk(jwk joseJwk.Key) (bool, error) {
+	if jwk == nil {
+		return false, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	switch jwk.(type) {
+	case joseJwk.RSAPrivateKey, joseJwk.RSAPublicKey, joseJwk.ECDSAPrivateKey, joseJwk.ECDSAPublicKey, joseJwk.OKPPrivateKey, joseJwk.OKPPublicKey:
+		return false, nil
+	case joseJwk.SymmetricKey:
+		return true, nil
+	default:
+		return false, fmt.Errorf("unsupported JWK type %T", jwk)
+	}
+}
