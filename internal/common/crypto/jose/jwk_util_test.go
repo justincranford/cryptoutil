@@ -18,26 +18,25 @@ import (
 )
 
 type jwkTestKeys struct {
-	rsaPrivJwk   joseJwk.Key
-	rsaPubJwk    joseJwk.Key
-	ecdsaPrivJwk joseJwk.Key
-	ecdsaPubJwk  joseJwk.Key
-	ecdhPrivJwk  joseJwk.Key
-	ecdhPubJwk   joseJwk.Key
-	okpPrivJwk   joseJwk.Key
-	okpPubJwk    joseJwk.Key
-	symJwk       joseJwk.Key
+	rsaPrivateJWK     joseJwk.Key
+	rsaPublicJWK      joseJwk.Key
+	ecdsaPrivateJWK   joseJwk.Key
+	ecdsaPublicJWK    joseJwk.Key
+	ecdhPrivateJWK    joseJwk.Key
+	ecdhPublicJWK     joseJwk.Key
+	ed25519PrivateJWK joseJwk.Key
+	ed25519PublicJWK  joseJwk.Key
+	aesSecretJWK      joseJwk.Key
 }
 
 var (
-	testKeys     *jwkTestKeys
-	testKeysOnce sync.Once
+	testKeys             *jwkTestKeys
+	testKeysGenerateOnce sync.Once
 )
 
 func getTestKeys(t *testing.T) *jwkTestKeys {
 	t.Helper()
-
-	testKeysOnce.Do(func() {
+	testKeysGenerateOnce.Do(func() {
 		testKeys = &jwkTestKeys{}
 		var rsaErr, ecdsaErr, ecdhErr, ed25519Err, aesErr error
 
@@ -48,9 +47,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			var rsaKeyPair *cryptoutilKeyGen.KeyPair
 			rsaKeyPair, rsaErr = cryptoutilKeyGen.GenerateRSAKeyPair(2048)
 			if rsaErr == nil {
-				testKeys.rsaPrivJwk, rsaErr = joseJwk.Import(rsaKeyPair.Private.(*rsa.PrivateKey))
+				testKeys.rsaPrivateJWK, rsaErr = joseJwk.Import(rsaKeyPair.Private.(*rsa.PrivateKey))
 				if rsaErr == nil {
-					testKeys.rsaPubJwk, rsaErr = joseJwk.Import(rsaKeyPair.Public.(*rsa.PublicKey))
+					testKeys.rsaPublicJWK, rsaErr = joseJwk.Import(rsaKeyPair.Public.(*rsa.PublicKey))
 				}
 			}
 		}()
@@ -59,9 +58,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			var ecdsaKeyPair *cryptoutilKeyGen.KeyPair
 			ecdsaKeyPair, ecdsaErr = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
 			if ecdsaErr == nil {
-				testKeys.ecdsaPrivJwk, ecdsaErr = joseJwk.Import(ecdsaKeyPair.Private.(*ecdsa.PrivateKey))
+				testKeys.ecdsaPrivateJWK, ecdsaErr = joseJwk.Import(ecdsaKeyPair.Private.(*ecdsa.PrivateKey))
 				if ecdsaErr == nil {
-					testKeys.ecdsaPubJwk, ecdsaErr = joseJwk.Import(ecdsaKeyPair.Public.(*ecdsa.PublicKey))
+					testKeys.ecdsaPublicJWK, ecdsaErr = joseJwk.Import(ecdsaKeyPair.Public.(*ecdsa.PublicKey))
 				}
 			}
 		}()
@@ -70,9 +69,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			var ecdhKeyPair *cryptoutilKeyGen.KeyPair
 			ecdhKeyPair, ecdhErr = cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
 			if ecdhErr == nil {
-				testKeys.ecdhPrivJwk, ecdhErr = joseJwk.Import(ecdhKeyPair.Private.(*ecdh.PrivateKey))
+				testKeys.ecdhPrivateJWK, ecdhErr = joseJwk.Import(ecdhKeyPair.Private.(*ecdh.PrivateKey))
 				if ecdhErr == nil {
-					testKeys.ecdhPubJwk, ecdhErr = joseJwk.Import(ecdhKeyPair.Public.(*ecdh.PublicKey))
+					testKeys.ecdhPublicJWK, ecdhErr = joseJwk.Import(ecdhKeyPair.Public.(*ecdh.PublicKey))
 				}
 			}
 		}()
@@ -81,9 +80,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			var ed25519KeyPair *cryptoutilKeyGen.KeyPair
 			ed25519KeyPair, ed25519Err = cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
 			if ed25519Err == nil {
-				testKeys.okpPrivJwk, ed25519Err = joseJwk.Import(ed25519KeyPair.Private.(ed25519.PrivateKey))
+				testKeys.ed25519PrivateJWK, ed25519Err = joseJwk.Import(ed25519KeyPair.Private.(ed25519.PrivateKey))
 				if ed25519Err == nil {
-					testKeys.okpPubJwk, ed25519Err = joseJwk.Import(ed25519KeyPair.Public.(ed25519.PublicKey))
+					testKeys.ed25519PublicJWK, ed25519Err = joseJwk.Import(ed25519KeyPair.Public.(ed25519.PublicKey))
 				}
 			}
 		}()
@@ -92,7 +91,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			var aesSecretKey []byte
 			aesSecretKey, aesErr = cryptoutilKeyGen.GenerateAESKey(256)
 			if aesErr == nil {
-				testKeys.symJwk, aesErr = joseJwk.Import(aesSecretKey)
+				testKeys.aesSecretJWK, aesErr = joseJwk.Import(aesSecretKey)
 			}
 		}()
 		wg.Wait()
@@ -122,55 +121,55 @@ func TestIsPrivateJwk(t *testing.T) {
 		},
 		{
 			name:     "RSA private key",
-			jwk:      keys.rsaPrivJwk,
+			jwk:      keys.rsaPrivateJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "RSA public key",
-			jwk:      keys.rsaPubJwk,
+			jwk:      keys.rsaPublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA private key",
-			jwk:      keys.ecdsaPrivJwk,
+			jwk:      keys.ecdsaPrivateJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA public key",
-			jwk:      keys.ecdsaPubJwk,
+			jwk:      keys.ecdsaPublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDH private key",
-			jwk:      keys.ecdhPrivJwk,
+			jwk:      keys.ecdhPrivateJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDH public key",
-			jwk:      keys.ecdhPubJwk,
+			jwk:      keys.ecdhPublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "OKP Ed25519 private key",
-			jwk:      keys.okpPrivJwk,
+			jwk:      keys.ed25519PrivateJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "OKP Ed25519 public key",
-			jwk:      keys.okpPubJwk,
+			jwk:      keys.ed25519PublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "Symmetric key",
-			jwk:      keys.symJwk,
+			jwk:      keys.aesSecretJWK,
 			expected: false,
 			wantErr:  nil,
 		},
@@ -207,55 +206,55 @@ func TestIsPublicJwk(t *testing.T) {
 		},
 		{
 			name:     "RSA private key",
-			jwk:      keys.rsaPrivJwk,
+			jwk:      keys.rsaPrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "RSA public key",
-			jwk:      keys.rsaPubJwk,
+			jwk:      keys.rsaPublicJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA private key",
-			jwk:      keys.ecdsaPrivJwk,
+			jwk:      keys.ecdsaPrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA public key",
-			jwk:      keys.ecdsaPubJwk,
+			jwk:      keys.ecdsaPublicJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDH private key",
-			jwk:      keys.ecdhPrivJwk,
+			jwk:      keys.ecdhPrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDH public key",
-			jwk:      keys.ecdhPubJwk,
+			jwk:      keys.ecdhPublicJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "OKP Ed25519 private key",
-			jwk:      keys.okpPrivJwk,
+			jwk:      keys.ed25519PrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "OKP Ed25519 public key",
-			jwk:      keys.okpPubJwk,
+			jwk:      keys.ed25519PublicJWK,
 			expected: true,
 			wantErr:  nil,
 		},
 		{
 			name:     "Symmetric key",
-			jwk:      keys.symJwk,
+			jwk:      keys.aesSecretJWK,
 			expected: false,
 			wantErr:  nil,
 		},
@@ -292,55 +291,55 @@ func TestIsSymmetricJwk(t *testing.T) {
 		},
 		{
 			name:     "RSA private key",
-			jwk:      keys.rsaPrivJwk,
+			jwk:      keys.rsaPrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "RSA public key",
-			jwk:      keys.rsaPubJwk,
+			jwk:      keys.rsaPublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA private key",
-			jwk:      keys.ecdsaPrivJwk,
+			jwk:      keys.ecdsaPrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDSA public key",
-			jwk:      keys.ecdsaPubJwk,
+			jwk:      keys.ecdsaPublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDH private key",
-			jwk:      keys.ecdhPrivJwk,
+			jwk:      keys.ecdhPrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "ECDH public key",
-			jwk:      keys.ecdhPubJwk,
+			jwk:      keys.ecdhPublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "OKP Ed25519 private key",
-			jwk:      keys.okpPrivJwk,
+			jwk:      keys.ed25519PrivateJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "OKP Ed25519 public key",
-			jwk:      keys.okpPubJwk,
+			jwk:      keys.ed25519PublicJWK,
 			expected: false,
 			wantErr:  nil,
 		},
 		{
 			name:     "Symmetric key",
-			jwk:      keys.symJwk,
+			jwk:      keys.aesSecretJWK,
 			expected: true,
 			wantErr:  nil,
 		},
