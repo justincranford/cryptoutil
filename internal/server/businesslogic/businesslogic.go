@@ -314,7 +314,7 @@ func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, e
 }
 
 func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, encryptParams *cryptoutilOpenapiModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
-	elasticKey, _, decryptedMaterialKeyNonPublicJwsJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
+	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest MaterialKey for ElasticKey: %w", err)
 	}
@@ -322,7 +322,12 @@ func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, el
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
 	// TODO Use encryptParams.Context for encryption
-	_, jweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJwsJwk}, clearPayloadBytes)
+	decryptedMaterialKeyNonPrivateJweJwk, err := decryptedMaterialKeyNonPublicJweJwk.PublicKey()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get non-private key from decrypted material key: %w", err)
+	}
+
+	_, jweMessageBytes, err := cryptoutilJose.EncryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPrivateJweJwk}, clearPayloadBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt bytes with latest MaterialKey for ElasticKeyID: %w", err)
 	}
