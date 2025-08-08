@@ -30,12 +30,13 @@ type jwkTestKeys struct {
 }
 
 type testCase struct {
-	name                string
-	jwk                 joseJwk.Key
-	expectedIsPrivate   bool
-	expectedIsPublic    bool
-	expectedIsSymmetric bool
-	wantErr             error
+	name                 string
+	jwk                  joseJwk.Key
+	expectedIsPrivate    bool
+	expectedIsPublic     bool
+	expectedIsAsymmetric bool
+	expectedIsSymmetric  bool
+	wantErr              error
 }
 
 var (
@@ -73,6 +74,21 @@ func TestIsPublicJwk(t *testing.T) {
 	}
 }
 
+func TestIsAsymmetricJwk(t *testing.T) {
+	tests := getTestCases(t)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			isAsymmetric, err := IsAsymmetricJwk(tc.jwk)
+			if tc.wantErr != nil {
+				assert.ErrorIs(t, err, tc.wantErr)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedIsAsymmetric, isAsymmetric)
+			}
+		})
+	}
+}
+
 func TestIsSymmetricJwk(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
@@ -94,84 +110,94 @@ func getTestCases(t *testing.T) []testCase {
 		keys := getTestKeys(t)
 		testCases = []testCase{
 			{
-				name:                "nil JWK",
-				jwk:                 nil,
-				expectedIsPrivate:   false,
-				expectedIsPublic:    false,
-				expectedIsSymmetric: false,
-				wantErr:             cryptoutilAppErr.ErrCantBeNil,
+				name:                 "nil JWK",
+				jwk:                  nil,
+				expectedIsPrivate:    false,
+				expectedIsPublic:     false,
+				expectedIsAsymmetric: false,
+				expectedIsSymmetric:  false,
+				wantErr:              cryptoutilAppErr.ErrCantBeNil,
 			},
 			{
-				name:                "RSA private key",
-				jwk:                 keys.rsaPrivateJWK,
-				expectedIsPrivate:   true,
-				expectedIsPublic:    false,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "RSA private key",
+				jwk:                  keys.rsaPrivateJWK,
+				expectedIsPrivate:    true,
+				expectedIsPublic:     false,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "RSA public key",
-				jwk:                 keys.rsaPublicJWK,
-				expectedIsPrivate:   false,
-				expectedIsPublic:    true,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "RSA public key",
+				jwk:                  keys.rsaPublicJWK,
+				expectedIsPrivate:    false,
+				expectedIsPublic:     true,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "ECDSA private key",
-				jwk:                 keys.ecdsaPrivateJWK,
-				expectedIsPrivate:   true,
-				expectedIsPublic:    false,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "ECDSA private key",
+				jwk:                  keys.ecdsaPrivateJWK,
+				expectedIsPrivate:    true,
+				expectedIsPublic:     false,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "ECDSA public key",
-				jwk:                 keys.ecdsaPublicJWK,
-				expectedIsPrivate:   false,
-				expectedIsPublic:    true,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "ECDSA public key",
+				jwk:                  keys.ecdsaPublicJWK,
+				expectedIsPrivate:    false,
+				expectedIsPublic:     true,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "ECDH private key",
-				jwk:                 keys.ecdhPrivateJWK,
-				expectedIsPrivate:   true,
-				expectedIsPublic:    false,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "ECDH private key",
+				jwk:                  keys.ecdhPrivateJWK,
+				expectedIsPrivate:    true,
+				expectedIsPublic:     false,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "ECDH public key",
-				jwk:                 keys.ecdhPublicJWK,
-				expectedIsPrivate:   false,
-				expectedIsPublic:    true,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "ECDH public key",
+				jwk:                  keys.ecdhPublicJWK,
+				expectedIsPrivate:    false,
+				expectedIsPublic:     true,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "OKP Ed25519 private key",
-				jwk:                 keys.ed25519PrivateJWK,
-				expectedIsPrivate:   true,
-				expectedIsPublic:    false,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "OKP Ed25519 private key",
+				jwk:                  keys.ed25519PrivateJWK,
+				expectedIsPrivate:    true,
+				expectedIsPublic:     false,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "OKP Ed25519 public key",
-				jwk:                 keys.ed25519PublicJWK,
-				expectedIsPrivate:   false,
-				expectedIsPublic:    true,
-				expectedIsSymmetric: false,
-				wantErr:             nil,
+				name:                 "OKP Ed25519 public key",
+				jwk:                  keys.ed25519PublicJWK,
+				expectedIsPrivate:    false,
+				expectedIsPublic:     true,
+				expectedIsAsymmetric: true,
+				expectedIsSymmetric:  false,
+				wantErr:              nil,
 			},
 			{
-				name:                "Symmetric key",
-				jwk:                 keys.aesSecretJWK,
-				expectedIsPrivate:   false,
-				expectedIsPublic:    false,
-				expectedIsSymmetric: true,
-				wantErr:             nil,
+				name:                 "Symmetric key",
+				jwk:                  keys.aesSecretJWK,
+				expectedIsPrivate:    false,
+				expectedIsPublic:     false,
+				expectedIsAsymmetric: false,
+				expectedIsSymmetric:  true,
+				wantErr:              nil,
 			},
 		}
 	})
