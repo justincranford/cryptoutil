@@ -418,3 +418,117 @@ func IsSymmetricJwk(jwk joseJwk.Key) (bool, error) {
 		return false, fmt.Errorf("unsupported JWK type %T", jwk)
 	}
 }
+
+func IsEncryptJwk(jwk joseJwk.Key) (bool, error) {
+	if jwk == nil {
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	_, _, err := ExtractAlgEncFromJweJwk(jwk, 0)
+	if err != nil {
+		return false, nil // fmt.Errorf("failed to extract alg and enc from JWK: %w", err)
+	}
+
+	// At this point, JWK is confirmed to have an enc header
+	switch jwk.(type) {
+	case joseJwk.ECDSAPrivateKey:
+		return false, nil // private key can be used for encrypt, but shouldn't be used in practice
+	case joseJwk.RSAPrivateKey:
+		return false, nil // private key can be used for encrypt, but shouldn't be used in practice
+	case joseJwk.ECDSAPublicKey:
+		return true, nil // jwx uses ECDSAPrivateKey for both ECDSA or ECDH, but encrypt alg header narrows it down to ECDH
+	case joseJwk.RSAPublicKey:
+		return true, nil
+	case joseJwk.SymmetricKey:
+		return true, nil // jwx SymmetricKey can be AES and HMAC, but enc header narrows it down to AES only
+	case joseJwk.OKPPrivateKey, joseJwk.OKPPublicKey:
+		return false, nil // Ed25519/Ed448 are signing only
+	default:
+		return false, fmt.Errorf("unsupported JWK type %T", jwk)
+	}
+}
+
+func IsDecryptJwk(jwk joseJwk.Key) (bool, error) {
+	if jwk == nil {
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	_, _, err := ExtractAlgEncFromJweJwk(jwk, 0)
+	if err != nil {
+		return false, nil // fmt.Errorf("failed to extract alg and enc from JWK: %w", err)
+	}
+
+	// At this point, JWK is confirmed to have an enc header
+	switch jwk.(type) {
+	case joseJwk.ECDSAPrivateKey:
+		return true, nil // jwx uses ECDSAPrivateKey for both ECDSA or ECDH, but encrypt alg header narrows it down to ECDH
+	case joseJwk.RSAPrivateKey:
+		return true, nil
+	case joseJwk.ECDSAPublicKey:
+		return false, nil
+	case joseJwk.RSAPublicKey:
+		return false, nil
+	case joseJwk.SymmetricKey:
+		return true, nil // jwx SymmetricKey can be AES and HMAC, but enc header narrows it down to AES only
+	case joseJwk.OKPPrivateKey, joseJwk.OKPPublicKey:
+		return false, nil // Ed25519/Ed448 are signing only
+	default:
+		return false, fmt.Errorf("unsupported JWK type %T", jwk)
+	}
+}
+
+func IsSignJwk(jwk joseJwk.Key) (bool, error) {
+	if jwk == nil {
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	_, err := ExtractAlgFromJwsJwk(jwk, 0)
+	if err != nil {
+		return false, nil // fmt.Errorf("failed to extract signature alg from JWK: %w", err)
+	}
+
+	switch jwk.(type) {
+	case joseJwk.ECDSAPrivateKey:
+		return true, nil // jwx uses ECDSAPrivateKey for both ECDSA or ECDH, but signature alg header narrows it down to ECDSA
+	case joseJwk.RSAPrivateKey:
+		return true, nil
+	case joseJwk.OKPPrivateKey:
+		return true, nil
+	case joseJwk.ECDSAPublicKey:
+		return false, nil
+	case joseJwk.RSAPublicKey:
+		return false, nil
+	case joseJwk.OKPPublicKey:
+		return false, nil
+	case joseJwk.SymmetricKey:
+		return true, nil // jwx SymmetricKey can be AES and HMAC, but enc header narrows it down to HMAC only
+	default:
+		return false, fmt.Errorf("unsupported JWK type %T", jwk)
+	}
+}
+
+func IsVerifyJwk(jwk joseJwk.Key) (bool, error) {
+	if jwk == nil {
+		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+	_, err := ExtractAlgFromJwsJwk(jwk, 0)
+	if err != nil {
+		return false, nil // fmt.Errorf("failed to extract signature alg from JWK: %w", err)
+	}
+
+	switch jwk.(type) {
+	case joseJwk.ECDSAPrivateKey:
+		return false, nil // jwx uses ECDSAPrivateKey for both ECDSA or ECDH, but signature alg header narrows it down to ECDSA
+	case joseJwk.RSAPrivateKey:
+		return false, nil
+	case joseJwk.OKPPrivateKey:
+		return false, nil
+	case joseJwk.RSAPublicKey:
+		return true, nil
+	case joseJwk.ECDSAPublicKey:
+		return true, nil
+	case joseJwk.OKPPublicKey:
+		return true, nil
+	case joseJwk.SymmetricKey:
+		return true, nil // jwx SymmetricKey can be AES and HMAC, but enc header narrows it down to HMAC only
+	default:
+		return false, fmt.Errorf("unsupported JWK type %T", jwk)
+	}
+}
