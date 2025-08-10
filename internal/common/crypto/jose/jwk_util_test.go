@@ -171,104 +171,6 @@ func TestIsVerifyJwk(t *testing.T) {
 	}
 }
 
-func getTestCases(t *testing.T) []testCase {
-	t.Helper()
-	testCasesGenerateOnce.Do(func() {
-		keys := getTestKeys(t)
-		testCases = []testCase{
-			{
-				name:    "nil JWK",
-				wantErr: cryptoutilAppErr.ErrCantBeNil,
-			},
-			{
-				name:                 "RSA encrypt public key",
-				jwk:                  keys.rsaEncryptPublicJWK,
-				expectedIsPublic:     true,
-				expectedIsAsymmetric: true,
-				expectedIsEncrypt:    true,
-			},
-			{
-				name:                 "RSA decrypt private key",
-				jwk:                  keys.rsaDecryptPrivateJWK,
-				expectedIsPrivate:    true,
-				expectedIsAsymmetric: true,
-				expectedIsDecrypt:    true,
-			},
-			{
-				name:                 "RSA sign private key",
-				jwk:                  keys.rsaSignPrivateJWK,
-				expectedIsPrivate:    true,
-				expectedIsAsymmetric: true,
-				expectedIsSign:       true,
-			},
-			{
-				name:                 "RSA verify public key",
-				jwk:                  keys.rsaVerifyPublicJWK,
-				expectedIsPublic:     true,
-				expectedIsAsymmetric: true,
-				expectedIsVerify:     true,
-			},
-			{
-				name:                 "ECDSA sign private key",
-				jwk:                  keys.ecdsaSignPrivateJWK,
-				expectedIsPrivate:    true,
-				expectedIsAsymmetric: true,
-				expectedIsSign:       true,
-			},
-			{
-				name:                 "ECDSA verify public key",
-				jwk:                  keys.ecdsaVerifyPublicJWK,
-				expectedIsPublic:     true,
-				expectedIsAsymmetric: true,
-				expectedIsVerify:     true,
-			},
-			{
-				name:                 "ECDH encrypt public key",
-				jwk:                  keys.ecdhEncryptPublicJWK,
-				expectedIsPublic:     true,
-				expectedIsAsymmetric: true,
-				expectedIsEncrypt:    true,
-			},
-			{
-				name:                 "ECDH decrypt private key",
-				jwk:                  keys.ecdhDecryptPrivateJWK,
-				expectedIsPrivate:    true,
-				expectedIsAsymmetric: true,
-				expectedIsDecrypt:    true,
-			},
-			{
-				name:                 "OKP Ed25519 sign private key",
-				jwk:                  keys.ed25519SignPrivateJWK,
-				expectedIsPrivate:    true,
-				expectedIsAsymmetric: true,
-				expectedIsSign:       true,
-			},
-			{
-				name:                 "OKP Ed25519 verify public key",
-				jwk:                  keys.ed25519VerifyPublicJWK,
-				expectedIsPublic:     true,
-				expectedIsAsymmetric: true,
-				expectedIsVerify:     true,
-			},
-			{
-				name:                "AES encrypt/decrypt key",
-				jwk:                 keys.aesEncryptDecryptSecretJWK,
-				expectedIsSymmetric: true,
-				expectedIsEncrypt:   true,
-				expectedIsDecrypt:   true,
-			},
-			{
-				name:                "HMAC sign/verify key",
-				jwk:                 keys.hmacSignVerifySecretJWK,
-				expectedIsSymmetric: true,
-				expectedIsSign:      true,
-				expectedIsVerify:    true,
-			},
-		}
-	})
-	return testCases
-}
-
 func getTestKeys(t *testing.T) *jwkTestKeys {
 	t.Helper()
 	testKeys := &jwkTestKeys{}
@@ -403,4 +305,27 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 		t.Fatalf("failed to generate keys: %v", errors.Join(rsaEncryptErr, rsaSignErr, ecdsaErr, ecdhErr, ed25519Err, aesErr, hmacErr))
 	}
 	return testKeys
+}
+
+func getTestCases(t *testing.T) []testCase {
+	t.Helper()
+	testCasesGenerateOnce.Do(func() {
+		keys := getTestKeys(t)
+		testCases = []testCase{
+			{wantErr: cryptoutilAppErr.ErrCantBeNil, name: "nil JWK"},
+			{expectedIsAsymmetric: true, expectedIsPublic: true, expectedIsEncrypt: true, name: "RSA encrypt public key", jwk: keys.rsaEncryptPublicJWK},
+			{expectedIsAsymmetric: true, expectedIsPrivate: true, expectedIsDecrypt: true, name: "RSA decrypt private key", jwk: keys.rsaDecryptPrivateJWK},
+			{expectedIsAsymmetric: true, expectedIsPrivate: true, expectedIsSign: true, name: "RSA sign private key", jwk: keys.rsaSignPrivateJWK},
+			{expectedIsAsymmetric: true, expectedIsPublic: true, expectedIsVerify: true, name: "RSA verify public key", jwk: keys.rsaVerifyPublicJWK},
+			{expectedIsAsymmetric: true, expectedIsPrivate: true, expectedIsSign: true, name: "ECDSA sign private key", jwk: keys.ecdsaSignPrivateJWK},
+			{expectedIsAsymmetric: true, expectedIsPublic: true, expectedIsVerify: true, name: "ECDSA verify public key", jwk: keys.ecdsaVerifyPublicJWK},
+			{expectedIsAsymmetric: true, expectedIsPublic: true, expectedIsEncrypt: true, name: "ECDH encrypt public key", jwk: keys.ecdhEncryptPublicJWK},
+			{expectedIsAsymmetric: true, expectedIsPrivate: true, expectedIsDecrypt: true, name: "ECDH decrypt private key", jwk: keys.ecdhDecryptPrivateJWK},
+			{expectedIsAsymmetric: true, expectedIsPrivate: true, expectedIsSign: true, name: "OKP Ed25519 sign private key", jwk: keys.ed25519SignPrivateJWK},
+			{expectedIsAsymmetric: true, expectedIsPublic: true, expectedIsVerify: true, name: "OKP Ed25519 verify public key", jwk: keys.ed25519VerifyPublicJWK},
+			{expectedIsSymmetric: true, expectedIsEncrypt: true, expectedIsDecrypt: true, name: "AES encrypt/decrypt key", jwk: keys.aesEncryptDecryptSecretJWK},
+			{expectedIsSymmetric: true, expectedIsSign: true, expectedIsVerify: true, name: "HMAC sign/verify key", jwk: keys.hmacSignVerifySecretJWK},
+		}
+	})
+	return testCases
 }
