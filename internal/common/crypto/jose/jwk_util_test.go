@@ -462,6 +462,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			testKeys.aesSecretJWK, aesErr = joseJwk.Import(aesSecretKey)
 			if aesErr == nil {
 				aesErr = testKeys.aesSecretJWK.Set("alg", "A256KW")
+				if aesErr == nil {
+					aesErr = testKeys.aesSecretJWK.Set("enc", "A256GCM")
+				}
 			}
 		}
 	}()
