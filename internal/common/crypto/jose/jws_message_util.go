@@ -24,6 +24,14 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 	} else if len(clearBytes) == 0 {
 		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
+	for _, jwk := range jwks {
+		isSignJwk, err := IsSignJwk(jwk)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid JWK: %w", err)
+		} else if !isSignJwk {
+			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJwkMustBeDecryptJwk)
+		}
+	}
 
 	algs := make(map[joseJwa.SignatureAlgorithm]struct{})
 	jwsSignOptions := make([]joseJws.SignOption, 0, len(jwks))
@@ -74,6 +82,14 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid jwsMessageBytes: %w", cryptoutilAppErr.ErrCantBeNil)
 	} else if len(jwsMessageBytes) == 0 {
 		return nil, fmt.Errorf("invalid jwsMessageBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
+	}
+	for _, jwk := range jwks {
+		isVerifyJwk, err := IsVerifyJwk(jwk)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JWK: %w", err)
+		} else if !isVerifyJwk {
+			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJwkMustBeVerifyJwk)
+		}
 	}
 
 	jwsMessage, err := joseJws.Parse(jwsMessageBytes)

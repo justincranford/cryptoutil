@@ -3,13 +3,17 @@ package apperr
 import "errors"
 
 var (
-	ErrCantBeNil        = errors.New("jwks can't be nil")
-	ErrCantBeEmpty      = errors.New("jwks can't be empty")
-	ErrUUIDCantBeNil    = errors.New("UUID can't be nil")
-	ErrUUIDCantBeZero   = errors.New("UUID can't be zero UUID")
-	ErrUUIDCantBeMax    = errors.New("UUID can't be max UUID")
-	ErrUUIDsCantBeNil   = errors.New("UUIDs can't be nil")
-	ErrUUIDsCantBeEmpty = errors.New("UUIDs can't be empty")
+	ErrCantBeNil           = errors.New("jwks can't be nil")
+	ErrCantBeEmpty         = errors.New("jwks can't be empty")
+	ErrUUIDCantBeNil       = errors.New("UUID can't be nil")
+	ErrUUIDCantBeZero      = errors.New("UUID can't be zero UUID")
+	ErrUUIDCantBeMax       = errors.New("UUID can't be max UUID")
+	ErrUUIDsCantBeNil      = errors.New("UUIDs can't be nil")
+	ErrUUIDsCantBeEmpty    = errors.New("UUIDs can't be empty")
+	ErrJwkMustBeEncryptJwk = errors.New("JWK must be an encrypt JWK")
+	ErrJwkMustBeDecryptJwk = errors.New("JWK must be a decrypt JWK")
+	ErrJwkMustBeSignJwk    = errors.New("JWK must be a sign JWK")
+	ErrJwkMustBeVerifyJwk  = errors.New("JWK must be a verify JWK")
 
 	Errs = []error{
 		ErrCantBeNil,

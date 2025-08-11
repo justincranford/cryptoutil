@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
+
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwe"
@@ -92,9 +94,12 @@ func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.K
 
 func Encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message {
 	require.NotEmpty(t, plaintext, "plaintext can't be empty")
+	isEncryptJwk, err := cryptoutilJose.IsEncryptJwk(recipientJWK)
+	require.NoError(t, err, "failed to validate recipient JWK")
+	require.True(t, isEncryptJwk, "recipient JWK must be an encrypt JWK")
 
 	jweProtectedHeaders := jwe.NewHeaders()
-	err := jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
+	err = jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
 	require.NoError(t, err, "failed to set 'iat' header in JWE protected headers")
 
 	jweEncryptOptions := make([]jwe.EncryptOption, 0, 2)
@@ -120,6 +125,9 @@ func Encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 
 func Decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
 	require.NotEmpty(t, jweMessage, "JWE message can't be empty")
+	isDecryptJwk, err := cryptoutilJose.IsDecryptJwk(recipientJWK)
+	require.NoError(t, err, "failed to validate recipient JWK")
+	require.True(t, isDecryptJwk, "recipient JWK must be a decrypt JWK")
 
 	jweMessageBytes, err := jweMessage.MarshalJSON()
 	require.NoError(t, err, "failed to marshal JWE message to JSON")

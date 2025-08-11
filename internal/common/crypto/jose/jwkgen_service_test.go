@@ -82,9 +82,17 @@ func Test_HappyPath_JwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 
 			requireJwsMessageHeaders(t, jwsMessage, jwsJwkKid, &testCase)
 
-			verified, err := VerifyBytes([]joseJwk.Key{nonPublicJwsJwk}, encodedJwsMessage)
-			require.NoError(t, err)
-			require.NotNil(t, verified)
+			isSymmetric, err := IsSymmetricJwk(nonPublicJwsJwk)
+			require.NoError(t, err, "failed to validate nonPublicJwsJwk")
+			if isSymmetric {
+				verified, err := VerifyBytes([]joseJwk.Key{nonPublicJwsJwk}, encodedJwsMessage)
+				require.NoError(t, err)
+				require.NotNil(t, verified)
+			} else {
+				verified, err := VerifyBytes([]joseJwk.Key{publicJwsJwk}, encodedJwsMessage)
+				require.NoError(t, err)
+				require.NotNil(t, verified)
+			}
 		})
 	}
 }

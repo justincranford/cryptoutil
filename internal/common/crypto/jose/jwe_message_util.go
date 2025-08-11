@@ -24,6 +24,14 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 	} else if len(clearBytes) == 0 {
 		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
+	for _, jwk := range jwks {
+		isEncryptJwk, err := IsEncryptJwk(jwk)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid JWK: %w", err)
+		} else if !isEncryptJwk {
+			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJwkMustBeEncryptJwk)
+		}
+	}
 
 	encs := make(map[joseJwa.ContentEncryptionAlgorithm]struct{})
 	algs := make(map[joseJwa.KeyEncryptionAlgorithm]struct{})
@@ -84,6 +92,14 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilAppErr.ErrCantBeNil)
 	} else if len(jweMessageBytes) == 0 {
 		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
+	}
+	for _, jwk := range jwks {
+		isDecryptJwk, err := IsDecryptJwk(jwk)
+		if err != nil {
+			return nil, fmt.Errorf("invalid JWK: %w", err)
+		} else if !isDecryptJwk {
+			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJwkMustBeDecryptJwk)
+		}
 	}
 
 	jweMessage, err := joseJwe.Parse(jweMessageBytes)
