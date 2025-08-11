@@ -388,7 +388,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	}
 	verifiedJwsMessageBytes, err := cryptoutilJose.VerifyBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJwsJwk}, jwsMessageBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to verify bytes with MateiralKey for ElasticKeyID: %w", err)
+		return nil, fmt.Errorf("failed to verify bytes with MaterialKey for ElasticKeyID: %w", err)
 	}
 	return verifiedJwsMessageBytes, nil
 }
