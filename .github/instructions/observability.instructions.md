@@ -13,8 +13,6 @@ applyTo: "**"
 - Include contextual information (transaction IDs, request IDs) in all logs
 - Implement health check endpoints for Kubernetes readiness/liveness probes
 - Provide Prometheus-compatible metrics for monitoring
-- Log security events separately with appropriate detail levels
-- Implement graceful shutdown with proper telemetry cleanup
 - Use telemetry providers for traces, metrics, and logs consistently
 - Include performance metrics for cryptographic operations
 - Log database connection pool status and query performance
