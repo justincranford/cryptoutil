@@ -37,8 +37,8 @@ func Test_Import_Encrypt_Decrypt(t *testing.T) {
 			nonPublicJWK := Import(t, testCaseJWE.raw, testCaseJWE.enc, testCaseJWE.alg)
 			publicJWK, err := nonPublicJWK.PublicKey()
 			require.NoError(t, err, "failed to get public key from non-public JWK")
-			encrypted := Encrypt(t, publicJWK, plaintext)
-			decrypted := Decrypt(t, nonPublicJWK, encrypted)
+			encrypted := encrypt(t, publicJWK, plaintext)
+			decrypted := decrypt(t, nonPublicJWK, encrypted)
 			require.Equal(t, plaintext, decrypted, "decrypted must match original")
 		})
 	}
@@ -92,7 +92,7 @@ func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.K
 	return nonPublicJWK
 }
 
-func Encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message {
+func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message {
 	require.NotEmpty(t, plaintext, "plaintext can't be empty")
 	isEncryptJwk, err := cryptoutilJose.IsEncryptJwk(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
@@ -123,7 +123,7 @@ func Encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 	return jweMessage
 }
 
-func Decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
+func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
 	require.NotEmpty(t, jweMessage, "JWE message can't be empty")
 	isDecryptJwk, err := cryptoutilJose.IsDecryptJwk(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
