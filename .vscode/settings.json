@@ -7,7 +7,12 @@
     ".github/instructions/testing.instructions.md",
     ".github/instructions/errors.instructions.md",
     ".github/instructions/formatting.instructions.md",
-    ".github/instructions/docker.instructions.md"
+    ".github/instructions/docker.instructions.md",
+    ".github/instructions/database.instructions.md",
+    ".github/instructions/openapi.instructions.md",
+    ".github/instructions/security.instructions.md",
+    ".github/instructions/observability.instructions.md",
+    ".github/instructions/architecture.instructions.md"
   ],
   "markdown.preview.scrollEditorWithPreview": true,
   "markdown.preview.openMarkdownLinks": "inPreview",
