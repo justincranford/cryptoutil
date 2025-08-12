@@ -16,5 +16,17 @@
   ],
   "markdown.preview.scrollEditorWithPreview": true,
   "markdown.preview.openMarkdownLinks": "inPreview",
-  "files.encoding": "utf8"
+  "files.encoding": "utf8",
+  
+  "chat.tools.terminal.autoApprove": {
+    "/^go (test|run|build|mod|generate)/": true,
+    "/^docker compose (up|down|logs|ps)/": true,
+    "/^git (status|log|diff|branch)/": true,
+    "/^Remove-Item\\b/i": false,
+    "/\\.ps1\\b/i": { "approve": false, "matchCommandLine": true }
+  },
+  "github.copilot.chat.virtualTools.threshold": 64,
+  "editor.aiStats.enabled": true,
+  "chat.math.enabled": true,
+  "chat.todoListTool.enabled": true
 }
