@@ -31,7 +31,7 @@ func CertificateTemplateRootCA(issuerName string, subjectName string, duration t
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 		MaxPathLen:            maxPathLen,
-		MaxPathLenZero:        false,
+		MaxPathLenZero:        maxPathLen == 0,
 	}, nil
 }
 
@@ -55,7 +55,7 @@ func CertificateTemplateIntermediateCA(issuerName string, subjectName string, du
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 		MaxPathLen:            maxPathLen,
-		MaxPathLenZero:        false,
+		MaxPathLenZero:        maxPathLen == 0,
 	}
 	return template, nil
 }
