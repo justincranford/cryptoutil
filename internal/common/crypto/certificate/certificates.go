@@ -63,7 +63,7 @@ func CertificateTemplateIntermediateCA(signatureAlgorithm x509.SignatureAlgorith
 	return template, nil
 }
 
-func CertificateTemplateIssuingCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration) (*x509.Certificate, error) {
+func CertificateTemplateIssuingCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS issuing CA: %w", err)
@@ -83,8 +83,8 @@ func CertificateTemplateIssuingCA(signatureAlgorithm x509.SignatureAlgorithm, is
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning},
 		BasicConstraintsValid: true,
 		IsCA:                  true,
-		MaxPathLen:            0,
-		MaxPathLenZero:        true,
+		MaxPathLen:            maxPathLen,
+		MaxPathLenZero:        maxPathLen == 0,
 	}
 	return template, nil
 }

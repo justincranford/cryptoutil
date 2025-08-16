@@ -46,29 +46,37 @@ func TestMain(m *testing.M) {
 }
 
 func TestCertificateChain(t *testing.T) {
-	// Root CA parameters
 	rootCertSubjectName := "Test Root CA"
 	rootCertDuration := 10 * 365 * 24 * time.Hour // 10 years
 	rootCertMaxPathLen := 2
 
-	// Intermediate CA parameters
 	intermediateCertSubjectName := "Test Intermediate CA"
 	intermediateCertDuration := 5 * 365 * 24 * time.Hour // 5 years
 	intermediateCertMaxPathLen := rootCertMaxPathLen - 1
 
+	issuingCertSubjectName := "Test Issuing CA"
+	issuingCertDuration := 2 * 365 * 24 * time.Hour // 2 years
+	issuingCertMaxPathLen := rootCertMaxPathLen - 2
+
 	var rootCertKeyPair *cryptoutilKeyGen.KeyPair
 	var rootCert *x509.Certificate
-	var rootCertsPool *x509.CertPool
 	var rootCertDER []byte
 	var rootCertPEM []byte
 
 	var intermediateCertKeyPair *cryptoutilKeyGen.KeyPair
 	var intermediateCert *x509.Certificate
-	var intermediateCertsPool *x509.CertPool
 	var intermediateCertDER []byte
 	var intermediateCertPEM []byte
 
-	t.Run("CreateAndVerifyRootCA", func(t *testing.T) {
+	var issuingCertKeyPair *cryptoutilKeyGen.KeyPair
+	var issuingCert *x509.Certificate
+	var issuingCertDER []byte
+	var issuingCertPEM []byte
+
+	rootsPool := x509.NewCertPool()
+	intermediatesPool := x509.NewCertPool()
+
+	t.Run("RootCA", func(t *testing.T) {
 		rootCertTemplate, err := CertificateTemplateRootCA(x509.ECDSAWithSHA256, rootCertSubjectName, rootCertSubjectName, rootCertDuration, rootCertMaxPathLen)
 		verifyCertificateTemplate(t, err, rootCertTemplate)
 
@@ -76,11 +84,10 @@ func TestCertificateChain(t *testing.T) {
 		rootCert, rootCertDER, rootCertPEM, err = SignCertificate(nil, rootCertKeyPair.Private.(crypto.Signer), rootCertTemplate, rootCertKeyPair.Public)
 		verifyCACertificate(t, err, rootCert, rootCertDER, rootCertPEM, rootCertSubjectName, rootCertSubjectName, rootCertMaxPathLen, rootCertDuration)
 
-		rootCertsPool = x509.NewCertPool()
-		rootCertsPool.AddCert(rootCert)
+		rootsPool.AddCert(rootCert)
 	})
 
-	t.Run("CreateAndVerifyIntermediateCA", func(t *testing.T) {
+	t.Run("IntermediateCA", func(t *testing.T) {
 		intermediateCertTemplate, err := CertificateTemplateIntermediateCA(x509.ECDSAWithSHA256, rootCertSubjectName, intermediateCertSubjectName, intermediateCertDuration, intermediateCertMaxPathLen)
 		verifyCertificateTemplate(t, err, intermediateCertTemplate)
 
@@ -88,10 +95,20 @@ func TestCertificateChain(t *testing.T) {
 		intermediateCert, intermediateCertDER, intermediateCertPEM, err = SignCertificate(rootCert, rootCertKeyPair.Private.(crypto.Signer), intermediateCertTemplate, intermediateCertKeyPair.Public)
 		verifyCACertificate(t, err, intermediateCert, intermediateCertDER, intermediateCertPEM, rootCertSubjectName, intermediateCertSubjectName, intermediateCertMaxPathLen, intermediateCertDuration)
 
-		intermediateCertsPool = x509.NewCertPool()
-		intermediateCertsPool.AddCert(intermediateCert)
+		verifyCertChain(t, intermediateCert, rootsPool, intermediatesPool)
+		intermediatesPool.AddCert(intermediateCert)
+	})
 
-		verifyCertChain(t, intermediateCert, rootCertsPool, x509.NewCertPool())
+	t.Run("IssuingCA", func(t *testing.T) {
+		issuingCertTemplate, err := CertificateTemplateIssuingCA(x509.ECDSAWithSHA256, rootCertSubjectName, issuingCertSubjectName, issuingCertDuration, issuingCertMaxPathLen)
+		verifyCertificateTemplate(t, err, issuingCertTemplate)
+
+		issuingCertKeyPair = testKeyGenPool.Get()
+		issuingCert, issuingCertDER, issuingCertPEM, err = SignCertificate(rootCert, rootCertKeyPair.Private.(crypto.Signer), issuingCertTemplate, issuingCertKeyPair.Public)
+		verifyCACertificate(t, err, issuingCert, issuingCertDER, issuingCertPEM, rootCertSubjectName, issuingCertSubjectName, issuingCertMaxPathLen, issuingCertDuration)
+
+		verifyCertChain(t, issuingCert, rootsPool, x509.NewCertPool())
+		intermediatesPool.AddCert(issuingCert)
 	})
 }
 
@@ -115,23 +132,23 @@ func verifyCertificateTemplate(t *testing.T, err error, rootTemplate *x509.Certi
 	require.NotNil(t, rootTemplate, "Certificate template should not be nil")
 }
 
-func verifyCACertificate(t *testing.T, err error, rootCert *x509.Certificate, rootCertDER []byte, rootCertPEM []byte, expectedIssuerName string, expectedSubjectName string, expectedMaxPathLen int, expectedDuration time.Duration) {
+func verifyCACertificate(t *testing.T, err error, cert *x509.Certificate, certDER []byte, certPEM []byte, expectedIssuerName string, expectedSubjectName string, expectedMaxPathLen int, expectedDuration time.Duration) {
 	require.NoError(t, err, "Failed to sign certificate")
-	require.NotNil(t, rootCert, "Signed certificate should not be nil")
-	require.NotEmpty(t, rootCertDER, "Certificate bytes should not be empty")
-	require.NotEmpty(t, rootCertPEM, "Certificate PEM should not be empty")
+	require.NotNil(t, cert, "Signed certificate should not be nil")
+	require.NotEmpty(t, certDER, "Certificate bytes should not be empty")
+	require.NotEmpty(t, certPEM, "Certificate PEM should not be empty")
 	now := time.Now().UTC()
-	require.Equal(t, expectedIssuerName, rootCert.Issuer.CommonName, "Issuer name mismatch")
-	require.Equal(t, expectedSubjectName, rootCert.Subject.CommonName, "Subject name mismatch")
-	require.True(t, rootCert.IsCA, "Certificate should be a CA certificate")
-	require.True(t, rootCert.BasicConstraintsValid, "Basic constraints should be valid")
-	require.Equal(t, expectedMaxPathLen, rootCert.MaxPathLen, "MaxPathLen mismatch")
-	require.False(t, rootCert.MaxPathLenZero, "MaxPathLenZero should be false")
-	require.Equal(t, x509.KeyUsageCertSign|x509.KeyUsageCRLSign, rootCert.KeyUsage, "Key usage mismatch")
-	require.ElementsMatch(t, []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning}, rootCert.ExtKeyUsage, "Extended key usage mismatch")
-	require.True(t, rootCert.NotBefore.Before(now), "NotBefore should be in the past")
-	require.True(t, rootCert.NotAfter.After(now), "NotAfter should be in the future")
-	require.True(t, rootCert.NotAfter.Sub(rootCert.NotBefore) >= expectedDuration, "Certificate validity period should be >= duration")
+	require.Equal(t, expectedIssuerName, cert.Issuer.CommonName, "Issuer name mismatch")
+	require.Equal(t, expectedSubjectName, cert.Subject.CommonName, "Subject name mismatch")
+	require.True(t, cert.IsCA, "Certificate should be a CA certificate")
+	require.True(t, cert.BasicConstraintsValid, "Basic constraints should be valid")
+	require.Equal(t, expectedMaxPathLen, cert.MaxPathLen, "MaxPathLen mismatch")
+	require.Equal(t, expectedMaxPathLen == 0, cert.MaxPathLenZero, "MaxPathLenZero mismatch")
+	require.Equal(t, x509.KeyUsageCertSign|x509.KeyUsageCRLSign, cert.KeyUsage, "Key usage mismatch")
+	require.ElementsMatch(t, []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning}, cert.ExtKeyUsage, "Extended key usage mismatch")
+	require.True(t, cert.NotBefore.Before(now), "NotBefore should be in the past")
+	require.True(t, cert.NotAfter.After(now), "NotAfter should be in the future")
+	require.True(t, cert.NotAfter.Sub(cert.NotBefore) >= expectedDuration, "Certificate validity period should be >= duration")
 }
 
 func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots *x509.CertPool, intermediates *x509.CertPool) {
