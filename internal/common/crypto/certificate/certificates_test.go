@@ -3,13 +3,8 @@ package certificate
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
-	"log"
 	"net"
 	"net/url"
-	"os"
-	"os/signal"
-	"syscall"
 	"testing"
 	"time"
 
@@ -198,59 +193,4 @@ func TestMutualTLS(t *testing.T) {
 		require.NoError(t, err, "client failed to read response body")
 		require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch")
 	})
-}
-
-func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
-	netListener, err := net.Listen("tcp", tlsServerListener)
-	if err != nil {
-		return "", fmt.Errorf("failed to start TCP Listener: %w", err)
-	}
-	netTCPListener, ok := netListener.(*net.TCPListener)
-	if !ok {
-		return "", fmt.Errorf("failed to cast net.Listener to *net.TCPListener")
-	}
-	tlsListener := tls.NewListener(netListener, serverTLSConfig)
-
-	go func() {
-		defer tlsListener.Close()
-		osShutdownSignalCh := make(chan os.Signal, 1)
-		signal.Notify(osShutdownSignalCh, os.Interrupt, syscall.SIGTERM)
-		for {
-			select {
-			case <-callerShutdownSignalCh:
-				log.Printf("stopping TLS Echo Server, caller shutdown signal received")
-				return
-			case <-osShutdownSignalCh:
-				log.Printf("stopping TLS Echo Server, OS shutdown signal received")
-				return
-			default:
-				netTCPListener.SetDeadline(time.Now().Add(readTimeout))
-				tlsClientConnection, err := tlsListener.Accept()
-				if err != nil {
-					if ne, ok := err.(net.Error); ok && ne.Timeout() {
-						continue
-					}
-					return
-				}
-				go func(conn net.Conn) {
-					defer conn.Close()
-					tlsClientRequestBodyBuffer := make([]byte, 512)
-					bytesRead, err := conn.Read(tlsClientRequestBodyBuffer)
-					if err != nil {
-						log.Printf("failed to read from TLS connection: %v", err)
-						return
-					}
-					// Do not treat empty request as shutdown; just ignore
-					if bytesRead > 0 {
-						_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
-						if err != nil {
-							log.Printf("failed to write to TLS connection: %v", err)
-						}
-					}
-				}(tlsClientConnection)
-			}
-		}
-	}()
-
-	return tlsListener.Addr().String(), nil
 }
