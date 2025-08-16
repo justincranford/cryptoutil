@@ -70,8 +70,8 @@ func TestCertificateChain(t *testing.T) {
 	var tlsClientCert1DER []byte
 	var tlsClientCert1PEM []byte
 
-	roots1Pool := x509.NewCertPool()
-	intermediates1Pool := x509.NewCertPool()
+	verify1RootsPool := x509.NewCertPool()
+	verify1IntermediatesPool := x509.NewCertPool()
 
 	t.Run("Root CA 1", func(t *testing.T) {
 		rootCert1Template, err := CertificateTemplateCA(rootCert1SubjectName, rootCert1SubjectName, rootCert1Duration, rootCert1MaxPathLen)
@@ -81,7 +81,7 @@ func TestCertificateChain(t *testing.T) {
 		rootCert1, rootCert1DER, rootCert1PEM, err = SignCertificate(nil, rootCert1KeyPair.Private.(crypto.Signer), rootCert1Template, rootCert1KeyPair.Public, x509.ECDSAWithSHA256)
 		verifyCACertificate(t, err, rootCert1, rootCert1DER, rootCert1PEM, rootCert1SubjectName, rootCert1SubjectName, rootCert1Duration, rootCert1MaxPathLen)
 
-		roots1Pool.AddCert(rootCert1)
+		verify1RootsPool.AddCert(rootCert1) // subsequent verify cert chain calls need the root CA
 	})
 
 	t.Run("Intermediate CA 1", func(t *testing.T) {
@@ -92,8 +92,8 @@ func TestCertificateChain(t *testing.T) {
 		intermediateCert1, intermediateCert1DER, intermediateCert1PEM, err = SignCertificate(rootCert1, rootCert1KeyPair.Private.(crypto.Signer), intermediateCert1Template, intermediateCert1KeyPair.Public, x509.ECDSAWithSHA256)
 		verifyCACertificate(t, err, intermediateCert1, intermediateCert1DER, intermediateCert1PEM, rootCert1SubjectName, intermediateCert1SubjectName, intermediateCert1Duration, intermediateCert1MaxPathLen)
 
-		verifyCertChain(t, intermediateCert1, roots1Pool, intermediates1Pool)
-		intermediates1Pool.AddCert(intermediateCert1)
+		verifyCertChain(t, intermediateCert1, verify1RootsPool, verify1IntermediatesPool)
+		verify1IntermediatesPool.AddCert(intermediateCert1) // subsequent verify cert chain calls need the intermediate CA
 	})
 
 	t.Run("Issuing CA 1", func(t *testing.T) {
@@ -104,8 +104,8 @@ func TestCertificateChain(t *testing.T) {
 		issuingCert1, issuingCert1DER, issuingCert1PEM, err = SignCertificate(intermediateCert1, intermediateCert1KeyPair.Private.(crypto.Signer), issuingCert1Template, issuingCert1KeyPair.Public, x509.ECDSAWithSHA256)
 		verifyCACertificate(t, err, issuingCert1, issuingCert1DER, issuingCert1PEM, intermediateCert1SubjectName, issuingCert1SubjectName, issuingCert1Duration, issuingCert1MaxPathLen)
 
-		verifyCertChain(t, issuingCert1, roots1Pool, intermediates1Pool)
-		intermediates1Pool.AddCert(issuingCert1)
+		verifyCertChain(t, issuingCert1, verify1RootsPool, verify1IntermediatesPool)
+		verify1IntermediatesPool.AddCert(issuingCert1) // subsequent verify cert chain calls need the issuing CA
 	})
 
 	t.Run("TLS Server 1", func(t *testing.T) {
@@ -116,7 +116,7 @@ func TestCertificateChain(t *testing.T) {
 		tlsServerCert1, tlsServerCert1DER, tlsServerCert1PEM, err = SignCertificate(issuingCert1, issuingCert1KeyPair.Private.(crypto.Signer), tlsServerCert1Template, tlsServerCert1KeyPair.Public, x509.ECDSAWithSHA256)
 		verifyEndEntityCertificate(t, err, tlsServerCert1, tlsServerCert1DER, tlsServerCert1PEM, issuingCert1SubjectName, tlsServerCert1SubjectName, tlsServerCert1Duration, tlsServerCert1DnsNames, tlsServerCert1IpAddresses, tlsServerCert1EmailAddresses, tlsServerCert1URIs)
 
-		verifyCertChain(t, tlsServerCert1, roots1Pool, intermediates1Pool)
+		verifyCertChain(t, tlsServerCert1, verify1RootsPool, verify1IntermediatesPool)
 	})
 
 	t.Run("TLS Client 1", func(t *testing.T) {
@@ -127,6 +127,6 @@ func TestCertificateChain(t *testing.T) {
 		tlsClientCert1, tlsClientCert1DER, tlsClientCert1PEM, err = SignCertificate(issuingCert1, issuingCert1KeyPair.Private.(crypto.Signer), tlsClientCert1Template, tlsClientCert1KeyPair.Public, x509.ECDSAWithSHA256)
 		verifyEndEntityCertificate(t, err, tlsClientCert1, tlsClientCert1DER, tlsClientCert1PEM, issuingCert1SubjectName, tlsClientCert1SubjectName, tlsClientCert1Duration, tlsClientCert1DnsNames, tlsClientCert1IpAddresses, tlsClientCert1EmailAddresses, tlsClientCert1URIs)
 
-		verifyCertChain(t, tlsClientCert1, roots1Pool, intermediates1Pool)
+		verifyCertChain(t, tlsClientCert1, verify1RootsPool, verify1IntermediatesPool)
 	})
 }
