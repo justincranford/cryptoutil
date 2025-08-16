@@ -9,6 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"bytes"
+	"io"
+	"net/http"
+	"net/http/httptest"
+
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 
@@ -125,22 +130,30 @@ func TestCertificateChain(t *testing.T) {
 		})
 	})
 
-	t.Run("TLS Mutual Authentication", func(t *testing.T) {
-		serverTLSCert := tls.Certificate{
-			Certificate: [][]byte{tlsServerCert1.KeyMaterial.DER, issuingCert1.KeyMaterial.DER, intermediateCert1.KeyMaterial.DER, rootCert1.KeyMaterial.DER},
-			PrivateKey:  tlsServerCert1.KeyMaterial.KeyPair.Private,
-		}
-		clientTLSCert := tls.Certificate{
-			Certificate: [][]byte{tlsClientCert2.KeyMaterial.DER, issuingCert2.KeyMaterial.DER, intermediateCert2.KeyMaterial.DER, rootCert2.KeyMaterial.DER},
-			PrivateKey:  tlsClientCert2.KeyMaterial.KeyPair.Private,
-		}
+	// These TLS certificate instances are reusable for both the Raw mTLS and HTTP mTLS tests
+	serverTLSCert := tls.Certificate{
+		Certificate: [][]byte{tlsServerCert1.KeyMaterial.DER, issuingCert1.KeyMaterial.DER, intermediateCert1.KeyMaterial.DER, rootCert1.KeyMaterial.DER},
+		PrivateKey:  tlsServerCert1.KeyMaterial.KeyPair.Private,
+	}
+	clientTLSCert := tls.Certificate{
+		Certificate: [][]byte{tlsClientCert2.KeyMaterial.DER, issuingCert2.KeyMaterial.DER, intermediateCert2.KeyMaterial.DER, rootCert2.KeyMaterial.DER},
+		PrivateKey:  tlsClientCert2.KeyMaterial.KeyPair.Private,
+	}
 
-		tlsServer := &tls.Config{
-			Certificates: []tls.Certificate{serverTLSCert},
-			ClientAuth:   tls.RequireAndVerifyClientCert,
-			ClientCAs:    tlsClientRootsPool,
-		}
-		ln, err := tls.Listen("tcp", "127.0.0.1:0", tlsServer)
+	// These TLS configuration instances are reusable for both the Raw mTLS and HTTP mTLS tests
+	serverTLSConfig := &tls.Config{
+		Certificates: []tls.Certificate{serverTLSCert},
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    tlsClientRootsPool,
+	}
+	clientTLSConfig := &tls.Config{
+		Certificates:       []tls.Certificate{clientTLSCert},
+		RootCAs:            tlsServerRootsPool,
+		InsecureSkipVerify: false,
+	}
+
+	t.Run("Raw mTLS", func(t *testing.T) {
+		ln, err := tls.Listen("tcp", "127.0.0.1:0", serverTLSConfig)
 		require.NoError(t, err, "Failed to start TLS server")
 		defer ln.Close()
 		serverErrCh := make(chan error, 1)
@@ -161,11 +174,6 @@ func TestCertificateChain(t *testing.T) {
 			serverErrCh <- err
 		}()
 
-		clientTLSConfig := &tls.Config{
-			Certificates:       []tls.Certificate{clientTLSCert},
-			RootCAs:            tlsServerRootsPool,
-			InsecureSkipVerify: false,
-		}
 		addr := ln.Addr().String()
 		conn, err := tls.Dial("tcp", addr, clientTLSConfig)
 		require.NoError(t, err, "Client failed to connect to TLS server")
@@ -181,5 +189,28 @@ func TestCertificateChain(t *testing.T) {
 
 		// Ensure server goroutine completed without error
 		require.NoError(t, <-serverErrCh, "Server goroutine error")
+	})
+
+	t.Run("HTTP mTLS", func(t *testing.T) {
+		httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			data, err := io.ReadAll(r.Body)
+			require.NoError(t, err, "Server failed to read request body")
+			_, err = w.Write(data)
+			require.NoError(t, err, "Server failed to write response")
+		})
+		httpsServer := httptest.NewUnstartedServer(httpHandler)
+		httpsServer.TLS = serverTLSConfig
+		httpsServer.StartTLS()
+		defer httpsServer.Close()
+
+		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
+		testMsg := []byte("hello mutual https")
+		resp, err := httpsClient.Post(httpsServer.URL, "text/plain", bytes.NewReader(testMsg))
+		require.NoError(t, err, "Client failed to POST to HTTPS server")
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Unexpected HTTP status")
+		echoed, err := io.ReadAll(resp.Body)
+		require.NoError(t, err, "Client failed to read response body")
+		require.Equal(t, testMsg, echoed, "Echoed message mismatch")
 	})
 }
