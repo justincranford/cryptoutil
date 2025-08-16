@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func CertificateTemplateCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
+func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
@@ -22,7 +22,6 @@ func CertificateTemplateCA(signatureAlgorithm x509.SignatureAlgorithm, issuerNam
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
 	return &x509.Certificate{
-		SignatureAlgorithm:    signatureAlgorithm,
 		Issuer:                pkix.Name{CommonName: issuerName},
 		Subject:               pkix.Name{CommonName: subjectName},
 		SerialNumber:          serialNumber,
@@ -71,7 +70,8 @@ func CertificateTemplateEndEntity(duration time.Duration, signatureAlgorithm x50
 	return template, nil
 }
 
-func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Signer, subjectCert *x509.Certificate, subjectPublicKey crypto.PublicKey) (*x509.Certificate, []byte, []byte, error) {
+func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Signer, subjectCert *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm) (*x509.Certificate, []byte, []byte, error) {
+	subjectCert.SignatureAlgorithm = signatureAlgorithm
 	var err error
 	var certificateDer []byte
 	if issuerCert == nil {
