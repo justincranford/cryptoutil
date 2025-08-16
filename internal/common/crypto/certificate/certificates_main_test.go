@@ -13,6 +13,8 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
+const numKeyPairsNeeded = 8
+
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("certificates_test")
 	testCtx              = context.Background()
@@ -27,7 +29,7 @@ func TestMain(m *testing.M) {
 		defer testTelemetryService.Shutdown()
 
 		var err error
-		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", 1, 4, 4, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256())))
+		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", 1, numKeyPairsNeeded, numKeyPairsNeeded, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256())))
 		if err != nil {
 			log.Fatalf("failed to create key pool: %v", err)
 		}
