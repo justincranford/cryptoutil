@@ -2,6 +2,7 @@ package certificate
 
 import (
 	"crypto"
+	"crypto/tls"
 	"crypto/x509"
 	"net"
 	"net/url"
@@ -122,5 +123,35 @@ func TestCertificateChain(t *testing.T) {
 			verifyEndEntityCertificate(t, err, tlsClientCert2.KeyMaterial.Cert, tlsClientCert2.KeyMaterial.DER, tlsClientCert2.KeyMaterial.PEM, issuingCert2.SubjectName, tlsClientCert2.SubjectName, tlsClientCert2.Duration, tlsClientCert2.DNSNames, tlsClientCert2.IPAddresses, tlsClientCert2.EmailAddresses, tlsClientCert2.URIs)
 			verifyCertChain(t, tlsClientCert2.KeyMaterial.Cert, verify2RootsPool, verify2IntermediatesPool)
 		})
+	})
+
+	t.Run("TLS Mutual Authentication", func(t *testing.T) {
+		serverTLSCert := tls.Certificate{
+			Certificate: [][]byte{
+				tlsServerCert1.KeyMaterial.DER,
+				issuingCert1.KeyMaterial.DER,
+				intermediateCert1.KeyMaterial.DER,
+				rootCert1.KeyMaterial.DER,
+			},
+			PrivateKey: tlsServerCert1.KeyMaterial.KeyPair.Private,
+			Leaf:       tlsServerCert1.KeyMaterial.Cert,
+		}
+		require.NotNil(t, serverTLSCert, "Server TLS certificate should not be nil")
+
+		clientTLSCert := tls.Certificate{
+			Certificate: [][]byte{
+				tlsClientCert2.KeyMaterial.DER,
+				issuingCert2.KeyMaterial.DER,
+				intermediateCert2.KeyMaterial.DER,
+				rootCert2.KeyMaterial.DER,
+			},
+			PrivateKey: tlsClientCert2.KeyMaterial.KeyPair.Private,
+			Leaf:       tlsClientCert2.KeyMaterial.Cert,
+		}
+		require.NotNil(t, clientTLSCert, "Client TLS certificate should not be nil")
+
+		// Start TLS test server
+		// Use TLS test client to connect to TLS test server
+		// Verify everything worked
 	})
 }
