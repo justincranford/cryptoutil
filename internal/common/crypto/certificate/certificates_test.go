@@ -23,10 +23,7 @@ type testCASubject struct {
 	SubjectName string
 	Duration    time.Duration
 	MaxPathLen  int
-	KeyPair     *cryptoutilKeyGen.KeyPair
-	Cert        *x509.Certificate
-	DER         []byte
-	PEM         []byte
+	KeyMaterial testKeyMaterial
 }
 
 type testEndEntitySubject struct {
@@ -36,10 +33,14 @@ type testEndEntitySubject struct {
 	IPAddresses    []net.IP
 	EmailAddresses []string
 	URIs           []*url.URL
-	KeyPair        *cryptoutilKeyGen.KeyPair
-	Cert           *x509.Certificate
-	DER            []byte
-	PEM            []byte
+	KeyMaterial    testKeyMaterial
+}
+
+type testKeyMaterial struct {
+	KeyPair *cryptoutilKeyGen.KeyPair
+	Cert    *x509.Certificate
+	DER     []byte
+	PEM     []byte
 }
 
 func TestCertificateChain(t *testing.T) {
@@ -56,56 +57,56 @@ func TestCertificateChain(t *testing.T) {
 		rootCert1Template, err := CertificateTemplateCA(rootCert1.SubjectName, rootCert1.SubjectName, rootCert1.Duration, rootCert1.MaxPathLen)
 		verifyCertificateTemplate(t, err, rootCert1Template)
 
-		rootCert1.KeyPair = testKeyGenPool.Get()
-		rootCert1.Cert, rootCert1.DER, rootCert1.PEM, err = SignCertificate(nil, rootCert1.KeyPair.Private.(crypto.Signer), rootCert1Template, rootCert1.KeyPair.Public, x509.ECDSAWithSHA256)
-		verifyCACertificate(t, err, rootCert1.Cert, rootCert1.DER, rootCert1.PEM, rootCert1.SubjectName, rootCert1.SubjectName, rootCert1.Duration, rootCert1.MaxPathLen)
+		rootCert1.KeyMaterial.KeyPair = testKeyGenPool.Get()
+		rootCert1.KeyMaterial.Cert, rootCert1.KeyMaterial.DER, rootCert1.KeyMaterial.PEM, err = SignCertificate(nil, rootCert1.KeyMaterial.KeyPair.Private.(crypto.Signer), rootCert1Template, rootCert1.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyCACertificate(t, err, rootCert1.KeyMaterial.Cert, rootCert1.KeyMaterial.DER, rootCert1.KeyMaterial.PEM, rootCert1.SubjectName, rootCert1.SubjectName, rootCert1.Duration, rootCert1.MaxPathLen)
 
-		verify1RootsPool.AddCert(rootCert1.Cert) // subsequent verify cert chain needs the root CA
+		verify1RootsPool.AddCert(rootCert1.KeyMaterial.Cert) // subsequent verify cert chain needs the root CA
 	})
 
 	t.Run("Intermediate CA 1", func(t *testing.T) {
 		intermediateCert1Template, err := CertificateTemplateCA(rootCert1.SubjectName, intermediateCert1.SubjectName, intermediateCert1.Duration, intermediateCert1.MaxPathLen)
 		verifyCertificateTemplate(t, err, intermediateCert1Template)
 
-		intermediateCert1.KeyPair = testKeyGenPool.Get()
-		intermediateCert1.Cert, intermediateCert1.DER, intermediateCert1.PEM, err = SignCertificate(rootCert1.Cert, rootCert1.KeyPair.Private.(crypto.Signer), intermediateCert1Template, intermediateCert1.KeyPair.Public, x509.ECDSAWithSHA256)
-		verifyCACertificate(t, err, intermediateCert1.Cert, intermediateCert1.DER, intermediateCert1.PEM, rootCert1.SubjectName, intermediateCert1.SubjectName, intermediateCert1.Duration, intermediateCert1.MaxPathLen)
+		intermediateCert1.KeyMaterial.KeyPair = testKeyGenPool.Get()
+		intermediateCert1.KeyMaterial.Cert, intermediateCert1.KeyMaterial.DER, intermediateCert1.KeyMaterial.PEM, err = SignCertificate(rootCert1.KeyMaterial.Cert, rootCert1.KeyMaterial.KeyPair.Private.(crypto.Signer), intermediateCert1Template, intermediateCert1.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyCACertificate(t, err, intermediateCert1.KeyMaterial.Cert, intermediateCert1.KeyMaterial.DER, intermediateCert1.KeyMaterial.PEM, rootCert1.SubjectName, intermediateCert1.SubjectName, intermediateCert1.Duration, intermediateCert1.MaxPathLen)
 
-		verifyCertChain(t, intermediateCert1.Cert, verify1RootsPool, verify1IntermediatesPool)
-		verify1IntermediatesPool.AddCert(intermediateCert1.Cert) // subsequent verify cert chain needs the intermediate CA
+		verifyCertChain(t, intermediateCert1.KeyMaterial.Cert, verify1RootsPool, verify1IntermediatesPool)
+		verify1IntermediatesPool.AddCert(intermediateCert1.KeyMaterial.Cert) // subsequent verify cert chain needs the intermediate CA
 	})
 
 	t.Run("Issuing CA 1", func(t *testing.T) {
 		issuingCert1Template, err := CertificateTemplateCA(intermediateCert1.SubjectName, issuingCert1.SubjectName, issuingCert1.Duration, issuingCert1.MaxPathLen)
 		verifyCertificateTemplate(t, err, issuingCert1Template)
 
-		issuingCert1.KeyPair = testKeyGenPool.Get()
-		issuingCert1.Cert, issuingCert1.DER, issuingCert1.PEM, err = SignCertificate(intermediateCert1.Cert, intermediateCert1.KeyPair.Private.(crypto.Signer), issuingCert1Template, issuingCert1.KeyPair.Public, x509.ECDSAWithSHA256)
-		verifyCACertificate(t, err, issuingCert1.Cert, issuingCert1.DER, issuingCert1.PEM, intermediateCert1.SubjectName, issuingCert1.SubjectName, issuingCert1.Duration, issuingCert1.MaxPathLen)
+		issuingCert1.KeyMaterial.KeyPair = testKeyGenPool.Get()
+		issuingCert1.KeyMaterial.Cert, issuingCert1.KeyMaterial.DER, issuingCert1.KeyMaterial.PEM, err = SignCertificate(intermediateCert1.KeyMaterial.Cert, intermediateCert1.KeyMaterial.KeyPair.Private.(crypto.Signer), issuingCert1Template, issuingCert1.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyCACertificate(t, err, issuingCert1.KeyMaterial.Cert, issuingCert1.KeyMaterial.DER, issuingCert1.KeyMaterial.PEM, intermediateCert1.SubjectName, issuingCert1.SubjectName, issuingCert1.Duration, issuingCert1.MaxPathLen)
 
-		verifyCertChain(t, issuingCert1.Cert, verify1RootsPool, verify1IntermediatesPool)
-		verify1IntermediatesPool.AddCert(issuingCert1.Cert) // subsequent verify cert chain needs the issuing CA
+		verifyCertChain(t, issuingCert1.KeyMaterial.Cert, verify1RootsPool, verify1IntermediatesPool)
+		verify1IntermediatesPool.AddCert(issuingCert1.KeyMaterial.Cert) // subsequent verify cert chain needs the issuing CA
 	})
 
 	t.Run("TLS Server 1", func(t *testing.T) {
 		tlsServerCert1Template, err := CertificateTemplateTLSServer(issuingCert1.SubjectName, tlsServerCert1.SubjectName, tlsServerCert1.Duration, tlsServerCert1.DNSNames, tlsServerCert1.IPAddresses, tlsServerCert1.EmailAddresses, tlsServerCert1.URIs)
 		verifyCertificateTemplate(t, err, tlsServerCert1Template)
 
-		tlsServerCert1.KeyPair = testKeyGenPool.Get()
-		tlsServerCert1.Cert, tlsServerCert1.DER, tlsServerCert1.PEM, err = SignCertificate(issuingCert1.Cert, issuingCert1.KeyPair.Private.(crypto.Signer), tlsServerCert1Template, tlsServerCert1.KeyPair.Public, x509.ECDSAWithSHA256)
-		verifyEndEntityCertificate(t, err, tlsServerCert1.Cert, tlsServerCert1.DER, tlsServerCert1.PEM, issuingCert1.SubjectName, tlsServerCert1.SubjectName, tlsServerCert1.Duration, tlsServerCert1.DNSNames, tlsServerCert1.IPAddresses, tlsServerCert1.EmailAddresses, tlsServerCert1.URIs)
+		tlsServerCert1.KeyMaterial.KeyPair = testKeyGenPool.Get()
+		tlsServerCert1.KeyMaterial.Cert, tlsServerCert1.KeyMaterial.DER, tlsServerCert1.KeyMaterial.PEM, err = SignCertificate(issuingCert1.KeyMaterial.Cert, issuingCert1.KeyMaterial.KeyPair.Private.(crypto.Signer), tlsServerCert1Template, tlsServerCert1.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyEndEntityCertificate(t, err, tlsServerCert1.KeyMaterial.Cert, tlsServerCert1.KeyMaterial.DER, tlsServerCert1.KeyMaterial.PEM, issuingCert1.SubjectName, tlsServerCert1.SubjectName, tlsServerCert1.Duration, tlsServerCert1.DNSNames, tlsServerCert1.IPAddresses, tlsServerCert1.EmailAddresses, tlsServerCert1.URIs)
 
-		verifyCertChain(t, tlsServerCert1.Cert, verify1RootsPool, verify1IntermediatesPool)
+		verifyCertChain(t, tlsServerCert1.KeyMaterial.Cert, verify1RootsPool, verify1IntermediatesPool)
 	})
 
 	t.Run("TLS Client 1", func(t *testing.T) {
 		tlsClientCert1Template, err := CertificateTemplateTLSClient(issuingCert1.SubjectName, tlsClientCert1.SubjectName, tlsClientCert1.Duration, tlsClientCert1.DNSNames, tlsClientCert1.IPAddresses, tlsClientCert1.EmailAddresses, tlsClientCert1.URIs)
 		verifyCertificateTemplate(t, err, tlsClientCert1Template)
 
-		tlsClientCert1.KeyPair = testKeyGenPool.Get()
-		tlsClientCert1.Cert, tlsClientCert1.DER, tlsClientCert1.PEM, err = SignCertificate(issuingCert1.Cert, issuingCert1.KeyPair.Private.(crypto.Signer), tlsClientCert1Template, tlsClientCert1.KeyPair.Public, x509.ECDSAWithSHA256)
-		verifyEndEntityCertificate(t, err, tlsClientCert1.Cert, tlsClientCert1.DER, tlsClientCert1.PEM, issuingCert1.SubjectName, tlsClientCert1.SubjectName, tlsClientCert1.Duration, tlsClientCert1.DNSNames, tlsClientCert1.IPAddresses, tlsClientCert1.EmailAddresses, tlsClientCert1.URIs)
+		tlsClientCert1.KeyMaterial.KeyPair = testKeyGenPool.Get()
+		tlsClientCert1.KeyMaterial.Cert, tlsClientCert1.KeyMaterial.DER, tlsClientCert1.KeyMaterial.PEM, err = SignCertificate(issuingCert1.KeyMaterial.Cert, issuingCert1.KeyMaterial.KeyPair.Private.(crypto.Signer), tlsClientCert1Template, tlsClientCert1.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyEndEntityCertificate(t, err, tlsClientCert1.KeyMaterial.Cert, tlsClientCert1.KeyMaterial.DER, tlsClientCert1.KeyMaterial.PEM, issuingCert1.SubjectName, tlsClientCert1.SubjectName, tlsClientCert1.Duration, tlsClientCert1.DNSNames, tlsClientCert1.IPAddresses, tlsClientCert1.EmailAddresses, tlsClientCert1.URIs)
 
-		verifyCertChain(t, tlsClientCert1.Cert, verify1RootsPool, verify1IntermediatesPool)
+		verifyCertChain(t, tlsClientCert1.KeyMaterial.Cert, verify1RootsPool, verify1IntermediatesPool)
 	})
 }
