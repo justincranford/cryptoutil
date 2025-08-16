@@ -22,13 +22,13 @@ func CertificateTemplateCA(issuerName string, subjectName string, duration time.
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
 	return &x509.Certificate{
-		Issuer:                pkix.Name{CommonName: issuerName},
-		Subject:               pkix.Name{CommonName: subjectName},
-		SerialNumber:          serialNumber,
-		NotBefore:             notBefore,
-		NotAfter:              notAfter,
-		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning},
+		Issuer:       pkix.Name{CommonName: issuerName},
+		Subject:      pkix.Name{CommonName: subjectName},
+		SerialNumber: serialNumber,
+		NotBefore:    notBefore,
+		NotAfter:     notAfter,
+		KeyUsage:     x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		// ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning},
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 		MaxPathLen:            maxPathLen,
