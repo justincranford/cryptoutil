@@ -9,6 +9,7 @@ import (
 	"time"
 
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 
 	"github.com/stretchr/testify/require"
 )
@@ -42,11 +43,11 @@ type testEndEntitySubject struct {
 }
 
 func TestCertificateChain(t *testing.T) {
-	rootCert1 := testCASubject{SubjectName: "Test Root CA 1", Duration: 10 * 365 * 24 * time.Hour, MaxPathLen: 2}
-	intermediateCert1 := testCASubject{SubjectName: "Test Intermediate CA 1", Duration: 5 * 365 * 24 * time.Hour, MaxPathLen: 1}
-	issuingCert1 := testCASubject{SubjectName: "Test Issuing CA 1", Duration: 2 * 365 * 24 * time.Hour, MaxPathLen: 0}
-	tlsServerCert1 := testEndEntitySubject{SubjectName: "TLS Server 1", Duration: 397 * 24 * time.Hour, DNSNames: []string{"localhost", "example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}}
-	tlsClientCert1 := testEndEntitySubject{SubjectName: "TLS Client 1", Duration: 30 * 24 * time.Hour, EmailAddresses: []string{"client@example.com"}}
+	rootCert1 := testCASubject{SubjectName: "Test Root CA 1", Duration: 10 * cryptoutilDateTime.Days365, MaxPathLen: 2}
+	intermediateCert1 := testCASubject{SubjectName: "Test Intermediate CA 1", Duration: 5 * cryptoutilDateTime.Days365, MaxPathLen: 1}
+	issuingCert1 := testCASubject{SubjectName: "Test Issuing CA 1", Duration: 2 * cryptoutilDateTime.Days365, MaxPathLen: 0}
+	tlsServerCert1 := testEndEntitySubject{SubjectName: "TLS Server 1", Duration: 397 * cryptoutilDateTime.Days1, DNSNames: []string{"localhost", "example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}}
+	tlsClientCert1 := testEndEntitySubject{SubjectName: "TLS Client 1", Duration: 30 * cryptoutilDateTime.Days1, EmailAddresses: []string{"client@example.com"}}
 
 	verify1RootsPool := x509.NewCertPool()
 	verify1IntermediatesPool := x509.NewCertPool()
