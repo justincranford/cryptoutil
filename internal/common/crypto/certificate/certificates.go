@@ -5,13 +5,14 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
 	"net"
 	"net/url"
 	"time"
 )
 
-func CertificateTemplateRootCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
+func CertificateTemplateRootCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
@@ -21,6 +22,7 @@ func CertificateTemplateRootCA(issuerName string, subjectName string, duration t
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
 	return &x509.Certificate{
+		SignatureAlgorithm:    signatureAlgorithm,
 		Issuer:                pkix.Name{CommonName: issuerName},
 		Subject:               pkix.Name{CommonName: subjectName},
 		SerialNumber:          serialNumber,
@@ -35,7 +37,7 @@ func CertificateTemplateRootCA(issuerName string, subjectName string, duration t
 	}, nil
 }
 
-func CertificateTemplateIntermediateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
+func CertificateTemplateIntermediateCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS intermediate CA: %w", err)
@@ -45,6 +47,7 @@ func CertificateTemplateIntermediateCA(issuerName string, subjectName string, du
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS intermediate CA: %w", err)
 	}
 	template := &x509.Certificate{
+		SignatureAlgorithm:    signatureAlgorithm,
 		Issuer:                pkix.Name{CommonName: issuerName},
 		Subject:               pkix.Name{CommonName: subjectName},
 		SerialNumber:          serialNumber,
@@ -60,7 +63,7 @@ func CertificateTemplateIntermediateCA(issuerName string, subjectName string, du
 	return template, nil
 }
 
-func CertificateTemplateIssuingCA(issuerName string, subjectName string, duration time.Duration) (*x509.Certificate, error) {
+func CertificateTemplateIssuingCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS issuing CA: %w", err)
@@ -70,6 +73,7 @@ func CertificateTemplateIssuingCA(issuerName string, subjectName string, duratio
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS issuing CA: %w", err)
 	}
 	template := &x509.Certificate{
+		SignatureAlgorithm:    signatureAlgorithm,
 		Issuer:                pkix.Name{CommonName: issuerName},
 		Subject:               pkix.Name{CommonName: subjectName},
 		SerialNumber:          serialNumber,
@@ -85,7 +89,7 @@ func CertificateTemplateIssuingCA(issuerName string, subjectName string, duratio
 	return template, nil
 }
 
-func CertificateTemplateTLSServer(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
+func CertificateTemplateTLSServer(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
@@ -95,22 +99,23 @@ func CertificateTemplateTLSServer(issuerName string, subjectName string, duratio
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS server: %w", err)
 	}
 	template := &x509.Certificate{
-		Issuer:         pkix.Name{CommonName: issuerName},
-		Subject:        pkix.Name{CommonName: subjectName},
-		SerialNumber:   serialNumber,
-		NotBefore:      notBefore,
-		NotAfter:       notAfter,
-		KeyUsage:       x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:    []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		DNSNames:       dnsNames,
-		EmailAddresses: emailAddresses,
-		IPAddresses:    ipAddresses,
-		URIs:           uris,
+		SignatureAlgorithm: signatureAlgorithm,
+		Issuer:             pkix.Name{CommonName: issuerName},
+		Subject:            pkix.Name{CommonName: subjectName},
+		SerialNumber:       serialNumber,
+		NotBefore:          notBefore,
+		NotAfter:           notAfter,
+		KeyUsage:           x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:        []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		DNSNames:           dnsNames,
+		EmailAddresses:     emailAddresses,
+		IPAddresses:        ipAddresses,
+		URIs:               uris,
 	}
 	return template, nil
 }
 
-func CertificateTemplateTLSClient(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
+func CertificateTemplateTLSClient(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS client: %w", err)
@@ -120,35 +125,39 @@ func CertificateTemplateTLSClient(issuerName string, subjectName string, duratio
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS client: %w", err)
 	}
 	template := &x509.Certificate{
-		Issuer:         pkix.Name{CommonName: issuerName},
-		Subject:        pkix.Name{CommonName: subjectName},
-		SerialNumber:   serialNumber,
-		NotBefore:      notBefore,
-		NotAfter:       notAfter,
-		KeyUsage:       x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:    []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-		DNSNames:       dnsNames,
-		EmailAddresses: emailAddresses,
-		IPAddresses:    ipAddresses,
-		URIs:           uris,
+		SignatureAlgorithm: signatureAlgorithm,
+		Issuer:             pkix.Name{CommonName: issuerName},
+		Subject:            pkix.Name{CommonName: subjectName},
+		SerialNumber:       serialNumber,
+		NotBefore:          notBefore,
+		NotAfter:           notAfter,
+		KeyUsage:           x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:        []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		DNSNames:           dnsNames,
+		EmailAddresses:     emailAddresses,
+		IPAddresses:        ipAddresses,
+		URIs:               uris,
 	}
 	return template, nil
 }
 
-func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Signer, subjectCert *x509.Certificate, subjectPublicKey crypto.PublicKey) (*x509.Certificate, []byte, error) {
+func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Signer, subjectCert *x509.Certificate, subjectPublicKey crypto.PublicKey) (*x509.Certificate, []byte, []byte, error) {
 	var err error
-	var certBytes []byte
+	var certificateDer []byte
 	if issuerCert == nil {
-		certBytes, err = x509.CreateCertificate(rand.Reader, subjectCert, subjectCert, subjectPublicKey, issuerPrivateKey)
+		certificateDer, err = x509.CreateCertificate(rand.Reader, subjectCert, subjectCert, subjectPublicKey, issuerPrivateKey)
 	} else {
-		certBytes, err = x509.CreateCertificate(rand.Reader, subjectCert, issuerCert, subjectPublicKey, issuerPrivateKey)
+		certificateDer, err = x509.CreateCertificate(rand.Reader, subjectCert, issuerCert, subjectPublicKey, issuerPrivateKey)
 	}
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create certificate: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
-	certificate, err := x509.ParseCertificate(certBytes)
+	certificate, err := x509.ParseCertificate(certificateDer)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to parse certificate: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to parse certificate: %w", err)
 	}
-	return certificate, certBytes, nil
+	certificatePemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: certificateDer}
+	certificatePem := pem.EncodeToMemory(certificatePemBlock)
+
+	return certificate, certificateDer, certificatePem, nil
 }
