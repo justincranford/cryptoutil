@@ -22,13 +22,12 @@ func CertificateTemplateCA(issuerName string, subjectName string, duration time.
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
 	return &x509.Certificate{
-		Issuer:       pkix.Name{CommonName: issuerName},
-		Subject:      pkix.Name{CommonName: subjectName},
-		SerialNumber: serialNumber,
-		NotBefore:    notBefore,
-		NotAfter:     notAfter,
-		KeyUsage:     x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		// ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning},
+		Issuer:                pkix.Name{CommonName: issuerName},
+		Subject:               pkix.Name{CommonName: subjectName},
+		SerialNumber:          serialNumber,
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 		MaxPathLen:            maxPathLen,
@@ -36,10 +35,12 @@ func CertificateTemplateCA(issuerName string, subjectName string, duration time.
 	}, nil
 }
 
+// Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
 func CertificateTemplateTLSServer(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
 	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, emailAddresses, ipAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 }
 
+// Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
 func CertificateTemplateTLSClient(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
 	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, emailAddresses, ipAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
 }
