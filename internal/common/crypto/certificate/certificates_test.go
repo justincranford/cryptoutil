@@ -149,34 +149,35 @@ func TestMutualTLS(t *testing.T) {
 		defer tlsListener.Close()
 		serverErrCh := make(chan error, 1)
 		go func() {
-			conn, err := tlsListener.Accept()
+			tlsClientConnection, err := tlsListener.Accept()
 			if err != nil {
 				serverErrCh <- err
 				return
 			}
-			defer conn.Close()
-			buf := make([]byte, 512)
-			n, err := conn.Read(buf)
+			defer tlsClientConnection.Close()
+			tlsClientRequestBodyBuffer := make([]byte, 512)
+			bytesRead, err := tlsClientConnection.Read(tlsClientRequestBodyBuffer)
 			if err != nil {
 				serverErrCh <- err
 				return
 			}
-			_, err = conn.Write(buf[:n])
+			_, err = tlsClientConnection.Write(tlsClientRequestBodyBuffer[:bytesRead])
 			serverErrCh <- err
 		}()
 
-		addr := tlsListener.Addr().String()
-		conn, err := tls.Dial("tcp", addr, clientTLSConfig)
+		tlsListenerAddress := tlsListener.Addr().String()
+		tlsClientConnection, err := tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
 		require.NoError(t, err, "Client failed to connect to TLS server")
-		defer conn.Close()
+		defer tlsClientConnection.Close()
 
-		testMsg := []byte("Hello Mutual TLS!")
-		_, err = conn.Write(testMsg)
+		tlsClientRequestBody := []byte("Hello Mutual TLS!")
+		_, err = tlsClientConnection.Write(tlsClientRequestBody)
 		require.NoError(t, err, "Client failed to write to server")
-		resp := make([]byte, len(testMsg))
-		_, err = conn.Read(resp)
+
+		tlsServerResponseBody := make([]byte, len(tlsClientRequestBody))
+		_, err = tlsClientConnection.Read(tlsServerResponseBody)
 		require.NoError(t, err, "Client failed to read from server")
-		require.Equal(t, testMsg, resp, "Echoed message mismatch")
+		require.Equal(t, tlsClientRequestBody, tlsServerResponseBody, "Echoed message mismatch")
 
 		// Ensure server goroutine completed without error
 		require.NoError(t, <-serverErrCh, "Server goroutine error")
@@ -197,14 +198,15 @@ func TestMutualTLS(t *testing.T) {
 		httpsServer.StartTLS()
 		defer httpsServer.Close()
 
+		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
-		testMsg := []byte("Hello Mutual HTTPS!")
-		resp, err := httpsClient.Post(httpsServer.URL, "text/plain", bytes.NewReader(testMsg))
+		httpsServerResponse, err := httpsClient.Post(httpsServer.URL, "text/plain", bytes.NewReader(httpsClientRequestBody))
 		require.NoError(t, err, "Client failed to POST to HTTPS server")
-		defer resp.Body.Close()
-		require.Equal(t, http.StatusOK, resp.StatusCode, "Unexpected HTTP status")
-		echoed, err := io.ReadAll(resp.Body)
+		require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status")
+
+		defer httpsServerResponse.Body.Close()
+		httpServerResponseBody, err := io.ReadAll(httpsServerResponse.Body)
 		require.NoError(t, err, "Client failed to read response body")
-		require.Equal(t, testMsg, echoed, "Echoed message mismatch")
+		require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch")
 	})
 }
