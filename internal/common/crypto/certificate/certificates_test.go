@@ -3,9 +3,7 @@ package certificate
 import (
 	"context"
 	"crypto"
-	"crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rand"
 	"crypto/x509"
 	"log"
 	"os"
@@ -45,86 +43,76 @@ func TestMain(m *testing.M) {
 	os.Exit(rc)
 }
 
-func TestCertificateChain(t *testing.T) {
-	rootCertSubjectName := "Test Root CA"
-	rootCertDuration := 10 * 365 * 24 * time.Hour // 10 years
-	rootCertMaxPathLen := 2
-
-	intermediateCertSubjectName := "Test Intermediate CA"
-	intermediateCertDuration := 5 * 365 * 24 * time.Hour // 5 years
-	intermediateCertMaxPathLen := rootCertMaxPathLen - 1
-
-	issuingCertSubjectName := "Test Issuing CA"
-	issuingCertDuration := 2 * 365 * 24 * time.Hour // 2 years
-	issuingCertMaxPathLen := rootCertMaxPathLen - 2
-
-	var rootCertKeyPair *cryptoutilKeyGen.KeyPair
-	var rootCert *x509.Certificate
-	var rootCertDER []byte
-	var rootCertPEM []byte
-
-	var intermediateCertKeyPair *cryptoutilKeyGen.KeyPair
-	var intermediateCert *x509.Certificate
-	var intermediateCertDER []byte
-	var intermediateCertPEM []byte
-
-	var issuingCertKeyPair *cryptoutilKeyGen.KeyPair
-	var issuingCert *x509.Certificate
-	var issuingCertDER []byte
-	var issuingCertPEM []byte
-
-	rootsPool := x509.NewCertPool()
-	intermediatesPool := x509.NewCertPool()
-
-	t.Run("RootCA", func(t *testing.T) {
-		rootCertTemplate, err := CertificateTemplateCA(rootCertSubjectName, rootCertSubjectName, rootCertDuration, rootCertMaxPathLen)
-		verifyCertificateTemplate(t, err, rootCertTemplate)
-
-		rootCertKeyPair = testKeyGenPool.Get()
-		rootCert, rootCertDER, rootCertPEM, err = SignCertificate(nil, rootCertKeyPair.Private.(crypto.Signer), rootCertTemplate, rootCertKeyPair.Public, x509.ECDSAWithSHA256)
-		verifyCACertificate(t, err, rootCert, rootCertDER, rootCertPEM, rootCertSubjectName, rootCertSubjectName, rootCertMaxPathLen, rootCertDuration)
-
-		rootsPool.AddCert(rootCert)
-	})
-
-	t.Run("IntermediateCA", func(t *testing.T) {
-		intermediateCertTemplate, err := CertificateTemplateCA(rootCertSubjectName, intermediateCertSubjectName, intermediateCertDuration, intermediateCertMaxPathLen)
-		verifyCertificateTemplate(t, err, intermediateCertTemplate)
-
-		intermediateCertKeyPair = testKeyGenPool.Get()
-		intermediateCert, intermediateCertDER, intermediateCertPEM, err = SignCertificate(rootCert, rootCertKeyPair.Private.(crypto.Signer), intermediateCertTemplate, intermediateCertKeyPair.Public, x509.ECDSAWithSHA256)
-		verifyCACertificate(t, err, intermediateCert, intermediateCertDER, intermediateCertPEM, rootCertSubjectName, intermediateCertSubjectName, intermediateCertMaxPathLen, intermediateCertDuration)
-
-		verifyCertChain(t, intermediateCert, rootsPool, intermediatesPool)
-		intermediatesPool.AddCert(intermediateCert)
-	})
-
-	t.Run("IssuingCA", func(t *testing.T) {
-		issuingCertTemplate, err := CertificateTemplateCA(rootCertSubjectName, issuingCertSubjectName, issuingCertDuration, issuingCertMaxPathLen)
-		verifyCertificateTemplate(t, err, issuingCertTemplate)
-
-		issuingCertKeyPair = testKeyGenPool.Get()
-		issuingCert, issuingCertDER, issuingCertPEM, err = SignCertificate(rootCert, rootCertKeyPair.Private.(crypto.Signer), issuingCertTemplate, issuingCertKeyPair.Public, x509.ECDSAWithSHA256)
-		verifyCACertificate(t, err, issuingCert, issuingCertDER, issuingCertPEM, rootCertSubjectName, issuingCertSubjectName, issuingCertMaxPathLen, issuingCertDuration)
-
-		verifyCertChain(t, issuingCert, rootsPool, x509.NewCertPool())
-		intermediatesPool.AddCert(issuingCert)
-	})
+func TestCreateInvalidRootCA_WithNegativeDuration(t *testing.T) {
+	_, err := CertificateTemplateCA("Root CA", "Root CA", -1, 1)
+	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
 
-func TestCreateInvalidRootCA_WithNegativeDuration(t *testing.T) {
-	// We don't need the private key for this test as we're just testing template creation
-	_, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	require.NoError(t, err, "Failed to generate ECDSA key pair")
+func TestCertificateChain(t *testing.T) {
+	rootCert1SubjectName := "Test Root CA 1"
+	rootCert1Duration := 10 * 365 * 24 * time.Hour // 10 years
+	rootCert1MaxPathLen := 2
 
-	// Try to create CA certificate with negative duration
-	issuerName := "Test Root CA"
-	subjectName := "Test Root CA"
-	negativeDuration := -1 * time.Hour
+	intermediateCert1SubjectName := "Test Intermediate CA 1"
+	intermediateCert1Duration := 5 * 365 * 24 * time.Hour // 5 years
+	intermediateCert1MaxPathLen := rootCert1MaxPathLen - 1
 
-	// This should cause an error in randomizedNotBeforeNotAfterCA
-	_, err = CertificateTemplateCA(issuerName, subjectName, negativeDuration, 1)
-	require.Error(t, err, "Creating a certificate with negative duration should fail")
+	issuingCert1SubjectName := "Test Issuing CA 1"
+	issuingCert1Duration := 2 * 365 * 24 * time.Hour // 2 years
+	issuingCert1MaxPathLen := rootCert1MaxPathLen - 2
+
+	var rootCert1KeyPair *cryptoutilKeyGen.KeyPair
+	var rootCert1 *x509.Certificate
+	var rootCert1DER []byte
+	var rootCert1PEM []byte
+
+	var intermediateCert1KeyPair *cryptoutilKeyGen.KeyPair
+	var intermediateCert1 *x509.Certificate
+	var intermediateCert1DER []byte
+	var intermediateCert1PEM []byte
+
+	var issuingCert1KeyPair *cryptoutilKeyGen.KeyPair
+	var issuingCert1 *x509.Certificate
+	var issuingCert1DER []byte
+	var issuingCert1PEM []byte
+
+	roots1Pool := x509.NewCertPool()
+	intermediates1Pool := x509.NewCertPool()
+
+	t.Run("Root1 CA", func(t *testing.T) {
+		rootCert1Template, err := CertificateTemplateCA(rootCert1SubjectName, rootCert1SubjectName, rootCert1Duration, rootCert1MaxPathLen)
+		verifyCertificateTemplate(t, err, rootCert1Template)
+
+		rootCert1KeyPair = testKeyGenPool.Get()
+		rootCert1, rootCert1DER, rootCert1PEM, err = SignCertificate(nil, rootCert1KeyPair.Private.(crypto.Signer), rootCert1Template, rootCert1KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyCACertificate(t, err, rootCert1, rootCert1DER, rootCert1PEM, rootCert1SubjectName, rootCert1SubjectName, rootCert1MaxPathLen, rootCert1Duration)
+
+		roots1Pool.AddCert(rootCert1)
+	})
+
+	t.Run("Intermediate1 CA", func(t *testing.T) {
+		intermediateCert1Template, err := CertificateTemplateCA(rootCert1SubjectName, intermediateCert1SubjectName, intermediateCert1Duration, intermediateCert1MaxPathLen)
+		verifyCertificateTemplate(t, err, intermediateCert1Template)
+
+		intermediateCert1KeyPair = testKeyGenPool.Get()
+		intermediateCert1, intermediateCert1DER, intermediateCert1PEM, err = SignCertificate(rootCert1, rootCert1KeyPair.Private.(crypto.Signer), intermediateCert1Template, intermediateCert1KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyCACertificate(t, err, intermediateCert1, intermediateCert1DER, intermediateCert1PEM, rootCert1SubjectName, intermediateCert1SubjectName, intermediateCert1MaxPathLen, intermediateCert1Duration)
+
+		verifyCertChain(t, intermediateCert1, roots1Pool, intermediates1Pool)
+		intermediates1Pool.AddCert(intermediateCert1)
+	})
+
+	t.Run("Issuing1 CA", func(t *testing.T) {
+		issuingCert1Template, err := CertificateTemplateCA(rootCert1SubjectName, issuingCert1SubjectName, issuingCert1Duration, issuingCert1MaxPathLen)
+		verifyCertificateTemplate(t, err, issuingCert1Template)
+
+		issuingCert1KeyPair = testKeyGenPool.Get()
+		issuingCert1, issuingCert1DER, issuingCert1PEM, err = SignCertificate(rootCert1, rootCert1KeyPair.Private.(crypto.Signer), issuingCert1Template, issuingCert1KeyPair.Public, x509.ECDSAWithSHA256)
+		verifyCACertificate(t, err, issuingCert1, issuingCert1DER, issuingCert1PEM, rootCert1SubjectName, issuingCert1SubjectName, issuingCert1MaxPathLen, issuingCert1Duration)
+
+		verifyCertChain(t, issuingCert1, roots1Pool, x509.NewCertPool())
+		intermediates1Pool.AddCert(issuingCert1)
+	})
 }
 
 func verifyCertificateTemplate(t *testing.T, err error, rootTemplate *x509.Certificate) {
