@@ -144,12 +144,12 @@ func TestMutualTLS(t *testing.T) {
 	}
 
 	t.Run("Raw mTLS", func(t *testing.T) {
-		ln, err := tls.Listen("tcp", "127.0.0.1:0", serverTLSConfig)
-		require.NoError(t, err, "Failed to start TLS server")
-		defer ln.Close()
+		tlsListener, err := tls.Listen("tcp", "127.0.0.1:0", serverTLSConfig) // or "0.0.0.0:0" for all interfaces
+		require.NoError(t, err, "Failed to start TLS Listener for TLS Server")
+		defer tlsListener.Close()
 		serverErrCh := make(chan error, 1)
 		go func() {
-			conn, err := ln.Accept()
+			conn, err := tlsListener.Accept()
 			if err != nil {
 				serverErrCh <- err
 				return
@@ -165,12 +165,12 @@ func TestMutualTLS(t *testing.T) {
 			serverErrCh <- err
 		}()
 
-		addr := ln.Addr().String()
+		addr := tlsListener.Addr().String()
 		conn, err := tls.Dial("tcp", addr, clientTLSConfig)
 		require.NoError(t, err, "Client failed to connect to TLS server")
 		defer conn.Close()
 
-		testMsg := []byte("hello mutual tls")
+		testMsg := []byte("Hello Mutual TLS!")
 		_, err = conn.Write(testMsg)
 		require.NoError(t, err, "Client failed to write to server")
 		resp := make([]byte, len(testMsg))
@@ -183,6 +183,8 @@ func TestMutualTLS(t *testing.T) {
 	})
 
 	t.Run("HTTP mTLS", func(t *testing.T) {
+		tcpListener, err := net.Listen("tcp", "127.0.0.1:0") // or "0.0.0.0:0" for all interfaces
+		require.NoError(t, err, "Failed to start TCP Listener for HTTPS Server")
 		httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			data, err := io.ReadAll(r.Body)
 			require.NoError(t, err, "Server failed to read request body")
@@ -190,12 +192,13 @@ func TestMutualTLS(t *testing.T) {
 			require.NoError(t, err, "Server failed to write response")
 		})
 		httpsServer := httptest.NewUnstartedServer(httpHandler)
+		httpsServer.Listener = tcpListener
 		httpsServer.TLS = serverTLSConfig
 		httpsServer.StartTLS()
 		defer httpsServer.Close()
 
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
-		testMsg := []byte("hello mutual https")
+		testMsg := []byte("Hello Mutual HTTPS!")
 		resp, err := httpsClient.Post(httpsServer.URL, "text/plain", bytes.NewReader(testMsg))
 		require.NoError(t, err, "Client failed to POST to HTTPS server")
 		defer resp.Body.Close()
