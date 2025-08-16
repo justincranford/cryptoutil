@@ -18,26 +18,35 @@ func TestCreateInvalidRootCA_WithNegativeDuration(t *testing.T) {
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
 
-type testSubject struct {
+type testCASubject struct {
+	SubjectName string
+	Duration    time.Duration
+	MaxPathLen  int
+	KeyPair     *cryptoutilKeyGen.KeyPair
+	Cert        *x509.Certificate
+	DER         []byte
+	PEM         []byte
+}
+
+type testEndEntitySubject struct {
 	SubjectName    string
 	Duration       time.Duration
+	DNSNames       []string
+	IPAddresses    []net.IP
+	EmailAddresses []string
+	URIs           []*url.URL
 	KeyPair        *cryptoutilKeyGen.KeyPair
 	Cert           *x509.Certificate
 	DER            []byte
 	PEM            []byte
-	MaxPathLen     int        // CA only
-	DNSNames       []string   // End entity only
-	IPAddresses    []net.IP   // End entity only
-	EmailAddresses []string   // End entity only
-	URIs           []*url.URL // End entity only
 }
 
 func TestCertificateChain(t *testing.T) {
-	rootCert1 := testSubject{SubjectName: "Test Root CA 1", Duration: 10 * 365 * 24 * time.Hour, MaxPathLen: 2}
-	intermediateCert1 := testSubject{SubjectName: "Test Intermediate CA 1", Duration: 5 * 365 * 24 * time.Hour, MaxPathLen: 1}
-	issuingCert1 := testSubject{SubjectName: "Test Issuing CA 1", Duration: 2 * 365 * 24 * time.Hour, MaxPathLen: 0}
-	tlsServerCert1 := testSubject{SubjectName: "TLS Server 1", Duration: 397 * 24 * time.Hour, DNSNames: []string{"localhost", "example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}}
-	tlsClientCert1 := testSubject{SubjectName: "TLS Client 1", Duration: 30 * 24 * time.Hour, EmailAddresses: []string{"client@example.com"}}
+	rootCert1 := testCASubject{SubjectName: "Test Root CA 1", Duration: 10 * 365 * 24 * time.Hour, MaxPathLen: 2}
+	intermediateCert1 := testCASubject{SubjectName: "Test Intermediate CA 1", Duration: 5 * 365 * 24 * time.Hour, MaxPathLen: 1}
+	issuingCert1 := testCASubject{SubjectName: "Test Issuing CA 1", Duration: 2 * 365 * 24 * time.Hour, MaxPathLen: 0}
+	tlsServerCert1 := testEndEntitySubject{SubjectName: "TLS Server 1", Duration: 397 * 24 * time.Hour, DNSNames: []string{"localhost", "example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}}
+	tlsClientCert1 := testEndEntitySubject{SubjectName: "TLS Client 1", Duration: 30 * 24 * time.Hour, EmailAddresses: []string{"client@example.com"}}
 
 	verify1RootsPool := x509.NewCertPool()
 	verify1IntermediatesPool := x509.NewCertPool()
