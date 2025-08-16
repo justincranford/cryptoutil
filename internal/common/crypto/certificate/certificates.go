@@ -10,7 +10,16 @@ import (
 	"net"
 	"net/url"
 	"time"
+
+	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 )
+
+type KeyMaterial struct {
+	KeyPair *cryptoutilKeyGen.KeyPair
+	Cert    *x509.Certificate
+	DER     []byte
+	PEM     []byte
+}
 
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
@@ -70,7 +79,11 @@ func CertificateTemplateEndEntity(issuerName string, subjectName string, duratio
 	return template, nil
 }
 
-func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Signer, subjectCert *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm) (*x509.Certificate, []byte, []byte, error) {
+func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.PrivateKey, subjectCert *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm) (*x509.Certificate, []byte, []byte, error) {
+	_, ok := issuerPrivateKey.(crypto.Signer)
+	if !ok {
+		return nil, nil, nil, fmt.Errorf("issuer private key is not a crypto.Signer")
+	}
 	subjectCert.SignatureAlgorithm = signatureAlgorithm
 	var err error
 	var certificateDer []byte
