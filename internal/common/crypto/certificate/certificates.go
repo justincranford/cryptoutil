@@ -38,6 +38,14 @@ func CertificateTemplateCA(signatureAlgorithm x509.SignatureAlgorithm, issuerNam
 }
 
 func CertificateTemplateTLSServer(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
+	return CertificateTemplateEndEntity(duration, signatureAlgorithm, issuerName, subjectName, dnsNames, emailAddresses, ipAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+}
+
+func CertificateTemplateTLSClient(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
+	return CertificateTemplateEndEntity(duration, signatureAlgorithm, issuerName, subjectName, dnsNames, emailAddresses, ipAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
+}
+
+func CertificateTemplateEndEntity(duration time.Duration, signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, dnsNames []string, emailAddresses []string, ipAddresses []net.IP, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
@@ -53,34 +61,8 @@ func CertificateTemplateTLSServer(signatureAlgorithm x509.SignatureAlgorithm, is
 		SerialNumber:       serialNumber,
 		NotBefore:          notBefore,
 		NotAfter:           notAfter,
-		KeyUsage:           x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:        []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
-		DNSNames:           dnsNames,
-		EmailAddresses:     emailAddresses,
-		IPAddresses:        ipAddresses,
-		URIs:               uris,
-	}
-	return template, nil
-}
-
-func CertificateTemplateTLSClient(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
-	serialNumber, err := GenerateSerialNumber()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate serial number for TLS client: %w", err)
-	}
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, 120*time.Minute)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate certificate validity period for TLS client: %w", err)
-	}
-	template := &x509.Certificate{
-		SignatureAlgorithm: signatureAlgorithm,
-		Issuer:             pkix.Name{CommonName: issuerName},
-		Subject:            pkix.Name{CommonName: subjectName},
-		SerialNumber:       serialNumber,
-		NotBefore:          notBefore,
-		NotAfter:           notAfter,
-		KeyUsage:           x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:        []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		KeyUsage:           keyUsage,
+		ExtKeyUsage:        extKeyUsage,
 		DNSNames:           dnsNames,
 		EmailAddresses:     emailAddresses,
 		IPAddresses:        ipAddresses,
