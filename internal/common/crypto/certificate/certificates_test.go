@@ -77,7 +77,7 @@ func TestCertificateChain(t *testing.T) {
 	intermediatesPool := x509.NewCertPool()
 
 	t.Run("RootCA", func(t *testing.T) {
-		rootCertTemplate, err := CertificateTemplateRootCA(x509.ECDSAWithSHA256, rootCertSubjectName, rootCertSubjectName, rootCertDuration, rootCertMaxPathLen)
+		rootCertTemplate, err := CertificateTemplateCA(x509.ECDSAWithSHA256, rootCertSubjectName, rootCertSubjectName, rootCertDuration, rootCertMaxPathLen)
 		verifyCertificateTemplate(t, err, rootCertTemplate)
 
 		rootCertKeyPair = testKeyGenPool.Get()
@@ -88,7 +88,7 @@ func TestCertificateChain(t *testing.T) {
 	})
 
 	t.Run("IntermediateCA", func(t *testing.T) {
-		intermediateCertTemplate, err := CertificateTemplateIntermediateCA(x509.ECDSAWithSHA256, rootCertSubjectName, intermediateCertSubjectName, intermediateCertDuration, intermediateCertMaxPathLen)
+		intermediateCertTemplate, err := CertificateTemplateCA(x509.ECDSAWithSHA256, rootCertSubjectName, intermediateCertSubjectName, intermediateCertDuration, intermediateCertMaxPathLen)
 		verifyCertificateTemplate(t, err, intermediateCertTemplate)
 
 		intermediateCertKeyPair = testKeyGenPool.Get()
@@ -100,7 +100,7 @@ func TestCertificateChain(t *testing.T) {
 	})
 
 	t.Run("IssuingCA", func(t *testing.T) {
-		issuingCertTemplate, err := CertificateTemplateIssuingCA(x509.ECDSAWithSHA256, rootCertSubjectName, issuingCertSubjectName, issuingCertDuration, issuingCertMaxPathLen)
+		issuingCertTemplate, err := CertificateTemplateCA(x509.ECDSAWithSHA256, rootCertSubjectName, issuingCertSubjectName, issuingCertDuration, issuingCertMaxPathLen)
 		verifyCertificateTemplate(t, err, issuingCertTemplate)
 
 		issuingCertKeyPair = testKeyGenPool.Get()
@@ -123,7 +123,7 @@ func TestCreateInvalidRootCA_WithNegativeDuration(t *testing.T) {
 	negativeDuration := -1 * time.Hour
 
 	// This should cause an error in randomizedNotBeforeNotAfterCA
-	_, err = CertificateTemplateRootCA(x509.ECDSAWithSHA256, issuerName, subjectName, negativeDuration, 1)
+	_, err = CertificateTemplateCA(x509.ECDSAWithSHA256, issuerName, subjectName, negativeDuration, 1)
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
 

@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func CertificateTemplateRootCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
+func CertificateTemplateCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
@@ -35,58 +35,6 @@ func CertificateTemplateRootCA(signatureAlgorithm x509.SignatureAlgorithm, issue
 		MaxPathLen:            maxPathLen,
 		MaxPathLenZero:        maxPathLen == 0,
 	}, nil
-}
-
-func CertificateTemplateIntermediateCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
-	serialNumber, err := GenerateSerialNumber()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate serial number for TLS intermediate CA: %w", err)
-	}
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, 120*time.Minute)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate certificate validity period for TLS intermediate CA: %w", err)
-	}
-	template := &x509.Certificate{
-		SignatureAlgorithm:    signatureAlgorithm,
-		Issuer:                pkix.Name{CommonName: issuerName},
-		Subject:               pkix.Name{CommonName: subjectName},
-		SerialNumber:          serialNumber,
-		NotBefore:             notBefore,
-		NotAfter:              notAfter,
-		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning},
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-		MaxPathLen:            maxPathLen,
-		MaxPathLenZero:        maxPathLen == 0,
-	}
-	return template, nil
-}
-
-func CertificateTemplateIssuingCA(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
-	serialNumber, err := GenerateSerialNumber()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate serial number for TLS issuing CA: %w", err)
-	}
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, 120*time.Minute)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate certificate validity period for TLS issuing CA: %w", err)
-	}
-	template := &x509.Certificate{
-		SignatureAlgorithm:    signatureAlgorithm,
-		Issuer:                pkix.Name{CommonName: issuerName},
-		Subject:               pkix.Name{CommonName: subjectName},
-		SerialNumber:          serialNumber,
-		NotBefore:             notBefore,
-		NotAfter:              notAfter,
-		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageTimeStamping, x509.ExtKeyUsageOCSPSigning},
-		BasicConstraintsValid: true,
-		IsCA:                  true,
-		MaxPathLen:            maxPathLen,
-		MaxPathLenZero:        maxPathLen == 0,
-	}
-	return template, nil
 }
 
 func CertificateTemplateTLSServer(signatureAlgorithm x509.SignatureAlgorithm, issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
