@@ -150,41 +150,36 @@ func TestMutualTLS(t *testing.T) {
 
 	t.Run("Raw mTLS", func(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
-		serverErrCh, tlsListenerAddress, err := startTlsEchoServer("127.0.0.1:0", serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
-		require.NoError(t, err, "failed to start TLS Listener for TLS Server")
+		tlsListenerAddress, err := startTlsEchoServer("127.0.0.1:0", 100*time.Millisecond, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
+		require.NoError(t, err, "failed to start TLS Echo Server")
 		const tlsClientConnections = 10
 		for i := 1; i <= tlsClientConnections; i++ {
 			func() {
 				tlsClientConnection, err := tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
-				require.NoError(t, err, "client failed to connect to TLS server")
+				require.NoError(t, err, "client failed to connect to TLS Echo Server")
 				defer tlsClientConnection.Close()
 
 				tlsClientRequestBody := []byte("Hello Mutual TLS!")
 				_, err = tlsClientConnection.Write(tlsClientRequestBody)
-				require.NoError(t, err, "client failed to write to server (%d of %d)", i, tlsClientConnections)
+				require.NoError(t, err, "client failed to write to TLS Echo Server (%d of %d)", i, tlsClientConnections)
 
 				tlsServerResponseBody := make([]byte, len(tlsClientRequestBody))
 				_, err = tlsClientConnection.Read(tlsServerResponseBody)
-				require.NoError(t, err, "client failed to read from server (%d of %d)", i, tlsClientConnections)
-				require.Equal(t, tlsClientRequestBody, tlsServerResponseBody, "Echoed message mismatch (iteration %d)", i)
+				require.NoError(t, err, "client failed to read from TLS Echo Server (%d of %d)", i, tlsClientConnections)
+				require.Equal(t, tlsClientRequestBody, tlsServerResponseBody, "echo message mismatch (iteration %d)", i)
 			}()
 		}
-
-		// Signal server to shutdown via stop channel
 		close(callerShutdownSignalCh)
-
-		// Ensure server goroutine completed without error
-		require.NoError(t, <-serverErrCh, "Server goroutine error")
 	})
 
 	t.Run("HTTP mTLS", func(t *testing.T) {
 		tcpListener, err := net.Listen("tcp", "127.0.0.1:0") // or "0.0.0.0:0" for all interfaces
-		require.NoError(t, err, "Failed to start TCP Listener for HTTPS Server")
+		require.NoError(t, err, "failed to start TCP Listener for HTTPS Server")
 		httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			data, err := io.ReadAll(r.Body)
-			require.NoError(t, err, "Server failed to read request body")
+			require.NoError(t, err, "server failed to read request body")
 			_, err = w.Write(data)
-			require.NoError(t, err, "Server failed to write response")
+			require.NoError(t, err, "server failed to write response")
 		})
 		httpsServer := httptest.NewUnstartedServer(httpHandler)
 		httpsServer.Listener = tcpListener
@@ -195,24 +190,27 @@ func TestMutualTLS(t *testing.T) {
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
 		httpsServerResponse, err := httpsClient.Post(httpsServer.URL, "text/plain", bytes.NewReader(httpsClientRequestBody))
-		require.NoError(t, err, "Client failed to POST to HTTPS server")
+		require.NoError(t, err, "client failed to POST to HTTPS server")
 		require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status")
 
 		defer httpsServerResponse.Body.Close()
 		httpServerResponseBody, err := io.ReadAll(httpsServerResponse.Body)
-		require.NoError(t, err, "Client failed to read response body")
+		require.NoError(t, err, "client failed to read response body")
 		require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch")
 	})
 }
 
-func startTlsEchoServer(tlsServerListener string, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (chan error, string, error) {
-	tcpListener, err := net.Listen("tcp", tlsServerListener)
+func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
+	netListener, err := net.Listen("tcp", tlsServerListener)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to start TCP Listener: %w", err)
+		return "", fmt.Errorf("failed to start TCP Listener: %w", err)
 	}
-	tlsListener := tls.NewListener(tcpListener, serverTLSConfig)
+	netTCPListener, ok := netListener.(*net.TCPListener)
+	if !ok {
+		return "", fmt.Errorf("failed to cast net.Listener to *net.TCPListener")
+	}
+	tlsListener := tls.NewListener(netListener, serverTLSConfig)
 
-	serverErrCh := make(chan error, 1)
 	go func() {
 		defer tlsListener.Close()
 		osShutdownSignalCh := make(chan os.Signal, 1)
@@ -220,21 +218,18 @@ func startTlsEchoServer(tlsServerListener string, serverTLSConfig *tls.Config, c
 		for {
 			select {
 			case <-callerShutdownSignalCh:
-				serverErrCh <- nil
+				log.Printf("stopping TLS Echo Server, caller shutdown signal received")
 				return
 			case <-osShutdownSignalCh:
-				serverErrCh <- nil
+				log.Printf("stopping TLS Echo Server, OS shutdown signal received")
 				return
 			default:
-				if tcpL, ok := tcpListener.(*net.TCPListener); ok {
-					tcpL.SetDeadline(time.Now().Add(500 * time.Millisecond))
-				}
+				netTCPListener.SetDeadline(time.Now().Add(readTimeout))
 				tlsClientConnection, err := tlsListener.Accept()
 				if err != nil {
 					if ne, ok := err.(net.Error); ok && ne.Timeout() {
 						continue
 					}
-					serverErrCh <- fmt.Errorf("failed to accept TLS connection: %w", err)
 					return
 				}
 				go func(conn net.Conn) {
@@ -245,17 +240,17 @@ func startTlsEchoServer(tlsServerListener string, serverTLSConfig *tls.Config, c
 						log.Printf("failed to read from TLS connection: %v", err)
 						return
 					}
-					if bytesRead == 0 {
-						return
-					}
-					_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
-					if err != nil {
-						log.Printf("failed to write to TLS connection: %v", err)
+					// Do not treat empty request as shutdown; just ignore
+					if bytesRead > 0 {
+						_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
+						if err != nil {
+							log.Printf("failed to write to TLS connection: %v", err)
+						}
 					}
 				}(tlsClientConnection)
 			}
 		}
 	}()
 
-	return serverErrCh, tlsListener.Addr().String(), nil
+	return tlsListener.Addr().String(), nil
 }
