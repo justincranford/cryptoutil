@@ -23,3 +23,5 @@
 | ** | '.github/instructions/security.instructions.md' | Instructions for security implementation patterns |
 | ** | '.github/instructions/observability.instructions.md' | Instructions for observability and monitoring implementation |
 | ** | '.github/instructions/architecture.instructions.md' | Instructions for configuration and application architecture |
+| ** | '.github/instructions/project-layout.instructions.md' | Instructions for Go project layout structure |
+| ** | '.github/instructions/copilot-customization.instructions.md' | Instructions for VS Code Copilot customization best practices |
