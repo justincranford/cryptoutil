@@ -3,7 +3,7 @@ services:
   cryptoutil_sqlite:
     build:
       context: ../..
-      dockerfile: docker/Dockerfile
+      dockerfile: deployments/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
     command: >
       sh -c '/app/cryptoutil --config=/app/sqlite.yml'
@@ -15,7 +15,7 @@ services:
   cryptoutil_postgres:
     build:
       context: ../..
-      dockerfile: docker/Dockerfile
+      dockerfile: deployments/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
     command: >
       sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url.secret) && 

@@ -13,7 +13,7 @@ FROM golang:latest AS builder2
 WORKDIR /app
 COPY --from=builder1 /go/pkg/mod /go/pkg/mod
 COPY --from=builder1 /app        /app
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o cryptoutil .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -o cryptoutil ./cmd/cryptoutil
 
 #############################################################################################
 
