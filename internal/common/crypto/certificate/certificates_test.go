@@ -146,6 +146,7 @@ func TestMutualTLS(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
 		tlsListenerAddress, err := startTlsEchoServer("127.0.0.1:0", 100*time.Millisecond, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start TLS Echo Server")
+		defer close(callerShutdownSignalCh)
 		const tlsClientConnections = 10
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")
 		for i := 1; i <= tlsClientConnections; i++ {
@@ -163,44 +164,24 @@ func TestMutualTLS(t *testing.T) {
 				require.Equal(t, tlsClientRequestBody, tlsServerResponseBody, "echo message mismatch (%d of %d)", i, tlsClientConnections)
 			}()
 		}
-		close(callerShutdownSignalCh)
 	})
 
 	t.Run("HTTP mTLS", func(t *testing.T) {
 		httpsServer, serverURL := startHTTPSEchoServer(serverTLSConfig, t)
 		defer httpsServer.Close()
-
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
-		for i := 0; i < 10; i++ {
+		const httpsClientConnections = 10
+		for i := 1; i <= httpsClientConnections; i++ {
 			httpsServerResponse, err := httpsClient.Post(serverURL, "text/plain", bytes.NewReader(httpsClientRequestBody))
-			require.NoError(t, err, "client failed to POST to HTTPS server (%d of %d)", i, 10)
-			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, 10)
-
+			require.NoError(t, err, "client failed to POST to HTTPS server (%d of %d)", i, httpsClientConnections)
+			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, httpsClientConnections)
 			func() {
 				defer httpsServerResponse.Body.Close()
 				httpServerResponseBody, err := io.ReadAll(httpsServerResponse.Body)
-				require.NoError(t, err, "client failed to read response body (%d of %d)", i, 10)
-				require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch (%d of %d)", i, 10)
+				require.NoError(t, err, "client failed to read response body (%d of %d)", i, httpsClientConnections)
+				require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch (%d of %d)", i, httpsClientConnections)
 			}()
 		}
 	})
-}
-
-func startHTTPSEchoServer(serverTLSConfig *tls.Config, t *testing.T) (*http.Server, string) {
-	netListener, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err, "failed to start TCP Listener for HTTPS Server")
-	httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		data, err := io.ReadAll(r.Body)
-		require.NoError(t, err, "server failed to read request body")
-		_, err = w.Write(data)
-		require.NoError(t, err, "server failed to write response")
-	})
-	server := &http.Server{
-		Handler:   httpHandler,
-		TLSConfig: serverTLSConfig,
-	}
-	go server.ServeTLS(netListener, "", "")
-	url := "https://" + netListener.Addr().String()
-	return server, url
 }

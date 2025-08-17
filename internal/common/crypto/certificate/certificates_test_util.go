@@ -4,8 +4,10 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -123,4 +125,22 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, ser
 	}()
 
 	return tlsListener.Addr().String(), nil
+}
+
+func startHTTPSEchoServer(serverTLSConfig *tls.Config, t *testing.T) (*http.Server, string) {
+	netListener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err, "failed to start TCP Listener for HTTPS Server")
+	httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, err := io.ReadAll(r.Body)
+		require.NoError(t, err, "server failed to read request body")
+		_, err = w.Write(data)
+		require.NoError(t, err, "server failed to write response")
+	})
+	server := &http.Server{
+		Handler:   httpHandler,
+		TLSConfig: serverTLSConfig,
+	}
+	go server.ServeTLS(netListener, "", "")
+	url := "https://" + netListener.Addr().String()
+	return server, url
 }
