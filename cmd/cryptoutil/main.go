@@ -1,21 +1,9 @@
 package main
 
 import (
-	"log"
-
-	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilServerApplication "cryptoutil/internal/server/application"
+	cryptoutilCmd "cryptoutil/internal/cmd"
 )
 
 func main() {
-	settings, err := cryptoutilConfig.Parse(true)
-	if err != nil {
-		log.Fatal("Error parsing config:", err)
-	}
-
-	start, _, err := cryptoutilServerApplication.StartServerApplication(settings)
-	if err != nil {
-		log.Fatalf("failed to start server application: %v", err)
-	}
-	start()
+	cryptoutilCmd.Execute()
 }
