@@ -6,23 +6,26 @@ import (
 )
 
 func Execute() {
+	executable := os.Args[0]
 	if len(os.Args) < 2 {
-		printUsage()
+		printUsage(executable)
 		os.Exit(1)
 	}
 	command := os.Args[1]
+	parameters := os.Args[2:]
+
 	switch command {
 	case "server":
-		server()
+		server(executable, parameters)
 	case "init":
 		initConfig()
 	case "key":
 		key()
 	case "help":
-		printUsage()
+		printUsage(executable)
 	default:
-		printUsage()
-		fmt.Printf("Unknown command: %s\n", command)
+		printUsage(executable)
+		fmt.Printf("Unknown command: %s %s\n", executable, command)
 		os.Exit(1)
 	}
 }
@@ -35,9 +38,8 @@ func key() {
 	fmt.Println("init not implemented yet")
 }
 
-func printUsage() {
-	fmt.Println("Usage: cryptoutil <command> [options]")
-	fmt.Println("\nCommands:")
+func printUsage(executable string) {
+	fmt.Printf("Usage: %s <command> [options]\n", executable)
 	fmt.Println("  server")
 	fmt.Println("  init")
 	fmt.Println("  key")

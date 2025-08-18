@@ -7,8 +7,8 @@ import (
 	cryptoutilServerApplication "cryptoutil/internal/server/application"
 )
 
-func server() {
-	settings, err := cryptoutilConfig.Parse(true)
+func server(executable string, parameters []string) {
+	settings, err := cryptoutilConfig.Parse(parameters, true)
 	if err != nil {
 		log.Fatal("Error parsing config:", err)
 	}

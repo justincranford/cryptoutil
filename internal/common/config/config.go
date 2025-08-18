@@ -297,7 +297,7 @@ var defaultAllowedCIDRs = func() string {
 	}, ",")
 }()
 
-func Parse(exitIfHelp bool) (*Settings, error) {
+func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(help.name, help.shorthand, help.value.(bool), help.usage)
 	pflag.StringP(configFile.name, configFile.shorthand, configFile.value.(string), configFile.usage)
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
@@ -325,7 +325,7 @@ func Parse(exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)
 	pflag.StringP(unsealMode.name, unsealMode.shorthand, unsealMode.value.(string), unsealMode.usage)
 	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, unsealFiles.value.([]string), unsealFiles.usage)
-	err := pflag.CommandLine.Parse(os.Args[1:])
+	err := pflag.CommandLine.Parse(commandParameters)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
