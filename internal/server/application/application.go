@@ -41,45 +41,30 @@ import (
 var ready atomic.Bool
 
 func StopServerApplication(settings *cryptoutilConfig.Settings) error {
-	listenAddress := fmt.Sprintf("%s:%d", settings.BindAddress, settings.BindPort)
-	healthEndpoint := fmt.Sprintf("http://%s/livez", listenAddress)
+	shutdownEndpoint := fmt.Sprintf("http://%s:%d/api/internal/shutdown", settings.BindAddress, settings.BindPort)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthEndpoint, nil)
+	shutdownRequest, err := http.NewRequestWithContext(shutdownCtx, http.MethodPost, shutdownEndpoint, nil)
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return fmt.Errorf("failed to create shutdown request: %w", err)
 	}
-
-	resp, err := http.DefaultClient.Do(req)
+	_, err = http.DefaultClient.Do(shutdownRequest)
 	if err != nil {
-		return fmt.Errorf("server doesn't appear to be running: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("server health check failed with status: %d", resp.StatusCode)
-	}
-
-	proc, err := os.FindProcess(os.Getpid())
-	if err != nil {
-		return fmt.Errorf("failed to find process: %w", err)
-	}
-	if err := proc.Signal(os.Interrupt); err != nil {
-		return fmt.Errorf("failed to send interrupt signal: %w", err)
+		return fmt.Errorf("failed to send shutdown request: %w", err)
 	}
 	time.Sleep(2 * time.Second)
-	ctx2, cancel2 := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel2()
 
-	req2, _ := http.NewRequestWithContext(ctx2, http.MethodGet, healthEndpoint, nil)
-	resp2, err := http.DefaultClient.Do(req2)
-	if err == nil && resp2 != nil {
-		resp2.Body.Close()
+	livenessCtx, livenessCancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer livenessCancel()
+
+	livenessEndpoint := fmt.Sprintf("http://%s:%d/livez", settings.BindAddress, settings.BindPort)
+	livenessRequest, _ := http.NewRequestWithContext(livenessCtx, http.MethodGet, livenessEndpoint, nil)
+	livenessResponse, err := http.DefaultClient.Do(livenessRequest)
+	if err == nil && livenessResponse != nil {
+		livenessResponse.Body.Close()
 		return fmt.Errorf("server did not shut down properly")
 	}
-
 	return nil
 }
 
@@ -220,6 +205,16 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 
 	startServer := startServerFunc(err, listenAddress, app, telemetryService)
 	stopServer := stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, app)
+
+	app.Post("/api/internal/shutdown", func(c *fiber.Ctx) error {
+		telemetryService.Slogger.Info("shutdown requested via API endpoint")
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			stopServer()
+		}()
+		return c.SendString("Server shutdown initiated")
+	})
+
 	go stopServerSignalFunc(telemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
 
 	return startServer, stopServer, nil
