@@ -16,11 +16,11 @@ func Execute() {
 
 	switch command {
 	case "server":
-		server(executable, parameters)
+		server(parameters)
 	case "init":
-		initConfig()
+		initConfig(parameters)
 	case "key":
-		key()
+		key(parameters)
 	case "help":
 		printUsage(executable)
 	default:
@@ -30,12 +30,12 @@ func Execute() {
 	}
 }
 
-func initConfig() {
+func initConfig(parameters []string) {
 	fmt.Println("init not implemented yet")
 }
 
-func key() {
-	fmt.Println("init not implemented yet")
+func key(parameters []string) {
+	fmt.Println("key not implemented yet")
 }
 
 func printUsage(executable string) {
