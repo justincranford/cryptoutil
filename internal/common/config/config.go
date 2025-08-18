@@ -33,6 +33,7 @@ const (
 )
 
 type Settings struct {
+	SubCommand               string
 	Help                     bool
 	ConfigFile               string
 	LogLevel                 string
@@ -297,7 +298,23 @@ var defaultAllowedCIDRs = func() string {
 	}, ",")
 }()
 
+// set of valid subcommands
+var subcommands = map[string]struct{}{
+	"start": {},
+	"stop":  {},
+}
+
 func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
+	if len(commandParameters) == 0 {
+		return nil, fmt.Errorf("missing subcommand: use \"start\" or \"stop\"")
+	}
+	subCommand := commandParameters[0]
+	if _, ok := subcommands[subCommand]; !ok {
+		return nil, fmt.Errorf("invalid subcommand: use \"start\" or \"stop\"")
+	}
+	subCommandParameters := commandParameters[1:]
+
+	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
 	pflag.BoolP(help.name, help.shorthand, help.value.(bool), help.usage)
 	pflag.StringP(configFile.name, configFile.shorthand, configFile.value.(string), configFile.usage)
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
@@ -325,7 +342,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(otlpScope.name, otlpScope.shorthand, otlpScope.value.(string), otlpScope.usage)
 	pflag.StringP(unsealMode.name, unsealMode.shorthand, unsealMode.value.(string), unsealMode.usage)
 	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, unsealFiles.value.([]string), unsealFiles.usage)
-	err := pflag.CommandLine.Parse(commandParameters)
+	err := pflag.CommandLine.Parse(subCommandParameters)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
@@ -344,6 +361,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	}
 
 	s := &Settings{
+		SubCommand:               subCommand,
 		Help:                     viper.GetBool(help.name),
 		ConfigFile:               viper.GetString(configFile.name),
 		LogLevel:                 viper.GetString(logLevel.name),
@@ -387,6 +405,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 
 func logSettings(s *Settings) {
 	if s.VerboseMode {
+		log.Info("SubCommand: ", s.SubCommand)
 		log.Info("Help: ", s.Help)
 		log.Info("Config file: ", s.ConfigFile)
 		log.Info("Log Level: ", s.LogLevel)
