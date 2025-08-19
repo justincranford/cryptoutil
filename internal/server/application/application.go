@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os/signal"
@@ -55,7 +56,12 @@ func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
 	} else if shutdownResponse.StatusCode != http.StatusOK {
-		return fmt.Errorf("shutdown request failed: %s", shutdownResponse.Status)
+		shutdownResponseBody, err := io.ReadAll(shutdownResponse.Body)
+		defer shutdownResponse.Body.Close()
+		if err != nil {
+			return fmt.Errorf("shutdown request failed: %s (could not read response body: %v)", shutdownResponse.Status, err)
+		}
+		return fmt.Errorf("shutdown request failed, status: %s, body: %s", shutdownResponse.Status, string(shutdownResponseBody))
 	}
 
 	livenessEndpoint := fmt.Sprintf("http://%s:%d/livez", settings.BindAddress, settings.BindPort)
