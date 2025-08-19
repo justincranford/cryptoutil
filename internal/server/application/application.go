@@ -243,23 +243,24 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlR
 				telemetryService.Slogger.Error("failed to stop fiber server", "error", err)
 			}
 		}
+		// each service should do its own logging
 		if barrierService != nil {
-			barrierService.Shutdown() // does its own logging
+			barrierService.Shutdown()
 		}
 		if unsealKeysService != nil {
-			unsealKeysService.Shutdown() // does its own logging
+			unsealKeysService.Shutdown()
 		}
 		if ormRepository != nil {
-			ormRepository.Shutdown() // does its own logging
+			ormRepository.Shutdown()
 		}
 		if jwkGenService != nil {
-			jwkGenService.Shutdown() // does its own logging
+			jwkGenService.Shutdown()
 		}
 		if sqlRepository != nil {
-			sqlRepository.Shutdown() // does its own logging
+			sqlRepository.Shutdown()
 		}
 		if telemetryService != nil {
-			telemetryService.Shutdown() // does its own logging
+			telemetryService.Shutdown()
 		}
 	}
 }
