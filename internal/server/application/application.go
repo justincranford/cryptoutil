@@ -40,7 +40,8 @@ import (
 
 const shutdownRequestTimeout = 5 * time.Second
 const livenessRequestTimeout = 3 * time.Second
-const serverShutdownTimeout = 3 * time.Second
+const serverShutdownStartTimeout = 50 * time.Millisecond
+const serverShutdownFinishTimeout = 3 * time.Second
 
 var ready atomic.Bool
 
@@ -64,6 +65,7 @@ func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 		return fmt.Errorf("shutdown request failed, status: %s, body: %s", shutdownResponse.Status, string(shutdownResponseBody))
 	}
 
+	time.Sleep(serverShutdownStartTimeout)
 	livenessEndpoint := fmt.Sprintf("http://%s:%d/livez", settings.BindAddress, settings.BindPort)
 	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), livenessRequestTimeout)
 	defer livenessRequestCancel()
@@ -153,7 +155,6 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	app.Use(helmet.New())             // Cross-Site Scripting (XSS)
 	app.Use(csrfMiddleware(settings)) // Cross-Site Request Forgery (CSRF)
 	app.Use(healthcheck.New())
-
 	app.Use(otelfiber.Middleware(
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
@@ -199,6 +200,17 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 			}, 100);
 		`,
 	}))
+	var stopServer func()
+	app.Post("/api/internal/shutdown", func(c *fiber.Ctx) error {
+		telemetryService.Slogger.Info("shutdown requested via API endpoint")
+		if stopServer != nil {
+			go func() {
+				time.Sleep(serverShutdownStartTimeout)
+				stopServer()
+			}()
+		}
+		return c.SendString("Server shutdown initiated")
+	})
 
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(businessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
@@ -212,16 +224,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	listenAddress := fmt.Sprintf("%s:%d", settings.BindAddress, settings.BindPort)
 
 	startServer := startServerFunc(err, listenAddress, app, telemetryService)
-	stopServer := stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, app)
-
-	app.Post("/api/internal/shutdown", func(c *fiber.Ctx) error {
-		telemetryService.Slogger.Info("shutdown requested via API endpoint")
-		go func() {
-			time.Sleep(100 * time.Millisecond)
-			stopServer()
-		}()
-		return c.SendString("Server shutdown initiated")
-	})
+	stopServer = stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, app)
 
 	go stopServerSignalFunc(telemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
 
@@ -245,7 +248,7 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlR
 		if telemetryService != nil {
 			telemetryService.Slogger.Debug("stopping server")
 		}
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownTimeout)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
 		defer cancel() // perform shutdown respecting timeout
 		if app != nil {
 			err := app.ShutdownWithContext(shutdownCtx)
