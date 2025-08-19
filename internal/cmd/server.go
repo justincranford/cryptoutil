@@ -20,7 +20,7 @@ func server(parameters []string) {
 		}
 		start() // blocks until server receives a signal to shutdown
 	case "stop":
-		err := cryptoutilServerApplication.StopServerApplication(settings)
+		err := cryptoutilServerApplication.SendServerShutdownRequest(settings)
 		if err != nil {
 			log.Fatalf("failed to stop server application: %v", err)
 		}

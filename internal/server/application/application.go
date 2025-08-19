@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"os/signal"
 	"strings"
 	"sync/atomic"
@@ -38,28 +37,31 @@ import (
 	fibermiddleware "github.com/oapi-codegen/fiber-middleware"
 )
 
+const shutdownRequestTimeout = 5 * time.Second
+const livenessRequestTimeout = 3 * time.Second
+const serverShutdownTimeout = 3 * time.Second
+
 var ready atomic.Bool
 
-func StopServerApplication(settings *cryptoutilConfig.Settings) error {
+func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 	shutdownEndpoint := fmt.Sprintf("http://%s:%d/api/internal/shutdown", settings.BindAddress, settings.BindPort)
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
-
-	shutdownRequest, err := http.NewRequestWithContext(shutdownCtx, http.MethodPost, shutdownEndpoint, nil)
+	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), shutdownRequestTimeout)
+	defer shutdownRequestCancel()
+	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, shutdownEndpoint, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create shutdown request: %w", err)
 	}
-	_, err = http.DefaultClient.Do(shutdownRequest)
+	shutdownResponse, err := http.DefaultClient.Do(shutdownRequest)
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
+	} else if shutdownResponse.StatusCode != http.StatusOK {
+		return fmt.Errorf("shutdown request failed: %s", shutdownResponse.Status)
 	}
-	time.Sleep(2 * time.Second)
-
-	livenessCtx, livenessCancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer livenessCancel()
 
 	livenessEndpoint := fmt.Sprintf("http://%s:%d/livez", settings.BindAddress, settings.BindPort)
-	livenessRequest, _ := http.NewRequestWithContext(livenessCtx, http.MethodGet, livenessEndpoint, nil)
+	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), livenessRequestTimeout)
+	defer livenessRequestCancel()
+	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, livenessEndpoint, nil)
 	livenessResponse, err := http.DefaultClient.Do(livenessRequest)
 	if err == nil && livenessResponse != nil {
 		livenessResponse.Body.Close()
@@ -237,8 +239,10 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlR
 		if telemetryService != nil {
 			telemetryService.Slogger.Debug("stopping server")
 		}
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownTimeout)
+		defer cancel() // perform shutdown respecting timeout
 		if app != nil {
-			err := app.Shutdown()
+			err := app.ShutdownWithContext(shutdownCtx)
 			if err != nil {
 				telemetryService.Slogger.Error("failed to stop fiber server", "error", err)
 			}
@@ -267,10 +271,11 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlR
 
 func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService, stopServerFunc func()) func() {
 	return func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		<-c
-		telemetryService.Slogger.Info("received stop server signal")
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+		defer stop()
+
+		<-ctx.Done() // blocks until signal is received
+		telemetryService.Slogger.Warn("received stop server signal")
 		stopServerFunc()
 	}
 }
