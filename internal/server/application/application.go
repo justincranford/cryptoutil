@@ -46,7 +46,7 @@ const serverShutdownFinishTimeout = 3 * time.Second
 var ready atomic.Bool
 
 func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	shutdownEndpoint := fmt.Sprintf("http://%s:%d/api/internal/shutdown", settings.BindAddress, settings.BindPort)
+	shutdownEndpoint := fmt.Sprintf("http://%s:%d/api/internal/shutdown", settings.BindAdminAddress, settings.BindAdminPort)
 	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), shutdownRequestTimeout)
 	defer shutdownRequestCancel()
 	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, shutdownEndpoint, nil)
@@ -66,7 +66,7 @@ func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 	}
 
 	time.Sleep(serverShutdownStartTimeout)
-	livenessEndpoint := fmt.Sprintf("http://%s:%d/livez", settings.BindAddress, settings.BindPort)
+	livenessEndpoint := fmt.Sprintf("http://%s:%d/livez", settings.BindAdminAddress, settings.BindAdminPort)
 	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), livenessRequestTimeout)
 	defer livenessRequestCancel()
 	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, livenessEndpoint, nil)
@@ -159,8 +159,8 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
 		otelfiber.WithPropagators(*telemetryService.TextMapPropagator),
-		otelfiber.WithServerName(settings.BindAddress),
-		otelfiber.WithPort(int(settings.BindPort)),
+		otelfiber.WithServerName(settings.BindServiceAddress),
+		otelfiber.WithPort(int(settings.BindServicePort)),
 	))
 	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
 	app.Get("/swagger/*", swagger.New(swagger.Config{
@@ -221,7 +221,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	}
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, openapiStrictHandler, fiberServerOptions)
 
-	listenAddress := fmt.Sprintf("%s:%d", settings.BindAddress, settings.BindPort)
+	listenAddress := fmt.Sprintf("%s:%d", settings.BindServiceAddress, settings.BindServicePort)
 
 	startServer := startServerFunc(err, listenAddress, app, telemetryService)
 	stopServer = stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, app)

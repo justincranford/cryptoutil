@@ -17,7 +17,7 @@ import (
 
 var (
 	testSettings      = cryptoutilConfig.RequireNewForTest("application_test")
-	testServerBaseUrl = "http://" + testSettings.BindAddress + ":" + strconv.Itoa(int(testSettings.BindPort)) + "/"
+	testServerBaseUrl = "http://" + testSettings.BindServiceAddress + ":" + strconv.Itoa(int(testSettings.BindServicePort)) + "/"
 )
 
 func TestMain(m *testing.M) {

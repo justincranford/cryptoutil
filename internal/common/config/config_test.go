@@ -1,7 +1,6 @@
 package config
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -10,16 +9,18 @@ import (
 
 func TestParse_HappyPath_Defaults(t *testing.T) {
 	resetFlags()
-	os.Args = []string{"cmd"} // No flags
-	s, err := Parse(true)     // true => If --help is set, help is printed and the program exits
+	commandParameters := []string{"server", "start"}
+	s, err := Parse(commandParameters, true) // true => If --help is set, help is printed and the program exits
 	assert.NoError(t, err)
 	assert.Equal(t, help.value, s.Help)
 	assert.Equal(t, configFile.value, s.ConfigFile)
 	assert.Equal(t, logLevel.value, s.LogLevel)
 	assert.Equal(t, verboseMode.value, s.VerboseMode)
 	assert.Equal(t, devMode.value, s.DevMode)
-	assert.Equal(t, bindAddress.value, s.BindAddress)
-	assert.Equal(t, bindPort.value, s.BindPort)
+	assert.Equal(t, bindServiceAddress.value, s.BindServiceAddress)
+	assert.Equal(t, bindServicePort.value, s.BindServicePort)
+	assert.Equal(t, bindAdminAddress.value, s.BindAdminAddress)
+	assert.Equal(t, bindAdminPort.value, s.BindAdminPort)
 	assert.Equal(t, contextPath.value, s.ContextPath)
 	assert.Equal(t, corsAllowedOrigins.value, s.CORSAllowedOrigins)
 	assert.Equal(t, corsAllowedMethods.value, s.CORSAllowedMethods)
@@ -44,8 +45,9 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 
 func TestParse_HappyPath_Overrides(t *testing.T) {
 	resetFlags()
-	os.Args = []string{
-		"cmd",
+	commandParameters := []string{
+		"server",
+		"start",
 		"--help",
 		"--config=test.yaml",
 		"--log-level=debug",
@@ -77,14 +79,14 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--unseal-files=/docker/secrets/unseal3",
 	}
 
-	s, err := Parse(false) // false => If --help is set, help is printed but the program doesn't exit
+	s, err := Parse(commandParameters, false) // false => If --help is set, help is printed but the program doesn't exit
 	assert.NoError(t, err)
 	assert.True(t, s.Help)
 	assert.Equal(t, "test.yaml", s.ConfigFile)
 	assert.Equal(t, "debug", s.LogLevel)
 	assert.True(t, s.VerboseMode)
-	assert.Equal(t, "192.168.1.1", s.BindAddress)
-	assert.Equal(t, uint16(8080), s.BindPort)
+	assert.Equal(t, "192.168.1.1", s.BindServiceAddress)
+	assert.Equal(t, uint16(8080), s.BindServicePort)
 	assert.Equal(t, "/custom", s.ContextPath)
 	assert.Equal(t, "https://example.com", s.CORSAllowedOrigins)
 	assert.Equal(t, "GET,POST", s.CORSAllowedMethods)

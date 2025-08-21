@@ -39,8 +39,10 @@ type Settings struct {
 	LogLevel                 string
 	VerboseMode              bool
 	DevMode                  bool
-	BindAddress              string
-	BindPort                 uint16
+	BindServiceAddress       string
+	BindServicePort          uint16
+	BindAdminAddress         string
+	BindAdminPort            uint16
 	ContextPath              string
 	CORSAllowedOrigins       string
 	CORSAllowedMethods       string
@@ -103,17 +105,29 @@ var (
 		value:     false,
 		usage:     "run in development mode; enables in-memory SQLite",
 	}
-	bindAddress = Setting{
-		name:      "bind-address",
+	bindServiceAddress = Setting{
+		name:      "bind-service-address",
 		shorthand: "a",
 		value:     "localhost",
-		usage:     "default bind address",
+		usage:     "bind service address",
 	}
-	bindPort = Setting{
-		name:      "bind-port",
+	bindServicePort = Setting{
+		name:      "bind-service-port",
 		shorthand: "p",
 		value:     uint16(8080),
-		usage:     "default bind port",
+		usage:     "bind service port",
+	}
+	bindAdminAddress = Setting{
+		name:      "bind-admin-address",
+		shorthand: "A",
+		value:     "localhost",
+		usage:     "bind admin address",
+	}
+	bindAdminPort = Setting{
+		name:      "bind-admin-port",
+		shorthand: "P",
+		value:     uint16(8080),
+		usage:     "bind admin port",
 	}
 	contextPath = Setting{
 		name:      "context-path",
@@ -240,7 +254,7 @@ var (
 )
 
 var defaultCORSAllowedOrigins = func() string {
-	defaultBindPostString := strconv.Itoa(int(bindPort.value.(uint16)))
+	defaultBindPostString := strconv.Itoa(int(bindServicePort.value.(uint16)))
 	return strings.Join([]string{
 		httpScheme + localhost + ":" + defaultBindPostString,
 		httpScheme + ipv4Loopback + ":" + defaultBindPostString,
@@ -320,8 +334,10 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, verboseMode.value.(bool), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, devMode.value.(bool), devMode.usage)
-	pflag.StringP(bindAddress.name, bindAddress.shorthand, bindAddress.value.(string), bindAddress.usage)
-	pflag.Uint16P(bindPort.name, bindPort.shorthand, bindPort.value.(uint16), bindPort.usage)
+	pflag.StringP(bindServiceAddress.name, bindServiceAddress.shorthand, bindServiceAddress.value.(string), bindServiceAddress.usage)
+	pflag.Uint16P(bindServicePort.name, bindServicePort.shorthand, bindServicePort.value.(uint16), bindServicePort.usage)
+	pflag.StringP(bindAdminAddress.name, bindAdminAddress.shorthand, bindAdminAddress.value.(string), bindAdminAddress.usage)
+	pflag.Uint16P(bindAdminPort.name, bindAdminPort.shorthand, bindAdminPort.value.(uint16), bindAdminPort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)
 	pflag.StringP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, corsAllowedOrigins.value.(string), corsAllowedOrigins.usage)
 	pflag.StringP(corsAllowedMethods.name, corsAllowedMethods.shorthand, corsAllowedMethods.value.(string), corsAllowedMethods.usage)
@@ -367,8 +383,10 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		LogLevel:                 viper.GetString(logLevel.name),
 		VerboseMode:              viper.GetBool(verboseMode.name),
 		DevMode:                  viper.GetBool(devMode.name),
-		BindAddress:              viper.GetString(bindAddress.name),
-		BindPort:                 viper.GetUint16(bindPort.name),
+		BindServiceAddress:       viper.GetString(bindServiceAddress.name),
+		BindServicePort:          viper.GetUint16(bindServicePort.name),
+		BindAdminAddress:         viper.GetString(bindAdminAddress.name),
+		BindAdminPort:            viper.GetUint16(bindAdminPort.name),
 		ContextPath:              viper.GetString(contextPath.name),
 		CORSAllowedOrigins:       viper.GetString(corsAllowedOrigins.name),
 		CORSAllowedMethods:       viper.GetString(corsAllowedMethods.name),
@@ -411,8 +429,10 @@ func logSettings(s *Settings) {
 		log.Info("Log Level: ", s.LogLevel)
 		log.Info("Verbose mode: ", s.VerboseMode)
 		log.Info("Dev mode: ", s.DevMode)
-		log.Info("Bind Address: ", s.BindAddress)
-		log.Info("Bind Port: ", s.BindPort)
+		log.Info("Bind Service Address: ", s.BindServiceAddress)
+		log.Info("Bind Service Port: ", s.BindServicePort)
+		log.Info("Bind Admin Address: ", s.BindAdminAddress)
+		log.Info("Bind Admin Port: ", s.BindAdminPort)
 		log.Info("Context Path: ", s.ContextPath)
 		log.Info("CORS Allowed Origins: ", s.CORSAllowedOrigins)
 		log.Info("CORS Allowed Methods: ", s.CORSAllowedMethods)
