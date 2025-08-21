@@ -201,6 +201,8 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		`,
 	}))
 	var stopServer func()
+
+	// TODO bind readyz+livenessz+shutdown APIs to admin address:port
 	app.Post("/api/internal/shutdown", func(c *fiber.Ctx) error {
 		telemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if stopServer != nil {
