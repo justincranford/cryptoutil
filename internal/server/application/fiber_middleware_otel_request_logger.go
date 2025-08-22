@@ -4,11 +4,13 @@ import (
 	"log/slog"
 	"time"
 
+	telemetryService "cryptoutil/internal/common/telemetry"
+
 	"github.com/gofiber/fiber/v2"
 	"go.opentelemetry.io/otel/trace"
 )
 
-func otelFiberRequestLoggerMiddleware(logger *slog.Logger) fiber.Handler {
+func otelFiberRequestLoggerMiddleware(telemetryService *telemetryService.TelemetryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now().UTC()
 		err := c.Next()
@@ -29,7 +31,7 @@ func otelFiberRequestLoggerMiddleware(logger *slog.Logger) fiber.Handler {
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
 		}
-		logger.Info("responded", args...)
+		telemetryService.Slogger.Info("responded", args...)
 		return err
 	}
 }

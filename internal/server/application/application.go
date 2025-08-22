@@ -161,7 +161,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		requestid.New(),
 		logger.New(), // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
 		otelFiberTelemetryMiddleware(telemetryService, settings),
-		otelFiberRequestLoggerMiddleware(telemetryService.Slogger),
+		otelFiberRequestLoggerMiddleware(telemetryService),
 		ipFilterMiddleware(settings),
 		ipRateLimiterMiddleware(settings),
 		httpGetCacheControlMiddleware(),
