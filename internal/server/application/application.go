@@ -44,6 +44,9 @@ const livenessRequestTimeout = 3 * time.Second
 const serverShutdownStartTimeout = 50 * time.Millisecond
 const serverShutdownFinishTimeout = 3 * time.Second
 const apiAdminShutdownPath = "/api/admin/shutdown"
+const fiberAppIdKey = "fiberAppId"
+const fiberAppIdService = "service"
+const fiberAppIdAdmin = "admin"
 
 var ready atomic.Bool
 
@@ -165,6 +168,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	}
 
 	serviceFiberApp := fiber.New(fiber.Config{Immutable: true})
+	serviceFiberApp.Use(setFiberAppId(fiberAppIdService))
 	for _, middleware := range commonMiddlewares {
 		serviceFiberApp.Use(middleware)
 	}
@@ -183,6 +187,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 
 	var stopServer func() // circular dependency: adminFiberApp -> stopServer -> adminFiberApp
 	adminFiberApp := fiber.New(fiber.Config{Immutable: true})
+	adminFiberApp.Use(setFiberAppId(fiberAppIdAdmin))
 	for _, middleware := range commonMiddlewares {
 		adminFiberApp.Use(middleware)
 	}
@@ -285,6 +290,13 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 	}
 }
 
+func setFiberAppId(fiberAppIdValue string) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		c.Locals(fiberAppIdKey, fiberAppIdValue)
+		return c.Next()
+	}
+}
+
 func otelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
 	return otelfiber.Middleware(
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
@@ -319,27 +331,35 @@ func ipFilterMiddleware(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) 
 	}
 
 	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
-		clientIP := c.IP()
-		parsedIP := net.ParseIP(clientIP)
-		if parsedIP == nil {
-			log.Debug("Invalid IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
-			return c.Status(fiber.StatusForbidden).SendString("Invalid IP format")
-		} else if _, allowed := allowedIPs[parsedIP.String()]; allowed {
-			if settings.VerboseMode {
-				log.Debug("Allowed IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
-			}
-			return c.Next() // IP is contained in the allowed IPs set
-		}
-		for _, cidr := range allowedCIDRs {
-			if cidr.Contains(parsedIP) {
+		switch c.Locals(fiberAppIdKey) {
+		case fiberAppIdService: // Apply IP/CIDR filtering only for service app requests
+			clientIP := c.IP()
+			parsedIP := net.ParseIP(clientIP)
+			if parsedIP == nil {
+				log.Debug("Invalid IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+				return c.Status(fiber.StatusForbidden).SendString("Invalid IP format")
+			} else if _, allowed := allowedIPs[parsedIP.String()]; allowed {
 				if settings.VerboseMode {
-					log.Debug("Allowed CIDR: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+					log.Debug("Allowed IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
 				}
-				return c.Next() // IP is contained in minGenreID of the allowed CIDRs
+				return c.Next() // IP is contained in the allowed IPs set
 			}
+			for _, cidr := range allowedCIDRs {
+				if cidr.Contains(parsedIP) {
+					if settings.VerboseMode {
+						log.Debug("Allowed CIDR: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+					}
+					return c.Next() // IP is contained in minGenreID of the allowed CIDRs
+				}
+			}
+			log.Debug("Access denied: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			return c.Status(fiber.StatusForbidden).SendString("Access denied")
+		case fiberAppIdAdmin: // Skip IP/CIDR filtering
+			return c.Next()
+		default:
+			log.Error("Unexpected app ID:", c.Locals(fiberAppIdKey))
+			return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 		}
-		log.Debug("Access denied: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
-		return c.Status(fiber.StatusForbidden).SendString("Access denied")
 	}
 }
 
