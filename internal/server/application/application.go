@@ -16,6 +16,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+	telemetryService "cryptoutil/internal/common/telemetry"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
@@ -26,7 +27,6 @@ import (
 
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
@@ -162,8 +162,8 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		logger.New(), // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
 		otelFiberTelemetryMiddleware(telemetryService, settings),
 		otelFiberRequestLoggerMiddleware(telemetryService),
-		ipFilterMiddleware(settings),
-		ipRateLimiterMiddleware(settings),
+		ipFilterMiddleware(telemetryService, settings),
+		ipRateLimiterMiddleware(telemetryService, settings),
 		httpGetCacheControlMiddleware(),
 	}
 
@@ -305,24 +305,24 @@ func otelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Telemetr
 	)
 }
 
-func ipFilterMiddleware(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
+func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
 	if settings.AllowedIPs != "" {
-		for _, ip := range strings.Split(settings.AllowedIPs, ",") {
-			parsedIP := net.ParseIP(ip)
+		for _, allowedIP := range strings.Split(settings.AllowedIPs, ",") {
+			parsedIP := net.ParseIP(allowedIP)
 			if parsedIP == nil {
-				log.Fatal("Invalid IP address:", ip)
+				telemetryService.Slogger.Error("invalid allowed IP address:", "IP", allowedIP)
 			}
-			allowedIPs[ip] = true
+			allowedIPs[allowedIP] = true
 		}
 	}
 
 	var allowedCIDRs []*net.IPNet
 	if settings.AllowedCIDRs != "" {
-		for _, cidr := range strings.Split(settings.AllowedCIDRs, ",") {
-			_, network, err := net.ParseCIDR(cidr)
+		for _, allowedCIDR := range strings.Split(settings.AllowedCIDRs, ",") {
+			_, network, err := net.ParseCIDR(allowedCIDR)
 			if err != nil {
-				log.Fatal("Invalid CIDR:", cidr)
+				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, "error", err)
 			}
 			allowedCIDRs = append(allowedCIDRs, network)
 		}
@@ -334,34 +334,34 @@ func ipFilterMiddleware(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) 
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
 			if parsedIP == nil {
-				log.Debug("Invalid IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+				telemetryService.Slogger.Debug("invalid IP", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 				return c.Status(fiber.StatusForbidden).SendString("Invalid IP format")
 			} else if _, allowed := allowedIPs[parsedIP.String()]; allowed {
 				if settings.VerboseMode {
-					log.Debug("Allowed IP: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+					telemetryService.Slogger.Debug("Allowed IP:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 				}
 				return c.Next() // IP is contained in the allowed IPs set
 			}
 			for _, cidr := range allowedCIDRs {
 				if cidr.Contains(parsedIP) {
 					if settings.VerboseMode {
-						log.Debug("Allowed CIDR: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+						telemetryService.Slogger.Debug("Allowed CIDR:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 					}
 					return c.Next() // IP is contained in minGenreID of the allowed CIDRs
 				}
 			}
-			log.Debug("Access denied: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", clientIP, ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			telemetryService.Slogger.Debug("Access denied:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 			return c.Status(fiber.StatusForbidden).SendString("Access denied")
 		case fiberAppIdAdmin: // Skip IP/CIDR filtering
 			return c.Next()
 		default:
-			log.Error("Unexpected app ID:", c.Locals(fiberAppIdKey))
+			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIdKey))
 			return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 		}
 	}
 }
 
-func ipRateLimiterMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
+func ipRateLimiterMiddleware(telemetryService *telemetryService.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
 	return limiter.New(limiter.Config{ // Mitigate DOS by throttling clients
 		Max:        int(settings.IPRateLimit),
 		Expiration: time.Second,
@@ -369,7 +369,7 @@ func ipRateLimiterMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler 
 			return c.IP() // throttle by IP, could be improved in future (e.g. append JWTClaim.sub or JWTClaim.tenantid)
 		},
 		LimitReached: func(c *fiber.Ctx) error {
-			log.Warn("Rate limited: #=", c.Locals("requestid"), ", method=", c.Method(), ", IP=", c.IP(), ", URL=", c.OriginalURL(), " Headers=", c.GetReqHeaders())
+			telemetryService.Slogger.Warn("Rate limit exceeded", "requestid", c.Locals("requestid"), "method", c.Method(), "IP", c.IP(), "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 			return c.Status(fiber.StatusTooManyRequests).SendString("Rate limit exceeded")
 		},
 	})
