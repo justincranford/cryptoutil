@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"io"
 	"net"
 	"net/http"
@@ -168,37 +169,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		TryItOutEnabled:        true,
 		DisplayRequestDuration: true,
 		ShowCommonExtensions:   true,
-		// Add custom JavaScript to inject CSRF token into all non-GET requests
-		CustomScript: `
-			// Wait for Swagger UI to fully load
-			const interval = setInterval(function() {
-				if (window.ui) {
-					clearInterval(interval);
-					
-					// Add CSRF token to all non-GET requests
-					const originalFetch = window.fetch;
-					window.fetch = function(url, options) {
-						options = options || {};
-						
-						if (options && options.method && options.method !== 'GET') {
-							options.headers = options.headers || {};
-							// Extract CSRF token from cookies - using default cookie name "_csrf"
-							const cookies = document.cookie.split(';');
-							for (let i = 0; i < cookies.length; i++) {
-								const cookie = cookies[i].trim();
-								if (cookie.startsWith('_csrf=')) {
-									options.headers['X-CSRF-Token'] = cookie.substring('_csrf='.length);
-									console.log('Added CSRF token to request');
-									break;
-								}
-							}
-						}
-						return originalFetch.call(this, url, options);
-					};
-					console.log('CSRF token handling enabled for Swagger UI');
-				}
-			}, 100);
-		`,
+		CustomScript:           swaggerUICustomCSRFScript, // Custom JavaScript to inject CSRF token into all non-GET requests
 	}))
 	var stopServer func()
 
@@ -387,3 +358,34 @@ func cacheControlMiddleware() func(c *fiber.Ctx) error {
 		return c.Next()
 	}
 }
+
+const swaggerUICustomCSRFScript = template.JS(`
+		// Wait for Swagger UI to fully load
+		const interval = setInterval(function() {
+			if (window.ui) {
+				clearInterval(interval);
+				
+				// Add CSRF token to all non-GET requests
+				const originalFetch = window.fetch;
+				window.fetch = function(url, options) {
+					options = options || {};
+					
+					if (options && options.method && options.method !== 'GET') {
+						options.headers = options.headers || {};
+						// Extract CSRF token from cookies - using default cookie name "_csrf"
+						const cookies = document.cookie.split(';');
+						for (let i = 0; i < cookies.length; i++) {
+							const cookie = cookies[i].trim();
+							if (cookie.startsWith('_csrf=')) {
+								options.headers['X-CSRF-Token'] = cookie.substring('_csrf='.length);
+								console.log('Added CSRF token to request');
+								break;
+							}
+						}
+					}
+					return originalFetch.call(this, url, options);
+				};
+				console.log('CSRF token handling enabled for Swagger UI');
+			}
+		}, 100);
+	`)
