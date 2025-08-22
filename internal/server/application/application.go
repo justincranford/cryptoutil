@@ -216,9 +216,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 func startServerFunc(serviceBinding string, adminBinding string, serviceFiberApp *fiber.App, adminFiberApp *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
 	return func() {
 		telemetryService.Slogger.Debug("starting fiber listeners")
-		ready.Store(true)
 
-		// Start the admin app in a goroutine since it's secondary
 		go func() {
 			telemetryService.Slogger.Debug("starting admin fiber listener", "binding", adminBinding)
 			if err := adminFiberApp.Listen(adminBinding); err != nil {
@@ -226,13 +224,13 @@ func startServerFunc(serviceBinding string, adminBinding string, serviceFiberApp
 			}
 			telemetryService.Slogger.Debug("admin fiber listener stopped")
 		}()
-
-		// Main service app - blocks until stopped
 		telemetryService.Slogger.Debug("starting service fiber listener", "binding", serviceBinding)
 		if err := serviceFiberApp.Listen(serviceBinding); err != nil {
 			telemetryService.Slogger.Error("failed to start service fiber listener", "error", err)
 		}
 		telemetryService.Slogger.Debug("service fiber listener stopped")
+
+		ready.Store(true)
 	}
 }
 
@@ -244,16 +242,16 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlR
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
 		defer cancel() // perform shutdown respecting timeout
 
-		// Shutdown both fiber apps
-		if adminFiberApp != nil {
-			if err := adminFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				telemetryService.Slogger.Error("failed to stop admin fiber server", "error", err)
-			}
-		}
-
 		if serviceFiberApp != nil {
+			telemetryService.Slogger.Debug("shutting down service fiber app")
 			if err := serviceFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
 				telemetryService.Slogger.Error("failed to stop service fiber server", "error", err)
+			}
+		}
+		if adminFiberApp != nil {
+			telemetryService.Slogger.Debug("shutting down admin fiber app")
+			if err := adminFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
+				telemetryService.Slogger.Error("failed to stop admin fiber server", "error", err)
 			}
 		}
 
