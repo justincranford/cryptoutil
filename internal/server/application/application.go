@@ -172,7 +172,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	for _, middleware := range commonMiddlewares {
 		serviceFiberApp.Use(middleware)
 	}
-	serviceFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing
+	serviceFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
 	serviceFiberApp.Use(helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
 	serviceFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
 	serviceFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
