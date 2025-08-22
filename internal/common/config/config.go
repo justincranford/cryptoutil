@@ -126,7 +126,7 @@ var (
 	bindAdminPort = Setting{
 		name:      "bind-admin-port",
 		shorthand: "P",
-		value:     uint16(8080),
+		value:     uint16(9090),
 		usage:     "bind admin port",
 	}
 	contextPath = Setting{
