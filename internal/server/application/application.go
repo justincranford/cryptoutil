@@ -43,11 +43,12 @@ const shutdownRequestTimeout = 5 * time.Second
 const livenessRequestTimeout = 3 * time.Second
 const serverShutdownStartTimeout = 50 * time.Millisecond
 const serverShutdownFinishTimeout = 3 * time.Second
+const apiAdminShutdownPath = "/api/admin/shutdown"
 
 var ready atomic.Bool
 
 func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	shutdownEndpoint := fmt.Sprintf("http://%s:%d/api/admin/shutdown", settings.BindAdminAddress, settings.BindAdminPort)
+	shutdownEndpoint := fmt.Sprintf("http://%s:%d%s", settings.BindAdminAddress, settings.BindAdminPort, apiAdminShutdownPath)
 	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), shutdownRequestTimeout)
 	defer shutdownRequestCancel()
 	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, shutdownEndpoint, nil)
@@ -137,43 +138,6 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
-	fiberHandlerOpenAPISpec, err := cryptoutilOpenapiServer.FiberHandlerOpenAPISpec()
-	if err != nil {
-		telemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
-	}
-
-	otelMiddleware := otelfiber.Middleware(
-		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
-		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
-		otelfiber.WithPropagators(*telemetryService.TextMapPropagator),
-		otelfiber.WithServerName(settings.BindServiceAddress),
-		otelfiber.WithPort(int(settings.BindServicePort)),
-	)
-
-	app := fiber.New(fiber.Config{Immutable: true})
-	app.Use(recover.New())
-	app.Use(requestid.New())
-	app.Use(logger.New()) // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
-	app.Use(fiberOtelLoggerMiddleware(telemetryService.Slogger))
-	app.Use(ipFilterMiddleware(settings))
-	app.Use(ipRateLimiterMiddleware(settings))
-	app.Use(cacheControlMiddleware())
-	app.Use(corsMiddleware(settings)) // Cross-Origin Resource Sharing
-	app.Use(helmet.New())             // Cross-Site Scripting (XSS)
-	app.Use(csrfMiddleware(settings)) // Cross-Site Request Forgery (CSRF)
-	app.Use(otelMiddleware)
-	app.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
-	app.Get("/swagger/*", swagger.New(swagger.Config{
-		Title:                  "Cryptoutil",
-		TryItOutEnabled:        true,
-		DisplayRequestDuration: true,
-		ShowCommonExtensions:   true,
-		CustomScript:           swaggerUICustomCSRFScript, // Custom JavaScript to inject CSRF token into all non-GET requests
-	}))
-	var stopServer func()
-
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(businessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
 	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
@@ -181,20 +145,49 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 		},
 	}
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(app, openapiStrictHandler, fiberServerOptions)
 
-	// Create a separate admin app for administrative endpoints (/livez, /readyz, /api/admin/shutdown)
-	adminApp := fiber.New(fiber.Config{Immutable: true})
-	adminApp.Use(recover.New())
-	adminApp.Use(requestid.New())
-	adminApp.Use(logger.New()) // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
-	adminApp.Use(healthcheck.New())
-	app.Use(ipFilterMiddleware(settings))
-	app.Use(ipRateLimiterMiddleware(settings))
-	app.Use(cacheControlMiddleware())
-	adminApp.Use(fiberOtelLoggerMiddleware(telemetryService.Slogger))
-	app.Use(otelMiddleware)
-	adminApp.Post("/api/admin/shutdown", func(c *fiber.Ctx) error {
+	fiberHandlerOpenAPISpec, err := cryptoutilOpenapiServer.FiberHandlerOpenAPISpec()
+	if err != nil {
+		telemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
+		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, nil, nil)()
+		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
+	}
+
+	commonMiddlewares := []fiber.Handler{
+		recover.New(),
+		requestid.New(),
+		logger.New(), // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
+		otelFiberTelemetryMiddleware(telemetryService, settings),
+		otelFiberRequestLoggerMiddleware(telemetryService.Slogger),
+		ipFilterMiddleware(settings),
+		ipRateLimiterMiddleware(settings),
+		httpGetCacheControlMiddleware(),
+	}
+
+	serviceFiberApp := fiber.New(fiber.Config{Immutable: true})
+	for _, middleware := range commonMiddlewares {
+		serviceFiberApp.Use(middleware)
+	}
+	serviceFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing
+	serviceFiberApp.Use(helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
+	serviceFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
+	serviceFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
+	serviceFiberApp.Get("/swagger/*", swagger.New(swagger.Config{
+		Title:                  "Cryptoutil",
+		TryItOutEnabled:        true,
+		DisplayRequestDuration: true,
+		ShowCommonExtensions:   true,
+		CustomScript:           swaggerUICustomCSRFScript, // Custom JavaScript to inject CSRF token into all non-GET requests
+	}))
+	cryptoutilOpenapiServer.RegisterHandlersWithOptions(serviceFiberApp, openapiStrictHandler, fiberServerOptions)
+
+	var stopServer func() // circular dependency: adminFiberApp -> stopServer -> adminFiberApp
+	adminFiberApp := fiber.New(fiber.Config{Immutable: true})
+	for _, middleware := range commonMiddlewares {
+		adminFiberApp.Use(middleware)
+	}
+	adminFiberApp.Use(healthcheck.New()) // /livez, /readyz
+	adminFiberApp.Post(apiAdminShutdownPath, func(c *fiber.Ctx) error {
 		telemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if stopServer != nil {
 			go func() {
@@ -207,15 +200,15 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 
 	serviceBinding := fmt.Sprintf("%s:%d", settings.BindServiceAddress, settings.BindServicePort)
 	adminBinding := fmt.Sprintf("%s:%d", settings.BindAdminAddress, settings.BindAdminPort)
-	startServer := startServerFunc(serviceBinding, adminBinding, app, adminApp, telemetryService)
-	stopServer = stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, app, adminApp)
+	startServer := startServerFunc(serviceBinding, adminBinding, serviceFiberApp, adminFiberApp, telemetryService)
+	stopServer = stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, serviceFiberApp, adminFiberApp)
 
 	go stopServerSignalFunc(telemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
 
 	return startServer, stopServer, nil
 }
 
-func startServerFunc(serviceBinding string, adminBinding string, app *fiber.App, adminApp *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
+func startServerFunc(serviceBinding string, adminBinding string, serviceFiberApp *fiber.App, adminFiberApp *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
 	return func() {
 		telemetryService.Slogger.Debug("starting fiber listeners")
 		ready.Store(true)
@@ -223,7 +216,7 @@ func startServerFunc(serviceBinding string, adminBinding string, app *fiber.App,
 		// Start the admin app in a goroutine since it's secondary
 		go func() {
 			telemetryService.Slogger.Debug("starting admin fiber listener", "binding", adminBinding)
-			if err := adminApp.Listen(adminBinding); err != nil {
+			if err := adminFiberApp.Listen(adminBinding); err != nil {
 				telemetryService.Slogger.Error("failed to start admin fiber listener", "error", err)
 			}
 			telemetryService.Slogger.Debug("admin fiber listener stopped")
@@ -231,14 +224,14 @@ func startServerFunc(serviceBinding string, adminBinding string, app *fiber.App,
 
 		// Main service app - blocks until stopped
 		telemetryService.Slogger.Debug("starting service fiber listener", "binding", serviceBinding)
-		if err := app.Listen(serviceBinding); err != nil {
+		if err := serviceFiberApp.Listen(serviceBinding); err != nil {
 			telemetryService.Slogger.Error("failed to start service fiber listener", "error", err)
 		}
 		telemetryService.Slogger.Debug("service fiber listener stopped")
 	}
 }
 
-func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, barrierService *cryptoutilBarrierService.BarrierService, app *fiber.App, adminApp *fiber.App) func() {
+func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, barrierService *cryptoutilBarrierService.BarrierService, serviceFiberApp *fiber.App, adminFiberApp *fiber.App) func() {
 	return func() {
 		if telemetryService != nil {
 			telemetryService.Slogger.Debug("stopping servers")
@@ -247,14 +240,14 @@ func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlR
 		defer cancel() // perform shutdown respecting timeout
 
 		// Shutdown both fiber apps
-		if adminApp != nil {
-			if err := adminApp.ShutdownWithContext(shutdownCtx); err != nil {
+		if adminFiberApp != nil {
+			if err := adminFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
 				telemetryService.Slogger.Error("failed to stop admin fiber server", "error", err)
 			}
 		}
 
-		if app != nil {
-			if err := app.ShutdownWithContext(shutdownCtx); err != nil {
+		if serviceFiberApp != nil {
+			if err := serviceFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
 				telemetryService.Slogger.Error("failed to stop service fiber server", "error", err)
 			}
 		}
@@ -290,6 +283,16 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 		telemetryService.Slogger.Warn("received stop server signal")
 		stopServerFunc()
 	}
+}
+
+func otelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
+	return otelfiber.Middleware(
+		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
+		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
+		otelfiber.WithPropagators(*telemetryService.TextMapPropagator),
+		otelfiber.WithServerName(settings.BindServiceAddress),
+		otelfiber.WithPort(int(settings.BindServicePort)),
+	)
 }
 
 func ipFilterMiddleware(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
@@ -380,7 +383,7 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	})
 }
 
-func cacheControlMiddleware() func(c *fiber.Ctx) error {
+func httpGetCacheControlMiddleware() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error { // Disable caching of HTTP GET responses
 		c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
 		c.Set("Pragma", "no-cache")
