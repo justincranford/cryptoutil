@@ -29,6 +29,9 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, csrfTokenName.value, s.CSRFTokenName)
 	assert.Equal(t, csrfTokenSameSite.value, s.CSRFTokenSameSite)
 	assert.Equal(t, csrfTokenMaxAge.value, s.CSRFTokenMaxAge)
+	assert.Equal(t, csrfTokenCookieSecure.value, s.CSRFTokenCookieSecure)
+	assert.Equal(t, csrfTokenCookieHTTPOnly.value, s.CSRFTokenCookieHTTPOnly)
+	assert.Equal(t, csrfTokenCookieSessionOnly.value, s.CSRFTokenCookieSessionOnly)
 	assert.Equal(t, ipRateLimit.value, s.IPRateLimit)
 	assert.Equal(t, allowedIps.value, s.AllowedIPs)
 	assert.Equal(t, allowedCidrs.value, s.AllowedCIDRs)
@@ -63,6 +66,9 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--csrf-token-name=custom_csrf",
 		"--csrf-token-same-site=Lax",
 		"--csrf-token-max-age=24h",
+		"--csrf-token-cookie-secure=false",
+		"--csrf-token-cookie-http-only=false",
+		"--csrf-token-cookie-session-only=false",
 		"--rate-limit=100",
 		"--allowed-ips=192.168.1.100",
 		"--allowed-cidrs=10.0.0.0/8",
@@ -95,6 +101,9 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "custom_csrf", s.CSRFTokenName)
 	assert.Equal(t, "Lax", s.CSRFTokenSameSite)
 	assert.Equal(t, 24*time.Hour, s.CSRFTokenMaxAge)
+	assert.Equal(t, false, s.CSRFTokenCookieSecure)
+	assert.Equal(t, false, s.CSRFTokenCookieHTTPOnly)
+	assert.Equal(t, false, s.CSRFTokenCookieSessionOnly)
 	assert.Equal(t, uint16(100), s.IPRateLimit)
 	assert.Equal(t, "192.168.1.100", s.AllowedIPs)
 	assert.Equal(t, "10.0.0.0/8", s.AllowedCIDRs)

@@ -386,18 +386,18 @@ func corsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 
 func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	// TODO update tests to enable CSRF protection in dev mode
-	if settings.DevMode { // NOOP in dev mode
-		return func(c *fiber.Ctx) error {
-			return c.Next()
-		}
-	}
+	// if settings.DevMode { // NOOP in dev mode
+	// 	return func(c *fiber.Ctx) error {
+	// 		return c.Next()
+	// 	}
+	// }
 	return csrf.New(csrf.Config{ // Cross-Site Request Forgery (CSRF)
-		CookieName:        settings.CSRFTokenName,     // cryptoutilConfig.defaultCSRFTokenName
-		CookieSameSite:    settings.CSRFTokenSameSite, // cryptoutilConfig.defaultCSRFTokenSameSite
-		Expiration:        settings.CSRFTokenMaxAge,   // cryptoutilConfig.defaultCSRFTokenMaxAge
-		CookieSecure:      false,                      // TODO Add to settings
-		CookieHTTPOnly:    false,                      // TODO Add to settings
-		CookieSessionOnly: false,                      // TODO Add to settings
+		CookieName:        settings.CSRFTokenName,              // cryptoutilConfig.defaultCSRFTokenName
+		CookieSameSite:    settings.CSRFTokenSameSite,          // cryptoutilConfig.defaultCSRFTokenSameSite
+		Expiration:        settings.CSRFTokenMaxAge,            // cryptoutilConfig.defaultCSRFTokenMaxAge
+		CookieSecure:      settings.CSRFTokenCookieSecure,      // cryptoutilConfig.defaultCSRFTokenCookieSecure
+		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,    // cryptoutilConfig.defaultCSRFTokenCookieHTTPOnly
+		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly, // cryptoutilConfig.defaultCSRFTokenCookieSessionOnly
 	})
 }
 

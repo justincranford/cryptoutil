@@ -33,36 +33,39 @@ const (
 )
 
 type Settings struct {
-	SubCommand               string
-	Help                     bool
-	ConfigFile               string
-	LogLevel                 string
-	VerboseMode              bool
-	DevMode                  bool
-	BindServiceAddress       string
-	BindServicePort          uint16
-	BindAdminAddress         string
-	BindAdminPort            uint16
-	ContextPath              string
-	CORSAllowedOrigins       string
-	CORSAllowedMethods       string
-	CORSAllowedHeaders       string
-	CORSMaxAge               uint16
-	CSRFTokenName            string
-	CSRFTokenSameSite        string
-	CSRFTokenMaxAge          time.Duration
-	IPRateLimit              uint16
-	AllowedIPs               string
-	AllowedCIDRs             string
-	DatabaseContainer        string
-	DatabaseURL              string
-	DatabaseInitTotalTimeout time.Duration
-	DatabaseInitRetryWait    time.Duration
-	OTLP                     bool
-	OTLPConsole              bool
-	OTLPScope                string
-	UnsealMode               string
-	UnsealFiles              []string
+	SubCommand                 string
+	Help                       bool
+	ConfigFile                 string
+	LogLevel                   string
+	VerboseMode                bool
+	DevMode                    bool
+	BindServiceAddress         string
+	BindServicePort            uint16
+	BindAdminAddress           string
+	BindAdminPort              uint16
+	ContextPath                string
+	CORSAllowedOrigins         string
+	CORSAllowedMethods         string
+	CORSAllowedHeaders         string
+	CORSMaxAge                 uint16
+	CSRFTokenName              string
+	CSRFTokenSameSite          string
+	CSRFTokenMaxAge            time.Duration
+	CSRFTokenCookieSecure      bool
+	CSRFTokenCookieHTTPOnly    bool
+	CSRFTokenCookieSessionOnly bool
+	IPRateLimit                uint16
+	AllowedIPs                 string
+	AllowedCIDRs               string
+	DatabaseContainer          string
+	DatabaseURL                string
+	DatabaseInitTotalTimeout   time.Duration
+	DatabaseInitRetryWait      time.Duration
+	OTLP                       bool
+	OTLPConsole                bool
+	OTLPScope                  string
+	UnsealMode                 string
+	UnsealFiles                []string
 }
 
 // Setting Input values for pflag.*P(name, shortname, value, usage)
@@ -176,6 +179,24 @@ var (
 		shorthand: "M",
 		value:     defaultCSRFTokenMaxAge,
 		usage:     "CSRF token max age (expiration)",
+	}
+	csrfTokenCookieSecure = Setting{
+		name:      "csrf-token-cookie-secure",
+		shorthand: "R",
+		value:     false, // TODO Change to true after implementing HTTPS
+		usage:     "CSRF token cookie Secure attribute",
+	}
+	csrfTokenCookieHTTPOnly = Setting{
+		name:      "csrf-token-cookie-http-only",
+		shorthand: "J",
+		value:     false, // False needed for Swagger UI submit CSRF workaround
+		usage:     "CSRF token cookie HttpOnly attribute",
+	}
+	csrfTokenCookieSessionOnly = Setting{
+		name:      "csrf-token-cookie-session-only",
+		shorthand: "E",
+		value:     true,
+		usage:     "CSRF token cookie SessionOnly attribute",
 	}
 	ipRateLimit = Setting{
 		name:      "rate-limit",
@@ -346,6 +367,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, csrfTokenName.value.(string), csrfTokenName.usage)
 	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, csrfTokenSameSite.value.(string), csrfTokenSameSite.usage)
 	pflag.DurationP(csrfTokenMaxAge.name, csrfTokenMaxAge.shorthand, csrfTokenMaxAge.value.(time.Duration), csrfTokenMaxAge.usage)
+	pflag.BoolP(csrfTokenCookieSecure.name, csrfTokenCookieSecure.shorthand, csrfTokenCookieSecure.value.(bool), csrfTokenCookieSecure.usage)
+	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, csrfTokenCookieHTTPOnly.value.(bool), csrfTokenCookieHTTPOnly.usage)
+	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, csrfTokenCookieSessionOnly.value.(bool), csrfTokenCookieSessionOnly.usage)
 	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, ipRateLimit.value.(uint16), ipRateLimit.usage)
 	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
 	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
@@ -377,36 +401,39 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	}
 
 	s := &Settings{
-		SubCommand:               subCommand,
-		Help:                     viper.GetBool(help.name),
-		ConfigFile:               viper.GetString(configFile.name),
-		LogLevel:                 viper.GetString(logLevel.name),
-		VerboseMode:              viper.GetBool(verboseMode.name),
-		DevMode:                  viper.GetBool(devMode.name),
-		BindServiceAddress:       viper.GetString(bindServiceAddress.name),
-		BindServicePort:          viper.GetUint16(bindServicePort.name),
-		BindAdminAddress:         viper.GetString(bindAdminAddress.name),
-		BindAdminPort:            viper.GetUint16(bindAdminPort.name),
-		ContextPath:              viper.GetString(contextPath.name),
-		CORSAllowedOrigins:       viper.GetString(corsAllowedOrigins.name),
-		CORSAllowedMethods:       viper.GetString(corsAllowedMethods.name),
-		CORSAllowedHeaders:       viper.GetString(corsAllowedHeaders.name),
-		CORSMaxAge:               viper.GetUint16(corsMaxAge.name),
-		CSRFTokenName:            viper.GetString(csrfTokenName.name),
-		CSRFTokenSameSite:        viper.GetString(csrfTokenSameSite.name),
-		CSRFTokenMaxAge:          viper.GetDuration(csrfTokenMaxAge.name),
-		IPRateLimit:              viper.GetUint16(ipRateLimit.name),
-		AllowedIPs:               viper.GetString(allowedIps.name),
-		AllowedCIDRs:             viper.GetString(allowedCidrs.name),
-		DatabaseContainer:        viper.GetString(databaseContainer.name),
-		DatabaseURL:              viper.GetString(databaseURL.name),
-		DatabaseInitTotalTimeout: viper.GetDuration(databaseInitTotalTimeout.name),
-		DatabaseInitRetryWait:    viper.GetDuration(databaseInitRetryWait.name),
-		OTLP:                     viper.GetBool(otlp.name),
-		OTLPConsole:              viper.GetBool(otlpConsole.name),
-		OTLPScope:                viper.GetString(otlpScope.name),
-		UnsealMode:               viper.GetString(unsealMode.name),
-		UnsealFiles:              viper.GetStringSlice(unsealFiles.name),
+		SubCommand:                 subCommand,
+		Help:                       viper.GetBool(help.name),
+		ConfigFile:                 viper.GetString(configFile.name),
+		LogLevel:                   viper.GetString(logLevel.name),
+		VerboseMode:                viper.GetBool(verboseMode.name),
+		DevMode:                    viper.GetBool(devMode.name),
+		BindServiceAddress:         viper.GetString(bindServiceAddress.name),
+		BindServicePort:            viper.GetUint16(bindServicePort.name),
+		BindAdminAddress:           viper.GetString(bindAdminAddress.name),
+		BindAdminPort:              viper.GetUint16(bindAdminPort.name),
+		ContextPath:                viper.GetString(contextPath.name),
+		CORSAllowedOrigins:         viper.GetString(corsAllowedOrigins.name),
+		CORSAllowedMethods:         viper.GetString(corsAllowedMethods.name),
+		CORSAllowedHeaders:         viper.GetString(corsAllowedHeaders.name),
+		CORSMaxAge:                 viper.GetUint16(corsMaxAge.name),
+		CSRFTokenName:              viper.GetString(csrfTokenName.name),
+		CSRFTokenSameSite:          viper.GetString(csrfTokenSameSite.name),
+		CSRFTokenMaxAge:            viper.GetDuration(csrfTokenMaxAge.name),
+		CSRFTokenCookieSecure:      viper.GetBool(csrfTokenCookieSecure.name),
+		CSRFTokenCookieHTTPOnly:    viper.GetBool(csrfTokenCookieHTTPOnly.name),
+		CSRFTokenCookieSessionOnly: viper.GetBool(csrfTokenCookieSessionOnly.name),
+		IPRateLimit:                viper.GetUint16(ipRateLimit.name),
+		AllowedIPs:                 viper.GetString(allowedIps.name),
+		AllowedCIDRs:               viper.GetString(allowedCidrs.name),
+		DatabaseContainer:          viper.GetString(databaseContainer.name),
+		DatabaseURL:                viper.GetString(databaseURL.name),
+		DatabaseInitTotalTimeout:   viper.GetDuration(databaseInitTotalTimeout.name),
+		DatabaseInitRetryWait:      viper.GetDuration(databaseInitRetryWait.name),
+		OTLP:                       viper.GetBool(otlp.name),
+		OTLPConsole:                viper.GetBool(otlpConsole.name),
+		OTLPScope:                  viper.GetString(otlpScope.name),
+		UnsealMode:                 viper.GetString(unsealMode.name),
+		UnsealFiles:                viper.GetStringSlice(unsealFiles.name),
 	}
 	logSettings(s)
 
@@ -441,6 +468,9 @@ func logSettings(s *Settings) {
 		log.Info("CSRF Token Name: ", s.CSRFTokenName)
 		log.Info("CSRF Token SameSite: ", s.CSRFTokenSameSite)
 		log.Info("CSRF Token Max Age: ", s.CSRFTokenMaxAge)
+		log.Info("CSRF Token Cookie Secure: ", s.CSRFTokenCookieSecure)
+		log.Info("CSRF Token Cookie HTTPOnly: ", s.CSRFTokenCookieHTTPOnly)
+		log.Info("CSRF Token Cookie SessionOnly: ", s.CSRFTokenCookieSessionOnly)
 		log.Info("IP Rate Limit: ", s.IPRateLimit)
 		log.Info("Allowed IPs: ", s.AllowedIPs)
 		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
