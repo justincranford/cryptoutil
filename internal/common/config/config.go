@@ -291,12 +291,12 @@ var (
 var defaultCORSAllowedOrigins = func() string {
 	defaultBindPostString := strconv.Itoa(int(bindServicePort.value.(uint16)))
 	return strings.Join([]string{
-		httpProtocol + localhost + "://" + defaultBindPostString,
-		httpProtocol + ipv4Loopback + "://" + defaultBindPostString,
-		httpProtocol + ipv6Loopback + "://" + defaultBindPostString,
-		httpsProtocol + localhost + "://" + defaultBindPostString,
-		httpsProtocol + ipv4Loopback + "://" + defaultBindPostString,
-		httpsProtocol + ipv6Loopback + "://" + defaultBindPostString,
+		httpProtocol + "://" + localhost + ":" + defaultBindPostString,
+		httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
+		httpProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
+		httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
+		httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
+		httpsProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
 	}, ",")
 }()
 
