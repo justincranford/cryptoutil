@@ -18,9 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func verifyCertificateTemplate(t *testing.T, err error, rootTemplate *x509.Certificate) {
+func verifyCertificateTemplate(t *testing.T, err error, certTemplate *x509.Certificate) {
 	require.NoError(t, err, "Failed to create certificate template")
-	require.NotNil(t, rootTemplate, "Certificate template should not be nil")
+	require.NotNil(t, certTemplate, "Certificate template should not be nil")
 }
 
 func verifyCACertificate(t *testing.T, err error, cert *x509.Certificate, certDER []byte, certPEM []byte, expectedIssuerName string, expectedSubjectName string, expectedDuration time.Duration, expectedMaxPathLen int) {
