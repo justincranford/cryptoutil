@@ -308,8 +308,8 @@ func otelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Telemetr
 func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
 	if settings.AllowedIPs != "" {
-		for _, allowedIP := range strings.Split(settings.AllowedIPs, ",") {
-			parsedIP := net.ParseIP(allowedIP)
+		for allowedIP := range strings.SplitSeq(settings.AllowedIPs, ",") {
+			parsedIP := net.ParseIP(allowedIP) // IPv4 (e.g.  192.0.2.1"), IPv6 (e.g. 2001:db8::68), or IPv4-mapped IPv6 (e.g. ::ffff:192.0.2.1)
 			if parsedIP == nil {
 				telemetryService.Slogger.Error("invalid allowed IP address:", "IP", allowedIP)
 			}
@@ -319,8 +319,8 @@ func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, set
 
 	var allowedCIDRs []*net.IPNet
 	if settings.AllowedCIDRs != "" {
-		for _, allowedCIDR := range strings.Split(settings.AllowedCIDRs, ",") {
-			_, network, err := net.ParseCIDR(allowedCIDR)
+		for allowedCIDR := range strings.SplitSeq(settings.AllowedCIDRs, ",") {
+			_, network, err := net.ParseCIDR(allowedCIDR) // "192.0.2.1/24" => 192.0.2.1 (not useful) and 192.0.2.0/24 (useful)
 			if err != nil {
 				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, "error", err)
 			}
@@ -330,7 +330,7 @@ func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, set
 
 	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
 		switch c.Locals(fiberAppIdKey) {
-		case fiberAppIdService: // Apply IP/CIDR filtering only for service app requests
+		case fiberAppIdService: // Apply IP/CIDR filtering for service app requests
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
 			if parsedIP == nil {
@@ -347,12 +347,12 @@ func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, set
 					if settings.VerboseMode {
 						telemetryService.Slogger.Debug("Allowed CIDR:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 					}
-					return c.Next() // IP is contained in minGenreID of the allowed CIDRs
+					return c.Next() // IP is contained in the allowed CIDRs
 				}
 			}
 			telemetryService.Slogger.Debug("Access denied:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 			return c.Status(fiber.StatusForbidden).SendString("Access denied")
-		case fiberAppIdAdmin: // Skip IP/CIDR filtering
+		case fiberAppIdAdmin: // Skip IP/CIDR filtering for admin app requests
 			return c.Next()
 		default:
 			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIdKey))
