@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	httpScheme  = "http://"
-	httpsScheme = "https://"
+	httpProtocol  = "http"
+	httpsProtocol = "https"
 
 	localhost    = "localhost"
 	ipv4Loopback = "127.0.0.1"
@@ -39,8 +39,10 @@ type Settings struct {
 	LogLevel                   string
 	VerboseMode                bool
 	DevMode                    bool
+	BindServiceProtocol        string
 	BindServiceAddress         string
 	BindServicePort            uint16
+	BindAdminProtocol          string
 	BindAdminAddress           string
 	BindAdminPort              uint16
 	ContextPath                string
@@ -108,6 +110,12 @@ var (
 		value:     false,
 		usage:     "run in development mode; enables in-memory SQLite",
 	}
+	bindServiceProtocol = Setting{
+		name:      "bind-service-protocol",
+		shorthand: "t",
+		value:     httpProtocol, // TODO https
+		usage:     "bind service protocol (http or https)",
+	}
 	bindServiceAddress = Setting{
 		name:      "bind-service-address",
 		shorthand: "a",
@@ -119,6 +127,12 @@ var (
 		shorthand: "p",
 		value:     uint16(8080),
 		usage:     "bind service port",
+	}
+	bindAdminProtocol = Setting{
+		name:      "bind-admin-protocol",
+		shorthand: "T",          // Use unique shorthand
+		value:     httpProtocol, // TODO https
+		usage:     "bind admin protocol (http or https)",
 	}
 	bindAdminAddress = Setting{
 		name:      "bind-admin-address",
@@ -230,7 +244,7 @@ var (
 	}
 	databaseInitTotalTimeout = Setting{
 		name:      "database-init-total-timeout",
-		shorthand: "T",
+		shorthand: "Z",
 		value:     5 * time.Minute,
 		usage:     "database init total timeout",
 	}
@@ -277,12 +291,12 @@ var (
 var defaultCORSAllowedOrigins = func() string {
 	defaultBindPostString := strconv.Itoa(int(bindServicePort.value.(uint16)))
 	return strings.Join([]string{
-		httpScheme + localhost + ":" + defaultBindPostString,
-		httpScheme + ipv4Loopback + ":" + defaultBindPostString,
-		httpScheme + ipv6Loopback + ":" + defaultBindPostString,
-		httpsScheme + localhost + ":" + defaultBindPostString,
-		httpsScheme + ipv4Loopback + ":" + defaultBindPostString,
-		httpsScheme + ipv6Loopback + ":" + defaultBindPostString,
+		httpProtocol + localhost + "://" + defaultBindPostString,
+		httpProtocol + ipv4Loopback + "://" + defaultBindPostString,
+		httpProtocol + ipv6Loopback + "://" + defaultBindPostString,
+		httpsProtocol + localhost + "://" + defaultBindPostString,
+		httpsProtocol + ipv4Loopback + "://" + defaultBindPostString,
+		httpsProtocol + ipv6Loopback + "://" + defaultBindPostString,
 	}, ",")
 }()
 
@@ -306,6 +320,7 @@ var defaultCORSAllowedHeaders = func() string {
 		"Cache-Control",
 		"Pragma",
 		"Expires",
+		"_csrf",
 	}
 	return strings.Join(defaultHeaders, ",")
 }()
@@ -355,8 +370,10 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, verboseMode.value.(bool), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, devMode.value.(bool), devMode.usage)
+	pflag.StringP(bindServiceProtocol.name, bindServiceProtocol.shorthand, bindServiceProtocol.value.(string), bindServiceProtocol.usage)
 	pflag.StringP(bindServiceAddress.name, bindServiceAddress.shorthand, bindServiceAddress.value.(string), bindServiceAddress.usage)
 	pflag.Uint16P(bindServicePort.name, bindServicePort.shorthand, bindServicePort.value.(uint16), bindServicePort.usage)
+	pflag.StringP(bindAdminProtocol.name, bindAdminProtocol.shorthand, bindAdminProtocol.value.(string), bindAdminProtocol.usage)
 	pflag.StringP(bindAdminAddress.name, bindAdminAddress.shorthand, bindAdminAddress.value.(string), bindAdminAddress.usage)
 	pflag.Uint16P(bindAdminPort.name, bindAdminPort.shorthand, bindAdminPort.value.(uint16), bindAdminPort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)
@@ -407,8 +424,10 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		LogLevel:                   viper.GetString(logLevel.name),
 		VerboseMode:                viper.GetBool(verboseMode.name),
 		DevMode:                    viper.GetBool(devMode.name),
+		BindServiceProtocol:        viper.GetString(bindServiceProtocol.name),
 		BindServiceAddress:         viper.GetString(bindServiceAddress.name),
 		BindServicePort:            viper.GetUint16(bindServicePort.name),
+		BindAdminProtocol:          viper.GetString(bindAdminProtocol.name),
 		BindAdminAddress:           viper.GetString(bindAdminAddress.name),
 		BindAdminPort:              viper.GetUint16(bindAdminPort.name),
 		ContextPath:                viper.GetString(contextPath.name),
@@ -456,8 +475,10 @@ func logSettings(s *Settings) {
 		log.Info("Log Level: ", s.LogLevel)
 		log.Info("Verbose mode: ", s.VerboseMode)
 		log.Info("Dev mode: ", s.DevMode)
+		log.Info("Bind Service Protocol: ", s.BindServiceProtocol)
 		log.Info("Bind Service Address: ", s.BindServiceAddress)
 		log.Info("Bind Service Port: ", s.BindServicePort)
+		log.Info("Bind Service Protocol: ", s.BindServiceProtocol)
 		log.Info("Bind Admin Address: ", s.BindAdminAddress)
 		log.Info("Bind Admin Port: ", s.BindAdminPort)
 		log.Info("Context Path: ", s.ContextPath)
