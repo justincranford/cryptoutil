@@ -51,7 +51,7 @@ const fiberAppIdAdmin = "admin"
 var ready atomic.Bool
 
 func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	shutdownEndpoint := fmt.Sprintf("http://%s:%d%s", settings.BindAdminAddress, settings.BindAdminPort, apiAdminShutdownPath)
+	shutdownEndpoint := fmt.Sprintf("%s://%s:%d%s", settings.BindAdminProtocol, settings.BindAdminAddress, settings.BindAdminPort, apiAdminShutdownPath)
 	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), shutdownRequestTimeout)
 	defer shutdownRequestCancel()
 	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, shutdownEndpoint, nil)
@@ -71,7 +71,7 @@ func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 	}
 
 	time.Sleep(serverShutdownStartTimeout)
-	livenessEndpoint := fmt.Sprintf("http://%s:%d/livez", settings.BindAdminAddress, settings.BindAdminPort)
+	livenessEndpoint := fmt.Sprintf("%s://%s:%d/livez", settings.BindAdminProtocol, settings.BindAdminAddress, settings.BindAdminPort)
 	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), livenessRequestTimeout)
 	defer livenessRequestCancel()
 	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, livenessEndpoint, nil)
