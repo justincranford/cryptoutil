@@ -130,7 +130,7 @@ var (
 	}
 	bindAdminProtocol = Setting{
 		name:      "bind-admin-protocol",
-		shorthand: "T",          // Use unique shorthand
+		shorthand: "T",
 		value:     httpProtocol, // TODO https
 		usage:     "bind admin protocol (http or https)",
 	}
