@@ -1,16 +1,15 @@
 package certificate
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"testing"
 	"time"
-
-	"bytes"
-	"io"
-	"net/http"
 
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 
@@ -23,109 +22,117 @@ func TestNegativeDuration(t *testing.T) {
 }
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerCAs := make([]CASubject, 0, 4) // Root CA + Subordinate CA 1 (Intermediate) + Subordinate CA 2 (Intermediate) + Subordinate CA 3 (Issuing)
-	tlsServerRootCAsPool := x509.NewCertPool()
-	tlsServerSubordinateCAsPool := x509.NewCertPool()
-	var previous CASubject
-	for i := range cap(tlsServerCAs) {
-		subjectName := fmt.Sprintf("Test TLS Server CA %d", i)
-		current := CASubject{SubjectName: subjectName, Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCAs) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+	tlsServerCASubjects := make([]CASubject, 0, 4) // Root CA + Subordinate CA 1 (Intermediate) + Subordinate CA 2 (Intermediate) + Subordinate CA 3 (Issuing)
+	tlsServerRootCACertsPool := x509.NewCertPool()
+	tlsServerSubordinateCACertsPool := x509.NewCertPool()
+	tlsServerAllCACertsPool := x509.NewCertPool()
+	var previousTLSServerCASubject CASubject
+	var previousTLSServerCACert *x509.Certificate
+	for i := range cap(tlsServerCASubjects) {
+		currentTLSServerCASubjectName := fmt.Sprintf("Test TLS Server CA %d", i)
+		currentTLSServerCASubject := CASubject{SubjectName: currentTLSServerCASubjectName, Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
 		if i == 0 {
-			previous = current
+			previousTLSServerCASubject = currentTLSServerCASubject
+			previousTLSServerCACert = nil
 		} else {
-			previous = tlsServerCAs[i-1]
+			previousTLSServerCASubject = tlsServerCASubjects[i-1]
+			previousTLSServerCACert = tlsServerCASubjects[i-1].KeyMaterial.CertChain[0]
 		}
-		t.Run(subjectName, func(t *testing.T) {
-			currentCACertTemplate, err := CertificateTemplateCA(previous.SubjectName, current.SubjectName, current.Duration, current.MaxPathLen)
+		t.Run(currentTLSServerCASubjectName, func(t *testing.T) {
+			currentCACertTemplate, err := CertificateTemplateCA(previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentTLSServerCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
-			current.KeyMaterial.Cert, current.KeyMaterial.DER, current.KeyMaterial.PEM, err = SignCertificate(previous.KeyMaterial.Cert, previous.KeyMaterial.KeyPair.Private, currentCACertTemplate, current.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			verifyCACertificate(t, err, current.KeyMaterial.Cert, current.KeyMaterial.DER, current.KeyMaterial.PEM, previous.SubjectName, current.SubjectName, current.Duration, currentCACertTemplate.MaxPathLen)
+			cert, der, pem, err := SignCertificate(previousTLSServerCACert, previousTLSServerCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSServerCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+			currentTLSServerCASubject.KeyMaterial.CertChain = prepend(currentTLSServerCASubject.KeyMaterial.CertChain, cert)
+			currentTLSServerCASubject.KeyMaterial.DERChain = prepend(currentTLSServerCASubject.KeyMaterial.DERChain, der)
+			currentTLSServerCASubject.KeyMaterial.PEMChain = prepend(currentTLSServerCASubject.KeyMaterial.PEMChain, pem)
+			verifyCACertificate(t, err, currentTLSServerCASubject.KeyMaterial.CertChain, currentTLSServerCASubject.KeyMaterial.DERChain, currentTLSServerCASubject.KeyMaterial.PEMChain, previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentCACertTemplate.MaxPathLen)
+			tlsServerAllCACertsPool.AddCert(cert)
 			if i == 0 {
-				tlsServerRootCAsPool.AddCert(current.KeyMaterial.Cert)
+				tlsServerRootCACertsPool.AddCert(cert)
 			} else {
-				tlsServerSubordinateCAsPool.AddCert(current.KeyMaterial.Cert)
+				tlsServerSubordinateCACertsPool.AddCert(cert)
 			}
 		})
-		tlsServerCAs = append(tlsServerCAs, current)
+		tlsServerCASubjects = append(tlsServerCASubjects, currentTLSServerCASubject)
 	}
 
 	tlsServerEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Server End Entity", Duration: 397 * cryptoutilDateTime.Days1, DNSNames: []string{"localhost", "tlsserver.example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
 	t.Run("TLS Server", func(t *testing.T) {
 		t.Run("TLS Server End Entity", func(t *testing.T) {
-			tlsServerIssuingCA := tlsServerCAs[cap(tlsServerCAs)-1]
+			tlsServerIssuingCA := tlsServerCASubjects[cap(tlsServerCASubjects)-1]
 			tlsServerEndEntityCertTemplate, err := CertificateTemplateTLSServer(tlsServerIssuingCA.SubjectName, tlsServerEndEntityCert.SubjectName, tlsServerEndEntityCert.Duration, tlsServerEndEntityCert.DNSNames, tlsServerEndEntityCert.IPAddresses, tlsServerEndEntityCert.EmailAddresses, tlsServerEndEntityCert.URIs)
 			verifyCertificateTemplate(t, err, tlsServerEndEntityCertTemplate)
-			tlsServerEndEntityCert.KeyMaterial.Cert, tlsServerEndEntityCert.KeyMaterial.DER, tlsServerEndEntityCert.KeyMaterial.PEM, err = SignCertificate(tlsServerIssuingCA.KeyMaterial.Cert, tlsServerIssuingCA.KeyMaterial.KeyPair.Private, tlsServerEndEntityCertTemplate, tlsServerEndEntityCert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			verifyEndEntityCertificate(t, err, tlsServerEndEntityCert.KeyMaterial.Cert, tlsServerEndEntityCert.KeyMaterial.DER, tlsServerEndEntityCert.KeyMaterial.PEM, tlsServerIssuingCA.SubjectName, tlsServerEndEntityCert.SubjectName, tlsServerEndEntityCert.Duration, tlsServerEndEntityCert.DNSNames, tlsServerEndEntityCert.IPAddresses, tlsServerEndEntityCert.EmailAddresses, tlsServerEndEntityCert.URIs)
-			verifyCertChain(t, tlsServerEndEntityCert.KeyMaterial.Cert, tlsServerRootCAsPool, tlsServerSubordinateCAsPool)
+			cert, der, pem, err := SignCertificate(tlsServerIssuingCA.KeyMaterial.CertChain[0], tlsServerIssuingCA.KeyMaterial.KeyPair.Private, tlsServerEndEntityCertTemplate, tlsServerEndEntityCert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+			tlsServerEndEntityCert.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, tlsServerIssuingCA.KeyMaterial.CertChain...)
+			tlsServerEndEntityCert.KeyMaterial.DERChain = append([][]byte{der}, tlsServerIssuingCA.KeyMaterial.DERChain...)
+			tlsServerEndEntityCert.KeyMaterial.PEMChain = append([][]byte{pem}, tlsServerIssuingCA.KeyMaterial.PEMChain...)
+			verifyEndEntityCertificate(t, err, cert, der, pem, tlsServerIssuingCA.SubjectName, tlsServerEndEntityCert.SubjectName, tlsServerEndEntityCert.Duration, tlsServerEndEntityCert.DNSNames, tlsServerEndEntityCert.IPAddresses, tlsServerEndEntityCert.EmailAddresses, tlsServerEndEntityCert.URIs)
+			verifyCertChain(t, cert, tlsServerRootCACertsPool, tlsServerSubordinateCACertsPool)
 		})
 	})
-	tlsServerCerts := make([][]byte, 0, cap(tlsServerCAs)+1)
-	tlsServerCerts = append(tlsServerCerts, tlsServerEndEntityCert.KeyMaterial.DER)
-	for i := cap(tlsServerCAs) - 1; i >= 0; i-- {
-		tlsServerCerts = append(tlsServerCerts, tlsServerCAs[i].KeyMaterial.DER)
+	serverTLSCertChain := tls.Certificate{Certificate: tlsServerEndEntityCert.KeyMaterial.DERChain, PrivateKey: tlsServerEndEntityCert.KeyMaterial.KeyPair.Private}
+
+	tlsClientCASubjects := make([]CASubject, 0, 2) // Root CA + Subordinate CA 1 (Issuing)
+	tlsClientRootCACertsPool := x509.NewCertPool()
+	tlsClientSubordinateCACertsPool := x509.NewCertPool()
+	tlsClientAllCACertsPool := x509.NewCertPool()
+	var previousTLSClientCASubject CASubject
+	var previousTLSClientCACert *x509.Certificate
+	for i := range cap(tlsClientCASubjects) {
+		currentTLSClientCASubjectName := fmt.Sprintf("Test TLS Client CA %d", i)
+		currentTLSClientCASubject := CASubject{SubjectName: currentTLSClientCASubjectName, Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsClientCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+		if i == 0 {
+			previousTLSClientCASubject = currentTLSClientCASubject
+			previousTLSClientCACert = nil
+		} else {
+			previousTLSClientCASubject = tlsClientCASubjects[i-1]
+			previousTLSClientCACert = tlsClientCASubjects[i-1].KeyMaterial.CertChain[0]
+		}
+		t.Run(currentTLSClientCASubjectName, func(t *testing.T) {
+			currentCACertTemplate, err := CertificateTemplateCA(previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentTLSClientCASubject.MaxPathLen)
+			verifyCertificateTemplate(t, err, currentCACertTemplate)
+			cert, der, pem, err := SignCertificate(previousTLSClientCACert, previousTLSClientCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSClientCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+			currentTLSClientCASubject.KeyMaterial.CertChain = prepend(currentTLSClientCASubject.KeyMaterial.CertChain, cert)
+			currentTLSClientCASubject.KeyMaterial.DERChain = prepend(currentTLSClientCASubject.KeyMaterial.DERChain, der)
+			currentTLSClientCASubject.KeyMaterial.PEMChain = prepend(currentTLSClientCASubject.KeyMaterial.PEMChain, pem)
+			verifyCACertificate(t, err, currentTLSClientCASubject.KeyMaterial.CertChain, currentTLSClientCASubject.KeyMaterial.DERChain, currentTLSClientCASubject.KeyMaterial.PEMChain, previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentCACertTemplate.MaxPathLen)
+			tlsClientAllCACertsPool.AddCert(cert)
+			if i == 0 {
+				tlsClientRootCACertsPool.AddCert(cert)
+			} else {
+				tlsClientSubordinateCACertsPool.AddCert(cert)
+			}
+		})
+		tlsClientCASubjects = append(tlsClientCASubjects, currentTLSClientCASubject)
 	}
-	serverTLSCertChain := tls.Certificate{Certificate: tlsServerCerts, PrivateKey: tlsServerEndEntityCert.KeyMaterial.KeyPair.Private}
 
-	tlsClientRootCACert := CASubject{SubjectName: "Test TLS Client Root CA", Duration: 10 * cryptoutilDateTime.Days365, MaxPathLen: 2, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
-	tlsClientSubordinateCA1Cert := CASubject{SubjectName: "Test TLS Client Subordinate CA 1", Duration: 5 * cryptoutilDateTime.Days365, MaxPathLen: 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
-	tlsClientSubordinateCA2Cert := CASubject{SubjectName: "Test TLS Client Subordinate CA 2", Duration: 2 * cryptoutilDateTime.Days365, MaxPathLen: 0, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
-	tlsClientRootCAsPool := x509.NewCertPool()
-	tlsClientSubordinateCAsPool := x509.NewCertPool()
-	t.Run("TLS Client Chain", func(t *testing.T) {
-		t.Run("TLS Client Root CA", func(t *testing.T) {
-			tlsClientRootCACertTemplate, err := CertificateTemplateCA(tlsClientRootCACert.SubjectName, tlsClientRootCACert.SubjectName, tlsClientRootCACert.Duration, tlsClientRootCACert.MaxPathLen)
-			verifyCertificateTemplate(t, err, tlsClientRootCACertTemplate)
-			tlsClientRootCACert.KeyMaterial.Cert, tlsClientRootCACert.KeyMaterial.DER, tlsClientRootCACert.KeyMaterial.PEM, err = SignCertificate(nil, tlsClientRootCACert.KeyMaterial.KeyPair.Private, tlsClientRootCACertTemplate, tlsClientRootCACert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			verifyCACertificate(t, err, tlsClientRootCACert.KeyMaterial.Cert, tlsClientRootCACert.KeyMaterial.DER, tlsClientRootCACert.KeyMaterial.PEM, tlsClientRootCACert.SubjectName, tlsClientRootCACert.SubjectName, tlsClientRootCACert.Duration, tlsClientRootCACert.MaxPathLen)
-			tlsClientRootCAsPool.AddCert(tlsClientRootCACert.KeyMaterial.Cert) // subsequent verify cert chain needs the root CA
-		})
-		t.Run("TLS Client Subordinate CA 1", func(t *testing.T) {
-			tlsClientSubordinateCA1CertTemplate, err := CertificateTemplateCA(tlsClientRootCACert.SubjectName, tlsClientSubordinateCA1Cert.SubjectName, tlsClientSubordinateCA1Cert.Duration, tlsClientSubordinateCA1Cert.MaxPathLen)
-			verifyCertificateTemplate(t, err, tlsClientSubordinateCA1CertTemplate)
-			tlsClientSubordinateCA1Cert.KeyMaterial.Cert, tlsClientSubordinateCA1Cert.KeyMaterial.DER, tlsClientSubordinateCA1Cert.KeyMaterial.PEM, err = SignCertificate(tlsClientRootCACert.KeyMaterial.Cert, tlsClientRootCACert.KeyMaterial.KeyPair.Private, tlsClientSubordinateCA1CertTemplate, tlsClientSubordinateCA1Cert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			verifyCACertificate(t, err, tlsClientSubordinateCA1Cert.KeyMaterial.Cert, tlsClientSubordinateCA1Cert.KeyMaterial.DER, tlsClientSubordinateCA1Cert.KeyMaterial.PEM, tlsClientRootCACert.SubjectName, tlsClientSubordinateCA1Cert.SubjectName, tlsClientSubordinateCA1Cert.Duration, tlsClientSubordinateCA1Cert.MaxPathLen)
-			verifyCertChain(t, tlsClientSubordinateCA1Cert.KeyMaterial.Cert, tlsClientRootCAsPool, tlsClientSubordinateCAsPool)
-			tlsClientSubordinateCAsPool.AddCert(tlsClientSubordinateCA1Cert.KeyMaterial.Cert) // subsequent verify cert chain needs the intermediate CA
-		})
-		t.Run("TLS Client Subordinate CA 2", func(t *testing.T) {
-			tlsClientSubordinateCA2CertTemplate, err := CertificateTemplateCA(tlsClientSubordinateCA1Cert.SubjectName, tlsClientSubordinateCA2Cert.SubjectName, tlsClientSubordinateCA2Cert.Duration, tlsClientSubordinateCA2Cert.MaxPathLen)
-			verifyCertificateTemplate(t, err, tlsClientSubordinateCA2CertTemplate)
-			tlsClientSubordinateCA2Cert.KeyMaterial.Cert, tlsClientSubordinateCA2Cert.KeyMaterial.DER, tlsClientSubordinateCA2Cert.KeyMaterial.PEM, err = SignCertificate(tlsClientSubordinateCA1Cert.KeyMaterial.Cert, tlsClientSubordinateCA1Cert.KeyMaterial.KeyPair.Private, tlsClientSubordinateCA2CertTemplate, tlsClientSubordinateCA2Cert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			verifyCACertificate(t, err, tlsClientSubordinateCA2Cert.KeyMaterial.Cert, tlsClientSubordinateCA2Cert.KeyMaterial.DER, tlsClientSubordinateCA2Cert.KeyMaterial.PEM, tlsClientSubordinateCA1Cert.SubjectName, tlsClientSubordinateCA2Cert.SubjectName, tlsClientSubordinateCA2Cert.Duration, tlsClientSubordinateCA2Cert.MaxPathLen)
-			verifyCertChain(t, tlsClientSubordinateCA2Cert.KeyMaterial.Cert, tlsClientRootCAsPool, tlsClientSubordinateCAsPool)
-			tlsClientSubordinateCAsPool.AddCert(tlsClientSubordinateCA2Cert.KeyMaterial.Cert) // subsequent verify cert chain needs the issuing CA
-		})
-	})
-
-	tlsClientEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Client End Entity", Duration: 30 * cryptoutilDateTime.Days1, DNSNames: []string{"localhost", "tlsclient.example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, EmailAddresses: []string{"client1@tlsclient.example.com"}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+	tlsClientEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Client End Entity", Duration: 30 * cryptoutilDateTime.Days1, DNSNames: nil, IPAddresses: nil, EmailAddresses: []string{"client1@tlsclient.example.com"}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
 	t.Run("TLS Client", func(t *testing.T) {
 		t.Run("TLS Client End Entity", func(t *testing.T) {
-			tlsClientEndEntityCertTemplate, err := CertificateTemplateTLSClient(tlsClientSubordinateCA2Cert.SubjectName, tlsClientEndEntityCert.SubjectName, tlsClientEndEntityCert.Duration, tlsClientEndEntityCert.DNSNames, tlsClientEndEntityCert.IPAddresses, tlsClientEndEntityCert.EmailAddresses, tlsClientEndEntityCert.URIs)
+			tlsClientIssuingCA := tlsClientCASubjects[cap(tlsClientCASubjects)-1]
+			tlsClientEndEntityCertTemplate, err := CertificateTemplateTLSClient(tlsClientIssuingCA.SubjectName, tlsClientEndEntityCert.SubjectName, tlsClientEndEntityCert.Duration, tlsClientEndEntityCert.DNSNames, tlsClientEndEntityCert.IPAddresses, tlsClientEndEntityCert.EmailAddresses, tlsClientEndEntityCert.URIs)
 			verifyCertificateTemplate(t, err, tlsClientEndEntityCertTemplate)
-			tlsClientEndEntityCert.KeyMaterial.Cert, tlsClientEndEntityCert.KeyMaterial.DER, tlsClientEndEntityCert.KeyMaterial.PEM, err = SignCertificate(tlsClientSubordinateCA2Cert.KeyMaterial.Cert, tlsClientSubordinateCA2Cert.KeyMaterial.KeyPair.Private, tlsClientEndEntityCertTemplate, tlsClientEndEntityCert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			verifyEndEntityCertificate(t, err, tlsClientEndEntityCert.KeyMaterial.Cert, tlsClientEndEntityCert.KeyMaterial.DER, tlsClientEndEntityCert.KeyMaterial.PEM, tlsClientSubordinateCA2Cert.SubjectName, tlsClientEndEntityCert.SubjectName, tlsClientEndEntityCert.Duration, tlsClientEndEntityCert.DNSNames, tlsClientEndEntityCert.IPAddresses, tlsClientEndEntityCert.EmailAddresses, tlsClientEndEntityCert.URIs)
-			verifyCertChain(t, tlsClientEndEntityCert.KeyMaterial.Cert, tlsClientRootCAsPool, tlsClientSubordinateCAsPool)
+			cert, der, pem, err := SignCertificate(tlsClientIssuingCA.KeyMaterial.CertChain[0], tlsClientIssuingCA.KeyMaterial.KeyPair.Private, tlsClientEndEntityCertTemplate, tlsClientEndEntityCert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+			tlsClientEndEntityCert.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, tlsClientIssuingCA.KeyMaterial.CertChain...)
+			tlsClientEndEntityCert.KeyMaterial.DERChain = append([][]byte{der}, tlsClientIssuingCA.KeyMaterial.DERChain...)
+			tlsClientEndEntityCert.KeyMaterial.PEMChain = append([][]byte{pem}, tlsClientIssuingCA.KeyMaterial.PEMChain...)
+			verifyEndEntityCertificate(t, err, cert, der, pem, tlsClientIssuingCA.SubjectName, tlsClientEndEntityCert.SubjectName, tlsClientEndEntityCert.Duration, tlsClientEndEntityCert.DNSNames, tlsClientEndEntityCert.IPAddresses, tlsClientEndEntityCert.EmailAddresses, tlsClientEndEntityCert.URIs)
+			verifyCertChain(t, cert, tlsClientRootCACertsPool, tlsClientSubordinateCACertsPool)
 		})
 	})
+	clientTLSCertChain := tls.Certificate{Certificate: tlsClientEndEntityCert.KeyMaterial.DERChain, PrivateKey: tlsClientEndEntityCert.KeyMaterial.KeyPair.Private}
 
-	// These TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
-
-	clientTLSCertChain := tls.Certificate{
-		Certificate: [][]byte{tlsClientEndEntityCert.KeyMaterial.DER, tlsClientSubordinateCA2Cert.KeyMaterial.DER, tlsClientSubordinateCA1Cert.KeyMaterial.DER, tlsClientRootCACert.KeyMaterial.DER},
-		PrivateKey:  tlsClientEndEntityCert.KeyMaterial.KeyPair.Private,
-	}
-
+	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	// These TLS configuration instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	serverTLSConfig := &tls.Config{
 		Certificates: []tls.Certificate{serverTLSCertChain},
 		ClientAuth:   tls.RequireAndVerifyClientCert,
-		ClientCAs:    tlsClientRootCAsPool,
+		ClientCAs:    tlsClientAllCACertsPool,
 	}
 	clientTLSConfig := &tls.Config{
 		Certificates:       []tls.Certificate{clientTLSCertChain},
-		RootCAs:            tlsServerRootCAsPool,
 		InsecureSkipVerify: false,
+		RootCAs:            tlsServerAllCACertsPool,
 	}
 
 	t.Run("Raw mTLS", func(t *testing.T) {
@@ -160,7 +167,7 @@ func TestMutualTLS(t *testing.T) {
 		const httpsClientConnections = 10
 		for i := 1; i <= httpsClientConnections; i++ {
 			httpsServerResponse, err := httpsClient.Post(serverURL, "text/plain", bytes.NewReader(httpsClientRequestBody))
-			require.NoError(t, err, "client failed to POST to HTTPS server (%d of %d)", i, httpsClientConnections)
+			require.NoError(t, err, "client failed to POST to HTTPS Echo Server (%d of %d)", i, httpsClientConnections)
 			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, httpsClientConnections)
 			func() {
 				defer httpsServerResponse.Body.Close()

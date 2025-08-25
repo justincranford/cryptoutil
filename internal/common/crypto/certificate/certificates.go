@@ -15,10 +15,10 @@ import (
 )
 
 type KeyMaterial struct {
-	KeyPair *cryptoutilKeyGen.KeyPair
-	Cert    *x509.Certificate
-	DER     []byte
-	PEM     []byte
+	KeyPair   *cryptoutilKeyGen.KeyPair
+	CertChain []*x509.Certificate
+	DERChain  [][]byte
+	PEMChain  [][]byte
 }
 
 type CASubject struct {

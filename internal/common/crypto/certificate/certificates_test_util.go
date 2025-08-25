@@ -23,23 +23,23 @@ func verifyCertificateTemplate(t *testing.T, err error, certTemplate *x509.Certi
 	require.NotNil(t, certTemplate, "Certificate template should not be nil")
 }
 
-func verifyCACertificate(t *testing.T, err error, cert *x509.Certificate, certDER []byte, certPEM []byte, expectedIssuerName string, expectedSubjectName string, expectedDuration time.Duration, expectedMaxPathLen int) {
+func verifyCACertificate(t *testing.T, err error, certChain []*x509.Certificate, DERChain [][]byte, PEMChain [][]byte, expectedIssuerName string, expectedSubjectName string, expectedDuration time.Duration, expectedMaxPathLen int) {
 	require.NoError(t, err, "Failed to sign certificate")
-	require.NotNil(t, cert, "Signed certificate should not be nil")
-	require.NotEmpty(t, certDER, "Certificate bytes should not be empty")
-	require.NotEmpty(t, certPEM, "Certificate PEM should not be empty")
+	require.NotNil(t, certChain, "Signed certificate should not be nil")
+	require.NotEmpty(t, DERChain, "Certificate bytes should not be empty")
+	require.NotEmpty(t, PEMChain, "Certificate PEM should not be empty")
 	now := time.Now().UTC()
-	require.Equal(t, expectedIssuerName, cert.Issuer.CommonName, "Issuer name mismatch")
-	require.Equal(t, expectedSubjectName, cert.Subject.CommonName, "Subject name mismatch")
-	require.True(t, cert.IsCA, "Certificate should be a CA certificate")
-	require.True(t, cert.BasicConstraintsValid, "Basic constraints should be valid")
-	require.Equal(t, expectedMaxPathLen, cert.MaxPathLen, "MaxPathLen mismatch")
-	require.Equal(t, expectedMaxPathLen == 0, cert.MaxPathLenZero, "MaxPathLenZero mismatch")
-	require.Equal(t, x509.KeyUsageCertSign|x509.KeyUsageCRLSign, cert.KeyUsage, "Key usage mismatch")
-	require.Nil(t, cert.ExtKeyUsage, "Extended key usage should be nil")
-	require.True(t, cert.NotBefore.Before(now), "NotBefore should be in the past")
-	require.True(t, cert.NotAfter.After(now), "NotAfter should be in the future")
-	require.True(t, cert.NotAfter.Sub(cert.NotBefore) >= expectedDuration, "Certificate validity period should be >= duration")
+	require.Equal(t, expectedIssuerName, certChain[0].Issuer.CommonName, "Issuer name mismatch")
+	require.Equal(t, expectedSubjectName, certChain[0].Subject.CommonName, "Subject name mismatch")
+	require.True(t, certChain[0].IsCA, "Certificate should be a CA certificate")
+	require.True(t, certChain[0].BasicConstraintsValid, "Basic constraints should be valid")
+	require.Equal(t, expectedMaxPathLen, certChain[0].MaxPathLen, "MaxPathLen mismatch")
+	require.Equal(t, expectedMaxPathLen == 0, certChain[0].MaxPathLenZero, "MaxPathLenZero mismatch")
+	require.Equal(t, x509.KeyUsageCertSign|x509.KeyUsageCRLSign, certChain[0].KeyUsage, "Key usage mismatch")
+	require.Nil(t, certChain[0].ExtKeyUsage, "Extended key usage should be nil")
+	require.True(t, certChain[0].NotBefore.Before(now), "NotBefore should be in the past")
+	require.True(t, certChain[0].NotAfter.After(now), "NotAfter should be in the future")
+	require.True(t, certChain[0].NotAfter.Sub(certChain[0].NotBefore) >= expectedDuration, "Certificate validity period should be >= duration")
 }
 
 func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate, certDER []byte, certPEM []byte, expectedIssuerName string, expectedSubjectName string, expectedDuration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) {
