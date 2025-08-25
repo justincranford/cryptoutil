@@ -42,9 +42,15 @@ func TestMutualTLS(t *testing.T) {
 			currentCACertTemplate, err := CertificateTemplateCA(previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentTLSServerCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
 			cert, der, pem, err := SignCertificate(previousTLSServerCACert, previousTLSServerCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSServerCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			currentTLSServerCASubject.KeyMaterial.CertChain = prepend(currentTLSServerCASubject.KeyMaterial.CertChain, cert)
-			currentTLSServerCASubject.KeyMaterial.DERChain = prepend(currentTLSServerCASubject.KeyMaterial.DERChain, der)
-			currentTLSServerCASubject.KeyMaterial.PEMChain = prepend(currentTLSServerCASubject.KeyMaterial.PEMChain, pem)
+			if i == 0 {
+				currentTLSServerCASubject.KeyMaterial.CertChain = []*x509.Certificate{cert}
+				currentTLSServerCASubject.KeyMaterial.DERChain = [][]byte{der}
+				currentTLSServerCASubject.KeyMaterial.PEMChain = [][]byte{pem}
+			} else {
+				currentTLSServerCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSServerCASubject.KeyMaterial.CertChain...)
+				currentTLSServerCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSServerCASubject.KeyMaterial.DERChain...)
+				currentTLSServerCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSServerCASubject.KeyMaterial.PEMChain...)
+			}
 			verifyCACertificate(t, err, currentTLSServerCASubject.KeyMaterial.CertChain, currentTLSServerCASubject.KeyMaterial.DERChain, currentTLSServerCASubject.KeyMaterial.PEMChain, previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentCACertTemplate.MaxPathLen)
 			tlsServerAllCACertsPool.AddCert(cert)
 			if i == 0 {
@@ -92,9 +98,15 @@ func TestMutualTLS(t *testing.T) {
 			currentCACertTemplate, err := CertificateTemplateCA(previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentTLSClientCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
 			cert, der, pem, err := SignCertificate(previousTLSClientCACert, previousTLSClientCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSClientCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			currentTLSClientCASubject.KeyMaterial.CertChain = prepend(currentTLSClientCASubject.KeyMaterial.CertChain, cert)
-			currentTLSClientCASubject.KeyMaterial.DERChain = prepend(currentTLSClientCASubject.KeyMaterial.DERChain, der)
-			currentTLSClientCASubject.KeyMaterial.PEMChain = prepend(currentTLSClientCASubject.KeyMaterial.PEMChain, pem)
+			if i == 0 {
+				currentTLSClientCASubject.KeyMaterial.CertChain = []*x509.Certificate{cert}
+				currentTLSClientCASubject.KeyMaterial.DERChain = [][]byte{der}
+				currentTLSClientCASubject.KeyMaterial.PEMChain = [][]byte{pem}
+			} else {
+				currentTLSClientCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSClientCASubject.KeyMaterial.CertChain...)
+				currentTLSClientCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSClientCASubject.KeyMaterial.DERChain...)
+				currentTLSClientCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSClientCASubject.KeyMaterial.PEMChain...)
+			}
 			verifyCACertificate(t, err, currentTLSClientCASubject.KeyMaterial.CertChain, currentTLSClientCASubject.KeyMaterial.DERChain, currentTLSClientCASubject.KeyMaterial.PEMChain, previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentCACertTemplate.MaxPathLen)
 			tlsClientAllCACertsPool.AddCert(cert)
 			if i == 0 {
