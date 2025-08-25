@@ -25,7 +25,6 @@ func TestMutualTLS(t *testing.T) {
 	tlsServerCASubjects := make([]CASubject, 0, 4) // Root CA + Subordinate CA 1 (Intermediate) + Subordinate CA 2 (Intermediate) + Subordinate CA 3 (Issuing)
 	tlsServerRootCACertsPool := x509.NewCertPool()
 	tlsServerSubordinateCACertsPool := x509.NewCertPool()
-	tlsServerAllCACertsPool := x509.NewCertPool()
 	var previousTLSServerCASubject CASubject
 	var previousTLSServerCACert *x509.Certificate
 	for i := range cap(tlsServerCASubjects) {
@@ -52,7 +51,6 @@ func TestMutualTLS(t *testing.T) {
 				currentTLSServerCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSServerCASubject.KeyMaterial.PEMChain...)
 			}
 			verifyCACertificate(t, err, currentTLSServerCASubject.KeyMaterial.CertChain, currentTLSServerCASubject.KeyMaterial.DERChain, currentTLSServerCASubject.KeyMaterial.PEMChain, previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentCACertTemplate.MaxPathLen)
-			tlsServerAllCACertsPool.AddCert(cert)
 			if i == 0 {
 				tlsServerRootCACertsPool.AddCert(cert)
 			} else {
@@ -81,7 +79,6 @@ func TestMutualTLS(t *testing.T) {
 	tlsClientCASubjects := make([]CASubject, 0, 2) // Root CA + Subordinate CA 1 (Issuing)
 	tlsClientRootCACertsPool := x509.NewCertPool()
 	tlsClientSubordinateCACertsPool := x509.NewCertPool()
-	tlsClientAllCACertsPool := x509.NewCertPool()
 	var previousTLSClientCASubject CASubject
 	var previousTLSClientCACert *x509.Certificate
 	for i := range cap(tlsClientCASubjects) {
@@ -108,7 +105,6 @@ func TestMutualTLS(t *testing.T) {
 				currentTLSClientCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSClientCASubject.KeyMaterial.PEMChain...)
 			}
 			verifyCACertificate(t, err, currentTLSClientCASubject.KeyMaterial.CertChain, currentTLSClientCASubject.KeyMaterial.DERChain, currentTLSClientCASubject.KeyMaterial.PEMChain, previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentCACertTemplate.MaxPathLen)
-			tlsClientAllCACertsPool.AddCert(cert)
 			if i == 0 {
 				tlsClientRootCACertsPool.AddCert(cert)
 			} else {
@@ -139,12 +135,12 @@ func TestMutualTLS(t *testing.T) {
 	serverTLSConfig := &tls.Config{
 		Certificates: []tls.Certificate{serverTLSCertChain},
 		ClientAuth:   tls.RequireAndVerifyClientCert,
-		ClientCAs:    tlsClientAllCACertsPool,
+		ClientCAs:    tlsClientRootCACertsPool,
 	}
 	clientTLSConfig := &tls.Config{
 		Certificates:       []tls.Certificate{clientTLSCertChain},
 		InsecureSkipVerify: false,
-		RootCAs:            tlsServerAllCACertsPool,
+		RootCAs:            tlsServerRootCACertsPool,
 	}
 
 	t.Run("Raw mTLS", func(t *testing.T) {
