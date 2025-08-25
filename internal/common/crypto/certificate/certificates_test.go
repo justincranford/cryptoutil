@@ -28,16 +28,15 @@ func TestMutualTLS(t *testing.T) {
 	var previousTLSServerCASubject CASubject
 	var previousTLSServerCACert *x509.Certificate
 	for i := range cap(tlsServerCASubjects) {
-		currentTLSServerCASubjectName := fmt.Sprintf("Test TLS Server CA %d", i)
-		currentTLSServerCASubject := CASubject{SubjectName: currentTLSServerCASubjectName, Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+		currentTLSServerCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Server CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
 		if i == 0 {
 			previousTLSServerCASubject = currentTLSServerCASubject
 			previousTLSServerCACert = nil
 		} else {
 			previousTLSServerCASubject = tlsServerCASubjects[i-1]
-			previousTLSServerCACert = tlsServerCASubjects[i-1].KeyMaterial.CertChain[0]
+			previousTLSServerCACert = previousTLSServerCASubject.KeyMaterial.CertChain[0]
 		}
-		t.Run(currentTLSServerCASubjectName, func(t *testing.T) {
+		t.Run(currentTLSServerCASubject.SubjectName, func(t *testing.T) {
 			currentCACertTemplate, err := CertificateTemplateCA(previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentTLSServerCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
 			cert, der, pem, err := SignCertificate(previousTLSServerCACert, previousTLSServerCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSServerCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
@@ -82,8 +81,7 @@ func TestMutualTLS(t *testing.T) {
 	var previousTLSClientCASubject CASubject
 	var previousTLSClientCACert *x509.Certificate
 	for i := range cap(tlsClientCASubjects) {
-		currentTLSClientCASubjectName := fmt.Sprintf("Test TLS Client CA %d", i)
-		currentTLSClientCASubject := CASubject{SubjectName: currentTLSClientCASubjectName, Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsClientCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+		currentTLSClientCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Client CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsClientCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
 		if i == 0 {
 			previousTLSClientCASubject = currentTLSClientCASubject
 			previousTLSClientCACert = nil
@@ -91,7 +89,7 @@ func TestMutualTLS(t *testing.T) {
 			previousTLSClientCASubject = tlsClientCASubjects[i-1]
 			previousTLSClientCACert = tlsClientCASubjects[i-1].KeyMaterial.CertChain[0]
 		}
-		t.Run(currentTLSClientCASubjectName, func(t *testing.T) {
+		t.Run(currentTLSClientCASubject.SubjectName, func(t *testing.T) {
 			currentCACertTemplate, err := CertificateTemplateCA(previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentTLSClientCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
 			cert, der, pem, err := SignCertificate(previousTLSClientCACert, previousTLSClientCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSClientCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
