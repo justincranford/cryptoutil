@@ -23,25 +23,25 @@ func TestNegativeDuration(t *testing.T) {
 }
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerCASubjects := createCASubjects(t, "Test TLS Server CA", 4)
-	tlsClientCASubjects := createCASubjects(t, "Test TLS Client CA", 2)
-	tlsServerEndEntityCert := createEndEntitySubject(t, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
-	tlsClientEndEntityCert := createEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
+	tlsServerCASubjects := createCASubjects(t, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
+	tlsClientCASubjects := createCASubjects(t, "Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
+	tlsServerEndEntitySubject := createEndEntitySubject(t, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
+	tlsClientEndEntitySubject := createEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 
 	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
-	serverTLSCertChain := tls.Certificate{Certificate: tlsServerEndEntityCert.KeyMaterial.DERChain, PrivateKey: tlsServerEndEntityCert.KeyMaterial.KeyPair.Private}
-	clientTLSCertChain := tls.Certificate{Certificate: tlsClientEndEntityCert.KeyMaterial.DERChain, PrivateKey: tlsClientEndEntityCert.KeyMaterial.KeyPair.Private}
+	tlsServerCertChain := buildTLSCertificate(tlsServerEndEntitySubject)
+	tlsClientCertChain := buildTLSCertificate(tlsClientEndEntitySubject)
 
 	// These TLS configuration instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	serverTLSConfig := &tls.Config{
-		Certificates: []tls.Certificate{serverTLSCertChain},
+		Certificates: []tls.Certificate{tlsServerCertChain},
 		ClientAuth:   tls.RequireAndVerifyClientCert,
-		ClientCAs:    tlsClientEndEntityCert.KeyMaterial.RootCACertsPool,
+		ClientCAs:    tlsClientEndEntitySubject.KeyMaterial.RootCACertsPool,
 	}
 	clientTLSConfig := &tls.Config{
-		Certificates:       []tls.Certificate{clientTLSCertChain},
+		Certificates:       []tls.Certificate{tlsClientCertChain},
 		InsecureSkipVerify: false,
-		RootCAs:            tlsServerEndEntityCert.KeyMaterial.RootCACertsPool,
+		RootCAs:            tlsServerEndEntitySubject.KeyMaterial.RootCACertsPool,
 	}
 
 	t.Run("Raw mTLS", func(t *testing.T) {
@@ -88,24 +88,6 @@ func TestMutualTLS(t *testing.T) {
 	})
 }
 
-func createEndEntitySubject(t *testing.T, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []CASubject) EndEntitySubject {
-	endEntityCert := EndEntitySubject{SubjectName: subjectName, Duration: duration, DNSNames: dnsNames, IPAddresses: ipAddresses, EmailAddresses: emailAddresses, URIs: uris, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}, RootCACertsPool: x509.NewCertPool(), SubordinateCACertsPool: x509.NewCertPool()}}
-	t.Run(subjectName, func(t *testing.T) {
-		issuingCA := caSubjects[cap(caSubjects)-1]
-		endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntityCert.SubjectName, endEntityCert.Duration, endEntityCert.DNSNames, endEntityCert.IPAddresses, endEntityCert.EmailAddresses, endEntityCert.URIs, keyUsage, extKeyUsage)
-		verifyCertificateTemplate(t, err, endEntityCertTemplate)
-		cert, der, pem, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.KeyPair.Private, endEntityCertTemplate, endEntityCert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-		endEntityCert.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterial.CertChain...)
-		endEntityCert.KeyMaterial.DERChain = append([][]byte{der}, issuingCA.KeyMaterial.DERChain...)
-		endEntityCert.KeyMaterial.PEMChain = append([][]byte{pem}, issuingCA.KeyMaterial.PEMChain...)
-		verifyEndEntityCertificate(t, err, cert, der, pem, issuingCA.SubjectName, endEntityCert.SubjectName, endEntityCert.Duration, endEntityCert.DNSNames, endEntityCert.IPAddresses, endEntityCert.EmailAddresses, endEntityCert.URIs)
-		verifyCertChain(t, cert, issuingCA.KeyMaterial.RootCACertsPool, issuingCA.KeyMaterial.SubordinateCACertsPool)
-		endEntityCert.KeyMaterial.RootCACertsPool = issuingCA.KeyMaterial.RootCACertsPool.Clone()
-		endEntityCert.KeyMaterial.SubordinateCACertsPool = issuingCA.KeyMaterial.SubordinateCACertsPool.Clone()
-	})
-	return endEntityCert
-}
-
 func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CASubject {
 	caSubjects := make([]CASubject, 0, numCAs)
 	for i := range cap(caSubjects) {
@@ -135,4 +117,26 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CA
 		caSubjects = append(caSubjects, currentCASubject)
 	}
 	return caSubjects
+}
+
+func createEndEntitySubject(t *testing.T, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []CASubject) EndEntitySubject {
+	endEntityCert := EndEntitySubject{SubjectName: subjectName, Duration: duration, DNSNames: dnsNames, IPAddresses: ipAddresses, EmailAddresses: emailAddresses, URIs: uris, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}, RootCACertsPool: x509.NewCertPool(), SubordinateCACertsPool: x509.NewCertPool()}}
+	t.Run(subjectName, func(t *testing.T) {
+		issuingCA := caSubjects[cap(caSubjects)-1]
+		endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntityCert.SubjectName, endEntityCert.Duration, endEntityCert.DNSNames, endEntityCert.IPAddresses, endEntityCert.EmailAddresses, endEntityCert.URIs, keyUsage, extKeyUsage)
+		verifyCertificateTemplate(t, err, endEntityCertTemplate)
+		cert, der, pem, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.KeyPair.Private, endEntityCertTemplate, endEntityCert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+		endEntityCert.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterial.CertChain...)
+		endEntityCert.KeyMaterial.DERChain = append([][]byte{der}, issuingCA.KeyMaterial.DERChain...)
+		endEntityCert.KeyMaterial.PEMChain = append([][]byte{pem}, issuingCA.KeyMaterial.PEMChain...)
+		verifyEndEntityCertificate(t, err, cert, der, pem, issuingCA.SubjectName, endEntityCert.SubjectName, endEntityCert.Duration, endEntityCert.DNSNames, endEntityCert.IPAddresses, endEntityCert.EmailAddresses, endEntityCert.URIs)
+		verifyCertChain(t, cert, issuingCA.KeyMaterial.RootCACertsPool, issuingCA.KeyMaterial.SubordinateCACertsPool)
+		endEntityCert.KeyMaterial.RootCACertsPool = issuingCA.KeyMaterial.RootCACertsPool.Clone()
+		endEntityCert.KeyMaterial.SubordinateCACertsPool = issuingCA.KeyMaterial.SubordinateCACertsPool.Clone()
+	})
+	return endEntityCert
+}
+
+func buildTLSCertificate(endEntitySubject EndEntitySubject) tls.Certificate {
+	return tls.Certificate{Certificate: endEntitySubject.KeyMaterial.DERChain, PrivateKey: endEntitySubject.KeyMaterial.KeyPair.Private, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}
 }
