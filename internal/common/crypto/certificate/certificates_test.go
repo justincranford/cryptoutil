@@ -22,33 +22,8 @@ func TestNegativeDuration(t *testing.T) {
 }
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerCASubjects := make([]CASubject, 0, 4) // Root CA + Subordinate CA 1 (Intermediate) + Subordinate CA 2 (Intermediate) + Subordinate CA 3 (Issuing)
-	for i := range cap(tlsServerCASubjects) {
-		currentTLSServerCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Server CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}, RootCACertsPool: x509.NewCertPool(), SubordinateCACertsPool: x509.NewCertPool()}}
-		previousTLSServerCASubject := currentTLSServerCASubject
-		var previousTLSServerCACert *x509.Certificate
-		if i > 0 {
-			previousTLSServerCASubject = tlsServerCASubjects[i-1]
-			previousTLSServerCACert = previousTLSServerCASubject.KeyMaterial.CertChain[0]
-		}
-		t.Run(currentTLSServerCASubject.SubjectName, func(t *testing.T) {
-			currentCACertTemplate, err := CertificateTemplateCA(previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentTLSServerCASubject.MaxPathLen)
-			verifyCertificateTemplate(t, err, currentCACertTemplate)
-			cert, der, pem, err := SignCertificate(previousTLSServerCACert, previousTLSServerCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSServerCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			currentTLSServerCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSServerCASubject.KeyMaterial.CertChain...)
-			currentTLSServerCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSServerCASubject.KeyMaterial.DERChain...)
-			currentTLSServerCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSServerCASubject.KeyMaterial.PEMChain...)
-			verifyCACertificate(t, err, currentTLSServerCASubject.KeyMaterial.CertChain, currentTLSServerCASubject.KeyMaterial.DERChain, currentTLSServerCASubject.KeyMaterial.PEMChain, previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentCACertTemplate.MaxPathLen)
-			currentTLSServerCASubject.KeyMaterial.RootCACertsPool = previousTLSServerCASubject.KeyMaterial.RootCACertsPool.Clone()
-			currentTLSServerCASubject.KeyMaterial.SubordinateCACertsPool = previousTLSServerCASubject.KeyMaterial.SubordinateCACertsPool.Clone()
-			if i == 0 {
-				currentTLSServerCASubject.KeyMaterial.RootCACertsPool.AddCert(cert)
-			} else {
-				currentTLSServerCASubject.KeyMaterial.SubordinateCACertsPool.AddCert(cert)
-			}
-		})
-		tlsServerCASubjects = append(tlsServerCASubjects, currentTLSServerCASubject)
-	}
+	tlsServerCASubjects := createCASubjects(t, "Test TLS Server CA", 4)
+	tlsClientCASubjects := createCASubjects(t, "Test TLS Client CA", 2)
 
 	tlsServerEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Server End Entity", Duration: 397 * cryptoutilDateTime.Days1, DNSNames: []string{"localhost", "tlsserver.example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}, RootCACertsPool: x509.NewCertPool(), SubordinateCACertsPool: x509.NewCertPool()}}
 	t.Run("TLS Server", func(t *testing.T) {
@@ -67,34 +42,6 @@ func TestMutualTLS(t *testing.T) {
 		})
 	})
 	serverTLSCertChain := tls.Certificate{Certificate: tlsServerEndEntityCert.KeyMaterial.DERChain, PrivateKey: tlsServerEndEntityCert.KeyMaterial.KeyPair.Private}
-
-	tlsClientCASubjects := make([]CASubject, 0, 2) // Root CA + Subordinate CA 1 (Issuing)
-	for i := range cap(tlsClientCASubjects) {
-		currentTLSClientCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Client CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsClientCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}, RootCACertsPool: x509.NewCertPool(), SubordinateCACertsPool: x509.NewCertPool()}}
-		previousTLSClientCASubject := currentTLSClientCASubject
-		var previousTLSClientCACert *x509.Certificate
-		if i > 0 {
-			previousTLSClientCASubject = tlsClientCASubjects[i-1]
-			previousTLSClientCACert = previousTLSClientCASubject.KeyMaterial.CertChain[0]
-		}
-		t.Run(currentTLSClientCASubject.SubjectName, func(t *testing.T) {
-			currentCACertTemplate, err := CertificateTemplateCA(previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentTLSClientCASubject.MaxPathLen)
-			verifyCertificateTemplate(t, err, currentCACertTemplate)
-			cert, der, pem, err := SignCertificate(previousTLSClientCACert, previousTLSClientCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSClientCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			currentTLSClientCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSClientCASubject.KeyMaterial.CertChain...)
-			currentTLSClientCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSClientCASubject.KeyMaterial.DERChain...)
-			currentTLSClientCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSClientCASubject.KeyMaterial.PEMChain...)
-			verifyCACertificate(t, err, currentTLSClientCASubject.KeyMaterial.CertChain, currentTLSClientCASubject.KeyMaterial.DERChain, currentTLSClientCASubject.KeyMaterial.PEMChain, previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentCACertTemplate.MaxPathLen)
-			currentTLSClientCASubject.KeyMaterial.RootCACertsPool = previousTLSClientCASubject.KeyMaterial.RootCACertsPool.Clone()
-			currentTLSClientCASubject.KeyMaterial.SubordinateCACertsPool = previousTLSClientCASubject.KeyMaterial.SubordinateCACertsPool.Clone()
-			if i == 0 {
-				currentTLSClientCASubject.KeyMaterial.RootCACertsPool.AddCert(cert)
-			} else {
-				currentTLSClientCASubject.KeyMaterial.SubordinateCACertsPool.AddCert(cert)
-			}
-		})
-		tlsClientCASubjects = append(tlsClientCASubjects, currentTLSClientCASubject)
-	}
 
 	tlsClientEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Client End Entity", Duration: 30 * cryptoutilDateTime.Days1, DNSNames: nil, IPAddresses: nil, EmailAddresses: []string{"client1@tlsclient.example.com"}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}, RootCACertsPool: x509.NewCertPool(), SubordinateCACertsPool: x509.NewCertPool()}}
 	t.Run("TLS Client", func(t *testing.T) {
@@ -169,4 +116,35 @@ func TestMutualTLS(t *testing.T) {
 			}()
 		}
 	})
+}
+
+func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CASubject {
+	caSubjects := make([]CASubject, 0, numCAs)
+	for i := range cap(caSubjects) {
+		currentCASubject := CASubject{SubjectName: fmt.Sprintf("%s %d", caSubjectNamePrefix, i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(caSubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}, RootCACertsPool: x509.NewCertPool(), SubordinateCACertsPool: x509.NewCertPool()}}
+		previousCASubject := currentCASubject
+		var previousCACert *x509.Certificate
+		if i > 0 {
+			previousCASubject = caSubjects[i-1]
+			previousCACert = previousCASubject.KeyMaterial.CertChain[0]
+		}
+		t.Run(currentCASubject.SubjectName, func(t *testing.T) {
+			currentCACertTemplate, err := CertificateTemplateCA(previousCASubject.SubjectName, currentCASubject.SubjectName, currentCASubject.Duration, currentCASubject.MaxPathLen)
+			verifyCertificateTemplate(t, err, currentCACertTemplate)
+			cert, der, pem, err := SignCertificate(previousCACert, previousCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+			currentCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousCASubject.KeyMaterial.CertChain...)
+			currentCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousCASubject.KeyMaterial.DERChain...)
+			currentCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousCASubject.KeyMaterial.PEMChain...)
+			verifyCACertificate(t, err, currentCASubject.KeyMaterial.CertChain, currentCASubject.KeyMaterial.DERChain, currentCASubject.KeyMaterial.PEMChain, previousCASubject.SubjectName, currentCASubject.SubjectName, currentCASubject.Duration, currentCACertTemplate.MaxPathLen)
+			currentCASubject.KeyMaterial.RootCACertsPool = previousCASubject.KeyMaterial.RootCACertsPool.Clone()
+			currentCASubject.KeyMaterial.SubordinateCACertsPool = previousCASubject.KeyMaterial.SubordinateCACertsPool.Clone()
+			if i == 0 {
+				currentCASubject.KeyMaterial.RootCACertsPool.AddCert(cert)
+			} else {
+				currentCASubject.KeyMaterial.SubordinateCACertsPool.AddCert(cert)
+			}
+		})
+		caSubjects = append(caSubjects, currentCASubject)
+	}
+	return caSubjects
 }
