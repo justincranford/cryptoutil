@@ -25,14 +25,11 @@ func TestMutualTLS(t *testing.T) {
 	tlsServerCASubjects := make([]CASubject, 0, 4) // Root CA + Subordinate CA 1 (Intermediate) + Subordinate CA 2 (Intermediate) + Subordinate CA 3 (Issuing)
 	tlsServerRootCACertsPool := x509.NewCertPool()
 	tlsServerSubordinateCACertsPool := x509.NewCertPool()
-	var previousTLSServerCASubject CASubject
-	var previousTLSServerCACert *x509.Certificate
 	for i := range cap(tlsServerCASubjects) {
-		currentTLSServerCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Server CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
-		if i == 0 {
-			previousTLSServerCASubject = currentTLSServerCASubject
-			previousTLSServerCACert = nil
-		} else {
+		currentTLSServerCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Server CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}}}
+		previousTLSServerCASubject := currentTLSServerCASubject
+		var previousTLSServerCACert *x509.Certificate
+		if i > 0 {
 			previousTLSServerCASubject = tlsServerCASubjects[i-1]
 			previousTLSServerCACert = previousTLSServerCASubject.KeyMaterial.CertChain[0]
 		}
@@ -40,15 +37,9 @@ func TestMutualTLS(t *testing.T) {
 			currentCACertTemplate, err := CertificateTemplateCA(previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentTLSServerCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
 			cert, der, pem, err := SignCertificate(previousTLSServerCACert, previousTLSServerCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSServerCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			if i == 0 {
-				currentTLSServerCASubject.KeyMaterial.CertChain = []*x509.Certificate{cert}
-				currentTLSServerCASubject.KeyMaterial.DERChain = [][]byte{der}
-				currentTLSServerCASubject.KeyMaterial.PEMChain = [][]byte{pem}
-			} else {
-				currentTLSServerCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSServerCASubject.KeyMaterial.CertChain...)
-				currentTLSServerCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSServerCASubject.KeyMaterial.DERChain...)
-				currentTLSServerCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSServerCASubject.KeyMaterial.PEMChain...)
-			}
+			currentTLSServerCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSServerCASubject.KeyMaterial.CertChain...)
+			currentTLSServerCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSServerCASubject.KeyMaterial.DERChain...)
+			currentTLSServerCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSServerCASubject.KeyMaterial.PEMChain...)
 			verifyCACertificate(t, err, currentTLSServerCASubject.KeyMaterial.CertChain, currentTLSServerCASubject.KeyMaterial.DERChain, currentTLSServerCASubject.KeyMaterial.PEMChain, previousTLSServerCASubject.SubjectName, currentTLSServerCASubject.SubjectName, currentTLSServerCASubject.Duration, currentCACertTemplate.MaxPathLen)
 			if i == 0 {
 				tlsServerRootCACertsPool.AddCert(cert)
@@ -59,7 +50,7 @@ func TestMutualTLS(t *testing.T) {
 		tlsServerCASubjects = append(tlsServerCASubjects, currentTLSServerCASubject)
 	}
 
-	tlsServerEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Server End Entity", Duration: 397 * cryptoutilDateTime.Days1, DNSNames: []string{"localhost", "tlsserver.example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+	tlsServerEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Server End Entity", Duration: 397 * cryptoutilDateTime.Days1, DNSNames: []string{"localhost", "tlsserver.example.com"}, IPAddresses: []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}}}
 	t.Run("TLS Server", func(t *testing.T) {
 		t.Run("TLS Server End Entity", func(t *testing.T) {
 			tlsServerIssuingCA := tlsServerCASubjects[cap(tlsServerCASubjects)-1]
@@ -81,7 +72,7 @@ func TestMutualTLS(t *testing.T) {
 	var previousTLSClientCASubject CASubject
 	var previousTLSClientCACert *x509.Certificate
 	for i := range cap(tlsClientCASubjects) {
-		currentTLSClientCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Client CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsClientCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+		currentTLSClientCASubject := CASubject{SubjectName: fmt.Sprintf("Test TLS Client CA %d", i), Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsClientCASubjects) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}}}
 		if i == 0 {
 			previousTLSClientCASubject = currentTLSClientCASubject
 			previousTLSClientCACert = nil
@@ -93,15 +84,9 @@ func TestMutualTLS(t *testing.T) {
 			currentCACertTemplate, err := CertificateTemplateCA(previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentTLSClientCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
 			cert, der, pem, err := SignCertificate(previousTLSClientCACert, previousTLSClientCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentTLSClientCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
-			if i == 0 {
-				currentTLSClientCASubject.KeyMaterial.CertChain = []*x509.Certificate{cert}
-				currentTLSClientCASubject.KeyMaterial.DERChain = [][]byte{der}
-				currentTLSClientCASubject.KeyMaterial.PEMChain = [][]byte{pem}
-			} else {
-				currentTLSClientCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSClientCASubject.KeyMaterial.CertChain...)
-				currentTLSClientCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSClientCASubject.KeyMaterial.DERChain...)
-				currentTLSClientCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSClientCASubject.KeyMaterial.PEMChain...)
-			}
+			currentTLSClientCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousTLSClientCASubject.KeyMaterial.CertChain...)
+			currentTLSClientCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSClientCASubject.KeyMaterial.DERChain...)
+			currentTLSClientCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSClientCASubject.KeyMaterial.PEMChain...)
 			verifyCACertificate(t, err, currentTLSClientCASubject.KeyMaterial.CertChain, currentTLSClientCASubject.KeyMaterial.DERChain, currentTLSClientCASubject.KeyMaterial.PEMChain, previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentCACertTemplate.MaxPathLen)
 			if i == 0 {
 				tlsClientRootCACertsPool.AddCert(cert)
@@ -112,7 +97,7 @@ func TestMutualTLS(t *testing.T) {
 		tlsClientCASubjects = append(tlsClientCASubjects, currentTLSClientCASubject)
 	}
 
-	tlsClientEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Client End Entity", Duration: 30 * cryptoutilDateTime.Days1, DNSNames: nil, IPAddresses: nil, EmailAddresses: []string{"client1@tlsclient.example.com"}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+	tlsClientEndEntityCert := EndEntitySubject{SubjectName: "Test TLS Client End Entity", Duration: 30 * cryptoutilDateTime.Days1, DNSNames: nil, IPAddresses: nil, EmailAddresses: []string{"client1@tlsclient.example.com"}, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get(), CertChain: []*x509.Certificate{}, DERChain: [][]byte{}, PEMChain: [][]byte{}}}
 	t.Run("TLS Client", func(t *testing.T) {
 		t.Run("TLS Client End Entity", func(t *testing.T) {
 			tlsClientIssuingCA := tlsClientCASubjects[cap(tlsClientCASubjects)-1]
