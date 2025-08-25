@@ -21,6 +21,23 @@ type KeyMaterial struct {
 	PEM     []byte
 }
 
+type CASubject struct {
+	SubjectName string
+	Duration    time.Duration
+	MaxPathLen  int
+	KeyMaterial KeyMaterial
+}
+
+type EndEntitySubject struct {
+	SubjectName    string
+	Duration       time.Duration
+	DNSNames       []string
+	IPAddresses    []net.IP
+	EmailAddresses []string
+	URIs           []*url.URL
+	KeyMaterial    KeyMaterial
+}
+
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {

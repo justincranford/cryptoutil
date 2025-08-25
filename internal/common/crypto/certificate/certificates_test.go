@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
-	"net/url"
 	"testing"
 	"time"
 
@@ -23,23 +22,6 @@ func TestNegativeDuration(t *testing.T) {
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
 
-type CASubject struct {
-	SubjectName string
-	Duration    time.Duration
-	MaxPathLen  int
-	KeyMaterial KeyMaterial
-}
-
-type EndEntitySubject struct {
-	SubjectName    string
-	Duration       time.Duration
-	DNSNames       []string
-	IPAddresses    []net.IP
-	EmailAddresses []string
-	URIs           []*url.URL
-	KeyMaterial    KeyMaterial
-}
-
 func TestMutualTLS(t *testing.T) {
 	tlsServerCAs := make([]CASubject, 0, 4) // Root CA + Subordinate CA 1 (Intermediate) + Subordinate CA 2 (Intermediate) + Subordinate CA 3 (Issuing)
 	tlsServerRootCAsPool := x509.NewCertPool()
@@ -47,7 +29,7 @@ func TestMutualTLS(t *testing.T) {
 	var previous CASubject
 	for i := range cap(tlsServerCAs) {
 		subjectName := fmt.Sprintf("Test TLS Server CA %d", i)
-		current := CASubject{SubjectName: subjectName, Duration: 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCAs) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
+		current := CASubject{SubjectName: subjectName, Duration: 10 * 365 * cryptoutilDateTime.Days1, MaxPathLen: cap(tlsServerCAs) - i - 1, KeyMaterial: KeyMaterial{KeyPair: testKeyGenPool.Get()}}
 		if i == 0 {
 			previous = current
 		} else {
