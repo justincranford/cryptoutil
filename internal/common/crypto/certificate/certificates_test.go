@@ -69,8 +69,6 @@ func TestMutualTLS(t *testing.T) {
 	serverTLSCertChain := tls.Certificate{Certificate: tlsServerEndEntityCert.KeyMaterial.DERChain, PrivateKey: tlsServerEndEntityCert.KeyMaterial.KeyPair.Private}
 
 	tlsClientCASubjects := make([]CASubject, 0, 2) // Root CA + Subordinate CA 1 (Issuing)
-	tlsClientRootCACertsPool := x509.NewCertPool()
-	tlsClientSubordinateCACertsPool := x509.NewCertPool()
 	var previousTLSClientCASubject CASubject
 	var previousTLSClientCACert *x509.Certificate
 	for i := range cap(tlsClientCASubjects) {
@@ -90,13 +88,11 @@ func TestMutualTLS(t *testing.T) {
 			currentTLSClientCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousTLSClientCASubject.KeyMaterial.DERChain...)
 			currentTLSClientCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousTLSClientCASubject.KeyMaterial.PEMChain...)
 			verifyCACertificate(t, err, currentTLSClientCASubject.KeyMaterial.CertChain, currentTLSClientCASubject.KeyMaterial.DERChain, currentTLSClientCASubject.KeyMaterial.PEMChain, previousTLSClientCASubject.SubjectName, currentTLSClientCASubject.SubjectName, currentTLSClientCASubject.Duration, currentCACertTemplate.MaxPathLen)
+			currentTLSClientCASubject.KeyMaterial.RootCACertsPool = previousTLSClientCASubject.KeyMaterial.RootCACertsPool.Clone()
+			currentTLSClientCASubject.KeyMaterial.SubordinateCACertsPool = previousTLSClientCASubject.KeyMaterial.SubordinateCACertsPool.Clone()
 			if i == 0 {
-				tlsClientRootCACertsPool.AddCert(cert)
-				currentTLSClientCASubject.KeyMaterial.RootCACertsPool = tlsClientRootCACertsPool.Clone()
 				currentTLSClientCASubject.KeyMaterial.RootCACertsPool.AddCert(cert)
 			} else {
-				tlsClientSubordinateCACertsPool.AddCert(cert)
-				currentTLSClientCASubject.KeyMaterial.SubordinateCACertsPool = tlsClientSubordinateCACertsPool.Clone()
 				currentTLSClientCASubject.KeyMaterial.SubordinateCACertsPool.AddCert(cert)
 			}
 		})
@@ -114,7 +110,9 @@ func TestMutualTLS(t *testing.T) {
 			tlsClientEndEntityCert.KeyMaterial.DERChain = append([][]byte{der}, tlsClientIssuingCA.KeyMaterial.DERChain...)
 			tlsClientEndEntityCert.KeyMaterial.PEMChain = append([][]byte{pem}, tlsClientIssuingCA.KeyMaterial.PEMChain...)
 			verifyEndEntityCertificate(t, err, cert, der, pem, tlsClientIssuingCA.SubjectName, tlsClientEndEntityCert.SubjectName, tlsClientEndEntityCert.Duration, tlsClientEndEntityCert.DNSNames, tlsClientEndEntityCert.IPAddresses, tlsClientEndEntityCert.EmailAddresses, tlsClientEndEntityCert.URIs)
-			verifyCertChain(t, cert, tlsClientRootCACertsPool, tlsClientSubordinateCACertsPool)
+			verifyCertChain(t, cert, tlsClientIssuingCA.KeyMaterial.RootCACertsPool, tlsClientIssuingCA.KeyMaterial.SubordinateCACertsPool)
+			tlsClientEndEntityCert.KeyMaterial.RootCACertsPool = tlsClientIssuingCA.KeyMaterial.RootCACertsPool.Clone()
+			tlsClientEndEntityCert.KeyMaterial.SubordinateCACertsPool = tlsClientIssuingCA.KeyMaterial.SubordinateCACertsPool.Clone()
 		})
 	})
 	clientTLSCertChain := tls.Certificate{Certificate: tlsClientEndEntityCert.KeyMaterial.DERChain, PrivateKey: tlsClientEndEntityCert.KeyMaterial.KeyPair.Private}
@@ -124,7 +122,7 @@ func TestMutualTLS(t *testing.T) {
 	serverTLSConfig := &tls.Config{
 		Certificates: []tls.Certificate{serverTLSCertChain},
 		ClientAuth:   tls.RequireAndVerifyClientCert,
-		ClientCAs:    tlsClientRootCACertsPool,
+		ClientCAs:    tlsClientEndEntityCert.KeyMaterial.RootCACertsPool,
 	}
 	clientTLSConfig := &tls.Config{
 		Certificates:       []tls.Certificate{clientTLSCertChain},
