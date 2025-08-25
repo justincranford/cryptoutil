@@ -63,17 +63,17 @@ func CertificateTemplateCA(issuerName string, subjectName string, duration time.
 	}, nil
 }
 
-// Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
-func CertificateTemplateTLSServer(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
-	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, emailAddresses, ipAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
-}
+// // Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
+// func CertificateTemplateTLSServer(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
+// 	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+// }
 
-// Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
-func CertificateTemplateTLSClient(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
-	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, emailAddresses, ipAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
-}
+// // Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
+// func CertificateTemplateTLSClient(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
+// 	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
+// }
 
-func CertificateTemplateEndEntity(issuerName string, subjectName string, duration time.Duration, dnsNames []string, emailAddresses []string, ipAddresses []net.IP, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*x509.Certificate, error) {
+func CertificateTemplateEndEntity(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
