@@ -29,20 +29,12 @@ func TestMutualTLS(t *testing.T) {
 	tlsClientEndEntitySubject := createEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 
 	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
-	tlsServerCertChain := buildTLSCertificate(tlsServerEndEntitySubject)
-	tlsClientCertChain := buildTLSCertificate(tlsClientEndEntitySubject)
+	tlsServerCertChain, tlsServerRootCAs := buildTLSCertificate(tlsServerEndEntitySubject)
+	tlsClientCertChain, tlsClientRootCAs := buildTLSCertificate(tlsClientEndEntitySubject)
 
 	// These TLS configuration instances are reusable for both the Raw mTLS and HTTP mTLS tests
-	serverTLSConfig := &tls.Config{
-		Certificates: []tls.Certificate{tlsServerCertChain},
-		ClientAuth:   tls.RequireAndVerifyClientCert,
-		ClientCAs:    tlsClientEndEntitySubject.KeyMaterial.RootCACertsPool,
-	}
-	clientTLSConfig := &tls.Config{
-		Certificates:       []tls.Certificate{tlsClientCertChain},
-		InsecureSkipVerify: false,
-		RootCAs:            tlsServerEndEntitySubject.KeyMaterial.RootCACertsPool,
-	}
+	serverTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsServerCertChain}, ClientCAs: tlsClientRootCAs, ClientAuth: tls.RequireAndVerifyClientCert}
+	clientTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsClientCertChain}, RootCAs: tlsServerRootCAs, InsecureSkipVerify: false}
 
 	t.Run("Raw mTLS", func(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
@@ -137,6 +129,6 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 	return endEntityCert
 }
 
-func buildTLSCertificate(endEntitySubject EndEntitySubject) tls.Certificate {
-	return tls.Certificate{Certificate: endEntitySubject.KeyMaterial.DERChain, PrivateKey: endEntitySubject.KeyMaterial.KeyPair.Private, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}
+func buildTLSCertificate(endEntitySubject EndEntitySubject) (tls.Certificate, *x509.CertPool) {
+	return tls.Certificate{Certificate: endEntitySubject.KeyMaterial.DERChain, PrivateKey: endEntitySubject.KeyMaterial.KeyPair.Private, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool
 }
