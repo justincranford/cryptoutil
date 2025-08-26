@@ -14,13 +14,21 @@ import (
 )
 
 type KeyMaterial struct {
-	PrivateKey             crypto.PrivateKey
-	PublicKey              crypto.PublicKey
-	CertChain              []*x509.Certificate
-	DERChain               [][]byte
-	PEMChain               [][]byte
-	SubordinateCACertsPool *x509.CertPool
-	RootCACertsPool        *x509.CertPool
+	CertChain              []*x509.Certificate `json:"-"` // Exclude from JSON serialization
+	PrivateKey             crypto.PrivateKey   `json:"-"` // Exclude from JSON serialization
+	PublicKey              crypto.PublicKey    `json:"-"` // Exclude from JSON serialization
+	SubordinateCACertsPool *x509.CertPool      `json:"-"` // Exclude from JSON serialization
+	RootCACertsPool        *x509.CertPool      `json:"-"` // Exclude from JSON serialization
+	DERCertChain           [][]byte
+	PEMCertChain           [][]byte
+	DERPrivateKey          []byte   `json:"private_key_der,omitempty"`
+	PEMPrivateKey          []byte   `json:"private_key_pem,omitempty"`
+	DERPublicKey           []byte   `json:"public_key_der"`
+	PEMPublicKey           []byte   `json:"public_key_pem"`
+	DERSubordinateCACerts  [][]byte `json:"subordinate_ca_certs_der"`
+	PEMSubordinateCACerts  [][]byte `json:"subordinate_ca_certs_pem"`
+	DERRootCACertsPool     [][]byte `json:"root_ca_certs_pool_der"`
+	PEMRootCACertsPool     [][]byte `json:"root_ca_certs_pool_pem"`
 }
 
 type Subject struct {
@@ -134,8 +142,8 @@ func SerializeCASubjects(caSubjects []CASubject) ([]byte, error) {
 			SubjectName: subject.SubjectName,
 			Duration:    subject.Duration,
 			MaxPathLen:  subject.MaxPathLen,
-			DERChain:    subject.KeyMaterial.DERChain,
-			PEMChain:    subject.KeyMaterial.PEMChain,
+			DERChain:    subject.KeyMaterial.DERCertChain,
+			PEMChain:    subject.KeyMaterial.PEMCertChain,
 		}
 	}
 
@@ -156,4 +164,166 @@ func DeserializeCASubjects(data []byte) ([]SerializableCASubject, error) {
 		return nil, fmt.Errorf("failed to deserialize CA subjects: %w", err)
 	}
 	return serializableSubjects, nil
+}
+
+// SerializeKeyMaterial serializes KeyMaterial to JSON bytes
+// includePrivateKey controls whether the private key is included in the serialization
+// Note: This is safe because the caller plans to encrypt the entire JSON document using KMS
+func SerializeKeyMaterial(keyMaterial KeyMaterial, includePrivateKey bool) ([]byte, error) {
+	// Create a copy to avoid modifying the original
+	serializable := keyMaterial
+
+	// If includePrivateKey is false, clear the private key fields
+	if !includePrivateKey {
+		serializable.DERPrivateKey = nil
+		serializable.PEMPrivateKey = nil
+	}
+
+	data, err := json.Marshal(serializable)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize KeyMaterial: %w", err)
+	}
+	return data, nil
+}
+
+// DeserializeKeyMaterial deserializes JSON bytes to KeyMaterial
+// Note: This only deserializes the serializable fields. The crypto.PrivateKey, crypto.PublicKey,
+// CertChain, and CertPool fields will need to be reconstructed from the DER/PEM data
+func DeserializeKeyMaterial(data []byte) (KeyMaterial, error) {
+	var keyMaterial KeyMaterial
+	err := json.Unmarshal(data, &keyMaterial)
+	if err != nil {
+		return KeyMaterial{}, fmt.Errorf("failed to deserialize KeyMaterial: %w", err)
+	}
+	return keyMaterial, nil
+}
+
+// PopulateSerializableFields populates the serializable DER/PEM fields from the crypto objects
+func (km *KeyMaterial) PopulateSerializableFields() error {
+	var err error
+
+	// Serialize private key if present
+	if km.PrivateKey != nil {
+		km.DERPrivateKey, err = x509.MarshalPKCS8PrivateKey(km.PrivateKey)
+		if err != nil {
+			return fmt.Errorf("failed to marshal private key to DER: %w", err)
+		}
+
+		km.PEMPrivateKey = pem.EncodeToMemory(&pem.Block{
+			Type:  "PRIVATE KEY",
+			Bytes: km.DERPrivateKey,
+		})
+	}
+
+	// Serialize public key if present
+	if km.PublicKey != nil {
+		km.DERPublicKey, err = x509.MarshalPKIXPublicKey(km.PublicKey)
+		if err != nil {
+			return fmt.Errorf("failed to marshal public key to DER: %w", err)
+		}
+
+		km.PEMPublicKey = pem.EncodeToMemory(&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: km.DERPublicKey,
+		})
+	}
+
+	// Serialize subordinate CA certs pool if present
+	// Note: x509.CertPool doesn't expose the certificates directly,
+	// so these fields need to be populated manually when certificates are added to the pool
+
+	// Serialize root CA certs pool if present
+	// Note: Same limitation as above - these fields need to be populated manually
+
+	return nil
+}
+
+// ReconstructCryptoObjects reconstructs the crypto objects from the serializable DER/PEM data
+func (km *KeyMaterial) ReconstructCryptoObjects() error {
+	var err error
+
+	// Reconstruct private key from DER if present
+	if len(km.DERPrivateKey) > 0 {
+		km.PrivateKey, err = x509.ParsePKCS8PrivateKey(km.DERPrivateKey)
+		if err != nil {
+			return fmt.Errorf("failed to parse private key from DER: %w", err)
+		}
+	}
+
+	// Reconstruct public key from DER if present
+	if len(km.DERPublicKey) > 0 {
+		km.PublicKey, err = x509.ParsePKIXPublicKey(km.DERPublicKey)
+		if err != nil {
+			return fmt.Errorf("failed to parse public key from DER: %w", err)
+		}
+	}
+
+	// Reconstruct cert chain from DER chain
+	if len(km.DERCertChain) > 0 {
+		km.CertChain = make([]*x509.Certificate, len(km.DERCertChain))
+		for i, derBytes := range km.DERCertChain {
+			km.CertChain[i], err = x509.ParseCertificate(derBytes)
+			if err != nil {
+				return fmt.Errorf("failed to parse certificate %d from DER: %w", i, err)
+			}
+		}
+	}
+
+	// Reconstruct subordinate CA certs pool from DER
+	if len(km.DERSubordinateCACerts) > 0 {
+		km.SubordinateCACertsPool = x509.NewCertPool()
+		for i, derBytes := range km.DERSubordinateCACerts {
+			cert, err := x509.ParseCertificate(derBytes)
+			if err != nil {
+				return fmt.Errorf("failed to parse subordinate CA certificate %d from DER: %w", i, err)
+			}
+			km.SubordinateCACertsPool.AddCert(cert)
+		}
+	}
+
+	// Reconstruct root CA certs pool from DER
+	if len(km.DERRootCACertsPool) > 0 {
+		km.RootCACertsPool = x509.NewCertPool()
+		for i, derBytes := range km.DERRootCACertsPool {
+			cert, err := x509.ParseCertificate(derBytes)
+			if err != nil {
+				return fmt.Errorf("failed to parse root CA certificate %d from DER: %w", i, err)
+			}
+			km.RootCACertsPool.AddCert(cert)
+		}
+	}
+
+	return nil
+}
+
+// AddToSubordinateCACertsPool adds a certificate to the subordinate CA certs pool
+// and updates the serializable DER/PEM representations
+func (km *KeyMaterial) AddToSubordinateCACertsPool(cert *x509.Certificate) {
+	if km.SubordinateCACertsPool == nil {
+		km.SubordinateCACertsPool = x509.NewCertPool()
+	}
+	km.SubordinateCACertsPool.AddCert(cert)
+
+	// Update serializable representations
+	km.DERSubordinateCACerts = append(km.DERSubordinateCACerts, cert.Raw)
+	km.PEMSubordinateCACerts = append(km.PEMSubordinateCACerts, pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert.Raw,
+	}))
+}
+
+// AddToRootCACertsPool adds a certificate to the root CA certs pool
+// and updates the serializable DER/PEM representations
+func (km *KeyMaterial) AddToRootCACertsPool(cert *x509.Certificate) {
+	if km.RootCACertsPool == nil {
+		km.RootCACertsPool = x509.NewCertPool()
+	}
+	km.RootCACertsPool.AddCert(cert)
+
+	// Update serializable representations
+	km.DERRootCACertsPool = append(km.DERRootCACertsPool, cert.Raw)
+	km.PEMRootCACertsPool = append(km.PEMRootCACertsPool, pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: cert.Raw,
+	}))
 }

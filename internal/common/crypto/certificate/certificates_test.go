@@ -96,9 +96,57 @@ func TestSerializeCASubjects(t *testing.T) {
 		require.Equal(t, original.SubjectName, deserialized.SubjectName, "Subject name mismatch at index %d", i)
 		require.Equal(t, original.Duration, deserialized.Duration, "Duration mismatch at index %d", i)
 		require.Equal(t, original.MaxPathLen, deserialized.MaxPathLen, "MaxPathLen mismatch at index %d", i)
-		require.Equal(t, original.KeyMaterial.DERChain, deserialized.DERChain, "DERChain mismatch at index %d", i)
-		require.Equal(t, original.KeyMaterial.PEMChain, deserialized.PEMChain, "PEMChain mismatch at index %d", i)
+		require.Equal(t, original.KeyMaterial.DERCertChain, deserialized.DERChain, "DERChain mismatch at index %d", i)
+		require.Equal(t, original.KeyMaterial.PEMCertChain, deserialized.PEMChain, "PEMChain mismatch at index %d", i)
 	}
+}
+
+func TestSerializeKeyMaterial(t *testing.T) {
+	// Create a KeyMaterial with test data
+	keyPair := testKeyGenPool.Get()
+	keyMaterial := KeyMaterial{
+		PrivateKey:   keyPair.Private,
+		PublicKey:    keyPair.Public,
+		DERCertChain: [][]byte{}, // Empty for this test to avoid certificate parsing issues
+		PEMCertChain: [][]byte{}, // Empty for this test
+	}
+
+	// Populate serializable fields
+	err := keyMaterial.PopulateSerializableFields()
+	require.NoError(t, err, "Failed to populate serializable fields")
+
+	// Test serialization with private key
+	serializedWithPrivateKey, err := SerializeKeyMaterial(keyMaterial, true)
+	require.NoError(t, err, "Failed to serialize KeyMaterial with private key")
+	require.NotEmpty(t, serializedWithPrivateKey, "Serialized data should not be empty")
+
+	// Test serialization without private key
+	serializedWithoutPrivateKey, err := SerializeKeyMaterial(keyMaterial, false)
+	require.NoError(t, err, "Failed to serialize KeyMaterial without private key")
+	require.NotEmpty(t, serializedWithoutPrivateKey, "Serialized data should not be empty")
+
+	// Verify that serialization without private key excludes private key data
+	require.NotEqual(t, serializedWithPrivateKey, serializedWithoutPrivateKey, "Serializations with and without private key should be different")
+
+	// Test deserialization
+	deserializedKeyMaterial, err := DeserializeKeyMaterial(serializedWithPrivateKey)
+	require.NoError(t, err, "Failed to deserialize KeyMaterial")
+
+	// Test reconstruction of crypto objects
+	err = deserializedKeyMaterial.ReconstructCryptoObjects()
+	require.NoError(t, err, "Failed to reconstruct crypto objects")
+
+	// Verify the reconstructed data matches the original
+	require.Equal(t, keyMaterial.DERCertChain, deserializedKeyMaterial.DERCertChain, "DERChain should match")
+	require.Equal(t, keyMaterial.PEMCertChain, deserializedKeyMaterial.PEMCertChain, "PEMChain should match")
+	require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should be reconstructed")
+	require.NotNil(t, deserializedKeyMaterial.PublicKey, "PublicKey should be reconstructed")
+
+	// Verify the serializable fields are populated
+	require.NotEmpty(t, deserializedKeyMaterial.DERPrivateKey, "PrivateKeyDER should be populated")
+	require.NotEmpty(t, deserializedKeyMaterial.PEMPrivateKey, "PrivateKeyPEM should be populated")
+	require.NotEmpty(t, deserializedKeyMaterial.DERPublicKey, "PublicKeyDER should be populated")
+	require.NotEmpty(t, deserializedKeyMaterial.PEMPublicKey, "PublicKeyPEM should be populated")
 }
 
 func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CASubject {
@@ -113,8 +161,8 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CA
 					PrivateKey:             keyPair.Private,
 					PublicKey:              keyPair.Public,
 					CertChain:              []*x509.Certificate{},
-					DERChain:               [][]byte{},
-					PEMChain:               [][]byte{},
+					DERCertChain:           [][]byte{},
+					PEMCertChain:           [][]byte{},
 					RootCACertsPool:        x509.NewCertPool(),
 					SubordinateCACertsPool: x509.NewCertPool(),
 				},
@@ -132,9 +180,9 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CA
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
 			cert, der, pem, err := SignCertificate(previousCACert, previousCASubject.KeyMaterial.PrivateKey, currentCACertTemplate, currentCASubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
 			currentCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousCASubject.KeyMaterial.CertChain...)
-			currentCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousCASubject.KeyMaterial.DERChain...)
-			currentCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousCASubject.KeyMaterial.PEMChain...)
-			verifyCACertificate(t, err, currentCASubject.KeyMaterial.CertChain, currentCASubject.KeyMaterial.DERChain, currentCASubject.KeyMaterial.PEMChain, previousCASubject.SubjectName, currentCASubject.SubjectName, currentCASubject.Duration, currentCACertTemplate.MaxPathLen)
+			currentCASubject.KeyMaterial.DERCertChain = append([][]byte{der}, previousCASubject.KeyMaterial.DERCertChain...)
+			currentCASubject.KeyMaterial.PEMCertChain = append([][]byte{pem}, previousCASubject.KeyMaterial.PEMCertChain...)
+			verifyCACertificate(t, err, currentCASubject.KeyMaterial.CertChain, currentCASubject.KeyMaterial.DERCertChain, currentCASubject.KeyMaterial.PEMCertChain, previousCASubject.SubjectName, currentCASubject.SubjectName, currentCASubject.Duration, currentCACertTemplate.MaxPathLen)
 			currentCASubject.KeyMaterial.RootCACertsPool = previousCASubject.KeyMaterial.RootCACertsPool.Clone()
 			currentCASubject.KeyMaterial.SubordinateCACertsPool = previousCASubject.KeyMaterial.SubordinateCACertsPool.Clone()
 			if i == 0 {
@@ -158,8 +206,8 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 				PrivateKey:             keyPair.Private,
 				PublicKey:              keyPair.Public,
 				CertChain:              []*x509.Certificate{},
-				DERChain:               [][]byte{},
-				PEMChain:               [][]byte{},
+				DERCertChain:           [][]byte{},
+				PEMCertChain:           [][]byte{},
 				RootCACertsPool:        x509.NewCertPool(),
 				SubordinateCACertsPool: x509.NewCertPool(),
 			},
@@ -175,8 +223,8 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 		verifyCertificateTemplate(t, err, endEntityCertTemplate)
 		cert, der, pem, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntityCert.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
 		endEntityCert.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterial.CertChain...)
-		endEntityCert.KeyMaterial.DERChain = append([][]byte{der}, issuingCA.KeyMaterial.DERChain...)
-		endEntityCert.KeyMaterial.PEMChain = append([][]byte{pem}, issuingCA.KeyMaterial.PEMChain...)
+		endEntityCert.KeyMaterial.DERCertChain = append([][]byte{der}, issuingCA.KeyMaterial.DERCertChain...)
+		endEntityCert.KeyMaterial.PEMCertChain = append([][]byte{pem}, issuingCA.KeyMaterial.PEMCertChain...)
 		verifyEndEntityCertificate(t, err, cert, der, pem, issuingCA.SubjectName, endEntityCert.SubjectName, endEntityCert.Duration, endEntityCert.DNSNames, endEntityCert.IPAddresses, endEntityCert.EmailAddresses, endEntityCert.URIs)
 		verifyCertChain(t, cert, issuingCA.KeyMaterial.RootCACertsPool, issuingCA.KeyMaterial.SubordinateCACertsPool)
 		endEntityCert.KeyMaterial.RootCACertsPool = issuingCA.KeyMaterial.RootCACertsPool.Clone()
@@ -186,5 +234,5 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 }
 
 func buildTLSCertificate(endEntitySubject EndEntitySubject) (tls.Certificate, *x509.CertPool) {
-	return tls.Certificate{Certificate: endEntitySubject.KeyMaterial.DERChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool
+	return tls.Certificate{Certificate: endEntitySubject.KeyMaterial.DERCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool
 }
