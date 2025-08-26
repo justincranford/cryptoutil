@@ -104,12 +104,14 @@ func TestSerializeCASubjects(t *testing.T) {
 func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CASubject {
 	caSubjects := make([]CASubject, 0, numCAs)
 	for i := range cap(caSubjects) {
+		keyPair := testKeyGenPool.Get()
 		currentCASubject := CASubject{
 			Subject: Subject{
 				SubjectName: fmt.Sprintf("%s %d", caSubjectNamePrefix, i),
 				Duration:    10 * 365 * cryptoutilDateTime.Days1,
 				KeyMaterial: KeyMaterial{
-					KeyPair:                testKeyGenPool.Get(),
+					PrivateKey:             keyPair.Private,
+					PublicKey:              keyPair.Public,
 					CertChain:              []*x509.Certificate{},
 					DERChain:               [][]byte{},
 					PEMChain:               [][]byte{},
@@ -128,7 +130,7 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CA
 		t.Run(currentCASubject.SubjectName, func(t *testing.T) {
 			currentCACertTemplate, err := CertificateTemplateCA(previousCASubject.SubjectName, currentCASubject.SubjectName, currentCASubject.Duration, currentCASubject.MaxPathLen)
 			verifyCertificateTemplate(t, err, currentCACertTemplate)
-			cert, der, pem, err := SignCertificate(previousCACert, previousCASubject.KeyMaterial.KeyPair.Private, currentCACertTemplate, currentCASubject.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+			cert, der, pem, err := SignCertificate(previousCACert, previousCASubject.KeyMaterial.PrivateKey, currentCACertTemplate, currentCASubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
 			currentCASubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousCASubject.KeyMaterial.CertChain...)
 			currentCASubject.KeyMaterial.DERChain = append([][]byte{der}, previousCASubject.KeyMaterial.DERChain...)
 			currentCASubject.KeyMaterial.PEMChain = append([][]byte{pem}, previousCASubject.KeyMaterial.PEMChain...)
@@ -147,12 +149,14 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CA
 }
 
 func createEndEntitySubject(t *testing.T, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []CASubject) EndEntitySubject {
+	keyPair := testKeyGenPool.Get()
 	endEntityCert := EndEntitySubject{
 		Subject: Subject{
 			SubjectName: subjectName,
 			Duration:    duration,
 			KeyMaterial: KeyMaterial{
-				KeyPair:                testKeyGenPool.Get(),
+				PrivateKey:             keyPair.Private,
+				PublicKey:              keyPair.Public,
 				CertChain:              []*x509.Certificate{},
 				DERChain:               [][]byte{},
 				PEMChain:               [][]byte{},
@@ -169,7 +173,7 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 		issuingCA := caSubjects[cap(caSubjects)-1]
 		endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntityCert.SubjectName, endEntityCert.Duration, endEntityCert.DNSNames, endEntityCert.IPAddresses, endEntityCert.EmailAddresses, endEntityCert.URIs, keyUsage, extKeyUsage)
 		verifyCertificateTemplate(t, err, endEntityCertTemplate)
-		cert, der, pem, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.KeyPair.Private, endEntityCertTemplate, endEntityCert.KeyMaterial.KeyPair.Public, x509.ECDSAWithSHA256)
+		cert, der, pem, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntityCert.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
 		endEntityCert.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterial.CertChain...)
 		endEntityCert.KeyMaterial.DERChain = append([][]byte{der}, issuingCA.KeyMaterial.DERChain...)
 		endEntityCert.KeyMaterial.PEMChain = append([][]byte{pem}, issuingCA.KeyMaterial.PEMChain...)
@@ -182,5 +186,5 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 }
 
 func buildTLSCertificate(endEntitySubject EndEntitySubject) (tls.Certificate, *x509.CertPool) {
-	return tls.Certificate{Certificate: endEntitySubject.KeyMaterial.DERChain, PrivateKey: endEntitySubject.KeyMaterial.KeyPair.Private, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool
+	return tls.Certificate{Certificate: endEntitySubject.KeyMaterial.DERChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool
 }

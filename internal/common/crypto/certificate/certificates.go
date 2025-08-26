@@ -11,12 +11,11 @@ import (
 	"net"
 	"net/url"
 	"time"
-
-	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 )
 
 type KeyMaterial struct {
-	KeyPair                *cryptoutilKeyGen.KeyPair
+	PrivateKey             crypto.PrivateKey
+	PublicKey              crypto.PublicKey
 	CertChain              []*x509.Certificate
 	DERChain               [][]byte
 	PEMChain               [][]byte
