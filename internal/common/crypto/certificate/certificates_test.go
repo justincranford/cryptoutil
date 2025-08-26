@@ -28,9 +28,6 @@ func TestMutualTLS(t *testing.T) {
 	tlsServerEndEntitySubject := createEndEntitySubject(t, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
 	tlsClientEndEntitySubject := createEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 
-	// TODO Serialize tlsServerCASubjects, tlsClientCASubjects, tlsServerEndEntitySubject, tlsClientEndEntitySubject
-	// to
-
 	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	tlsServerCertChain, tlsServerRootCAs := buildTLSCertificate(tlsServerEndEntitySubject)
 	tlsClientCertChain, tlsClientRootCAs := buildTLSCertificate(tlsClientEndEntitySubject)
@@ -86,11 +83,15 @@ func TestMutualTLS(t *testing.T) {
 func TestSerializeCASubjects(t *testing.T) {
 	caSubjects := createCASubjects(t, "Test Serialize CA", 2)
 
-	serializedData, err := SerializeCASubjects(caSubjects)
+	serializedCASubjects, err := SerializeCASubjects(caSubjects)
 	require.NoError(t, err, "Failed to serialize CA subjects")
-	require.NotEmpty(t, serializedData, "Serialized data should not be empty")
+	require.NotEmpty(t, serializedCASubjects, "Serialized data should not be empty")
+	t.Logf("Serialized CA Subjects count: %d", len(serializedCASubjects))
+	for i, caSubject := range serializedCASubjects {
+		t.Logf("Serialized CA Subject %d: %s", i, string(caSubject))
+	}
 
-	deserializedKeyMaterials, err := DeserializeCASubjects(serializedData)
+	deserializedKeyMaterials, err := DeserializeCASubjects(serializedCASubjects)
 	require.NoError(t, err, "Failed to deserialize CA subjects")
 	require.Len(t, deserializedKeyMaterials, len(caSubjects), "Deserialized KeyMaterials count should match original")
 

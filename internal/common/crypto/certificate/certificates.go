@@ -131,7 +131,7 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 
 // SerializeCASubjects serializes a slice of CASubject to JSON bytes
 // Note: This function includes private keys for complete serialization
-func SerializeCASubjects(caSubjects []CASubject) ([]byte, error) {
+func SerializeCASubjects(caSubjects []CASubject) ([][]byte, error) {
 	keyMaterialJSONs := make([][]byte, len(caSubjects))
 
 	for i, subject := range caSubjects {
@@ -150,27 +150,17 @@ func SerializeCASubjects(caSubjects []CASubject) ([]byte, error) {
 		keyMaterialJSONs[i] = jsonBytes
 	}
 
-	data, err := json.Marshal(keyMaterialJSONs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to serialize KeyMaterial array: %w", err)
-	}
-	return data, nil
+	return keyMaterialJSONs, nil
 }
 
 // DeserializeCASubjects deserializes JSON bytes to a slice of KeyMaterial
 // Note: This only returns the KeyMaterial parts since subject metadata (name, duration, maxPathLen)
 // is not included in the serialized data. To rebuild full CASubject, caller must provide metadata separately.
-func DeserializeCASubjects(data []byte) ([]KeyMaterial, error) {
-	var keyMaterialJSONBytes [][]byte
-	err := json.Unmarshal(data, &keyMaterialJSONBytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize KeyMaterial array: %w", err)
-	}
-
+func DeserializeCASubjects(keyMaterialJSONBytes [][]byte) ([]KeyMaterial, error) {
 	keyMaterials := make([]KeyMaterial, len(keyMaterialJSONBytes))
 	for i, jsonBytes := range keyMaterialJSONBytes {
 		var keyMaterialJSON KeyMaterialJSON
-		err = json.Unmarshal(jsonBytes, &keyMaterialJSON)
+		err := json.Unmarshal(jsonBytes, &keyMaterialJSON)
 		if err != nil {
 			return nil, fmt.Errorf("failed to deserialize KeyMaterialJSON for item %d: %w", i, err)
 		}
