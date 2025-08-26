@@ -28,6 +28,9 @@ func TestMutualTLS(t *testing.T) {
 	tlsServerEndEntitySubject := createEndEntitySubject(t, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
 	tlsClientEndEntitySubject := createEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 
+	// TODO Serialize tlsServerCASubjects, tlsClientCASubjects, tlsServerEndEntitySubject, tlsClientEndEntitySubject
+	// to
+
 	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	tlsServerCertChain, tlsServerRootCAs := buildTLSCertificate(tlsServerEndEntitySubject)
 	tlsClientCertChain, tlsClientRootCAs := buildTLSCertificate(tlsClientEndEntitySubject)
@@ -87,24 +90,26 @@ func TestSerializeCASubjects(t *testing.T) {
 	require.NoError(t, err, "Failed to serialize CA subjects")
 	require.NotEmpty(t, serializedData, "Serialized data should not be empty")
 
-	deserializedSubjects, err := DeserializeCASubjects(serializedData)
+	deserializedKeyMaterials, err := DeserializeCASubjects(serializedData)
 	require.NoError(t, err, "Failed to deserialize CA subjects")
-	require.Len(t, deserializedSubjects, len(caSubjects), "Deserialized subjects count should match original")
+	require.Len(t, deserializedKeyMaterials, len(caSubjects), "Deserialized KeyMaterials count should match original")
 
 	for i, original := range caSubjects {
-		deserialized := deserializedSubjects[i]
-		require.Equal(t, original.SubjectName, deserialized.SubjectName, "Subject name mismatch at index %d", i)
-		require.Equal(t, original.Duration, deserialized.Duration, "Duration mismatch at index %d", i)
-		require.Equal(t, original.MaxPathLen, deserialized.MaxPathLen, "MaxPathLen mismatch at index %d", i)
+		deserializedKM := deserializedKeyMaterials[i]
+		originalKM := original.KeyMaterial
 
-		// Create DER chain from original for comparison
-		expectedDERChain := make([][]byte, len(original.KeyMaterial.CertChain))
-		for j, cert := range original.KeyMaterial.CertChain {
-			expectedDERChain[j] = cert.Raw
+		// Compare private keys
+		require.Equal(t, originalKM.PrivateKey, deserializedKM.PrivateKey, "PrivateKey mismatch at index %d", i)
+
+		// Compare public keys
+		require.Equal(t, originalKM.PublicKey, deserializedKM.PublicKey, "PublicKey mismatch at index %d", i)
+
+		// Compare certificate chains
+		require.Len(t, deserializedKM.CertChain, len(originalKM.CertChain), "CertChain length mismatch at index %d", i)
+		for j, originalCert := range originalKM.CertChain {
+			deserializedCert := deserializedKM.CertChain[j]
+			require.Equal(t, originalCert.Raw, deserializedCert.Raw, "Certificate Raw data mismatch at index %d, cert %d", i, j)
 		}
-
-		require.Equal(t, expectedDERChain, deserialized.DERChain, "DERChain mismatch at index %d", i)
-		require.NotEmpty(t, deserialized.PEMChain, "PEMChain should not be empty at index %d", i)
 	}
 }
 

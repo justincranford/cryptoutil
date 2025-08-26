@@ -55,15 +55,6 @@ type EndEntitySubject struct {
 	URIs           []*url.URL
 }
 
-// SerializableCASubject represents a CASubject with only serializable fields
-type SerializableCASubject struct {
-	SubjectName string        `json:"subject_name"`
-	Duration    time.Duration `json:"duration"`
-	MaxPathLen  int           `json:"max_path_len"`
-	DERChain    [][]byte      `json:"der_chain"`
-	PEMChain    [][]byte      `json:"pem_chain"`
-}
-
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
@@ -139,42 +130,88 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 }
 
 // SerializeCASubjects serializes a slice of CASubject to JSON bytes
-// Note: This function excludes private keys and cert pools for security reasons
+// Note: This function includes private keys for complete serialization
 func SerializeCASubjects(caSubjects []CASubject) ([]byte, error) {
-	serializableSubjects := make([]SerializableCASubject, len(caSubjects))
+	keyMaterialJSONs := make([][]byte, len(caSubjects))
+
 	for i, subject := range caSubjects {
 		// Convert KeyMaterial to JSON format
-		keyMaterialJSON, err := subject.KeyMaterial.ToJSON(false) // Don't include private keys
+		keyMaterialJSON, err := subject.KeyMaterial.ToJSON(true) // Include private keys
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert KeyMaterial to JSON format: %w", err)
+			return nil, fmt.Errorf("failed to convert KeyMaterial to JSON format for subject %d: %w", i, err)
 		}
 
-		serializableSubjects[i] = SerializableCASubject{
-			SubjectName: subject.SubjectName,
-			Duration:    subject.Duration,
-			MaxPathLen:  subject.MaxPathLen,
-			DERChain:    keyMaterialJSON.DERCertChain,
-			PEMChain:    keyMaterialJSON.PEMCertChain,
+		// Serialize the KeyMaterialJSON to bytes
+		jsonBytes, err := json.Marshal(keyMaterialJSON)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize KeyMaterialJSON for subject %d: %w", i, err)
 		}
+
+		keyMaterialJSONs[i] = jsonBytes
 	}
 
-	data, err := json.Marshal(serializableSubjects)
+	data, err := json.Marshal(keyMaterialJSONs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to serialize CA subjects: %w", err)
+		return nil, fmt.Errorf("failed to serialize KeyMaterial array: %w", err)
 	}
 	return data, nil
 }
 
-// DeserializeCASubjects deserializes JSON bytes to a slice of SerializableCASubject
-// Note: This returns SerializableCASubject structs, not full CASubject structs,
-// as private keys and cert pools cannot be safely serialized/deserialized
-func DeserializeCASubjects(data []byte) ([]SerializableCASubject, error) {
-	var serializableSubjects []SerializableCASubject
-	err := json.Unmarshal(data, &serializableSubjects)
+// DeserializeCASubjects deserializes JSON bytes to a slice of KeyMaterial
+// Note: This only returns the KeyMaterial parts since subject metadata (name, duration, maxPathLen)
+// is not included in the serialized data. To rebuild full CASubject, caller must provide metadata separately.
+func DeserializeCASubjects(data []byte) ([]KeyMaterial, error) {
+	var keyMaterialJSONBytes [][]byte
+	err := json.Unmarshal(data, &keyMaterialJSONBytes)
 	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize CA subjects: %w", err)
+		return nil, fmt.Errorf("failed to deserialize KeyMaterial array: %w", err)
 	}
-	return serializableSubjects, nil
+
+	keyMaterials := make([]KeyMaterial, len(keyMaterialJSONBytes))
+	for i, jsonBytes := range keyMaterialJSONBytes {
+		var keyMaterialJSON KeyMaterialJSON
+		err = json.Unmarshal(jsonBytes, &keyMaterialJSON)
+		if err != nil {
+			return nil, fmt.Errorf("failed to deserialize KeyMaterialJSON for item %d: %w", i, err)
+		}
+
+		keyMaterial, err := keyMaterialJSON.ToKeyMaterial()
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert KeyMaterialJSON to KeyMaterial for item %d: %w", i, err)
+		}
+
+		keyMaterials[i] = *keyMaterial
+	}
+
+	return keyMaterials, nil
+}
+
+// CASubjectMetadata contains the metadata needed to rebuild a CASubject
+type CASubjectMetadata struct {
+	SubjectName string
+	Duration    time.Duration
+	MaxPathLen  int
+}
+
+// BuildCASubjects rebuilds CASubjects from KeyMaterials and metadata
+func BuildCASubjects(keyMaterials []KeyMaterial, metadata []CASubjectMetadata) ([]CASubject, error) {
+	if len(keyMaterials) != len(metadata) {
+		return nil, fmt.Errorf("keyMaterials and metadata slices must have the same length: got %d and %d", len(keyMaterials), len(metadata))
+	}
+
+	caSubjects := make([]CASubject, len(keyMaterials))
+	for i := range keyMaterials {
+		caSubjects[i] = CASubject{
+			Subject: Subject{
+				SubjectName: metadata[i].SubjectName,
+				Duration:    metadata[i].Duration,
+				KeyMaterial: keyMaterials[i],
+			},
+			MaxPathLen: metadata[i].MaxPathLen,
+		}
+	}
+
+	return caSubjects, nil
 }
 
 func SerializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) ([]byte, error) {
