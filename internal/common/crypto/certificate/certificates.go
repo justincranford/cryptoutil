@@ -31,20 +31,25 @@ type Subject struct {
 }
 
 type CASubject struct {
-	SubjectName string
-	Duration    time.Duration
-	KeyMaterial KeyMaterial
-	MaxPathLen  int
+	Subject    // Embedded Subject struct
+	MaxPathLen int
 }
 
 type EndEntitySubject struct {
-	SubjectName    string
-	Duration       time.Duration
-	KeyMaterial    KeyMaterial
+	Subject        // Embedded Subject struct
 	DNSNames       []string
 	IPAddresses    []net.IP
 	EmailAddresses []string
 	URIs           []*url.URL
+}
+
+// SerializableCASubject represents a CASubject with only serializable fields
+type SerializableCASubject struct {
+	SubjectName string        `json:"subject_name"`
+	Duration    time.Duration `json:"duration"`
+	MaxPathLen  int           `json:"max_path_len"`
+	DERChain    [][]byte      `json:"der_chain"`
+	PEMChain    [][]byte      `json:"pem_chain"`
 }
 
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
@@ -119,15 +124,6 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 	certificatePem := pem.EncodeToMemory(certificatePemBlock)
 
 	return certificate, certificateDer, certificatePem, nil
-}
-
-// SerializableCASubject represents a CASubject with only serializable fields
-type SerializableCASubject struct {
-	SubjectName string        `json:"subject_name"`
-	Duration    time.Duration `json:"duration"`
-	MaxPathLen  int           `json:"max_path_len"`
-	DERChain    [][]byte      `json:"der_chain"`
-	PEMChain    [][]byte      `json:"pem_chain"`
 }
 
 // SerializeCASubjects serializes a slice of CASubject to JSON bytes
