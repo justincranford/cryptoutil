@@ -38,6 +38,7 @@ type KeyMaterialJSON struct {
 
 type Subject struct {
 	SubjectName string
+	IssuerName  string
 	Duration    time.Duration
 	KeyMaterial KeyMaterial
 }
@@ -45,6 +46,7 @@ type Subject struct {
 type CASubject struct {
 	Subject    // Embedded Subject struct
 	MaxPathLen int
+	IsCA       bool
 }
 
 type EndEntitySubject struct {
@@ -179,8 +181,10 @@ func DeserializeCASubjects(keyMaterialJSONBytes [][]byte) ([]KeyMaterial, error)
 // CASubjectMetadata contains the metadata needed to rebuild a CASubject
 type CASubjectMetadata struct {
 	SubjectName string
+	IssuerName  string
 	Duration    time.Duration
 	MaxPathLen  int
+	IsCA        bool
 }
 
 // BuildCASubjects rebuilds CASubjects from KeyMaterials and metadata
@@ -194,10 +198,12 @@ func BuildCASubjects(keyMaterials []KeyMaterial, metadata []CASubjectMetadata) (
 		caSubjects[i] = CASubject{
 			Subject: Subject{
 				SubjectName: metadata[i].SubjectName,
+				IssuerName:  metadata[i].IssuerName,
 				Duration:    metadata[i].Duration,
 				KeyMaterial: keyMaterials[i],
 			},
 			MaxPathLen: metadata[i].MaxPathLen,
+			IsCA:       metadata[i].IsCA,
 		}
 	}
 

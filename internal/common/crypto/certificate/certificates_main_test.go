@@ -13,7 +13,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
-const numKeyPairsNeeded = 12
+const numKeyPairsNeeded = 20
 
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("certificates_test")

@@ -147,12 +147,24 @@ func TestSerializeKeyMaterial(t *testing.T) {
 }
 
 func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CASubject {
-	caSubjects := make([]CASubject, 0, numCAs)
-	for i := range cap(caSubjects) {
+	require.Greater(t, numCAs, 0, "numCAs must be greater than 0")
+	caSubjects := make([]CASubject, numCAs)
+	for i := 0; i < numCAs; i++ {
 		keyPair := testKeyGenPool.Get()
+		require.NotNil(t, keyPair, "keyPair should not be nil for CA %d", i)
+		require.NotNil(t, keyPair.Private, "keyPair.Private should not be nil for CA %d", i)
+		require.NotNil(t, keyPair.Public, "keyPair.Public should not be nil for CA %d", i)
+
+		// Determine issuer name - root CA issues itself, others are issued by previous CA
+		issuerName := fmt.Sprintf("%s %d", caSubjectNamePrefix, i) // Self-signed for root CA
+		if i > 0 {
+			issuerName = fmt.Sprintf("%s %d", caSubjectNamePrefix, i-1) // Previous CA for intermediate CAs
+		}
+
 		currentCASubject := CASubject{
 			Subject: Subject{
 				SubjectName: fmt.Sprintf("%s %d", caSubjectNamePrefix, i),
+				IssuerName:  issuerName,
 				Duration:    10 * 365 * cryptoutilDateTime.Days1,
 				KeyMaterial: KeyMaterial{
 					PrivateKey:             keyPair.Private,
@@ -162,7 +174,8 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CA
 					SubordinateCACertsPool: x509.NewCertPool(),
 				},
 			},
-			MaxPathLen: cap(caSubjects) - i - 1,
+			MaxPathLen: numCAs - i - 1,
+			IsCA:       true,
 		}
 		previousCASubject := currentCASubject
 		var previousCACert *x509.Certificate
@@ -193,16 +206,26 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CA
 				currentCASubject.KeyMaterial.SubordinateCACertsPool.AddCert(cert)
 			}
 		})
-		caSubjects = append(caSubjects, currentCASubject)
+		caSubjects[i] = currentCASubject
 	}
 	return caSubjects
 }
 
 func createEndEntitySubject(t *testing.T, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []CASubject) EndEntitySubject {
 	keyPair := testKeyGenPool.Get()
+	require.NotNil(t, keyPair, "keyPair should not be nil")
+	require.NotNil(t, keyPair.Private, "keyPair.Private should not be nil")
+	require.NotNil(t, keyPair.Public, "keyPair.Public should not be nil")
+
+	// The issuing CA is the last one in the chain (leaf CA)
+	require.NotEmpty(t, caSubjects, "caSubjects should not be empty")
+	issuingCA := caSubjects[len(caSubjects)-1]
+	require.NotEmpty(t, issuingCA.SubjectName, "issuingCA.SubjectName should not be empty")
+
 	endEntityCert := EndEntitySubject{
 		Subject: Subject{
 			SubjectName: subjectName,
+			IssuerName:  issuingCA.SubjectName,
 			Duration:    duration,
 			KeyMaterial: KeyMaterial{
 				PrivateKey:             keyPair.Private,
@@ -218,7 +241,6 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 		URIs:           uris,
 	}
 	t.Run(subjectName, func(t *testing.T) {
-		issuingCA := caSubjects[cap(caSubjects)-1]
 		endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntityCert.SubjectName, endEntityCert.Duration, endEntityCert.DNSNames, endEntityCert.IPAddresses, endEntityCert.EmailAddresses, endEntityCert.URIs, keyUsage, extKeyUsage)
 		verifyCertificateTemplate(t, err, endEntityCertTemplate)
 		cert, derBytes, pemBytes, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntityCert.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
@@ -239,4 +261,31 @@ func buildTLSCertificate(endEntitySubject EndEntitySubject) (tls.Certificate, *x
 	}
 
 	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool
+}
+
+func TestNewFieldsPopulated(t *testing.T) {
+	// Test CA subjects have proper fields populated
+	caSubjects := createCASubjects(t, "Test Fields CA", 2)
+
+	// Root CA (index 0)
+	rootCA := caSubjects[0]
+	require.Equal(t, "Test Fields CA 0", rootCA.SubjectName, "Root CA subject name should match")
+	require.Equal(t, "Test Fields CA 0", rootCA.IssuerName, "Root CA issuer name should be self-signed")
+	require.True(t, rootCA.IsCA, "Root CA should have IsCA=true")
+	require.Equal(t, 1, rootCA.MaxPathLen, "Root CA should have expected MaxPathLen")
+
+	// Intermediate CA (index 1)
+	intermediateCA := caSubjects[1]
+	require.Equal(t, "Test Fields CA 1", intermediateCA.SubjectName, "Intermediate CA subject name should match")
+	require.Equal(t, "Test Fields CA 0", intermediateCA.IssuerName, "Intermediate CA should be issued by root CA")
+	require.True(t, intermediateCA.IsCA, "Intermediate CA should have IsCA=true")
+	require.Equal(t, 0, intermediateCA.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
+
+	// Test End Entity subjects have proper fields populated
+	endEntitySubject := createEndEntitySubject(t, "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
+		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, nil, nil,
+		x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, caSubjects)
+
+	require.Equal(t, "Test Fields End Entity", endEntitySubject.SubjectName, "End entity subject name should match")
+	require.Equal(t, "Test Fields CA 1", endEntitySubject.IssuerName, "End entity should be issued by leaf CA")
 }
