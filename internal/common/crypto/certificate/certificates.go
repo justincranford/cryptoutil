@@ -21,13 +21,13 @@ type KeyMaterial struct {
 	RootCACertsPool        *x509.CertPool      `json:"-"`
 
 	DERCertChain          [][]byte `json:"der_cert_chain"`
-	DERPrivateKey         []byte   `json:"der_private_key,omitempty"`
+	DERPrivateKey         []byte   `json:"der_private_key"`
 	DERPublicKey          []byte   `json:"der_public_key"`
 	DERSubordinateCACerts [][]byte `json:"der_subordinate_ca_certs"`
 	DERRootCACertsPool    [][]byte `json:"der_root_ca_certs_pool"`
 
 	PEMCertChain          [][]byte `json:"pem_cert_chain"`
-	PEMPrivateKey         []byte   `json:"pem_private_key,omitempty"`
+	PEMPrivateKey         []byte   `json:"pem_private_key"`
 	PEMPublicKey          []byte   `json:"pem_public_key"`
 	PEMSubordinateCACerts [][]byte `json:"pem_subordinate_ca_certs"`
 	PEMRootCACertsPool    [][]byte `json:"pem_root_ca_certs_pool"`
