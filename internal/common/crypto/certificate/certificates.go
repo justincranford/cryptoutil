@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"net"
@@ -63,16 +64,6 @@ func CertificateTemplateCA(issuerName string, subjectName string, duration time.
 	}, nil
 }
 
-// // Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}
-// func CertificateTemplateTLSServer(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
-// 	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
-// }
-
-// // Shortcut to use x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
-// func CertificateTemplateTLSClient(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) (*x509.Certificate, error) {
-// 	return CertificateTemplateEndEntity(issuerName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
-// }
-
 func CertificateTemplateEndEntity(issuerName string, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*x509.Certificate, error) {
 	serialNumber, err := GenerateSerialNumber()
 	if err != nil {
@@ -122,4 +113,46 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 	certificatePem := pem.EncodeToMemory(certificatePemBlock)
 
 	return certificate, certificateDer, certificatePem, nil
+}
+
+// SerializableCASubject represents a CASubject with only serializable fields
+type SerializableCASubject struct {
+	SubjectName string        `json:"subject_name"`
+	Duration    time.Duration `json:"duration"`
+	MaxPathLen  int           `json:"max_path_len"`
+	DERChain    [][]byte      `json:"der_chain"`
+	PEMChain    [][]byte      `json:"pem_chain"`
+}
+
+// SerializeCASubjects serializes a slice of CASubject to JSON bytes
+// Note: This function excludes private keys and cert pools for security reasons
+func SerializeCASubjects(caSubjects []CASubject) ([]byte, error) {
+	serializableSubjects := make([]SerializableCASubject, len(caSubjects))
+	for i, subject := range caSubjects {
+		serializableSubjects[i] = SerializableCASubject{
+			SubjectName: subject.SubjectName,
+			Duration:    subject.Duration,
+			MaxPathLen:  subject.MaxPathLen,
+			DERChain:    subject.KeyMaterial.DERChain,
+			PEMChain:    subject.KeyMaterial.PEMChain,
+		}
+	}
+
+	data, err := json.Marshal(serializableSubjects)
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize CA subjects: %w", err)
+	}
+	return data, nil
+}
+
+// DeserializeCASubjects deserializes JSON bytes to a slice of SerializableCASubject
+// Note: This returns SerializableCASubject structs, not full CASubject structs,
+// as private keys and cert pools cannot be safely serialized/deserialized
+func DeserializeCASubjects(data []byte) ([]SerializableCASubject, error) {
+	var serializableSubjects []SerializableCASubject
+	err := json.Unmarshal(data, &serializableSubjects)
+	if err != nil {
+		return nil, fmt.Errorf("failed to deserialize CA subjects: %w", err)
+	}
+	return serializableSubjects, nil
 }

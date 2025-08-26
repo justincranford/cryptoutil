@@ -80,6 +80,27 @@ func TestMutualTLS(t *testing.T) {
 	})
 }
 
+func TestSerializeCASubjects(t *testing.T) {
+	caSubjects := createCASubjects(t, "Test Serialize CA", 2)
+
+	serializedData, err := SerializeCASubjects(caSubjects)
+	require.NoError(t, err, "Failed to serialize CA subjects")
+	require.NotEmpty(t, serializedData, "Serialized data should not be empty")
+
+	deserializedSubjects, err := DeserializeCASubjects(serializedData)
+	require.NoError(t, err, "Failed to deserialize CA subjects")
+	require.Len(t, deserializedSubjects, len(caSubjects), "Deserialized subjects count should match original")
+
+	for i, original := range caSubjects {
+		deserialized := deserializedSubjects[i]
+		require.Equal(t, original.SubjectName, deserialized.SubjectName, "Subject name mismatch at index %d", i)
+		require.Equal(t, original.Duration, deserialized.Duration, "Duration mismatch at index %d", i)
+		require.Equal(t, original.MaxPathLen, deserialized.MaxPathLen, "MaxPathLen mismatch at index %d", i)
+		require.Equal(t, original.KeyMaterial.DERChain, deserialized.DERChain, "DERChain mismatch at index %d", i)
+		require.Equal(t, original.KeyMaterial.PEMChain, deserialized.PEMChain, "PEMChain mismatch at index %d", i)
+	}
+}
+
 func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []CASubject {
 	caSubjects := make([]CASubject, 0, numCAs)
 	for i := range cap(caSubjects) {
