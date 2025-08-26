@@ -14,21 +14,23 @@ import (
 )
 
 type KeyMaterial struct {
-	CertChain              []*x509.Certificate `json:"-"` // Exclude from JSON serialization
-	PrivateKey             crypto.PrivateKey   `json:"-"` // Exclude from JSON serialization
-	PublicKey              crypto.PublicKey    `json:"-"` // Exclude from JSON serialization
-	SubordinateCACertsPool *x509.CertPool      `json:"-"` // Exclude from JSON serialization
-	RootCACertsPool        *x509.CertPool      `json:"-"` // Exclude from JSON serialization
-	DERCertChain           [][]byte
-	PEMCertChain           [][]byte
-	DERPrivateKey          []byte   `json:"private_key_der,omitempty"`
-	PEMPrivateKey          []byte   `json:"private_key_pem,omitempty"`
-	DERPublicKey           []byte   `json:"public_key_der"`
-	PEMPublicKey           []byte   `json:"public_key_pem"`
-	DERSubordinateCACerts  [][]byte `json:"subordinate_ca_certs_der"`
-	PEMSubordinateCACerts  [][]byte `json:"subordinate_ca_certs_pem"`
-	DERRootCACertsPool     [][]byte `json:"root_ca_certs_pool_der"`
-	PEMRootCACertsPool     [][]byte `json:"root_ca_certs_pool_pem"`
+	CertChain              []*x509.Certificate `json:"-"`
+	PrivateKey             crypto.PrivateKey   `json:"-"`
+	PublicKey              crypto.PublicKey    `json:"-"`
+	SubordinateCACertsPool *x509.CertPool      `json:"-"`
+	RootCACertsPool        *x509.CertPool      `json:"-"`
+
+	DERCertChain          [][]byte `json:"der_cert_chain"`
+	DERPrivateKey         []byte   `json:"der_private_key,omitempty"`
+	DERPublicKey          []byte   `json:"der_public_key"`
+	DERSubordinateCACerts [][]byte `json:"der_subordinate_ca_certs"`
+	DERRootCACertsPool    [][]byte `json:"der_root_ca_certs_pool"`
+
+	PEMCertChain          [][]byte `json:"pem_cert_chain"`
+	PEMPrivateKey         []byte   `json:"pem_private_key,omitempty"`
+	PEMPublicKey          []byte   `json:"pem_public_key"`
+	PEMSubordinateCACerts [][]byte `json:"pem_subordinate_ca_certs"`
+	PEMRootCACertsPool    [][]byte `json:"pem_root_ca_certs_pool"`
 }
 
 type Subject struct {
@@ -166,29 +168,26 @@ func DeserializeCASubjects(data []byte) ([]SerializableCASubject, error) {
 	return serializableSubjects, nil
 }
 
-// SerializeKeyMaterial serializes KeyMaterial to JSON bytes
-// includePrivateKey controls whether the private key is included in the serialization
-// Note: This is safe because the caller plans to encrypt the entire JSON document using KMS
 func SerializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) ([]byte, error) {
-	// Create a copy to avoid modifying the original
-	serializable := *keyMaterial
+	var data []byte
+	var err error
 
-	// If includePrivateKey is false, clear the private key fields
-	if !includePrivateKey {
-		serializable.DERPrivateKey = nil
-		serializable.PEMPrivateKey = nil
+	if includePrivateKey {
+		// No copy needed, serialize directly
+		data, err = json.Marshal(keyMaterial)
+	} else {
+		// Create a copy to avoid modifying the original, then clear private key fields
+		keyMaterialWithoutPrivateKey := *keyMaterial
+		keyMaterialWithoutPrivateKey.DERPrivateKey = nil
+		keyMaterialWithoutPrivateKey.PEMPrivateKey = nil
+		data, err = json.Marshal(keyMaterialWithoutPrivateKey)
 	}
-
-	data, err := json.Marshal(serializable)
 	if err != nil {
 		return nil, fmt.Errorf("failed to serialize KeyMaterial: %w", err)
 	}
 	return data, nil
 }
 
-// DeserializeKeyMaterial deserializes JSON bytes to KeyMaterial
-// Note: This only deserializes the serializable fields. The crypto.PrivateKey, crypto.PublicKey,
-// CertChain, and CertPool fields will need to be reconstructed from the DER/PEM data
 func DeserializeKeyMaterial(data []byte) (*KeyMaterial, error) {
 	var keyMaterial KeyMaterial
 	err := json.Unmarshal(data, &keyMaterial)
@@ -198,7 +197,6 @@ func DeserializeKeyMaterial(data []byte) (*KeyMaterial, error) {
 	return &keyMaterial, nil
 }
 
-// PopulateSerializableFields populates the serializable DER/PEM fields from the crypto objects
 func (km *KeyMaterial) PopulateSerializableFields() error {
 	var err error
 
