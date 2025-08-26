@@ -24,21 +24,27 @@ type KeyMaterial struct {
 	RootCACertsPool        *x509.CertPool
 }
 
+type Subject struct {
+	SubjectName string
+	Duration    time.Duration
+	KeyMaterial KeyMaterial
+}
+
 type CASubject struct {
 	SubjectName string
 	Duration    time.Duration
-	MaxPathLen  int
 	KeyMaterial KeyMaterial
+	MaxPathLen  int
 }
 
 type EndEntitySubject struct {
 	SubjectName    string
 	Duration       time.Duration
+	KeyMaterial    KeyMaterial
 	DNSNames       []string
 	IPAddresses    []net.IP
 	EmailAddresses []string
 	URIs           []*url.URL
-	KeyMaterial    KeyMaterial
 }
 
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
