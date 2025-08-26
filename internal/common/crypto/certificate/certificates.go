@@ -169,9 +169,9 @@ func DeserializeCASubjects(data []byte) ([]SerializableCASubject, error) {
 // SerializeKeyMaterial serializes KeyMaterial to JSON bytes
 // includePrivateKey controls whether the private key is included in the serialization
 // Note: This is safe because the caller plans to encrypt the entire JSON document using KMS
-func SerializeKeyMaterial(keyMaterial KeyMaterial, includePrivateKey bool) ([]byte, error) {
+func SerializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) ([]byte, error) {
 	// Create a copy to avoid modifying the original
-	serializable := keyMaterial
+	serializable := *keyMaterial
 
 	// If includePrivateKey is false, clear the private key fields
 	if !includePrivateKey {
@@ -189,13 +189,13 @@ func SerializeKeyMaterial(keyMaterial KeyMaterial, includePrivateKey bool) ([]by
 // DeserializeKeyMaterial deserializes JSON bytes to KeyMaterial
 // Note: This only deserializes the serializable fields. The crypto.PrivateKey, crypto.PublicKey,
 // CertChain, and CertPool fields will need to be reconstructed from the DER/PEM data
-func DeserializeKeyMaterial(data []byte) (KeyMaterial, error) {
+func DeserializeKeyMaterial(data []byte) (*KeyMaterial, error) {
 	var keyMaterial KeyMaterial
 	err := json.Unmarshal(data, &keyMaterial)
 	if err != nil {
-		return KeyMaterial{}, fmt.Errorf("failed to deserialize KeyMaterial: %w", err)
+		return nil, fmt.Errorf("failed to deserialize KeyMaterial: %w", err)
 	}
-	return keyMaterial, nil
+	return &keyMaterial, nil
 }
 
 // PopulateSerializableFields populates the serializable DER/PEM fields from the crypto objects

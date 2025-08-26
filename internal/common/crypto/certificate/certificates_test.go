@@ -116,12 +116,12 @@ func TestSerializeKeyMaterial(t *testing.T) {
 	require.NoError(t, err, "Failed to populate serializable fields")
 
 	// Test serialization with private key
-	serializedWithPrivateKey, err := SerializeKeyMaterial(keyMaterial, true)
+	serializedWithPrivateKey, err := SerializeKeyMaterial(&keyMaterial, true)
 	require.NoError(t, err, "Failed to serialize KeyMaterial with private key")
 	require.NotEmpty(t, serializedWithPrivateKey, "Serialized data should not be empty")
 
 	// Test serialization without private key
-	serializedWithoutPrivateKey, err := SerializeKeyMaterial(keyMaterial, false)
+	serializedWithoutPrivateKey, err := SerializeKeyMaterial(&keyMaterial, false)
 	require.NoError(t, err, "Failed to serialize KeyMaterial without private key")
 	require.NotEmpty(t, serializedWithoutPrivateKey, "Serialized data should not be empty")
 
