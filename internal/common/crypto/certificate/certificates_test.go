@@ -23,14 +23,14 @@ func TestNegativeDuration(t *testing.T) {
 }
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerCASubjects := createCASubjects(t, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
-	tlsClientCASubjects := createCASubjects(t, "Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
-	tlsServerEndEntitySubject := createEndEntitySubject(t, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
-	tlsClientEndEntitySubject := createEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
+	tlsServerCASubjects := CreateCASubjects(t, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
+	tlsClientCASubjects := CreateCASubjects(t, "Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
+	tlsServerEndEntitySubject := CreateEndEntitySubject(t, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
+	tlsClientEndEntitySubject := CreateEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 
 	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
-	tlsServerCertChain, tlsServerRootCAs := buildTLSCertificate(tlsServerEndEntitySubject)
-	tlsClientCertChain, tlsClientRootCAs := buildTLSCertificate(tlsClientEndEntitySubject)
+	tlsServerCertChain, tlsServerRootCAs := BuildTLSCertificate(tlsServerEndEntitySubject)
+	tlsClientCertChain, tlsClientRootCAs := BuildTLSCertificate(tlsClientEndEntitySubject)
 
 	// These TLS configuration instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	serverTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsServerCertChain}, ClientCAs: tlsClientRootCAs, ClientAuth: tls.RequireAndVerifyClientCert}
@@ -81,7 +81,7 @@ func TestMutualTLS(t *testing.T) {
 }
 
 func TestSerializeSubjects(t *testing.T) {
-	subjects := createCASubjects(t, "Test Serialize CA", 2)
+	subjects := CreateCASubjects(t, "Test Serialize CA", 2)
 
 	serializedSubjects, err := SerializeSubjects(subjects)
 	require.NoError(t, err, "Failed to serialize subjects")
@@ -146,10 +146,10 @@ func TestSerializeKeyMaterial(t *testing.T) {
 	require.NotNil(t, deserializedKeyMaterial.PublicKey, "PublicKey should be reconstructed")
 }
 
-func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []Subject {
+func CreateCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) ([]Subject, error) {
 	require.Greater(t, numCAs, 0, "numCAs must be greater than 0")
 	subjects := make([]Subject, numCAs)
-	for i := 0; i < numCAs; i++ {
+	for i := range numCAs {
 		keyPair := testKeyGenPool.Get()
 		require.NotNil(t, keyPair, "keyPair should not be nil for CA %d", i)
 		require.NotNil(t, keyPair.Private, "keyPair.Private should not be nil for CA %d", i)
@@ -208,10 +208,10 @@ func createCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) []Su
 		})
 		subjects[i] = currentSubject
 	}
-	return subjects
+	return subjects, nil
 }
 
-func createEndEntitySubject(t *testing.T, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []Subject) Subject {
+func CreateEndEntitySubject(t *testing.T, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []Subject) (Subject, error) {
 	keyPair := testKeyGenPool.Get()
 	require.NotNil(t, keyPair, "keyPair should not be nil")
 	require.NotNil(t, keyPair.Private, "keyPair.Private should not be nil")
@@ -250,22 +250,22 @@ func createEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 		endEntitySubject.KeyMaterial.RootCACertsPool = issuingCA.KeyMaterial.RootCACertsPool.Clone()
 		endEntitySubject.KeyMaterial.SubordinateCACertsPool = issuingCA.KeyMaterial.SubordinateCACertsPool.Clone()
 	})
-	return endEntitySubject
+	return endEntitySubject, nil
 }
 
-func buildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertPool) {
+func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertPool, error) {
 	// Convert certificate chain to DER format for TLS
 	derCertChain := make([][]byte, len(endEntitySubject.KeyMaterial.CertChain))
 	for i, cert := range endEntitySubject.KeyMaterial.CertChain {
 		derCertChain[i] = cert.Raw
 	}
 
-	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool
+	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, endEntitySubject.KeyMaterial.RootCACertsPool, nil
 }
 
 func TestNewFieldsPopulated(t *testing.T) {
 	// Test CA subjects have proper fields populated
-	subjects := createCASubjects(t, "Test Fields CA", 2)
+	subjects := CreateCASubjects(t, "Test Fields CA", 2)
 
 	// Root CA (index 0)
 	rootCA := subjects[0]
@@ -284,7 +284,7 @@ func TestNewFieldsPopulated(t *testing.T) {
 	require.Equal(t, 0, intermediateCA.CASubject.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
 
 	// Test End Entity subjects have proper fields populated
-	endEntitySubject := createEndEntitySubject(t, "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
+	endEntitySubject := CreateEndEntitySubject(t, "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
 		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, nil, nil,
 		x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, subjects)
 
