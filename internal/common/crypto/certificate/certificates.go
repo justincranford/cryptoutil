@@ -139,13 +139,12 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 }
 
 // SerializeSubjects serializes a slice of Subject to JSON bytes
-// Note: This function includes private keys for complete serialization
-func SerializeSubjects(subjects []Subject) ([][]byte, error) {
+func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, error) {
 	keyMaterialJSONs := make([][]byte, len(subjects))
 
 	for i, subject := range subjects {
 		// Convert KeyMaterialDecoded to JSON format
-		keyMaterialJSON, err := subject.KeyMaterial.ToJSON(true) // Include private keys
+		keyMaterialJSON, err := subject.KeyMaterial.ToJSON(includePrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterialDecoded to JSON format for subject %d: %w", i, err)
 		}
