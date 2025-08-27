@@ -185,58 +185,6 @@ func DeserializeSubjects(keyMaterialJSONBytes [][]byte) ([]KeyMaterialDecoded, e
 	return keyMaterials, nil
 }
 
-// SubjectMetadata contains the metadata needed to rebuild a Subject
-type SubjectMetadata struct {
-	SubjectName string
-	IssuerName  string
-	Duration    time.Duration
-
-	// Subject type info
-	IsCA           bool
-	MaxPathLen     *int     // Only for CA subjects
-	DNSNames       []string // Only for end entity subjects
-	IPAddresses    []net.IP
-	EmailAddresses []string
-	URIs           []*url.URL
-}
-
-// BuildSubjects rebuilds Subjects from KeyMaterialDecoded and metadata
-func BuildSubjects(keyMaterials []KeyMaterialDecoded, metadata []SubjectMetadata) ([]Subject, error) {
-	if len(keyMaterials) != len(metadata) {
-		return nil, fmt.Errorf("keyMaterials and metadata slices must have the same length: got %d and %d", len(keyMaterials), len(metadata))
-	}
-
-	subjects := make([]Subject, len(keyMaterials))
-	for i := range keyMaterials {
-		subjects[i] = Subject{
-			SubjectName: metadata[i].SubjectName,
-			IssuerName:  metadata[i].IssuerName,
-			Duration:    metadata[i].Duration,
-			KeyMaterial: keyMaterials[i],
-		}
-
-		if metadata[i].IsCA {
-			maxPathLen := 0
-			if metadata[i].MaxPathLen != nil {
-				maxPathLen = *metadata[i].MaxPathLen
-			}
-			subjects[i].CASubject = &CASubject{
-				MaxPathLen: maxPathLen,
-				IsCA:       true,
-			}
-		} else {
-			subjects[i].EndEntitySubject = &EndEntitySubject{
-				DNSNames:       metadata[i].DNSNames,
-				IPAddresses:    metadata[i].IPAddresses,
-				EmailAddresses: metadata[i].EmailAddresses,
-				URIs:           metadata[i].URIs,
-			}
-		}
-	}
-
-	return subjects, nil
-}
-
 func SerializeKeyMaterial(keyMaterial *KeyMaterialDecoded, includePrivateKey bool) ([]byte, error) {
 	// Convert KeyMaterialDecoded to JSON format
 	keyMaterialJSON, err := keyMaterial.ToJSON(includePrivateKey)
