@@ -23,14 +23,20 @@ func TestNegativeDuration(t *testing.T) {
 }
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerCASubjects := CreateCASubjects(t, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
-	tlsClientCASubjects := CreateCASubjects(t, "Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
-	tlsServerEndEntitySubject := CreateEndEntitySubject(t, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
-	tlsClientEndEntitySubject := CreateEndEntitySubject(t, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
+	tlsServerCASubjects, err := CreateCASubjects("Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
+	require.NoError(t, err, "Failed to create TLS Server CA subjects")
+	tlsClientCASubjects, err := CreateCASubjects("Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
+	require.NoError(t, err, "Failed to create TLS Client CA subjects")
+	tlsServerEndEntitySubject, err := CreateEndEntitySubject("Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
+	require.NoError(t, err, "Failed to create TLS Server End Entity subject")
+	tlsClientEndEntitySubject, err := CreateEndEntitySubject("Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
+	require.NoError(t, err, "Failed to create TLS Client End Entity subject")
 
 	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
-	tlsServerCertChain, tlsServerRootCAs := BuildTLSCertificate(tlsServerEndEntitySubject)
-	tlsClientCertChain, tlsClientRootCAs := BuildTLSCertificate(tlsClientEndEntitySubject)
+	tlsServerCertChain, tlsServerRootCAs, err := BuildTLSCertificate(tlsServerEndEntitySubject)
+	require.NoError(t, err, "Failed to build TLS server certificate")
+	tlsClientCertChain, tlsClientRootCAs, err := BuildTLSCertificate(tlsClientEndEntitySubject)
+	require.NoError(t, err, "Failed to build TLS client certificate")
 
 	// These TLS configuration instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	serverTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsServerCertChain}, ClientCAs: tlsClientRootCAs, ClientAuth: tls.RequireAndVerifyClientCert}
@@ -81,7 +87,8 @@ func TestMutualTLS(t *testing.T) {
 }
 
 func TestSerializeSubjects(t *testing.T) {
-	subjects := CreateCASubjects(t, "Test Serialize CA", 2)
+	subjects, err := CreateCASubjects("Test Serialize CA", 2)
+	require.NoError(t, err, "Failed to create CA subjects")
 
 	serializedSubjects, err := SerializeSubjects(subjects)
 	require.NoError(t, err, "Failed to serialize subjects")
@@ -146,14 +153,22 @@ func TestSerializeKeyMaterial(t *testing.T) {
 	require.NotNil(t, deserializedKeyMaterial.PublicKey, "PublicKey should be reconstructed")
 }
 
-func CreateCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) ([]Subject, error) {
-	require.Greater(t, numCAs, 0, "numCAs must be greater than 0")
+func CreateCASubjects(caSubjectNamePrefix string, numCAs int) ([]Subject, error) {
+	if numCAs <= 0 {
+		return nil, fmt.Errorf("numCAs must be greater than 0")
+	}
 	subjects := make([]Subject, numCAs)
 	for i := range numCAs {
 		keyPair := testKeyGenPool.Get()
-		require.NotNil(t, keyPair, "keyPair should not be nil for CA %d", i)
-		require.NotNil(t, keyPair.Private, "keyPair.Private should not be nil for CA %d", i)
-		require.NotNil(t, keyPair.Public, "keyPair.Public should not be nil for CA %d", i)
+		if keyPair == nil {
+			return nil, fmt.Errorf("keyPair should not be nil for CA %d", i)
+		}
+		if keyPair.Private == nil {
+			return nil, fmt.Errorf("keyPair.Private should not be nil for CA %d", i)
+		}
+		if keyPair.Public == nil {
+			return nil, fmt.Errorf("keyPair.Public should not be nil for CA %d", i)
+		}
 
 		// Determine issuer name - root CA issues itself, others are issued by previous CA
 		issuerName := fmt.Sprintf("%s %d", caSubjectNamePrefix, i) // Self-signed for root CA
@@ -183,44 +198,60 @@ func CreateCASubjects(t *testing.T, caSubjectNamePrefix string, numCAs int) ([]S
 			previousSubject = subjects[i-1]
 			previousCACert = previousSubject.KeyMaterial.CertChain[0]
 		}
-		t.Run(currentSubject.SubjectName, func(t *testing.T) {
-			currentCACertTemplate, err := CertificateTemplateCA(previousSubject.IssuerName, currentSubject.SubjectName, currentSubject.Duration, currentSubject.CASubject.MaxPathLen)
-			verifyCertificateTemplate(t, err, currentCACertTemplate)
-			cert, _, pemBytes, err := SignCertificate(previousCACert, previousSubject.KeyMaterial.PrivateKey, currentCACertTemplate, currentSubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
-			currentSubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousSubject.KeyMaterial.CertChain...)
 
-			// Create DER and PEM chains locally for verification
-			derChain := make([][]byte, len(currentSubject.KeyMaterial.CertChain))
-			pemChain := make([][]byte, len(currentSubject.KeyMaterial.CertChain))
-			for j, c := range currentSubject.KeyMaterial.CertChain {
-				derChain[j] = c.Raw
-				pemChain[j] = pemBytes // Use the pemBytes from SignCertificate for the first cert
-			}
-			verifyCACertificate(t, err, currentSubject.KeyMaterial.CertChain, derChain, pemChain, previousSubject.SubjectName, currentSubject.SubjectName, currentSubject.Duration, currentCACertTemplate.MaxPathLen)
+		currentCACertTemplate, err := CertificateTemplateCA(previousSubject.IssuerName, currentSubject.SubjectName, currentSubject.Duration, currentSubject.CASubject.MaxPathLen)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create CA certificate template for %s: %w", currentSubject.SubjectName, err)
+		}
 
-			currentSubject.KeyMaterial.RootCACertsPool = previousSubject.KeyMaterial.RootCACertsPool.Clone()
-			currentSubject.KeyMaterial.SubordinateCACertsPool = previousSubject.KeyMaterial.SubordinateCACertsPool.Clone()
-			if i == 0 {
-				currentSubject.KeyMaterial.RootCACertsPool.AddCert(cert)
-			} else {
-				currentSubject.KeyMaterial.SubordinateCACertsPool.AddCert(cert)
-			}
-		})
+		cert, _, pemBytes, err := SignCertificate(previousCACert, previousSubject.KeyMaterial.PrivateKey, currentCACertTemplate, currentSubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
+		if err != nil {
+			return nil, fmt.Errorf("failed to sign CA certificate for %s: %w", currentSubject.SubjectName, err)
+		}
+
+		currentSubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, previousSubject.KeyMaterial.CertChain...)
+
+		// Create DER and PEM chains locally for verification
+		derChain := make([][]byte, len(currentSubject.KeyMaterial.CertChain))
+		pemChain := make([][]byte, len(currentSubject.KeyMaterial.CertChain))
+		for j, c := range currentSubject.KeyMaterial.CertChain {
+			derChain[j] = c.Raw
+			pemChain[j] = pemBytes // Use the pemBytes from SignCertificate for the first cert
+		}
+
+		currentSubject.KeyMaterial.RootCACertsPool = previousSubject.KeyMaterial.RootCACertsPool.Clone()
+		currentSubject.KeyMaterial.SubordinateCACertsPool = previousSubject.KeyMaterial.SubordinateCACertsPool.Clone()
+		if i == 0 {
+			currentSubject.KeyMaterial.RootCACertsPool.AddCert(cert)
+		} else {
+			currentSubject.KeyMaterial.SubordinateCACertsPool.AddCert(cert)
+		}
+
 		subjects[i] = currentSubject
 	}
 	return subjects, nil
 }
 
-func CreateEndEntitySubject(t *testing.T, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []Subject) (Subject, error) {
+func CreateEndEntitySubject(subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []Subject) (Subject, error) {
 	keyPair := testKeyGenPool.Get()
-	require.NotNil(t, keyPair, "keyPair should not be nil")
-	require.NotNil(t, keyPair.Private, "keyPair.Private should not be nil")
-	require.NotNil(t, keyPair.Public, "keyPair.Public should not be nil")
+	if keyPair == nil {
+		return Subject{}, fmt.Errorf("keyPair should not be nil")
+	}
+	if keyPair.Private == nil {
+		return Subject{}, fmt.Errorf("keyPair.Private should not be nil")
+	}
+	if keyPair.Public == nil {
+		return Subject{}, fmt.Errorf("keyPair.Public should not be nil")
+	}
 
 	// The issuing CA is the last one in the chain (leaf CA)
-	require.NotEmpty(t, caSubjects, "caSubjects should not be empty")
+	if len(caSubjects) == 0 {
+		return Subject{}, fmt.Errorf("caSubjects should not be empty")
+	}
 	issuingCA := caSubjects[len(caSubjects)-1]
-	require.NotEmpty(t, issuingCA.SubjectName, "issuingCA.SubjectName should not be empty")
+	if issuingCA.SubjectName == "" {
+		return Subject{}, fmt.Errorf("issuingCA.SubjectName should not be empty")
+	}
 
 	endEntitySubject := Subject{
 		SubjectName: subjectName,
@@ -240,20 +271,35 @@ func CreateEndEntitySubject(t *testing.T, subjectName string, duration time.Dura
 			URIs:           uris,
 		},
 	}
-	t.Run(subjectName, func(t *testing.T) {
-		endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntitySubject.SubjectName, endEntitySubject.Duration, endEntitySubject.EndEntitySubject.DNSNames, endEntitySubject.EndEntitySubject.IPAddresses, endEntitySubject.EndEntitySubject.EmailAddresses, endEntitySubject.EndEntitySubject.URIs, keyUsage, extKeyUsage)
-		verifyCertificateTemplate(t, err, endEntityCertTemplate)
-		cert, derBytes, pemBytes, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntitySubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
-		endEntitySubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterial.CertChain...)
-		verifyEndEntityCertificate(t, err, cert, derBytes, pemBytes, issuingCA.SubjectName, endEntitySubject.SubjectName, endEntitySubject.Duration, endEntitySubject.EndEntitySubject.DNSNames, endEntitySubject.EndEntitySubject.IPAddresses, endEntitySubject.EndEntitySubject.EmailAddresses, endEntitySubject.EndEntitySubject.URIs)
-		verifyCertChain(t, cert, issuingCA.KeyMaterial.RootCACertsPool, issuingCA.KeyMaterial.SubordinateCACertsPool)
-		endEntitySubject.KeyMaterial.RootCACertsPool = issuingCA.KeyMaterial.RootCACertsPool.Clone()
-		endEntitySubject.KeyMaterial.SubordinateCACertsPool = issuingCA.KeyMaterial.SubordinateCACertsPool.Clone()
-	})
+
+	endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntitySubject.SubjectName, endEntitySubject.Duration, endEntitySubject.EndEntitySubject.DNSNames, endEntitySubject.EndEntitySubject.IPAddresses, endEntitySubject.EndEntitySubject.EmailAddresses, endEntitySubject.EndEntitySubject.URIs, keyUsage, extKeyUsage)
+	if err != nil {
+		return Subject{}, fmt.Errorf("failed to create end entity certificate template for %s: %w", subjectName, err)
+	}
+
+	cert, _, _, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntitySubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
+	if err != nil {
+		return Subject{}, fmt.Errorf("failed to sign end entity certificate for %s: %w", subjectName, err)
+	}
+
+	endEntitySubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterial.CertChain...)
+	endEntitySubject.KeyMaterial.RootCACertsPool = issuingCA.KeyMaterial.RootCACertsPool.Clone()
+	endEntitySubject.KeyMaterial.SubordinateCACertsPool = issuingCA.KeyMaterial.SubordinateCACertsPool.Clone()
+
 	return endEntitySubject, nil
 }
 
 func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertPool, error) {
+	if len(endEntitySubject.KeyMaterial.CertChain) == 0 {
+		return tls.Certificate{}, nil, fmt.Errorf("certificate chain is empty")
+	}
+	if endEntitySubject.KeyMaterial.PrivateKey == nil {
+		return tls.Certificate{}, nil, fmt.Errorf("private key is nil")
+	}
+	if endEntitySubject.KeyMaterial.RootCACertsPool == nil {
+		return tls.Certificate{}, nil, fmt.Errorf("root CA certs pool is nil")
+	}
+
 	// Convert certificate chain to DER format for TLS
 	derCertChain := make([][]byte, len(endEntitySubject.KeyMaterial.CertChain))
 	for i, cert := range endEntitySubject.KeyMaterial.CertChain {
@@ -265,7 +311,8 @@ func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertP
 
 func TestNewFieldsPopulated(t *testing.T) {
 	// Test CA subjects have proper fields populated
-	subjects := CreateCASubjects(t, "Test Fields CA", 2)
+	subjects, err := CreateCASubjects("Test Fields CA", 2)
+	require.NoError(t, err, "Failed to create CA subjects")
 
 	// Root CA (index 0)
 	rootCA := subjects[0]
@@ -284,9 +331,10 @@ func TestNewFieldsPopulated(t *testing.T) {
 	require.Equal(t, 0, intermediateCA.CASubject.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
 
 	// Test End Entity subjects have proper fields populated
-	endEntitySubject := CreateEndEntitySubject(t, "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
+	endEntitySubject, err := CreateEndEntitySubject("Test Fields End Entity", 30*cryptoutilDateTime.Days1,
 		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, nil, nil,
 		x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, subjects)
+	require.NoError(t, err, "Failed to create End Entity subject")
 
 	require.Equal(t, "Test Fields End Entity", endEntitySubject.SubjectName, "End entity subject name should match")
 	require.Equal(t, "Test Fields CA 1", endEntitySubject.IssuerName, "End entity should be issued by leaf CA")
