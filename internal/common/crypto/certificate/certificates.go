@@ -294,8 +294,31 @@ func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertP
 }
 
 func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, error) {
+	if subjects == nil {
+		return nil, fmt.Errorf("subjects cannot be nil")
+	}
+
 	keyMaterialJSONs := make([][]byte, len(subjects))
 	for i, subject := range subjects {
+		if subject.SubjectName == "" {
+			return nil, fmt.Errorf("subject at index %d has empty SubjectName", i)
+		} else if subject.IssuerName == "" {
+			return nil, fmt.Errorf("subject at index %d has empty IssuerName", i)
+		} else if subject.Duration <= 0 {
+			return nil, fmt.Errorf("subject at index %d has zero or negative Duration", i)
+		}
+		if subject.CASubject != nil && subject.EndEntitySubject != nil {
+			return nil, fmt.Errorf("subject at index %d cannot have both CASubject and EndEntitySubject populated", i)
+		} else if subject.CASubject == nil && subject.EndEntitySubject == nil {
+			return nil, fmt.Errorf("subject at index %d must have either CASubject or EndEntitySubject populated", i)
+		} else if subject.CASubject != nil {
+			if subject.CASubject.MaxPathLen < 0 {
+				return nil, fmt.Errorf("subject at index %d has invalid MaxPathLen (%d), must be >= 0", i, subject.CASubject.MaxPathLen)
+			}
+		} else if subject.EndEntitySubject != nil {
+			// Note: DNSNames, IPAddresses, EmailAddresses, and URIs can be empty
+		}
+
 		keyMaterialEncoded, err := toKeyMaterialEncoded(&subject.KeyMaterialDecoded, includePrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterialDecoded to JSON format for subject %d: %w", i, err)
@@ -352,10 +375,35 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]Subject, error
 }
 
 func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivateKey bool) (*KeyMaterialEncoded, error) {
-	keyMaterialEncoded := &KeyMaterialEncoded{}
-	var err error
+	if keyMaterialDecoded == nil {
+		return nil, fmt.Errorf("keyMaterialDecoded cannot be nil")
+	} else if len(keyMaterialDecoded.CertChain) == 0 {
+		return nil, fmt.Errorf("certificate chain cannot be empty")
+	} else if keyMaterialDecoded.PublicKey == nil {
+		return nil, fmt.Errorf("PublicKey cannot be nil")
+	} else if keyMaterialDecoded.SubordinateCACertsPool == nil {
+		return nil, fmt.Errorf("SubordinateCACertsPool cannot be nil")
+	} else if keyMaterialDecoded.RootCACertsPool == nil {
+		return nil, fmt.Errorf("RootCACertsPool cannot be nil")
+	}
+	for i, cert := range keyMaterialDecoded.CertChain {
+		if cert == nil {
+			return nil, fmt.Errorf("certificate at index %d in chain cannot be nil", i)
+		}
+	}
 
-	// Serialize private key if present and requested
+	var err error
+	keyMaterialEncoded := &KeyMaterialEncoded{}
+	keyMaterialEncoded.DERCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
+	keyMaterialEncoded.PEMCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
+	for i, cert := range keyMaterialDecoded.CertChain {
+		keyMaterialEncoded.DERCertChain[i] = cert.Raw
+		keyMaterialEncoded.PEMCertChain[i] = pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: cert.Raw,
+		})
+	}
+
 	if includePrivateKey && keyMaterialDecoded.PrivateKey != nil {
 		keyMaterialEncoded.DERPrivateKey, err = x509.MarshalPKCS8PrivateKey(keyMaterialDecoded.PrivateKey)
 		if err != nil {
@@ -367,46 +415,22 @@ func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivate
 		})
 	}
 
-	// Serialize public key if present
-	if keyMaterialDecoded.PublicKey != nil {
-		keyMaterialEncoded.DERPublicKey, err = x509.MarshalPKIXPublicKey(keyMaterialDecoded.PublicKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal public key to DER: %w", err)
-		}
-		keyMaterialEncoded.PEMPublicKey = pem.EncodeToMemory(&pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: keyMaterialEncoded.DERPublicKey,
-		})
+	keyMaterialEncoded.DERPublicKey, err = x509.MarshalPKIXPublicKey(keyMaterialDecoded.PublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal public key to DER: %w", err)
 	}
+	keyMaterialEncoded.PEMPublicKey = pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: keyMaterialEncoded.DERPublicKey,
+	})
 
-	// Serialize certificate chain
-	if len(keyMaterialDecoded.CertChain) > 0 {
-		keyMaterialEncoded.DERCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
-		keyMaterialEncoded.PEMCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
-		for i, cert := range keyMaterialDecoded.CertChain {
-			keyMaterialEncoded.DERCertChain[i] = cert.Raw
-			keyMaterialEncoded.PEMCertChain[i] = pem.EncodeToMemory(&pem.Block{
-				Type:  "CERTIFICATE",
-				Bytes: cert.Raw,
-			})
-		}
-	}
+	// Note: x509.CertPool doesn't expose certificates directly, so we need to track them separately during construction
+	keyMaterialEncoded.DERSubordinateCACerts = [][]byte{}
+	keyMaterialEncoded.PEMSubordinateCACerts = [][]byte{}
 
-	// Convert subordinate CA certs pool to slices
-	if keyMaterialDecoded.SubordinateCACertsPool != nil {
-		// Note: x509.CertPool doesn't expose certificates directly,
-		// so we need to track them separately during construction
-		keyMaterialEncoded.DERSubordinateCACerts = [][]byte{}
-		keyMaterialEncoded.PEMSubordinateCACerts = [][]byte{}
-	}
-
-	// Convert root CA certs pool to slices
-	if keyMaterialDecoded.RootCACertsPool != nil {
-		// Note: x509.CertPool doesn't expose certificates directly,
-		// so we need to track them separately during construction
-		keyMaterialEncoded.DERRootCACertsPool = [][]byte{}
-		keyMaterialEncoded.PEMRootCACertsPool = [][]byte{}
-	}
+	// Note: x509.CertPool doesn't expose certificates directly, so we need to track them separately during construction
+	keyMaterialEncoded.DERRootCACertsPool = [][]byte{}
+	keyMaterialEncoded.PEMRootCACertsPool = [][]byte{}
 
 	return keyMaterialEncoded, nil
 }

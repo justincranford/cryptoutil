@@ -256,3 +256,155 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 	t.Logf("Successfully round-tripped %d subjects (including %d CAs and %d end entities)",
 		len(subjects), len(subjects)-1, 1)
 }
+
+func TestSerializeSubjectsValidation(t *testing.T) {
+	t.Run("nil subjects slice", func(t *testing.T) {
+		_, err := SerializeSubjects(nil, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "subjects cannot be nil")
+	})
+
+	t.Run("empty SubjectName", func(t *testing.T) {
+		subjects := []Subject{{
+			SubjectName: "", // Empty subject name should cause error
+			IssuerName:  "Test Issuer",
+		}}
+		_, err := SerializeSubjects(subjects, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "has empty SubjectName")
+	})
+
+	t.Run("neither CASubject nor EndEntitySubject populated", func(t *testing.T) {
+		subjects := []Subject{{
+			SubjectName: "Test Subject",
+			IssuerName:  "Test Issuer",
+			Duration:    time.Hour,
+			// Neither CASubject nor EndEntitySubject set
+		}}
+		_, err := SerializeSubjects(subjects, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "must have either CASubject or EndEntitySubject populated")
+	})
+
+	t.Run("both CASubject and EndEntitySubject populated", func(t *testing.T) {
+		subjects := []Subject{{
+			SubjectName: "Test Subject",
+			IssuerName:  "Test Issuer",
+			Duration:    time.Hour,
+			CASubject:   &CASubject{IsCA: true, MaxPathLen: 0},
+			EndEntitySubject: &EndEntitySubject{
+				DNSNames: []string{"example.com"},
+			},
+		}}
+		_, err := SerializeSubjects(subjects, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "cannot have both CASubject and EndEntitySubject populated")
+	})
+
+	t.Run("invalid CA MaxPathLen", func(t *testing.T) {
+		subjects := []Subject{{
+			SubjectName: "Test CA",
+			IssuerName:  "Test Issuer",
+			Duration:    time.Hour,
+			CASubject:   &CASubject{IsCA: true, MaxPathLen: -1}, // Invalid negative MaxPathLen
+		}}
+		_, err := SerializeSubjects(subjects, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "has invalid MaxPathLen (-1), must be >= 0")
+	})
+}
+
+func TestToKeyMaterialEncodedValidation(t *testing.T) {
+	t.Run("nil keyMaterialDecoded", func(t *testing.T) {
+		_, err := toKeyMaterialEncoded(nil, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "keyMaterialDecoded cannot be nil")
+	})
+
+	t.Run("nil PublicKey", func(t *testing.T) {
+		keyPair := testKeyGenPool.Get()
+
+		// Create a certificate template and sign it to get a proper certificate
+		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
+		require.NoError(t, err)
+
+		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
+		require.NoError(t, err)
+
+		keyMaterialDecoded := &KeyMaterialDecoded{
+			PublicKey:              nil, // Should cause error
+			CertChain:              []*x509.Certificate{cert},
+			SubordinateCACertsPool: x509.NewCertPool(),
+			RootCACertsPool:        x509.NewCertPool(),
+		}
+		_, err = toKeyMaterialEncoded(keyMaterialDecoded, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "PublicKey cannot be nil")
+	})
+
+	t.Run("empty cert chain", func(t *testing.T) {
+		keyPair := testKeyGenPool.Get()
+		keyMaterialDecoded := &KeyMaterialDecoded{
+			PublicKey: keyPair.Public,
+			CertChain: []*x509.Certificate{}, // Empty chain should cause error
+		}
+		_, err := toKeyMaterialEncoded(keyMaterialDecoded, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "certificate chain cannot be empty")
+	})
+
+	t.Run("nil cert in chain", func(t *testing.T) {
+		keyPair := testKeyGenPool.Get()
+		keyMaterialDecoded := &KeyMaterialDecoded{
+			PublicKey:              keyPair.Public,
+			CertChain:              []*x509.Certificate{nil}, // Nil cert should cause error
+			SubordinateCACertsPool: x509.NewCertPool(),
+			RootCACertsPool:        x509.NewCertPool(),
+		}
+		_, err := toKeyMaterialEncoded(keyMaterialDecoded, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "certificate at index 0 in chain cannot be nil")
+	})
+
+	t.Run("nil SubordinateCACertsPool", func(t *testing.T) {
+		keyPair := testKeyGenPool.Get()
+
+		// Create a certificate template and sign it to get a proper certificate
+		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
+		require.NoError(t, err)
+
+		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
+		require.NoError(t, err)
+
+		keyMaterialDecoded := &KeyMaterialDecoded{
+			PublicKey:              keyPair.Public,
+			CertChain:              []*x509.Certificate{cert},
+			SubordinateCACertsPool: nil, // Should cause error
+			RootCACertsPool:        x509.NewCertPool(),
+		}
+		_, err = toKeyMaterialEncoded(keyMaterialDecoded, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "SubordinateCACertsPool cannot be nil")
+	})
+
+	t.Run("nil RootCACertsPool", func(t *testing.T) {
+		keyPair := testKeyGenPool.Get()
+
+		// Create a certificate template and sign it to get a proper certificate
+		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
+		require.NoError(t, err)
+
+		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
+		require.NoError(t, err)
+
+		keyMaterialDecoded := &KeyMaterialDecoded{
+			PublicKey:              keyPair.Public,
+			CertChain:              []*x509.Certificate{cert},
+			SubordinateCACertsPool: x509.NewCertPool(),
+			RootCACertsPool:        nil, // Should cause error
+		}
+		_, err = toKeyMaterialEncoded(keyMaterialDecoded, false)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "RootCACertsPool cannot be nil")
+	})
+}
