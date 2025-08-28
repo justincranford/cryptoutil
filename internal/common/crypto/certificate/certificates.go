@@ -196,36 +196,6 @@ func DeserializeSubjects(keyMaterialJSONBytes [][]byte) ([]Subject, error) {
 	return subjects, nil
 }
 
-func SerializeKeyMaterial(keyMaterial *KeyMaterialDecoded, includePrivateKey bool) ([]byte, error) {
-	// Convert KeyMaterialDecoded to JSON format
-	keyMaterialJSON, err := keyMaterial.ToJSON(includePrivateKey)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert KeyMaterialDecoded to JSON format: %w", err)
-	}
-
-	data, err := json.Marshal(keyMaterialJSON)
-	if err != nil {
-		return nil, fmt.Errorf("failed to serialize KeyMaterialDecoded: %w", err)
-	}
-	return data, nil
-}
-
-func DeserializeKeyMaterial(data []byte) (*KeyMaterialDecoded, error) {
-	var keyMaterialJSON KeyMaterialEncoded
-	err := json.Unmarshal(data, &keyMaterialJSON)
-	if err != nil {
-		return nil, fmt.Errorf("failed to deserialize KeyMaterialEncoded: %w", err)
-	}
-
-	// Convert JSON format back to KeyMaterialDecoded
-	keyMaterial, err := keyMaterialJSON.ToKeyMaterialDecoded()
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert JSON format to KeyMaterialDecoded: %w", err)
-	}
-
-	return keyMaterial, nil
-}
-
 // ToJSON converts KeyMaterialDecoded to KeyMaterialEncoded with serializable representations
 func (km *KeyMaterialDecoded) ToJSON(includePrivateKey bool) (*KeyMaterialEncoded, error) {
 	result := &KeyMaterialEncoded{}

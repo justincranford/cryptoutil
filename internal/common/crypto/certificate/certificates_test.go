@@ -170,38 +170,6 @@ func TestSerializeSubjectsIncludePrivateKey(t *testing.T) {
 	}
 }
 
-func TestSerializeKeyMaterial(t *testing.T) {
-	// Create a KeyMaterialDecoded with test data
-	keyPair := testKeyGenPool.Get()
-	keyMaterial := KeyMaterialDecoded{
-		PrivateKey: keyPair.Private,
-		PublicKey:  keyPair.Public,
-		CertChain:  []*x509.Certificate{}, // Empty for this test to avoid certificate parsing issues
-	}
-
-	// Test serialization with private key
-	serializedWithPrivateKey, err := SerializeKeyMaterial(&keyMaterial, true)
-	require.NoError(t, err, "Failed to serialize KeyMaterialDecoded with private key")
-	require.NotEmpty(t, serializedWithPrivateKey, "Serialized data should not be empty")
-
-	// Test serialization without private key
-	serializedWithoutPrivateKey, err := SerializeKeyMaterial(&keyMaterial, false)
-	require.NoError(t, err, "Failed to serialize KeyMaterialDecoded without private key")
-	require.NotEmpty(t, serializedWithoutPrivateKey, "Serialized data should not be empty")
-
-	// Verify that serialization without private key excludes private key data
-	require.NotEqual(t, serializedWithPrivateKey, serializedWithoutPrivateKey, "Serializations with and without private key should be different")
-
-	// Test deserialization
-	deserializedKeyMaterial, err := DeserializeKeyMaterial(serializedWithPrivateKey)
-	require.NoError(t, err, "Failed to deserialize KeyMaterialDecoded")
-
-	// Verify the reconstructed data matches the original
-	require.Equal(t, len(keyMaterial.CertChain), len(deserializedKeyMaterial.CertChain), "CertChain length should match")
-	require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should be reconstructed")
-	require.NotNil(t, deserializedKeyMaterial.PublicKey, "PublicKey should be reconstructed")
-}
-
 func TestNewFieldsPopulated(t *testing.T) {
 	// Test CA subjects have proper fields populated
 	subjects, err := CreateCASubjects(testKeyGenPool, "Test Fields CA", 2)
