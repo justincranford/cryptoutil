@@ -224,6 +224,31 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 		require.NotNil(t, restored.KeyMaterialDecoded.PrivateKey, "PrivateKey should not be nil at index %d", i)
 		require.NotNil(t, restored.KeyMaterialDecoded.PublicKey, "PublicKey should not be nil at index %d", i)
 		require.NotEmpty(t, restored.KeyMaterialDecoded.CertChain, "CertChain should not be empty at index %d", i)
+		require.NotNil(t, restored.KeyMaterialDecoded.SubordinateCACertsPool, "SubordinateCACertsPool should not be nil at index %d", i)
+		require.NotNil(t, restored.KeyMaterialDecoded.RootCACertsPool, "RootCACertsPool should not be nil at index %d", i)
+
+		// Verify cert pools are reconstructed correctly
+		// For CA subjects, verify that intermediate and root CAs are in the appropriate pools
+		if len(original.KeyMaterialDecoded.CertChain) > 1 {
+			// Test that we can verify the cert chain using the reconstructed pools
+			leafCert := restored.KeyMaterialDecoded.CertChain[0]
+			intermediates := x509.NewCertPool()
+
+			// Add intermediate CAs to the intermediates pool for verification
+			for j := 1; j < len(restored.KeyMaterialDecoded.CertChain)-1; j++ {
+				intermediates.AddCert(restored.KeyMaterialDecoded.CertChain[j])
+			}
+
+			// Verify the certificate chain
+			verifyOptions := x509.VerifyOptions{
+				Roots:         restored.KeyMaterialDecoded.RootCACertsPool,
+				Intermediates: intermediates,
+				KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
+			}
+
+			_, err := leafCert.Verify(verifyOptions)
+			require.NoError(t, err, "Certificate chain verification failed for subject %d (%s)", i, original.SubjectName)
+		}
 
 		// Verify subject type
 		if original.CASubject != nil {
