@@ -436,10 +436,35 @@ func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivate
 }
 
 func toKeyMaterialDecoded(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterialDecoded, error) {
+	if keyMaterialEncoded == nil {
+		return nil, fmt.Errorf("keyMaterialEncoded cannot be nil")
+	} else if len(keyMaterialEncoded.DERCertChain) == 0 {
+		return nil, fmt.Errorf("DER certificate chain cannot be empty")
+	} else if len(keyMaterialEncoded.DERPublicKey) == 0 {
+		return nil, fmt.Errorf("DER public key cannot be empty")
+	}
+	for i, derBytes := range keyMaterialEncoded.DERCertChain {
+		if len(derBytes) == 0 {
+			return nil, fmt.Errorf("DER certificate at index %d in chain cannot be empty", i)
+		}
+	}
+
 	keyMaterialDecoded := &KeyMaterialDecoded{}
 	var err error
 
-	// Reconstruct private key from DER if present
+	keyMaterialDecoded.CertChain = make([]*x509.Certificate, len(keyMaterialEncoded.DERCertChain))
+	for i, derBytes := range keyMaterialEncoded.DERCertChain {
+		keyMaterialDecoded.CertChain[i], err = x509.ParseCertificate(derBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse certificate %d from DER: %w", i, err)
+		}
+	}
+
+	keyMaterialDecoded.PublicKey, err = x509.ParsePKIXPublicKey(keyMaterialEncoded.DERPublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse public key from DER: %w", err)
+	}
+
 	if len(keyMaterialEncoded.DERPrivateKey) > 0 {
 		keyMaterialDecoded.PrivateKey, err = x509.ParsePKCS8PrivateKey(keyMaterialEncoded.DERPrivateKey)
 		if err != nil {
@@ -447,47 +472,28 @@ func toKeyMaterialDecoded(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterialD
 		}
 	}
 
-	// Reconstruct public key from DER if present
-	if len(keyMaterialEncoded.DERPublicKey) > 0 {
-		keyMaterialDecoded.PublicKey, err = x509.ParsePKIXPublicKey(keyMaterialEncoded.DERPublicKey)
+	keyMaterialDecoded.SubordinateCACertsPool = x509.NewCertPool()
+	for i, derBytes := range keyMaterialEncoded.DERSubordinateCACerts {
+		if len(derBytes) == 0 {
+			return nil, fmt.Errorf("DER subordinate CA certificate at index %d cannot be empty", i)
+		}
+		cert, err := x509.ParseCertificate(derBytes)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse public key from DER: %w", err)
+			return nil, fmt.Errorf("failed to parse subordinate CA certificate %d from DER: %w", i, err)
 		}
+		keyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
 	}
 
-	// Reconstruct cert chain from DER chain
-	if len(keyMaterialEncoded.DERCertChain) > 0 {
-		keyMaterialDecoded.CertChain = make([]*x509.Certificate, len(keyMaterialEncoded.DERCertChain))
-		for i, derBytes := range keyMaterialEncoded.DERCertChain {
-			keyMaterialDecoded.CertChain[i], err = x509.ParseCertificate(derBytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse certificate %d from DER: %w", i, err)
-			}
+	keyMaterialDecoded.RootCACertsPool = x509.NewCertPool()
+	for i, derBytes := range keyMaterialEncoded.DERRootCACertsPool {
+		if len(derBytes) == 0 {
+			return nil, fmt.Errorf("DER root CA certificate at index %d cannot be empty", i)
 		}
-	}
-
-	// Reconstruct subordinate CA certs pool from DER
-	if len(keyMaterialEncoded.DERSubordinateCACerts) > 0 {
-		keyMaterialDecoded.SubordinateCACertsPool = x509.NewCertPool()
-		for i, derBytes := range keyMaterialEncoded.DERSubordinateCACerts {
-			cert, err := x509.ParseCertificate(derBytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse subordinate CA certificate %d from DER: %w", i, err)
-			}
-			keyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
+		cert, err := x509.ParseCertificate(derBytes)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse root CA certificate %d from DER: %w", i, err)
 		}
-	}
-
-	// Reconstruct root CA certs pool from DER
-	if len(keyMaterialEncoded.DERRootCACertsPool) > 0 {
-		keyMaterialDecoded.RootCACertsPool = x509.NewCertPool()
-		for i, derBytes := range keyMaterialEncoded.DERRootCACertsPool {
-			cert, err := x509.ParseCertificate(derBytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse root CA certificate %d from DER: %w", i, err)
-			}
-			keyMaterialDecoded.RootCACertsPool.AddCert(cert)
-		}
+		keyMaterialDecoded.RootCACertsPool.AddCert(cert)
 	}
 
 	return keyMaterialDecoded, nil
