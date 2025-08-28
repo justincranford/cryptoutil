@@ -168,8 +168,8 @@ func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], 
 				PrivateKey:             keyPair.Private,
 				PublicKey:              keyPair.Public,
 				CertChain:              []*x509.Certificate{},
-				RootCACertsPool:        x509.NewCertPool(),
 				SubordinateCACertsPool: x509.NewCertPool(),
+				RootCACertsPool:        x509.NewCertPool(),
 			},
 			CASubject: &CASubject{
 				MaxPathLen: numCAs - i - 1,
@@ -203,8 +203,8 @@ func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], 
 			pemChain[j] = pemBytes // Use the pemBytes from SignCertificate for the first cert
 		}
 
-		currentSubject.KeyMaterialDecoded.RootCACertsPool = previousSubject.KeyMaterialDecoded.RootCACertsPool.Clone()
 		currentSubject.KeyMaterialDecoded.SubordinateCACertsPool = previousSubject.KeyMaterialDecoded.SubordinateCACertsPool.Clone()
+		currentSubject.KeyMaterialDecoded.RootCACertsPool = previousSubject.KeyMaterialDecoded.RootCACertsPool.Clone()
 		if i == 0 {
 			currentSubject.KeyMaterialDecoded.RootCACertsPool.AddCert(cert)
 		} else {
@@ -245,8 +245,8 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 			PrivateKey:             keyPair.Private,
 			PublicKey:              keyPair.Public,
 			CertChain:              []*x509.Certificate{},
-			RootCACertsPool:        x509.NewCertPool(),
 			SubordinateCACertsPool: x509.NewCertPool(),
+			RootCACertsPool:        x509.NewCertPool(),
 		},
 		EndEntitySubject: &EndEntitySubject{
 			DNSNames:       dnsNames,
@@ -267,8 +267,8 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 	}
 
 	endEntitySubject.KeyMaterialDecoded.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterialDecoded.CertChain...)
-	endEntitySubject.KeyMaterialDecoded.RootCACertsPool = issuingCA.KeyMaterialDecoded.RootCACertsPool.Clone()
 	endEntitySubject.KeyMaterialDecoded.SubordinateCACertsPool = issuingCA.KeyMaterialDecoded.SubordinateCACertsPool.Clone()
+	endEntitySubject.KeyMaterialDecoded.RootCACertsPool = issuingCA.KeyMaterialDecoded.RootCACertsPool.Clone()
 
 	return endEntitySubject, nil
 }
@@ -276,11 +276,11 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertPool, error) {
 	if len(endEntitySubject.KeyMaterialDecoded.CertChain) == 0 {
 		return tls.Certificate{}, nil, fmt.Errorf("certificate chain is empty")
-	}
-	if endEntitySubject.KeyMaterialDecoded.PrivateKey == nil {
+	} else if endEntitySubject.KeyMaterialDecoded.PrivateKey == nil {
 		return tls.Certificate{}, nil, fmt.Errorf("private key is nil")
-	}
-	if endEntitySubject.KeyMaterialDecoded.RootCACertsPool == nil {
+	} else if endEntitySubject.KeyMaterialDecoded.SubordinateCACertsPool == nil {
+		return tls.Certificate{}, nil, fmt.Errorf("subordinate CA certs pool is nil")
+	} else if endEntitySubject.KeyMaterialDecoded.RootCACertsPool == nil {
 		return tls.Certificate{}, nil, fmt.Errorf("root CA certs pool is nil")
 	}
 
