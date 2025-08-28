@@ -26,7 +26,6 @@ type KeyMaterialDecoded struct {
 	RootCACertsPool        *x509.CertPool
 }
 
-// KeyMaterialEncoded contains serializable DER/PEM representations of KeyMaterialDecoded
 type KeyMaterialEncoded struct {
 	DERCertChain          [][]byte `json:"der_cert_chain"`
 	DERPrivateKey         []byte   `json:"der_private_key"`
@@ -138,185 +137,6 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 	return certificate, certificateDer, certificatePem, nil
 }
 
-func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, error) {
-	keyMaterialJSONs := make([][]byte, len(subjects))
-	for i, subject := range subjects {
-		keyMaterialJSON, err := toKeyMaterialEncoded(&subject.KeyMaterialDecoded, includePrivateKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert KeyMaterialDecoded to JSON format for subject %d: %w", i, err)
-		}
-		jsonBytes, err := json.Marshal(keyMaterialJSON)
-		if err != nil {
-			return nil, fmt.Errorf("failed to serialize KeyMaterialEncoded for subject %d: %w", i, err)
-		}
-		keyMaterialJSONs[i] = jsonBytes
-	}
-	return keyMaterialJSONs, nil
-}
-
-func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]Subject, error) {
-	subjects := make([]Subject, len(keyMaterialEncodedBytesList))
-	for i, keyMaterialEncodedBytes := range keyMaterialEncodedBytesList {
-		var keyMaterialEncoded KeyMaterialEncoded
-		err := json.Unmarshal(keyMaterialEncodedBytes, &keyMaterialEncoded)
-		if err != nil {
-			return nil, fmt.Errorf("failed to deserialize KeyMaterialEncoded for item %d: %w", i, err)
-		}
-		keyMaterialDecoded, err := toKeyMaterialDecoded(&keyMaterialEncoded)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert KeyMaterialEncoded to KeyMaterialDecoded for item %d: %w", i, err)
-		}
-		if len(keyMaterialDecoded.CertChain) == 0 {
-			return nil, fmt.Errorf("CertChain is empty for item %d", i)
-		} else if keyMaterialDecoded.PublicKey == nil {
-			return nil, fmt.Errorf("PublicKey is nil for item %d", i)
-		}
-		cert := keyMaterialDecoded.CertChain[0]
-		subject := Subject{
-			KeyMaterialDecoded: *keyMaterialDecoded,
-			SubjectName:        cert.Subject.CommonName,
-			IssuerName:         cert.Issuer.CommonName,
-			Duration:           cert.NotAfter.Sub(cert.NotBefore),
-		}
-		if cert.IsCA {
-			subject.CASubject = &CASubject{
-				MaxPathLen: cert.MaxPathLen,
-				IsCA:       cert.IsCA,
-			}
-		} else {
-			subject.EndEntitySubject = &EndEntitySubject{
-				DNSNames:       cert.DNSNames,
-				IPAddresses:    cert.IPAddresses,
-				EmailAddresses: cert.EmailAddresses,
-				URIs:           cert.URIs,
-			}
-		}
-		subjects[i] = subject
-	}
-	return subjects, nil
-}
-
-func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivateKey bool) (*KeyMaterialEncoded, error) {
-	result := &KeyMaterialEncoded{}
-	var err error
-
-	// Serialize private key if present and requested
-	if includePrivateKey && keyMaterialDecoded.PrivateKey != nil {
-		result.DERPrivateKey, err = x509.MarshalPKCS8PrivateKey(keyMaterialDecoded.PrivateKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal private key to DER: %w", err)
-		}
-
-		result.PEMPrivateKey = pem.EncodeToMemory(&pem.Block{
-			Type:  "PRIVATE KEY",
-			Bytes: result.DERPrivateKey,
-		})
-	}
-
-	// Serialize public key if present
-	if keyMaterialDecoded.PublicKey != nil {
-		result.DERPublicKey, err = x509.MarshalPKIXPublicKey(keyMaterialDecoded.PublicKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal public key to DER: %w", err)
-		}
-
-		result.PEMPublicKey = pem.EncodeToMemory(&pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: result.DERPublicKey,
-		})
-	}
-
-	// Serialize certificate chain
-	if len(keyMaterialDecoded.CertChain) > 0 {
-		result.DERCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
-		result.PEMCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
-		for i, cert := range keyMaterialDecoded.CertChain {
-			result.DERCertChain[i] = cert.Raw
-			result.PEMCertChain[i] = pem.EncodeToMemory(&pem.Block{
-				Type:  "CERTIFICATE",
-				Bytes: cert.Raw,
-			})
-		}
-	}
-
-	// Convert subordinate CA certs pool to slices
-	if keyMaterialDecoded.SubordinateCACertsPool != nil {
-		// Note: x509.CertPool doesn't expose certificates directly,
-		// so we need to track them separately during construction
-		result.DERSubordinateCACerts = [][]byte{}
-		result.PEMSubordinateCACerts = [][]byte{}
-	}
-
-	// Convert root CA certs pool to slices
-	if keyMaterialDecoded.RootCACertsPool != nil {
-		// Note: x509.CertPool doesn't expose certificates directly,
-		// so we need to track them separately during construction
-		result.DERRootCACertsPool = [][]byte{}
-		result.PEMRootCACertsPool = [][]byte{}
-	}
-
-	return result, nil
-}
-
-func toKeyMaterialDecoded(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterialDecoded, error) {
-	keyMaterialDecoded := &KeyMaterialDecoded{}
-	var err error
-
-	// Reconstruct private key from DER if present
-	if len(keyMaterialEncoded.DERPrivateKey) > 0 {
-		keyMaterialDecoded.PrivateKey, err = x509.ParsePKCS8PrivateKey(keyMaterialEncoded.DERPrivateKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse private key from DER: %w", err)
-		}
-	}
-
-	// Reconstruct public key from DER if present
-	if len(keyMaterialEncoded.DERPublicKey) > 0 {
-		keyMaterialDecoded.PublicKey, err = x509.ParsePKIXPublicKey(keyMaterialEncoded.DERPublicKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse public key from DER: %w", err)
-		}
-	}
-
-	// Reconstruct cert chain from DER chain
-	if len(keyMaterialEncoded.DERCertChain) > 0 {
-		keyMaterialDecoded.CertChain = make([]*x509.Certificate, len(keyMaterialEncoded.DERCertChain))
-		for i, derBytes := range keyMaterialEncoded.DERCertChain {
-			keyMaterialDecoded.CertChain[i], err = x509.ParseCertificate(derBytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse certificate %d from DER: %w", i, err)
-			}
-		}
-	}
-
-	// Reconstruct subordinate CA certs pool from DER
-	if len(keyMaterialEncoded.DERSubordinateCACerts) > 0 {
-		keyMaterialDecoded.SubordinateCACertsPool = x509.NewCertPool()
-		for i, derBytes := range keyMaterialEncoded.DERSubordinateCACerts {
-			cert, err := x509.ParseCertificate(derBytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse subordinate CA certificate %d from DER: %w", i, err)
-			}
-			keyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
-		}
-	}
-
-	// Reconstruct root CA certs pool from DER
-	if len(keyMaterialEncoded.DERRootCACertsPool) > 0 {
-		keyMaterialDecoded.RootCACertsPool = x509.NewCertPool()
-		for i, derBytes := range keyMaterialEncoded.DERRootCACertsPool {
-			cert, err := x509.ParseCertificate(derBytes)
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse root CA certificate %d from DER: %w", i, err)
-			}
-			keyMaterialDecoded.RootCACertsPool.AddCert(cert)
-		}
-	}
-
-	return keyMaterialDecoded, nil
-}
-
-// CreateCASubjects creates a chain of CA subjects with the specified prefix and count
 func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], caSubjectNamePrefix string, numCAs int) ([]Subject, error) {
 	if numCAs <= 0 {
 		return nil, fmt.Errorf("numCAs must be greater than 0")
@@ -396,7 +216,6 @@ func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], 
 	return subjects, nil
 }
 
-// CreateEndEntitySubject creates an end entity subject with the specified parameters
 func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []Subject) (Subject, error) {
 	keyPair := keygenPool.Get()
 	if keyPair == nil {
@@ -454,7 +273,6 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 	return endEntitySubject, nil
 }
 
-// BuildTLSCertificate converts a Subject to a tls.Certificate suitable for TLS connections
 func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertPool, error) {
 	if len(endEntitySubject.KeyMaterialDecoded.CertChain) == 0 {
 		return tls.Certificate{}, nil, fmt.Errorf("certificate chain is empty")
@@ -473,4 +291,180 @@ func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertP
 	}
 
 	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterialDecoded.PrivateKey, Leaf: endEntitySubject.KeyMaterialDecoded.CertChain[0]}, endEntitySubject.KeyMaterialDecoded.RootCACertsPool, nil
+}
+
+func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, error) {
+	keyMaterialJSONs := make([][]byte, len(subjects))
+	for i, subject := range subjects {
+		keyMaterialEncoded, err := toKeyMaterialEncoded(&subject.KeyMaterialDecoded, includePrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert KeyMaterialDecoded to JSON format for subject %d: %w", i, err)
+		}
+		jsonBytes, err := json.Marshal(keyMaterialEncoded)
+		if err != nil {
+			return nil, fmt.Errorf("failed to serialize KeyMaterialEncoded for subject %d: %w", i, err)
+		}
+		keyMaterialJSONs[i] = jsonBytes
+	}
+	return keyMaterialJSONs, nil
+}
+
+func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]Subject, error) {
+	subjects := make([]Subject, len(keyMaterialEncodedBytesList))
+	for i, keyMaterialEncodedBytes := range keyMaterialEncodedBytesList {
+		var keyMaterialEncoded KeyMaterialEncoded
+		err := json.Unmarshal(keyMaterialEncodedBytes, &keyMaterialEncoded)
+		if err != nil {
+			return nil, fmt.Errorf("failed to deserialize KeyMaterialEncoded for item %d: %w", i, err)
+		}
+		keyMaterialDecoded, err := toKeyMaterialDecoded(&keyMaterialEncoded)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert KeyMaterialEncoded to KeyMaterialDecoded for item %d: %w", i, err)
+		}
+		if len(keyMaterialDecoded.CertChain) == 0 {
+			return nil, fmt.Errorf("CertChain is empty for item %d", i)
+		} else if keyMaterialDecoded.PublicKey == nil {
+			return nil, fmt.Errorf("PublicKey is nil for item %d", i)
+		}
+		cert := keyMaterialDecoded.CertChain[0]
+		subject := Subject{
+			KeyMaterialDecoded: *keyMaterialDecoded,
+			SubjectName:        cert.Subject.CommonName,
+			IssuerName:         cert.Issuer.CommonName,
+			Duration:           cert.NotAfter.Sub(cert.NotBefore),
+		}
+		if cert.IsCA {
+			subject.CASubject = &CASubject{
+				MaxPathLen: cert.MaxPathLen,
+				IsCA:       cert.IsCA,
+			}
+		} else {
+			subject.EndEntitySubject = &EndEntitySubject{
+				DNSNames:       cert.DNSNames,
+				IPAddresses:    cert.IPAddresses,
+				EmailAddresses: cert.EmailAddresses,
+				URIs:           cert.URIs,
+			}
+		}
+		subjects[i] = subject
+	}
+	return subjects, nil
+}
+
+func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivateKey bool) (*KeyMaterialEncoded, error) {
+	keyMaterialEncoded := &KeyMaterialEncoded{}
+	var err error
+
+	// Serialize private key if present and requested
+	if includePrivateKey && keyMaterialDecoded.PrivateKey != nil {
+		keyMaterialEncoded.DERPrivateKey, err = x509.MarshalPKCS8PrivateKey(keyMaterialDecoded.PrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal private key to DER: %w", err)
+		}
+		keyMaterialEncoded.PEMPrivateKey = pem.EncodeToMemory(&pem.Block{
+			Type:  "PRIVATE KEY",
+			Bytes: keyMaterialEncoded.DERPrivateKey,
+		})
+	}
+
+	// Serialize public key if present
+	if keyMaterialDecoded.PublicKey != nil {
+		keyMaterialEncoded.DERPublicKey, err = x509.MarshalPKIXPublicKey(keyMaterialDecoded.PublicKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal public key to DER: %w", err)
+		}
+		keyMaterialEncoded.PEMPublicKey = pem.EncodeToMemory(&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: keyMaterialEncoded.DERPublicKey,
+		})
+	}
+
+	// Serialize certificate chain
+	if len(keyMaterialDecoded.CertChain) > 0 {
+		keyMaterialEncoded.DERCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
+		keyMaterialEncoded.PEMCertChain = make([][]byte, len(keyMaterialDecoded.CertChain))
+		for i, cert := range keyMaterialDecoded.CertChain {
+			keyMaterialEncoded.DERCertChain[i] = cert.Raw
+			keyMaterialEncoded.PEMCertChain[i] = pem.EncodeToMemory(&pem.Block{
+				Type:  "CERTIFICATE",
+				Bytes: cert.Raw,
+			})
+		}
+	}
+
+	// Convert subordinate CA certs pool to slices
+	if keyMaterialDecoded.SubordinateCACertsPool != nil {
+		// Note: x509.CertPool doesn't expose certificates directly,
+		// so we need to track them separately during construction
+		keyMaterialEncoded.DERSubordinateCACerts = [][]byte{}
+		keyMaterialEncoded.PEMSubordinateCACerts = [][]byte{}
+	}
+
+	// Convert root CA certs pool to slices
+	if keyMaterialDecoded.RootCACertsPool != nil {
+		// Note: x509.CertPool doesn't expose certificates directly,
+		// so we need to track them separately during construction
+		keyMaterialEncoded.DERRootCACertsPool = [][]byte{}
+		keyMaterialEncoded.PEMRootCACertsPool = [][]byte{}
+	}
+
+	return keyMaterialEncoded, nil
+}
+
+func toKeyMaterialDecoded(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterialDecoded, error) {
+	keyMaterialDecoded := &KeyMaterialDecoded{}
+	var err error
+
+	// Reconstruct private key from DER if present
+	if len(keyMaterialEncoded.DERPrivateKey) > 0 {
+		keyMaterialDecoded.PrivateKey, err = x509.ParsePKCS8PrivateKey(keyMaterialEncoded.DERPrivateKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse private key from DER: %w", err)
+		}
+	}
+
+	// Reconstruct public key from DER if present
+	if len(keyMaterialEncoded.DERPublicKey) > 0 {
+		keyMaterialDecoded.PublicKey, err = x509.ParsePKIXPublicKey(keyMaterialEncoded.DERPublicKey)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse public key from DER: %w", err)
+		}
+	}
+
+	// Reconstruct cert chain from DER chain
+	if len(keyMaterialEncoded.DERCertChain) > 0 {
+		keyMaterialDecoded.CertChain = make([]*x509.Certificate, len(keyMaterialEncoded.DERCertChain))
+		for i, derBytes := range keyMaterialEncoded.DERCertChain {
+			keyMaterialDecoded.CertChain[i], err = x509.ParseCertificate(derBytes)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse certificate %d from DER: %w", i, err)
+			}
+		}
+	}
+
+	// Reconstruct subordinate CA certs pool from DER
+	if len(keyMaterialEncoded.DERSubordinateCACerts) > 0 {
+		keyMaterialDecoded.SubordinateCACertsPool = x509.NewCertPool()
+		for i, derBytes := range keyMaterialEncoded.DERSubordinateCACerts {
+			cert, err := x509.ParseCertificate(derBytes)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse subordinate CA certificate %d from DER: %w", i, err)
+			}
+			keyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
+		}
+	}
+
+	// Reconstruct root CA certs pool from DER
+	if len(keyMaterialEncoded.DERRootCACertsPool) > 0 {
+		keyMaterialDecoded.RootCACertsPool = x509.NewCertPool()
+		for i, derBytes := range keyMaterialEncoded.DERRootCACertsPool {
+			cert, err := x509.ParseCertificate(derBytes)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse root CA certificate %d from DER: %w", i, err)
+			}
+			keyMaterialDecoded.RootCACertsPool.AddCert(cert)
+		}
+	}
+
+	return keyMaterialDecoded, nil
 }
