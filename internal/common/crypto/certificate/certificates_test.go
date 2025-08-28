@@ -86,10 +86,10 @@ func TestMutualTLS(t *testing.T) {
 }
 
 func TestSerializeSubjects(t *testing.T) {
-	subjects, err := CreateCASubjects(testKeyGenPool, "Test Serialize CA", 2)
+	originalSubjects, err := CreateCASubjects(testKeyGenPool, "Test Serialize CA", 2)
 	require.NoError(t, err, "Failed to create CA subjects")
 
-	serializedSubjects, err := SerializeSubjects(subjects, true)
+	serializedSubjects, err := SerializeSubjects(originalSubjects, true)
 	require.NoError(t, err, "Failed to serialize subjects")
 	require.NotEmpty(t, serializedSubjects, "Serialized data should not be empty")
 	t.Logf("Serialized Subjects count: %d", len(serializedSubjects))
@@ -99,41 +99,32 @@ func TestSerializeSubjects(t *testing.T) {
 
 	deserializedSubjects, err := DeserializeSubjects(serializedSubjects)
 	require.NoError(t, err, "Failed to deserialize subjects")
-	require.Len(t, deserializedSubjects, len(subjects), "Deserialized Subject count should match original")
+	require.Len(t, deserializedSubjects, len(originalSubjects), "Deserialized Subject count should match original")
 
-	for i, original := range subjects {
+	for i, originalSubject := range originalSubjects {
 		deserializedSubject := deserializedSubjects[i]
-		originalKM := original.KeyMaterial
-		deserializedKM := deserializedSubject.KeyMaterial
+		originalKeyMaterialDecoded := originalSubject.KeyMaterialDecoded
+		deserializedKeyMaterialDecoded := deserializedSubject.KeyMaterialDecoded
 
-		// Compare private keys
-		require.Equal(t, originalKM.PrivateKey, deserializedKM.PrivateKey, "PrivateKey mismatch at index %d", i)
-
-		// Compare public keys
-		require.Equal(t, originalKM.PublicKey, deserializedKM.PublicKey, "PublicKey mismatch at index %d", i)
-
-		// Compare certificate chains
-		require.Len(t, deserializedKM.CertChain, len(originalKM.CertChain), "CertChain length mismatch at index %d", i)
-		for j, originalCert := range originalKM.CertChain {
-			deserializedCert := deserializedKM.CertChain[j]
+		require.Equal(t, originalKeyMaterialDecoded.PrivateKey, deserializedKeyMaterialDecoded.PrivateKey, "PrivateKey mismatch at index %d", i)
+		require.Equal(t, originalKeyMaterialDecoded.PublicKey, deserializedKeyMaterialDecoded.PublicKey, "PublicKey mismatch at index %d", i)
+		require.Len(t, deserializedKeyMaterialDecoded.CertChain, len(originalKeyMaterialDecoded.CertChain), "CertChain length mismatch at index %d", i)
+		for j, originalCert := range originalKeyMaterialDecoded.CertChain {
+			deserializedCert := deserializedKeyMaterialDecoded.CertChain[j]
 			require.Equal(t, originalCert.Raw, deserializedCert.Raw, "Certificate Raw data mismatch at index %d, cert %d", i, j)
 		}
-
-		// Compare Subject metadata extracted from certificates
-		require.Equal(t, original.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d", i)
-		require.Equal(t, original.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d", i)
-
-		// Compare Subject type
-		if original.CASubject != nil {
+		require.Equal(t, originalSubject.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d", i)
+		require.Equal(t, originalSubject.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d", i)
+		if originalSubject.CASubject != nil {
 			require.NotNil(t, deserializedSubject.CASubject, "CASubject should not be nil at index %d", i)
-			require.Equal(t, original.CASubject.IsCA, deserializedSubject.CASubject.IsCA, "CASubject.IsCA mismatch at index %d", i)
-			require.Equal(t, original.CASubject.MaxPathLen, deserializedSubject.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
+			require.Equal(t, originalSubject.CASubject.IsCA, deserializedSubject.CASubject.IsCA, "CASubject.IsCA mismatch at index %d", i)
+			require.Equal(t, originalSubject.CASubject.MaxPathLen, deserializedSubject.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
 		}
-		if original.EndEntitySubject != nil {
+		if originalSubject.EndEntitySubject != nil {
 			require.NotNil(t, deserializedSubject.EndEntitySubject, "EndEntitySubject should not be nil at index %d", i)
-			require.Equal(t, original.EndEntitySubject.DNSNames, deserializedSubject.EndEntitySubject.DNSNames, "EndEntitySubject.DNSNames mismatch at index %d", i)
-			require.Equal(t, original.EndEntitySubject.IPAddresses, deserializedSubject.EndEntitySubject.IPAddresses, "EndEntitySubject.IPAddresses mismatch at index %d", i)
-			require.Equal(t, original.EndEntitySubject.EmailAddresses, deserializedSubject.EndEntitySubject.EmailAddresses, "EndEntitySubject.EmailAddresses mismatch at index %d", i)
+			require.Equal(t, originalSubject.EndEntitySubject.DNSNames, deserializedSubject.EndEntitySubject.DNSNames, "EndEntitySubject.DNSNames mismatch at index %d", i)
+			require.Equal(t, originalSubject.EndEntitySubject.IPAddresses, deserializedSubject.EndEntitySubject.IPAddresses, "EndEntitySubject.IPAddresses mismatch at index %d", i)
+			require.Equal(t, originalSubject.EndEntitySubject.EmailAddresses, deserializedSubject.EndEntitySubject.EmailAddresses, "EndEntitySubject.EmailAddresses mismatch at index %d", i)
 		}
 	}
 }
@@ -230,9 +221,9 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 		require.Equal(t, original.IssuerName, restored.IssuerName, "IssuerName mismatch at index %d", i)
 
 		// Verify key material
-		require.NotNil(t, restored.KeyMaterial.PrivateKey, "PrivateKey should not be nil at index %d", i)
-		require.NotNil(t, restored.KeyMaterial.PublicKey, "PublicKey should not be nil at index %d", i)
-		require.NotEmpty(t, restored.KeyMaterial.CertChain, "CertChain should not be empty at index %d", i)
+		require.NotNil(t, restored.KeyMaterialDecoded.PrivateKey, "PrivateKey should not be nil at index %d", i)
+		require.NotNil(t, restored.KeyMaterialDecoded.PublicKey, "PublicKey should not be nil at index %d", i)
+		require.NotEmpty(t, restored.KeyMaterialDecoded.CertChain, "CertChain should not be empty at index %d", i)
 
 		// Verify subject type
 		if original.CASubject != nil {
