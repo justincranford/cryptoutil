@@ -138,50 +138,62 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 	return certificate, certificateDer, certificatePem, nil
 }
 
-// SerializeSubjects serializes a slice of Subject to JSON bytes
 func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, error) {
 	keyMaterialJSONs := make([][]byte, len(subjects))
-
 	for i, subject := range subjects {
-		// Convert KeyMaterialDecoded to JSON format
 		keyMaterialJSON, err := subject.KeyMaterial.ToJSON(includePrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterialDecoded to JSON format for subject %d: %w", i, err)
 		}
-
-		// Serialize the KeyMaterialEncoded to bytes
 		jsonBytes, err := json.Marshal(keyMaterialJSON)
 		if err != nil {
 			return nil, fmt.Errorf("failed to serialize KeyMaterialEncoded for subject %d: %w", i, err)
 		}
-
 		keyMaterialJSONs[i] = jsonBytes
 	}
-
 	return keyMaterialJSONs, nil
 }
 
-// DeserializeSubjects deserializes JSON bytes to a slice of KeyMaterialDecoded
-// Note: This only returns the KeyMaterialDecoded parts since subject metadata (name, duration, maxPathLen)
-// is not included in the serialized data. To rebuild full Subject, caller must provide metadata separately.
-func DeserializeSubjects(keyMaterialJSONBytes [][]byte) ([]KeyMaterialDecoded, error) {
-	keyMaterials := make([]KeyMaterialDecoded, len(keyMaterialJSONBytes))
+func DeserializeSubjects(keyMaterialJSONBytes [][]byte) ([]Subject, error) {
+	subjects := make([]Subject, len(keyMaterialJSONBytes))
 	for i, jsonBytes := range keyMaterialJSONBytes {
 		var keyMaterialJSON KeyMaterialEncoded
 		err := json.Unmarshal(jsonBytes, &keyMaterialJSON)
 		if err != nil {
 			return nil, fmt.Errorf("failed to deserialize KeyMaterialEncoded for item %d: %w", i, err)
 		}
-
 		keyMaterial, err := keyMaterialJSON.ToKeyMaterialDecoded()
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterialEncoded to KeyMaterialDecoded for item %d: %w", i, err)
 		}
-
-		keyMaterials[i] = *keyMaterial
+		if len(keyMaterial.CertChain) == 0 {
+			return nil, fmt.Errorf("CertChain is empty for item %d", i)
+		} else if keyMaterial.PublicKey == nil {
+			return nil, fmt.Errorf("PublicKey is nil for item %d", i)
+		}
+		cert := keyMaterial.CertChain[0]
+		subject := Subject{
+			KeyMaterial: *keyMaterial,
+			SubjectName: cert.Subject.CommonName,
+			IssuerName:  cert.Issuer.CommonName,
+			Duration:    cert.NotAfter.Sub(cert.NotBefore),
+		}
+		if cert.IsCA {
+			subject.CASubject = &CASubject{
+				MaxPathLen: cert.MaxPathLen,
+				IsCA:       cert.IsCA,
+			}
+		} else {
+			subject.EndEntitySubject = &EndEntitySubject{
+				DNSNames:       cert.DNSNames,
+				IPAddresses:    cert.IPAddresses,
+				EmailAddresses: cert.EmailAddresses,
+				URIs:           cert.URIs,
+			}
+		}
+		subjects[i] = subject
 	}
-
-	return keyMaterials, nil
+	return subjects, nil
 }
 
 func SerializeKeyMaterial(keyMaterial *KeyMaterialDecoded, includePrivateKey bool) ([]byte, error) {

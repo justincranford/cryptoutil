@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"testing"
 	"time"
 
@@ -96,13 +97,14 @@ func TestSerializeSubjects(t *testing.T) {
 		t.Logf("Serialized Subject %d: %s", i, string(subject))
 	}
 
-	deserializedKeyMaterials, err := DeserializeSubjects(serializedSubjects)
+	deserializedSubjects, err := DeserializeSubjects(serializedSubjects)
 	require.NoError(t, err, "Failed to deserialize subjects")
-	require.Len(t, deserializedKeyMaterials, len(subjects), "Deserialized KeyMaterialDecoded count should match original")
+	require.Len(t, deserializedSubjects, len(subjects), "Deserialized Subject count should match original")
 
 	for i, original := range subjects {
-		deserializedKM := deserializedKeyMaterials[i]
+		deserializedSubject := deserializedSubjects[i]
 		originalKM := original.KeyMaterial
+		deserializedKM := deserializedSubject.KeyMaterial
 
 		// Compare private keys
 		require.Equal(t, originalKM.PrivateKey, deserializedKM.PrivateKey, "PrivateKey mismatch at index %d", i)
@@ -115,6 +117,23 @@ func TestSerializeSubjects(t *testing.T) {
 		for j, originalCert := range originalKM.CertChain {
 			deserializedCert := deserializedKM.CertChain[j]
 			require.Equal(t, originalCert.Raw, deserializedCert.Raw, "Certificate Raw data mismatch at index %d, cert %d", i, j)
+		}
+
+		// Compare Subject metadata extracted from certificates
+		require.Equal(t, original.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d", i)
+		require.Equal(t, original.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d", i)
+
+		// Compare Subject type
+		if original.CASubject != nil {
+			require.NotNil(t, deserializedSubject.CASubject, "CASubject should not be nil at index %d", i)
+			require.Equal(t, original.CASubject.IsCA, deserializedSubject.CASubject.IsCA, "CASubject.IsCA mismatch at index %d", i)
+			require.Equal(t, original.CASubject.MaxPathLen, deserializedSubject.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
+		}
+		if original.EndEntitySubject != nil {
+			require.NotNil(t, deserializedSubject.EndEntitySubject, "EndEntitySubject should not be nil at index %d", i)
+			require.Equal(t, original.EndEntitySubject.DNSNames, deserializedSubject.EndEntitySubject.DNSNames, "EndEntitySubject.DNSNames mismatch at index %d", i)
+			require.Equal(t, original.EndEntitySubject.IPAddresses, deserializedSubject.EndEntitySubject.IPAddresses, "EndEntitySubject.IPAddresses mismatch at index %d", i)
+			require.Equal(t, original.EndEntitySubject.EmailAddresses, deserializedSubject.EndEntitySubject.EmailAddresses, "EndEntitySubject.EmailAddresses mismatch at index %d", i)
 		}
 	}
 }
@@ -214,4 +233,67 @@ func TestNewFieldsPopulated(t *testing.T) {
 	require.Equal(t, "Test Fields CA 1", endEntitySubject.IssuerName, "End entity should be issued by leaf CA")
 	require.NotNil(t, endEntitySubject.EndEntitySubject, "End entity should have EndEntitySubject populated")
 	require.Equal(t, []string{"test.example.com"}, endEntitySubject.EndEntitySubject.DNSNames, "End entity DNS names should match")
+}
+
+func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
+	// Create test data
+	subjects, err := CreateCASubjects(testKeyGenPool, "Round Trip CA", 2)
+	require.NoError(t, err, "Failed to create CA subjects")
+
+	// Add an end entity subject
+	endEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, subjects)
+	require.NoError(t, err, "Failed to create end entity subject")
+	subjects = append(subjects, endEntitySubject)
+
+	// Test full round-trip: []Subject -> [][]byte -> []Subject
+	serialized, err := SerializeSubjects(subjects, true)
+	require.NoError(t, err, "Failed to serialize subjects")
+
+	deserialized, err := DeserializeSubjects(serialized)
+	require.NoError(t, err, "Failed to deserialize subjects")
+	require.Len(t, deserialized, len(subjects), "Deserialized count should match original")
+
+	// Verify each subject was correctly round-tripped
+	for i, original := range subjects {
+		restored := deserialized[i]
+
+		// Verify basic metadata
+		require.Equal(t, original.SubjectName, restored.SubjectName, "SubjectName mismatch at index %d", i)
+		require.Equal(t, original.IssuerName, restored.IssuerName, "IssuerName mismatch at index %d", i)
+
+		// Verify key material
+		require.NotNil(t, restored.KeyMaterial.PrivateKey, "PrivateKey should not be nil at index %d", i)
+		require.NotNil(t, restored.KeyMaterial.PublicKey, "PublicKey should not be nil at index %d", i)
+		require.NotEmpty(t, restored.KeyMaterial.CertChain, "CertChain should not be empty at index %d", i)
+
+		// Verify subject type
+		if original.CASubject != nil {
+			require.NotNil(t, restored.CASubject, "CASubject should not be nil at index %d", i)
+			require.Equal(t, original.CASubject.IsCA, restored.CASubject.IsCA, "CASubject.IsCA mismatch at index %d", i)
+			require.Equal(t, original.CASubject.MaxPathLen, restored.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
+			require.Nil(t, restored.EndEntitySubject, "EndEntitySubject should be nil for CA at index %d", i)
+		}
+
+		if original.EndEntitySubject != nil {
+			require.NotNil(t, restored.EndEntitySubject, "EndEntitySubject should not be nil at index %d", i)
+			require.Equal(t, original.EndEntitySubject.DNSNames, restored.EndEntitySubject.DNSNames, "EndEntitySubject.DNSNames mismatch at index %d", i)
+
+			// Compare IP addresses with tolerance for IPv4/IPv6 format differences
+			require.Len(t, restored.EndEntitySubject.IPAddresses, len(original.EndEntitySubject.IPAddresses), "EndEntitySubject.IPAddresses length mismatch at index %d", i)
+			for j, originalIP := range original.EndEntitySubject.IPAddresses {
+				restoredIP := restored.EndEntitySubject.IPAddresses[j]
+				// Compare the actual IP addresses, allowing for IPv4/IPv6 representation differences
+				require.True(t, originalIP.Equal(restoredIP), "EndEntitySubject.IPAddresses[%d] mismatch at index %d: expected %v, got %v", j, i, originalIP, restoredIP)
+			}
+
+			require.Equal(t, original.EndEntitySubject.EmailAddresses, restored.EndEntitySubject.EmailAddresses, "EndEntitySubject.EmailAddresses mismatch at index %d", i)
+			require.Equal(t, original.EndEntitySubject.URIs, restored.EndEntitySubject.URIs, "EndEntitySubject.URIs mismatch at index %d", i)
+			require.Nil(t, restored.CASubject, "CASubject should be nil for end entity at index %d", i)
+		}
+
+		t.Logf("Subject %d (%s) successfully round-tripped", i, original.SubjectName)
+	}
+
+	t.Logf("Successfully round-tripped %d subjects (including %d CAs and %d end entities)",
+		len(subjects), len(subjects)-1, 1)
 }
