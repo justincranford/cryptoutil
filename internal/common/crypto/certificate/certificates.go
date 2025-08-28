@@ -424,35 +424,29 @@ func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivate
 		Bytes: keyMaterialEncoded.DERPublicKey,
 	})
 
-	// Extract certificates from pools by reconstructing them from the cert chain
-	// Chain structure: [leaf/subject_cert, intermediate_ca_1, intermediate_ca_2, ..., root_ca]
 	keyMaterialEncoded.DERSubordinateCACerts = [][]byte{}
 	keyMaterialEncoded.PEMSubordinateCACerts = [][]byte{}
 	keyMaterialEncoded.DERRootCACertsPool = [][]byte{}
 	keyMaterialEncoded.PEMRootCACertsPool = [][]byte{}
 
-	if len(keyMaterialDecoded.CertChain) > 1 {
-		// Extract intermediate CAs (all certs except leaf and root)
-		for i := 1; i < len(keyMaterialDecoded.CertChain)-1; i++ {
-			cert := keyMaterialDecoded.CertChain[i]
-			if cert.IsCA {
-				keyMaterialEncoded.DERSubordinateCACerts = append(keyMaterialEncoded.DERSubordinateCACerts, cert.Raw)
-				keyMaterialEncoded.PEMSubordinateCACerts = append(keyMaterialEncoded.PEMSubordinateCACerts, pem.EncodeToMemory(&pem.Block{
-					Type:  "CERTIFICATE",
-					Bytes: cert.Raw,
-				}))
-			}
-		}
-
-		// Extract root CA (last cert in chain)
-		rootCA := keyMaterialDecoded.CertChain[len(keyMaterialDecoded.CertChain)-1]
-		if rootCA.IsCA {
-			keyMaterialEncoded.DERRootCACertsPool = append(keyMaterialEncoded.DERRootCACertsPool, rootCA.Raw)
-			keyMaterialEncoded.PEMRootCACertsPool = append(keyMaterialEncoded.PEMRootCACertsPool, pem.EncodeToMemory(&pem.Block{
+	for i := 1; i < len(keyMaterialDecoded.CertChain)-1; i++ {
+		cert := keyMaterialDecoded.CertChain[i]
+		if cert.IsCA {
+			keyMaterialEncoded.DERSubordinateCACerts = append(keyMaterialEncoded.DERSubordinateCACerts, cert.Raw)
+			keyMaterialEncoded.PEMSubordinateCACerts = append(keyMaterialEncoded.PEMSubordinateCACerts, pem.EncodeToMemory(&pem.Block{
 				Type:  "CERTIFICATE",
-				Bytes: rootCA.Raw,
+				Bytes: cert.Raw,
 			}))
 		}
+	}
+
+	rootCA := keyMaterialDecoded.CertChain[len(keyMaterialDecoded.CertChain)-1]
+	if rootCA.IsCA {
+		keyMaterialEncoded.DERRootCACertsPool = append(keyMaterialEncoded.DERRootCACertsPool, rootCA.Raw)
+		keyMaterialEncoded.PEMRootCACertsPool = append(keyMaterialEncoded.PEMRootCACertsPool, pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: rootCA.Raw,
+		}))
 	}
 
 	return keyMaterialEncoded, nil
@@ -496,25 +490,6 @@ func toKeyMaterialDecoded(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterialD
 	}
 
 	keyMaterialDecoded.SubordinateCACertsPool = x509.NewCertPool()
-	keyMaterialDecoded.RootCACertsPool = x509.NewCertPool()
-
-	if len(keyMaterialDecoded.CertChain) > 1 {
-		// Add intermediate CAs to subordinate pool (all certs except leaf and root)
-		for i := 1; i < len(keyMaterialDecoded.CertChain)-1; i++ {
-			cert := keyMaterialDecoded.CertChain[i]
-			if cert.IsCA {
-				keyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
-			}
-		}
-
-		// Add root CA to root pool (last cert in chain)
-		rootCA := keyMaterialDecoded.CertChain[len(keyMaterialDecoded.CertChain)-1]
-		if rootCA.IsCA {
-			keyMaterialDecoded.RootCACertsPool.AddCert(rootCA)
-		}
-	}
-
-	// Add any additional certificates from the serialized pools
 	for i, derBytes := range keyMaterialEncoded.DERSubordinateCACerts {
 		if len(derBytes) == 0 {
 			return nil, fmt.Errorf("DER subordinate CA certificate at index %d cannot be empty", i)
@@ -526,6 +501,7 @@ func toKeyMaterialDecoded(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterialD
 		keyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
 	}
 
+	keyMaterialDecoded.RootCACertsPool = x509.NewCertPool()
 	for i, derBytes := range keyMaterialEncoded.DERRootCACertsPool {
 		if len(derBytes) == 0 {
 			return nil, fmt.Errorf("DER root CA certificate at index %d cannot be empty", i)
