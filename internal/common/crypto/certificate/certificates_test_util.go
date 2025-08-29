@@ -81,6 +81,10 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 	if !ok {
 		return "", fmt.Errorf("failed to cast net.Listener to *net.TCPListener")
 	}
+
+	// Configure TCP-level settings for robustness
+	netTCPListener.SetDeadline(time.Time{}) // Clear any existing deadline
+
 	tlsListener := tls.NewListener(netListener, serverTLSConfig)
 
 	go func() {
@@ -100,25 +104,55 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 				tlsClientConnection, err := tlsListener.Accept()
 				if err != nil {
 					if ne, ok := err.(net.Error); ok && ne.Timeout() {
+						continue // Timeout errors are expected and recoverable
+					}
+					// For other errors, check if they're likely recoverable
+					// Connection refused, reset by peer, etc. might be recoverable
+					switch {
+					case err.Error() == "use of closed network connection":
+						// Server is shutting down
+						log.Printf("server shutting down: %v", err)
+						return
+					default:
+						// For other errors, log and retry with backoff
+						log.Printf("error accepting connection (will retry): %v", err)
+						time.Sleep(100 * time.Millisecond) // Brief backoff on errors
 						continue
 					}
-					return
 				}
 				go func(conn net.Conn) {
-					defer conn.Close()
+					defer func() {
+						if r := recover(); r != nil {
+							log.Printf("panic in TLS connection handler: %v", r)
+						}
+						conn.Close()
+					}()
+
+					// Set both read and write deadlines upfront
 					conn.SetReadDeadline(time.Now().Add(readTimeout))
-					tlsClientRequestBodyBuffer := make([]byte, 512)
+					conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+
+					tlsClientRequestBodyBuffer := make([]byte, 1024) // Increased buffer size
 					bytesRead, err := conn.Read(tlsClientRequestBodyBuffer)
 					if err != nil {
-						log.Printf("failed to read from TLS connection: %v", err)
+						if ne, ok := err.(net.Error); ok && ne.Timeout() {
+							log.Printf("read timeout on TLS connection")
+						} else {
+							log.Printf("failed to read from TLS connection: %v", err)
+						}
 						return
 					}
 					// Do not treat empty request as shutdown; just ignore
 					if bytesRead > 0 {
+						// Refresh write deadline before writing
 						conn.SetWriteDeadline(time.Now().Add(writeTimeout))
 						_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
 						if err != nil {
-							log.Printf("failed to write to TLS connection: %v", err)
+							if ne, ok := err.(net.Error); ok && ne.Timeout() {
+								log.Printf("write timeout on TLS connection")
+							} else {
+								log.Printf("failed to write to TLS connection: %v", err)
+							}
 						}
 					}
 				}(tlsClientConnection)
@@ -135,21 +169,41 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration,
 		return nil, "", fmt.Errorf("failed to start TCP Listener for HTTPS Server: %w", err)
 	}
 	httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				log.Printf("panic in HTTP handler: %v", rec)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}()
+
+		// Limit request body size to prevent memory exhaustion
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB limit
+
 		data, err := io.ReadAll(r.Body)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to read request body: %v", err), http.StatusInternalServerError)
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
 			return
 		}
+
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(data)))
+
 		_, err = w.Write(data)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+			log.Printf("failed to write response: %v", err)
+			// Don't call http.Error here as headers are already written
 		}
 	})
 	server := &http.Server{
-		Handler:      httpHandler,
-		TLSConfig:    serverTLSConfig,
-		ReadTimeout:  readTimeout,
-		WriteTimeout: writeTimeout,
+		Handler:           httpHandler,
+		TLSConfig:         serverTLSConfig,
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       30 * time.Second, // Close idle connections after 30s
+		ReadHeaderTimeout: 10 * time.Second, // Timeout for reading headers (prevents slowloris)
+		MaxHeaderBytes:    1 << 20,          // 1MB max header size (prevents large header attacks)
+		ErrorLog:          log.New(os.Stderr, "https-server: ", log.LstdFlags),
 	}
 	go server.ServeTLS(netListener, "", "")
 	url := "https://" + netListener.Addr().String()
