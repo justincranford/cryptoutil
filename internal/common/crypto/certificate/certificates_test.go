@@ -22,10 +22,12 @@ func TestNegativeDuration(t *testing.T) {
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
 
-func TestCertificateCreationWithVerification(t *testing.T) {
+func TestCertificateTemplate(t *testing.T) {
 	certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 365*cryptoutilDateTime.Days1, 1)
 	verifyCertificateTemplate(t, err, certTemplate)
+}
 
+func TestSubjects(t *testing.T) {
 	caSubjects, err := CreateCASubjects(testKeyGenPool, "Test Verification CA", 2)
 	verifyCASubjects(t, err, caSubjects)
 
@@ -38,43 +40,9 @@ func TestCertificateCreationWithVerification(t *testing.T) {
 
 func TestMutualTLS(t *testing.T) {
 	tlsServerCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
-	require.NoError(t, err, "Failed to create TLS Server CA subjects")
+	verifyCASubjects(t, err, tlsServerCASubjects)
 	tlsClientCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
-	require.NoError(t, err, "Failed to create TLS Client CA subjects")
-
-	// Verify TLS Server CA subjects
-	for i, subject := range tlsServerCASubjects {
-		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
-		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
-		for j, cert := range subject.KeyMaterial.CertChain {
-			derChain[j] = cert.Raw
-			pemChain[j] = toDerBytes(cert)
-		}
-		expectedIssuerName := fmt.Sprintf("Test TLS Server CA %d", i)
-		if i > 0 {
-			expectedIssuerName = fmt.Sprintf("Test TLS Server CA %d", i-1)
-		}
-		expectedMaxPathLen := 3 - i - 1
-		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
-			expectedIssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
-	}
-
-	// Verify TLS Client CA subjects
-	for i, subject := range tlsClientCASubjects {
-		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
-		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
-		for j, cert := range subject.KeyMaterial.CertChain {
-			derChain[j] = cert.Raw
-			pemChain[j] = toDerBytes(cert)
-		}
-		expectedIssuerName := fmt.Sprintf("Test TLS Client CA %d", i)
-		if i > 0 {
-			expectedIssuerName = fmt.Sprintf("Test TLS Client CA %d", i-1)
-		}
-		expectedMaxPathLen := 2 - i - 1
-		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
-			expectedIssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
-	}
+	verifyCASubjects(t, err, tlsClientCASubjects)
 
 	tlsServerEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
 	require.NoError(t, err, "Failed to create TLS Server End Entity subject")
