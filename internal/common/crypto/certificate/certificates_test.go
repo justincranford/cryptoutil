@@ -66,7 +66,7 @@ func TestMutualTLS(t *testing.T) {
 	})
 
 	t.Run("HTTP mTLS", func(t *testing.T) {
-		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", serverTLSConfig) // or "0.0.0.0:0" for all interfaces
+		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", 100*time.Millisecond, serverTLSConfig) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start HTTPS Echo Server")
 		defer httpsServer.Close()
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")

@@ -127,7 +127,7 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, ser
 	return tlsListener.Addr().String(), nil
 }
 
-func startHTTPSEchoServer(httpsServerListener string, serverTLSConfig *tls.Config) (*http.Server, string, error) {
+func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration, serverTLSConfig *tls.Config) (*http.Server, string, error) {
 	netListener, err := net.Listen("tcp", httpsServerListener)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to start TCP Listener for HTTPS Server: %w", err)
@@ -144,8 +144,9 @@ func startHTTPSEchoServer(httpsServerListener string, serverTLSConfig *tls.Confi
 		}
 	})
 	server := &http.Server{
-		Handler:   httpHandler,
-		TLSConfig: serverTLSConfig,
+		Handler:     httpHandler,
+		TLSConfig:   serverTLSConfig,
+		ReadTimeout: readTimeout,
 	}
 	go server.ServeTLS(netListener, "", "")
 	url := "https://" + netListener.Addr().String()
