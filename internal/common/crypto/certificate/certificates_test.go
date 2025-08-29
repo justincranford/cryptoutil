@@ -117,7 +117,7 @@ func TestSerializeSubjects(t *testing.T) {
 		require.Equal(t, originalSubject.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d", i)
 		if originalSubject.CASubject != nil {
 			require.NotNil(t, deserializedSubject.CASubject, "CASubject should not be nil at index %d", i)
-			require.Equal(t, originalSubject.CASubject.IsCA, deserializedSubject.CASubject.IsCA, "CASubject.IsCA mismatch at index %d", i)
+			require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch at index %d", i)
 			require.Equal(t, originalSubject.CASubject.MaxPathLen, deserializedSubject.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
 		}
 		if originalSubject.EndEntitySubject != nil {
@@ -171,7 +171,7 @@ func TestNewFieldsPopulated(t *testing.T) {
 	require.Equal(t, "Test Fields CA 0", rootCA.SubjectName, "Root CA subject name should match")
 	require.Equal(t, "Test Fields CA 0", rootCA.IssuerName, "Root CA issuer name should be self-signed")
 	require.NotNil(t, rootCA.CASubject, "Root CA should have CASubject populated")
-	require.True(t, rootCA.CASubject.IsCA, "Root CA should have IsCA=true")
+	require.True(t, rootCA.IsCA, "Root CA should have IsCA=true")
 	require.Equal(t, 1, rootCA.CASubject.MaxPathLen, "Root CA should have expected MaxPathLen")
 
 	// Intermediate CA (index 1)
@@ -179,7 +179,7 @@ func TestNewFieldsPopulated(t *testing.T) {
 	require.Equal(t, "Test Fields CA 1", intermediateCA.SubjectName, "Intermediate CA subject name should match")
 	require.Equal(t, "Test Fields CA 0", intermediateCA.IssuerName, "Intermediate CA should be issued by root CA")
 	require.NotNil(t, intermediateCA.CASubject, "Intermediate CA should have CASubject populated")
-	require.True(t, intermediateCA.CASubject.IsCA, "Intermediate CA should have IsCA=true")
+	require.True(t, intermediateCA.IsCA, "Intermediate CA should have IsCA=true")
 	require.Equal(t, 0, intermediateCA.CASubject.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
 
 	// Test End Entity subjects have proper fields populated
@@ -224,13 +224,16 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 		require.NotNil(t, restored.KeyMaterialDecoded.PrivateKey, "PrivateKey should not be nil at index %d", i)
 		require.NotNil(t, restored.KeyMaterialDecoded.PublicKey, "PublicKey should not be nil at index %d", i)
 		require.NotEmpty(t, restored.KeyMaterialDecoded.CertChain, "CertChain should not be empty at index %d", i)
-		require.NotNil(t, restored.KeyMaterialDecoded.SubordinateCACertsPool, "SubordinateCACertsPool should not be nil at index %d", i)
-		require.NotNil(t, restored.KeyMaterialDecoded.RootCACertsPool, "RootCACertsPool should not be nil at index %d", i)
 
-		// Verify cert pools are reconstructed correctly
-		// For CA subjects, verify that intermediate and root CAs are in the appropriate pools
+		// Verify cert pools can be reconstructed correctly through BuildTLSCertificate
+		// For CA subjects, verify that we can build TLS certificate and verify the cert chain
 		if len(original.KeyMaterialDecoded.CertChain) > 1 {
-			// Test that we can verify the cert chain using the reconstructed pools
+			// Test that we can verify the cert chain using BuildTLSCertificate
+			tlsCert, rootCACertsPool, err := BuildTLSCertificate(restored)
+			require.NoError(t, err, "BuildTLSCertificate should not fail at index %d", i)
+			require.NotNil(t, rootCACertsPool, "Root CA cert pool should be reconstructed at index %d", i)
+			require.NotEmpty(t, tlsCert.Certificate, "TLS certificate should have cert chain at index %d", i)
+
 			leafCert := restored.KeyMaterialDecoded.CertChain[0]
 			intermediates := x509.NewCertPool()
 
@@ -239,21 +242,21 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 				intermediates.AddCert(restored.KeyMaterialDecoded.CertChain[j])
 			}
 
-			// Verify the certificate chain
+			// Verify the certificate chain using the reconstructed root pool
 			verifyOptions := x509.VerifyOptions{
-				Roots:         restored.KeyMaterialDecoded.RootCACertsPool,
+				Roots:         rootCACertsPool,
 				Intermediates: intermediates,
 				KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 			}
 
-			_, err := leafCert.Verify(verifyOptions)
-			require.NoError(t, err, "Certificate chain verification failed for subject %d (%s)", i, original.SubjectName)
+			_, verifyErr := leafCert.Verify(verifyOptions)
+			require.NoError(t, verifyErr, "Certificate chain verification failed for subject %d (%s)", i, original.SubjectName)
 		}
 
 		// Verify subject type
 		if original.CASubject != nil {
 			require.NotNil(t, restored.CASubject, "CASubject should not be nil at index %d", i)
-			require.Equal(t, original.CASubject.IsCA, restored.CASubject.IsCA, "CASubject.IsCA mismatch at index %d", i)
+			require.Equal(t, original.IsCA, restored.IsCA, "IsCA mismatch at index %d", i)
 			require.Equal(t, original.CASubject.MaxPathLen, restored.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
 			require.Nil(t, restored.EndEntitySubject, "EndEntitySubject should be nil for CA at index %d", i)
 		}
@@ -316,7 +319,8 @@ func TestSerializeSubjectsValidation(t *testing.T) {
 			SubjectName: "Test Subject",
 			IssuerName:  "Test Issuer",
 			Duration:    time.Hour,
-			CASubject:   &CASubject{IsCA: true, MaxPathLen: 0},
+			IsCA:        true,
+			CASubject:   &CASubject{MaxPathLen: 0},
 			EndEntitySubject: &EndEntitySubject{
 				DNSNames: []string{"example.com"},
 			},
@@ -331,7 +335,8 @@ func TestSerializeSubjectsValidation(t *testing.T) {
 			SubjectName: "Test CA",
 			IssuerName:  "Test Issuer",
 			Duration:    time.Hour,
-			CASubject:   &CASubject{IsCA: true, MaxPathLen: -1}, // Invalid negative MaxPathLen
+			IsCA:        true,
+			CASubject:   &CASubject{MaxPathLen: -1}, // Invalid negative MaxPathLen
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)
@@ -357,10 +362,8 @@ func TestToKeyMaterialEncodedValidation(t *testing.T) {
 		require.NoError(t, err)
 
 		keyMaterialDecoded := &KeyMaterialDecoded{
-			PublicKey:              nil, // Should cause error
-			CertChain:              []*x509.Certificate{cert},
-			SubordinateCACertsPool: x509.NewCertPool(),
-			RootCACertsPool:        x509.NewCertPool(),
+			PublicKey: nil, // Should cause error
+			CertChain: []*x509.Certificate{cert},
 		}
 		_, err = toKeyMaterialEncoded(keyMaterialDecoded, false)
 		require.Error(t, err)
@@ -381,55 +384,11 @@ func TestToKeyMaterialEncodedValidation(t *testing.T) {
 	t.Run("nil cert in chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 		keyMaterialDecoded := &KeyMaterialDecoded{
-			PublicKey:              keyPair.Public,
-			CertChain:              []*x509.Certificate{nil}, // Nil cert should cause error
-			SubordinateCACertsPool: x509.NewCertPool(),
-			RootCACertsPool:        x509.NewCertPool(),
+			PublicKey: keyPair.Public,
+			CertChain: []*x509.Certificate{nil}, // Nil cert should cause error
 		}
 		_, err := toKeyMaterialEncoded(keyMaterialDecoded, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "certificate at index 0 in chain cannot be nil")
-	})
-
-	t.Run("nil SubordinateCACertsPool", func(t *testing.T) {
-		keyPair := testKeyGenPool.Get()
-
-		// Create a certificate template and sign it to get a proper certificate
-		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
-		require.NoError(t, err)
-
-		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
-		require.NoError(t, err)
-
-		keyMaterialDecoded := &KeyMaterialDecoded{
-			PublicKey:              keyPair.Public,
-			CertChain:              []*x509.Certificate{cert},
-			SubordinateCACertsPool: nil, // Should cause error
-			RootCACertsPool:        x509.NewCertPool(),
-		}
-		_, err = toKeyMaterialEncoded(keyMaterialDecoded, false)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "SubordinateCACertsPool cannot be nil")
-	})
-
-	t.Run("nil RootCACertsPool", func(t *testing.T) {
-		keyPair := testKeyGenPool.Get()
-
-		// Create a certificate template and sign it to get a proper certificate
-		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
-		require.NoError(t, err)
-
-		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
-		require.NoError(t, err)
-
-		keyMaterialDecoded := &KeyMaterialDecoded{
-			PublicKey:              keyPair.Public,
-			CertChain:              []*x509.Certificate{cert},
-			SubordinateCACertsPool: x509.NewCertPool(),
-			RootCACertsPool:        nil, // Should cause error
-		}
-		_, err = toKeyMaterialEncoded(keyMaterialDecoded, false)
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "RootCACertsPool cannot be nil")
 	})
 }

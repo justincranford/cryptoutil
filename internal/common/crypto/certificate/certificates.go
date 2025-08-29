@@ -19,11 +19,9 @@ import (
 )
 
 type KeyMaterialDecoded struct {
-	CertChain              []*x509.Certificate
-	PrivateKey             crypto.PrivateKey
-	PublicKey              crypto.PublicKey
-	SubordinateCACertsPool *x509.CertPool
-	RootCACertsPool        *x509.CertPool
+	CertChain  []*x509.Certificate
+	PrivateKey crypto.PrivateKey
+	PublicKey  crypto.PublicKey
 }
 
 type KeyMaterialEncoded struct {
@@ -45,6 +43,7 @@ type Subject struct {
 	IssuerName         string
 	Duration           time.Duration
 	KeyMaterialDecoded KeyMaterialDecoded
+	IsCA               bool
 
 	// Subject type - exactly one should be set
 	CASubject        *CASubject
@@ -53,7 +52,6 @@ type Subject struct {
 
 type CASubject struct {
 	MaxPathLen int
-	IsCA       bool
 }
 
 type EndEntitySubject struct {
@@ -164,16 +162,14 @@ func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], 
 			SubjectName: fmt.Sprintf("%s %d", caSubjectNamePrefix, i),
 			IssuerName:  issuerName,
 			Duration:    10 * 365 * cryptoutilDateTime.Days1,
+			IsCA:        true,
 			KeyMaterialDecoded: KeyMaterialDecoded{
-				PrivateKey:             keyPair.Private,
-				PublicKey:              keyPair.Public,
-				CertChain:              []*x509.Certificate{},
-				SubordinateCACertsPool: x509.NewCertPool(),
-				RootCACertsPool:        x509.NewCertPool(),
+				PrivateKey: keyPair.Private,
+				PublicKey:  keyPair.Public,
+				CertChain:  []*x509.Certificate{},
 			},
 			CASubject: &CASubject{
 				MaxPathLen: numCAs - i - 1,
-				IsCA:       true,
 			},
 		}
 		previousSubject := currentSubject
@@ -201,14 +197,6 @@ func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], 
 		for j, c := range currentSubject.KeyMaterialDecoded.CertChain {
 			derChain[j] = c.Raw
 			pemChain[j] = pemBytes // Use the pemBytes from SignCertificate for the first cert
-		}
-
-		currentSubject.KeyMaterialDecoded.SubordinateCACertsPool = previousSubject.KeyMaterialDecoded.SubordinateCACertsPool.Clone()
-		currentSubject.KeyMaterialDecoded.RootCACertsPool = previousSubject.KeyMaterialDecoded.RootCACertsPool.Clone()
-		if i == 0 {
-			currentSubject.KeyMaterialDecoded.RootCACertsPool.AddCert(cert)
-		} else {
-			currentSubject.KeyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
 		}
 
 		subjects[i] = currentSubject
@@ -241,12 +229,11 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 		SubjectName: subjectName,
 		IssuerName:  issuingCA.SubjectName,
 		Duration:    duration,
+		IsCA:        false,
 		KeyMaterialDecoded: KeyMaterialDecoded{
-			PrivateKey:             keyPair.Private,
-			PublicKey:              keyPair.Public,
-			CertChain:              []*x509.Certificate{},
-			SubordinateCACertsPool: x509.NewCertPool(),
-			RootCACertsPool:        x509.NewCertPool(),
+			PrivateKey: keyPair.Private,
+			PublicKey:  keyPair.Public,
+			CertChain:  []*x509.Certificate{},
 		},
 		EndEntitySubject: &EndEntitySubject{
 			DNSNames:       dnsNames,
@@ -267,8 +254,6 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 	}
 
 	endEntitySubject.KeyMaterialDecoded.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterialDecoded.CertChain...)
-	endEntitySubject.KeyMaterialDecoded.SubordinateCACertsPool = issuingCA.KeyMaterialDecoded.SubordinateCACertsPool.Clone()
-	endEntitySubject.KeyMaterialDecoded.RootCACertsPool = issuingCA.KeyMaterialDecoded.RootCACertsPool.Clone()
 
 	return endEntitySubject, nil
 }
@@ -278,10 +263,6 @@ func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertP
 		return tls.Certificate{}, nil, fmt.Errorf("certificate chain is empty")
 	} else if endEntitySubject.KeyMaterialDecoded.PrivateKey == nil {
 		return tls.Certificate{}, nil, fmt.Errorf("private key is nil")
-	} else if endEntitySubject.KeyMaterialDecoded.SubordinateCACertsPool == nil {
-		return tls.Certificate{}, nil, fmt.Errorf("subordinate CA certs pool is nil")
-	} else if endEntitySubject.KeyMaterialDecoded.RootCACertsPool == nil {
-		return tls.Certificate{}, nil, fmt.Errorf("root CA certs pool is nil")
 	}
 
 	// Convert certificate chain to DER format for TLS
@@ -290,7 +271,14 @@ func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertP
 		derCertChain[i] = cert.Raw
 	}
 
-	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterialDecoded.PrivateKey, Leaf: endEntitySubject.KeyMaterialDecoded.CertChain[0]}, endEntitySubject.KeyMaterialDecoded.RootCACertsPool, nil
+	// Reconstruct root CA pool from the last certificate in the chain
+	rootCACertsPool := x509.NewCertPool()
+	if len(endEntitySubject.KeyMaterialDecoded.CertChain) > 0 {
+		rootCert := endEntitySubject.KeyMaterialDecoded.CertChain[len(endEntitySubject.KeyMaterialDecoded.CertChain)-1]
+		rootCACertsPool.AddCert(rootCert)
+	}
+
+	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterialDecoded.PrivateKey, Leaf: endEntitySubject.KeyMaterialDecoded.CertChain[0]}, rootCACertsPool, nil
 }
 
 func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, error) {
@@ -355,11 +343,11 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]Subject, error
 			SubjectName:        cert.Subject.CommonName,
 			IssuerName:         cert.Issuer.CommonName,
 			Duration:           cert.NotAfter.Sub(cert.NotBefore),
+			IsCA:               cert.IsCA,
 		}
 		if cert.IsCA {
 			subject.CASubject = &CASubject{
 				MaxPathLen: cert.MaxPathLen,
-				IsCA:       cert.IsCA,
 			}
 		} else {
 			subject.EndEntitySubject = &EndEntitySubject{
@@ -381,10 +369,6 @@ func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivate
 		return nil, fmt.Errorf("certificate chain cannot be empty")
 	} else if keyMaterialDecoded.PublicKey == nil {
 		return nil, fmt.Errorf("PublicKey cannot be nil")
-	} else if keyMaterialDecoded.SubordinateCACertsPool == nil {
-		return nil, fmt.Errorf("SubordinateCACertsPool cannot be nil")
-	} else if keyMaterialDecoded.RootCACertsPool == nil {
-		return nil, fmt.Errorf("RootCACertsPool cannot be nil")
 	}
 	for i, cert := range keyMaterialDecoded.CertChain {
 		if cert == nil {
@@ -487,30 +471,6 @@ func toKeyMaterialDecoded(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterialD
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse private key from DER: %w", err)
 		}
-	}
-
-	keyMaterialDecoded.SubordinateCACertsPool = x509.NewCertPool()
-	for i, derBytes := range keyMaterialEncoded.DERSubordinateCACerts {
-		if len(derBytes) == 0 {
-			return nil, fmt.Errorf("DER subordinate CA certificate at index %d cannot be empty", i)
-		}
-		cert, err := x509.ParseCertificate(derBytes)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse subordinate CA certificate %d from DER: %w", i, err)
-		}
-		keyMaterialDecoded.SubordinateCACertsPool.AddCert(cert)
-	}
-
-	keyMaterialDecoded.RootCACertsPool = x509.NewCertPool()
-	for i, derBytes := range keyMaterialEncoded.DERRootCACertsPool {
-		if len(derBytes) == 0 {
-			return nil, fmt.Errorf("DER root CA certificate at index %d cannot be empty", i)
-		}
-		cert, err := x509.ParseCertificate(derBytes)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse root CA certificate %d from DER: %w", i, err)
-		}
-		keyMaterialDecoded.RootCACertsPool.AddCert(cert)
 	}
 
 	return keyMaterialDecoded, nil
