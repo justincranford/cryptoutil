@@ -3,6 +3,8 @@ package certificate
 import (
 	"crypto/tls"
 	"crypto/x509"
+	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"log"
@@ -208,4 +210,44 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration,
 	go server.ServeTLS(netListener, "", "")
 	url := "https://" + netListener.Addr().String()
 	return server, url, nil
+}
+
+func verifyCASubjects(t *testing.T, err error, caSubjects []Subject) {
+	require.NoError(t, err, "Failed to create CA subjects")
+	require.Len(t, caSubjects, 2, "Should create 2 CA subjects")
+
+	rootCA := caSubjects[0]
+	derChain := make([][]byte, len(rootCA.KeyMaterial.CertChain))
+	pemChain := make([][]byte, len(rootCA.KeyMaterial.CertChain))
+	for j, cert := range rootCA.KeyMaterial.CertChain {
+		derChain[j] = cert.Raw
+		pemChain[j] = toDerBytes(cert)
+	}
+	verifyCACertificate(t, nil, rootCA.KeyMaterial.CertChain, derChain, pemChain,
+		"Test Verification CA 0", "Test Verification CA 0", 10*365*cryptoutilDateTime.Days1, 1)
+
+	intermediateCA := caSubjects[1]
+	derChain = make([][]byte, len(intermediateCA.KeyMaterial.CertChain))
+	pemChain = make([][]byte, len(intermediateCA.KeyMaterial.CertChain))
+	for j, cert := range intermediateCA.KeyMaterial.CertChain {
+		derChain[j] = cert.Raw
+		pemChain[j] = toDerBytes(cert)
+	}
+	verifyCACertificate(t, nil, intermediateCA.KeyMaterial.CertChain, derChain, pemChain,
+		"Test Verification CA 0", "Test Verification CA 1", 10*365*cryptoutilDateTime.Days1, 0)
+}
+
+func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject Subject) {
+	require.NoError(t, err, "Failed to create end entity subject")
+
+	endEntityCert := endEntitySubject.KeyMaterial.CertChain[0]
+	certPEM := toDerBytes(endEntityCert)
+	verifyEndEntityCertificate(t, nil, endEntityCert, endEntityCert.Raw, certPEM,
+		"Test Verification CA 1", "Test Verification End Entity", 30*cryptoutilDateTime.Days1,
+		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")},
+		[]string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}})
+}
+
+func toDerBytes(cert *x509.Certificate) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
 }
