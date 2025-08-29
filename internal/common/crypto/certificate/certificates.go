@@ -25,17 +25,13 @@ type KeyMaterialDecoded struct {
 }
 
 type KeyMaterialEncoded struct {
-	DERCertChain          [][]byte `json:"der_cert_chain"`
-	DERPrivateKey         []byte   `json:"der_private_key"`
-	DERPublicKey          []byte   `json:"der_public_key"`
-	DERSubordinateCACerts [][]byte `json:"der_subordinate_ca_certs"`
-	DERRootCACertsPool    [][]byte `json:"der_root_ca_certs_pool"`
+	DERCertChain  [][]byte `json:"der_cert_chain"`
+	DERPrivateKey []byte   `json:"der_private_key"`
+	DERPublicKey  []byte   `json:"der_public_key"`
 
-	PEMCertChain          [][]byte `json:"pem_cert_chain"`
-	PEMPrivateKey         []byte   `json:"pem_private_key"`
-	PEMPublicKey          []byte   `json:"pem_public_key"`
-	PEMSubordinateCACerts [][]byte `json:"pem_subordinate_ca_certs"`
-	PEMRootCACertsPool    [][]byte `json:"pem_root_ca_certs_pool"`
+	PEMCertChain  [][]byte `json:"pem_cert_chain"`
+	PEMPrivateKey []byte   `json:"pem_private_key"`
+	PEMPublicKey  []byte   `json:"pem_public_key"`
 }
 
 type Subject struct {
@@ -407,31 +403,6 @@ func toKeyMaterialEncoded(keyMaterialDecoded *KeyMaterialDecoded, includePrivate
 		Type:  "PUBLIC KEY",
 		Bytes: keyMaterialEncoded.DERPublicKey,
 	})
-
-	keyMaterialEncoded.DERSubordinateCACerts = [][]byte{}
-	keyMaterialEncoded.PEMSubordinateCACerts = [][]byte{}
-	keyMaterialEncoded.DERRootCACertsPool = [][]byte{}
-	keyMaterialEncoded.PEMRootCACertsPool = [][]byte{}
-
-	for i := 1; i < len(keyMaterialDecoded.CertChain)-1; i++ {
-		cert := keyMaterialDecoded.CertChain[i]
-		if cert.IsCA {
-			keyMaterialEncoded.DERSubordinateCACerts = append(keyMaterialEncoded.DERSubordinateCACerts, cert.Raw)
-			keyMaterialEncoded.PEMSubordinateCACerts = append(keyMaterialEncoded.PEMSubordinateCACerts, pem.EncodeToMemory(&pem.Block{
-				Type:  "CERTIFICATE",
-				Bytes: cert.Raw,
-			}))
-		}
-	}
-
-	rootCA := keyMaterialDecoded.CertChain[len(keyMaterialDecoded.CertChain)-1]
-	if rootCA.IsCA {
-		keyMaterialEncoded.DERRootCACertsPool = append(keyMaterialEncoded.DERRootCACertsPool, rootCA.Raw)
-		keyMaterialEncoded.PEMRootCACertsPool = append(keyMaterialEncoded.PEMRootCACertsPool, pem.EncodeToMemory(&pem.Block{
-			Type:  "CERTIFICATE",
-			Bytes: rootCA.Raw,
-		}))
-	}
 
 	return keyMaterialEncoded, nil
 }
