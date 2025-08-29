@@ -127,14 +127,21 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, ser
 	return tlsListener.Addr().String(), nil
 }
 
-func startHTTPSEchoServer(serverTLSConfig *tls.Config, t *testing.T) (*http.Server, string) {
-	netListener, err := net.Listen("tcp", "127.0.0.1:0")
-	require.NoError(t, err, "failed to start TCP Listener for HTTPS Server")
+func startHTTPSEchoServer(httpsServerListener string, serverTLSConfig *tls.Config) (*http.Server, string, error) {
+	netListener, err := net.Listen("tcp", httpsServerListener)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to start TCP Listener for HTTPS Server: %w", err)
+	}
 	httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		data, err := io.ReadAll(r.Body)
-		require.NoError(t, err, "server failed to read request body")
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to read request body: %v", err), http.StatusInternalServerError)
+			return
+		}
 		_, err = w.Write(data)
-		require.NoError(t, err, "server failed to write response")
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		}
 	})
 	server := &http.Server{
 		Handler:   httpHandler,
@@ -142,5 +149,5 @@ func startHTTPSEchoServer(serverTLSConfig *tls.Config, t *testing.T) (*http.Serv
 	}
 	go server.ServeTLS(netListener, "", "")
 	url := "https://" + netListener.Addr().String()
-	return server, url
+	return server, url, nil
 }

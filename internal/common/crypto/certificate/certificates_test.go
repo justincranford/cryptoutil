@@ -26,18 +26,18 @@ func TestMutualTLS(t *testing.T) {
 	require.NoError(t, err, "Failed to create TLS Server CA subjects")
 	tlsClientCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
 	require.NoError(t, err, "Failed to create TLS Client CA subjects")
+
 	tlsServerEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
 	require.NoError(t, err, "Failed to create TLS Server End Entity subject")
 	tlsClientEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 	require.NoError(t, err, "Failed to create TLS Client End Entity subject")
 
-	// The TLS certificate chain instances are reusable for both the Raw mTLS and HTTP mTLS tests
 	tlsServerCertChain, tlsServerRootCAs, err := BuildTLSCertificate(tlsServerEndEntitySubject)
 	require.NoError(t, err, "Failed to build TLS server certificate")
 	tlsClientCertChain, tlsClientRootCAs, err := BuildTLSCertificate(tlsClientEndEntitySubject)
 	require.NoError(t, err, "Failed to build TLS client certificate")
 
-	// These TLS configuration instances are reusable for both the Raw mTLS and HTTP mTLS tests
+	// TLS configuration instances are reusable for both of the Raw mTLS and HTTP mTLS tests
 	serverTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsServerCertChain}, ClientCAs: tlsClientRootCAs, ClientAuth: tls.RequireAndVerifyClientCert}
 	clientTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsClientCertChain}, RootCAs: tlsServerRootCAs, InsecureSkipVerify: false}
 
@@ -66,7 +66,8 @@ func TestMutualTLS(t *testing.T) {
 	})
 
 	t.Run("HTTP mTLS", func(t *testing.T) {
-		httpsServer, serverURL := startHTTPSEchoServer(serverTLSConfig, t)
+		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", serverTLSConfig) // or "0.0.0.0:0" for all interfaces
+		require.NoError(t, err, "failed to start HTTPS Echo Server")
 		defer httpsServer.Close()
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
