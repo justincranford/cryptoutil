@@ -115,16 +115,14 @@ func TestSerializeSubjects(t *testing.T) {
 		}
 		require.Equal(t, originalSubject.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d", i)
 		require.Equal(t, originalSubject.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d", i)
-		if originalSubject.CASubject != nil {
-			require.NotNil(t, deserializedSubject.CASubject, "CASubject should not be nil at index %d", i)
-			require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch at index %d", i)
-			require.Equal(t, originalSubject.CASubject.MaxPathLen, deserializedSubject.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
-		}
-		if originalSubject.EndEntitySubject != nil {
-			require.NotNil(t, deserializedSubject.EndEntitySubject, "EndEntitySubject should not be nil at index %d", i)
-			require.Equal(t, originalSubject.EndEntitySubject.DNSNames, deserializedSubject.EndEntitySubject.DNSNames, "EndEntitySubject.DNSNames mismatch at index %d", i)
-			require.Equal(t, originalSubject.EndEntitySubject.IPAddresses, deserializedSubject.EndEntitySubject.IPAddresses, "EndEntitySubject.IPAddresses mismatch at index %d", i)
-			require.Equal(t, originalSubject.EndEntitySubject.EmailAddresses, deserializedSubject.EndEntitySubject.EmailAddresses, "EndEntitySubject.EmailAddresses mismatch at index %d", i)
+		require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch at index %d", i)
+		if originalSubject.IsCA {
+			require.Equal(t, originalSubject.MaxPathLen, deserializedSubject.MaxPathLen, "MaxPathLen mismatch at index %d", i)
+		} else {
+			require.Equal(t, originalSubject.DNSNames, deserializedSubject.DNSNames, "DNSNames mismatch at index %d", i)
+			require.Equal(t, originalSubject.IPAddresses, deserializedSubject.IPAddresses, "IPAddresses mismatch at index %d", i)
+			require.Equal(t, originalSubject.EmailAddresses, deserializedSubject.EmailAddresses, "EmailAddresses mismatch at index %d", i)
+			require.Equal(t, originalSubject.URIs, deserializedSubject.URIs, "URIs mismatch at index %d", i)
 		}
 	}
 }
@@ -170,17 +168,15 @@ func TestNewFieldsPopulated(t *testing.T) {
 	rootCA := subjects[0]
 	require.Equal(t, "Test Fields CA 0", rootCA.SubjectName, "Root CA subject name should match")
 	require.Equal(t, "Test Fields CA 0", rootCA.IssuerName, "Root CA issuer name should be self-signed")
-	require.NotNil(t, rootCA.CASubject, "Root CA should have CASubject populated")
 	require.True(t, rootCA.IsCA, "Root CA should have IsCA=true")
-	require.Equal(t, 1, rootCA.CASubject.MaxPathLen, "Root CA should have expected MaxPathLen")
+	require.Equal(t, 1, rootCA.MaxPathLen, "Root CA should have expected MaxPathLen")
 
 	// Intermediate CA (index 1)
 	intermediateCA := subjects[1]
 	require.Equal(t, "Test Fields CA 1", intermediateCA.SubjectName, "Intermediate CA subject name should match")
 	require.Equal(t, "Test Fields CA 0", intermediateCA.IssuerName, "Intermediate CA should be issued by root CA")
-	require.NotNil(t, intermediateCA.CASubject, "Intermediate CA should have CASubject populated")
 	require.True(t, intermediateCA.IsCA, "Intermediate CA should have IsCA=true")
-	require.Equal(t, 0, intermediateCA.CASubject.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
+	require.Equal(t, 0, intermediateCA.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
 
 	// Test End Entity subjects have proper fields populated
 	endEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
@@ -190,8 +186,8 @@ func TestNewFieldsPopulated(t *testing.T) {
 
 	require.Equal(t, "Test Fields End Entity", endEntitySubject.SubjectName, "End entity subject name should match")
 	require.Equal(t, "Test Fields CA 1", endEntitySubject.IssuerName, "End entity should be issued by leaf CA")
-	require.NotNil(t, endEntitySubject.EndEntitySubject, "End entity should have EndEntitySubject populated")
-	require.Equal(t, []string{"test.example.com"}, endEntitySubject.EndEntitySubject.DNSNames, "End entity DNS names should match")
+	require.False(t, endEntitySubject.IsCA, "End entity should have IsCA=false")
+	require.Equal(t, []string{"test.example.com"}, endEntitySubject.DNSNames, "End entity DNS names should match")
 }
 
 func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
@@ -254,28 +250,22 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 		}
 
 		// Verify subject type
-		if original.CASubject != nil {
-			require.NotNil(t, restored.CASubject, "CASubject should not be nil at index %d", i)
-			require.Equal(t, original.IsCA, restored.IsCA, "IsCA mismatch at index %d", i)
-			require.Equal(t, original.CASubject.MaxPathLen, restored.CASubject.MaxPathLen, "CASubject.MaxPathLen mismatch at index %d", i)
-			require.Nil(t, restored.EndEntitySubject, "EndEntitySubject should be nil for CA at index %d", i)
-		}
-
-		if original.EndEntitySubject != nil {
-			require.NotNil(t, restored.EndEntitySubject, "EndEntitySubject should not be nil at index %d", i)
-			require.Equal(t, original.EndEntitySubject.DNSNames, restored.EndEntitySubject.DNSNames, "EndEntitySubject.DNSNames mismatch at index %d", i)
+		require.Equal(t, original.IsCA, restored.IsCA, "IsCA mismatch at index %d", i)
+		if original.IsCA {
+			require.Equal(t, original.MaxPathLen, restored.MaxPathLen, "MaxPathLen mismatch at index %d", i)
+		} else {
+			require.Equal(t, original.DNSNames, restored.DNSNames, "DNSNames mismatch at index %d", i)
 
 			// Compare IP addresses with tolerance for IPv4/IPv6 format differences
-			require.Len(t, restored.EndEntitySubject.IPAddresses, len(original.EndEntitySubject.IPAddresses), "EndEntitySubject.IPAddresses length mismatch at index %d", i)
-			for j, originalIP := range original.EndEntitySubject.IPAddresses {
-				restoredIP := restored.EndEntitySubject.IPAddresses[j]
+			require.Len(t, restored.IPAddresses, len(original.IPAddresses), "IPAddresses length mismatch at index %d", i)
+			for j, originalIP := range original.IPAddresses {
+				restoredIP := restored.IPAddresses[j]
 				// Compare the actual IP addresses, allowing for IPv4/IPv6 representation differences
-				require.True(t, originalIP.Equal(restoredIP), "EndEntitySubject.IPAddresses[%d] mismatch at index %d: expected %v, got %v", j, i, originalIP, restoredIP)
+				require.True(t, originalIP.Equal(restoredIP), "IPAddresses[%d] mismatch at index %d: expected %v, got %v", j, i, originalIP, restoredIP)
 			}
 
-			require.Equal(t, original.EndEntitySubject.EmailAddresses, restored.EndEntitySubject.EmailAddresses, "EndEntitySubject.EmailAddresses mismatch at index %d", i)
-			require.Equal(t, original.EndEntitySubject.URIs, restored.EndEntitySubject.URIs, "EndEntitySubject.URIs mismatch at index %d", i)
-			require.Nil(t, restored.CASubject, "CASubject should be nil for end entity at index %d", i)
+			require.Equal(t, original.EmailAddresses, restored.EmailAddresses, "EmailAddresses mismatch at index %d", i)
+			require.Equal(t, original.URIs, restored.URIs, "URIs mismatch at index %d", i)
 		}
 
 		t.Logf("Subject %d (%s) successfully round-tripped", i, original.SubjectName)
@@ -302,32 +292,35 @@ func TestSerializeSubjectsValidation(t *testing.T) {
 		require.Contains(t, err.Error(), "has empty SubjectName")
 	})
 
-	t.Run("neither CASubject nor EndEntitySubject populated", func(t *testing.T) {
+	t.Run("end-entity with CA MaxPathLen", func(t *testing.T) {
 		subjects := []Subject{{
 			SubjectName: "Test Subject",
 			IssuerName:  "Test Issuer",
 			Duration:    time.Hour,
-			// Neither CASubject nor EndEntitySubject set
+			IsCA:        false,
+			MaxPathLen:  1, // Invalid for end entity
+			KeyMaterial: KeyMaterial{
+				CertChain: []*x509.Certificate{{}}, // Mock cert
+				PublicKey: []byte("mock-key"),
+			},
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "must have either CASubject or EndEntitySubject populated")
+		require.Contains(t, err.Error(), "is not a CA but has MaxPathLen populated")
 	})
 
-	t.Run("both CASubject and EndEntitySubject populated", func(t *testing.T) {
+	t.Run("CA with end-entity fields", func(t *testing.T) {
 		subjects := []Subject{{
 			SubjectName: "Test Subject",
 			IssuerName:  "Test Issuer",
 			Duration:    time.Hour,
 			IsCA:        true,
-			CASubject:   &CASubject{MaxPathLen: 0},
-			EndEntitySubject: &EndEntitySubject{
-				DNSNames: []string{"example.com"},
-			},
+			MaxPathLen:  0,
+			DNSNames:    []string{"example.com"}, // Invalid for CA
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "cannot have both CASubject and EndEntitySubject populated")
+		require.Contains(t, err.Error(), "is a CA but has end-entity fields")
 	})
 
 	t.Run("invalid CA MaxPathLen", func(t *testing.T) {
@@ -336,7 +329,7 @@ func TestSerializeSubjectsValidation(t *testing.T) {
 			IssuerName:  "Test Issuer",
 			Duration:    time.Hour,
 			IsCA:        true,
-			CASubject:   &CASubject{MaxPathLen: -1}, // Invalid negative MaxPathLen
+			MaxPathLen:  -1, // Invalid negative MaxPathLen
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)

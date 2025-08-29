@@ -38,23 +38,16 @@ type Subject struct {
 	SubjectName string
 	IssuerName  string
 	Duration    time.Duration
-	KeyMaterial KeyMaterial
 	IsCA        bool
 
-	// Subject type - exactly one should be set
-	CASubject        *CASubject
-	EndEntitySubject *EndEntitySubject
-}
+	MaxPathLen int // CA-specific fields (only valid when IsCA=true)
 
-type CASubject struct {
-	MaxPathLen int
-}
+	DNSNames       []string   // End entity-specific fields (only valid when IsCA=false)
+	IPAddresses    []net.IP   // End entity-specific fields (only valid when IsCA=false)
+	EmailAddresses []string   // End entity-specific fields (only valid when IsCA=false)
+	URIs           []*url.URL // End entity-specific fields (only valid when IsCA=false)
 
-type EndEntitySubject struct {
-	DNSNames       []string
-	IPAddresses    []net.IP
-	EmailAddresses []string
-	URIs           []*url.URL
+	KeyMaterial KeyMaterial
 }
 
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
@@ -159,13 +152,11 @@ func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], 
 			IssuerName:  issuerName,
 			Duration:    10 * 365 * cryptoutilDateTime.Days1,
 			IsCA:        true,
+			MaxPathLen:  numCAs - i - 1,
 			KeyMaterial: KeyMaterial{
 				PrivateKey: keyPair.Private,
 				PublicKey:  keyPair.Public,
 				CertChain:  []*x509.Certificate{},
-			},
-			CASubject: &CASubject{
-				MaxPathLen: numCAs - i - 1,
 			},
 		}
 		previousSubject := currentSubject
@@ -175,7 +166,7 @@ func CreateCASubjects(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair], 
 			previousCACert = previousSubject.KeyMaterial.CertChain[0]
 		}
 
-		currentCACertTemplate, err := CertificateTemplateCA(previousSubject.IssuerName, currentSubject.SubjectName, currentSubject.Duration, currentSubject.CASubject.MaxPathLen)
+		currentCACertTemplate, err := CertificateTemplateCA(previousSubject.IssuerName, currentSubject.SubjectName, currentSubject.Duration, currentSubject.MaxPathLen)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create CA certificate template for %s: %w", currentSubject.SubjectName, err)
 		}
@@ -222,34 +213,32 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 	}
 
 	endEntitySubject := Subject{
-		SubjectName: subjectName,
-		IssuerName:  issuingCA.SubjectName,
-		Duration:    duration,
-		IsCA:        false,
+		SubjectName:    subjectName,
+		IssuerName:     issuingCA.SubjectName,
+		Duration:       duration,
+		IsCA:           false,
+		DNSNames:       dnsNames,
+		IPAddresses:    ipAddresses,
+		EmailAddresses: emailAddresses,
+		URIs:           uris,
 		KeyMaterial: KeyMaterial{
 			PrivateKey: keyPair.Private,
 			PublicKey:  keyPair.Public,
 			CertChain:  []*x509.Certificate{},
 		},
-		EndEntitySubject: &EndEntitySubject{
-			DNSNames:       dnsNames,
-			IPAddresses:    ipAddresses,
-			EmailAddresses: emailAddresses,
-			URIs:           uris,
-		},
 	}
 
-	endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntitySubject.SubjectName, endEntitySubject.Duration, endEntitySubject.EndEntitySubject.DNSNames, endEntitySubject.EndEntitySubject.IPAddresses, endEntitySubject.EndEntitySubject.EmailAddresses, endEntitySubject.EndEntitySubject.URIs, keyUsage, extKeyUsage)
+	endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntitySubject.SubjectName, endEntitySubject.Duration, endEntitySubject.DNSNames, endEntitySubject.IPAddresses, endEntitySubject.EmailAddresses, endEntitySubject.URIs, keyUsage, extKeyUsage)
 	if err != nil {
 		return Subject{}, fmt.Errorf("failed to create end entity certificate template for %s: %w", subjectName, err)
 	}
 
-	cert, _, _, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntitySubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
+	signedCert, _, _, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntitySubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
 	if err != nil {
 		return Subject{}, fmt.Errorf("failed to sign end entity certificate for %s: %w", subjectName, err)
 	}
 
-	endEntitySubject.KeyMaterial.CertChain = append([]*x509.Certificate{cert}, issuingCA.KeyMaterial.CertChain...)
+	endEntitySubject.KeyMaterial.CertChain = append([]*x509.Certificate{signedCert}, issuingCA.KeyMaterial.CertChain...)
 
 	return endEntitySubject, nil
 }
@@ -267,7 +256,7 @@ func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertP
 		derCertChain[i] = cert.Raw
 	}
 
-	// Reconstruct root CA pool from the last certificate in the chain
+	// Construct root CA pool from the last certificate in the chain
 	rootCACertsPool := x509.NewCertPool()
 	if len(endEntitySubject.KeyMaterial.CertChain) > 0 {
 		rootCert := endEntitySubject.KeyMaterial.CertChain[len(endEntitySubject.KeyMaterial.CertChain)-1]
@@ -282,7 +271,7 @@ func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, er
 		return nil, fmt.Errorf("subjects cannot be nil")
 	}
 
-	keyMaterialJSONs := make([][]byte, len(subjects))
+	keyMaterialEncodedsBytes := make([][]byte, len(subjects))
 	for i, subject := range subjects {
 		if subject.SubjectName == "" {
 			return nil, fmt.Errorf("subject at index %d has empty SubjectName", i)
@@ -291,29 +280,27 @@ func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, er
 		} else if subject.Duration <= 0 {
 			return nil, fmt.Errorf("subject at index %d has zero or negative Duration", i)
 		}
-		if subject.CASubject != nil && subject.EndEntitySubject != nil {
-			return nil, fmt.Errorf("subject at index %d cannot have both CASubject and EndEntitySubject populated", i)
-		} else if subject.CASubject == nil && subject.EndEntitySubject == nil {
-			return nil, fmt.Errorf("subject at index %d must have either CASubject or EndEntitySubject populated", i)
-		} else if subject.CASubject != nil {
-			if subject.CASubject.MaxPathLen < 0 {
-				return nil, fmt.Errorf("subject at index %d has invalid MaxPathLen (%d), must be >= 0", i, subject.CASubject.MaxPathLen)
+		if subject.IsCA && (len(subject.DNSNames) > 0 || len(subject.IPAddresses) > 0 || len(subject.EmailAddresses) > 0 || len(subject.URIs) > 0) {
+			return nil, fmt.Errorf("subject at index %d is a CA but has end-entity fields (DNSNames, IPAddresses, EmailAddresses, or URIs) populated", i)
+		} else if !subject.IsCA && subject.MaxPathLen > 0 {
+			return nil, fmt.Errorf("subject at index %d is not a CA but has MaxPathLen populated", i)
+		} else if subject.IsCA {
+			if subject.MaxPathLen < 0 {
+				return nil, fmt.Errorf("subject at index %d has invalid MaxPathLen (%d), must be >= 0", i, subject.MaxPathLen)
 			}
-		} else if subject.EndEntitySubject != nil {
-			// Note: DNSNames, IPAddresses, EmailAddresses, and URIs can be empty
 		}
 
 		keyMaterialEncoded, err := toKeyMaterialEncoded(&subject.KeyMaterial, includePrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterial to JSON format for subject %d: %w", i, err)
 		}
-		jsonBytes, err := json.Marshal(keyMaterialEncoded)
+		keyMaterialEncodedBytes, err := json.Marshal(keyMaterialEncoded)
 		if err != nil {
 			return nil, fmt.Errorf("failed to serialize KeyMaterialEncoded for subject %d: %w", i, err)
 		}
-		keyMaterialJSONs[i] = jsonBytes
+		keyMaterialEncodedsBytes[i] = keyMaterialEncodedBytes
 	}
-	return keyMaterialJSONs, nil
+	return keyMaterialEncodedsBytes, nil
 }
 
 func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]Subject, error) {
@@ -342,16 +329,12 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]Subject, error
 			IsCA:        cert.IsCA,
 		}
 		if cert.IsCA {
-			subject.CASubject = &CASubject{
-				MaxPathLen: cert.MaxPathLen,
-			}
+			subject.MaxPathLen = cert.MaxPathLen
 		} else {
-			subject.EndEntitySubject = &EndEntitySubject{
-				DNSNames:       cert.DNSNames,
-				IPAddresses:    cert.IPAddresses,
-				EmailAddresses: cert.EmailAddresses,
-				URIs:           cert.URIs,
-			}
+			subject.DNSNames = cert.DNSNames
+			subject.IPAddresses = cert.IPAddresses
+			subject.EmailAddresses = cert.EmailAddresses
+			subject.URIs = cert.URIs
 		}
 		subjects[i] = subject
 	}
