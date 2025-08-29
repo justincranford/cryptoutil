@@ -103,14 +103,14 @@ func TestSerializeSubjects(t *testing.T) {
 
 	for i, originalSubject := range originalSubjects {
 		deserializedSubject := deserializedSubjects[i]
-		originalKeyMaterialDecoded := originalSubject.KeyMaterialDecoded
-		deserializedKeyMaterialDecoded := deserializedSubject.KeyMaterialDecoded
+		originalKeyMaterial := originalSubject.KeyMaterial
+		deserializedKeyMaterial := deserializedSubject.KeyMaterial
 
-		require.Equal(t, originalKeyMaterialDecoded.PrivateKey, deserializedKeyMaterialDecoded.PrivateKey, "PrivateKey mismatch at index %d", i)
-		require.Equal(t, originalKeyMaterialDecoded.PublicKey, deserializedKeyMaterialDecoded.PublicKey, "PublicKey mismatch at index %d", i)
-		require.Len(t, deserializedKeyMaterialDecoded.CertChain, len(originalKeyMaterialDecoded.CertChain), "CertChain length mismatch at index %d", i)
-		for j, originalCert := range originalKeyMaterialDecoded.CertChain {
-			deserializedCert := deserializedKeyMaterialDecoded.CertChain[j]
+		require.Equal(t, originalKeyMaterial.PrivateKey, deserializedKeyMaterial.PrivateKey, "PrivateKey mismatch at index %d", i)
+		require.Equal(t, originalKeyMaterial.PublicKey, deserializedKeyMaterial.PublicKey, "PublicKey mismatch at index %d", i)
+		require.Len(t, deserializedKeyMaterial.CertChain, len(originalKeyMaterial.CertChain), "CertChain length mismatch at index %d", i)
+		for j, originalCert := range originalKeyMaterial.CertChain {
+			deserializedCert := deserializedKeyMaterial.CertChain[j]
 			require.Equal(t, originalCert.Raw, deserializedCert.Raw, "Certificate Raw data mismatch at index %d, cert %d", i, j)
 		}
 		require.Equal(t, originalSubject.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d", i)
@@ -221,25 +221,25 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 		require.Equal(t, original.IssuerName, restored.IssuerName, "IssuerName mismatch at index %d", i)
 
 		// Verify key material
-		require.NotNil(t, restored.KeyMaterialDecoded.PrivateKey, "PrivateKey should not be nil at index %d", i)
-		require.NotNil(t, restored.KeyMaterialDecoded.PublicKey, "PublicKey should not be nil at index %d", i)
-		require.NotEmpty(t, restored.KeyMaterialDecoded.CertChain, "CertChain should not be empty at index %d", i)
+		require.NotNil(t, restored.KeyMaterial.PrivateKey, "PrivateKey should not be nil at index %d", i)
+		require.NotNil(t, restored.KeyMaterial.PublicKey, "PublicKey should not be nil at index %d", i)
+		require.NotEmpty(t, restored.KeyMaterial.CertChain, "CertChain should not be empty at index %d", i)
 
 		// Verify cert pools can be reconstructed correctly through BuildTLSCertificate
 		// For CA subjects, verify that we can build TLS certificate and verify the cert chain
-		if len(original.KeyMaterialDecoded.CertChain) > 1 {
+		if len(original.KeyMaterial.CertChain) > 1 {
 			// Test that we can verify the cert chain using BuildTLSCertificate
 			tlsCert, rootCACertsPool, err := BuildTLSCertificate(restored)
 			require.NoError(t, err, "BuildTLSCertificate should not fail at index %d", i)
 			require.NotNil(t, rootCACertsPool, "Root CA cert pool should be reconstructed at index %d", i)
 			require.NotEmpty(t, tlsCert.Certificate, "TLS certificate should have cert chain at index %d", i)
 
-			leafCert := restored.KeyMaterialDecoded.CertChain[0]
+			leafCert := restored.KeyMaterial.CertChain[0]
 			intermediates := x509.NewCertPool()
 
 			// Add intermediate CAs to the intermediates pool for verification
-			for j := 1; j < len(restored.KeyMaterialDecoded.CertChain)-1; j++ {
-				intermediates.AddCert(restored.KeyMaterialDecoded.CertChain[j])
+			for j := 1; j < len(restored.KeyMaterial.CertChain)-1; j++ {
+				intermediates.AddCert(restored.KeyMaterial.CertChain[j])
 			}
 
 			// Verify the certificate chain using the reconstructed root pool
@@ -345,10 +345,10 @@ func TestSerializeSubjectsValidation(t *testing.T) {
 }
 
 func TestToKeyMaterialEncodedValidation(t *testing.T) {
-	t.Run("nil keyMaterialDecoded", func(t *testing.T) {
+	t.Run("nil keyMaterial", func(t *testing.T) {
 		_, err := toKeyMaterialEncoded(nil, false)
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "keyMaterialDecoded cannot be nil")
+		require.Contains(t, err.Error(), "keyMaterial cannot be nil")
 	})
 
 	t.Run("nil PublicKey", func(t *testing.T) {
@@ -361,33 +361,33 @@ func TestToKeyMaterialEncodedValidation(t *testing.T) {
 		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
 		require.NoError(t, err)
 
-		keyMaterialDecoded := &KeyMaterialDecoded{
+		keyMaterial := &KeyMaterial{
 			PublicKey: nil, // Should cause error
 			CertChain: []*x509.Certificate{cert},
 		}
-		_, err = toKeyMaterialEncoded(keyMaterialDecoded, false)
+		_, err = toKeyMaterialEncoded(keyMaterial, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "PublicKey cannot be nil")
 	})
 
 	t.Run("empty cert chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
-		keyMaterialDecoded := &KeyMaterialDecoded{
+		keyMaterial := &KeyMaterial{
 			PublicKey: keyPair.Public,
 			CertChain: []*x509.Certificate{}, // Empty chain should cause error
 		}
-		_, err := toKeyMaterialEncoded(keyMaterialDecoded, false)
+		_, err := toKeyMaterialEncoded(keyMaterial, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "certificate chain cannot be empty")
 	})
 
 	t.Run("nil cert in chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
-		keyMaterialDecoded := &KeyMaterialDecoded{
+		keyMaterial := &KeyMaterial{
 			PublicKey: keyPair.Public,
 			CertChain: []*x509.Certificate{nil}, // Nil cert should cause error
 		}
-		_, err := toKeyMaterialEncoded(keyMaterialDecoded, false)
+		_, err := toKeyMaterialEncoded(keyMaterial, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "certificate at index 0 in chain cannot be nil")
 	})
