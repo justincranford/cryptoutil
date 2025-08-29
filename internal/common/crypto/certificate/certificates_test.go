@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/pem"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -21,16 +23,119 @@ func TestNegativeDuration(t *testing.T) {
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
 
+func TestCertificateCreationWithVerification(t *testing.T) {
+	// Test certificate template creation
+	certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 365*cryptoutilDateTime.Days1, 1)
+	verifyCertificateTemplate(t, err, certTemplate)
+
+	// Test CA subjects creation with verification
+	caSubjects, err := CreateCASubjects(testKeyGenPool, "Test Verification CA", 2)
+	require.NoError(t, err, "Failed to create CA subjects")
+	require.Len(t, caSubjects, 2, "Should create 2 CA subjects")
+
+	// Verify root CA
+	rootCA := caSubjects[0]
+	derChain := make([][]byte, len(rootCA.KeyMaterial.CertChain))
+	pemChain := make([][]byte, len(rootCA.KeyMaterial.CertChain))
+	for j, cert := range rootCA.KeyMaterial.CertChain {
+		derChain[j] = cert.Raw
+		pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+		pemChain[j] = pem.EncodeToMemory(pemBlock)
+	}
+	verifyCACertificate(t, nil, rootCA.KeyMaterial.CertChain, derChain, pemChain,
+		"Test Verification CA 0", "Test Verification CA 0", 10*365*cryptoutilDateTime.Days1, 1)
+
+	// Verify intermediate CA
+	intermediateCA := caSubjects[1]
+	derChain = make([][]byte, len(intermediateCA.KeyMaterial.CertChain))
+	pemChain = make([][]byte, len(intermediateCA.KeyMaterial.CertChain))
+	for j, cert := range intermediateCA.KeyMaterial.CertChain {
+		derChain[j] = cert.Raw
+		pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+		pemChain[j] = pem.EncodeToMemory(pemBlock)
+	}
+	verifyCACertificate(t, nil, intermediateCA.KeyMaterial.CertChain, derChain, pemChain,
+		"Test Verification CA 0", "Test Verification CA 1", 10*365*cryptoutilDateTime.Days1, 0)
+
+	// Test end entity certificate creation with verification
+	endEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test Verification End Entity", 30*cryptoutilDateTime.Days1,
+		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")},
+		[]string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}},
+		x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, caSubjects)
+	require.NoError(t, err, "Failed to create end entity subject")
+
+	// Verify end entity certificate
+	endEntityCert := endEntitySubject.KeyMaterial.CertChain[0]
+	pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: endEntityCert.Raw}
+	certPEM := pem.EncodeToMemory(pemBlock)
+	verifyEndEntityCertificate(t, nil, endEntityCert, endEntityCert.Raw, certPEM,
+		"Test Verification CA 1", "Test Verification End Entity", 30*cryptoutilDateTime.Days1,
+		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")},
+		[]string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}})
+}
+
 func TestMutualTLS(t *testing.T) {
 	tlsServerCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
 	require.NoError(t, err, "Failed to create TLS Server CA subjects")
 	tlsClientCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Client CA", 2) // Root CA + 1 Intermediate CA
 	require.NoError(t, err, "Failed to create TLS Client CA subjects")
 
+	// Verify TLS Server CA subjects
+	for i, subject := range tlsServerCASubjects {
+		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		for j, cert := range subject.KeyMaterial.CertChain {
+			derChain[j] = cert.Raw
+			pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+			pemChain[j] = pem.EncodeToMemory(pemBlock)
+		}
+		expectedIssuerName := fmt.Sprintf("Test TLS Server CA %d", i)
+		if i > 0 {
+			expectedIssuerName = fmt.Sprintf("Test TLS Server CA %d", i-1)
+		}
+		expectedMaxPathLen := 3 - i - 1
+		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
+			expectedIssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
+	}
+
+	// Verify TLS Client CA subjects
+	for i, subject := range tlsClientCASubjects {
+		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		for j, cert := range subject.KeyMaterial.CertChain {
+			derChain[j] = cert.Raw
+			pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+			pemChain[j] = pem.EncodeToMemory(pemBlock)
+		}
+		expectedIssuerName := fmt.Sprintf("Test TLS Client CA %d", i)
+		if i > 0 {
+			expectedIssuerName = fmt.Sprintf("Test TLS Client CA %d", i-1)
+		}
+		expectedMaxPathLen := 2 - i - 1
+		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
+			expectedIssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
+	}
+
 	tlsServerEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
 	require.NoError(t, err, "Failed to create TLS Server End Entity subject")
 	tlsClientEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 	require.NoError(t, err, "Failed to create TLS Client End Entity subject")
+
+	// Verify TLS Server End Entity certificate
+	serverEndEntityCert := tlsServerEndEntitySubject.KeyMaterial.CertChain[0]
+	pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: serverEndEntityCert.Raw}
+	serverCertPEM := pem.EncodeToMemory(pemBlock)
+	verifyEndEntityCertificate(t, nil, serverEndEntityCert, serverEndEntityCert.Raw, serverCertPEM,
+		"Test TLS Server CA 2", "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1,
+		[]string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil)
+
+	// Verify TLS Client End Entity certificate
+	clientEndEntityCert := tlsClientEndEntitySubject.KeyMaterial.CertChain[0]
+	pemBlock = &pem.Block{Type: "CERTIFICATE", Bytes: clientEndEntityCert.Raw}
+	clientCertPEM := pem.EncodeToMemory(pemBlock)
+	verifyEndEntityCertificate(t, nil, clientEndEntityCert, clientEndEntityCert.Raw, clientCertPEM,
+		"Test TLS Client CA 1", "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1,
+		nil, nil, []string{"client1@tlsclient.example.com"}, nil)
 
 	tlsServerCertChain, tlsServerRootCAs, err := BuildTLSCertificate(tlsServerEndEntitySubject)
 	require.NoError(t, err, "Failed to build TLS server certificate")
@@ -89,6 +194,24 @@ func TestMutualTLS(t *testing.T) {
 func TestSerializeSubjects(t *testing.T) {
 	originalSubjects, err := CreateCASubjects(testKeyGenPool, "Test Serialize CA", 2)
 	require.NoError(t, err, "Failed to create CA subjects")
+
+	// Verify the created CA subjects
+	for i, subject := range originalSubjects {
+		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		for j, cert := range subject.KeyMaterial.CertChain {
+			derChain[j] = cert.Raw
+			pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+			pemChain[j] = pem.EncodeToMemory(pemBlock)
+		}
+		expectedIssuerName := fmt.Sprintf("Test Serialize CA %d", i)
+		if i > 0 {
+			expectedIssuerName = fmt.Sprintf("Test Serialize CA %d", i-1)
+		}
+		expectedMaxPathLen := 2 - i - 1
+		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
+			expectedIssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
+	}
 
 	serializedSubjects, err := SerializeSubjects(originalSubjects, true)
 	require.NoError(t, err, "Failed to serialize subjects")
@@ -172,12 +295,34 @@ func TestNewFieldsPopulated(t *testing.T) {
 	require.True(t, rootCA.IsCA, "Root CA should have IsCA=true")
 	require.Equal(t, 1, rootCA.MaxPathLen, "Root CA should have expected MaxPathLen")
 
+	// Verify root CA certificate
+	derChain := make([][]byte, len(rootCA.KeyMaterial.CertChain))
+	pemChain := make([][]byte, len(rootCA.KeyMaterial.CertChain))
+	for j, cert := range rootCA.KeyMaterial.CertChain {
+		derChain[j] = cert.Raw
+		pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+		pemChain[j] = pem.EncodeToMemory(pemBlock)
+	}
+	verifyCACertificate(t, nil, rootCA.KeyMaterial.CertChain, derChain, pemChain,
+		"Test Fields CA 0", "Test Fields CA 0", 10*365*cryptoutilDateTime.Days1, 1)
+
 	// Intermediate CA (index 1)
 	intermediateCA := subjects[1]
 	require.Equal(t, "Test Fields CA 1", intermediateCA.SubjectName, "Intermediate CA subject name should match")
 	require.Equal(t, "Test Fields CA 0", intermediateCA.IssuerName, "Intermediate CA should be issued by root CA")
 	require.True(t, intermediateCA.IsCA, "Intermediate CA should have IsCA=true")
 	require.Equal(t, 0, intermediateCA.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
+
+	// Verify intermediate CA certificate
+	derChain = make([][]byte, len(intermediateCA.KeyMaterial.CertChain))
+	pemChain = make([][]byte, len(intermediateCA.KeyMaterial.CertChain))
+	for j, cert := range intermediateCA.KeyMaterial.CertChain {
+		derChain[j] = cert.Raw
+		pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+		pemChain[j] = pem.EncodeToMemory(pemBlock)
+	}
+	verifyCACertificate(t, nil, intermediateCA.KeyMaterial.CertChain, derChain, pemChain,
+		"Test Fields CA 0", "Test Fields CA 1", 10*365*cryptoutilDateTime.Days1, 0)
 
 	// Test End Entity subjects have proper fields populated
 	endEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
@@ -189,6 +334,14 @@ func TestNewFieldsPopulated(t *testing.T) {
 	require.Equal(t, "Test Fields CA 1", endEntitySubject.IssuerName, "End entity should be issued by leaf CA")
 	require.False(t, endEntitySubject.IsCA, "End entity should have IsCA=false")
 	require.Equal(t, []string{"test.example.com"}, endEntitySubject.DNSNames, "End entity DNS names should match")
+
+	// Verify end entity certificate
+	endEntityCert := endEntitySubject.KeyMaterial.CertChain[0]
+	pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: endEntityCert.Raw}
+	certPEM := pem.EncodeToMemory(pemBlock)
+	verifyEndEntityCertificate(t, nil, endEntityCert, endEntityCert.Raw, certPEM,
+		"Test Fields CA 1", "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
+		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, nil, nil)
 }
 
 func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
@@ -196,9 +349,37 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 	subjects, err := CreateCASubjects(testKeyGenPool, "Round Trip CA", 2)
 	require.NoError(t, err, "Failed to create CA subjects")
 
+	// Verify CA subjects before serialization
+	for i, subject := range subjects {
+		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
+		for j, cert := range subject.KeyMaterial.CertChain {
+			derChain[j] = cert.Raw
+			pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw}
+			pemChain[j] = pem.EncodeToMemory(pemBlock)
+		}
+		expectedIssuerName := fmt.Sprintf("Round Trip CA %d", i)
+		if i > 0 {
+			expectedIssuerName = fmt.Sprintf("Round Trip CA %d", i-1)
+		}
+		expectedMaxPathLen := 2 - i - 1
+		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
+			expectedIssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
+	}
+
 	// Add an end entity subject
 	endEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, subjects)
 	require.NoError(t, err, "Failed to create end entity subject")
+
+	// Verify end entity before serialization
+	endEntityCert := endEntitySubject.KeyMaterial.CertChain[0]
+	pemBlock := &pem.Block{Type: "CERTIFICATE", Bytes: endEntityCert.Raw}
+	certPEM := pem.EncodeToMemory(pemBlock)
+	verifyEndEntityCertificate(t, nil, endEntityCert, endEntityCert.Raw, certPEM,
+		"Round Trip CA 1", "Round Trip End Entity", 365*cryptoutilDateTime.Days1,
+		[]string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")},
+		[]string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}})
+
 	subjects = append(subjects, endEntitySubject)
 
 	// Test full round-trip: []Subject -> [][]byte -> []Subject
@@ -350,7 +531,7 @@ func TestToKeyMaterialEncodedValidation(t *testing.T) {
 
 		// Create a certificate template and sign it to get a proper certificate
 		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
-		require.NoError(t, err)
+		verifyCertificateTemplate(t, err, certTemplate)
 
 		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
 		require.NoError(t, err)
