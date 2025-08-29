@@ -45,9 +45,9 @@ func TestMutualTLS(t *testing.T) {
 	verifyCASubjects(t, err, tlsClientCASubjects)
 
 	tlsServerEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, tlsServerCASubjects)
-	require.NoError(t, err, "Failed to create TLS Server End Entity subject")
+	verifyEndEntitySubject(t, err, tlsServerEndEntitySubject)
 	tlsClientEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
-	require.NoError(t, err, "Failed to create TLS Client End Entity subject")
+	verifyEndEntitySubject(t, err, tlsClientEndEntitySubject)
 
 	// Verify TLS Server End Entity certificate
 	serverEndEntityCert := tlsServerEndEntitySubject.KeyMaterial.CertChain[0]
@@ -118,6 +118,7 @@ func TestMutualTLS(t *testing.T) {
 }
 
 func TestSerializeSubjects(t *testing.T) {
+	// TODO Reuse verifySubject functions
 	originalSubjects, err := CreateCASubjects(testKeyGenPool, "Test Serialize CA", 2)
 	require.NoError(t, err, "Failed to create CA subjects")
 
