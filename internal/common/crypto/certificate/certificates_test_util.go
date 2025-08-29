@@ -72,7 +72,7 @@ func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots *x509.Ce
 	require.NotEmpty(t, chains, "Certificate chains should not be empty")
 }
 
-func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
+func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, writeTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
 	netListener, err := net.Listen("tcp", tlsServerListener)
 	if err != nil {
 		return "", fmt.Errorf("failed to start TCP Listener: %w", err)
@@ -106,6 +106,7 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, ser
 				}
 				go func(conn net.Conn) {
 					defer conn.Close()
+					conn.SetReadDeadline(time.Now().Add(readTimeout))
 					tlsClientRequestBodyBuffer := make([]byte, 512)
 					bytesRead, err := conn.Read(tlsClientRequestBodyBuffer)
 					if err != nil {
@@ -114,6 +115,7 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, ser
 					}
 					// Do not treat empty request as shutdown; just ignore
 					if bytesRead > 0 {
+						conn.SetWriteDeadline(time.Now().Add(writeTimeout))
 						_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
 						if err != nil {
 							log.Printf("failed to write to TLS connection: %v", err)
@@ -127,7 +129,7 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, ser
 	return tlsListener.Addr().String(), nil
 }
 
-func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration, serverTLSConfig *tls.Config) (*http.Server, string, error) {
+func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration, writeTimeout time.Duration, serverTLSConfig *tls.Config) (*http.Server, string, error) {
 	netListener, err := net.Listen("tcp", httpsServerListener)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to start TCP Listener for HTTPS Server: %w", err)
@@ -144,9 +146,10 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration,
 		}
 	})
 	server := &http.Server{
-		Handler:     httpHandler,
-		TLSConfig:   serverTLSConfig,
-		ReadTimeout: readTimeout,
+		Handler:      httpHandler,
+		TLSConfig:    serverTLSConfig,
+		ReadTimeout:  readTimeout,
+		WriteTimeout: writeTimeout,
 	}
 	go server.ServeTLS(netListener, "", "")
 	url := "https://" + netListener.Addr().String()
