@@ -16,11 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNegativeDuration(t *testing.T) {
-	_, err := CertificateTemplateCA("Root CA", "Root CA", -1, 1)
-	require.Error(t, err, "Creating a certificate with negative duration should fail")
-}
-
 func TestMutualTLS(t *testing.T) {
 	tlsServerCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
 	verifyCASubjects(t, err, tlsServerCASubjects)
@@ -263,7 +258,7 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 		len(subjects), len(subjects)-1, 1)
 }
 
-func TestSerializeSubjectsValidation(t *testing.T) {
+func TestSerializeSubjectsSadPaths(t *testing.T) {
 	t.Run("nil subjects slice", func(t *testing.T) {
 		_, err := SerializeSubjects(nil, false)
 		require.Error(t, err)
@@ -325,7 +320,7 @@ func TestSerializeSubjectsValidation(t *testing.T) {
 	})
 }
 
-func TestToKeyMaterialEncodedValidation(t *testing.T) {
+func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("nil keyMaterial", func(t *testing.T) {
 		_, err := toKeyMaterialEncoded(nil, false)
 		require.Error(t, err)
@@ -372,4 +367,9 @@ func TestToKeyMaterialEncodedValidation(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "certificate at index 0 in chain cannot be nil")
 	})
+}
+
+func TestNegativeDuration(t *testing.T) {
+	_, err := CertificateTemplateCA("Root CA", "Root CA", -1, 1)
+	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
