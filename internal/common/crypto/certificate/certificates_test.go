@@ -41,26 +41,26 @@ func TestMutualTLS(t *testing.T) {
 	serverTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsServerCertChain}, ClientCAs: tlsClientRootCAs, ClientAuth: tls.RequireAndVerifyClientCert}
 	clientTLSConfig := &tls.Config{Certificates: []tls.Certificate{tlsClientCertChain}, RootCAs: tlsServerRootCAs, InsecureSkipVerify: false}
 
+	const clientConnections = 10
 	t.Run("Raw mTLS", func(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
 		tlsListenerAddress, err := startTlsEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start TLS Echo Server")
 		defer close(callerShutdownSignalCh)
-		const tlsClientConnections = 10
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")
-		for i := 1; i <= tlsClientConnections; i++ {
+		for i := 1; i <= clientConnections; i++ {
 			func() {
 				tlsClientConnection, err := tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
 				require.NoError(t, err, "client failed to connect to TLS Echo Server")
 				defer tlsClientConnection.Close()
 
 				_, err = tlsClientConnection.Write(tlsClientRequestBody)
-				require.NoError(t, err, "client failed to write to TLS Echo Server (%d of %d)", i, tlsClientConnections)
+				require.NoError(t, err, "client failed to write to TLS Echo Server (%d of %d)", i, clientConnections)
 
 				tlsServerResponseBody := make([]byte, len(tlsClientRequestBody))
 				_, err = tlsClientConnection.Read(tlsServerResponseBody)
-				require.NoError(t, err, "client failed to read from TLS Echo Server (%d of %d)", i, tlsClientConnections)
-				require.Equal(t, tlsClientRequestBody, tlsServerResponseBody, "echo message mismatch (%d of %d)", i, tlsClientConnections)
+				require.NoError(t, err, "client failed to read from TLS Echo Server (%d of %d)", i, clientConnections)
+				require.Equal(t, tlsClientRequestBody, tlsServerResponseBody, "echo message mismatch (%d of %d)", i, clientConnections)
 			}()
 		}
 	})
@@ -71,16 +71,15 @@ func TestMutualTLS(t *testing.T) {
 		defer httpsServer.Close()
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
-		const httpsClientConnections = 10
-		for i := 1; i <= httpsClientConnections; i++ {
+		for i := 1; i <= clientConnections; i++ {
 			httpsServerResponse, err := httpsClient.Post(serverURL, "text/plain", bytes.NewReader(httpsClientRequestBody))
-			require.NoError(t, err, "client failed to POST to HTTPS Echo Server (%d of %d)", i, httpsClientConnections)
-			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, httpsClientConnections)
+			require.NoError(t, err, "client failed to POST to HTTPS Echo Server (%d of %d)", i, clientConnections)
+			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, clientConnections)
 			func() {
 				defer httpsServerResponse.Body.Close()
 				httpServerResponseBody, err := io.ReadAll(httpsServerResponse.Body)
-				require.NoError(t, err, "client failed to read response body (%d of %d)", i, httpsClientConnections)
-				require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch (%d of %d)", i, httpsClientConnections)
+				require.NoError(t, err, "client failed to read response body (%d of %d)", i, clientConnections)
+				require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch (%d of %d)", i, clientConnections)
 			}()
 		}
 	})
