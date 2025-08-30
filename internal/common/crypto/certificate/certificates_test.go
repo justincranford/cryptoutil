@@ -85,24 +85,74 @@ func TestMutualTLS(t *testing.T) {
 	})
 }
 
-func TestSerializeSubjects(t *testing.T) {
-	originalSubjects, err := CreateCASubjects(testKeyGenPool, "Test Serialize CA", 2)
+func TestSerializeSubjectsWithAndWithoutPrivateKey(t *testing.T) {
+	originalSubjects, err := CreateCASubjects(testKeyGenPool, "Test PrivateKey CA", 2)
 	verifyCASubjects(t, err, originalSubjects)
 
-	serializedSubjects, err := SerializeSubjects(originalSubjects, true)
-	require.NoError(t, err, "Failed to serialize subjects")
-	require.NotEmpty(t, serializedSubjects, "Serialized data should not be empty")
-	t.Logf("Serialized Subjects count: %d", len(serializedSubjects))
-	for i, subject := range serializedSubjects {
-		t.Logf("Serialized Subject %d: %s", i, string(subject))
+	// Test with includePrivateKey = false
+	serializedSubjectsWithoutPrivateKey, err := SerializeSubjects(originalSubjects, false)
+	require.NoError(t, err, "Failed to serialize subjects without private key")
+	require.NotEmpty(t, serializedSubjectsWithoutPrivateKey, "Serialized data without private key should not be empty")
+
+	// Verify that the serialization without private key doesn't contain private key data
+	for i, originalSubjectWithoutPrivateKey := range serializedSubjectsWithoutPrivateKey {
+		require.Contains(t, string(originalSubjectWithoutPrivateKey), "\"der_private_key\":null", "Serialization without private key should have der_private_key as null for subject %d", i)
+		require.Contains(t, string(originalSubjectWithoutPrivateKey), "\"pem_private_key\":null", "Serialization without private key should have pem_private_key as null for subject %d", i)
 	}
 
-	deserializedSubjects, err := DeserializeSubjects(serializedSubjects)
-	require.NoError(t, err, "Failed to deserialize subjects")
-	require.Len(t, deserializedSubjects, len(originalSubjects), "Deserialized Subject count should match original")
+	// Test deserialization of subjects without private key
+	deserializedSubjectsWithoutPrivateKey, err := DeserializeSubjects(serializedSubjectsWithoutPrivateKey)
+	require.NoError(t, err, "Failed to deserialize subjects without private key")
+	require.Len(t, deserializedSubjectsWithoutPrivateKey, len(originalSubjects), "Deserialized Subject count should match original")
 
+	// Verify round-trip for subjects without private key (private key should be nil)
 	for i, originalSubject := range originalSubjects {
-		deserializedSubject := deserializedSubjects[i]
+		deserializedSubject := deserializedSubjectsWithoutPrivateKey[i]
+		originalKeyMaterial := originalSubject.KeyMaterial
+		deserializedKeyMaterial := deserializedSubject.KeyMaterial
+
+		// Private key should be nil for deserialized without private key
+		require.Nil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should be nil at index %d", i)
+		require.Equal(t, originalKeyMaterial.PublicKey, deserializedKeyMaterial.PublicKey, "PublicKey mismatch at index %d", i)
+		require.Len(t, deserializedKeyMaterial.CertChain, len(originalKeyMaterial.CertChain), "CertChain length mismatch at index %d", i)
+		for j, originalCert := range originalKeyMaterial.CertChain {
+			deserializedCert := deserializedKeyMaterial.CertChain[j]
+			require.Equal(t, originalCert.Raw, deserializedCert.Raw, "Certificate Raw data mismatch at index %d, cert %d", i, j)
+		}
+		require.Equal(t, originalSubject.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d", i)
+		require.Equal(t, originalSubject.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d", i)
+		require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch at index %d", i)
+		if originalSubject.IsCA {
+			require.Equal(t, originalSubject.MaxPathLen, deserializedSubject.MaxPathLen, "MaxPathLen mismatch at index %d", i)
+		} else {
+			require.Equal(t, originalSubject.DNSNames, deserializedSubject.DNSNames, "DNSNames mismatch at index %d", i)
+			require.Equal(t, originalSubject.IPAddresses, deserializedSubject.IPAddresses, "IPAddresses mismatch at index %d", i)
+			require.Equal(t, originalSubject.EmailAddresses, deserializedSubject.EmailAddresses, "EmailAddresses mismatch at index %d", i)
+			require.Equal(t, originalSubject.URIs, deserializedSubject.URIs, "URIs mismatch at index %d", i)
+		}
+	}
+
+	// Test with includePrivateKey = true
+	serializedSubjectsWithPrivateKey, err := SerializeSubjects(originalSubjects, true)
+	require.NoError(t, err, "Failed to serialize subjects with private key")
+	require.NotEmpty(t, serializedSubjectsWithPrivateKey, "Serialized data with private key should not be empty")
+
+	// Verify that the serialization with private key does contain actual private key data
+	for i, serializedSubjectWithPrivateKey := range serializedSubjectsWithPrivateKey {
+		require.NotContains(t, string(serializedSubjectWithPrivateKey), "\"der_private_key\":null", "Serialization with private key should not have der_private_key as null for subject %d", i)
+		require.NotContains(t, string(serializedSubjectWithPrivateKey), "\"pem_private_key\":null", "Serialization with private key should not have pem_private_key as null for subject %d", i)
+		require.Contains(t, string(serializedSubjectWithPrivateKey), "der_private_key", "Serialization with private key should contain der_private_key field for subject %d", i)
+		require.Contains(t, string(serializedSubjectWithPrivateKey), "pem_private_key", "Serialization with private key should contain pem_private_key field for subject %d", i)
+	}
+
+	// Test deserialization of subjects with private key
+	deserializedSubjectsWithPrivateKey, err := DeserializeSubjects(serializedSubjectsWithPrivateKey)
+	require.NoError(t, err, "Failed to deserialize subjects with private key")
+	require.Len(t, deserializedSubjectsWithPrivateKey, len(originalSubjects), "Deserialized Subject count should match original")
+
+	// Verify full round-trip for subjects with private key (comprehensive validation from TestSerializeSubjects)
+	for i, originalSubject := range originalSubjects {
+		deserializedSubject := deserializedSubjectsWithPrivateKey[i]
 		originalKeyMaterial := originalSubject.KeyMaterial
 		deserializedKeyMaterial := deserializedSubject.KeyMaterial
 
@@ -125,38 +175,9 @@ func TestSerializeSubjects(t *testing.T) {
 			require.Equal(t, originalSubject.URIs, deserializedSubject.URIs, "URIs mismatch at index %d", i)
 		}
 	}
-}
-
-func TestSerializeSubjectsIncludePrivateKey(t *testing.T) {
-	subjects, err := CreateCASubjects(testKeyGenPool, "Test PrivateKey CA", 2)
-	require.NoError(t, err, "Failed to create CA subjects")
-
-	// Test with includePrivateKey = true
-	serializedWithPrivateKey, err := SerializeSubjects(subjects, true)
-	require.NoError(t, err, "Failed to serialize subjects with private key")
-	require.NotEmpty(t, serializedWithPrivateKey, "Serialized data with private key should not be empty")
-
-	// Test with includePrivateKey = false
-	serializedWithoutPrivateKey, err := SerializeSubjects(subjects, false)
-	require.NoError(t, err, "Failed to serialize subjects without private key")
-	require.NotEmpty(t, serializedWithoutPrivateKey, "Serialized data without private key should not be empty")
 
 	// Verify that the serializations are different
-	require.NotEqual(t, serializedWithPrivateKey, serializedWithoutPrivateKey, "Serializations with and without private key should be different")
-
-	// Verify that the serialization without private key doesn't contain private key data
-	for i, serialized := range serializedWithoutPrivateKey {
-		require.Contains(t, string(serialized), "\"der_private_key\":null", "Serialization without private key should have der_private_key as null for subject %d", i)
-		require.Contains(t, string(serialized), "\"pem_private_key\":null", "Serialization without private key should have pem_private_key as null for subject %d", i)
-	}
-
-	// Verify that the serialization with private key does contain actual private key data
-	for i, serialized := range serializedWithPrivateKey {
-		require.NotContains(t, string(serialized), "\"der_private_key\":null", "Serialization with private key should not have der_private_key as null for subject %d", i)
-		require.NotContains(t, string(serialized), "\"pem_private_key\":null", "Serialization with private key should not have pem_private_key as null for subject %d", i)
-		require.Contains(t, string(serialized), "der_private_key", "Serialization with private key should contain der_private_key field for subject %d", i)
-		require.Contains(t, string(serialized), "pem_private_key", "Serialization with private key should contain pem_private_key field for subject %d", i)
-	}
+	require.NotEqual(t, serializedSubjectsWithPrivateKey, serializedSubjectsWithoutPrivateKey, "Serializations with and without private key should be different")
 }
 
 func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
