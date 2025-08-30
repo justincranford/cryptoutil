@@ -48,9 +48,9 @@ func TestMutualTLS(t *testing.T) {
 	tlsClientEndEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}, tlsClientCASubjects)
 	verifyEndEntitySubject(t, err, tlsClientEndEntitySubject)
 
-	tlsServerCertChain, tlsServerRootCAs, err := BuildTLSCertificate(tlsServerEndEntitySubject)
+	tlsServerCertChain, tlsServerRootCAs, _, err := BuildTLSCertificate(tlsServerEndEntitySubject)
 	require.NoError(t, err, "Failed to build TLS server certificate")
-	tlsClientCertChain, tlsClientRootCAs, err := BuildTLSCertificate(tlsClientEndEntitySubject)
+	tlsClientCertChain, tlsClientRootCAs, _, err := BuildTLSCertificate(tlsClientEndEntitySubject)
 	require.NoError(t, err, "Failed to build TLS client certificate")
 
 	// TLS configuration instances are reusable for both of the Raw mTLS and HTTP mTLS tests
@@ -243,23 +243,20 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 		// For CA subjects, verify that we can build TLS certificate and verify the cert chain
 		if len(original.KeyMaterial.CertChain) > 1 {
 			// Test that we can verify the cert chain using BuildTLSCertificate
-			tlsCert, rootCACertsPool, err := BuildTLSCertificate(restored)
+			tlsCert, rootCACertsPool, intermediateCertsPool, err := BuildTLSCertificate(restored)
 			require.NoError(t, err, "BuildTLSCertificate should not fail at index %d", i)
 			require.NotNil(t, rootCACertsPool, "Root CA cert pool should be reconstructed at index %d", i)
 			require.NotEmpty(t, tlsCert.Certificate, "TLS certificate should have cert chain at index %d", i)
 
 			leafCert := restored.KeyMaterial.CertChain[0]
-			intermediates := x509.NewCertPool()
 
-			// Add intermediate CAs to the intermediates pool for verification
-			for j := 1; j < len(restored.KeyMaterial.CertChain)-1; j++ {
-				intermediates.AddCert(restored.KeyMaterial.CertChain[j])
-			}
+			// Use the intermediate certificate pool returned by BuildTLSCertificate
+			// (No need to manually create it anymore - BuildTLSCertificate provides it)
 
 			// Verify the certificate chain using the reconstructed root pool
 			verifyOptions := x509.VerifyOptions{
 				Roots:         rootCACertsPool,
-				Intermediates: intermediates,
+				Intermediates: intermediateCertsPool,
 				KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 			}
 

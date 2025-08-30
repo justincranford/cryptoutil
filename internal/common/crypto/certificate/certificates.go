@@ -243,11 +243,11 @@ func CreateEndEntitySubject(keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyP
 	return endEntitySubject, nil
 }
 
-func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertPool, error) {
+func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
 	if len(endEntitySubject.KeyMaterial.CertChain) == 0 {
-		return tls.Certificate{}, nil, fmt.Errorf("certificate chain is empty")
+		return tls.Certificate{}, nil, nil, fmt.Errorf("certificate chain is empty")
 	} else if endEntitySubject.KeyMaterial.PrivateKey == nil {
-		return tls.Certificate{}, nil, fmt.Errorf("private key is nil")
+		return tls.Certificate{}, nil, nil, fmt.Errorf("private key is nil")
 	}
 
 	// Convert certificate chain to DER format for TLS
@@ -263,7 +263,13 @@ func BuildTLSCertificate(endEntitySubject Subject) (tls.Certificate, *x509.CertP
 		rootCACertsPool.AddCert(rootCert)
 	}
 
-	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, rootCACertsPool, nil
+	// Construct intermediate certificate pool from certificates between leaf and root
+	intermediateCertsPool := x509.NewCertPool()
+	for j := 1; j < len(endEntitySubject.KeyMaterial.CertChain)-1; j++ {
+		intermediateCertsPool.AddCert(endEntitySubject.KeyMaterial.CertChain[j])
+	}
+
+	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, rootCACertsPool, intermediateCertsPool, nil
 }
 
 func SerializeSubjects(subjects []Subject, includePrivateKey bool) ([][]byte, error) {
