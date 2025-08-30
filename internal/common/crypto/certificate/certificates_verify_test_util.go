@@ -70,21 +70,45 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []Subject) {
 	require.NoError(t, err, "Failed to create CA subjects")
 
 	for i, subject := range caSubjects {
+		// Verify subject fields are properly populated
+		require.NotEmpty(t, subject.SubjectName, "CA subject name should not be empty at index %d", i)
+		require.NotEmpty(t, subject.IssuerName, "CA issuer name should not be empty at index %d", i)
+		require.True(t, subject.IsCA, "CA should have IsCA=true at index %d", i)
+
+		// For root CA (index 0), subject and issuer should be the same (self-signed)
+		if i == 0 {
+			require.Equal(t, subject.SubjectName, subject.IssuerName, "Root CA issuer name should be self-signed at index %d", i)
+		} else {
+			// For intermediate CAs, issuer should be the previous CA
+			expectedIssuerName := caSubjects[i-1].SubjectName
+			require.Equal(t, expectedIssuerName, subject.IssuerName, "Intermediate CA should be issued by previous CA at index %d", i)
+		}
+
+		// Verify MaxPathLen follows the expected pattern
+		expectedMaxPathLen := len(caSubjects) - i - 1
+		require.Equal(t, expectedMaxPathLen, subject.MaxPathLen, "CA MaxPathLen should be %d at index %d", expectedMaxPathLen, i)
+
 		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
 		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
 		for j, cert := range subject.KeyMaterial.CertChain {
 			derChain[j] = cert.Raw
 			pemChain[j] = toDerBytes(cert)
 		}
-		expectedIssuerName := subject.IssuerName
-		expectedMaxPathLen := len(caSubjects) - i - 1
 		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
-			expectedIssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
+			subject.IssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
 	}
 }
 
 func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject Subject) {
 	require.NoError(t, err, "Failed to create end entity subject")
+
+	// Verify subject fields are properly populated
+	require.NotEmpty(t, endEntitySubject.SubjectName, "End entity subject name should not be empty")
+	require.NotEmpty(t, endEntitySubject.IssuerName, "End entity issuer name should not be empty")
+	require.False(t, endEntitySubject.IsCA, "End entity should have IsCA=false")
+
+	// Verify that MaxPathLen is not set for end entities (should be 0)
+	require.Equal(t, 0, endEntitySubject.MaxPathLen, "End entity should have MaxPathLen=0")
 
 	endEntityCert := endEntitySubject.KeyMaterial.CertChain[0]
 	certPEM := toDerBytes(endEntityCert)

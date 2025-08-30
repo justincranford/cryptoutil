@@ -160,37 +160,6 @@ func TestSerializeSubjectsIncludePrivateKey(t *testing.T) {
 	}
 }
 
-func TestNewFieldsPopulated(t *testing.T) {
-	// Test CA subjects have proper fields populated
-	subjects, err := CreateCASubjects(testKeyGenPool, "Test Fields CA", 2)
-	verifyCASubjects(t, err, subjects)
-
-	// Root CA (index 0)
-	rootCA := subjects[0]
-	require.Equal(t, "Test Fields CA 0", rootCA.SubjectName, "Root CA subject name should match")
-	require.Equal(t, "Test Fields CA 0", rootCA.IssuerName, "Root CA issuer name should be self-signed")
-	require.True(t, rootCA.IsCA, "Root CA should have IsCA=true")
-	require.Equal(t, 1, rootCA.MaxPathLen, "Root CA should have expected MaxPathLen")
-
-	// Intermediate CA (index 1)
-	intermediateCA := subjects[1]
-	require.Equal(t, "Test Fields CA 1", intermediateCA.SubjectName, "Intermediate CA subject name should match")
-	require.Equal(t, "Test Fields CA 0", intermediateCA.IssuerName, "Intermediate CA should be issued by root CA")
-	require.True(t, intermediateCA.IsCA, "Intermediate CA should have IsCA=true")
-	require.Equal(t, 0, intermediateCA.MaxPathLen, "Intermediate CA should have expected MaxPathLen")
-
-	// Test End Entity subjects have proper fields populated
-	endEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test Fields End Entity", 30*cryptoutilDateTime.Days1,
-		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, nil, nil,
-		x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, subjects)
-	verifyEndEntitySubject(t, err, endEntitySubject)
-
-	require.Equal(t, "Test Fields End Entity", endEntitySubject.SubjectName, "End entity subject name should match")
-	require.Equal(t, "Test Fields CA 1", endEntitySubject.IssuerName, "End entity should be issued by leaf CA")
-	require.False(t, endEntitySubject.IsCA, "End entity should have IsCA=false")
-	require.Equal(t, []string{"test.example.com"}, endEntitySubject.DNSNames, "End entity DNS names should match")
-}
-
 func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 	// Create test data
 	subjects, err := CreateCASubjects(testKeyGenPool, "Round Trip CA", 2)
