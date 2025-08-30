@@ -26,17 +26,6 @@ func TestCertificateTemplate(t *testing.T) {
 	verifyCertificateTemplate(t, err, certTemplate)
 }
 
-func TestSubjects(t *testing.T) {
-	caSubjects, err := CreateCASubjects(testKeyGenPool, "Test Verification CA", 2)
-	verifyCASubjects(t, err, caSubjects)
-
-	endEntitySubject, err := CreateEndEntitySubject(testKeyGenPool, "Test Verification End Entity", 30*cryptoutilDateTime.Days1,
-		[]string{"test.example.com"}, []net.IP{net.ParseIP("127.0.0.1")},
-		[]string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}},
-		x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}, caSubjects)
-	verifyEndEntitySubject(t, err, endEntitySubject)
-}
-
 func TestMutualTLS(t *testing.T) {
 	tlsServerCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
 	verifyCASubjects(t, err, tlsServerCASubjects)
