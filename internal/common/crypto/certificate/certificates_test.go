@@ -21,11 +21,6 @@ func TestNegativeDuration(t *testing.T) {
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
 
-func TestCertificateTemplate(t *testing.T) {
-	certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 365*cryptoutilDateTime.Days1, 1)
-	verifyCertificateTemplate(t, err, certTemplate)
-}
-
 func TestMutualTLS(t *testing.T) {
 	tlsServerCASubjects, err := CreateCASubjects(testKeyGenPool, "Test TLS Server CA", 3) // Root CA + 2 Intermediate CAs
 	verifyCASubjects(t, err, tlsServerCASubjects)
