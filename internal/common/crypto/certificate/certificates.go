@@ -58,6 +58,7 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([
 			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], i)
 		} else {
 			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], i)
+			subjects[i+1].KeyMaterial.PrivateKey = nil
 		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to create CA subject %d: %w", len(keyPairs)-1-i, err)

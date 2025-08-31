@@ -136,9 +136,9 @@ func TestSerializeSubjects(t *testing.T) {
 					require.Equal(t, originalSubject.EmailAddresses, deserializedSubject.EmailAddresses, "EmailAddresses mismatch %d", i)
 					require.Equal(t, originalSubject.URIs, deserializedSubject.URIs, "URIs mismatch %d", i)
 				}
-				if includePrivateKey {
-					// require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should not be nil %d when includePrivateKey=true", i)
-					// require.Equal(t, originalKeyMaterial.PrivateKey, deserializedKeyMaterial.PrivateKey, "PrivateKey mismatch %d", i)
+				if includePrivateKey && i == 0 {
+					require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should not be nil %d when includePrivateKey=true", i)
+					require.Equal(t, originalKeyMaterial.PrivateKey, deserializedKeyMaterial.PrivateKey, "PrivateKey mismatch %d", i)
 				} else {
 					require.Nil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should be nil %d when includePrivateKey=false", i)
 				}
