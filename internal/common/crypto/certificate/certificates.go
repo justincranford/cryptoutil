@@ -328,7 +328,7 @@ func serializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 	}
 	for i, certificate := range keyMaterial.CertificateChain {
 		if certificate == nil {
-			return nil, fmt.Errorf("certificate at index %d in chain cannot be nil", i)
+			return nil, fmt.Errorf("certificate %d in chain cannot be nil", i)
 		}
 	}
 
