@@ -17,8 +17,8 @@ func Execute() {
 	switch command {
 	case "server":
 		server(parameters)
-	case "init":
-		initConfig(parameters)
+	case "tls":
+		tlsConfig(parameters)
 	case "key":
 		key(parameters)
 	case "help":
@@ -30,8 +30,8 @@ func Execute() {
 	}
 }
 
-func initConfig(parameters []string) {
-	fmt.Println("init not implemented yet")
+func tlsConfig(parameters []string) {
+	fmt.Println("TLS not implemented yet")
 }
 
 func key(parameters []string) {
