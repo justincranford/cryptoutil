@@ -101,7 +101,7 @@ func TestSerializeCASubjects(t *testing.T) {
 	verifyCASubjects(t, err, intermediateCASubjects)
 	testSerializeDeserialize(t, intermediateCASubjects)
 
-	issuingCASubject, err := CreateCASubject(intermediateCASubject, intermediateCASubject.KeyMaterial.PrivateKey, "Round Trip Issuing CA", subjectsKeyPairs[2], 10*365*cryptoutilDateTime.Days1, 0)
+	issuingCASubject, err := CreateCASubject(intermediateCASubject, intermediateCASubject.KeyMaterial.PrivateKey, "Round Trip Issuing CA", subjectsKeyPairs[2], 5*365*cryptoutilDateTime.Days1, 0)
 	intermediateCASubject.KeyMaterial.PrivateKey = nil
 	issuingCASubjects := []*Subject{issuingCASubject, intermediateCASubject, rootCASubject}
 	verifyCASubjects(t, err, issuingCASubjects)

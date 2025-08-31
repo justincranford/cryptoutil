@@ -4,7 +4,6 @@ import (
 	"crypto/x509"
 	"cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
-	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 	"fmt"
 	"net"
 	"net/url"
@@ -93,7 +92,7 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 			pemChain[j] = toCertificatePEM(cert.Raw)
 		}
 		verifyCACertificate(t, nil, subject.KeyMaterial.CertificateChain, derChain, pemChain,
-			subject.IssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, subject.MaxPathLen)
+			subject.IssuerName, subject.SubjectName, subject.Duration, subject.MaxPathLen)
 	}
 }
 
