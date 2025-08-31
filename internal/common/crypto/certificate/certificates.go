@@ -54,9 +54,9 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([
 	for i := len(keyPairs) - 1; i >= 0; i-- {
 		var err error
 		if i == len(keyPairs)-1 {
-			subjects[i], err = CreateCASubject(nil, keyPairs[len(keyPairs)-1-i].Private, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[len(keyPairs)-1-i], i)
+			subjects[i], err = CreateCASubject(nil, keyPairs[i].Private, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[i], i)
 		} else {
-			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[len(keyPairs)-1-i], i)
+			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[i], i)
 			subjects[i+1].KeyMaterial.PrivateKey = nil
 		}
 		if err != nil {
@@ -80,17 +80,13 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 	} else if maxPathLen < 0 {
 		return nil, fmt.Errorf("maxPathLen should not be negative for CA %s", subjectName)
 	}
-	var issuerName string
+	issuerName := subjectName
 	var issuerCert *x509.Certificate
-	var issuerCertificateChain []*x509.Certificate
-	if issuerSubject == nil {
-		issuerName = subjectName
-		issuerCert = nil
-		issuerCertificateChain = []*x509.Certificate{}
-	} else {
+	issuerCertificateChain := []*x509.Certificate{}
+	if issuerSubject != nil {
 		issuerName = issuerSubject.SubjectName
 		issuerCert = issuerSubject.KeyMaterial.CertChain[0]
-		issuerCertificateChain = issuerSubject.KeyMaterial.CertChain[1:]
+		issuerCertificateChain = issuerSubject.KeyMaterial.CertChain
 	}
 	currentSubject := Subject{
 		SubjectName: subjectName,
