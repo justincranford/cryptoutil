@@ -2,8 +2,11 @@ package certificate
 
 import (
 	"crypto/x509"
+	"cryptoutil/internal/common/crypto/keygen"
+	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 	"encoding/pem"
+	"fmt"
 	"net"
 	"net/url"
 	"testing"
@@ -66,7 +69,7 @@ func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots *x509.Ce
 	require.NotEmpty(t, chains, "Certificate chains should not be empty")
 }
 
-func verifyCASubjects(t *testing.T, err error, caSubjects []Subject) {
+func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 	require.NoError(t, err, "Failed to create CA subjects")
 
 	for i, subject := range caSubjects {
@@ -99,7 +102,7 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []Subject) {
 	}
 }
 
-func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject Subject) {
+func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject *Subject) {
 	require.NoError(t, err, "Failed to create end entity subject")
 
 	// Verify subject fields are properly populated
@@ -120,4 +123,16 @@ func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject Subject) {
 
 func toDerBytes(cert *x509.Certificate) []byte {
 	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
+}
+
+func getKeyPairs(numCAs int, keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair]) ([]*keygen.KeyPair, error) {
+	var keyPairs []*keygen.KeyPair
+	for i := range numCAs {
+		keyPair := keygenPool.Get()
+		if keyPair == nil {
+			return nil, fmt.Errorf("keyPair should not be nil for CA %d", i)
+		}
+		keyPairs = append(keyPairs, keyPair)
+	}
+	return keyPairs, nil
 }
