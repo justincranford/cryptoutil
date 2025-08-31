@@ -72,22 +72,19 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 	require.NoError(t, err, "Failed to create CA subjects")
 
 	for i, subject := range caSubjects {
-		// Verify subject fields are properly populated
 		require.NotEmpty(t, subject.SubjectName, "CA subject name should not be empty at index %d", i)
 		require.NotEmpty(t, subject.IssuerName, "CA issuer name should not be empty at index %d", i)
 		require.True(t, subject.IsCA, "CA should have IsCA=true at index %d", i)
 
-		// For root CA (index 0), subject and issuer should be the same (self-signed)
-		if i == 0 {
+		lastIndex := len(caSubjects) - 1
+		if i == lastIndex {
 			require.Equal(t, subject.SubjectName, subject.IssuerName, "Root CA issuer name should be self-signed at index %d", i)
 		} else {
-			// For intermediate CAs, issuer should be the previous CA
-			expectedIssuerName := caSubjects[i-1].SubjectName
-			require.Equal(t, expectedIssuerName, subject.IssuerName, "Intermediate CA should be issued by previous CA at index %d", i)
+			expectedIssuerName := caSubjects[i+1].SubjectName
+			require.Equal(t, expectedIssuerName, subject.IssuerName, "Intermediate CA should be issued by next CA at index %d", i)
 		}
 
-		// Verify MaxPathLen follows the expected pattern
-		expectedMaxPathLen := len(caSubjects) - i - 1
+		expectedMaxPathLen := i
 		require.Equal(t, expectedMaxPathLen, subject.MaxPathLen, "CA MaxPathLen should be %d at index %d", expectedMaxPathLen, i)
 
 		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))

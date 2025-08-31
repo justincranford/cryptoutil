@@ -51,15 +51,16 @@ type Subject struct {
 
 func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([]*Subject, error) {
 	subjects := make([]*Subject, len(keyPairs))
-	for i := range len(keyPairs) {
+	for i := len(keyPairs) - 1; i >= 0; i-- {
 		var err error
-		if i == 0 {
-			subjects[i], err = CreateCASubject(nil, keyPairs[i].Private, fmt.Sprintf("%s %d", caSubjectNamePrefix, i), keyPairs[i], len(keyPairs)-i-1)
+		if i == len(keyPairs)-1 {
+			subjects[i], err = CreateCASubject(nil, keyPairs[len(keyPairs)-1-i].Private, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[len(keyPairs)-1-i], i)
 		} else {
-			subjects[i], err = CreateCASubject(subjects[i-1], subjects[i-1].KeyMaterial.PrivateKey, fmt.Sprintf("%s %d", caSubjectNamePrefix, i), keyPairs[i], len(keyPairs)-i-1)
+			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[len(keyPairs)-1-i], i)
+			subjects[i+1].KeyMaterial.PrivateKey = nil
 		}
 		if err != nil {
-			return nil, fmt.Errorf("failed to create CA subject %d: %w", i, err)
+			return nil, fmt.Errorf("failed to create CA subject %d: %w", len(keyPairs)-1-i, err)
 		}
 	}
 	return subjects, nil
@@ -119,11 +120,10 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 }
 
 func CreateEndEntitySubject(keyPair *keygen.KeyPair, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []*Subject) (*Subject, error) {
-	// The issuing CA is the last one in the chain (leaf CA)
 	if len(caSubjects) == 0 {
 		return nil, fmt.Errorf("caSubjects should not be empty")
 	}
-	issuingCA := caSubjects[len(caSubjects)-1]
+	issuingCA := caSubjects[0]
 	if issuingCA.SubjectName == "" {
 		return nil, fmt.Errorf("issuingCA.SubjectName should not be empty")
 	}

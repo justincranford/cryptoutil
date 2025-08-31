@@ -144,10 +144,15 @@ func TestSerializeSubjectsWithAndWithoutPrivateKey(t *testing.T) {
 
 		// Verify that the serialization with private key does contain actual private key data
 		for i, serializedSubjectWithPrivateKey := range serializedSubjectsWithPrivateKey {
-			require.NotContains(t, string(serializedSubjectWithPrivateKey), "\"der_private_key\":null", "Serialization with private key should not have der_private_key as null for subject %d", i)
-			require.NotContains(t, string(serializedSubjectWithPrivateKey), "\"pem_private_key\":null", "Serialization with private key should not have pem_private_key as null for subject %d", i)
 			require.Contains(t, string(serializedSubjectWithPrivateKey), "der_private_key", "Serialization with private key should contain der_private_key field for subject %d", i)
 			require.Contains(t, string(serializedSubjectWithPrivateKey), "pem_private_key", "Serialization with private key should contain pem_private_key field for subject %d", i)
+			if i == 0 {
+				require.NotContains(t, string(serializedSubjectWithPrivateKey), "\"der_private_key\":null", "Serialization with private key should not have der_private_key as null for subject %d", i)
+				require.NotContains(t, string(serializedSubjectWithPrivateKey), "\"pem_private_key\":null", "Serialization with private key should not have pem_private_key as null for subject %d", i)
+			} else {
+				require.Contains(t, string(serializedSubjectWithPrivateKey), "\"der_private_key\":null", "Serialization with private key should have der_private_key as null for subject %d", i)
+				require.Contains(t, string(serializedSubjectWithPrivateKey), "\"pem_private_key\":null", "Serialization with private key should have pem_private_key as null for subject %d", i)
+			}
 		}
 
 		// Test deserialization of subjects with private key
