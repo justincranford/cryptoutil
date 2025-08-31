@@ -14,16 +14,11 @@ import (
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
-	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	telemetryService "cryptoutil/internal/common/telemetry"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
-	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
-	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
@@ -86,57 +81,24 @@ func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func(), error) {
 	ctx := context.Background()
 
-	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
+	serverApplicationCore, err := StartServerApplicationCore(ctx, settings)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initailize telemetry: %w", err)
+		return nil, nil, fmt.Errorf("failed to initialize server application: %w", err)
 	}
 
-	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, settings)
-	if err != nil {
-		telemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
-		stopServerFunc(telemetryService, nil, nil, nil, nil, nil, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
-	}
+	// Server-side Business Logic
 
-	jwkGenService, err := cryptoutilJose.NewJwkGenService(ctx, telemetryService)
+	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, serverApplicationCore.TelemetryService, serverApplicationCore.JwkGenService, serverApplicationCore.OrmRepository, serverApplicationCore.BarrierService)
 	if err != nil {
-		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, nil, nil, nil, nil, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to create JWK Gen Service: %w", err)
-	}
-
-	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, sqlRepository, jwkGenService, settings)
-	if err != nil {
-		telemetryService.Slogger.Error("failed to create ORM repository", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, jwkGenService, nil, nil, nil, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to create ORM repository: %w", err)
-	}
-
-	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSettings(ctx, telemetryService, settings)
-	if err != nil {
-		telemetryService.Slogger.Error("failed to create unseal repository", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, nil, nil, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to create unseal repository: %w", err)
-	}
-
-	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, telemetryService, jwkGenService, ormRepository, unsealKeysService)
-	if err != nil {
-		telemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, nil, nil, nil)()
-		return nil, nil, fmt.Errorf("failed to create barrier service: %w", err)
-	}
-
-	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, telemetryService, jwkGenService, ormRepository, barrierService)
-	if err != nil {
-		telemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, nil, nil)()
+		serverApplicationCore.TelemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
+		serverApplicationCore.Shutdown()
 		return nil, nil, fmt.Errorf("failed to initialize business logic service: %w", err)
 	}
 
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
-		telemetryService.Slogger.Error("failed to get swagger", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, nil, nil)()
+		serverApplicationCore.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
+		serverApplicationCore.Shutdown()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
@@ -150,8 +112,8 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 
 	fiberHandlerOpenAPISpec, err := cryptoutilOpenapiServer.FiberHandlerOpenAPISpec()
 	if err != nil {
-		telemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
-		stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, nil, nil)()
+		serverApplicationCore.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
+		serverApplicationCore.Shutdown()
 		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
 	}
 
@@ -159,10 +121,10 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		recover.New(),
 		requestid.New(),
 		logger.New(), // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
-		otelFiberTelemetryMiddleware(telemetryService, settings),
-		otelFiberRequestLoggerMiddleware(telemetryService),
-		ipFilterMiddleware(telemetryService, settings),
-		ipRateLimiterMiddleware(telemetryService, settings),
+		otelFiberTelemetryMiddleware(serverApplicationCore.TelemetryService, settings),
+		otelFiberRequestLoggerMiddleware(serverApplicationCore.TelemetryService),
+		ipFilterMiddleware(serverApplicationCore.TelemetryService, settings),
+		ipRateLimiterMiddleware(serverApplicationCore.TelemetryService, settings),
 		httpGetCacheControlMiddleware(),
 	}
 
@@ -192,7 +154,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 	}
 	adminFiberApp.Use(healthcheck.New()) // /livez, /readyz
 	adminFiberApp.Post(apiAdminShutdownPath, func(c *fiber.Ctx) error {
-		telemetryService.Slogger.Info("shutdown requested via API endpoint")
+		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if stopServer != nil {
 			go func() {
 				time.Sleep(serverShutdownStartTimeout)
@@ -204,10 +166,10 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 
 	serviceBinding := fmt.Sprintf("%s:%d", settings.BindServiceAddress, settings.BindServicePort)
 	adminBinding := fmt.Sprintf("%s:%d", settings.BindAdminAddress, settings.BindAdminPort)
-	startServer := startServerFunc(serviceBinding, adminBinding, serviceFiberApp, adminFiberApp, telemetryService)
-	stopServer = stopServerFunc(telemetryService, sqlRepository, jwkGenService, ormRepository, unsealKeysService, barrierService, serviceFiberApp, adminFiberApp)
+	startServer := startServerFunc(serviceBinding, adminBinding, serviceFiberApp, adminFiberApp, serverApplicationCore.TelemetryService)
+	stopServer = stopServerFunc(serverApplicationCore, serviceFiberApp, adminFiberApp)
 
-	go stopServerSignalFunc(telemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
+	go stopServerSignalFunc(serverApplicationCore.TelemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
 
 	return startServer, stopServer, nil
 }
@@ -233,46 +195,27 @@ func startServerFunc(serviceBinding string, adminBinding string, serviceFiberApp
 	}
 }
 
-func stopServerFunc(telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, barrierService *cryptoutilBarrierService.BarrierService, serviceFiberApp *fiber.App, adminFiberApp *fiber.App) func() {
+func stopServerFunc(serverApplicationCore *ServerApplicationCore, serviceFiberApp *fiber.App, adminFiberApp *fiber.App) func() {
 	return func() {
-		if telemetryService != nil {
-			telemetryService.Slogger.Debug("stopping servers")
+		if serverApplicationCore.TelemetryService != nil {
+			serverApplicationCore.TelemetryService.Slogger.Debug("stopping servers")
 		}
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
 		defer cancel() // perform shutdown respecting timeout
 
 		if serviceFiberApp != nil {
-			telemetryService.Slogger.Debug("shutting down service fiber app")
+			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down service fiber app")
 			if err := serviceFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				telemetryService.Slogger.Error("failed to stop service fiber server", "error", err)
+				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop service fiber server", "error", err)
 			}
 		}
 		if adminFiberApp != nil {
-			telemetryService.Slogger.Debug("shutting down admin fiber app")
+			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down admin fiber app")
 			if err := adminFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				telemetryService.Slogger.Error("failed to stop admin fiber server", "error", err)
+				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop admin fiber server", "error", err)
 			}
 		}
-
-		// each service should do its own logging
-		if barrierService != nil {
-			barrierService.Shutdown()
-		}
-		if unsealKeysService != nil {
-			unsealKeysService.Shutdown()
-		}
-		if ormRepository != nil {
-			ormRepository.Shutdown()
-		}
-		if jwkGenService != nil {
-			jwkGenService.Shutdown()
-		}
-		if sqlRepository != nil {
-			sqlRepository.Shutdown()
-		}
-		if telemetryService != nil {
-			telemetryService.Shutdown()
-		}
+		serverApplicationCore.Shutdown()
 	}
 }
 
