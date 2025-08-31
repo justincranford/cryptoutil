@@ -17,10 +17,10 @@ import (
 )
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerSubjectsKeyPairs, err := getKeyPairs(4, testKeyGenPool) // Root CA + 2 Intermediate CAs + End Entity
+	tlsServerSubjectsKeyPairs, err := getKeyPairs(4, testKeyGenPool) // End Entity + 2 Intermediate CAs + Root CA
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 	tlsClientSubjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
-	require.NoError(t, err, "Failed to get key pairs for CA subjects") // Root CA + 1 Intermediate CA + End Entity
+	require.NoError(t, err, "Failed to get key pairs for CA subjects") // End Entity + 1 Intermediate CA + Root CA
 
 	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA")
 	verifyCASubjects(t, err, tlsServerCASubjects)
@@ -262,7 +262,6 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "subjects cannot be nil")
 	})
-
 	t.Run("empty SubjectName", func(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "", // Empty subject name should cause error
@@ -272,7 +271,6 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "has empty SubjectName")
 	})
-
 	t.Run("end-entity with CA MaxPathLen", func(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test Subject",
@@ -289,7 +287,6 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "is not a CA but has MaxPathLen populated")
 	})
-
 	t.Run("CA with end-entity fields", func(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test Subject",
@@ -303,7 +300,6 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "is a CA but has end-entity fields")
 	})
-
 	t.Run("invalid CA MaxPathLen", func(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test CA",
@@ -324,11 +320,9 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "keyMaterial cannot be nil")
 	})
-
 	t.Run("nil PublicKey", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 
-		// Create a certificate template and sign it to get a proper certificate
 		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
 		verifyCertificateTemplate(t, err, certTemplate)
 
@@ -343,7 +337,6 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "PublicKey cannot be nil")
 	})
-
 	t.Run("empty cert chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 		keyMaterial := &KeyMaterial{
@@ -354,7 +347,6 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "certificate chain cannot be empty")
 	})
-
 	t.Run("nil cert in chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 		keyMaterial := &KeyMaterial{
