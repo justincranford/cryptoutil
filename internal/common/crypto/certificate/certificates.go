@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"cryptoutil/internal/common/crypto/keygen"
-	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 )
 
 type KeyMaterial struct {
@@ -49,15 +48,15 @@ type Subject struct {
 	KeyMaterial KeyMaterial
 }
 
-func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([]*Subject, error) {
+func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string, duration time.Duration) ([]*Subject, error) {
 	subjects := make([]*Subject, len(keyPairs))
 	for i := len(keyPairs) - 1; i >= 0; i-- {
 		subjectName := fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i)
 		var err error
 		if i == len(keyPairs)-1 {
-			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], i)
+			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], duration, i)
 		} else {
-			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], i)
+			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], duration, i)
 			subjects[i+1].KeyMaterial.PrivateKey = nil
 		}
 		if err != nil {
@@ -67,7 +66,7 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([
 	return subjects, nil
 }
 
-func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *keygen.KeyPair, maxPathLen int) (*Subject, error) {
+func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *keygen.KeyPair, duration time.Duration, maxPathLen int) (*Subject, error) {
 	if issuerSubject == nil && issuerPrivateKey != nil {
 		return nil, fmt.Errorf("issuerSubject is nil but issuerPrivateKey is not nil for CA %s", subjectName)
 	} else if issuerSubject != nil && issuerPrivateKey == nil {
@@ -98,7 +97,7 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 	currentSubject := Subject{
 		SubjectName: subjectName,
 		IssuerName:  issuerName,
-		Duration:    10 * 365 * cryptoutilDateTime.Days1,
+		Duration:    duration,
 		IsCA:        true,
 		MaxPathLen:  maxPathLen,
 		KeyMaterial: KeyMaterial{

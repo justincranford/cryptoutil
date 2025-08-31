@@ -23,9 +23,9 @@ func TestMutualTLS(t *testing.T) {
 	tlsClientSubjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects") // End Entity + 1 Intermediate CA + Root CA
 
-	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA")
+	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA", 10*365*cryptoutilDateTime.Days1)
 	verifyCASubjects(t, err, tlsServerCASubjects)
-	tlsClientCASubjects, err := CreateCASubjects(tlsClientSubjectsKeyPairs[1:], "Test TLS Client CA")
+	tlsClientCASubjects, err := CreateCASubjects(tlsClientSubjectsKeyPairs[1:], "Test TLS Client CA", 10*365*cryptoutilDateTime.Days1)
 	verifyCASubjects(t, err, tlsClientCASubjects)
 
 	tlsServerEndEntitySubject, err := CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
@@ -90,7 +90,7 @@ func TestSerializeSubjects(t *testing.T) {
 	subjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 
-	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA")
+	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", 10*365*cryptoutilDateTime.Days1)
 	verifyCASubjects(t, err, originalCASubjects)
 
 	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
