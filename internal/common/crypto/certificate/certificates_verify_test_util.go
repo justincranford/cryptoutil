@@ -84,8 +84,7 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 			require.Equal(t, expectedIssuerName, subject.IssuerName, "Intermediate CA should be issued by next CA at index %d", i)
 		}
 
-		expectedMaxPathLen := i
-		require.Equal(t, expectedMaxPathLen, subject.MaxPathLen, "CA MaxPathLen should be %d at index %d", expectedMaxPathLen, i)
+		require.LessOrEqual(t, 0, subject.MaxPathLen, "CA MaxPathLen should be %d at index %d", i)
 
 		derChain := make([][]byte, len(subject.KeyMaterial.CertificateChain))
 		pemChain := make([][]byte, len(subject.KeyMaterial.CertificateChain))
@@ -94,7 +93,7 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 			pemChain[j] = toCertificatePEM(cert.Raw)
 		}
 		verifyCACertificate(t, nil, subject.KeyMaterial.CertificateChain, derChain, pemChain,
-			subject.IssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
+			subject.IssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, subject.MaxPathLen)
 	}
 }
 

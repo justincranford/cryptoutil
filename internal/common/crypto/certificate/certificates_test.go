@@ -86,7 +86,22 @@ func TestMutualTLS(t *testing.T) {
 	})
 }
 
-func TestSerializeSubjects(t *testing.T) {
+func TestSerializeCASubjects(t *testing.T) {
+	subjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
+	require.NoError(t, err, "Failed to get key pairs for CA subjects")
+
+	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], 20*365*cryptoutilDateTime.Days1, 1)
+	verifyCASubjects(t, err, []*Subject{rootCASubject})
+	testSerializeDeserialize(t, []*Subject{rootCASubject})
+
+	rootCASubject.KeyMaterial.PrivateKey = nil
+	subCASubject, err := CreateCASubject(rootCASubject, subjectsKeyPairs[0].Private, "Round Trip Sub CA", subjectsKeyPairs[1], 20*365*cryptoutilDateTime.Days1, 0)
+	verifyCASubjects(t, err, []*Subject{subCASubject, rootCASubject})
+	testSerializeDeserialize(t, []*Subject{subCASubject, rootCASubject})
+	subCASubject.KeyMaterial.PrivateKey = nil
+}
+
+func TestSerializeEndEntitySubjects(t *testing.T) {
 	subjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 
@@ -99,6 +114,10 @@ func TestSerializeSubjects(t *testing.T) {
 	originalCASubjects[0].KeyMaterial.PrivateKey = nil
 	originalSubjects := append([]*Subject{endEntitySubject}, originalCASubjects...)
 
+	testSerializeDeserialize(t, originalSubjects)
+}
+
+func testSerializeDeserialize(t *testing.T, originalSubjects []*Subject) {
 	for _, includePrivateKey := range []bool{false, true} {
 		t.Run(fmt.Sprintf("includePrivateKey = %t", includePrivateKey), func(t *testing.T) {
 			serializedSubjects, err := SerializeSubjects(originalSubjects, includePrivateKey)
