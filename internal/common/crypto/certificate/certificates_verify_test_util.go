@@ -5,7 +5,6 @@ import (
 	"cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
-	"encoding/pem"
 	"fmt"
 	"net"
 	"net/url"
@@ -95,7 +94,7 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
 		for j, cert := range subject.KeyMaterial.CertChain {
 			derChain[j] = cert.Raw
-			pemChain[j] = toDerBytes(cert)
+			pemChain[j] = toPEMCertificate(cert.Raw)
 		}
 		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
 			subject.IssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
@@ -114,15 +113,10 @@ func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject *Subject) 
 	require.Equal(t, 0, endEntitySubject.MaxPathLen, "End entity should have MaxPathLen=0")
 
 	endEntityCert := endEntitySubject.KeyMaterial.CertChain[0]
-	certPEM := toDerBytes(endEntityCert)
-	verifyEndEntityCertificate(t, nil, endEntityCert, endEntityCert.Raw, certPEM,
+	verifyEndEntityCertificate(t, nil, endEntityCert, endEntityCert.Raw, toPEMCertificate(endEntityCert.Raw),
 		endEntitySubject.IssuerName, endEntitySubject.SubjectName, endEntitySubject.Duration,
 		endEntitySubject.DNSNames, endEntitySubject.IPAddresses,
 		endEntitySubject.EmailAddresses, endEntitySubject.URIs)
-}
-
-func toDerBytes(cert *x509.Certificate) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert.Raw})
 }
 
 func getKeyPairs(numCAs int, keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair]) ([]*keygen.KeyPair, error) {
