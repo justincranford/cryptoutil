@@ -90,15 +90,23 @@ func TestSerializeCASubjects(t *testing.T) {
 	subjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 
-	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], 20*365*cryptoutilDateTime.Days1, 1)
-	verifyCASubjects(t, err, []*Subject{rootCASubject})
-	testSerializeDeserialize(t, []*Subject{rootCASubject})
+	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], 20*365*cryptoutilDateTime.Days1, 2)
+	rootCASubjects := []*Subject{rootCASubject}
+	verifyCASubjects(t, err, rootCASubjects)
+	testSerializeDeserialize(t, rootCASubjects)
 
+	intermediateCASubject, err := CreateCASubject(rootCASubject, rootCASubject.KeyMaterial.PrivateKey, "Round Trip Intermediate CA", subjectsKeyPairs[1], 10*365*cryptoutilDateTime.Days1, 1)
 	rootCASubject.KeyMaterial.PrivateKey = nil
-	subCASubject, err := CreateCASubject(rootCASubject, subjectsKeyPairs[0].Private, "Round Trip Sub CA", subjectsKeyPairs[1], 20*365*cryptoutilDateTime.Days1, 0)
-	verifyCASubjects(t, err, []*Subject{subCASubject, rootCASubject})
-	testSerializeDeserialize(t, []*Subject{subCASubject, rootCASubject})
-	subCASubject.KeyMaterial.PrivateKey = nil
+	intermediateCASubjects := []*Subject{intermediateCASubject, rootCASubject}
+	verifyCASubjects(t, err, intermediateCASubjects)
+	testSerializeDeserialize(t, intermediateCASubjects)
+
+	issuingCASubject, err := CreateCASubject(intermediateCASubject, intermediateCASubject.KeyMaterial.PrivateKey, "Round Trip Issuing CA", subjectsKeyPairs[2], 10*365*cryptoutilDateTime.Days1, 0)
+	intermediateCASubject.KeyMaterial.PrivateKey = nil
+	issuingCASubjects := []*Subject{issuingCASubject, intermediateCASubject, rootCASubject}
+	verifyCASubjects(t, err, issuingCASubjects)
+	testSerializeDeserialize(t, issuingCASubjects)
+	intermediateCASubject.KeyMaterial.PrivateKey = nil
 }
 
 func TestSerializeEndEntitySubjects(t *testing.T) {
