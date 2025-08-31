@@ -250,7 +250,7 @@ func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.Priva
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to parse certificate: %w", err)
 	}
-	return certificate, certificateDER, toPEMCertificate(certificateDER), nil
+	return certificate, certificateDER, toCertificatePEM(certificateDER), nil
 }
 
 func SerializeSubjects(subjects []*Subject, includePrivateKey bool) ([][]byte, error) {
@@ -348,7 +348,7 @@ func toKeyMaterialEncoded(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 	keyMaterialEncoded.PEMCertificateChain = make([][]byte, len(keyMaterial.CertChain))
 	for i, certificate := range keyMaterial.CertChain {
 		keyMaterialEncoded.DERCertificateChain[i] = certificate.Raw
-		keyMaterialEncoded.PEMCertificateChain[i] = toPEMCertificate(certificate.Raw)
+		keyMaterialEncoded.PEMCertificateChain[i] = toCertificatePEM(certificate.Raw)
 	}
 
 	if includePrivateKey && keyMaterial.PrivateKey != nil {
@@ -356,14 +356,14 @@ func toKeyMaterialEncoded(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal private key to DER: %w", err)
 		}
-		keyMaterialEncoded.PEMPrivateKey = toPEMPrivateKey(keyMaterialEncoded.DERPrivateKey)
+		keyMaterialEncoded.PEMPrivateKey = toPrivateKeyPEM(keyMaterialEncoded.DERPrivateKey)
 	}
 
 	keyMaterialEncoded.DERPublicKey, err = x509.MarshalPKIXPublicKey(keyMaterial.PublicKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal public key to DER: %w", err)
 	}
-	keyMaterialEncoded.PEMPublicKey = toPEMPublicKey(keyMaterialEncoded.DERPublicKey)
+	keyMaterialEncoded.PEMPublicKey = toPublicKeyPEM(keyMaterialEncoded.DERPublicKey)
 
 	return keyMaterialEncoded, nil
 }
@@ -408,20 +408,14 @@ func toKeyMaterial(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterial, error)
 	return keyMaterial, nil
 }
 
-func toPEMCertificate(certificateBytes []byte) []byte {
-	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certificateBytes})
+func toCertificatePEM(certificateDER []byte) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certificateDER})
 }
 
-func toPEMPrivateKey(privateKey []byte) []byte {
-	return pem.EncodeToMemory(&pem.Block{
-		Type:  "PRIVATE KEY",
-		Bytes: privateKey,
-	})
+func toPrivateKeyPEM(privateKeyDER []byte) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: privateKeyDER})
 }
 
-func toPEMPublicKey(publicKey []byte) []byte {
-	return pem.EncodeToMemory(&pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: publicKey,
-	})
+func toPublicKeyPEM(publicKeyDER []byte) []byte {
+	return pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: publicKeyDER})
 }
