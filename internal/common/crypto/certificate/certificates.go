@@ -19,18 +19,18 @@ import (
 
 type KeyMaterial struct {
 	CertChain  []*x509.Certificate
-	PrivateKey crypto.PrivateKey
 	PublicKey  crypto.PublicKey
+	PrivateKey crypto.PrivateKey
 }
 
 type KeyMaterialEncoded struct {
 	DERCertificateChain [][]byte `json:"der_certificate_chain"`
-	DERPrivateKey       []byte   `json:"der_private_key"`
 	DERPublicKey        []byte   `json:"der_public_key"`
+	DERPrivateKey       []byte   `json:"der_private_key"`
 
 	PEMCertificateChain [][]byte `json:"pem_certificate_chain"`
-	PEMPrivateKey       []byte   `json:"pem_private_key"`
 	PEMPublicKey        []byte   `json:"pem_public_key"`
+	PEMPrivateKey       []byte   `json:"pem_private_key"`
 }
 
 type Subject struct {
@@ -98,9 +98,9 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 		IsCA:        true,
 		MaxPathLen:  maxPathLen,
 		KeyMaterial: KeyMaterial{
-			PrivateKey: subjectKeyPair.Private,
-			PublicKey:  subjectKeyPair.Public,
 			CertChain:  []*x509.Certificate{},
+			PublicKey:  subjectKeyPair.Public,
+			PrivateKey: subjectKeyPair.Private,
 		},
 	}
 
@@ -138,9 +138,9 @@ func CreateEndEntitySubject(keyPair *keygen.KeyPair, subjectName string, duratio
 		EmailAddresses: emailAddresses,
 		URIs:           uris,
 		KeyMaterial: KeyMaterial{
-			PrivateKey: keyPair.Private,
-			PublicKey:  keyPair.Public,
 			CertChain:  []*x509.Certificate{},
+			PublicKey:  keyPair.Public,
+			PrivateKey: keyPair.Private,
 		},
 	}
 

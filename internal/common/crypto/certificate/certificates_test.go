@@ -349,8 +349,8 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.NoError(t, err)
 
 		keyMaterial := &KeyMaterial{
-			PublicKey: nil, // Should cause error
 			CertChain: []*x509.Certificate{cert},
+			PublicKey: nil, // Should cause error
 		}
 		_, err = toKeyMaterialEncoded(keyMaterial, false)
 		require.Error(t, err)
@@ -360,8 +360,8 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("empty cert chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 		keyMaterial := &KeyMaterial{
-			PublicKey: keyPair.Public,
 			CertChain: []*x509.Certificate{}, // Empty chain should cause error
+			PublicKey: keyPair.Public,
 		}
 		_, err := toKeyMaterialEncoded(keyMaterial, false)
 		require.Error(t, err)
@@ -371,8 +371,8 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("nil cert in chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 		keyMaterial := &KeyMaterial{
-			PublicKey: keyPair.Public,
 			CertChain: []*x509.Certificate{nil}, // Nil cert should cause error
+			PublicKey: keyPair.Public,
 		}
 		_, err := toKeyMaterialEncoded(keyMaterial, false)
 		require.Error(t, err)
