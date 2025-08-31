@@ -52,11 +52,12 @@ type Subject struct {
 func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([]*Subject, error) {
 	subjects := make([]*Subject, len(keyPairs))
 	for i := len(keyPairs) - 1; i >= 0; i-- {
+		subjectName := fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i)
 		var err error
 		if i == len(keyPairs)-1 {
-			subjects[i], err = CreateCASubject(nil, keyPairs[i].Private, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[i], i)
+			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], i)
 		} else {
-			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i), keyPairs[i], i)
+			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], i)
 			subjects[i+1].KeyMaterial.PrivateKey = nil
 		}
 		if err != nil {
@@ -67,8 +68,10 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([
 }
 
 func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *keygen.KeyPair, maxPathLen int) (*Subject, error) {
-	if issuerPrivateKey == nil {
-		return nil, fmt.Errorf("issuerPrivateKey should not be nil for CA %s", subjectName)
+	if issuerSubject == nil && issuerPrivateKey != nil {
+		return nil, fmt.Errorf("issuerSubject is nil but issuerPrivateKey is not nil for CA %s", subjectName)
+	} else if issuerSubject != nil && issuerPrivateKey == nil {
+		return nil, fmt.Errorf("issuerSubject is not nil but issuerPrivateKey is nil for CA %s", subjectName)
 	} else if len(subjectName) == 0 {
 		return nil, fmt.Errorf("subjectName should not be empty for CA %s", subjectName)
 	} else if subjectKeyPair == nil {
@@ -80,13 +83,17 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 	} else if maxPathLen < 0 {
 		return nil, fmt.Errorf("maxPathLen should not be negative for CA %s", subjectName)
 	}
-	issuerName := subjectName
-	var issuerCert *x509.Certificate
-	issuerCertificateChain := []*x509.Certificate{}
-	if issuerSubject != nil {
+	var issuerName string
+	var issuerCertificateChain []*x509.Certificate
+	var issuerCertificate *x509.Certificate
+	if issuerPrivateKey == nil || issuerSubject == nil {
+		issuerName = subjectName
+		issuerCertificateChain = []*x509.Certificate{}
+		issuerPrivateKey = subjectKeyPair.Private
+	} else {
 		issuerName = issuerSubject.SubjectName
-		issuerCert = issuerSubject.KeyMaterial.CertChain[0]
 		issuerCertificateChain = issuerSubject.KeyMaterial.CertChain
+		issuerCertificate = issuerSubject.KeyMaterial.CertChain[0]
 	}
 	currentSubject := Subject{
 		SubjectName: subjectName,
@@ -106,7 +113,7 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 		return nil, fmt.Errorf("failed to create CA certificate template for %s: %w", subjectName, err)
 	}
 
-	signedCertificate, _, _, err := SignCertificate(issuerCert, issuerPrivateKey, currentCACertTemplate, currentSubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
+	signedCertificate, _, _, err := SignCertificate(issuerCertificate, issuerPrivateKey, currentCACertTemplate, currentSubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign CA certificate for %s: %w", subjectName, err)
 	}
@@ -214,18 +221,18 @@ func CertificateTemplateEndEntity(issuerName string, subjectName string, duratio
 	return template, nil
 }
 
-func SignCertificate(issuerCert *x509.Certificate, issuerPrivateKey crypto.PrivateKey, subjectCert *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm) (*x509.Certificate, []byte, []byte, error) {
+func SignCertificate(issuerCertificate *x509.Certificate, issuerPrivateKey crypto.PrivateKey, subjectCertificate *x509.Certificate, subjectPublicKey crypto.PublicKey, signatureAlgorithm x509.SignatureAlgorithm) (*x509.Certificate, []byte, []byte, error) {
 	_, ok := issuerPrivateKey.(crypto.Signer)
 	if !ok {
 		return nil, nil, nil, fmt.Errorf("issuer private key is not a crypto.Signer")
 	}
-	subjectCert.SignatureAlgorithm = signatureAlgorithm
+	subjectCertificate.SignatureAlgorithm = signatureAlgorithm
 	var err error
 	var certificateDER []byte
-	if issuerCert == nil {
-		certificateDER, err = x509.CreateCertificate(rand.Reader, subjectCert, subjectCert, subjectPublicKey, issuerPrivateKey)
+	if issuerCertificate == nil {
+		certificateDER, err = x509.CreateCertificate(rand.Reader, subjectCertificate, subjectCertificate, subjectPublicKey, issuerPrivateKey)
 	} else {
-		certificateDER, err = x509.CreateCertificate(rand.Reader, subjectCert, issuerCert, subjectPublicKey, issuerPrivateKey)
+		certificateDER, err = x509.CreateCertificate(rand.Reader, subjectCertificate, issuerCertificate, subjectPublicKey, issuerPrivateKey)
 	}
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to create certificate: %w", err)
@@ -261,7 +268,7 @@ func SerializeSubjects(subjects []*Subject, includePrivateKey bool) ([][]byte, e
 			}
 		}
 
-		keyMaterialEncoded, err := toKeyMaterialEncoded(&subject.KeyMaterial, includePrivateKey)
+		keyMaterialEncoded, err := serializeKeyMaterial(&subject.KeyMaterial, includePrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterial to JSON format for subject %d: %w", i, err)
 		}
@@ -282,7 +289,7 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]*Subject, erro
 		if err != nil {
 			return nil, fmt.Errorf("failed to deserialize KeyMaterialEncoded for item %d: %w", i, err)
 		}
-		keyMaterial, err := toKeyMaterial(&keyMaterialEncoded)
+		keyMaterial, err := deserializeKeyMaterial(&keyMaterialEncoded)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterialEncoded to KeyMaterial for item %d: %w", i, err)
 		}
@@ -312,7 +319,7 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]*Subject, erro
 	return subjects, nil
 }
 
-func toKeyMaterialEncoded(keyMaterial *KeyMaterial, includePrivateKey bool) (*KeyMaterialEncoded, error) {
+func serializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) (*KeyMaterialEncoded, error) {
 	if keyMaterial == nil {
 		return nil, fmt.Errorf("keyMaterial cannot be nil")
 	} else if len(keyMaterial.CertChain) == 0 {
@@ -352,7 +359,7 @@ func toKeyMaterialEncoded(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 	return keyMaterialEncoded, nil
 }
 
-func toKeyMaterial(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterial, error) {
+func deserializeKeyMaterial(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMaterial, error) {
 	if keyMaterialEncoded == nil {
 		return nil, fmt.Errorf("keyMaterialEncoded cannot be nil")
 	} else if len(keyMaterialEncoded.DERCertificateChain) == 0 {

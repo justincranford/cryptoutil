@@ -17,14 +17,14 @@ import (
 )
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerSubjectsKeyPairs, err := getKeyPairs(4, testKeyGenPool)
+	tlsServerSubjectsKeyPairs, err := getKeyPairs(4, testKeyGenPool) // Root CA + 2 Intermediate CAs + End Entity
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 	tlsClientSubjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
-	require.NoError(t, err, "Failed to get key pairs for CA subjects")
+	require.NoError(t, err, "Failed to get key pairs for CA subjects") // Root CA + 1 Intermediate CA + End Entity
 
-	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA") // Root CA + 2 Intermediate CAs
+	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA")
 	verifyCASubjects(t, err, tlsServerCASubjects)
-	tlsClientCASubjects, err := CreateCASubjects(tlsClientSubjectsKeyPairs[1:], "Test TLS Client CA") // Root CA + 1 Intermediate CA
+	tlsClientCASubjects, err := CreateCASubjects(tlsClientSubjectsKeyPairs[1:], "Test TLS Client CA")
 	verifyCASubjects(t, err, tlsClientCASubjects)
 
 	tlsServerEndEntitySubject, err := CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "Test TLS Server End Entity", 397*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
@@ -192,17 +192,14 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 	subjectsKeyPairs, err := getKeyPairs(2, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 
-	// Create test data
-	originalSubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA")
-	verifyCASubjects(t, err, originalSubjects)
+	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA")
+	verifyCASubjects(t, err, originalCASubjects)
 
-	// Add an end entity subject
-	endEntitySubject, err := CreateEndEntitySubject(originalSubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 	verifyEndEntitySubject(t, err, endEntitySubject)
 
-	originalSubjects = append(originalSubjects, endEntitySubject)
+	originalSubjects := append([]*Subject{endEntitySubject}, originalCASubjects...)
 
-	// Test full round-trip: []Subject -> [][]byte -> []Subject
 	serialized, err := SerializeSubjects(originalSubjects, true)
 	require.NoError(t, err, "Failed to serialize subjects")
 
@@ -210,57 +207,42 @@ func TestCompleteSubjectRoundTripSerialization(t *testing.T) {
 	require.NoError(t, err, "Failed to deserialize subjects")
 	require.Len(t, deserializedSubjects, len(originalSubjects), "Deserialized count should match original")
 
-	// Verify each subject was correctly round-tripped
+	// Verify full round-trip: []*Subject -> [][]byte -> []*Subject
 	for i, originalSubject := range originalSubjects {
 		deserializedSubject := deserializedSubjects[i]
 
-		// Verify basic metadata
 		require.Equal(t, originalSubject.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d", i)
 		require.Equal(t, originalSubject.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d", i)
 
-		// Verify key material
 		require.NotNil(t, deserializedSubject.KeyMaterial.PrivateKey, "PrivateKey should not be nil at index %d", i)
 		require.NotNil(t, deserializedSubject.KeyMaterial.PublicKey, "PublicKey should not be nil at index %d", i)
 		require.NotEmpty(t, deserializedSubject.KeyMaterial.CertChain, "CertChain should not be empty at index %d", i)
 
-		// Verify cert pools can be reconstructed correctly through BuildTLSCertificate
-		// For CA subjects, verify that we can build TLS certificate and verify the cert chain
 		if len(originalSubject.KeyMaterial.CertChain) > 1 {
-			// Test that we can verify the cert chain using BuildTLSCertificate
 			tlsCert, rootCACertsPool, intermediateCertsPool, err := BuildTLSCertificate(deserializedSubject)
 			require.NoError(t, err, "BuildTLSCertificate should not fail at index %d", i)
 			require.NotNil(t, rootCACertsPool, "Root CA cert pool should be reconstructed at index %d", i)
 			require.NotEmpty(t, tlsCert.Certificate, "TLS certificate should have cert chain at index %d", i)
 
-			leafCert := deserializedSubject.KeyMaterial.CertChain[0]
-
-			// Use the intermediate certificate pool returned by BuildTLSCertificate
-			// (No need to manually create it anymore - BuildTLSCertificate provides it)
-
-			// Verify the certificate chain using the reconstructed root pool
 			verifyOptions := x509.VerifyOptions{
 				Roots:         rootCACertsPool,
 				Intermediates: intermediateCertsPool,
 				KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 			}
-
-			_, verifyErr := leafCert.Verify(verifyOptions)
-			require.NoError(t, verifyErr, "Certificate chain verification failed for subject %d (%s)", i, originalSubject.SubjectName)
+			_, err = deserializedSubject.KeyMaterial.CertChain[0].Verify(verifyOptions)
+			require.NoError(t, err, "Certificate chain verification failed for subject %d (%s)", i, originalSubject.SubjectName)
 		}
 
-		// Verify subject type
 		require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch at index %d", i)
 		if originalSubject.IsCA {
 			require.Equal(t, originalSubject.MaxPathLen, deserializedSubject.MaxPathLen, "MaxPathLen mismatch at index %d", i)
 		} else {
 			require.Equal(t, originalSubject.DNSNames, deserializedSubject.DNSNames, "DNSNames mismatch at index %d", i)
 
-			// Compare IP addresses with tolerance for IPv4/IPv6 format differences
 			require.Len(t, deserializedSubject.IPAddresses, len(originalSubject.IPAddresses), "IPAddresses length mismatch at index %d", i)
 			for j, originalIP := range originalSubject.IPAddresses {
-				restoredIP := deserializedSubject.IPAddresses[j]
-				// Compare the actual IP addresses, allowing for IPv4/IPv6 representation differences
-				require.True(t, originalIP.Equal(restoredIP), "IPAddresses[%d] mismatch at index %d: expected %v, got %v", j, i, originalIP, restoredIP)
+				deserializedIPAddress := deserializedSubject.IPAddresses[j]
+				require.True(t, originalIP.Equal(deserializedIPAddress), "IPAddresses[%d] mismatch at index %d: expected %v, got %v", j, i, originalIP, deserializedIPAddress)
 			}
 
 			require.Equal(t, originalSubject.EmailAddresses, deserializedSubject.EmailAddresses, "EmailAddresses mismatch at index %d", i)
@@ -338,7 +320,7 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 
 func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("nil keyMaterial", func(t *testing.T) {
-		_, err := toKeyMaterialEncoded(nil, false)
+		_, err := serializeKeyMaterial(nil, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "keyMaterial cannot be nil")
 	})
@@ -357,7 +339,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 			CertChain: []*x509.Certificate{cert},
 			PublicKey: nil, // Should cause error
 		}
-		_, err = toKeyMaterialEncoded(keyMaterial, false)
+		_, err = serializeKeyMaterial(keyMaterial, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "PublicKey cannot be nil")
 	})
@@ -368,7 +350,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 			CertChain: []*x509.Certificate{}, // Empty chain should cause error
 			PublicKey: keyPair.Public,
 		}
-		_, err := toKeyMaterialEncoded(keyMaterial, false)
+		_, err := serializeKeyMaterial(keyMaterial, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "certificate chain cannot be empty")
 	})
@@ -379,7 +361,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 			CertChain: []*x509.Certificate{nil}, // Nil cert should cause error
 			PublicKey: keyPair.Public,
 		}
-		_, err := toKeyMaterialEncoded(keyMaterial, false)
+		_, err := serializeKeyMaterial(keyMaterial, false)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "certificate at index 0 in chain cannot be nil")
 	})
