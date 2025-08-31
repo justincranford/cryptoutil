@@ -18,9 +18,9 @@ import (
 )
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerSubjectsKeyPairs, err := getKeyPairs(4, testKeyGenPool) // End Entity + 2 Intermediate CAs + Root CA
+	tlsServerSubjectsKeyPairs, err := GetKeyPairs(4, testKeyGenPool) // End Entity + 2 Intermediate CAs + Root CA
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
-	tlsClientSubjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
+	tlsClientSubjectsKeyPairs, err := GetKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects") // End Entity + 1 Intermediate CA + Root CA
 
 	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA", 10*365*cryptoutilDateTime.Days1)
@@ -87,7 +87,7 @@ func TestMutualTLS(t *testing.T) {
 }
 
 func TestSerializeCASubjects(t *testing.T) {
-	subjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
+	subjectsKeyPairs, err := GetKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 
 	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], 20*365*cryptoutilDateTime.Days1, 2)
@@ -110,7 +110,7 @@ func TestSerializeCASubjects(t *testing.T) {
 }
 
 func TestSerializeEndEntitySubjects(t *testing.T) {
-	subjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
+	subjectsKeyPairs, err := GetKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 
 	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", 10*365*cryptoutilDateTime.Days1)

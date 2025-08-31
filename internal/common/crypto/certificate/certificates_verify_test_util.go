@@ -114,12 +114,12 @@ func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject *Subject) 
 		endEntitySubject.EmailAddresses, endEntitySubject.URIs)
 }
 
-func getKeyPairs(numCAs int, keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair]) ([]*keygen.KeyPair, error) {
+func GetKeyPairs(numKeyPairs int, keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair]) ([]*keygen.KeyPair, error) {
 	var keyPairs []*keygen.KeyPair
-	for i := range numCAs {
+	for i := range numKeyPairs {
 		keyPair := keygenPool.Get()
 		if keyPair == nil {
-			return nil, fmt.Errorf("keyPair should not be nil for CA %d", i)
+			return nil, fmt.Errorf("keyPair should not be nil for %d", i)
 		}
 		keyPairs = append(keyPairs, keyPair)
 	}
