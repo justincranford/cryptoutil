@@ -119,18 +119,20 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 	return &currentSubject, nil
 }
 
-func CreateEndEntitySubject(keyPair *keygen.KeyPair, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage, caSubjects []*Subject) (*Subject, error) {
-	if len(caSubjects) == 0 {
-		return nil, fmt.Errorf("caSubjects should not be empty")
-	}
-	issuingCA := caSubjects[0]
-	if issuingCA.SubjectName == "" {
-		return nil, fmt.Errorf("issuingCA.SubjectName should not be empty")
+func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *keygen.KeyPair, subjectName string, duration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL, keyUsage x509.KeyUsage, extKeyUsage []x509.ExtKeyUsage) (*Subject, error) {
+	endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCASubject.SubjectName, subjectName, duration, dnsNames, ipAddresses, emailAddresses, uris, keyUsage, extKeyUsage)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create end entity certificate template for %s: %w", subjectName, err)
 	}
 
-	endEntitySubject := Subject{
+	signedCert, _, _, err := SignCertificate(issuingCASubject.KeyMaterial.CertChain[0], issuingCASubject.KeyMaterial.PrivateKey, endEntityCertTemplate, keyPair.Public, x509.ECDSAWithSHA256)
+	if err != nil {
+		return nil, fmt.Errorf("failed to sign end entity certificate for %s: %w", subjectName, err)
+	}
+
+	return &Subject{
 		SubjectName:    subjectName,
-		IssuerName:     issuingCA.SubjectName,
+		IssuerName:     issuingCASubject.SubjectName,
 		Duration:       duration,
 		IsCA:           false,
 		DNSNames:       dnsNames,
@@ -138,25 +140,11 @@ func CreateEndEntitySubject(keyPair *keygen.KeyPair, subjectName string, duratio
 		EmailAddresses: emailAddresses,
 		URIs:           uris,
 		KeyMaterial: KeyMaterial{
-			CertChain:  []*x509.Certificate{},
+			CertChain:  append([]*x509.Certificate{signedCert}, issuingCASubject.KeyMaterial.CertChain...),
 			PublicKey:  keyPair.Public,
 			PrivateKey: keyPair.Private,
 		},
-	}
-
-	endEntityCertTemplate, err := CertificateTemplateEndEntity(issuingCA.SubjectName, endEntitySubject.SubjectName, endEntitySubject.Duration, endEntitySubject.DNSNames, endEntitySubject.IPAddresses, endEntitySubject.EmailAddresses, endEntitySubject.URIs, keyUsage, extKeyUsage)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create end entity certificate template for %s: %w", subjectName, err)
-	}
-
-	signedCert, _, _, err := SignCertificate(issuingCA.KeyMaterial.CertChain[0], issuingCA.KeyMaterial.PrivateKey, endEntityCertTemplate, endEntitySubject.KeyMaterial.PublicKey, x509.ECDSAWithSHA256)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign end entity certificate for %s: %w", subjectName, err)
-	}
-
-	endEntitySubject.KeyMaterial.CertChain = append([]*x509.Certificate{signedCert}, issuingCA.KeyMaterial.CertChain...)
-
-	return &endEntitySubject, nil
+	}, nil
 }
 
 func BuildTLSCertificate(endEntitySubject *Subject) (tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
