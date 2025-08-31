@@ -87,7 +87,7 @@ func TestMutualTLS(t *testing.T) {
 }
 
 func TestSerializeSubjects(t *testing.T) {
-	subjectsKeyPairs, err := getKeyPairs(2, testKeyGenPool)
+	subjectsKeyPairs, err := getKeyPairs(3, testKeyGenPool)
 	require.NoError(t, err, "Failed to get key pairs for CA subjects")
 
 	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA")
@@ -100,11 +100,11 @@ func TestSerializeSubjects(t *testing.T) {
 
 	for _, includePrivateKey := range []bool{false, true} {
 		t.Run(fmt.Sprintf("includePrivateKey = %t", includePrivateKey), func(t *testing.T) {
-			serialized, err := SerializeSubjects(originalSubjects, includePrivateKey)
+			serializedSubjects, err := SerializeSubjects(originalSubjects, includePrivateKey)
 			require.NoError(t, err, "Failed to serialize subjects (includePrivateKey=%t)", includePrivateKey)
-			require.NotEmpty(t, serialized, "Serialized data should not be empty (includePrivateKey=%t)", includePrivateKey)
+			require.NotEmpty(t, serializedSubjects, "Serialized data should not be empty (includePrivateKey=%t)", includePrivateKey)
 
-			deserializedSubjects, err := DeserializeSubjects(serialized)
+			deserializedSubjects, err := DeserializeSubjects(serializedSubjects)
 			require.NoError(t, err, "Failed to deserialize subjects (includePrivateKey=%t)", includePrivateKey)
 			require.Len(t, deserializedSubjects, len(originalSubjects), "Deserialized count should match original (includePrivateKey=%t)", includePrivateKey)
 
@@ -116,59 +116,46 @@ func TestSerializeSubjects(t *testing.T) {
 
 				require.Equal(t, originalSubject.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
 				require.Equal(t, originalSubject.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
-
+				require.NotNil(t, deserializedKeyMaterial.PublicKey, "PublicKey should not be nil at index %d (includePrivateKey=%t)", i, includePrivateKey)
+				require.NotEmpty(t, deserializedKeyMaterial.CertificateChain, "CertChain should not be empty at index %d (includePrivateKey=%t)", i, includePrivateKey)
+				require.Equal(t, originalKeyMaterial.PublicKey, deserializedKeyMaterial.PublicKey, "PublicKey mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
+				require.Len(t, deserializedKeyMaterial.CertificateChain, len(originalKeyMaterial.CertificateChain), "CertChain length mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
+				for j, originalCertificate := range originalKeyMaterial.CertificateChain {
+					require.Equal(t, originalCertificate.Raw, deserializedKeyMaterial.CertificateChain[j].Raw, "Certificate Raw data mismatch at index %d, cert %d (includePrivateKey=%t)", i, j, includePrivateKey)
+				}
+				require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
+				require.Equal(t, originalSubject.MaxPathLen, deserializedSubject.MaxPathLen, "MaxPathLen mismatch at index %d", i)
+				if !originalSubject.IsCA {
+					require.Equal(t, originalSubject.DNSNames, deserializedSubject.DNSNames, "DNSNames mismatch at index %d", i)
+					require.Len(t, deserializedSubject.IPAddresses, len(originalSubject.IPAddresses), "IPAddresses length mismatch at index %d", i)
+					for j, originalIP := range originalSubject.IPAddresses {
+						deserializedIPAddress := deserializedSubject.IPAddresses[j]
+						require.True(t, originalIP.Equal(deserializedIPAddress), "IPAddresses[%d] mismatch at index %d: expected %v, got %v", j, i, originalIP, deserializedIPAddress)
+					}
+					require.Equal(t, originalSubject.EmailAddresses, deserializedSubject.EmailAddresses, "EmailAddresses mismatch at index %d", i)
+					require.Equal(t, originalSubject.URIs, deserializedSubject.URIs, "URIs mismatch at index %d", i)
+				}
 				if includePrivateKey {
 					require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should not be nil at index %d when includePrivateKey=true", i)
 					require.Equal(t, originalKeyMaterial.PrivateKey, deserializedKeyMaterial.PrivateKey, "PrivateKey mismatch at index %d", i)
 				} else {
 					require.Nil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should be nil at index %d when includePrivateKey=false", i)
 				}
-				require.NotNil(t, deserializedKeyMaterial.PublicKey, "PublicKey should not be nil at index %d (includePrivateKey=%t)", i, includePrivateKey)
-				require.NotEmpty(t, deserializedKeyMaterial.CertChain, "CertChain should not be empty at index %d (includePrivateKey=%t)", i, includePrivateKey)
-				require.Equal(t, originalKeyMaterial.PublicKey, deserializedKeyMaterial.PublicKey, "PublicKey mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
-				require.Len(t, deserializedKeyMaterial.CertChain, len(originalKeyMaterial.CertChain), "CertChain length mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
-				for j, originalCert := range originalKeyMaterial.CertChain {
-					deserializedCert := deserializedKeyMaterial.CertChain[j]
-					require.Equal(t, originalCert.Raw, deserializedCert.Raw, "Certificate Raw data mismatch at index %d, cert %d (includePrivateKey=%t)", i, j, includePrivateKey)
-				}
-				require.Equal(t, originalSubject.SubjectName, deserializedSubject.SubjectName, "SubjectName mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
-				require.Equal(t, originalSubject.IssuerName, deserializedSubject.IssuerName, "IssuerName mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
-				require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch at index %d (includePrivateKey=%t)", i, includePrivateKey)
 
-				if len(originalSubject.KeyMaterial.CertChain) > 1 && includePrivateKey {
-					tlsCert, rootCACertsPool, intermediateCertsPool, err := BuildTLSCertificate(deserializedSubject)
+				if len(originalSubject.KeyMaterial.CertificateChain) > 1 && includePrivateKey {
+					tlsCertificate, rootCACertificatesPool, intermediateCertificatesPool, err := BuildTLSCertificate(deserializedSubject)
 					require.NoError(t, err, "BuildTLSCertificate should not fail at index %d (includePrivateKey=%t)", i, includePrivateKey)
-					require.NotNil(t, rootCACertsPool, "Root CA cert pool should be reconstructed at index %d (includePrivateKey=%t)", i, includePrivateKey)
-					require.NotEmpty(t, tlsCert.Certificate, "TLS certificate should have cert chain at index %d (includePrivateKey=%t)", i, includePrivateKey)
-
+					require.NotNil(t, rootCACertificatesPool, "Root CA cert pool should be reconstructed at index %d (includePrivateKey=%t)", i, includePrivateKey)
+					require.NotEmpty(t, tlsCertificate.Certificate, "TLS certificate should have cert chain at index %d (includePrivateKey=%t)", i, includePrivateKey)
 					verifyOptions := x509.VerifyOptions{
-						Roots:         rootCACertsPool,
-						Intermediates: intermediateCertsPool,
+						Roots:         rootCACertificatesPool,
+						Intermediates: intermediateCertificatesPool,
 						KeyUsages:     []x509.ExtKeyUsage{x509.ExtKeyUsageAny},
 					}
-					_, err = deserializedKeyMaterial.CertChain[0].Verify(verifyOptions)
+					_, err = deserializedKeyMaterial.CertificateChain[0].Verify(verifyOptions)
 					require.NoError(t, err, "Certificate chain verification failed for subject %d (%s) (includePrivateKey=%t)", i, originalSubject.SubjectName, includePrivateKey)
 				}
-
-				if originalSubject.IsCA {
-					require.Equal(t, originalSubject.MaxPathLen, deserializedSubject.MaxPathLen, "MaxPathLen mismatch at index %d", i)
-				} else {
-					require.Equal(t, originalSubject.DNSNames, deserializedSubject.DNSNames, "DNSNames mismatch at index %d", i)
-
-					require.Len(t, deserializedSubject.IPAddresses, len(originalSubject.IPAddresses), "IPAddresses length mismatch at index %d", i)
-					for j, originalIP := range originalSubject.IPAddresses {
-						deserializedIPAddress := deserializedSubject.IPAddresses[j]
-						require.True(t, originalIP.Equal(deserializedIPAddress), "IPAddresses[%d] mismatch at index %d: expected %v, got %v", j, i, originalIP, deserializedIPAddress)
-					}
-
-					require.Equal(t, originalSubject.EmailAddresses, deserializedSubject.EmailAddresses, "EmailAddresses mismatch at index %d", i)
-					require.Equal(t, originalSubject.URIs, deserializedSubject.URIs, "URIs mismatch at index %d", i)
-				}
-
-				t.Logf("Subject %d (%s) successfully round-tripped", i, originalSubject.SubjectName)
 			}
-
-			t.Logf("Successfully round-tripped %d subjects (including %d CAs and %d end entities)", len(originalSubjects), len(originalSubjects)-1, 1)
 		})
 	}
 }
@@ -196,8 +183,8 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 			IsCA:        false,
 			MaxPathLen:  1, // Invalid for end entity
 			KeyMaterial: KeyMaterial{
-				CertChain: []*x509.Certificate{{}}, // Mock cert
-				PublicKey: []byte("mock-key"),
+				CertificateChain: []*x509.Certificate{{}}, // Mock cert
+				PublicKey:        []byte("mock-key"),
 			},
 		}}
 		_, err := SerializeSubjects(subjects, false)
@@ -247,8 +234,8 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.NoError(t, err)
 
 		keyMaterial := &KeyMaterial{
-			CertChain: []*x509.Certificate{cert},
-			PublicKey: nil, // Should cause error
+			CertificateChain: []*x509.Certificate{cert},
+			PublicKey:        nil, // Should cause error
 		}
 		_, err = serializeKeyMaterial(keyMaterial, false)
 		require.Error(t, err)
@@ -257,8 +244,8 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("empty cert chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 		keyMaterial := &KeyMaterial{
-			CertChain: []*x509.Certificate{}, // Empty chain should cause error
-			PublicKey: keyPair.Public,
+			CertificateChain: []*x509.Certificate{}, // Empty chain should cause error
+			PublicKey:        keyPair.Public,
 		}
 		_, err := serializeKeyMaterial(keyMaterial, false)
 		require.Error(t, err)
@@ -267,8 +254,8 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("nil cert in chain", func(t *testing.T) {
 		keyPair := testKeyGenPool.Get()
 		keyMaterial := &KeyMaterial{
-			CertChain: []*x509.Certificate{nil}, // Nil cert should cause error
-			PublicKey: keyPair.Public,
+			CertificateChain: []*x509.Certificate{nil}, // Nil cert should cause error
+			PublicKey:        keyPair.Public,
 		}
 		_, err := serializeKeyMaterial(keyMaterial, false)
 		require.Error(t, err)

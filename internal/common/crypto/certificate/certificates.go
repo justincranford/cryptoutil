@@ -18,9 +18,9 @@ import (
 )
 
 type KeyMaterial struct {
-	CertChain  []*x509.Certificate
-	PublicKey  crypto.PublicKey
-	PrivateKey crypto.PrivateKey
+	CertificateChain []*x509.Certificate
+	PublicKey        crypto.PublicKey
+	PrivateKey       crypto.PrivateKey
 }
 
 type KeyMaterialEncoded struct {
@@ -58,7 +58,6 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string) ([
 			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], i)
 		} else {
 			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], i)
-			subjects[i+1].KeyMaterial.PrivateKey = nil
 		}
 		if err != nil {
 			return nil, fmt.Errorf("failed to create CA subject %d: %w", len(keyPairs)-1-i, err)
@@ -92,8 +91,8 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 		issuerPrivateKey = subjectKeyPair.Private
 	} else {
 		issuerName = issuerSubject.SubjectName
-		issuerCertificateChain = issuerSubject.KeyMaterial.CertChain
-		issuerCertificate = issuerSubject.KeyMaterial.CertChain[0]
+		issuerCertificateChain = issuerSubject.KeyMaterial.CertificateChain
+		issuerCertificate = issuerSubject.KeyMaterial.CertificateChain[0]
 	}
 	currentSubject := Subject{
 		SubjectName: subjectName,
@@ -102,9 +101,9 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 		IsCA:        true,
 		MaxPathLen:  maxPathLen,
 		KeyMaterial: KeyMaterial{
-			CertChain:  []*x509.Certificate{},
-			PublicKey:  subjectKeyPair.Public,
-			PrivateKey: subjectKeyPair.Private,
+			CertificateChain: []*x509.Certificate{},
+			PublicKey:        subjectKeyPair.Public,
+			PrivateKey:       subjectKeyPair.Private,
 		},
 	}
 
@@ -118,7 +117,7 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 		return nil, fmt.Errorf("failed to sign CA certificate for %s: %w", subjectName, err)
 	}
 
-	currentSubject.KeyMaterial.CertChain = append([]*x509.Certificate{signedCertificate}, issuerCertificateChain...)
+	currentSubject.KeyMaterial.CertificateChain = append([]*x509.Certificate{signedCertificate}, issuerCertificateChain...)
 	return &currentSubject, nil
 }
 
@@ -128,7 +127,7 @@ func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *keygen.KeyPair, 
 		return nil, fmt.Errorf("failed to create end entity certificate template for %s: %w", subjectName, err)
 	}
 
-	signedCert, _, _, err := SignCertificate(issuingCASubject.KeyMaterial.CertChain[0], issuingCASubject.KeyMaterial.PrivateKey, endEntityCertTemplate, keyPair.Public, x509.ECDSAWithSHA256)
+	signedCert, _, _, err := SignCertificate(issuingCASubject.KeyMaterial.CertificateChain[0], issuingCASubject.KeyMaterial.PrivateKey, endEntityCertTemplate, keyPair.Public, x509.ECDSAWithSHA256)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign end entity certificate for %s: %w", subjectName, err)
 	}
@@ -143,34 +142,34 @@ func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *keygen.KeyPair, 
 		EmailAddresses: emailAddresses,
 		URIs:           uris,
 		KeyMaterial: KeyMaterial{
-			CertChain:  append([]*x509.Certificate{signedCert}, issuingCASubject.KeyMaterial.CertChain...),
-			PublicKey:  keyPair.Public,
-			PrivateKey: keyPair.Private,
+			CertificateChain: append([]*x509.Certificate{signedCert}, issuingCASubject.KeyMaterial.CertificateChain...),
+			PublicKey:        keyPair.Public,
+			PrivateKey:       keyPair.Private,
 		},
 	}, nil
 }
 
 func BuildTLSCertificate(endEntitySubject *Subject) (tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
-	if len(endEntitySubject.KeyMaterial.CertChain) == 0 {
+	if len(endEntitySubject.KeyMaterial.CertificateChain) == 0 {
 		return tls.Certificate{}, nil, nil, fmt.Errorf("certificate chain is empty")
 	} else if endEntitySubject.KeyMaterial.PrivateKey == nil {
 		return tls.Certificate{}, nil, nil, fmt.Errorf("private key is nil")
 	}
-	derCertChain := make([][]byte, len(endEntitySubject.KeyMaterial.CertChain))
-	for i, certificate := range endEntitySubject.KeyMaterial.CertChain {
+	derCertChain := make([][]byte, len(endEntitySubject.KeyMaterial.CertificateChain))
+	for i, certificate := range endEntitySubject.KeyMaterial.CertificateChain {
 		derCertChain[i] = certificate.Raw
 	}
 	rootCACertsPool := x509.NewCertPool()
-	if len(endEntitySubject.KeyMaterial.CertChain) > 0 {
-		rootCert := endEntitySubject.KeyMaterial.CertChain[len(endEntitySubject.KeyMaterial.CertChain)-1]
+	if len(endEntitySubject.KeyMaterial.CertificateChain) > 0 {
+		rootCert := endEntitySubject.KeyMaterial.CertificateChain[len(endEntitySubject.KeyMaterial.CertificateChain)-1]
 		rootCACertsPool.AddCert(rootCert)
 	}
 	intermediateCertsPool := x509.NewCertPool()
-	for j := 1; j < len(endEntitySubject.KeyMaterial.CertChain)-1; j++ {
-		intermediateCertsPool.AddCert(endEntitySubject.KeyMaterial.CertChain[j])
+	for j := 1; j < len(endEntitySubject.KeyMaterial.CertificateChain)-1; j++ {
+		intermediateCertsPool.AddCert(endEntitySubject.KeyMaterial.CertificateChain[j])
 	}
 
-	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertChain[0]}, rootCACertsPool, intermediateCertsPool, nil
+	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertificateChain[0]}, rootCACertsPool, intermediateCertsPool, nil
 }
 
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
@@ -293,12 +292,12 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]*Subject, erro
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert KeyMaterialEncoded to KeyMaterial for item %d: %w", i, err)
 		}
-		if len(keyMaterial.CertChain) == 0 {
+		if len(keyMaterial.CertificateChain) == 0 {
 			return nil, fmt.Errorf("CertChain is empty for item %d", i)
 		} else if keyMaterial.PublicKey == nil {
 			return nil, fmt.Errorf("PublicKey is nil for item %d", i)
 		}
-		certificate := keyMaterial.CertChain[0]
+		certificate := keyMaterial.CertificateChain[0]
 		subject := Subject{
 			KeyMaterial: *keyMaterial,
 			SubjectName: certificate.Subject.CommonName,
@@ -322,12 +321,12 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]*Subject, erro
 func serializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) (*KeyMaterialEncoded, error) {
 	if keyMaterial == nil {
 		return nil, fmt.Errorf("keyMaterial cannot be nil")
-	} else if len(keyMaterial.CertChain) == 0 {
+	} else if len(keyMaterial.CertificateChain) == 0 {
 		return nil, fmt.Errorf("certificate chain cannot be empty")
 	} else if keyMaterial.PublicKey == nil {
 		return nil, fmt.Errorf("PublicKey cannot be nil")
 	}
-	for i, certificate := range keyMaterial.CertChain {
+	for i, certificate := range keyMaterial.CertificateChain {
 		if certificate == nil {
 			return nil, fmt.Errorf("certificate at index %d in chain cannot be nil", i)
 		}
@@ -335,9 +334,9 @@ func serializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 
 	var err error
 	keyMaterialEncoded := &KeyMaterialEncoded{}
-	keyMaterialEncoded.DERCertificateChain = make([][]byte, len(keyMaterial.CertChain))
-	keyMaterialEncoded.PEMCertificateChain = make([][]byte, len(keyMaterial.CertChain))
-	for i, certificate := range keyMaterial.CertChain {
+	keyMaterialEncoded.DERCertificateChain = make([][]byte, len(keyMaterial.CertificateChain))
+	keyMaterialEncoded.PEMCertificateChain = make([][]byte, len(keyMaterial.CertificateChain))
+	for i, certificate := range keyMaterial.CertificateChain {
 		keyMaterialEncoded.DERCertificateChain[i] = certificate.Raw
 		keyMaterialEncoded.PEMCertificateChain[i] = toCertificatePEM(certificate.Raw)
 	}
@@ -376,9 +375,9 @@ func deserializeKeyMaterial(keyMaterialEncoded *KeyMaterialEncoded) (*KeyMateria
 	keyMaterial := &KeyMaterial{}
 	var err error
 
-	keyMaterial.CertChain = make([]*x509.Certificate, len(keyMaterialEncoded.DERCertificateChain))
+	keyMaterial.CertificateChain = make([]*x509.Certificate, len(keyMaterialEncoded.DERCertificateChain))
 	for i, derBytes := range keyMaterialEncoded.DERCertificateChain {
-		keyMaterial.CertChain[i], err = x509.ParseCertificate(derBytes)
+		keyMaterial.CertificateChain[i], err = x509.ParseCertificate(derBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse certificate %d from DER: %w", i, err)
 		}

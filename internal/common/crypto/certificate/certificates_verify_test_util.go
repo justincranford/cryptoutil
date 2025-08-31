@@ -87,13 +87,13 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 		expectedMaxPathLen := i
 		require.Equal(t, expectedMaxPathLen, subject.MaxPathLen, "CA MaxPathLen should be %d at index %d", expectedMaxPathLen, i)
 
-		derChain := make([][]byte, len(subject.KeyMaterial.CertChain))
-		pemChain := make([][]byte, len(subject.KeyMaterial.CertChain))
-		for j, cert := range subject.KeyMaterial.CertChain {
+		derChain := make([][]byte, len(subject.KeyMaterial.CertificateChain))
+		pemChain := make([][]byte, len(subject.KeyMaterial.CertificateChain))
+		for j, cert := range subject.KeyMaterial.CertificateChain {
 			derChain[j] = cert.Raw
 			pemChain[j] = toCertificatePEM(cert.Raw)
 		}
-		verifyCACertificate(t, nil, subject.KeyMaterial.CertChain, derChain, pemChain,
+		verifyCACertificate(t, nil, subject.KeyMaterial.CertificateChain, derChain, pemChain,
 			subject.IssuerName, subject.SubjectName, 10*365*cryptoutilDateTime.Days1, expectedMaxPathLen)
 	}
 }
@@ -109,7 +109,7 @@ func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject *Subject) 
 	// Verify that MaxPathLen is not set for end entities (should be 0)
 	require.Equal(t, 0, endEntitySubject.MaxPathLen, "End entity should have MaxPathLen=0")
 
-	endEntityCert := endEntitySubject.KeyMaterial.CertChain[0]
+	endEntityCert := endEntitySubject.KeyMaterial.CertificateChain[0]
 	verifyEndEntityCertificate(t, nil, endEntityCert, endEntityCert.Raw, toCertificatePEM(endEntityCert.Raw),
 		endEntitySubject.IssuerName, endEntitySubject.SubjectName, endEntitySubject.Duration,
 		endEntitySubject.DNSNames, endEntitySubject.IPAddresses,
