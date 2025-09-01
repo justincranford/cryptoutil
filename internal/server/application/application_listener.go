@@ -155,9 +155,10 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
 	}
 
-	publicFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
-	publicFiberApp.Get("/swagger/*", swagger.New(swagger.Config{
-		Title:                  "Cryptoutil",
+	publicFiberApp.Get("/ui/swagger/doc.json", fiberHandlerOpenAPISpec)
+	publicFiberApp.Get("/ui/swagger/*", swagger.New(swagger.Config{
+		Title:                  "Cryptoutil API",
+		URL:                    "/ui/swagger/doc.json?baseURL=/",
 		TryItOutEnabled:        true,
 		DisplayRequestDuration: true,
 		ShowCommonExtensions:   true,
