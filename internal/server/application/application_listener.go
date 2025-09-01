@@ -39,13 +39,13 @@ const clientLivenessRequestTimeout = 3 * time.Second
 const serverShutdownFinishTimeout = 5 * time.Second
 const serverShutdownRequestPath = "/shutdown"
 
-const fiberAppIDRequestAttribute = "fiberAppId"
+const fiberAppIDRequestAttribute = "fiberAppID"
 
-type FiberAppId string
+type fiberAppID string
 
 const (
-	FiberAppIdPublic  FiberAppId = "public"
-	FiberAppIdPrivate FiberAppId = "private"
+	fiberAppIDPublic  fiberAppID = "public"
+	fiberAppIDPrivate fiberAppID = "private"
 )
 
 var ready atomic.Bool
@@ -126,7 +126,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	}
 
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
-	publicFiberApp.Use(setFiberRequestAttribute(FiberAppIdPublic))
+	publicFiberApp.Use(setFiberRequestAttribute(fiberAppIDPublic))
 	for _, middleware := range commonMiddlewares {
 		publicFiberApp.Use(middleware)
 	}
@@ -146,7 +146,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 
 	var stopServer func() // circular dependency: privateFiberApp -> stopServer -> privateFiberApp
 	privateFiberApp := fiber.New(fiber.Config{Immutable: true})
-	privateFiberApp.Use(setFiberRequestAttribute(FiberAppIdPrivate))
+	privateFiberApp.Use(setFiberRequestAttribute(fiberAppIDPrivate))
 	for _, middleware := range commonMiddlewares {
 		privateFiberApp.Use(middleware)
 	}
@@ -228,7 +228,7 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 	}
 }
 
-func setFiberRequestAttribute(fiberAppIdValue FiberAppId) func(c *fiber.Ctx) error {
+func setFiberRequestAttribute(fiberAppIdValue fiberAppID) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		c.Locals(fiberAppIDRequestAttribute, string(fiberAppIdValue))
 		return c.Next()
@@ -270,7 +270,7 @@ func ipFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, 
 
 	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
 		switch c.Locals(fiberAppIDRequestAttribute) {
-		case string(FiberAppIdPublic): // Apply IP/CIDR filtering for public app requests
+		case string(fiberAppIDPublic): // Apply IP/CIDR filtering for public app requests
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
 			if parsedIP == nil {
@@ -292,7 +292,7 @@ func ipFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, 
 			}
 			telemetryService.Slogger.Debug("Access denied:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 			return c.Status(fiber.StatusForbidden).SendString("Access denied")
-		case string(FiberAppIdPrivate): // Skip IP/CIDR filtering for private app requests
+		case string(fiberAppIDPrivate): // Skip IP/CIDR filtering for private app requests
 			return c.Next()
 		default:
 			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIDRequestAttribute))
