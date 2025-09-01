@@ -133,15 +133,21 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	}
 	publicFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
 	publicFiberApp.Use(helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
-	publicFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
+	// TODO Re-enable CSRF in DevMode
+	if !settings.DevMode {
+		publicFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF) - disabled in dev mode
+	}
 	publicFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
-	publicFiberApp.Get("/swagger/*", swagger.New(swagger.Config{
+	swaggerConfig := swagger.Config{
 		Title:                  "Cryptoutil",
 		TryItOutEnabled:        true,
 		DisplayRequestDuration: true,
 		ShowCommonExtensions:   true,
-		CustomScript:           swaggerUICustomCSRFScript, // Custom JavaScript to inject CSRF token into all non-GET requests
-	}))
+	}
+	if !settings.DevMode {
+		swaggerConfig.CustomScript = swaggerUICustomCSRFScript // Custom JavaScript to inject CSRF token into all non-GET requests
+	}
+	publicFiberApp.Get("/swagger/*", swagger.New(swaggerConfig))
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, fiberServerOptions)
 
 	var stopServer func() // circular dependency: privateFiberApp -> stopServer -> privateFiberApp
