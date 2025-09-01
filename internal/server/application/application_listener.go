@@ -326,20 +326,23 @@ func corsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 }
 
 func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
+	csrfConfig := csrf.Config{
+		CookieName:        settings.CSRFTokenName,
+		CookieSameSite:    settings.CSRFTokenSameSite,
+		Expiration:        settings.CSRFTokenMaxAge,
+		CookieSecure:      settings.CSRFTokenCookieSecure,
+		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
+		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
+	}
 	// TODO Re-enable CSRF in DevMode
 	if settings.DevMode {
-		return func(c *fiber.Ctx) error { // Disable CSRF in DevMode
-			return c.Next()
+		csrfConfig.Next = func(c *fiber.Ctx) bool { // Disable CSRF in DevMode
+			return strings.HasPrefix(c.OriginalURL(), "/elastickey") ||
+				strings.HasPrefix(c.OriginalURL(), "/elastickeys") ||
+				strings.HasPrefix(c.OriginalURL(), "/materialkeys")
 		}
 	}
-	return csrf.New(csrf.Config{ // Cross-Site Request Forgery (CSRF)
-		CookieName:        settings.CSRFTokenName,              // cryptoutilConfig.defaultCSRFTokenName
-		CookieSameSite:    settings.CSRFTokenSameSite,          // cryptoutilConfig.defaultCSRFTokenSameSite
-		Expiration:        settings.CSRFTokenMaxAge,            // cryptoutilConfig.defaultCSRFTokenMaxAge
-		CookieSecure:      settings.CSRFTokenCookieSecure,      // cryptoutilConfig.defaultCSRFTokenCookieSecure
-		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,    // cryptoutilConfig.defaultCSRFTokenCookieHTTPOnly
-		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly, // cryptoutilConfig.defaultCSRFTokenCookieSessionOnly
-	})
+	return csrf.New(csrfConfig)
 }
 
 func httpGetCacheControlMiddleware() func(c *fiber.Ctx) error {
