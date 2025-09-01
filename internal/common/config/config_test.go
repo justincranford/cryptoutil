@@ -17,12 +17,12 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, logLevel.value, s.LogLevel)
 	assert.Equal(t, verboseMode.value, s.VerboseMode)
 	assert.Equal(t, devMode.value, s.DevMode)
-	assert.Equal(t, bindServiceProtocol.value, s.BindServiceProtocol)
-	assert.Equal(t, bindServiceAddress.value, s.BindServiceAddress)
-	assert.Equal(t, bindServicePort.value, s.BindServicePort)
-	assert.Equal(t, bindAdminProtocol.value, s.BindAdminProtocol)
-	assert.Equal(t, bindAdminAddress.value, s.BindAdminAddress)
-	assert.Equal(t, bindAdminPort.value, s.BindAdminPort)
+	assert.Equal(t, bindPublicProtocol.value, s.BindPublicProtocol)
+	assert.Equal(t, bindPublicAddress.value, s.BindPublicAddress)
+	assert.Equal(t, bindPublicPort.value, s.BindPublicPort)
+	assert.Equal(t, bindPrivateProtocol.value, s.BindPrivateProtocol)
+	assert.Equal(t, bindPrivateAddress.value, s.BindPrivateAddress)
+	assert.Equal(t, bindPrivatePort.value, s.BindPrivatePort)
 	assert.Equal(t, contextPath.value, s.ContextPath)
 	assert.Equal(t, corsAllowedOrigins.value, s.CORSAllowedOrigins)
 	assert.Equal(t, corsAllowedMethods.value, s.CORSAllowedMethods)
@@ -57,12 +57,12 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--log-level=debug",
 		"--verbose",
 		"--dev",
-		"--bind-service-protocol=https",
-		"--bind-service-address=192.168.1.2",
-		"--bind-service-port=18080",
-		"--bind-admin-protocol=https",
-		"--bind-admin-address=192.168.1.3",
-		"--bind-admin-port=19090",
+		"--bind-public-protocol=https",
+		"--bind-public-address=192.168.1.2",
+		"--bind-public-port=18080",
+		"--bind-private-protocol=https",
+		"--bind-private-address=192.168.1.3",
+		"--bind-private-port=19090",
 		"--context-path=/custom",
 		"--cors-origins=https://example.com",
 		"--cors-methods=GET,POST",
@@ -96,12 +96,12 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "test.yaml", s.ConfigFile)
 	assert.Equal(t, "debug", s.LogLevel)
 	assert.True(t, s.VerboseMode)
-	assert.Equal(t, "https", s.BindServiceProtocol)
-	assert.Equal(t, "192.168.1.2", s.BindServiceAddress)
-	assert.Equal(t, uint16(18080), s.BindServicePort)
-	assert.Equal(t, "https", s.BindAdminProtocol)
-	assert.Equal(t, "192.168.1.3", s.BindAdminAddress)
-	assert.Equal(t, uint16(19090), s.BindAdminPort)
+	assert.Equal(t, "https", s.BindPublicProtocol)
+	assert.Equal(t, "192.168.1.2", s.BindPublicAddress)
+	assert.Equal(t, uint16(18080), s.BindPublicPort)
+	assert.Equal(t, "https", s.BindPrivateProtocol)
+	assert.Equal(t, "192.168.1.3", s.BindPrivateAddress)
+	assert.Equal(t, uint16(19090), s.BindPrivatePort)
 	assert.Equal(t, "/custom", s.ContextPath)
 	assert.Equal(t, "https://example.com", s.CORSAllowedOrigins)
 	assert.Equal(t, "GET,POST", s.CORSAllowedMethods)

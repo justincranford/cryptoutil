@@ -24,13 +24,13 @@ import (
 
 var (
 	testSettings      = cryptoutilConfig.RequireNewForTest("client_test")
-	testServerBaseUrl = "http://" + testSettings.BindServiceAddress + ":" + strconv.Itoa(int(testSettings.BindServicePort)) + "/"
+	testServerBaseUrl = "http://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort)) + "/"
 )
 
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		start, stop, err := cryptoutilServerApplication.StartServerApplication(testSettings)
+		start, stop, err := cryptoutilServerApplication.StartServerListenerApplication(testSettings)
 		if err != nil {
 			log.Fatalf("failed to start server application: %v", err)
 		}

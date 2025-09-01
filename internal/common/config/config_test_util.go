@@ -6,13 +6,13 @@ import (
 )
 
 var (
-	currentBindServicePort atomic.Uint32
-	currentBindAdminPort   atomic.Uint32
+	currentBindPublicPort  atomic.Uint32
+	currentBindPrivatePort atomic.Uint32
 )
 
 func init() {
-	currentBindServicePort.Store(uint32(bindServicePort.value.(uint16)))
-	currentBindAdminPort.Store(uint32(bindAdminPort.value.(uint16)))
+	currentBindPublicPort.Store(uint32(bindPublicPort.value.(uint16)))
+	currentBindPrivatePort.Store(uint32(bindPrivatePort.value.(uint16)))
 }
 
 func RequireNewForTest(applicationName string) *Settings {
@@ -21,10 +21,10 @@ func RequireNewForTest(applicationName string) *Settings {
 		VerboseMode:              verboseMode.value.(bool),
 		LogLevel:                 logLevel.value.(string),
 		DevMode:                  devMode.value.(bool),
-		BindServiceAddress:       bindServiceAddress.value.(string),
-		BindServicePort:          uint16(currentBindServicePort.Add(1)),
-		BindAdminAddress:         bindAdminAddress.value.(string),
-		BindAdminPort:            uint16(currentBindAdminPort.Add(1)),
+		BindPublicAddress:        bindPublicAddress.value.(string),
+		BindPublicPort:           uint16(currentBindPublicPort.Add(1)),
+		BindPrivateAddress:       bindPrivateAddress.value.(string),
+		BindPrivatePort:          uint16(currentBindPrivatePort.Add(1)),
 		ContextPath:              contextPath.value.(string),
 		CORSAllowedOrigins:       corsAllowedOrigins.value.(string),
 		CORSAllowedMethods:       corsAllowedMethods.value.(string),

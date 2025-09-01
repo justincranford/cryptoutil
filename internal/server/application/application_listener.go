@@ -37,15 +37,15 @@ const shutdownRequestTimeout = 5 * time.Second
 const livenessRequestTimeout = 3 * time.Second
 const serverShutdownStartTimeout = 50 * time.Millisecond
 const serverShutdownFinishTimeout = 3 * time.Second
-const apiAdminShutdownPath = "/api/admin/shutdown"
+const apiPrivateShutdownPath = "/api/private/shutdown"
 const fiberAppIdKey = "fiberAppId"
-const fiberAppIdService = "service"
-const fiberAppIdAdmin = "admin"
+const fiberAppIdPublic = "public"
+const fiberAppIdPrivate = "private"
 
 var ready atomic.Bool
 
-func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	shutdownEndpoint := fmt.Sprintf("%s://%s:%d%s", settings.BindAdminProtocol, settings.BindAdminAddress, settings.BindAdminPort, apiAdminShutdownPath)
+func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
+	shutdownEndpoint := fmt.Sprintf("%s://%s:%d%s", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort, apiPrivateShutdownPath)
 	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), shutdownRequestTimeout)
 	defer shutdownRequestCancel()
 	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, shutdownEndpoint, nil)
@@ -65,7 +65,7 @@ func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 	}
 
 	time.Sleep(serverShutdownStartTimeout)
-	livenessEndpoint := fmt.Sprintf("%s://%s:%d/livez", settings.BindAdminProtocol, settings.BindAdminAddress, settings.BindAdminPort)
+	livenessEndpoint := fmt.Sprintf("%s://%s:%d/livez", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort)
 	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), livenessRequestTimeout)
 	defer livenessRequestCancel()
 	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, livenessEndpoint, nil)
@@ -77,7 +77,7 @@ func SendServerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 	return nil
 }
 
-func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func(), error) {
+func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func(), func(), error) {
 	ctx := context.Background()
 
 	serverApplicationCore, err := StartServerApplicationCore(ctx, settings)
@@ -120,32 +120,32 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		httpGetCacheControlMiddleware(),
 	}
 
-	serviceFiberApp := fiber.New(fiber.Config{Immutable: true})
-	serviceFiberApp.Use(setFiberAppId(fiberAppIdService))
+	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
+	publicFiberApp.Use(setFiberAppId(fiberAppIdPublic))
 	for _, middleware := range commonMiddlewares {
-		serviceFiberApp.Use(middleware)
+		publicFiberApp.Use(middleware)
 	}
-	serviceFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
-	serviceFiberApp.Use(helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
-	serviceFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
-	serviceFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
-	serviceFiberApp.Get("/swagger/*", swagger.New(swagger.Config{
+	publicFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
+	publicFiberApp.Use(helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
+	publicFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
+	publicFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
+	publicFiberApp.Get("/swagger/*", swagger.New(swagger.Config{
 		Title:                  "Cryptoutil",
 		TryItOutEnabled:        true,
 		DisplayRequestDuration: true,
 		ShowCommonExtensions:   true,
 		CustomScript:           swaggerUICustomCSRFScript, // Custom JavaScript to inject CSRF token into all non-GET requests
 	}))
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(serviceFiberApp, openapiStrictHandler, fiberServerOptions)
+	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, fiberServerOptions)
 
-	var stopServer func() // circular dependency: adminFiberApp -> stopServer -> adminFiberApp
-	adminFiberApp := fiber.New(fiber.Config{Immutable: true})
-	adminFiberApp.Use(setFiberAppId(fiberAppIdAdmin))
+	var stopServer func() // circular dependency: privateFiberApp -> stopServer -> privateFiberApp
+	privateFiberApp := fiber.New(fiber.Config{Immutable: true})
+	privateFiberApp.Use(setFiberAppId(fiberAppIdPrivate))
 	for _, middleware := range commonMiddlewares {
-		adminFiberApp.Use(middleware)
+		privateFiberApp.Use(middleware)
 	}
-	adminFiberApp.Use(healthcheck.New()) // /livez, /readyz
-	adminFiberApp.Post(apiAdminShutdownPath, func(c *fiber.Ctx) error {
+	privateFiberApp.Use(healthcheck.New()) // /livez, /readyz
+	privateFiberApp.Post(apiPrivateShutdownPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if stopServer != nil {
 			go func() {
@@ -156,38 +156,38 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		return c.SendString("Server shutdown initiated")
 	})
 
-	serviceBinding := fmt.Sprintf("%s:%d", settings.BindServiceAddress, settings.BindServicePort)
-	adminBinding := fmt.Sprintf("%s:%d", settings.BindAdminAddress, settings.BindAdminPort)
-	startServer := startServerFunc(serviceBinding, adminBinding, serviceFiberApp, adminFiberApp, serverApplicationCore.TelemetryService)
-	stopServer = stopServerFunc(serverApplicationCore, serviceFiberApp, adminFiberApp)
+	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
+	privateBinding := fmt.Sprintf("%s:%d", settings.BindPrivateAddress, settings.BindPrivatePort)
+	startServer := startServerFunc(publicBinding, privateBinding, publicFiberApp, privateFiberApp, serverApplicationCore.TelemetryService)
+	stopServer = stopServerFunc(serverApplicationCore, publicFiberApp, privateFiberApp)
 
 	go stopServerSignalFunc(serverApplicationCore.TelemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
 
 	return startServer, stopServer, nil
 }
 
-func startServerFunc(serviceBinding string, adminBinding string, serviceFiberApp *fiber.App, adminFiberApp *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
+func startServerFunc(publicBinding string, privateBinding string, publicFiberApp *fiber.App, privateFiberApp *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
 	return func() {
 		telemetryService.Slogger.Debug("starting fiber listeners")
 
 		go func() {
-			telemetryService.Slogger.Debug("starting admin fiber listener", "binding", adminBinding)
-			if err := adminFiberApp.Listen(adminBinding); err != nil {
-				telemetryService.Slogger.Error("failed to start admin fiber listener", "error", err)
+			telemetryService.Slogger.Debug("starting private fiber listener", "binding", privateBinding)
+			if err := privateFiberApp.Listen(privateBinding); err != nil {
+				telemetryService.Slogger.Error("failed to start private fiber listener", "error", err)
 			}
-			telemetryService.Slogger.Debug("admin fiber listener stopped")
+			telemetryService.Slogger.Debug("private fiber listener stopped")
 		}()
-		telemetryService.Slogger.Debug("starting service fiber listener", "binding", serviceBinding)
-		if err := serviceFiberApp.Listen(serviceBinding); err != nil {
-			telemetryService.Slogger.Error("failed to start service fiber listener", "error", err)
+		telemetryService.Slogger.Debug("starting public fiber listener", "binding", publicBinding)
+		if err := publicFiberApp.Listen(publicBinding); err != nil {
+			telemetryService.Slogger.Error("failed to start public fiber listener", "error", err)
 		}
-		telemetryService.Slogger.Debug("service fiber listener stopped")
+		telemetryService.Slogger.Debug("public fiber listener stopped")
 
 		ready.Store(true)
 	}
 }
 
-func stopServerFunc(serverApplicationCore *ServerApplicationCore, serviceFiberApp *fiber.App, adminFiberApp *fiber.App) func() {
+func stopServerFunc(serverApplicationCore *ServerApplicationCore, publicFiberApp *fiber.App, privateFiberApp *fiber.App) func() {
 	return func() {
 		if serverApplicationCore.TelemetryService != nil {
 			serverApplicationCore.TelemetryService.Slogger.Debug("stopping servers")
@@ -195,16 +195,16 @@ func stopServerFunc(serverApplicationCore *ServerApplicationCore, serviceFiberAp
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
 		defer cancel() // perform shutdown respecting timeout
 
-		if serviceFiberApp != nil {
-			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down service fiber app")
-			if err := serviceFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop service fiber server", "error", err)
+		if publicFiberApp != nil {
+			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down public fiber app")
+			if err := publicFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
+				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop public fiber server", "error", err)
 			}
 		}
-		if adminFiberApp != nil {
-			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down admin fiber app")
-			if err := adminFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop admin fiber server", "error", err)
+		if privateFiberApp != nil {
+			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down private fiber app")
+			if err := privateFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
+				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
 			}
 		}
 		serverApplicationCore.Shutdown()
@@ -234,8 +234,8 @@ func otelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Telemetr
 		otelfiber.WithTracerProvider(telemetryService.TracesProvider),
 		otelfiber.WithMeterProvider(telemetryService.MetricsProvider),
 		otelfiber.WithPropagators(*telemetryService.TextMapPropagator),
-		otelfiber.WithServerName(settings.BindServiceAddress),
-		otelfiber.WithPort(int(settings.BindServicePort)),
+		otelfiber.WithServerName(settings.BindPublicAddress),
+		otelfiber.WithPort(int(settings.BindPublicPort)),
 	)
 }
 
@@ -264,7 +264,7 @@ func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, set
 
 	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
 		switch c.Locals(fiberAppIdKey) {
-		case fiberAppIdService: // Apply IP/CIDR filtering for service app requests
+		case fiberAppIdPublic: // Apply IP/CIDR filtering for public app requests
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
 			if parsedIP == nil {
@@ -286,7 +286,7 @@ func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, set
 			}
 			telemetryService.Slogger.Debug("Access denied:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 			return c.Status(fiber.StatusForbidden).SendString("Access denied")
-		case fiberAppIdAdmin: // Skip IP/CIDR filtering for admin app requests
+		case fiberAppIdPrivate: // Skip IP/CIDR filtering for private app requests
 			return c.Next()
 		default:
 			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIdKey))

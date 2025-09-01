@@ -39,12 +39,12 @@ type Settings struct {
 	LogLevel                   string
 	VerboseMode                bool
 	DevMode                    bool
-	BindServiceProtocol        string
-	BindServiceAddress         string
-	BindServicePort            uint16
-	BindAdminProtocol          string
-	BindAdminAddress           string
-	BindAdminPort              uint16
+	BindPublicProtocol         string
+	BindPublicAddress          string
+	BindPublicPort             uint16
+	BindPrivateProtocol        string
+	BindPrivateAddress         string
+	BindPrivatePort            uint16
 	ContextPath                string
 	CORSAllowedOrigins         string
 	CORSAllowedMethods         string
@@ -110,41 +110,41 @@ var (
 		value:     false,
 		usage:     "run in development mode; enables in-memory SQLite",
 	}
-	bindServiceProtocol = Setting{
-		name:      "bind-service-protocol",
+	bindPublicProtocol = Setting{
+		name:      "bind-public-protocol",
 		shorthand: "t",
 		value:     httpProtocol, // TODO https
-		usage:     "bind service protocol (http or https)",
+		usage:     "bind public protocol (http or https)",
 	}
-	bindServiceAddress = Setting{
-		name:      "bind-service-address",
+	bindPublicAddress = Setting{
+		name:      "bind-public-address",
 		shorthand: "a",
 		value:     "localhost",
-		usage:     "bind service address",
+		usage:     "bind public address",
 	}
-	bindServicePort = Setting{
-		name:      "bind-service-port",
+	bindPublicPort = Setting{
+		name:      "bind-public-port",
 		shorthand: "p",
 		value:     uint16(8080),
-		usage:     "bind service port",
+		usage:     "bind public port",
 	}
-	bindAdminProtocol = Setting{
-		name:      "bind-admin-protocol",
+	bindPrivateProtocol = Setting{
+		name:      "bind-private-protocol",
 		shorthand: "T",
 		value:     httpProtocol, // TODO https
-		usage:     "bind admin protocol (http or https)",
+		usage:     "bind private protocol (http or https)",
 	}
-	bindAdminAddress = Setting{
-		name:      "bind-admin-address",
+	bindPrivateAddress = Setting{
+		name:      "bind-private-address",
 		shorthand: "A",
 		value:     "localhost",
-		usage:     "bind admin address",
+		usage:     "bind private address",
 	}
-	bindAdminPort = Setting{
-		name:      "bind-admin-port",
+	bindPrivatePort = Setting{
+		name:      "bind-private-port",
 		shorthand: "P",
 		value:     uint16(9090),
-		usage:     "bind admin port",
+		usage:     "bind private port",
 	}
 	contextPath = Setting{
 		name:      "context-path",
@@ -289,7 +289,7 @@ var (
 )
 
 var defaultCORSAllowedOrigins = func() string {
-	defaultBindPostString := strconv.Itoa(int(bindServicePort.value.(uint16)))
+	defaultBindPostString := strconv.Itoa(int(bindPublicPort.value.(uint16)))
 	return strings.Join([]string{
 		httpProtocol + "://" + localhost + ":" + defaultBindPostString,
 		httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
@@ -370,12 +370,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(logLevel.name, logLevel.shorthand, logLevel.value.(string), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, verboseMode.value.(bool), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, devMode.value.(bool), devMode.usage)
-	pflag.StringP(bindServiceProtocol.name, bindServiceProtocol.shorthand, bindServiceProtocol.value.(string), bindServiceProtocol.usage)
-	pflag.StringP(bindServiceAddress.name, bindServiceAddress.shorthand, bindServiceAddress.value.(string), bindServiceAddress.usage)
-	pflag.Uint16P(bindServicePort.name, bindServicePort.shorthand, bindServicePort.value.(uint16), bindServicePort.usage)
-	pflag.StringP(bindAdminProtocol.name, bindAdminProtocol.shorthand, bindAdminProtocol.value.(string), bindAdminProtocol.usage)
-	pflag.StringP(bindAdminAddress.name, bindAdminAddress.shorthand, bindAdminAddress.value.(string), bindAdminAddress.usage)
-	pflag.Uint16P(bindAdminPort.name, bindAdminPort.shorthand, bindAdminPort.value.(uint16), bindAdminPort.usage)
+	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, bindPublicProtocol.value.(string), bindPublicProtocol.usage)
+	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, bindPublicAddress.value.(string), bindPublicAddress.usage)
+	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, bindPublicPort.value.(uint16), bindPublicPort.usage)
+	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, bindPrivateProtocol.value.(string), bindPrivateProtocol.usage)
+	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, bindPrivateAddress.value.(string), bindPrivateAddress.usage)
+	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, bindPrivatePort.value.(uint16), bindPrivatePort.usage)
 	pflag.StringP(contextPath.name, contextPath.shorthand, contextPath.value.(string), contextPath.usage)
 	pflag.StringP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, corsAllowedOrigins.value.(string), corsAllowedOrigins.usage)
 	pflag.StringP(corsAllowedMethods.name, corsAllowedMethods.shorthand, corsAllowedMethods.value.(string), corsAllowedMethods.usage)
@@ -424,12 +424,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		LogLevel:                   viper.GetString(logLevel.name),
 		VerboseMode:                viper.GetBool(verboseMode.name),
 		DevMode:                    viper.GetBool(devMode.name),
-		BindServiceProtocol:        viper.GetString(bindServiceProtocol.name),
-		BindServiceAddress:         viper.GetString(bindServiceAddress.name),
-		BindServicePort:            viper.GetUint16(bindServicePort.name),
-		BindAdminProtocol:          viper.GetString(bindAdminProtocol.name),
-		BindAdminAddress:           viper.GetString(bindAdminAddress.name),
-		BindAdminPort:              viper.GetUint16(bindAdminPort.name),
+		BindPublicProtocol:         viper.GetString(bindPublicProtocol.name),
+		BindPublicAddress:          viper.GetString(bindPublicAddress.name),
+		BindPublicPort:             viper.GetUint16(bindPublicPort.name),
+		BindPrivateProtocol:        viper.GetString(bindPrivateProtocol.name),
+		BindPrivateAddress:         viper.GetString(bindPrivateAddress.name),
+		BindPrivatePort:            viper.GetUint16(bindPrivatePort.name),
 		ContextPath:                viper.GetString(contextPath.name),
 		CORSAllowedOrigins:         viper.GetString(corsAllowedOrigins.name),
 		CORSAllowedMethods:         viper.GetString(corsAllowedMethods.name),
@@ -475,12 +475,12 @@ func logSettings(s *Settings) {
 		log.Info("Log Level: ", s.LogLevel)
 		log.Info("Verbose mode: ", s.VerboseMode)
 		log.Info("Dev mode: ", s.DevMode)
-		log.Info("Bind Service Protocol: ", s.BindServiceProtocol)
-		log.Info("Bind Service Address: ", s.BindServiceAddress)
-		log.Info("Bind Service Port: ", s.BindServicePort)
-		log.Info("Bind Service Protocol: ", s.BindServiceProtocol)
-		log.Info("Bind Admin Address: ", s.BindAdminAddress)
-		log.Info("Bind Admin Port: ", s.BindAdminPort)
+		log.Info("Bind Public Protocol: ", s.BindPublicProtocol)
+		log.Info("Bind Public Address: ", s.BindPublicAddress)
+		log.Info("Bind Public Port: ", s.BindPublicPort)
+		log.Info("Bind Private Protocol: ", s.BindPrivateProtocol)
+		log.Info("Bind Private Address: ", s.BindPrivateAddress)
+		log.Info("Bind Private Port: ", s.BindPrivatePort)
 		log.Info("Context Path: ", s.ContextPath)
 		log.Info("CORS Allowed Origins: ", s.CORSAllowedOrigins)
 		log.Info("CORS Allowed Methods: ", s.CORSAllowedMethods)
