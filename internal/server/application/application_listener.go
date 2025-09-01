@@ -104,8 +104,8 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	}
 
 	privateMiddlewares := append([]fiber.Handler{setFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
-	privateMiddlewares = append(privateMiddlewares, healthcheck.New()) // /livez, /readyz
 	publicMiddlewares := append([]fiber.Handler{setFiberRequestAttribute(fiberAppIDPublic)}, commonMiddlewares...)
+	privateMiddlewares = append(privateMiddlewares, healthcheck.New())      // /livez, /readyz
 	publicMiddlewares = append(publicMiddlewares, corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
 	publicMiddlewares = append(publicMiddlewares, helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
 	publicMiddlewares = append(publicMiddlewares, csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
