@@ -90,7 +90,48 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to initialize server application: %w", err)
 	}
 
-	// Server-side Business Logic
+	// Middlewares
+
+	commonMiddlewares := []fiber.Handler{
+		recover.New(),
+		requestid.New(),
+		logger.New(), // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
+		otelFiberTelemetryMiddleware(serverApplicationCore.TelemetryService, settings),
+		otelFiberRequestLoggerMiddleware(serverApplicationCore.TelemetryService),
+		ipFilterMiddleware(serverApplicationCore.TelemetryService, settings),
+		ipRateLimiterMiddleware(serverApplicationCore.TelemetryService, settings),
+		httpGetCacheControlMiddleware(),
+	}
+
+	privateMiddlewares := append([]fiber.Handler{setFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
+	privateMiddlewares = append(privateMiddlewares, healthcheck.New()) // /livez, /readyz
+	publicMiddlewares := append([]fiber.Handler{setFiberRequestAttribute(fiberAppIDPublic)}, commonMiddlewares...)
+	publicMiddlewares = append(publicMiddlewares, corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
+	publicMiddlewares = append(publicMiddlewares, helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
+	publicMiddlewares = append(publicMiddlewares, csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
+
+	privateFiberApp := fiber.New(fiber.Config{Immutable: true})
+	for _, middleware := range privateMiddlewares {
+		privateFiberApp.Use(middleware)
+	}
+	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
+	for _, middleware := range publicMiddlewares {
+		publicFiberApp.Use(middleware)
+	}
+
+	// APIs
+
+	var stopServer func() // Workaround circular dependency: privateFiberApp -> stopServer -> privateFiberApp
+	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
+		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
+		if stopServer != nil {
+			go func() {
+				time.Sleep(clientLivenessStartTimeout)
+				stopServer()
+			}()
+		}
+		return c.SendString("Server shutdown initiated")
+	})
 
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
@@ -114,53 +155,15 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
 	}
 
-	commonMiddlewares := []fiber.Handler{
-		recover.New(),
-		requestid.New(),
-		logger.New(), // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
-		otelFiberTelemetryMiddleware(serverApplicationCore.TelemetryService, settings),
-		otelFiberRequestLoggerMiddleware(serverApplicationCore.TelemetryService),
-		ipFilterMiddleware(serverApplicationCore.TelemetryService, settings),
-		ipRateLimiterMiddleware(serverApplicationCore.TelemetryService, settings),
-		httpGetCacheControlMiddleware(),
-	}
-
-	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
-	publicFiberApp.Use(setFiberRequestAttribute(fiberAppIDPublic))
-	for _, middleware := range commonMiddlewares {
-		publicFiberApp.Use(middleware)
-	}
-	publicFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
-	publicFiberApp.Use(helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
-	publicFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
 	publicFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
-	swaggerConfig := swagger.Config{
+	publicFiberApp.Get("/swagger/*", swagger.New(swagger.Config{
 		Title:                  "Cryptoutil",
 		TryItOutEnabled:        true,
 		DisplayRequestDuration: true,
 		ShowCommonExtensions:   true,
-	}
-	swaggerConfig.CustomScript = swaggerUICustomCSRFScript // Custom JavaScript to inject CSRF token into all non-GET requests
-	publicFiberApp.Get("/swagger/*", swagger.New(swaggerConfig))
+		CustomScript:           swaggerUICustomCSRFScript,
+	}))
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, fiberServerOptions)
-
-	var stopServer func() // circular dependency: privateFiberApp -> stopServer -> privateFiberApp
-	privateFiberApp := fiber.New(fiber.Config{Immutable: true})
-	privateFiberApp.Use(setFiberRequestAttribute(fiberAppIDPrivate))
-	for _, middleware := range commonMiddlewares {
-		privateFiberApp.Use(middleware)
-	}
-	privateFiberApp.Use(healthcheck.New()) // /livez, /readyz
-	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
-		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
-		if stopServer != nil {
-			go func() {
-				time.Sleep(clientLivenessStartTimeout)
-				stopServer()
-			}()
-		}
-		return c.SendString("Server shutdown initiated")
-	})
 
 	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
 	privateBinding := fmt.Sprintf("%s:%d", settings.BindPrivateAddress, settings.BindPrivatePort)
@@ -332,16 +335,70 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 		CookieSecure:      settings.CSRFTokenCookieSecure,
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
-	}
-	// TODO Re-enable CSRF in DevMode
-	if settings.DevMode {
-		csrfConfig.Next = func(c *fiber.Ctx) bool { // Disable CSRF in DevMode
-			return strings.HasPrefix(c.OriginalURL(), "/elastickey") ||
-				strings.HasPrefix(c.OriginalURL(), "/elastickeys") ||
-				strings.HasPrefix(c.OriginalURL(), "/materialkeys")
-		}
+		Next: func(c *fiber.Ctx) bool {
+			if isApiEndpoint(c.OriginalURL()) {
+				return !isBrowserClient(c) || settings.DevMode
+			}
+			return false
+		},
 	}
 	return csrf.New(csrfConfig)
+}
+
+func isApiEndpoint(url string) bool {
+	return strings.HasPrefix(url, "/elastickey") ||
+		strings.HasPrefix(url, "/elastickeys") ||
+		strings.HasPrefix(url, "/materialkeys")
+}
+
+func isBrowserClient(c *fiber.Ctx) bool {
+	origin := c.Get("Origin")
+	referer := c.Get("Referer")
+	accept := c.Get("Accept")
+	contentType := c.Get("Content-Type")
+
+	// Swagger UI requests - most reliable indicator
+	if strings.Contains(referer, "/swagger") ||
+		strings.Contains(origin, "swagger") {
+		return true
+	}
+
+	// Browser-specific content types (form submissions)
+	if strings.Contains(contentType, "application/x-www-form-urlencoded") ||
+		strings.Contains(contentType, "multipart/form-data") {
+		return true
+	}
+
+	// Browser requests typically have Origin or Referer headers
+	// and accept HTML responses
+	if (origin != "" || referer != "") &&
+		strings.Contains(accept, "text/html") {
+		return true
+	}
+
+	// API clients typically:
+	// - Don't send Origin/Referer headers (unless explicitly set)
+	// - Accept application/json primarily
+	// - Don't include text/html in Accept header
+	if origin == "" && referer == "" &&
+		strings.Contains(accept, "application/json") &&
+		!strings.Contains(accept, "text/html") {
+		return false // Likely API client
+	}
+
+	// Fallback to User-Agent as last resort (least reliable)
+	userAgent := c.Get("User-Agent")
+	browserIndicators := []string{
+		"Mozilla/", "Chrome/", "Safari/", "Edge/", "Firefox/", "Opera/",
+	}
+
+	for _, indicator := range browserIndicators {
+		if strings.Contains(userAgent, indicator) {
+			return true
+		}
+	}
+
+	return false // Default to API client if unclear
 }
 
 func httpGetCacheControlMiddleware() func(c *fiber.Ctx) error {
