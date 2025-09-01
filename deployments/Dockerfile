@@ -30,6 +30,6 @@ EXPOSE 8080
 
 USER cryptoutil
 HEALTHCHECK --start-period=5s --interval=60s --timeout=3s --retries=3 \
-  CMD curl -f http://localhost:8080/readyz || exit 1
+  CMD curl -f http://localhost:9090/readyz || exit 1
 
 ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]

@@ -16,8 +16,9 @@ import (
 )
 
 var (
-	testSettings      = cryptoutilConfig.RequireNewForTest("application_test")
-	testServerBaseUrl = "http://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort)) + "/"
+	testSettings         = cryptoutilConfig.RequireNewForTest("application_test")
+	testServerPublicUrl  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort)) + "/"
+	testServerPrivateUrl = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort)) + "/"
 )
 
 func TestMain(m *testing.M) {
@@ -34,16 +35,16 @@ func TestHttpGetHttp200(t *testing.T) {
 	}
 	go start()
 	defer stop()
-	cryptoutilClient.WaitUntilReady(&testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
+	cryptoutilClient.WaitUntilReady(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond)
 
 	testCases := []struct {
 		name string
 		url  string
 	}{
-		{name: "Swagger UI root", url: testServerBaseUrl + "swagger"},
-		{name: "Swagger UI index.html", url: testServerBaseUrl + "swagger/index.html"},
-		{name: "OpenAPI Spec", url: testServerBaseUrl + "swagger/doc.json"},
-		{name: "GET Elastic Keys", url: testServerBaseUrl + "elastickeys"},
+		{name: "Swagger UI root", url: testServerPublicUrl + "swagger"},
+		{name: "Swagger UI index.html", url: testServerPublicUrl + "swagger/index.html"},
+		{name: "OpenAPI Spec", url: testServerPublicUrl + "swagger/doc.json"},
+		{name: "GET Elastic Keys", url: testServerPublicUrl + "elastickeys"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {

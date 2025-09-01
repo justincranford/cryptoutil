@@ -23,8 +23,9 @@ import (
 )
 
 var (
-	testSettings      = cryptoutilConfig.RequireNewForTest("client_test")
-	testServerBaseUrl = "http://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort)) + "/"
+	testSettings         = cryptoutilConfig.RequireNewForTest("client_test")
+	testServerPublicUrl  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort)) + "/"
+	testServerPrivateUrl = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort)) + "/"
 )
 
 func TestMain(m *testing.M) {
@@ -36,7 +37,7 @@ func TestMain(m *testing.M) {
 		}
 		go start()
 		defer stop()
-		WaitUntilReady(&testServerBaseUrl, 5*time.Second, 100*time.Millisecond)
+		WaitUntilReady(&testServerPrivateUrl, 5*time.Second, 100*time.Millisecond)
 
 		rc = m.Run()
 	}()
@@ -202,7 +203,7 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 	context := context.Background()
-	openapiClient := RequireClientWithResponses(t, &testServerBaseUrl)
+	openapiClient := RequireClientWithResponses(t, &testServerPublicUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesEncrypt {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
@@ -286,7 +287,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	context := context.Background()
-	openapiClient := RequireClientWithResponses(t, &testServerBaseUrl)
+	openapiClient := RequireClientWithResponses(t, &testServerPublicUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesSign {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
