@@ -3,6 +3,7 @@ package pool
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
@@ -149,6 +150,32 @@ func (pool *ValueGenPool[T]) Get() T {
 		}()
 		return value
 	}
+}
+
+func (pool *ValueGenPool[T]) GetMany(numValues int) []T {
+	if numValues <= 0 {
+		return nil
+	}
+	startTime := time.Now().UTC()
+	if pool.cfg.verbose {
+		pool.cfg.telemetryService.Slogger.Debug("getting many", "pool", pool.cfg.poolName, "count", numValues, "duration", time.Since(startTime).Seconds())
+	}
+	values := make([]T, 0, numValues)
+	var zero T
+	for range numValues {
+		value := pool.Get()
+		if reflect.DeepEqual(value, zero) {
+			if pool.cfg.verbose {
+				pool.cfg.telemetryService.Slogger.Debug("get many cancelled", "pool", pool.cfg.poolName, "requested", numValues, "received", len(values), "duration", time.Since(startTime).Seconds())
+			}
+			break
+		}
+		values = append(values, value)
+	}
+	if pool.cfg.verbose {
+		pool.cfg.telemetryService.Slogger.Debug("got many", "pool", pool.cfg.poolName, "count", len(values), "duration", time.Since(startTime).Seconds())
+	}
+	return values
 }
 
 func (pool *ValueGenPool[T]) Cancel() {

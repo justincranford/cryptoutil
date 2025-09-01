@@ -18,10 +18,8 @@ import (
 )
 
 func TestMutualTLS(t *testing.T) {
-	tlsServerSubjectsKeyPairs, err := GetKeyPairs(4, testKeyGenPool) // End Entity + 2 Intermediate CAs + Root CA
-	require.NoError(t, err, "Failed to get key pairs for CA subjects")
-	tlsClientSubjectsKeyPairs, err := GetKeyPairs(3, testKeyGenPool)
-	require.NoError(t, err, "Failed to get key pairs for CA subjects") // End Entity + 1 Intermediate CA + Root CA
+	tlsServerSubjectsKeyPairs := testKeyGenPool.GetMany(4) // End Entity + 2 Intermediate CAs + Root CA
+	tlsClientSubjectsKeyPairs := testKeyGenPool.GetMany(3) // End Entity + 1 Intermediate CA + Root CA
 
 	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA", 10*365*cryptoutilDateTime.Days1)
 	verifyCASubjects(t, err, tlsServerCASubjects)
@@ -87,8 +85,7 @@ func TestMutualTLS(t *testing.T) {
 }
 
 func TestSerializeCASubjects(t *testing.T) {
-	subjectsKeyPairs, err := GetKeyPairs(3, testKeyGenPool)
-	require.NoError(t, err, "Failed to get key pairs for CA subjects")
+	subjectsKeyPairs := testKeyGenPool.GetMany(3)
 
 	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], 20*365*cryptoutilDateTime.Days1, 2)
 	rootCASubjects := []*Subject{rootCASubject}
@@ -110,9 +107,7 @@ func TestSerializeCASubjects(t *testing.T) {
 }
 
 func TestSerializeEndEntitySubjects(t *testing.T) {
-	subjectsKeyPairs, err := GetKeyPairs(3, testKeyGenPool)
-	require.NoError(t, err, "Failed to get key pairs for CA subjects")
-
+	subjectsKeyPairs := testKeyGenPool.GetMany(3)
 	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", 10*365*cryptoutilDateTime.Days1)
 	verifyCASubjects(t, err, originalCASubjects)
 
@@ -253,7 +248,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.Contains(t, err.Error(), "keyMaterial cannot be nil")
 	})
 	t.Run("nil PublicKey", func(t *testing.T) {
-		keyPair := testKeyGenPool.Get()
+		keyPair := testKeyGenPool.GetMany(1)[0]
 
 		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
 		verifyCertificateTemplate(t, err, certTemplate)
@@ -270,7 +265,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.Contains(t, err.Error(), "PublicKey cannot be nil")
 	})
 	t.Run("empty cert chain", func(t *testing.T) {
-		keyPair := testKeyGenPool.Get()
+		keyPair := testKeyGenPool.GetMany(1)[0]
 		keyMaterial := &KeyMaterial{
 			CertificateChain: []*x509.Certificate{}, // Empty chain should cause error
 			PublicKey:        keyPair.Public,
@@ -280,7 +275,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 		require.Contains(t, err.Error(), "certificate chain cannot be empty")
 	})
 	t.Run("nil cert in chain", func(t *testing.T) {
-		keyPair := testKeyGenPool.Get()
+		keyPair := testKeyGenPool.GetMany(1)[0]
 		keyMaterial := &KeyMaterial{
 			CertificateChain: []*x509.Certificate{nil}, // Nil cert should cause error
 			PublicKey:        keyPair.Public,

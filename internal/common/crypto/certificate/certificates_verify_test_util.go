@@ -2,9 +2,6 @@ package certificate
 
 import (
 	"crypto/x509"
-	"cryptoutil/internal/common/crypto/keygen"
-	cryptoutilPool "cryptoutil/internal/common/pool"
-	"fmt"
 	"net"
 	"net/url"
 	"testing"
@@ -112,16 +109,4 @@ func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject *Subject) 
 		endEntitySubject.IssuerName, endEntitySubject.SubjectName, endEntitySubject.Duration,
 		endEntitySubject.DNSNames, endEntitySubject.IPAddresses,
 		endEntitySubject.EmailAddresses, endEntitySubject.URIs)
-}
-
-func GetKeyPairs(numKeyPairs int, keygenPool *cryptoutilPool.ValueGenPool[*keygen.KeyPair]) ([]*keygen.KeyPair, error) {
-	var keyPairs []*keygen.KeyPair
-	for i := range numKeyPairs {
-		keyPair := keygenPool.Get()
-		if keyPair == nil {
-			return nil, fmt.Errorf("keyPair should not be nil for %d", i)
-		}
-		keyPairs = append(keyPairs, keyPair)
-	}
-	return keyPairs, nil
 }
