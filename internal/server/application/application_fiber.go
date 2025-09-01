@@ -17,7 +17,6 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	telemetryService "cryptoutil/internal/common/telemetry"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
-	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 
 	"github.com/gofiber/contrib/otelfiber"
@@ -88,13 +87,6 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 
 	// Server-side Business Logic
 
-	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, serverApplicationCore.TelemetryService, serverApplicationCore.JwkGenService, serverApplicationCore.OrmRepository, serverApplicationCore.BarrierService)
-	if err != nil {
-		serverApplicationCore.TelemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
-		serverApplicationCore.Shutdown()
-		return nil, nil, fmt.Errorf("failed to initialize business logic service: %w", err)
-	}
-
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		serverApplicationCore.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
@@ -102,7 +94,7 @@ func StartServerApplication(settings *cryptoutilConfig.Settings) (func(), func()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
-	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(businessLogicService)
+	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
 	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code

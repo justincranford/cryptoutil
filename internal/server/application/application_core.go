@@ -10,17 +10,19 @@ import (
 	telemetryService "cryptoutil/internal/common/telemetry"
 	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
+	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 )
 
 type ServerApplicationCore struct {
-	TelemetryService  *telemetryService.TelemetryService
-	SqlRepository     *cryptoutilSqlRepository.SqlRepository
-	JwkGenService     *cryptoutilJose.JwkGenService
-	OrmRepository     *cryptoutilOrmRepository.OrmRepository
-	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
-	BarrierService    *cryptoutilBarrierService.BarrierService
+	TelemetryService     *telemetryService.TelemetryService
+	SqlRepository        *cryptoutilSqlRepository.SqlRepository
+	JwkGenService        *cryptoutilJose.JwkGenService
+	OrmRepository        *cryptoutilOrmRepository.OrmRepository
+	UnsealKeysService    cryptoutilUnsealKeysService.UnsealKeysService
+	BarrierService       *cryptoutilBarrierService.BarrierService
+	BusinessLogicService *cryptoutilBusinessLogic.BusinessLogicService
 }
 
 func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.Settings) (*ServerApplicationCore, error) {
@@ -71,6 +73,14 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 		return nil, fmt.Errorf("failed to create barrier service: %w", err)
 	}
 	serverApplicationCore.BarrierService = barrierService
+
+	businessLogicService, err := cryptoutilBusinessLogic.NewBusinessLogicService(ctx, telemetryService, jwkGenService, ormRepository, barrierService)
+	if err != nil {
+		serverApplicationCore.TelemetryService.Slogger.Error("failed to initialize business logic service", "error", err)
+		serverApplicationCore.Shutdown()
+		return nil, fmt.Errorf("failed to initialize business logic service: %w", err)
+	}
+	serverApplicationCore.BusinessLogicService = businessLogicService
 
 	return serverApplicationCore, nil
 }
