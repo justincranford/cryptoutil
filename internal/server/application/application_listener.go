@@ -15,7 +15,6 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	telemetryService "cryptoutil/internal/common/telemetry"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 
@@ -33,20 +32,27 @@ import (
 	fibermiddleware "github.com/oapi-codegen/fiber-middleware"
 )
 
-const shutdownRequestTimeout = 5 * time.Second
-const livenessRequestTimeout = 3 * time.Second
-const serverShutdownStartTimeout = 50 * time.Millisecond
-const serverShutdownFinishTimeout = 3 * time.Second
-const apiPrivateShutdownPath = "/api/private/shutdown"
-const fiberAppIdKey = "fiberAppId"
-const fiberAppIdPublic = "public"
-const fiberAppIdPrivate = "private"
+const clientShutdownRequestTimeout = 5 * time.Second
+const clientLivenessRequestTimeout = 3 * time.Second
+
+const serverShutdownStartTimeout = 200 * time.Millisecond
+const serverShutdownFinishTimeout = 5 * time.Second
+const serverShutdownRequestPath = "/api/private/shutdown"
+
+const fiberAppIDRequestAttribute = "fiberAppId"
+
+type FiberAppId string
+
+const (
+	FiberAppIdPublic  FiberAppId = "public"
+	FiberAppIdPrivate FiberAppId = "private"
+)
 
 var ready atomic.Bool
 
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	shutdownEndpoint := fmt.Sprintf("%s://%s:%d%s", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort, apiPrivateShutdownPath)
-	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), shutdownRequestTimeout)
+	shutdownEndpoint := fmt.Sprintf("%s://%s:%d%s", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort, serverShutdownRequestPath)
+	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
 	defer shutdownRequestCancel()
 	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, shutdownEndpoint, nil)
 	if err != nil {
@@ -66,7 +72,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 
 	time.Sleep(serverShutdownStartTimeout)
 	livenessEndpoint := fmt.Sprintf("%s://%s:%d/livez", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort)
-	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), livenessRequestTimeout)
+	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
 	defer livenessRequestCancel()
 	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, livenessEndpoint, nil)
 	livenessResponse, err := http.DefaultClient.Do(livenessRequest)
@@ -121,7 +127,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	}
 
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
-	publicFiberApp.Use(setFiberAppId(fiberAppIdPublic))
+	publicFiberApp.Use(setFiberRequestAttribute(FiberAppIdPublic))
 	for _, middleware := range commonMiddlewares {
 		publicFiberApp.Use(middleware)
 	}
@@ -140,12 +146,12 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 
 	var stopServer func() // circular dependency: privateFiberApp -> stopServer -> privateFiberApp
 	privateFiberApp := fiber.New(fiber.Config{Immutable: true})
-	privateFiberApp.Use(setFiberAppId(fiberAppIdPrivate))
+	privateFiberApp.Use(setFiberRequestAttribute(FiberAppIdPrivate))
 	for _, middleware := range commonMiddlewares {
 		privateFiberApp.Use(middleware)
 	}
 	privateFiberApp.Use(healthcheck.New()) // /livez, /readyz
-	privateFiberApp.Post(apiPrivateShutdownPath, func(c *fiber.Ctx) error {
+	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if stopServer != nil {
 			go func() {
@@ -222,9 +228,9 @@ func stopServerSignalFunc(telemetryService *cryptoutilTelemetry.TelemetryService
 	}
 }
 
-func setFiberAppId(fiberAppIdValue string) func(c *fiber.Ctx) error {
+func setFiberRequestAttribute(fiberAppIdValue FiberAppId) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		c.Locals(fiberAppIdKey, fiberAppIdValue)
+		c.Locals(fiberAppIDRequestAttribute, string(fiberAppIdValue))
 		return c.Next()
 	}
 }
@@ -239,7 +245,7 @@ func otelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Telemetr
 	)
 }
 
-func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
+func ipFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
 	if settings.AllowedIPs != "" {
 		for allowedIP := range strings.SplitSeq(settings.AllowedIPs, ",") {
@@ -263,8 +269,8 @@ func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, set
 	}
 
 	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
-		switch c.Locals(fiberAppIdKey) {
-		case fiberAppIdPublic: // Apply IP/CIDR filtering for public app requests
+		switch c.Locals(fiberAppIDRequestAttribute) {
+		case string(FiberAppIdPublic): // Apply IP/CIDR filtering for public app requests
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
 			if parsedIP == nil {
@@ -286,16 +292,16 @@ func ipFilterMiddleware(telemetryService *telemetryService.TelemetryService, set
 			}
 			telemetryService.Slogger.Debug("Access denied:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 			return c.Status(fiber.StatusForbidden).SendString("Access denied")
-		case fiberAppIdPrivate: // Skip IP/CIDR filtering for private app requests
+		case string(FiberAppIdPrivate): // Skip IP/CIDR filtering for private app requests
 			return c.Next()
 		default:
-			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIdKey))
+			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIDRequestAttribute))
 			return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 		}
 	}
 }
 
-func ipRateLimiterMiddleware(telemetryService *telemetryService.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
+func ipRateLimiterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
 	return limiter.New(limiter.Config{ // Mitigate DOS by throttling clients
 		Max:        int(settings.IPRateLimit),
 		Expiration: time.Second,
