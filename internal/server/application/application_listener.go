@@ -132,7 +132,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	}
 	publicFiberApp.Use(corsMiddleware(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
 	publicFiberApp.Use(helmet.New())             // Browser-specific: Cross-Site Scripting (XSS)
-	publicFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF) - disabled in dev mode
+	publicFiberApp.Use(csrfMiddleware(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
 	publicFiberApp.Get("/swagger/doc.json", fiberHandlerOpenAPISpec)
 	swaggerConfig := swagger.Config{
 		Title:                  "Cryptoutil",
