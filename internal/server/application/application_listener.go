@@ -33,11 +33,11 @@ import (
 )
 
 const clientShutdownRequestTimeout = 5 * time.Second
+const clientLivenessStartTimeout = 200 * time.Millisecond
 const clientLivenessRequestTimeout = 3 * time.Second
 
-const serverShutdownStartTimeout = 200 * time.Millisecond
 const serverShutdownFinishTimeout = 5 * time.Second
-const serverShutdownRequestPath = "/api/private/shutdown"
+const serverShutdownRequestPath = "/shutdown"
 
 const fiberAppIDRequestAttribute = "fiberAppId"
 
@@ -51,10 +51,10 @@ const (
 var ready atomic.Bool
 
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	shutdownEndpoint := fmt.Sprintf("%s://%s:%d%s", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort, serverShutdownRequestPath)
+	privateBaseURL := fmt.Sprintf("%s://%s:%d", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort)
 	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
 	defer shutdownRequestCancel()
-	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, shutdownEndpoint, nil)
+	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, privateBaseURL+serverShutdownRequestPath, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create shutdown request: %w", err)
 	}
@@ -70,11 +70,10 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 		return fmt.Errorf("shutdown request failed, status: %s, body: %s", shutdownResponse.Status, string(shutdownResponseBody))
 	}
 
-	time.Sleep(serverShutdownStartTimeout)
-	livenessEndpoint := fmt.Sprintf("%s://%s:%d/livez", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort)
+	time.Sleep(clientLivenessStartTimeout)
 	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
 	defer livenessRequestCancel()
-	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, livenessEndpoint, nil)
+	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, privateBaseURL+"/livez", nil)
 	livenessResponse, err := http.DefaultClient.Do(livenessRequest)
 	if err == nil && livenessResponse != nil {
 		livenessResponse.Body.Close()
@@ -156,7 +155,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if stopServer != nil {
 			go func() {
-				time.Sleep(serverShutdownStartTimeout)
+				time.Sleep(clientLivenessStartTimeout)
 				stopServer()
 			}()
 		}
