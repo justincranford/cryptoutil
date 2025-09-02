@@ -120,16 +120,16 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		publicFiberApp.Use(middleware)
 	}
 
-	// stopServer is served by privateFiberApp, and stops privateFiberApp and publicFiberApp
-	var stopServer func()
+	// shutdownServerFunction stops privateFiberApp and publicFiberApp, it is called via /shutdown hosted by privateFiberApp
+	var shutdownServerFunction func()
 
 	// Private APIs
 	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
-		if stopServer != nil {
+		if shutdownServerFunction != nil {
 			defer func() {
 				time.Sleep(clientLivenessStartTimeout) // allow server small amount of time to finish sending response to client
-				stopServer()
+				shutdownServerFunction()
 			}()
 		}
 		return c.SendString("Server shutdown initiated")
@@ -177,12 +177,12 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 
 	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
 	privateBinding := fmt.Sprintf("%s:%d", settings.BindPrivateAddress, settings.BindPrivatePort)
-	startServer := startServerFunc(publicBinding, privateBinding, publicFiberApp, privateFiberApp, serverApplicationCore.TelemetryService)
-	stopServer = stopServerFunc(serverApplicationCore, publicFiberApp, privateFiberApp)
+	startServerFunction := startServerFunc(publicBinding, privateBinding, publicFiberApp, privateFiberApp, serverApplicationCore.TelemetryService)
+	shutdownServerFunction = stopServerFunc(serverApplicationCore, publicFiberApp, privateFiberApp)
 
-	go stopServerSignalFunc(serverApplicationCore.TelemetryService, stopServer)() // listen for OS signals to gracefully shutdown the server
+	go stopServerSignalFunc(serverApplicationCore.TelemetryService, shutdownServerFunction)() // listen for OS signals to gracefully shutdown the server
 
-	return startServer, stopServer, nil
+	return startServerFunction, shutdownServerFunction, nil
 }
 
 func startServerFunc(publicBinding string, privateBinding string, publicFiberApp *fiber.App, privateFiberApp *fiber.App, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
