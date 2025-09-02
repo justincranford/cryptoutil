@@ -18,6 +18,7 @@ import (
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -119,20 +120,22 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		publicFiberApp.Use(middleware)
 	}
 
-	// APIs
+	// stopServer is served by privateFiberApp, and stops privateFiberApp and publicFiberApp
+	var stopServer func()
 
-	var stopServer func() // Workaround circular dependency: privateFiberApp -> stopServer -> privateFiberApp
+	// Private APIs
 	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if stopServer != nil {
-			go func() {
-				time.Sleep(clientLivenessStartTimeout)
+			defer func() {
+				time.Sleep(clientLivenessStartTimeout) // allow server small amount of time to finish sending response to client
 				stopServer()
 			}()
 		}
 		return c.SendString("Server shutdown initiated")
 	})
 
+	// Public Swagger UI
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		serverApplicationCore.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
@@ -140,30 +143,36 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
-	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
-	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
-	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
-		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code
-			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
-		},
-	}
-
-	fiberHandlerOpenAPISpec, err := cryptoutilOpenapiServer.FiberHandlerOpenAPISpec()
+	swaggerApi.Servers = []*openapi3.Server{{URL: settings.ContextPath}}
+	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec with updated context path
 	if err != nil {
 		serverApplicationCore.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
 		serverApplicationCore.Shutdown()
-		return nil, nil, fmt.Errorf("failed to get fiber handler for OpenAPI spec: %w", err)
+		return nil, nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
 	}
 
-	publicFiberApp.Get("/ui/swagger/doc.json", fiberHandlerOpenAPISpec)
+	publicFiberApp.Get("/ui/swagger/doc.json", func(c *fiber.Ctx) error {
+		c.Set("Content-Type", "application/json")
+		return c.Send(swaggerSpecBytes)
+	})
 	publicFiberApp.Get("/ui/swagger/*", swagger.New(swagger.Config{
 		Title:                  "Cryptoutil API",
-		URL:                    "/ui/swagger/doc.json?baseURL=/",
+		URL:                    "/ui/swagger/doc.json",
 		TryItOutEnabled:        true,
 		DisplayRequestDuration: true,
 		ShowCommonExtensions:   true,
 		CustomScript:           swaggerUICustomCSRFScript,
 	}))
+
+	// Public Swagger APIs
+	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
+	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
+	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+		BaseURL: settings.ContextPath,
+		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code
+			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
+		},
+	}
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, fiberServerOptions)
 
 	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
@@ -337,7 +346,7 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		Next: func(c *fiber.Ctx) bool {
-			if isApiEndpoint(c.OriginalURL()) {
+			if isApiEndpoint(c.OriginalURL(), settings.ContextPath) {
 				return !isBrowserClient(c) || settings.DevMode
 			}
 			return false
@@ -346,10 +355,10 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return csrf.New(csrfConfig)
 }
 
-func isApiEndpoint(url string) bool {
-	return strings.HasPrefix(url, "/elastickey") ||
-		strings.HasPrefix(url, "/elastickeys") ||
-		strings.HasPrefix(url, "/materialkeys")
+func isApiEndpoint(url string, contextPath string) bool {
+	return strings.HasPrefix(url, contextPath+"/elastickey") ||
+		strings.HasPrefix(url, contextPath+"/elastickeys") ||
+		strings.HasPrefix(url, contextPath+"/materialkeys")
 }
 
 func isBrowserClient(c *fiber.Ctx) bool {
