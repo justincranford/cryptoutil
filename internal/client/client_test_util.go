@@ -30,12 +30,12 @@ func WaitUntilReady(baseURL *string, maxTime time.Duration, retryTime time.Durat
 }
 
 func CheckHealthz(baseURL *string) error {
-	url := *baseURL + "healthz"
+	url := *baseURL + "/healthz"
 	return httpGet(&url, 2*time.Second)
 }
 
 func CheckReadyz(baseURL *string) error {
-	url := *baseURL + "readyz"
+	url := *baseURL + "/readyz"
 	return httpGet(&url, 2*time.Second)
 }
 

@@ -27,7 +27,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		BindPrivateProtocol:        bindPrivateProtocol.value.(string),
 		BindPrivateAddress:         bindPrivateAddress.value.(string),
 		BindPrivatePort:            uint16(currentBindPrivatePort.Add(1)),
-		ContextPath:                contextPath.value.(string),
+		APIContextPath:             apiContextPath.value.(string),
 		CORSAllowedOrigins:         corsAllowedOrigins.value.(string),
 		CORSAllowedMethods:         corsAllowedMethods.value.(string),
 		CORSAllowedHeaders:         corsAllowedHeaders.value.(string),

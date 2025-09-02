@@ -143,7 +143,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
-	swaggerApi.Servers = []*openapi3.Server{{URL: settings.ContextPath}}
+	swaggerApi.Servers = []*openapi3.Server{{URL: settings.APIContextPath}}
 	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec with updated context path
 	if err != nil {
 		serverApplicationCore.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
@@ -168,7 +168,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
 	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
-		BaseURL: settings.ContextPath,
+		BaseURL: settings.APIContextPath,
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 		},
@@ -265,8 +265,12 @@ func ipFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, 
 			parsedIP := net.ParseIP(allowedIP) // IPv4 (e.g.  192.0.2.1"), IPv6 (e.g. 2001:db8::68), or IPv4-mapped IPv6 (e.g. ::ffff:192.0.2.1)
 			if parsedIP == nil {
 				telemetryService.Slogger.Error("invalid allowed IP address:", "IP", allowedIP)
+			} else {
+				allowedIPs[allowedIP] = true
+				if settings.DevMode {
+					telemetryService.Slogger.Debug("Parsed IP successfully", "IP", allowedIP, "parsed", parsedIP.String())
+				}
 			}
-			allowedIPs[allowedIP] = true
 		}
 	}
 
@@ -276,8 +280,12 @@ func ipFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, 
 			_, network, err := net.ParseCIDR(allowedCIDR) // "192.0.2.1/24" => 192.0.2.1 (not useful) and 192.0.2.0/24 (useful)
 			if err != nil {
 				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, "error", err)
+			} else {
+				allowedCIDRs = append(allowedCIDRs, network)
+				if settings.DevMode {
+					telemetryService.Slogger.Debug("Parsed CIDR successfully", "CIDR", allowedCIDR, "network", network.String())
+				}
 			}
-			allowedCIDRs = append(allowedCIDRs, network)
 		}
 	}
 
@@ -346,7 +354,7 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		Next: func(c *fiber.Ctx) bool {
-			if isApiEndpoint(c.OriginalURL(), settings.ContextPath) {
+			if isApiEndpoint(c.OriginalURL(), settings.APIContextPath) {
 				return !isBrowserClient(c) || settings.DevMode
 			}
 			return false
@@ -355,10 +363,10 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return csrf.New(csrfConfig)
 }
 
-func isApiEndpoint(url string, contextPath string) bool {
-	return strings.HasPrefix(url, contextPath+"/elastickey") ||
-		strings.HasPrefix(url, contextPath+"/elastickeys") ||
-		strings.HasPrefix(url, contextPath+"/materialkeys")
+func isApiEndpoint(url string, apiContextPath string) bool {
+	return strings.HasPrefix(url, apiContextPath+"/elastickey") ||
+		strings.HasPrefix(url, apiContextPath+"/elastickeys") ||
+		strings.HasPrefix(url, apiContextPath+"/materialkeys")
 }
 
 func isBrowserClient(c *fiber.Ctx) bool {

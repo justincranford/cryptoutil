@@ -17,8 +17,8 @@ import (
 
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("application_test")
-	testServerPublicUrl  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort)) + "/"
-	testServerPrivateUrl = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort)) + "/"
+	testServerPublicUrl  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
+	testServerPrivateUrl = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
 )
 
 func TestMain(m *testing.M) {
@@ -41,10 +41,10 @@ func TestHttpGetHttp200(t *testing.T) {
 		name string
 		url  string
 	}{
-		{name: "Swagger UI root", url: testServerPublicUrl + "ui/swagger"},
-		{name: "Swagger UI index.html", url: testServerPublicUrl + "ui/swagger/index.html"},
-		{name: "OpenAPI Spec", url: testServerPublicUrl + "ui/swagger/doc.json"},
-		{name: "GET Elastic Keys", url: testServerPublicUrl + "elastickeys"},
+		{name: "Swagger UI root", url: testServerPublicUrl + "/ui/swagger"},
+		{name: "Swagger UI index.html", url: testServerPublicUrl + "/ui/swagger/index.html"},
+		{name: "OpenAPI Spec", url: testServerPublicUrl + "/ui/swagger/doc.json"},
+		{name: "GET Elastic Keys", url: testServerPublicUrl + testSettings.APIContextPath + "/elastickeys"},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {

@@ -23,7 +23,7 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, bindPrivateProtocol.value, s.BindPrivateProtocol)
 	assert.Equal(t, bindPrivateAddress.value, s.BindPrivateAddress)
 	assert.Equal(t, bindPrivatePort.value, s.BindPrivatePort)
-	assert.Equal(t, contextPath.value, s.ContextPath)
+	assert.Equal(t, apiContextPath.value, s.APIContextPath)
 	assert.Equal(t, corsAllowedOrigins.value, s.CORSAllowedOrigins)
 	assert.Equal(t, corsAllowedMethods.value, s.CORSAllowedMethods)
 	assert.Equal(t, corsAllowedHeaders.value, s.CORSAllowedHeaders)
@@ -63,7 +63,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--bind-private-protocol=https",
 		"--bind-private-address=192.168.1.3",
 		"--bind-private-port=19090",
-		"--context-path=/custom",
+		"--api-context-path=/custom",
 		"--cors-origins=https://example.com",
 		"--cors-methods=GET,POST",
 		"--cors-headers=X-Custom-Header",
@@ -102,7 +102,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "https", s.BindPrivateProtocol)
 	assert.Equal(t, "192.168.1.3", s.BindPrivateAddress)
 	assert.Equal(t, uint16(19090), s.BindPrivatePort)
-	assert.Equal(t, "/custom", s.ContextPath)
+	assert.Equal(t, "/custom", s.APIContextPath)
 	assert.Equal(t, "https://example.com", s.CORSAllowedOrigins)
 	assert.Equal(t, "GET,POST", s.CORSAllowedMethods)
 	assert.Equal(t, "X-Custom-Header", s.CORSAllowedHeaders)
