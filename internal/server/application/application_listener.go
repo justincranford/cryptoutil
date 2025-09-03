@@ -143,7 +143,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
-	swaggerApi.Servers = []*openapi3.Server{{URL: settings.APIContextPath}}
+	swaggerApi.Servers = []*openapi3.Server{{URL: settings.PublicUIAPIContextPath}}
 	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec with updated context path
 	if err != nil {
 		serverApplicationCore.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
@@ -168,7 +168,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
 	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
-		BaseURL: settings.APIContextPath,
+		BaseURL: settings.PublicUIAPIContextPath,
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 		},
@@ -354,7 +354,7 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		Next: func(c *fiber.Ctx) bool {
-			if isApiEndpoint(c.OriginalURL(), settings.APIContextPath) {
+			if isApiEndpoint(c.OriginalURL(), settings.PublicUIAPIContextPath) {
 				return !isBrowserClient(c) || settings.DevMode
 			}
 			return false
@@ -363,10 +363,10 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return csrf.New(csrfConfig)
 }
 
-func isApiEndpoint(url string, apiContextPath string) bool {
-	return strings.HasPrefix(url, apiContextPath+"/elastickey") ||
-		strings.HasPrefix(url, apiContextPath+"/elastickeys") ||
-		strings.HasPrefix(url, apiContextPath+"/materialkeys")
+func isApiEndpoint(url string, publicUIAPIContextPath string) bool {
+	return strings.HasPrefix(url, publicUIAPIContextPath+"/elastickey") ||
+		strings.HasPrefix(url, publicUIAPIContextPath+"/elastickeys") ||
+		strings.HasPrefix(url, publicUIAPIContextPath+"/materialkeys")
 }
 
 func isBrowserClient(c *fiber.Ctx) bool {

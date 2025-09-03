@@ -45,7 +45,7 @@ type Settings struct {
 	BindPrivateProtocol        string
 	BindPrivateAddress         string
 	BindPrivatePort            uint16
-	APIContextPath             string
+	PublicUIAPIContextPath     string
 	CORSAllowedOrigins         string
 	CORSAllowedMethods         string
 	CORSAllowedHeaders         string
@@ -146,7 +146,7 @@ var (
 		value:     uint16(9090),
 		usage:     "bind private port",
 	}
-	apiContextPath = Setting{
+	publicUIAPIContextPath = Setting{
 		name:      "api-context-path",
 		shorthand: "c",
 		value:     "/api/v1",
@@ -376,7 +376,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, bindPrivateProtocol.value.(string), bindPrivateProtocol.usage)
 	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, bindPrivateAddress.value.(string), bindPrivateAddress.usage)
 	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, bindPrivatePort.value.(uint16), bindPrivatePort.usage)
-	pflag.StringP(apiContextPath.name, apiContextPath.shorthand, apiContextPath.value.(string), apiContextPath.usage)
+	pflag.StringP(publicUIAPIContextPath.name, publicUIAPIContextPath.shorthand, publicUIAPIContextPath.value.(string), publicUIAPIContextPath.usage)
 	pflag.StringP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, corsAllowedOrigins.value.(string), corsAllowedOrigins.usage)
 	pflag.StringP(corsAllowedMethods.name, corsAllowedMethods.shorthand, corsAllowedMethods.value.(string), corsAllowedMethods.usage)
 	pflag.StringP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, corsAllowedHeaders.value.(string), corsAllowedHeaders.usage)
@@ -430,7 +430,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		BindPrivateProtocol:        viper.GetString(bindPrivateProtocol.name),
 		BindPrivateAddress:         viper.GetString(bindPrivateAddress.name),
 		BindPrivatePort:            viper.GetUint16(bindPrivatePort.name),
-		APIContextPath:             viper.GetString(apiContextPath.name),
+		PublicUIAPIContextPath:     viper.GetString(publicUIAPIContextPath.name),
 		CORSAllowedOrigins:         viper.GetString(corsAllowedOrigins.name),
 		CORSAllowedMethods:         viper.GetString(corsAllowedMethods.name),
 		CORSAllowedHeaders:         viper.GetString(corsAllowedHeaders.name),
@@ -481,7 +481,7 @@ func logSettings(s *Settings) {
 		log.Info("Bind Private Protocol: ", s.BindPrivateProtocol)
 		log.Info("Bind Private Address: ", s.BindPrivateAddress)
 		log.Info("Bind Private Port: ", s.BindPrivatePort)
-		log.Info("API Context Path: ", s.APIContextPath)
+		log.Info("API Context Path: ", s.PublicUIAPIContextPath)
 		log.Info("CORS Allowed Origins: ", s.CORSAllowedOrigins)
 		log.Info("CORS Allowed Methods: ", s.CORSAllowedMethods)
 		log.Info("CORS Allowed Headers: ", s.CORSAllowedHeaders)
