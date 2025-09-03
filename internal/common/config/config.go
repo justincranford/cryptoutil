@@ -33,41 +33,42 @@ const (
 )
 
 type Settings struct {
-	SubCommand                 string
-	Help                       bool
-	ConfigFile                 string
-	LogLevel                   string
-	VerboseMode                bool
-	DevMode                    bool
-	BindPublicProtocol         string
-	BindPublicAddress          string
-	BindPublicPort             uint16
-	BindPrivateProtocol        string
-	BindPrivateAddress         string
-	BindPrivatePort            uint16
-	PublicUIAPIContextPath     string
-	CORSAllowedOrigins         string
-	CORSAllowedMethods         string
-	CORSAllowedHeaders         string
-	CORSMaxAge                 uint16
-	CSRFTokenName              string
-	CSRFTokenSameSite          string
-	CSRFTokenMaxAge            time.Duration
-	CSRFTokenCookieSecure      bool
-	CSRFTokenCookieHTTPOnly    bool
-	CSRFTokenCookieSessionOnly bool
-	IPRateLimit                uint16
-	AllowedIPs                 string
-	AllowedCIDRs               string
-	DatabaseContainer          string
-	DatabaseURL                string
-	DatabaseInitTotalTimeout   time.Duration
-	DatabaseInitRetryWait      time.Duration
-	OTLP                       bool
-	OTLPConsole                bool
-	OTLPScope                  string
-	UnsealMode                 string
-	UnsealFiles                []string
+	SubCommand                  string
+	Help                        bool
+	ConfigFile                  string
+	LogLevel                    string
+	VerboseMode                 bool
+	DevMode                     bool
+	BindPublicProtocol          string
+	BindPublicAddress           string
+	BindPublicPort              uint16
+	BindPrivateProtocol         string
+	BindPrivateAddress          string
+	BindPrivatePort             uint16
+	PublicBrowserAPIContextPath string
+	PublicServiceAPIContextPath string
+	CORSAllowedOrigins          string
+	CORSAllowedMethods          string
+	CORSAllowedHeaders          string
+	CORSMaxAge                  uint16
+	CSRFTokenName               string
+	CSRFTokenSameSite           string
+	CSRFTokenMaxAge             time.Duration
+	CSRFTokenCookieSecure       bool
+	CSRFTokenCookieHTTPOnly     bool
+	CSRFTokenCookieSessionOnly  bool
+	IPRateLimit                 uint16
+	AllowedIPs                  string
+	AllowedCIDRs                string
+	DatabaseContainer           string
+	DatabaseURL                 string
+	DatabaseInitTotalTimeout    time.Duration
+	DatabaseInitRetryWait       time.Duration
+	OTLP                        bool
+	OTLPConsole                 bool
+	OTLPScope                   string
+	UnsealMode                  string
+	UnsealFiles                 []string
 }
 
 // Setting Input values for pflag.*P(name, shortname, value, usage)
@@ -146,10 +147,16 @@ var (
 		value:     uint16(9090),
 		usage:     "bind private port",
 	}
-	publicUIAPIContextPath = Setting{
-		name:      "api-context-path",
+	publicBrowserAPIContextPath = Setting{
+		name:      "browser-api-context-path",
 		shorthand: "c",
-		value:     "/api/v1",
+		value:     "/browser/api/v1",
+		usage:     "context path for API",
+	}
+	publicServiceAPIContextPath = Setting{
+		name:      "service-api-context-path",
+		shorthand: "b",
+		value:     "/service/api/v1",
 		usage:     "context path for API",
 	}
 	corsAllowedOrigins = Setting{
@@ -376,7 +383,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, bindPrivateProtocol.value.(string), bindPrivateProtocol.usage)
 	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, bindPrivateAddress.value.(string), bindPrivateAddress.usage)
 	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, bindPrivatePort.value.(uint16), bindPrivatePort.usage)
-	pflag.StringP(publicUIAPIContextPath.name, publicUIAPIContextPath.shorthand, publicUIAPIContextPath.value.(string), publicUIAPIContextPath.usage)
+	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, publicBrowserAPIContextPath.value.(string), publicBrowserAPIContextPath.usage)
+	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, publicServiceAPIContextPath.value.(string), publicServiceAPIContextPath.usage)
 	pflag.StringP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, corsAllowedOrigins.value.(string), corsAllowedOrigins.usage)
 	pflag.StringP(corsAllowedMethods.name, corsAllowedMethods.shorthand, corsAllowedMethods.value.(string), corsAllowedMethods.usage)
 	pflag.StringP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, corsAllowedHeaders.value.(string), corsAllowedHeaders.usage)
@@ -418,41 +426,42 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	}
 
 	s := &Settings{
-		SubCommand:                 subCommand,
-		Help:                       viper.GetBool(help.name),
-		ConfigFile:                 viper.GetString(configFile.name),
-		LogLevel:                   viper.GetString(logLevel.name),
-		VerboseMode:                viper.GetBool(verboseMode.name),
-		DevMode:                    viper.GetBool(devMode.name),
-		BindPublicProtocol:         viper.GetString(bindPublicProtocol.name),
-		BindPublicAddress:          viper.GetString(bindPublicAddress.name),
-		BindPublicPort:             viper.GetUint16(bindPublicPort.name),
-		BindPrivateProtocol:        viper.GetString(bindPrivateProtocol.name),
-		BindPrivateAddress:         viper.GetString(bindPrivateAddress.name),
-		BindPrivatePort:            viper.GetUint16(bindPrivatePort.name),
-		PublicUIAPIContextPath:     viper.GetString(publicUIAPIContextPath.name),
-		CORSAllowedOrigins:         viper.GetString(corsAllowedOrigins.name),
-		CORSAllowedMethods:         viper.GetString(corsAllowedMethods.name),
-		CORSAllowedHeaders:         viper.GetString(corsAllowedHeaders.name),
-		CORSMaxAge:                 viper.GetUint16(corsMaxAge.name),
-		CSRFTokenName:              viper.GetString(csrfTokenName.name),
-		CSRFTokenSameSite:          viper.GetString(csrfTokenSameSite.name),
-		CSRFTokenMaxAge:            viper.GetDuration(csrfTokenMaxAge.name),
-		CSRFTokenCookieSecure:      viper.GetBool(csrfTokenCookieSecure.name),
-		CSRFTokenCookieHTTPOnly:    viper.GetBool(csrfTokenCookieHTTPOnly.name),
-		CSRFTokenCookieSessionOnly: viper.GetBool(csrfTokenCookieSessionOnly.name),
-		IPRateLimit:                viper.GetUint16(ipRateLimit.name),
-		AllowedIPs:                 viper.GetString(allowedIps.name),
-		AllowedCIDRs:               viper.GetString(allowedCidrs.name),
-		DatabaseContainer:          viper.GetString(databaseContainer.name),
-		DatabaseURL:                viper.GetString(databaseURL.name),
-		DatabaseInitTotalTimeout:   viper.GetDuration(databaseInitTotalTimeout.name),
-		DatabaseInitRetryWait:      viper.GetDuration(databaseInitRetryWait.name),
-		OTLP:                       viper.GetBool(otlp.name),
-		OTLPConsole:                viper.GetBool(otlpConsole.name),
-		OTLPScope:                  viper.GetString(otlpScope.name),
-		UnsealMode:                 viper.GetString(unsealMode.name),
-		UnsealFiles:                viper.GetStringSlice(unsealFiles.name),
+		SubCommand:                  subCommand,
+		Help:                        viper.GetBool(help.name),
+		ConfigFile:                  viper.GetString(configFile.name),
+		LogLevel:                    viper.GetString(logLevel.name),
+		VerboseMode:                 viper.GetBool(verboseMode.name),
+		DevMode:                     viper.GetBool(devMode.name),
+		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),
+		BindPublicAddress:           viper.GetString(bindPublicAddress.name),
+		BindPublicPort:              viper.GetUint16(bindPublicPort.name),
+		BindPrivateProtocol:         viper.GetString(bindPrivateProtocol.name),
+		BindPrivateAddress:          viper.GetString(bindPrivateAddress.name),
+		BindPrivatePort:             viper.GetUint16(bindPrivatePort.name),
+		PublicBrowserAPIContextPath: viper.GetString(publicBrowserAPIContextPath.name),
+		PublicServiceAPIContextPath: viper.GetString(publicServiceAPIContextPath.name),
+		CORSAllowedOrigins:          viper.GetString(corsAllowedOrigins.name),
+		CORSAllowedMethods:          viper.GetString(corsAllowedMethods.name),
+		CORSAllowedHeaders:          viper.GetString(corsAllowedHeaders.name),
+		CORSMaxAge:                  viper.GetUint16(corsMaxAge.name),
+		CSRFTokenName:               viper.GetString(csrfTokenName.name),
+		CSRFTokenSameSite:           viper.GetString(csrfTokenSameSite.name),
+		CSRFTokenMaxAge:             viper.GetDuration(csrfTokenMaxAge.name),
+		CSRFTokenCookieSecure:       viper.GetBool(csrfTokenCookieSecure.name),
+		CSRFTokenCookieHTTPOnly:     viper.GetBool(csrfTokenCookieHTTPOnly.name),
+		CSRFTokenCookieSessionOnly:  viper.GetBool(csrfTokenCookieSessionOnly.name),
+		IPRateLimit:                 viper.GetUint16(ipRateLimit.name),
+		AllowedIPs:                  viper.GetString(allowedIps.name),
+		AllowedCIDRs:                viper.GetString(allowedCidrs.name),
+		DatabaseContainer:           viper.GetString(databaseContainer.name),
+		DatabaseURL:                 viper.GetString(databaseURL.name),
+		DatabaseInitTotalTimeout:    viper.GetDuration(databaseInitTotalTimeout.name),
+		DatabaseInitRetryWait:       viper.GetDuration(databaseInitRetryWait.name),
+		OTLP:                        viper.GetBool(otlp.name),
+		OTLPConsole:                 viper.GetBool(otlpConsole.name),
+		OTLPScope:                   viper.GetString(otlpScope.name),
+		UnsealMode:                  viper.GetString(unsealMode.name),
+		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
 	}
 	logSettings(s)
 
@@ -481,7 +490,8 @@ func logSettings(s *Settings) {
 		log.Info("Bind Private Protocol: ", s.BindPrivateProtocol)
 		log.Info("Bind Private Address: ", s.BindPrivateAddress)
 		log.Info("Bind Private Port: ", s.BindPrivatePort)
-		log.Info("API Context Path: ", s.PublicUIAPIContextPath)
+		log.Info("Public Browser API Context Path: ", s.PublicBrowserAPIContextPath)
+		log.Info("Public Service API Context Path: ", s.PublicServiceAPIContextPath)
 		log.Info("CORS Allowed Origins: ", s.CORSAllowedOrigins)
 		log.Info("CORS Allowed Methods: ", s.CORSAllowedMethods)
 		log.Info("CORS Allowed Headers: ", s.CORSAllowedHeaders)
