@@ -151,13 +151,13 @@ var (
 		name:      "browser-api-context-path",
 		shorthand: "c",
 		value:     "/browser/api/v1",
-		usage:     "context path for API",
+		usage:     "context path for Public Browser API",
 	}
 	publicServiceAPIContextPath = Setting{
 		name:      "service-api-context-path",
 		shorthand: "b",
 		value:     "/service/api/v1",
-		usage:     "context path for API",
+		usage:     "context path for Public Server API",
 	}
 	corsAllowedOrigins = Setting{
 		name:      "cors-origins",

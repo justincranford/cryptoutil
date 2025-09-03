@@ -143,6 +143,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
+	// TODO Change to testServerPublicBrowserAPIUrl
 	swaggerApi.Servers = []*openapi3.Server{{URL: settings.PublicBrowserAPIContextPath}}
 	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec with updated context path
 	if err != nil {
@@ -168,6 +169,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
 	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+		// TODO Change to testServerPublicBrowserAPIUrl
 		BaseURL: settings.PublicBrowserAPIContextPath,
 		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code
 			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
@@ -354,6 +356,7 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		Next: func(c *fiber.Ctx) bool {
+			// TODO Change to testServerPublicBrowserAPIUrl
 			if isApiEndpoint(c.OriginalURL(), settings.PublicBrowserAPIContextPath) {
 				return !isBrowserClient(c) || settings.DevMode
 			}
@@ -363,6 +366,7 @@ func csrfMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return csrf.New(csrfConfig)
 }
 
+// TODO Change to testServerPublicBrowserAPIUrl
 func isApiEndpoint(url string, publicBrowserAPIContextPath string) bool {
 	return strings.HasPrefix(url, publicBrowserAPIContextPath+"/elastickey") ||
 		strings.HasPrefix(url, publicBrowserAPIContextPath+"/elastickeys") ||

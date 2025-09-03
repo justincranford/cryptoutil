@@ -44,6 +44,7 @@ func TestHttpGetHttp200(t *testing.T) {
 		{name: "Swagger UI root", url: testServerPublicUrl + "/ui/swagger"},
 		{name: "Swagger UI index.html", url: testServerPublicUrl + "/ui/swagger/index.html"},
 		{name: "OpenAPI Spec", url: testServerPublicUrl + "/ui/swagger/doc.json"},
+		// TODO Change to testServerPublicBrowserAPIUrl
 		{name: "GET Elastic Keys", url: testServerPublicUrl + testSettings.PublicBrowserAPIContextPath + "/elastickeys"},
 	}
 	for _, testCase := range testCases {

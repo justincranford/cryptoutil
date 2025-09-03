@@ -203,8 +203,9 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 	context := context.Background()
-	testServerPublicAPIUrl := testServerPublicUrl + testSettings.PublicBrowserAPIContextPath
-	openapiClient := RequireClientWithResponses(t, &testServerPublicAPIUrl)
+	// TODO Change to testServerPublicBrowserAPIUrl
+	testServerPublicBrowserAPIUrl := testServerPublicUrl + testSettings.PublicBrowserAPIContextPath
+	openapiClient := RequireClientWithResponses(t, &testServerPublicBrowserAPIUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesEncrypt {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
@@ -288,8 +289,9 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	context := context.Background()
-	testServerPublicAPIUrl := testServerPublicUrl + testSettings.PublicBrowserAPIContextPath
-	openapiClient := RequireClientWithResponses(t, &testServerPublicAPIUrl)
+	// TODO Change to testServerPublicBrowserAPIUrl
+	testServerPublicBrowserAPIUrl := testServerPublicUrl + testSettings.PublicBrowserAPIContextPath
+	openapiClient := RequireClientWithResponses(t, &testServerPublicBrowserAPIUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesSign {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
