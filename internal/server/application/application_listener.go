@@ -96,7 +96,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	commonMiddlewares := []fiber.Handler{
 		recover.New(),
 		requestid.New(),
-		logger.New(), // TODO Remove this since it prints unstructured logs, and doesn't push to OpenTelemetry
+		logger.New(), // TODO Replace this with improved otelFiberTelemetryMiddleware; unstructured logs and no OpenTelemetry are undesirable
 		otelFiberTelemetryMiddleware(serverApplicationCore.TelemetryService, settings),
 		otelFiberRequestLoggerMiddleware(serverApplicationCore.TelemetryService),
 		ipFilterMiddleware(serverApplicationCore.TelemetryService, settings),
@@ -143,9 +143,11 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
-	// TODO Change to testServerPublicBrowserAPIUrl
-	swaggerApi.Servers = []*openapi3.Server{{URL: settings.PublicBrowserAPIContextPath}}
-	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec with updated context path
+	swaggerApi.Servers = []*openapi3.Server{
+		{URL: settings.PublicBrowserAPIContextPath},
+		{URL: settings.PublicServiceAPIContextPath}
+	}
+	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec to JSON with the added public server context path
 	if err != nil {
 		serverApplicationCore.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
 		serverApplicationCore.Shutdown()
@@ -165,17 +167,22 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		CustomScript:           swaggerUICustomCSRFScript,
 	}))
 
-	// Public Swagger APIs
+	// Swagger APIs, will be double exposed on publicFiberApp, but with different security middlewares (i.e. browser user vs machine client)
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
-	fiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
-		// TODO Change to testServerPublicBrowserAPIUrl
-		BaseURL: settings.PublicBrowserAPIContextPath,
-		Middlewares: []cryptoutilOpenapiServer.MiddlewareFunc{ // Defined as MiddlewareFunc => Fiber.Handler in generated code
-			fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
-		},
+	oapiMiddlewareFiberRequestValidators := []cryptoutilOpenapiServer.MiddlewareFunc{
+		fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 	}
-	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, fiberServerOptions)
+	publicBrowserFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+		BaseURL:     settings.PublicBrowserAPIContextPath,
+		Middlewares: oapiMiddlewareFiberRequestValidators,
+	}
+	publicServiceFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
+		BaseURL:     settings.PublicServiceAPIContextPath,
+		Middlewares: oapiMiddlewareFiberRequestValidators,
+	}
+	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicBrowserFiberServerOptions)
+	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicServiceFiberServerOptions)
 
 	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
 	privateBinding := fmt.Sprintf("%s:%d", settings.BindPrivateAddress, settings.BindPrivatePort)
