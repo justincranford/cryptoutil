@@ -101,7 +101,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		commonOtelFiberRequestLoggerMiddleware(serverApplicationCore.TelemetryService),
 		commonIPFilterMiddleware(serverApplicationCore.TelemetryService, settings),
 		commonIPRateLimiterMiddleware(serverApplicationCore.TelemetryService, settings),
-		commonHTTPGETCacheControlMiddleware(),
+		commonHTTPGETCacheControlMiddleware(), // TODO Limit this to Swagger GET APIs, not Swagger UI static content
 	}
 
 	privateMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
@@ -170,16 +170,16 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	// Swagger APIs, will be double exposed on publicFiberApp, but with different security middlewares (i.e. browser user vs machine client)
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
-	oapiMiddlewareFiberRequestValidators := []cryptoutilOpenapiServer.MiddlewareFunc{
+	commonOapiMiddlewareFiberRequestValidators := []cryptoutilOpenapiServer.MiddlewareFunc{
 		fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
 	}
 	publicBrowserFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
 		BaseURL:     settings.PublicBrowserAPIContextPath,
-		Middlewares: oapiMiddlewareFiberRequestValidators,
+		Middlewares: commonOapiMiddlewareFiberRequestValidators,
 	}
 	publicServiceFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
 		BaseURL:     settings.PublicServiceAPIContextPath,
-		Middlewares: oapiMiddlewareFiberRequestValidators,
+		Middlewares: commonOapiMiddlewareFiberRequestValidators,
 	}
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicBrowserFiberServerOptions)
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicServiceFiberServerOptions)
@@ -305,16 +305,16 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 				}
 				return c.Next() // IP is contained in the allowed IPs set
 			}
-			for _, cidr := range allowedCIDRs {
-				if cidr.Contains(parsedIP) {
+			for _, allowedCIDR := range allowedCIDRs {
+				if allowedCIDR.Contains(parsedIP) {
 					if settings.VerboseMode {
 						telemetryService.Slogger.Debug("Allowed CIDR:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 					}
-					return c.Next() // IP is contained in the allowed CIDRs
+					return c.Next() // IP is contained in the allowed CIDRs list
 				}
 			}
 			telemetryService.Slogger.Debug("Access denied:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
-			return c.Status(fiber.StatusForbidden).SendString("Access denied")
+			return c.Status(fiber.StatusForbidden).SendString("Access denied: IP not allowed")
 		case string(fiberAppIDPrivate): // Skip IP/CIDR filtering for private app requests
 			return c.Next()
 		default:
