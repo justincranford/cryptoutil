@@ -10,7 +10,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func otelFiberRequestLoggerMiddleware(telemetryService *telemetryService.TelemetryService) fiber.Handler {
+func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.TelemetryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now().UTC()
 		err := c.Next()
