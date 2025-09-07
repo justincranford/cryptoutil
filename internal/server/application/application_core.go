@@ -17,8 +17,8 @@ import (
 
 type ServerApplicationCore struct {
 	TelemetryService     *telemetryService.TelemetryService
-	SqlRepository        *cryptoutilSqlRepository.SqlRepository
 	JwkGenService        *cryptoutilJose.JwkGenService
+	SqlRepository        *cryptoutilSqlRepository.SqlRepository
 	OrmRepository        *cryptoutilOrmRepository.OrmRepository
 	UnsealKeysService    cryptoutilUnsealKeysService.UnsealKeysService
 	BarrierService       *cryptoutilBarrierService.BarrierService
@@ -34,14 +34,6 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	}
 	serverApplicationCore.TelemetryService = telemetryService
 
-	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, settings)
-	if err != nil {
-		telemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
-		serverApplicationCore.Shutdown()
-		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
-	}
-	serverApplicationCore.SqlRepository = sqlRepository
-
 	jwkGenService, err := cryptoutilJose.NewJwkGenService(ctx, telemetryService)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
@@ -49,6 +41,14 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 		return nil, fmt.Errorf("failed to create JWK Gen Service: %w", err)
 	}
 	serverApplicationCore.JwkGenService = jwkGenService
+
+	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, telemetryService, settings)
+	if err != nil {
+		telemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
+		serverApplicationCore.Shutdown()
+		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
+	}
+	serverApplicationCore.SqlRepository = sqlRepository
 
 	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, telemetryService, sqlRepository, jwkGenService, settings)
 	if err != nil {
@@ -99,11 +99,11 @@ func (c *ServerApplicationCore) Shutdown() func() {
 		if c.OrmRepository != nil {
 			c.OrmRepository.Shutdown()
 		}
-		if c.JwkGenService != nil {
-			c.JwkGenService.Shutdown()
-		}
 		if c.SqlRepository != nil {
 			c.SqlRepository.Shutdown()
+		}
+		if c.JwkGenService != nil {
+			c.JwkGenService.Shutdown()
 		}
 		if c.TelemetryService != nil {
 			c.TelemetryService.Shutdown()
