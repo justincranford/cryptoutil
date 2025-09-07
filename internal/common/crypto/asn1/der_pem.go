@@ -27,6 +27,49 @@ var PemTypes = []string{
 	PemTypePkcs8PrivateKey, PemTypePkixPublicKey, PemTypeRsaPrivateKey, PemTypeRsaPublicKey, PemTypeEcPrivateKey, PemTypeCertificate, PemTypeCsr, PemTypeSecretKey,
 }
 
+func PemEncodes(keys any) ([][]byte, error) {
+	switch expression := keys.(type) {
+	case []*x509.Certificate:
+		var pemBytesList [][]byte
+		for _, k := range expression {
+			pemBytes, err := PemEncode(k)
+			if err != nil {
+				return nil, fmt.Errorf("encode failed: %w", err)
+			}
+			pemBytesList = append(pemBytesList, pemBytes)
+		}
+		return pemBytesList, nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", keys)
+	}
+}
+
+func DerEncodes(key any) ([][]byte, error) {
+	var derBytesList [][]byte
+	switch expression := key.(type) {
+	case []*x509.Certificate:
+		for _, k := range expression {
+			derBytes, _, err := DerEncode(k)
+			if err != nil {
+				return nil, fmt.Errorf("encode failed: %w", err)
+			}
+			derBytesList = append(derBytesList, derBytes)
+		}
+		return derBytesList, nil
+	default:
+		return nil, fmt.Errorf("unsupported type: %T", key)
+	}
+}
+
+func PemEncode(key any) ([]byte, error) {
+	derBytes, pemType, err := DerEncode(key)
+	if err != nil {
+		return nil, fmt.Errorf("encode failed: %w", err)
+	}
+	pemBytes := pem.EncodeToMemory(&pem.Block{Bytes: derBytes, Type: pemType})
+	return pemBytes, nil
+}
+
 func DerEncode(key any) ([]byte, string, error) {
 	switch x509Type := key.(type) {
 	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ecdh.PrivateKey:
@@ -50,15 +93,6 @@ func DerEncode(key any) ([]byte, string, error) {
 	default:
 		return nil, "", fmt.Errorf("not supported [%T]", x509Type)
 	}
-}
-
-func PemEncode(key any) ([]byte, error) {
-	derBytes, pemType, err := DerEncode(key)
-	if err != nil {
-		return nil, fmt.Errorf("encode failed: %w", err)
-	}
-	pemBytes := pem.EncodeToMemory(&pem.Block{Bytes: derBytes, Type: pemType})
-	return pemBytes, nil
 }
 
 func DerDecode(bytes []byte, x509Type string) (any, error) {
