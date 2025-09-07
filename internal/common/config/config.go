@@ -359,16 +359,17 @@ var defaultAllowedCIDRs = func() string {
 var subcommands = map[string]struct{}{
 	"start": {},
 	"stop":  {},
+	"init":  {},
 }
 
 // TODO Server only parameters?
 func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if len(commandParameters) == 0 {
-		return nil, fmt.Errorf("missing subcommand: use \"start\" or \"stop\"")
+		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", or \"init\"")
 	}
 	subCommand := commandParameters[0]
 	if _, ok := subcommands[subCommand]; !ok {
-		return nil, fmt.Errorf("invalid subcommand: use \"start\" or \"stop\"")
+		return nil, fmt.Errorf("invalid subcommand: use \"start\", \"stop\", or \"init\"")
 	}
 	subCommandParameters := commandParameters[1:]
 
