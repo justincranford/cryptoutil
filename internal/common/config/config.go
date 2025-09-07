@@ -361,6 +361,7 @@ var subcommands = map[string]struct{}{
 	"stop":  {},
 }
 
+// TODO Server only parameters?
 func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if len(commandParameters) == 0 {
 		return nil, fmt.Errorf("missing subcommand: use \"start\" or \"stop\"")
