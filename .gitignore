@@ -27,3 +27,7 @@ go.work.sum
 .env
 .idea/
 output/
+
+# ASN.1/DER/PEM encoded files
+*.pem
+*.der
