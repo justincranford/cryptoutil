@@ -44,7 +44,7 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	if err != nil {
 		return fmt.Errorf("failed to encode certificate chain to PEM: %w", err)
 	}
-	publicTLSPrivateKeyPEM, err := asn1.PemEncodes(publicTLSServerEndEntitySubject.KeyMaterial.PrivateKey)
+	publicTLSPrivateKeyPEM, err := asn1.PemEncode(publicTLSServerEndEntitySubject.KeyMaterial.PrivateKey)
 	if err != nil {
 		return fmt.Errorf("failed to encode private key to PEM: %w", err)
 	}
@@ -56,7 +56,7 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 		}
 	}
 
-	if err := os.WriteFile("tls_server_private_key.pem", publicTLSPrivateKeyPEM[0], 0600); err != nil {
+	if err := os.WriteFile("tls_server_private_key.pem", publicTLSPrivateKeyPEM, 0600); err != nil {
 		return fmt.Errorf("failed to write public TLS server private key PEM file: %w", err)
 	}
 
