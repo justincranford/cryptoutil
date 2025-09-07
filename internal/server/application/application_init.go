@@ -18,7 +18,11 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 
 	publicTLSServerIPAddresses, err := ParseIPAddresses(settings.TLSPublicIPAddresses)
 	if err != nil {
-		return fmt.Errorf("failed to parse TLS server IP addresses: %w", err)
+		return fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
+	}
+	privateTLSServerIPAddresses, err := ParseIPAddresses(settings.TLSPrivateIPAddresses)
+	if err != nil {
+		return fmt.Errorf("failed to parse private TLS server IP addresses: %w", err)
 	}
 
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
@@ -27,22 +31,26 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	}
 	defer serverApplicationBasic.Shutdown()
 
-	err = generateTLSCertificates(serverApplicationBasic, settings, publicTLSServerIPAddresses)
+	err = generateTLSServerCertificates(serverApplicationBasic, "tls_public_server_", settings.TLSPublicDNSNames, publicTLSServerIPAddresses)
 	if err != nil {
-		return fmt.Errorf("failed to create TLS server certs: %w", err)
+		return fmt.Errorf("failed to create TLS public server certs: %w", err)
+	}
+
+	err = generateTLSServerCertificates(serverApplicationBasic, "tls_private_server_", settings.TLSPrivateDNSNames, privateTLSServerIPAddresses)
+	if err != nil {
+		return fmt.Errorf("failed to create TLS private server certs: %w", err)
 	}
 
 	return nil
 }
 
-// TODO private TLS server cert
-func generateTLSCertificates(serverApplicationBasic *ServerApplicationBasic, settings *cryptoutilConfig.Settings, publicTLSServerIPAddresses []net.IP) error {
+func generateTLSServerCertificates(serverApplicationBasic *ServerApplicationBasic, prefix string, publicTLSServerDNSNames []string, publicTLSServerIPAddresses []net.IP) error {
 	publicTLSServerSubjectsKeyPairs := serverApplicationBasic.JwkGenService.ECDSAP256KeyGenPool.GetMany(2)
 	publicTLSServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(publicTLSServerSubjectsKeyPairs[1:], "TLS Server CA", 10*365*cryptoutilDateTime.Days1)
 	if err != nil {
 		return fmt.Errorf("failed to create TLS server CA subjects: %w", err)
 	}
-	publicTLSServerEndEntitySubject, err := cryptoutilCertificate.CreateEndEntitySubject(publicTLSServerCASubjects[0], publicTLSServerSubjectsKeyPairs[0], "TLS Server", 397*cryptoutilDateTime.Days1, settings.TLSPublicDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	publicTLSServerEndEntitySubject, err := cryptoutilCertificate.CreateEndEntitySubject(publicTLSServerCASubjects[0], publicTLSServerSubjectsKeyPairs[0], "TLS Server", 397*cryptoutilDateTime.Days1, publicTLSServerDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 	if err != nil {
 		return fmt.Errorf("failed to create TLS server end entity subject: %w", err)
 	} else if publicTLSServerEndEntitySubject == nil {
@@ -61,12 +69,12 @@ func generateTLSCertificates(serverApplicationBasic *ServerApplicationBasic, set
 
 	// Write Cert Chain and Private Key PEM files to files
 	for i, certPEM := range publicTLSServerCertificateChainPEMs {
-		filename := fmt.Sprintf("tls_server_cert_chain_%d.pem", i)
+		filename := fmt.Sprintf("%scertificate_%d.pem", prefix, i)
 		if err := os.WriteFile(filename, certPEM, 0600); err != nil {
 			return fmt.Errorf("failed to write public TLS server certificate chain PEM file %s: %w", filename, err)
 		}
 	}
-	if err := os.WriteFile("tls_server_private_key.pem", publicTLSPrivateKeyPEM, 0600); err != nil {
+	if err := os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), publicTLSPrivateKeyPEM, 0600); err != nil {
 		return fmt.Errorf("failed to write public TLS server private key PEM file: %w", err)
 	}
 	return nil
