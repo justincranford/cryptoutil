@@ -45,6 +45,10 @@ type Settings struct {
 	BindPrivateProtocol         string
 	BindPrivateAddress          string
 	BindPrivatePort             uint16
+	TLSPublicDNSNames           []string
+	TLSPublicIPAddresses        []string
+	TLSPrivateDNSNames          []string
+	TLSPrivateIPAddresses       []string
 	PublicBrowserAPIContextPath string
 	PublicServiceAPIContextPath string
 	CORSAllowedOrigins          string
@@ -58,8 +62,8 @@ type Settings struct {
 	CSRFTokenCookieHTTPOnly     bool
 	CSRFTokenCookieSessionOnly  bool
 	IPRateLimit                 uint16
-	AllowedIPs                  string
-	AllowedCIDRs                string
+	AllowedIPs                  string // TODO change to []string
+	AllowedCIDRs                string // TODO change to []string
 	DatabaseContainer           string
 	DatabaseURL                 string
 	DatabaseInitTotalTimeout    time.Duration
@@ -146,6 +150,30 @@ var (
 		shorthand: "P",
 		value:     uint16(9090),
 		usage:     "bind private port",
+	}
+	tlsPublicDnsNames = Setting{
+		name:      "tls-public-dns-names",
+		shorthand: "n",
+		value:     []string{"localhost"},
+		usage:     "TLS public DNS names",
+	}
+	tlsPrivateDnsNames = Setting{
+		name:      "tls-private-dns-names",
+		shorthand: "j",
+		value:     []string{"localhost"},
+		usage:     "TLS private DNS names",
+	}
+	tlsPublicIPAddresses = Setting{
+		name:      "tls-public-ip-addresses",
+		shorthand: "i",
+		value:     []string{"127.0.0.1"},
+		usage:     "TLS public IP addresses",
+	}
+	tlsPrivateIPAddresses = Setting{
+		name:      "tls-private-ip-addresses",
+		shorthand: "k",
+		value:     []string{"127.0.0.1"},
+		usage:     "TLS private IP addresses",
 	}
 	publicBrowserAPIContextPath = Setting{
 		name:      "browser-api-context-path",
@@ -382,6 +410,10 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, bindPublicProtocol.value.(string), bindPublicProtocol.usage)
 	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, bindPublicAddress.value.(string), bindPublicAddress.usage)
 	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, bindPublicPort.value.(uint16), bindPublicPort.usage)
+	pflag.StringSliceP(tlsPublicDnsNames.name, tlsPublicDnsNames.shorthand, tlsPublicDnsNames.value.([]string), tlsPublicDnsNames.usage)
+	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, tlsPublicIPAddresses.value.([]string), tlsPublicIPAddresses.usage)
+	pflag.StringSliceP(tlsPrivateDnsNames.name, tlsPrivateDnsNames.shorthand, tlsPrivateDnsNames.value.([]string), tlsPrivateDnsNames.usage)
+	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, tlsPrivateIPAddresses.value.([]string), tlsPrivateIPAddresses.usage)
 	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, bindPrivateProtocol.value.(string), bindPrivateProtocol.usage)
 	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, bindPrivateAddress.value.(string), bindPrivateAddress.usage)
 	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, bindPrivatePort.value.(uint16), bindPrivatePort.usage)
@@ -437,6 +469,10 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),
 		BindPublicAddress:           viper.GetString(bindPublicAddress.name),
 		BindPublicPort:              viper.GetUint16(bindPublicPort.name),
+		TLSPublicDNSNames:           viper.GetStringSlice(tlsPublicDnsNames.name),
+		TLSPublicIPAddresses:        viper.GetStringSlice(tlsPublicIPAddresses.name),
+		TLSPrivateDNSNames:          viper.GetStringSlice(tlsPrivateDnsNames.name),
+		TLSPrivateIPAddresses:       viper.GetStringSlice(tlsPrivateIPAddresses.name),
 		BindPrivateProtocol:         viper.GetString(bindPrivateProtocol.name),
 		BindPrivateAddress:          viper.GetString(bindPrivateAddress.name),
 		BindPrivatePort:             viper.GetUint16(bindPrivatePort.name),
@@ -489,9 +525,14 @@ func logSettings(s *Settings) {
 		log.Info("Bind Public Protocol: ", s.BindPublicProtocol)
 		log.Info("Bind Public Address: ", s.BindPublicAddress)
 		log.Info("Bind Public Port: ", s.BindPublicPort)
+		log.Info("TLS Public DNS Names: ", s.TLSPublicDNSNames)
+		log.Info("TLS Public IP Addresses: ", s.TLSPublicIPAddresses)
+		log.Info("TLS Private DNS Names: ", s.TLSPrivateDNSNames)
+		log.Info("TLS Private IP Addresses: ", s.TLSPrivateIPAddresses)
 		log.Info("Bind Private Protocol: ", s.BindPrivateProtocol)
 		log.Info("Bind Private Address: ", s.BindPrivateAddress)
 		log.Info("Bind Private Port: ", s.BindPrivatePort)
+		log.Info("TLS Private DNS Names: ", s.TLSPrivateDNSNames)
 		log.Info("Public Browser API Context Path: ", s.PublicBrowserAPIContextPath)
 		log.Info("Public Service API Context Path: ", s.PublicServiceAPIContextPath)
 		log.Info("CORS Allowed Origins: ", s.CORSAllowedOrigins)

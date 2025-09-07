@@ -23,6 +23,10 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	assert.Equal(t, bindPrivateProtocol.value, s.BindPrivateProtocol)
 	assert.Equal(t, bindPrivateAddress.value, s.BindPrivateAddress)
 	assert.Equal(t, bindPrivatePort.value, s.BindPrivatePort)
+	assert.Equal(t, tlsPublicDnsNames.value, s.TLSPublicDNSNames)
+	assert.Equal(t, tlsPublicIPAddresses.value, s.TLSPublicIPAddresses)
+	assert.Equal(t, tlsPrivateDnsNames.value, s.TLSPrivateDNSNames)
+	assert.Equal(t, tlsPrivateIPAddresses.value, s.TLSPrivateIPAddresses)
 	assert.Equal(t, publicBrowserAPIContextPath.value, s.PublicBrowserAPIContextPath)
 	assert.Equal(t, publicServiceAPIContextPath.value, s.PublicServiceAPIContextPath)
 	assert.Equal(t, corsAllowedOrigins.value, s.CORSAllowedOrigins)
@@ -64,6 +68,10 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--bind-private-protocol=https",
 		"--bind-private-address=192.168.1.3",
 		"--bind-private-port=19090",
+		"--tls-public-dns-names=public1.example.com,public2.example.com",
+		"--tls-public-ip-addresses=192.168.1.4,192.168.1.6",
+		"--tls-private-dns-names=private1.example.com,private2.example.com",
+		"--tls-private-ip-addresses=192.168.1.5,192.168.1.7",
 		"--browser-api-context-path=/browser",
 		"--service-api-context-path=/service",
 		"--cors-origins=https://example.com",
@@ -104,6 +112,10 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "https", s.BindPrivateProtocol)
 	assert.Equal(t, "192.168.1.3", s.BindPrivateAddress)
 	assert.Equal(t, uint16(19090), s.BindPrivatePort)
+	assert.Equal(t, []string{"public1.example.com", "public2.example.com"}, s.TLSPublicDNSNames)
+	assert.Equal(t, []string{"192.168.1.4", "192.168.1.6"}, s.TLSPublicIPAddresses)
+	assert.Equal(t, []string{"private1.example.com", "private2.example.com"}, s.TLSPrivateDNSNames)
+	assert.Equal(t, []string{"192.168.1.5", "192.168.1.7"}, s.TLSPrivateIPAddresses)
 	assert.Equal(t, "/browser", s.PublicBrowserAPIContextPath)
 	assert.Equal(t, "/service", s.PublicServiceAPIContextPath)
 	assert.Equal(t, "https://example.com", s.CORSAllowedOrigins)
