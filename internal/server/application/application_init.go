@@ -27,9 +27,17 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	}
 	defer serverApplicationBasic.Shutdown()
 
-	// TODO private TLS server cert
+	err = generateTLSCertificates(serverApplicationBasic, settings, publicTLSServerIPAddresses)
+	if err != nil {
+		return fmt.Errorf("failed to create TLS server certs: %w", err)
+	}
 
-	publicTLSServerSubjectsKeyPairs := serverApplicationBasic.JwkGenService.ECDSAP521KeyGenPool.GetMany(2)
+	return nil
+}
+
+// TODO private TLS server cert
+func generateTLSCertificates(serverApplicationBasic *ServerApplicationBasic, settings *cryptoutilConfig.Settings, publicTLSServerIPAddresses []net.IP) error {
+	publicTLSServerSubjectsKeyPairs := serverApplicationBasic.JwkGenService.ECDSAP256KeyGenPool.GetMany(2)
 	publicTLSServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(publicTLSServerSubjectsKeyPairs[1:], "TLS Server CA", 10*365*cryptoutilDateTime.Days1)
 	if err != nil {
 		return fmt.Errorf("failed to create TLS server CA subjects: %w", err)
@@ -40,6 +48,8 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	} else if publicTLSServerEndEntitySubject == nil {
 		return fmt.Errorf("publicTLSServerEndEntitySubject is nil")
 	}
+
+	// Encode Cert Chain and Private Key as PEM
 	publicTLSServerCertificateChainPEMs, err := asn1.PemEncodes(publicTLSServerEndEntitySubject.KeyMaterial.CertificateChain)
 	if err != nil {
 		return fmt.Errorf("failed to encode certificate chain to PEM: %w", err)
@@ -48,18 +58,17 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	if err != nil {
 		return fmt.Errorf("failed to encode private key to PEM: %w", err)
 	}
-	// write PEM bytes to files, NOT FUNCTION
+
+	// Write Cert Chain and Private Key PEM files to files
 	for i, certPEM := range publicTLSServerCertificateChainPEMs {
 		filename := fmt.Sprintf("tls_server_cert_chain_%d.pem", i)
 		if err := os.WriteFile(filename, certPEM, 0600); err != nil {
 			return fmt.Errorf("failed to write public TLS server certificate chain PEM file %s: %w", filename, err)
 		}
 	}
-
 	if err := os.WriteFile("tls_server_private_key.pem", publicTLSPrivateKeyPEM, 0600); err != nil {
 		return fmt.Errorf("failed to write public TLS server private key PEM file: %w", err)
 	}
-
 	return nil
 }
 
