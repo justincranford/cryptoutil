@@ -16,13 +16,13 @@ import (
 func ServerInit(settings *cryptoutilConfig.Settings) error {
 	ctx := context.Background()
 
-	serverApplicationCore, err := StartServerApplicationCore(ctx, settings)
+	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
 	if err != nil {
 		return fmt.Errorf("failed to initialize server application core: %w", err)
 	}
-	defer serverApplicationCore.Shutdown()
+	defer serverApplicationBasic.Shutdown()
 
-	publicTLSServerSubjectsKeyPairs := serverApplicationCore.JwkGenService.ECDSAP521KeyGenPool.GetMany(2)
+	publicTLSServerSubjectsKeyPairs := serverApplicationBasic.JwkGenService.ECDSAP521KeyGenPool.GetMany(2)
 	publicTLSServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(publicTLSServerSubjectsKeyPairs[1:], "TLS Server CA", 10*365*cryptoutilDateTime.Days1)
 	if err != nil {
 		return fmt.Errorf("failed to create TLS server CA subjects: %w", err)

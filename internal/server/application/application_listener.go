@@ -97,10 +97,10 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		recover.New(),
 		requestid.New(),
 		logger.New(), // TODO Replace this with improved otelFiberTelemetryMiddleware; unstructured logs and no OpenTelemetry are undesirable
-		commonOtelFiberTelemetryMiddleware(serverApplicationCore.TelemetryService, settings),
-		commonOtelFiberRequestLoggerMiddleware(serverApplicationCore.TelemetryService),
-		commonIPFilterMiddleware(serverApplicationCore.TelemetryService, settings),
-		commonIPRateLimiterMiddleware(serverApplicationCore.TelemetryService, settings),
+		commonOtelFiberTelemetryMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
+		commonOtelFiberRequestLoggerMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService),
+		commonIPFilterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
+		commonIPRateLimiterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonHTTPGETCacheControlMiddleware(), // TODO Limit this to Swagger GET APIs, not Swagger UI static content
 	}
 
@@ -125,7 +125,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 
 	// Private APIs
 	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
-		serverApplicationCore.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
+		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 		if shutdownServerFunction != nil {
 			defer func() {
 				time.Sleep(clientLivenessStartTimeout) // allow server small amount of time to finish sending response to client
@@ -138,7 +138,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	// Public Swagger UI
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
-		serverApplicationCore.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
+		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
 		serverApplicationCore.Shutdown()
 		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
@@ -149,7 +149,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	}
 	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec to JSON with the added public server context path
 	if err != nil {
-		serverApplicationCore.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
+		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
 		serverApplicationCore.Shutdown()
 		return nil, nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
 	}
@@ -186,10 +186,10 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 
 	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
 	privateBinding := fmt.Sprintf("%s:%d", settings.BindPrivateAddress, settings.BindPrivatePort)
-	startServerFunction := startServerFunc(publicBinding, privateBinding, publicFiberApp, privateFiberApp, serverApplicationCore.TelemetryService)
+	startServerFunction := startServerFunc(publicBinding, privateBinding, publicFiberApp, privateFiberApp, serverApplicationCore.ServerApplicationBasic.TelemetryService)
 	shutdownServerFunction = stopServerFunc(serverApplicationCore, publicFiberApp, privateFiberApp)
 
-	go stopServerSignalFunc(serverApplicationCore.TelemetryService, shutdownServerFunction)() // listen for OS signals to gracefully shutdown the server
+	go stopServerSignalFunc(serverApplicationCore.ServerApplicationBasic.TelemetryService, shutdownServerFunction)() // listen for OS signals to gracefully shutdown the server
 
 	return startServerFunction, shutdownServerFunction, nil
 }
@@ -217,22 +217,22 @@ func startServerFunc(publicBinding string, privateBinding string, publicFiberApp
 
 func stopServerFunc(serverApplicationCore *ServerApplicationCore, publicFiberApp *fiber.App, privateFiberApp *fiber.App) func() {
 	return func() {
-		if serverApplicationCore.TelemetryService != nil {
-			serverApplicationCore.TelemetryService.Slogger.Debug("stopping servers")
+		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
+			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
 		}
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
 		defer cancel() // perform shutdown respecting timeout
 
 		if publicFiberApp != nil {
-			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down public fiber app")
+			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down public fiber app")
 			if err := publicFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop public fiber server", "error", err)
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop public fiber server", "error", err)
 			}
 		}
 		if privateFiberApp != nil {
-			serverApplicationCore.TelemetryService.Slogger.Debug("shutting down private fiber app")
+			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down private fiber app")
 			if err := privateFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
 			}
 		}
 		serverApplicationCore.Shutdown()
