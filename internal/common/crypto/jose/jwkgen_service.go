@@ -20,26 +20,26 @@ import (
 
 type JwkGenService struct {
 	telemetryService      *cryptoutilTelemetry.TelemetryService
-	rsa4096KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 512-bytes
-	rsa3072KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 384-bytes
-	rsa2048KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 256-bytes
-	ecdsaP521KeyGenPool   *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 65.125-bytes
-	ecdsaP384KeyGenPool   *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 48-bytes
-	ecdsaP256KeyGenPool   *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 32-bytes
-	ecdhP521KeyGenPool    *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 65.125-bytes
-	ecdhP384KeyGenPool    *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 48-bytes
-	ecdhP256KeyGenPool    *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 32-bytes
-	ed25519KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 32-bytes
-	aes256KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 32-bytes A256GCM, A256KW, A256GCMKW
-	aes192KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 24-bytes A192GCM, A192KW, A192GCMKW
-	aes128KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 16-bytes A128GCM, A128KW, A128GCMKW
-	aes256HS512KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 32-bytes A256CBC + 32-bytes HS512 (half of 64-bytes)
-	aes192HS384KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 24-bytes A192CBC + 24-bytes HS384 (half of 48-bytes)
-	aes128HS256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 16-bytes A128CBC + 16-bytes HS256 (half of 32-bytes)
-	hmac512KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 64-bytes HS512
-	hmac384KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 48-bytes HS384
-	hmac256KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 32-bytes HS256
-	uuidV7KeyGenPool      *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
+	RSA4096KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 512-bytes
+	RSA3072KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 384-bytes
+	RSA2048KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 256-bytes
+	ECDSAP521KeyGenPool   *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 65.125-bytes
+	ECDSAP384KeyGenPool   *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 48-bytes
+	ECDSAP256KeyGenPool   *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 32-bytes
+	ECDHP521KeyGenPool    *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 65.125-bytes
+	ECDHP384KeyGenPool    *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 48-bytes
+	ECDHP256KeyGenPool    *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 32-bytes
+	ED25519KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 32-bytes
+	AES256KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 32-bytes A256GCM, A256KW, A256GCMKW
+	AES192KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 24-bytes A192GCM, A192KW, A192GCMKW
+	AES128KeyGenPool      *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 16-bytes A128GCM, A128KW, A128GCMKW
+	AES256HS512KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 32-bytes A256CBC + 32-bytes HS512 (half of 64-bytes)
+	AES192HS384KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 24-bytes A192CBC + 24-bytes HS384 (half of 48-bytes)
+	AES128HS256KeyGenPool *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 16-bytes A128CBC + 16-bytes HS256 (half of 32-bytes)
+	HMAC512KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 64-bytes HS512
+	HMAC384KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 48-bytes HS384
+	HMAC256KeyGenPool     *cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey] // 32-bytes HS256
+	UUIDv7KeyGenPool      *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
 func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) (*JwkGenService, error) {
@@ -55,7 +55,7 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 	ecdsaP384KeyGenPool, err5 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService ECDSA-P384", 2, 6, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P384())))
 	ecdsaP256KeyGenPool, err6 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService ECDSA-P256", 1, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256())))
 	ecdhP521KeyGenPool, err7 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService ECDH-P521", 3, 9, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P521())))
-	ecdhP384KeyGenPool, err8 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService ECSH-P384", 2, 6, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P384())))
+	ecdhP384KeyGenPool, err8 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService ECDH-P384", 2, 6, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P384())))
 	ecdhP256KeyGenPool, err9 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService ECDH-P256", 1, 3, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256())))
 	ed25519KeyGenPool, err10 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService Ed25519", 1, 2, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519")))
 	aes256KeyGenPool, err11 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JwkGenService AES-256-GCM", 3, 9, cryptoutilPool.MaxLifetimeValues, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(256)))
@@ -74,55 +74,55 @@ func NewJwkGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 	return &JwkGenService{
 		telemetryService:      telemetryService,
-		rsa4096KeyGenPool:     rsa4096KeyGenPool,
-		rsa3072KeyGenPool:     rsa3072KeyGenPool,
-		rsa2048KeyGenPool:     rsa2048KeyGenPool,
-		ecdsaP521KeyGenPool:   ecdsaP521KeyGenPool,
-		ecdsaP384KeyGenPool:   ecdsaP384KeyGenPool,
-		ecdsaP256KeyGenPool:   ecdsaP256KeyGenPool,
-		ecdhP521KeyGenPool:    ecdhP521KeyGenPool,
-		ecdhP384KeyGenPool:    ecdhP384KeyGenPool,
-		ecdhP256KeyGenPool:    ecdhP256KeyGenPool,
-		ed25519KeyGenPool:     ed25519KeyGenPool,
-		aes256KeyGenPool:      aes256KeyGenPool,
-		aes192KeyGenPool:      aes192KeyGenPool,
-		aes128KeyGenPool:      aes128KeyGenPool,
-		aes256HS512KeyGenPool: aes256HS512KeyGenPool,
-		aes192HS384KeyGenPool: aes192HS384KeyGenPool,
-		aes128HS256KeyGenPool: aes128HS256KeyGenPool,
-		hmac512KeyGenPool:     hmac512KeyGenPool,
-		hmac384KeyGenPool:     hmac384KeyGenPool,
-		hmac256KeyGenPool:     hmac256KeyGenPool,
-		uuidV7KeyGenPool:      uuidV7KeyGenPool,
+		RSA4096KeyGenPool:     rsa4096KeyGenPool,
+		RSA3072KeyGenPool:     rsa3072KeyGenPool,
+		RSA2048KeyGenPool:     rsa2048KeyGenPool,
+		ECDSAP521KeyGenPool:   ecdsaP521KeyGenPool,
+		ECDSAP384KeyGenPool:   ecdsaP384KeyGenPool,
+		ECDSAP256KeyGenPool:   ecdsaP256KeyGenPool,
+		ECDHP521KeyGenPool:    ecdhP521KeyGenPool,
+		ECDHP384KeyGenPool:    ecdhP384KeyGenPool,
+		ECDHP256KeyGenPool:    ecdhP256KeyGenPool,
+		ED25519KeyGenPool:     ed25519KeyGenPool,
+		AES256KeyGenPool:      aes256KeyGenPool,
+		AES192KeyGenPool:      aes192KeyGenPool,
+		AES128KeyGenPool:      aes128KeyGenPool,
+		AES256HS512KeyGenPool: aes256HS512KeyGenPool,
+		AES192HS384KeyGenPool: aes192HS384KeyGenPool,
+		AES128HS256KeyGenPool: aes128HS256KeyGenPool,
+		HMAC512KeyGenPool:     hmac512KeyGenPool,
+		HMAC384KeyGenPool:     hmac384KeyGenPool,
+		HMAC256KeyGenPool:     hmac256KeyGenPool,
+		UUIDv7KeyGenPool:      uuidV7KeyGenPool,
 	}, nil
 }
 
 func (s *JwkGenService) Shutdown() {
 	s.telemetryService.Slogger.Debug("stopping JwkGenService")
 	cryptoutilPool.CancelAllNotNil([]*cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]{
-		s.rsa4096KeyGenPool,
-		s.rsa3072KeyGenPool,
-		s.rsa2048KeyGenPool,
-		s.ecdsaP521KeyGenPool,
-		s.ecdsaP384KeyGenPool,
-		s.ecdsaP256KeyGenPool,
-		s.ecdhP521KeyGenPool,
-		s.ecdhP384KeyGenPool,
-		s.ecdhP256KeyGenPool,
-		s.ed25519KeyGenPool,
+		s.RSA4096KeyGenPool,
+		s.RSA3072KeyGenPool,
+		s.RSA2048KeyGenPool,
+		s.ECDSAP521KeyGenPool,
+		s.ECDSAP384KeyGenPool,
+		s.ECDSAP256KeyGenPool,
+		s.ECDHP521KeyGenPool,
+		s.ECDHP384KeyGenPool,
+		s.ECDHP256KeyGenPool,
+		s.ED25519KeyGenPool,
 	})
 	cryptoutilPool.CancelAllNotNil([]*cryptoutilPool.ValueGenPool[cryptoutilKeyGen.SecretKey]{
-		s.aes256KeyGenPool,
-		s.aes192KeyGenPool,
-		s.aes128KeyGenPool,
-		s.aes256HS512KeyGenPool,
-		s.aes192HS384KeyGenPool,
-		s.aes128HS256KeyGenPool,
-		s.hmac512KeyGenPool,
-		s.hmac384KeyGenPool,
-		s.hmac256KeyGenPool,
+		s.AES256KeyGenPool,
+		s.AES192KeyGenPool,
+		s.AES128KeyGenPool,
+		s.AES256HS512KeyGenPool,
+		s.AES192HS384KeyGenPool,
+		s.AES128HS256KeyGenPool,
+		s.HMAC512KeyGenPool,
+		s.HMAC384KeyGenPool,
+		s.HMAC256KeyGenPool,
 	})
-	cryptoutilPool.CancelNotNil(s.uuidV7KeyGenPool)
+	cryptoutilPool.CancelNotNil(s.UUIDv7KeyGenPool)
 }
 
 func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
@@ -130,45 +130,45 @@ func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, 
 	case AlgDir:
 		switch *enc {
 		case EncA256GCM:
-			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes256KeyGenPool.Get())
+			return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES256KeyGenPool.Get())
 		case EncA192GCM:
-			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes192KeyGenPool.Get())
+			return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES192KeyGenPool.Get())
 		case EncA128GCM:
-			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes128KeyGenPool.Get())
+			return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES128KeyGenPool.Get())
 		case EncA256CBCHS512:
-			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes256HS512KeyGenPool.Get())
+			return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES256HS512KeyGenPool.Get())
 		case EncA192CBCHS384:
-			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes192HS384KeyGenPool.Get())
+			return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES192HS384KeyGenPool.Get())
 		case EncA128CBCHS256:
-			return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes128HS256KeyGenPool.Get())
+			return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES128HS256KeyGenPool.Get())
 		default:
 			return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
 		}
 
 	case AlgA256KW, AlgA256GCMKW:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes256KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES256KeyGenPool.Get())
 	case AlgA192KW, AlgA192GCMKW:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes192KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES192KeyGenPool.Get())
 	case AlgA128KW, AlgA128GCMKW:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.aes128KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.AES128KeyGenPool.Get())
 
 	case AlgRSAOAEP512:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.rsa4096KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.RSA4096KeyGenPool.Get())
 	case AlgRSAOAEP384:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.rsa3072KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.RSA3072KeyGenPool.Get())
 	case AlgRSAOAEP256:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.rsa2048KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.RSA2048KeyGenPool.Get())
 	case AlgRSAOAEP:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.rsa2048KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.RSA2048KeyGenPool.Get())
 	case AlgRSA15:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.rsa2048KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.RSA2048KeyGenPool.Get())
 
 	case AlgECDHES, AlgECDHESA256KW:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.ecdhP521KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.ECDSAP521KeyGenPool.Get())
 	case AlgECDHESA192KW:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.ecdhP384KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.ECDHP384KeyGenPool.Get())
 	case AlgECDHESA128KW:
-		return CreateJweJwkFromKey(s.uuidV7KeyGenPool.Get(), enc, alg, s.ecdhP256KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.ECDHP256KeyGenPool.Get())
 
 	default:
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
@@ -178,25 +178,25 @@ func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, 
 func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch *alg {
 	case AlgRS512, AlgPS512:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa4096KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA4096KeyGenPool.Get())
 	case AlgRS384, AlgPS384:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa3072KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA3072KeyGenPool.Get())
 	case AlgRS256, AlgPS256:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa2048KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA2048KeyGenPool.Get())
 	case AlgES512:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP521KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP521KeyGenPool.Get())
 	case AlgES384:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP384KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP384KeyGenPool.Get())
 	case AlgES256:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP256KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP256KeyGenPool.Get())
 	case AlgEdDSA:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ed25519KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ED25519KeyGenPool.Get())
 	case AlgHS512:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.hmac512KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC512KeyGenPool.Get())
 	case AlgHS384:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.hmac384KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC384KeyGenPool.Get())
 	case AlgHS256:
-		return CreateJwsJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.hmac256KeyGenPool.Get())
+		return CreateJwsJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC256KeyGenPool.Get())
 	default:
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}
@@ -205,34 +205,34 @@ func (s *JwkGenService) GenerateJwsJwk(alg *joseJwa.SignatureAlgorithm) (*google
 func (s *JwkGenService) GenerateJwk(alg *cryptoutilOpenapiModel.GenerateAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch *alg {
 	case cryptoutilOpenapiModel.RSA4096:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa4096KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA4096KeyGenPool.Get())
 	case cryptoutilOpenapiModel.RSA3072:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa3072KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA3072KeyGenPool.Get())
 	case cryptoutilOpenapiModel.RSA2048:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.rsa2048KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA2048KeyGenPool.Get())
 	case cryptoutilOpenapiModel.ECP521:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP521KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP521KeyGenPool.Get())
 	case cryptoutilOpenapiModel.ECP384:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP384KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP384KeyGenPool.Get())
 	case cryptoutilOpenapiModel.ECP256:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ecdsaP256KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP256KeyGenPool.Get())
 	case cryptoutilOpenapiModel.OKPEd25519:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.ed25519KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ED25519KeyGenPool.Get())
 	case cryptoutilOpenapiModel.Oct512:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes256HS512KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.AES256HS512KeyGenPool.Get())
 	case cryptoutilOpenapiModel.Oct384:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes192HS384KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.AES192HS384KeyGenPool.Get())
 	case cryptoutilOpenapiModel.Oct256:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes128HS256KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.AES128HS256KeyGenPool.Get())
 	case cryptoutilOpenapiModel.Oct192:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes192KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.AES192KeyGenPool.Get())
 	case cryptoutilOpenapiModel.Oct128:
-		return CreateJwkFromKey(s.uuidV7KeyGenPool.Get(), alg, s.aes128KeyGenPool.Get())
+		return CreateJwkFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.AES128KeyGenPool.Get())
 	default:
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWK alg: %v", alg)
 	}
 }
 
 func (s *JwkGenService) GenerateUUIDv7() *googleUuid.UUID {
-	return s.uuidV7KeyGenPool.Get()
+	return s.UUIDv7KeyGenPool.Get()
 }
