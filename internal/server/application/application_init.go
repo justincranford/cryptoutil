@@ -16,18 +16,25 @@ import (
 func ServerInit(settings *cryptoutilConfig.Settings) error {
 	ctx := context.Background()
 
+	publicTLSServerIPAddresses, err := ParseIPAddresses(settings.TLSPublicIPAddresses)
+	if err != nil {
+		return fmt.Errorf("failed to parse TLS server IP addresses: %w", err)
+	}
+
 	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
 	if err != nil {
 		return fmt.Errorf("failed to initialize server application core: %w", err)
 	}
 	defer serverApplicationBasic.Shutdown()
 
+	// TODO private TLS server cert
+
 	publicTLSServerSubjectsKeyPairs := serverApplicationBasic.JwkGenService.ECDSAP521KeyGenPool.GetMany(2)
 	publicTLSServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(publicTLSServerSubjectsKeyPairs[1:], "TLS Server CA", 10*365*cryptoutilDateTime.Days1)
 	if err != nil {
 		return fmt.Errorf("failed to create TLS server CA subjects: %w", err)
 	}
-	publicTLSServerEndEntitySubject, err := cryptoutilCertificate.CreateEndEntitySubject(publicTLSServerCASubjects[0], publicTLSServerSubjectsKeyPairs[0], "TLS Server", 397*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP(settings.BindPublicAddress)}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	publicTLSServerEndEntitySubject, err := cryptoutilCertificate.CreateEndEntitySubject(publicTLSServerCASubjects[0], publicTLSServerSubjectsKeyPairs[0], "TLS Server", 397*cryptoutilDateTime.Days1, settings.TLSPublicDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 	if err != nil {
 		return fmt.Errorf("failed to create TLS server end entity subject: %w", err)
 	} else if publicTLSServerEndEntitySubject == nil {
@@ -54,4 +61,16 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	}
 
 	return nil
+}
+
+func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
+	var parsedIPs []net.IP
+	for _, ip := range ipAddresses {
+		parsedIP := net.ParseIP(ip)
+		if parsedIP == nil {
+			return nil, fmt.Errorf("failed to parse IP address: %s", ip)
+		}
+		parsedIPs = append(parsedIPs, parsedIP)
+	}
+	return parsedIPs, nil
 }
