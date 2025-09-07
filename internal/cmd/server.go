@@ -24,6 +24,11 @@ func server(parameters []string) {
 		if err != nil {
 			log.Fatalf("failed to stop server application: %v", err)
 		}
+	case "init":
+		err := cryptoutilServerApplication.ServerInit(settings)
+		if err != nil {
+			log.Fatalf("failed to init server application: %v", err)
+		}
 	default:
 		log.Fatalf("unknown subcommand: %v", settings.SubCommand)
 	}
