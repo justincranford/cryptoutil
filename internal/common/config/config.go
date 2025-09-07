@@ -166,13 +166,13 @@ var (
 	tlsPublicIPAddresses = Setting{
 		name:      "tls-public-ip-addresses",
 		shorthand: "i",
-		value:     []string{"127.0.0.1"},
+		value:     []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
 		usage:     "TLS public IP addresses",
 	}
 	tlsPrivateIPAddresses = Setting{
 		name:      "tls-private-ip-addresses",
 		shorthand: "k",
-		value:     []string{"127.0.0.1"},
+		value:     []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
 		usage:     "TLS private IP addresses",
 	}
 	publicBrowserAPIContextPath = Setting{
@@ -368,7 +368,7 @@ var defaultCSRFTokenSameSite = "Strict"
 
 var defaultCSRFTokenMaxAge = 1 * time.Hour
 
-var defaultAllowedIps = ""
+var defaultAllowedIps = "" // TODO []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"}
 
 var defaultAllowedCIDRs = func() string {
 	return strings.Join([]string{
