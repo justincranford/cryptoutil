@@ -192,7 +192,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return c.Send(swaggerSpecBytes)
 	})
 	// Add a simple endpoint that browsers can hit to get CSRF token set
-	publicFiberApp.Get("/ui/csrf-token", func(c *fiber.Ctx) error {
+	publicFiberApp.Get(settings.PublicBrowserAPIContextPath+"/csrf-token", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message":         "CSRF token set in cookie",
 			"csrf_token_name": settings.CSRFTokenName,
@@ -206,7 +206,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		TryItOutEnabled:        true,
 		DisplayRequestDuration: true,
 		ShowCommonExtensions:   true,
-		CustomScript:           swaggerUICustomCSRFScript,
+		CustomScript:           swaggerUICustomCSRFScript(settings.CSRFTokenName, settings.PublicBrowserAPIContextPath),
 	}))
 
 	// Swagger APIs, will be double exposed on publicFiberApp, but with different security middlewares (i.e. browser user vs machine client)
@@ -492,21 +492,23 @@ func isNonBrowserUserApiRequestFunc(settings *cryptoutilConfig.Settings) func(c 
 	}
 }
 
-const swaggerUICustomCSRFScript = template.JS(`
+func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath string) template.JS {
+	csrfTokenEndpoint := browserAPIContextPath + "/csrf-token"
+	return template.JS(fmt.Sprintf(`
 		// Wait for Swagger UI to fully load
 		const interval = setInterval(function() {
 			if (window.ui) {
 				clearInterval(interval);
 				
-				let csrfTokenName = '_csrf'; // default, will be updated
+				let csrfTokenName = '%s'; // Use actual CSRF token name from settings
 				
 				// Get CSRF configuration from server
-				fetch('/ui/csrf-token', {
+				fetch('%s', {
 					method: 'GET',
 					credentials: 'same-origin'
 				}).then(response => response.json())
 				.then(data => {
-					csrfTokenName = data.csrf_token_name || '_csrf';
+					csrfTokenName = data.csrf_token_name || '%s';
 					console.log('CSRF Configuration:', data);
 					console.log('Using CSRF token name:', csrfTokenName);
 				}).catch(err => {
@@ -541,7 +543,7 @@ const swaggerUICustomCSRFScript = template.JS(`
 						
 						console.log('Making request to get CSRF token...');
 						// Make a GET request to trigger CSRF cookie creation
-						fetch('/ui/csrf-token', {
+						fetch('%s', {
 							method: 'GET',
 							credentials: 'same-origin'
 						}).then(() => {
@@ -591,4 +593,5 @@ const swaggerUICustomCSRFScript = template.JS(`
 				console.log('Enhanced CSRF token handling enabled for Swagger UI');
 			}
 		}, 100);
-	`)
+	`, csrfTokenName, csrfTokenEndpoint, csrfTokenName, csrfTokenEndpoint))
+}
