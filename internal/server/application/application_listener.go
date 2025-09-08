@@ -147,7 +147,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	publicMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPublic)}, commonMiddlewares...)
 	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
 	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))  // Browser-specific: Cross-Site Scripting (XSS)
-	// publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
+	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
 	for _, middleware := range publicMiddlewares {
 		publicFiberApp.Use(middleware)
@@ -190,6 +190,15 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	publicFiberApp.Get("/ui/swagger/doc.json", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
 		return c.Send(swaggerSpecBytes)
+	})
+	// Add a simple endpoint that browsers can hit to get CSRF token set
+	publicFiberApp.Get("/ui/csrf-token", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"message":         "CSRF token set in cookie",
+			"csrf_token_name": settings.CSRFTokenName,
+			"cookie_secure":   settings.CSRFTokenCookieSecure,
+			"same_site":       settings.CSRFTokenSameSite,
+		})
 	})
 	publicFiberApp.Get("/ui/swagger/*", swagger.New(swagger.Config{
 		Title:                  "Cryptoutil API",
@@ -435,6 +444,44 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		Next:              isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		// Disable single-use tokens and referer checks for Swagger UI compatibility
+		SingleUseToken: false,
+		// Custom extractor that validates origin header instead of referer
+		Extractor: func(c *fiber.Ctx) (string, error) {
+			// Check Origin header for CSRF protection instead of Referer
+			origin := c.Get("Origin")
+			expectedOrigin := fmt.Sprintf("https://%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
+			expectedOriginHTTP := fmt.Sprintf("http://%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
+
+			if origin != expectedOrigin && origin != expectedOriginHTTP {
+				return "", fmt.Errorf("invalid origin: %s", origin)
+			}
+
+			// Get token from header
+			token := c.Get("X-CSRF-Token")
+			if token == "" {
+				// Try alternative header names
+				token = c.Get("X-Csrf-Token")
+			}
+			if token == "" {
+				return "", fmt.Errorf("missing CSRF token in headers")
+			}
+
+			return token, nil
+		},
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			// Log CSRF errors for debugging - always show details for now
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error":           "CSRF token validation failed",
+				"details":         err.Error(),
+				"url":             c.OriginalURL(),
+				"method":          c.Method(),
+				"headers":         c.GetReqHeaders(),
+				"cookies":         c.GetReqHeaders()["Cookie"],
+				"csrf_token_name": settings.CSRFTokenName,
+				"origin":          c.Get("Origin"),
+			})
+		},
 	}
 	return csrf.New(csrfConfig)
 }
@@ -455,6 +502,68 @@ const swaggerUICustomCSRFScript = template.JS(`
 			if (window.ui) {
 				clearInterval(interval);
 				
+				let csrfTokenName = '_csrf'; // default, will be updated
+				
+				// Get CSRF configuration from server
+				fetch('/ui/csrf-token', {
+					method: 'GET',
+					credentials: 'same-origin'
+				}).then(response => response.json())
+				.then(data => {
+					csrfTokenName = data.csrf_token_name || '_csrf';
+					console.log('CSRF Configuration:', data);
+					console.log('Using CSRF token name:', csrfTokenName);
+				}).catch(err => {
+					console.warn('Could not fetch CSRF config:', err);
+				});
+				
+				// Get CSRF token from cookie
+				function getCSRFToken() {
+					const cookies = document.cookie.split(';');
+					console.log('All cookies:', document.cookie);
+					for (let i = 0; i < cookies.length; i++) {
+						const cookie = cookies[i].trim();
+						if (cookie.startsWith(csrfTokenName + '=')) {
+							const token = cookie.substring((csrfTokenName + '=').length);
+							console.log('Found CSRF token:', token);
+							return token;
+						}
+					}
+					console.log('No CSRF token found in cookies');
+					return null;
+				}
+				
+				// Make a GET request to trigger CSRF cookie creation if needed
+				function ensureCSRFToken() {
+					return new Promise((resolve) => {
+						let token = getCSRFToken();
+						if (token) {
+							console.log('CSRF token already available:', token);
+							resolve(token);
+							return;
+						}
+						
+						console.log('Making request to get CSRF token...');
+						// Make a GET request to trigger CSRF cookie creation
+						fetch('/ui/csrf-token', {
+							method: 'GET',
+							credentials: 'same-origin'
+						}).then(() => {
+							console.log('CSRF token request completed, checking cookies...');
+							token = getCSRFToken();
+							if (token) {
+								console.log('CSRF token retrieved:', token);
+							} else {
+								console.warn('CSRF token still not available after request');
+							}
+							resolve(token);
+						}).catch(err => {
+							console.error('Failed to get CSRF token:', err);
+							resolve(null);
+						});
+					});
+				}
+				
 				// Add CSRF token to all non-GET requests
 				const originalFetch = window.fetch;
 				window.fetch = function(url, options) {
@@ -462,20 +571,26 @@ const swaggerUICustomCSRFScript = template.JS(`
 					
 					if (options && options.method && options.method !== 'GET') {
 						options.headers = options.headers || {};
-						// Extract CSRF token from cookies - using default cookie name "_csrf"
-						const cookies = document.cookie.split(';');
-						for (let i = 0; i < cookies.length; i++) {
-							const cookie = cookies[i].trim();
-							if (cookie.startsWith('_csrf=')) {
-								options.headers['X-CSRF-Token'] = cookie.substring('_csrf='.length);
-								console.log('Added CSRF token to request');
-								break;
+						options.credentials = options.credentials || 'same-origin';
+						
+						console.log('Intercepted non-GET request:', options.method, url);
+						
+						// Get CSRF token and add to headers
+						return ensureCSRFToken().then(token => {
+							if (token) {
+								options.headers['X-CSRF-Token'] = token;
+								console.log('Added CSRF token to request headers:', options.method, url);
+								console.log('Request headers:', options.headers);
+							} else {
+								console.error('No CSRF token available for request:', options.method, url);
 							}
-						}
+							return originalFetch.call(this, url, options);
+						});
 					}
 					return originalFetch.call(this, url, options);
 				};
-				console.log('CSRF token handling enabled for Swagger UI');
+				
+				console.log('Enhanced CSRF token handling enabled for Swagger UI');
 			}
 		}, 100);
 	`)
