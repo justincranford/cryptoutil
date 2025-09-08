@@ -11,16 +11,17 @@ import (
 	cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"
 	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
+	cryptoutilNetwork "cryptoutil/internal/common/util/network"
 )
 
 func ServerInit(settings *cryptoutilConfig.Settings) error {
 	ctx := context.Background()
 
-	publicTLSServerIPAddresses, err := ParseIPAddresses(settings.TLSPublicIPAddresses)
+	publicTLSServerIPAddresses, err := cryptoutilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
 	if err != nil {
 		return fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
 	}
-	privateTLSServerIPAddresses, err := ParseIPAddresses(settings.TLSPrivateIPAddresses)
+	privateTLSServerIPAddresses, err := cryptoutilNetwork.ParseIPAddresses(settings.TLSPrivateIPAddresses)
 	if err != nil {
 		return fmt.Errorf("failed to parse private TLS server IP addresses: %w", err)
 	}
@@ -83,16 +84,4 @@ func generateTLSServerCertificates(serverApplicationBasic *ServerApplicationBasi
 		return fmt.Errorf("failed to write encrypted TLS server private key PEM file: %w", err)
 	}
 	return nil
-}
-
-func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
-	var parsedIPs []net.IP
-	for _, ip := range ipAddresses {
-		parsedIP := net.ParseIP(ip)
-		if parsedIP == nil {
-			return nil, fmt.Errorf("failed to parse IP address: %s", ip)
-		}
-		parsedIPs = append(parsedIPs, parsedIP)
-	}
-	return parsedIPs, nil
 }
