@@ -196,15 +196,6 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		c.Set("Content-Type", "application/json")
 		return c.Send(swaggerSpecBytes)
 	})
-	// Add a simple endpoint that browsers can hit to get CSRF token set
-	publicFiberApp.Get(settings.PublicBrowserAPIContextPath+"/csrf-token", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message":         "CSRF token set in cookie",
-			"csrf_token_name": settings.CSRFTokenName,
-			"cookie_secure":   settings.CSRFTokenCookieSecure,
-			"same_site":       settings.CSRFTokenSameSite,
-		})
-	})
 	publicFiberApp.Get("/ui/swagger/*", swagger.New(swagger.Config{
 		Title:                  "Cryptoutil API",
 		URL:                    "/ui/swagger/doc.json",
@@ -213,6 +204,14 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		ShowCommonExtensions:   true,
 		CustomScript:           swaggerUICustomCSRFScript(settings.CSRFTokenName, settings.PublicBrowserAPIContextPath),
 	}))
+	publicFiberApp.Get(settings.PublicBrowserAPIContextPath+"/csrf-token", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"message":         "CSRF token set in cookie",
+			"csrf_token_name": settings.CSRFTokenName,
+			"cookie_secure":   settings.CSRFTokenCookieSecure,
+			"same_site":       settings.CSRFTokenSameSite,
+		})
+	})
 
 	// Swagger APIs, will be double exposed on publicFiberApp, but with different security middlewares (i.e. browser user vs machine client)
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
@@ -451,8 +450,8 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		CookieSecure:      settings.CSRFTokenCookieSecure,
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
+		SingleUseToken:    settings.CSRFTokenSingleUseToken,
 		Next:              isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
-		SingleUseToken:    false,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			if settings.DevMode {
 				cookieToken := c.Cookies(settings.CSRFTokenName)
