@@ -432,6 +432,7 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return helmet.New(helmet.Config{
 		Next: isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		// TODO Check if this is sufficient, or if we need to add Content-Security-Policy (CSP) headers
 		// Allow same-origin referrers for CSRF protection
 		ReferrerPolicy: "same-origin",
 	})
@@ -448,8 +449,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		Next:              isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
 		SingleUseToken:    false,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			// Log CSRF errors for debugging
-			if settings.VerboseMode {
+			if settings.DevMode {
 				cookieToken := c.Cookies(settings.CSRFTokenName)
 				headerToken := c.Get("X-CSRF-Token")
 				if headerToken == "" {
@@ -469,6 +469,9 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 					"cookie_token":    cookieToken,
 					"header_token":    headerToken,
 					"tokens_match":    cookieToken == headerToken,
+					"user_agent":      c.Get("User-Agent"),
+					"content_type":    c.Get("Content-Type"),
+					"request_id":      c.Locals("requestid"),
 				})
 			}
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
