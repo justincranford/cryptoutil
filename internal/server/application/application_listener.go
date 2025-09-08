@@ -40,6 +40,9 @@ const clientLivenessStartTimeout = 200 * time.Millisecond
 const clientLivenessRequestTimeout = 3 * time.Second
 
 const serverShutdownFinishTimeout = 5 * time.Second
+
+// TODO Make shutdown timeout configurable via settings
+// TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)
 const serverShutdownRequestPath = "/shutdown"
 
 const fiberAppIDRequestAttribute = "fiberAppID"
@@ -68,7 +71,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	if settings.BindPrivateProtocol == "https" {
 		client = &http.Client{
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // TODO Fix: should be settings.DevMode only
 			},
 		}
 	} else {
@@ -153,6 +156,9 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
 	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))  // Browser-specific: Cross-Site Scripting (XSS)
 	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
+	// TODO Add additional security headers: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, HSTS
+	// TODO Add request body size limits to prevent large payload attacks
+	// TODO Consider adding compression middleware for better performance
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
 	for _, middleware := range publicMiddlewares {
 		publicFiberApp.Use(middleware)
@@ -174,6 +180,9 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	})
 
 	// Public Swagger UI
+	// TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)
+	// TODO Add authentication middleware for Swagger UI access
+	// TODO Add specific rate limiting for Swagger UI endpoints
 	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
@@ -413,6 +422,8 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 }
 
 func privateHealthCheckMiddlewareFunction() fiber.Handler {
+	// TODO Enhance health checks with detailed status (database, dependencies, memory usage)
+	// TODO Add separate readiness vs liveness endpoints for Kubernetes deployments
 	return healthcheck.New()
 }
 
@@ -436,7 +447,11 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return helmet.New(helmet.Config{
 		Next: isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
-		// TODO Check if this is sufficient, or if we need to add Content-Security-Policy (CSP) headers
+		// TODO Implement Content Security Policy (CSP) headers for enhanced XSS protection
+		// TODO CSP should include: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' (for Swagger UI);
+		// TODO CSP should include: style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'
+		// TODO CSP should include: connect-src 'self'; frame-ancestors 'none'; base-uri 'self'
+		// TODO Consider nonce-based CSP for better security than 'unsafe-inline'
 		// Allow same-origin referrers for CSRF protection
 		ReferrerPolicy: "same-origin",
 	})
