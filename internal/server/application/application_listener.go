@@ -85,7 +85,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	return nil
 }
 
-// TODO Refactor ServerApplicationBasic vs StartServerApplicationCore vs StartServerListenerApplication
+// TODO Refactor ServerApplicationBasic vs StartServerApplicationCore vs StartServerListenerApplication?
 func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func(), func(), error) {
 	ctx := context.Background()
 
@@ -105,6 +105,8 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
 	} else if publicTLSServerIntermediateCAs == nil || publicTLSServerRootCAs == nil {
 		return nil, nil, fmt.Errorf("failed to build public TLS server certificate")
+	} else if publicTLSServerSubject.KeyMaterial.PrivateKey == nil {
+		return nil, nil, fmt.Errorf("failed to build public TLS server certificate with private key")
 	}
 
 	privateTLSServerCertChain, privateTLSServerIntermediateCAs, privateTLSServerRootCAs, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
@@ -112,6 +114,8 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
 	} else if privateTLSServerIntermediateCAs == nil || privateTLSServerRootCAs == nil {
 		return nil, nil, fmt.Errorf("failed to build private TLS server certificate")
+	} else if privateTLSServerSubject.KeyMaterial.PrivateKey == nil {
+		return nil, nil, fmt.Errorf("failed to build private TLS server certificate with private key")
 	}
 	publicTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{publicTLSServerCertChain}, ClientAuth: tls.NoClientCert}
 	privateTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{privateTLSServerCertChain}, ClientAuth: tls.NoClientCert}
