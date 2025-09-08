@@ -62,12 +62,17 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 		return fmt.Errorf("failed to create shutdown request: %w", err)
 	}
 
+	// TODO Only use InsecureSkipVerify for DevMode
 	// Create HTTP client that accepts self-signed certificates for local testing
-	client := &http.Client{}
+	var client *http.Client
 	if settings.BindPrivateProtocol == "https" {
-		client.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
 		}
+	} else {
+		client = http.DefaultClient
 	}
 
 	shutdownResponse, err := client.Do(shutdownRequest)
