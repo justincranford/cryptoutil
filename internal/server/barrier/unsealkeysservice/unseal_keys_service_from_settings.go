@@ -46,7 +46,9 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		return NewUnsealKeysServiceSharedSecrets(sharedSecretsM, len(sharedSecretsM))
 	}
 
-	telemetryService.Slogger.Info("Creating UnsealKeysService from settings", "mode", settings.UnsealMode, "files", settings.UnsealFiles)
+	if telemetryService.VerboseMode {
+		telemetryService.Slogger.Info("Creating UnsealKeysService from settings", "mode", settings.UnsealMode, "files", settings.UnsealFiles)
+	}
 	// Parse mode - could be "N", "M-of-N", or "sysinfo"
 	switch {
 	case settings.UnsealMode == "sysinfo":
