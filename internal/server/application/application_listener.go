@@ -432,6 +432,8 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return helmet.New(helmet.Config{
 		Next: isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		// Allow same-origin referrers for CSRF protection
+		ReferrerPolicy: "same-origin",
 	})
 }
 
@@ -444,42 +446,33 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		Next:              isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
-		// Disable single-use tokens and referer checks for Swagger UI compatibility
-		SingleUseToken: false,
-		// Custom extractor that validates origin header instead of referer
-		Extractor: func(c *fiber.Ctx) (string, error) {
-			// Check Origin header for CSRF protection instead of Referer
-			origin := c.Get("Origin")
-			expectedOrigin := fmt.Sprintf("https://%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
-			expectedOriginHTTP := fmt.Sprintf("http://%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
-
-			if origin != expectedOrigin && origin != expectedOriginHTTP {
-				return "", fmt.Errorf("invalid origin: %s", origin)
-			}
-
-			// Get token from header
-			token := c.Get("X-CSRF-Token")
-			if token == "" {
-				// Try alternative header names
-				token = c.Get("X-Csrf-Token")
-			}
-			if token == "" {
-				return "", fmt.Errorf("missing CSRF token in headers")
-			}
-
-			return token, nil
-		},
+		SingleUseToken:    false,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			// Log CSRF errors for debugging - always show details for now
+			// Log CSRF errors for debugging
+			if settings.VerboseMode {
+				cookieToken := c.Cookies(settings.CSRFTokenName)
+				headerToken := c.Get("X-CSRF-Token")
+				if headerToken == "" {
+					headerToken = c.Get("X-Csrf-Token")
+				}
+
+				return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+					"error":           "CSRF token validation failed",
+					"details":         err.Error(),
+					"url":             c.OriginalURL(),
+					"method":          c.Method(),
+					"headers":         c.GetReqHeaders(),
+					"cookies":         c.GetReqHeaders()["Cookie"],
+					"csrf_token_name": settings.CSRFTokenName,
+					"origin":          c.Get("Origin"),
+					"referer":         c.Get("Referer"),
+					"cookie_token":    cookieToken,
+					"header_token":    headerToken,
+					"tokens_match":    cookieToken == headerToken,
+				})
+			}
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error":           "CSRF token validation failed",
-				"details":         err.Error(),
-				"url":             c.OriginalURL(),
-				"method":          c.Method(),
-				"headers":         c.GetReqHeaders(),
-				"cookies":         c.GetReqHeaders()["Cookie"],
-				"csrf_token_name": settings.CSRFTokenName,
-				"origin":          c.Get("Origin"),
+				"error": "CSRF token validation failed",
 			})
 		},
 	}
@@ -579,7 +572,9 @@ const swaggerUICustomCSRFScript = template.JS(`
 						return ensureCSRFToken().then(token => {
 							if (token) {
 								options.headers['X-CSRF-Token'] = token;
-								console.log('Added CSRF token to request headers:', options.method, url);
+								// Add Referer header since CSRF middleware requires it
+								options.headers['Referer'] = window.location.href;
+								console.log('Added CSRF token and Referer to request headers:', options.method, url);
 								console.log('Request headers:', options.headers);
 							} else {
 								console.error('No CSRF token available for request:', options.method, url);
