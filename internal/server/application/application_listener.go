@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"html/template"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
@@ -97,6 +99,24 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to run new function: %w", err)
 	} else if publicTLSServerSubject == nil || privateTLSServerSubject == nil {
 		return nil, nil, fmt.Errorf("failed to generate TLS server subjects")
+	}
+	publicTLSServerCertChain, publicTLSServerIntermediateCAs, publicTLSServerRootCAs, err := cryptoutilCertificate.BuildTLSCertificate(publicTLSServerSubject)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
+	} else if publicTLSServerIntermediateCAs == nil || publicTLSServerRootCAs == nil {
+		return nil, nil, fmt.Errorf("failed to build public TLS server certificate")
+	}
+
+	privateTLSServerCertChain, privateTLSServerIntermediateCAs, privateTLSServerRootCAs, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
+	} else if privateTLSServerIntermediateCAs == nil || privateTLSServerRootCAs == nil {
+		return nil, nil, fmt.Errorf("failed to build private TLS server certificate")
+	}
+	publicTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{publicTLSServerCertChain}, ClientAuth: tls.NoClientCert}
+	privateTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{privateTLSServerCertChain}, ClientAuth: tls.NoClientCert}
+	if publicTLSServerConfig == nil || privateTLSServerConfig == nil {
+		return nil, nil, fmt.Errorf("failed to create TLS server configurations")
 	}
 
 	// Middlewares
