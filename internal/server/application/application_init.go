@@ -17,6 +17,21 @@ import (
 func ServerInit(settings *cryptoutilConfig.Settings) error {
 	ctx := context.Background()
 
+	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
+	if err != nil {
+		return fmt.Errorf("failed to initialize server application core: %w", err)
+	}
+	defer serverApplicationBasic.Shutdown()
+
+	err = generateBothTLSServerCertificates(settings, serverApplicationBasic)
+	if err != nil {
+		return fmt.Errorf("failed to run new function: %w", err)
+	}
+
+	return nil
+}
+
+func generateBothTLSServerCertificates(settings *cryptoutilConfig.Settings, serverApplicationBasic *ServerApplicationBasic) error {
 	publicTLSServerIPAddresses, err := cryptoutilNetwork.ParseIPAddresses(settings.TLSPublicIPAddresses)
 	if err != nil {
 		return fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
@@ -25,12 +40,6 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	if err != nil {
 		return fmt.Errorf("failed to parse private TLS server IP addresses: %w", err)
 	}
-
-	serverApplicationBasic, err := StartServerApplicationBasic(ctx, settings)
-	if err != nil {
-		return fmt.Errorf("failed to initialize server application core: %w", err)
-	}
-	defer serverApplicationBasic.Shutdown()
 
 	err = generateTLSServerCertificates(serverApplicationBasic, "tls_public_server_", settings.TLSPublicDNSNames, publicTLSServerIPAddresses)
 	if err != nil {
@@ -41,7 +50,6 @@ func ServerInit(settings *cryptoutilConfig.Settings) error {
 	if err != nil {
 		return fmt.Errorf("failed to create TLS private server certs: %w", err)
 	}
-
 	return nil
 }
 
