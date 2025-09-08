@@ -8,11 +8,13 @@ import (
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	telemetryService "cryptoutil/internal/common/telemetry"
+	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 )
 
 type ServerApplicationBasic struct {
-	TelemetryService *telemetryService.TelemetryService
-	JwkGenService    *cryptoutilJose.JwkGenService
+	TelemetryService  *telemetryService.TelemetryService
+	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
+	JwkGenService     *cryptoutilJose.JwkGenService
 }
 
 func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig.Settings) (*ServerApplicationBasic, error) {
@@ -23,6 +25,14 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig
 		return nil, fmt.Errorf("failed to initailize telemetry: %w", err)
 	}
 	serverApplicationBasic.TelemetryService = telemetryService
+
+	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSettings(ctx, serverApplicationBasic.TelemetryService, settings)
+	if err != nil {
+		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create unseal repository", "error", err)
+		serverApplicationBasic.Shutdown()
+		return nil, fmt.Errorf("failed to create unseal repository: %w", err)
+	}
+	serverApplicationBasic.UnsealKeysService = unsealKeysService
 
 	jwkGenService, err := cryptoutilJose.NewJwkGenService(ctx, telemetryService)
 	if err != nil {
@@ -38,10 +48,13 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig
 func (c *ServerApplicationBasic) Shutdown() func() {
 	return func() {
 		if c.TelemetryService != nil {
-			c.TelemetryService.Slogger.Debug("stopping server core")
+			c.TelemetryService.Slogger.Debug("stopping server basic")
 		}
 		if c.JwkGenService != nil {
 			c.JwkGenService.Shutdown()
+		}
+		if c.UnsealKeysService != nil {
+			c.UnsealKeysService.Shutdown()
 		}
 		if c.TelemetryService != nil {
 			c.TelemetryService.Shutdown()

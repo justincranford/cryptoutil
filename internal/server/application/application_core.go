@@ -6,7 +6,6 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
-	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
@@ -16,7 +15,6 @@ type ServerApplicationCore struct {
 	ServerApplicationBasic *ServerApplicationBasic
 	SqlRepository          *cryptoutilSqlRepository.SqlRepository
 	OrmRepository          *cryptoutilOrmRepository.OrmRepository
-	UnsealKeysService      cryptoutilUnsealKeysService.UnsealKeysService
 	BarrierService         *cryptoutilBarrierService.BarrierService
 	BusinessLogicService   *cryptoutilBusinessLogic.BusinessLogicService
 }
@@ -47,15 +45,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	}
 	serverApplicationCore.OrmRepository = ormRepository
 
-	unsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceFromSettings(ctx, serverApplicationBasic.TelemetryService, settings)
-	if err != nil {
-		serverApplicationBasic.TelemetryService.Slogger.Error("failed to create unseal repository", "error", err)
-		serverApplicationCore.Shutdown()
-		return nil, fmt.Errorf("failed to create unseal repository: %w", err)
-	}
-	serverApplicationCore.UnsealKeysService = unsealKeysService
-
-	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, unsealKeysService)
+	barrierService, err := cryptoutilBarrierService.NewBarrierService(ctx, serverApplicationBasic.TelemetryService, jwkGenService, ormRepository, serverApplicationBasic.UnsealKeysService)
 	if err != nil {
 		serverApplicationBasic.TelemetryService.Slogger.Error("failed to initialize barrier service", "error", err)
 		serverApplicationCore.Shutdown()
@@ -81,9 +71,6 @@ func (c *ServerApplicationCore) Shutdown() func() {
 		}
 		if c.BarrierService != nil {
 			c.BarrierService.Shutdown()
-		}
-		if c.UnsealKeysService != nil {
-			c.UnsealKeysService.Shutdown()
 		}
 		if c.OrmRepository != nil {
 			c.OrmRepository.Shutdown()
