@@ -92,6 +92,13 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to initialize server application: %w", err)
 	}
 
+	publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to run new function: %w", err)
+	} else if publicTLSServerSubject == nil || privateTLSServerSubject == nil {
+		return nil, nil, fmt.Errorf("failed to generate TLS server subjects")
+	}
+
 	// Middlewares
 
 	commonMiddlewares := []fiber.Handler{
@@ -270,7 +277,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 				telemetryService.Slogger.Error("invalid allowed IP address:", "IP", allowedIP)
 			} else {
 				allowedIPs[allowedIP] = true
-				if settings.DevMode {
+				if settings.VerboseMode {
 					telemetryService.Slogger.Debug("Parsed IP successfully", "IP", allowedIP, "parsed", parsedIP.String())
 				}
 			}
@@ -285,7 +292,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, "error", err)
 			} else {
 				allowedCIDRs = append(allowedCIDRs, network)
-				if settings.DevMode {
+				if settings.VerboseMode {
 					telemetryService.Slogger.Debug("Parsed CIDR successfully", "CIDR", allowedCIDR, "network", network.String())
 				}
 			}
