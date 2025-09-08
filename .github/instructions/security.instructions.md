@@ -10,7 +10,8 @@ applyTo: "**"
 - Implement IP allowlisting with both individual IPs and CIDR blocks
 - Use rate limiting per IP address to prevent DoS attacks
 - Enable CORS with strict origin, method, and header controls
-- Implement CSRF protection in production mode (disabled in dev mode for testing)
+- Implement CSRF protection in ALL modes - NEVER disable CSRF protection in development mode
+- Use swaggerUICustomCSRFScript to handle CSRF tokens in Swagger UI for browser-based testing
 - Use proper HTTP security headers (Helmet.js equivalent)
 - Support multiple unseal modes: simple keys, shared secrets (M-of-N), and system fingerprinting
 - Implement proper key versioning and rotation capabilities
