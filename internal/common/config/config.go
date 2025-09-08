@@ -61,6 +61,7 @@ type Settings struct {
 	CSRFTokenCookieSecure       bool
 	CSRFTokenCookieHTTPOnly     bool
 	CSRFTokenCookieSessionOnly  bool
+	CSRFTokenSingleUseToken     bool
 	IPRateLimit                 uint16
 	AllowedIPs                  string // TODO change to []string
 	AllowedCIDRs                string // TODO change to []string
@@ -247,6 +248,12 @@ var (
 		value:     true,
 		usage:     "CSRF token cookie SessionOnly attribute",
 	}
+	csrfTokenSingleUseToken = Setting{
+		name:      "csrf-token-single-use-token",
+		shorthand: "G",
+		value:     false,
+		usage:     "CSRF token SingleUse attribute",
+	}
 	ipRateLimit = Setting{
 		name:      "rate-limit",
 		shorthand: "r",
@@ -429,6 +436,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(csrfTokenCookieSecure.name, csrfTokenCookieSecure.shorthand, csrfTokenCookieSecure.value.(bool), csrfTokenCookieSecure.usage)
 	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, csrfTokenCookieHTTPOnly.value.(bool), csrfTokenCookieHTTPOnly.usage)
 	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, csrfTokenCookieSessionOnly.value.(bool), csrfTokenCookieSessionOnly.usage)
+	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, csrfTokenSingleUseToken.value.(bool), csrfTokenSingleUseToken.usage)
 	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, ipRateLimit.value.(uint16), ipRateLimit.usage)
 	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
 	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
@@ -488,6 +496,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		CSRFTokenCookieSecure:       viper.GetBool(csrfTokenCookieSecure.name),
 		CSRFTokenCookieHTTPOnly:     viper.GetBool(csrfTokenCookieHTTPOnly.name),
 		CSRFTokenCookieSessionOnly:  viper.GetBool(csrfTokenCookieSessionOnly.name),
+		CSRFTokenSingleUseToken:     viper.GetBool(csrfTokenSingleUseToken.name),
 		IPRateLimit:                 viper.GetUint16(ipRateLimit.name),
 		AllowedIPs:                  viper.GetString(allowedIps.name),
 		AllowedCIDRs:                viper.GetString(allowedCidrs.name),
@@ -545,6 +554,7 @@ func logSettings(s *Settings) {
 		log.Info("CSRF Token Cookie Secure: ", s.CSRFTokenCookieSecure)
 		log.Info("CSRF Token Cookie HTTPOnly: ", s.CSRFTokenCookieHTTPOnly)
 		log.Info("CSRF Token Cookie SessionOnly: ", s.CSRFTokenCookieSessionOnly)
+		log.Info("CSRF Token SingleUseToken: ", s.CSRFTokenSingleUseToken)
 		log.Info("IP Rate Limit: ", s.IPRateLimit)
 		log.Info("Allowed IPs: ", s.AllowedIPs)
 		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
