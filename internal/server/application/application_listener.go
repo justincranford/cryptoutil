@@ -581,9 +581,7 @@ func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath strin
 						return ensureCSRFToken().then(token => {
 							if (token) {
 								options.headers['X-CSRF-Token'] = token;
-								// Add Referer header since CSRF middleware requires it
-								options.headers['Referer'] = window.location.href;
-								console.log('Added CSRF token and Referer to request headers:', options.method, url);
+								console.log('Added CSRF token to request headers:', options.method, url);
 								console.log('Request headers:', options.headers);
 							} else {
 								console.error('No CSRF token available for request:', options.method, url);
