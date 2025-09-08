@@ -15,12 +15,20 @@ type UnsealKeysServiceFromSysInfo struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealKeysServiceFromSysInfo) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
-	return encryptKey(u.unsealJwks, clearRootKey)
+func (u *UnsealKeysServiceFromSysInfo) EncryptKey(clearJwk joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJwks, clearJwk)
 }
 
-func (u *UnsealKeysServiceFromSysInfo) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
-	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
+func (u *UnsealKeysServiceFromSysInfo) DecryptKey(encryptedJwkBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJwks, encryptedJwkBytes)
+}
+
+func (u *UnsealKeysServiceFromSysInfo) EncryptData(clearData []byte) ([]byte, error) {
+	return encryptData(u.unsealJwks, clearData)
+}
+
+func (u *UnsealKeysServiceFromSysInfo) DecryptData(encryptedDataBytes []byte) ([]byte, error) {
+	return decryptData(u.unsealJwks, encryptedDataBytes)
 }
 
 func (u *UnsealKeysServiceFromSysInfo) Shutdown() {

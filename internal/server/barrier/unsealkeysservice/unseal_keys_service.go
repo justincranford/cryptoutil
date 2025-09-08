@@ -15,6 +15,8 @@ import (
 type UnsealKeysService interface {
 	EncryptKey(clearRootKey joseJwk.Key) ([]byte, error)
 	DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error)
+	EncryptData(clearData []byte) ([]byte, error)
+	DecryptData(encryptedDataBytes []byte) ([]byte, error)
 	Shutdown()
 }
 
@@ -70,4 +72,20 @@ func decryptKey(unsealJwks []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk
 		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK: %w", err)
 	}
 	return decryptedRootKey, nil
+}
+
+func encryptData(unsealJwks []joseJwk.Key, clearData []byte) ([]byte, error) {
+	_, encryptedDataBytes, err := cryptoutilJose.EncryptBytes(unsealJwks, clearData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt data with unseal JWK: %w", err)
+	}
+	return encryptedDataBytes, nil
+}
+
+func decryptData(unsealJwks []joseJwk.Key, encryptedDataBytes []byte) ([]byte, error) {
+	decryptedData, err := cryptoutilJose.DecryptBytes(unsealJwks, encryptedDataBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decrypt data with unseal JWK: %w", err)
+	}
+	return decryptedData, nil
 }

@@ -10,12 +10,20 @@ type UnsealKeysServiceSimple struct {
 	unsealJwks []joseJwk.Key
 }
 
-func (u *UnsealKeysServiceSimple) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
-	return encryptKey(u.unsealJwks, clearRootKey)
+func (u *UnsealKeysServiceSimple) EncryptKey(clearJwk joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJwks, clearJwk)
 }
 
-func (u *UnsealKeysServiceSimple) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
-	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
+func (u *UnsealKeysServiceSimple) DecryptKey(encryptedJwkBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJwks, encryptedJwkBytes)
+}
+
+func (u *UnsealKeysServiceSimple) EncryptData(clearData []byte) ([]byte, error) {
+	return encryptData(u.unsealJwks, clearData)
+}
+
+func (u *UnsealKeysServiceSimple) DecryptData(encryptedDataBytes []byte) ([]byte, error) {
+	return decryptData(u.unsealJwks, encryptedDataBytes)
 }
 
 func (u *UnsealKeysServiceSimple) Shutdown() {
