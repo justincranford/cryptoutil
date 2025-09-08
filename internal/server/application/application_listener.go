@@ -94,33 +94,37 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		return nil, nil, fmt.Errorf("failed to initialize server application: %w", err)
 	}
 
-	publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to run new function: %w", err)
-	} else if publicTLSServerSubject == nil || privateTLSServerSubject == nil {
-		return nil, nil, fmt.Errorf("failed to generate TLS server subjects")
-	}
-	publicTLSServerCertChain, publicTLSServerIntermediateCAs, publicTLSServerRootCAs, err := cryptoutilCertificate.BuildTLSCertificate(publicTLSServerSubject)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
-	} else if publicTLSServerIntermediateCAs == nil || publicTLSServerRootCAs == nil {
-		return nil, nil, fmt.Errorf("failed to build public TLS server certificate")
-	} else if publicTLSServerSubject.KeyMaterial.PrivateKey == nil {
-		return nil, nil, fmt.Errorf("failed to build public TLS server certificate with private key")
-	}
+	var publicTLSServerSubject *cryptoutilCertificate.Subject
+	var privateTLSServerSubject *cryptoutilCertificate.Subject
+	if settings.BindPublicProtocol == "https" || settings.BindPrivateProtocol == "https" {
+		publicTLSServerSubject, privateTLSServerSubject, err = generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to run new function: %w", err)
+		} else if publicTLSServerSubject == nil || privateTLSServerSubject == nil {
+			return nil, nil, fmt.Errorf("failed to generate TLS server subjects")
+		}
+		publicTLSServerCertChain, publicTLSServerIntermediateCAs, publicTLSServerRootCAs, err := cryptoutilCertificate.BuildTLSCertificate(publicTLSServerSubject)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
+		} else if publicTLSServerIntermediateCAs == nil || publicTLSServerRootCAs == nil {
+			return nil, nil, fmt.Errorf("failed to build public TLS server certificate")
+		} else if publicTLSServerSubject.KeyMaterial.PrivateKey == nil {
+			return nil, nil, fmt.Errorf("failed to build public TLS server certificate with private key")
+		}
 
-	privateTLSServerCertChain, privateTLSServerIntermediateCAs, privateTLSServerRootCAs, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
-	} else if privateTLSServerIntermediateCAs == nil || privateTLSServerRootCAs == nil {
-		return nil, nil, fmt.Errorf("failed to build private TLS server certificate")
-	} else if privateTLSServerSubject.KeyMaterial.PrivateKey == nil {
-		return nil, nil, fmt.Errorf("failed to build private TLS server certificate with private key")
-	}
-	publicTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{publicTLSServerCertChain}, ClientAuth: tls.NoClientCert}
-	privateTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{privateTLSServerCertChain}, ClientAuth: tls.NoClientCert}
-	if publicTLSServerConfig == nil || privateTLSServerConfig == nil {
-		return nil, nil, fmt.Errorf("failed to create TLS server configurations")
+		privateTLSServerCertChain, privateTLSServerIntermediateCAs, privateTLSServerRootCAs, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
+		} else if privateTLSServerIntermediateCAs == nil || privateTLSServerRootCAs == nil {
+			return nil, nil, fmt.Errorf("failed to build private TLS server certificate")
+		} else if privateTLSServerSubject.KeyMaterial.PrivateKey == nil {
+			return nil, nil, fmt.Errorf("failed to build private TLS server certificate with private key")
+		}
+		publicTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{publicTLSServerCertChain}, ClientAuth: tls.NoClientCert}
+		privateTLSServerConfig := &tls.Config{Certificates: []tls.Certificate{privateTLSServerCertChain}, ClientAuth: tls.NoClientCert}
+		if publicTLSServerConfig == nil || privateTLSServerConfig == nil {
+			return nil, nil, fmt.Errorf("failed to create TLS server configurations")
+		}
 	}
 
 	// Middlewares
