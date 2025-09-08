@@ -62,7 +62,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--log-level=debug",
 		"--verbose",
 		"--dev",
-		"--bind-public-protocol=https",
+		"--bind-public-protocol=http",
 		"--bind-public-address=192.168.1.2",
 		"--bind-public-port=18080",
 		"--bind-private-protocol=https",
@@ -106,7 +106,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "test.yaml", s.ConfigFile)
 	assert.Equal(t, "debug", s.LogLevel)
 	assert.True(t, s.VerboseMode)
-	assert.Equal(t, "https", s.BindPublicProtocol)
+	assert.Equal(t, "http", s.BindPublicProtocol)
 	assert.Equal(t, "192.168.1.2", s.BindPublicAddress)
 	assert.Equal(t, uint16(18080), s.BindPublicPort)
 	assert.Equal(t, "https", s.BindPrivateProtocol)

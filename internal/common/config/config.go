@@ -118,7 +118,7 @@ var (
 	bindPublicProtocol = Setting{
 		name:      "bind-public-protocol",
 		shorthand: "t",
-		value:     httpProtocol, // TODO https
+		value:     httpsProtocol,
 		usage:     "bind public protocol (http or https)",
 	}
 	bindPublicAddress = Setting{
