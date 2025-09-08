@@ -232,7 +232,7 @@ var (
 	csrfTokenCookieSecure = Setting{
 		name:      "csrf-token-cookie-secure",
 		shorthand: "R",
-		value:     false, // TODO Change to true after implementing HTTPS
+		value:     true,
 		usage:     "CSRF token cookie Secure attribute",
 	}
 	csrfTokenCookieHTTPOnly = Setting{
