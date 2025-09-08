@@ -153,10 +153,10 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	}
 
 	publicMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPublic)}, commonMiddlewares...)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings)) // Browser-specific: Cross-Origin Resource Sharing (CORS)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))  // Browser-specific: Cross-Site Scripting (XSS)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings)) // Browser-specific: Cross-Site Request Forgery (CSRF)
-	// TODO Add additional security headers: X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, HSTS
+	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings))              // Browser-specific: Cross-Origin Resource Sharing (CORS)
+	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))               // Browser-specific: Cross-Site Scripting (XSS)
+	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(settings)) // Additional security headers
+	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))              // Browser-specific: Cross-Site Request Forgery (CSRF)
 	// TODO Add request body size limits to prevent large payload attacks
 	// TODO Consider adding compression middleware for better performance
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
@@ -445,16 +445,109 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 }
 
 func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.Settings) fiber.Handler {
+	// Content Security Policy for enhanced XSS protection
+	// This CSP is specifically designed to work with Swagger UI while maintaining security
+	csp := buildContentSecurityPolicy(settings)
+
 	return helmet.New(helmet.Config{
 		Next: isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
-		// TODO Implement Content Security Policy (CSP) headers for enhanced XSS protection
-		// TODO CSP should include: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' (for Swagger UI);
-		// TODO CSP should include: style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'
-		// TODO CSP should include: connect-src 'self'; frame-ancestors 'none'; base-uri 'self'
-		// TODO Consider nonce-based CSP for better security than 'unsafe-inline'
+
+		// Content Security Policy implementation
+		ContentSecurityPolicy: csp,
+
+		// Additional security headers (using available Helmet fields)
+		XFrameOptions: "DENY",          // Prevent clickjacking
+		XSSProtection: "1; mode=block", // Enable XSS filter
+
 		// Allow same-origin referrers for CSRF protection
 		ReferrerPolicy: "same-origin",
 	})
+}
+
+// buildContentSecurityPolicy creates a CSP tailored for the cryptoutil application
+func buildContentSecurityPolicy(settings *cryptoutilConfig.Settings) string {
+	// Base CSP - very restrictive
+	csp := "default-src 'none';"
+
+	// Scripts: Allow self and necessary inline/eval for Swagger UI
+	// 'unsafe-inline' and 'unsafe-eval' are required for Swagger UI to function
+	csp += " script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+
+	// Styles: Allow self and inline styles (required for Swagger UI)
+	csp += " style-src 'self' 'unsafe-inline';"
+
+	// Images: Allow self and data URIs (for inline images/icons)
+	csp += " img-src 'self' data:;"
+
+	// Fonts: Allow self only
+	csp += " font-src 'self';"
+
+	// Connections: Allow self for API calls
+	csp += " connect-src 'self';"
+
+	// Forms: Allow self only
+	csp += " form-action 'self';"
+
+	// Frames: Deny all framing (prevent clickjacking)
+	csp += " frame-ancestors 'none';"
+
+	// Base URI: Restrict to self
+	csp += " base-uri 'self';"
+
+	// Object/embed: Block all plugins
+	csp += " object-src 'none';"
+
+	// Media: Allow self for any video/audio
+	csp += " media-src 'self';"
+
+	// Worker: Allow self for web workers
+	csp += " worker-src 'self';"
+
+	// Manifest: Allow self for web app manifests
+	csp += " manifest-src 'self';"
+
+	// In development mode, add localhost variations for flexible development
+	if settings.DevMode {
+		// Add localhost variations for development
+		localhostSources := " http://localhost:* https://localhost:* http://127.0.0.1:* https://127.0.0.1:*"
+		csp = strings.ReplaceAll(csp, " 'self';", " 'self'"+localhostSources+";")
+
+		// Log CSP in development mode for debugging
+		if settings.VerboseMode {
+			fmt.Printf("Content Security Policy (Dev Mode): %s\n", csp)
+		}
+	}
+
+	return csp
+}
+
+// publicBrowserAdditionalSecurityHeadersMiddleware adds security headers not covered by Helmet
+func publicBrowserAdditionalSecurityHeadersMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// Skip for non-browser API requests
+		if isNonBrowserUserApiRequestFunc(settings)(c) {
+			return c.Next()
+		}
+
+		// X-Content-Type-Options: Prevent MIME sniffing
+		c.Set("X-Content-Type-Options", "nosniff")
+
+		// Strict-Transport-Security: Enforce HTTPS (only set for HTTPS requests)
+		if c.Protocol() == "https" {
+			if settings.DevMode {
+				// Shorter duration for development
+				c.Set("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+			} else {
+				// 1 year for production
+				c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+			}
+		}
+
+		// Permissions-Policy: Restrict dangerous browser features
+		c.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+
+		return c.Next()
+	}
 }
 
 func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fiber.Handler {
