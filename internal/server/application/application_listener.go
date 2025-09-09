@@ -336,8 +336,8 @@ func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Te
 
 func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
-	if settings.AllowedIPs != "" {
-		for allowedIP := range strings.SplitSeq(settings.AllowedIPs, ",") {
+	if len(settings.AllowedIPs) > 0 {
+		for _, allowedIP := range settings.AllowedIPs {
 			parsedIP := net.ParseIP(allowedIP) // IPv4 (e.g.  192.0.2.1"), IPv6 (e.g. 2001:db8::68), or IPv4-mapped IPv6 (e.g. ::ffff:192.0.2.1)
 			if parsedIP == nil {
 				telemetryService.Slogger.Error("invalid allowed IP address:", "IP", allowedIP)
@@ -351,8 +351,8 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 	}
 
 	var allowedCIDRs []*net.IPNet
-	if settings.AllowedCIDRs != "" {
-		for allowedCIDR := range strings.SplitSeq(settings.AllowedCIDRs, ",") {
+	if len(settings.AllowedCIDRs) > 0 {
+		for _, allowedCIDR := range settings.AllowedCIDRs {
 			_, network, err := net.ParseCIDR(allowedCIDR) // "192.0.2.1/24" => 192.0.2.1 (not useful) and 192.0.2.0/24 (useful)
 			if err != nil {
 				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, "error", err)

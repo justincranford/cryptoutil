@@ -63,8 +63,8 @@ type Settings struct {
 	CSRFTokenCookieSessionOnly  bool
 	CSRFTokenSingleUseToken     bool
 	IPRateLimit                 uint16
-	AllowedIPs                  string // TODO change to []string
-	AllowedCIDRs                string // TODO change to []string
+	AllowedIPs                  []string
+	AllowedCIDRs                []string
 	DatabaseContainer           string
 	DatabaseURL                 string
 	DatabaseInitTotalTimeout    time.Duration
@@ -375,10 +375,16 @@ var defaultCSRFTokenSameSite = "Strict"
 
 var defaultCSRFTokenMaxAge = 1 * time.Hour
 
-var defaultAllowedIps = "" // TODO []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"}
+var defaultAllowedIps = func() []string {
+	return []string{
+		"127.0.0.1",        // localhost (IPv4)
+		"::1",              // localhost (IPv6)
+		"::ffff:127.0.0.1", // localhost (IPv4-mapped IPv6)
+	}
+}()
 
-var defaultAllowedCIDRs = func() string {
-	return strings.Join([]string{
+var defaultAllowedCIDRs = func() []string {
+	return []string{
 		localhostCIDRv4,     // localhost (IPv4)
 		linkLocalCIDRv4,     // link-local (IPv4)
 		privateClassACIDRv4, // private LAN class A (IPv4)
@@ -387,7 +393,7 @@ var defaultAllowedCIDRs = func() string {
 		localhostCIDRv6,     // localhost (IPv6)
 		linkLocalCIDRv6,     // link-local (IPv6)
 		privateLANv6,        // private LAN (IPv6)
-	}, ",")
+	}
 }()
 
 // set of valid subcommands
@@ -438,8 +444,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, csrfTokenCookieSessionOnly.value.(bool), csrfTokenCookieSessionOnly.usage)
 	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, csrfTokenSingleUseToken.value.(bool), csrfTokenSingleUseToken.usage)
 	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, ipRateLimit.value.(uint16), ipRateLimit.usage)
-	pflag.StringP(allowedIps.name, allowedIps.shorthand, allowedIps.value.(string), allowedIps.usage)
-	pflag.StringP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.(string), allowedCidrs.usage)
+	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, allowedIps.value.([]string), allowedIps.usage)
+	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, allowedCidrs.value.([]string), allowedCidrs.usage)
 	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, databaseContainer.value.(string), databaseContainer.usage)
 	pflag.StringP(databaseURL.name, databaseURL.shorthand, databaseURL.value.(string), databaseURL.usage)
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, databaseInitTotalTimeout.value.(time.Duration), databaseInitTotalTimeout.usage)
@@ -498,8 +504,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		CSRFTokenCookieSessionOnly:  viper.GetBool(csrfTokenCookieSessionOnly.name),
 		CSRFTokenSingleUseToken:     viper.GetBool(csrfTokenSingleUseToken.name),
 		IPRateLimit:                 viper.GetUint16(ipRateLimit.name),
-		AllowedIPs:                  viper.GetString(allowedIps.name),
-		AllowedCIDRs:                viper.GetString(allowedCidrs.name),
+		AllowedIPs:                  viper.GetStringSlice(allowedIps.name),
+		AllowedCIDRs:                viper.GetStringSlice(allowedCidrs.name),
 		DatabaseContainer:           viper.GetString(databaseContainer.name),
 		DatabaseURL:                 viper.GetString(databaseURL.name),
 		DatabaseInitTotalTimeout:    viper.GetDuration(databaseInitTotalTimeout.name),

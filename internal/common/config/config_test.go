@@ -87,8 +87,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--csrf-token-cookie-session-only=false",
 		"--csrf-token-single-use-token=true",
 		"--rate-limit=100",
-		"--allowed-ips=192.168.1.100",
-		"--allowed-cidrs=10.0.0.0/8",
+		"--allowed-ips=192.168.1.100,192.168.1.101",
+		"--allowed-cidrs=10.0.0.0/8,192.168.1.0/24",
 		"--database-container=required",
 		"--database-url=postgres://user:pass@db:5432/dbname?sslmode=disable",
 		"--database-init-total-timeout=5m",
@@ -132,8 +132,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, false, s.CSRFTokenCookieSessionOnly)
 	assert.Equal(t, true, s.CSRFTokenSingleUseToken)
 	assert.Equal(t, uint16(100), s.IPRateLimit)
-	assert.Equal(t, "192.168.1.100", s.AllowedIPs)
-	assert.Equal(t, "10.0.0.0/8", s.AllowedCIDRs)
+	assert.Equal(t, []string{"192.168.1.100", "192.168.1.101"}, s.AllowedIPs)
+	assert.Equal(t, []string{"10.0.0.0/8", "192.168.1.0/24"}, s.AllowedCIDRs)
 	assert.Equal(t, "required", s.DatabaseContainer)
 	assert.Equal(t, "postgres://user:pass@db:5432/dbname?sslmode=disable", s.DatabaseURL)
 	assert.Equal(t, 5*time.Minute, s.DatabaseInitTotalTimeout)
