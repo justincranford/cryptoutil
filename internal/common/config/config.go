@@ -410,6 +410,33 @@ func registerSetting(setting *Setting) *Setting {
 	return setting
 }
 
+type analysisResult struct {
+	SettingsByNames      map[string][]*Setting
+	SettingsByShorthands map[string][]*Setting
+	DuplicateNames       []string
+	DuplicateShorthands  []string
+}
+
+func analyzeSettings() analysisResult {
+	result := analysisResult{
+		SettingsByNames:      make(map[string][]*Setting),
+		SettingsByShorthands: make(map[string][]*Setting),
+	}
+	for _, setting := range allRegisteredSettings {
+		result.SettingsByNames[setting.name] = append(result.SettingsByNames[setting.name], setting)
+		result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
+	}
+	for _, setting := range allRegisteredSettings {
+		if len(result.SettingsByNames[setting.name]) > 1 {
+			result.DuplicateNames = append(result.DuplicateNames, setting.name)
+		}
+		if len(result.SettingsByShorthands[setting.shorthand]) > 1 {
+			result.DuplicateShorthands = append(result.DuplicateShorthands, setting.shorthand)
+		}
+	}
+	return result
+}
+
 // TODO Server only parameters?
 func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if len(commandParameters) == 0 {
@@ -572,9 +599,10 @@ func logSettings(s *Settings) {
 		log.Info("Allowed IPs: ", s.AllowedIPs)
 		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
 		log.Info("Database Container: ", s.DatabaseContainer)
-		// only give option to log in dev mode (i.e. don't give option to log in production mode)
-		if s.DevMode {
+		if s.DevMode && s.VerboseMode {
 			log.Info("Database URL: ", s.DatabaseURL) // sensitive value (i.e. PostgreSQL URLs may contain password)
+		} else {
+			log.Info("Database URL: ", "REDACTED")
 		}
 		log.Info("Database Init Total Timeout: ", s.DatabaseInitTotalTimeout)
 		log.Info("Database Init Retry Wait: ", s.DatabaseInitRetryWait)

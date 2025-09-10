@@ -145,3 +145,202 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	assert.Equal(t, "2-of-3", s.UnsealMode)
 	assert.Equal(t, []string{"/docker/secrets/unseal1", "/docker/secrets/unseal2", "/docker/secrets/unseal3"}, s.UnsealFiles)
 }
+
+func TestAnalyzeSettings_NoDuplicates(t *testing.T) {
+	// Save original settings
+	originalSettings := allRegisteredSettings
+	defer func() {
+		allRegisteredSettings = originalSettings
+	}()
+
+	// Create test settings with no duplicates
+	allRegisteredSettings = []*Setting{
+		{name: "test1", shorthand: "a", value: "value1", usage: "usage1"},
+		{name: "test2", shorthand: "b", value: "value2", usage: "usage2"},
+		{name: "test3", shorthand: "c", value: "value3", usage: "usage3"},
+	}
+
+	result := analyzeSettings()
+
+	// Verify settings are grouped correctly by name
+	assert.Len(t, result.SettingsByNames, 3)
+	assert.Len(t, result.SettingsByNames["test1"], 1)
+	assert.Equal(t, "test1", result.SettingsByNames["test1"][0].name)
+	assert.Len(t, result.SettingsByNames["test2"], 1)
+	assert.Equal(t, "test2", result.SettingsByNames["test2"][0].name)
+	assert.Len(t, result.SettingsByNames["test3"], 1)
+	assert.Equal(t, "test3", result.SettingsByNames["test3"][0].name)
+
+	// Verify settings are grouped correctly by shorthand
+	assert.Len(t, result.SettingsByShorthands, 3)
+	assert.Len(t, result.SettingsByShorthands["a"], 1)
+	assert.Equal(t, "a", result.SettingsByShorthands["a"][0].shorthand)
+	assert.Len(t, result.SettingsByShorthands["b"], 1)
+	assert.Equal(t, "b", result.SettingsByShorthands["b"][0].shorthand)
+	assert.Len(t, result.SettingsByShorthands["c"], 1)
+	assert.Equal(t, "c", result.SettingsByShorthands["c"][0].shorthand)
+
+	// No duplicates should be found
+	assert.Empty(t, result.DuplicateNames)
+	assert.Empty(t, result.DuplicateShorthands)
+}
+
+func TestAnalyzeSettings_DuplicateNames(t *testing.T) {
+	// Save original settings
+	originalSettings := allRegisteredSettings
+	defer func() {
+		allRegisteredSettings = originalSettings
+	}()
+
+	// Create test settings with duplicate names
+	allRegisteredSettings = []*Setting{
+		{name: "duplicate", shorthand: "a", value: "value1", usage: "usage1"},
+		{name: "duplicate", shorthand: "b", value: "value2", usage: "usage2"},
+		{name: "unique", shorthand: "c", value: "value3", usage: "usage3"},
+	}
+
+	result := analyzeSettings()
+
+	// Verify settings are grouped correctly by name
+	assert.Len(t, result.SettingsByNames, 2)
+	assert.Len(t, result.SettingsByNames["duplicate"], 2)
+	assert.Len(t, result.SettingsByNames["unique"], 1)
+
+	// Verify duplicate names are detected
+	assert.Contains(t, result.DuplicateNames, "duplicate")
+	assert.NotContains(t, result.DuplicateNames, "unique")
+
+	// Verify no duplicate shorthands (they're unique)
+	assert.Empty(t, result.DuplicateShorthands)
+}
+
+func TestAnalyzeSettings_DuplicateShorthands(t *testing.T) {
+	// Save original settings
+	originalSettings := allRegisteredSettings
+	defer func() {
+		allRegisteredSettings = originalSettings
+	}()
+
+	// Create test settings with duplicate shorthands
+	allRegisteredSettings = []*Setting{
+		{name: "test1", shorthand: "duplicate", value: "value1", usage: "usage1"},
+		{name: "test2", shorthand: "duplicate", value: "value2", usage: "usage2"},
+		{name: "test3", shorthand: "unique", value: "value3", usage: "usage3"},
+	}
+
+	result := analyzeSettings()
+
+	// Verify settings are grouped correctly by shorthand
+	assert.Len(t, result.SettingsByShorthands, 2)
+	assert.Len(t, result.SettingsByShorthands["duplicate"], 2)
+	assert.Len(t, result.SettingsByShorthands["unique"], 1)
+
+	// Verify duplicate shorthands are detected
+	assert.Contains(t, result.DuplicateShorthands, "duplicate")
+	assert.NotContains(t, result.DuplicateShorthands, "unique")
+
+	// Verify no duplicate names (they're unique)
+	assert.Empty(t, result.DuplicateNames)
+}
+
+func TestAnalyzeSettings_BothDuplicates(t *testing.T) {
+	// Save original settings
+	originalSettings := allRegisteredSettings
+	defer func() {
+		allRegisteredSettings = originalSettings
+	}()
+
+	// Create test settings with both duplicate names and shorthands
+	allRegisteredSettings = []*Setting{
+		{name: "dupname", shorthand: "dupshort", value: "value1", usage: "usage1"},
+		{name: "dupname", shorthand: "dupshort", value: "value2", usage: "usage2"},
+		{name: "unique1", shorthand: "unique1", value: "value3", usage: "usage3"},
+		{name: "unique2", shorthand: "unique2", value: "value4", usage: "usage4"},
+	}
+
+	result := analyzeSettings()
+
+	// Verify settings are grouped correctly
+	assert.Len(t, result.SettingsByNames, 3)
+	assert.Len(t, result.SettingsByNames["dupname"], 2)
+	assert.Len(t, result.SettingsByNames["unique1"], 1)
+	assert.Len(t, result.SettingsByNames["unique2"], 1)
+
+	assert.Len(t, result.SettingsByShorthands, 3)
+	assert.Len(t, result.SettingsByShorthands["dupshort"], 2)
+	assert.Len(t, result.SettingsByShorthands["unique1"], 1)
+	assert.Len(t, result.SettingsByShorthands["unique2"], 1)
+
+	// Verify duplicates are detected
+	assert.Contains(t, result.DuplicateNames, "dupname")
+	assert.Contains(t, result.DuplicateShorthands, "dupshort")
+	assert.NotContains(t, result.DuplicateNames, "unique1")
+	assert.NotContains(t, result.DuplicateNames, "unique2")
+	assert.NotContains(t, result.DuplicateShorthands, "unique1")
+	assert.NotContains(t, result.DuplicateShorthands, "unique2")
+}
+
+func TestAnalyzeSettings_EmptyShorthand(t *testing.T) {
+	// Save original settings
+	originalSettings := allRegisteredSettings
+	defer func() {
+		allRegisteredSettings = originalSettings
+	}()
+
+	// Create test settings with empty shorthands
+	allRegisteredSettings = []*Setting{
+		{name: "test1", shorthand: "", value: "value1", usage: "usage1"},
+		{name: "test2", shorthand: "", value: "value2", usage: "usage2"},
+		{name: "test3", shorthand: "a", value: "value3", usage: "usage3"},
+	}
+
+	result := analyzeSettings()
+
+	// Verify settings are grouped correctly
+	assert.Len(t, result.SettingsByNames, 3)
+	assert.Len(t, result.SettingsByShorthands, 2) // empty string and "a"
+
+	// Empty shorthands should be grouped together
+	assert.Len(t, result.SettingsByShorthands[""], 2)
+	assert.Len(t, result.SettingsByShorthands["a"], 1)
+
+	// Empty shorthand duplicates should be detected
+	assert.Contains(t, result.DuplicateShorthands, "")
+	assert.NotContains(t, result.DuplicateShorthands, "a")
+
+	// No duplicate names
+	assert.Empty(t, result.DuplicateNames)
+}
+
+func TestAnalyzeSettings_RealSettings(t *testing.T) {
+	// Test with the actual production settings to ensure no duplicates exist
+	result := analyzeSettings()
+
+	// Verify we have the expected number of settings (should match the actual count)
+	expectedSettingCount := len(allRegisteredSettings)
+	totalMappedByName := 0
+	for _, settings := range result.SettingsByNames {
+		totalMappedByName += len(settings)
+	}
+	assert.Equal(t, expectedSettingCount, totalMappedByName, "All settings should be accounted for by name")
+
+	totalMappedByShorthand := 0
+	for _, settings := range result.SettingsByShorthands {
+		totalMappedByShorthand += len(settings)
+	}
+	assert.Equal(t, expectedSettingCount, totalMappedByShorthand, "All settings should be accounted for by shorthand")
+
+	// Production settings should have no duplicates
+	assert.Empty(t, result.DuplicateNames, "Production settings should have no duplicate names")
+	assert.Empty(t, result.DuplicateShorthands, "Production settings should have no duplicate shorthands")
+
+	// Verify all names are unique
+	for name, settings := range result.SettingsByNames {
+		assert.Len(t, settings, 1, "Setting name '%s' should be unique", name)
+	}
+
+	// Verify all shorthands are unique
+	for shorthand, settings := range result.SettingsByShorthands {
+		assert.Len(t, settings, 1, "Setting shorthand '%s' should be unique", shorthand)
+	}
+}
