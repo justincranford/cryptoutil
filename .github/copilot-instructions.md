@@ -9,6 +9,12 @@
   2. Register the file path in `.vscode/settings.json` under `github.copilot.chat.codeGeneration.instructionsFiles` array
   3. Commit and push both changes to ensure Copilot uses the new instructions
 
+## Terminal and File Management
+
+- Minimize temporary file creation/removal to reduce interaction prompts
+- Use command chaining (`;` in PowerShell) for related operations
+- Prefer existing files over temporary demos when possible
+
 ## Current Instruction Files
 
 | Pattern | File Path | Description |
