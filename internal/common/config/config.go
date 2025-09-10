@@ -32,6 +32,8 @@ const (
 	privateLANv6    = "fc00::/7"
 )
 
+var allRegisteredSettings []*Setting
+
 type Settings struct {
 	SubCommand                  string
 	Help                        bool
@@ -85,249 +87,249 @@ type Setting struct {
 }
 
 var (
-	help = Setting{
+	help = *registerSetting(&Setting{
 		name:      "help",
 		shorthand: "h",
 		value:     false,
 		usage: "print help; you can run the server with parameters like this:\n" +
 			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n",
-	}
-	configFile = Setting{
+	})
+	configFile = *registerSetting(&Setting{
 		name:      "config",
 		shorthand: "y",
 		value:     "config.yaml",
 		usage:     "path to config file",
-	}
-	logLevel = Setting{
+	})
+	logLevel = *registerSetting(&Setting{
 		name:      "log-level",
 		shorthand: "l",
 		value:     "INFO",
 		usage:     "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
-	}
-	verboseMode = Setting{
+	})
+	verboseMode = *registerSetting(&Setting{
 		name:      "verbose",
 		shorthand: "v",
 		value:     false,
 		usage:     "verbose modifier for log level",
-	}
-	devMode = Setting{
+	})
+	devMode = *registerSetting(&Setting{
 		name:      "dev",
 		shorthand: "d",
 		value:     false,
 		usage:     "run in development mode; enables in-memory SQLite",
-	}
-	bindPublicProtocol = Setting{
+	})
+	bindPublicProtocol = *registerSetting(&Setting{
 		name:      "bind-public-protocol",
 		shorthand: "t",
 		value:     httpsProtocol,
 		usage:     "bind public protocol (http or https)",
-	}
-	bindPublicAddress = Setting{
+	})
+	bindPublicAddress = *registerSetting(&Setting{
 		name:      "bind-public-address",
 		shorthand: "a",
 		value:     "localhost",
 		usage:     "bind public address",
-	}
-	bindPublicPort = Setting{
+	})
+	bindPublicPort = *registerSetting(&Setting{
 		name:      "bind-public-port",
 		shorthand: "p",
 		value:     uint16(8080),
 		usage:     "bind public port",
-	}
-	bindPrivateProtocol = Setting{
+	})
+	bindPrivateProtocol = *registerSetting(&Setting{
 		name:      "bind-private-protocol",
 		shorthand: "T",
 		value:     httpProtocol, // TODO https
 		usage:     "bind private protocol (http or https)",
-	}
-	bindPrivateAddress = Setting{
+	})
+	bindPrivateAddress = *registerSetting(&Setting{
 		name:      "bind-private-address",
 		shorthand: "A",
 		value:     "localhost",
 		usage:     "bind private address",
-	}
-	bindPrivatePort = Setting{
+	})
+	bindPrivatePort = *registerSetting(&Setting{
 		name:      "bind-private-port",
 		shorthand: "P",
 		value:     uint16(9090),
 		usage:     "bind private port",
-	}
-	tlsPublicDnsNames = Setting{
+	})
+	tlsPublicDnsNames = *registerSetting(&Setting{
 		name:      "tls-public-dns-names",
 		shorthand: "n",
 		value:     []string{"localhost"},
 		usage:     "TLS public DNS names",
-	}
-	tlsPrivateDnsNames = Setting{
+	})
+	tlsPrivateDnsNames = *registerSetting(&Setting{
 		name:      "tls-private-dns-names",
 		shorthand: "j",
 		value:     []string{"localhost"},
 		usage:     "TLS private DNS names",
-	}
-	tlsPublicIPAddresses = Setting{
+	})
+	tlsPublicIPAddresses = *registerSetting(&Setting{
 		name:      "tls-public-ip-addresses",
 		shorthand: "i",
 		value:     []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
 		usage:     "TLS public IP addresses",
-	}
-	tlsPrivateIPAddresses = Setting{
+	})
+	tlsPrivateIPAddresses = *registerSetting(&Setting{
 		name:      "tls-private-ip-addresses",
 		shorthand: "k",
 		value:     []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
 		usage:     "TLS private IP addresses",
-	}
-	publicBrowserAPIContextPath = Setting{
+	})
+	publicBrowserAPIContextPath = *registerSetting(&Setting{
 		name:      "browser-api-context-path",
 		shorthand: "c",
 		value:     "/browser/api/v1",
 		usage:     "context path for Public Browser API",
-	}
-	publicServiceAPIContextPath = Setting{
+	})
+	publicServiceAPIContextPath = *registerSetting(&Setting{
 		name:      "service-api-context-path",
 		shorthand: "b",
 		value:     "/service/api/v1",
 		usage:     "context path for Public Server API",
-	}
-	corsAllowedOrigins = Setting{
+	})
+	corsAllowedOrigins = *registerSetting(&Setting{
 		name:      "cors-origins",
 		shorthand: "o",
 		value:     defaultCORSAllowedOrigins,
 		usage:     "CORS allowed origins",
-	}
-	corsAllowedMethods = Setting{
+	})
+	corsAllowedMethods = *registerSetting(&Setting{
 		name:      "cors-methods",
 		shorthand: "m",
 		value:     defaultCORSAllowedMethods,
 		usage:     "CORS allowed methods",
-	}
-	corsAllowedHeaders = Setting{
+	})
+	corsAllowedHeaders = *registerSetting(&Setting{
 		name:      "cors-headers",
 		shorthand: "H",
 		value:     defaultCORSAllowedHeaders,
 		usage:     "CORS allowed headers",
-	}
-	corsMaxAge = Setting{
+	})
+	corsMaxAge = *registerSetting(&Setting{
 		name:      "cors-max-age",
 		shorthand: "x",
 		value:     defaultCORSMaxAge,
 		usage:     "CORS max age in seconds",
-	}
-	csrfTokenName = Setting{
+	})
+	csrfTokenName = *registerSetting(&Setting{
 		name:      "csrf-token-name",
 		shorthand: "N",
 		value:     defaultCSRFTokenName,
 		usage:     "CSRF token name",
-	}
-	csrfTokenSameSite = Setting{
+	})
+	csrfTokenSameSite = *registerSetting(&Setting{
 		name:      "csrf-token-same-site",
 		shorthand: "S",
 		value:     defaultCSRFTokenSameSite,
 		usage:     "CSRF token SameSite attribute",
-	}
-	csrfTokenMaxAge = Setting{
+	})
+	csrfTokenMaxAge = *registerSetting(&Setting{
 		name:      "csrf-token-max-age",
 		shorthand: "M",
 		value:     defaultCSRFTokenMaxAge,
 		usage:     "CSRF token max age (expiration)",
-	}
-	csrfTokenCookieSecure = Setting{
+	})
+	csrfTokenCookieSecure = *registerSetting(&Setting{
 		name:      "csrf-token-cookie-secure",
 		shorthand: "R",
 		value:     true,
 		usage:     "CSRF token cookie Secure attribute",
-	}
-	csrfTokenCookieHTTPOnly = Setting{
+	})
+	csrfTokenCookieHTTPOnly = *registerSetting(&Setting{
 		name:      "csrf-token-cookie-http-only",
 		shorthand: "J",
 		value:     false, // False needed for Swagger UI submit CSRF workaround
 		usage:     "CSRF token cookie HttpOnly attribute",
-	}
-	csrfTokenCookieSessionOnly = Setting{
+	})
+	csrfTokenCookieSessionOnly = *registerSetting(&Setting{
 		name:      "csrf-token-cookie-session-only",
 		shorthand: "E",
 		value:     true,
 		usage:     "CSRF token cookie SessionOnly attribute",
-	}
-	csrfTokenSingleUseToken = Setting{
+	})
+	csrfTokenSingleUseToken = *registerSetting(&Setting{
 		name:      "csrf-token-single-use-token",
 		shorthand: "G",
 		value:     false,
 		usage:     "CSRF token SingleUse attribute",
-	}
-	ipRateLimit = Setting{
+	})
+	ipRateLimit = *registerSetting(&Setting{
 		name:      "rate-limit",
 		shorthand: "r",
 		value:     uint16(50),
 		usage:     "rate limit requests per second",
-	}
-	allowedIps = Setting{
+	})
+	allowedIps = *registerSetting(&Setting{
 		name:      "allowed-ips",
 		shorthand: "I",
 		value:     defaultAllowedIps,
 		usage:     "comma-separated list of allowed IPs",
-	}
-	allowedCidrs = Setting{
+	})
+	allowedCidrs = *registerSetting(&Setting{
 		name:      "allowed-cidrs",
 		shorthand: "C",
 		value:     defaultAllowedCIDRs,
 		usage:     "comma-separated list of allowed CIDRs",
-	}
-	databaseContainer = Setting{
+	})
+	databaseContainer = *registerSetting(&Setting{
 		name:      "database-container",
 		shorthand: "D",
 		value:     "disabled",
 		usage:     "database container mode; true to use container, false to use local database",
-	}
-	databaseURL = Setting{
+	})
+	databaseURL = *registerSetting(&Setting{
 		name:      "database-url",
 		shorthand: "u",
 		value:     "postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
 		usage:     "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n",
-	}
-	databaseInitTotalTimeout = Setting{
+	})
+	databaseInitTotalTimeout = *registerSetting(&Setting{
 		name:      "database-init-total-timeout",
 		shorthand: "Z",
 		value:     5 * time.Minute,
 		usage:     "database init total timeout",
-	}
-	databaseInitRetryWait = Setting{
+	})
+	databaseInitRetryWait = *registerSetting(&Setting{
 		name:      "database-init-retry-wait",
 		shorthand: "W",
 		value:     1 * time.Second,
 		usage:     "database init retry wait",
-	}
-	otlp = Setting{
+	})
+	otlp = *registerSetting(&Setting{
 		name:      "otlp",
 		shorthand: "z",
 		value:     false,
 		usage:     "enable OTLP export",
-	}
-	otlpConsole = Setting{
+	})
+	otlpConsole = *registerSetting(&Setting{
 		name:      "otlp-console",
 		shorthand: "q",
 		value:     false,
 		usage:     "enable OTLP logging to console (STDOUT)",
-	}
-	otlpScope = Setting{
+	})
+	otlpScope = *registerSetting(&Setting{
 		name:      "otlp-scope",
 		shorthand: "s",
 		value:     "cryptoutil",
 		usage:     "OTLP scope",
-	}
-	unsealMode = Setting{
+	})
+	unsealMode = *registerSetting(&Setting{
 		name:      "unseal-mode",
 		shorthand: "U",
 		value:     "sysinfo",
 		usage:     "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
-	}
-	unsealFiles = Setting{
+	})
+	unsealFiles = *registerSetting(&Setting{
 		name:      "unseal-files",
 		shorthand: "F",
 		value:     []string{},
 		usage: "unseal files; repeat for multiple files; e.g. " +
 			"\"--unseal-files=/docker/secrets/unseal_1of3 --unseal-files=/docker/secrets/unseal_2of3\"; " +
 			"used for N unseal keys or M-of-N unseal shared secrets",
-	}
+	})
 )
 
 var defaultCORSAllowedOrigins = func() string {
@@ -401,6 +403,11 @@ var subcommands = map[string]struct{}{
 	"start": {},
 	"stop":  {},
 	"init":  {},
+}
+
+func registerSetting(setting *Setting) *Setting {
+	allRegisteredSettings = append(allRegisteredSettings, setting)
+	return setting
 }
 
 // TODO Server only parameters?
@@ -531,7 +538,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 
 func logSettings(s *Settings) {
 	if s.VerboseMode {
-		log.Info("SubCommand: ", s.SubCommand)
+		log.Info("Sub Command: ", s.SubCommand)
 		log.Info("Help: ", s.Help)
 		log.Info("Config file: ", s.ConfigFile)
 		log.Info("Log Level: ", s.LogLevel)
