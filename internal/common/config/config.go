@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -611,6 +612,26 @@ func logSettings(s *Settings) {
 		log.Info("OTLP Scope: ", s.OTLPScope)
 		log.Info("Unseal Mode: ", s.UnsealMode)
 		log.Info("Unseal Files: ", s.UnsealFiles)
+
+		analysis := analyzeSettings(allRegisteredSettings)
+		var usedShorthands []string
+		var unusedShorthands []string
+
+		// Check all letters (lowercase and uppercase) and digits
+		allPossibleShorthands := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		for _, r := range allPossibleShorthands {
+			possibleShorthand := string(r)
+			if _, ok := analysis.SettingsByShorthands[possibleShorthand]; ok {
+				usedShorthands = append(usedShorthands, possibleShorthand)
+			} else {
+				unusedShorthands = append(unusedShorthands, possibleShorthand)
+			}
+		}
+
+		sort.Strings(usedShorthands)
+		sort.Strings(unusedShorthands)
+		log.Info("Shorthands, Used:   ", len(usedShorthands), ", Values: ", usedShorthands)
+		log.Info("Shorthands, Unused: ", len(unusedShorthands), ", Values: ", unusedShorthands)
 	}
 }
 
