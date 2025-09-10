@@ -417,16 +417,16 @@ type analysisResult struct {
 	DuplicateShorthands  []string
 }
 
-func analyzeSettings() analysisResult {
+func analyzeSettings(settings []*Setting) analysisResult {
 	result := analysisResult{
 		SettingsByNames:      make(map[string][]*Setting),
 		SettingsByShorthands: make(map[string][]*Setting),
 	}
-	for _, setting := range allRegisteredSettings {
+	for _, setting := range settings {
 		result.SettingsByNames[setting.name] = append(result.SettingsByNames[setting.name], setting)
 		result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
 	}
-	for _, setting := range allRegisteredSettings {
+	for _, setting := range settings {
 		if len(result.SettingsByNames[setting.name]) > 1 {
 			result.DuplicateNames = append(result.DuplicateNames, setting.name)
 		}
