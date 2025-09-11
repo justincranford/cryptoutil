@@ -81,10 +81,12 @@ type Settings struct {
 
 // Setting Input values for pflag.*P(name, shortname, value, usage)
 type Setting struct {
-	name      string // unique long name for the flag
-	shorthand string // unique short name for the flag
-	value     any    // default value for the flag
-	usage     string // description of the flag
+	name        string // unique long name for the flag
+	shorthand   string // unique short name for the flag
+	value       any    // default value for the flag
+	usage       string // description of the flag for help text
+	description string // human-readable description for logging/display
+	redacted    bool   // whether to redact the value in logs (except in dev+verbose mode)
 }
 
 var (
@@ -94,234 +96,274 @@ var (
 		value:     false,
 		usage: "print help; you can run the server with parameters like this:\n" +
 			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n",
+		description: "Help",
 	})
 	configFile = *registerSetting(&Setting{
-		name:      "config",
-		shorthand: "y",
-		value:     "config.yaml",
-		usage:     "path to config file",
+		name:        "config",
+		shorthand:   "y",
+		value:       "config.yaml",
+		usage:       "path to config file",
+		description: "Config file",
 	})
 	logLevel = *registerSetting(&Setting{
-		name:      "log-level",
-		shorthand: "l",
-		value:     "INFO",
-		usage:     "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
+		name:        "log-level",
+		shorthand:   "l",
+		value:       "INFO",
+		usage:       "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
+		description: "Log Level",
 	})
 	verboseMode = *registerSetting(&Setting{
-		name:      "verbose",
-		shorthand: "v",
-		value:     false,
-		usage:     "verbose modifier for log level",
+		name:        "verbose",
+		shorthand:   "v",
+		value:       false,
+		usage:       "verbose modifier for log level",
+		description: "Verbose mode",
 	})
 	devMode = *registerSetting(&Setting{
-		name:      "dev",
-		shorthand: "d",
-		value:     false,
-		usage:     "run in development mode; enables in-memory SQLite",
+		name:        "dev",
+		shorthand:   "d",
+		value:       false,
+		usage:       "run in development mode; enables in-memory SQLite",
+		description: "Dev mode",
 	})
 	bindPublicProtocol = *registerSetting(&Setting{
-		name:      "bind-public-protocol",
-		shorthand: "t",
-		value:     httpsProtocol,
-		usage:     "bind public protocol (http or https)",
+		name:        "bind-public-protocol",
+		shorthand:   "t",
+		value:       httpsProtocol,
+		usage:       "bind public protocol (http or https)",
+		description: "Bind Public Protocol",
 	})
 	bindPublicAddress = *registerSetting(&Setting{
-		name:      "bind-public-address",
-		shorthand: "a",
-		value:     "localhost",
-		usage:     "bind public address",
+		name:        "bind-public-address",
+		shorthand:   "a",
+		value:       "localhost",
+		usage:       "bind public address",
+		description: "Bind Public Address",
 	})
 	bindPublicPort = *registerSetting(&Setting{
-		name:      "bind-public-port",
-		shorthand: "p",
-		value:     uint16(8080),
-		usage:     "bind public port",
+		name:        "bind-public-port",
+		shorthand:   "p",
+		value:       uint16(8080),
+		usage:       "bind public port",
+		description: "Bind Public Port",
 	})
 	bindPrivateProtocol = *registerSetting(&Setting{
-		name:      "bind-private-protocol",
-		shorthand: "T",
-		value:     httpProtocol, // TODO https
-		usage:     "bind private protocol (http or https)",
+		name:        "bind-private-protocol",
+		shorthand:   "T",
+		value:       httpProtocol, // TODO https
+		usage:       "bind private protocol (http or https)",
+		description: "Bind Private Protocol",
 	})
 	bindPrivateAddress = *registerSetting(&Setting{
-		name:      "bind-private-address",
-		shorthand: "A",
-		value:     "localhost",
-		usage:     "bind private address",
+		name:        "bind-private-address",
+		shorthand:   "A",
+		value:       "localhost",
+		usage:       "bind private address",
+		description: "Bind Private Address",
 	})
 	bindPrivatePort = *registerSetting(&Setting{
-		name:      "bind-private-port",
-		shorthand: "P",
-		value:     uint16(9090),
-		usage:     "bind private port",
+		name:        "bind-private-port",
+		shorthand:   "P",
+		value:       uint16(9090),
+		usage:       "bind private port",
+		description: "Bind Private Port",
 	})
 	tlsPublicDnsNames = *registerSetting(&Setting{
-		name:      "tls-public-dns-names",
-		shorthand: "n",
-		value:     []string{"localhost"},
-		usage:     "TLS public DNS names",
+		name:        "tls-public-dns-names",
+		shorthand:   "n",
+		value:       []string{"localhost"},
+		usage:       "TLS public DNS names",
+		description: "TLS Public DNS Names",
 	})
 	tlsPrivateDnsNames = *registerSetting(&Setting{
-		name:      "tls-private-dns-names",
-		shorthand: "j",
-		value:     []string{"localhost"},
-		usage:     "TLS private DNS names",
+		name:        "tls-private-dns-names",
+		shorthand:   "j",
+		value:       []string{"localhost"},
+		usage:       "TLS private DNS names",
+		description: "TLS Private DNS Names",
 	})
 	tlsPublicIPAddresses = *registerSetting(&Setting{
-		name:      "tls-public-ip-addresses",
-		shorthand: "i",
-		value:     []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
-		usage:     "TLS public IP addresses",
+		name:        "tls-public-ip-addresses",
+		shorthand:   "i",
+		value:       []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
+		usage:       "TLS public IP addresses",
+		description: "TLS Public IP Addresses",
 	})
 	tlsPrivateIPAddresses = *registerSetting(&Setting{
-		name:      "tls-private-ip-addresses",
-		shorthand: "k",
-		value:     []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
-		usage:     "TLS private IP addresses",
+		name:        "tls-private-ip-addresses",
+		shorthand:   "k",
+		value:       []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
+		usage:       "TLS private IP addresses",
+		description: "TLS Private IP Addresses",
 	})
 	publicBrowserAPIContextPath = *registerSetting(&Setting{
-		name:      "browser-api-context-path",
-		shorthand: "c",
-		value:     "/browser/api/v1",
-		usage:     "context path for Public Browser API",
+		name:        "browser-api-context-path",
+		shorthand:   "c",
+		value:       "/browser/api/v1",
+		usage:       "context path for Public Browser API",
+		description: "Public Browser API Context Path",
 	})
 	publicServiceAPIContextPath = *registerSetting(&Setting{
-		name:      "service-api-context-path",
-		shorthand: "b",
-		value:     "/service/api/v1",
-		usage:     "context path for Public Server API",
+		name:        "service-api-context-path",
+		shorthand:   "b",
+		value:       "/service/api/v1",
+		usage:       "context path for Public Server API",
+		description: "Public Service API Context Path",
 	})
 	corsAllowedOrigins = *registerSetting(&Setting{
-		name:      "cors-origins",
-		shorthand: "o",
-		value:     defaultCORSAllowedOrigins,
-		usage:     "CORS allowed origins",
+		name:        "cors-origins",
+		shorthand:   "o",
+		value:       defaultCORSAllowedOrigins,
+		usage:       "CORS allowed origins",
+		description: "CORS Allowed Origins",
 	})
 	corsAllowedMethods = *registerSetting(&Setting{
-		name:      "cors-methods",
-		shorthand: "m",
-		value:     defaultCORSAllowedMethods,
-		usage:     "CORS allowed methods",
+		name:        "cors-methods",
+		shorthand:   "m",
+		value:       defaultCORSAllowedMethods,
+		usage:       "CORS allowed methods",
+		description: "CORS Allowed Methods",
 	})
 	corsAllowedHeaders = *registerSetting(&Setting{
-		name:      "cors-headers",
-		shorthand: "H",
-		value:     defaultCORSAllowedHeaders,
-		usage:     "CORS allowed headers",
+		name:        "cors-headers",
+		shorthand:   "H",
+		value:       defaultCORSAllowedHeaders,
+		usage:       "CORS allowed headers",
+		description: "CORS Allowed Headers",
 	})
 	corsMaxAge = *registerSetting(&Setting{
-		name:      "cors-max-age",
-		shorthand: "x",
-		value:     defaultCORSMaxAge,
-		usage:     "CORS max age in seconds",
+		name:        "cors-max-age",
+		shorthand:   "x",
+		value:       defaultCORSMaxAge,
+		usage:       "CORS max age in seconds",
+		description: "CORS Max Age",
 	})
 	csrfTokenName = *registerSetting(&Setting{
-		name:      "csrf-token-name",
-		shorthand: "N",
-		value:     defaultCSRFTokenName,
-		usage:     "CSRF token name",
+		name:        "csrf-token-name",
+		shorthand:   "N",
+		value:       defaultCSRFTokenName,
+		usage:       "CSRF token name",
+		description: "CSRF Token Name",
 	})
 	csrfTokenSameSite = *registerSetting(&Setting{
-		name:      "csrf-token-same-site",
-		shorthand: "S",
-		value:     defaultCSRFTokenSameSite,
-		usage:     "CSRF token SameSite attribute",
+		name:        "csrf-token-same-site",
+		shorthand:   "S",
+		value:       defaultCSRFTokenSameSite,
+		usage:       "CSRF token SameSite attribute",
+		description: "CSRF Token SameSite",
 	})
 	csrfTokenMaxAge = *registerSetting(&Setting{
-		name:      "csrf-token-max-age",
-		shorthand: "M",
-		value:     defaultCSRFTokenMaxAge,
-		usage:     "CSRF token max age (expiration)",
+		name:        "csrf-token-max-age",
+		shorthand:   "M",
+		value:       defaultCSRFTokenMaxAge,
+		usage:       "CSRF token max age (expiration)",
+		description: "CSRF Token Max Age",
 	})
 	csrfTokenCookieSecure = *registerSetting(&Setting{
-		name:      "csrf-token-cookie-secure",
-		shorthand: "R",
-		value:     true,
-		usage:     "CSRF token cookie Secure attribute",
+		name:        "csrf-token-cookie-secure",
+		shorthand:   "R",
+		value:       true,
+		usage:       "CSRF token cookie Secure attribute",
+		description: "CSRF Token Cookie Secure",
 	})
 	csrfTokenCookieHTTPOnly = *registerSetting(&Setting{
-		name:      "csrf-token-cookie-http-only",
-		shorthand: "J",
-		value:     false, // False needed for Swagger UI submit CSRF workaround
-		usage:     "CSRF token cookie HttpOnly attribute",
+		name:        "csrf-token-cookie-http-only",
+		shorthand:   "J",
+		value:       false, // False needed for Swagger UI submit CSRF workaround
+		usage:       "CSRF token cookie HttpOnly attribute",
+		description: "CSRF Token Cookie HTTPOnly",
 	})
 	csrfTokenCookieSessionOnly = *registerSetting(&Setting{
-		name:      "csrf-token-cookie-session-only",
-		shorthand: "E",
-		value:     true,
-		usage:     "CSRF token cookie SessionOnly attribute",
+		name:        "csrf-token-cookie-session-only",
+		shorthand:   "E",
+		value:       true,
+		usage:       "CSRF token cookie SessionOnly attribute",
+		description: "CSRF Token Cookie SessionOnly",
 	})
 	csrfTokenSingleUseToken = *registerSetting(&Setting{
-		name:      "csrf-token-single-use-token",
-		shorthand: "G",
-		value:     false,
-		usage:     "CSRF token SingleUse attribute",
+		name:        "csrf-token-single-use-token",
+		shorthand:   "G",
+		value:       false,
+		usage:       "CSRF token SingleUse attribute",
+		description: "CSRF Token SingleUseToken",
 	})
 	ipRateLimit = *registerSetting(&Setting{
-		name:      "rate-limit",
-		shorthand: "r",
-		value:     uint16(50),
-		usage:     "rate limit requests per second",
+		name:        "rate-limit",
+		shorthand:   "r",
+		value:       uint16(50),
+		usage:       "rate limit requests per second",
+		description: "IP Rate Limit",
 	})
 	allowedIps = *registerSetting(&Setting{
-		name:      "allowed-ips",
-		shorthand: "I",
-		value:     defaultAllowedIps,
-		usage:     "comma-separated list of allowed IPs",
+		name:        "allowed-ips",
+		shorthand:   "I",
+		value:       defaultAllowedIps,
+		usage:       "comma-separated list of allowed IPs",
+		description: "Allowed IPs",
 	})
 	allowedCidrs = *registerSetting(&Setting{
-		name:      "allowed-cidrs",
-		shorthand: "C",
-		value:     defaultAllowedCIDRs,
-		usage:     "comma-separated list of allowed CIDRs",
+		name:        "allowed-cidrs",
+		shorthand:   "C",
+		value:       defaultAllowedCIDRs,
+		usage:       "comma-separated list of allowed CIDRs",
+		description: "Allowed CIDRs",
 	})
 	databaseContainer = *registerSetting(&Setting{
-		name:      "database-container",
-		shorthand: "D",
-		value:     "disabled",
-		usage:     "database container mode; true to use container, false to use local database",
+		name:        "database-container",
+		shorthand:   "D",
+		value:       "disabled",
+		usage:       "database container mode; true to use container, false to use local database",
+		description: "Database Container",
 	})
 	databaseURL = *registerSetting(&Setting{
-		name:      "database-url",
-		shorthand: "u",
-		value:     "postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
-		usage:     "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n",
+		name:        "database-url",
+		shorthand:   "u",
+		value:       "postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
+		usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n",
+		description: "Database URL",
+		redacted:    true,
 	})
 	databaseInitTotalTimeout = *registerSetting(&Setting{
-		name:      "database-init-total-timeout",
-		shorthand: "Z",
-		value:     5 * time.Minute,
-		usage:     "database init total timeout",
+		name:        "database-init-total-timeout",
+		shorthand:   "Z",
+		value:       5 * time.Minute,
+		usage:       "database init total timeout",
+		description: "Database Init Total Timeout",
 	})
 	databaseInitRetryWait = *registerSetting(&Setting{
-		name:      "database-init-retry-wait",
-		shorthand: "W",
-		value:     1 * time.Second,
-		usage:     "database init retry wait",
+		name:        "database-init-retry-wait",
+		shorthand:   "W",
+		value:       1 * time.Second,
+		usage:       "database init retry wait",
+		description: "Database Init Retry Wait",
 	})
 	otlp = *registerSetting(&Setting{
-		name:      "otlp",
-		shorthand: "z",
-		value:     false,
-		usage:     "enable OTLP export",
+		name:        "otlp",
+		shorthand:   "z",
+		value:       false,
+		usage:       "enable OTLP export",
+		description: "OTLP Export",
 	})
 	otlpConsole = *registerSetting(&Setting{
-		name:      "otlp-console",
-		shorthand: "q",
-		value:     false,
-		usage:     "enable OTLP logging to console (STDOUT)",
+		name:        "otlp-console",
+		shorthand:   "q",
+		value:       false,
+		usage:       "enable OTLP logging to console (STDOUT)",
+		description: "OTLP Console",
 	})
 	otlpScope = *registerSetting(&Setting{
-		name:      "otlp-scope",
-		shorthand: "s",
-		value:     "cryptoutil",
-		usage:     "OTLP scope",
+		name:        "otlp-scope",
+		shorthand:   "s",
+		value:       "cryptoutil",
+		usage:       "OTLP scope",
+		description: "OTLP Scope",
 	})
 	unsealMode = *registerSetting(&Setting{
-		name:      "unseal-mode",
-		shorthand: "U",
-		value:     "sysinfo",
-		usage:     "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
+		name:        "unseal-mode",
+		shorthand:   "U",
+		value:       "sysinfo",
+		usage:       "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
+		description: "Unseal Mode",
 	})
 	unsealFiles = *registerSetting(&Setting{
 		name:      "unseal-files",
@@ -330,6 +372,7 @@ var (
 		usage: "unseal files; repeat for multiple files; e.g. " +
 			"\"--unseal-files=/docker/secrets/unseal_1of3 --unseal-files=/docker/secrets/unseal_2of3\"; " +
 			"used for N unseal keys or M-of-N unseal shared secrets",
+		description: "Unseal Files",
 	})
 )
 
@@ -551,6 +594,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		UnsealMode:                  viper.GetString(unsealMode.name),
 		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
 	}
+
 	logSettings(s)
 
 	if s.Help {
@@ -567,51 +611,59 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 func logSettings(s *Settings) {
 	if s.VerboseMode {
 		log.Info("Sub Command: ", s.SubCommand)
-		log.Info("Help: ", s.Help)
-		log.Info("Config file: ", s.ConfigFile)
-		log.Info("Log Level: ", s.LogLevel)
-		log.Info("Verbose mode: ", s.VerboseMode)
-		log.Info("Dev mode: ", s.DevMode)
-		log.Info("Bind Public Protocol: ", s.BindPublicProtocol)
-		log.Info("Bind Public Address: ", s.BindPublicAddress)
-		log.Info("Bind Public Port: ", s.BindPublicPort)
-		log.Info("TLS Public DNS Names: ", s.TLSPublicDNSNames)
-		log.Info("TLS Public IP Addresses: ", s.TLSPublicIPAddresses)
-		log.Info("TLS Private DNS Names: ", s.TLSPrivateDNSNames)
-		log.Info("TLS Private IP Addresses: ", s.TLSPrivateIPAddresses)
-		log.Info("Bind Private Protocol: ", s.BindPrivateProtocol)
-		log.Info("Bind Private Address: ", s.BindPrivateAddress)
-		log.Info("Bind Private Port: ", s.BindPrivatePort)
-		log.Info("TLS Private DNS Names: ", s.TLSPrivateDNSNames)
-		log.Info("Public Browser API Context Path: ", s.PublicBrowserAPIContextPath)
-		log.Info("Public Service API Context Path: ", s.PublicServiceAPIContextPath)
-		log.Info("CORS Allowed Origins: ", s.CORSAllowedOrigins)
-		log.Info("CORS Allowed Methods: ", s.CORSAllowedMethods)
-		log.Info("CORS Allowed Headers: ", s.CORSAllowedHeaders)
-		log.Info("CORS Max Age: ", s.CORSMaxAge)
-		log.Info("CSRF Token Name: ", s.CSRFTokenName)
-		log.Info("CSRF Token SameSite: ", s.CSRFTokenSameSite)
-		log.Info("CSRF Token Max Age: ", s.CSRFTokenMaxAge)
-		log.Info("CSRF Token Cookie Secure: ", s.CSRFTokenCookieSecure)
-		log.Info("CSRF Token Cookie HTTPOnly: ", s.CSRFTokenCookieHTTPOnly)
-		log.Info("CSRF Token Cookie SessionOnly: ", s.CSRFTokenCookieSessionOnly)
-		log.Info("CSRF Token SingleUseToken: ", s.CSRFTokenSingleUseToken)
-		log.Info("IP Rate Limit: ", s.IPRateLimit)
-		log.Info("Allowed IPs: ", s.AllowedIPs)
-		log.Info("Allowed CIDRs: ", s.AllowedCIDRs)
-		log.Info("Database Container: ", s.DatabaseContainer)
-		if s.DevMode && s.VerboseMode {
-			log.Info("Database URL: ", s.DatabaseURL) // sensitive value (i.e. PostgreSQL URLs may contain password)
-		} else {
-			log.Info("Database URL: ", "REDACTED")
+
+		// Create a map to get values by setting name
+		valueMap := map[string]any{
+			help.name:                        s.Help,
+			configFile.name:                  s.ConfigFile,
+			logLevel.name:                    s.LogLevel,
+			verboseMode.name:                 s.VerboseMode,
+			devMode.name:                     s.DevMode,
+			bindPublicProtocol.name:          s.BindPublicProtocol,
+			bindPublicAddress.name:           s.BindPublicAddress,
+			bindPublicPort.name:              s.BindPublicPort,
+			tlsPublicDnsNames.name:           s.TLSPublicDNSNames,
+			tlsPublicIPAddresses.name:        s.TLSPublicIPAddresses,
+			tlsPrivateDnsNames.name:          s.TLSPrivateDNSNames,
+			tlsPrivateIPAddresses.name:       s.TLSPrivateIPAddresses,
+			bindPrivateProtocol.name:         s.BindPrivateProtocol,
+			bindPrivateAddress.name:          s.BindPrivateAddress,
+			bindPrivatePort.name:             s.BindPrivatePort,
+			publicBrowserAPIContextPath.name: s.PublicBrowserAPIContextPath,
+			publicServiceAPIContextPath.name: s.PublicServiceAPIContextPath,
+			corsAllowedOrigins.name:          s.CORSAllowedOrigins,
+			corsAllowedMethods.name:          s.CORSAllowedMethods,
+			corsAllowedHeaders.name:          s.CORSAllowedHeaders,
+			corsMaxAge.name:                  s.CORSMaxAge,
+			csrfTokenName.name:               s.CSRFTokenName,
+			csrfTokenSameSite.name:           s.CSRFTokenSameSite,
+			csrfTokenMaxAge.name:             s.CSRFTokenMaxAge,
+			csrfTokenCookieSecure.name:       s.CSRFTokenCookieSecure,
+			csrfTokenCookieHTTPOnly.name:     s.CSRFTokenCookieHTTPOnly,
+			csrfTokenCookieSessionOnly.name:  s.CSRFTokenCookieSessionOnly,
+			csrfTokenSingleUseToken.name:     s.CSRFTokenSingleUseToken,
+			ipRateLimit.name:                 s.IPRateLimit,
+			allowedIps.name:                  s.AllowedIPs,
+			allowedCidrs.name:                s.AllowedCIDRs,
+			databaseContainer.name:           s.DatabaseContainer,
+			databaseURL.name:                 s.DatabaseURL,
+			databaseInitTotalTimeout.name:    s.DatabaseInitTotalTimeout,
+			databaseInitRetryWait.name:       s.DatabaseInitRetryWait,
+			otlp.name:                        s.OTLP,
+			otlpConsole.name:                 s.OTLPConsole,
+			otlpScope.name:                   s.OTLPScope,
+			unsealMode.name:                  s.UnsealMode,
+			unsealFiles.name:                 s.UnsealFiles,
 		}
-		log.Info("Database Init Total Timeout: ", s.DatabaseInitTotalTimeout)
-		log.Info("Database Init Retry Wait: ", s.DatabaseInitRetryWait)
-		log.Info("OTLP Export: ", s.OTLP)
-		log.Info("OTLP Console: ", s.OTLPConsole)
-		log.Info("OTLP Scope: ", s.OTLPScope)
-		log.Info("Unseal Mode: ", s.UnsealMode)
-		log.Info("Unseal Files: ", s.UnsealFiles)
+
+		// Iterate through all registered settings and log them
+		for _, setting := range allRegisteredSettings {
+			value := valueMap[setting.name]
+			if setting.redacted && !(s.DevMode && s.VerboseMode) {
+				value = "REDACTED"
+			}
+			log.Info(setting.description+" (-"+setting.shorthand+"): ", value)
+		}
 
 		analysis := analyzeSettings(allRegisteredSettings)
 		var usedShorthands []string
