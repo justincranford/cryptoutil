@@ -9,3 +9,4 @@ applyTo: "**"
 - Ensure consistent line endings (LF) in all files
 - Use spaces for indentation (4 spaces per level for Go code)
 - Maintain proper file structure according to Go project conventions
+- Use `any` instead of `interface{}` in Go code (Go 1.18+ type alias)
