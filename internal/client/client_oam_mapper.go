@@ -13,12 +13,11 @@ import (
 
 type oamOacMapper struct{}
 
-// TODO Change all func to method
 func NewOamOacMapper() *oamOacMapper {
 	return &oamOacMapper{}
 }
 
-func toOamElasticKeyCreate(name *string, description *string, algorithm *string, provider *string, importAllowed *bool, versioningAllowed *bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
+func (m *oamOacMapper) toOamElasticKeyCreate(name *string, description *string, algorithm *string, provider *string, importAllowed *bool, versioningAllowed *bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
 	elasticKeyName := cryptoutilOpenapiModel.ElasticKeyName(*name)
 	elasticKeyDescription := cryptoutilOpenapiModel.ElasticKeyDescription(*description)
 	elasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(algorithm)
@@ -38,7 +37,7 @@ func toOamElasticKeyCreate(name *string, description *string, algorithm *string,
 	}, nil
 }
 
-func toOamElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.PostElastickeyResponse) (*cryptoutilOpenapiModel.ElasticKey, error) {
+func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.PostElastickeyResponse) (*cryptoutilOpenapiModel.ElasticKey, error) {
 	if openapiCreateElasticKeyResponse == nil {
 		return nil, fmt.Errorf("failed to create Elastic Key, response is nil")
 	} else if openapiCreateElasticKeyResponse.HTTPResponse == nil {
@@ -73,7 +72,7 @@ func toOamElasticKey(openapiCreateElasticKeyResponse *cryptoutilOpenapiClient.Po
 	}
 }
 
-func toOamMaterialKeyGenerate(openapiMaterialKeyGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDMaterialkeyResponse) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (m *oamOacMapper) toOamMaterialKeyGenerate(openapiMaterialKeyGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDMaterialkeyResponse) (*cryptoutilOpenapiModel.MaterialKey, error) {
 	if openapiMaterialKeyGenerateResponse == nil {
 		return nil, fmt.Errorf("failed to generate key, response is nil")
 	} else if openapiMaterialKeyGenerateResponse.HTTPResponse == nil {
@@ -100,7 +99,7 @@ func toOamMaterialKeyGenerate(openapiMaterialKeyGenerateResponse *cryptoutilOpen
 	}
 }
 
-func toOacGenerateParams(generateParams *cryptoutilOpenapiModel.GenerateParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams {
+func (m *oamOacMapper) toOacGenerateParams(generateParams *cryptoutilOpenapiModel.GenerateParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams {
 	elastickeyElasticKeyIDGenerateParams := cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateParams{}
 	if generateParams != nil {
 		elastickeyElasticKeyIDGenerateParams.Context = generateParams.Context
@@ -114,7 +113,7 @@ func toOacGenerateParams(generateParams *cryptoutilOpenapiModel.GenerateParams) 
 // 	return &encryptRequest
 // }
 
-func toPlainGenerateResponse(openapiGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateResponse) (*string, error) {
+func (m *oamOacMapper) toPlainGenerateResponse(openapiGenerateResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDGenerateResponse) (*string, error) {
 	if openapiGenerateResponse == nil {
 		return nil, fmt.Errorf("failed to encrypt, response is nil")
 	} else if openapiGenerateResponse.HTTPResponse == nil {
@@ -132,7 +131,7 @@ func toPlainGenerateResponse(openapiGenerateResponse *cryptoutilOpenapiClient.Po
 	}
 }
 
-func toOacEncryptParams(encryptParams *cryptoutilOpenapiModel.EncryptParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptParams {
+func (m *oamOacMapper) toOacEncryptParams(encryptParams *cryptoutilOpenapiModel.EncryptParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptParams {
 	elastickeyElasticKeyIDEncryptParams := cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptParams{}
 	if encryptParams != nil {
 		elastickeyElasticKeyIDEncryptParams.Context = encryptParams.Context
@@ -140,12 +139,12 @@ func toOacEncryptParams(encryptParams *cryptoutilOpenapiModel.EncryptParams) cry
 	return elastickeyElasticKeyIDEncryptParams
 }
 
-func toOamEncryptRequest(cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
+func (m *oamOacMapper) toOamEncryptRequest(cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
 	encryptRequest := cryptoutilOpenapiModel.EncryptRequest(*cleartext)
 	return &encryptRequest
 }
 
-func toPlainEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptResponse) (*string, error) {
+func (m *oamOacMapper) toPlainEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDEncryptResponse) (*string, error) {
 	if openapiEncryptResponse == nil {
 		return nil, fmt.Errorf("failed to encrypt, response is nil")
 	} else if openapiEncryptResponse.HTTPResponse == nil {
@@ -163,12 +162,12 @@ func toPlainEncryptResponse(openapiEncryptResponse *cryptoutilOpenapiClient.Post
 	}
 }
 
-func toOamDecryptRequest(ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
+func (m *oamOacMapper) toOamDecryptRequest(ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
 	decryptRequest := cryptoutilOpenapiModel.DecryptRequest(*ciphertext)
 	return &decryptRequest
 }
 
-func toPlainDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDDecryptResponse) (*string, error) {
+func (m *oamOacMapper) toPlainDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDDecryptResponse) (*string, error) {
 	if openapiDecryptResponse == nil {
 		return nil, fmt.Errorf("failed to decrypt, response is nil")
 	} else if openapiDecryptResponse.HTTPResponse == nil {
@@ -186,7 +185,7 @@ func toPlainDecryptResponse(openapiDecryptResponse *cryptoutilOpenapiClient.Post
 	}
 }
 
-func toOacSignParams(signParams *cryptoutilOpenapiModel.SignParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignParams {
+func (m *oamOacMapper) toOacSignParams(signParams *cryptoutilOpenapiModel.SignParams) cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignParams {
 	elastickeyElasticKeyIDSignParams := cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignParams{}
 	if signParams != nil {
 		elastickeyElasticKeyIDSignParams.Context = signParams.Context
@@ -194,12 +193,12 @@ func toOacSignParams(signParams *cryptoutilOpenapiModel.SignParams) cryptoutilOp
 	return elastickeyElasticKeyIDSignParams
 }
 
-func toOamSignRequest(cleartext *string) *cryptoutilOpenapiModel.SignRequest {
+func (m *oamOacMapper) toOamSignRequest(cleartext *string) *cryptoutilOpenapiModel.SignRequest {
 	signRequest := cryptoutilOpenapiModel.SignRequest(*cleartext)
 	return &signRequest
 }
 
-func toPlainSignResponse(openapiSignResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignResponse) (*string, error) {
+func (m *oamOacMapper) toPlainSignResponse(openapiSignResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDSignResponse) (*string, error) {
 	if openapiSignResponse == nil {
 		return nil, fmt.Errorf("failed to sign, response is nil")
 	} else if openapiSignResponse.HTTPResponse == nil {
@@ -217,12 +216,12 @@ func toPlainSignResponse(openapiSignResponse *cryptoutilOpenapiClient.PostElasti
 	}
 }
 
-func toOamVerifyRequest(signedtext *string) *cryptoutilOpenapiModel.VerifyRequest {
+func (m *oamOacMapper) toOamVerifyRequest(signedtext *string) *cryptoutilOpenapiModel.VerifyRequest {
 	verifyRequest := cryptoutilOpenapiModel.VerifyRequest(*signedtext)
 	return &verifyRequest
 }
 
-func toPlainVerifyResponse(openapiVerifyResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDVerifyResponse) (*string, error) {
+func (m *oamOacMapper) toPlainVerifyResponse(openapiVerifyResponse *cryptoutilOpenapiClient.PostElastickeyElasticKeyIDVerifyResponse) (*string, error) {
 	if openapiVerifyResponse == nil {
 		return nil, fmt.Errorf("failed to verify, response is nil")
 	} else if openapiVerifyResponse.HTTPResponse == nil {
