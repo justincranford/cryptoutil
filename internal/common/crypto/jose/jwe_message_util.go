@@ -13,7 +13,6 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-// TODO Detect and reject private JWKs (RSA, ECDH, X25519, etc.)
 func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
 	if jwks == nil {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
@@ -82,7 +81,6 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 	return jweMessage, jweMessageBytes, nil
 }
 
-// TODO Detect and reject public JWKs (RSA, ECDH, X25519, etc.)
 func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	if jwks == nil {
 		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
