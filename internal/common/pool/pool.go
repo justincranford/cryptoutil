@@ -39,7 +39,7 @@ type ValueGenPool[T any] struct {
 
 type ValueGenPoolConfig[T any] struct {
 	ctx                 context.Context
-	telemetryService    *cryptoutilTelemetry.TelemetryService // TODO change generateCounter and getCounter to telemetryService.MetricsProvider.Counter()
+	telemetryService    *cryptoutilTelemetry.TelemetryService // TODO change generateCounter and getCounter from uint64 to telemetryService.MetricsProvider.Counter()
 	poolName            string
 	numWorkers          uint32
 	poolSize            uint32
