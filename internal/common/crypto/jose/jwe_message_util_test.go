@@ -254,10 +254,10 @@ func Test_SadPath_DecryptBytes_InvalidJweMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, kid)
 	require.NotNil(t, nonPublicJweJwk)
-	// TODO Util to check AsymmetricJWK vs SymmetricJWK
-	// require.NotNil(t, publicJweJwk)
+	isEncryptJwk, err := IsEncryptJwk(nonPublicJweJwk)
+	require.NoError(t, err)
+	require.True(t, isEncryptJwk)
 	require.NotNil(t, clearNonPublicJweJwkBytes)
-	// require.NotNil(t, encodedPublicJweJwk)
 
 	_, err = DecryptBytes([]joseJwk.Key{nonPublicJweJwk}, []byte("this-is-not-a-valid-jwe-message"))
 	require.Error(t, err)
