@@ -423,7 +423,7 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 
 func privateHealthCheckMiddlewareFunction() fiber.Handler {
 	// TODO Enhance health checks with detailed status (database, dependencies, memory usage)
-	// TODO Add separate readiness vs liveness endpoints for Kubernetes deployments
+	// TODO Implement separate LivenessProbe vs ReadinessProbe functiions for Kubernetes deployments
 	return healthcheck.New()
 }
 
