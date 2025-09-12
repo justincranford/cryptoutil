@@ -64,10 +64,10 @@ func Test_HappyPath_JwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJwkKid)
 			require.NotNil(t, nonPublicJwsJwk)
-			// TODO Util to check AsymmetricJWK vs SymmetricJWK
-			// require.NotNil(t, publicJwsJwk)
+			isSigntJwk, err := IsSignJwk(nonPublicJwsJwk)
+			require.NoError(t, err)
+			require.True(t, isSigntJwk)
 			require.NotEmpty(t, clearNonPublicJwsJwkBytes)
-			// require.NotEmpty(t, encodedPublicJwsJwk)
 			log.Printf("Generated: %s", clearNonPublicJwsJwkBytes)
 
 			requireJwsJwkHeaders(t, nonPublicJwsJwk, OpsSigVer, &testCase)
