@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 		defer testTelemetryService.Shutdown()
 
 		var err error
-		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", 1, numKeyPairsNeeded, numKeyPairsNeeded, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256())))
+		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", 1, numKeyPairsNeeded, numKeyPairsNeeded, cryptoutilPool.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
 		if err != nil {
 			log.Fatalf("failed to create key pool: %v", err)
 		}

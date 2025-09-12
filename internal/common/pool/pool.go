@@ -103,7 +103,7 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 	return valuePool, nil
 }
 
-func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeValues uint64, maxLifetimeDuration time.Duration, generateFunction func() (T, error)) (*ValueGenPoolConfig[T], error) {
+func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeValues uint64, maxLifetimeDuration time.Duration, generateFunction func() (T, error), verbose bool) (*ValueGenPoolConfig[T], error) {
 	config := &ValueGenPoolConfig[T]{
 		ctx:                 ctx,
 		telemetryService:    telemetryService,
@@ -113,7 +113,7 @@ func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptou
 		maxLifetimeValues:   maxLifetimeValues,
 		maxLifetimeDuration: maxLifetimeDuration,
 		generateFunction:    generateFunction,
-		verbose:             false, // TODO set from settings
+		verbose:             verbose,
 	}
 	if err := validateConfig(config); err != nil {
 		return nil, fmt.Errorf("invalid config: %w", err)
