@@ -134,10 +134,10 @@ func Test_SadPath_VerifyBytes_InvalidJwsMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, kid)
 	require.NotNil(t, nonPublicJwsJwk)
-	// TODO Util to check AsymmetricJWK vs SymmetricJWK
-	// require.NotNil(t, publicJweJwk)
+	isSigntJwk, err := IsSignJwk(nonPublicJwsJwk)
+	require.NoError(t, err)
+	require.True(t, isSigntJwk)
 	require.NotNil(t, clearNonPublicJwsJwkBytes)
-	// require.NotNil(t, encodedPublicJweJwk)
 
 	_, err = VerifyBytes([]joseJwk.Key{nonPublicJwsJwk}, []byte("this-is-not-a-valid-jws-message"))
 	require.Error(t, err)
