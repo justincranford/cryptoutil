@@ -20,10 +20,10 @@ func Test_HappyPath_JwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, actualKeyKid)
 			require.NotNil(t, nonPublicJweJwk)
-			// TODO Util to check AsymmetricJWK vs SymmetricJWK
-			// require.NotNil(t, publicJweJwk)
+			isEncryptJwk, err := IsEncryptJwk(nonPublicJweJwk)
+			require.NoError(t, err)
+			require.True(t, isEncryptJwk)
 			require.NotEmpty(t, clearNonPublicJweJwkBytes)
-			// require.NotEmpty(t, encodedPublicJweJwk)
 			log.Printf("Generated:\n%s\n%s", clearNonPublicJweJwkBytes, clearPublicJweJwkBytes)
 
 			var encryptJWK joseJwk.Key
