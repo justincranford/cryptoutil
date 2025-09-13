@@ -11,11 +11,67 @@ cryptoutil is a production-ready embedded Key Management System (KMS) and crypto
 - **Hierarchical Key Management**: Multi-tier barrier system (unseal → root → intermediate → content keys)
 
 ### 🌐 API Architecture
-- **Dual Context Design**: 
+- **Dual Context Design**:
   - **Browser API** (`/browser/api/v1/*`) - Full browser security (CORS, CSRF, CSP)
   - **Service API** (`/service/api/v1/*`) - Optimized for service-to-service communication
 - **Management Interface** (`localhost:9090`) - Private health checks and graceful shutdown
 - **OpenAPI-Driven**: Auto-generated handlers, models, and interactive Swagger UI
+
+#### Context Paths Hierarchy
+```
+cryptoutil Server Applications
+│
+├── 🌐 Public Fiber App (Port 8080 - HTTPS)
+│   │
+│   ├── 📋 Swagger UI Routes
+│   │   ├── GET /ui/swagger/doc.json              # OpenAPI spec JSON
+│   │   └── GET /ui/swagger/*                     # Swagger UI interface
+│   │
+│   ├── 🔒 CSRF Token Route  
+│   │   └── GET /browser/api/v1/csrf-token        # Get CSRF token for browser clients
+│   │
+│   ├── 🌐 Browser API Context (/browser/api/v1)  # For browser clients with CORS/CSRF
+│   │   ├── POST   /browser/api/v1/elastickey           # Create elastic key
+│   │   ├── GET    /browser/api/v1/elastickey/{id}      # Get elastic key by ID
+│   │   ├── GET    /browser/api/v1/elastickeys          # Find elastic keys (filtered)
+│   │   ├── PUT    /browser/api/v1/elastickey/{id}      # Update elastic key
+│   │   ├── DELETE /browser/api/v1/elastickey/{id}      # Delete elastic key
+│   │   ├── POST   /browser/api/v1/materialkey          # Create material key
+│   │   ├── GET    /browser/api/v1/materialkey/{id}     # Get material key by ID
+│   │   ├── GET    /browser/api/v1/materialkeys         # Find material keys (filtered)
+│   │   ├── PUT    /browser/api/v1/materialkey/{id}     # Update material key
+│   │   ├── DELETE /browser/api/v1/materialkey/{id}     # Delete material key
+│   │   ├── POST   /browser/api/v1/crypto/encrypt       # Encrypt operation
+│   │   ├── POST   /browser/api/v1/crypto/decrypt       # Decrypt operation
+│   │   ├── POST   /browser/api/v1/crypto/sign          # Sign operation
+│   │   ├── POST   /browser/api/v1/crypto/verify        # Verify operation
+│   │   └── POST   /browser/api/v1/crypto/generate      # Generate operation
+│   │
+│   └── 🔧 Service API Context (/service/api/v1)  # For service clients without browser middleware
+│       ├── POST   /service/api/v1/elastickey           # Create elastic key
+│       ├── GET    /service/api/v1/elastickey/{id}      # Get elastic key by ID
+│       ├── GET    /service/api/v1/elastickeys          # Find elastic keys (filtered)
+│       ├── PUT    /service/api/v1/elastickey/{id}      # Update elastic key
+│       ├── DELETE /service/api/v1/elastickey/{id}      # Delete elastic key
+│       ├── POST   /service/api/v1/materialkey          # Create material key
+│       ├── GET    /service/api/v1/materialkey/{id}     # Get material key by ID
+│       ├── GET    /service/api/v1/materialkeys         # Find material keys (filtered)
+│       ├── PUT    /service/api/v1/materialkey/{id}     # Update material key
+│       ├── DELETE /service/api/v1/materialkey/{id}     # Delete material key
+│       ├── POST   /service/api/v1/crypto/encrypt       # Encrypt operation
+│       ├── POST   /service/api/v1/crypto/decrypt       # Decrypt operation
+│       ├── POST   /service/api/v1/crypto/sign          # Sign operation
+│       ├── POST   /service/api/v1/crypto/verify        # Verify operation
+│       └── POST   /service/api/v1/crypto/generate      # Generate operation
+│
+└── 🔐 Private Fiber App (Port 9090 - HTTP)
+    ├── 🩺 Health Check Routes
+    │   ├── GET  /livez                              # Liveness probe (Kubernetes)
+    │   └── GET  /readyz                             # Readiness probe (Kubernetes)
+    │
+    └── 🛑 Management Routes
+        └── POST /shutdown                           # Graceful shutdown endpoint
+```
 
 ### 🛡️ Security Features
 - **Multi-layered IP allowlisting** (individual IPs + CIDR blocks)
@@ -180,7 +236,7 @@ go generate ./...
 
 The generate command runs oapi-codegen using configurations in [internal/openapi/generate.go](internal/openapi/generate.go) to create:
 - `internal/openapi/model/` - Data models
-- `internal/openapi/server/` - HTTP handlers  
+- `internal/openapi/server/` - HTTP handlers
 - `internal/openapi/client/` - Go client
 
 ### Linting & Formatting
@@ -250,6 +306,144 @@ gofumpt -l -w .
 └─────────────────┘
 ```
 
+## Advanced Configuration
+
+### Configuration Files (YAML)
+```yaml
+# Example: postgresql.yml
+bind_public_address: "0.0.0.0"
+bind_public_port: 8080
+bind_private_address: "127.0.0.1"
+bind_private_port: 9090
+browser_api_context_path: "/browser/api/v1"
+service_api_context_path: "/service/api/v1"
+database_url: "postgres://user:pass@localhost:5432/cryptoutil"
+allowed_ips: ["127.0.0.1", "::1"]
+allowed_cidrs: ["10.0.0.0/8", "192.168.0.0/16"]
+ip_rate_limit: 100
+
+# Security Configuration
+cors_allowed_origins: "https://app.example.com"
+csrf_token_name: "csrf_token"
+csrf_token_same_site: "Strict"
+csrf_token_cookie_secure: true
+
+# Unseal Configuration
+unseal_mode: "shamir"  # simple | shamir | system
+unseal_files:
+  - "/run/secrets/unseal_1of5"
+  - "/run/secrets/unseal_2of5"
+  - "/run/secrets/unseal_3of5"
+```
+
+### Command Line Parameters
+```sh
+# Key configuration options
+go run main.go \
+  --config=config.yaml \
+  --dev \
+  --verbose \
+  --bind-public-port=8080 \
+  --bind-private-port=9090 \
+  --database-url="postgres://..." \
+  --log-level=DEBUG
+```
+
+### Security Configuration Best Practices
+
+#### Network Security
+- **IP Allowlisting**: Configure `allowed_ips` and `allowed_cidrs` for production
+- **Rate Limiting**: Set conservative `ip_rate_limit` (10-100 requests/second per IP)
+- **TLS**: Always use HTTPS in production (`bind_public_protocol: "https"`)
+
+#### Application Security  
+- **CORS**: Configure specific origins, avoid wildcards in production
+- **CSRF**: Use `csrf_token_cookie_secure: true` and `csrf_token_same_site: "Strict"`
+- **Database**: Always use `sslmode=require` for PostgreSQL connections
+
+## Production Deployment
+
+### Docker Compose (Recommended)
+```sh
+cd deployments/compose
+docker compose up -d
+```
+
+This deploys:
+- **PostgreSQL**: Persistent database with encrypted storage
+- **cryptoutil**: Production-configured server with secrets management
+- **Health Monitoring**: Automatic health checks and restarts
+
+### Container Architecture
+```
+┌─────────────────────┐    ┌─────────────────────┐
+│   cryptoutil        │    │    PostgreSQL       │
+│   Port 8080 (HTTPS) │◄──►│   Port 5432         │
+│   Port 9090 (HTTP)  │    │   Persistent Volume │
+└─────────────────────┘    └─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│   Docker Secrets    │
+│   • Database URL    │
+│   • Unseal Keys     │
+│   • Configuration   │
+└─────────────────────┘
+```
+
+### Secret Management
+```sh
+# Create database secrets
+echo "cryptoutil" > postgres/postgres_database.secret
+echo "cryptoutil_user" > postgres/postgres_username.secret
+echo "$(openssl rand -base64 32)" > postgres/postgres_password.secret
+
+# Create unseal key secrets (M-of-N sharing)
+for i in {1..5}; do
+  openssl rand -base64 64 > cryptoutil/cryptoutil_unseal_${i}of5.secret
+done
+```
+
+### Health Monitoring
+```sh
+# Check application health
+curl http://localhost:9090/livez    # Liveness probe
+curl http://localhost:9090/readyz   # Readiness probe
+
+# Graceful shutdown
+curl -X POST http://localhost:9090/shutdown
+```
+
+### Kubernetes Deployment
+```yaml
+# Basic Kubernetes deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cryptoutil
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cryptoutil
+  template:
+    spec:
+      containers:
+      - name: cryptoutil
+        image: cryptoutil:latest
+        ports:
+        - containerPort: 8080
+        - containerPort: 9090
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 9090
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 9090
+```
+
 ## Deployment
 
 ### Docker Compose (Recommended)
@@ -287,11 +481,7 @@ The application includes Kubernetes-ready features:
 
 ## Documentation
 
-- [API Architecture](docs/API-ARCHITECTURE.md) - Detailed API design
-- [Security Guide](docs/SECURITY.md) - Security implementation details  
-- [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
-- [Configuration Reference](docs/CONFIGURATION.md) - Complete configuration guide
-- [Project Overview](docs/README.md) - Architectural deep dive
+- [Project Overview](docs/README.md) - Comprehensive architectural deep dive
 
 ## Contributing
 

@@ -61,6 +61,112 @@ The system implements a sophisticated multi-tier key hierarchy:
 - Comprehensive security headers (X-Frame-Options, HSTS, etc.)
 - Sophisticated Swagger UI integration with automatic CSRF token injection
 
+**Transport & Application Security**:
+- TLS 1.3 with auto-generated certificates for development
+- Certificate validation and management
+- Secure cookie handling with HttpOnly and Secure flags
+- Request/response validation middleware
+
+**Operational Security**:
+- Multiple unseal modes (simple keys, shared secrets, system fingerprinting)
+- M-of-N secret sharing for high availability
+- Encrypted storage of all sensitive material at rest
+- Comprehensive audit logging with structured events
+- Graceful degradation and secure failure modes
+- Docker secrets integration for production deployments
+
+#### Security Architecture Detail
+
+**Multi-Layer Security Model**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Network Security                         │
+│  • IP Allowlisting (Individual IPs + CIDR blocks)          │
+│  • Rate Limiting (Per-IP throttling)                       │
+│  • DDoS Protection                                         │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                  Transport Security                         │
+│  • TLS 1.3 with auto-generated certificates               │
+│  • Certificate validation and management                   │
+│  • Secure cipher suites                                   │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                 Application Security                        │
+│  • CORS (Cross-Origin Resource Sharing)                   │
+│  • CSRF (Cross-Site Request Forgery) Protection           │
+│  • CSP (Content Security Policy)                          │
+│  • XSS Protection Headers                                 │
+│  • Security Headers (Helmet.js equivalent)                │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                Cryptographic Security                       │
+│  • FIPS 140-3 Approved Algorithms                         │
+│  • Hierarchical Key Management (Barrier System)           │
+│  • Encrypted Key Storage                                  │
+│  • Key Versioning and Rotation                            │
+└─────────────────────────────────────────────────────────────┘
+                               │
+┌─────────────────────────────────────────────────────────────┐
+│                 Operational Security                        │
+│  • Comprehensive Audit Logging                            │
+│  • Secure Failure Modes                                   │
+│  • Graceful Degradation                                   │
+│  • Secret Management                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Security Configuration Examples**:
+```yaml
+# Network Security
+allowed_ips: ["127.0.0.1", "::1", "192.168.1.100"]
+allowed_cidrs: ["10.0.0.0/8", "192.168.0.0/16"]
+ip_rate_limit: 100
+
+# CORS Configuration (Browser API)
+cors_allowed_origins: "https://app.example.com,https://admin.example.com"
+cors_allowed_methods: "GET,POST,PUT,DELETE,OPTIONS"
+cors_allowed_headers: "Content-Type,Authorization,X-CSRF-Token"
+
+# CSRF Configuration (Browser API)
+csrf_token_name: "csrf_token"
+csrf_token_same_site: "Strict"  # None | Lax | Strict
+csrf_token_cookie_secure: true
+csrf_token_single_use_token: false
+
+# TLS Configuration
+bind_public_protocol: "https"
+tls_public_dns_names: ["cryptoutil.example.com"]
+tls_public_ip_addresses: ["192.168.1.100"]
+```
+
+**Security Headers Applied**:
+```http
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: same-origin
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; ...
+```
+
+**Multi-Layered Network Security**:
+- IP allowlisting (individual IPs and CIDR blocks)
+- Per-IP rate limiting with configurable thresholds
+- DDoS protection through request throttling
+- Automatic blocking of excessive requests
+
+**Browser Security Stack**:
+- CORS configuration for cross-origin resource sharing
+- CSRF protection with secure token handling
+- Content Security Policy (CSP) for XSS prevention
+- Comprehensive security headers (X-Frame-Options, HSTS, etc.)
+- Sophisticated Swagger UI integration with automatic CSRF token injection
+
 **Operational Security**:
 - Multiple unseal modes (simple keys, shared secrets, system fingerprinting)
 - M-of-N secret sharing for high availability
