@@ -12,7 +12,7 @@ applyTo: "**"
 
 - **DO NOT** create separate documentation files like:
   - `docs/API-ARCHITECTURE.md`
-  - `docs/SECURITY.md` 
+  - `docs/SECURITY.md`
   - `docs/DEPLOYMENT.md`
   - `docs/CONFIGURATION.md`
 

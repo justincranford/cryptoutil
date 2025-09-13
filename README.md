@@ -27,7 +27,7 @@ cryptoutil Server Applications
 │   │   ├── GET /ui/swagger/doc.json              # OpenAPI spec JSON
 │   │   └── GET /ui/swagger/*                     # Swagger UI interface
 │   │
-│   ├── 🔒 CSRF Token Route  
+│   ├── 🔒 CSRF Token Route
 │   │   └── GET /browser/api/v1/csrf-token        # Get CSRF token for browser clients
 │   │
 │   ├── 🌐 Browser API Context (/browser/api/v1)  # For browser clients with CORS/CSRF
@@ -356,7 +356,7 @@ go run main.go \
 - **Rate Limiting**: Set conservative `ip_rate_limit` (10-100 requests/second per IP)
 - **TLS**: Always use HTTPS in production (`bind_public_protocol: "https"`)
 
-#### Application Security  
+#### Application Security
 - **CORS**: Configure specific origins, avoid wildcards in production
 - **CSRF**: Use `csrf_token_cookie_secure: true` and `csrf_token_same_site: "Strict"`
 - **Database**: Always use `sslmode=require` for PostgreSQL connections
