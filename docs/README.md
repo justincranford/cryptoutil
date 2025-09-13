@@ -48,46 +48,54 @@ The system implements a sophisticated multi-tier key hierarchy:
 
 ### 5. **Security Features**
 
-**Network Security**:
+**Multi-Layered Network Security**:
 - IP allowlisting (individual IPs and CIDR blocks)
-- Rate limiting per IP
-- CORS configuration
-- CSRF protection (production mode)
-- Helmet.js security headers
+- Per-IP rate limiting with configurable thresholds
+- DDoS protection through request throttling
+- Automatic blocking of excessive requests
+
+**Browser Security Stack**:
+- CORS configuration for cross-origin resource sharing
+- CSRF protection with secure token handling
+- Content Security Policy (CSP) for XSS prevention
+- Comprehensive security headers (X-Frame-Options, HSTS, etc.)
+- Sophisticated Swagger UI integration with automatic CSRF token injection
 
 **Operational Security**:
 - Multiple unseal modes (simple keys, shared secrets, system fingerprinting)
 - M-of-N secret sharing for high availability
-- Encrypted storage of all sensitive material
-- Comprehensive audit logging
+- Encrypted storage of all sensitive material at rest
+- Comprehensive audit logging with structured events
+- Graceful degradation and secure failure modes
+- Docker secrets integration for production deployments
 
 ### 6. **Observability & Monitoring**
 
 **OpenTelemetry Integration**:
-- Distributed tracing
-- Metrics collection
+- Distributed tracing with correlation across API contexts
+- Metrics collection (request rates, latencies, error rates)
 - Structured logging with slog
-- OTLP export support
+- OTLP export support for production monitoring
 - Prometheus-compatible metrics
 
-**Health Checks**:
-- Kubernetes-ready health endpoints
-- Docker health checks
-- Graceful shutdown handling
+**Health Checks & Management**:
+- Kubernetes-ready health endpoints (`/livez`, `/readyz`)
+- Private management interface (port 9090)
+- Graceful shutdown handling with proper connection draining
+- Docker health checks for container orchestration
 
-### 7. **API Design**
+### 7. **API Design & Context Architecture**
 
-**RESTful API**:
-- **Elastic Key Management**: CRUD operations for key policies
-- **Material Key Operations**: Key generation, retrieval, versioning
-- **Cryptographic Operations**: encrypt, decrypt, sign, verify, generate
-- **Query Support**: Filtering, sorting, pagination
+**Dual-Context API Architecture**:
+- **Browser Context** (`/browser/api/v1/*`): Full browser security (CORS, CSRF, CSP)
+- **Service Context** (`/service/api/v1/*`): Streamlined for service-to-service
+- **Management Interface**: Private health checks and administrative operations
 
-**OpenAPI Specification**:
-- Comprehensive schemas for all operations
-- Auto-generated client/server code
-- Built-in Swagger UI with CSRF token handling
-- Strict request/response validation
+**OpenAPI-First Development**:
+- Comprehensive schemas for all operations (Elastic Keys, Material Keys, Crypto Operations)
+- Auto-generated client/server code with oapi-codegen
+- Built-in Swagger UI with sophisticated CSRF token handling
+- Strict request/response validation middleware
 
 ### 8. **Development & Testing**
 
@@ -102,6 +110,22 @@ The system implements a sophisticated multi-tier key hierarchy:
 - Docker Compose for local development
 - Production-ready container images
 - Secret management through Docker secrets
+
+## Recent Enhancements (2025)
+
+### Advanced Security Architecture
+- **Dual API Context Design**: Separate browser and service API paths with context-appropriate middleware
+- **Enhanced CSRF Protection**: Sophisticated token handling with Swagger UI integration
+- **Content Security Policy**: Comprehensive CSP implementation with development/production modes
+- **IP Access Control**: Granular IP allowlisting with both individual IPs and CIDR block support
+- **Rate Limiting**: Per-IP throttling with configurable thresholds and logging
+
+### Production-Ready Features
+- **Container Orchestration**: Complete Docker Compose setup with PostgreSQL and secret management
+- **Health Monitoring**: Kubernetes-ready health endpoints with proper liveness/readiness probes
+- **Configuration Management**: Hierarchical YAML configuration with CLI parameter overrides
+- **Graceful Shutdown**: Signal-based shutdown with proper connection draining and resource cleanup
+- **Observability**: Enhanced OpenTelemetry integration with structured logging and distributed tracing
 
 ## Architectural Strengths
 
