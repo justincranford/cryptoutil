@@ -96,7 +96,7 @@ cryptoutil Server Applications
 ## Quick Start
 
 ### Prerequisites
-- Go 1.24.3+
+- Go 1.25.1+
 - Docker and Docker Compose (for PostgreSQL)
 
 ### Running with Docker Compose
