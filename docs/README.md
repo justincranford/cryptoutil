@@ -217,7 +217,7 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 - Production-ready container images
 - Secret management through Docker secrets
 
-## Recent Enhancements (2025)
+## Recent Enhancements (September 2025)
 
 ### Advanced Security Architecture
 - **Dual API Context Design**: Separate browser and service API paths with context-appropriate middleware

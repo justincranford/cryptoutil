@@ -96,7 +96,7 @@ cryptoutil Server Applications
 ## Quick Start
 
 ### Prerequisites
-- Go 1.24+
+- Go 1.24.3+
 - Docker and Docker Compose (for PostgreSQL)
 
 ### Running with Docker Compose
@@ -166,6 +166,19 @@ database_url: "postgres://user:pass@localhost:5432/cryptoutil"
 allowed_ips: ["127.0.0.1", "::1"]
 allowed_cidrs: ["10.0.0.0/8", "192.168.0.0/16"]
 ip_rate_limit: 100
+
+# Security Configuration
+cors_allowed_origins: "https://app.example.com"
+csrf_token_name: "csrf_token"
+csrf_token_same_site: "Strict"
+csrf_token_cookie_secure: true
+
+# Unseal Configuration
+unseal_mode: "shamir"  # simple | shamir | system
+unseal_files:
+  - "/run/secrets/unseal_1of5"
+  - "/run/secrets/unseal_2of5"
+  - "/run/secrets/unseal_3of5"
 ```
 
 ### Command Line Parameters
@@ -182,11 +195,12 @@ go run main.go \
 ```
 
 ### Security Configuration
-- **IP Allowlisting**: Configure `allowed_ips` and `allowed_cidrs`
-- **Rate Limiting**: Set `ip_rate_limit` (requests per second per IP)
-- **CORS**: Configure origins, methods, headers for browser clients
-- **CSRF**: Token-based protection for browser API context
-- **TLS**: Automatic certificate generation for HTTPS endpoints
+- **IP Allowlisting**: Configure `allowed_ips` and `allowed_cidrs` for production
+- **Rate Limiting**: Set conservative `ip_rate_limit` (10-100 requests/second per IP)
+- **CORS**: Configure specific origins, avoid wildcards in production
+- **CSRF**: Use `csrf_token_cookie_secure: true` and `csrf_token_same_site: "Strict"`
+- **TLS**: Always use HTTPS in production (`bind_public_protocol: "https"`)
+- **Database**: Always use `sslmode=require` for PostgreSQL connections
 
 ## Testing
 
@@ -196,9 +210,10 @@ go run main.go \
 go test ./... -coverprofile=coverage.out
 go tool cover -html=coverage.out -o coverage.html
 
-# Open coverage report
+# Open coverage report in browser
 start coverage.html  # Windows
 open coverage.html   # macOS
+xdg-open coverage.html  # Linux
 ```
 
 ### Manual Testing
@@ -207,7 +222,10 @@ open coverage.html   # macOS
 go run main.go --dev --verbose
 
 # Test with Swagger UI (includes CSRF handling)
-start http://localhost:8080/ui/swagger
+# Open in browser:
+start http://localhost:8080/ui/swagger      # Windows
+open http://localhost:8080/ui/swagger       # macOS
+xdg-open http://localhost:8080/ui/swagger   # Linux
 
 # Test with curl (service API - no CSRF needed)
 curl -X GET http://localhost:8080/service/api/v1/elastickeys
@@ -228,7 +246,7 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 ### Code Generation
 ```sh
 # Install oapi-codegen
-go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest
+go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
 
 # Generate OpenAPI code
 go generate ./...
@@ -242,8 +260,8 @@ The generate command runs oapi-codegen using configurations in [internal/openapi
 ### Linting & Formatting
 ```sh
 # Install tools
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-go install mvdan.cc/gofumpt@latest
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
+go install mvdan.cc/gofumpt@v0.7.0
 
 # Run linters
 golangci-lint run
@@ -262,6 +280,11 @@ gofumpt -l -w .
 ├── api/                    # OpenAPI specifications
 ├── configs/                # Configuration templates
 ├── deployments/            # Docker and deployment files
+│   ├── Dockerfile          # Container image definition
+│   └── compose/            # Docker Compose setup
+│       ├── compose.yml     # Docker Compose configuration
+│       ├── cryptoutil/     # Application secrets and configs
+│       └── postgres/       # Database secrets
 └── docs/                   # Additional documentation
 ```
 
@@ -305,61 +328,6 @@ gofumpt -l -w .
 │ Content Keys    │ ← Material encryption keys
 └─────────────────┘
 ```
-
-## Advanced Configuration
-
-### Configuration Files (YAML)
-```yaml
-# Example: postgresql.yml
-bind_public_address: "0.0.0.0"
-bind_public_port: 8080
-bind_private_address: "127.0.0.1"
-bind_private_port: 9090
-browser_api_context_path: "/browser/api/v1"
-service_api_context_path: "/service/api/v1"
-database_url: "postgres://user:pass@localhost:5432/cryptoutil"
-allowed_ips: ["127.0.0.1", "::1"]
-allowed_cidrs: ["10.0.0.0/8", "192.168.0.0/16"]
-ip_rate_limit: 100
-
-# Security Configuration
-cors_allowed_origins: "https://app.example.com"
-csrf_token_name: "csrf_token"
-csrf_token_same_site: "Strict"
-csrf_token_cookie_secure: true
-
-# Unseal Configuration
-unseal_mode: "shamir"  # simple | shamir | system
-unseal_files:
-  - "/run/secrets/unseal_1of5"
-  - "/run/secrets/unseal_2of5"
-  - "/run/secrets/unseal_3of5"
-```
-
-### Command Line Parameters
-```sh
-# Key configuration options
-go run main.go \
-  --config=config.yaml \
-  --dev \
-  --verbose \
-  --bind-public-port=8080 \
-  --bind-private-port=9090 \
-  --database-url="postgres://..." \
-  --log-level=DEBUG
-```
-
-### Security Configuration Best Practices
-
-#### Network Security
-- **IP Allowlisting**: Configure `allowed_ips` and `allowed_cidrs` for production
-- **Rate Limiting**: Set conservative `ip_rate_limit` (10-100 requests/second per IP)
-- **TLS**: Always use HTTPS in production (`bind_public_protocol: "https"`)
-
-#### Application Security
-- **CORS**: Configure specific origins, avoid wildcards in production
-- **CSRF**: Use `csrf_token_cookie_secure: true` and `csrf_token_same_site: "Strict"`
-- **Database**: Always use `sslmode=require` for PostgreSQL connections
 
 ## Production Deployment
 
@@ -443,41 +411,6 @@ spec:
             path: /readyz
             port: 9090
 ```
-
-## Deployment
-
-### Docker Compose (Recommended)
-```sh
-cd deployments/compose
-docker compose up -d
-```
-
-This starts:
-- PostgreSQL database with persistent storage
-- cryptoutil server with production configuration
-- Automatic secret management via Docker secrets
-
-### Configuration Files
-- `postgresql.yml` - Production PostgreSQL setup
-- `sqlite.yml` - Development SQLite setup
-- Secrets managed via `deployments/compose/cryptoutil/*.secret`
-
-### Health Monitoring
-```sh
-# Check application health
-curl http://localhost:9090/livez    # Liveness probe
-curl http://localhost:9090/readyz   # Readiness probe
-
-# Graceful shutdown
-curl -X POST http://localhost:9090/shutdown
-```
-
-### Kubernetes Deployment
-The application includes Kubernetes-ready features:
-- Health check endpoints for probes
-- Graceful shutdown handling
-- Structured logging for log aggregation
-- OpenTelemetry metrics for monitoring
 
 ## Documentation
 
