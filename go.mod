@@ -4,13 +4,13 @@ go 1.25.1
 
 require (
 	github.com/cloudflare/circl v1.6.1
-	github.com/docker/go-connections v0.5.0
-	github.com/getkin/kin-openapi v0.132.0
+	github.com/docker/go-connections v0.6.0
+	github.com/getkin/kin-openapi v0.133.0
 	github.com/goccy/go-yaml v1.18.0
 	github.com/gofiber/contrib/otelfiber v1.0.10
 	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/gofiber/swagger v1.1.1
-	github.com/golang-migrate/migrate/v4 v4.18.3
+	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/google/uuid v1.6.0
 	github.com/lestrrat-go/jwx/v3 v3.0.10
 	github.com/lib/pq v1.10.9
@@ -21,21 +21,21 @@ require (
 	github.com/spf13/pflag v1.0.7
 	github.com/spf13/viper v1.20.1
 	github.com/testcontainers/testcontainers-go v0.38.0
-	go.opentelemetry.io/otel v1.37.0
+	go.opentelemetry.io/otel v1.38.0
 	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc v0.13.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.37.0
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.37.0
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.37.0
 	go.opentelemetry.io/otel/log v0.13.0
-	go.opentelemetry.io/otel/metric v1.37.0
+	go.opentelemetry.io/otel/metric v1.38.0
 	go.opentelemetry.io/otel/sdk v1.37.0
 	go.opentelemetry.io/otel/sdk/log v0.13.0
 	go.opentelemetry.io/otel/sdk/metric v1.37.0
-	go.opentelemetry.io/otel/trace v1.37.0
+	go.opentelemetry.io/otel/trace v1.38.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.6.0
-	gorm.io/gorm v1.30.1
+	gorm.io/gorm v1.31.0
 	modernc.org/sqlite v1.38.2
 )
 
@@ -56,7 +56,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
-	github.com/docker/docker v28.3.3+incompatible // indirect
+	github.com/docker/docker v28.4.0+incompatible // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
@@ -72,7 +72,6 @@ require (
 	github.com/go-openapi/swag v0.23.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -107,7 +106,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/ncruces/go-strftime v0.1.9 // indirect
-	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
+	github.com/oapi-codegen/oapi-codegen/v2 v2.5.0 // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
 	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -127,7 +126,8 @@ require (
 	github.com/shirou/gopsutil/v4 v4.25.7 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/conc v0.3.1-0.20240121214520-5f936abd7ae8 // indirect
-	github.com/speakeasy-api/openapi-overlay v0.9.0 // indirect
+	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
+	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/spf13/afero v1.14.0 // indirect
 	github.com/spf13/cast v1.9.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
@@ -140,20 +140,20 @@ require (
 	github.com/valyala/fasthttp v1.64.0 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
+	github.com/woodsbury/decimal128 v1.3.0 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.0 // indirect
 	go.opentelemetry.io/contrib v1.37.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.7.1 // indirect
-	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.42.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/text v0.27.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/mod v0.27.0 // indirect
+	golang.org/x/net v0.43.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
+	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/tools v0.36.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20250728155136-f173205681a0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250728155136-f173205681a0 // indirect
 	google.golang.org/grpc v1.74.2 // indirect
@@ -166,10 +166,10 @@ require (
 )
 
 require (
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/contrib/bridges/otelslog v0.12.0
-	golang.org/x/crypto v0.40.0
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/crypto v0.41.0
+	golang.org/x/sys v0.35.0 // indirect
 )
 
 tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
