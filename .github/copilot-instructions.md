@@ -31,3 +31,4 @@
 | ** | '.github/instructions/architecture.instructions.md' | Instructions for configuration and application architecture |
 | ** | '.github/instructions/project-layout.instructions.md' | Instructions for Go project layout structure |
 | ** | '.github/instructions/copilot-customization.instructions.md' | Instructions for VS Code Copilot customization best practices |
+| ** | '.github/instructions/documentation.instructions.md' | Instructions for documentation organization and structure |
