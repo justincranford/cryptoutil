@@ -32,7 +32,7 @@
             "type": "go",
             "request": "launch",
             "program": "${workspaceFolder}/../oapi-codegen/cmd/oapi-codegen/oapi-codegen.go",
-            "cwd": "${workspaceFolder}/internal/openapi",
+            "cwd": "${workspaceFolder}/api",
             "args": [
                 "--config=./openapi_gen_model.yaml",
                 "./openapi_spec_components.yaml"
@@ -43,7 +43,7 @@
             "type": "go",
             "request": "launch",
             "program": "${workspaceFolder}/../oapi-codegen/cmd/oapi-codegen/oapi-codegen.go",
-            "cwd": "${workspaceFolder}/internal/openapi",
+            "cwd": "${workspaceFolder}/api",
             "args": [
                 "--config=./openapi_gen_client.yaml",
                 "./openapi_spec_paths.yaml"
@@ -54,7 +54,7 @@
             "type": "go",
             "request": "launch",
             "program": "${workspaceFolder}/../oapi-codegen/cmd/oapi-codegen/oapi-codegen.go",
-            "cwd": "${workspaceFolder}/internal/openapi",
+            "cwd": "${workspaceFolder}/api",
             "args": [
                 "--config=./openapi_gen_server.yaml",
                 "./openapi_spec_paths.yaml"

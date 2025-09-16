@@ -252,10 +252,10 @@ go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
 go generate ./...
 ```
 
-The generate command runs oapi-codegen using configurations in [internal/openapi/generate.go](internal/openapi/generate.go) to create:
-- `internal/openapi/model/` - Data models
-- `internal/openapi/server/` - HTTP handlers
-- `internal/openapi/client/` - Go client
+The generate command runs oapi-codegen using configurations in [api/generate.go](api/generate.go) to create:
+- `api/model/` - Data models
+- `api/server/` - HTTP handlers
+- `api/client/` - Go client
 
 ### Linting & Formatting
 ```sh

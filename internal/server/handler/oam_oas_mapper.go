@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiServer "cryptoutil/api/server"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
-	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 )
 
 type oamOasMapper struct{}

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 )
 
 var validTransitions = func() map[cryptoutilOpenapiModel.ElasticKeyStatus]map[cryptoutilOpenapiModel.ElasticKeyStatus]bool {

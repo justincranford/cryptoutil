@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiClient "cryptoutil/api/client"
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	"github.com/stretchr/testify/require"
 )

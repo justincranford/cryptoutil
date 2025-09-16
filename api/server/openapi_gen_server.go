@@ -13,7 +13,7 @@ import (
 	"path"
 	"strings"
 
-	externalRef0 "cryptoutil/internal/openapi/model"
+	externalRef0 "cryptoutil/api/model"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gofiber/fiber/v2"

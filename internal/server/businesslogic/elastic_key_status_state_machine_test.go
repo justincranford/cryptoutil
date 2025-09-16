@@ -3,7 +3,7 @@ package businesslogic
 import (
 	"testing"
 
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 )
 
 func TestTransitionInvalidState(t *testing.T) {

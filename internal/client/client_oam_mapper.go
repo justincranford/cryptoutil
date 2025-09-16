@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	cryptoutilOpenapiClient "cryptoutil/api/client"
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
-	cryptoutilOpenapiClient "cryptoutil/internal/openapi/client"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
 	googleUuid "github.com/google/uuid"
 )

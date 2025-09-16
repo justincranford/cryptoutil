@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	_ "github.com/lib/pq"

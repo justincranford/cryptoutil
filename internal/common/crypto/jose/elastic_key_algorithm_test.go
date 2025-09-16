@@ -1,7 +1,7 @@
 package jose
 
 import (
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	"fmt"
 	"strings"

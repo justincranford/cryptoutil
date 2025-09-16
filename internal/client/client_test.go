@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilServerApplication "cryptoutil/internal/server/application"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"

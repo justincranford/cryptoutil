@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"

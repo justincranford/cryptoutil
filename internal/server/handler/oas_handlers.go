@@ -3,8 +3,8 @@ package handler
 import (
 	"context"
 
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
-	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
+	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilOpenapiServer "cryptoutil/api/server"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 )
 

@@ -14,10 +14,10 @@ import (
 	"syscall"
 	"time"
 
+	cryptoutilOpenapiServer "cryptoutil/api/server"
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilOpenapiServer "cryptoutil/internal/openapi/server"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 
 	"github.com/getkin/kin-openapi/openapi3"

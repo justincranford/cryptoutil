@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"

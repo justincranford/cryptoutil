@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"

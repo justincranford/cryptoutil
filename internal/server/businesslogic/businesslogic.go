@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 

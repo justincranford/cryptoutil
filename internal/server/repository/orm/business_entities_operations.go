@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilOpenapiModel "cryptoutil/internal/openapi/model"
 
 	"gorm.io/gorm"
 
