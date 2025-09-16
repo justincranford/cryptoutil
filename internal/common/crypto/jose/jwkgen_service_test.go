@@ -20,9 +20,6 @@ func Test_HappyPath_JwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 			require.NoError(t, err)
 			require.NotEmpty(t, actualKeyKid)
 			require.NotNil(t, nonPublicJweJwk)
-			isEncryptJwk, err := IsEncryptJwk(nonPublicJweJwk)
-			require.NoError(t, err)
-			require.True(t, isEncryptJwk)
 			require.NotEmpty(t, clearNonPublicJweJwkBytes)
 			log.Printf("Generated:\n%s\n%s", clearNonPublicJweJwkBytes, clearPublicJweJwkBytes)
 
@@ -34,6 +31,9 @@ func Test_HappyPath_JwkGenService_Jwe_Jwk_EncryptDecryptBytes(t *testing.T) {
 				encryptJWK = publicJweJwk
 				requireJweJwkHeaders(t, publicJweJwk, OpsEnc, &testCase)
 			}
+			isEncryptJwk, err := IsEncryptJwk(encryptJWK)
+			require.NoError(t, err)
+			require.True(t, isEncryptJwk)
 
 			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{encryptJWK}, plaintext)
 			require.NoError(t, err)
@@ -82,17 +82,18 @@ func Test_HappyPath_JwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 
 			requireJwsMessageHeaders(t, jwsMessage, jwsJwkKid, &testCase)
 
-			isSymmetric, err := IsSymmetricJwk(nonPublicJwsJwk)
-			require.NoError(t, err, "failed to validate nonPublicJwsJwk")
-			if isSymmetric {
-				verified, err := VerifyBytes([]joseJwk.Key{nonPublicJwsJwk}, encodedJwsMessage)
-				require.NoError(t, err)
-				require.NotNil(t, verified)
+			var verifyJWK joseJwk.Key
+			if publicJwsJwk == nil {
+				verifyJWK = nonPublicJwsJwk
 			} else {
-				verified, err := VerifyBytes([]joseJwk.Key{publicJwsJwk}, encodedJwsMessage)
-				require.NoError(t, err)
-				require.NotNil(t, verified)
+				verifyJWK = publicJwsJwk
+				requireJwsJwkHeaders(t, publicJwsJwk, OpsVer, &testCase)
 			}
+
+			require.NoError(t, err)
+			verified, err := VerifyBytes([]joseJwk.Key{verifyJWK}, encodedJwsMessage)
+			require.NoError(t, err)
+			require.NotNil(t, verified)
 		})
 	}
 }
