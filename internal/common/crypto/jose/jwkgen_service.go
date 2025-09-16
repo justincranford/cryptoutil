@@ -165,7 +165,7 @@ func (s *JwkGenService) GenerateJweJwk(enc *joseJwa.ContentEncryptionAlgorithm, 
 		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.RSA2048KeyGenPool.Get())
 
 	case AlgECDHES, AlgECDHESA256KW:
-		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.ECDSAP521KeyGenPool.Get())
+		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.ECDHP521KeyGenPool.Get())
 	case AlgECDHESA192KW:
 		return CreateJweJwkFromKey(s.UUIDv7KeyGenPool.Get(), enc, alg, s.ECDHP384KeyGenPool.Get())
 	case AlgECDHESA128KW:
