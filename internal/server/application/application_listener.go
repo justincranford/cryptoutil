@@ -117,7 +117,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	return nil
 }
 
-// TODO Refactor ServerApplicationBasic vs StartServerApplicationCore vs StartServerListenerApplication?
+// TODO Refactor ServerApplicationBasic vs ServerApplicationCore vs ServerListenerApplication?
 func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*ServerApplicationListener, error) {
 	ctx := context.Background()
 
