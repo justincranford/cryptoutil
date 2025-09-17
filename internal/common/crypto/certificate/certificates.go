@@ -149,11 +149,11 @@ func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *keygen.KeyPair, 
 	}, nil
 }
 
-func BuildTLSCertificate(endEntitySubject *Subject) (tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
+func BuildTLSCertificate(endEntitySubject *Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
 	if len(endEntitySubject.KeyMaterial.CertificateChain) == 0 {
-		return tls.Certificate{}, nil, nil, fmt.Errorf("certificate chain is empty")
+		return nil, nil, nil, fmt.Errorf("certificate chain is empty")
 	} else if endEntitySubject.KeyMaterial.PrivateKey == nil {
-		return tls.Certificate{}, nil, nil, fmt.Errorf("private key is nil")
+		return nil, nil, nil, fmt.Errorf("private key is nil")
 	}
 	derCertChain := make([][]byte, len(endEntitySubject.KeyMaterial.CertificateChain))
 	for i, certificate := range endEntitySubject.KeyMaterial.CertificateChain {
@@ -168,8 +168,7 @@ func BuildTLSCertificate(endEntitySubject *Subject) (tls.Certificate, *x509.Cert
 	for j := 1; j < len(endEntitySubject.KeyMaterial.CertificateChain)-1; j++ {
 		intermediateCertsPool.AddCert(endEntitySubject.KeyMaterial.CertificateChain[j])
 	}
-
-	return tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertificateChain[0]}, rootCACertsPool, intermediateCertsPool, nil
+	return &tls.Certificate{Certificate: derCertChain, PrivateKey: endEntitySubject.KeyMaterial.PrivateKey, Leaf: endEntitySubject.KeyMaterial.CertificateChain[0]}, rootCACertsPool, intermediateCertsPool, nil
 }
 
 func CertificateTemplateCA(issuerName string, subjectName string, duration time.Duration, maxPathLen int) (*x509.Certificate, error) {
