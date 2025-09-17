@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 		}
 		go startServerListenerApplication.StartFunction()
 		defer startServerListenerApplication.ShutdownFunction()
-		WaitUntilReady(&testServerPrivateUrl, 5*time.Second, 100*time.Millisecond)
+		WaitUntilReady(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 		rc = m.Run()
 	}()
@@ -203,9 +203,8 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 	context := context.Background()
-	// TODO Change to testServerPublicBrowserAPIUrl
-	testServerPublicBrowserAPIUrl := testServerPublicUrl + testSettings.PublicBrowserAPIContextPath
-	openapiClient := RequireClientWithResponses(t, &testServerPublicBrowserAPIUrl)
+	testPublicServiceAPIUrl := testServerPublicUrl + testSettings.PublicServiceAPIContextPath
+	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesEncrypt {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
@@ -289,9 +288,8 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	context := context.Background()
-	// TODO Change to testServerPublicBrowserAPIUrl
-	testServerPublicBrowserAPIUrl := testServerPublicUrl + testSettings.PublicBrowserAPIContextPath
-	openapiClient := RequireClientWithResponses(t, &testServerPublicBrowserAPIUrl)
+	testPublicServiceAPIUrl := testServerPublicUrl + testSettings.PublicServiceAPIContextPath
+	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesSign {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")

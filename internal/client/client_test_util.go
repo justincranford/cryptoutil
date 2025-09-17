@@ -19,15 +19,13 @@ import (
 
 var oamOacMapperInstance = NewOamOacMapper()
 
-func WaitUntilReady(baseURL *string, maxTime time.Duration, retryTime time.Duration) {
-	WaitUntilReadyWithTLS(baseURL, maxTime, retryTime, nil)
-}
+// TODO Add error checking for https with rootCAsPool=nil
 
-func WaitUntilReadyWithTLS(baseURL *string, maxTime time.Duration, retryTime time.Duration, rootCAsPool *x509.CertPool) {
+func WaitUntilReady(baseURL *string, maxTime time.Duration, retryTime time.Duration, rootCAsPool *x509.CertPool) {
 	giveUpTime := time.Now().UTC().Add(maxTime)
 	for {
 		log.Printf("Checking if server is ready %s", *baseURL)
-		if err := CheckReadyzWithTLS(baseURL, rootCAsPool); err == nil {
+		if err := CheckReadyz(baseURL, rootCAsPool); err == nil {
 			log.Printf("Server is ready")
 			break
 		}
@@ -38,46 +36,21 @@ func WaitUntilReadyWithTLS(baseURL *string, maxTime time.Duration, retryTime tim
 	}
 }
 
-func CheckHealthz(baseURL *string) error {
-	return CheckHealthzWithTLS(baseURL, nil)
-}
-
-func CheckHealthzWithTLS(baseURL *string, rootCAsPool *x509.CertPool) error {
+func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/healthz"
-	return httpGetWithTLS(&url, 2*time.Second, rootCAsPool)
+	return httpGet(&url, 2*time.Second, rootCAsPool)
 }
 
-func CheckReadyz(baseURL *string) error {
-	return CheckReadyzWithTLS(baseURL, nil)
-}
-
-func CheckReadyzWithTLS(baseURL *string, rootCAsPool *x509.CertPool) error {
+func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/readyz"
-	return httpGetWithTLS(&url, 2*time.Second, rootCAsPool)
+	return httpGet(&url, 2*time.Second, rootCAsPool)
 }
 
-func httpGet(url *string, timeout time.Duration) error {
-	return httpGetWithTLS(url, timeout, nil)
-}
-
-func httpGetWithTLS(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) error {
+func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) error {
 	client := &http.Client{Timeout: timeout}
 
-	// Handle HTTPS with proper TLS configuration
 	if strings.HasPrefix(*url, "https://") {
-		transport := &http.Transport{}
-		if rootCAsPool != nil {
-			// Use provided root CA pool for server certificate validation
-			transport.TLSClientConfig = &tls.Config{
-				RootCAs: rootCAsPool,
-			}
-		} else {
-			// For testing with self-signed certificates, skip verification
-			transport.TLSClientConfig = &tls.Config{
-				InsecureSkipVerify: true,
-			}
-		}
-		client.Transport = transport
+		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{RootCAs: rootCAsPool}}
 	}
 
 	resp, err := client.Get(*url)
