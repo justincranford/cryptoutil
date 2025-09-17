@@ -2,9 +2,12 @@ package client
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,10 +20,14 @@ import (
 var oamOacMapperInstance = NewOamOacMapper()
 
 func WaitUntilReady(baseURL *string, maxTime time.Duration, retryTime time.Duration) {
+	WaitUntilReadyWithTLS(baseURL, maxTime, retryTime, nil)
+}
+
+func WaitUntilReadyWithTLS(baseURL *string, maxTime time.Duration, retryTime time.Duration, rootCAsPool *x509.CertPool) {
 	giveUpTime := time.Now().UTC().Add(maxTime)
 	for {
 		log.Printf("Checking if server is ready %s", *baseURL)
-		if err := CheckReadyz(baseURL); err == nil {
+		if err := CheckReadyzWithTLS(baseURL, rootCAsPool); err == nil {
 			log.Printf("Server is ready")
 			break
 		}
@@ -32,17 +39,47 @@ func WaitUntilReady(baseURL *string, maxTime time.Duration, retryTime time.Durat
 }
 
 func CheckHealthz(baseURL *string) error {
+	return CheckHealthzWithTLS(baseURL, nil)
+}
+
+func CheckHealthzWithTLS(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/healthz"
-	return httpGet(&url, 2*time.Second)
+	return httpGetWithTLS(&url, 2*time.Second, rootCAsPool)
 }
 
 func CheckReadyz(baseURL *string) error {
+	return CheckReadyzWithTLS(baseURL, nil)
+}
+
+func CheckReadyzWithTLS(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/readyz"
-	return httpGet(&url, 2*time.Second)
+	return httpGetWithTLS(&url, 2*time.Second, rootCAsPool)
 }
 
 func httpGet(url *string, timeout time.Duration) error {
-	client := http.Client{Timeout: timeout}
+	return httpGetWithTLS(url, timeout, nil)
+}
+
+func httpGetWithTLS(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) error {
+	client := &http.Client{Timeout: timeout}
+
+	// Handle HTTPS with proper TLS configuration
+	if strings.HasPrefix(*url, "https://") {
+		transport := &http.Transport{}
+		if rootCAsPool != nil {
+			// Use provided root CA pool for server certificate validation
+			transport.TLSClientConfig = &tls.Config{
+				RootCAs: rootCAsPool,
+			}
+		} else {
+			// For testing with self-signed certificates, skip verification
+			transport.TLSClientConfig = &tls.Config{
+				InsecureSkipVerify: true,
+			}
+		}
+		client.Transport = transport
+	}
+
 	resp, err := client.Get(*url)
 	if err != nil {
 		return fmt.Errorf("get %v failed: %w", url, err)
@@ -55,7 +92,25 @@ func httpGet(url *string, timeout time.Duration) error {
 }
 
 func RequireClientWithResponses(t *testing.T, baseUrl *string) *cryptoutilOpenapiClient.ClientWithResponses {
-	openapiClient, err := cryptoutilOpenapiClient.NewClientWithResponses(*baseUrl)
+	var openapiClient *cryptoutilOpenapiClient.ClientWithResponses
+	var err error
+
+	if strings.HasPrefix(*baseUrl, "https://") {
+		// For HTTPS URLs, use the TLS configuration
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify: true, // For testing with self-signed certificates
+		}
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: tlsConfig,
+			},
+		}
+		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(*baseUrl, cryptoutilOpenapiClient.WithHTTPClient(httpClient))
+	} else {
+		// For HTTP URLs, use default client
+		openapiClient, err = cryptoutilOpenapiClient.NewClientWithResponses(*baseUrl)
+	}
+
 	require.NoError(t, err)
 	require.NotNil(t, openapiClient)
 	return openapiClient

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"net/http"
@@ -35,21 +37,39 @@ func TestHttpGetHttp200(t *testing.T) {
 	}
 	go startServerListenerApplication.StartFunction()
 	defer startServerListenerApplication.ShutdownFunction()
-	cryptoutilClient.WaitUntilReady(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond)
+
+	// Extract TLS configuration for HTTPS requests
+	var publicTLSRootCAsPool *x509.CertPool
+	var privateTLSRootCAsPool *x509.CertPool
+
+	if startServerListenerApplication.PublicTLSServer != nil {
+		publicTLSRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
+	}
+	if startServerListenerApplication.PrivateTLSServer != nil {
+		privateTLSRootCAsPool = startServerListenerApplication.PrivateTLSServer.RootCAsPool
+	}
+
+	// Use appropriate TLS configuration for WaitUntilReady
+	if privateTLSRootCAsPool != nil {
+		cryptoutilClient.WaitUntilReadyWithTLS(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond, privateTLSRootCAsPool)
+	} else {
+		cryptoutilClient.WaitUntilReady(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond)
+	}
 
 	testCases := []struct {
-		name string
-		url  string
+		name       string
+		url        string
+		tlsRootCAs *x509.CertPool
 	}{
-		{name: "Swagger UI root", url: testServerPublicUrl + "/ui/swagger"},
-		{name: "Swagger UI index.html", url: testServerPublicUrl + "/ui/swagger/index.html"},
-		{name: "OpenAPI Spec", url: testServerPublicUrl + "/ui/swagger/doc.json"},
+		{name: "Swagger UI root", url: testServerPublicUrl + "/ui/swagger", tlsRootCAs: publicTLSRootCAsPool},
+		{name: "Swagger UI index.html", url: testServerPublicUrl + "/ui/swagger/index.html", tlsRootCAs: publicTLSRootCAsPool},
+		{name: "OpenAPI Spec", url: testServerPublicUrl + "/ui/swagger/doc.json", tlsRootCAs: publicTLSRootCAsPool},
 		// TODO Change to testServerPublicBrowserAPIUrl
-		{name: "GET Elastic Keys", url: testServerPublicUrl + testSettings.PublicBrowserAPIContextPath + "/elastickeys"},
+		{name: "GET Elastic Keys", url: testServerPublicUrl + testSettings.PublicBrowserAPIContextPath + "/elastickeys", tlsRootCAs: publicTLSRootCAsPool},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			contentBytes, err := httpGetResponseBytes(t, http.StatusOK, testCase.url)
+			contentBytes, err := httpGetResponseBytesWithTLS(t, http.StatusOK, testCase.url, testCase.tlsRootCAs)
 			var contentString string
 			if contentBytes != nil {
 				contentString = strings.Replace(string(contentBytes), "\n", " ", -1)
@@ -64,10 +84,33 @@ func TestHttpGetHttp200(t *testing.T) {
 }
 
 func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string) ([]byte, error) {
+	return httpGetResponseBytesWithTLS(t, expectedStatusCode, url, nil)
+}
+
+func httpGetResponseBytesWithTLS(t *testing.T, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	require.NoError(t, err, "failed to create GET request")
 	req.Header.Set("Accept", "*/*")
-	resp, err := http.DefaultClient.Do(req)
+
+	// Create HTTP client with appropriate TLS configuration
+	client := &http.Client{}
+	if strings.HasPrefix(url, "https://") {
+		transport := &http.Transport{}
+		if rootCAsPool != nil {
+			// Use provided root CA pool for server certificate validation
+			transport.TLSClientConfig = &tls.Config{
+				RootCAs: rootCAsPool,
+			}
+		} else {
+			// For testing with self-signed certificates, skip verification
+			transport.TLSClientConfig = &tls.Config{
+				InsecureSkipVerify: true,
+			}
+		}
+		client.Transport = transport
+	}
+
+	resp, err := client.Do(req)
 	require.NoError(t, err, "failed to make GET request")
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
