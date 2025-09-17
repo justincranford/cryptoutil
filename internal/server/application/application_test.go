@@ -29,12 +29,12 @@ func TestMain(m *testing.M) {
 }
 
 func TestHttpGetHttp200(t *testing.T) {
-	start, stop, err := StartServerListenerApplication(testSettings)
+	startServerListenerApplication, err := StartServerListenerApplication(testSettings)
 	if err != nil {
 		t.Fatalf("failed to start server application: %v", err)
 	}
-	go start()
-	defer stop()
+	go startServerListenerApplication.StartFunction()
+	defer startServerListenerApplication.ShutdownFunction()
 	cryptoutilClient.WaitUntilReady(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond)
 
 	testCases := []struct {

@@ -14,11 +14,11 @@ func server(parameters []string) {
 	}
 	switch settings.SubCommand {
 	case "start":
-		start, _, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
+		startServerListenerApplication, err := cryptoutilServerApplication.StartServerListenerApplication(settings)
 		if err != nil {
 			log.Fatalf("failed to start server application: %v", err)
 		}
-		start() // blocks until server receives a signal to shutdown
+		startServerListenerApplication.StartFunction() // blocks until server receives a signal to shutdown
 	case "stop":
 		err := cryptoutilServerApplication.SendServerListenerShutdownRequest(settings)
 		if err != nil {

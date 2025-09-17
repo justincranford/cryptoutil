@@ -31,12 +31,12 @@ var (
 func TestMain(m *testing.M) {
 	var rc int
 	func() {
-		start, stop, err := cryptoutilServerApplication.StartServerListenerApplication(testSettings)
+		startServerListenerApplication, err := cryptoutilServerApplication.StartServerListenerApplication(testSettings)
 		if err != nil {
 			log.Fatalf("failed to start server application: %v", err)
 		}
-		go start()
-		defer stop()
+		go startServerListenerApplication.StartFunction()
+		defer startServerListenerApplication.ShutdownFunction()
 		WaitUntilReady(&testServerPrivateUrl, 5*time.Second, 100*time.Millisecond)
 
 		rc = m.Run()

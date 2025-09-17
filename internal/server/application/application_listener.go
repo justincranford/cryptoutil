@@ -57,21 +57,18 @@ const (
 
 var ready atomic.Bool
 
-// Placeholder for StartServerListenerApplication to return ServerApplicationListener in future
 type ServerApplicationListener struct {
-	StartFunction      func()
-	ShutdownFunction   func()
-	ServerCertificates *ServerCertificates
+	StartFunction    func()
+	ShutdownFunction func()
+	PublicTLSServer  *TLSServerConfig
+	PrivateTLSServer *TLSServerConfig
 }
 
-// ServerCertificates holds TLS configurations and certificate pools for public and private server listeners
-type ServerCertificates struct {
-	PublicTLSServerConfig            *tls.Config
-	PrivateTLSServerConfig           *tls.Config
-	PublicTLSServerRootCAPool        *x509.CertPool
-	PrivateTLSServerRootCAPool       *x509.CertPool
-	PublicTLSServerIntermediatePool  *x509.CertPool
-	PrivateTLSServerIntermediatePool *x509.CertPool
+type TLSServerConfig struct {
+	Certificate         *tls.Certificate
+	RootCAsPool         *x509.CertPool
+	IntermediateCAsPool *x509.CertPool
+	Config              *tls.Config
 }
 
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
@@ -121,33 +118,43 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 }
 
 // TODO Refactor ServerApplicationBasic vs StartServerApplicationCore vs StartServerListenerApplication?
-func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func(), func(), error) {
+func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*ServerApplicationListener, error) {
 	ctx := context.Background()
 
 	serverApplicationCore, err := StartServerApplicationCore(ctx, settings)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to initialize server application: %w", err)
+		return nil, fmt.Errorf("failed to initialize server application: %w", err)
 	}
 
-	var publicTLSServerConfig *tls.Config
-	var privateTLSServerConfig *tls.Config
+	var publicTLSServer *TLSServerConfig
+	var privateTLSServer *TLSServerConfig
 	if settings.BindPublicProtocol == "https" || settings.BindPrivateProtocol == "https" {
 		publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to run new function: %w", err)
+			return nil, fmt.Errorf("failed to run new function: %w", err)
 		}
 
-		publicTLSServerCertificate, _, _, err := cryptoutilCertificate.BuildTLSCertificate(publicTLSServerSubject)
+		publicTLSServerCertificate, publicTLSServerRootCACertsPool, publicTLSServerIntermediateCertsPool, err := cryptoutilCertificate.BuildTLSCertificate(publicTLSServerSubject)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
+			return nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
 		}
-		privateTLSServerCertificate, _, _, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
+		privateTLSServerCertificate, privateTLSServerRootCACertsPool, privateTLSServerIntermediateCertsPool, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
+			return nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
 		}
 
-		publicTLSServerConfig = &tls.Config{Certificates: []tls.Certificate{publicTLSServerCertificate}, ClientAuth: tls.NoClientCert}
-		privateTLSServerConfig = &tls.Config{Certificates: []tls.Certificate{privateTLSServerCertificate}, ClientAuth: tls.NoClientCert}
+		publicTLSServer = &TLSServerConfig{
+			Certificate:         publicTLSServerCertificate,
+			RootCAsPool:         publicTLSServerRootCACertsPool,
+			IntermediateCAsPool: publicTLSServerIntermediateCertsPool,
+			Config:              &tls.Config{Certificates: []tls.Certificate{*publicTLSServerCertificate}, ClientAuth: tls.NoClientCert},
+		}
+		privateTLSServer = &TLSServerConfig{
+			Certificate:         privateTLSServerCertificate,
+			RootCAsPool:         privateTLSServerRootCACertsPool,
+			IntermediateCAsPool: privateTLSServerIntermediateCertsPool,
+			Config:              &tls.Config{Certificates: []tls.Certificate{*privateTLSServerCertificate}, ClientAuth: tls.NoClientCert},
+		}
 	}
 
 	// Middlewares
@@ -205,7 +212,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
 		serverApplicationCore.Shutdown()
-		return nil, nil, fmt.Errorf("failed to get swagger: %w", err)
+		return nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
 	swaggerApi.Servers = []*openapi3.Server{
@@ -216,7 +223,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
 		serverApplicationCore.Shutdown()
-		return nil, nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
+		return nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
 	}
 
 	publicFiberApp.Get("/ui/swagger/doc.json", func(c *fiber.Ctx) error {
@@ -264,13 +271,18 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (func()
 		publicBinding, privateBinding,
 		publicFiberApp, privateFiberApp,
 		settings.BindPublicProtocol, settings.BindPrivateProtocol,
-		publicTLSServerConfig, privateTLSServerConfig,
+		publicTLSServer.Config, privateTLSServer.Config,
 		serverApplicationCore.ServerApplicationBasic.TelemetryService)
 	shutdownServerFunction = stopServerFunc(serverApplicationCore, publicFiberApp, privateFiberApp)
 
 	go stopServerSignalFunc(serverApplicationCore.ServerApplicationBasic.TelemetryService, shutdownServerFunction)() // listen for OS signals to gracefully shutdown the server
 
-	return startServerFunction, shutdownServerFunction, nil
+	return &ServerApplicationListener{
+		StartFunction:    startServerFunction,
+		ShutdownFunction: shutdownServerFunction,
+		PublicTLSServer:  publicTLSServer,
+		PrivateTLSServer: privateTLSServer,
+	}, nil
 }
 
 func startServerFunc(publicBinding string, privateBinding string, publicFiberApp *fiber.App, privateFiberApp *fiber.App, publicProtocol string, privateProtocol string, publicTLSConfig *tls.Config, privateTLSConfig *tls.Config, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
