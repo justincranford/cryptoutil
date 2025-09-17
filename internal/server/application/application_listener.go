@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"html/template"
 	"io"
@@ -55,6 +56,23 @@ const (
 )
 
 var ready atomic.Bool
+
+// Placeholder for StartServerListenerApplication to return ServerApplicationListener in future
+type ServerApplicationListener struct {
+	StartFunction      func()
+	ShutdownFunction   func()
+	ServerCertificates *ServerCertificates
+}
+
+// ServerCertificates holds TLS configurations and certificate pools for public and private server listeners
+type ServerCertificates struct {
+	PublicTLSServerConfig            *tls.Config
+	PrivateTLSServerConfig           *tls.Config
+	PublicTLSServerRootCAPool        *x509.CertPool
+	PrivateTLSServerRootCAPool       *x509.CertPool
+	PublicTLSServerIntermediatePool  *x509.CertPool
+	PrivateTLSServerIntermediatePool *x509.CertPool
+}
 
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
 	privateBaseURL := fmt.Sprintf("%s://%s:%d", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort)
