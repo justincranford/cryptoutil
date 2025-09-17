@@ -47,11 +47,11 @@ func TestHttpGetHttp200(t *testing.T) {
 		{name: "Swagger UI root", url: testServerPublicUrl + "/ui/swagger", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
 		{name: "Swagger UI index.html", url: testServerPublicUrl + "/ui/swagger/index.html", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
 		{name: "OpenAPI Spec", url: testServerPublicUrl + "/ui/swagger/doc.json", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
-		{name: "GET Elastic Keys", url: testServerPublicUrl + testSettings.PublicBrowserAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
+		{name: "GET Elastic Keys", url: testServerPublicUrl + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			contentBytes, err := httpGetResponseBytesWithTLS(t, http.StatusOK, testCase.url, testCase.tlsRootCAs)
+			contentBytes, err := httpGetResponseBytes(t, http.StatusOK, testCase.url, testCase.tlsRootCAs)
 			var contentString string
 			if contentBytes != nil {
 				contentString = strings.Replace(string(contentBytes), "\n", " ", -1)
@@ -65,11 +65,7 @@ func TestHttpGetHttp200(t *testing.T) {
 	}
 }
 
-func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string) ([]byte, error) {
-	return httpGetResponseBytesWithTLS(t, expectedStatusCode, url, nil)
-}
-
-func httpGetResponseBytesWithTLS(t *testing.T, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, error) {
+func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	require.NoError(t, err, "failed to create GET request")
 	req.Header.Set("Accept", "*/*")
