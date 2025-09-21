@@ -53,7 +53,7 @@ func ConcatBytes(list [][]byte) []byte {
 }
 
 func StringsToBytes(values ...string) [][]byte {
-	var result [][]byte
+	result := make([][]byte, 0, len(values))
 	for _, s := range values {
 		result = append(result, []byte(s))
 	}
@@ -89,13 +89,16 @@ func Uint16ToBytes(val uint16) []byte {
 }
 
 func Int64ToBytes(val int64) []byte {
+	// Safe conversion: int64 to uint64 preserves bit pattern
 	return Uint64ToBytes(uint64(val))
 }
 
 func Int32ToBytes(val int32) []byte {
+	// Safe conversion: int32 to uint32 preserves bit pattern
 	return Uint32ToBytes(uint32(val))
 }
 
 func Int16ToBytes(val int16) []byte {
+	// Safe conversion: int16 to uint16 preserves bit pattern
 	return Uint16ToBytes(uint16(val))
 }

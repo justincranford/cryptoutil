@@ -50,7 +50,10 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	client := &http.Client{Timeout: timeout}
 
 	if strings.HasPrefix(*url, "https://") {
-		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{RootCAs: rootCAsPool}}
+		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{
+			RootCAs:    rootCAsPool,
+			MinVersion: tls.VersionTLS12,
+		}}
 	}
 
 	resp, err := client.Get(*url)
@@ -59,7 +62,7 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("%v returned %d", url, resp.StatusCode)
+		return fmt.Errorf("%s returned %d", *url, resp.StatusCode)
 	}
 	return nil
 }
@@ -72,6 +75,7 @@ func RequireClientWithResponses(t *testing.T, baseUrl *string) *cryptoutilOpenap
 		// For HTTPS URLs, use the TLS configuration
 		tlsConfig := &tls.Config{
 			InsecureSkipVerify: true, // For testing with self-signed certificates
+			MinVersion:         tls.VersionTLS12,
 		}
 		httpClient := &http.Client{
 			Transport: &http.Transport{
@@ -97,7 +101,7 @@ func RequireCreateElasticKeyRequest(t *testing.T, name *string, description *str
 }
 
 func RequireCreateElasticKeyResponse(t *testing.T, context context.Context, openapiClient *cryptoutilOpenapiClient.ClientWithResponses, elasticKeyCreate *cryptoutilOpenapiModel.ElasticKeyCreate) *cryptoutilOpenapiModel.ElasticKey {
-	openapiCreateElasticKeyResponse, err := openapiClient.PostElastickeyWithResponse(context, cryptoutilOpenapiClient.PostElastickeyJSONRequestBody(*elasticKeyCreate))
+	openapiCreateElasticKeyResponse, err := openapiClient.PostElastickeyWithResponse(context, *elasticKeyCreate)
 	require.NoError(t, err)
 
 	elasticKey, err := oamOacMapperInstance.toOamElasticKey(openapiCreateElasticKeyResponse)

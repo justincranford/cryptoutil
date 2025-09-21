@@ -118,7 +118,7 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmReposi
 		return nil, fmt.Errorf("failed to decrypt intermediate key: %w", err)
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	decryptedContentKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{decryptedIntermediateKey}, []byte(encryptedContentKeyBytes))
+	decryptedContentKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{decryptedIntermediateKey}, encryptedContentKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt content key: %w", err)
 	}

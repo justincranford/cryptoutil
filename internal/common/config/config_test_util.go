@@ -1,6 +1,7 @@
 package config
 
 import (
+	"math"
 	"sync/atomic"
 	"time"
 )
@@ -16,6 +17,16 @@ func init() {
 }
 
 func RequireNewForTest(applicationName string) *Settings {
+	// Add bounds checking for port conversion to prevent integer overflow
+	nextPublicPort := currentBindPublicPort.Add(1)
+	if nextPublicPort > math.MaxUint16 {
+		nextPublicPort = 10000 // Reset to safe starting value
+	}
+	nextPrivatePort := currentBindPrivatePort.Add(1)
+	if nextPrivatePort > math.MaxUint16 {
+		nextPrivatePort = 20000 // Reset to safe starting value
+	}
+
 	settings := &Settings{
 		ConfigFile:                  configFile.value.(string),
 		LogLevel:                    logLevel.value.(string),
@@ -23,14 +34,14 @@ func RequireNewForTest(applicationName string) *Settings {
 		DevMode:                     devMode.value.(bool),
 		BindPublicProtocol:          bindPublicProtocol.value.(string),
 		BindPublicAddress:           bindPublicAddress.value.(string),
-		BindPublicPort:              uint16(currentBindPublicPort.Add(1)),
+		BindPublicPort:              uint16(nextPublicPort),
 		TLSPublicDNSNames:           tlsPublicDnsNames.value.([]string),
 		TLSPublicIPAddresses:        tlsPublicIPAddresses.value.([]string),
 		TLSPrivateDNSNames:          tlsPrivateDnsNames.value.([]string),
 		TLSPrivateIPAddresses:       tlsPrivateIPAddresses.value.([]string),
 		BindPrivateProtocol:         bindPrivateProtocol.value.(string),
 		BindPrivateAddress:          bindPrivateAddress.value.(string),
-		BindPrivatePort:             uint16(currentBindPrivatePort.Add(1)),
+		BindPrivatePort:             uint16(nextPrivatePort),
 		PublicBrowserAPIContextPath: publicBrowserAPIContextPath.value.(string),
 		PublicServiceAPIContextPath: publicServiceAPIContextPath.value.(string),
 		CORSAllowedOrigins:          corsAllowedOrigins.value.(string),

@@ -42,6 +42,10 @@ const (
 	clientLivenessRequestTimeout = 3 * time.Second
 )
 
+const (
+	protocolHTTPS = "https"
+)
+
 const serverShutdownFinishTimeout = 5 * time.Second
 
 // TODO Make shutdown timeout configurable via settings
@@ -85,10 +89,13 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	// TODO Only use InsecureSkipVerify for DevMode
 	// Create HTTP client that accepts self-signed certificates for local testing
 	var client *http.Client
-	if settings.BindPrivateProtocol == "https" {
+	if settings.BindPrivateProtocol == protocolHTTPS {
 		client = &http.Client{
 			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // TODO Fix: should be settings.DevMode only
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: settings.DevMode, // Only skip verification in dev mode
+					MinVersion:         tls.VersionTLS12,
+				},
 			},
 		}
 	} else {
@@ -102,7 +109,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 		shutdownResponseBody, err := io.ReadAll(shutdownResponse.Body)
 		defer shutdownResponse.Body.Close()
 		if err != nil {
-			return fmt.Errorf("shutdown request failed: %s (could not read response body: %v)", shutdownResponse.Status, err)
+			return fmt.Errorf("shutdown request failed: %s (could not read response body: %w)", shutdownResponse.Status, err)
 		}
 		return fmt.Errorf("shutdown request failed, status: %s, body: %s", shutdownResponse.Status, string(shutdownResponseBody))
 	}
@@ -130,7 +137,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 
 	var publicTLSServer *TLSServerConfig
 	var privateTLSServer *TLSServerConfig
-	if settings.BindPublicProtocol == "https" || settings.BindPrivateProtocol == "https" {
+	if settings.BindPublicProtocol == protocolHTTPS || settings.BindPrivateProtocol == protocolHTTPS {
 		publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run new function: %w", err)
@@ -149,13 +156,21 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 			Certificate:         publicTLSServerCertificate,
 			RootCAsPool:         publicTLSServerRootCACertsPool,
 			IntermediateCAsPool: publicTLSServerIntermediateCertsPool,
-			Config:              &tls.Config{Certificates: []tls.Certificate{*publicTLSServerCertificate}, ClientAuth: tls.NoClientCert},
+			Config: &tls.Config{
+				Certificates: []tls.Certificate{*publicTLSServerCertificate},
+				ClientAuth:   tls.NoClientCert,
+				MinVersion:   tls.VersionTLS12,
+			},
 		}
 		privateTLSServer = &TLSServerConfig{
 			Certificate:         privateTLSServerCertificate,
 			RootCAsPool:         privateTLSServerRootCACertsPool,
 			IntermediateCAsPool: privateTLSServerIntermediateCertsPool,
-			Config:              &tls.Config{Certificates: []tls.Certificate{*privateTLSServerCertificate}, ClientAuth: tls.NoClientCert},
+			Config: &tls.Config{
+				Certificates: []tls.Certificate{*privateTLSServerCertificate},
+				ClientAuth:   tls.NoClientCert,
+				MinVersion:   tls.VersionTLS12,
+			},
 		}
 	}
 
@@ -294,7 +309,7 @@ func startServerFunc(publicBinding string, privateBinding string, publicFiberApp
 		go func() {
 			telemetryService.Slogger.Debug("starting private fiber listener", "binding", privateBinding, "protocol", privateProtocol)
 			var err error
-			if privateProtocol == "https" && privateTLSConfig != nil {
+			if privateProtocol == protocolHTTPS && privateTLSConfig != nil {
 				err = privateFiberApp.ListenTLSWithCertificate(privateBinding, privateTLSConfig.Certificates[0])
 			} else {
 				err = privateFiberApp.Listen(privateBinding)
@@ -307,7 +322,7 @@ func startServerFunc(publicBinding string, privateBinding string, publicFiberApp
 
 		telemetryService.Slogger.Debug("starting public fiber listener", "binding", publicBinding, "protocol", publicProtocol)
 		var err error
-		if publicProtocol == "https" && publicTLSConfig != nil {
+		if publicProtocol == protocolHTTPS && publicTLSConfig != nil {
 			err = publicFiberApp.ListenTLSWithCertificate(publicBinding, publicTLSConfig.Certificates[0])
 		} else {
 			err = publicFiberApp.Listen(publicBinding)
@@ -565,7 +580,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(settings *cryptoutilConfig
 		c.Set("X-Content-Type-Options", "nosniff")
 
 		// Strict-Transport-Security: Enforce HTTPS (only set for HTTPS requests)
-		if c.Protocol() == "https" {
+		if c.Protocol() == protocolHTTPS {
 			if settings.DevMode {
 				// Shorter duration for development
 				c.Set("Strict-Transport-Security", "max-age=86400; includeSubDomains")

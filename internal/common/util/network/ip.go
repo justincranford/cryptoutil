@@ -6,7 +6,7 @@ import (
 )
 
 func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
-	var parsedIPs []net.IP
+	parsedIPs := make([]net.IP, 0, len(ipAddresses))
 	for _, ip := range ipAddresses {
 		parsedIP := net.ParseIP(ip)
 		if parsedIP == nil {

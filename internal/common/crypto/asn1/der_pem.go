@@ -165,7 +165,7 @@ func DerRead(filename string) (any, string, error) {
 }
 
 func PemWrite(key any, filename string) error {
-	pemString, err := PemEncode(key)
+	pemBytes, err := PemEncode(key)
 	if err != nil {
 		return fmt.Errorf("encode failed: %w", err)
 	}
@@ -176,7 +176,7 @@ func PemWrite(key any, filename string) error {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
-	err = os.WriteFile(filename, []byte(pemString), 0o600)
+	err = os.WriteFile(filename, pemBytes, 0o600)
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}

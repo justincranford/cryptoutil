@@ -112,7 +112,7 @@ func (i *RootKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.Orm
 		return nil, fmt.Errorf("failed to decrypt root key: %w", err)
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	decryptedIntermediateKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{decryptedRootKey}, []byte(encryptedIntermediateKeyBytes))
+	decryptedIntermediateKey, err := cryptoutilJose.DecryptKey([]joseJwk.Key{decryptedRootKey}, encryptedIntermediateKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt intermediate key: %w", err)
 	}

@@ -7,12 +7,11 @@ import (
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	telemetryService "cryptoutil/internal/common/telemetry"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 )
 
 type ServerApplicationBasic struct {
-	TelemetryService  *telemetryService.TelemetryService
+	TelemetryService  *cryptoutilTelemetry.TelemetryService
 	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 	JwkGenService     *cryptoutilJose.JwkGenService
 }

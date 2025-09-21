@@ -2,6 +2,7 @@ package certificate
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -44,7 +45,8 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 				netTCPListener.SetDeadline(time.Now().Add(readTimeout))
 				tlsClientConnection, err := tlsListener.Accept()
 				if err != nil {
-					if ne, ok := err.(net.Error); ok && ne.Timeout() {
+					var ne net.Error
+					if errors.As(err, &ne) && ne.Timeout() {
 						continue // Timeout errors are expected and recoverable
 					}
 					// For other errors, check if they're likely recoverable
@@ -76,7 +78,8 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 					tlsClientRequestBodyBuffer := make([]byte, 1024) // Increased buffer size
 					bytesRead, err := conn.Read(tlsClientRequestBodyBuffer)
 					if err != nil {
-						if ne, ok := err.(net.Error); ok && ne.Timeout() {
+						var ne net.Error
+						if errors.As(err, &ne) && ne.Timeout() {
 							log.Printf("read timeout on TLS connection")
 						} else {
 							log.Printf("failed to read from TLS connection: %v", err)
@@ -89,7 +92,8 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 						conn.SetWriteDeadline(time.Now().Add(writeTimeout))
 						_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
 						if err != nil {
-							if ne, ok := err.(net.Error); ok && ne.Timeout() {
+							var ne net.Error
+							if errors.As(err, &ne) && ne.Timeout() {
 								log.Printf("write timeout on TLS connection")
 							} else {
 								log.Printf("failed to write to TLS connection: %v", err)

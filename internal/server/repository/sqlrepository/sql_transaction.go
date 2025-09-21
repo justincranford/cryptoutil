@@ -80,7 +80,7 @@ func (sqlTransaction *SqlTransaction) TransactionID() *googleUuid.UUID {
 	if sqlTransaction.state == nil {
 		return nil
 	}
-	transactionIDCopy := googleUuid.UUID(sqlTransaction.state.transactionID)
+	transactionIDCopy := sqlTransaction.state.transactionID
 	return &transactionIDCopy
 }
 

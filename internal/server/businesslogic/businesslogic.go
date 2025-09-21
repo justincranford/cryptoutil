@@ -18,6 +18,10 @@ import (
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 )
 
+const (
+	providerInternal = "Internal"
+)
+
 // BusinessLogicService implements methods in StrictServerInterface
 type BusinessLogicService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
@@ -70,7 +74,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("failed to add ElasticKey: %w", err)
 		}
 
-		err = TransitionElasticKeyStatus(cryptoutilOpenapiModel.Creating, cryptoutilOpenapiModel.ElasticKeyStatus(ormElasticKey.ElasticKeyStatus))
+		err = TransitionElasticKeyStatus(cryptoutilOpenapiModel.Creating, ormElasticKey.ElasticKeyStatus)
 		if err != nil {
 			return fmt.Errorf("invalid ElasticKeyStatus transition: %w", err)
 		}
@@ -318,7 +322,7 @@ func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, el
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest MaterialKey for ElasticKey: %w", err)
 	}
-	if elasticKey.ElasticKeyProvider != "Internal" {
+	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
 	// TODO Use encryptParams.Context for encryption
@@ -344,7 +348,7 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 		return nil, fmt.Errorf("failed to get JWE message header kid: %w", err)
 	}
 	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, materialKeyID)
-	if elasticKey.ElasticKeyProvider != "Internal" {
+	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	} else if !cryptoutilJose.IsJwe(&elasticKey.ElasticKeyAlgorithm) {
 		return nil, fmt.Errorf("decrypt not supported by KeyMaterial with ElasticKeyAlgorithm %v", elasticKey.ElasticKeyAlgorithm)
@@ -361,7 +365,7 @@ func (s *BusinessLogicService) PostSignByElasticKeyID(ctx context.Context, elast
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest MaterialKey JWS JWK from ElasticKey for ElasticKeyID: %w", err)
 	}
-	if elasticKey.ElasticKeyProvider != "Internal" {
+	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
 	_, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJwsJwk}, clearPayloadBytes)
@@ -381,7 +385,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 		return nil, fmt.Errorf("failed to get JWS message headers kid and alg: %w", err)
 	}
 	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, clearMaterialKeyPublicJweJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, kidUuid)
-	if elasticKey.ElasticKeyProvider != "Internal" {
+	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	} else if !cryptoutilJose.IsJws(&elasticKey.ElasticKeyAlgorithm) {
 		return nil, fmt.Errorf("verify not supported by KeyMaterial with ElasticKeyAlgorithm %v", elasticKey.ElasticKeyAlgorithm)

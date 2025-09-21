@@ -3,6 +3,7 @@ package pool
 import (
 	"context"
 	"fmt"
+	"math"
 	"reflect"
 	"runtime/debug"
 	"sync"
@@ -58,10 +59,18 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
+	// Safe conversion with bounds checking
+	var maxLifetimeValuesInt64 int64
+	if cfg.maxLifetimeValues <= math.MaxInt64 {
+		maxLifetimeValuesInt64 = int64(cfg.maxLifetimeValues)
+	} else {
+		maxLifetimeValuesInt64 = math.MaxInt64
+	}
+
 	meter := cfg.telemetryService.MetricsProvider.Meter("cryptoutil.pool."+cfg.poolName, []metric.MeterOption{
 		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "workers", Value: attribute.IntValue(int(cfg.numWorkers))}),
 		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "size", Value: attribute.IntValue(int(cfg.poolSize))}),
-		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "values", Value: attribute.Int64Value(int64(cfg.maxLifetimeValues))}),
+		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "values", Value: attribute.Int64Value(maxLifetimeValuesInt64)}),
 		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "duration", Value: attribute.Int64Value(int64(cfg.maxLifetimeDuration))}),
 		metric.WithInstrumentationAttributes(attribute.KeyValue{Key: "type", Value: attribute.StringValue(fmt.Sprintf("%T", *new(T)))}), // record the type of T in the metric attributes
 	}...)
@@ -133,7 +142,7 @@ func (pool *ValueGenPool[T]) Get() T {
 	select {
 	case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
 		if pool.cfg.verbose {
-			pool.cfg.telemetryService.Slogger.Debug("get cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+			pool.cfg.telemetryService.Slogger.Debug("get canceled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 		}
 		var zero T
 		return zero
@@ -166,7 +175,7 @@ func (pool *ValueGenPool[T]) GetMany(numValues int) []T {
 		value := pool.Get()
 		if reflect.DeepEqual(value, zero) {
 			if pool.cfg.verbose {
-				pool.cfg.telemetryService.Slogger.Debug("get many cancelled", "pool", pool.cfg.poolName, "requested", numValues, "received", len(values), "duration", time.Since(startTime).Seconds())
+				pool.cfg.telemetryService.Slogger.Debug("get many canceled", "pool", pool.cfg.poolName, "requested", numValues, "received", len(values), "duration", time.Since(startTime).Seconds())
 			}
 			break
 		}
@@ -184,7 +193,7 @@ func (pool *ValueGenPool[T]) Cancel() {
 	pool.stopGeneratingOnce.Do(func() {
 		defer func() {
 			if pool.cfg.verbose {
-				pool.cfg.telemetryService.Slogger.Debug("cancelled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+				pool.cfg.telemetryService.Slogger.Debug("canceled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 			}
 		}()
 		pool.stopGeneratingFunction() // raise Done() signal to N workers, 1 closeChannelsThread, and M getters
@@ -193,7 +202,7 @@ func (pool *ValueGenPool[T]) Cancel() {
 	})
 	if !didCancelThisTime {
 		if pool.cfg.verbose {
-			pool.cfg.telemetryService.Slogger.Warn("already cancelled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
+			pool.cfg.telemetryService.Slogger.Warn("already canceled", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 		}
 	}
 }
@@ -298,7 +307,7 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 		// this is an infinite pool; no need to periodically wake up to check limits, because there are no limits
 		select {
 		case <-pool.stopGeneratingCtx.Done(): // block waiting indefinitely until someone calls Cancel()
-			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName)
+			pool.cfg.telemetryService.Slogger.Debug("canceled", "pool", pool.cfg.poolName)
 			pool.closePermissionAndGenerateChannels(waitForWorkers)
 			return
 		}
@@ -310,7 +319,7 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 	for {
 		select {
 		case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
-			pool.cfg.telemetryService.Slogger.Debug("cancelled", "pool", pool.cfg.poolName)
+			pool.cfg.telemetryService.Slogger.Debug("canceled", "pool", pool.cfg.poolName)
 			pool.closePermissionAndGenerateChannels(waitForWorkers)
 			return
 		case <-ticker.C: // wake up and check the limits

@@ -67,7 +67,7 @@ func encryptKey(unsealJwks []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, err
 }
 
 func decryptKey(unsealJwks []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
-	decryptedRootKey, err := cryptoutilJose.DecryptKey(unsealJwks, []byte(encryptedRootKeyBytes))
+	decryptedRootKey, err := cryptoutilJose.DecryptKey(unsealJwks, encryptedRootKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK: %w", err)
 	}

@@ -318,7 +318,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
 				if isAsymmetric {
 					require.NotNil(t, key.ClearPublic)
-					jwk, err := joseJwk.ParseKey([]byte(string(*key.ClearPublic)))
+					jwk, err := joseJwk.ParseKey([]byte(*key.ClearPublic))
 					require.NoError(t, err)
 					require.NotNil(t, jwk)
 					// TODO validate public key does not contain any private key or secret key material

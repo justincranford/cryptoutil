@@ -57,8 +57,8 @@ var (
 							if gets > maxLifetimeKeys {
 								continue
 							}
-							name := fmt.Sprintf("workers[%d] size[%d] maxLifetimeKeys[%d] maxLifetimeDuration[%v] gets[%d]", workers, size, maxLifetimeKeys, time.Duration(maxLifetimeDuration), gets)
-							testCases = append(testCases, &TestCase{name: name, workers: workers, size: size, maxLifetimeKeys: maxLifetimeKeys, maxLifetimeDuration: time.Duration(maxLifetimeDuration), gets: gets})
+							name := fmt.Sprintf("workers[%d] size[%d] maxLifetimeKeys[%d] maxLifetimeDuration[%v] gets[%d]", workers, size, maxLifetimeKeys, maxLifetimeDuration, gets)
+							testCases = append(testCases, &TestCase{name: name, workers: workers, size: size, maxLifetimeKeys: maxLifetimeKeys, maxLifetimeDuration: maxLifetimeDuration, gets: gets})
 						}
 					}
 				}

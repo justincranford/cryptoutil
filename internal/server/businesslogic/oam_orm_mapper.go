@@ -67,7 +67,7 @@ func (m *oamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository
 
 func (s *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilOpenapiModel.ElasticKey {
 	return &cryptoutilOpenapiModel.ElasticKey{
-		ElasticKeyID:      (*cryptoutilOpenapiModel.ElasticKeyID)(&ormElasticKey.ElasticKeyID),
+		ElasticKeyID:      &ormElasticKey.ElasticKeyID,
 		Name:              &ormElasticKey.ElasticKeyName,
 		Description:       &ormElasticKey.ElasticKeyDescription,
 		Algorithm:         &ormElasticKey.ElasticKeyAlgorithm,
@@ -99,12 +99,12 @@ func (m *oamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.
 		materialKeyClearPublic = &tmp
 	}
 	return &cryptoutilOpenapiModel.MaterialKey{
-		ElasticKeyID:   cryptoutilOpenapiModel.ElasticKeyID(ormMaterialKey.ElasticKeyID),
+		ElasticKeyID:   ormMaterialKey.ElasticKeyID,
 		MaterialKeyID:  ormMaterialKey.MaterialKeyID,
-		GenerateDate:   (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormMaterialKey.MaterialKeyGenerateDate),
-		ImportDate:     (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormMaterialKey.MaterialKeyImportDate),
-		ExpirationDate: (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormMaterialKey.MaterialKeyExpirationDate),
-		RevocationDate: (*cryptoutilOpenapiModel.MaterialKeyGenerateDate)(ormMaterialKey.MaterialKeyRevocationDate),
+		GenerateDate:   ormMaterialKey.MaterialKeyGenerateDate,
+		ImportDate:     ormMaterialKey.MaterialKeyImportDate,
+		ExpirationDate: ormMaterialKey.MaterialKeyExpirationDate,
+		RevocationDate: ormMaterialKey.MaterialKeyRevocationDate,
 		ClearPublic:    materialKeyClearPublic,
 	}, nil
 }

@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 
-	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilOpenapiServer "cryptoutil/api/server"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 )
@@ -21,8 +20,7 @@ func NewOpenapiStrictServer(service *cryptoutilBusinessLogic.BusinessLogicServic
 // Create a new Elastic Key.
 // (POST /elastickey)
 func (s *StrictServer) PostElastickey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyResponseObject, error) {
-	elasticKeyCreate := cryptoutilOpenapiModel.ElasticKeyCreate(*request.Body)
-	addedElasticKey, err := s.businessLogicService.AddElasticKey(ctx, &elasticKeyCreate)
+	addedElasticKey, err := s.businessLogicService.AddElasticKey(ctx, request.Body)
 	return s.oasOamMapper.toOasPostKeyResponse(err, addedElasticKey)
 }
 
@@ -61,8 +59,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, r
 // Generate a new Material Key in an Elastic Key.
 // (POST /elastickey/{elasticKeyID}/materialkey)
 func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
-	keyGenerateRequest := cryptoutilOpenapiModel.MaterialKeyGenerate(*request.Body)
-	key, err := s.businessLogicService.GenerateMaterialKeyInElasticKey(ctx, &request.ElasticKeyID, &keyGenerateRequest)
+	key, err := s.businessLogicService.GenerateMaterialKeyInElasticKey(ctx, &request.ElasticKeyID, request.Body)
 	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err, key)
 }
 
