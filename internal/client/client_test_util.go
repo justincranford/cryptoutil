@@ -76,10 +76,9 @@ func RequireClientWithResponses(t *testing.T, baseUrl *string) *cryptoutilOpenap
 	var err error
 
 	if strings.HasPrefix(*baseUrl, "https://") {
-		// For HTTPS URLs, use the TLS configuration
+		// For HTTPS URLs, use proper TLS configuration with full cert chain validation
 		tlsConfig := &tls.Config{
-			InsecureSkipVerify: true, // For testing with self-signed certificates
-			MinVersion:         tls.VersionTLS12,
+			MinVersion: tls.VersionTLS12,
 		}
 		httpClient := &http.Client{
 			Transport: &http.Transport{

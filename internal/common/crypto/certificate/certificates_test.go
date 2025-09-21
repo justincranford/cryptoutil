@@ -37,8 +37,18 @@ func TestMutualTLS(t *testing.T) {
 	require.NoError(t, err, "Failed to build TLS client certificate")
 
 	// TLS configuration instances are reusable for both of the Raw mTLS and HTTP mTLS tests
-	serverTLSConfig := &tls.Config{Certificates: []tls.Certificate{*tlsServerCertChain}, ClientCAs: tlsClientRootCAs, ClientAuth: tls.RequireAndVerifyClientCert}
-	clientTLSConfig := &tls.Config{Certificates: []tls.Certificate{*tlsClientCertChain}, RootCAs: tlsServerRootCAs, InsecureSkipVerify: false}
+	serverTLSConfig := &tls.Config{
+		Certificates: []tls.Certificate{*tlsServerCertChain},
+		ClientCAs:    tlsClientRootCAs,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		MinVersion:   tls.VersionTLS12,
+	}
+	clientTLSConfig := &tls.Config{
+		Certificates:       []tls.Certificate{*tlsClientCertChain},
+		RootCAs:            tlsServerRootCAs,
+		InsecureSkipVerify: false,
+		MinVersion:         tls.VersionTLS12,
+	}
 
 	const clientConnections = 10
 	t.Run("Raw mTLS", func(t *testing.T) {

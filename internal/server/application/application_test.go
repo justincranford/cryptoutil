@@ -77,12 +77,13 @@ func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string, root
 		if rootCAsPool != nil {
 			// Use provided root CA pool for server certificate validation
 			transport.TLSClientConfig = &tls.Config{
-				RootCAs: rootCAsPool,
+				RootCAs:    rootCAsPool,
+				MinVersion: tls.VersionTLS12,
 			}
 		} else {
-			// For testing with self-signed certificates, skip verification
+			// Use system root CA pool for certificate validation
 			transport.TLSClientConfig = &tls.Config{
-				InsecureSkipVerify: true,
+				MinVersion: tls.VersionTLS12,
 			}
 		}
 		client.Transport = transport
