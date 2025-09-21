@@ -77,7 +77,12 @@ func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			// Log error but don't override the main return error
+			fmt.Printf("Warning: failed to close file %s: %v\n", filePath, closeErr)
+		}
+	}()
 
 	// Get file info to determine file size
 	fileInfo, err := file.Stat()

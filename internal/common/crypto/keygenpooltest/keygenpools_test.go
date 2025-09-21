@@ -139,9 +139,7 @@ func readKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetrySe
 
 				_, _, err = cryptoutilAsn1.DerRead(privateDerFilename)
 				cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDerFilename)
-
 			}
-
 			if keyPair.Public != nil {
 				publicPemFilename := baseFilename + "_public.pem"
 				publicDerFilename := baseFilename + "_public.der"

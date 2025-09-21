@@ -107,7 +107,11 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 		return fmt.Errorf("failed to send shutdown request: %w", err)
 	} else if shutdownResponse.StatusCode != http.StatusOK {
 		shutdownResponseBody, err := io.ReadAll(shutdownResponse.Body)
-		defer shutdownResponse.Body.Close()
+		defer func() {
+			if closeErr := shutdownResponse.Body.Close(); closeErr != nil {
+				fmt.Printf("Warning: failed to close shutdown response body: %v\n", closeErr)
+			}
+		}()
 		if err != nil {
 			return fmt.Errorf("shutdown request failed: %s (could not read response body: %w)", shutdownResponse.Status, err)
 		}
@@ -117,10 +121,15 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	time.Sleep(clientLivenessStartTimeout)
 	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
 	defer livenessRequestCancel()
-	livenessRequest, _ := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, privateBaseURL+"/livez", nil)
+	livenessRequest, err := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, privateBaseURL+"/livez", nil)
+	if err != nil {
+		return fmt.Errorf("failed to create liveness request: %w", err)
+	}
 	livenessResponse, err := client.Do(livenessRequest)
 	if err == nil && livenessResponse != nil {
-		livenessResponse.Body.Close()
+		if closeErr := livenessResponse.Body.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close liveness response body: %v\n", closeErr)
+		}
 		return fmt.Errorf("server did not shut down properly")
 	}
 	return nil

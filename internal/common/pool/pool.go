@@ -305,12 +305,10 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup) {
 	if pool.cfg.maxLifetimeDuration == 0 && pool.cfg.maxLifetimeValues == 0 {
 		// this is an infinite pool; no need to periodically wake up to check limits, because there are no limits
-		select {
-		case <-pool.stopGeneratingCtx.Done(): // block waiting indefinitely until someone calls Cancel()
-			pool.cfg.telemetryService.Slogger.Debug("canceled", "pool", pool.cfg.poolName)
-			pool.closePermissionAndGenerateChannels(waitForWorkers)
-			return
-		}
+		<-pool.stopGeneratingCtx.Done() // block waiting indefinitely until someone calls Cancel()
+		pool.cfg.telemetryService.Slogger.Debug("canceled", "pool", pool.cfg.poolName)
+		pool.closePermissionAndGenerateChannels(waitForWorkers)
+		return
 	}
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle

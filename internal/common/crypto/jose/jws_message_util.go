@@ -52,9 +52,15 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
 		jwsProtectedHeaders := joseJws.NewHeaders()
-		jwsProtectedHeaders.Set(`iat`, iat)
-		jwsProtectedHeaders.Set(joseJwk.KeyIDKey, *kid)
-		jwsProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg)
+		if err := jwsProtectedHeaders.Set(`iat`, iat); err != nil {
+			return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
+		}
+		if err := jwsProtectedHeaders.Set(joseJwk.KeyIDKey, *kid); err != nil {
+			return nil, nil, fmt.Errorf("failed to set kid header: %w", err)
+		}
+		if err := jwsProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg); err != nil {
+			return nil, nil, fmt.Errorf("failed to set alg header: %w", err)
+		}
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithKey(*alg, jwk, joseJws.WithProtectedHeaders(jwsProtectedHeaders)))
 	}
 
@@ -109,7 +115,9 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 		// jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKey(*alg, jwk))
 	}
 	jwkSet := joseJwk.NewSet()
-	jwkSet.Set("keys", jwks)
+	if err := jwkSet.Set("keys", jwks); err != nil {
+		return nil, fmt.Errorf("failed to set keys in JWK set: %w", err)
+	}
 	jwkSetOptions := []joseJws.WithKeySetSuboption{joseJws.WithRequireKid(true)}
 	jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKeySet(jwkSet, jwkSetOptions...), joseJws.WithMessage(jwsMessage))
 
@@ -141,6 +149,7 @@ func ExtractKidAlgFromJwsMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID,
 		return nil, nil, fmt.Errorf("unsupported extract kid and alg from JWS with multiple signatures")
 	}
 	for _, jwsMessageSignature := range jwsMessage.Signatures() {
+		// Only process first signature since we already checked for multiple signatures above
 		jwsMessageProtectedHeaders := jwsMessageSignature.ProtectedHeaders()
 
 		var kidUuidString string
@@ -158,7 +167,7 @@ func ExtractKidAlgFromJwsMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID,
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get alg: %w", err)
 		}
-		return &kidUuid, &alg, nil
+		return &kidUuid, &alg, nil //nolint:staticcheck // SA4004: intentionally process only first signature
 	}
 	return nil, nil, nil
 }

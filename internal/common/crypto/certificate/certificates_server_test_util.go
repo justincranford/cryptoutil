@@ -25,12 +25,18 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 	}
 
 	// Configure TCP-level settings for robustness
-	netTCPListener.SetDeadline(time.Time{}) // Clear any existing deadline
+	if err := netTCPListener.SetDeadline(time.Time{}); err != nil {
+		log.Printf("warning: failed to clear TCP deadline: %v", err)
+	} // Clear any existing deadline
 
 	tlsListener := tls.NewListener(netListener, serverTLSConfig)
 
 	go func() {
-		defer tlsListener.Close()
+		defer func() {
+			if err := tlsListener.Close(); err != nil {
+				log.Printf("warning: failed to close TLS listener: %v", err)
+			}
+		}()
 		osShutdownSignalCh := make(chan os.Signal, 1)
 		signal.Notify(osShutdownSignalCh, os.Interrupt, syscall.SIGTERM)
 		for {
@@ -42,7 +48,9 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 				log.Printf("stopping TLS Echo Server, OS shutdown signal received")
 				return
 			default:
-				netTCPListener.SetDeadline(time.Now().Add(readTimeout))
+				if err := netTCPListener.SetDeadline(time.Now().Add(readTimeout)); err != nil {
+					log.Printf("warning: failed to set TCP deadline: %v", err)
+				}
 				tlsClientConnection, err := tlsListener.Accept()
 				if err != nil {
 					var ne net.Error
@@ -68,12 +76,18 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 						if r := recover(); r != nil {
 							log.Printf("panic in TLS connection handler: %v", r)
 						}
-						conn.Close()
+						if err := conn.Close(); err != nil {
+							log.Printf("warning: failed to close connection: %v", err)
+						}
 					}()
 
 					// Set both read and write deadlines upfront
-					conn.SetReadDeadline(time.Now().Add(readTimeout))
-					conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+					if err := conn.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+						log.Printf("warning: failed to set read deadline: %v", err)
+					}
+					if err := conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
+						log.Printf("warning: failed to set write deadline: %v", err)
+					}
 
 					tlsClientRequestBodyBuffer := make([]byte, 1024) // Increased buffer size
 					bytesRead, err := conn.Read(tlsClientRequestBodyBuffer)
@@ -89,7 +103,9 @@ func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 					// Do not treat empty request as shutdown; just ignore
 					if bytesRead > 0 {
 						// Refresh write deadline before writing
-						conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+						if err := conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
+							log.Printf("warning: failed to set write deadline: %v", err)
+						}
 						_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
 						if err != nil {
 							var ne net.Error
@@ -150,7 +166,11 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration,
 		MaxHeaderBytes:    1 << 20,          // 1MB max header size (prevents large header attacks)
 		ErrorLog:          log.New(os.Stderr, "https-server: ", log.LstdFlags),
 	}
-	go server.ServeTLS(netListener, "", "")
+	go func() {
+		if err := server.ServeTLS(netListener, "", ""); err != nil && err != http.ErrServerClosed {
+			log.Printf("HTTPS server error: %v", err)
+		}
+	}()
 	url := "https://" + netListener.Addr().String()
 	return server, url, nil
 }

@@ -24,7 +24,11 @@ func logSqliteSchema(sqlRepository *SqlRepository) error {
 		if err != nil {
 			return nil, fmt.Errorf("failed to query SQLite table names: %w", err)
 		}
-		defer queryResults.Close() // Ensure query results are closed before for first loop body
+		defer func() {
+			if closeErr := queryResults.Close(); closeErr != nil {
+				sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
+			}
+		}() // Ensure query results are closed before for first loop body
 
 		var tableNames []string
 		for queryResults.Next() {
@@ -48,7 +52,11 @@ func logSqliteSchema(sqlRepository *SqlRepository) error {
 			if err != nil {
 				return fmt.Errorf("failed to query table info for %s: %w", tableName, err)
 			}
-			defer queryResults.Close() // Ensure query results are closed before next loop body
+			defer func() {
+				if closeErr := queryResults.Close(); closeErr != nil {
+					sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
+				}
+			}() // Ensure query results are closed before next loop body
 
 			for queryResults.Next() {
 				var cid int
@@ -75,7 +83,11 @@ func logPostgresSchema(sqlRepository *SqlRepository) error {
 		if err != nil {
 			return nil, fmt.Errorf("failed to query PostgreSQL table names: %w", err)
 		}
-		defer queryResults.Close() // Ensure query results are closed before for first loop body
+		defer func() {
+			if closeErr := queryResults.Close(); closeErr != nil {
+				sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
+			}
+		}() // Ensure query results are closed before for first loop body
 
 		var tableNames []string
 		for queryResults.Next() {
@@ -98,7 +110,11 @@ func logPostgresSchema(sqlRepository *SqlRepository) error {
 			if err != nil {
 				return fmt.Errorf("failed to query column info for %s: %w", tableName, err)
 			}
-			defer queryResults.Close() // Ensure query results are closed before next loop body
+			defer func() {
+				if closeErr := queryResults.Close(); closeErr != nil {
+					sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
+				}
+			}() // Ensure query results are closed before next loop body
 
 			for queryResults.Next() {
 				var columnName, dataType, isNullable string

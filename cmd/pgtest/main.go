@@ -124,17 +124,23 @@ func tryConnect(connStr string) bool {
 			err = db.QueryRow("SELECT 1").Scan(&result)
 			if err != nil {
 				fmt.Printf("  Query failed: %v\n", err)
-				db.Close()
+				if closeErr := db.Close(); closeErr != nil {
+					fmt.Printf("  Warning: failed to close db: %v\n", closeErr)
+				}
 				return false
 			}
 
 			fmt.Printf("  Query result: %d\n", result)
-			db.Close()
+			if closeErr := db.Close(); closeErr != nil {
+				fmt.Printf("  Warning: failed to close db: %v\n", closeErr)
+			}
 			return true
 		}
 
 		fmt.Printf("  Failed to ping database: %v\n", err)
-		db.Close()
+		if closeErr := db.Close(); closeErr != nil {
+			fmt.Printf("  Warning: failed to close db: %v\n", closeErr)
+		}
 		time.Sleep(1 * time.Second)
 	}
 

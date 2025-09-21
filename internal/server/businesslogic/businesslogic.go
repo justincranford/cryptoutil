@@ -348,6 +348,9 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 		return nil, fmt.Errorf("failed to get JWE message header kid: %w", err)
 	}
 	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, materialKeyID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get and decrypt material key: %w", err)
+	}
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	} else if !cryptoutilJose.IsJwe(&elasticKey.ElasticKeyAlgorithm) {
@@ -385,6 +388,9 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 		return nil, fmt.Errorf("failed to get JWS message headers kid and alg: %w", err)
 	}
 	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, clearMaterialKeyPublicJweJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, kidUuid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get and decrypt material key: %w", err)
+	}
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	} else if !cryptoutilJose.IsJws(&elasticKey.ElasticKeyAlgorithm) {

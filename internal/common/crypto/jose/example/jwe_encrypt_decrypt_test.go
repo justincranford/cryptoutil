@@ -108,9 +108,15 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 	kid, enc, alg := getKidEncAlgFromJWK(t, recipientJWK)
 
 	jweProtectedHeaders = jwe.NewHeaders()
-	jweProtectedHeaders.Set(jwk.KeyIDKey, kid)
-	jweProtectedHeaders.Set("enc", enc)
-	jweProtectedHeaders.Set(jwk.AlgorithmKey, alg)
+	if err := jweProtectedHeaders.Set(jwk.KeyIDKey, kid); err != nil {
+		require.NoError(t, err, "failed to set kid header")
+	}
+	if err := jweProtectedHeaders.Set("enc", enc); err != nil {
+		require.NoError(t, err, "failed to set enc header")
+	}
+	if err := jweProtectedHeaders.Set(jwk.AlgorithmKey, alg); err != nil {
+		require.NoError(t, err, "failed to set alg header")
+	}
 	jweEncryptOptions = append(jweEncryptOptions, jwe.WithKey(alg, recipientJWK, jwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 
 	jweMessageBytes, err := jwe.Encrypt(plaintext, jweEncryptOptions...)

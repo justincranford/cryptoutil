@@ -48,15 +48,24 @@ const (
 
 var (
 	postgresContainerDbName = func() string {
-		val, _ := rand.Int(rand.Reader, big.NewInt(10_000))
+		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
+		if err != nil {
+			panic(fmt.Sprintf("failed to generate random database name: %v", err))
+		}
 		return fmt.Sprintf("keyservice%04d", val.Int64())
 	}()
 	postgresContainerDbUsername = func() string {
-		val, _ := rand.Int(rand.Reader, big.NewInt(10_000))
+		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
+		if err != nil {
+			panic(fmt.Sprintf("failed to generate random username: %v", err))
+		}
 		return fmt.Sprintf("postgresUsername%04d", val.Int64())
 	}()
 	postgresContainerDbPassword = func() string {
-		val, _ := rand.Int(rand.Reader, big.NewInt(10_000))
+		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
+		if err != nil {
+			panic(fmt.Sprintf("failed to generate random password: %v", err))
+		}
 		return fmt.Sprintf("postgresPassword%04d", val.Int64())
 	}()
 

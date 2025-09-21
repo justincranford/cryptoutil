@@ -90,12 +90,11 @@ func httpGetResponseBytes(t *testing.T, expectedStatusCode int, url string, root
 
 	resp, err := client.Do(req)
 	require.NoError(t, err, "failed to make GET request")
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			t.Errorf("failed to close response body: %v", err)
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Errorf("Warning: failed to close response body: %v", closeErr)
 		}
-	}(resp.Body)
+	}()
 
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")

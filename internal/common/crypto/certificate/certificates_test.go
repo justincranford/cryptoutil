@@ -51,7 +51,11 @@ func TestMutualTLS(t *testing.T) {
 			func() {
 				tlsClientConnection, err := tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
 				require.NoError(t, err, "client failed to connect to TLS Echo Server")
-				defer tlsClientConnection.Close()
+				defer func() {
+					if err := tlsClientConnection.Close(); err != nil {
+						t.Logf("warning: failed to close TLS connection: %v", err)
+					}
+				}()
 
 				_, err = tlsClientConnection.Write(tlsClientRequestBody)
 				require.NoError(t, err, "client failed to write to TLS Echo Server (%d of %d)", i, clientConnections)
@@ -67,7 +71,11 @@ func TestMutualTLS(t *testing.T) {
 	t.Run("HTTP mTLS", func(t *testing.T) {
 		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start HTTPS Echo Server")
-		defer httpsServer.Close()
+		defer func() {
+			if err := httpsServer.Close(); err != nil {
+				t.Logf("warning: failed to close HTTPS server: %v", err)
+			}
+		}()
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
 		for i := 1; i <= clientConnections; i++ {
@@ -75,7 +83,11 @@ func TestMutualTLS(t *testing.T) {
 			require.NoError(t, err, "client failed to POST to HTTPS Echo Server (%d of %d)", i, clientConnections)
 			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, clientConnections)
 			func() {
-				defer httpsServerResponse.Body.Close()
+				defer func() {
+					if err := httpsServerResponse.Body.Close(); err != nil {
+						t.Logf("warning: failed to close response body: %v", err)
+					}
+				}()
 				httpServerResponseBody, err := io.ReadAll(httpsServerResponse.Body)
 				require.NoError(t, err, "client failed to read response body (%d of %d)", i, clientConnections)
 				require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch (%d of %d)", i, clientConnections)

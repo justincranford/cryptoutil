@@ -48,9 +48,21 @@ func TestMetric(t *testing.T) {
 	exampleMetricHistogram, err := exampleMetricsScope.Int64Histogram("example-histogram")
 	if err == nil {
 		// Generate cryptographically secure random numbers for histogram test data
-		val1, _ := rand.Int(rand.Reader, big.NewInt(100))
-		val2, _ := rand.Int(rand.Reader, big.NewInt(100))
-		val3, _ := rand.Int(rand.Reader, big.NewInt(100))
+		val1, err := rand.Int(rand.Reader, big.NewInt(100))
+		if err != nil {
+			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+			return
+		}
+		val2, err := rand.Int(rand.Reader, big.NewInt(100))
+		if err != nil {
+			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+			return
+		}
+		val3, err := rand.Int(rand.Reader, big.NewInt(100))
+		if err != nil {
+			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+			return
+		}
 		exampleMetricHistogram.Record(testCtx, val1.Int64())
 		exampleMetricHistogram.Record(testCtx, val2.Int64())
 		exampleMetricHistogram.Record(testCtx, val3.Int64())

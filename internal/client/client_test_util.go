@@ -60,7 +60,11 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	if err != nil {
 		return fmt.Errorf("get %v failed: %w", url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("%s returned %d", *url, resp.StatusCode)
 	}

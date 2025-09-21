@@ -39,7 +39,9 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithJSON())
 	}
 	jweProtectedHeaders := joseJwe.NewHeaders()
-	jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
+	if err := jweProtectedHeaders.Set("iat", time.Now().UTC().Unix()); err != nil {
+		return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
+	}
 	jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithProtectedHeaders(jweProtectedHeaders))
 	for i, jwk := range jwks {
 		kid, err := ExtractKidUuid(jwk)
@@ -62,9 +64,15 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
 		jweProtectedHeaders := joseJwe.NewHeaders()
-		jweProtectedHeaders.Set(joseJwk.KeyIDKey, *kid)
-		jweProtectedHeaders.Set(`enc`, *enc)
-		jweProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg)
+		if err := jweProtectedHeaders.Set(joseJwk.KeyIDKey, *kid); err != nil {
+			return nil, nil, fmt.Errorf("failed to set kid header: %w", err)
+		}
+		if err := jweProtectedHeaders.Set(`enc`, *enc); err != nil {
+			return nil, nil, fmt.Errorf("failed to set enc header: %w", err)
+		}
+		if err := jweProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg); err != nil {
+			return nil, nil, fmt.Errorf("failed to set alg header: %w", err)
+		}
 		jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithKey(*alg, jwk, joseJwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 	}
 
@@ -124,7 +132,9 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 		// jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithKey(*alg, jwk))
 	}
 	jwkSet := joseJwk.NewSet()
-	jwkSet.Set("keys", jwks)
+	if err := jwkSet.Set("keys", jwks); err != nil {
+		return nil, fmt.Errorf("failed to set keys in JWK set: %w", err)
+	}
 	jwkSetOptions := []joseJwe.WithKeySetSuboption{joseJwe.WithRequireKid(true)}
 	jweDecryptOptions = append(jweDecryptOptions, joseJwe.WithKeySet(jwkSet, jwkSetOptions...), joseJwe.WithMessage(jweMessage))
 

@@ -38,7 +38,11 @@ func TestChan(t *testing.T) {
 	r := &stats{minimum: int64(math.MaxInt64), maximum: int64(math.MinInt64)}
 	sender := func() any {
 		// Generate cryptographically secure random number 0-100 inclusive
-		val, _ := rand.Int(rand.Reader, big.NewInt(101))
+		val, err := rand.Int(rand.Reader, big.NewInt(101))
+		if err != nil {
+			t.Errorf("Failed to generate random number: %v", err)
+			return int64(0)
+		}
 		return s.record(val.Int64())
 	}
 	receiver := func(value any) {
