@@ -46,7 +46,9 @@ func TestChan(t *testing.T) {
 		return s.record(val.Int64())
 	}
 	receiver := func(value any) {
-		r.record(value.(int64))
+		if val, ok := value.(int64); ok {
+			r.record(val)
+		}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -52,7 +52,9 @@ func TestPemEncodeDecodeRSA(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, &rsa.PrivateKey{}, privateKeyDecoded)
-	require.Equal(t, privateKeyOriginal, privateKeyDecoded.(*rsa.PrivateKey))
+	privateKeyDecodedTyped, ok := privateKeyDecoded.(*rsa.PrivateKey)
+	require.True(t, ok, "privateKeyDecoded should be *rsa.PrivateKey")
+	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	require.NoError(t, err)
@@ -62,7 +64,9 @@ func TestPemEncodeDecodeRSA(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, &rsa.PublicKey{}, publicKeyDecoded)
-	require.Equal(t, publicKeyOriginal, publicKeyDecoded.(*rsa.PublicKey))
+	publicKeyDecodedTyped, ok := publicKeyDecoded.(*rsa.PublicKey)
+	require.True(t, ok, "publicKeyDecoded should be *rsa.PublicKey")
+	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
 func TestPemEncodeDecodeECDSA(t *testing.T) {
@@ -81,7 +85,9 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdsa.PrivateKey{}, privateKeyDecoded)
-	require.Equal(t, privateKeyOriginal, privateKeyDecoded.(*ecdsa.PrivateKey))
+	privateKeyDecodedTyped, ok := privateKeyDecoded.(*ecdsa.PrivateKey)
+	require.True(t, ok, "privateKeyDecoded should be *ecdsa.PrivateKey")
+	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	require.NoError(t, err)
@@ -91,7 +97,9 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdsa.PublicKey{}, publicKeyDecoded)
-	require.Equal(t, publicKeyOriginal, publicKeyDecoded.(*ecdsa.PublicKey))
+	publicKeyDecodedTyped, ok := publicKeyDecoded.(*ecdsa.PublicKey)
+	require.True(t, ok, "publicKeyDecoded should be *ecdsa.PublicKey")
+	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
 func TestPemEncodeDecodeECDH(t *testing.T) {
@@ -111,7 +119,9 @@ func TestPemEncodeDecodeECDH(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdh.PrivateKey{}, privateKeyDecoded)
-	require.Equal(t, privateKeyOriginal, privateKeyDecoded.(*ecdh.PrivateKey))
+	privateKeyDecodedTyped, ok := privateKeyDecoded.(*ecdh.PrivateKey)
+	require.True(t, ok, "privateKeyDecoded should be *ecdh.PrivateKey")
+	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	require.NoError(t, err)
@@ -121,7 +131,9 @@ func TestPemEncodeDecodeECDH(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdh.PublicKey{}, publicKeyDecoded)
-	require.Equal(t, publicKeyOriginal, publicKeyDecoded.(*ecdh.PublicKey))
+	publicKeyDecodedTyped, ok := publicKeyDecoded.(*ecdh.PublicKey)
+	require.True(t, ok, "publicKeyDecoded should be *ecdh.PublicKey")
+	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
 func TestPemEncodeDecodeEdDSA(t *testing.T) {
@@ -138,7 +150,9 @@ func TestPemEncodeDecodeEdDSA(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, ed25519.PrivateKey{}, privateKeyDecoded)
-	require.Equal(t, privateKeyOriginal, privateKeyDecoded.(ed25519.PrivateKey))
+	privateKeyDecodedTyped, ok := privateKeyDecoded.(ed25519.PrivateKey)
+	require.True(t, ok, "privateKeyDecoded should be ed25519.PrivateKey")
+	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
 	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
 	require.NoError(t, err)
@@ -148,7 +162,9 @@ func TestPemEncodeDecodeEdDSA(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, ed25519.PublicKey{}, publicKeyDecoded)
-	require.Equal(t, publicKeyOriginal, publicKeyDecoded.(ed25519.PublicKey))
+	publicKeyDecodedTyped, ok := publicKeyDecoded.(ed25519.PublicKey)
+	require.True(t, ok, "publicKeyDecoded should be ed25519.PublicKey")
+	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
 func TestPemEncodeDecodeCertificate(t *testing.T) {
@@ -173,5 +189,7 @@ func TestPemEncodeDecodeCertificate(t *testing.T) {
 	require.NoError(t, err)
 
 	require.IsType(t, &x509.Certificate{}, certificateDecoded)
-	require.Equal(t, certificateOriginal, certificateDecoded.(*x509.Certificate))
+	certificateDecodedTyped, ok := certificateDecoded.(*x509.Certificate)
+	require.True(t, ok, "certificateDecoded should be *x509.Certificate")
+	require.Equal(t, certificateOriginal, certificateDecodedTyped)
 }

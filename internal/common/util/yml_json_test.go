@@ -43,7 +43,9 @@ func TestSadPathJSON2YAML(t *testing.T) {
 func TestHappyPathParseYAML(t *testing.T) {
 	object, err := ParseYAML(validYAMLSingle)
 	require.NoError(t, err)
-	require.Equal(t, "value", object.(map[string]interface{})["key"])
+	objMap, ok := object.(map[string]interface{})
+	require.True(t, ok, "object should be a map[string]interface{}")
+	require.Equal(t, "value", objMap["key"])
 }
 
 func TestSadPathParseYAML(t *testing.T) {
@@ -55,7 +57,9 @@ func TestSadPathParseYAML(t *testing.T) {
 func TestHappyPathParseJSON(t *testing.T) {
 	object, err := ParseJSON(validJSONSingle)
 	require.NoError(t, err)
-	require.Equal(t, "value", object.(map[string]interface{})["key"])
+	objMap, ok := object.(map[string]interface{})
+	require.True(t, ok, "object should be a map[string]interface{}")
+	require.Equal(t, "value", objMap["key"])
 }
 
 func TestSadPathParseJSON(t *testing.T) {

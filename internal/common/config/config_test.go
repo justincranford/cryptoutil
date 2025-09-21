@@ -51,7 +51,9 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	require.Equal(t, otlpConsole.value, s.OTLPConsole)
 	require.Equal(t, otlpScope.value, s.OTLPScope)
 	require.Equal(t, unsealMode.value, s.UnsealMode)
-	require.Equal(t, unsealFiles.value.([]string), s.UnsealFiles)
+	unsealFilesSlice, ok := unsealFiles.value.([]string)
+	require.True(t, ok, "unsealFiles.value should be []string")
+	require.Equal(t, unsealFilesSlice, s.UnsealFiles)
 }
 
 func TestParse_HappyPath_Overrides(t *testing.T) {
