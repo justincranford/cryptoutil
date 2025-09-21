@@ -12,3 +12,10 @@ applyTo: "**"
 - Always use `docker compose` form (not `docker-compose`) when running with Docker Compose
 - When making code changes, ensure all tests are updated and working before completion
 - When making code changes, run linters and fix all issues before completion (`golangci-lint run`)
+
+## Test Constants and Code Quality
+
+- Use constants for repeated string values in tests when they improve readability and maintainability
+- Consider appending randomness to test constants to ensure test isolation (e.g., `testPrefix + uuid.New().String()`)
+- Prefer meaningful test data over generic constants when it makes tests more understandable
+- Balance DRY principles with test clarity - sometimes duplication in tests is acceptable for readability

@@ -1,9 +1,8 @@
 # golangci-lint configuration for cryptoutil project
 # 
-# Note: This project uses Go 1.25.1, but golangci-lint may be built with an older version.
-# If you encounter "Go language version ... is lower than the targeted Go version" errors:
-# 1. Install golangci-lint built with Go 1.25+, or
-# 2. Use individual tools: gofumpt, goimports, go vet, gosec
+# This project uses Go 1.25.1 with golangci-lint v1.25.1
+# Note: typecheck is disabled due to import resolution issues with module dependencies
+# All other linters are compatible with the current Go version
 #
 # Usage: golangci-lint run --timeout=10m
 
@@ -53,7 +52,7 @@ linters:
     - errorlint
 
   disable:
-    # Disable to avoid Go version conflicts
+    # Disable due to import resolution issues with module dependencies
     - typecheck
     
     # Disabled for code quality/complexity management
@@ -79,7 +78,7 @@ linters-settings:
   goconst:
     min-len: 3
     min-occurrences: 3
-    ignore-tests: true
+    ignore-tests: false
     
   dupl:
     threshold: 100
@@ -120,7 +119,6 @@ issues:
         - gocyclo
         - dupl
         - gosec
-        - goconst
         
     - path: cmd/.*/main\.go
       linters:
