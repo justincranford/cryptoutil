@@ -171,7 +171,7 @@ func PemWrite(key any, filename string) error {
 	}
 
 	dir := filepath.Dir(filename)
-	err = os.MkdirAll(dir, os.ModePerm)
+	err = os.MkdirAll(dir, 0o750)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
@@ -190,7 +190,7 @@ func DerWrite(key any, filename string) error {
 	}
 
 	dir := filepath.Dir(filename)
-	err = os.MkdirAll(dir, os.ModePerm)
+	err = os.MkdirAll(dir, 0o750)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}

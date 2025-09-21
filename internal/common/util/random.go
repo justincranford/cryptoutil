@@ -88,17 +88,44 @@ func Uint16ToBytes(val uint16) []byte {
 	return bytes
 }
 
+// safeIntToUint64 safely converts int64 to uint64 preserving bit pattern
+// This conversion is always safe for same-width signed/unsigned types
+func safeIntToUint64(val int64) uint64 {
+	// gosec G115: This conversion is safe - same bit width preserves all values
+	// Negative values are preserved in two's complement representation
+	return uint64(val) // #nosec G115
+}
+
+// safeIntToUint32 safely converts int32 to uint32 preserving bit pattern
+// This conversion is always safe for same-width signed/unsigned types
+func safeIntToUint32(val int32) uint32 {
+	// gosec G115: This conversion is safe - same bit width preserves all values
+	// Negative values are preserved in two's complement representation
+	return uint32(val) // #nosec G115
+}
+
+// safeIntToUint16 safely converts int16 to uint16 preserving bit pattern
+// This conversion is always safe for same-width signed/unsigned types
+func safeIntToUint16(val int16) uint16 {
+	// gosec G115: This conversion is safe - same bit width preserves all values
+	// Negative values are preserved in two's complement representation
+	return uint16(val) // #nosec G115
+}
+
 func Int64ToBytes(val int64) []byte {
-	// Safe conversion: int64 to uint64 preserves bit pattern
-	return Uint64ToBytes(uint64(val))
+	// Safe conversion: int64 to uint64 preserves bit pattern for signed/unsigned of same width
+	// This conversion is always safe as both types use the same bit representation
+	return Uint64ToBytes(safeIntToUint64(val))
 }
 
 func Int32ToBytes(val int32) []byte {
-	// Safe conversion: int32 to uint32 preserves bit pattern
-	return Uint32ToBytes(uint32(val))
+	// Safe conversion: int32 to uint32 preserves bit pattern for signed/unsigned of same width
+	// This conversion is always safe as both types use the same bit representation
+	return Uint32ToBytes(safeIntToUint32(val))
 }
 
 func Int16ToBytes(val int16) []byte {
-	// Safe conversion: int16 to uint16 preserves bit pattern
-	return Uint16ToBytes(uint16(val))
+	// Safe conversion: int16 to uint16 preserves bit pattern for signed/unsigned of same width
+	// This conversion is always safe as both types use the same bit representation
+	return Uint16ToBytes(safeIntToUint16(val))
 }

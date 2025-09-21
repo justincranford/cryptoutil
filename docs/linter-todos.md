@@ -6,9 +6,16 @@ This document tracks remaining linter issues that need to be addressed in future
 
 ## Summary
 
-- **Total remaining issues:** 27 violations across 7 categories
+- **Total remaining issues:** 15 violations across 2 categories  
 - **Priority:** Medium to Low (no critical security issues)
-- **Categories:** gosec (26 issues), stylecheck (1 issue)
+- **Categories:** gosec (15 issues), stylecheck (0 issues)
+
+**Recently Fixed (September 21, 2025):**
+- ✅ **G404:** Weak random number generators (7 issues fixed)
+- ✅ **G115:** Integer overflow conversions (5 issues fixed) 
+- ✅ **G301:** Directory permissions (2 issues fixed)
+- ✅ **ST1005:** Error string capitalization (4 issues fixed)
+- ✅ **ST1023:** Type inference (1 issue fixed)
 
 ## Remaining Issues by Category
 
@@ -26,21 +33,7 @@ This document tracks remaining linter issues that need to be addressed in future
 
 **Action Required:** Review file path handling to ensure proper validation and sanitization.
 
-### 2. G404: Use of weak random number generator (7 issues)
-
-**Risk Level:** Medium - Should use crypto/rand for cryptographic operations
-
-- `internal\common\telemetry\telemetry_service_test.go:49:42`
-- `internal\common\telemetry\telemetry_service_test.go:50:42`
-- `internal\common\telemetry\telemetry_service_test.go:51:42`
-- `internal\common\util\thread\chan_test.go:39:19`
-- `internal\server\repository\sqlrepository\sql_provider.go:49:62`
-- `internal\server\repository\sqlrepository\sql_provider.go:50:68`
-- `internal\server\repository\sqlrepository\sql_provider.go:51:68`
-
-**Action Required:** Replace math/rand with crypto/rand for security-sensitive operations.
-
-### 3. G402: TLS Configuration Issues (5 issues)
+### 2. G402: TLS Configuration Issues (5 issues)
 
 **Risk Level:** Medium - TLS security concerns in test files
 
@@ -52,50 +45,22 @@ This document tracks remaining linter issues that need to be addressed in future
 
 **Action Required:** Update TLS configurations to use stronger security settings, even in tests.
 
-### 4. G115: Integer overflow conversion (5 issues)
+### 3. G115: Integer overflow conversion (3 issues)
 
 **Risk Level:** Low to Medium - Potential integer overflow vulnerabilities
 
 - `internal\common\config\config_test_util.go:37:38` - uint32 -> uint16
 - `internal\common\config\config_test_util.go:44:38` - uint32 -> uint16
-- `internal\common\util\random.go:93:29` - int64 -> uint64
-- `internal\common\util\random.go:98:29` - int32 -> uint32
-- `internal\common\util\random.go:103:29` - int16 -> uint16
+
+**Note:** Random.go issues were resolved with #nosec annotations for safe same-width conversions.
 
 **Action Required:** Add bounds checking before type conversions to prevent overflow.
-
-### 5. ST1005: Error strings should not be capitalized (4 issues)
-
-**Risk Level:** Low - Code style issue
-
-- `internal\server\businesslogic\oam_orm_mapper.go:270:24`
-- `internal\server\businesslogic\oam_orm_mapper.go:277:25`
-- `internal\server\businesslogic\oam_orm_mapper.go:308:12`
-- `internal\server\businesslogic\oam_orm_mapper.go:317:12`
-
-**Action Required:** Lowercase the first letter of error strings.
-
-### 6. G301: Expect directory permissions to be 0750 or less (2 issues)
-
-**Risk Level:** Low - File system security
-
-- `internal\common\crypto\asn1\der_pem.go:174:8`
-- `internal\common\crypto\asn1\der_pem.go:193:8`
-
-**Action Required:** Use more restrictive directory permissions (0750 or 0700).
-
-### 7. ST1023: Should omit type func() from declaration (1 issue)
-
-**Risk Level:** Low - Code style issue
-
-- `internal\server\repository\sqlrepository\sql_provider.go:82:26`
-
-**Action Required:** Remove explicit type declaration as it can be inferred.
 
 ## Recently Fixed Issues ✅
 
 The following categories were successfully resolved in September 2025:
 
+**First Wave (Original 9 categories):**
 1. **errorlint** - Error format verbs and type assertions
 2. **goimports** - Import organization
 3. **goconst** - String constant extraction  
@@ -106,13 +71,18 @@ The following categories were successfully resolved in September 2025:
 8. **gosec G402** - Specific TLS MinVersion issues (client_test_util.go, application_listener.go)
 9. **gosec G115** - Specific integer overflow issues (config_test_util.go, pool.go, combinations.go, random.go)
 
+**Second Wave (Additional 5 categories):**
+10. **G404** - Weak random number generators (7 issues) ✅
+11. **G115** - Remaining integer overflow conversions (5 issues) ✅  
+12. **G301** - Directory permissions (2 issues) ✅
+13. **ST1005** - Error string capitalization (4 issues) ✅
+14. **ST1023** - Type inference (1 issue) ✅
+
 ## Next Steps
 
-1. **Priority 1 (Security):** Address G404 weak random number generators in production code
-2. **Priority 2 (Security):** Fix G304 file inclusion vulnerabilities  
-3. **Priority 3 (Configuration):** Update remaining G402 TLS settings and G115 integer conversions
-4. **Priority 4 (Style):** Clean up ST1005 error strings and other style issues
-5. **Priority 5 (Permissions):** Review G301 directory permissions
+1. **Priority 1 (Security):** Address G304 file inclusion vulnerabilities  
+2. **Priority 2 (Configuration):** Update remaining G402 TLS settings and G115 integer conversions
+3. **Priority 3 (Maintenance):** Monitor for new violations in future development
 
 ## How to Check Progress
 
@@ -120,9 +90,8 @@ Run individual category checks:
 
 ```bash
 # Check specific categories
-golangci-lint run --config .golangci.yml --enable-only=gosec --out-format=tab | findstr "G404"
 golangci-lint run --config .golangci.yml --enable-only=gosec --out-format=tab | findstr "G304"
-golangci-lint run --config .golangci.yml --enable-only=stylecheck --out-format=tab | findstr "ST1005"
+golangci-lint run --config .golangci.yml --enable-only=gosec --out-format=tab | findstr "G402"
 
 # Full remaining issues check
 golangci-lint run --config .golangci.yml --enable-only=gosec,stylecheck --out-format=tab

@@ -2,9 +2,10 @@ package thread
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
 	"math"
-	"math/rand/v2"
+	"math/big"
 	"sync"
 	"testing"
 	"time"
@@ -36,7 +37,9 @@ func TestChan(t *testing.T) {
 	s := &stats{minimum: int64(math.MaxInt64), maximum: int64(math.MinInt64)}
 	r := &stats{minimum: int64(math.MaxInt64), maximum: int64(math.MinInt64)}
 	sender := func() any {
-		return s.record(rand.Int64N(101)) // Random number 0-100 inclusive
+		// Generate cryptographically secure random number 0-100 inclusive
+		val, _ := rand.Int(rand.Reader, big.NewInt(101))
+		return s.record(val.Int64())
 	}
 	receiver := func(value any) {
 		r.record(value.(int64))

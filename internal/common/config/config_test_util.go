@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"math"
 	"sync/atomic"
 	"time"
@@ -25,6 +26,14 @@ func RequireNewForTest(applicationName string) *Settings {
 	nextPrivatePort := currentBindPrivatePort.Add(1)
 	if nextPrivatePort > math.MaxUint16 {
 		nextPrivatePort = 20000 // Reset to safe starting value
+	}
+
+	// Validate port ranges before conversion
+	if nextPublicPort > math.MaxUint16 {
+		panic(fmt.Sprintf("public port %d exceeds uint16 maximum %d", nextPublicPort, math.MaxUint16))
+	}
+	if nextPrivatePort > math.MaxUint16 {
+		panic(fmt.Sprintf("private port %d exceeds uint16 maximum %d", nextPrivatePort, math.MaxUint16))
 	}
 
 	settings := &Settings{

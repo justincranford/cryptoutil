@@ -2,10 +2,11 @@ package sqlrepository
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
@@ -46,9 +47,18 @@ const (
 )
 
 var (
-	postgresContainerDbName     = fmt.Sprintf("keyservice%04d", rand.Intn(10_000))
-	postgresContainerDbUsername = fmt.Sprintf("postgresUsername%04d", rand.Intn(10_000))
-	postgresContainerDbPassword = fmt.Sprintf("postgresPassword%04d", rand.Intn(10_000))
+	postgresContainerDbName = func() string {
+		val, _ := rand.Int(rand.Reader, big.NewInt(10_000))
+		return fmt.Sprintf("keyservice%04d", val.Int64())
+	}()
+	postgresContainerDbUsername = func() string {
+		val, _ := rand.Int(rand.Reader, big.NewInt(10_000))
+		return fmt.Sprintf("postgresUsername%04d", val.Int64())
+	}()
+	postgresContainerDbPassword = func() string {
+		val, _ := rand.Int(rand.Reader, big.NewInt(10_000))
+		return fmt.Sprintf("postgresPassword%04d", val.Int64())
+	}()
 
 	ErrContainerOptionNotExist                      = errors.New("container option not available for sqlite")
 	ErrUnsupportedDBType                            = errors.New("unsupported database type")
@@ -79,7 +89,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to determine container mode: %w", err)
 	}
 
-	var shutdownDBContainer func() = func() {}  // no-op by default
+	var shutdownDBContainer = func() {}         // no-op by default
 	if containerMode != ContainerModeDisabled { // containerMode is required or preferred
 		telemetryService.Slogger.Debug("containerMode is not disabled, so trying to start a container", "dbType", string(dbType), "containerMode", string(containerMode))
 		var containerDatabaseUrl string

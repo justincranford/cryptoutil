@@ -2,8 +2,9 @@ package telemetry
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand/v2"
+	"math/big"
 	"os"
 	"testing"
 	"time"
@@ -46,9 +47,13 @@ func TestMetric(t *testing.T) {
 
 	exampleMetricHistogram, err := exampleMetricsScope.Int64Histogram("example-histogram")
 	if err == nil {
-		exampleMetricHistogram.Record(testCtx, rand.Int64N(100))
-		exampleMetricHistogram.Record(testCtx, rand.Int64N(100))
-		exampleMetricHistogram.Record(testCtx, rand.Int64N(100))
+		// Generate cryptographically secure random numbers for histogram test data
+		val1, _ := rand.Int(rand.Reader, big.NewInt(100))
+		val2, _ := rand.Int(rand.Reader, big.NewInt(100))
+		val3, _ := rand.Int(rand.Reader, big.NewInt(100))
+		exampleMetricHistogram.Record(testCtx, val1.Int64())
+		exampleMetricHistogram.Record(testCtx, val2.Int64())
+		exampleMetricHistogram.Record(testCtx, val3.Int64())
 	} else {
 		testTelemetryService.Slogger.Error("metric failed", "error", fmt.Errorf("metric error: %w", err))
 	}

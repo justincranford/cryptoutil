@@ -267,14 +267,14 @@ func (*oamOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) (*ti
 	if nonNullMinDate || nonNullMaxDate {
 		now := time.Now().UTC()
 		if nonNullMinDate && minDate.Compare(now) > 0 {
-			errs = append(errs, fmt.Errorf("Min Date can't be in the future"))
+			errs = append(errs, fmt.Errorf("min date can't be in the future"))
 		}
 		if nonNullMaxDate {
 			// if maxDate.Compare(now) > 0 {
 			// 	errs = append(errs, fmt.Errorf("Max Date can't be in the future"))
 			// }
 			if nonNullMinDate && minDate.Compare(*maxDate) > 0 {
-				errs = append(errs, fmt.Errorf("Min Date must be before Max Date"))
+				errs = append(errs, fmt.Errorf("min date must be before max date"))
 			}
 		}
 	}
@@ -305,7 +305,7 @@ func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumb
 	} else if *pageNumber >= 0 {
 		return *pageNumber, nil
 	}
-	return 0, fmt.Errorf("Page Number must be zero or higher")
+	return 0, fmt.Errorf("page number must be zero or higher")
 }
 
 func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
@@ -314,7 +314,7 @@ func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (i
 	} else if *pageSize >= 1 {
 		return *pageSize, nil
 	}
-	return 0, fmt.Errorf("Page Size must be one or higher")
+	return 0, fmt.Errorf("page size must be one or higher")
 }
 
 func toStrings[T any](items *[]T, toString func(T) string) []string {
