@@ -6,6 +6,7 @@ applyTo: "**"
 
 - Run automated tests with `go test ./... -cover`
 - Use test utilities in keygenpooltest for pool and key generation tests
+- Use testify require methods for assertions (require.NoError, require.True, require.Equal, etc.)
 - Use manual tests via Swagger UI (`go run main.go` and open http://localhost:8080/swagger)
 - Ensure coverage for all key types and pool configurations
 - Always use `docker compose` form (not `docker-compose`) when running with Docker Compose
