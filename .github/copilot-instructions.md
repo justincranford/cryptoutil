@@ -6,8 +6,9 @@
 - Avoid duplication of guidance across instruction files - each file should cover its unique area
 - When adding new instruction files:
   1. Create the instruction file in `.github/instructions/` with the appropriate frontmatter and content
-  2. Register the file path in `.vscode/settings.json` under `github.copilot.chat.codeGeneration.instructionsFiles` array
-  3. Commit and push both changes to ensure Copilot uses the new instructions
+  2. Use `.instructions.md` extension and proper YAML frontmatter with `applyTo` and `description` properties
+  3. Files are automatically discovered by VS Code - no manual registration required
+  4. Commit and push changes to ensure Copilot uses the new instructions
 
 ## Terminal and File Management
 

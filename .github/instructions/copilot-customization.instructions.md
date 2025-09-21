@@ -14,14 +14,17 @@ applyTo: "**"
 ## File Structure
 
 - Use `.github/copilot-instructions.md` as the primary instruction file
-- Create task-specific instruction files in `.github/instructions/` with proper front matter
+- Create task-specific instruction files in `.github/instructions/` with proper YAML frontmatter
 - Use the `applyTo` property to target specific file types
 - Create reusable prompt files in `.github/prompts/` for common tasks
+- Files are automatically discovered by VS Code - no manual registration required
 
 ## Best Practices
 
 - Split instructions into multiple files organized by topic or task type
-- Maintain consistency between related instruction files
+- Maintain consistency between related instruction files  
+- Use proper `.instructions.md` extension and YAML frontmatter for autodiscovery
+- Enable instruction files with `github.copilot.chat.codeGeneration.useInstructionFiles: true` setting
 - Use the appropriate instruction type for each task:
   - Code generation: `.github/copilot-instructions.md` or task-specific `.instructions.md` files
   - Code review: Configure with `github.copilot.chat.reviewSelection.instructions` setting

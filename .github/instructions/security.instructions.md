@@ -19,3 +19,6 @@ applyTo: "**"
 - Implement comprehensive audit logging for all security operations
 - Use proper secret management for Docker deployments
 - Ensure graceful degradation and secure failure modes
+- Always use full certificate chain validation - NEVER set InsecureSkipVerify: true
+- Always set MinVersion: tls.VersionTLS12 (or higher) for all TLS configurations
+- Use proper root CA pools and certificate validation in all TLS connections
