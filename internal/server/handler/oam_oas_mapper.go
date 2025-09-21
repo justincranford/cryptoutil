@@ -78,7 +78,11 @@ func (m *oamOasMapper) toOamPostGenerateQueryParams(openapiParams *cryptoutilOpe
 	return &generateParams
 }
 
-func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJwkBytes []byte, clearNonPublicJwkBytes []byte, clearPublicJwkBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
+func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJwkBytes []byte, clearPublicJwkBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
+	// clearPublicJwkBytes is intentionally unused in current implementation
+	// but kept for potential future logging/debugging purposes
+	_ = clearPublicJwkBytes
+
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {
@@ -205,7 +209,7 @@ func (m *oamOasMapper) toOasPostSignResponse(err error, encryptedBytes []byte) (
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSign200TextResponse(encryptedBytes), err
 }
 
-func (m *oamOasMapper) toOasPostVerifyResponse(err error, verifiedBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
+func (m *oamOasMapper) toOasPostVerifyResponse(err error) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
 	if err != nil {
 		var appErr *cryptoutilAppErr.Error
 		if errors.As(err, &appErr) {

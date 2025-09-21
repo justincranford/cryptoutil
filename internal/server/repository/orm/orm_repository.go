@@ -15,8 +15,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-var ormEntities = []any{&BarrierRootKey{}, &BarrierIntermediateKey{}, &BarrierContentKey{}, &ElasticKey{}, &MaterialKey{}}
-
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	sqlRepository    *cryptoutilSqlRepository.SqlRepository

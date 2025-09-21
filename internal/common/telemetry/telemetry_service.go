@@ -105,10 +105,7 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	if err != nil {
 		return nil, fmt.Errorf("failed to init traces: %w", err)
 	}
-	textMapPropagator, err := initTextMapPropagator(slogger)
-	if err != nil {
-		return nil, fmt.Errorf("failed to init text map propagator: %w", err)
-	}
+	textMapPropagator := initTextMapPropagator()
 	if settings.VerboseMode {
 		doExampleTracesSpans(ctx, tracesProvider, slogger)
 	}
@@ -257,6 +254,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	otelMeterTracerTags, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(otelMetricsTracesAttributes...))
 	if err != nil {
 		slogger.Error("create Otel GRPC metrics resource failed", "error", err)
+		return nil, fmt.Errorf("create Otel GRPC metrics resource failed: %w", err)
 	}
 	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
@@ -264,6 +262,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		otelGrpcMetrics, err := grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(OtelGrpcPush), grpcMetricExporter.WithInsecure())
 		if err != nil {
 			slogger.Error("create Otel GRPC metrics failed", "error", err)
+			return nil, fmt.Errorf("create Otel GRPC metrics failed: %w", err)
 		}
 		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(otelGrpcMetrics, metricSdk.WithInterval(MetricsTimeout))))
 	}
@@ -272,6 +271,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		stdoutMetrics, err := stdoutMetricExporter.New(stdoutMetricExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT metrics failed", "error", err)
+			return nil, fmt.Errorf("create STDOUT metrics failed: %w", err)
 		}
 		metricSdk.NewPeriodicReader(stdoutMetrics)
 		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(stdoutMetrics, metricSdk.WithInterval(MetricsTimeout))))
@@ -292,6 +292,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	otelMeterTracerResource, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(otelMetricsTracesAttributes...))
 	if err != nil {
 		slogger.Error("create Otel GRPC traces resource failed", "error", err)
+		return nil, fmt.Errorf("create Otel GRPC traces resource failed: %w", err)
 	}
 	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
@@ -299,6 +300,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 		tracerOtelGrpc, err := grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(OtelGrpcPush), grpcTraceExporterotlptracegrpc.WithInsecure())
 		if err != nil {
 			slogger.Error("create Otel GRPC traces failed", "error", err)
+			return nil, fmt.Errorf("create Otel GRPC traces failed: %w", err)
 		}
 		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(tracerOtelGrpc, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
@@ -307,6 +309,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 		stdoutTraces, err := stdoutTraceExporter.New(stdoutTraceExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT traces failed", "error", err)
+			return nil, fmt.Errorf("create STDOUT traces failed: %w", err)
 		}
 		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(stdoutTraces, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
@@ -316,12 +319,12 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	return tracesProvider, nil
 }
 
-func initTextMapPropagator(slogger *stdoutLogExporter.Logger) (*propagationApi.TextMapPropagator, error) {
+func initTextMapPropagator() *propagationApi.TextMapPropagator {
 	textMapPropagator := propagationApi.NewCompositeTextMapPropagator(
 		propagationApi.TraceContext{},
 		propagationApi.Baggage{},
 	)
-	return &textMapPropagator, nil
+	return &textMapPropagator
 }
 
 func doExampleTracesSpans(ctx context.Context, tracesProvider *traceSdk.TracerProvider, slogger *stdoutLogExporter.Logger) {

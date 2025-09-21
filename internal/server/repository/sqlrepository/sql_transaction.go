@@ -69,6 +69,11 @@ func (sqlRepository *SqlRepository) WithTransaction(ctx context.Context, readOnl
 }
 
 func (sqlRepository *SqlRepository) newTransaction() (*SqlTransaction, error) {
+	if sqlRepository == nil {
+		return nil, fmt.Errorf("SQL repository cannot be nil")
+	} else if sqlRepository.sqlDB == nil {
+		return nil, fmt.Errorf("database connection is not initialized")
+	}
 	if sqlRepository.verboseMode {
 		sqlRepository.telemetryService.Slogger.Debug("new transaction")
 	}

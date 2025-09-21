@@ -52,8 +52,8 @@ func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, re
 // (POST /elastickey/{elasticKeyID}/generate)
 func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
 	generateParams := s.oasOamMapper.toOamPostGenerateQueryParams(&request.Params)
-	encryptedNonPublicJwkBytes, clearNonPublicJwkBytes, clearPublicJwkBytes, err := s.businessLogicService.PostGenerateByElasticKeyID(ctx, &request.ElasticKeyID, generateParams)
-	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedNonPublicJwkBytes, clearNonPublicJwkBytes, clearPublicJwkBytes)
+	encryptedNonPublicJwkBytes, _, clearPublicJwkBytes, err := s.businessLogicService.PostGenerateByElasticKeyID(ctx, &request.ElasticKeyID, generateParams)
+	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedNonPublicJwkBytes, clearPublicJwkBytes)
 }
 
 // Generate a new Material Key in an Elastic Key.
@@ -90,8 +90,8 @@ func (s *StrictServer) PostElastickeyElasticKeyIDSign(ctx context.Context, reque
 // (POST /elastickey/{elasticKeyID}/verify)
 func (s *StrictServer) PostElastickeyElasticKeyIDVerify(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
 	signedBytes := []byte(*request.Body)
-	verifiedBytes, err := s.businessLogicService.PostVerifyByElasticKeyID(ctx, &request.ElasticKeyID, signedBytes)
-	return s.oasOamMapper.toOasPostVerifyResponse(err, verifiedBytes)
+	_, err := s.businessLogicService.PostVerifyByElasticKeyID(ctx, &request.ElasticKeyID, signedBytes)
+	return s.oasOamMapper.toOasPostVerifyResponse(err)
 }
 
 // Find Elastic Keys. Supports optional filtering, sorting, and paging.

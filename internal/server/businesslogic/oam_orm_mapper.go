@@ -93,6 +93,14 @@ func (m *oamOrmMapper) toOamMaterialKeys(ormMaterialKeys []cryptoutilOrmReposito
 }
 
 func (m *oamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.MaterialKey) (*cryptoutilOpenapiModel.MaterialKey, error) {
+	if ormMaterialKey == nil {
+		return nil, fmt.Errorf("material key cannot be nil")
+	} else if ormMaterialKey.ElasticKeyID == (googleUuid.UUID{}) {
+		return nil, fmt.Errorf("material key missing required elastic key ID")
+	} else if ormMaterialKey.MaterialKeyID == (googleUuid.UUID{}) {
+		return nil, fmt.Errorf("material key missing required material key ID")
+	}
+
 	var materialKeyClearPublic *string
 	if ormMaterialKey.MaterialKeyClearPublic != nil {
 		tmp := string(ormMaterialKey.MaterialKeyClearPublic)
@@ -282,18 +290,42 @@ func (*oamOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) (*ti
 }
 
 func (m *oamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.ElasticKeyAlgorithm) ([]string, error) {
+	if algorithms != nil {
+		// Validate algorithm values
+		for _, algorithm := range *algorithms {
+			if string(algorithm) == "" {
+				return nil, fmt.Errorf("algorithm cannot be empty")
+			}
+		}
+	}
 	return toStrings(algorithms, func(algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm) string {
 		return string(algorithm)
 	}), nil
 }
 
 func (m *oamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptoutilOpenapiModel.ElasticKeySort) ([]string, error) {
+	if elasticMaterialKeySorts != nil {
+		// Validate sort values
+		for _, sort := range *elasticMaterialKeySorts {
+			if string(sort) == "" {
+				return nil, fmt.Errorf("elastic key sort cannot be empty")
+			}
+		}
+	}
 	return toStrings(elasticMaterialKeySorts, func(elasticMaterialKeySort cryptoutilOpenapiModel.ElasticKeySort) string {
 		return string(elasticMaterialKeySort)
 	}), nil
 }
 
 func (m *oamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.MaterialKeySort) ([]string, error) {
+	if keySorts != nil {
+		// Validate sort values
+		for _, keySort := range *keySorts {
+			if string(keySort) == "" {
+				return nil, fmt.Errorf("material key sort cannot be empty")
+			}
+		}
+	}
 	return toStrings(keySorts, func(keySort cryptoutilOpenapiModel.MaterialKeySort) string {
 		return string(keySort)
 	}), nil

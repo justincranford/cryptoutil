@@ -50,8 +50,15 @@ func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate,
 	require.True(t, cert.NotBefore.Before(now), "NotBefore should be in the past")
 	require.True(t, cert.NotAfter.After(now), "NotAfter should be in the future")
 	require.True(t, cert.NotAfter.Sub(cert.NotBefore) >= expectedDuration, "Certificate validity period should be >= duration")
+	require.ElementsMatch(t, dnsNames, cert.DNSNames, "DNS names mismatch")
+	require.ElementsMatch(t, ipAddresses, cert.IPAddresses, "IP addresses mismatch")
+	require.ElementsMatch(t, emailAddresses, cert.EmailAddresses, "Email addresses mismatch")
+	require.ElementsMatch(t, uris, cert.URIs, "URIs mismatch")
 }
 
+// verifyCertChain verifies a certificate chain - kept for future use
+//
+//nolint:unused // Test utility function for future use
 func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots *x509.CertPool, intermediates *x509.CertPool) {
 	x509VerifyOptions := x509.VerifyOptions{
 		CurrentTime:   time.Now().UTC(),

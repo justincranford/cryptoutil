@@ -409,6 +409,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	return verifiedJwsMessageBytes, nil
 }
 
+//nolint:unparam // Some callers ignore certain return values by design
 func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	var materialKeyID *googleUuid.UUID
 	var materialKeyNonPublicJwk joseJwk.Key
@@ -441,6 +442,7 @@ func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOpenap
 	return materialKeyID, materialKeyNonPublicJwk, materialKeyPublicJwk, materialKeyNonPublicJwkBytes, materialKeyPublicJwkBytes, nil
 }
 
+//nolint:unparam // Some callers ignore certain return values by design
 func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, materialKeyKidUuid *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.MaterialKey, joseJwk.Key, joseJwk.Key, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey

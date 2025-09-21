@@ -27,7 +27,6 @@ var (
 	testJwkGenService           *cryptoutilJose.JwkGenService
 	testSqlRepository           *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
-	testDbType                  = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
 	testIntermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 )

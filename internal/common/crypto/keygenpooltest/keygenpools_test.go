@@ -39,8 +39,8 @@ func TestPoolsExample(t *testing.T) {
 		slog.Error("failed to generate keys", "error", err)
 		return
 	}
-	writeKeys(&tempDir, telemetryService, keys)
-	readKeys(&tempDir, telemetryService, keys)
+	writeKeys(&tempDir, keys)
+	readKeys(&tempDir, keys)
 }
 
 func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) ([]any, error) {
@@ -78,7 +78,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	return keys, nil
 }
 
-func writeKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []any) {
+func writeKeys(tempDir *string, keys []any) {
 	var err error
 	for i, keyAny := range keys {
 		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))
@@ -123,7 +123,7 @@ func writeKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryS
 	}
 }
 
-func readKeys(tempDir *string, telemetryService *cryptoutilTelemetry.TelemetryService, keys []any) {
+func readKeys(tempDir *string, keys []any) {
 	var err error
 	for i, keyAny := range keys {
 		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))

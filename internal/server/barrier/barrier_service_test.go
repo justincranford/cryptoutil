@@ -23,7 +23,6 @@ var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 	testJwkGenService    *cryptoutilJose.JwkGenService
-	testDbType           = cryptoutilSqlRepository.DBTypeSQLite // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 )
 
 func TestMain(m *testing.M) {
