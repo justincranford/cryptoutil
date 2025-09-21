@@ -60,6 +60,7 @@ func nextElasticKeyName() *string {
 	nextElasticKeyName := "Client Test Elastic Key " + strconv.Itoa(uniqueElasticKeyTestNum)
 	return &nextElasticKeyName
 }
+
 func nextElasticKeyDesc() *string {
 	nextElasticKeyDesc := "Client Test Elastic Key Description" + strconv.Itoa(uniqueElasticKeyTestNum)
 	return &nextElasticKeyDesc

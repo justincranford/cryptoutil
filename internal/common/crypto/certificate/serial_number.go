@@ -7,8 +7,10 @@ import (
 	"time"
 )
 
-const maxSubscriberCertDuration = 398 * 24 * time.Hour // 398 days for subscriber certificates
-const maxCACertDuration = 25 * 365 * 24 * time.Hour    // 25 years for CA certificates
+const (
+	maxSubscriberCertDuration = 398 * 24 * time.Hour      // 398 days for subscriber certificates
+	maxCACertDuration         = 25 * 365 * 24 * time.Hour // 25 years for CA certificates
+)
 
 var (
 	minSerialNumber   = new(big.Int).Lsh(big.NewInt(1), 64)                // 2^64

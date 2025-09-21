@@ -80,7 +80,6 @@ func Test_HappyPath_NonJwkGenService_Jws_Jwk_SignVerifyBytes(t *testing.T) {
 				require.NoError(t, err)
 				require.NotNil(t, verified)
 			}
-
 		})
 	}
 }

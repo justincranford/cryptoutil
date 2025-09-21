@@ -1,9 +1,9 @@
 package jose
 
 import (
-	cryptoutilOpenapiModel "cryptoutil/api/model"
-
 	"fmt"
+
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 )

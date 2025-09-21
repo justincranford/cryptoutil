@@ -2,14 +2,13 @@ package telemetry
 
 import (
 	"context"
-
-	cryptoutilConfig "cryptoutil/internal/common/config"
-
 	"fmt"
 	"math/rand/v2"
 	"os"
 	"testing"
 	"time"
+
+	cryptoutilConfig "cryptoutil/internal/common/config"
 )
 
 var (

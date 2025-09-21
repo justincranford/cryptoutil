@@ -1,9 +1,9 @@
 package orm
 
 import (
-	cryptoutilOpenapiModel "cryptoutil/api/model"
-
 	"time"
+
+	cryptoutilOpenapiModel "cryptoutil/api/model"
 
 	googleUuid "github.com/google/uuid"
 )

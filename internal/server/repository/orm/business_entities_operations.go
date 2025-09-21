@@ -17,18 +17,20 @@ import (
 
 // Service-Repository calls
 
-var ErrFailedToAddElasticKey = "failed to add Elastic Key"
-var ErrFailedToGetElasticKeyByElasticKeyID = "failed to get Elastic Key by Elastic Key ID"
-var ErrFailedToUpdateElasticKeyByElasticKeyID = "failed to update Elastic Key by Elastic Key ID"
-var ErrFailedToUpdateElasticKeyStatusByElasticKeyID = "failed to update Elastic Key Status by Elastic Key ID"
-var ErrFailedToGetElasticKeys = "failed to get Elastic Keys"
-var ErrFailedToAddMaterialKey = "failed to add Material Key"
-var ErrFailedToGetMaterialKeysByElasticKeyID = "failed to get Keys by Elastic Key ID"
-var ErrInvalidElasticKeyID = "invalid Elastic Key ID"
-var ErrInvalidMaterialKeyID = "invalid Material Key ID"
-var ErrFailedToGetMaterialKeys = "failed to get Material Keys"
-var ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID = "failed to get Material Key by Elastic Key ID and Material Key ID"
-var ErrFailedToGetLatestMaterialKeyByElasticKeyID = "failed to get latest Material Key by Elastic Key ID"
+var (
+	ErrFailedToAddElasticKey                                = "failed to add Elastic Key"
+	ErrFailedToGetElasticKeyByElasticKeyID                  = "failed to get Elastic Key by Elastic Key ID"
+	ErrFailedToUpdateElasticKeyByElasticKeyID               = "failed to update Elastic Key by Elastic Key ID"
+	ErrFailedToUpdateElasticKeyStatusByElasticKeyID         = "failed to update Elastic Key Status by Elastic Key ID"
+	ErrFailedToGetElasticKeys                               = "failed to get Elastic Keys"
+	ErrFailedToAddMaterialKey                               = "failed to add Material Key"
+	ErrFailedToGetMaterialKeysByElasticKeyID                = "failed to get Keys by Elastic Key ID"
+	ErrInvalidElasticKeyID                                  = "invalid Elastic Key ID"
+	ErrInvalidMaterialKeyID                                 = "invalid Material Key ID"
+	ErrFailedToGetMaterialKeys                              = "failed to get Material Keys"
+	ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID = "failed to get Material Key by Elastic Key ID and Material Key ID"
+	ErrFailedToGetLatestMaterialKeyByElasticKeyID           = "failed to get latest Material Key by Elastic Key ID"
+)
 
 func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {

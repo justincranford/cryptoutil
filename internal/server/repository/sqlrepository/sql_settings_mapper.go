@@ -1,10 +1,10 @@
 package sqlrepository
 
 import (
-	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-
 	"fmt"
 	"strings"
+
+	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
 func mapDbTypeAndUrl(telemetryService *cryptoutilTelemetry.TelemetryService, devMode bool, databaseURL string) (SupportedDBType, string, error) {

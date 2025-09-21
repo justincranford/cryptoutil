@@ -73,7 +73,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	}
 	for i, certPEM := range tlsServerCertificateChainPEMs {
 		filename := fmt.Sprintf("%scertificate_%d.pem", prefix, i)
-		if err := os.WriteFile(filename, certPEM, 0600); err != nil {
+		if err := os.WriteFile(filename, certPEM, 0o600); err != nil {
 			return nil, fmt.Errorf("failed to write TLS server certificate PEM file %s: %w", filename, err)
 		}
 	}
@@ -87,7 +87,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt TLS server private key PEM: %w", err)
 	}
-	err = os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, 0600)
+	err = os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, 0o600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to write encrypted TLS server private key PEM file: %w", err)
 	}

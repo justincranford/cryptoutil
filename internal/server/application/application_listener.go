@@ -36,9 +36,11 @@ import (
 	fibermiddleware "github.com/oapi-codegen/fiber-middleware"
 )
 
-const clientShutdownRequestTimeout = 5 * time.Second
-const clientLivenessStartTimeout = 200 * time.Millisecond
-const clientLivenessRequestTimeout = 3 * time.Second
+const (
+	clientShutdownRequestTimeout = 5 * time.Second
+	clientLivenessStartTimeout   = 200 * time.Millisecond
+	clientLivenessRequestTimeout = 3 * time.Second
+)
 
 const serverShutdownFinishTimeout = 5 * time.Second
 

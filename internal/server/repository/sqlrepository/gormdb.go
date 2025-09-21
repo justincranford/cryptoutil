@@ -29,7 +29,8 @@ func CreateGormDB(sqlRepository *SqlRepository) (*gorm.DB, error) {
 		gormDialector = sqlite.Dialector{Conn: sqlRepository.sqlDB}
 	case DBTypePostgres:
 		postgresConfig := postgres.Config{
-			Conn: sqlRepository.sqlDB}
+			Conn: sqlRepository.sqlDB,
+		}
 		gormDialector = postgres.New(postgresConfig)
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", sqlRepository.dbType)
