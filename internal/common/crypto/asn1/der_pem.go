@@ -89,7 +89,11 @@ func DerEncode(key any) ([]byte, string, error) {
 	case *x509.CertificateRequest:
 		return x509Type.Raw, PemTypeCsr, nil
 	case []byte:
-		return key.([]byte), PemTypeSecretKey, nil
+		byteKey, ok := key.([]byte)
+		if !ok {
+			return nil, "", fmt.Errorf("type assertion to []byte failed")
+		}
+		return byteKey, PemTypeSecretKey, nil
 	default:
 		return nil, "", fmt.Errorf("not supported [%T]", x509Type)
 	}
@@ -135,7 +139,8 @@ func DerDecodes(bytes []byte) (any, string, error) {
 }
 
 func PemDecode(bytes []byte) (any, error) {
-	block, _ := pem.Decode(bytes)
+	block, rest := pem.Decode(bytes)
+	_ = rest // Intentionally ignore remaining bytes after PEM block
 	if block == nil {
 		return nil, fmt.Errorf("parse PEM failed")
 	}

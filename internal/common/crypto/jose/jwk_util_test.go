@@ -187,12 +187,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			if rsaEncryptErr == nil {
 				testKeys.rsaEncryptPublicJWK, rsaEncryptErr = joseJwk.Import(rsaEncryptKeyPair.Public.(*rsa.PublicKey))
 				if rsaEncryptErr == nil {
-					rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("alg", "RSA-OAEP-512")
-					if rsaEncryptErr == nil {
-						rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("enc", "A256GCM")
-						if rsaEncryptErr == nil {
-							rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("alg", "RSA-OAEP-512")
-							if rsaEncryptErr == nil {
+					if rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("alg", "RSA-OAEP-512"); rsaEncryptErr == nil {
+						if rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("enc", "A256GCM"); rsaEncryptErr == nil {
+							if rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("alg", "RSA-OAEP-512"); rsaEncryptErr == nil {
 								rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("enc", "A256GCM")
 							}
 						}
@@ -210,8 +207,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			if rsaSignErr == nil {
 				testKeys.rsaVerifyPublicJWK, rsaSignErr = joseJwk.Import(rsaSignKeyPair.Public.(*rsa.PublicKey))
 				if rsaSignErr == nil {
-					rsaSignErr = testKeys.rsaSignPrivateJWK.Set("alg", "RS512")
-					if rsaSignErr == nil {
+					if rsaSignErr = testKeys.rsaSignPrivateJWK.Set("alg", "RS512"); rsaSignErr == nil {
 						rsaSignErr = testKeys.rsaVerifyPublicJWK.Set("alg", "RS512")
 					}
 				}
@@ -227,8 +223,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			if ecdsaErr == nil {
 				testKeys.ecdsaVerifyPublicJWK, ecdsaErr = joseJwk.Import(ecdsaKeyPair.Public.(*ecdsa.PublicKey))
 				if ecdsaErr == nil {
-					ecdsaErr = testKeys.ecdsaSignPrivateJWK.Set("alg", "ES256")
-					if ecdsaErr == nil {
+					if ecdsaErr = testKeys.ecdsaSignPrivateJWK.Set("alg", "ES256"); ecdsaErr == nil {
 						ecdsaErr = testKeys.ecdsaVerifyPublicJWK.Set("alg", "ES256")
 					}
 				}
