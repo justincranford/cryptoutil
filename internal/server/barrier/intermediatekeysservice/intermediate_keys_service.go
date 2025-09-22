@@ -52,18 +52,18 @@ func initializeFirstIntermediateJwk(jwkGenService *cryptoutilJose.JwkGenService,
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		intermediateKeyKidUuid, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}
 		var encryptedIntermediateKeyBytes []byte
-		var rootKeyKidUuid *googleUuid.UUID
+		var rootKeyKidUUID *googleUuid.UUID
 		err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-			encryptedIntermediateKeyBytes, rootKeyKidUuid, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
+			encryptedIntermediateKeyBytes, rootKeyKidUUID, err = rootKeysService.EncryptKey(sqlTransaction, clearIntermediateKey)
 			if err != nil {
 				return fmt.Errorf("failed to encrypt first intermediate JWK: %w", err)
 			}
-			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.BarrierIntermediateKey{UUID: *intermediateKeyKidUuid, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUuid}
+			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.BarrierIntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
 			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {
 				return fmt.Errorf("failed to store first intermediate JWK: %w", err)
@@ -82,7 +82,7 @@ func (i *IntermediateKeysService) EncryptKey(sqlTransaction *cryptoutilOrmReposi
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
-	intermediateKeyLatestKidUuid := encryptedIntermediateKeyLatest.GetUUID()
+	intermediateKeyLatestKidUUID := encryptedIntermediateKeyLatest.GetUUID()
 	decryptedIntermediateKeyLatest, err := i.rootKeysService.DecryptKey(sqlTransaction, []byte(encryptedIntermediateKeyLatest.GetEncrypted()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to decrypt intermediate JWK latest: %w", err)
@@ -91,7 +91,7 @@ func (i *IntermediateKeysService) EncryptKey(sqlTransaction *cryptoutilOrmReposi
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK: %w", err)
 	}
-	return encryptedContentKeyBytes, &intermediateKeyLatestKidUuid, nil
+	return encryptedContentKeyBytes, &intermediateKeyLatestKidUUID, nil
 }
 
 func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentKeyBytes []byte) (joseJwk.Key, error) {
@@ -99,17 +99,17 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmReposi
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted content key message: %w", err)
 	}
-	var intermediateKeyKidUuidString string
-	err = encryptedContentKey.ProtectedHeaders().Get(joseJwk.KeyIDKey, &intermediateKeyKidUuidString)
+	var intermediateKeyKidUUIDString string
+	err = encryptedContentKey.ProtectedHeaders().Get(joseJwk.KeyIDKey, &intermediateKeyKidUUIDString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted content key message kid UUID: %w", err)
 	}
-	intermediateKeyKidUuid, err := googleUuid.Parse(intermediateKeyKidUuidString)
+	intermediateKeyKidUUID, err := googleUuid.Parse(intermediateKeyKidUUIDString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	encryptedIntermediateKey, err := sqlTransaction.GetIntermediateKey(&intermediateKeyKidUuid)
+	encryptedIntermediateKey, err := sqlTransaction.GetIntermediateKey(&intermediateKeyKidUUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get intermediate key: %w", err)
 	}

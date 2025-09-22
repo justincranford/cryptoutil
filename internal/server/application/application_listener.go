@@ -234,18 +234,18 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	// TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)
 	// TODO Add authentication middleware for Swagger UI access
 	// TODO Add specific rate limiting for Swagger UI endpoints
-	swaggerApi, err := cryptoutilOpenapiServer.GetSwagger()
+	swaggerAPI, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
 		serverApplicationCore.Shutdown()
 		return nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
-	swaggerApi.Servers = []*openapi3.Server{
+	swaggerAPI.Servers = []*openapi3.Server{
 		{URL: settings.PublicBrowserAPIContextPath}, // Browser users will access the APIs via this context path, with browser middlewares (CORS, CSRF, etc)
 		{URL: settings.PublicServiceAPIContextPath}, // Service clients will access the APIs via this context path, without browser middlewares
 	}
-	swaggerSpecBytes, err := swaggerApi.MarshalJSON() // Serialize OpenAPI 3 spec to JSON with the added public server context path
+	swaggerSpecBytes, err := swaggerAPI.MarshalJSON() // Serialize OpenAPI 3 spec to JSON with the added public server context path
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
 		serverApplicationCore.Shutdown()
@@ -277,7 +277,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	openapiStrictServer := cryptoutilOpenapiHandler.NewOpenapiStrictServer(serverApplicationCore.BusinessLogicService)
 	openapiStrictHandler := cryptoutilOpenapiServer.NewStrictHandler(openapiStrictServer, nil)
 	commonOapiMiddlewareFiberRequestValidators := []cryptoutilOpenapiServer.MiddlewareFunc{
-		fibermiddleware.OapiRequestValidatorWithOptions(swaggerApi, &fibermiddleware.Options{}),
+		fibermiddleware.OapiRequestValidatorWithOptions(swaggerAPI, &fibermiddleware.Options{}),
 	}
 	publicBrowserFiberServerOptions := cryptoutilOpenapiServer.FiberServerOptions{
 		BaseURL:     settings.PublicBrowserAPIContextPath,
@@ -483,9 +483,9 @@ func privateHealthCheckMiddlewareFunction() fiber.Handler {
 	return healthcheck.New()
 }
 
-func commonSetFiberRequestAttribute(fiberAppIdValue fiberAppID) func(c *fiber.Ctx) error {
+func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		c.Locals(fiberAppIDRequestAttribute, string(fiberAppIdValue))
+		c.Locals(fiberAppIDRequestAttribute, string(fiberAppIDValue))
 		return c.Next()
 	}
 }
@@ -496,7 +496,7 @@ func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		AllowMethods: settings.CORSAllowedMethods, // cryptoutilConfig.defaultAllowedCORSMethods
 		AllowHeaders: settings.CORSAllowedHeaders, // cryptoutilConfig.defaultAllowedCORSHeaders
 		MaxAge:       int(settings.CORSMaxAge),
-		Next:         isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		Next:         isNonBrowserUserAPIRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
 	})
 }
 
@@ -506,7 +506,7 @@ func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.Settings) fib
 	csp := buildContentSecurityPolicy(settings)
 
 	return helmet.New(helmet.Config{
-		Next: isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		Next: isNonBrowserUserAPIRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
 
 		// Content Security Policy implementation
 		ContentSecurityPolicy: csp,
@@ -581,7 +581,7 @@ func buildContentSecurityPolicy(settings *cryptoutilConfig.Settings) string {
 func publicBrowserAdditionalSecurityHeadersMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Skip for non-browser API requests
-		if isNonBrowserUserApiRequestFunc(settings)(c) {
+		if isNonBrowserUserAPIRequestFunc(settings)(c) {
 			return c.Next()
 		}
 
@@ -615,7 +615,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		CookieHTTPOnly:    settings.CSRFTokenCookieHTTPOnly,
 		CookieSessionOnly: settings.CSRFTokenCookieSessionOnly,
 		SingleUseToken:    settings.CSRFTokenSingleUseToken,
-		Next:              isNonBrowserUserApiRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
+		Next:              isNonBrowserUserAPIRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			if settings.DevMode {
 				cookieToken := c.Cookies(settings.CSRFTokenName)
@@ -654,7 +654,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 // ASSUME: Non-browser Authentication only authorizes clients to access /service/api/v1/*
 // FALSE => Enforce CSRF check for /browser/api/v1/* requests by browser clients (e.g. web apps, Swagger UI)
 // ASSUME: UI Authentication only authorizes browser users to access /browser/api/v1/*
-func isNonBrowserUserApiRequestFunc(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) bool {
+func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) bool {
 	return func(c *fiber.Ctx) bool {
 		return strings.HasPrefix(c.OriginalURL(), settings.PublicServiceAPIContextPath+"/")
 	}

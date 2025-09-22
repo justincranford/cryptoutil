@@ -69,17 +69,17 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	require.NotNil(t, clearContentKey)
 
 	var encryptedContentKeyBytes []byte
-	var intermediateKeyKidUuid *googleUuid.UUID
+	var intermediateKeyKidUUID *googleUuid.UUID
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		encryptedContentKeyBytes, intermediateKeyKidUuid, err = intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
+		encryptedContentKeyBytes, intermediateKeyKidUUID, err = intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
 		require.NoError(t, err)
 		require.NotNil(t, encryptedContentKeyBytes)
-		require.NotNil(t, intermediateKeyKidUuid)
+		require.NotNil(t, intermediateKeyKidUUID)
 		return err
 	})
 	require.NoError(t, err)
 	require.NotNil(t, encryptedContentKeyBytes)
-	require.NotNil(t, intermediateKeyKidUuid)
+	require.NotNil(t, intermediateKeyKidUUID)
 
 	var decryptedContentKey joseJwk.Key
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {

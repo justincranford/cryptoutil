@@ -35,7 +35,7 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 }
 
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	contentKeyKidUuid, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}
@@ -43,15 +43,15 @@ func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmReposit
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content with JWK: %w", err)
 	}
-	encryptedContentKeyJweMessageBytes, intermediateKeyKidUuid, err := s.intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
+	encryptedContentKeyJweMessageBytes, intermediateKeyKidUUID, err := s.intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK: %w", err)
 	}
-	err = sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: *contentKeyKidUuid, Encrypted: string(encryptedContentKeyJweMessageBytes), KEKUUID: *intermediateKeyKidUuid})
+	err = sqlTransaction.AddContentKey(&cryptoutilOrmRepository.BarrierContentKey{UUID: *contentKeyKidUUID, Encrypted: string(encryptedContentKeyJweMessageBytes), KEKUUID: *intermediateKeyKidUUID})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to add content key to DB: %w", err)
 	}
-	return encryptedContentJweMessageBytes, contentKeyKidUuid, nil
+	return encryptedContentJweMessageBytes, contentKeyKidUUID, nil
 }
 
 func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJweMessageBytes []byte) ([]byte, error) {
@@ -64,11 +64,11 @@ func (s *ContentKeysService) DecryptContent(sqlTransaction *cryptoutilOrmReposit
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWE message kid: %w", err)
 	}
-	encryptedContentKeyKidUuid, err := googleUuid.Parse(encryptedContentKeyKidString)
+	encryptedContentKeyKidUUID, err := googleUuid.Parse(encryptedContentKeyKidString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse kid as uuid: %w", err)
 	}
-	encryptedContentKey, err := sqlTransaction.GetContentKey(&encryptedContentKeyKidUuid)
+	encryptedContentKey, err := sqlTransaction.GetContentKey(&encryptedContentKeyKidUUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get encrypted content key: %w", err)
 	}

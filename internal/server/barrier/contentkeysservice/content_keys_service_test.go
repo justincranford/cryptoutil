@@ -72,17 +72,17 @@ func TestContentKeysService_HappyPath(t *testing.T) {
 	clearBytes := []byte("Hello World")
 
 	var encrypted []byte
-	var contentKeyKidUuid *googleUuid.UUID
+	var contentKeyKidUUID *googleUuid.UUID
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
-		encrypted, contentKeyKidUuid, err = contentKeysService.EncryptContent(sqlTransaction, clearBytes)
+		encrypted, contentKeyKidUUID, err = contentKeysService.EncryptContent(sqlTransaction, clearBytes)
 		require.NoError(t, err)
 		require.NotNil(t, encrypted)
-		require.NotNil(t, contentKeyKidUuid)
+		require.NotNil(t, contentKeyKidUUID)
 		return err
 	})
 	require.NoError(t, err)
 	require.NotNil(t, encrypted)
-	require.NotNil(t, contentKeyKidUuid)
+	require.NotNil(t, contentKeyKidUUID)
 
 	var decrypted []byte
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {

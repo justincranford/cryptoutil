@@ -55,7 +55,7 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 	require.NoError(t, err)
 	defer originalUnsealKeysService.Shutdown()
 
-	encryptDecryptContent_Restart_DecryptAgain(t, ormRepository, originalUnsealKeysService, originalUnsealKeysService)
+	encryptDecryptContentRestartDecryptAgain(t, ormRepository, originalUnsealKeysService, originalUnsealKeysService)
 }
 
 func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
@@ -106,21 +106,21 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	// barrier encrypt uses the unseal service with both valid JWKs for all tests below
 
 	// barrier decrypt using unseal service with both valid JWKs
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwks12)
+	encryptDecryptContentRestartDecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwks12)
 
 	// barrier decrypt using unseal service with first valid JWKs
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwk1)
+	encryptDecryptContentRestartDecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwk1)
 
 	// barrier decrypt using unseal service with second valid JWKs
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwk2)
+	encryptDecryptContentRestartDecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwk2)
 
 	// TODO barrier decrypt using unseal service with invalid JWKs
 
 	// barrier decrypt using unseal service with both valid JWKs
-	encryptDecryptContent_Restart_DecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwks12)
+	encryptDecryptContentRestartDecryptAgain(t, testOrmRepository, unsealKeysServiceJwks12, unsealKeysServiceJwks12)
 }
 
-func encryptDecryptContent_Restart_DecryptAgain(t *testing.T, testOrmRepository *cryptoutilOrmRepository.OrmRepository, originalUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, restartedUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) {
+func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *cryptoutilOrmRepository.OrmRepository, originalUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, restartedUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) {
 	const numEncryptsDecrypts = 11
 	plaintext := []byte("hello, world!")
 

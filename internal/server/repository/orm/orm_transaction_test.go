@@ -149,13 +149,13 @@ func TestSqlTransaction_Success(t *testing.T) {
 
 			multipleByteSlices, err := cryptoutilUtil.GenerateMultipleBytes(numMaterialKeys, 32)
 			cryptoutilAppErr.RequireNoError(err, "failed to generate AES 256 key materials")
-			for nextKeyId := 1; nextKeyId <= numMaterialKeys; nextKeyId++ {
+			for nextKeyID := 1; nextKeyID <= numMaterialKeys; nextKeyID++ {
 				now := time.Now().UTC()
 				key := MaterialKey{
 					ElasticKeyID:                  elasticKey.ElasticKeyID,
 					MaterialKeyID:                 *testJwkGenService.GenerateUUIDv7(),
 					MaterialKeyClearPublic:        nil,
-					MaterialKeyEncryptedNonPublic: multipleByteSlices[nextKeyId-1],
+					MaterialKeyEncryptedNonPublic: multipleByteSlices[nextKeyID-1],
 					MaterialKeyGenerateDate:       &now,
 					MaterialKeyImportDate:         nil,
 					MaterialKeyExpirationDate:     nil,

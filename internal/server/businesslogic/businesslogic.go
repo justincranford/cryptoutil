@@ -383,11 +383,11 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWS message bytes: %w", err)
 	}
-	kidUuid, _, err := cryptoutilJose.ExtractKidAlgFromJwsMessage(jwsMessage)
+	kidUUID, _, err := cryptoutilJose.ExtractKidAlgFromJwsMessage(jwsMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWS message headers kid and alg: %w", err)
 	}
-	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, clearMaterialKeyPublicJweJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, kidUuid)
+	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, clearMaterialKeyPublicJweJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, kidUUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt material key: %w", err)
 	}
@@ -443,7 +443,7 @@ func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOpenap
 }
 
 //nolint:unparam // Some callers ignore certain return values by design
-func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, materialKeyKidUuid *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.MaterialKey, joseJwk.Key, joseJwk.Key, error) {
+func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, materialKeyKidUUID *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.MaterialKey, joseJwk.Key, joseJwk.Key, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
 	var materialKeyDecryptedNonPublicJwkBytes []byte
@@ -453,10 +453,10 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 		if err != nil {
 			return fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 		}
-		if materialKeyKidUuid == nil {
+		if materialKeyKidUUID == nil {
 			ormMaterialKey, err = sqlTransaction.GetElasticKeyMaterialKeyLatest(*elasticKeyID)
 		} else {
-			ormMaterialKey, err = sqlTransaction.GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyKidUuid)
+			ormMaterialKey, err = sqlTransaction.GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyKidUUID)
 		}
 		if err != nil {
 			return fmt.Errorf("failed to get MaterialKey in ElasticKey: %w", err)

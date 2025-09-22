@@ -53,7 +53,7 @@ func TestMutualTLS(t *testing.T) {
 	const clientConnections = 10
 	t.Run("Raw mTLS", func(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
-		tlsListenerAddress, err := startTlsEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
+		tlsListenerAddress, err := startTLSEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start TLS Echo Server")
 		defer close(callerShutdownSignalCh)
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")

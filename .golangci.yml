@@ -123,6 +123,16 @@ issues:
     - path: .*_test_util\.go
       linters:
         - revive
+        
+    # SQL type names - too invasive to refactor (79+ references) 
+    - path: internal/server/repository/sqlrepository/
+      text: "ST1003"
+      linters:
+        - stylecheck
+    - path: internal/server/application/application_core.go
+      text: "SqlRepository should be SQLRepository"
+      linters:
+        - stylecheck
 
 severity:
   default-severity: error

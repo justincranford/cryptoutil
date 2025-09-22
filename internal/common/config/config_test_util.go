@@ -68,17 +68,17 @@ func RequireNewForTest(applicationName string) *Settings {
 	if !ok {
 		panic("bindPublicAddress.value must be string")
 	}
-	tlsPublicDnsNamesValue, ok := tlsPublicDnsNames.value.([]string)
+	tlsPublicDNSNamesValue, ok := tlsPublicDNSNames.value.([]string)
 	if !ok {
-		panic("tlsPublicDnsNames.value must be []string")
+		panic("tlsPublicDNSNames.value must be []string")
 	}
 	tlsPublicIPAddressesValue, ok := tlsPublicIPAddresses.value.([]string)
 	if !ok {
 		panic("tlsPublicIPAddresses.value must be []string")
 	}
-	tlsPrivateDnsNamesValue, ok := tlsPrivateDnsNames.value.([]string)
+	tlsPrivateDNSNamesValue, ok := tlsPrivateDNSNames.value.([]string)
 	if !ok {
-		panic("tlsPrivateDnsNames.value must be []string")
+		panic("tlsPrivateDNSNames.value must be []string")
 	}
 	tlsPrivateIPAddressesValue, ok := tlsPrivateIPAddresses.value.([]string)
 	if !ok {
@@ -199,9 +199,9 @@ func RequireNewForTest(applicationName string) *Settings {
 		BindPublicProtocol:          bindPublicProtocolValue,
 		BindPublicAddress:           bindPublicAddressValue,
 		BindPublicPort:              uint16(nextPublicPort),
-		TLSPublicDNSNames:           tlsPublicDnsNamesValue,
+		TLSPublicDNSNames:           tlsPublicDNSNamesValue,
 		TLSPublicIPAddresses:        tlsPublicIPAddressesValue,
-		TLSPrivateDNSNames:          tlsPrivateDnsNamesValue,
+		TLSPrivateDNSNames:          tlsPrivateDNSNamesValue,
 		TLSPrivateIPAddresses:       tlsPrivateIPAddressesValue,
 		BindPrivateProtocol:         bindPrivateProtocolValue,
 		BindPrivateAddress:          bindPrivateAddressValue,

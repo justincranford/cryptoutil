@@ -211,14 +211,14 @@ var (
 		usage:       "bind private port",
 		description: "Bind Private Port",
 	})
-	tlsPublicDnsNames = *registerSetting(&Setting{
+	tlsPublicDNSNames = *registerSetting(&Setting{
 		name:        "tls-public-dns-names",
 		shorthand:   "n",
 		value:       []string{"localhost"},
 		usage:       "TLS public DNS names",
 		description: "TLS Public DNS Names",
 	})
-	tlsPrivateDnsNames = *registerSetting(&Setting{
+	tlsPrivateDNSNames = *registerSetting(&Setting{
 		name:        "tls-private-dns-names",
 		shorthand:   "j",
 		value:       []string{"localhost"},
@@ -544,9 +544,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, asString(&bindPublicProtocol), bindPublicProtocol.usage)
 	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, asString(&bindPublicAddress), bindPublicAddress.usage)
 	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, asUint16(&bindPublicPort), bindPublicPort.usage)
-	pflag.StringSliceP(tlsPublicDnsNames.name, tlsPublicDnsNames.shorthand, asStringSlice(&tlsPublicDnsNames), tlsPublicDnsNames.usage)
+	pflag.StringSliceP(tlsPublicDNSNames.name, tlsPublicDNSNames.shorthand, asStringSlice(&tlsPublicDNSNames), tlsPublicDNSNames.usage)
 	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, asStringSlice(&tlsPublicIPAddresses), tlsPublicIPAddresses.usage)
-	pflag.StringSliceP(tlsPrivateDnsNames.name, tlsPrivateDnsNames.shorthand, asStringSlice(&tlsPrivateDnsNames), tlsPrivateDnsNames.usage)
+	pflag.StringSliceP(tlsPrivateDNSNames.name, tlsPrivateDNSNames.shorthand, asStringSlice(&tlsPrivateDNSNames), tlsPrivateDNSNames.usage)
 	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, asStringSlice(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.usage)
 	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, asString(&bindPrivateProtocol), bindPrivateProtocol.usage)
 	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, asString(&bindPrivateAddress), bindPrivateAddress.usage)
@@ -604,9 +604,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),
 		BindPublicAddress:           viper.GetString(bindPublicAddress.name),
 		BindPublicPort:              viper.GetUint16(bindPublicPort.name),
-		TLSPublicDNSNames:           viper.GetStringSlice(tlsPublicDnsNames.name),
+		TLSPublicDNSNames:           viper.GetStringSlice(tlsPublicDNSNames.name),
 		TLSPublicIPAddresses:        viper.GetStringSlice(tlsPublicIPAddresses.name),
-		TLSPrivateDNSNames:          viper.GetStringSlice(tlsPrivateDnsNames.name),
+		TLSPrivateDNSNames:          viper.GetStringSlice(tlsPrivateDNSNames.name),
 		TLSPrivateIPAddresses:       viper.GetStringSlice(tlsPrivateIPAddresses.name),
 		BindPrivateProtocol:         viper.GetString(bindPrivateProtocol.name),
 		BindPrivateAddress:          viper.GetString(bindPrivateAddress.name),
@@ -665,9 +665,9 @@ func logSettings(s *Settings) {
 			bindPublicProtocol.name:          s.BindPublicProtocol,
 			bindPublicAddress.name:           s.BindPublicAddress,
 			bindPublicPort.name:              s.BindPublicPort,
-			tlsPublicDnsNames.name:           s.TLSPublicDNSNames,
+			tlsPublicDNSNames.name:           s.TLSPublicDNSNames,
 			tlsPublicIPAddresses.name:        s.TLSPublicIPAddresses,
-			tlsPrivateDnsNames.name:          s.TLSPrivateDNSNames,
+			tlsPrivateDNSNames.name:          s.TLSPrivateDNSNames,
 			tlsPrivateIPAddresses.name:       s.TLSPrivateIPAddresses,
 			bindPrivateProtocol.name:         s.BindPrivateProtocol,
 			bindPrivateAddress.name:          s.BindPrivateAddress,

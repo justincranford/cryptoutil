@@ -18,7 +18,7 @@ func NewOamOrmMapper() *oamOrmMapper {
 	return &oamOrmMapper{}
 }
 
-var ErrInvalidUuid = "invalid UUIDs"
+var ErrInvalidUUID = "invalid UUIDs"
 
 // oam => orm
 
@@ -65,7 +65,7 @@ func (m *oamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository
 	return oamElasticKeys
 }
 
-func (s *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilOpenapiModel.ElasticKey {
+func (m *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.ElasticKey) *cryptoutilOpenapiModel.ElasticKey {
 	return &cryptoutilOpenapiModel.ElasticKey{
 		ElasticKeyID:      &ormElasticKey.ElasticKeyID,
 		Name:              &ormElasticKey.ElasticKeyName,
@@ -250,7 +250,7 @@ func (*oamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.
 	if uuids == nil || len(*uuids) == 0 {
 		return nil, nil
 	}
-	if err := cryptoutilUtil.ValidateUUIDs(*uuids, &ErrInvalidUuid); err != nil {
+	if err := cryptoutilUtil.ValidateUUIDs(*uuids, &ErrInvalidUUID); err != nil {
 		return nil, err
 	}
 	return *uuids, nil

@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func startTlsEchoServer(tlsServerListener string, readTimeout time.Duration, writeTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
+func startTLSEchoServer(tlsServerListener string, readTimeout time.Duration, writeTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
 	netListener, err := net.Listen("tcp", tlsServerListener)
 	if err != nil {
 		return "", fmt.Errorf("failed to start TCP Listener: %w", err)

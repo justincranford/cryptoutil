@@ -43,11 +43,11 @@ func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 			return nil, fmt.Errorf("failed to derive key: %w", err)
 		}
 
-		kekKidUuid, err := googleUuid.NewV7()
+		kekKidUUID, err := googleUuid.NewV7()
 		if err != nil {
 			return nil, fmt.Errorf("failed to create UUIDv7: %w", err)
 		}
-		_, jwk, _, _, _, err := cryptoutilJose.CreateJweJwkFromKey(&kekKidUuid, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW, cryptoutilKeyGen.SecretKey(derivedKeyBytes)) // use derived JWK for envelope encryption (i.e. A256GCM Key Wrap), not DIRECT encryption
+		_, jwk, _, _, _, err := cryptoutilJose.CreateJweJwkFromKey(&kekKidUUID, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW, cryptoutilKeyGen.SecretKey(derivedKeyBytes)) // use derived JWK for envelope encryption (i.e. A256GCM Key Wrap), not DIRECT encryption
 		if err != nil {
 			return nil, fmt.Errorf("failed to create JWK: %w", err)
 		}
