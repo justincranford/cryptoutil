@@ -68,8 +68,6 @@ linters-settings:
     severity: medium
     confidence: medium
     excludes:
-      - G101  # Hardcoded credentials
-      - G107  # URL provided to HTTP request as taint input
       - G304  # File path provided as taint input (legitimate in file utilities)
       
   gocyclo:
