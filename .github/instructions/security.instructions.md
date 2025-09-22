@@ -15,10 +15,12 @@ applyTo: "**"
 - Use proper HTTP security headers (Helmet.js equivalent)
 - Support multiple unseal modes: simple keys, shared secrets (M-of-N), and system fingerprinting
 - Implement proper key versioning and rotation capabilities
-- Use secure random number generation for all cryptographic operations
+cryptographic operations (crypto/rand, not math/rand)
 - Implement comprehensive audit logging for all security operations
 - Use proper secret management for Docker deployments
 - Ensure graceful degradation and secure failure modes
 - Always use full certificate chain validation - NEVER set InsecureSkipVerify: true
 - Always set MinVersion: tls.VersionTLS12 (or higher) for all TLS configurations
 - Use proper root CA pools and certificate validation in all TLS connections
+- Use full certificate chain validation with TLS 1.2+ minimum
+
