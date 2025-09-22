@@ -7,28 +7,28 @@ import (
 )
 
 func Test_DevMode(t *testing.T) {
-	dbType, url, err := mapDbTypeAndUrl(testTelemetryService, true, "ignored-url")
+	dbType, url, err := mapDBTypeAndURL(testTelemetryService, true, "ignored-url")
 	require.NoError(t, err, "expected no error for dev mode")
 	require.Equal(t, DBTypeSQLite, dbType, "expected SQLite in dev mode")
 	require.Equal(t, ":memory:", url, "expected SQLite in-memory")
 }
 
 func Test_DatabaseUrl_PostgresSQL(t *testing.T) {
-	dbType, url, err := mapDbTypeAndUrl(testTelemetryService, false, "postgres://user:pass@localhost/db")
+	dbType, url, err := mapDBTypeAndURL(testTelemetryService, false, "postgres://user:pass@localhost/db")
 	require.NoError(t, err, "expected no error for Postgres URL")
 	require.Equal(t, DBTypePostgres, dbType, "expected Postgres dbType")
 	require.Equal(t, "postgres://user:pass@localhost/db", url, "expected Postgres URL")
 }
 
 func Test_DatabaseUrl_Unsupported(t *testing.T) {
-	dbType, url, err := mapDbTypeAndUrl(testTelemetryService, false, "mysql://user:pass@localhost/db")
+	dbType, url, err := mapDBTypeAndURL(testTelemetryService, false, "mysql://user:pass@localhost/db")
 	require.Error(t, err, "expected error for unsupported DB URL")
 	require.Equal(t, "", url, "expected empty URL for unsupported DB type")
 	require.Equal(t, SupportedDBType(""), dbType, "expected empty dbType for unsupported URL")
 }
 
 func Test_DatabaseUrl_Empty(t *testing.T) {
-	dbType, url, err := mapDbTypeAndUrl(testTelemetryService, false, "")
+	dbType, url, err := mapDBTypeAndURL(testTelemetryService, false, "")
 	require.Error(t, err, "expected error for empty database URL")
 	require.Equal(t, SupportedDBType(""), dbType, "expected empty dbType for empty URL")
 	require.Equal(t, "", url, "expected empty URL for empty input")

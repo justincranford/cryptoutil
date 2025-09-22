@@ -35,7 +35,7 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Te
 		return "", nil, fmt.Errorf("failed to get postgres container host and mapped port: %w", err)
 	}
 
-	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUsername, dbPassword, containerHost, containerMappedPort, dbName)
+	databaseURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", dbUsername, dbPassword, containerHost, containerMappedPort, dbName)
 
-	return databaseUrl, terminateContainer, nil
+	return databaseURL, terminateContainer, nil
 }

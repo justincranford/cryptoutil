@@ -24,8 +24,8 @@ import (
 
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("client_test")
-	testServerPublicUrl  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
-	testServerPrivateUrl = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
+	testServerPublicURL  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
+	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
 )
 
 func TestMain(m *testing.M) {
@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 		}
 		go startServerListenerApplication.StartFunction()
 		defer startServerListenerApplication.ShutdownFunction()
-		WaitUntilReady(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+		WaitUntilReady(&testServerPrivateURL, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 		rc = m.Run()
 	}()
@@ -204,7 +204,7 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 	context := context.Background()
-	testPublicServiceAPIUrl := testServerPublicUrl + testSettings.PublicServiceAPIContextPath
+	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
 	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesEncrypt {
@@ -289,7 +289,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 
 func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	context := context.Background()
-	testPublicServiceAPIUrl := testServerPublicUrl + testSettings.PublicServiceAPIContextPath
+	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
 	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl)
 
 	for i, testCase := range happyPathElasticKeyTestCasesSign {

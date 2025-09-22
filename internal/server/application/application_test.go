@@ -19,8 +19,8 @@ import (
 
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("application_test")
-	testServerPublicUrl  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
-	testServerPrivateUrl = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
+	testServerPublicURL  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
+	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
 )
 
 func TestMain(m *testing.M) {
@@ -37,17 +37,17 @@ func TestHttpGetHttp200(t *testing.T) {
 	}
 	go startServerListenerApplication.StartFunction()
 	defer startServerListenerApplication.ShutdownFunction()
-	cryptoutilClient.WaitUntilReady(&testServerPrivateUrl, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+	cryptoutilClient.WaitUntilReady(&testServerPrivateURL, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 	testCases := []struct {
 		name       string
 		url        string
 		tlsRootCAs *x509.CertPool
 	}{
-		{name: "Swagger UI root", url: testServerPublicUrl + "/ui/swagger", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
-		{name: "Swagger UI index.html", url: testServerPublicUrl + "/ui/swagger/index.html", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
-		{name: "OpenAPI Spec", url: testServerPublicUrl + "/ui/swagger/doc.json", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
-		{name: "GET Elastic Keys", url: testServerPublicUrl + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
+		{name: "Swagger UI root", url: testServerPublicURL + "/ui/swagger", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
+		{name: "Swagger UI index.html", url: testServerPublicURL + "/ui/swagger/index.html", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
+		{name: "OpenAPI Spec", url: testServerPublicURL + "/ui/swagger/doc.json", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
+		{name: "GET Elastic Keys", url: testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {

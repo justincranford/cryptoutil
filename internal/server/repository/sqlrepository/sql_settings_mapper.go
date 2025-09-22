@@ -7,7 +7,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
-func mapDbTypeAndUrl(telemetryService *cryptoutilTelemetry.TelemetryService, devMode bool, databaseURL string) (SupportedDBType, string, error) {
+func mapDBTypeAndURL(telemetryService *cryptoutilTelemetry.TelemetryService, devMode bool, databaseURL string) (SupportedDBType, string, error) {
 	if devMode {
 		telemetryService.Slogger.Debug("running in dev mode, using in-memory SQLite database")
 		return DBTypeSQLite, ":memory:", nil

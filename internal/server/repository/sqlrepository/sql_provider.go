@@ -88,7 +88,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("settings must be non-nil")
 	}
 
-	dbType, databaseUrl, err := mapDbTypeAndUrl(telemetryService, settings.DevMode, settings.DatabaseURL)
+	dbType, databaseURL, err := mapDBTypeAndURL(telemetryService, settings.DevMode, settings.DatabaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to determine database type and URL: %w", err)
 	}
@@ -101,20 +101,20 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	var shutdownDBContainer = func() {}         // no-op by default
 	if containerMode != ContainerModeDisabled { // containerMode is required or preferred
 		telemetryService.Slogger.Debug("containerMode is not disabled, so trying to start a container", "dbType", string(dbType), "containerMode", string(containerMode))
-		var containerDatabaseUrl string
+		var containerDatabaseURL string
 		var err error
 		switch dbType {
 		case DBTypeSQLite:
 			return nil, ErrContainerOptionNotExist
 		case DBTypePostgres:
-			containerDatabaseUrl, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, telemetryService, postgresContainerDbName, postgresContainerDbUsername, postgresContainerDbPassword)
+			containerDatabaseURL, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, telemetryService, postgresContainerDbName, postgresContainerDbUsername, postgresContainerDbPassword)
 		default:
 			return nil, fmt.Errorf("%w: %s", ErrUnsupportedDBType, dbType)
 		}
 		// Example errors: Rootless Docker not supported (Windows), Docker Desktop not running (Windows), Docker not installed (Linux/Mac), etc.
 		if err == nil { // success
-			telemetryService.Slogger.Debug("successfully started database container", "containerMode", string(containerMode), "dbType", string(dbType), "databaseUrl", containerDatabaseUrl)
-			databaseUrl = containerDatabaseUrl
+			telemetryService.Slogger.Debug("successfully started database container", "containerMode", string(containerMode), "dbType", string(dbType), "databaseUrl", containerDatabaseURL)
+			databaseURL = containerDatabaseURL
 		} else if containerMode == ContainerModeRequired { // container is required, so this error is fatal; give up and return the errors
 			telemetryService.Slogger.Warn("failed to start database container", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrContainerModeRequiredButContainerNotStarted, err))
 			return nil, errors.Join(ErrContainerModeRequiredButContainerNotStarted, fmt.Errorf("dbType: %s", string(dbType)))
@@ -123,7 +123,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		}
 	}
 
-	sqlDB, err := sql.Open(string(dbType), databaseUrl)
+	sqlDB, err := sql.Open(string(dbType), databaseURL)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to open database", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 		shutdownDBContainer()
