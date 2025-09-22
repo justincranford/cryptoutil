@@ -148,7 +148,7 @@ func PemDecode(bytes []byte) (any, error) {
 }
 
 func PemRead(filename string) (any, error) {
-	pemBytes, err := os.ReadFile(filename)
+	pemBytes, err := os.ReadFile(filename) // #nosec G304 -- Legitimate file reading for crypto operations
 	if err != nil {
 		return nil, fmt.Errorf("read failed: %w", err)
 	}
@@ -157,7 +157,7 @@ func PemRead(filename string) (any, error) {
 }
 
 func DerRead(filename string) (any, string, error) {
-	derBytes, err := os.ReadFile(filename)
+	derBytes, err := os.ReadFile(filename) // #nosec G304 -- Legitimate file reading for crypto operations
 	if err != nil {
 		return nil, "", fmt.Errorf("read failed: %w", err)
 	}

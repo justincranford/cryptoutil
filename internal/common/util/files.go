@@ -32,7 +32,7 @@ func ReadFilesBytes(filePaths []string) ([][]byte, error) {
 }
 
 func ReadFileBytes(filePath string) ([]byte, error) {
-	fileData, err := os.ReadFile(filePath)
+	fileData, err := os.ReadFile(filePath) // #nosec G304 -- General purpose file utility function
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
@@ -73,7 +73,7 @@ func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 	}
 
 	// Open file
-	file, err := os.Open(filePath)
+	file, err := os.Open(filePath) // #nosec G304 -- General purpose file utility function
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
 	}

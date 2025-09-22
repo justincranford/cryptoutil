@@ -67,8 +67,6 @@ linters-settings:
   gosec:
     severity: medium
     confidence: medium
-    excludes:
-      - G304  # File path provided as taint input (legitimate in file utilities)
       
   gocyclo:
     min-complexity: 15
