@@ -39,7 +39,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 	}
 	iat := time.Now().UTC().Unix()
 	for i, jwk := range jwks {
-		kid, err := ExtractKidUuid(jwk)
+		kid, err := ExtractKidUUID(jwk)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -152,12 +152,12 @@ func ExtractKidAlgFromJwsMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID,
 		// Only process first signature since we already checked for multiple signatures above
 		jwsMessageProtectedHeaders := jwsMessageSignature.ProtectedHeaders()
 
-		var kidUuidString string
-		err := jwsMessageProtectedHeaders.Get(joseJwk.KeyIDKey, &kidUuidString)
+		var kidUUIDString string
+		err := jwsMessageProtectedHeaders.Get(joseJwk.KeyIDKey, &kidUUIDString)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
 		}
-		kidUuid, err := googleUuid.Parse(kidUuidString)
+		kidUUID, err := googleUuid.Parse(kidUUIDString)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to parse kid UUID: %w", err)
 		}
@@ -167,7 +167,7 @@ func ExtractKidAlgFromJwsMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID,
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get alg: %w", err)
 		}
-		return &kidUuid, &alg, nil //nolint:staticcheck // SA4004: intentionally process only first signature
+		return &kidUUID, &alg, nil //nolint:staticcheck // SA4004: intentionally process only first signature
 	}
 	return nil, nil, nil
 }

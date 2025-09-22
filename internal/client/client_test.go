@@ -271,9 +271,9 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 					require.NotNil(t, dataKeyJwk)
 					logObjectAsJson(t, dataKeyJwk)
 
-					kidUuid, err := cryptoutilJose.ExtractKidUuid(dataKeyJwk)
+					kidUUID, err := cryptoutilJose.ExtractKidUUID(dataKeyJwk)
 					require.NoError(t, err)
-					require.NotNil(t, kidUuid)
+					require.NotNil(t, kidUUID)
 
 					kty, err := cryptoutilJose.ExtractKty(dataKeyJwk)
 					require.NoError(t, err)

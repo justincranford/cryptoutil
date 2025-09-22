@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	ErrInvalidJwkKidUuid = "invalid JWK kid UUID"
+	ErrInvalidJwkKidUUID = "invalid JWK kid UUID"
 
 	KtyOCT = joseJwa.OctetSeq() // KeyType
 	KtyRSA = joseJwa.RSA()      // KeyType
@@ -75,7 +75,7 @@ var (
 	OpsVer    = joseJwk.KeyOperationList{joseJwk.KeyOpVerify}                        // []KeyOperation
 )
 
-func ExtractKidUuid(jwk joseJwk.Key) (*googleUuid.UUID, error) {
+func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	if jwk == nil {
 		return nil, fmt.Errorf("invalid jwk: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
@@ -84,14 +84,14 @@ func ExtractKidUuid(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 	if err = jwk.Get(joseJwk.KeyIDKey, &kidString); err != nil {
 		return nil, fmt.Errorf("failed to get kid header: %w", err)
 	}
-	var kidUuid googleUuid.UUID
-	if kidUuid, err = googleUuid.Parse(kidString); err != nil {
+	var kidUUID googleUuid.UUID
+	if kidUUID, err = googleUuid.Parse(kidString); err != nil {
 		return nil, fmt.Errorf("failed to parse kid as UUID: %w", err)
 	}
-	if err = cryptoutilUtil.ValidateUUID(&kidUuid, &ErrInvalidJwkKidUuid); err != nil {
+	if err = cryptoutilUtil.ValidateUUID(&kidUUID, &ErrInvalidJwkKidUUID); err != nil {
 		return nil, err
 	}
-	return &kidUuid, nil
+	return &kidUUID, nil
 }
 
 func ExtractAlg(jwk joseJwk.Key) (*cryptoutilOpenapiModel.GenerateAlgorithm, error) {
@@ -202,7 +202,7 @@ func CreateJwkFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 }
 
 func validateJwkHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.GenerateAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJwkKidUuid); err != nil {
+	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJwkKidUUID); err != nil {
 		return nil, fmt.Errorf("JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWK alg must be non-nil")
