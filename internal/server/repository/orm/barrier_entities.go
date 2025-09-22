@@ -7,21 +7,21 @@ import (
 // UUIDv7 = timestamp (48-bits) + version (4-bits) + rand_a (12-bits) + var (2-bits) + rand_b (62-bits)
 // JWK/JWKs = JWE wrapping of JWK/JWKs, stored as JSON (PostgreSQL JSONB, SQLite JSON)
 
-// Root Keys are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is posible but infrequent.
+// BarrierRootKey represents root keys that are unsealed by HSM, KMS, Shamir Key Shares, etc. Rotation is possible but infrequent.
 type BarrierRootKey struct {
 	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null"`
 }
 
-// Intermediate Keys are wrapped by root Keys. Rotation is encouraged and can be frequent.
+// BarrierIntermediateKey represents intermediate keys that are wrapped by root keys. Rotation is encouraged and can be frequent.
 type BarrierIntermediateKey struct {
 	UUID      googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	Encrypted string          `gorm:"type:text;not null"` // Encrypted column contains JWEs (JOSE Encrypted JSON doc)
 	KEKUUID   googleUuid.UUID `gorm:"type:uuid;not null;foreignKey:RootKEKUUID;references:UUID"`
 }
 
-// Leaf Keys are wrapped by Intermediate Keys. Rotation is encouraged and can be very frequent.
+// BarrierContentKey represents leaf keys that are wrapped by intermediate keys. Rotation is encouraged and can be very frequent.
 type BarrierContentKey struct {
 	UUID googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	// Name       string          `gorm:"type:string;unique;not null" validate:"required,min=3,max=50"`

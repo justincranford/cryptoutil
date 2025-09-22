@@ -15,7 +15,7 @@ type Error struct {
 	Err                   error                 // Optional error
 }
 
-// implement Error() method for built-in error interface
+// Error implements the error interface for Error.
 func (e *Error) Error() string {
 	timestamp := e.Timestamp.UTC().Format(time.RFC3339Nano)
 	id := e.ID.String()

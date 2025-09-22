@@ -17,21 +17,21 @@ func NewOpenapiStrictServer(service *cryptoutilBusinessLogic.BusinessLogicServic
 	return &StrictServer{businessLogicService: service, oasOamMapper: &oamOasMapper{}}
 }
 
-// Create a new Elastic Key.
+// PostElastickey creates a new Elastic Key.
 // (POST /elastickey)
 func (s *StrictServer) PostElastickey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyResponseObject, error) {
 	addedElasticKey, err := s.businessLogicService.AddElasticKey(ctx, request.Body)
 	return s.oasOamMapper.toOasPostKeyResponse(err, addedElasticKey)
 }
 
-// Get an Elastic Key.
+// GetElastickeyElasticKeyID gets an Elastic Key.
 // (GET /elastickey/{elasticKeyID})
 func (s *StrictServer) GetElastickeyElasticKeyID(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDResponseObject, error) {
 	elasticKey, err := s.businessLogicService.GetElasticKeyByElasticKeyID(ctx, &request.ElasticKeyID)
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDResponse(err, elasticKey)
 }
 
-// Decrypt ciphertext using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
+// PostElastickeyElasticKeyIDDecrypt decrypts ciphertext using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
 // (POST /elastickey/{elasticKeyID}/decrypt)
 func (s *StrictServer) PostElastickeyElasticKeyIDDecrypt(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptResponseObject, error) {
 	encryptedBytes := []byte(*request.Body)
@@ -39,7 +39,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDDecrypt(ctx context.Context, re
 	return s.oasOamMapper.toOasPostDecryptResponse(err, decryptedBytes)
 }
 
-// Encrypt clear text data using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
+// PostElastickeyElasticKeyIDEncrypt encrypts clear text data using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWE message kid header.
 // (POST /elastickey/{elasticKeyID}/encrypt)
 func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncryptResponseObject, error) {
 	encryptParams := s.oasOamMapper.toOamPostEncryptQueryParams(&request.Params)
@@ -48,7 +48,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, re
 	return s.oasOamMapper.toOasPostEncryptResponse(err, encryptedBytes)
 }
 
-// Generate a random Secret Key, Key Pair, or other algorithm. It will be in JWK format, returned in encrypted form as a JWE message.
+// PostElastickeyElasticKeyIDGenerate generates a random Secret Key, Key Pair, or other algorithm. It will be in JWK format, returned in encrypted form as a JWE message.
 // (POST /elastickey/{elasticKeyID}/generate)
 func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
 	generateParams := s.oasOamMapper.toOamPostGenerateQueryParams(&request.Params)
@@ -56,21 +56,21 @@ func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, r
 	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedNonPublicJwkBytes, clearPublicJwkBytes)
 }
 
-// Generate a new Material Key in an Elastic Key.
+// PostElastickeyElasticKeyIDMaterialkey generates a new Material Key in an Elastic Key.
 // (POST /elastickey/{elasticKeyID}/materialkey)
 func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
 	key, err := s.businessLogicService.GenerateMaterialKeyInElasticKey(ctx, &request.ElasticKeyID, request.Body)
 	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err, key)
 }
 
-// Get Material Key in Elastic Key.
+// GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID gets Material Key in Elastic Key.
 // (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID})
 func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
 	key, err := s.businessLogicService.GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx, &request.ElasticKeyID, &request.MaterialKeyID)
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err, key)
 }
 
-// Find Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
+// GetElastickeyElasticKeyIDMaterialkeys finds Material Keys in Elastic Key. Supports optional filtering, sorting, and paging.
 // (GET /elastickey/{elasticKeyID}/materialkeys)
 func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
 	elasticKeyMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeyMaterialKeysQueryParams(&request.Params)
@@ -78,7 +78,7 @@ func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err, keys)
 }
 
-// Sign clear text using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
+// PostElastickeyElasticKeyIDSign signs clear text using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
 // (POST /elastickey/{elasticKeyID}/sign)
 func (s *StrictServer) PostElastickeyElasticKeyIDSign(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignResponseObject, error) {
 	clearBytes := []byte(*request.Body)
@@ -86,7 +86,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDSign(ctx context.Context, reque
 	return s.oasOamMapper.toOasPostSignResponse(err, signedBytes)
 }
 
-// Verify JWS message using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
+// PostElastickeyElasticKeyIDVerify verifies JWS message using a specific Elastic Key. The Material Key in the Elastic Key is identified by the JWS message kid header.
 // (POST /elastickey/{elasticKeyID}/verify)
 func (s *StrictServer) PostElastickeyElasticKeyIDVerify(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
 	signedBytes := []byte(*request.Body)
@@ -94,7 +94,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDVerify(ctx context.Context, req
 	return s.oasOamMapper.toOasPostVerifyResponse(err)
 }
 
-// Find Elastic Keys. Supports optional filtering, sorting, and paging.
+// GetElastickeys finds Elastic Keys. Supports optional filtering, sorting, and paging.
 // (GET /elastickeys)
 func (s *StrictServer) GetElastickeys(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeysRequestObject) (cryptoutilOpenapiServer.GetElastickeysResponseObject, error) {
 	elasticMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeyQueryParams(&request.Params)
@@ -102,7 +102,7 @@ func (s *StrictServer) GetElastickeys(ctx context.Context, request cryptoutilOpe
 	return s.oasOamMapper.toOasGetElastickeysResponse(err, elasticKeys)
 }
 
-// Find Material Keys. Supports optional filtering, sorting, and paging.
+// GetMaterialkeys finds Material Keys. Supports optional filtering, sorting, and paging.
 // (GET /materialkeys)
 func (s *StrictServer) GetMaterialkeys(ctx context.Context, request cryptoutilOpenapiServer.GetMaterialkeysRequestObject) (cryptoutilOpenapiServer.GetMaterialkeysResponseObject, error) {
 	keysQueryParams := s.oasOamMapper.toOamGetMaterialKeysQueryParams(&request.Params)

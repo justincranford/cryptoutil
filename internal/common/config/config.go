@@ -524,7 +524,7 @@ func analyzeSettings(settings []*Setting) analysisResult {
 	return result
 }
 
-// TODO Server only parameters?
+// Parse parses command line parameters and returns application settings.
 func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if len(commandParameters) == 0 {
 		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", or \"init\"")

@@ -117,7 +117,7 @@ func RequireCreateElasticKeyResponse(t *testing.T, context context.Context, open
 	return elasticKey
 }
 
-// TODO Support generate settings (e.g. expiration)
+// RequireMaterialKeyGenerateRequest creates a MaterialKeyGenerate request for testing.
 func RequireMaterialKeyGenerateRequest(t *testing.T) *cryptoutilOpenapiModel.MaterialKeyGenerate {
 	keyGenerate := cryptoutilOpenapiModel.MaterialKeyGenerate{}
 	return &keyGenerate
