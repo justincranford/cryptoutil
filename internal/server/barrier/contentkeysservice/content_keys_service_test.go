@@ -25,7 +25,7 @@ var (
 	testCtx                     = context.Background()
 	testTelemetryService        *cryptoutilTelemetry.TelemetryService
 	testJwkGenService           *cryptoutilJose.JwkGenService
-	testSqlRepository           *cryptoutilSqlRepository.SqlRepository
+	testSQLRepository           *cryptoutilSqlRepository.SqlRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
 	testIntermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
@@ -40,10 +40,10 @@ func TestMain(m *testing.M) {
 		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJwkGenService.Shutdown()
 
-		testSqlRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
-		defer testSqlRepository.Shutdown()
+		testSQLRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+		defer testSQLRepository.Shutdown()
 
-		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, testSettings)
+		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
 		defer testOrmRepository.Shutdown()
 
 		_, unsealJwk, _, _, _, err := testJwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)

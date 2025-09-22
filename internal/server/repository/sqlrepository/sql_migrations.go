@@ -24,7 +24,7 @@ var (
 	sqliteMigrationsFS embed.FS
 )
 
-func ApplyEmbeddedSqlMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType) error {
+func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryService, db *sql.DB, dbType SupportedDBType) error {
 	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", dbType)
 
 	var sourceDriver source.Driver

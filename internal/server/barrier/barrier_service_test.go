@@ -60,10 +60,10 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 
 func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	// initialize repositories, will be reused by original and restarted unseal service
-	testSqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
-	defer testSqlRepository.Shutdown()
+	testSQLRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	defer testSQLRepository.Shutdown()
 
-	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSqlRepository, testJwkGenService, testSettings)
+	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
 	// generate three JWKs; 2 valid, 1 invalid

@@ -41,27 +41,27 @@ const (
 	ContainerModePreferred ContainerMode = "preferred"
 	ContainerModeRequired  ContainerMode = "required"
 
-	firstDbPingAttemptWait = 750 * time.Millisecond
-	maxDbPingAttempts      = 3
-	nextDbPingAttemptWait  = 1 * time.Second
+	firstDBPingAttemptWait = 750 * time.Millisecond
+	maxDBPingAttempts      = 3
+	nextDBPingAttemptWait  = 1 * time.Second
 )
 
 var (
-	postgresContainerDbName = func() string {
+	postgresContainerDBName = func() string {
 		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random database name: %v", err))
 		}
 		return fmt.Sprintf("keyservice%04d", val.Int64())
 	}()
-	postgresContainerDbUsername = func() string {
+	postgresContainerDBUsername = func() string {
 		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random username: %v", err))
 		}
 		return fmt.Sprintf("postgresUsername%04d", val.Int64())
 	}()
-	postgresContainerDbPassword = func() string {
+	postgresContainerDBPassword = func() string {
 		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random password: %v", err))
@@ -107,7 +107,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		case DBTypeSQLite:
 			return nil, ErrContainerOptionNotExist
 		case DBTypePostgres:
-			containerDatabaseURL, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, telemetryService, postgresContainerDbName, postgresContainerDbUsername, postgresContainerDbPassword)
+			containerDatabaseURL, shutdownDBContainer, err = cryptoutilContainer.StartPostgres(ctx, telemetryService, postgresContainerDBName, postgresContainerDBUsername, postgresContainerDBPassword)
 		default:
 			return nil, fmt.Errorf("%w: %s", ErrUnsupportedDBType, dbType)
 		}
@@ -142,12 +142,12 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 			telemetryService.Slogger.Error("failed to set busy timeout", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 			return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
 		}
-	} else if firstDbPingAttemptWait > 0 {
-		time.Sleep(firstDbPingAttemptWait)
+	} else if firstDBPingAttemptWait > 0 {
+		time.Sleep(firstDBPingAttemptWait)
 	}
 	sqlRepository.logConnectionPoolSettings()
 
-	for attempt, attemptsRemaining := 1, maxDbPingAttempts; attemptsRemaining > 0; attemptsRemaining-- {
+	for attempt, attemptsRemaining := 1, maxDBPingAttempts; attemptsRemaining > 0; attemptsRemaining-- {
 		err = sqlDB.Ping()
 		if err == nil {
 			telemetryService.Slogger.Debug("successfully pinged database", "attempt", attempt, "containerMode", string(containerMode), "dbType", string(dbType))
@@ -156,18 +156,18 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		telemetryService.Slogger.Warn("failed to ping database", "attempt", attempt, "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrPingDatabaseFailed, err))
 		attempt++
 		if attemptsRemaining > 0 {
-			time.Sleep(nextDbPingAttemptWait)
+			time.Sleep(nextDBPingAttemptWait)
 		}
 	}
 
 	if err != nil {
-		telemetryService.Slogger.Warn("giving up trying to ping database", "attempts", maxDbPingAttempts, "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrPingDatabaseFailed, err))
+		telemetryService.Slogger.Warn("giving up trying to ping database", "attempts", maxDBPingAttempts, "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrPingDatabaseFailed, err))
 		sqlRepository.Shutdown()
 		return nil, errors.Join(ErrPingDatabaseFailed, fmt.Errorf("dbType: %s", string(dbType)))
 	}
 
 	telemetryService.Slogger.Debug("applying migrations")
-	err = ApplyEmbeddedSqlMigrations(telemetryService, sqlDB, sqlRepository.GetDBType())
+	err = ApplyEmbeddedSQLMigrations(telemetryService, sqlDB, sqlRepository.GetDBType())
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply SQL migrations: %w", err)
 	}

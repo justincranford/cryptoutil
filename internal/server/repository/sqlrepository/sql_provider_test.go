@@ -18,7 +18,7 @@ var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("sql_provider_test")
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testSqlRepository    *SqlRepository
+	testSQLRepository    *SqlRepository
 )
 
 func TestMain(m *testing.M) {
@@ -27,9 +27,9 @@ func TestMain(m *testing.M) {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testSqlRepository = RequireNewForTest(testCtx, testTelemetryService, testSettings)
-		defer testSqlRepository.Shutdown()
-		testSqlRepository.logConnectionPoolSettings()
+		testSQLRepository = RequireNewForTest(testCtx, testTelemetryService, testSettings)
+		defer testSQLRepository.Shutdown()
+		testSQLRepository.logConnectionPoolSettings()
 
 		rc = m.Run()
 	}()
@@ -43,7 +43,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 		}
 	}()
 
-	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		panic("simulated panic during transaction")
 	})
@@ -51,7 +51,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 }
 
 func TestSqlTransaction_Success(t *testing.T) {
-	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
 		return nil
@@ -60,7 +60,7 @@ func TestSqlTransaction_Success(t *testing.T) {
 }
 
 func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
-	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
 
@@ -73,7 +73,7 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
-	sqlTransaction := &SqlTransaction{sqlRepository: testSqlRepository}
+	sqlTransaction := &SqlTransaction{sqlRepository: testSQLRepository}
 
 	commitErr := sqlTransaction.commit()
 	require.Error(t, commitErr)
@@ -81,7 +81,7 @@ func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
 }
 
 func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
-	sqlTransaction := &SqlTransaction{sqlRepository: testSqlRepository}
+	sqlTransaction := &SqlTransaction{sqlRepository: testSQLRepository}
 
 	rollbackErr := sqlTransaction.rollback()
 	require.Error(t, rollbackErr)
@@ -95,13 +95,13 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 
 		return nil
 	}
-	err := testSqlRepository.WithTransaction(testCtx, true, newVar)
+	err := testSQLRepository.WithTransaction(testCtx, true, newVar)
 	require.Error(t, err)
 	require.EqualError(t, err, "database sqlite doesn't support read-only transactions")
 }
 
 func TestSqlTransaction_RollbackOnError(t *testing.T) {
-	err := testSqlRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
+	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SqlTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
 		return fmt.Errorf("intentional failure") // Simulate an error within the transaction

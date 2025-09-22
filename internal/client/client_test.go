@@ -215,7 +215,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
 				elasticKeyCreate := RequireCreateElasticKeyRequest(t, &testCase.name, &testCase.description, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
-				logObjectAsJson(t, elasticKey)
+				logObjectAsJSON(t, elasticKey)
 			})
 			if elasticKey == nil {
 				return
@@ -224,7 +224,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
-				logObjectAsJson(t, key)
+				logObjectAsJSON(t, key)
 			})
 
 			var cleartext *string
@@ -240,7 +240,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
-				logObjectAsJson(t, key)
+				logObjectAsJSON(t, key)
 			})
 
 			var decryptedtext *string
@@ -255,7 +255,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 				t.Run(testCaseNamePrefix+"  Generate Data Key  "+algorithmSuffix, func(t *testing.T) {
 					generateDataKeyParams := &cryptoutilOpenapiModel.GenerateParams{Context: nil, Alg: &generateAlgorithm}
 					generateDataKeyResponse = RequireGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, generateDataKeyParams)
-					logObjectAsJson(t, generateDataKeyResponse)
+					logObjectAsJSON(t, generateDataKeyResponse)
 				})
 
 				var decryptedDataKey *string
@@ -269,7 +269,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 					dataKeyJwk, err := joseJwk.ParseKey([]byte(*decryptedDataKey))
 					require.NoError(t, err)
 					require.NotNil(t, dataKeyJwk)
-					logObjectAsJson(t, dataKeyJwk)
+					logObjectAsJSON(t, dataKeyJwk)
 
 					kidUUID, err := cryptoutilJose.ExtractKidUUID(dataKeyJwk)
 					require.NoError(t, err)
@@ -300,7 +300,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
 				elasticKeyCreate := RequireCreateElasticKeyRequest(t, &testCase.name, &testCase.description, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
-				logObjectAsJson(t, elasticKey)
+				logObjectAsJSON(t, elasticKey)
 			})
 			if elasticKey == nil {
 				return
@@ -325,7 +325,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				} else {
 					require.Nil(t, key.ClearPublic)
 				}
-				logObjectAsJson(t, key)
+				logObjectAsJSON(t, key)
 			})
 			var cleartext *string
 			var signedtext *string
@@ -340,7 +340,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
-				logObjectAsJson(t, key)
+				logObjectAsJSON(t, key)
 			})
 
 			var verifiedtest *string
@@ -354,7 +354,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	}
 }
 
-func logObjectAsJson(t *testing.T, object any) {
+func logObjectAsJSON(t *testing.T, object any) {
 	jsonString, err := json.MarshalIndent(object, "", " ")
 	require.NoError(t, err)
 	t.Log(string(jsonString))
@@ -365,7 +365,7 @@ func logJwe(t *testing.T, encodedJweMessage *string) {
 
 	jweMessage, err := joseJwe.Parse([]byte(*encodedJweMessage))
 	require.NoError(t, err)
-	logObjectAsJson(t, jweMessage)
+	logObjectAsJSON(t, jweMessage)
 }
 
 func logJws(t *testing.T, encodedJwsMessage *string) {
@@ -373,5 +373,5 @@ func logJws(t *testing.T, encodedJwsMessage *string) {
 
 	jwsMessage, err := joseJws.Parse([]byte(*encodedJwsMessage))
 	require.NoError(t, err)
-	logObjectAsJson(t, jwsMessage)
+	logObjectAsJSON(t, jwsMessage)
 }
