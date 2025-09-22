@@ -46,23 +46,23 @@ func ComputeCombinations(m M, n int) (combinations, error) {
 
 // ENCODE
 
-func (combinations *combinations) Encode() [][]byte {
-	encodings := make([][]byte, 0, len(*combinations))
-	for _, combination := range *combinations {
+func (c *combinations) Encode() [][]byte {
+	encodings := make([][]byte, 0, len(*c))
+	for _, combination := range *c {
 		encodings = append(encodings, combination.Encode())
 	}
 	return encodings
 }
 
-func (combination *combination) Encode() []byte {
+func (c *combination) Encode() []byte {
 	var buffer bytes.Buffer
 	// Add bounds checking for uint8 conversion
-	combLen := len(*combination)
+	combLen := len(*c)
 	if combLen > 255 {
 		panic("combination length exceeds uint8 maximum")
 	}
 	buffer.WriteByte(uint8(combLen)) // encode number of values
-	for _, value := range *combination {
+	for _, value := range *c {
 		valueLen := len(value)
 		if valueLen > 255 {
 			panic("value length exceeds uint8 maximum")

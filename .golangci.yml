@@ -96,7 +96,7 @@ linters-settings:
     severity: warning
     
   stylecheck:
-    checks: ["all", "-ST1000", "-ST1016"]
+    checks: ["all", "-ST1000"]
 
 issues:
   exclude-dirs:

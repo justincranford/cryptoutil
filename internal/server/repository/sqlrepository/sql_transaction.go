@@ -23,61 +23,61 @@ type SqlTransactionState struct {
 	sqlTx         *sql.Tx
 }
 
-func (sqlRepository *SqlRepository) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SqlTransaction) error) error {
+func (s *SqlRepository) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SqlTransaction) error) error {
 	if readOnly {
-		switch sqlRepository.dbType {
+		switch s.dbType {
 		case DBTypeSQLite: // SQLite lacks support for read-only transactions
-			sqlRepository.telemetryService.Slogger.Warn("database doesn't support read-only transactions", "dbType", string(sqlRepository.dbType))
-			return fmt.Errorf("database %s doesn't support read-only transactions", string(sqlRepository.dbType))
+			s.telemetryService.Slogger.Warn("database doesn't support read-only transactions", "dbType", string(s.dbType))
+			return fmt.Errorf("database %s doesn't support read-only transactions", string(s.dbType))
 		case DBTypePostgres:
-			sqlRepository.telemetryService.Slogger.Debug("database supports read-only transactions", "dbType", string(sqlRepository.dbType))
+			s.telemetryService.Slogger.Debug("database supports read-only transactions", "dbType", string(s.dbType))
 		default:
-			return fmt.Errorf("%w: %s", ErrUnsupportedDBType, string(sqlRepository.dbType))
+			return fmt.Errorf("%w: %s", ErrUnsupportedDBType, string(s.dbType))
 		}
 	}
 
-	sqlTransaction, err := sqlRepository.newTransaction()
+	sqlTransaction, err := s.newTransaction()
 	if err != nil {
-		sqlRepository.telemetryService.Slogger.Error("failed to create transaction", "error", err)
+		s.telemetryService.Slogger.Error("failed to create transaction", "error", err)
 		return fmt.Errorf("failed to create transaction: %w", err)
 	}
 
 	err = sqlTransaction.begin(ctx, readOnly)
 	if err != nil {
-		sqlRepository.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
+		s.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	defer func() {
 		if sqlTransaction.state != nil { // Avoid rollback if already committed or rolled back
 			if err := sqlTransaction.rollback(); err != nil {
-				sqlRepository.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+				s.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 			}
 		}
 		if recover := recover(); recover != nil {
-			sqlRepository.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", recover, "stack", string(debug.Stack()))
+			s.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", recover, "stack", string(debug.Stack()))
 			panic(recover) // re-throw the panic after rollback
 		}
 	}()
 
 	if err := function(sqlTransaction); err != nil {
-		sqlRepository.telemetryService.Slogger.Error("transaction function failed", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+		s.telemetryService.Slogger.Error("transaction function failed", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
 	return sqlTransaction.commit()
 }
 
-func (sqlRepository *SqlRepository) newTransaction() (*SqlTransaction, error) {
-	if sqlRepository == nil {
+func (s *SqlRepository) newTransaction() (*SqlTransaction, error) {
+	if s == nil {
 		return nil, fmt.Errorf("SQL repository cannot be nil")
-	} else if sqlRepository.sqlDB == nil {
+	} else if s.sqlDB == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
-	if sqlRepository.verboseMode {
-		sqlRepository.telemetryService.Slogger.Debug("new transaction")
+	if s.verboseMode {
+		s.telemetryService.Slogger.Debug("new transaction")
 	}
-	return &SqlTransaction{sqlRepository: sqlRepository}, nil
+	return &SqlTransaction{sqlRepository: s}, nil
 }
 
 // TransactionID Transaction ID is valid (non-nil) only when a transaction is active

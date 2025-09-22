@@ -42,6 +42,6 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	return &OrmRepository{telemetryService: telemetryService, sqlRepository: sqlRepository, jwkGenService: jwkGenService, gormDB: gormDB, verboseMode: settings.VerboseMode}, nil
 }
 
-func (s *OrmRepository) Shutdown() {
+func (r *OrmRepository) Shutdown() {
 	// no-op
 }
