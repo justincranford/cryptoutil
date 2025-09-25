@@ -121,7 +121,6 @@ issues:
       linters:
         - gocyclo
         - dupl
-        - gosec
         
     - path: cmd/.*/main\.go
       linters:
