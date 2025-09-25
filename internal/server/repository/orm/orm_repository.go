@@ -18,12 +18,12 @@ import (
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	sqlRepository    *cryptoutilSQLRepository.SQLRepository
-	jwkGenService    *cryptoutilJose.JwkGenService
+	jwkGenService    *cryptoutilJose.JWKGenService
 	verboseMode      bool
 	gormDB           *gorm.DB
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JwkGenService, settings *cryptoutilConfig.Settings) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JWKGenService, settings *cryptoutilConfig.Settings) (*OrmRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {

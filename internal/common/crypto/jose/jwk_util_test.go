@@ -51,11 +51,11 @@ var (
 	testCasesGenerateOnce sync.Once
 )
 
-func TestIsPrivateJwk(t *testing.T) {
+func TestIsPrivateJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isPrivate, err := IsPrivateJwk(tc.jwk)
+			isPrivate, err := IsPrivateJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {
@@ -66,11 +66,11 @@ func TestIsPrivateJwk(t *testing.T) {
 	}
 }
 
-func TestIsPublicJwk(t *testing.T) {
+func TestIsPublicJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isPublic, err := IsPublicJwk(tc.jwk)
+			isPublic, err := IsPublicJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {
@@ -81,11 +81,11 @@ func TestIsPublicJwk(t *testing.T) {
 	}
 }
 
-func TestIsAsymmetricJwk(t *testing.T) {
+func TestIsAsymmetricJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isAsymmetric, err := IsAsymmetricJwk(tc.jwk)
+			isAsymmetric, err := IsAsymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {
@@ -96,11 +96,11 @@ func TestIsAsymmetricJwk(t *testing.T) {
 	}
 }
 
-func TestIsSymmetricJwk(t *testing.T) {
+func TestIsSymmetricJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isSymmetric, err := IsSymmetricJwk(tc.jwk)
+			isSymmetric, err := IsSymmetricJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {
@@ -111,11 +111,11 @@ func TestIsSymmetricJwk(t *testing.T) {
 	}
 }
 
-func TestIsEncryptJwk(t *testing.T) {
+func TestIsEncryptJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isEncrypt, err := IsEncryptJwk(tc.jwk)
+			isEncrypt, err := IsEncryptJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {
@@ -126,11 +126,11 @@ func TestIsEncryptJwk(t *testing.T) {
 	}
 }
 
-func TestIsDecryptJwk(t *testing.T) {
+func TestIsDecryptJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isDecrypt, err := IsDecryptJwk(tc.jwk)
+			isDecrypt, err := IsDecryptJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {
@@ -141,11 +141,11 @@ func TestIsDecryptJwk(t *testing.T) {
 	}
 }
 
-func TestIsSignJwk(t *testing.T) {
+func TestIsSignJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isSign, err := IsSignJwk(tc.jwk)
+			isSign, err := IsSignJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {
@@ -156,11 +156,11 @@ func TestIsSignJwk(t *testing.T) {
 	}
 }
 
-func TestIsVerifyJwk(t *testing.T) {
+func TestIsVerifyJWK(t *testing.T) {
 	tests := getTestCases(t)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			isVerify, err := IsVerifyJwk(tc.jwk)
+			isVerify, err := IsVerifyJWK(tc.jwk)
 			if tc.wantErr != nil {
 				assert.ErrorIs(t, err, tc.wantErr)
 			} else {

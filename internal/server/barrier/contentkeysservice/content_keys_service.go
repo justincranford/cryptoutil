@@ -16,12 +16,12 @@ import (
 
 type ContentKeysService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
-	jwkGenService           *cryptoutilJose.JwkGenService
+	jwkGenService           *cryptoutilJose.JWKGenService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
 }
 
-func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService) (*ContentKeysService, error) {
+func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, intermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService) (*ContentKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -35,7 +35,7 @@ func NewContentKeysService(telemetryService *cryptoutilTelemetry.TelemetryServic
 }
 
 func (s *ContentKeysService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, clearContentBytes []byte) ([]byte, *googleUuid.UUID, error) {
-	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+	contentKeyKidUUID, clearContentKey, _, _, _, err := s.jwkGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate content JWK: %w", err)
 	}

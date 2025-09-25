@@ -12,27 +12,27 @@ import (
 const fingerprintLeeway = 1
 
 type UnsealKeysServiceFromSysInfo struct {
-	unsealJwks []joseJwk.Key
+	unsealJWKs []joseJwk.Key
 }
 
-func (u *UnsealKeysServiceFromSysInfo) EncryptKey(clearJwk joseJwk.Key) ([]byte, error) {
-	return encryptKey(u.unsealJwks, clearJwk)
+func (u *UnsealKeysServiceFromSysInfo) EncryptKey(clearJWK joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJWKs, clearJWK)
 }
 
-func (u *UnsealKeysServiceFromSysInfo) DecryptKey(encryptedJwkBytes []byte) (joseJwk.Key, error) {
-	return decryptKey(u.unsealJwks, encryptedJwkBytes)
+func (u *UnsealKeysServiceFromSysInfo) DecryptKey(encryptedJWKBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJWKs, encryptedJWKBytes)
 }
 
 func (u *UnsealKeysServiceFromSysInfo) EncryptData(clearData []byte) ([]byte, error) {
-	return encryptData(u.unsealJwks, clearData)
+	return encryptData(u.unsealJWKs, clearData)
 }
 
 func (u *UnsealKeysServiceFromSysInfo) DecryptData(encryptedDataBytes []byte) ([]byte, error) {
-	return decryptData(u.unsealJwks, encryptedDataBytes)
+	return decryptData(u.unsealJWKs, encryptedDataBytes)
 }
 
 func (u *UnsealKeysServiceFromSysInfo) Shutdown() {
-	u.unsealJwks = nil
+	u.unsealJWKs = nil
 }
 
 func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealKeysService, error) {
@@ -53,9 +53,9 @@ func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoPr
 		chooseN = numSysinfos - fingerprintLeeway // use combinations of M choose M-1
 	}
 
-	unsealJwks, err := deriveJwksFromMChooseNCombinations(sysinfos, chooseN)
+	unsealJWKs, err := deriveJWKsFromMChooseNCombinations(sysinfos, chooseN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
 	}
-	return &UnsealKeysServiceFromSysInfo{unsealJwks: unsealJwks}, nil
+	return &UnsealKeysServiceFromSysInfo{unsealJWKs: unsealJWKs}, nil
 }

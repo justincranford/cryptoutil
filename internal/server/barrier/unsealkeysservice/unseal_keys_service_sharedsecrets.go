@@ -7,27 +7,27 @@ import (
 )
 
 type UnsealKeysServiceSharedSecrets struct {
-	unsealJwks []joseJwk.Key
+	unsealJWKs []joseJwk.Key
 }
 
-func (u *UnsealKeysServiceSharedSecrets) EncryptKey(clearJwk joseJwk.Key) ([]byte, error) {
-	return encryptKey(u.unsealJwks, clearJwk)
+func (u *UnsealKeysServiceSharedSecrets) EncryptKey(clearJWK joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJWKs, clearJWK)
 }
 
-func (u *UnsealKeysServiceSharedSecrets) DecryptKey(encryptedJwkBytes []byte) (joseJwk.Key, error) {
-	return decryptKey(u.unsealJwks, encryptedJwkBytes)
+func (u *UnsealKeysServiceSharedSecrets) DecryptKey(encryptedJWKBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJWKs, encryptedJWKBytes)
 }
 
 func (u *UnsealKeysServiceSharedSecrets) EncryptData(clearData []byte) ([]byte, error) {
-	return encryptData(u.unsealJwks, clearData)
+	return encryptData(u.unsealJWKs, clearData)
 }
 
 func (u *UnsealKeysServiceSharedSecrets) DecryptData(encryptedDataBytes []byte) ([]byte, error) {
-	return decryptData(u.unsealJwks, encryptedDataBytes)
+	return decryptData(u.unsealJWKs, encryptedDataBytes)
 }
 
 func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
-	u.unsealJwks = nil
+	u.unsealJWKs = nil
 }
 
 func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) {
@@ -56,9 +56,9 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 		}
 	}
 
-	unsealJwks, err := deriveJwksFromMChooseNCombinations(sharedSecretsM, chooseN)
+	unsealJWKs, err := deriveJWKsFromMChooseNCombinations(sharedSecretsM, chooseN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWK combinations: %w", err)
 	}
-	return &UnsealKeysServiceSharedSecrets{unsealJwks: unsealJwks}, nil
+	return &UnsealKeysServiceSharedSecrets{unsealJWKs: unsealJWKs}, nil
 }

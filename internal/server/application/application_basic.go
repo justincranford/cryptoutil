@@ -13,7 +13,7 @@ import (
 type ServerApplicationBasic struct {
 	TelemetryService  *cryptoutilTelemetry.TelemetryService
 	UnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
-	JwkGenService     *cryptoutilJose.JwkGenService
+	JWKGenService     *cryptoutilJose.JWKGenService
 }
 
 func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig.Settings) (*ServerApplicationBasic, error) {
@@ -33,13 +33,13 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig
 	}
 	serverApplicationBasic.UnsealKeysService = unsealKeysService
 
-	jwkGenService, err := cryptoutilJose.NewJwkGenService(ctx, telemetryService)
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
 		serverApplicationBasic.Shutdown()
 		return nil, fmt.Errorf("failed to create JWK Gen Service: %w", err)
 	}
-	serverApplicationBasic.JwkGenService = jwkGenService
+	serverApplicationBasic.JWKGenService = jwkGenService
 
 	return serverApplicationBasic, nil
 }
@@ -49,8 +49,8 @@ func (c *ServerApplicationBasic) Shutdown() func() {
 		if c.TelemetryService != nil {
 			c.TelemetryService.Slogger.Debug("stopping server basic")
 		}
-		if c.JwkGenService != nil {
-			c.JwkGenService.Shutdown()
+		if c.JWKGenService != nil {
+			c.JWKGenService.Shutdown()
 		}
 		if c.UnsealKeysService != nil {
 			c.UnsealKeysService.Shutdown()

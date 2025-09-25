@@ -20,7 +20,7 @@ type UnsealKeysService interface {
 	Shutdown()
 }
 
-func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key, error) {
+func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key, error) {
 	combinations, err := cryptoutilCombinations.ComputeCombinations(m, chooseN)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute %d of %d combinations of shared secrets: %w", len(m), chooseN, err)
@@ -29,7 +29,7 @@ func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 	}
 
 	fixedContextBytes := []byte("derive unseal JWKs v1")
-	unsealJwks := make([]joseJwk.Key, 0, len(combinations))
+	unsealJWKs := make([]joseJwk.Key, 0, len(combinations))
 	for _, combination := range combinations {
 		var concatenatedCombinationBytes []byte
 		for _, combinationElement := range combination {
@@ -47,43 +47,43 @@ func deriveJwksFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		if err != nil {
 			return nil, fmt.Errorf("failed to create UUIDv7: %w", err)
 		}
-		_, jwk, _, _, _, err := cryptoutilJose.CreateJweJwkFromKey(&kekKidUUID, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW, cryptoutilKeyGen.SecretKey(derivedKeyBytes)) // use derived JWK for envelope encryption (i.e. A256GCM Key Wrap), not DIRECT encryption
+		_, jwk, _, _, _, err := cryptoutilJose.CreateJweJWKFromKey(&kekKidUUID, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW, cryptoutilKeyGen.SecretKey(derivedKeyBytes)) // use derived JWK for envelope encryption (i.e. A256GCM Key Wrap), not DIRECT encryption
 		if err != nil {
 			return nil, fmt.Errorf("failed to create JWK: %w", err)
 		}
 
-		unsealJwks = append(unsealJwks, jwk)
+		unsealJWKs = append(unsealJWKs, jwk)
 	}
 
-	return unsealJwks, nil
+	return unsealJWKs, nil
 }
 
-func encryptKey(unsealJwks []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, error) {
-	_, encryptedRootKeyBytes, err := cryptoutilJose.EncryptKey(unsealJwks, clearRootKey)
+func encryptKey(unsealJWKs []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, error) {
+	_, encryptedRootKeyBytes, err := cryptoutilJose.EncryptKey(unsealJWKs, clearRootKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt root JWK with unseal JWK: %w", err)
 	}
 	return encryptedRootKeyBytes, nil
 }
 
-func decryptKey(unsealJwks []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
-	decryptedRootKey, err := cryptoutilJose.DecryptKey(unsealJwks, encryptedRootKeyBytes)
+func decryptKey(unsealJWKs []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
+	decryptedRootKey, err := cryptoutilJose.DecryptKey(unsealJWKs, encryptedRootKeyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK: %w", err)
 	}
 	return decryptedRootKey, nil
 }
 
-func encryptData(unsealJwks []joseJwk.Key, clearData []byte) ([]byte, error) {
-	_, encryptedDataBytes, err := cryptoutilJose.EncryptBytes(unsealJwks, clearData)
+func encryptData(unsealJWKs []joseJwk.Key, clearData []byte) ([]byte, error) {
+	_, encryptedDataBytes, err := cryptoutilJose.EncryptBytes(unsealJWKs, clearData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt data with unseal JWK: %w", err)
 	}
 	return encryptedDataBytes, nil
 }
 
-func decryptData(unsealJwks []joseJwk.Key, encryptedDataBytes []byte) ([]byte, error) {
-	decryptedData, err := cryptoutilJose.DecryptBytes(unsealJwks, encryptedDataBytes)
+func decryptData(unsealJWKs []joseJwk.Key, encryptedDataBytes []byte) ([]byte, error) {
+	decryptedData, err := cryptoutilJose.DecryptBytes(unsealJWKs, encryptedDataBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt data with unseal JWK: %w", err)
 	}

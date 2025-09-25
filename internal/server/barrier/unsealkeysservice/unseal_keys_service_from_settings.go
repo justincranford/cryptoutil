@@ -20,19 +20,19 @@ const (
 )
 
 type UnsealKeysServiceFromSettings struct {
-	unsealJwks []joseJwk.Key
+	unsealJWKs []joseJwk.Key
 }
 
 func (u *UnsealKeysServiceFromSettings) EncryptKey(clearRootKey joseJwk.Key) ([]byte, error) {
-	return encryptKey(u.unsealJwks, clearRootKey)
+	return encryptKey(u.unsealJWKs, clearRootKey)
 }
 
 func (u *UnsealKeysServiceFromSettings) DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error) {
-	return decryptKey(u.unsealJwks, encryptedRootKeyBytes)
+	return decryptKey(u.unsealJWKs, encryptedRootKeyBytes)
 }
 
 func (u *UnsealKeysServiceFromSettings) Shutdown() {
-	u.unsealJwks = nil
+	u.unsealJWKs = nil
 }
 
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
@@ -96,15 +96,15 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("expected %d shared secret files, got %d", n, len(filesContents))
 		}
 
-		unsealJwks := make([]joseJwk.Key, 0, len(filesContents))
+		unsealJWKs := make([]joseJwk.Key, 0, len(filesContents))
 		for _, fileContents := range filesContents {
 			jwk, err := joseJwk.ParseKey(fileContents)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse JWK from file contents: %w", err)
 			}
-			unsealJwks = append(unsealJwks, jwk)
+			unsealJWKs = append(unsealJWKs, jwk)
 		}
 
-		return NewUnsealKeysServiceSimple(unsealJwks)
+		return NewUnsealKeysServiceSimple(unsealJWKs)
 	}
 }

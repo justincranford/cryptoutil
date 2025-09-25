@@ -10,10 +10,10 @@ var (
 	ErrUUIDCantBeMax       = errors.New("UUID can't be max UUID")
 	ErrUUIDsCantBeNil      = errors.New("UUIDs can't be nil")
 	ErrUUIDsCantBeEmpty    = errors.New("UUIDs can't be empty")
-	ErrJwkMustBeEncryptJwk = errors.New("JWK must be an encrypt JWK")
-	ErrJwkMustBeDecryptJwk = errors.New("JWK must be a decrypt JWK")
-	ErrJwkMustBeSignJwk    = errors.New("JWK must be a sign JWK")
-	ErrJwkMustBeVerifyJwk  = errors.New("JWK must be a verify JWK")
+	ErrJWKMustBeEncryptJWK = errors.New("JWK must be an encrypt JWK")
+	ErrJWKMustBeDecryptJWK = errors.New("JWK must be a decrypt JWK")
+	ErrJWKMustBeSignJWK    = errors.New("JWK must be a sign JWK")
+	ErrJWKMustBeVerifyJWK  = errors.New("JWK must be a verify JWK")
 
 	Errs = []error{
 		ErrCantBeNil,

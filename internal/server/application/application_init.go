@@ -54,7 +54,7 @@ func generateTLSServerSubjects(settings *cryptoutilConfig.Settings, serverApplic
 }
 
 func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, prefix string, publicTLSServerDNSNames []string, publicTLSServerIPAddresses []net.IP) (*cryptoutilCertificate.Subject, error) {
-	tlsServerSubjectsKeyPairs := serverApplicationBasic.JwkGenService.ECDSAP256KeyGenPool.GetMany(2)
+	tlsServerSubjectsKeyPairs := serverApplicationBasic.JWKGenService.ECDSAP256KeyGenPool.GetMany(2)
 
 	tlsServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", 10*365*cryptoutilDateTime.Days1)
 	if err != nil {

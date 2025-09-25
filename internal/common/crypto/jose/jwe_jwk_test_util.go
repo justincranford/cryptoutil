@@ -10,10 +10,10 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-func GenerateJweJwksForTest(t *testing.T, count int, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
+func GenerateJweJWKsForTest(t *testing.T, count int, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
 	type jwkOrErr struct {
-		nonPublicJwk joseJwk.Key
-		publicJwk    joseJwk.Key
+		nonPublicJWK joseJwk.Key
+		publicJWK    joseJwk.Key
 		err          error
 	}
 
@@ -23,26 +23,26 @@ func GenerateJweJwksForTest(t *testing.T, count int, enc *joseJwa.ContentEncrypt
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, nonPublicJwk, publicJwk, _, _, err := GenerateJweJwkForEncAndAlg(enc, alg)
-			jwkOrErrs <- jwkOrErr{nonPublicJwk: nonPublicJwk, publicJwk: publicJwk, err: err}
+			_, nonPublicJWK, publicJWK, _, _, err := GenerateJweJWKForEncAndAlg(enc, alg)
+			jwkOrErrs <- jwkOrErr{nonPublicJWK: nonPublicJWK, publicJWK: publicJWK, err: err}
 		}()
 	}
 	wg.Wait()
 	close(jwkOrErrs)
 
-	nonPublicJwks := make([]joseJwk.Key, 0, count)
-	publicJwks := make([]joseJwk.Key, 0, count)
+	nonPublicJWKs := make([]joseJwk.Key, 0, count)
+	publicJWKs := make([]joseJwk.Key, 0, count)
 	errs := make([]error, 0, count)
 	for res := range jwkOrErrs {
 		if res.err != nil {
 			errs = append(errs, res.err)
 		} else {
-			nonPublicJwks = append(nonPublicJwks, res.nonPublicJwk)
-			publicJwks = append(publicJwks, res.publicJwk)
+			nonPublicJWKs = append(nonPublicJWKs, res.nonPublicJWK)
+			publicJWKs = append(publicJWKs, res.publicJWK)
 		}
 	}
 	if len(errs) > 0 {
 		return nil, nil, fmt.Errorf("unexpected %d errors: %w", len(errs), errors.Join(errs...))
 	}
-	return nonPublicJwks, publicJwks, nil
+	return nonPublicJWKs, publicJWKs, nil
 }

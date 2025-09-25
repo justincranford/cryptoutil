@@ -24,7 +24,7 @@ var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("orm_transaction_test")
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testJwkGenService    *cryptoutilJose.JwkGenService
+	testJWKGenService    *cryptoutilJose.JWKGenService
 	testSQLRepository    *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository    *OrmRepository
 	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
@@ -37,13 +37,13 @@ func TestMain(m *testing.M) {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
-		defer testJwkGenService.Shutdown()
+		testJWKGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		defer testJWKGenService.Shutdown()
 
 		testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSQLRepository.Shutdown()
 
-		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
+		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
 		defer testOrmRepository.Shutdown()
 
 		rc = m.Run()
@@ -140,7 +140,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 			require.NotNil(t, ormTransaction.Context())
 			require.Equal(t, testCase.txMode, *ormTransaction.Mode())
 
-			uuidV7 := testJwkGenService.GenerateUUIDv7()
+			uuidV7 := testJWKGenService.GenerateUUIDv7()
 			elasticKey, err := BuildElasticKey(*uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilOpenapiModel.Creating))
 			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 Elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
@@ -153,7 +153,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 				now := time.Now().UTC()
 				key := MaterialKey{
 					ElasticKeyID:                  elasticKey.ElasticKeyID,
-					MaterialKeyID:                 *testJwkGenService.GenerateUUIDv7(),
+					MaterialKeyID:                 *testJWKGenService.GenerateUUIDv7(),
 					MaterialKeyClearPublic:        nil,
 					MaterialKeyEncryptedNonPublic: multipleByteSlices[nextKeyID-1],
 					MaterialKeyGenerateDate:       &now,

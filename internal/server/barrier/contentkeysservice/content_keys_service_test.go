@@ -24,7 +24,7 @@ var (
 	testSettings                = cryptoutilConfig.RequireNewForTest("content_keys_service_test")
 	testCtx                     = context.Background()
 	testTelemetryService        *cryptoutilTelemetry.TelemetryService
-	testJwkGenService           *cryptoutilJose.JwkGenService
+	testJWKGenService           *cryptoutilJose.JWKGenService
 	testSQLRepository           *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
@@ -37,25 +37,25 @@ func TestMain(m *testing.M) {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
-		defer testJwkGenService.Shutdown()
+		testJWKGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		defer testJWKGenService.Shutdown()
 
 		testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSQLRepository.Shutdown()
 
-		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
+		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
 		defer testOrmRepository.Shutdown()
 
-		_, unsealJwk, _, _, _, err := testJwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+		_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 		cryptoutilAppErr.RequireNoError(err, "failed to generate unseal JWK for test")
 
-		unsealKeysService := cryptoutilUnsealKeysService.RequireNewSimpleForTest([]joseJwk.Key{unsealJwk})
+		unsealKeysService := cryptoutilUnsealKeysService.RequireNewSimpleForTest([]joseJwk.Key{unsealJWK})
 		defer unsealKeysService.Shutdown()
 
-		testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testJwkGenService, testOrmRepository, unsealKeysService)
+		testRootKeysService = cryptoutilRootKeysService.RequireNewForTest(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysService)
 		defer testRootKeysService.Shutdown()
 
-		testIntermediateKeysService = cryptoutilIntermediateKeysService.RequireNewForTest(testTelemetryService, testJwkGenService, testOrmRepository, testRootKeysService)
+		testIntermediateKeysService = cryptoutilIntermediateKeysService.RequireNewForTest(testTelemetryService, testJWKGenService, testOrmRepository, testRootKeysService)
 		defer testIntermediateKeysService.Shutdown()
 
 		rc = m.Run()
@@ -64,7 +64,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestContentKeysService_HappyPath(t *testing.T) {
-	contentKeysService, err := NewContentKeysService(testTelemetryService, testJwkGenService, testOrmRepository, testIntermediateKeysService)
+	contentKeysService, err := NewContentKeysService(testTelemetryService, testJWKGenService, testOrmRepository, testIntermediateKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, contentKeysService)
 	defer contentKeysService.Shutdown()

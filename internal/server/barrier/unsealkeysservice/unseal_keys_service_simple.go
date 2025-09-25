@@ -7,34 +7,34 @@ import (
 )
 
 type UnsealKeysServiceSimple struct {
-	unsealJwks []joseJwk.Key
+	unsealJWKs []joseJwk.Key
 }
 
-func (u *UnsealKeysServiceSimple) EncryptKey(clearJwk joseJwk.Key) ([]byte, error) {
-	return encryptKey(u.unsealJwks, clearJwk)
+func (u *UnsealKeysServiceSimple) EncryptKey(clearJWK joseJwk.Key) ([]byte, error) {
+	return encryptKey(u.unsealJWKs, clearJWK)
 }
 
-func (u *UnsealKeysServiceSimple) DecryptKey(encryptedJwkBytes []byte) (joseJwk.Key, error) {
-	return decryptKey(u.unsealJwks, encryptedJwkBytes)
+func (u *UnsealKeysServiceSimple) DecryptKey(encryptedJWKBytes []byte) (joseJwk.Key, error) {
+	return decryptKey(u.unsealJWKs, encryptedJWKBytes)
 }
 
 func (u *UnsealKeysServiceSimple) EncryptData(clearData []byte) ([]byte, error) {
-	return encryptData(u.unsealJwks, clearData)
+	return encryptData(u.unsealJWKs, clearData)
 }
 
 func (u *UnsealKeysServiceSimple) DecryptData(encryptedDataBytes []byte) ([]byte, error) {
-	return decryptData(u.unsealJwks, encryptedDataBytes)
+	return decryptData(u.unsealJWKs, encryptedDataBytes)
 }
 
 func (u *UnsealKeysServiceSimple) Shutdown() {
-	u.unsealJwks = nil
+	u.unsealJWKs = nil
 }
 
-func NewUnsealKeysServiceSimple(unsealJwks []joseJwk.Key) (UnsealKeysService, error) {
-	if unsealJwks == nil {
-		return nil, fmt.Errorf("unsealJwks can't be nil")
-	} else if len(unsealJwks) == 0 {
-		return nil, fmt.Errorf("unsealJwks can't be empty")
+func NewUnsealKeysServiceSimple(unsealJWKs []joseJwk.Key) (UnsealKeysService, error) {
+	if unsealJWKs == nil {
+		return nil, fmt.Errorf("unsealJWKs can't be nil")
+	} else if len(unsealJWKs) == 0 {
+		return nil, fmt.Errorf("unsealJWKs can't be empty")
 	}
-	return &UnsealKeysServiceSimple{unsealJwks: unsealJwks}, nil
+	return &UnsealKeysServiceSimple{unsealJWKs: unsealJWKs}, nil
 }

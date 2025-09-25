@@ -25,13 +25,13 @@ const (
 // BusinessLogicService implements methods in StrictServerInterface
 type BusinessLogicService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JwkGenService
+	jwkGenService    *cryptoutilJose.JWKGenService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	oamOrmMapper     *oamOrmMapper
 	barrierService   *cryptoutilBarrierService.BarrierService
 }
 
-func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
+func NewBusinessLogicService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, barrierService *cryptoutilBarrierService.BarrierService) (*BusinessLogicService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
@@ -62,7 +62,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 	}
 
 	// generate first MaterialKey automatically
-	materialKeyID, _, _, materialKeyClearNonPublicJwkBytes, materialKeyClearPublicJwkBytes, err := s.generateJwk(&ormElasticKey.ElasticKeyAlgorithm)
+	materialKeyID, _, _, materialKeyClearNonPublicJWKBytes, materialKeyClearPublicJWKBytes, err := s.generateJWK(&ormElasticKey.ElasticKeyAlgorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate first MaterialKey for ElasticKey : %w", err)
 	}
@@ -79,12 +79,12 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 			return fmt.Errorf("invalid ElasticKeyStatus transition: %w", err)
 		}
 
-		materialKeyEncryptedNonPublicJwkBytes, err := s.barrierService.EncryptContent(sqlTransaction, materialKeyClearNonPublicJwkBytes)
+		materialKeyEncryptedNonPublicJWKBytes, err := s.barrierService.EncryptContent(sqlTransaction, materialKeyClearNonPublicJWKBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt first MaterialKey for ElasticKey: %w", err)
 		}
 
-		ormMaterialKey := s.oamOrmMapper.toOrmAddMaterialKey(elasticKeyID, materialKeyID, materialKeyClearPublicJwkBytes, materialKeyEncryptedNonPublicJwkBytes, materialKeyGenerateDate)
+		ormMaterialKey := s.oamOrmMapper.toOrmAddMaterialKey(elasticKeyID, materialKeyID, materialKeyClearPublicJWKBytes, materialKeyEncryptedNonPublicJWKBytes, materialKeyGenerateDate)
 
 		err = sqlTransaction.AddElasticKeyMaterialKey(ormMaterialKey)
 		if err != nil {
@@ -162,13 +162,13 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 			return fmt.Errorf("invalid ElasticKey Status: %w", err)
 		}
 
-		materialKeyID, _, _, clearMaterialKeyNonPublicJwkBytes, clearPublicJwkBytes, err := s.generateJwk(&ormElasticKey.ElasticKeyAlgorithm)
+		materialKeyID, _, _, clearMaterialKeyNonPublicJWKBytes, clearPublicJWKBytes, err := s.generateJWK(&ormElasticKey.ElasticKeyAlgorithm)
 		if err != nil {
 			return fmt.Errorf("failed to generate new MaterialKey for ElasticKey: %w", err)
 		}
 		materialKeyGenerateDate := time.Now().UTC()
 
-		encryptedMaterialKeyPrivateOrPublicJwkBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearMaterialKeyNonPublicJwkBytes)
+		encryptedMaterialKeyPrivateOrPublicJWKBytes, err := s.barrierService.EncryptContent(sqlTransaction, clearMaterialKeyNonPublicJWKBytes)
 		if err != nil {
 			return fmt.Errorf("failed to encrypt new MaterialKey for ElasticKey: %w", err)
 		}
@@ -176,8 +176,8 @@ func (s *BusinessLogicService) GenerateMaterialKeyInElasticKey(ctx context.Conte
 		ormMaterialKey = &cryptoutilOrmRepository.MaterialKey{
 			ElasticKeyID:                  *elasticKeyID,
 			MaterialKeyID:                 *materialKeyID,
-			MaterialKeyClearPublic:        clearPublicJwkBytes,
-			MaterialKeyEncryptedNonPublic: encryptedMaterialKeyPrivateOrPublicJwkBytes,
+			MaterialKeyClearPublic:        clearPublicJWKBytes,
+			MaterialKeyEncryptedNonPublic: encryptedMaterialKeyPrivateOrPublicJWKBytes,
 			MaterialKeyGenerateDate:       &materialKeyGenerateDate,
 		}
 
@@ -304,21 +304,21 @@ func (s *BusinessLogicService) PostGenerateByElasticKeyID(ctx context.Context, e
 		return nil, nil, nil, fmt.Errorf("failed to map generate algorithm: %w", err)
 	}
 
-	_, _, _, clearNonPublicJwkBytes, clearPublicJwkBytes, err := cryptoutilJose.GenerateJwkForAlg(alg)
+	_, _, _, clearNonPublicJWKBytes, clearPublicJWKBytes, err := cryptoutilJose.GenerateJWKForAlg(alg)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to generate key from algorithm: %w", err)
 	}
 
-	encryptedNonPublicJwkBytes, err := s.PostEncryptByElasticKeyID(ctx, elasticKeyID, &cryptoutilOpenapiModel.EncryptParams{Context: generateParams.Context}, clearNonPublicJwkBytes)
+	encryptedNonPublicJWKBytes, err := s.PostEncryptByElasticKeyID(ctx, elasticKeyID, &cryptoutilOpenapiModel.EncryptParams{Context: generateParams.Context}, clearNonPublicJWKBytes)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to encrypt generated key: %w", err)
 	}
 
-	return encryptedNonPublicJwkBytes, clearNonPublicJwkBytes, clearPublicJwkBytes, nil
+	return encryptedNonPublicJWKBytes, clearNonPublicJWKBytes, clearPublicJWKBytes, nil
 }
 
 func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, encryptParams *cryptoutilOpenapiModel.EncryptParams, clearPayloadBytes []byte) ([]byte, error) {
-	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, clearMaterialKeyPublicJweJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
+	elasticKey, _, decryptedMaterialKeyNonPublicJweJWK, clearMaterialKeyPublicJweJWK, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest MaterialKey for ElasticKey: %w", err)
 	}
@@ -327,10 +327,10 @@ func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, el
 	}
 	// TODO Use encryptParams.Context for encryption
 	var jweMessageBytes []byte
-	if clearMaterialKeyPublicJweJwk != nil {
-		_, jweMessageBytes, err = cryptoutilJose.EncryptBytes([]joseJwk.Key{clearMaterialKeyPublicJweJwk}, clearPayloadBytes) // asymmetric
+	if clearMaterialKeyPublicJweJWK != nil {
+		_, jweMessageBytes, err = cryptoutilJose.EncryptBytes([]joseJwk.Key{clearMaterialKeyPublicJweJWK}, clearPayloadBytes) // asymmetric
 	} else {
-		_, jweMessageBytes, err = cryptoutilJose.EncryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJwk}, clearPayloadBytes) // symmetric
+		_, jweMessageBytes, err = cryptoutilJose.EncryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJWK}, clearPayloadBytes) // symmetric
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt bytes with latest MaterialKey for ElasticKeyID: %w", err)
@@ -347,7 +347,7 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWE message header kid: %w", err)
 	}
-	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, materialKeyID)
+	elasticKey, _, decryptedMaterialKeyNonPublicJweJWK, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, materialKeyID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt material key: %w", err)
 	}
@@ -356,7 +356,7 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 	} else if !cryptoutilJose.IsJwe(&elasticKey.ElasticKeyAlgorithm) {
 		return nil, fmt.Errorf("decrypt not supported by KeyMaterial with ElasticKeyAlgorithm %v", elasticKey.ElasticKeyAlgorithm)
 	}
-	decryptedJweMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJwk}, jweMessageBytes)
+	decryptedJweMessageBytes, err := cryptoutilJose.DecryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJWK}, jweMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt bytes with MaterialKey for ElasticKeyID : %w", err)
 	}
@@ -364,14 +364,14 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 }
 
 func (s *BusinessLogicService) PostSignByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, clearPayloadBytes []byte) ([]byte, error) {
-	elasticKey, _, decryptedMaterialKeyNonPublicJwsJwk, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
+	elasticKey, _, decryptedMaterialKeyNonPublicJwsJWK, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest MaterialKey JWS JWK from ElasticKey for ElasticKeyID: %w", err)
 	}
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
-	_, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJwsJwk}, clearPayloadBytes)
+	_, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJwsJWK}, clearPayloadBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign bytes with latest MaterialKey for ElasticKeyID: %w", err)
 	}
@@ -387,7 +387,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWS message headers kid and alg: %w", err)
 	}
-	elasticKey, _, decryptedMaterialKeyNonPublicJweJwk, clearMaterialKeyPublicJweJwk, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, kidUUID)
+	elasticKey, _, decryptedMaterialKeyNonPublicJweJWK, clearMaterialKeyPublicJweJWK, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, kidUUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt material key: %w", err)
 	}
@@ -397,10 +397,10 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 		return nil, fmt.Errorf("verify not supported by KeyMaterial with ElasticKeyAlgorithm %v", elasticKey.ElasticKeyAlgorithm)
 	}
 	var verifiedJwsMessageBytes []byte
-	if clearMaterialKeyPublicJweJwk != nil {
-		verifiedJwsMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{clearMaterialKeyPublicJweJwk}, jwsMessageBytes) // asymmetric
+	if clearMaterialKeyPublicJweJWK != nil {
+		verifiedJwsMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{clearMaterialKeyPublicJweJWK}, jwsMessageBytes) // asymmetric
 	} else {
-		verifiedJwsMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJwk}, jwsMessageBytes) // symmetric
+		verifiedJwsMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJWK}, jwsMessageBytes) // symmetric
 	}
 
 	if err != nil {
@@ -410,19 +410,19 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 }
 
 //nolint:unparam // Some callers ignore certain return values by design
-func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func (s *BusinessLogicService) generateJWK(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	var materialKeyID *googleUuid.UUID
-	var materialKeyNonPublicJwk joseJwk.Key
-	var materialKeyPublicJwk joseJwk.Key
-	var materialKeyNonPublicJwkBytes []byte
-	var materialKeyPublicJwkBytes []byte
+	var materialKeyNonPublicJWK joseJwk.Key
+	var materialKeyPublicJWK joseJwk.Key
+	var materialKeyNonPublicJWKBytes []byte
+	var materialKeyPublicJWKBytes []byte
 
 	if cryptoutilJose.IsJwe(elasticKeyAlgorithm) {
 		enc, alg, err := cryptoutilJose.ToJweEncAndAlg(elasticKeyAlgorithm)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to map ElasticKeyAlgorithm: %w", err)
 		}
-		materialKeyID, materialKeyNonPublicJwk, materialKeyPublicJwk, materialKeyNonPublicJwkBytes, materialKeyPublicJwkBytes, err = s.jwkGenService.GenerateJweJwk(enc, alg)
+		materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err = s.jwkGenService.GenerateJweJWK(enc, alg)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to generate MaterialKey JWE JWK: %w", err)
 		}
@@ -431,7 +431,7 @@ func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOpenap
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to map JWS ElasticKey Algorithm: %w", err)
 		}
-		materialKeyID, materialKeyNonPublicJwk, materialKeyPublicJwk, materialKeyNonPublicJwkBytes, materialKeyPublicJwkBytes, err = s.jwkGenService.GenerateJwsJwk(alg)
+		materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err = s.jwkGenService.GenerateJwsJWK(alg)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to generate MaterialKey JWS JWK: %w", err)
 		}
@@ -439,14 +439,14 @@ func (s *BusinessLogicService) generateJwk(elasticKeyAlgorithm *cryptoutilOpenap
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported ElasticKeyAlgorithm %v", elasticKeyAlgorithm)
 	}
 
-	return materialKeyID, materialKeyNonPublicJwk, materialKeyPublicJwk, materialKeyNonPublicJwkBytes, materialKeyPublicJwkBytes, nil
+	return materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, nil
 }
 
 //nolint:unparam // Some callers ignore certain return values by design
 func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, materialKeyKidUUID *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.MaterialKey, joseJwk.Key, joseJwk.Key, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
-	var materialKeyDecryptedNonPublicJwkBytes []byte
+	var materialKeyDecryptedNonPublicJWKBytes []byte
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
 		ormElasticKey, err = sqlTransaction.GetElasticKey(elasticKeyID)
@@ -461,7 +461,7 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 		if err != nil {
 			return fmt.Errorf("failed to get MaterialKey in ElasticKey: %w", err)
 		}
-		materialKeyDecryptedNonPublicJwkBytes, err = s.barrierService.DecryptContent(sqlTransaction, ormMaterialKey.MaterialKeyEncryptedNonPublic)
+		materialKeyDecryptedNonPublicJWKBytes, err = s.barrierService.DecryptContent(sqlTransaction, ormMaterialKey.MaterialKeyEncryptedNonPublic)
 		if err != nil {
 			return fmt.Errorf("failed to decrypt MaterialKeyEncryptedNonPublic in ElasticKey: %w", err)
 		}
@@ -470,18 +470,18 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to get and decrypt MaterialKeyEncryptedNonPublic in ElasticKey: %w", err)
 	}
-	decryptedMaterialKeyNonPublicJwk, err := joseJwk.ParseKey(materialKeyDecryptedNonPublicJwkBytes)
+	decryptedMaterialKeyNonPublicJWK, err := joseJwk.ParseKey(materialKeyDecryptedNonPublicJWKBytes)
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to parse decrypted MaterialKeyEncryptedNonPublic: %w", err)
 	}
 
-	var clearMaterialKeyPublicJwk joseJwk.Key
+	var clearMaterialKeyPublicJWK joseJwk.Key
 	if ormMaterialKey.MaterialKeyClearPublic != nil {
-		clearMaterialKeyPublicJwk, err = joseJwk.ParseKey(ormMaterialKey.MaterialKeyClearPublic)
+		clearMaterialKeyPublicJWK, err = joseJwk.ParseKey(ormMaterialKey.MaterialKeyClearPublic)
 		if err != nil {
 			return nil, nil, nil, nil, fmt.Errorf("failed to parse MaterialKeyClearPublic: %w", err)
 		}
 	}
 
-	return ormElasticKey, ormMaterialKey, decryptedMaterialKeyNonPublicJwk, clearMaterialKeyPublicJwk, nil
+	return ormElasticKey, ormMaterialKey, decryptedMaterialKeyNonPublicJWK, clearMaterialKeyPublicJWK, nil
 }

@@ -35,12 +35,12 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElas
 	}
 }
 
-func (*oamOrmMapper) toOrmAddMaterialKey(elasticKeyID *googleUuid.UUID, materialKeyID *googleUuid.UUID, materialKeyClearPublicJwkBytes []byte, materialKeyEncryptedNonPublicJwkBytes []byte, materialKeyGenerateDate time.Time) *cryptoutilOrmRepository.MaterialKey {
+func (*oamOrmMapper) toOrmAddMaterialKey(elasticKeyID *googleUuid.UUID, materialKeyID *googleUuid.UUID, materialKeyClearPublicJWKBytes []byte, materialKeyEncryptedNonPublicJWKBytes []byte, materialKeyGenerateDate time.Time) *cryptoutilOrmRepository.MaterialKey {
 	return &cryptoutilOrmRepository.MaterialKey{
 		ElasticKeyID:                  *elasticKeyID,
 		MaterialKeyID:                 *materialKeyID,
-		MaterialKeyClearPublic:        materialKeyClearPublicJwkBytes,        // nil if repositoryElasticKey.ElasticKeyAlgorithm is Symmetric
-		MaterialKeyEncryptedNonPublic: materialKeyEncryptedNonPublicJwkBytes, // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
+		MaterialKeyClearPublic:        materialKeyClearPublicJWKBytes,        // nil if repositoryElasticKey.ElasticKeyAlgorithm is Symmetric
+		MaterialKeyEncryptedNonPublic: materialKeyEncryptedNonPublicJWKBytes, // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
 		MaterialKeyGenerateDate:       &materialKeyGenerateDate,              // nil if repositoryElasticKey.ElasticKeyImportAllowed=true
 	}
 }

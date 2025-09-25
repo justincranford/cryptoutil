@@ -24,11 +24,11 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
 	for _, jwk := range jwks {
-		isEncryptJwk, err := IsEncryptJwk(jwk)
+		isEncryptJWK, err := IsEncryptJWK(jwk)
 		if err != nil {
 			return nil, nil, fmt.Errorf("invalid JWK: %w", err)
-		} else if !isEncryptJwk {
-			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJwkMustBeEncryptJwk)
+		} else if !isEncryptJWK {
+			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeEncryptJWK)
 		}
 	}
 
@@ -48,7 +48,7 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
-		enc, alg, err := ExtractAlgEncFromJweJwk(jwk, i)
+		enc, alg, err := ExtractAlgEncFromJweJWK(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -100,11 +100,11 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 		return nil, fmt.Errorf("invalid jweMessageBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
 	for _, jwk := range jwks {
-		isDecryptJwk, err := IsDecryptJwk(jwk)
+		isDecryptJWK, err := IsDecryptJWK(jwk)
 		if err != nil {
 			return nil, fmt.Errorf("invalid JWK: %w", err)
-		} else if !isDecryptJwk {
-			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJwkMustBeDecryptJwk)
+		} else if !isDecryptJWK {
+			return nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeDecryptJWK)
 		}
 	}
 
@@ -117,7 +117,7 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	algs := make(map[joseJwa.KeyEncryptionAlgorithm]struct{})
 	jweDecryptOptions := make([]joseJwe.DecryptOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		enc, alg, err := ExtractAlgEncFromJweJwk(jwk, i)
+		enc, alg, err := ExtractAlgEncFromJweJWK(jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}

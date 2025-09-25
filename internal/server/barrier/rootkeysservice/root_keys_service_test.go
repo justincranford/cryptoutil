@@ -20,7 +20,7 @@ var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("root_keys_service_test")
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testJwkGenService    *cryptoutilJose.JwkGenService
+	testJWKGenService    *cryptoutilJose.JWKGenService
 	testSQLRepository    *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 )
@@ -31,37 +31,37 @@ func TestMain(m *testing.M) {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
 
-		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
-		defer testJwkGenService.Shutdown()
+		testJWKGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
+		defer testJWKGenService.Shutdown()
 
 		rc = m.Run()
 	}()
 	os.Exit(rc)
 }
 
-func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
+func TestRootKeysService_HappyPath_OneUnsealJWKs(t *testing.T) {
 	testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSQLRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
-	_, unsealJwk, _, _, _, err := testJwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, unsealJWK, _, _, _, err := testJWKGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
-	require.NotNil(t, unsealJwk)
+	require.NotNil(t, unsealJWK)
 
-	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJwk})
+	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testJwkGenService, testOrmRepository, unsealKeysServiceSimple)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
 	require.NoError(t, err)
 	require.NotNil(t, rootKeysService)
 	defer rootKeysService.Shutdown()
 }
 
-func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
+func TestRootKeysService_SadPath_ZeroUnsealJWKs(t *testing.T) {
 	unsealKeysServiceSimple := cryptoutilUnsealKeysService.RequireNewSimpleForTest([]joseJwk.Key{})
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
@@ -69,16 +69,16 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSQLRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testJwkGenService, testOrmRepository, unsealKeysServiceSimple)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
 	require.Error(t, err)
 	require.Nil(t, rootKeysService)
 	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid JWKs: jwks can't be empty")
 }
 
-func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
+func TestRootKeysService_SadPath_NilUnsealJWKs(t *testing.T) {
 	unsealKeysServiceSimple := cryptoutilUnsealKeysService.RequireNewSimpleForTest(nil)
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
@@ -86,10 +86,10 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSQLRepository.Shutdown()
 
-	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
+	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
 	defer testOrmRepository.Shutdown()
 
-	rootKeysService, err := NewRootKeysService(testTelemetryService, testJwkGenService, testOrmRepository, unsealKeysServiceSimple)
+	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
 	require.Error(t, err)
 	require.Nil(t, rootKeysService)
 	require.EqualError(t, err, "failed to initialize first root JWK: failed to encrypt first root JWK: failed to encrypt root JWK with unseal JWK: invalid JWKs: jwks can't be nil")

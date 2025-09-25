@@ -12,7 +12,7 @@ import (
 const jwkCount = 2
 
 func TestNewUnsealKeysServiceSimple_HappyPath(t *testing.T) {
-	unsealKeys, _, err := cryptoutilJose.GenerateJweJwksForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	unsealKeys, _, err := cryptoutilJose.GenerateJweJWKsForTest(t, jwkCount, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
 	unsealKeysService, err := NewUnsealKeysServiceSimple(unsealKeys)
 	require.NoError(t, err)
@@ -23,12 +23,12 @@ func TestNewUnsealKeysServiceSimple_SadPath_EmptyInput(t *testing.T) {
 	unsealKeysService, err := NewUnsealKeysServiceSimple([]joseJwk.Key{})
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
-	require.EqualError(t, err, "unsealJwks can't be empty", "Unexpected error message")
+	require.EqualError(t, err, "unsealJWKs can't be empty", "Unexpected error message")
 }
 
 func TestNewUnsealKeysServiceSimple_SadPath_NilInput(t *testing.T) {
 	unsealKeysService, err := NewUnsealKeysServiceSimple(nil)
 	require.Error(t, err)
 	require.Nil(t, unsealKeysService)
-	require.EqualError(t, err, "unsealJwks can't be nil", "Unexpected error message")
+	require.EqualError(t, err, "unsealJWKs can't be nil", "Unexpected error message")
 }

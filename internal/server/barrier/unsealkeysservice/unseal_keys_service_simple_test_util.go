@@ -5,6 +5,6 @@ import (
 )
 
 // RequireNewSimpleForTest no validation
-func RequireNewSimpleForTest(unsealJwks []joseJwk.Key) UnsealKeysService {
-	return &UnsealKeysServiceSimple{unsealJwks: unsealJwks}
+func RequireNewSimpleForTest(unsealJWKs []joseJwk.Key) UnsealKeysService {
+	return &UnsealKeysServiceSimple{unsealJWKs: unsealJWKs}
 }

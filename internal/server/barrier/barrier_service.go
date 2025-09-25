@@ -16,7 +16,7 @@ import (
 
 type BarrierService struct {
 	telemetryService        *cryptoutilTelemetry.TelemetryService
-	jwkGenService           *cryptoutilJose.JwkGenService
+	jwkGenService           *cryptoutilJose.JWKGenService
 	ormRepository           *cryptoutilOrmRepository.OrmRepository
 	unsealKeysService       cryptoutilUnsealKeysService.UnsealKeysService
 	rootKeysService         *cryptoutilRootKeysService.RootKeysService
@@ -26,7 +26,7 @@ type BarrierService struct {
 	shutdownOnce            sync.Once
 }
 
-func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
+func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*BarrierService, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {

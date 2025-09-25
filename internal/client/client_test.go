@@ -266,16 +266,16 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 				})
 
 				t.Run(testCaseNamePrefix+"  Validate Data Key  "+algorithmSuffix, func(t *testing.T) {
-					dataKeyJwk, err := joseJwk.ParseKey([]byte(*decryptedDataKey))
+					dataKeyJWK, err := joseJwk.ParseKey([]byte(*decryptedDataKey))
 					require.NoError(t, err)
-					require.NotNil(t, dataKeyJwk)
-					logObjectAsJSON(t, dataKeyJwk)
+					require.NotNil(t, dataKeyJWK)
+					logObjectAsJSON(t, dataKeyJWK)
 
-					kidUUID, err := cryptoutilJose.ExtractKidUUID(dataKeyJwk)
+					kidUUID, err := cryptoutilJose.ExtractKidUUID(dataKeyJWK)
 					require.NoError(t, err)
 					require.NotNil(t, kidUUID)
 
-					kty, err := cryptoutilJose.ExtractKty(dataKeyJwk)
+					kty, err := cryptoutilJose.ExtractKty(dataKeyJWK)
 					require.NoError(t, err)
 					require.NotNil(t, kty)
 				})

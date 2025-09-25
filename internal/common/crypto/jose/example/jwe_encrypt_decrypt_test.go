@@ -94,9 +94,9 @@ func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.K
 
 func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message {
 	require.NotEmpty(t, plaintext, "plaintext can't be empty")
-	isEncryptJwk, err := cryptoutilJose.IsEncryptJwk(recipientJWK)
+	isEncryptJWK, err := cryptoutilJose.IsEncryptJWK(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
-	require.True(t, isEncryptJwk, "recipient JWK must be an encrypt JWK")
+	require.True(t, isEncryptJWK, "recipient JWK must be an encrypt JWK")
 
 	jweProtectedHeaders := jwe.NewHeaders()
 	err = jweProtectedHeaders.Set("iat", time.Now().UTC().Unix())
@@ -131,9 +131,9 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 
 func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
 	require.NotEmpty(t, jweMessage, "JWE message can't be empty")
-	isDecryptJwk, err := cryptoutilJose.IsDecryptJwk(recipientJWK)
+	isDecryptJWK, err := cryptoutilJose.IsDecryptJWK(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
-	require.True(t, isDecryptJwk, "recipient JWK must be a decrypt JWK")
+	require.True(t, isDecryptJWK, "recipient JWK must be a decrypt JWK")
 
 	jweMessageBytes, err := jweMessage.MarshalJSON()
 	require.NoError(t, err, "failed to marshal JWE message to JSON")

@@ -14,7 +14,7 @@ var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("jwkgen_service_test")
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
-	testJwkGenService    *JwkGenService
+	testJWKGenService    *JWKGenService
 )
 
 func TestMain(m *testing.M) {
@@ -24,9 +24,9 @@ func TestMain(m *testing.M) {
 		defer testTelemetryService.Shutdown()
 
 		var err error
-		testJwkGenService, err = NewJwkGenService(testCtx, testTelemetryService)
-		cryptoutilAppErr.RequireNoError(err, "failed to initialize NewJwkGenService")
-		defer testJwkGenService.Shutdown()
+		testJWKGenService, err = NewJWKGenService(testCtx, testTelemetryService)
+		cryptoutilAppErr.RequireNoError(err, "failed to initialize NewJWKGenService")
+		defer testJWKGenService.Shutdown()
 
 		rc = m.Run()
 	}()

@@ -24,7 +24,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	if err != nil {
 		return nil, fmt.Errorf("failed to start basic server application: %w", err)
 	}
-	jwkGenService := serverApplicationBasic.JwkGenService
+	jwkGenService := serverApplicationBasic.JWKGenService
 
 	serverApplicationCore := &ServerApplicationCore{}
 	serverApplicationCore.ServerApplicationBasic = serverApplicationBasic

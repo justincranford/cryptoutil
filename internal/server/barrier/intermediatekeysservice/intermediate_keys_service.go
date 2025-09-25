@@ -19,12 +19,12 @@ import (
 
 type IntermediateKeysService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
-	jwkGenService    *cryptoutilJose.JwkGenService
+	jwkGenService    *cryptoutilJose.JWKGenService
 	ormRepository    *cryptoutilOrmRepository.OrmRepository
 	rootKeysService  *cryptoutilRootKeysService.RootKeysService
 }
 
-func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) (*IntermediateKeysService, error) {
+func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) (*IntermediateKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -34,14 +34,14 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 	} else if rootKeysService == nil {
 		return nil, fmt.Errorf("rootKeysService must be non-nil")
 	}
-	err := initializeFirstIntermediateJwk(jwkGenService, ormRepository, rootKeysService)
+	err := initializeFirstIntermediateJWK(jwkGenService, ormRepository, rootKeysService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first intermediate JWK: %w", err)
 	}
 	return &IntermediateKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, ormRepository: ormRepository, rootKeysService: rootKeysService}, nil
 }
 
-func initializeFirstIntermediateJwk(jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) error {
+func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -52,7 +52,7 @@ func initializeFirstIntermediateJwk(jwkGenService *cryptoutilJose.JwkGenService,
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
 	}
 	if encryptedIntermediateKeyLatest == nil {
-		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+		intermediateKeyKidUUID, clearIntermediateKey, _, _, _, err := jwkGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
 			return fmt.Errorf("failed to generate first intermediate JWK: %w", err)
 		}

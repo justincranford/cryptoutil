@@ -18,12 +18,12 @@ import (
 
 type RootKeysService struct {
 	telemetryService  *cryptoutilTelemetry.TelemetryService
-	jwkGenService     *cryptoutilJose.JwkGenService
+	jwkGenService     *cryptoutilJose.JWKGenService
 	ormRepository     *cryptoutilOrmRepository.OrmRepository
 	unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService
 }
 
-func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*RootKeysService, error) {
+func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) (*RootKeysService, error) {
 	if telemetryService == nil {
 		return nil, fmt.Errorf("telemetryService must be non-nil")
 	} else if jwkGenService == nil {
@@ -33,14 +33,14 @@ func NewRootKeysService(telemetryService *cryptoutilTelemetry.TelemetryService, 
 	} else if unsealKeysService == nil {
 		return nil, fmt.Errorf("unsealKeysService must be non-nil")
 	}
-	err := initializeFirstRootJwk(jwkGenService, ormRepository, unsealKeysService)
+	err := initializeFirstRootJWK(jwkGenService, ormRepository, unsealKeysService)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first root JWK: %w", err)
 	}
 	return &RootKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, ormRepository: ormRepository, unsealKeysService: unsealKeysService}, nil
 }
 
-func initializeFirstRootJwk(jwkGenService *cryptoutilJose.JwkGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error {
+func initializeFirstRootJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, unsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) error {
 	var encryptedRootKeyLatest *cryptoutilOrmRepository.BarrierRootKey
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -51,7 +51,7 @@ func initializeFirstRootJwk(jwkGenService *cryptoutilJose.JwkGenService, ormRepo
 		return fmt.Errorf("failed to get encrypted root JWK latest from DB: %w", err)
 	}
 	if encryptedRootKeyLatest == nil {
-		rootKeyKidUUID, clearRootKey, _, _, _, err := jwkGenService.GenerateJweJwk(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
+		rootKeyKidUUID, clearRootKey, _, _, _, err := jwkGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
 		if err != nil {
 			return fmt.Errorf("failed to generate first root JWK latest: %w", err)
 		}

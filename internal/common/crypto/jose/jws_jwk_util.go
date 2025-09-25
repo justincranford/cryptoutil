@@ -19,50 +19,50 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-var ErrInvalidJwsJwkKidUUID = "invalid JWS JWK kid UUID"
+var ErrInvalidJwsJWKKidUUID = "invalid JWS JWK kid UUID"
 
-func GenerateJwsJwkForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func GenerateJwsJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create uuid v7: %w", err)
 	}
-	key, err := validateJwsJwkHeaders(&kid, alg, nil, true) // true => generates enc key of the correct length
+	key, err := validateJwsJWKHeaders(&kid, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("invalid JWS JWK headers: %w", err)
 	}
-	return CreateJwsJwkFromKey(&kid, alg, key)
+	return CreateJwsJWKFromKey(&kid, alg, key)
 }
 
-func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func CreateJwsJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	now := time.Now().UTC().Unix()
-	_, err := validateJwsJwkHeaders(kid, alg, key, false)
+	_, err := validateJwsJWKHeaders(kid, alg, key, false)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("invalid JWS JWK headers: %w", err)
 	}
-	var nonPublicJwk joseJwk.Key
+	var nonPublicJWK joseJwk.Key
 	switch typedKey := key.(type) {
 	case cryptoutilKeyGen.SecretKey: // HMAC
-		if nonPublicJwk, err = joseJwk.Import([]byte(typedKey)); err != nil {
+		if nonPublicJWK, err = joseJwk.Import([]byte(typedKey)); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key material into JWS JWK: %w", err)
 		}
-		if err = nonPublicJwk.Set(joseJwk.KeyTypeKey, KtyOCT); err != nil {
+		if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyOCT); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'oct' in JWS JWK: %w", err)
 		}
 	case *cryptoutilKeyGen.KeyPair: // RSA, ECDSA, EdDSA
-		if nonPublicJwk, err = joseJwk.Import(typedKey.Private); err != nil {
+		if nonPublicJWK, err = joseJwk.Import(typedKey.Private); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key pair into JWS JWK: %w", err)
 		}
 		switch typedKey.Private.(type) {
 		case *rsa.PrivateKey: // RSA
-			if err = nonPublicJwk.Set(joseJwk.KeyTypeKey, KtyRSA); err != nil {
+			if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyRSA); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'rsa' in JWS JWK: %w", err)
 			}
 		case *ecdsa.PrivateKey: // ECDSA, ECDH
-			if err = nonPublicJwk.Set(joseJwk.KeyTypeKey, KtyEC); err != nil {
+			if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyEC); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'ec' in JWS JWK: %w", err)
 			}
 		case ed25519.PrivateKey, ed448.PrivateKey: // ED25519, ED448
-			if err = nonPublicJwk.Set(joseJwk.KeyTypeKey, KtyOKP); err != nil {
+			if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyOKP); err != nil {
 				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'okp' in JWS JWK: %w", err)
 			}
 		default:
@@ -72,48 +72,48 @@ func CreateJwsJwkFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported key type %T for JWS JWK", key)
 	}
 
-	if err = nonPublicJwk.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
+	if err = nonPublicJWK.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `kid` header in JWS JWK: %w", err)
 	}
-	if err = nonPublicJwk.Set(joseJwk.AlgorithmKey, *alg); err != nil {
+	if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, *alg); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `alg` header in JWS JWK: %w", err)
 	}
-	if err = nonPublicJwk.Set("iat", now); err != nil {
+	if err = nonPublicJWK.Set("iat", now); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `iat` header in JWS JWK: %w", err)
 	}
-	if err = nonPublicJwk.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
+	if err = nonPublicJWK.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `use` header in JWS JWK: %w", err)
 	}
-	if err = nonPublicJwk.Set(joseJwk.KeyOpsKey, OpsSigVer); err != nil {
+	if err = nonPublicJWK.Set(joseJwk.KeyOpsKey, OpsSigVer); err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWS JWK: %w", err)
 	}
 
-	clearNonPublicJwkBytes, err := json.Marshal(nonPublicJwk)
+	clearNonPublicJWKBytes, err := json.Marshal(nonPublicJWK)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to serialize JWS JWK: %w", err)
 	}
 
-	var publicJwk joseJwk.Key
-	var clearPublicJwkBytes []byte
+	var publicJWK joseJwk.Key
+	var clearPublicJWKBytes []byte
 	if _, ok := key.(*cryptoutilKeyGen.KeyPair); ok { // RSA, EC, ED
-		publicJwk, err = nonPublicJwk.PublicKey()
+		publicJWK, err = nonPublicJWK.PublicKey()
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to get public JWE JWK from private JWE JWK: %w", err)
 		}
-		if err = publicJwk.Set(joseJwk.KeyOpsKey, OpsVer); err != nil {
+		if err = publicJWK.Set(joseJwk.KeyOpsKey, OpsVer); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to set `ops` header in JWE JWK: %w", err)
 		}
-		clearPublicJwkBytes, err = json.Marshal(publicJwk)
+		clearPublicJWKBytes, err = json.Marshal(publicJWK)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to serialize public JWE JWK: %w", err)
 		}
 	}
 
-	return kid, nonPublicJwk, publicJwk, clearNonPublicJwkBytes, clearPublicJwkBytes, nil
+	return kid, nonPublicJWK, publicJWK, clearNonPublicJWKBytes, clearPublicJWKBytes, nil
 }
 
-func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJwsJwkKidUUID); err != nil {
+func validateJwsJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
+	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJwsJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWS JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWS JWK alg must be non-nil")
@@ -122,31 +122,31 @@ func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	}
 	switch *alg {
 	case AlgRS512, AlgPS512:
-		return validateOrGenerateJwsRSAJwk(key, alg, 4096)
+		return validateOrGenerateJwsRSAJWK(key, alg, 4096)
 	case AlgRS384, AlgPS384:
-		return validateOrGenerateJwsRSAJwk(key, alg, 3072)
+		return validateOrGenerateJwsRSAJWK(key, alg, 3072)
 	case AlgRS256, AlgPS256:
-		return validateOrGenerateJwsRSAJwk(key, alg, 2048)
+		return validateOrGenerateJwsRSAJWK(key, alg, 2048)
 	case AlgES256:
-		return validateOrGenerateJwsEcdsaJwk(key, alg, elliptic.P521())
+		return validateOrGenerateJwsEcdsaJWK(key, alg, elliptic.P521())
 	case AlgES384:
-		return validateOrGenerateJwsEcdsaJwk(key, alg, elliptic.P384())
+		return validateOrGenerateJwsEcdsaJWK(key, alg, elliptic.P384())
 	case AlgES512:
-		return validateOrGenerateJwsEcdsaJwk(key, alg, elliptic.P256())
+		return validateOrGenerateJwsEcdsaJWK(key, alg, elliptic.P256())
 	case AlgEdDSA:
-		return validateOrGenerateJwsEddsaJwk(key, alg, "Ed25519")
+		return validateOrGenerateJwsEddsaJWK(key, alg, "Ed25519")
 	case AlgHS512:
-		return validateOrGenerateJwsHMACJwk(key, alg, 512)
+		return validateOrGenerateJwsHMACJWK(key, alg, 512)
 	case AlgHS384:
-		return validateOrGenerateJwsHMACJwk(key, alg, 384)
+		return validateOrGenerateJwsHMACJWK(key, alg, 384)
 	case AlgHS256:
-		return validateOrGenerateJwsHMACJwk(key, alg, 256)
+		return validateOrGenerateJwsHMACJWK(key, alg, 256)
 	default:
 		return nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}
 }
 
-func validateOrGenerateJwsRSAJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJwsRSAJWK(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (*cryptoutilKeyGen.KeyPair, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateRSAKeyPair(keyBitsLength)
 		if err != nil {
@@ -174,7 +174,7 @@ func validateOrGenerateJwsRSAJwk(key cryptoutilKeyGen.Key, alg *joseJwa.Signatur
 	}
 }
 
-func validateOrGenerateJwsEcdsaJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, curve elliptic.Curve) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJwsEcdsaJWK(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, curve elliptic.Curve) (*cryptoutilKeyGen.KeyPair, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateECDSAKeyPair(curve)
 		if err != nil {
@@ -202,7 +202,7 @@ func validateOrGenerateJwsEcdsaJwk(key cryptoutilKeyGen.Key, alg *joseJwa.Signat
 	}
 }
 
-func validateOrGenerateJwsEddsaJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, curve string) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJwsEddsaJWK(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, curve string) (*cryptoutilKeyGen.KeyPair, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateEDDSAKeyPair(curve)
 		if err != nil {
@@ -230,7 +230,7 @@ func validateOrGenerateJwsEddsaJwk(key cryptoutilKeyGen.Key, alg *joseJwa.Signat
 	}
 }
 
-func validateOrGenerateJwsHMACJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
+func validateOrGenerateJwsHMACJWK(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateHMACKey(keyBitsLength)
 		if err != nil {
@@ -250,7 +250,7 @@ func validateOrGenerateJwsHMACJwk(key cryptoutilKeyGen.Key, alg *joseJwa.Signatu
 	}
 }
 
-func ExtractAlgFromJwsJwk(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
+func ExtractAlgFromJwsJWK(jwk joseJwk.Key, i int) (*joseJwa.SignatureAlgorithm, error) {
 	if jwk == nil {
 		return nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
