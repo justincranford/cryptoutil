@@ -96,7 +96,7 @@ linters-settings:
     severity: warning
     
   stylecheck:
-    checks: ["all", "-ST1000"]
+    checks: ["all", "-ST1000"]  # Exclude ST1000 (package comment) - many packages have descriptive names that don't need additional comments
 
 issues:
   exclude-dirs:
