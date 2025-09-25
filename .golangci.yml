@@ -100,15 +100,15 @@ linters-settings:
       - der
       
   revive:
-    severity: warning
+    severity: warning  # Overridden by global severity rules - style issues shouldn't block builds
     
   stylecheck:
     checks: ["all", "-ST1000"]  # Exclude ST1000 (package comment) - many packages have descriptive names that don't need additional comments
 
 issues:
   exclude-dirs:
-    - vendor
-    - api  # Skip generated OpenAPI code
+    - vendor # Skip vendored dependencies
+    - api    # Skip generated OpenAPI code
   exclude-files:
     - ".*\\.pb\\.go$"
     - ".*_gen\\.go$"
@@ -119,16 +119,16 @@ issues:
   exclude-rules:
     - path: _test\.go
       linters:
-        - gocyclo
-        - dupl
+        - dupl      # Code duplication detection
+        - gocyclo   # Cyclomatic complexity
 
 severity:
-  default-severity: error
+  default-severity: error  # Most issues should block builds (security, logic bugs, crashes)
   rules:
     - linters:
-        - revive
-        - stylecheck
-      severity: warning
+        - revive           # Golint replacement with more rules
+        - stylecheck       # Go style guide compliance
+      severity: warning    # Style/readability issues - important but shouldn't break builds
     - linters:
-        - misspell
-      severity: info
+        - misspell         # Find common misspellings in comments and strings
+      severity: info       # Cosmetic typos - lowest priority, can be batch-fixed later
