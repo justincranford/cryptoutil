@@ -50,7 +50,7 @@ Follow standard Go naming conventions with cryptographic exceptions:
 
 ### Standard Go Rules
 - **Acronyms at the beginning or end**: ALL CAPS (e.g., `JWKParser`, `ParseJWK`)
-- **Acronyms in the middle**: camelCase (e.g., `parseRsaKey`, `generateAesToken`)
+- **Acronyms in the middle**: camelCase (e.g., `parseRSAKey`, `generateAesToken`)
 
 ### Cryptographic Exceptions ⚡
 **Use ALL CAPS for these standard crypto terms anywhere in identifiers:**

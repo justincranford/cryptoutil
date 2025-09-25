@@ -122,11 +122,11 @@ func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	}
 	switch *alg {
 	case AlgRS512, AlgPS512:
-		return validateOrGenerateJwsRsaJwk(key, alg, 4096)
+		return validateOrGenerateJwsRSAJwk(key, alg, 4096)
 	case AlgRS384, AlgPS384:
-		return validateOrGenerateJwsRsaJwk(key, alg, 3072)
+		return validateOrGenerateJwsRSAJwk(key, alg, 3072)
 	case AlgRS256, AlgPS256:
-		return validateOrGenerateJwsRsaJwk(key, alg, 2048)
+		return validateOrGenerateJwsRSAJwk(key, alg, 2048)
 	case AlgES256:
 		return validateOrGenerateJwsEcdsaJwk(key, alg, elliptic.P521())
 	case AlgES384:
@@ -146,7 +146,7 @@ func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	}
 }
 
-func validateOrGenerateJwsRsaJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJwsRSAJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (*cryptoutilKeyGen.KeyPair, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateRSAKeyPair(keyBitsLength)
 		if err != nil {

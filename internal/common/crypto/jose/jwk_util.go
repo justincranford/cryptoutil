@@ -211,11 +211,11 @@ func validateJwkHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 	}
 	switch *alg {
 	case cryptoutilOpenapiModel.RSA4096:
-		return validateOrGenerateRsaJwk(key, 4096)
+		return validateOrGenerateRSAJwk(key, 4096)
 	case cryptoutilOpenapiModel.RSA3072:
-		return validateOrGenerateRsaJwk(key, 3072)
+		return validateOrGenerateRSAJwk(key, 3072)
 	case cryptoutilOpenapiModel.RSA2048:
-		return validateOrGenerateRsaJwk(key, 2048)
+		return validateOrGenerateRSAJwk(key, 2048)
 	case cryptoutilOpenapiModel.ECP521:
 		return validateOrGenerateEcdsaJwk(key, elliptic.P521())
 	case cryptoutilOpenapiModel.ECP384:
@@ -239,7 +239,7 @@ func validateJwkHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 	}
 }
 
-func validateOrGenerateRsaJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateRSAJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (*cryptoutilKeyGen.KeyPair, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateRSAKeyPair(keyBitsLength)
 		if err != nil {
