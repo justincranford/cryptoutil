@@ -53,7 +53,7 @@ linters:
 
   disable:
     # Disable due to import resolution issues with module dependencies
-    - typecheck
+    - typecheck    # Type checking - disabled due to module dependency import resolution issues
     
     # Disabled for code quality/complexity management
     - dupl      # Code duplication detection
