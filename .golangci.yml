@@ -121,12 +121,6 @@ issues:
       linters:
         - gocyclo
         - dupl
-        
-
-        
-    - path: .*_test_util\.go
-      linters:
-        - revive
 
 severity:
   default-severity: error
