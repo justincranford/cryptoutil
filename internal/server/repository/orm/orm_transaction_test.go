@@ -13,7 +13,7 @@ import (
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
-	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
@@ -25,7 +25,7 @@ var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 	testJwkGenService    *cryptoutilJose.JwkGenService
-	testSQLRepository    *cryptoutilSqlRepository.SqlRepository
+	testSQLRepository    *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository    *OrmRepository
 	skipReadOnlyTxTests  = true // true for DBTypeSQLite, false for DBTypePostgres
 	numMaterialKeys      = 10
@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJwkGenService.Shutdown()
 
-		testSQLRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+		testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSQLRepository.Shutdown()
 
 		testOrmRepository = RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
@@ -51,7 +51,7 @@ func TestMain(m *testing.M) {
 	os.Exit(rc)
 }
 
-func TestSqlTransaction_PanicRecovery(t *testing.T) {
+func TestSQLTransaction_PanicRecovery(t *testing.T) {
 	defer func() {
 		if recover := recover(); recover != nil {
 			require.NotNil(t, recover)
@@ -66,7 +66,7 @@ func TestSqlTransaction_PanicRecovery(t *testing.T) {
 	require.EqualError(t, panicErr, "simulated panic during transaction")
 }
 
-func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
+func TestSQLTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadWrite, *ormTransaction.Mode())
@@ -80,7 +80,7 @@ func TestSqlTransaction_BeginAlreadyStartedFailure(t *testing.T) {
 	require.EqualError(t, err, "failed to execute transaction: transaction already started")
 }
 
-func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
+func TestSQLTransaction_CommitNotStartedFailure(t *testing.T) {
 	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
 
 	commitErr := ormTransaction.commit()
@@ -88,7 +88,7 @@ func TestSqlTransaction_CommitNotStartedFailure(t *testing.T) {
 	require.EqualError(t, commitErr, "can't commit because transaction not active")
 }
 
-func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
+func TestSQLTransaction_RollbackNotStartedFailure(t *testing.T) {
 	ormTransaction := &OrmTransaction{ormRepository: testOrmRepository}
 
 	rollbackErr := ormTransaction.rollback()
@@ -96,7 +96,7 @@ func TestSqlTransaction_RollbackNotStartedFailure(t *testing.T) {
 	require.EqualError(t, rollbackErr, "can't rollback because transaction not active")
 }
 
-func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
+func TestSQLTransaction_BeginWithReadOnly(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadOnly, func(ormTransaction *OrmTransaction) error {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadOnly, *ormTransaction.Mode())
@@ -106,7 +106,7 @@ func TestSqlTransaction_BeginWithReadOnly(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestSqlTransaction_RollbackOnError(t *testing.T) {
+func TestSQLTransaction_RollbackOnError(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadWrite, *ormTransaction.Mode())
@@ -116,7 +116,7 @@ func TestSqlTransaction_RollbackOnError(t *testing.T) {
 	require.EqualError(t, err, "failed to execute transaction: intentional failure")
 }
 
-func TestSqlTransaction_Success(t *testing.T) {
+func TestSQLTransaction_Success(t *testing.T) {
 	type happyPathTestCase struct {
 		txMode      TransactionMode
 		expectError bool

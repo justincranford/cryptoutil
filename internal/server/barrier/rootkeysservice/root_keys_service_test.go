@@ -10,7 +10,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/require"
@@ -21,7 +21,7 @@ var (
 	testCtx              = context.Background()
 	testTelemetryService *cryptoutilTelemetry.TelemetryService
 	testJwkGenService    *cryptoutilJose.JwkGenService
-	testSQLRepository    *cryptoutilSqlRepository.SqlRepository
+	testSQLRepository    *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository    *cryptoutilOrmRepository.OrmRepository
 )
 
@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestRootKeysService_HappyPath_OneUnsealJwks(t *testing.T) {
-	testSQLRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSQLRepository.Shutdown()
 
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
@@ -66,7 +66,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJwks(t *testing.T) {
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 
-	testSQLRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSQLRepository.Shutdown()
 
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)
@@ -83,7 +83,7 @@ func TestRootKeysService_SadPath_NilUnsealJwks(t *testing.T) {
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 
-	testSQLRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSQLRepository.Shutdown()
 
 	testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)

@@ -10,7 +10,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	_ "github.com/lib/pq"
@@ -41,7 +41,7 @@ func TestMain(m *testing.M) {
 
 func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 	// initialize repositories, will be reused by original and restarted unseal service
-	sqlRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	sqlRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer sqlRepository.Shutdown()
 
 	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJwkGenService, testSettings)
@@ -60,7 +60,7 @@ func Test_HappyPath_SameUnsealJwks(t *testing.T) {
 
 func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	// initialize repositories, will be reused by original and restarted unseal service
-	testSQLRepository := cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	testSQLRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 	defer testSQLRepository.Shutdown()
 
 	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)

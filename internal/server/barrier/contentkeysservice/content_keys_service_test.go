@@ -13,7 +13,7 @@ import (
 	cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"
 	cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
@@ -25,7 +25,7 @@ var (
 	testCtx                     = context.Background()
 	testTelemetryService        *cryptoutilTelemetry.TelemetryService
 	testJwkGenService           *cryptoutilJose.JwkGenService
-	testSQLRepository           *cryptoutilSqlRepository.SqlRepository
+	testSQLRepository           *cryptoutilSQLRepository.SQLRepository
 	testOrmRepository           *cryptoutilOrmRepository.OrmRepository
 	testRootKeysService         *cryptoutilRootKeysService.RootKeysService
 	testIntermediateKeysService *cryptoutilIntermediateKeysService.IntermediateKeysService
@@ -40,7 +40,7 @@ func TestMain(m *testing.M) {
 		testJwkGenService = cryptoutilJose.RequireNewForTest(testCtx, testTelemetryService)
 		defer testJwkGenService.Shutdown()
 
-		testSQLRepository = cryptoutilSqlRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+		testSQLRepository = cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSQLRepository.Shutdown()
 
 		testOrmRepository = cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJwkGenService, testSettings)

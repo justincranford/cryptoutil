@@ -10,20 +10,20 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
-type SqlTransaction struct {
-	sqlRepository *SqlRepository
+type SQLTransaction struct {
+	sqlRepository *SQLRepository
 	guardState    sync.Mutex
-	state         *SqlTransactionState
+	state         *SQLTransactionState
 }
 
-type SqlTransactionState struct {
+type SQLTransactionState struct {
 	ctx           context.Context
 	readOnly      bool
 	transactionID googleUuid.UUID
 	sqlTx         *sql.Tx
 }
 
-func (s *SqlRepository) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SqlTransaction) error) error {
+func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, function func(sqlTransaction *SQLTransaction) error) error {
 	if readOnly {
 		switch s.dbType {
 		case DBTypeSQLite: // SQLite lacks support for read-only transactions
@@ -68,7 +68,7 @@ func (s *SqlRepository) WithTransaction(ctx context.Context, readOnly bool, func
 	return sqlTransaction.commit()
 }
 
-func (s *SqlRepository) newTransaction() (*SqlTransaction, error) {
+func (s *SQLRepository) newTransaction() (*SQLTransaction, error) {
 	if s == nil {
 		return nil, fmt.Errorf("SQL repository cannot be nil")
 	} else if s.sqlDB == nil {
@@ -77,11 +77,11 @@ func (s *SqlRepository) newTransaction() (*SqlTransaction, error) {
 	if s.verboseMode {
 		s.telemetryService.Slogger.Debug("new transaction")
 	}
-	return &SqlTransaction{sqlRepository: s}, nil
+	return &SQLTransaction{sqlRepository: s}, nil
 }
 
 // TransactionID Transaction ID is valid (non-nil) only when a transaction is active
-func (sqlTransaction *SqlTransaction) TransactionID() *googleUuid.UUID {
+func (sqlTransaction *SQLTransaction) TransactionID() *googleUuid.UUID {
 	if sqlTransaction.state == nil {
 		return nil
 	}
@@ -90,7 +90,7 @@ func (sqlTransaction *SqlTransaction) TransactionID() *googleUuid.UUID {
 }
 
 // Context Transaction context is valid (non-nil) only when a transaction is active
-func (sqlTransaction *SqlTransaction) Context() context.Context {
+func (sqlTransaction *SQLTransaction) Context() context.Context {
 	if sqlTransaction.state == nil {
 		return nil
 	}
@@ -98,14 +98,14 @@ func (sqlTransaction *SqlTransaction) Context() context.Context {
 }
 
 // IsReadOnly Boolean for if a transaction read-only is valid only when a transaction is active
-func (sqlTransaction *SqlTransaction) IsReadOnly() bool {
+func (sqlTransaction *SQLTransaction) IsReadOnly() bool {
 	if sqlTransaction.state == nil {
 		return false
 	}
 	return sqlTransaction.state.readOnly
 }
 
-func (sqlTransaction *SqlTransaction) begin(ctx context.Context, readOnly bool) error {
+func (sqlTransaction *SQLTransaction) begin(ctx context.Context, readOnly bool) error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
@@ -129,12 +129,12 @@ func (sqlTransaction *SqlTransaction) begin(ctx context.Context, readOnly bool) 
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
-	sqlTransaction.state = &SqlTransactionState{ctx: ctx, readOnly: readOnly, transactionID: transactionID, sqlTx: sqlTx}
+	sqlTransaction.state = &SQLTransactionState{ctx: ctx, readOnly: readOnly, transactionID: transactionID, sqlTx: sqlTx}
 	sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("started transaction", "transactionID", transactionID, "readOnly", readOnly)
 	return nil
 }
 
-func (sqlTransaction *SqlTransaction) commit() error {
+func (sqlTransaction *SQLTransaction) commit() error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 
@@ -157,7 +157,7 @@ func (sqlTransaction *SqlTransaction) commit() error {
 	return nil
 }
 
-func (sqlTransaction *SqlTransaction) rollback() error {
+func (sqlTransaction *SQLTransaction) rollback() error {
 	sqlTransaction.guardState.Lock()
 	defer sqlTransaction.guardState.Unlock()
 

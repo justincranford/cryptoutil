@@ -7,7 +7,7 @@ import (
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 
 	"gorm.io/gorm"
 
@@ -17,13 +17,13 @@ import (
 
 type OrmRepository struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
-	sqlRepository    *cryptoutilSqlRepository.SqlRepository
+	sqlRepository    *cryptoutilSQLRepository.SQLRepository
 	jwkGenService    *cryptoutilJose.JwkGenService
 	verboseMode      bool
 	gormDB           *gorm.DB
 }
 
-func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSqlRepository.SqlRepository, jwkGenService *cryptoutilJose.JwkGenService, settings *cryptoutilConfig.Settings) (*OrmRepository, error) {
+func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, sqlRepository *cryptoutilSQLRepository.SQLRepository, jwkGenService *cryptoutilJose.JwkGenService, settings *cryptoutilConfig.Settings) (*OrmRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
@@ -34,7 +34,7 @@ func NewOrmRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("jwkGenService must be non-nil")
 	}
 
-	gormDB, err := cryptoutilSqlRepository.CreateGormDB(sqlRepository)
+	gormDB, err := cryptoutilSQLRepository.CreateGormDB(sqlRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect with gormDB: %w", err)
 	}

@@ -22,7 +22,7 @@ const (
 	gormLoggerColorful                  = true
 )
 
-func CreateGormDB(sqlRepository *SqlRepository) (*gorm.DB, error) {
+func CreateGormDB(sqlRepository *SQLRepository) (*gorm.DB, error) {
 	var gormDialector gorm.Dialector
 	switch sqlRepository.dbType {
 	case DBTypeSQLite:

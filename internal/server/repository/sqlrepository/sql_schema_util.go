@@ -7,10 +7,10 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func LogSchema(sqlRepository *SqlRepository) error {
+func LogSchema(sqlRepository *SQLRepository) error {
 	switch sqlRepository.dbType {
 	case DBTypeSQLite:
-		return logSqliteSchema(sqlRepository)
+		return logSQLiteSchema(sqlRepository)
 	case DBTypePostgres:
 		return logPostgresSchema(sqlRepository)
 	default:
@@ -18,7 +18,7 @@ func LogSchema(sqlRepository *SqlRepository) error {
 	}
 }
 
-func logSqliteSchema(sqlRepository *SqlRepository) error {
+func logSQLiteSchema(sqlRepository *SQLRepository) error {
 	tableNames, err := func() ([]string, error) {
 		queryResults, err := sqlRepository.sqlDB.Query(`SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';`)
 		if err != nil {
@@ -77,7 +77,7 @@ func logSqliteSchema(sqlRepository *SqlRepository) error {
 	return nil
 }
 
-func logPostgresSchema(sqlRepository *SqlRepository) error {
+func logPostgresSchema(sqlRepository *SQLRepository) error {
 	tableNames, err := func() ([]string, error) {
 		queryResults, err := sqlRepository.sqlDB.Query(`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';`)
 		if err != nil {

@@ -14,7 +14,7 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
-type SqlRepository struct {
+type SQLRepository struct {
 	telemetryService    *cryptoutilTelemetry.TelemetryService
 	dbType              SupportedDBType // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
 	sqlDB               *sql.DB
@@ -24,7 +24,7 @@ type SqlRepository struct {
 }
 
 // GetDBType returns the database type
-func (s *SqlRepository) GetDBType() SupportedDBType {
+func (s *SQLRepository) GetDBType() SupportedDBType {
 	return s.dbType
 }
 
@@ -79,7 +79,7 @@ var (
 	ErrMaxPingAttemptsExceeded                      = errors.New("exceeded maximum DB ping attempts")
 )
 
-func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (*SqlRepository, error) {
+func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (*SQLRepository, error) {
 	if ctx == nil {
 		return nil, fmt.Errorf("ctx must be non-nil")
 	} else if telemetryService == nil {
@@ -130,7 +130,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
 	}
 
-	sqlRepository := &SqlRepository{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer, verboseMode: settings.VerboseMode}
+	sqlRepository := &SQLRepository{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer, verboseMode: settings.VerboseMode}
 
 	if dbType == DBTypeSQLite {
 		sqlDB.SetMaxOpenConns(1) // SQLite doesn't support concurrent writers; workaround is to limit the pool connections size to 1, but not good for read concurrency
@@ -181,7 +181,7 @@ func NewSqlRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	return sqlRepository, nil
 }
 
-func (s *SqlRepository) Shutdown() {
+func (s *SQLRepository) Shutdown() {
 	s.telemetryService.Slogger.Debug("shutting down SQL Provider")
 	s.shutdownDBContainer() // This call does it's own logging
 	s.telemetryService.Slogger.Debug("shutting down SQL Connection")
@@ -190,7 +190,7 @@ func (s *SqlRepository) Shutdown() {
 	}
 }
 
-func (s *SqlRepository) logConnectionPoolSettings() {
+func (s *SQLRepository) logConnectionPoolSettings() {
 	sqlDBStats := s.sqlDB.Stats()
 
 	maxOpenConnections := sqlDBStats.MaxOpenConnections

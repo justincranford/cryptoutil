@@ -8,12 +8,12 @@ import (
 	cryptoutilBarrierService "cryptoutil/internal/server/barrier"
 	cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
-	cryptoutilSqlRepository "cryptoutil/internal/server/repository/sqlrepository"
+	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 )
 
 type ServerApplicationCore struct {
 	ServerApplicationBasic *ServerApplicationBasic
-	SqlRepository          *cryptoutilSqlRepository.SqlRepository
+	SQLRepository          *cryptoutilSQLRepository.SQLRepository
 	OrmRepository          *cryptoutilOrmRepository.OrmRepository
 	BarrierService         *cryptoutilBarrierService.BarrierService
 	BusinessLogicService   *cryptoutilBusinessLogic.BusinessLogicService
@@ -29,13 +29,13 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 	serverApplicationCore := &ServerApplicationCore{}
 	serverApplicationCore.ServerApplicationBasic = serverApplicationBasic
 
-	sqlRepository, err := cryptoutilSqlRepository.NewSqlRepository(ctx, serverApplicationBasic.TelemetryService, settings)
+	sqlRepository, err := cryptoutilSQLRepository.NewSQLRepository(ctx, serverApplicationBasic.TelemetryService, settings)
 	if err != nil {
 		serverApplicationBasic.TelemetryService.Slogger.Error("failed to connect to SQL DB", "error", err)
 		serverApplicationCore.Shutdown()
 		return nil, fmt.Errorf("failed to connect to SQL DB: %w", err)
 	}
-	serverApplicationCore.SqlRepository = sqlRepository
+	serverApplicationCore.SQLRepository = sqlRepository
 
 	ormRepository, err := cryptoutilOrmRepository.NewOrmRepository(ctx, serverApplicationBasic.TelemetryService, sqlRepository, jwkGenService, settings)
 	if err != nil {
@@ -75,8 +75,8 @@ func (c *ServerApplicationCore) Shutdown() func() {
 		if c.OrmRepository != nil {
 			c.OrmRepository.Shutdown()
 		}
-		if c.SqlRepository != nil {
-			c.SqlRepository.Shutdown()
+		if c.SQLRepository != nil {
+			c.SQLRepository.Shutdown()
 		}
 		if c.ServerApplicationBasic != nil {
 			c.ServerApplicationBasic.Shutdown()
