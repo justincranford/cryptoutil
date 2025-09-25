@@ -84,6 +84,7 @@ linters-settings:
     ignore-words:
       - cryptoutil
       - keygen
+      - jwa
       - jwk
       - jwe
       - jws
@@ -91,6 +92,12 @@ linters-settings:
       - ecdh
       - rsa
       - hmac
+      - aes
+      - pkcs
+      - pkix
+      - x509
+      - pem
+      - der
       
   revive:
     severity: warning
