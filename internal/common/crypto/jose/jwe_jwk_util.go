@@ -20,23 +20,23 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-var ErrInvalidJweJWKKidUUID = "invalid JWE JWK kid UUID"
+var ErrInvalidJWEJWKKidUUID = "invalid JWE JWK kid UUID"
 
-func GenerateJweJWKForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func GenerateJWEJWKForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("failed to create uuid v7: %w", err)
 	}
-	key, err := validateJweJWKHeaders(&kid, enc, alg, nil, true) // true => generates enc key of the correct length
+	key, err := validateJWEJWKHeaders(&kid, enc, alg, nil, true) // true => generates enc key of the correct length
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)
 	}
-	return CreateJweJWKFromKey(&kid, enc, alg, key)
+	return CreateJWEJWKFromKey(&kid, enc, alg, key)
 }
 
-func CreateJweJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func CreateJWEJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	now := time.Now().UTC().Unix()
-	_, err := validateJweJWKHeaders(kid, enc, alg, key, false)
+	_, err := validateJWEJWKHeaders(kid, enc, alg, key, false)
 	if err != nil {
 		return nil, nil, nil, nil, nil, fmt.Errorf("invalid JWE JWK headers: %w", err)
 	}
@@ -116,8 +116,8 @@ func CreateJweJWKFromKey(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlg
 	return kid, nonPublicJWK, publicJWK, clearNonPublicJWKBytes, clearPublicJWKBytes, nil
 }
 
-func validateJweJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
-	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJweJWKKidUUID); err != nil {
+func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, key cryptoutilKeyGen.Key, isNilRawKeyOk bool) (cryptoutilKeyGen.Key, error) {
+	if err := cryptoutilUtil.ValidateUUID(kid, &ErrInvalidJWEJWKKidUUID); err != nil {
 		return nil, fmt.Errorf("JWE JWK kid must be valid: %w", err)
 	} else if alg == nil {
 		return nil, fmt.Errorf("JWE JWK alg must be non-nil")
@@ -133,39 +133,39 @@ func validateJweJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 
 	switch *alg {
 	case AlgDir:
-		return validateOrGenerateJweAESJWK(key, enc, alg, encKeyBitsLength, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, encKeyBitsLength, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgA256KW, AlgA256GCMKW:
-		return validateOrGenerateJweAESJWK(key, enc, alg, 256, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, 256, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA192KW, AlgA192GCMKW:
-		return validateOrGenerateJweAESJWK(key, enc, alg, 192, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, 192, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA128KW, AlgA128GCMKW:
-		return validateOrGenerateJweAESJWK(key, enc, alg, 128, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, 128, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgRSAOAEP512:
-		return validateOrGenerateJweRSAJWK(key, enc, alg, 4096, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, 4096, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP384:
-		return validateOrGenerateJweRSAJWK(key, enc, alg, 3072, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, 3072, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP256:
-		return validateOrGenerateJweRSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP:
-		return validateOrGenerateJweRSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSA15:
-		return validateOrGenerateJweRSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgECDHES, AlgECDHESA256KW:
-		return validateOrGenerateJweEcdhJWK(key, enc, alg, ecdh.P521(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEEcdhJWK(key, enc, alg, ecdh.P521(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgECDHESA192KW:
-		return validateOrGenerateJweEcdhJWK(key, enc, alg, ecdh.P384(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEEcdhJWK(key, enc, alg, ecdh.P384(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgECDHESA128KW:
-		return validateOrGenerateJweEcdhJWK(key, enc, alg, ecdh.P256(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEEcdhJWK(key, enc, alg, ecdh.P256(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	default:
 		return nil, fmt.Errorf("unsupported JWE JWK alg %s", *alg)
 	}
 }
 
-func validateOrGenerateJweAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (cryptoutilKeyGen.SecretKey, error) {
+func validateOrGenerateJWEAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (cryptoutilKeyGen.SecretKey, error) {
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
@@ -202,7 +202,7 @@ func validateOrGenerateJweAESJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 	}
 }
 
-func validateOrGenerateJweRSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJWERSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, keyBitsLength int, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
@@ -232,7 +232,7 @@ func validateOrGenerateJweRSAJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentE
 	}
 }
 
-func validateOrGenerateJweEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, ecdhCurve ecdh.Curve, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
+func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm, ecdhCurve ecdh.Curve, allowedEncs ...*joseJwa.ContentEncryptionAlgorithm) (*cryptoutilKeyGen.KeyPair, error) {
 	if !cryptoutilUtil.Contains(allowedEncs, enc) {
 		return nil, fmt.Errorf("valid JWE JWK alg %s, but enc %s not allowed; use one of %v", *alg, *enc, allowedEncs)
 	} else if key == nil {
@@ -281,7 +281,7 @@ func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	}
 }
 
-func ExtractAlgEncFromJweJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+func ExtractAlgEncFromJWEJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
 	if jwk == nil {
 		return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}
@@ -307,7 +307,7 @@ func ExtractAlgEncFromJweJWK(jwk joseJwk.Key, i int) (*joseJwa.ContentEncryption
 	return &enc, &alg, nil
 }
 
-func IsJweAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
+func IsJWEAlg(alg *joseJwa.KeyAlgorithm, i int) (bool, error) {
 	if alg == nil {
 		return false, fmt.Errorf("alg %d invalid: %w", i, cryptoutilAppErr.ErrCantBeNil)
 	}

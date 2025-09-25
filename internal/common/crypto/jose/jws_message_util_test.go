@@ -104,14 +104,14 @@ func requireJWSJWKHeaders(t *testing.T, nonPublicJWSJWK joseJwk.Key, expectedJWS
 
 func requireJWSMessageHeaders(t *testing.T, jwsMessage *joseJws.Message, jwsJWKKid *googleUuid.UUID, testCase *happyPathJWSTestCase) {
 	jwsHeaders := jwsMessage.Signatures()[0].ProtectedHeaders()
-	encodedJweHeaders, err := json.Marshal(jwsHeaders)
+	encodedJWEHeaders, err := json.Marshal(jwsHeaders)
 	require.NoError(t, err)
-	log.Printf("JWS Message Headers: %v", string(encodedJweHeaders))
+	log.Printf("JWS Message Headers: %v", string(encodedJWEHeaders))
 
-	var actualJweKid string
-	require.NoError(t, jwsHeaders.Get(joseJwk.KeyIDKey, &actualJweKid))
-	require.NotEmpty(t, actualJweKid)
-	require.Equal(t, jwsJWKKid.String(), actualJweKid)
+	var actualJWEKid string
+	require.NoError(t, jwsHeaders.Get(joseJwk.KeyIDKey, &actualJWEKid))
+	require.NotEmpty(t, actualJWEKid)
+	require.Equal(t, jwsJWKKid.String(), actualJWEKid)
 
 	var actualJWSAlg joseJwa.KeyAlgorithm
 	require.NoError(t, jwsHeaders.Get(joseJwk.AlgorithmKey, &actualJWSAlg))
@@ -154,9 +154,9 @@ func Test_SadPath_GenerateJWSJWK_UnsupportedAlg(t *testing.T) {
 }
 
 func Test_SadPath_ConcurrentGenerateJWSJWK_UnsupportedAlg(t *testing.T) {
-	nonPublicJweJWKs, publicJweJWKs, err := GenerateJWSJWKsForTest(t, 2, &AlgSigInvalid)
+	nonPublicJWEJWKs, publicJWEJWKs, err := GenerateJWSJWKsForTest(t, 2, &AlgSigInvalid)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWS JWK headers: unsupported JWS JWK alg: invalid\ninvalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
-	require.Nil(t, nonPublicJweJWKs)
-	require.Nil(t, publicJweJWKs)
+	require.Nil(t, nonPublicJWEJWKs)
+	require.Nil(t, publicJWEJWKs)
 }

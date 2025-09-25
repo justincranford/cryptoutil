@@ -10,44 +10,44 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_HappyPath_JWKGenService_Jwe_JWK_EncryptDecryptBytes(t *testing.T) {
-	for _, testCase := range happyPathJweTestCases {
+func Test_HappyPath_JWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
+	for _, testCase := range happyPathJWETestCases {
 		plaintext := fmt.Appendf(nil, "Hello world enc=%s alg=%s!", testCase.enc, testCase.alg)
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			actualKeyKid, nonPublicJweJWK, publicJweJWK, clearNonPublicJweJWKBytes, clearPublicJweJWKBytes, err := testJWKGenService.GenerateJweJWK(testCase.enc, testCase.alg)
+			actualKeyKid, nonPublicJWEJWK, publicJWEJWK, clearNonPublicJWEJWKBytes, clearPublicJWEJWKBytes, err := testJWKGenService.GenerateJWEJWK(testCase.enc, testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, actualKeyKid)
-			require.NotNil(t, nonPublicJweJWK)
-			require.NotEmpty(t, clearNonPublicJweJWKBytes)
-			log.Printf("Generated:\n%s\n%s", clearNonPublicJweJWKBytes, clearPublicJweJWKBytes)
+			require.NotNil(t, nonPublicJWEJWK)
+			require.NotEmpty(t, clearNonPublicJWEJWKBytes)
+			log.Printf("Generated:\n%s\n%s", clearNonPublicJWEJWKBytes, clearPublicJWEJWKBytes)
 
 			var encryptJWK joseJwk.Key
-			requireJweJWKHeaders(t, nonPublicJweJWK, OpsEncDec, &testCase)
-			if publicJweJWK == nil {
-				encryptJWK = nonPublicJweJWK
+			requireJWEJWKHeaders(t, nonPublicJWEJWK, OpsEncDec, &testCase)
+			if publicJWEJWK == nil {
+				encryptJWK = nonPublicJWEJWK
 			} else {
-				encryptJWK = publicJweJWK
-				requireJweJWKHeaders(t, publicJweJWK, OpsEnc, &testCase)
+				encryptJWK = publicJWEJWK
+				requireJWEJWKHeaders(t, publicJWEJWK, OpsEnc, &testCase)
 			}
 			isEncryptJWK, err := IsEncryptJWK(encryptJWK)
 			require.NoError(t, err)
 			require.True(t, isEncryptJWK)
 
-			jweMessage, encodedJweMessage, err := EncryptBytes([]joseJwk.Key{encryptJWK}, plaintext)
+			jweMessage, encodedJWEMessage, err := EncryptBytes([]joseJwk.Key{encryptJWK}, plaintext)
 			require.NoError(t, err)
-			require.NotEmpty(t, encodedJweMessage)
-			log.Printf("JWE Message: %s", string(encodedJweMessage))
+			require.NotEmpty(t, encodedJWEMessage)
+			log.Printf("JWE Message: %s", string(encodedJWEMessage))
 
 			jweHeaders := jweMessage.ProtectedHeaders()
-			encodedJweHeaders, err := json.Marshal(jweHeaders)
+			encodedJWEHeaders, err := json.Marshal(jweHeaders)
 			require.NoError(t, err)
-			log.Printf("JWE Message Headers: %v", string(encodedJweHeaders))
+			log.Printf("JWE Message Headers: %v", string(encodedJWEHeaders))
 
-			requireJweMessageHeaders(t, jweMessage, actualKeyKid, &testCase)
+			requireJWEMessageHeaders(t, jweMessage, actualKeyKid, &testCase)
 
-			decrypted, err := DecryptBytes([]joseJwk.Key{nonPublicJweJWK}, encodedJweMessage)
+			decrypted, err := DecryptBytes([]joseJwk.Key{nonPublicJWEJWK}, encodedJWEMessage)
 			require.NoError(t, err)
 			require.Equal(t, plaintext, decrypted)
 		})

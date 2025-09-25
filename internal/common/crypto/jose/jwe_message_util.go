@@ -48,7 +48,7 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
-		enc, alg, err := ExtractAlgEncFromJweJWK(jwk, i)
+		enc, alg, err := ExtractAlgEncFromJWEJWK(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -117,7 +117,7 @@ func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
 	algs := make(map[joseJwa.KeyEncryptionAlgorithm]struct{})
 	jweDecryptOptions := make([]joseJwe.DecryptOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		enc, alg, err := ExtractAlgEncFromJweJWK(jwk, i)
+		enc, alg, err := ExtractAlgEncFromJWEJWK(jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -166,7 +166,7 @@ func DecryptKey(kdks []joseJwk.Key, encryptedCdkBytes []byte) (joseJwk.Key, erro
 	return decryptedCdk, nil
 }
 
-func JweHeadersString(jweMessage *joseJwe.Message) (string, error) {
+func JWEHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	jweHeadersString, err := json.Marshal(jweMessage.ProtectedHeaders())
 	if err != nil {
 		return "", fmt.Errorf("failed to marshall JWE headers: %w", err)
@@ -174,7 +174,7 @@ func JweHeadersString(jweMessage *joseJwe.Message) (string, error) {
 	return string(jweHeadersString), err
 }
 
-func ExtractKidFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, error) {
+func ExtractKidFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, error) {
 	var kidUUIDString string
 	err := jweMessage.ProtectedHeaders().Get(joseJwk.KeyIDKey, &kidUUIDString)
 	if err != nil {
@@ -187,8 +187,8 @@ func ExtractKidFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, er
 	return &kidUUID, nil
 }
 
-func ExtractKidEncAlgFromJweMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, *joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
-	kidUUID, err := ExtractKidFromJweMessage(jweMessage)
+func ExtractKidEncAlgFromJWEMessage(jweMessage *joseJwe.Message) (*googleUuid.UUID, *joseJwa.ContentEncryptionAlgorithm, *joseJwa.KeyEncryptionAlgorithm, error) {
+	kidUUID, err := ExtractKidFromJWEMessage(jweMessage)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
 	}

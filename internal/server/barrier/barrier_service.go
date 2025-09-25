@@ -73,18 +73,18 @@ func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
-	encryptedContentJweMessageBytes, _, err := d.contentKeysService.EncryptContent(sqlTransaction, clearBytes)
+	encryptedContentJWEMessageBytes, _, err := d.contentKeysService.EncryptContent(sqlTransaction, clearBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt content bytes: %w", err)
 	}
-	return encryptedContentJweMessageBytes, nil
+	return encryptedContentJWEMessageBytes, nil
 }
 
-func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJweMessageBytes []byte) ([]byte, error) {
+func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.OrmTransaction, encryptedContentJWEMessageBytes []byte) ([]byte, error) {
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
-	decryptedBytes, err := d.contentKeysService.DecryptContent(sqlTransaction, encryptedContentJweMessageBytes)
+	decryptedBytes, err := d.contentKeysService.DecryptContent(sqlTransaction, encryptedContentJWEMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt content bytes: %w", err)
 	}

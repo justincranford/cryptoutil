@@ -234,7 +234,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 				cleartext = &str
 				encryptRequest := RequireEncryptRequest(t, cleartext)
 				ciphertext = RequireEncryptResponse(t, context, openapiClient, elasticKey.ElasticKeyID, nil, encryptRequest)
-				logJwe(t, ciphertext)
+				logJWE(t, ciphertext)
 			})
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
@@ -360,10 +360,10 @@ func logObjectAsJSON(t *testing.T, object any) {
 	t.Log(string(jsonString))
 }
 
-func logJwe(t *testing.T, encodedJweMessage *string) {
-	t.Log("JWE Message: {}", *encodedJweMessage)
+func logJWE(t *testing.T, encodedJWEMessage *string) {
+	t.Log("JWE Message: {}", *encodedJWEMessage)
 
-	jweMessage, err := joseJwe.Parse([]byte(*encodedJweMessage))
+	jweMessage, err := joseJwe.Parse([]byte(*encodedJWEMessage))
 	require.NoError(t, err)
 	logObjectAsJSON(t, jweMessage)
 }

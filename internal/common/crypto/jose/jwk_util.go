@@ -423,7 +423,7 @@ func IsEncryptJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
-	_, _, err := ExtractAlgEncFromJweJWK(jwk, 0)
+	_, _, err := ExtractAlgEncFromJWEJWK(jwk, 0)
 	if err != nil {
 		return false, nil // fmt.Errorf("failed to extract alg and enc from JWK: %w", err)
 	}
@@ -451,7 +451,7 @@ func IsDecryptJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
-	_, _, err := ExtractAlgEncFromJweJWK(jwk, 0)
+	_, _, err := ExtractAlgEncFromJWEJWK(jwk, 0)
 	if err != nil {
 		return false, nil // fmt.Errorf("failed to extract alg and enc from JWK: %w", err)
 	}

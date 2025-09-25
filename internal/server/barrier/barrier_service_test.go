@@ -47,11 +47,11 @@ func Test_HappyPath_SameUnsealJWKs(t *testing.T) {
 	ormRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, sqlRepository, testJWKGenService, testSettings)
 	defer ormRepository.Shutdown()
 
-	_, nonPublicJweJWK, _, _, _, err := cryptoutilJose.GenerateJweJWKForEncAndAlg(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWK, _, _, _, err := cryptoutilJose.GenerateJWEJWKForEncAndAlg(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
-	require.NotNil(t, nonPublicJweJWK)
+	require.NotNil(t, nonPublicJWEJWK)
 
-	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJweJWK})
+	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
 	require.NoError(t, err)
 	defer originalUnsealKeysService.Shutdown()
 
@@ -67,38 +67,38 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	defer testOrmRepository.Shutdown()
 
 	// generate three JWKs; 2 valid, 1 invalid
-	_, nonPublicJweJWK1, _, _, _, err := testJWKGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWK1, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
-	require.NotNil(t, nonPublicJweJWK1)
+	require.NotNil(t, nonPublicJWEJWK1)
 
-	_, nonPublicJweJWK2, _, _, _, err := testJWKGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWK2, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
-	require.NotNil(t, nonPublicJweJWK2)
+	require.NotNil(t, nonPublicJWEJWK2)
 
-	_, nonPublicJweJWKInvalid, _, _, _, err := testJWKGenService.GenerateJweJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	_, nonPublicJWEJWKInvalid, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
 	require.NoError(t, err)
-	require.NotNil(t, nonPublicJweJWKInvalid)
+	require.NotNil(t, nonPublicJWEJWKInvalid)
 
 	// unseal with both valid JWKs
-	unsealKeysServiceJWKs12, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJweJWK1, nonPublicJweJWK2})
+	unsealKeysServiceJWKs12, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK1, nonPublicJWEJWK2})
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysServiceJWKs12)
 	defer unsealKeysServiceJWKs12.Shutdown()
 
 	// unseal with first valid JWK
-	unsealKeysServiceJWK1, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJweJWK1})
+	unsealKeysServiceJWK1, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK1})
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysServiceJWK1)
 	defer unsealKeysServiceJWK1.Shutdown()
 
 	// unseal with second valid JWK
-	unsealKeysServiceJWK2, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJweJWK2})
+	unsealKeysServiceJWK2, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK2})
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysServiceJWK2)
 	defer unsealKeysServiceJWK2.Shutdown()
 
 	// unseal with invalid JWK
-	unsealKeysServiceInvalidJWK, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJweJWKInvalid})
+	unsealKeysServiceInvalidJWK, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWKInvalid})
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysServiceInvalidJWK)
 
