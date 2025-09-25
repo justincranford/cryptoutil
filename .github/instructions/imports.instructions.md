@@ -44,10 +44,39 @@ Use `jose` prefix followed by module name:
 - `joseJwk "github.com/lestrrat-go/jwx/v3/jwk"`
 - `joseJws "github.com/lestrrat-go/jwx/v3/jws"`
 
+## Go Naming Convention Notes
+
+Follow standard Go naming conventions with cryptographic exceptions:
+
+### Standard Go Rules
+- **Acronyms at the beginning or end**: ALL CAPS (e.g., `JWKParser`, `ParseJWK`)
+- **Acronyms in the middle**: camelCase (e.g., `parseRsaKey`, `generateAesToken`)
+
+### Cryptographic Exceptions ⚡
+**Use ALL CAPS for these standard crypto terms anywhere in identifiers:**
+- `RSA` - Rivest-Shamir-Adleman
+- `EC` - Elliptic Curve  
+- `ECDSA` - Elliptic Curve Digital Signature Algorithm
+- `ECDH` - Elliptic Curve Diffie-Hellman
+- `HMAC` - Hash-based Message Authentication Code
+- `AES` - Advanced Encryption Standard
+- `JWK` - JSON Web Key
+- `JWS` - JSON Web Signature
+- `JWE` - JSON Web Encryption
+- `ED25519` / `ED448` - Edwards-curve Digital Signature Algorithm
+- `PKCS8` / `PKIX` - Public Key Cryptography Standards
+- `CSR` - Certificate Signing Request
+- `PEM` - Privacy Enhanced Mail
+- `DER` - Distinguished Encoding Rules
+
+**Examples:** `PemTypeRSAPrivateKey`, `GenerateECDSAKeyPair`, `ValidateJWKHeaders`
+
+**Rationale:** Cryptographic terms should remain recognizable to security professionals, even when appearing in the middle of identifiers.
+
 ## General Principles
 
 - Use consistent, descriptive aliases that clearly identify the package purpose
 - Avoid single-letter or cryptic aliases
 - Maintain consistency across the entire codebase
-- Prefer camelCase for multi-word aliases
+- Prefer camelCase for multi-word aliases, except for crypto acronyms listed above
 - Use the established prefix patterns for package families
