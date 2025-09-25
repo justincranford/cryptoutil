@@ -60,6 +60,7 @@ Follow standard Go naming conventions with cryptographic exceptions:
 - `ECDH` - Elliptic Curve Diffie-Hellman
 - `HMAC` - Hash-based Message Authentication Code
 - `AES` - Advanced Encryption Standard
+- `JWA` - JSON Web Algorithm
 - `JWK` - JSON Web Key
 - `JWS` - JSON Web Signature
 - `JWE` - JSON Web Encryption
