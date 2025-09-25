@@ -21,35 +21,35 @@ output:
 linters:
   enable:
     # Essential linters
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Suggest code simplifications
+    - govet         # Reports suspicious constructs (Go's built-in vet)
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Advanced static analysis checks
+    - unused        # Find unused constants, variables, functions and types
     
     # Security
-    - gosec
+    - gosec         # Security-focused static analysis
     
     # Code quality
-    - gofmt
-    - goimports
-    - revive
-    - stylecheck
+    - gofmt         # Check code formatting
+    - goimports     # Check import formatting and unused imports
+    - revive        # Golint replacement with more rules
+    - stylecheck    # Go style guide compliance
     
     # Performance
-    - prealloc
-    - bodyclose
+    - prealloc      # Find slice declarations that could pre-allocate
+    - bodyclose     # Check for HTTP response body closure
     
     # Maintainability
-    - goconst
-    - misspell
-    - unparam
-    - unconvert
-    - whitespace
+    - goconst       # Find repeated strings that could be constants
+    - misspell      # Find common misspellings in comments and strings
+    - unparam       # Find unused function parameters
+    - unconvert     # Remove unnecessary type conversions
+    - whitespace    # Detect trailing whitespace and unnecessary blank lines
     
     # Error handling
-    - errorlint
+    - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
 
   disable:
     # Disable due to import resolution issues with module dependencies
