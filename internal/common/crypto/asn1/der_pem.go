@@ -13,18 +13,18 @@ import (
 )
 
 const (
-	PemTypePkcs8PrivateKey = "PRIVATE KEY"
-	PemTypePkixPublicKey   = "PUBLIC KEY"
-	PemTypeRsaPrivateKey   = "RSA PRIVATE KEY"
-	PemTypeRsaPublicKey    = "RSA PUBLIC KEY"
-	PemTypeEcPrivateKey    = "EC PRIVATE KEY"
+	PemTypePKCS8PrivateKey = "PRIVATE KEY"
+	PemTypePKIXPublicKey   = "PUBLIC KEY"
+	PemTypeRSAPrivateKey   = "RSA PRIVATE KEY"
+	PemTypeRSAPublicKey    = "RSA PUBLIC KEY"
+	PemTypeECPrivateKey    = "EC PRIVATE KEY"
 	PemTypeCertificate     = "CERTIFICATE"
-	PemTypeCsr             = "CERTIFICATE REQUEST"
+	PemTypeCSR             = "CERTIFICATE REQUEST"
 	PemTypeSecretKey       = "SECRET KEY"
 )
 
 var PemTypes = []string{
-	PemTypePkcs8PrivateKey, PemTypePkixPublicKey, PemTypeRsaPrivateKey, PemTypeRsaPublicKey, PemTypeEcPrivateKey, PemTypeCertificate, PemTypeCsr, PemTypeSecretKey,
+	PemTypePKCS8PrivateKey, PemTypePKIXPublicKey, PemTypeRSAPrivateKey, PemTypeRSAPublicKey, PemTypeECPrivateKey, PemTypeCertificate, PemTypeCSR, PemTypeSecretKey,
 }
 
 func PemEncodes(keys any) ([][]byte, error) {
@@ -77,17 +77,17 @@ func DerEncode(key any) ([]byte, string, error) {
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
-		return privateKeyBytes, PemTypePkcs8PrivateKey, nil
+		return privateKeyBytes, PemTypePKCS8PrivateKey, nil
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
 		publicKeyBytes, err := x509.MarshalPKIXPublicKey(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
-		return publicKeyBytes, PemTypePkixPublicKey, nil
+		return publicKeyBytes, PemTypePKIXPublicKey, nil
 	case *x509.Certificate:
 		return x509Type.Raw, PemTypeCertificate, nil
 	case *x509.CertificateRequest:
-		return x509Type.Raw, PemTypeCsr, nil
+		return x509Type.Raw, PemTypeCSR, nil
 	case []byte:
 		byteKey, ok := key.([]byte)
 		if !ok {
@@ -103,19 +103,19 @@ func DerDecode(bytes []byte, x509Type string) (any, error) {
 	var key any
 	var err error
 	switch x509Type {
-	case PemTypePkcs8PrivateKey:
+	case PemTypePKCS8PrivateKey:
 		key, err = x509.ParsePKCS8PrivateKey(bytes) // Generic: RSA, EC, ED
-	case PemTypePkixPublicKey:
+	case PemTypePKIXPublicKey:
 		key, err = x509.ParsePKIXPublicKey(bytes) // Generic: RSA, EC, ED
-	case PemTypeRsaPrivateKey:
+	case PemTypeRSAPrivateKey:
 		key, err = x509.ParsePKCS1PrivateKey(bytes) // RSA PrivateKey
-	case PemTypeRsaPublicKey:
+	case PemTypeRSAPublicKey:
 		key, err = x509.ParsePKCS1PublicKey(bytes) // RSA PublicKey
-	case PemTypeEcPrivateKey:
+	case PemTypeECPrivateKey:
 		key, err = x509.ParseECPrivateKey(bytes) // EC, ED PrivateKey
 	case PemTypeCertificate:
 		key, err = x509.ParseCertificate(bytes)
-	case PemTypeCsr:
+	case PemTypeCSR:
 		key, err = x509.ParseCertificateRequest(bytes)
 	case PemTypeSecretKey:
 		key, err = bytes, nil // AES, HMAC, AES-HMAC
