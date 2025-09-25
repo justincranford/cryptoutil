@@ -69,7 +69,7 @@ Follow standard Go naming conventions with cryptographic exceptions:
 - `PEM` - Privacy Enhanced Mail
 - `DER` - Distinguished Encoding Rules
 
-**Examples:** `PemTypeRSAPrivateKey`, `GenerateECDSAKeyPair`, `ValidateJWKHeaders`
+**Examples:** `PEMTypeRSAPrivateKey`, `GenerateECDSAKeyPair`, `ValidateJWKHeaders`
 
 **Rationale:** Cryptographic terms should remain recognizable to security professionals, even when appearing in the middle of identifiers.
 

@@ -86,38 +86,38 @@ func writeKeys(tempDir *string, keys []any) {
 		keyPair, ok := keyAny.(cryptoutilKeyGen.KeyPair)
 		if ok {
 			if keyPair.Private != nil {
-				privatePemFilename := baseFilename + "_private.pem"
-				privateDerFilename := baseFilename + "_private.der"
+				privatePEMFilename := baseFilename + "_private.pem"
+				privateDERFilename := baseFilename + "_private.der"
 
-				err = cryptoutilAsn1.PemWrite(keyPair.Private, privatePemFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+privatePemFilename)
+				err = cryptoutilAsn1.PEMWrite(keyPair.Private, privatePEMFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+privatePEMFilename)
 
-				err = cryptoutilAsn1.DerWrite(keyPair.Private, privateDerFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+privateDerFilename)
+				err = cryptoutilAsn1.DERWrite(keyPair.Private, privateDERFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+privateDERFilename)
 			}
 
 			if keyPair.Public != nil {
-				publicPemFilename := baseFilename + "_public.pem"
-				publicDerFilename := baseFilename + "_public.der"
+				publicPEMFilename := baseFilename + "_public.pem"
+				publicDERFilename := baseFilename + "_public.der"
 
-				err = cryptoutilAsn1.PemWrite(keyPair.Public, publicPemFilename)
+				err = cryptoutilAsn1.PEMWrite(keyPair.Public, publicPEMFilename)
 				cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.pem")
 
-				err = cryptoutilAsn1.DerWrite(keyPair.Public, publicDerFilename)
+				err = cryptoutilAsn1.DERWrite(keyPair.Public, publicDERFilename)
 				cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.der")
 			}
 		}
 		secretKey, ok := keyAny.([]byte)
 		if ok {
 			if secretKey != nil {
-				secretPemFilename := baseFilename + "_secret.pem"
-				secretDerFilename := baseFilename + "_secret.der"
+				secretPEMFilename := baseFilename + "_secret.pem"
+				secretDERFilename := baseFilename + "_secret.der"
 
-				err = cryptoutilAsn1.PemWrite(secretKey, secretPemFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretPemFilename)
+				err = cryptoutilAsn1.PEMWrite(secretKey, secretPEMFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretPEMFilename)
 
-				err = cryptoutilAsn1.DerWrite(secretKey, secretDerFilename)
-				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretDerFilename)
+				err = cryptoutilAsn1.DERWrite(secretKey, secretDERFilename)
+				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretDERFilename)
 			}
 		}
 	}
@@ -131,38 +131,38 @@ func readKeys(tempDir *string, keys []any) {
 		keyPair, ok := keyAny.(cryptoutilKeyGen.KeyPair)
 		if ok {
 			if keyPair.Private != nil {
-				privatePemFilename := baseFilename + "_private.pem"
-				privateDerFilename := baseFilename + "_private.der"
+				privatePEMFilename := baseFilename + "_private.pem"
+				privateDERFilename := baseFilename + "_private.der"
 
-				_, err := cryptoutilAsn1.PemRead(privatePemFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+privatePemFilename)
+				_, err := cryptoutilAsn1.PEMRead(privatePEMFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+privatePEMFilename)
 
-				_, _, err = cryptoutilAsn1.DerRead(privateDerFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDerFilename)
+				_, _, err = cryptoutilAsn1.DERRead(privateDERFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDERFilename)
 			}
 			if keyPair.Public != nil {
-				publicPemFilename := baseFilename + "_public.pem"
-				publicDerFilename := baseFilename + "_public.der"
+				publicPEMFilename := baseFilename + "_public.pem"
+				publicDERFilename := baseFilename + "_public.der"
 
-				_, err = cryptoutilAsn1.PemRead(publicPemFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicPemFilename)
+				_, err = cryptoutilAsn1.PEMRead(publicPEMFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicPEMFilename)
 
-				_, _, err = cryptoutilAsn1.DerRead(publicDerFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicDerFilename)
+				_, _, err = cryptoutilAsn1.DERRead(publicDERFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+publicDERFilename)
 			}
 		}
 
 		secretKey, ok := keyAny.([]byte)
 		if ok {
 			if secretKey != nil {
-				secretPemFilename := baseFilename + "_secret.pem"
-				secretDerFilename := baseFilename + "_secret.der"
+				secretPEMFilename := baseFilename + "_secret.pem"
+				secretDERFilename := baseFilename + "_secret.der"
 
-				_, err := cryptoutilAsn1.PemRead(secretPemFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretPemFilename)
+				_, err := cryptoutilAsn1.PEMRead(secretPEMFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretPEMFilename)
 
-				_, _, err = cryptoutilAsn1.DerRead(secretDerFilename)
-				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretDerFilename)
+				_, _, err = cryptoutilAsn1.DERRead(secretDERFilename)
+				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretDERFilename)
 			}
 		}
 	}

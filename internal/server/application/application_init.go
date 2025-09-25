@@ -67,7 +67,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	}
 
 	// Encode Certificates as PEM and write to files
-	tlsServerCertificateChainPEMs, err := cryptoutilAsn1.PemEncodes(tlsServerEndEntitySubject.KeyMaterial.CertificateChain)
+	tlsServerCertificateChainPEMs, err := cryptoutilAsn1.PEMEncodes(tlsServerEndEntitySubject.KeyMaterial.CertificateChain)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode certificate chain as PEM: %w", err)
 	}
@@ -79,7 +79,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	}
 
 	// Encrypt private key as PEM to write to file
-	tlsPrivateKeyPEM, err := cryptoutilAsn1.PemEncode(tlsServerEndEntitySubject.KeyMaterial.PrivateKey)
+	tlsPrivateKeyPEM, err := cryptoutilAsn1.PEMEncode(tlsServerEndEntitySubject.KeyMaterial.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode private key as PEM: %w", err)
 	}

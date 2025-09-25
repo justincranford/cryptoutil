@@ -13,26 +13,26 @@ import (
 )
 
 const (
-	PemTypePKCS8PrivateKey = "PRIVATE KEY"
-	PemTypePKIXPublicKey   = "PUBLIC KEY"
-	PemTypeRSAPrivateKey   = "RSA PRIVATE KEY"
-	PemTypeRSAPublicKey    = "RSA PUBLIC KEY"
-	PemTypeECPrivateKey    = "EC PRIVATE KEY"
-	PemTypeCertificate     = "CERTIFICATE"
-	PemTypeCSR             = "CERTIFICATE REQUEST"
-	PemTypeSecretKey       = "SECRET KEY"
+	PEMTypePKCS8PrivateKey = "PRIVATE KEY"
+	PEMTypePKIXPublicKey   = "PUBLIC KEY"
+	PEMTypeRSAPrivateKey   = "RSA PRIVATE KEY"
+	PEMTypeRSAPublicKey    = "RSA PUBLIC KEY"
+	PEMTypeECPrivateKey    = "EC PRIVATE KEY"
+	PEMTypeCertificate     = "CERTIFICATE"
+	PEMTypeCSR             = "CERTIFICATE REQUEST"
+	PEMTypeSecretKey       = "SECRET KEY"
 )
 
-var PemTypes = []string{
-	PemTypePKCS8PrivateKey, PemTypePKIXPublicKey, PemTypeRSAPrivateKey, PemTypeRSAPublicKey, PemTypeECPrivateKey, PemTypeCertificate, PemTypeCSR, PemTypeSecretKey,
+var PEMTypes = []string{
+	PEMTypePKCS8PrivateKey, PEMTypePKIXPublicKey, PEMTypeRSAPrivateKey, PEMTypeRSAPublicKey, PEMTypeECPrivateKey, PEMTypeCertificate, PEMTypeCSR, PEMTypeSecretKey,
 }
 
-func PemEncodes(keys any) ([][]byte, error) {
+func PEMEncodes(keys any) ([][]byte, error) {
 	switch expression := keys.(type) {
 	case []*x509.Certificate:
 		var pemBytesList [][]byte
 		for _, k := range expression {
-			pemBytes, err := PemEncode(k)
+			pemBytes, err := PEMEncode(k)
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
@@ -44,12 +44,12 @@ func PemEncodes(keys any) ([][]byte, error) {
 	}
 }
 
-func DerEncodes(key any) ([][]byte, error) {
+func DEREncodes(key any) ([][]byte, error) {
 	var derBytesList [][]byte
 	switch expression := key.(type) {
 	case []*x509.Certificate:
 		for _, k := range expression {
-			derBytes, _, err := DerEncode(k)
+			derBytes, _, err := DEREncode(k)
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
@@ -61,8 +61,8 @@ func DerEncodes(key any) ([][]byte, error) {
 	}
 }
 
-func PemEncode(key any) ([]byte, error) {
-	derBytes, pemType, err := DerEncode(key)
+func PEMEncode(key any) ([]byte, error) {
+	derBytes, pemType, err := DEREncode(key)
 	if err != nil {
 		return nil, fmt.Errorf("encode failed: %w", err)
 	}
@@ -70,54 +70,54 @@ func PemEncode(key any) ([]byte, error) {
 	return pemBytes, nil
 }
 
-func DerEncode(key any) ([]byte, string, error) {
+func DEREncode(key any) ([]byte, string, error) {
 	switch x509Type := key.(type) {
 	case *rsa.PrivateKey, *ecdsa.PrivateKey, ed25519.PrivateKey, *ecdh.PrivateKey:
 		privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
-		return privateKeyBytes, PemTypePKCS8PrivateKey, nil
+		return privateKeyBytes, PEMTypePKCS8PrivateKey, nil
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
 		publicKeyBytes, err := x509.MarshalPKIXPublicKey(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
-		return publicKeyBytes, PemTypePKIXPublicKey, nil
+		return publicKeyBytes, PEMTypePKIXPublicKey, nil
 	case *x509.Certificate:
-		return x509Type.Raw, PemTypeCertificate, nil
+		return x509Type.Raw, PEMTypeCertificate, nil
 	case *x509.CertificateRequest:
-		return x509Type.Raw, PemTypeCSR, nil
+		return x509Type.Raw, PEMTypeCSR, nil
 	case []byte:
 		byteKey, ok := key.([]byte)
 		if !ok {
 			return nil, "", fmt.Errorf("type assertion to []byte failed")
 		}
-		return byteKey, PemTypeSecretKey, nil
+		return byteKey, PEMTypeSecretKey, nil
 	default:
 		return nil, "", fmt.Errorf("not supported [%T]", x509Type)
 	}
 }
 
-func DerDecode(bytes []byte, x509Type string) (any, error) {
+func DERDecode(bytes []byte, x509Type string) (any, error) {
 	var key any
 	var err error
 	switch x509Type {
-	case PemTypePKCS8PrivateKey:
+	case PEMTypePKCS8PrivateKey:
 		key, err = x509.ParsePKCS8PrivateKey(bytes) // Generic: RSA, EC, ED
-	case PemTypePKIXPublicKey:
+	case PEMTypePKIXPublicKey:
 		key, err = x509.ParsePKIXPublicKey(bytes) // Generic: RSA, EC, ED
-	case PemTypeRSAPrivateKey:
+	case PEMTypeRSAPrivateKey:
 		key, err = x509.ParsePKCS1PrivateKey(bytes) // RSA PrivateKey
-	case PemTypeRSAPublicKey:
+	case PEMTypeRSAPublicKey:
 		key, err = x509.ParsePKCS1PublicKey(bytes) // RSA PublicKey
-	case PemTypeECPrivateKey:
+	case PEMTypeECPrivateKey:
 		key, err = x509.ParseECPrivateKey(bytes) // EC, ED PrivateKey
-	case PemTypeCertificate:
+	case PEMTypeCertificate:
 		key, err = x509.ParseCertificate(bytes)
-	case PemTypeCSR:
+	case PEMTypeCSR:
 		key, err = x509.ParseCertificateRequest(bytes)
-	case PemTypeSecretKey:
+	case PEMTypeSecretKey:
 		key, err = bytes, nil // AES, HMAC, AES-HMAC
 	default:
 		return nil, fmt.Errorf("type not supported: %s", x509Type)
@@ -128,9 +128,9 @@ func DerDecode(bytes []byte, x509Type string) (any, error) {
 	return key, nil
 }
 
-func DerDecodes(bytes []byte) (any, string, error) {
-	for _, derType := range PemTypes {
-		key, err := DerDecode(bytes, derType)
+func DERDecodes(bytes []byte) (any, string, error) {
+	for _, derType := range PEMTypes {
+		key, err := DERDecode(bytes, derType)
 		if err == nil {
 			return key, derType, nil
 		}
@@ -138,39 +138,39 @@ func DerDecodes(bytes []byte) (any, string, error) {
 	return nil, "", fmt.Errorf("decode failed")
 }
 
-func PemDecode(bytes []byte) (any, error) {
+func PEMDecode(bytes []byte) (any, error) {
 	block, rest := pem.Decode(bytes)
 	_ = rest // Intentionally ignore remaining bytes after PEM block
 	if block == nil {
 		return nil, fmt.Errorf("parse PEM failed")
 	}
-	return DerDecode(block.Bytes, block.Type)
+	return DERDecode(block.Bytes, block.Type)
 }
 
-func PemRead(filename string) (any, error) {
+func PEMRead(filename string) (any, error) {
 	pemBytes, err := os.ReadFile(filename) // #nosec G304 -- Legitimate file reading for crypto operations
 	if err != nil {
 		return nil, fmt.Errorf("read failed: %w", err)
 	}
 
-	return PemDecode(pemBytes)
+	return PEMDecode(pemBytes)
 }
 
-func DerRead(filename string) (any, string, error) {
+func DERRead(filename string) (any, string, error) {
 	derBytes, err := os.ReadFile(filename) // #nosec G304 -- Legitimate file reading for crypto operations
 	if err != nil {
 		return nil, "", fmt.Errorf("read failed: %w", err)
 	}
 
-	key, derType, err := DerDecodes(derBytes)
+	key, derType, err := DERDecodes(derBytes)
 	if err != nil {
 		return nil, "", fmt.Errorf("decode failed: %w", err)
 	}
 	return key, derType, nil
 }
 
-func PemWrite(key any, filename string) error {
-	pemBytes, err := PemEncode(key)
+func PEMWrite(key any, filename string) error {
+	pemBytes, err := PEMEncode(key)
 	if err != nil {
 		return fmt.Errorf("encode failed: %w", err)
 	}
@@ -188,8 +188,8 @@ func PemWrite(key any, filename string) error {
 	return nil
 }
 
-func DerWrite(key any, filename string) error {
-	derBytes, _, err := DerEncode(key)
+func DERWrite(key any, filename string) error {
+	derBytes, _, err := DEREncode(key)
 	if err != nil {
 		return fmt.Errorf("encode failed: %w", err)
 	}

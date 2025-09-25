@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 	os.Exit(rc)
 }
 
-func TestPemEncodeDecodeRSA(t *testing.T) {
+func TestPEMEncodeDecodeRSA(t *testing.T) {
 	keyPairOriginal, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 	privateKeyOriginal := keyPairOriginal
@@ -44,11 +44,11 @@ func TestPemEncodeDecodeRSA(t *testing.T) {
 	require.IsType(t, &rsa.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, &rsa.PublicKey{}, publicKeyOriginal)
 
-	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
+	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("RSA Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("RSA Private", "pem", string(privateKeyPEMBytes))
 
-	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
+	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, &rsa.PrivateKey{}, privateKeyDecoded)
@@ -56,11 +56,11 @@ func TestPemEncodeDecodeRSA(t *testing.T) {
 	require.True(t, ok, "privateKeyDecoded should be *rsa.PrivateKey")
 	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
-	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
+	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("RSA Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("RSA Public", "pem", string(privateKeyPEMBytes))
 
-	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
+	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, &rsa.PublicKey{}, publicKeyDecoded)
@@ -69,7 +69,7 @@ func TestPemEncodeDecodeRSA(t *testing.T) {
 	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
-func TestPemEncodeDecodeECDSA(t *testing.T) {
+func TestPEMEncodeDecodeECDSA(t *testing.T) {
 	keyPairOriginal, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
 	privateKeyOriginal := keyPairOriginal
@@ -77,11 +77,11 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 	require.IsType(t, &ecdsa.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, &ecdsa.PublicKey{}, publicKeyOriginal)
 
-	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
+	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDSA Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDSA Private", "pem", string(privateKeyPEMBytes))
 
-	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
+	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdsa.PrivateKey{}, privateKeyDecoded)
@@ -89,11 +89,11 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 	require.True(t, ok, "privateKeyDecoded should be *ecdsa.PrivateKey")
 	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
-	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
+	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDSA Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDSA Public", "pem", string(privateKeyPEMBytes))
 
-	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
+	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdsa.PublicKey{}, publicKeyDecoded)
@@ -102,7 +102,7 @@ func TestPemEncodeDecodeECDSA(t *testing.T) {
 	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
-func TestPemEncodeDecodeECDH(t *testing.T) {
+func TestPEMEncodeDecodeECDH(t *testing.T) {
 	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
 	keyPairOriginal, err := ecdh.P256().GenerateKey(rand.Reader)
 	require.NoError(t, err)
@@ -111,11 +111,11 @@ func TestPemEncodeDecodeECDH(t *testing.T) {
 	require.IsType(t, &ecdh.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, &ecdh.PublicKey{}, publicKeyOriginal)
 
-	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
+	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDH Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDH Private", "pem", string(privateKeyPEMBytes))
 
-	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
+	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdh.PrivateKey{}, privateKeyDecoded)
@@ -123,11 +123,11 @@ func TestPemEncodeDecodeECDH(t *testing.T) {
 	require.True(t, ok, "privateKeyDecoded should be *ecdh.PrivateKey")
 	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
-	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
+	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ECDH Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ECDH Public", "pem", string(privateKeyPEMBytes))
 
-	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
+	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, &ecdh.PublicKey{}, publicKeyDecoded)
@@ -136,17 +136,17 @@ func TestPemEncodeDecodeECDH(t *testing.T) {
 	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
-func TestPemEncodeDecodeEdDSA(t *testing.T) {
+func TestPEMEncodeDecodeEdDSA(t *testing.T) {
 	publicKeyOriginal, privateKeyOriginal, err := ed25519.GenerateKey(rand.Reader)
 	require.NoError(t, err)
 	require.IsType(t, ed25519.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, ed25519.PublicKey{}, publicKeyOriginal)
 
-	privateKeyPemBytes, err := PemEncode(privateKeyOriginal)
+	privateKeyPEMBytes, err := PEMEncode(privateKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ED Private", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ED Private", "pem", string(privateKeyPEMBytes))
 
-	privateKeyDecoded, err := PemDecode(privateKeyPemBytes)
+	privateKeyDecoded, err := PEMDecode(privateKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, ed25519.PrivateKey{}, privateKeyDecoded)
@@ -154,11 +154,11 @@ func TestPemEncodeDecodeEdDSA(t *testing.T) {
 	require.True(t, ok, "privateKeyDecoded should be ed25519.PrivateKey")
 	require.Equal(t, privateKeyOriginal, privateKeyDecodedTyped)
 
-	publicKeyPemBytes, err := PemEncode(publicKeyOriginal)
+	publicKeyPEMBytes, err := PEMEncode(publicKeyOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("ED Public", "pem", string(privateKeyPemBytes))
+	testTelemetryService.Slogger.Info("ED Public", "pem", string(privateKeyPEMBytes))
 
-	publicKeyDecoded, err := PemDecode(publicKeyPemBytes)
+	publicKeyDecoded, err := PEMDecode(publicKeyPEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, ed25519.PublicKey{}, publicKeyDecoded)
@@ -167,7 +167,7 @@ func TestPemEncodeDecodeEdDSA(t *testing.T) {
 	require.Equal(t, publicKeyOriginal, publicKeyDecodedTyped)
 }
 
-func TestPemEncodeDecodeCertificate(t *testing.T) {
+func TestPEMEncodeDecodeCertificate(t *testing.T) {
 	privateKeyOriginal, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
 
@@ -175,17 +175,17 @@ func TestPemEncodeDecodeCertificate(t *testing.T) {
 		SerialNumber: big.NewInt(1),
 	}
 
-	certificateDerBytes, err := x509.CreateCertificate(rand.Reader, certificateTemplate, certificateTemplate, &privateKeyOriginal.PublicKey, privateKeyOriginal)
+	certificateDERBytes, err := x509.CreateCertificate(rand.Reader, certificateTemplate, certificateTemplate, &privateKeyOriginal.PublicKey, privateKeyOriginal)
 	require.NoError(t, err)
 
-	certificateOriginal, err := x509.ParseCertificate(certificateDerBytes)
+	certificateOriginal, err := x509.ParseCertificate(certificateDERBytes)
 	require.NoError(t, err)
 
-	certificatePemBytes, err := PemEncode(certificateOriginal)
+	certificatePEMBytes, err := PEMEncode(certificateOriginal)
 	require.NoError(t, err)
-	testTelemetryService.Slogger.Info("Cert", "pem", string(certificatePemBytes))
+	testTelemetryService.Slogger.Info("Cert", "pem", string(certificatePEMBytes))
 
-	certificateDecoded, err := PemDecode(certificatePemBytes)
+	certificateDecoded, err := PEMDecode(certificatePEMBytes)
 	require.NoError(t, err)
 
 	require.IsType(t, &x509.Certificate{}, certificateDecoded)
