@@ -15,12 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type happyPathJwsTestCase struct {
+type happyPathJWSTestCase struct {
 	alg          *joseJwa.SignatureAlgorithm
 	expectedType joseJwa.KeyType
 }
 
-var happyPathJwsTestCases = []happyPathJwsTestCase{
+var happyPathJWSTestCases = []happyPathJWSTestCase{
 	{alg: &AlgRS256, expectedType: KtyRSA}, // RSA 1.5 & SHA-256
 	{alg: &AlgRS384, expectedType: KtyRSA}, // RSA 1.5 & SHA-384
 	{alg: &AlgRS512, expectedType: KtyRSA}, // RSA 1.5 & SHA-512
@@ -36,47 +36,47 @@ var happyPathJwsTestCases = []happyPathJwsTestCase{
 	{alg: &AlgEdDSA, expectedType: KtyOKP}, // ED25519 & SHA-256
 }
 
-func Test_HappyPath_NonJWKGenService_Jws_JWK_SignVerifyBytes(t *testing.T) {
-	for _, testCase := range happyPathJwsTestCases {
+func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
+	for _, testCase := range happyPathJWSTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			jwsJWKKid, nonPublicJwsJWK, publicJwsJWK, clearNonPublicJwsJWKBytes, _, err := GenerateJwsJWKForAlg(testCase.alg)
+			jwsJWKKid, nonPublicJWSJWK, publicJWSJWK, clearNonPublicJWSJWKBytes, _, err := GenerateJWSJWKForAlg(testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJWKKid)
-			require.NotNil(t, nonPublicJwsJWK)
+			require.NotNil(t, nonPublicJWSJWK)
 
-			require.NotEmpty(t, clearNonPublicJwsJWKBytes)
-			log.Printf("Generated: %s", clearNonPublicJwsJWKBytes)
+			require.NotEmpty(t, clearNonPublicJWSJWKBytes)
+			log.Printf("Generated: %s", clearNonPublicJWSJWKBytes)
 
-			requireJwsJWKHeaders(t, nonPublicJwsJWK, OpsSigVer, &testCase)
-			if publicJwsJWK != nil {
-				requireJwsJWKHeaders(t, publicJwsJWK, OpsVer, &testCase)
+			requireJWSJWKHeaders(t, nonPublicJWSJWK, OpsSigVer, &testCase)
+			if publicJWSJWK != nil {
+				requireJWSJWKHeaders(t, publicJWSJWK, OpsVer, &testCase)
 			}
 
-			// isSignJWK, err := IsSignJWK(nonPublicJwsJWK)
-			// require.NoError(t, err, "failed to validate nonPublicJwsJWK")
-			// require.True(t, isSignJWK, "nonPublicJwsJWK must be an sign JWK")
+			// isSignJWK, err := IsSignJWK(nonPublicJWSJWK)
+			// require.NoError(t, err, "failed to validate nonPublicJWSJWK")
+			// require.True(t, isSignJWK, "nonPublicJWSJWK must be an sign JWK")
 
-			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{nonPublicJwsJWK}, plaintext)
+			jwsMessage, encodedJWSMessage, err := SignBytes([]joseJwk.Key{nonPublicJWSJWK}, plaintext)
 			require.NoError(t, err)
-			require.NotEmpty(t, encodedJwsMessage)
-			log.Printf("JWS Message: %s", string(encodedJwsMessage))
+			require.NotEmpty(t, encodedJWSMessage)
+			log.Printf("JWS Message: %s", string(encodedJWSMessage))
 
-			requireJwsMessageHeaders(t, jwsMessage, jwsJWKKid, &testCase)
+			requireJWSMessageHeaders(t, jwsMessage, jwsJWKKid, &testCase)
 
-			// isVerifyJWK, err := IsVerifyJWK(publicJwsJWK)
-			// require.NoError(t, err, "failed to validate publicJwsJWK")
-			// require.True(t, isVerifyJWK, "publicJwsJWK must be an verify JWK")
-			isSymmetric, err := IsSymmetricJWK(nonPublicJwsJWK)
-			require.NoError(t, err, "failed to validate nonPublicJwsJWK")
+			// isVerifyJWK, err := IsVerifyJWK(publicJWSJWK)
+			// require.NoError(t, err, "failed to validate publicJWSJWK")
+			// require.True(t, isVerifyJWK, "publicJWSJWK must be an verify JWK")
+			isSymmetric, err := IsSymmetricJWK(nonPublicJWSJWK)
+			require.NoError(t, err, "failed to validate nonPublicJWSJWK")
 			if isSymmetric {
-				verified, err := VerifyBytes([]joseJwk.Key{nonPublicJwsJWK}, encodedJwsMessage)
+				verified, err := VerifyBytes([]joseJwk.Key{nonPublicJWSJWK}, encodedJWSMessage)
 				require.NoError(t, err)
 				require.NotNil(t, verified)
 			} else {
-				verified, err := VerifyBytes([]joseJwk.Key{publicJwsJWK}, encodedJwsMessage)
+				verified, err := VerifyBytes([]joseJwk.Key{publicJWSJWK}, encodedJWSMessage)
 				require.NoError(t, err)
 				require.NotNil(t, verified)
 			}
@@ -84,25 +84,25 @@ func Test_HappyPath_NonJWKGenService_Jws_JWK_SignVerifyBytes(t *testing.T) {
 	}
 }
 
-func requireJwsJWKHeaders(t *testing.T, nonPublicJwsJWK joseJwk.Key, expectedJwsJWKOps joseJwk.KeyOperationList, testCase *happyPathJwsTestCase) {
+func requireJWSJWKHeaders(t *testing.T, nonPublicJWSJWK joseJwk.Key, expectedJWSJWKOps joseJwk.KeyOperationList, testCase *happyPathJWSTestCase) {
 	var actualJWKAlg joseJwa.KeyAlgorithm
-	require.NoError(t, nonPublicJwsJWK.Get(joseJwk.AlgorithmKey, &actualJWKAlg))
+	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.AlgorithmKey, &actualJWKAlg))
 	require.Equal(t, *testCase.alg, actualJWKAlg)
 
 	var actualJWKUse string
-	require.NoError(t, nonPublicJwsJWK.Get(joseJwk.KeyUsageKey, &actualJWKUse))
+	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.KeyUsageKey, &actualJWKUse))
 	require.Equal(t, joseJwk.ForSignature.String(), actualJWKUse)
 
 	var actualJWKOps joseJwk.KeyOperationList
-	require.NoError(t, nonPublicJwsJWK.Get(joseJwk.KeyOpsKey, &actualJWKOps))
-	require.Equal(t, expectedJwsJWKOps, actualJWKOps)
+	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.KeyOpsKey, &actualJWKOps))
+	require.Equal(t, expectedJWSJWKOps, actualJWKOps)
 
 	var actualJWKKty joseJwa.KeyType
-	require.NoError(t, nonPublicJwsJWK.Get(joseJwk.KeyTypeKey, &actualJWKKty))
+	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.KeyTypeKey, &actualJWKKty))
 	require.Equal(t, testCase.expectedType, actualJWKKty)
 }
 
-func requireJwsMessageHeaders(t *testing.T, jwsMessage *joseJws.Message, jwsJWKKid *googleUuid.UUID, testCase *happyPathJwsTestCase) {
+func requireJWSMessageHeaders(t *testing.T, jwsMessage *joseJws.Message, jwsJWKKid *googleUuid.UUID, testCase *happyPathJWSTestCase) {
 	jwsHeaders := jwsMessage.Signatures()[0].ProtectedHeaders()
 	encodedJweHeaders, err := json.Marshal(jwsHeaders)
 	require.NoError(t, err)
@@ -113,9 +113,9 @@ func requireJwsMessageHeaders(t *testing.T, jwsMessage *joseJws.Message, jwsJWKK
 	require.NotEmpty(t, actualJweKid)
 	require.Equal(t, jwsJWKKid.String(), actualJweKid)
 
-	var actualJwsAlg joseJwa.KeyAlgorithm
-	require.NoError(t, jwsHeaders.Get(joseJwk.AlgorithmKey, &actualJwsAlg))
-	require.Equal(t, *testCase.alg, actualJwsAlg)
+	var actualJWSAlg joseJwa.KeyAlgorithm
+	require.NoError(t, jwsHeaders.Get(joseJwk.AlgorithmKey, &actualJWSAlg))
+	require.Equal(t, *testCase.alg, actualJWSAlg)
 }
 
 func Test_SadPath_SignBytes_NilKey(t *testing.T) {
@@ -128,33 +128,33 @@ func Test_SadPath_VerifyBytes_NilKey(t *testing.T) {
 	require.Error(t, err)
 }
 
-func Test_SadPath_VerifyBytes_InvalidJwsMessage(t *testing.T) {
-	kid, nonPublicJwsJWK, _, clearNonPublicJwsJWKBytes, _, err := GenerateJwsJWKForAlg(&AlgHS256)
+func Test_SadPath_VerifyBytes_InvalidJWSMessage(t *testing.T) {
+	kid, nonPublicJWSJWK, _, clearNonPublicJWSJWKBytes, _, err := GenerateJWSJWKForAlg(&AlgHS256)
 	require.NoError(t, err)
 	require.NotNil(t, kid)
-	require.NotNil(t, nonPublicJwsJWK)
-	isSigntJWK, err := IsSignJWK(nonPublicJwsJWK)
+	require.NotNil(t, nonPublicJWSJWK)
+	isSigntJWK, err := IsSignJWK(nonPublicJWSJWK)
 	require.NoError(t, err)
 	require.True(t, isSigntJWK)
-	require.NotNil(t, clearNonPublicJwsJWKBytes)
+	require.NotNil(t, clearNonPublicJWSJWKBytes)
 
-	_, err = VerifyBytes([]joseJwk.Key{nonPublicJwsJWK}, []byte("this-is-not-a-valid-jws-message"))
+	_, err = VerifyBytes([]joseJwk.Key{nonPublicJWSJWK}, []byte("this-is-not-a-valid-jws-message"))
 	require.Error(t, err)
 }
 
-func Test_SadPath_GenerateJwsJWK_UnsupportedAlg(t *testing.T) {
-	kid, nonPublicJwsJWK, publicJwsJWK, clearNonPublicJwsJWKBytes, clearPublicJwsJWKBytes, err := GenerateJwsJWKForAlg(&AlgSigInvalid)
+func Test_SadPath_GenerateJWSJWK_UnsupportedAlg(t *testing.T) {
+	kid, nonPublicJWSJWK, publicJWSJWK, clearNonPublicJWSJWKBytes, clearPublicJWSJWKBytes, err := GenerateJWSJWKForAlg(&AlgSigInvalid)
 	require.Error(t, err)
 	require.Equal(t, "invalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
 	require.Nil(t, kid)
-	require.Nil(t, nonPublicJwsJWK)
-	require.Nil(t, publicJwsJWK)
-	require.Nil(t, clearNonPublicJwsJWKBytes)
-	require.Nil(t, clearPublicJwsJWKBytes)
+	require.Nil(t, nonPublicJWSJWK)
+	require.Nil(t, publicJWSJWK)
+	require.Nil(t, clearNonPublicJWSJWKBytes)
+	require.Nil(t, clearPublicJWSJWKBytes)
 }
 
-func Test_SadPath_ConcurrentGenerateJwsJWK_UnsupportedAlg(t *testing.T) {
-	nonPublicJweJWKs, publicJweJWKs, err := GenerateJwsJWKsForTest(t, 2, &AlgSigInvalid)
+func Test_SadPath_ConcurrentGenerateJWSJWK_UnsupportedAlg(t *testing.T) {
+	nonPublicJweJWKs, publicJweJWKs, err := GenerateJWSJWKsForTest(t, 2, &AlgSigInvalid)
 	require.Error(t, err)
 	require.Equal(t, "unexpected 2 errors: invalid JWS JWK headers: unsupported JWS JWK alg: invalid\ninvalid JWS JWK headers: unsupported JWS JWK alg: invalid", err.Error())
 	require.Nil(t, nonPublicJweJWKs)

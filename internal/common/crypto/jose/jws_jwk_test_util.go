@@ -10,7 +10,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-func GenerateJwsJWKsForTest(t *testing.T, count int, alg *joseJwa.SignatureAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
+func GenerateJWSJWKsForTest(t *testing.T, count int, alg *joseJwa.SignatureAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
 	type jwkOrErr struct {
 		nonPublicJWK joseJwk.Key
 		publicJWK    joseJwk.Key
@@ -23,7 +23,7 @@ func GenerateJwsJWKsForTest(t *testing.T, count int, alg *joseJwa.SignatureAlgor
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, nonPublicJWK, publicJWK, _, _, err := GenerateJwsJWKForAlg(alg)
+			_, nonPublicJWK, publicJWK, _, _, err := GenerateJWSJWKForAlg(alg)
 			jwkOrErrs <- jwkOrErr{nonPublicJWK: nonPublicJWK, publicJWK: publicJWK, err: err}
 		}()
 	}

@@ -43,7 +43,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
-		alg, err := ExtractAlgFromJwsJWK(jwk, i)
+		alg, err := ExtractAlgFromJWSJWK(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -104,7 +104,7 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 	algs := make(map[joseJwa.SignatureAlgorithm]struct{})
 	jwsVerifyOptions := make([]joseJws.VerifyOption, 0, len(jwks))
 	for i, jwk := range jwks {
-		alg, err := ExtractAlgFromJwsJWK(jwk, i)
+		alg, err := ExtractAlgFromJWSJWK(jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
@@ -129,7 +129,7 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 	return verifiedBytes, nil
 }
 
-func JwsHeadersString(jwsMessage *joseJws.Message) (string, error) {
+func JWSHeadersString(jwsMessage *joseJws.Message) (string, error) {
 	var jwsSignaturesHeadersString string
 	for i, jwsMessageSignature := range jwsMessage.Signatures() {
 		jwsSignatureHeadersString, err := json.Marshal(jwsMessageSignature.ProtectedHeaders())
@@ -144,7 +144,7 @@ func JwsHeadersString(jwsMessage *joseJws.Message) (string, error) {
 	return jwsSignaturesHeadersString, nil
 }
 
-func ExtractKidAlgFromJwsMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, error) {
+func ExtractKidAlgFromJWSMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID, *joseJwa.SignatureAlgorithm, error) {
 	if len(jwsMessage.Signatures()) > 1 { // TODO support multiple signatures
 		return nil, nil, fmt.Errorf("unsupported extract kid and alg from JWS with multiple signatures")
 	}
@@ -172,7 +172,7 @@ func ExtractKidAlgFromJwsMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID,
 	return nil, nil, nil
 }
 
-func LogJwsInfo(jwsMessage *joseJws.Message) error {
+func LogJWSInfo(jwsMessage *joseJws.Message) error {
 	if jwsMessage == nil {
 		return fmt.Errorf("jwsMessage is nil")
 	} else if len(jwsMessage.Signatures()) == 0 {

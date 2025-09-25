@@ -364,14 +364,14 @@ func (s *BusinessLogicService) PostDecryptByElasticKeyID(ctx context.Context, el
 }
 
 func (s *BusinessLogicService) PostSignByElasticKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, clearPayloadBytes []byte) ([]byte, error) {
-	elasticKey, _, decryptedMaterialKeyNonPublicJwsJWK, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
+	elasticKey, _, decryptedMaterialKeyNonPublicJWSJWK, _, err := s.getAndDecryptMaterialKeyInElasticKey(ctx, elasticKeyID, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get and decrypt latest MaterialKey JWS JWK from ElasticKey for ElasticKeyID: %w", err)
 	}
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
-	_, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJwsJWK}, clearPayloadBytes)
+	_, jwsMessageBytes, err := cryptoutilJose.SignBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWSJWK}, clearPayloadBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sign bytes with latest MaterialKey for ElasticKeyID: %w", err)
 	}
@@ -383,7 +383,7 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JWS message bytes: %w", err)
 	}
-	kidUUID, _, err := cryptoutilJose.ExtractKidAlgFromJwsMessage(jwsMessage)
+	kidUUID, _, err := cryptoutilJose.ExtractKidAlgFromJWSMessage(jwsMessage)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get JWS message headers kid and alg: %w", err)
 	}
@@ -393,20 +393,20 @@ func (s *BusinessLogicService) PostVerifyByElasticKeyID(ctx context.Context, ela
 	}
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
-	} else if !cryptoutilJose.IsJws(&elasticKey.ElasticKeyAlgorithm) {
+	} else if !cryptoutilJose.IsJWS(&elasticKey.ElasticKeyAlgorithm) {
 		return nil, fmt.Errorf("verify not supported by KeyMaterial with ElasticKeyAlgorithm %v", elasticKey.ElasticKeyAlgorithm)
 	}
-	var verifiedJwsMessageBytes []byte
+	var verifiedJWSMessageBytes []byte
 	if clearMaterialKeyPublicJweJWK != nil {
-		verifiedJwsMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{clearMaterialKeyPublicJweJWK}, jwsMessageBytes) // asymmetric
+		verifiedJWSMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{clearMaterialKeyPublicJweJWK}, jwsMessageBytes) // asymmetric
 	} else {
-		verifiedJwsMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJWK}, jwsMessageBytes) // symmetric
+		verifiedJWSMessageBytes, err = cryptoutilJose.VerifyBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJweJWK}, jwsMessageBytes) // symmetric
 	}
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify bytes with MaterialKey for ElasticKeyID: %w", err)
 	}
-	return verifiedJwsMessageBytes, nil
+	return verifiedJWSMessageBytes, nil
 }
 
 //nolint:unparam // Some callers ignore certain return values by design
@@ -426,12 +426,12 @@ func (s *BusinessLogicService) generateJWK(elasticKeyAlgorithm *cryptoutilOpenap
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to generate MaterialKey JWE JWK: %w", err)
 		}
-	} else if cryptoutilJose.IsJws(elasticKeyAlgorithm) {
-		alg, err := cryptoutilJose.ToJwsAlg(elasticKeyAlgorithm)
+	} else if cryptoutilJose.IsJWS(elasticKeyAlgorithm) {
+		alg, err := cryptoutilJose.ToJWSAlg(elasticKeyAlgorithm)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to map JWS ElasticKey Algorithm: %w", err)
 		}
-		materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err = s.jwkGenService.GenerateJwsJWK(alg)
+		materialKeyID, materialKeyNonPublicJWK, materialKeyPublicJWK, materialKeyNonPublicJWKBytes, materialKeyPublicJWKBytes, err = s.jwkGenService.GenerateJWSJWK(alg)
 		if err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to generate MaterialKey JWS JWK: %w", err)
 		}

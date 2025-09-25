@@ -54,44 +54,44 @@ func Test_HappyPath_JWKGenService_Jwe_JWK_EncryptDecryptBytes(t *testing.T) {
 	}
 }
 
-func Test_HappyPath_JWKGenService_Jws_JWK_SignVerifyBytes(t *testing.T) {
-	for _, testCase := range happyPathJwsTestCases {
+func Test_HappyPath_JWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
+	for _, testCase := range happyPathJWSTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
 			t.Parallel()
 
-			jwsJWKKid, nonPublicJwsJWK, publicJwsJWK, clearNonPublicJwsJWKBytes, _, err := testJWKGenService.GenerateJwsJWK(testCase.alg)
+			jwsJWKKid, nonPublicJWSJWK, publicJWSJWK, clearNonPublicJWSJWKBytes, _, err := testJWKGenService.GenerateJWSJWK(testCase.alg)
 			require.NoError(t, err)
 			require.NotEmpty(t, jwsJWKKid)
-			require.NotNil(t, nonPublicJwsJWK)
-			isSigntJWK, err := IsSignJWK(nonPublicJwsJWK)
+			require.NotNil(t, nonPublicJWSJWK)
+			isSigntJWK, err := IsSignJWK(nonPublicJWSJWK)
 			require.NoError(t, err)
 			require.True(t, isSigntJWK)
-			require.NotEmpty(t, clearNonPublicJwsJWKBytes)
-			log.Printf("Generated: %s", clearNonPublicJwsJWKBytes)
+			require.NotEmpty(t, clearNonPublicJWSJWKBytes)
+			log.Printf("Generated: %s", clearNonPublicJWSJWKBytes)
 
-			requireJwsJWKHeaders(t, nonPublicJwsJWK, OpsSigVer, &testCase)
-			if publicJwsJWK != nil {
-				requireJwsJWKHeaders(t, publicJwsJWK, OpsVer, &testCase)
+			requireJWSJWKHeaders(t, nonPublicJWSJWK, OpsSigVer, &testCase)
+			if publicJWSJWK != nil {
+				requireJWSJWKHeaders(t, publicJWSJWK, OpsVer, &testCase)
 			}
 
-			jwsMessage, encodedJwsMessage, err := SignBytes([]joseJwk.Key{nonPublicJwsJWK}, plaintext)
+			jwsMessage, encodedJWSMessage, err := SignBytes([]joseJwk.Key{nonPublicJWSJWK}, plaintext)
 			require.NoError(t, err)
-			require.NotEmpty(t, encodedJwsMessage)
-			log.Printf("JWS Message: %s", string(encodedJwsMessage))
+			require.NotEmpty(t, encodedJWSMessage)
+			log.Printf("JWS Message: %s", string(encodedJWSMessage))
 
-			requireJwsMessageHeaders(t, jwsMessage, jwsJWKKid, &testCase)
+			requireJWSMessageHeaders(t, jwsMessage, jwsJWKKid, &testCase)
 
 			var verifyJWK joseJwk.Key
-			if publicJwsJWK == nil {
-				verifyJWK = nonPublicJwsJWK
+			if publicJWSJWK == nil {
+				verifyJWK = nonPublicJWSJWK
 			} else {
-				verifyJWK = publicJwsJWK
-				requireJwsJWKHeaders(t, publicJwsJWK, OpsVer, &testCase)
+				verifyJWK = publicJWSJWK
+				requireJWSJWKHeaders(t, publicJWSJWK, OpsVer, &testCase)
 			}
 
 			require.NoError(t, err)
-			verified, err := VerifyBytes([]joseJwk.Key{verifyJWK}, encodedJwsMessage)
+			verified, err := VerifyBytes([]joseJwk.Key{verifyJWK}, encodedJWSMessage)
 			require.NoError(t, err)
 			require.NotNil(t, verified)
 		})

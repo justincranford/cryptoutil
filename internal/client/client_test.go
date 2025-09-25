@@ -334,7 +334,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				cleartext = &str
 				signRequest := RequireSignRequest(t, cleartext)
 				signedtext = RequireSignResponse(t, context, openapiClient, elasticKey.ElasticKeyID, nil, signRequest)
-				logJws(t, signedtext)
+				logJWS(t, signedtext)
 			})
 
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
@@ -368,10 +368,10 @@ func logJwe(t *testing.T, encodedJweMessage *string) {
 	logObjectAsJSON(t, jweMessage)
 }
 
-func logJws(t *testing.T, encodedJwsMessage *string) {
-	t.Log("JWS Message: {}", *encodedJwsMessage)
+func logJWS(t *testing.T, encodedJWSMessage *string) {
+	t.Log("JWS Message: {}", *encodedJWSMessage)
 
-	jwsMessage, err := joseJws.Parse([]byte(*encodedJwsMessage))
+	jwsMessage, err := joseJws.Parse([]byte(*encodedJWSMessage))
 	require.NoError(t, err)
 	logObjectAsJSON(t, jwsMessage)
 }

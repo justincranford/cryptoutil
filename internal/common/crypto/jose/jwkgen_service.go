@@ -176,28 +176,28 @@ func (s *JWKGenService) GenerateJweJWK(enc *joseJwa.ContentEncryptionAlgorithm, 
 	}
 }
 
-func (s *JWKGenService) GenerateJwsJWK(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
+func (s *JWKGenService) GenerateJWSJWK(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	switch *alg {
 	case AlgRS512, AlgPS512:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA4096KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA4096KeyGenPool.Get())
 	case AlgRS384, AlgPS384:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA3072KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA3072KeyGenPool.Get())
 	case AlgRS256, AlgPS256:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA2048KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.RSA2048KeyGenPool.Get())
 	case AlgES512:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP521KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP521KeyGenPool.Get())
 	case AlgES384:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP384KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP384KeyGenPool.Get())
 	case AlgES256:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP256KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ECDSAP256KeyGenPool.Get())
 	case AlgEdDSA:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ED25519KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.ED25519KeyGenPool.Get())
 	case AlgHS512:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC512KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC512KeyGenPool.Get())
 	case AlgHS384:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC384KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC384KeyGenPool.Get())
 	case AlgHS256:
-		return CreateJwsJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC256KeyGenPool.Get())
+		return CreateJWSJWKFromKey(s.UUIDv7KeyGenPool.Get(), alg, s.HMAC256KeyGenPool.Get())
 	default:
 		return nil, nil, nil, nil, nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}

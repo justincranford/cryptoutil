@@ -479,7 +479,7 @@ func IsSignJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
-	_, err := ExtractAlgFromJwsJWK(jwk, 0)
+	_, err := ExtractAlgFromJWSJWK(jwk, 0)
 	if err != nil {
 		return false, nil // fmt.Errorf("failed to extract signature alg from JWK: %w", err)
 	}
@@ -508,7 +508,7 @@ func IsVerifyJWK(jwk joseJwk.Key) (bool, error) {
 	if jwk == nil {
 		return false, fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
 	}
-	_, err := ExtractAlgFromJwsJWK(jwk, 0)
+	_, err := ExtractAlgFromJWSJWK(jwk, 0)
 	if err != nil {
 		return false, nil // fmt.Errorf("failed to extract signature alg from JWK: %w", err)
 	}

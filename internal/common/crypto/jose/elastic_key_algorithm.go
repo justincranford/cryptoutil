@@ -366,7 +366,7 @@ func ToJweEncAndAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgori
 	return nil, nil, fmt.Errorf("unsupported JWE ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
-func ToJwsAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
+func ToJWSAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (*joseJwa.SignatureAlgorithm, error) {
 	if alg, ok := elasticKeyAlgorithmToJoseAlg[*elasticKeyAlgorithm]; ok {
 		return alg, nil
 	}
@@ -378,7 +378,7 @@ func IsJwe(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) bool
 	return ok
 }
 
-func IsJws(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) bool {
+func IsJWS(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) bool {
 	_, ok := elasticKeyAlgorithmToJoseAlg[*elasticKeyAlgorithm]
 	return ok
 }
