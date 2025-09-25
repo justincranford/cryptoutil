@@ -64,7 +64,7 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
 		jweProtectedHeaders := joseJwe.NewHeaders()
-		if err := jweProtectedHeaders.Set(joseJwk.KeyIDKey, *kid); err != nil {
+		if err := jweProtectedHeaders.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
 			return nil, nil, fmt.Errorf("failed to set kid header: %w", err)
 		}
 		if err := jweProtectedHeaders.Set(`enc`, *enc); err != nil {

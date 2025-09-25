@@ -55,7 +55,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		if err := jwsProtectedHeaders.Set(`iat`, iat); err != nil {
 			return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
 		}
-		if err := jwsProtectedHeaders.Set(joseJwk.KeyIDKey, *kid); err != nil {
+		if err := jwsProtectedHeaders.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
 			return nil, nil, fmt.Errorf("failed to set kid header: %w", err)
 		}
 		if err := jwsProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg); err != nil {
