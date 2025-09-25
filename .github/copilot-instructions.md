@@ -34,3 +34,4 @@
 | ** | '.github/instructions/copilot-customization.instructions.md' | Instructions for VS Code Copilot customization best practices |
 | ** | '.github/instructions/documentation.instructions.md' | Instructions for documentation organization and structure |
 | ** | '.github/instructions/powershell.instructions.md' | Instructions for PowerShell usage on Windows |
+| **/*.go | '.github/instructions/imports.instructions.md' | Instructions for Go import alias naming conventions |
