@@ -225,9 +225,9 @@ func validateJwkHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 	case cryptoutilOpenapiModel.OKPEd25519:
 		return validateOrGenerateEddsaJwk(key, "Ed25519")
 	case cryptoutilOpenapiModel.Oct512:
-		return validateOrGenerateHmacJwk(key, 512)
+		return validateOrGenerateHMACJwk(key, 512)
 	case cryptoutilOpenapiModel.Oct384:
-		return validateOrGenerateHmacJwk(key, 384)
+		return validateOrGenerateHMACJwk(key, 384)
 	case cryptoutilOpenapiModel.Oct256:
 		return validateOrGenerateAESJwk(key, 256)
 	case cryptoutilOpenapiModel.Oct192:
@@ -323,7 +323,7 @@ func validateOrGenerateEddsaJwk(key cryptoutilKeyGen.Key, curve string) (*crypto
 	}
 }
 
-func validateOrGenerateHmacJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
+func validateOrGenerateHMACJwk(key cryptoutilKeyGen.Key, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateHMACKey(keyBitsLength)
 		if err != nil {

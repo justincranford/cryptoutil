@@ -136,11 +136,11 @@ func validateJwsJwkHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	case AlgEdDSA:
 		return validateOrGenerateJwsEddsaJwk(key, alg, "Ed25519")
 	case AlgHS512:
-		return validateOrGenerateJwsHmacJwk(key, alg, 512)
+		return validateOrGenerateJwsHMACJwk(key, alg, 512)
 	case AlgHS384:
-		return validateOrGenerateJwsHmacJwk(key, alg, 384)
+		return validateOrGenerateJwsHMACJwk(key, alg, 384)
 	case AlgHS256:
-		return validateOrGenerateJwsHmacJwk(key, alg, 256)
+		return validateOrGenerateJwsHMACJwk(key, alg, 256)
 	default:
 		return nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}
@@ -230,7 +230,7 @@ func validateOrGenerateJwsEddsaJwk(key cryptoutilKeyGen.Key, alg *joseJwa.Signat
 	}
 }
 
-func validateOrGenerateJwsHmacJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
+func validateOrGenerateJwsHMACJwk(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateHMACKey(keyBitsLength)
 		if err != nil {
