@@ -18,7 +18,7 @@ services:
       dockerfile: deployments/Dockerfile
     entrypoint: ["/sbin/tini", "--"]
     command: >
-      sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url.secret) && 
+      sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url.secret) &&
       /app/cryptoutil --config=/app/postgresql.yml --database-url="$$DB_URL"'
     ports:
       - "8080-8089:8080"

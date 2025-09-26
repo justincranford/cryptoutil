@@ -6,10 +6,9 @@ bind-address: "0.0.0.0"
 
 unseal-mode: "3-of-5"
 
-unseal-files: 
+unseal-files:
   - /run/secrets/cryptoutil_unseal_1of5.secret
   - /run/secrets/cryptoutil_unseal_2of5.secret
   - /run/secrets/cryptoutil_unseal_3of5.secret
   - /run/secrets/cryptoutil_unseal_4of5.secret
   - /run/secrets/cryptoutil_unseal_5of5.secret
-  

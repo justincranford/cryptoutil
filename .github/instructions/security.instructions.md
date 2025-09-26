@@ -23,4 +23,3 @@ cryptographic operations (crypto/rand, not math/rand)
 - Always set MinVersion: tls.VersionTLS12 (or higher) for all TLS configurations
 - Use proper root CA pools and certificate validation in all TLS connections
 - Use full certificate chain validation with TLS 1.2+ minimum
-

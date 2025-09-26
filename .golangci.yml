@@ -1,5 +1,5 @@
 # golangci-lint configuration for cryptoutil project
-# 
+#
 # This project uses Go 1.25.1 with golangci-lint v1.25.1
 # Note: typecheck is disabled due to import resolution issues with module dependencies
 # All other linters are compatible with the current Go version
@@ -27,34 +27,34 @@ linters:
     - ineffassign   # Detect ineffectual assignments
     - staticcheck   # Advanced static analysis checks
     - unused        # Find unused constants, variables, functions and types
-    
+
     # Security
     - gosec         # Security-focused static analysis
-    
+
     # Code quality
     - gofmt         # Check code formatting
     - goimports     # Check import formatting and unused imports
     - revive        # Golint replacement with more rules
     - stylecheck    # Go style guide compliance
-    
+
     # Performance
     - prealloc      # Find slice declarations that could pre-allocate
     - bodyclose     # Check for HTTP response body closure
-    
+
     # Maintainability
     - goconst       # Find repeated strings that could be constants
     - misspell      # Find common misspellings in comments and strings
     - unparam       # Find unused function parameters
     - unconvert     # Remove unnecessary type conversions
     - whitespace    # Detect trailing whitespace and unnecessary blank lines
-    
+
     # Error handling
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
 
   disable:
     # Disable due to import resolution issues with module dependencies
     - typecheck    # Type checking - disabled due to module dependency import resolution issues
-    
+
     # Disabled for code quality/complexity management
     - dupl      # Code duplication detection
     - gocyclo   # Cyclomatic complexity
@@ -63,22 +63,22 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
-      
+
   gosec:
     severity: medium
     confidence: medium
-      
+
   gocyclo:
     min-complexity: 15
-    
+
   goconst:
     min-len: 3
     min-occurrences: 3
     ignore-tests: false
-    
+
   dupl:
     threshold: 100
-    
+
   misspell:
     locale: US
     ignore-words:
@@ -98,10 +98,10 @@ linters-settings:
       - x509
       - pem
       - der
-      
+
   revive:
     severity: warning  # Overridden by global severity rules - style issues shouldn't block builds
-    
+
   stylecheck:
     checks: ["all", "-ST1000"]  # Exclude ST1000 (package comment) - many packages have descriptive names that don't need additional comments
 
@@ -115,7 +115,7 @@ issues:
   uniq-by-line: true
   max-issues-per-linter: 50
   max-same-issues: 10
-  
+
   exclude-rules:
     - path: _test\.go
       linters:
