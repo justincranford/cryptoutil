@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilNetwork "cryptoutil/internal/common/util/network"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,7 +53,12 @@ func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate,
 	require.True(t, cert.NotAfter.After(now), "NotAfter should be in the future")
 	require.True(t, cert.NotAfter.Sub(cert.NotBefore) >= expectedDuration, "Certificate validity period should be >= duration")
 	require.ElementsMatch(t, dnsNames, cert.DNSNames, "DNS names mismatch")
-	require.ElementsMatch(t, ipAddresses, cert.IPAddresses, "IP addresses mismatch")
+
+	// Normalize IP addresses before comparison to handle IPv4/IPv6 representation differences
+	expectedIPs := cryptoutilNetwork.NormalizeIPv4Addresses(ipAddresses)
+	actualIPs := cryptoutilNetwork.NormalizeIPv4Addresses(cert.IPAddresses)
+	require.ElementsMatch(t, expectedIPs, actualIPs, "IP addresses mismatch")
+
 	require.ElementsMatch(t, emailAddresses, cert.EmailAddresses, "Email addresses mismatch")
 	require.ElementsMatch(t, uris, cert.URIs, "URIs mismatch")
 }

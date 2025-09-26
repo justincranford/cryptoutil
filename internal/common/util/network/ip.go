@@ -16,3 +16,17 @@ func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
 	}
 	return parsedIPs, nil
 }
+
+// NormalizeIPv4Addresses converts IPv4-mapped IPv6 addresses to IPv4
+func NormalizeIPv4Addresses(ips []net.IP) []net.IP {
+	normalizedIPv4Addresses := make([]net.IP, len(ips))
+	for i, ip := range ips {
+		normalizedIPv4Address := ip.To4() // Attempt to convert IPv4-mapped IPv6 address to IPv4
+		if normalizedIPv4Address == nil {
+			normalizedIPv4Addresses[i] = ip // not an IPv4-mapped IPv6, keep original IPv6
+		} else {
+			normalizedIPv4Addresses[i] = normalizedIPv4Address
+		}
+	}
+	return normalizedIPv4Addresses
+}
