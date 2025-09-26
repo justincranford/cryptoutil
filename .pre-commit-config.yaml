@@ -1,0 +1,92 @@
+# Pre-commit hooks configuration for automatic code formatting
+# Install: pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Go formatting and linting
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      # Format Go code with gofumpt (stricter than gofmt)
+      - id: go-fmt-gofumpt
+        name: Format Go code (gofumpt)
+        description: Runs gofumpt, a stricter version of gofmt
+        
+      # Organize Go imports with goimports
+      - id: go-imports
+        name: Organize Go imports (goimports)
+        description: Runs goimports to organize and format imports
+        
+      # Run go vet for static analysis
+      - id: go-vet-go
+        name: Go static analysis (go vet)
+        description: Runs go vet for static analysis
+        
+      # Check for common Go mistakes
+      - id: go-critic
+        name: Go code criticism (go-critic)
+        description: Runs go-critic for additional code quality checks
+        args: [check, -enableAll]
+        
+      # Build check to ensure code compiles
+      - id: go-build-go
+        name: Go build check
+        description: Runs go build to ensure code compiles
+
+  # Generic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # Check for files that would conflict on case-insensitive filesystems
+      - id: check-case-conflict
+        name: Check filename case conflicts
+        
+      # Ensure files end with newline
+      - id: end-of-file-fixer
+        name: Fix end of files
+        exclude: '\.exe$|\.dll$|\.so$|\.dylib$'
+        
+      # Remove trailing whitespace
+      - id: trailing-whitespace
+        name: Remove trailing whitespace
+        args: [--markdown-linebreak-ext=md]
+        
+      # Check YAML syntax
+      - id: check-yaml
+        name: Check YAML syntax
+        
+      # Check JSON syntax  
+      - id: check-json
+        name: Check JSON syntax
+        
+      # Prevent large files from being committed
+      - id: check-added-large-files
+        name: Check for large files
+        args: ['--maxkb=1024']
+
+  # Security scanning
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        name: Detect secrets
+        description: Scans for accidentally committed secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '\.exe$|\.dll$|\.so$|\.dylib$|\.pem$|\.key$|\.crt$'
+
+# Global configuration
+default_stages: [commit]
+minimum_pre_commit_version: '2.20.0'
+
+# Optional: Configure specific file types
+files: '\.(go|yaml|yml|json|md)$'
+exclude: |
+  (?x)^(
+    .*\.exe$|
+    .*\.dll$|
+    .*\.so$|
+    .*\.dylib$|
+    .*_gen\.go$|
+    api/.*\.go$|
+    vendor/.*
+  )$

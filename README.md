@@ -243,6 +243,34 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 
 ## Development
 
+### Automated Code Formatting
+
+This project uses **automated code formatting** that runs on every commit. The formatting is enforced in CI/CD.
+
+**Setup (Required for Contributors):**
+```sh
+# Install pre-commit hooks (runs gofumpt + goimports automatically)
+pip install pre-commit
+pre-commit install
+
+# Test the setup
+pre-commit run --all-files
+```
+
+**What Gets Formatted Automatically:**
+- `gofumpt` - Stricter Go code formatting (better than standard `gofmt`)
+- `goimports` - Automatic import organization and formatting
+- `go vet` - Static analysis checks
+- Trailing whitespace removal
+- File ending fixes
+
+**Manual Formatting (if needed):**
+```sh
+gofumpt -w .        # Format all Go files
+goimports -w .      # Organize imports
+go vet ./...        # Static analysis
+```
+
 ### Code Generation
 ```sh
 # Install oapi-codegen
@@ -258,14 +286,28 @@ The generate command runs oapi-codegen using configurations in [api/generate.go]
 - `api/client/` - Go client
 
 ### Linting & Formatting
+
+#### Automated Formatting (Recommended)
+```sh
+# Install pre-commit for automatic formatting on every commit
+pip install pre-commit
+pre-commit install
+
+# Run formatting on all files manually
+pre-commit run --all-files
+```
+
+#### Manual Tools
 ```sh
 # Install tools
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
 go install mvdan.cc/gofumpt@v0.7.0
+go install golang.org/x/tools/cmd/goimports@latest
 
-# Run linters
+# Run linters and formatters
 golangci-lint run
 gofumpt -l -w .
+goimports -l -w .
 ```
 
 ### Project Structure
@@ -418,10 +460,14 @@ spec:
 
 ## Contributing
 
-1. Follow the project layout in [.github/instructions/project-layout.instructions.md](.github/instructions/project-layout.instructions.md)
-2. Use the coding standards in [.github/instructions/](.github/instructions/)
-3. Ensure all tests pass: `go test ./... -cover`
-4. Run linters: `golangci-lint run && gofumpt -l -w .`
+1. **Install pre-commit hooks**: `pip install pre-commit && pre-commit install`
+2. Follow the project layout in [.github/instructions/project-layout.instructions.md](.github/instructions/project-layout.instructions.md)
+3. Use the coding standards in [.github/instructions/](.github/instructions/)
+4. Ensure all tests pass: `go test ./... -cover`
+5. Code formatting is **automatic** via pre-commit hooks (gofumpt + goimports)
+6. Manual linting (if needed): `golangci-lint run`
+
+**Note:** Code formatting (`gofumpt` + `goimports`) is enforced automatically on commit and verified in CI.
 
 ## License
 

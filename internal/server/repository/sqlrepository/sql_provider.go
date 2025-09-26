@@ -98,7 +98,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("failed to determine container mode: %w", err)
 	}
 
-	var shutdownDBContainer = func() {}         // no-op by default
+	shutdownDBContainer := func() {}            // no-op by default
 	if containerMode != ContainerModeDisabled { // containerMode is required or preferred
 		telemetryService.Slogger.Debug("containerMode is not disabled, so trying to start a container", "dbType", string(dbType), "containerMode", string(containerMode))
 		var containerDatabaseURL string

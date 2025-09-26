@@ -17,9 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	testSettings = cryptoutilConfig.RequireNewForTest("application_test")
-)
+var testSettings = cryptoutilConfig.RequireNewForTest("application_test")
 
 func TestMain(m *testing.M) {
 	exitCode := m.Run()
