@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"crypto/x509"
 	"encoding/json"
 	"log"
 	"os"
@@ -26,6 +27,7 @@ var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("client_test")
 	testServerPublicURL  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
 	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
+	testRootCAsPool      *x509.CertPool
 )
 
 func TestMain(m *testing.M) {
@@ -37,6 +39,9 @@ func TestMain(m *testing.M) {
 		}
 		go startServerListenerApplication.StartFunction()
 		defer startServerListenerApplication.ShutdownFunction()
+
+		// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
+		testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
 		WaitUntilReady(&testServerPrivateURL, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 		rc = m.Run()
@@ -205,7 +210,7 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 	context := context.Background()
 	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
-	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl)
+	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl, testRootCAsPool)
 
 	for i, testCase := range happyPathElasticKeyTestCasesEncrypt {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
@@ -290,7 +295,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	context := context.Background()
 	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
-	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl)
+	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl, testRootCAsPool)
 
 	for i, testCase := range happyPathElasticKeyTestCasesSign {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")

@@ -71,13 +71,14 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	return nil
 }
 
-func RequireClientWithResponses(t *testing.T, baseURL *string) *cryptoutilOpenapiClient.ClientWithResponses {
+func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilOpenapiClient.ClientWithResponses {
 	var openapiClient *cryptoutilOpenapiClient.ClientWithResponses
 	var err error
 
 	if strings.HasPrefix(*baseURL, "https://") {
 		// For HTTPS URLs, use proper TLS configuration with full cert chain validation
 		tlsConfig := &tls.Config{
+			RootCAs:    rootCAsPool,
 			MinVersion: tls.VersionTLS12,
 		}
 		httpClient := &http.Client{
