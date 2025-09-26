@@ -311,8 +311,17 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	}
 
 	// Extract actual assigned ports
-	actualPublicPort := uint16(publicListener.Addr().(*net.TCPAddr).Port)
-	actualPrivatePort := uint16(privateListener.Addr().(*net.TCPAddr).Port)
+	publicAddr, ok := publicListener.Addr().(*net.TCPAddr)
+	if !ok {
+		return nil, fmt.Errorf("failed to get public listener address")
+	}
+	actualPublicPort := uint16(publicAddr.Port)
+
+	privateAddr, ok := privateListener.Addr().(*net.TCPAddr)
+	if !ok {
+		return nil, fmt.Errorf("failed to get private listener address")
+	}
+	actualPrivatePort := uint16(privateAddr.Port)
 
 	serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("assigned ports",
 		"public", actualPublicPort, "private", actualPrivatePort)
@@ -335,64 +344,6 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		ActualPublicPort:  actualPublicPort,
 		ActualPrivatePort: actualPrivatePort,
 	}, nil
-}
-
-func startServerFunc(publicBinding string, privateBinding string, publicFiberApp *fiber.App, privateFiberApp *fiber.App, publicProtocol string, privateProtocol string, publicTLSConfig *tls.Config, privateTLSConfig *tls.Config, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
-	return func() {
-		telemetryService.Slogger.Debug("starting fiber listeners")
-
-		go func() {
-			telemetryService.Slogger.Debug("starting private fiber listener", "binding", privateBinding, "protocol", privateProtocol)
-			var err error
-			if privateProtocol == protocolHTTPS && privateTLSConfig != nil {
-				err = privateFiberApp.ListenTLSWithCertificate(privateBinding, privateTLSConfig.Certificates[0])
-			} else {
-				err = privateFiberApp.Listen(privateBinding)
-			}
-			if err != nil {
-				telemetryService.Slogger.Error("failed to start private fiber listener", "error", err)
-			}
-			telemetryService.Slogger.Debug("private fiber listener stopped")
-		}()
-
-		telemetryService.Slogger.Debug("starting public fiber listener", "binding", publicBinding, "protocol", publicProtocol)
-		var err error
-		if publicProtocol == protocolHTTPS && publicTLSConfig != nil {
-			err = publicFiberApp.ListenTLSWithCertificate(publicBinding, publicTLSConfig.Certificates[0])
-		} else {
-			err = publicFiberApp.Listen(publicBinding)
-		}
-		if err != nil {
-			telemetryService.Slogger.Error("failed to start public fiber listener", "error", err)
-		}
-		telemetryService.Slogger.Debug("public fiber listener stopped")
-
-		ready.Store(true)
-	}
-}
-
-func stopServerFunc(serverApplicationCore *ServerApplicationCore, publicFiberApp *fiber.App, privateFiberApp *fiber.App) func() {
-	return func() {
-		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
-			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
-		}
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
-		defer cancel() // perform shutdown respecting timeout
-
-		if publicFiberApp != nil {
-			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down public fiber app")
-			if err := publicFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop public fiber server", "error", err)
-			}
-		}
-		if privateFiberApp != nil {
-			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down private fiber app")
-			if err := privateFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
-				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
-			}
-		}
-		serverApplicationCore.Shutdown()
-	}
 }
 
 func startServerFuncWithListeners(publicListener net.Listener, privateListener net.Listener, publicFiberApp *fiber.App, privateFiberApp *fiber.App, publicProtocol string, privateProtocol string, publicTLSConfig *tls.Config, privateTLSConfig *tls.Config, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
@@ -768,9 +719,9 @@ func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath strin
 		const interval = setInterval(function() {
 			if (window.ui) {
 				clearInterval(interval);
-				
+
 				let csrfTokenName = '%s'; // Use actual CSRF token name from settings
-				
+
 				// Get CSRF configuration from server
 				fetch('%s', {
 					method: 'GET',
@@ -783,7 +734,7 @@ func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath strin
 				}).catch(err => {
 					console.warn('Could not fetch CSRF config:', err);
 				});
-				
+
 				// Get CSRF token from cookie
 				function getCSRFToken() {
 					const cookies = document.cookie.split(';');
@@ -799,7 +750,7 @@ func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath strin
 					console.log('No CSRF token found in cookies');
 					return null;
 				}
-				
+
 				// Make a GET request to trigger CSRF cookie creation if needed
 				function ensureCSRFToken() {
 					return new Promise((resolve) => {
@@ -809,7 +760,7 @@ func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath strin
 							resolve(token);
 							return;
 						}
-						
+
 						console.log('Making request to get CSRF token...');
 						// Make a GET request to trigger CSRF cookie creation
 						fetch('%s', {
@@ -830,18 +781,18 @@ func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath strin
 						});
 					});
 				}
-				
+
 				// Add CSRF token to all non-GET requests
 				const originalFetch = window.fetch;
 				window.fetch = function(url, options) {
 					options = options || {};
-					
+
 					if (options && options.method && options.method !== 'GET') {
 						options.headers = options.headers || {};
 						options.credentials = options.credentials || 'same-origin';
-						
+
 						console.log('Intercepted non-GET request:', options.method, url);
-						
+
 						// Get CSRF token and add to headers
 						return ensureCSRFToken().then(token => {
 							if (token) {
@@ -856,7 +807,7 @@ func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath strin
 					}
 					return originalFetch.call(this, url, options);
 				};
-				
+
 				console.log('Enhanced CSRF token handling enabled for Swagger UI');
 			}
 		}, 100);
