@@ -4,15 +4,12 @@
 
 **Please do not report security vulnerabilities through public GitHub issues.**
 
-Instead, please use one of these methods:
+Instead, please use this method:
 
 ### GitHub Security Advisory (Preferred)
 1. Go to the [Security tab](https://github.com/justincranford/cryptoutil/security) of this repository
 2. Click "Report a vulnerability"
 3. Provide a clear description of the issue
-
-### Email
-Send an email with "SECURITY" in the subject line to the repository maintainer.
 
 ## What to Include
 - Description of the vulnerability
@@ -20,8 +17,6 @@ Send an email with "SECURITY" in the subject line to the repository maintainer.
 - Your assessment of the potential impact
 
 ## Response
-- We will acknowledge receipt of your report within 48 hours
-- We will provide a more detailed response within 7 days
 - We will work with you to understand and address the issue
 
 ## Supported Versions
