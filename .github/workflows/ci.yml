@@ -32,20 +32,32 @@ jobs:
 
       - name: Check gofumpt formatting
         run: |
+          # Check if any files need gofumpt formatting
           UNFORMATTED=$(gofumpt -l .)
           if [ -n "$UNFORMATTED" ]; then
             echo "❌ The following files need gofumpt formatting:"
             echo "$UNFORMATTED"
+            echo ""
+            echo "Please run: gofumpt -w ."
+            echo "Or install pre-commit hooks: pip install pre-commit && pre-commit install"
             exit 1
+          else
+            echo "✅ All Go files are properly formatted with gofumpt"
           fi
 
       - name: Check goimports formatting
         run: |
+          # Check if any files need goimports formatting
           UNFORMATTED=$(goimports -l .)
           if [ -n "$UNFORMATTED" ]; then
             echo "❌ The following files need goimports formatting:"
             echo "$UNFORMATTED"
+            echo ""
+            echo "Please run: goimports -w ."
+            echo "Or install pre-commit hooks: pip install pre-commit && pre-commit install"
             exit 1
+          else
+            echo "✅ All Go files have properly organized imports"
           fi
 
       - name: Go vet
