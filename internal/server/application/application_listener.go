@@ -315,11 +315,17 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	if !ok {
 		return nil, fmt.Errorf("failed to get public listener address")
 	}
+	if publicAddr.Port < 0 || publicAddr.Port > 65535 {
+		return nil, fmt.Errorf("invalid public port: %d", publicAddr.Port)
+	}
 	actualPublicPort := uint16(publicAddr.Port)
 
 	privateAddr, ok := privateListener.Addr().(*net.TCPAddr)
 	if !ok {
 		return nil, fmt.Errorf("failed to get private listener address")
+	}
+	if privateAddr.Port < 0 || privateAddr.Port > 65535 {
+		return nil, fmt.Errorf("invalid private port: %d", privateAddr.Port)
 	}
 	actualPrivatePort := uint16(privateAddr.Port)
 
