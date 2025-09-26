@@ -1,49 +1,10 @@
 package config
 
 import (
-	"fmt"
-	"math"
-	"sync/atomic"
 	"time"
 )
 
-var (
-	currentBindPublicPort  atomic.Uint32
-	currentBindPrivatePort atomic.Uint32
-)
-
-func init() {
-	publicPort, ok := bindPublicPort.value.(uint16)
-	if !ok {
-		panic("bindPublicPort.value must be uint16")
-	}
-	privatePort, ok := bindPrivatePort.value.(uint16)
-	if !ok {
-		panic("bindPrivatePort.value must be uint16")
-	}
-	currentBindPublicPort.Store(uint32(publicPort))
-	currentBindPrivatePort.Store(uint32(privatePort))
-}
-
 func RequireNewForTest(applicationName string) *Settings {
-	// Add bounds checking for port conversion to prevent integer overflow
-	nextPublicPort := currentBindPublicPort.Add(1)
-	if nextPublicPort > math.MaxUint16 {
-		nextPublicPort = 10000 // Reset to safe starting value
-	}
-	nextPrivatePort := currentBindPrivatePort.Add(1)
-	if nextPrivatePort > math.MaxUint16 {
-		nextPrivatePort = 20000 // Reset to safe starting value
-	}
-
-	// Validate port ranges before conversion
-	if nextPublicPort > math.MaxUint16 {
-		panic(fmt.Sprintf("public port %d exceeds uint16 maximum %d", nextPublicPort, math.MaxUint16))
-	}
-	if nextPrivatePort > math.MaxUint16 {
-		panic(fmt.Sprintf("private port %d exceeds uint16 maximum %d", nextPrivatePort, math.MaxUint16))
-	}
-
 	configFileValue, ok := configFile.value.(string)
 	if !ok {
 		panic("configFile.value must be string")
@@ -198,14 +159,14 @@ func RequireNewForTest(applicationName string) *Settings {
 		DevMode:                     devModeValue,
 		BindPublicProtocol:          bindPublicProtocolValue,
 		BindPublicAddress:           bindPublicAddressValue,
-		BindPublicPort:              uint16(nextPublicPort),
+		BindPublicPort:              uint16(0), // Let OS assign port to avoid conflict during parallel testing
 		TLSPublicDNSNames:           tlsPublicDNSNamesValue,
 		TLSPublicIPAddresses:        tlsPublicIPAddressesValue,
 		TLSPrivateDNSNames:          tlsPrivateDNSNamesValue,
 		TLSPrivateIPAddresses:       tlsPrivateIPAddressesValue,
 		BindPrivateProtocol:         bindPrivateProtocolValue,
 		BindPrivateAddress:          bindPrivateAddressValue,
-		BindPrivatePort:             uint16(nextPrivatePort),
+		BindPrivatePort:             uint16(0), // Let OS assign port to avoid conflict during parallel testing
 		PublicBrowserAPIContextPath: publicBrowserAPIContextPathValue,
 		PublicServiceAPIContextPath: publicServiceAPIContextPathValue,
 		CORSAllowedOrigins:          corsAllowedOriginsValue,

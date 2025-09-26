@@ -64,10 +64,12 @@ const (
 var ready atomic.Bool
 
 type ServerApplicationListener struct {
-	StartFunction    func()
-	ShutdownFunction func()
-	PublicTLSServer  *TLSServerConfig
-	PrivateTLSServer *TLSServerConfig
+	StartFunction     func()
+	ShutdownFunction  func()
+	PublicTLSServer   *TLSServerConfig
+	PrivateTLSServer  *TLSServerConfig
+	ActualPublicPort  uint16
+	ActualPrivatePort uint16
 }
 
 type TLSServerConfig struct {
@@ -290,24 +292,48 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicBrowserFiberServerOptions)
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicServiceFiberServerOptions)
 
+	// Create listeners - use port 0 for testing (to get OS-assigned ports), configured ports for production
 	publicBinding := fmt.Sprintf("%s:%d", settings.BindPublicAddress, settings.BindPublicPort)
 	privateBinding := fmt.Sprintf("%s:%d", settings.BindPrivateAddress, settings.BindPrivatePort)
 
-	startServerFunction := startServerFunc(
-		publicBinding, privateBinding,
+	// Create net listeners to get actual assigned ports (port 0 for tests, configured ports for production)
+	publicListener, err := net.Listen("tcp", publicBinding)
+	if err != nil {
+		serverApplicationCore.Shutdown()
+		return nil, fmt.Errorf("failed to create public listener: %w", err)
+	}
+
+	privateListener, err := net.Listen("tcp", privateBinding)
+	if err != nil {
+		publicListener.Close()
+		serverApplicationCore.Shutdown()
+		return nil, fmt.Errorf("failed to create private listener: %w", err)
+	}
+
+	// Extract actual assigned ports
+	actualPublicPort := uint16(publicListener.Addr().(*net.TCPAddr).Port)
+	actualPrivatePort := uint16(privateListener.Addr().(*net.TCPAddr).Port)
+
+	serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("assigned ports",
+		"public", actualPublicPort, "private", actualPrivatePort)
+
+	startServerFunction := startServerFuncWithListeners(
+		publicListener, privateListener,
 		publicFiberApp, privateFiberApp,
 		settings.BindPublicProtocol, settings.BindPrivateProtocol,
 		publicTLSServer.Config, privateTLSServer.Config,
 		serverApplicationCore.ServerApplicationBasic.TelemetryService)
-	shutdownServerFunction = stopServerFunc(serverApplicationCore, publicFiberApp, privateFiberApp)
+	shutdownServerFunction = stopServerFuncWithListeners(serverApplicationCore, publicFiberApp, privateFiberApp, publicListener, privateListener)
 
 	go stopServerSignalFunc(serverApplicationCore.ServerApplicationBasic.TelemetryService, shutdownServerFunction)() // listen for OS signals to gracefully shutdown the server
 
 	return &ServerApplicationListener{
-		StartFunction:    startServerFunction,
-		ShutdownFunction: shutdownServerFunction,
-		PublicTLSServer:  publicTLSServer,
-		PrivateTLSServer: privateTLSServer,
+		StartFunction:     startServerFunction,
+		ShutdownFunction:  shutdownServerFunction,
+		PublicTLSServer:   publicTLSServer,
+		PrivateTLSServer:  privateTLSServer,
+		ActualPublicPort:  actualPublicPort,
+		ActualPrivatePort: actualPrivatePort,
 	}, nil
 }
 
@@ -365,6 +391,81 @@ func stopServerFunc(serverApplicationCore *ServerApplicationCore, publicFiberApp
 				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
 			}
 		}
+		serverApplicationCore.Shutdown()
+	}
+}
+
+func startServerFuncWithListeners(publicListener net.Listener, privateListener net.Listener, publicFiberApp *fiber.App, privateFiberApp *fiber.App, publicProtocol string, privateProtocol string, publicTLSConfig *tls.Config, privateTLSConfig *tls.Config, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
+	return func() {
+		telemetryService.Slogger.Debug("starting fiber listeners with pre-created listeners")
+
+		go func() {
+			telemetryService.Slogger.Debug("starting private fiber listener", "addr", privateListener.Addr().String(), "protocol", privateProtocol)
+			var err error
+			if privateProtocol == protocolHTTPS && privateTLSConfig != nil {
+				// Wrap the listener with TLS
+				tlsListener := tls.NewListener(privateListener, privateTLSConfig)
+				err = privateFiberApp.Listener(tlsListener)
+			} else {
+				err = privateFiberApp.Listener(privateListener)
+			}
+			if err != nil {
+				telemetryService.Slogger.Error("failed to start private fiber listener", "error", err)
+			}
+			telemetryService.Slogger.Debug("private fiber listener stopped")
+		}()
+
+		telemetryService.Slogger.Debug("starting public fiber listener", "addr", publicListener.Addr().String(), "protocol", publicProtocol)
+		var err error
+		if publicProtocol == protocolHTTPS && publicTLSConfig != nil {
+			// Wrap the listener with TLS
+			tlsListener := tls.NewListener(publicListener, publicTLSConfig)
+			err = publicFiberApp.Listener(tlsListener)
+		} else {
+			err = publicFiberApp.Listener(publicListener)
+		}
+		if err != nil {
+			telemetryService.Slogger.Error("failed to start public fiber listener", "error", err)
+		}
+		telemetryService.Slogger.Debug("public fiber listener stopped")
+
+		ready.Store(true)
+	}
+}
+
+func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp *fiber.App, privateFiberApp *fiber.App, publicListener net.Listener, privateListener net.Listener) func() {
+	return func() {
+		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
+			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
+		}
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
+		defer cancel() // perform shutdown respecting timeout
+
+		if publicFiberApp != nil {
+			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down public fiber app")
+			if err := publicFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop public fiber server", "error", err)
+			}
+		}
+		if privateFiberApp != nil {
+			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down private fiber app")
+			if err := privateFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
+			}
+		}
+
+		// Close the listeners if they're still open (they should be closed by Fiber, but just in case)
+		if publicListener != nil {
+			if err := publicListener.Close(); err != nil {
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("public listener already closed", "error", err)
+			}
+		}
+		if privateListener != nil {
+			if err := privateListener.Close(); err != nil {
+				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("private listener already closed", "error", err)
+			}
+		}
+
 		serverApplicationCore.Shutdown()
 	}
 }

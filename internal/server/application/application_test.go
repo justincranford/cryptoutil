@@ -18,9 +18,7 @@ import (
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("application_test")
-	testServerPublicURL  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
-	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
+	testSettings = cryptoutilConfig.RequireNewForTest("application_test")
 )
 
 func TestMain(m *testing.M) {
@@ -37,6 +35,11 @@ func TestHttpGetHttp200(t *testing.T) {
 	}
 	go startServerListenerApplication.StartFunction()
 	defer startServerListenerApplication.ShutdownFunction()
+
+	// Build URLs using actual assigned ports
+	testServerPublicURL := testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
+	testServerPrivateURL := testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
+
 	cryptoutilClient.WaitUntilReady(&testServerPrivateURL, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 	testCases := []struct {

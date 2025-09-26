@@ -25,8 +25,8 @@ import (
 
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("client_test")
-	testServerPublicURL  = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(testSettings.BindPublicPort))
-	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(testSettings.BindPrivatePort))
+	testServerPublicURL  string
+	testServerPrivateURL string
 	testRootCAsPool      *x509.CertPool
 )
 
@@ -39,6 +39,10 @@ func TestMain(m *testing.M) {
 		}
 		go startServerListenerApplication.StartFunction()
 		defer startServerListenerApplication.ShutdownFunction()
+
+		// Build URLs using actual port bindings
+		testServerPublicURL = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
+		testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
 
 		// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
 		testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
