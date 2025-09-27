@@ -50,6 +50,22 @@ go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
 
 ### Manual Execution
 
+#### Using Provided Scripts (Recommended)
+
+```bash
+# Linux/macOS
+./scripts/mutation-test.sh --dry-run
+./scripts/mutation-test.sh --target ./internal/common/util/datetime/
+./scripts/mutation-test.sh --workers 2 --timeout-coefficient 3
+
+# Windows PowerShell
+.\scripts\mutation-test.ps1 -DryRun
+.\scripts\mutation-test.ps1 -Target "./internal/common/util/datetime/"
+.\scripts\mutation-test.ps1 -Workers 2 -TimeoutCoeff 3
+```
+
+#### Direct Gremlins Commands
+
 ```bash
 # Dry run (analyze without testing)
 gremlins unleash --dry-run ./internal/common/util/datetime/

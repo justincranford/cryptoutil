@@ -241,6 +241,25 @@ curl http://localhost:9090/readyz
 go run cmd/pgtest/main.go  # PostgreSQL integration tests
 ```
 
+### Mutation Testing
+```sh
+# Linux/macOS - Test all high-coverage packages
+./scripts/mutation-test.sh
+
+# Windows PowerShell
+.\scripts\mutation-test.ps1
+
+# Test specific package
+./scripts/mutation-test.sh --target ./internal/common/util/datetime/
+.\scripts\mutation-test.ps1 -Target "./internal/common/util/datetime/"
+
+# Dry run (analyze without testing)
+./scripts/mutation-test.sh --dry-run
+.\scripts\mutation-test.ps1 -DryRun
+```
+
+> **Note**: Mutation testing validates test quality by introducing code changes and verifying tests catch them. See [docs/MUTATION_TESTING.md](docs/MUTATION_TESTING.md) for detailed documentation.
+
 ## Development
 
 ### Automated Code Formatting
