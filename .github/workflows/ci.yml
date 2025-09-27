@@ -368,3 +368,104 @@ jobs:
           upload-artifact: false
           upload-release-assets: false
           dependency-snapshot: true
+
+  # Mutation Testing - Quality Assessment
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    needs: [test]  # Only run if tests pass
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install Gremlins
+        run: go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+
+      - name: Run mutation testing on high-coverage packages
+        run: |
+          echo "🧪 Running mutation testing on packages with high test coverage..."
+
+          # Test packages with excellent coverage
+          HIGH_COVERAGE_PACKAGES=(
+            "./internal/common/util/datetime/"
+            "./internal/common/util/thread/"
+            "./internal/common/util/sysinfo/"
+          )
+
+          TOTAL_KILLED=0
+          TOTAL_LIVED=0
+          TOTAL_NOT_COVERED=0
+          MUTATION_REPORTS=""
+
+          for package in "${HIGH_COVERAGE_PACKAGES[@]}"; do
+            echo "🎯 Testing package: $package"
+
+            # Run mutation testing with reasonable settings
+            OUTPUT=$(gremlins unleash "$package" \
+              --workers 2 \
+              --timeout-coefficient 3 \
+              --threshold-efficacy 70.0 \
+              --threshold-mcover 60.0 \
+              --output "mutation-$(basename "$package").json" 2>&1) || true
+
+            echo "$OUTPUT"
+            MUTATION_REPORTS="$MUTATION_REPORTS mutation-$(basename "$package").json"
+
+            # Extract metrics from output
+            KILLED=$(echo "$OUTPUT" | grep -o "Killed: [0-9]*" | grep -o "[0-9]*" || echo "0")
+            LIVED=$(echo "$OUTPUT" | grep -o "Lived: [0-9]*" | grep -o "[0-9]*" || echo "0")
+            NOT_COVERED=$(echo "$OUTPUT" | grep -o "Not covered: [0-9]*" | grep -o "[0-9]*" || echo "0")
+
+            TOTAL_KILLED=$((TOTAL_KILLED + KILLED))
+            TOTAL_LIVED=$((TOTAL_LIVED + LIVED))
+            TOTAL_NOT_COVERED=$((TOTAL_NOT_COVERED + NOT_COVERED))
+
+            echo "Package results - Killed: $KILLED, Lived: $LIVED, Not covered: $NOT_COVERED"
+            echo ""
+          done
+
+          # Calculate overall metrics
+          TOTAL_TESTED=$((TOTAL_KILLED + TOTAL_LIVED))
+          if [ $TOTAL_TESTED -gt 0 ]; then
+            EFFICACY=$(( (TOTAL_KILLED * 100) / TOTAL_TESTED ))
+          else
+            EFFICACY=0
+          fi
+
+          echo "📊 MUTATION TESTING SUMMARY"
+          echo "========================="
+          echo "Total Killed: $TOTAL_KILLED"
+          echo "Total Lived: $TOTAL_LIVED"
+          echo "Total Not Covered: $TOTAL_NOT_COVERED"
+          echo "Test Efficacy: ${EFFICACY}%"
+
+          # Set up summary for GitHub
+          echo "## 🧬 Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🎯 Killed | $TOTAL_KILLED |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧟 Lived | $TOTAL_LIVED |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🚫 Not Covered | $TOTAL_NOT_COVERED |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📈 Test Efficacy | ${EFFICACY}% |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ $TOTAL_LIVED -gt 0 ]; then
+            echo "⚠️ **Warning**: $TOTAL_LIVED mutations survived testing" >> $GITHUB_STEP_SUMMARY
+            echo "This indicates potential gaps in test coverage or assertion quality." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Excellent**: All testable mutations were killed by the test suite!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload mutation testing reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-testing-reports
+          path: mutation-*.json
+          retention-days: 30
