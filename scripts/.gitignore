@@ -1,0 +1,6 @@
+/*
+!/.gitignore
+!/lint.ps1
+!/lint.sh
+!/mutation-test.ps1
+!/mutation-test.sh

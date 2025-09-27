@@ -4,6 +4,12 @@ applyTo: "scripts/**"
 ---
 # Cross-Platform Script Instructions
 
+## When to Use Scripts
+- Use scripts for complex, multi-step development workflows (lint, test, build, mutation testing, etc.)
+- Scripts provide consistent cross-platform developer experience with parameter handling
+- Note: For Docker Compose, prefer direct command directives over separate script files
+
+## Script Development Guidelines
 - Always provide both PowerShell (.ps1) and Bash (.sh) versions of scripts
 - Follow existing script patterns in the scripts/ directory (lint.ps1/lint.sh model)
 - Ensure consistent functionality and parameter naming across both versions
