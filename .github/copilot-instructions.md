@@ -1,3 +1,9 @@
+## CI/CD Cost Efficiency
+- Minimize workflow run frequency (trigger only on relevant changes)
+- Avoid unnecessary matrix builds; keep job matrices minimal
+- Use dependency caching to reduce billed minutes
+- Skip jobs for docs-only or trivial changes
+- Use job filters/conditionals to avoid wasteful runs
 # Copilot Instructions
 
 
