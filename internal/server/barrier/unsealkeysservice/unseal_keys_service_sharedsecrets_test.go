@@ -94,7 +94,7 @@ func TestSharedSecretLengthLessThan32(t *testing.T) {
 	}
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
 	require.Error(t, err)
-	require.Equal(t, "shared secret 1 length can't be greater than 32", err.Error())
+	require.Equal(t, "shared secret 1 length can't be less than 32", err.Error())
 }
 
 func TestSharedSecretLengthGreaterThan64(t *testing.T) {

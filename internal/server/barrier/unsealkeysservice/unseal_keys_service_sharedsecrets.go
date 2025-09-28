@@ -50,7 +50,7 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 		if sharedSecret == nil {
 			return nil, fmt.Errorf("shared secret %d can't be nil", i)
 		} else if len(sharedSecret) < 32 {
-			return nil, fmt.Errorf("shared secret %d length can't be greater than 32", i)
+			return nil, fmt.Errorf("shared secret %d length can't be less than 32", i)
 		} else if len(sharedSecret) > 64 {
 			return nil, fmt.Errorf("shared secret %d length can't be greater than 64", i)
 		}
