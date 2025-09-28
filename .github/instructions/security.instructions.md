@@ -23,3 +23,14 @@ cryptographic operations (crypto/rand, not math/rand)
 - Always set MinVersion: tls.VersionTLS12 (or higher) for all TLS configurations
 - Use proper root CA pools and certificate validation in all TLS connections
 - Use full certificate chain validation with TLS 1.2+ minimum
+
+## Local Security Scanning Strategy
+
+- Run comprehensive security scans during development using scripts/security-scan.ps1 (Windows) or scripts/security-scan.sh (Linux/macOS)
+- Execute security scans before commits for high-risk changes (cryptographic code, API endpoints, dependency updates)
+- Use --static-only for quick code quality checks during development iterations
+- Use --vuln-only when updating dependencies or investigating security advisories
+- Use --container-only when modifying Docker configurations or base images
+- Review security reports in security-reports directory and address HIGH/CRITICAL findings immediately
+- Maintain consistent security tool versions with CI/CD pipeline (Staticcheck, Govulncheck, Trivy, Docker Scout)
+- Generate security summary reports for security review meetings and compliance documentation

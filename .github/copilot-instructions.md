@@ -12,6 +12,17 @@
   3. Files are automatically discovered by VS Code - no manual registration required
   4. Commit and push changes to ensure Copilot uses the new instructions
 
+## Continuous Learning and Improvement
+
+- **Learn from mistakes**: When errors occur during task execution, immediately analyze the root cause and add specific instructions to prevent recurrence
+- **Validate assumptions**: Never assume code, scripts, or configurations work without testing - always verify functionality before declaring completion
+- **Update instructions proactively**: After encountering new classes of errors or edge cases, enhance relevant instruction files with specific prevention guidelines
+- **Think systematically about completeness**: Consider what validation steps, edge cases, or common mistakes might be missing from current workflow
+- **Evolve instruction quality**: Regularly refine instructions to be more specific, actionable, and comprehensive based on real-world usage patterns
+- **Document failure patterns**: When the same mistake occurs multiple times, create explicit instructions with examples of what NOT to do
+- **Test-driven instruction creation**: For any new functionality (especially scripts), include testing requirements in the instructions before implementation
+- **Pre-commit hook awareness**: Always review file content for trailing whitespace and line ending issues BEFORE using create_file tool
+
 ## Terminal and File Management
 
 - Minimize temporary file creation/removal to reduce interaction prompts

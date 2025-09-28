@@ -7,6 +7,7 @@ applyTo: "**"
 ## Character Encoding
 - Always use UTF-8 without BOM for all text files
 - Never use UTF-8 with BOM, UTF-16 (with or without BOM), or UTF-32 (with or without BOM)
+- **AVOID emojis and Unicode symbols in PowerShell scripts** - they cause parsing errors in here-strings and can break script execution
 
 ## Line Endings and Whitespace
 - **CRITICAL**: Use LF (Unix-style) line endings for all files, never CRLF (Windows-style)
@@ -20,6 +21,13 @@ When creating new files, ALWAYS ensure:
 2. ✅ No trailing whitespace on any line
 3. ✅ LF line endings (not CRLF)
 4. ✅ UTF-8 encoding without BOM
+
+## CRITICAL: File Creation Tool Usage
+- **BEFORE using create_file tool**: Review the content string for trailing whitespace
+- **NEVER include trailing spaces or tabs** in any line of the content parameter
+- **ALWAYS end the content parameter** with exactly one `\n` character
+- **DOUBLE-CHECK long files** line by line for hidden trailing whitespace
+- **When copying/pasting content**: Strip trailing whitespace before using create_file
 
 ## Pre-commit Hook Compliance
 The following pre-commit hooks will fail if not followed:

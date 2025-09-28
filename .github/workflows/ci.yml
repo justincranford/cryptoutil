@@ -324,6 +324,44 @@ jobs:
           sarif_file: 'trivy-image.sarif'
         if: always() && hashFiles('trivy-image.sarif') != ''
 
+      # Docker Scout vulnerability scanning
+      - name: Enable Docker Scout
+        uses: docker/scout-action@v1
+        with:
+          command: version
+
+      - name: Docker Scout - Quick Overview
+        uses: docker/scout-action@v1
+        with:
+          command: quickview
+          image: ${{ steps.first-tag.outputs.tag }}
+          only-severities: critical,high,medium
+          write-comment: false
+
+      - name: Docker Scout - CVE Analysis
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: ${{ steps.first-tag.outputs.tag }}
+          format: sarif
+          output: docker-scout-cves.sarif
+          only-severities: critical,high,medium
+        continue-on-error: true
+
+      - name: Upload Docker Scout CVE results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'docker-scout-cves.sarif'
+        if: always() && hashFiles('docker-scout-cves.sarif') != ''
+
+      - name: Docker Scout - Security Recommendations
+        uses: docker/scout-action@v1
+        with:
+          command: recommendations
+          image: ${{ steps.first-tag.outputs.tag }}
+          only-severities: critical,high,medium
+        continue-on-error: true
+
       - name: Push Docker image
         if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v5

@@ -15,6 +15,21 @@ applyTo: "**"
 - Run `golangci-lint run` before committing changes
 - Address any new violations immediately
 
+## Script Testing Requirements
+
+- **ALWAYS test scripts after creation or modification** before declaring them complete
+- **NEVER assume scripts work without verification** - syntax errors are common and must be caught
+- Test PowerShell scripts with execution policy bypass: `powershell -ExecutionPolicy Bypass -File script.ps1 -Help`
+- Test Bash scripts with: `bash script.sh --help` or `./script.sh --help`
+- Verify help output displays correctly and all command-line parameters work as expected
+- **Test functional execution paths**: Run scripts with different parameter combinations to verify actual functionality, not just help text
+- **Validate output quality**: Ensure scripts produce expected files, reports, or results in the correct format
+- **Test error conditions**: Verify scripts handle missing dependencies, invalid parameters, and edge cases gracefully
+- **Cross-platform validation**: Test both PowerShell and Bash versions when creating cross-platform scripts
+- Fix all syntax errors, parsing issues, and runtime errors before completion
+- If script modifications are made, re-test immediately to verify fixes work
+- **Document testing results**: Include evidence of successful testing in commit messages or documentation
+
 ## Test Constants and Code Quality
 
 - Use constants for repeated string values in tests when they improve readability and maintainability

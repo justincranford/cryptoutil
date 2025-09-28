@@ -4,3 +4,7 @@
 !/lint.sh
 !/mutation-test.ps1
 !/mutation-test.sh
+!/dast.ps1
+!/dast.sh
+!/security-scan.ps1
+!/security-scan.sh

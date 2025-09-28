@@ -279,6 +279,40 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 .\scripts\dast.ps1 -OutputDir "security-reports"
 ```
 
+### Comprehensive Security Scanning
+```sh
+# Linux/macOS - Run all security scans locally
+./scripts/security-scan.sh
+
+# Windows PowerShell
+.\scripts\security-scan.ps1
+
+# Run specific scan types
+./scripts/security-scan.sh --static-only              # Static analysis only
+./scripts/security-scan.sh --vuln-only               # Vulnerability scans only
+./scripts/security-scan.sh --container-only          # Container security only
+
+# Windows equivalents
+.\scripts\security-scan.ps1 -StaticOnly
+.\scripts\security-scan.ps1 -VulnOnly
+.\scripts\security-scan.ps1 -ContainerOnly
+
+# Custom output directory and Docker image
+./scripts/security-scan.sh --output-dir reports --image-tag cryptoutil:dev
+.\scripts\security-scan.ps1 -OutputDir "reports" -ImageTag "cryptoutil:dev"
+
+# Skip Docker-based scans (if Docker unavailable)
+./scripts/security-scan.sh --skip-docker
+.\scripts\security-scan.ps1 -SkipDocker
+```
+
+**Security Tools Included:**
+- **Staticcheck**: Go static analysis and lint checking
+- **golangci-lint**: Comprehensive Go linting with multiple analyzers  
+- **govulncheck**: Official Go vulnerability database scanning
+- **Trivy**: File system and container vulnerability scanning
+- **Docker Scout**: Advanced container security analysis and recommendations
+
 > **Note**: Mutation testing validates test quality by introducing code changes and verifying tests catch them. See [docs/MUTATION_TESTING.md](docs/MUTATION_TESTING.md) for detailed documentation.
 
 ## Development

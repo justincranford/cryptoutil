@@ -211,6 +211,15 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 - Proper error handling and validation
 - Structured configuration management
 
+**Security Testing Strategy**:
+- **Multi-Tool Approach**: Comprehensive security scanning with Staticcheck, govulncheck, Trivy, and Docker Scout
+- **Local Development Integration**: Cross-platform security scan scripts (Windows PowerShell and Linux/macOS Bash)
+- **CI/CD Security Pipeline**: Automated security scanning with SARIF reports and artifact generation
+- **DAST Integration**: Dynamic Application Security Testing with OWASP ZAP and Nuclei
+- **Targeted Scan Types**: Static analysis only, vulnerability scans only, and container security only modes
+- **Risk-Based Scanning**: Execute security scans before commits for high-risk changes (crypto code, API endpoints, dependencies)
+- **Compliance Reporting**: Generate security summary reports for review meetings and compliance documentation
+
 **Build & Deployment**:
 - Multi-stage Docker builds
 - Docker Compose for local development
