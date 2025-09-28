@@ -258,6 +258,27 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 .\scripts\mutation-test.ps1 -DryRun
 ```
 
+### DAST Security Testing
+```sh
+# Linux/macOS - Complete DAST scan
+./scripts/dast.sh
+
+# Windows PowerShell (use -ExecutionPolicy Bypass if needed)
+.\scripts\dast.ps1
+
+# Custom configuration and port
+./scripts/dast.sh --config configs/test/config.yml --port 9090
+.\scripts\dast.ps1 -Config "configs/test/config.yml" -Port 9090
+
+# Skip ZAP, run only Nuclei
+./scripts/dast.sh --skip-zap
+.\scripts\dast.ps1 -SkipZap
+
+# Custom output directory
+./scripts/dast.sh --output-dir security-reports
+.\scripts\dast.ps1 -OutputDir "security-reports"
+```
+
 > **Note**: Mutation testing validates test quality by introducing code changes and verifying tests catch them. See [docs/MUTATION_TESTING.md](docs/MUTATION_TESTING.md) for detailed documentation.
 
 ## Development

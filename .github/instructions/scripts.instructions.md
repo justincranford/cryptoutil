@@ -20,3 +20,16 @@ applyTo: "scripts/**"
 - Ensure scripts have executable permissions for Unix-like systems
 - Use descriptive commit messages when adding script pairs
 - Document both script versions in README.md and relevant documentation
+
+## Script Testing and Validation
+- **ALWAYS test scripts before committing** - never commit untested scripts
+- Test both PowerShell and Bash versions on their respective platforms
+- For PowerShell scripts, test with execution policy restrictions:
+  - Test with `powershell -ExecutionPolicy Bypass -File script.ps1`
+  - Include `#Requires -Version 5.1` directive for minimum version
+  - Document execution policy requirements in script comments
+- Test help/usage functions: `script.ps1 -Help` and `script.sh --help`
+- Test error conditions and edge cases (missing dependencies, invalid parameters)
+- Verify script cleanup and resource management (process termination, file cleanup)
+- Test with different parameter combinations and configurations
+- Ensure scripts handle interruption gracefully (Ctrl+C)

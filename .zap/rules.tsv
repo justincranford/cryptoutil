@@ -1,0 +1,53 @@
+# ZAP DAST Rules Configuration
+# This file defines custom rules for OWASP ZAP security scanning
+# Format: WARN/IGNORE/FAIL	RULE_ID	URL_REGEX	PARAMETER	CWE_ID	WASCID	DESCRIPTION
+
+# Ignore false positives for health checks and static content
+IGNORE	10021	http://localhost:8080/health.*	.*	.*	.*	Health check endpoints - expected behavior
+IGNORE	10021	http://localhost:8080/swagger/.*	.*	.*	.*	Swagger UI static content - expected behavior
+IGNORE	10021	http://localhost:8080/static/.*	.*	.*	.*	Static content - expected behavior
+
+# Cryptographic endpoint specific rules
+WARN	90001	http://localhost:8080/api/v1/crypto/.*	.*	.*	.*	Monitor cryptographic operations for timing attacks
+WARN	90022	http://localhost:8080/api/v1/auth/.*	.*	.*	.*	Monitor authentication endpoints for security issues
+
+# Server security headers - expect these to be properly configured
+IGNORE	10016	.*	.*	.*	.*	Web browser XSS protection not enabled - API server
+IGNORE	10017	.*	.*	.*	.*	Cross domain script include - API server
+IGNORE	10020	.*	.*	.*	.*	X-Frame-Options header missing - API server
+
+# Content type and encoding
+WARN	10019	.*	.*	.*	.*	Content type incorrectly stated
+WARN	10015	.*	.*	.*	.*	Incomplete or no cache-control and pragma HTTP header set
+
+# Database and injection testing - be strict about these
+FAIL	40018	.*	.*	.*	.*	SQL Injection
+FAIL	40019	.*	.*	.*	.*	SQL Injection (MySQL)
+FAIL	40020	.*	.*	.*	.*	SQL Injection (Oracle)
+FAIL	40021	.*	.*	.*	.*	SQL Injection (PostgreSQL)
+FAIL	40022	.*	.*	.*	.*	SQL Injection (SQLite)
+FAIL	90019	.*	.*	.*	.*	Code Injection
+FAIL	90020	.*	.*	.*	.*	Command Injection
+FAIL	90021	.*	.*	.*	.*	XPATH Injection
+FAIL	90023	.*	.*	.*	.*	XML External Entity Attack
+
+# Authentication and session management
+FAIL	10010	.*	.*	.*	.*	Cookie not secure
+FAIL	10011	.*	.*	.*	.*	Cookie without HttpOnly flag
+FAIL	10052	.*	.*	.*	.*	X-ChromeLogger-Data header information leak
+FAIL	10054	.*	.*	.*	.*	Cookie without SameSite attribute
+
+# Cryptographic weaknesses
+FAIL	90024	.*	.*	.*	.*	Generic Padding Oracle
+FAIL	90025	.*	.*	.*	.*	Expression Language Injection
+FAIL	90029	.*	.*	.*	.*	LDAP Injection
+
+# Monitor but don't fail on information disclosure (might be expected for API docs)
+WARN	10045	.*	.*	.*	.*	Source code disclosure
+WARN	10046	.*	.*	.*	.*	Backup file disclosure
+WARN	10047	.*	.*	.*	.*	Directory browsing enabled
+WARN	10048	.*	.*	.*	.*	Remote file inclusion
+
+# Rate limiting and DoS protection
+WARN	90026	.*	.*	.*	.*	Slow HTTP DoS attack
+WARN	90027	.*	.*	.*	.*	HTTP parameter pollution

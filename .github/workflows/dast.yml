@@ -1,0 +1,178 @@
+name: DAST Security Testing
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run DAST weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Target URL for DAST scanning (default: http://localhost:8080)'
+        required: false
+        default: 'http://localhost:8080'
+
+env:
+  GO_VERSION: '1.25.1'
+  APP_PORT: 8080
+  TARGET_URL: ${{ github.event.inputs.target_url || 'http://localhost:8080' }}
+
+jobs:
+  dast-security-scan:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: testpass123
+          POSTGRES_USER: testuser
+          POSTGRES_DB: cryptoutil_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        cache: true
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Build application
+      run: go build -o cryptoutil ./cmd/cryptoutil
+
+    - name: Start application for DAST testing
+      run: |
+        # Create test configuration
+        mkdir -p configs/test
+        cat > configs/test/config.yml << EOF
+        server:
+          host: "0.0.0.0"
+          port: ${{ env.APP_PORT }}
+          cors:
+            enabled: true
+            origins: ["*"]
+            methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+            headers: ["*"]
+        database:
+          url: "postgres://testuser:testpass123@localhost:5432/cryptoutil_test?sslmode=disable"
+          migration_source: "file://internal/server/repository/migrations"
+        unseal:
+          mode: "simple"
+          keys: ["test-key-for-dast-scanning-only"]
+        telemetry:
+          traces:
+            enabled: false
+          metrics:
+            enabled: false
+          logs:
+            level: "ERROR"
+        EOF
+
+        # Start application in background
+        ./cryptoutil --config configs/test/config.yml &
+        APP_PID=$!
+        echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+
+        # Wait for application to be ready
+        timeout 60 bash -c 'until curl -f http://localhost:9090/readyz || curl -f http://localhost:9090/healthz; do sleep 2; done'
+
+        # Verify OpenAPI spec is available
+        curl -f -k https://localhost:${{ env.APP_PORT }}/ui/swagger/doc.json > openapi.json
+
+        echo "Application started successfully on port ${{ env.APP_PORT }}"
+
+    - name: Run OWASP ZAP DAST Scan
+      uses: zaproxy/action-full-scan@v0.10.0
+      with:
+        target: ${{ env.TARGET_URL }}
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=JSESSIONID,csrftoken"'
+        allow_issue_writing: false
+        artifact_name: 'zap-report'
+
+    - name: Run OWASP ZAP API Scan
+      uses: zaproxy/action-api-scan@v0.7.0
+      with:
+        target: '${{ env.TARGET_URL }}/ui/swagger/doc.json'
+        format: openapi
+        cmd_options: '-a -j -T 60'
+        allow_issue_writing: false
+        artifact_name: 'zap-api-report'
+
+    - name: Run Nuclei DAST Scan
+      uses: projectdiscovery/nuclei-action@main
+      with:
+        target: ${{ env.TARGET_URL }}
+        templates: |
+          cves/
+          vulnerabilities/
+          security-misconfiguration/
+          default-logins/
+          exposed-panels/
+          takeovers/
+          technologies/
+        output: nuclei-report.json
+        json: true
+
+    - name: Upload Nuclei Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: nuclei-report
+        path: nuclei-report.json
+        retention-days: 30
+
+    - name: Generate Security Summary
+      if: always()
+      run: |
+        echo "# DAST Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Scan Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- **Target URL:** ${{ env.TARGET_URL }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Scan Date:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+        echo "- **OpenAPI Spec:** Available at /ui/swagger/doc.json" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Scan Coverage" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **OWASP ZAP Full Scan:** Comprehensive web application security testing" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **OWASP ZAP API Scan:** OpenAPI specification-driven API security testing" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Nuclei Scan:** CVE and vulnerability template-based testing" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Reports Generated" >> $GITHUB_STEP_SUMMARY
+        echo "- ZAP Full Scan Report (HTML/JSON)" >> $GITHUB_STEP_SUMMARY
+        echo "- ZAP API Scan Report (HTML/JSON)" >> $GITHUB_STEP_SUMMARY
+        echo "- Nuclei Vulnerability Report (JSON)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "1. Review scan reports in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "2. Address any HIGH or CRITICAL findings immediately" >> $GITHUB_STEP_SUMMARY
+        echo "3. Update security configurations as needed" >> $GITHUB_STEP_SUMMARY
+        echo "4. Consider adding custom ZAP rules for cryptographic endpoints" >> $GITHUB_STEP_SUMMARY
+
+    - name: Cleanup
+      if: always()
+      run: |
+        if [ ! -z "$APP_PID" ]; then
+          kill $APP_PID || true
+          sleep 2
+          kill -9 $APP_PID 2>/dev/null || true
+        fi
