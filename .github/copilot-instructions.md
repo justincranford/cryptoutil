@@ -1,11 +1,17 @@
 # Copilot Instructions
 
+
 ## Core Principles
 - Follow README and instructions files.
 - Refer to architecture and usage examples in README.
 - **Optimize for fastest and most efficient context injection**: Keep instructions clear, concise, and non-duplicate
 - Each instruction file should focus on its specific domain to minimize context overlap
 - Avoid duplication of guidance across instruction files - each file should cover its unique area
+- **Instruction files MUST be as short and efficient as possible.**
+  - Remove unnecessary words, boilerplate, and repetition.
+  - Use bullet points and lists instead of paragraphs where possible.
+  - Avoid restating project-wide rules in every file—link or reference instead.
+  - Regularly review and refactor instructions to minimize token usage and keep Copilot context efficient.
 - When adding new instruction files:
   1. Create the instruction file in `.github/instructions/` with the appropriate frontmatter and content
   2. Use `.instructions.md` extension and proper YAML frontmatter with `applyTo` and `description` properties
