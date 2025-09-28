@@ -18,6 +18,13 @@
 - Use command chaining (`;` in PowerShell) for related operations
 - Prefer existing files over temporary demos when possible
 
+## Pre-commit Hook Compliance
+
+- **ALWAYS ensure files end with a single newline** (end-of-file-fixer hook)
+- **NEVER leave trailing whitespace** on any line (trailing-whitespace hook)
+- **USE LF line endings** for all files, never CRLF (Git line ending warnings)
+- Follow formatting.instructions.md for complete file formatting guidelines
+
 ## Current Instruction Files
 
 | Pattern | File Path | Description |
