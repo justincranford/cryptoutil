@@ -14,6 +14,13 @@ applyTo: "**"
 - **CRITICAL**: Remove all trailing whitespace from lines (spaces/tabs at end of lines)
 - Use spaces for indentation (4 spaces per level for Go code, 2 spaces for YAML)
 
+## File Creation Checklist
+When creating new files, ALWAYS ensure:
+1. ✅ Content ends with single newline character (press Enter after last line)
+2. ✅ No trailing whitespace on any line
+3. ✅ LF line endings (not CRLF)
+4. ✅ UTF-8 encoding without BOM
+
 ## Pre-commit Hook Compliance
 The following pre-commit hooks will fail if not followed:
 - **end-of-file-fixer**: Files must end with a single newline
