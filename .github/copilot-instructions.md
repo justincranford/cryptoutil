@@ -43,5 +43,6 @@
 | ** | '.github/instructions/copilot-customization.instructions.md' | Instructions for VS Code Copilot customization best practices |
 | ** | '.github/instructions/documentation.instructions.md' | Instructions for documentation organization and structure |
 | ** | '.github/instructions/powershell.instructions.md' | Instructions for PowerShell usage on Windows |
+| ** | '.github/instructions/commits.instructions.md' | Instructions for conventional commit message formatting |
 | **/*.go | '.github/instructions/imports.instructions.md' | Instructions for Go import alias naming conventions |
 | .github/workflows/*.yml | '.github/instructions/cicd.instructions.md' | Instructions for CI/CD workflow configuration and Go version consistency |

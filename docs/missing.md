@@ -56,17 +56,15 @@
 **Priority:** 🟢 **Low**
 
 **Missing:**
-- ✅ **DAST (Dynamic Application Security Testing)** - COMPLETED: Comprehensive OWASP ZAP and Nuclei scanning with CI/CD integration
-- Conventional commit enforcement
 - Advanced threat modeling documentation
 
 ## 🗺️ **Implementation Roadmap**
 
 ### **Phase 1: Release & Deployment (Immediate)**
 1. **Create release automation** (`.github/workflows/release.yml`)
-   - Semantic versioning with conventional commits
    - Automated changelog generation
    - Container registry publishing
+   - Semantic versioning and automated releases
 
 ### **Phase 2: Production Infrastructure (Next Sprint)**  
 2. **Create Kubernetes manifests**
@@ -84,19 +82,17 @@
 
 ### **Phase 4: Documentation & Advanced Features (Future)**
 8. **Complete documentation** (API versioning, benchmarks)
-9. ✅ **DAST testing** - COMPLETED: Dynamic security analysis with OWASP ZAP and Nuclei
 
 ## 📊 **Progress Summary**
 
-### **🎯 Next Steps (4 Remaining Items)**
-1. **Release automation** - Semantic versioning and automated releases
+### **🎯 Next Steps (5 Remaining Items)**
+1. **Release automation** - Automated changelog generation and container registry publishing
 2. **Kubernetes deployment** - Production manifests and Helm charts
 3. **Advanced testing** - Performance and integration test automation
 4. **Monitoring setup** - Prometheus metrics and Grafana dashboards
 5. **Documentation** - API versioning and performance benchmarks
 
-### **🎉 Recently Completed**
-- ✅ **DAST Security Testing** - Comprehensive dynamic security analysis with OWASP ZAP and Nuclei integration
+
 
 ## 💡 **Summary**
 
