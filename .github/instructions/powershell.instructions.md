@@ -14,12 +14,9 @@ applyTo: "**"
 ---
 # PowerShell Instructions
 
-- Use context clues to determine shell type before generating terminal commands
-- Use PowerShell syntax for Windows terminal commands, not Bash
-- Command chaining: use `;` (not `&&`)
-- File paths: use `\` backslashes (not `/` forward slashes)
-- Variables: use `$env:VARIABLE` (not `$VARIABLE`)
-- Pipe to head: use `| Select-Object -First 10` (not `| head -10`)
-- Grep equivalent: use `| Select-String "pattern"` (not `| grep "pattern"`)
-- **ALWAYS use execution policy bypass for PowerShell scripts**: `powershell -ExecutionPolicy Bypass -File script.ps1` (never run scripts directly with `.\script.ps1`)
-- **NEVER use emojis or Unicode symbols in PowerShell scripts** - they cause parsing errors in here-strings and break script execution
+- Use PowerShell syntax for Windows terminal commands (not Bash)
+- Use `;` for chaining, `\` for paths, `$env:VAR` for env vars
+- Use `| Select-Object -First 10` for head, `| Select-String` for grep
+- Always use execution policy bypass: `powershell -ExecutionPolicy Bypass -File script.ps1`
+- Never use emojis/unicode in scripts (see formatting instructions)
+- Avoid: `[switch]$All = $true`, complex Unicode in here-strings, improper variable expansion, string concat with backticks, untested params, poor error handling

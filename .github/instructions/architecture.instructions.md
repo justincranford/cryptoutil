@@ -2,19 +2,19 @@
 description: "Instructions for configuration and application architecture"
 applyTo: "**"
 ---
-# Configuration and Architecture Instructions
+# Configuration & Architecture
 
-- Use hierarchical application architecture: main -> application -> business logic -> repositories
-- Support configuration via YAML files and command-line parameters (no environment variables)
-- Implement proper dependency injection with context propagation
-- Use structured configuration with validation and default values
-- Implement proper lifecycle management with graceful startup and shutdown
-- Use service layer pattern with clear separation of concerns
-- Implement proper error propagation through application layers
-- Use factory patterns for service initialization with proper error handling
-- Support multiple deployment configurations (local dev, Docker, production)
-- Implement proper resource cleanup in shutdown handlers
-- Use atomic operations for critical state changes
-- Implement proper timeout and retry mechanisms for external dependencies
-- Implement proper configuration validation before application startup
-- Support hot-reloading of configuration where appropriate
+- Go project structure: See project-layout.instructions.md
+- Use layered arch: main → app → business logic → repositories
+- Config: YAML files & CLI only (no env vars)
+- Dependency injection with context propagation
+- Structured config with validation/defaults
+- Lifecycle: graceful startup/shutdown, resource cleanup
+- Service layer: clear separation of concerns
+- Error propagation through layers
+- Factory pattern for service init with error handling
+- Support local/dev, Docker, prod configs
+- Atomic ops for critical state
+- Timeout/retry for external deps
+- Validate config before startup
+- Hot-reload config if needed
