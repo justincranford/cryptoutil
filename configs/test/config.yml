@@ -1,0 +1,10 @@
+bind-public-protocol: "https"
+bind-public-address: "0.0.0.0"
+bind-public-port: 8080
+bind-private-protocol: "http"
+bind-private-address: "127.0.0.1"
+bind-private-port: 9090
+database-url: "postgres://USR:PWD@localhost:5432/DB?sslmode=disable"
+unseal-mode: "1-of-1"
+unseal-files:
+  - ./configs/test/dast-simple-unseal-secret-value-1.secret

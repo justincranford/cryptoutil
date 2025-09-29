@@ -528,6 +528,36 @@ spec:
             port: 9090
 ```
 
+
+## Tooling: Local GitHub Actions Testing with act
+
+You can run GitHub Actions workflows locally using [`act`](https://github.com/nektos/act):
+
+### Install act (Windows)
+
+1. Download the latest release from [nektos/act releases](https://github.com/nektos/act/releases).
+2. Extract `act.exe` from the zip file.
+3. Move `act.exe` to a directory in your PATH (e.g., `C:\Program Files\act`).
+4. Ensure [Docker Desktop](https://www.docker.com/products/docker-desktop/) is running.
+5. Open a new terminal and verify:
+  ```powershell
+  act --version
+  ```
+
+### Run a Workflow Locally
+
+
+From the project root, run:
+```powershell
+# By default, DAST scans use TARGET_URL=https://host.docker.internal:8080 for Docker compatibility:
+act -j dast-security-scan
+
+The workflow now waits for either the admin API (9090, loopback) or the client API (8080, HTTPS, 0.0.0.0) to be ready before running DAST scans. This ensures ZAP can scan as soon as the externally accessible API is up, even if the admin API is not exposed.
+```
+This will execute the `dast-security-scan` job from `.github/workflows/dast.yml` using Docker containers.
+
+> **Note:** The default DAST scan target is now `https://host.docker.internal:8080` for compatibility with Docker and act. If you need to override the target (e.g., in CI), set the `TARGET_URL` environment variable or use the workflow_dispatch input. Some steps may require adjustment for local paths, secrets, or service compatibility. See the [act documentation](https://github.com/nektos/act#usage) for advanced usage and troubleshooting.
+
 ## Documentation
 
 - [Project Overview](docs/README.md) - Comprehensive architectural deep dive

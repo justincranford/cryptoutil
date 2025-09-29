@@ -2,7 +2,7 @@
 # log-level: "INFO"
 
 # Binding address - 0.0.0.0 allows connections from any IP
-bind-address: "0.0.0.0"
+bind-public-address: "0.0.0.0"
 
 unseal-mode: "3-of-5"
 

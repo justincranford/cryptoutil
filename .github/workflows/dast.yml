@@ -11,14 +11,38 @@ on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: 'Target URL for DAST scanning (default: http://localhost:8080)'
+        description: 'Target URL for DAST scanning (default: https://host.docker.internal:8080)'
         required: false
-        default: 'http://localhost:8080'
+        default: 'https://host.docker.internal:8080'
 
 env:
   GO_VERSION: '1.25.1'
-  APP_PORT: 8080
-  TARGET_URL: ${{ github.event.inputs.target_url || 'http://localhost:8080' }}
+
+    # IMPORTANT: For local act runs, use: `act --bind -j dast-security-scan`
+
+  # Default to Docker-compatible host for local/CI.
+  TARGET_URL: ${{ github.event.inputs.target_url || 'https://host.docker.internal:8080' }}
+
+  # ZAP runs in a separate container, so it needs to access the application via a Docker-compatible address.
+  APP_EXTERNAL_PUBLIC_PROTOCOL: https
+  APP_EXTERNAL_PUBLIC_ADDRESS: host.docker.internal
+  APP_EXTERNAL_PUBLIC_PORT: 8080
+
+  # ACT runs in the host network, so it can access localhost directly.
+  APP_BIND_PUBLIC_PROTOCOL: https
+  APP_BIND_PUBLIC_ADDRESS: 0.0.0.0
+  APP_BIND_PUBLIC_PORT: 8080
+
+  # ACT runs in the host network, so it can access localhost directly.
+  APP_BIND_PRIVATE_PROTOCOL: http
+  APP_BIND_PRIVATE_ADDRESS: 127.0.0.1
+  APP_BIND_PRIVATE_PORT: 9090
+
+  DB_HOST: localhost
+  DB_PORT: 5432
+  DB_NAME: DB
+  DB_USER: USR
+  DB_PASSWORD: PWD
 
 jobs:
   dast-security-scan:
@@ -26,18 +50,18 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:latest
         env:
-          POSTGRES_PASSWORD: testpass123
-          POSTGRES_USER: testuser
-          POSTGRES_DB: cryptoutil_test
+          POSTGRES_DB: ${{ env.DB_NAME }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_USER: ${{ env.DB_USER }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5432:5432
+          - 5432:5432 # env context is not available in the services.ports section
 
     permissions:
       contents: read
@@ -45,6 +69,24 @@ jobs:
       actions: read
 
     steps:
+    - name: Install ping and curl for connectivity tests
+      run: |
+        sudo apt-get update -y && sudo apt-get install -y iputils-ping curl
+
+    - name: Test address ping connectivity
+      run: |
+        echo "Testing https://localhost:8080..."
+        ping -c 2 localhost || true
+
+        echo "Testing https://127.0.0.1:8080..."
+        ping -c 2 127.0.0.1 || true
+
+        echo "Testing https://host.docker.internal:8080..."
+        ping -c 2 host.docker.internal || true
+
+        echo "Testing https://172.17.0.1:8080..."
+        ping -c 2 172.17.0.1 || true
+
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -60,46 +102,61 @@ jobs:
     - name: Build application
       run: go build -o cryptoutil ./cmd/cryptoutil
 
+    # See internal\common\config\config.go for configuration options
     - name: Start application for DAST testing
       run: |
         # Create test configuration
         mkdir -p configs/test
-        cat > configs/test/config.yml << EOF
-        server:
-          host: "0.0.0.0"
-          port: ${{ env.APP_PORT }}
-          cors:
-            enabled: true
-            origins: ["*"]
-            methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-            headers: ["*"]
-        database:
-          url: "postgres://testuser:testpass123@localhost:5432/cryptoutil_test?sslmode=disable"
-          migration_source: "file://internal/server/repository/migrations"
-        unseal:
-          mode: "simple"
-          keys: ["test-key-for-dast-scanning-only"]
-        telemetry:
-          traces:
-            enabled: false
-          metrics:
-            enabled: false
-          logs:
-            level: "ERROR"
+
+        # Create unseal secret file
+        cat > ./configs/test/dast-simple-unseal-secret-value-1.secret <<EOF
+        dast-simple-unseal-secret-value-1
+        EOF
+
+        # Create config file
+        cat > ./configs/test/config.yml <<EOF
+        bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
+        bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
+        bind-public-port: ${APP_BIND_PUBLIC_PORT}
+        bind-private-protocol: "${APP_BIND_PRIVATE_PROTOCOL}"
+        bind-private-address: "${APP_BIND_PRIVATE_ADDRESS}"
+        bind-private-port: ${APP_BIND_PRIVATE_PORT}
+        database-url: "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable"
+        unseal-mode: "1-of-1"
+        unseal-files:
+          - ./configs/test/dast-simple-unseal-secret-value-1.secret
         EOF
 
         # Start application in background
-        ./cryptoutil --config configs/test/config.yml &
+        ./cryptoutil server start --config configs/test/config.yml &
         APP_PID=$!
         echo "APP_PID=$APP_PID" >> $GITHUB_ENV
 
-        # Wait for application to be ready
-        timeout 60 bash -c 'until curl -f http://localhost:9090/readyz || curl -f http://localhost:9090/healthz; do sleep 2; done'
+        # Wait for application to be ready (client API)
+        timeout 20 bash -c '
+          until curl -k -f ${APP_BIND_PUBLIC_PROTOCOL}://${APP_BIND_PUBLIC_ADDRESS}:${APP_BIND_PUBLIC_PORT}/ui/swagger/doc.json; do
+            sleep 1
+          done
+        '
 
         # Verify OpenAPI spec is available
-        curl -f -k https://localhost:${{ env.APP_PORT }}/ui/swagger/doc.json > openapi.json
+        curl -f -k ${APP_BIND_PUBLIC_PROTOCOL}://${APP_BIND_PUBLIC_ADDRESS}:${APP_BIND_PUBLIC_PORT}/ui/swagger/doc.json > openapi.json
 
-        echo "Application started successfully on port ${{ env.APP_PORT }}"
+        echo "Application started successfully on ${APP_BIND_PUBLIC_PROTOCOL}://${APP_BIND_PUBLIC_ADDRESS}:${APP_BIND_PUBLIC_PORT}"
+
+    - name: Test application curl connectivity
+      run: |
+        echo "Testing https://localhost:8080..."
+        curl -k -f -v https://localhost:8080 || true
+
+        echo "Testing https://127.0.0.1:8080..."
+        curl -k -f -v https://127.0.0.1:8080 || true
+
+        echo "Testing https://host.docker.internal:8080..."
+        curl -k -f -v https://host.docker.internal:8080 || true
+
+        echo "Testing https://172.17.0.1:8080..."
+        curl -k -f -v https://172.17.0.1:8080 || true
 
     - name: Run OWASP ZAP DAST Scan
       uses: zaproxy/action-full-scan@v0.10.0
