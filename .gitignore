@@ -8,6 +8,8 @@ bin/
 *.dll
 *.so
 *.dylib
+./cryptoutil.exe
+./cryptoutil
 
 # Test binary, built with `go test -c`
 *.test
@@ -15,6 +17,13 @@ bin/
 # Output of the go coverage tool, specifically when used with LiteIDE
 coverage.out
 coverage.html
+
+# Output of dast workflow
+report_html.html
+report_json.json
+report_md.md
+nohup.out
+
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

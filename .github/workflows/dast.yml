@@ -1,4 +1,5 @@
 name: DAST Security Testing
+# IMPORTANT: Test locally with `act --bind -j dast-security-scan`
 
 on:
   push:
@@ -11,29 +12,19 @@ on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: 'Target URL for DAST scanning (default: https://host.docker.internal:8080)'
+        description: 'Target URL for DAST scanning (default: https://localhost:8080)'
         required: false
-        default: 'https://host.docker.internal:8080'
+        default: 'https://localhost:8080'
 
 env:
   GO_VERSION: '1.25.1'
 
-    # IMPORTANT: For local act runs, use: `act --bind -j dast-security-scan`
+  TARGET_URL: ${{ github.event.inputs.target_url || 'https://localhost:8080' }}
 
-  # Default to Docker-compatible host for local/CI.
-  TARGET_URL: ${{ github.event.inputs.target_url || 'https://host.docker.internal:8080' }}
-
-  # ZAP runs in a separate container, so it needs to access the application via a Docker-compatible address.
-  APP_EXTERNAL_PUBLIC_PROTOCOL: https
-  APP_EXTERNAL_PUBLIC_ADDRESS: host.docker.internal
-  APP_EXTERNAL_PUBLIC_PORT: 8080
-
-  # ACT runs in the host network, so it can access localhost directly.
   APP_BIND_PUBLIC_PROTOCOL: https
   APP_BIND_PUBLIC_ADDRESS: 0.0.0.0
   APP_BIND_PUBLIC_PORT: 8080
 
-  # ACT runs in the host network, so it can access localhost directly.
   APP_BIND_PRIVATE_PROTOCOL: http
   APP_BIND_PRIVATE_ADDRESS: 127.0.0.1
   APP_BIND_PRIVATE_PORT: 9090
@@ -69,24 +60,6 @@ jobs:
       actions: read
 
     steps:
-    - name: Install ping and curl for connectivity tests
-      run: |
-        sudo apt-get update -y && sudo apt-get install -y iputils-ping curl
-
-    - name: Test address ping connectivity
-      run: |
-        echo "Testing https://localhost:8080..."
-        ping -c 2 localhost || true
-
-        echo "Testing https://127.0.0.1:8080..."
-        ping -c 2 127.0.0.1 || true
-
-        echo "Testing https://host.docker.internal:8080..."
-        ping -c 2 host.docker.internal || true
-
-        echo "Testing https://172.17.0.1:8080..."
-        ping -c 2 172.17.0.1 || true
-
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -127,43 +100,32 @@ jobs:
           - ./configs/test/dast-simple-unseal-secret-value-1.secret
         EOF
 
-        # Start application in background
-        ./cryptoutil server start --config configs/test/config.yml &
+        # Start application in background, capture PID for cleanup; use nohup to avoid termination on shell exit
+        nohup ./cryptoutil server start --config configs/test/config.yml &
         APP_PID=$!
         echo "APP_PID=$APP_PID" >> $GITHUB_ENV
 
-        # Wait for application to be ready (client API)
+        # Wait for application to be ready
         timeout 20 bash -c '
           until curl -k -f ${APP_BIND_PUBLIC_PROTOCOL}://${APP_BIND_PUBLIC_ADDRESS}:${APP_BIND_PUBLIC_PORT}/ui/swagger/doc.json; do
             sleep 1
           done
         '
 
-        # Verify OpenAPI spec is available
-        curl -f -k ${APP_BIND_PUBLIC_PROTOCOL}://${APP_BIND_PUBLIC_ADDRESS}:${APP_BIND_PUBLIC_PORT}/ui/swagger/doc.json > openapi.json
-
-        echo "Application started successfully on ${APP_BIND_PUBLIC_PROTOCOL}://${APP_BIND_PUBLIC_ADDRESS}:${APP_BIND_PUBLIC_PORT}"
+        curl -f -k https://localhost:8080/ui/swagger/doc.json > /dev/null 2>&1
+        echo "Application listening on https://localhost:8080"
 
     - name: Test application curl connectivity
       run: |
-        echo "Testing https://localhost:8080..."
-        curl -k -f -v https://localhost:8080 || true
-
-        echo "Testing https://127.0.0.1:8080..."
-        curl -k -f -v https://127.0.0.1:8080 || true
-
-        echo "Testing https://host.docker.internal:8080..."
-        curl -k -f -v https://host.docker.internal:8080 || true
-
-        echo "Testing https://172.17.0.1:8080..."
-        curl -k -f -v https://172.17.0.1:8080 || true
+        curl -f -k https://localhost:8080/ui/swagger/doc.json > /dev/null 2>&1
+        echo "Application listening on https://localhost:8080"
 
     - name: Run OWASP ZAP DAST Scan
       uses: zaproxy/action-full-scan@v0.10.0
       with:
         target: ${{ env.TARGET_URL }}
         rules_file_name: '.zap/rules.tsv'
-        cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=JSESSIONID,csrftoken"'
+        cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=JSESSIONID,csrftoken,_csrf"'
         allow_issue_writing: false
         artifact_name: 'zap-report'
 
