@@ -35,9 +35,9 @@ scan_policies:
       - "exposed-panels/"
       - "takeovers/"
       - "technologies/"
-    concurrency: 25
-    rate_limit: 150
-    timeout: 10
+    concurrency: 24
+    rate_limit: 200
+    timeout: 5
 
 # Endpoints to focus on
 critical_endpoints:
