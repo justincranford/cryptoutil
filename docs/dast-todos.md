@@ -4,6 +4,8 @@
 **Created**: 2025-09-30  
 **Purpose**: Comprehensive task list for addressing DAST workflow issues and security findings
 
+> Maintenance Guideline: When a file is removed (e.g., `.zap/dast-config.yml`) or a decision permanently deprecates a path, remove its associated exploratory tasks to keep this document actionable. Only retain: (1) active remediation work, (2) still-relevant observations, (3) forward-looking backlog items. Avoid preserving historical, fully-resolved decision detail—capture that once in commit messages or high‑level docs (e.g., `SECURITY_TESTING.md`) and prune here.
+
 ---
 
 ## Executive Summary
@@ -297,91 +299,9 @@ This document contains a comprehensive analysis of:
 
 ## Section 3: OWASP ZAP Configuration Analysis ✅ **COMPLETED**
 
-### 3.1 ZAP Configuration File Usage ✅ **RESOLVED**
+### 3.1 ZAP Configuration File Usage
 
-**Question**: ~~Does `act --bind -j dast-security-scan` use `.zap/dast-config.yml`?~~
-
-**ANSWER**: **NO** - The file was not used and has been **removed** for simplification.
-
-**Previous State**:
-- ~~`.zap/dast-config.yml` existed with comprehensive configuration~~ **REMOVED**
-- `dast.yml` workflow has OWASP ZAP steps **commented out** (lines 125-141)
-- ~~When ZAP steps are uncommented, they referenced `.zap/rules.tsv` but NOT `.zap/dast-config.yml`~~
-- ZAP configuration is specified via `cmd_options` inline parameters ✅ **CURRENT APPROACH**
-
-**Current State (Simplified)**:
-- ✅ All DAST configuration managed inline in `.github/workflows/dast.yml`
-- ✅ ZAP rules configuration remains in `.zap/rules.tsv` (actively used)
-- ✅ Configuration reference documented in `docs/dast-reference-config.md`
-- ✅ Single source of truth - no configuration drift possible
-
-**Analysis**:
-
-#### Observation 3.1.1: ZAP dast-config.yml is NOT Used by Workflow
-- **Finding**: The `.zap/dast-config.yml` file is not referenced anywhere in `dast.yml` workflow
-- **Impact**: Configuration in `dast-config.yml` is ignored by GitHub Actions and `act`
-- **Recommendation**: Either use the config file or remove it to avoid confusion
-
-#### Observation 3.1.2: Configuration is Split Between Files
-- **dast.yml**: Inline ZAP command options (`-a -j -m 10 -T 60 -z "..."`)
-- **rules.tsv**: Rule-level configuration (WARN/IGNORE/FAIL for specific findings)
-- **dast-config.yml**: Comprehensive configuration that's not actually used
-- **Impact**: Potential for configuration drift and confusion
-
-#### Observation 3.1.3: dast-config.yml Contains Valuable Configuration
-- Nuclei templates configuration (currently duplicated in workflow `flags`)
-- Critical endpoints list (useful for focused scanning)
-- Custom payloads for crypto testing (not used anywhere)
-- Scan policies and timeouts (some duplicated in workflow)
-
-**Tasks**:
-
-#### Task 3.1.1: Decide on ZAP Configuration Strategy ✅ **COMPLETED**
-- **Description**: Choose between inline config (current) vs. config file (not used)
-- **DECISION**: **Option A** - Remove `.zap/dast-config.yml` and keep all config in `dast.yml` (simpler)
-- **Rationale**:
-  - Simplifies configuration management (single source of truth)
-  - Eliminates configuration drift between files
-  - ZAP GitHub Actions don't natively support YAML config files
-  - All configuration visible in workflow file for better maintainability
-- **Completed Actions**:
-  - ✅ Analyzed extracted config from `.zap/dast-config.yml`
-  - ✅ Documented decision and rationale
-  - ✅ Removed unused `.zap/dast-config.yml` file
-  - ✅ Removed misleading `docs/dast-reference-config.md` (contained AI-hallucinated endpoints)
-- **Files**: ~~`.zap/dast-config.yml`~~ (removed), ~~`docs/dast-reference-config.md`~~ (removed), `.github/workflows/dast.yml` (authoritative config)
-
-#### Task 3.1.2: If Keeping dast-config.yml - Integrate with Workflow (🟡 MEDIUM)
-- **Description**: Make workflow actually use `.zap/dast-config.yml`
-- **Action Items**:
-  - Research if `zaproxy/action-full-scan` and `zaproxy/action-api-scan` support config files
-  - Check ZAP action documentation for config file parameter
-  - If supported: add `config_file: '.zap/dast-config.yml'` to ZAP action `with:` parameters
-  - If not supported: convert config file to inline parameters or remove file
-  - Test with both `act` and GitHub Actions
-- **Files**: `.github/workflows/dast.yml` (lines 125-141)
-- **Blocker**: May not be supported by ZAP GitHub Actions
-
-#### Task 3.1.3: If Removing dast-config.yml - Extract Useful Config ✅ **COMPLETED**
-- **Description**: Before removing `.zap/dast-config.yml`, extract valuable configuration
-- **Completed Actions**:
-  - ✅ Moved `critical_endpoints` list to `docs/dast-reference-config.md`
-  - ✅ Moved `custom_payloads` to `docs/dast-reference-config.md` for manual testing reference
-  - ✅ Moved `test_categories` to `docs/dast-reference-config.md` for understanding scan coverage
-  - ✅ Documented ZAP scan parameters in `docs/dast-reference-config.md`
-  - ✅ Created comprehensive reference documentation
-  - ✅ Deleted `.zap/dast-config.yml` after extraction
-- **Files**: ~~`.zap/dast-config.yml`~~ (removed), `docs/dast-reference-config.md`
-
-#### Task 3.1.4: Align Nuclei Configuration (🟢 LOW)
-- **Description**: Ensure Nuclei configuration is consistent between dast-config.yml and workflow
-- **Action Items**:
-  - Compare Nuclei config in `.zap/dast-config.yml` vs. workflow `flags`
-  - Current workflow: `flags: "-c 24 -rl 200 -timeout 5 -stats"`
-  - Config file: `concurrency: 24`, `rate_limit: 200`, `timeout: 5`
-  - **Result**: Already aligned! But templates list in config file is more specific
-  - Consider adding template specification to workflow if beneficial
-- **Files**: `.github/workflows/dast.yml` (line 149), `.zap/dast-config.yml` (lines 28-37)
+All exploratory and migration tasks related to the removed `.zap/dast-config.yml` have been pruned per maintenance guideline. ZAP configuration is fully inline in the workflow and governed by active tasks in Sections 3.2 and 4+. No further action required for the deprecated file.
 
 ### 3.2 ZAP Rules Configuration (🟡 MEDIUM)
 
@@ -415,11 +335,8 @@ This document contains a comprehensive analysis of:
 
 **Tasks**:
 
-#### Task 3.3.1: Fix Protocol Mismatch in dast-config.yml ✅ **COMPLETED** (N/A - File Removed)
-- **Description**: Config file specifies `http://localhost:8080` but app runs on `https://localhost:8080`
-- **Resolution**: Task no longer applicable since `.zap/dast-config.yml` was removed in Task 3.1.1
-- **Current State**: All URL configuration is now in `.github/workflows/dast.yml` with correct `https://localhost:8080`
-- **Files**: ~~`.zap/dast-config.yml`~~ (removed)
+#### Task 3.3.1: (Removed) Protocol mismatch audit
+Removed with deprecated config file; HTTPS target now authoritative in workflow.
 
 #### Task 3.3.2: Verify Target URL Consistency Across All Files (🟢 LOW)
 - **Description**: Ensure all DAST-related files use consistent target URLs
@@ -428,7 +345,7 @@ This document contains a comprehensive analysis of:
   - ~~Check `dast-config.yml`~~ ✅ **REMOVED** - No longer applicable
   - Check SECURITY_TESTING.md documentation: verify examples use correct URLs
   - Update all references to use `https://localhost:8080` consistently
-- **Files**: `.github/workflows/dast.yml`, ~~`.zap/dast-config.yml`~~ (removed), `docs/SECURITY_TESTING.md`
+- **Files**: `.github/workflows/dast.yml`, `docs/SECURITY_TESTING.md`
 
 ---
 
@@ -645,7 +562,7 @@ This document contains a comprehensive analysis of:
 #### Task 5.4.2: Add Cryptographic-Specific Security Tests (🟡 MEDIUM)
 - **Description**: Create custom tests for cryptoutil's unique crypto operations
 - **Action Items**:
-  - Review `.zap/dast-config.yml` custom_payloads section for ideas
+  - (Optional) Brainstorm cryptographic abuse payloads (do not re-introduce removed config file)
   - Create test cases for key generation endpoints
   - Create test cases for encryption/decryption endpoints
   - Create test cases for signing/verification endpoints
@@ -782,7 +699,7 @@ This document contains a comprehensive analysis of:
   - Test authenticated vs. unauthenticated endpoints
   - Verify authorization controls (can user A access user B's data?)
   - Document authenticated scanning configuration
-- **Files**: `.zap/dast-config.yml`, `.github/workflows/dast.yml`
+-- **Files**: `.github/workflows/dast.yml`
 - **Blocked By**: Authentication implementation in cryptoutil
 
 #### Task 7.1.2: Implement Dynamic Target URL from Deployment (Future) (🟢 LOW)
@@ -906,7 +823,6 @@ This document contains a comprehensive analysis of:
 | `.github/workflows/dast.yml` | Main DAST workflow | ⚠️ ZAP steps commented, artifact upload broken in `act` |
 | ~~`.zap/dast-config.yml`~~ | ~~ZAP/DAST configuration~~ | ✅ **REMOVED** - Configuration moved inline to workflow |
 | `.zap/rules.tsv` | ZAP rule configuration | ✅ Used by workflow |
-| `docs/dast-reference-config.md` | DAST configuration reference | ✅ **NEW** - Extracted config documentation |
 | `nuclei.log` | Nuclei scan results | ✅ Generated by workflow |
 | `nuclei.sarif` | Nuclei SARIF output | ✅ Generated, uploaded to Security tab |
 | `dast-github-action-nuclei.log` | GitHub Actions run log | 📊 Analyzed for findings |
@@ -967,7 +883,7 @@ docker run --rm -v ${PWD}:/zap/wrk/:rw zaproxy/zap-stable zap-api-scan.py -t htt
 - [Copilot Instructions](../.github/copilot-instructions.md)
 - [DAST Workflow](../.github/workflows/dast.yml)
 - [ZAP Rules](../.zap/rules.tsv)
-- [ZAP Config](../.zap/dast-config.yml)
+
 
 ---
 
