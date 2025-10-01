@@ -74,18 +74,6 @@ This document contains a comprehensive analysis of:
 - **Files**: `internal/server/application/application_listener.go` (lines 200-220)
 - **Root Cause**: Middleware might be selectively applied, causing scanner to miss headers on some endpoints
 
-#### Task 1.1.3: Add Missing Security Headers Explicitly (🟠 HIGH)
-- **Description**: Add explicit header setting for all missing security headers
-- **Action Items**:
-  - Enhance `publicBrowserAdditionalSecurityHeadersMiddleware` to add:
-    - `Permissions-Policy: interest-cohort=()`
-    - `Cross-Origin-Embedder-Policy: require-corp`
-    - `Cross-Origin-Opener-Policy: same-origin`
-    - `Cross-Origin-Resource-Policy: same-origin`
-    - `Clear-Site-Data: "cache", "cookies", "storage"` (for logout endpoints only)
-  - Ensure HSTS is set even when behind reverse proxy (check `X-Forwarded-Proto` header)
-  - Add `X-Permitted-Cross-Domain-Policies: none`
-- **Files**: `internal/server/application/application_listener.go` (function: `publicBrowserAdditionalSecurityHeadersMiddleware`)
 - **References**:
   - [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/)
   - [MDN Security Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers#security)
@@ -756,12 +744,11 @@ Removed with deprecated config file; HTTPS target now authoritative in workflow.
 
 **Goal**: Remediate security findings, optimize workflow
 
-8. ✅ **Task 1.1.3**: Add missing security headers explicitly (🟠 HIGH)
-9. ✅ **Task 1.3.1**: Scope Nuclei scans to application only (🟡 MEDIUM)
-10. ✅ **Task 3.1.3**: Extract useful config from dast-config.yml (🟡 MEDIUM)
-11. ✅ **Task 3.3.1**: Fix protocol mismatch in dast-config.yml - N/A (🟡 MEDIUM)
-12. ✅ **Task 4.1.3**: Review and update ZAP action parameters (🟡 MEDIUM)
-13. ✅ **Task 6.2.1**: Test complete workflow in GitHub Actions (🟠 HIGH)
+8. ✅ **Task 1.3.1**: Scope Nuclei scans to application only (🟡 MEDIUM)
+9. ✅ **Task 3.1.3**: Extract useful config from dast-config.yml (🟡 MEDIUM)
+10. ✅ **Task 3.3.1**: Fix protocol mismatch in dast-config.yml - N/A (🟡 MEDIUM)
+11. ✅ **Task 4.1.3**: Review and update ZAP action parameters (🟡 MEDIUM)
+12. ✅ **Task 6.2.1**: Test complete workflow in GitHub Actions (🟠 HIGH)
 
 **Expected Outcome**: Security posture improved, workflow configuration clean and consistent
 

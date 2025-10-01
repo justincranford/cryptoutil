@@ -58,6 +58,39 @@ curl -I https://localhost:8080/service/api/v1/
 
 The deprecated `.zap/dast-config.yml` file has been removed—ZAP configuration now lives inline in the GitHub Actions workflow and in `.zap/rules.tsv`.
 
+### Current Browser Security Headers Matrix
+
+`/browser/api/v1` applies enhanced isolation and user-focused hardening headers; `/service/api/v1` deliberately omits browser-only headers to avoid breaking automation and cross-origin service access. All headers below are enforced by middleware (Helmet + custom) unless noted as conditional.
+
+| Header | /browser/api/v1 | /service/api/v1 | Notes / Rationale |
+| ------ | ---------------- | ---------------- | ------------------ |
+| Strict-Transport-Security | max-age=63072000; includeSubDomains; preload (conditional on HTTPS) | (omitted) | Added only when request over TLS to prevent accidental preload in local HTTP |
+| Content-Security-Policy | Present (Helmet managed) | (omitted) | XSS / injection surface reduction; updated with features as needed |
+| X-Content-Type-Options | nosniff | nosniff | Prevent MIME sniffing |
+| X-Frame-Options | DENY (or via CSP frame-ancestors) | DENY | Clickjacking defense |
+| Referrer-Policy | strict-origin-when-cross-origin | strict-origin-when-cross-origin | Limit sensitive referrer leakage |
+| Permissions-Policy | Fine-grained empty allowlist (camera=(), geolocation=(), etc.) | (omitted) | Reduce exposed web platform capabilities |
+| Cross-Origin-Opener-Policy | same-origin | (omitted) | Enables cross-origin isolation; mitigates popup-based attacks |
+| Cross-Origin-Embedder-Policy | require-corp | (omitted) | Paired with COOP to enable powerful isolated contexts |
+| Cross-Origin-Resource-Policy | same-origin | (omitted) | Prevent third-party origins embedding private resources |
+| X-Permitted-Cross-Domain-Policies | none | none | Blocks legacy Flash/Adobe cross-domain vectors |
+| Clear-Site-Data | cache,cookies,storage,executionContexts (POST /logout only) | (not applied) | Forces session state purge on logout |
+| Server | Standardized/minimized | Standardized/minimized | Reduce fingerprinting |
+
+Additional notes:
+1. COOP + COEP (require-corp) pairing provides stronger isolation; adjust cautiously as it can break cross-origin script/resource loading.
+2. Any future addition/removal must be reflected here and validated with regression ZAP scans (pseudo rule IDs 91001–91008) and manual header diff checks.
+3. HSTS preload list inclusion should be coordinated with production domain onboarding—avoid premature preload submissions.
+4. When expanding CSP, validate against Swagger UI resource loading and future browser client assets.
+
+Validation quick check (PowerShell):
+```powershell
+curl -I https://localhost:8080/browser/api/v1/ | Select-String -Pattern "strict-transport|content-security|cross-origin|permissions-policy|clear-site|referrer-policy"
+curl -I https://localhost:8080/service/api/v1/ | Select-String -Pattern "strict-transport|content-security|cross-origin|permissions-policy|clear-site|referrer-policy"
+```
+
+Expected: Browser path shows the extended set; service path shows only the core subset (no CSP, COOP, COEP, CORP, Permissions-Policy, Clear-Site-Data).
+
 ## Automated CI/CD Integration
 
 ### GitHub Actions Workflow (`.github/workflows/dast.yml`)

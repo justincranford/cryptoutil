@@ -657,8 +657,26 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(settings *cryptoutilConfig
 			}
 		}
 
-		// Permissions-Policy: Restrict dangerous browser features
-		c.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+		// Permissions-Policy: Restrict dangerous browser features (extendable as needed)
+		c.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()")
+
+		// Cross-Origin-Opener-Policy: isolate browsing context group
+		c.Set("Cross-Origin-Opener-Policy", "same-origin")
+
+		// Cross-Origin-Embedder-Policy: ensure only same-origin or CORP resources are loaded
+		c.Set("Cross-Origin-Embedder-Policy", "require-corp")
+
+		// Cross-Origin-Resource-Policy: restrict resource sharing to same-origin
+		c.Set("Cross-Origin-Resource-Policy", "same-origin")
+
+		// X-Permitted-Cross-Domain-Policies: block Adobe/Flash cross-domain data loading
+		c.Set("X-Permitted-Cross-Domain-Policies", "none")
+
+		// Optionally set Clear-Site-Data for logout or session revocation endpoints only.
+		// We avoid setting universally to prevent unnecessary cache/storage purges.
+		if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), "/logout") {
+			c.Set("Clear-Site-Data", "\"cache\", \"cookies\", \"storage\"")
+		}
 
 		return c.Next()
 	}
