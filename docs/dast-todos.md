@@ -56,12 +56,13 @@ This document contains a comprehensive analysis of:
 #### Task 1.1.1: Verify Current Security Header Implementation (🟡 MEDIUM)
 - **Description**: Test and verify which security headers are actually being sent by the application
 - **Action Items**:
-  - Use `curl -I https://localhost:8080/ui/swagger/` to inspect actual response headers
-  - Use `curl -I https://localhost:8080/browser/api/v1/` to inspect API headers
+  - Use `curl -I https://localhost:8080/ui/swagger/` to inspect Swagger UI static response headers
+  - Use `curl -I https://localhost:8080/browser/api/v1/` to inspect Browser API headers (browser middlewares applied: CORS, CSP/XSS, additional security headers, CSRF)
+  - Use `curl -I https://localhost:8080/service/api/v1/` to inspect Service API headers (no browser-only middlewares: CORS, CSRF skipped via `isNonBrowserUserAPIRequestFunc`)
   - Compare actual headers with Nuclei scan results to identify discrepancies
   - Document which headers are working and which are missing
 - **Files**: `internal/server/application/application_listener.go` (lines 550-680)
-- **Expected Outcome**: Clear understanding of which headers are missing vs. not detected by scanner
+- **Expected Outcome**: Clear understanding of which headers are missing vs. not detected by scanner, across BOTH context paths (`/browser/api/v1` with browser middlewares, `/service/api/v1` without them)
 
 #### Task 1.1.2: Review Middleware Execution Order (🟡 MEDIUM)
 - **Description**: Helmet and security middleware may not be applied to all routes

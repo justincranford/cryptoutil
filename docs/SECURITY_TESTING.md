@@ -36,12 +36,27 @@ Defines custom scanning rules for OWASP ZAP:
 - **WARN**: Important findings that should be reviewed
 - **IGNORE**: Known false positives or acceptable risks
 
-### `.zap/dast-config.yml`
-Central configuration for DAST scanning parameters:
-- Target endpoints and authentication
-- Scan policies and timeouts
-- Critical endpoint definitions
-- Custom payloads for cryptographic testing
+### Dual API Context Paths
+cryptoutil exposes the SAME OpenAPI-defined operations under two distinct context paths with different middleware stacks:
+
+| Context Path | Intended Clients | Middleware Stack (Additive) |
+|--------------|------------------|-----------------------------|
+| `/browser/api/v1` | Browser / interactive users (Swagger UI, future web apps) | Common core (recover, requestid, logger, telemetry, IP filter, rate limit, cache control) + CORS + CSP/XSS (Helmet) + Additional Security Headers + CSRF |
+| `/service/api/v1` | Headless service-to-service clients | Common core only (CORS & CSRF intentionally skipped via `isNonBrowserUserAPIRequestFunc`) |
+
+Implications for DAST:
+- Always test BOTH context paths for security header coverage (browser path has more headers set).
+- CSRF checks apply only to `/browser/api/v1` requests (service path is exempt).
+- CORS preflight and CSP are only visible on the browser path.
+- Rate limiting, IP filtering, and core protections apply to both.
+
+Recommended header verification commands:
+```powershell
+curl -I https://localhost:8080/browser/api/v1/
+curl -I https://localhost:8080/service/api/v1/
+```
+
+The deprecated `.zap/dast-config.yml` file has been removed—ZAP configuration now lives inline in the GitHub Actions workflow and in `.zap/rules.tsv`.
 
 ## Automated CI/CD Integration
 
