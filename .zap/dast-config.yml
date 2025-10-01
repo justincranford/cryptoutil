@@ -2,11 +2,11 @@
 
 # Target configuration
 target_url: "http://localhost:8080"
-openapi_spec: "/swagger/openapi.json"
+openapi_spec: "//ui/swagger/doc.json"
 
 # Authentication configuration (if needed)
 authentication:
-  # For future use if authentication is required
+  # For future use if authentication is implemented later
   # Currently cryptoutil uses IP allowlisting and CSRF tokens
   type: "none"
 
