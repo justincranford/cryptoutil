@@ -13,10 +13,22 @@ WARN	90001	https://localhost:8080/service/api/v1/.*	.*	.*	.*	Monitor cryptograph
 WARN	90001	https://localhost:8080/browser/api/v1/.*	.*	.*	.*	Monitor cryptographic operations for timing attacks
 #WARN	90022	https://localhost:8080/api/v1/auth/.*	.*	.*	.*	Monitor authentication endpoints for security issues
 
-# Server security headers - expect these to be properly configured
-IGNORE	10016	.*	.*	.*	.*	Web browser XSS protection not enabled - API server
-IGNORE	10017	.*	.*	.*	.*	Cross domain script include - API server
-IGNORE	10020	.*	.*	.*	.*	X-Frame-Options header missing - API server
+# Server security headers - enforce required headers (elevated from IGNORE)
+# 10016 X-Content-Type-Options / XSS related legacy header (treat absence as WARN)
+WARN	10016	.*	.*	.*	.*	Security header (legacy XSS / content-type protection) missing or misconfigured
+# 10017 Cross-domain script include (possible JSONP / insecure include) - warn
+WARN	10017	.*	.*	.*	.*	Cross-domain script include potential risk
+# 10020 X-Frame-Options missing - should generally FAIL for this app (DENY via Helmet)
+FAIL	10020	.*	.*	.*	.*	Missing X-Frame-Options header (should be DENY)
+# Additional explicit security header expectations (custom pseudo rule IDs > 91000 for tracking if ZAP doesn't natively cover)
+FAIL	91001	.*	.*	.*	.*	Missing Strict-Transport-Security header
+FAIL	91002	.*	.*	.*	.*	Missing Content-Security-Policy header
+WARN	91003	.*	.*	.*	.*	Missing Referrer-Policy header
+WARN	91004	.*	.*	.*	.*	Missing Permissions-Policy header
+WARN	91005	.*	.*	.*	.*	Missing Cross-Origin-Opener-Policy header
+WARN	91006	.*	.*	.*	.*	Missing Cross-Origin-Embedder-Policy header
+WARN	91007	.*	.*	.*	.*	Missing Cross-Origin-Resource-Policy header
+WARN	91008	.*	.*	.*	.*	Missing Clear-Site-Data header (expected on logout endpoints only - verify manually)
 
 # Content type and encoding
 WARN	10019	.*	.*	.*	.*	Content type incorrectly stated
