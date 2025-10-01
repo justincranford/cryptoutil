@@ -21,6 +21,8 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
 
+	"go.opentelemetry.io/otel/metric"
+
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
@@ -206,10 +208,10 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	}
 
 	publicMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPublic)}, commonMiddlewares...)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings))              // Browser-specific: Cross-Origin Resource Sharing (CORS)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))               // Browser-specific: Cross-Site Scripting (XSS)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(settings)) // Additional security headers
-	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))              // Browser-specific: Cross-Site Request Forgery (CSRF)
+	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings))                                                                             // Browser-specific: Cross-Origin Resource Sharing (CORS)
+	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))                                                                              // Browser-specific: Cross-Site Scripting (XSS)
+	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings)) // Additional security headers
+	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))                                                                             // Browser-specific: Cross-Site Request Forgery (CSRF)
 	// TODO Add request body size limits to prevent large payload attacks
 	// TODO Consider adding compression middleware for better performance
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
@@ -635,51 +637,121 @@ func buildContentSecurityPolicy(settings *cryptoutilConfig.Settings) string {
 	return csp
 }
 
+// Security header policy constants - Last reviewed: 2025-10-01
+const (
+	hstsMaxAge                    = "max-age=31536000; includeSubDomains; preload"
+	hstsMaxAgeDev                 = "max-age=86400; includeSubDomains"
+	referrerPolicy                = "no-referrer"
+	permissionsPolicy             = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()"
+	crossOriginOpenerPolicy       = "same-origin"
+	crossOriginEmbedderPolicy     = "require-corp"
+	crossOriginResourcePolicy     = "same-origin"
+	xPermittedCrossDomainPolicies = "none"
+	contentTypeOptions            = "nosniff"
+	clearSiteDataLogout           = "\"cache\", \"cookies\", \"storage\""
+)
+
+// Expected browser security headers for runtime validation
+var expectedBrowserHeaders = map[string]string{
+	"X-Content-Type-Options":            contentTypeOptions,
+	"Referrer-Policy":                   referrerPolicy,
+	"Permissions-Policy":                permissionsPolicy,
+	"Cross-Origin-Opener-Policy":        crossOriginOpenerPolicy,
+	"Cross-Origin-Embedder-Policy":      crossOriginEmbedderPolicy,
+	"Cross-Origin-Resource-Policy":      crossOriginResourcePolicy,
+	"X-Permitted-Cross-Domain-Policies": xPermittedCrossDomainPolicies,
+}
+
 // publicBrowserAdditionalSecurityHeadersMiddleware adds security headers not covered by Helmet
-func publicBrowserAdditionalSecurityHeadersMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
+func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
+	// Setup metrics for header validation
+	meter := telemetryService.MetricsProvider.Meter("security-headers")
+	missingHeaderCounter, err := meter.Int64Counter(
+		"security_headers_missing_total",
+		metric.WithDescription("Number of requests with missing expected security headers"),
+		metric.WithUnit("1"),
+	)
+	if err != nil {
+		telemetryService.Slogger.Error("Failed to create security headers metric", "error", err)
+	}
+
+	// Log active security policy on startup
+	logger := telemetryService.Slogger.With("component", "security-headers")
+	logger.Debug("Active browser security header policy",
+		"referrer_policy", referrerPolicy,
+		"permissions_policy", permissionsPolicy,
+		"isolation_enabled", true,
+		"hsts_preload", !settings.DevMode,
+		"clear_site_data_logout", true,
+	)
+
 	return func(c *fiber.Ctx) error {
 		// Skip for non-browser API requests
 		if isNonBrowserUserAPIRequestFunc(settings)(c) {
 			return c.Next()
 		}
 
-		// X-Content-Type-Options: Prevent MIME sniffing
-		c.Set("X-Content-Type-Options", "nosniff")
+		// Apply core security headers
+		c.Set("X-Content-Type-Options", contentTypeOptions)
+		c.Set("Referrer-Policy", referrerPolicy)
+		c.Set("Permissions-Policy", permissionsPolicy)
+		c.Set("Cross-Origin-Opener-Policy", crossOriginOpenerPolicy)
+		c.Set("Cross-Origin-Embedder-Policy", crossOriginEmbedderPolicy)
+		c.Set("Cross-Origin-Resource-Policy", crossOriginResourcePolicy)
+		c.Set("X-Permitted-Cross-Domain-Policies", xPermittedCrossDomainPolicies)
 
 		// Strict-Transport-Security: Enforce HTTPS (only set for HTTPS requests)
 		if c.Protocol() == protocolHTTPS {
 			if settings.DevMode {
-				// Shorter duration for development
-				c.Set("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+				c.Set("Strict-Transport-Security", hstsMaxAgeDev)
 			} else {
-				// 1 year for production
-				c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+				c.Set("Strict-Transport-Security", hstsMaxAge)
 			}
 		}
 
-		// Permissions-Policy: Restrict dangerous browser features (extendable as needed)
-		c.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()")
-
-		// Cross-Origin-Opener-Policy: isolate browsing context group
-		c.Set("Cross-Origin-Opener-Policy", "same-origin")
-
-		// Cross-Origin-Embedder-Policy: ensure only same-origin or CORP resources are loaded
-		c.Set("Cross-Origin-Embedder-Policy", "require-corp")
-
-		// Cross-Origin-Resource-Policy: restrict resource sharing to same-origin
-		c.Set("Cross-Origin-Resource-Policy", "same-origin")
-
-		// X-Permitted-Cross-Domain-Policies: block Adobe/Flash cross-domain data loading
-		c.Set("X-Permitted-Cross-Domain-Policies", "none")
-
-		// Optionally set Clear-Site-Data for logout or session revocation endpoints only.
-		// We avoid setting universally to prevent unnecessary cache/storage purges.
+		// Clear-Site-Data for logout endpoints only
 		if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), "/logout") {
-			c.Set("Clear-Site-Data", "\"cache\", \"cookies\", \"storage\"")
+			c.Set("Clear-Site-Data", clearSiteDataLogout)
 		}
 
-		return c.Next()
+		// Process the request
+		err := c.Next()
+
+		// Runtime self-check: validate expected headers are present in response
+		missingHeaders := validateSecurityHeaders(c)
+		if len(missingHeaders) > 0 {
+			logger.Warn("Security headers missing in response",
+				"missing_headers", missingHeaders,
+				"request_path", c.OriginalURL(),
+				"request_id", c.Locals("requestid"),
+			)
+			// Increment metric for missing headers
+			if missingHeaderCounter != nil {
+				missingHeaderCounter.Add(c.UserContext(), int64(len(missingHeaders)))
+			}
+		}
+
+		return err
 	}
+}
+
+// validateSecurityHeaders checks that all expected security headers are present
+func validateSecurityHeaders(c *fiber.Ctx) []string {
+	var missing []string
+	for header, expectedValue := range expectedBrowserHeaders {
+		if actualValue := c.Get(header); actualValue != expectedValue {
+			missing = append(missing, header)
+		}
+	}
+
+	// Check HSTS is present if HTTPS
+	if c.Protocol() == protocolHTTPS {
+		if hsts := c.Get("Strict-Transport-Security"); hsts == "" {
+			missing = append(missing, "Strict-Transport-Security")
+		}
+	}
+
+	return missing
 }
 
 func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fiber.Handler {
