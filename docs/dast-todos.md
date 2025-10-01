@@ -191,18 +191,15 @@ This document contains a comprehensive analysis of:
 
 **Tasks**:
 
-#### Task 2.1.1: Fix Conditional Expression for `act` Detection (🟠 HIGH)
+#### ✅ Task 2.1.1: Fix Conditional Expression for `act` Detection (🟠 HIGH) - COMPLETED
 - **Description**: The current conditional is not properly detecting `act` environment
-- **Action Items**:
-  - Research correct syntax for detecting `act` environment
-  - Test alternative conditionals:
-    - `if: ${{ env.ACT != 'true' }}`
-    - `if: github.event_name != 'workflow_dispatch' || !env.ACT`
-    - `if: ${{ !env.ACT || env.ACT == 'false' }}`
-  - Verify `act` sets the `ACT` environment variable correctly
-  - Test locally with `act --bind -j dast-security-scan` to verify fix
-- **Files**: `.github/workflows/dast.yml` (lines 151-156)
-- **Priority**: Blocking local DAST testing workflow
+- **Resolution**: Fixed conditional expressions and added graceful fallback
+  - Changed `if: ${{ !env.ACT }}` to `if: ${{ env.ACT != 'true' }}`
+  - Added `continue-on-error: ${{ env.ACT == 'true' }}` for artifact upload
+  - Added debug step to show environment variables for troubleshooting
+  - Added local artifact collection (`./dast-reports/`) for act runs
+- **Files**: `.github/workflows/dast.yml` (commit 45e7180)
+- **Status**: ✅ Completed - Act compatibility issues resolved
 
 #### Task 2.1.2: Alternative - Use GitHub Context Instead of env.ACT (🟠 HIGH)
 - **Description**: Use GitHub-native context variables that `act` respects
@@ -730,7 +727,7 @@ Removed with deprecated config file; HTTPS target now authoritative in workflow.
 
 **Goal**: Fix blocking issues, enable full DAST workflow
 
-1. ✅ **Task 2.1.1**: Fix `act` artifact upload conditional (🟠 HIGH)
+1. ✅ **Task 2.1.1**: Fix `act` artifact upload conditional (🟠 HIGH) ✅ COMPLETED
 2. ✅ **Task 2.1.3**: Add continue-on-error for artifact upload in `act` (🟡 MEDIUM)
 3. ✅ **Task 1.1.1**: Verify current security header implementation (🟡 MEDIUM)
 4. ✅ **Task 1.1.2**: Review middleware execution order (🟡 MEDIUM)
