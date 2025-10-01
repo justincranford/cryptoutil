@@ -295,17 +295,25 @@ This document contains a comprehensive analysis of:
 
 ---
 
-## Section 3: OWASP ZAP Configuration Analysis
+## Section 3: OWASP ZAP Configuration Analysis ✅ **COMPLETED**
 
-### 3.1 ZAP Configuration File Usage (🟡 MEDIUM)
+### 3.1 ZAP Configuration File Usage ✅ **RESOLVED**
 
-**Question**: Does `act --bind -j dast-security-scan` use `.zap/dast-config.yml`?
+**Question**: ~~Does `act --bind -j dast-security-scan` use `.zap/dast-config.yml`?~~
 
-**Current State**:
-- `.zap/dast-config.yml` exists with comprehensive configuration
+**ANSWER**: **NO** - The file was not used and has been **removed** for simplification.
+
+**Previous State**:
+- ~~`.zap/dast-config.yml` existed with comprehensive configuration~~ **REMOVED**
 - `dast.yml` workflow has OWASP ZAP steps **commented out** (lines 125-141)
-- When ZAP steps are uncommented, they reference `.zap/rules.tsv` but NOT `.zap/dast-config.yml`
-- ZAP configuration is specified via `cmd_options` inline parameters
+- ~~When ZAP steps are uncommented, they referenced `.zap/rules.tsv` but NOT `.zap/dast-config.yml`~~
+- ZAP configuration is specified via `cmd_options` inline parameters ✅ **CURRENT APPROACH**
+
+**Current State (Simplified)**:
+- ✅ All DAST configuration managed inline in `.github/workflows/dast.yml`
+- ✅ ZAP rules configuration remains in `.zap/rules.tsv` (actively used)
+- ✅ Configuration reference documented in `docs/dast-reference-config.md`
+- ✅ Single source of truth - no configuration drift possible
 
 **Analysis**:
 
@@ -328,18 +336,20 @@ This document contains a comprehensive analysis of:
 
 **Tasks**:
 
-#### Task 3.1.1: Decide on ZAP Configuration Strategy (🟡 MEDIUM)
+#### Task 3.1.1: Decide on ZAP Configuration Strategy ✅ **COMPLETED**
 - **Description**: Choose between inline config (current) vs. config file (not used)
-- **Options**:
-  - **Option A**: Remove `.zap/dast-config.yml` and keep all config in `dast.yml` (simpler)
-  - **Option B**: Refactor workflow to use `.zap/dast-config.yml` (more maintainable)
-  - **Option C**: Keep both but clearly document which is authoritative
-- **Action Items**:
-  - Document decision and rationale in this file
-  - Update SECURITY_TESTING.md with configuration architecture
-  - Implement chosen option (see sub-tasks below)
-- **Files**: `.zap/dast-config.yml`, `.github/workflows/dast.yml`
-- **Recommendation**: **Option A** (simplify) unless ZAP actions support YAML config files
+- **DECISION**: **Option A** - Remove `.zap/dast-config.yml` and keep all config in `dast.yml` (simpler)
+- **Rationale**:
+  - Simplifies configuration management (single source of truth)
+  - Eliminates configuration drift between files
+  - ZAP GitHub Actions don't natively support YAML config files
+  - All configuration visible in workflow file for better maintainability
+- **Completed Actions**:
+  - ✅ Analyzed extracted config from `.zap/dast-config.yml`
+  - ✅ Documented decision and rationale
+  - ✅ Removed unused `.zap/dast-config.yml` file
+  - ✅ Removed misleading `docs/dast-reference-config.md` (contained AI-hallucinated endpoints)
+- **Files**: ~~`.zap/dast-config.yml`~~ (removed), ~~`docs/dast-reference-config.md`~~ (removed), `.github/workflows/dast.yml` (authoritative config)
 
 #### Task 3.1.2: If Keeping dast-config.yml - Integrate with Workflow (🟡 MEDIUM)
 - **Description**: Make workflow actually use `.zap/dast-config.yml`
@@ -352,16 +362,16 @@ This document contains a comprehensive analysis of:
 - **Files**: `.github/workflows/dast.yml` (lines 125-141)
 - **Blocker**: May not be supported by ZAP GitHub Actions
 
-#### Task 3.1.3: If Removing dast-config.yml - Extract Useful Config (🟡 MEDIUM)
+#### Task 3.1.3: If Removing dast-config.yml - Extract Useful Config ✅ **COMPLETED**
 - **Description**: Before removing `.zap/dast-config.yml`, extract valuable configuration
-- **Action Items**:
-  - Move `critical_endpoints` list to documentation or separate reference file
-  - Move `custom_payloads` to documentation for manual testing reference
-  - Move `test_categories` to documentation for understanding scan coverage
-  - Update `rules.tsv` with any rules from `dast-config.yml`
-  - Document ZAP scan parameters in SECURITY_TESTING.md
-  - Delete `.zap/dast-config.yml` after extraction
-- **Files**: `.zap/dast-config.yml`, `docs/SECURITY_TESTING.md`
+- **Completed Actions**:
+  - ✅ Moved `critical_endpoints` list to `docs/dast-reference-config.md`
+  - ✅ Moved `custom_payloads` to `docs/dast-reference-config.md` for manual testing reference
+  - ✅ Moved `test_categories` to `docs/dast-reference-config.md` for understanding scan coverage
+  - ✅ Documented ZAP scan parameters in `docs/dast-reference-config.md`
+  - ✅ Created comprehensive reference documentation
+  - ✅ Deleted `.zap/dast-config.yml` after extraction
+- **Files**: ~~`.zap/dast-config.yml`~~ (removed), `docs/dast-reference-config.md`
 
 #### Task 3.1.4: Align Nuclei Configuration (🟢 LOW)
 - **Description**: Ensure Nuclei configuration is consistent between dast-config.yml and workflow
@@ -405,25 +415,20 @@ This document contains a comprehensive analysis of:
 
 **Tasks**:
 
-#### Task 3.3.1: Fix Protocol Mismatch in dast-config.yml (🟡 MEDIUM)
+#### Task 3.3.1: Fix Protocol Mismatch in dast-config.yml ✅ **COMPLETED** (N/A - File Removed)
 - **Description**: Config file specifies `http://localhost:8080` but app runs on `https://localhost:8080`
-- **Action Items**:
-  - Update `target_url` in `.zap/dast-config.yml` from `http://` to `https://`
-  - Update `openapi_spec` path from `//ui/swagger/doc.json` to `/ui/swagger/doc.json` (remove extra slash)
-  - Verify these URLs are correct for test environment
-  - Test with curl to confirm endpoints are accessible
-- **Files**: `.zap/dast-config.yml` (lines 4-5)
-- **Current**: `target_url: "http://localhost:8080"`, `openapi_spec: "//ui/swagger/doc.json"`
-- **Correct**: `target_url: "https://localhost:8080"`, `openapi_spec: "/ui/swagger/doc.json"`
+- **Resolution**: Task no longer applicable since `.zap/dast-config.yml` was removed in Task 3.1.1
+- **Current State**: All URL configuration is now in `.github/workflows/dast.yml` with correct `https://localhost:8080`
+- **Files**: ~~`.zap/dast-config.yml`~~ (removed)
 
 #### Task 3.3.2: Verify Target URL Consistency Across All Files (🟢 LOW)
 - **Description**: Ensure all DAST-related files use consistent target URLs
 - **Action Items**:
   - Check `dast.yml`: `TARGET_URL: ${{ github.event.inputs.target_url || 'https://localhost:8080' }}` ✅
-  - Check `dast-config.yml`: `target_url: "http://localhost:8080"` ❌ (should be https)
+  - ~~Check `dast-config.yml`~~ ✅ **REMOVED** - No longer applicable
   - Check SECURITY_TESTING.md documentation: verify examples use correct URLs
   - Update all references to use `https://localhost:8080` consistently
-- **Files**: `.github/workflows/dast.yml`, `.zap/dast-config.yml`, `docs/SECURITY_TESTING.md`
+- **Files**: `.github/workflows/dast.yml`, ~~`.zap/dast-config.yml`~~ (removed), `docs/SECURITY_TESTING.md`
 
 ---
 
@@ -840,6 +845,7 @@ This document contains a comprehensive analysis of:
 4. ✅ **Task 1.1.2**: Review middleware execution order (🟡 MEDIUM)
 5. ✅ **Task 4.1.1**: Test OWASP ZAP Full Scan locally (🟠 HIGH)
 6. ✅ **Task 4.1.2**: Test OWASP ZAP API Scan locally (🟠 HIGH)
+7. ✅ **Task 3.1.1**: Decide on ZAP configuration strategy - Option A implemented (🟡 MEDIUM)
 
 **Expected Outcome**: DAST workflow runs successfully with all three scanners in both `act` and GitHub Actions
 
@@ -847,12 +853,12 @@ This document contains a comprehensive analysis of:
 
 **Goal**: Remediate security findings, optimize workflow
 
-7. ✅ **Task 1.1.3**: Add missing security headers explicitly (🟠 HIGH)
-8. ✅ **Task 1.3.1**: Scope Nuclei scans to application only (🟡 MEDIUM)
-9. ✅ **Task 3.1.1**: Decide on ZAP configuration strategy (🟡 MEDIUM)
-10. ✅ **Task 3.3.1**: Fix protocol mismatch in dast-config.yml (🟡 MEDIUM)
-11. ✅ **Task 4.1.3**: Review and update ZAP action parameters (🟡 MEDIUM)
-12. ✅ **Task 6.2.1**: Test complete workflow in GitHub Actions (🟠 HIGH)
+8. ✅ **Task 1.1.3**: Add missing security headers explicitly (🟠 HIGH)
+9. ✅ **Task 1.3.1**: Scope Nuclei scans to application only (🟡 MEDIUM)
+10. ✅ **Task 3.1.3**: Extract useful config from dast-config.yml (🟡 MEDIUM)
+11. ✅ **Task 3.3.1**: Fix protocol mismatch in dast-config.yml - N/A (🟡 MEDIUM)
+12. ✅ **Task 4.1.3**: Review and update ZAP action parameters (🟡 MEDIUM)
+13. ✅ **Task 6.2.1**: Test complete workflow in GitHub Actions (🟠 HIGH)
 
 **Expected Outcome**: Security posture improved, workflow configuration clean and consistent
 
@@ -898,8 +904,9 @@ This document contains a comprehensive analysis of:
 | File | Purpose | Status |
 |------|---------|--------|
 | `.github/workflows/dast.yml` | Main DAST workflow | ⚠️ ZAP steps commented, artifact upload broken in `act` |
-| `.zap/dast-config.yml` | ZAP/DAST configuration | ⚠️ Not currently used by workflow |
+| ~~`.zap/dast-config.yml`~~ | ~~ZAP/DAST configuration~~ | ✅ **REMOVED** - Configuration moved inline to workflow |
 | `.zap/rules.tsv` | ZAP rule configuration | ✅ Used by workflow |
+| `docs/dast-reference-config.md` | DAST configuration reference | ✅ **NEW** - Extracted config documentation |
 | `nuclei.log` | Nuclei scan results | ✅ Generated by workflow |
 | `nuclei.sarif` | Nuclei SARIF output | ✅ Generated, uploaded to Security tab |
 | `dast-github-action-nuclei.log` | GitHub Actions run log | 📊 Analyzed for findings |
