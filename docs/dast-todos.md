@@ -4,7 +4,7 @@
 **Created**: 2025-09-30  
 **Purpose**: Comprehensive task list for addressing DAST workflow issues and security findings
 
-> Maintenance Guideline: If a file/config/feature is removed or a decision makes a task permanently obsolete, DELETE its tasks and references here. Keep only (1) active remediation work, (2) still-relevant observations, (3) forward-looking backlog items. Historical context belongs in commit messages or durable docs, not this actionable list.
+> Maintenance Guideline: If a file/config/feature is removed or a decision makes a task permanently obsolete, DELETE its tasks and references here immediately. Keep only (1) active remediation work, (2) still-relevant observations, (3) forward-looking backlog items. Historical context belongs in commit messages or durable docs, not this actionable list.
 
 ---
 
@@ -430,22 +430,7 @@ Removed with deprecated config file; HTTPS target now authoritative in workflow.
         zap-api-report.json
   ```
 
-### 4.2 ZAP Cookie Configuration (🟢 LOW)
 
-**Tasks**:
-
-#### Task 4.2.1: Verify Cookie Ignore List Matches Application (🟢 LOW)
-- **Description**: Ensure ZAP ignores the correct cookies for cryptoutil
-- **Action Items**:
-  - Current ignore list: `JSESSIONID,csrftoken,_csrf`
-  - Check actual CSRF token cookie name in cryptoutil config
-  - Grep for CSRF cookie name in config files: likely `_csrf` from settings
-  - Update ignore list if cookie names differ
-  - Test that ZAP doesn't flag CSRF cookie issues incorrectly
-- **Files**: `.github/workflows/dast.yml` (line 128)
-- **Related**: `internal/common/config/config.go` (CSRF token name setting)
-
----
 
 ## Section 5: Additional Configuration and Documentation Tasks
 
