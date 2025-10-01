@@ -641,7 +641,7 @@ func buildContentSecurityPolicy(settings *cryptoutilConfig.Settings) string {
 const (
 	hstsMaxAge                    = "max-age=31536000; includeSubDomains; preload"
 	hstsMaxAgeDev                 = "max-age=86400; includeSubDomains"
-	referrerPolicy                = "no-referrer"
+	referrerPolicy                = "strict-origin-when-cross-origin"
 	permissionsPolicy             = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()"
 	crossOriginOpenerPolicy       = "same-origin"
 	crossOriginEmbedderPolicy     = "require-corp"

@@ -68,7 +68,7 @@ The deprecated `.zap/dast-config.yml` file has been removed—ZAP configuration 
 | Content-Security-Policy | Present (Helmet managed) | (omitted) | XSS / injection surface reduction; updated with features as needed |
 | X-Content-Type-Options | nosniff | nosniff | Prevent MIME sniffing |
 | X-Frame-Options | DENY (or via CSP frame-ancestors) | DENY | Clickjacking defense |
-| Referrer-Policy | strict-origin-when-cross-origin | strict-origin-when-cross-origin | Limit sensitive referrer leakage |
+| Referrer-Policy | strict-origin-when-cross-origin | strict-origin-when-cross-origin | Allow same-origin referers for CSRF protection while limiting cross-origin leakage |
 | Permissions-Policy | Fine-grained empty allowlist (camera=(), geolocation=(), etc.) | (omitted) | Reduce exposed web platform capabilities |
 | Cross-Origin-Opener-Policy | same-origin | (omitted) | Enables cross-origin isolation; mitigates popup-based attacks |
 | Cross-Origin-Embedder-Policy | require-corp | (omitted) | Paired with COOP to enable powerful isolated contexts |

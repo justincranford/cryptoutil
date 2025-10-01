@@ -139,7 +139,7 @@ func TestSecurityHeaders(t *testing.T) {
 			tlsRootCAs:    startServerListenerApplication.PublicTLSServer.RootCAsPool,
 			expectedHeaders: map[string]string{
 				"X-Content-Type-Options":            "nosniff",
-				"Referrer-Policy":                   "no-referrer",
+				"Referrer-Policy":                   "strict-origin-when-cross-origin",
 				"Permissions-Policy":                "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()",
 				"Cross-Origin-Opener-Policy":        "same-origin",
 				"Cross-Origin-Embedder-Policy":      "require-corp",
