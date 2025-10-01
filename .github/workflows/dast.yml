@@ -121,14 +121,16 @@ jobs:
         echo "Application listening on https://localhost:8080"
 
     # # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
-    # - name: Run OWASP ZAP DAST Scan
-    #   uses: zaproxy/action-full-scan@v0.12.0
-    #   with:
-    #     target: ${{ env.TARGET_URL }}
-    #     rules_file_name: '.zap/rules.tsv'
-    #     cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=JSESSIONID,csrftoken,_csrf"'
-    #     allow_issue_writing: false
-    #     artifact_name: 'zap-report'
+  # - name: Run OWASP ZAP DAST Scan
+  #   uses: zaproxy/action-full-scan@v0.12.0
+  #   with:
+  #     target: ${{ env.TARGET_URL }}
+  #     rules_file_name: '.zap/rules.tsv'
+  #     # Cookie ignore list trimmed: only _csrf is used by cryptoutil.
+  #     # JSESSIONID / csrftoken are from other stacks; keeping them caused confusion.
+  #     cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=_csrf"'
+  #     allow_issue_writing: false
+  #     artifact_name: 'zap-report'
 
     # - name: Run OWASP ZAP API Scan
     #   uses: zaproxy/action-api-scan@v0.9.0
