@@ -1,5 +1,6 @@
 name: DAST Security Testing
 # IMPORTANT: Test locally with `act --bind -j dast-security-scan`
+# OUTPUT CONVENTION: All scan outputs and reports must be written to ./dast-reports/ directory
 
 on:
   push:
@@ -62,6 +63,15 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Cache Nuclei Templates
+      id: cache-nuclei-templates
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuclei-templates
+        key: nuclei-templates-${{ runner.os }}-${{ hashFiles('nuclei.lock') }}
+        restore-keys: |
+          nuclei-templates-${{ runner.os }}-
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -131,6 +141,7 @@ jobs:
   #     cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=_csrf"'
   #     allow_issue_writing: false
   #     artifact_name: 'zap-report'
+  #     # Note: ZAP action outputs will be moved to dast-reports/ when re-enabled
 
     # - name: Run OWASP ZAP API Scan
     #   uses: zaproxy/action-api-scan@v0.9.0
@@ -140,6 +151,7 @@ jobs:
     #     cmd_options: '-a -j -T 60'
     #     allow_issue_writing: false
     #     artifact_name: 'zap-api-report'
+    #     # Note: ZAP action outputs will be moved to dast-reports/ when re-enabled
 
     # Doc: https://github.com/projectdiscovery/nuclei-action
     - name: Nuclei - Vulnerability Scan
@@ -148,7 +160,22 @@ jobs:
       with:
         target: ${{ env.TARGET_URL }}
         user-agent: "User-Agent:'Nuclei - Vulnerability Scan (Have a nice day)'"
-        flags: "-c 24 -rl 200 -timeout 5 -stats"
+        # Exclude infrastructure/service ports to reduce noise; add future allowlist strategy via lock file
+        flags: "-c 24 -rl 200 -timeout 5 -stats -exclude-ports 22,111,5432"
+
+    - name: Capture baseline response headers
+      if: always()
+      run: |
+        set -e
+        mkdir -p dast-reports
+        echo "# Header Baseline ($(date -u))" > dast-reports/response-headers.txt
+        echo "## Swagger UI" >> dast-reports/response-headers.txt
+        curl -skI https://localhost:8080/ui/swagger/ >> dast-reports/response-headers.txt || echo "(failed)" >> dast-reports/response-headers.txt
+        echo "\n## Browser API root (/browser/api/v1)" >> dast-reports/response-headers.txt
+        curl -skI https://localhost:8080/browser/api/v1/ >> dast-reports/response-headers.txt || echo "(failed)" >> dast-reports/response-headers.txt
+        echo "\n## Service API root (/service/api/v1)" >> dast-reports/response-headers.txt
+        curl -skI https://localhost:8080/service/api/v1/ >> dast-reports/response-headers.txt || echo "(failed)" >> dast-reports/response-headers.txt
+        echo "Saved dast-reports/response-headers.txt"
 
     - name: Debug - Show environment and output variables
       run: |
@@ -161,8 +188,12 @@ jobs:
     - name: Set dummy token for local act runs
       if: ${{ github.actor == 'nektos/act' }}
       run: |
-        echo "Setting dummy GITHUB_TOKEN for act local run to avoid upload-sarif failure"
-        echo "GITHUB_TOKEN=act-dummy-token" >> $GITHUB_ENV
+        if [ -n "${GITHUB_TOKEN}" ]; then
+          echo "GITHUB_TOKEN already set; leaving existing token in place";
+        else
+          echo "Setting dummy GITHUB_TOKEN for act local run to avoid upload-sarif failure";
+          echo "GITHUB_TOKEN=act-dummy-token" >> $GITHUB_ENV;
+        fi
 
     - name: Save artifacts locally (act only)
       if: ${{ github.actor == 'nektos/act' }}
@@ -170,14 +201,18 @@ jobs:
         mkdir -p ./dast-reports
         cp nuclei.log ./dast-reports/ || true
         cp nuclei.sarif ./dast-reports/ || true
+        cp dast-reports/response-headers.txt ./dast-reports/ || true
         echo "Artifacts saved to ./dast-reports/"
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
       uses: actions/upload-artifact@v4
       with:
-        name: nuclei.log
-        path: nuclei.log
+        name: dast-reports
+        path: |
+          nuclei.log
+          nuclei.sarif
+          dast-reports/response-headers.txt
 
     - name: GitHub Security Dashboard Alerts update
       uses: github/codeql-action/upload-sarif@v3
@@ -192,28 +227,40 @@ jobs:
     - name: Generate Security Summary
       if: always()
       run: |
-        echo "# DAST Security Scan Results" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Scan Configuration" >> $GITHUB_STEP_SUMMARY
-        echo "- **Target URL:** ${{ env.TARGET_URL }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Scan Date:** $(date -u)" >> $GITHUB_STEP_SUMMARY
-        echo "- **OpenAPI Spec:** Available at /ui/swagger/doc.json" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Scan Coverage" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **OWASP ZAP Full Scan:** Comprehensive web application security testing" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **OWASP ZAP API Scan:** OpenAPI specification-driven API security testing" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **Nuclei Scan:** CVE and vulnerability template-based testing" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Reports Generated" >> $GITHUB_STEP_SUMMARY
-        echo "- ZAP Full Scan Report (HTML/JSON)" >> $GITHUB_STEP_SUMMARY
-        echo "- ZAP API Scan Report (HTML/JSON)" >> $GITHUB_STEP_SUMMARY
-        echo "- Nuclei Vulnerability Report (JSON)" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
-        echo "1. Review scan reports in workflow artifacts" >> $GITHUB_STEP_SUMMARY
-        echo "2. Address any HIGH or CRITICAL findings immediately" >> $GITHUB_STEP_SUMMARY
-        echo "3. Update security configurations as needed" >> $GITHUB_STEP_SUMMARY
-        echo "4. Consider adding custom ZAP rules for cryptographic endpoints" >> $GITHUB_STEP_SUMMARY
+        summaryFile="$GITHUB_STEP_SUMMARY"
+        echo "# DAST Security Scan Results" >> $summaryFile
+        echo "" >> $summaryFile
+        echo "## Scan Configuration" >> $summaryFile
+        echo "- **Target URL:** ${{ env.TARGET_URL }}" >> $summaryFile
+        echo "- **Scan Date:** $(date -u)" >> $summaryFile
+        echo "- **OpenAPI Spec:** Available at /ui/swagger/doc.json" >> $summaryFile
+        echo "" >> $summaryFile
+        echo "## Scan Coverage" >> $summaryFile
+        # Detect executed scanners (ZAP disabled for now)
+        if [ -f "nuclei.log" ]; then
+          echo "- ✅ **Nuclei Scan:** Template-based vulnerability scanning" >> $summaryFile
+        else
+          echo "- ⏭ **Nuclei Scan:** Skipped (log missing)" >> $summaryFile
+        fi
+        if ls zap-*-report.html >/dev/null 2>&1; then
+          echo "- ✅ **OWASP ZAP Full/API Scans:** Executed" >> $summaryFile
+        else
+          echo "- ⏭ **OWASP ZAP Scans:** Skipped (steps disabled)" >> $summaryFile
+        fi
+        echo "" >> $summaryFile
+        echo "## Reports Generated" >> $summaryFile
+        [ -f nuclei.log ] && echo "- Nuclei Log (nuclei.log)" >> $summaryFile || true
+        [ -f nuclei.sarif ] && echo "- Nuclei SARIF (nuclei.sarif)" >> $summaryFile || true
+        [ -f dast-reports/response-headers.txt ] && echo "- Header Baseline (dast-reports/response-headers.txt)" >> $summaryFile || true
+        if ls zap-*-report.html >/dev/null 2>&1; then
+          echo "- ZAP HTML Reports" >> $summaryFile
+        fi
+        echo "" >> $summaryFile
+        echo "## Next Steps" >> $summaryFile
+        echo "1. Review scan artifacts (focus on HIGH/CRITICAL)" >> $summaryFile
+        echo "2. Validate header false negatives against header baseline" >> $summaryFile
+        echo "3. Tune nuclei flags (timeouts, templates) if error count high" >> $summaryFile
+        echo "4. Re-enable ZAP scans when configuration finalized" >> $summaryFile
 
     - name: Cleanup
       if: always()
