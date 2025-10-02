@@ -4,7 +4,7 @@
 
 # Ignore false positives for health checks and static content
 IGNORE	10021	http://localhost:9090/readyz	.*	.*	.*	Admin health check endpoints - expected behavior
-IGNORE	10021	http://localhost:9090/healthz	.*	.*	.*	Admin health check endpoints - expected behavior
+IGNORE	10021	http://localhost:9090/livez	.*	.*	.*	Admin health check endpoints - expected behavior
 IGNORE	10021	http://localhost:9090/shutdown	.*	.*	.*	Admin health check endpoints - expected behavior
 #IGNORE	10021	https://localhost:8080/swagger/.*	.*	.*	.*	Swagger UI static content - expected behavior
 
