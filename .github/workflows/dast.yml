@@ -160,8 +160,9 @@ jobs:
       with:
         target: ${{ env.TARGET_URL }}
         user-agent: "User-Agent:'Nuclei - Vulnerability Scan (Have a nice day)'"
-        # Exclude infrastructure/service ports to reduce noise; add future allowlist strategy via lock file
-        flags: "-c 24 -rl 200 -timeout 5 -stats -exclude-ports 22,111,5432"
+        # Exclude tcp/javascript protocol templates to avoid scanning infrastructure services (SSH:22, PostgreSQL:5432, RPC:111)
+        # See: https://github.com/orgs/projectdiscovery/discussions/5159
+        flags: "-c 24 -rl 200 -timeout 5 -stats -ept tcp,javascript"
 
     - name: Capture baseline response headers
       if: always()
