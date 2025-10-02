@@ -88,7 +88,7 @@ EXPOSE 8080 9090
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:
 #     httpGet:
-#       path: /healthz
+#       path: /readyz
 #       port: 9090
 # For Docker Compose: Use external healthcheck or depends_on with condition
 
