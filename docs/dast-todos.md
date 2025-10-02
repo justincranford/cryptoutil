@@ -16,18 +16,6 @@ This document contains a comprehensive analysis of:
 3. OWASP ZAP configuration analysis and potential conflicts
 4. Security header implementation gaps
 
-### Current Sprint Priority Short List (Ordered)
-
-> Source: Latest act run & user directive (2025-10-01). Execute in order; update after each completion.
-
-1. Replace references to non-existing `/browser/api/v1/health` with actual health endpoints: `/readyz` (readiness) and `/livez` (liveness). (Note: Private fiber exposes `/livez`, `/readyz`; there is no `/livez` endpoint in code. Public endpoints intentionally do not expose health.)
-2. Make Security Summary Dynamic (only list scanners actually executed; currently claims ZAP scans ran while steps are commented out).
-3. Port / Service Noise Suppression (exclude infrastructure ports 22,111,5432 from Nuclei; eliminate `rpcbind-portmapper-detect`, `pgsql-detect`, SSH noise).
-4. Header Artifact Export (capture canonical curl header sets for Swagger UI, Browser API context, Service API context to correlate with Nuclei false negatives).
-5. Dummy Token Documentation (document rationale for dummy `GITHUB_TOKEN` in act runs and guard conditions).
-6. Adopt Caching for Go Dependencies (already using setup-go cache; add explicit Go module + Nuclei template caching and planned ZAP image/template caching strategy).
-
----
 
 **Priority Levels**:
 - 🔴 **CRITICAL**: Security vulnerabilities requiring immediate attention
