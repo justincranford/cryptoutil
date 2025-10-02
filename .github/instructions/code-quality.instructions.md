@@ -8,3 +8,4 @@ applyTo: "**"
 - Maintain clear function boundaries (avoid high cyclomatic complexity)
 - Remove unused code and parameters
 - Validate input parameters in mapper and utility functions
+- Follow maintenance guidelines in files: immediately remove completed/obsolete tasks from actionable lists
