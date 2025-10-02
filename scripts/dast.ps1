@@ -155,7 +155,7 @@ $Ready = $false
 # Health check on HTTP port 9090 (both endpoints)
 $HealthUrls = @(
     "http://localhost:9090/readyz",
-    "http://localhost:9090/healthz"
+    "http://localhost:9090/livez"
 )
 
 # Skip certificate validation for testing (PowerShell 5.1 compatible)
@@ -171,12 +171,12 @@ if (-not ([System.Management.Automation.PSTypeName]'ServerCertificateValidationC
             {
                 if(ServicePointManager.ServerCertificateValidationCallback == null)
                 {
-                    ServicePointManager.ServerCertificateValidationCallback += 
+                    ServicePointManager.ServerCertificateValidationCallback +=
                         delegate
                         (
-                            Object obj, 
-                            X509Certificate certificate, 
-                            X509Chain chain, 
+                            Object obj,
+                            X509Certificate certificate,
+                            X509Chain chain,
                             SslPolicyErrors errors
                         )
                         {
@@ -254,7 +254,7 @@ if (-not $SkipZap) {
         "-T", "60"
         "-z", "-config rules.cookie.ignorelist=JSESSIONID,csrftoken"
     )
-    
+
     & docker $ZapFullCmd
     if ($LASTEXITCODE -eq 0) {
         Write-Success-Status "ZAP Full Scan completed"
@@ -276,7 +276,7 @@ if (-not $SkipZap) {
             "-J", "zap-api-report.json"
             "-T", "60"
         )
-        
+
         & docker $ZapApiCmd
         if ($LASTEXITCODE -eq 0) {
             Write-Success-Status "ZAP API Scan completed"
@@ -296,7 +296,7 @@ if (-not $SkipNuclei) {
         "-stats"
         "-silent"
     )
-    
+
     & nuclei $NucleiCmd
     if ($LASTEXITCODE -eq 0) {
         Write-Success-Status "Nuclei scan completed"
@@ -313,9 +313,9 @@ $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC"
 @"
 # DAST Security Scan Results
 
-**Scan Date:** $Timestamp  
-**Target URL:** $TargetUrl  
-**Configuration:** $Config  
+**Scan Date:** $Timestamp
+**Target URL:** $TargetUrl
+**Configuration:** $Config
 
 ## Scan Coverage
 

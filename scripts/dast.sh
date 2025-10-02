@@ -189,7 +189,7 @@ READY=false
 # Health check on HTTP port 9090 (both endpoints)
 HEALTH_URLS=(
     "http://localhost:9090/readyz"
-    "http://localhost:9090/healthz"
+    "http://localhost:9090/livez"
 )
 
 while [[ $ATTEMPT -lt $MAX_ATTEMPTS && "$READY" != true ]]; do
@@ -291,9 +291,9 @@ TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
 cat > "$SUMMARY_FILE" << EOF
 # DAST Security Scan Results
 
-**Scan Date:** $TIMESTAMP  
-**Target URL:** $TARGET_URL  
-**Configuration:** $CONFIG  
+**Scan Date:** $TIMESTAMP
+**Target URL:** $TARGET_URL
+**Configuration:** $CONFIG
 
 ## Scan Coverage
 
