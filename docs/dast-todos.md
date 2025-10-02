@@ -16,6 +16,19 @@ This document contains a comprehensive analysis of:
 3. OWASP ZAP configuration analysis and potential conflicts
 4. Security header implementation gaps
 
+### Current Sprint Priority Short List (Ordered)
+
+> Source: Latest act run & user directive (2025-10-01). Execute in order; update after each completion.
+
+1. Replace references to non-existing `/browser/api/v1/health` with actual health endpoints: `/readyz` (readiness) and `/livez` (liveness). (Note: Private fiber exposes `/livez`, `/readyz`; there is no `/livenessz` endpoint in code. Public endpoints intentionally do not expose health.)
+2. Make Security Summary Dynamic (only list scanners actually executed; currently claims ZAP scans ran while steps are commented out).
+3. Port / Service Noise Suppression (exclude infrastructure ports 22,111,5432 from Nuclei; eliminate `rpcbind-portmapper-detect`, `pgsql-detect`, SSH noise).
+4. Header Artifact Export (capture canonical curl header sets for Swagger UI, Browser API context, Service API context to correlate with Nuclei false negatives).
+5. Dummy Token Documentation (document rationale for dummy `GITHUB_TOKEN` in act runs and guard conditions).
+6. Adopt Caching for Go Dependencies (already using setup-go cache; add explicit Go module + Nuclei template caching and planned ZAP image/template caching strategy).
+
+---
+
 **Priority Levels**:
 - 🔴 **CRITICAL**: Security vulnerabilities requiring immediate attention
 - 🟠 **HIGH**: Important issues affecting security posture or workflow reliability
@@ -419,6 +432,100 @@ Removed with deprecated config file; HTTPS target now authoritative in workflow.
 
 
 ## Section 5: Additional Configuration and Documentation Tasks
+
+### 5.0 Newly Identified Empirical Gaps (from latest `act` `nuclei.log` run 2025-10-01)
+
+These tasks were not previously tracked. They arise from concrete evidence in `nuclei.log` (19 matches; 11 header findings; 272 template errors; summary mismatch) and workflow drift.
+
+#### Task 5.0.1: Dynamic Security Summary (🟠 HIGH)
+- **Problem**: Summary marks ZAP scans as ✅ though ZAP steps are commented out.
+- **Action**:
+  - Detect executed scanners via presence of artifacts (`nuclei.log`, ZAP reports) or step outputs.
+  - Only print lines for scanners that actually ran; mark skipped ones as ⏭ Skipped (reason).
+  - Add guard to prevent stale assertions.
+- **Files**: `.github/workflows/dast.yml` (Generate Security Summary step)
+- **Success**: Summary accurately reflects executed scans (diff verified in PR).
+
+#### Task 5.0.2: Header False-Negative Investigation (🟠 HIGH)
+- **Problem**: Nuclei flags all 11 security headers missing though middleware sets several (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, etc.).
+- **Action**:
+  - Add step dumping `curl -vkI` for: `/ui/swagger/`, `${PublicBrowserAPIContextPath}`, `${PublicServiceAPIContextPath}` root.
+  - Store as `dast-reports/response-headers.txt` (act) / artifact (GitHub).
+  - Compare with nuclei raw request (optional: run nuclei with `-debug -trace-log nuclei-trace.log`).
+  - Determine if mismatch due to protocol, hostname, compression, or redirect behavior.
+  - Document outcome and adjust scanner or middleware accordingly.
+- **Files**: `.github/workflows/dast.yml`, future `docs/SECURITY_TESTING.md` section.
+- **Success**: Clear matrix of (Header Present by curl) vs (Reported by Nuclei) with remediation path.
+
+#### Task 5.0.3: Port / Service Noise Suppression (🟡 MEDIUM)
+- **Problem**: Non-app ports produce findings (`rpcbind-portmapper-detect`, `pgsql-detect`).
+- **Action**: Append `-exclude-ports 22,111,5432` to nuclei flags; optionally restrict template types via `-tags`.
+- **Files**: `.github/workflows/dast.yml` (nuclei action flags)
+- **Success**: Subsequent scan excludes infrastructure findings; match count reduces accordingly.
+
+#### Task 5.0.4: Template Error Audit (🟡 MEDIUM)
+- **Problem**: 272 template errors inflate noise.
+- **Action**: Re-run locally with `nuclei -target ... -validate -vv -stats-json -json-export nuclei-errors.json` to categorize (timeout vs syntax vs network).
+- **Deliverable**: Error classification table + decisions (ignore / tune timeout / drop templates).
+- **Files**: Local process notes + potential flags update.
+
+#### Task 5.0.5: Deterministic Template Version (🟡 MEDIUM)
+- **Problem**: Auto-install each run → non-deterministic results.
+- **Action**: Cache templates using `actions/cache` keyed on `nuclei-templates-${{ hashFiles('**/nuclei.lock') }}-${{ env.NUCLEI_VERSION }}`; generate `nuclei.lock` file containing template release tag hash.
+- **Files**: `.github/workflows/dast.yml`, new `nuclei.lock` (optional manual maintenance until automation added).
+
+#### Task 5.0.6: Header Artifact Export (🟡 MEDIUM)
+- **Problem**: Need reproducible header baselines.
+- **Action**: Implement a dedicated step: `curl -skI ... >> headers.txt`; include timestamps & endpoint labels.
+- **Files**: `.github/workflows/dast.yml` (after app start, before scans)
+- **Success**: `headers.txt` attached / saved locally under act.
+
+#### Task 5.0.7: HSTS Conditional Verification (🟢 LOW)
+- **Problem**: Nuclei still reports missing `Strict-Transport-Security` though HTTPS endpoint live.
+- **Action**: Confirm middleware condition (only when protocol=https); ensure nuclei uses `https://` (not redirect). Possibly add explicit `-H "Host: localhost"` & check if local certificate influences detection.
+- **Files**: `application_listener.go`, workflow.
+
+#### Task 5.0.8: Dummy Token Documentation (🟢 LOW)
+- **Problem**: Usage rationale not documented; risk of accidental commit misuse.
+- **Action**: Add subsection to SECURITY_TESTING.md: "Local act Token Strategy" explaining dummy token scope and safeguards; add echo warning if `GITHUB_TOKEN` already set.
+- **Files**: `docs/SECURITY_TESTING.md`, `.github/workflows/dast.yml` (optional echo guard).
+
+#### Task 5.0.9: Go Module Cache Enhancement (🟢 LOW)
+- **Problem**: Setup-go cache captures modules, but document explicitly & add fallback metrics.
+- **Action**: Add summary note capturing cache hit/miss; adjust docs to reflect cost impact.
+- **Files**: `.github/workflows/dast.yml`, `docs/SECURITY_TESTING.md`.
+
+#### Task 5.0.10: Nuclei Template Cache (🟢 LOW)
+- **Problem**: Re-install templates each run.
+- **Action**: Pre-step using `actions/cache` on `~/.nuclei-templates` or the path used in action; restore before action executes.
+- **Files**: `.github/workflows/dast.yml`.
+
+#### Task 5.0.11: Summary Severity Normalization (🟢 LOW)
+- **Problem**: All header findings show `[info]`; need internal severity mapping.
+- **Action**: Post-process SARIF JSON to categorize into internal severities (Info/Warn/Fail) using config table.
+- **Files**: Future script under `scripts/` (PowerShell + bash parity) plus workflow optional step.
+
+#### Task 5.0.12: Trace Logging Option (🟢 LOW)
+- **Problem**: Troubleshooting requires ad-hoc manual reruns.
+- **Action**: Add input `debug: true` to workflow_dispatch to enable nuclei `-debug -trace-log nuclei-trace.log` and verbose curl.
+- **Files**: `.github/workflows/dast.yml`.
+
+#### Task 5.0.13: Document Endpoint Canonical Set (🟢 LOW)
+- **Problem**: References to non-existent `/browser/api/v1/health` in planning conversations; canonical endpoints are `/livez`, `/readyz` (private only).
+- **Action**: Add table in SECURITY_TESTING.md listing exported vs internal health endpoints; clarify scanner target scope.
+- **Files**: `docs/SECURITY_TESTING.md`.
+
+#### Task 5.0.14: Combine Reports Artifact (🟢 LOW)
+- **Problem**: Multiple artifact uploads (future ZAP + nuclei) increase clutter.
+- **Action**: Single artifact `dast-reports` bundling all outputs (`nuclei.log`, `nuclei.sarif`, headers.txt, zap reports) when not in act.
+- **Files**: `.github/workflows/dast.yml`.
+
+#### Task 5.0.15: Scan Profile Matrix (🟢 LOW)
+- **Problem**: Need explicit mapping of trigger → scanner set.
+- **Action**: Add matrix doc (PR=Quick, Push=Full minus deep templates, Schedule=Full+Deep, Manual=Custom).
+- **Files**: `docs/SECURITY_TESTING.md`.
+
+---
 
 ### 5.1 Documentation Updates (🟢 LOW)
 
