@@ -1,5 +1,5 @@
 name: DAST Security Testing
-# IMPORTANT: Test locally with `act --bind -j dast-security-scan`
+# IMPORTANT: Test locally with `act --bind -j dast-security-scan > ./dast-reports/act-dast.log 2>&1`
 # OUTPUT CONVENTION: All scan outputs and reports must be written to ./dast-reports/ directory
 
 on:
