@@ -20,7 +20,7 @@ This document contains a comprehensive analysis of:
 
 > Source: Latest act run & user directive (2025-10-01). Execute in order; update after each completion.
 
-1. Replace references to non-existing `/browser/api/v1/health` with actual health endpoints: `/readyz` (readiness) and `/livez` (liveness). (Note: Private fiber exposes `/livez`, `/readyz`; there is no `/livenessz` endpoint in code. Public endpoints intentionally do not expose health.)
+1. Replace references to non-existing `/browser/api/v1/health` with actual health endpoints: `/readyz` (readiness) and `/livez` (liveness). (Note: Private fiber exposes `/livez`, `/readyz`; there is no `/livez` endpoint in code. Public endpoints intentionally do not expose health.)
 2. Make Security Summary Dynamic (only list scanners actually executed; currently claims ZAP scans ran while steps are commented out).
 3. Port / Service Noise Suppression (exclude infrastructure ports 22,111,5432 from Nuclei; eliminate `rpcbind-portmapper-detect`, `pgsql-detect`, SSH noise).
 4. Header Artifact Export (capture canonical curl header sets for Swagger UI, Browser API context, Service API context to correlate with Nuclei false negatives).
@@ -317,7 +317,7 @@ All exploratory and migration tasks related to the deprecated external ZAP confi
 - **Files**: `.zap/rules.tsv`
 - **Current Endpoints in Code**:
   - Public: `/browser/api/v1/*`, `/service/api/v1/*`, `/ui/swagger/*`
-  - Private: `/readyz`, `/healthz`, `/shutdown`
+  - Private: `/readyz`, `/livez`, `/shutdown`
 
 #### Task 3.2.2: Add ZAP Rules for Security Header Findings (🟢 LOW)
 - **Description**: Add specific rules to validate security headers in ZAP scans

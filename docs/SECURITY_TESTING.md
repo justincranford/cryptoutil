@@ -103,10 +103,16 @@ Expected: Browser path shows the extended set; service path shows only the core 
 
 **Scan Process:**
 1. **Application Setup**: Start cryptoutil with test configuration
-2. **OWASP ZAP Full Scan**: Comprehensive web application security testing
-3. **OWASP ZAP API Scan**: OpenAPI specification-driven API security testing
-4. **Nuclei Scan**: Template-based vulnerability scanning
-5. **Report Generation**: HTML, JSON, and summary reports
+2. **Nuclei Scan**: Template-based vulnerability scanning (active)
+3. **Header Baseline Export**: Capture canonical response headers for Swagger UI, Browser API root, Service API root
+4. **Dynamic Summary Generation**: Include only scanners that actually ran (ZAP steps presently disabled)
+5. **Artifact Consolidation**: Bundle nuclei log + SARIF + header baseline (and future ZAP reports) into a single artifact
+
+**Output Directory Convention**: All scan outputs are written to `dast-reports/` directory for consistency and ease of collection.
+
+**Temporarily Disabled (Planned Re-Enable):**
+- OWASP ZAP Full Scan
+- OWASP ZAP API Scan
 
 **Test Environment:**
 - PostgreSQL database for realistic testing
@@ -200,8 +206,7 @@ $APP_PID = $GLOBAL:PID
 
 # Wait for application to be ready
 curl http://localhost:9090/readyz
-# or
-curl http://localhost:9090/healthz
+curl http://localhost:9090/livez
 ```
 
 #### 2. Run OWASP ZAP Scan
@@ -397,7 +402,7 @@ cmd_options: '-a -j -T 120'  # Increase to 120 seconds
 # Check target accessibility
 curl -v http://localhost:9090/readyz
 # or
-curl -v http://localhost:9090/healthz
+curl -v http://localhost:9090/livez
 ```
 
 #### Nuclei Template Issues
@@ -423,4 +428,56 @@ The DAST implementation provides comprehensive dynamic security testing for cryp
 - ✅ **Custom Configuration**: Project-specific rules and endpoint coverage
 - ✅ **Continuous Monitoring**: Weekly automated scans and real-time feedback
 
+## Header Baseline Export
+
+The CI workflow generates `dast-reports/response-headers.txt` capturing:
+1. `/ui/swagger/`
+2. `/browser/api/v1/`
+3. `/service/api/v1/`
+
+Usage example (PowerShell):
+```powershell
+Select-String -Path dast-reports/response-headers.txt -Pattern "Strict-Transport|Content-Security|Cross-Origin|Permissions-Policy|Referrer-Policy"
+```
+
+Purpose:
+- Correlate scanner-reported missing headers with actual runtime headers
+- Provide diffable evidence for regression review
+- All outputs consolidated in `dast-reports/` directory
+
+## Dummy Token Strategy (Local `act` Runs)
+
+Problem: `upload-sarif` and artifact steps expect a `GITHUB_TOKEN` which does not exist under `act`.
+
+Implementation:
+- Conditional step sets a dummy token only if `github.actor == 'nektos/act'` AND no token already present.
+- Upload steps are skipped or safe under local conditions.
+
+Rationale:
+- Avoids noisy failures while preserving production behavior.
+
+## Caching Strategy Overview
+
+### Go Modules
+Relies on `actions/setup-go@v5` built-in caching (hash of `go.sum`). No extra manual cache layer required currently.
+
+### Nuclei Templates
+`actions/cache@v4` step keyed by `nuclei.lock` (placeholder). Add a generated lock file for deterministic scans (future task).
+
+Benefits:
+- Reduces cold start template install time by ~1–2 minutes.
+
+### Future Enhancements
+- Deterministic template version lock & weekly refresh job
+- Optional ZAP report caching (if re-enabled and artifacts prove large)
+- Header baseline historical diff cache
+
+## Dynamic Summary Logic
+
+The summary marks only executed scanners:
+- Shows ✅ for Nuclei only when `nuclei.log` exists
+- Shows ⏭ ZAP Scans when reports absent (disabled state)
+- Lists header baseline file only when generation succeeded
+
+This prevents misleading success markers for disabled steps.
 This DAST implementation enhances the overall security posture of cryptoutil by identifying runtime vulnerabilities and ensuring ongoing security compliance.
