@@ -64,6 +64,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Create DAST reports directory
+      if: always()
+      run: mkdir -p ./dast-reports
+
     - name: Cache Nuclei Templates
       id: cache-nuclei-templates
       uses: actions/cache@v4
@@ -170,7 +174,6 @@ jobs:
       if: always()
       run: |
         set -e
-        mkdir -p dast-reports
         echo "# Header Baseline ($(date -u))" > dast-reports/response-headers.txt
         echo "## Swagger UI" >> dast-reports/response-headers.txt
         curl -skI https://localhost:8080/ui/swagger/ >> dast-reports/response-headers.txt || echo "(failed)" >> dast-reports/response-headers.txt
@@ -201,11 +204,9 @@ jobs:
     - name: Save artifacts locally (act only)
       if: ${{ github.actor == 'nektos/act' }}
       run: |
-        mkdir -p ./dast-reports
-        cp nuclei.log ./dast-reports/ || true
-        cp nuclei.sarif ./dast-reports/ || true
-        cp dast-reports/response-headers.txt ./dast-reports/ || true
-        echo "Artifacts saved to ./dast-reports/"
+        mv nuclei.log ./dast-reports/ || true
+        mv nuclei.sarif ./dast-reports/ || true
+        echo Nuclei artifacts moved to ./dast-reports/"
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
@@ -213,8 +214,8 @@ jobs:
       with:
         name: dast-reports
         path: |
-          nuclei.log
-          nuclei.sarif
+          dast-reports/nuclei.log
+          dast-reports/nuclei.sarif
           dast-reports/response-headers.txt
 
     - name: GitHub Security Dashboard Alerts update
@@ -240,7 +241,7 @@ jobs:
         echo "" >> $summaryFile
         echo "## Scan Coverage" >> $summaryFile
         # Detect executed scanners (ZAP disabled for now)
-        if [ -f "nuclei.log" ]; then
+        if [ -f "dast-reports/nuclei.log" ]; then
           echo "- ✅ **Nuclei Scan:** Template-based vulnerability scanning" >> $summaryFile
         else
           echo "- ⏭ **Nuclei Scan:** Skipped (log missing)" >> $summaryFile
@@ -252,8 +253,8 @@ jobs:
         fi
         echo "" >> $summaryFile
         echo "## Reports Generated" >> $summaryFile
-        [ -f nuclei.log ] && echo "- Nuclei Log (nuclei.log)" >> $summaryFile || true
-        [ -f nuclei.sarif ] && echo "- Nuclei SARIF (nuclei.sarif)" >> $summaryFile || true
+        [ -f dast-reports/nuclei.log ] && echo "- Nuclei Log (dast-reports/nuclei.log)" >> $summaryFile || true
+        [ -f dast-reports/nuclei.sarif ] && echo "- Nuclei SARIF (dast-reports/nuclei.sarif)" >> $summaryFile || true
         [ -f dast-reports/response-headers.txt ] && echo "- Header Baseline (dast-reports/response-headers.txt)" >> $summaryFile || true
         if ls zap-*-report.html >/dev/null 2>&1; then
           echo "- ZAP HTML Reports" >> $summaryFile
