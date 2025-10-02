@@ -19,6 +19,7 @@ coverage.out
 coverage.html
 
 # Output of dast workflow
+dast-reports/
 nohup.out
 report_html.html
 report_json.json
