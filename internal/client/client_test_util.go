@@ -37,7 +37,7 @@ func WaitUntilReady(baseURL *string, maxTime time.Duration, retryTime time.Durat
 }
 
 func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
-	url := *baseURL + "/healthz"
+	url := *baseURL + "/livez"
 	return httpGet(&url, 2*time.Second, rootCAsPool)
 }
 
