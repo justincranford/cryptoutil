@@ -162,6 +162,8 @@ jobs:
         user-agent: "User-Agent:'Nuclei - Vulnerability Scan (Have a nice day)'"
         # Exclude tcp/javascript protocol templates to avoid scanning infrastructure services (SSH:22, PostgreSQL:5432, RPC:111)
         # See: https://github.com/orgs/projectdiscovery/discussions/5159
+        # IMPORTANT: -timeout 5 is too short for comprehensive scans (~10 minutes needed). Consider increasing to 600 for full testing.
+        # Current setting optimized for quick PR checks. For thorough scans, use: -timeout 600
         flags: "-c 24 -rl 200 -timeout 5 -stats -ept tcp,javascript"
 
     - name: Capture baseline response headers

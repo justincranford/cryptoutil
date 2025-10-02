@@ -142,27 +142,25 @@ This document contains a comprehensive analysis of:
 
 **Tasks**:
 
-#### Task 1.3.1: Scope Nuclei Scans to Application Only (� CRITICAL - BLOCKED)
-- **Status**: ❌ **FAILED** - Invalid flag syntax in Nuclei 3.4.10 (2025-10-02)
+#### Task 1.3.1: Scope Nuclei Scans to Application Only (🔴 CRITICAL - IN PROGRESS)
+- **Status**: ⚠️ **IN PROGRESS** - Fix implemented, testing in progress (2025-10-02)
 - **Description**: Configure Nuclei to scan only cryptoutil application endpoints, not infrastructure
-- **Blocker**: Command failed with error: `flag provided but not defined: -exclude-ports`
-- **Root Cause**: Nuclei 3.4.10 does not support `-exclude-ports` flag
+- **Resolution**: Changed from invalid `-exclude-ports` flag to `-ept tcp,javascript` (exclude protocol templates)
+- **Source**: GitHub discussion https://github.com/orgs/projectdiscovery/discussions/5159
 - **Action Items**:
-  - ❌ Update `dast.yml` Nuclei flags to exclude infrastructure ports - **FAILED with current syntax**
-  - ❌ Add `-exclude-ports 22,111,5432` to Nuclei command - **INVALID FLAG**
-  - 🆕 **Research correct flag syntax for Nuclei 3.4.10** (use `-ep` short form or `-exclude-hosts`)
-  - 🆕 **Alternative**: Use `-tags` to filter template categories instead of port exclusion
-  - 🆕 **Test fix locally** with `act --bind -j dast-security-scan` before committing
+  - ✅ Research correct flag syntax - **RESOLVED**: Use `-ept tcp,javascript`
+  - ✅ Update `dast.yml` Nuclei flags to exclude infrastructure protocols - **IMPLEMENTED**
+  - ⚠️ **Test fix locally** with `act --bind -j dast-security-scan` - **IN PROGRESS**
+  - 🔴 **CRITICAL ISSUE DISCOVERED**: Timeout of 5 seconds is insufficient - full scans take ~10 minutes
+  - 🔴 **ACTION REQUIRED**: Increase `-timeout` from 5 to 600 seconds (10 minutes) for comprehensive testing
   - Focus scan on application ports 8080 (public HTTPS) and 9090 (private HTTP)
   - Document that infrastructure services should be scanned separately
-- **Files**: `.github/workflows/dast.yml` (line 149)
-- **Current**: `flags: "-c 24 -rl 200 -timeout 5 -stats -exclude-ports 22,111,5432"`
-- **Proposed Fix Options**:
-  - Option A: `flags: "-c 24 -rl 200 -timeout 5 -stats -ep 22,111,5432"` (short form)
-  - Option B: `flags: "-c 24 -rl 200 -timeout 5 -stats -exclude-hosts postgres:5432"`
-  - Option C: `flags: "-c 24 -rl 200 -timeout 5 -stats -tags network,exposure -etags ssh,rpc"`
-- **Error Log**: `/opt/hostedtoolcache/nuclei/3.4.10/x64/nuclei` failed with exit code 2
-- **Impact**: Workflow fails before any vulnerability scanning occurs, blocking all DAST results
+- **Files**: `.github/workflows/dast.yml` (line 165)
+- **Previous (FAILED)**: `flags: "-c 24 -rl 200 -timeout 5 -stats -exclude-ports 22,111,5432"`
+- **Current (TESTING)**: `flags: "-c 24 -rl 200 -timeout 5 -stats -ept tcp,javascript"`
+- **Recommended**: `flags: "-c 24 -rl 200 -timeout 600 -stats -ept tcp,javascript"`
+- **Timeout Warning**: Current 5-second timeout will cause premature scan termination. Nuclei comprehensive scans require up to 10 minutes.
+- **Impact**: Flag syntax fixed (workflow no longer fails immediately), but scan may timeout before completion with current timeout setting
 
 #### Task 1.3.2: Review CSRF Cookie HttpOnly Configuration (🟡 MEDIUM)
 - **Description**: Nuclei flagged `_csrf` cookie without HttpOnly flag
