@@ -206,7 +206,7 @@ jobs:
       run: |
         mv nuclei.log ./dast-reports/ || true
         mv nuclei.sarif ./dast-reports/ || true
-        echo Nuclei artifacts moved to ./dast-reports/"
+        echo "Nuclei artifacts moved to ./dast-reports/"
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
