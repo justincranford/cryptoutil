@@ -24,6 +24,71 @@
 
 ## Active Tasks
 
+### DAST Workflow Performance Optimization (🟠 HIGH - TOP PRIORITY)
+
+**Context**: Current DAST workflow runtime is ~10-15 minutes. Multiple optimization opportunities identified to reduce CI/CD costs and improve developer experience through faster feedback loops.
+
+#### Task O1: Implement Trigger-Based Job Filtering (🟠 HIGH)
+- **Description**: Skip DAST workflow entirely for documentation-only changes to save CI minutes
+- **Context**: Currently DAST runs on all pushes/PRs regardless of changed files, wasting resources on docs updates
+- **Action Items**:
+  - Add `paths-ignore` configuration to workflow triggers in `dast.yml`
+  - Skip DAST for changes only affecting: `docs/**`, `*.md`, `.github/copilot-instructions.md`
+  - Test that workflow correctly skips for docs-only changes
+  - Verify workflow still runs for code changes
+- **Files**: `.github/workflows/dast.yml` (on.push and on.pull_request sections)
+- **Expected Savings**: Skip entirely for docs changes (~30% of commits)
+- **Implementation**: Add paths-ignore to trigger conditions
+
+#### Task O2: Implement Differential Scanning Strategy (🟠 HIGH)  
+- **Description**: Use different scan depths based on trigger type for optimal speed vs thoroughness balance
+- **Context**: Current workflow uses same 600s timeout for all triggers. PRs need fast feedback, scheduled scans need thoroughness
+- **Action Items**:
+  - Add `scan_profile` input to workflow_dispatch with options: quick/full/deep
+  - Configure Quick Profile (PRs): 60s timeout, limited templates (~2-3 minutes)
+  - Configure Full Profile (main push): Current 600s timeout (~10 minutes)  
+  - Configure Deep Profile (scheduled/manual): 1200s timeout, all templates (~20 minutes)
+  - Add conditional logic to set Nuclei flags based on trigger type
+- **Files**: `.github/workflows/dast.yml` (inputs, Nuclei step flags)
+- **Expected Savings**: 70% faster PR feedback (10min → 3min)
+- **Implementation**: Conditional Nuclei timeout and template selection
+
+#### Task O3: Fix and Enhance Nuclei Template Caching (🟡 MEDIUM)
+- **Description**: Improve template caching effectiveness to reduce download time on each run
+- **Context**: Current cache uses non-existent `nuclei.lock` file, making caching ineffective
+- **Action Items**:
+  - Fix cache key to use `go.sum` hash instead of missing `nuclei.lock`
+  - Update cache path configuration for better hit rates
+  - Add cache statistics to workflow summary for monitoring
+  - Test cache effectiveness across multiple runs
+- **Files**: `.github/workflows/dast.yml` (Cache Nuclei Templates step)
+- **Expected Savings**: ~1 minute per run when templates cached
+- **Implementation**: Update cache key pattern and restore-keys
+
+#### Task O4: Implement Parallel Step Execution (🟡 MEDIUM)
+- **Description**: Parallelize setup steps that don't depend on each other
+- **Context**: Currently all setup steps run sequentially, but some can run in parallel
+- **Action Items**:
+  - Run directory creation in background (`mkdir -p configs/test & mkdir -p ./dast-reports &`)
+  - Parallelize config file creation with other setup tasks
+  - Optimize application startup sequence
+  - Combine redundant curl connectivity tests
+- **Files**: `.github/workflows/dast.yml` (Start application step)
+- **Expected Savings**: ~30 seconds per run
+- **Implementation**: Background processes and command chaining
+
+#### Task O5: Remove Redundant and Optimize Steps (🟢 LOW)
+- **Description**: Clean up workflow by removing duplicate operations and optimizing step efficiency  
+- **Context**: Workflow has duplicate curl tests and can be streamlined
+- **Action Items**:
+  - Remove duplicate "Test application curl connectivity" step
+  - Combine config file creation into single heredoc operation
+  - Optimize cleanup logic to be more efficient
+  - Reduce verbose logging where not needed for debugging
+- **Files**: `.github/workflows/dast.yml` (various steps)
+- **Expected Savings**: ~15 seconds per run, cleaner workflow
+- **Implementation**: Step consolidation and removal
+
 ### Security Header Investigation (🟡 MEDIUM)
 
 #### Task 1: Compare Security Header Baseline with Expected Headers (🟡 MEDIUM)
@@ -91,17 +156,24 @@
 
 ## Priority Execution Order
 
+### TOP PRIORITY - Performance Optimization (Sprint 0)
+1. **Task O1**: Trigger-Based Job Filtering (immediate CI cost savings)
+2. **Task O2**: Differential Scanning Strategy (major runtime improvement)
+3. **Task O3**: Fix Nuclei Template Caching (consistent time savings)
+4. **Task O4**: Parallel Step Execution (moderate improvement)
+5. **Task O5**: Remove Redundant Steps (cleanup and polish)
+
 ### Immediate (Sprint 1)
-1. **Task 1**: Security header analysis (baseline ready)
-2. **Task 2**: ZAP Full Scan re-enablement
-3. **Task 3**: ZAP API Scan re-enablement
+6. **Task 1**: Security header analysis (baseline ready)
+7. **Task 2**: ZAP Full Scan re-enablement
+8. **Task 3**: ZAP API Scan re-enablement
 
 ### Next (Sprint 2)  
-4. **Task 4**: ZAP rules configuration review
-5. **Task 6**: Documentation updates
+9. **Task 4**: ZAP rules configuration review
+10. **Task 6**: Documentation updates
 
 ### Future (Sprint 3)
-6. **Task 5**: CI/CD optimization
+11. **Task 5**: CI/CD optimization (legacy - covered by O1-O5)
 
 ---
 
