@@ -104,14 +104,33 @@ jobs:
       if: always()
       run: mkdir -p ./dast-reports
 
+    - name: Establish Nuclei Templates Version
+      id: nuclei-version
+      run: |
+        # Define or update the desired nuclei templates reference version/tag
+        # For reproducibility, you can pin to a specific release tag (e.g., v9.9.9) later.
+        echo "LATEST" > nuclei-templates.version
+        echo "templates_version=$(cat nuclei-templates.version)" >> $GITHUB_OUTPUT
+        echo "Using nuclei templates version: $(cat nuclei-templates.version)"
+
     - name: Cache Nuclei Templates
       id: cache-nuclei-templates
       uses: actions/cache@v4
       with:
         path: ~/.nuclei-templates
-        key: nuclei-templates-${{ runner.os }}-${{ hashFiles('nuclei.lock') }}
+        key: nuclei-templates-${{ runner.os }}-${{ steps.nuclei-version.outputs.templates_version }}
         restore-keys: |
           nuclei-templates-${{ runner.os }}-
+
+    - name: Nuclei Template Cache Diagnostics
+      run: |
+        echo "Cache hit: ${{ steps.cache-nuclei-templates.outputs.cache-hit }}"
+        if [ -d "$HOME/.nuclei-templates" ]; then
+          echo "Template directory exists";
+          find "$HOME/.nuclei-templates" -maxdepth 2 -type f 2>/dev/null | head -n 5 || true
+        else
+          echo "Template directory missing (will be populated by nuclei if needed)";
+        fi
 
     - name: Set up Go
       uses: actions/setup-go@v5
