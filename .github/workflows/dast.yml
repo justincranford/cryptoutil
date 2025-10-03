@@ -1,5 +1,8 @@
 name: DAST Security Testing
-# IMPORTANT: Test locally with `act --bind -j dast-security-scan > ./dast-reports/act-dast.log 2>&1`
+# IMPORTANT: Test locally with:
+#   [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+#   act --bind -j dast-security-scan 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+#
 # OUTPUT CONVENTION: All scan outputs and reports must be written to ./dast-reports/ directory
 
 on:
@@ -107,17 +110,16 @@ jobs:
     - name: Establish Nuclei Templates Version
       id: nuclei-version
       run: |
-        # Define or update the desired nuclei templates reference version/tag
-        # For reproducibility, you can pin to a specific release tag (e.g., v9.9.9) later.
-        echo "LATEST" > nuclei-templates.version
-        echo "templates_version=$(cat nuclei-templates.version)" >> $GITHUB_OUTPUT
-        echo "Using nuclei templates version: $(cat nuclei-templates.version)"
+        # Ephemeral mode: always use latest nuclei templates; no file written to repo.
+        # To pin in the future, reintroduce nuclei-templates.version and remove this logic.
+        echo "Using dynamic nuclei templates version: LATEST"
+        echo "templates_version=LATEST" >> $GITHUB_OUTPUT
 
     - name: Cache Nuclei Templates
       id: cache-nuclei-templates
       uses: actions/cache@v4
       with:
-        path: ~/.nuclei-templates
+        path: /root/nuclei-templates
         key: nuclei-templates-${{ runner.os }}-${{ steps.nuclei-version.outputs.templates_version }}
         restore-keys: |
           nuclei-templates-${{ runner.os }}-
@@ -125,12 +127,18 @@ jobs:
     - name: Nuclei Template Cache Diagnostics
       run: |
         echo "Cache hit: ${{ steps.cache-nuclei-templates.outputs.cache-hit }}"
-        if [ -d "$HOME/.nuclei-templates" ]; then
-          echo "Template directory exists";
-          find "$HOME/.nuclei-templates" -maxdepth 2 -type f 2>/dev/null | head -n 5 || true
+        echo "Checking template locations:"
+        if [ -d "/root/nuclei-templates" ]; then
+          echo "  ✓ /root/nuclei-templates exists ($(find /root/nuclei-templates -type f 2>/dev/null | wc -l) files)";
         else
-          echo "Template directory missing (will be populated by nuclei if needed)";
+          echo "  ✗ /root/nuclei-templates missing";
         fi
+        if [ -d "$HOME/.nuclei-templates" ]; then
+          echo "  ✓ ~/.nuclei-templates exists ($(find $HOME/.nuclei-templates -type f 2>/dev/null | wc -l) files)";
+        else
+          echo "  ✗ ~/.nuclei-templates missing";
+        fi
+        echo "Templates will be installed by nuclei if not cached"
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -225,6 +233,16 @@ jobs:
         # Current setting optimized for quick PR checks. For thorough scans, use: -timeout 600
         flags: "-c 24 -rl 200 -timeout 600 -stats -ept tcp,javascript"
 
+    - name: Verify Nuclei template installation
+      if: always()
+      run: |
+        echo "Post-scan template verification:"
+        for dir in "/root/nuclei-templates" "$HOME/.nuclei-templates" "/root/.nuclei-templates"; do
+          if [ -d "$dir" ]; then
+            echo "  ✓ $dir exists ($(find $dir -type f 2>/dev/null | wc -l) files)";
+          fi
+        done
+
     - name: Capture baseline response headers
       if: always()
       run: |
@@ -259,9 +277,20 @@ jobs:
     - name: Save artifacts locally (act only)
       if: ${{ github.actor == 'nektos/act' }}
       run: |
-        mv nuclei.log ./dast-reports/ || true
-        mv nuclei.sarif ./dast-reports/ || true
-        echo "Nuclei artifacts moved to ./dast-reports/"
+        echo "Checking for nuclei artifacts:"
+        if [ -f "nuclei.log" ]; then
+          mv nuclei.log ./dast-reports/
+          echo "  ✓ Moved nuclei.log"
+        else
+          echo "  ✗ nuclei.log not found"
+        fi
+        if [ -f "nuclei.sarif" ]; then
+          mv nuclei.sarif ./dast-reports/
+          echo "  ✓ Moved nuclei.sarif"
+        else
+          echo "  ✗ nuclei.sarif not found (may not have been generated)"
+        fi
+        echo "Artifact collection complete"
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}

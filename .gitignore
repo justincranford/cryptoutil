@@ -28,6 +28,7 @@ dast.log
 nuclei
 nuclei*.log
 nuclei.sarif
+nuclei-templates.version
 README_CN.md
 README_ES.md
 README_ID.md
