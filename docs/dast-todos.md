@@ -29,18 +29,7 @@
 **Context**: Current DAST workflow runtime is ~10-15 minutes. Multiple optimization opportunities identified to reduce CI/CD costs and improve developer experience through faster feedback loops.
 
 #### Task O1: Implement Trigger-Based Job Filtering (🟠 HIGH)
-- **Description**: Skip DAST workflow entirely for documentation-only changes to save CI minutes
-- **Context**: Currently DAST runs on all pushes/PRs regardless of changed files, wasting resources on docs updates
-- **Action Items**:
-  - Add `paths-ignore` configuration to workflow triggers in `dast.yml`
-  - Skip DAST for changes only affecting: `docs/**`, `*.md`, `.github/copilot-instructions.md`
-  - Test that workflow correctly skips for docs-only changes
-  - Verify workflow still runs for code changes
-- **Files**: `.github/workflows/dast.yml` (on.push and on.pull_request sections)
-- **Expected Savings**: Skip entirely for docs changes (~30% of commits)
-- **Implementation**: Add paths-ignore to trigger conditions
-
-#### Task O2: Implement Differential Scanning Strategy (🟠 HIGH)  
+#### Task O1: Implement Differential Scanning Strategy (🟠 HIGH)  
 - **Description**: Use different scan depths based on trigger type for optimal speed vs thoroughness balance
 - **Context**: Current workflow uses same 600s timeout for all triggers. PRs need fast feedback, scheduled scans need thoroughness
 - **Action Items**:
@@ -53,7 +42,7 @@
 - **Expected Savings**: 70% faster PR feedback (10min → 3min)
 - **Implementation**: Conditional Nuclei timeout and template selection
 
-#### Task O3: Fix and Enhance Nuclei Template Caching (🟡 MEDIUM)
+#### Task O2: Fix and Enhance Nuclei Template Caching (🟡 MEDIUM)
 - **Description**: Improve template caching effectiveness to reduce download time on each run
 - **Context**: Current cache uses non-existent `nuclei.lock` file, making caching ineffective
 - **Action Items**:
@@ -65,7 +54,7 @@
 - **Expected Savings**: ~1 minute per run when templates cached
 - **Implementation**: Update cache key pattern and restore-keys
 
-#### Task O4: Implement Parallel Step Execution (🟡 MEDIUM)
+#### Task O3: Implement Parallel Step Execution (🟡 MEDIUM)
 - **Description**: Parallelize setup steps that don't depend on each other
 - **Context**: Currently all setup steps run sequentially, but some can run in parallel
 - **Action Items**:
@@ -77,7 +66,7 @@
 - **Expected Savings**: ~30 seconds per run
 - **Implementation**: Background processes and command chaining
 
-#### Task O5: Remove Redundant and Optimize Steps (🟢 LOW)
+#### Task O4: Remove Redundant and Optimize Steps (🟢 LOW)
 - **Description**: Clean up workflow by removing duplicate operations and optimizing step efficiency  
 - **Context**: Workflow has duplicate curl tests and can be streamlined
 - **Action Items**:
@@ -157,11 +146,10 @@
 ## Priority Execution Order
 
 ### TOP PRIORITY - Performance Optimization (Sprint 0)
-1. **Task O1**: Trigger-Based Job Filtering (immediate CI cost savings)
-2. **Task O2**: Differential Scanning Strategy (major runtime improvement)
-3. **Task O3**: Fix Nuclei Template Caching (consistent time savings)
-4. **Task O4**: Parallel Step Execution (moderate improvement)
-5. **Task O5**: Remove Redundant Steps (cleanup and polish)
+1. **Task O1**: Differential Scanning Strategy (major runtime improvement)
+2. **Task O2**: Fix Nuclei Template Caching (consistent time savings)
+3. **Task O3**: Parallel Step Execution (moderate improvement)
+4. **Task O4**: Remove Redundant Steps (cleanup and polish)
 
 ### Immediate (Sprint 1)
 6. **Task 1**: Security header analysis (baseline ready)
