@@ -42,19 +42,7 @@
 - **Expected Savings**: 70% faster PR feedback (10min → 3min)
 - **Implementation**: Conditional Nuclei timeout and template selection
 
-#### Task O2: Fix and Enhance Nuclei Template Caching (🟡 MEDIUM)
-- **Description**: Improve template caching effectiveness to reduce download time on each run
-- **Context**: Current cache uses non-existent `nuclei.lock` file, making caching ineffective
-- **Action Items**:
-  - Fix cache key to use `go.sum` hash instead of missing `nuclei.lock`
-  - Update cache path configuration for better hit rates
-  - Add cache statistics to workflow summary for monitoring
-  - Test cache effectiveness across multiple runs
-- **Files**: `.github/workflows/dast.yml` (Cache Nuclei Templates step)
-- **Expected Savings**: ~1 minute per run when templates cached
-- **Implementation**: Update cache key pattern and restore-keys
-
-#### Task O3: Implement Parallel Step Execution (🟡 MEDIUM)
+#### Task O2: Implement Parallel Step Execution (🟡 MEDIUM)
 - **Description**: Parallelize setup steps that don't depend on each other
 - **Context**: Currently all setup steps run sequentially, but some can run in parallel
 - **Action Items**:
@@ -66,7 +54,7 @@
 - **Expected Savings**: ~30 seconds per run
 - **Implementation**: Background processes and command chaining
 
-#### Task O4: Remove Redundant and Optimize Steps (🟢 LOW)
+#### Task O3: Remove Redundant and Optimize Steps (🟢 LOW)
 - **Description**: Clean up workflow by removing duplicate operations and optimizing step efficiency  
 - **Context**: Workflow has duplicate curl tests and can be streamlined
 - **Action Items**:
@@ -147,9 +135,8 @@
 
 ### TOP PRIORITY - Performance Optimization (Sprint 0)
 1. **Task O1**: Differential Scanning Strategy (major runtime improvement)
-2. **Task O2**: Fix Nuclei Template Caching (consistent time savings)
-3. **Task O3**: Parallel Step Execution (moderate improvement)
-4. **Task O4**: Remove Redundant Steps (cleanup and polish)
+2. **Task O2**: Parallel Step Execution (moderate improvement)
+3. **Task O3**: Remove Redundant Steps (cleanup and polish)
 
 ### Immediate (Sprint 1)
 6. **Task 1**: Security header analysis (baseline ready)
