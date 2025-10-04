@@ -225,7 +225,8 @@ jobs:
 
         echo "✅ Application is ready and responsive"
 
-    # # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
+    # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
+    # Issue: ZAP action fails in act environment - investigate GitHub-only testing
   # - name: Run OWASP ZAP DAST Scan
   #   uses: zaproxy/action-full-scan@v0.12.0
   #   with:
@@ -238,6 +239,7 @@ jobs:
   #     artifact_name: 'zap-report'
   #     # Note: ZAP action outputs will be moved to dast-reports/ when re-enabled
 
+    # Issue: ZAP API scan also fails in act environment - requires GitHub runner testing
     # - name: Run OWASP ZAP API Scan
     #   uses: zaproxy/action-api-scan@v0.9.0
     #   with:
@@ -344,6 +346,43 @@ jobs:
           echo "  ✗ nuclei.sarif not found (may not have been generated)"
         fi
         echo "Artifact collection complete"
+
+    - name: Move ZAP artifacts to dast-reports directory
+      if: always()
+      run: |
+        echo "Checking for ZAP artifacts:"
+        if [ -f "zap-report.html" ]; then
+          mv zap-report.html ./dast-reports/
+          echo "  ✓ Moved zap-report.html"
+        else
+          echo "  ✗ zap-report.html not found"
+        fi
+        if [ -f "zap-report.json" ]; then
+          mv zap-report.json ./dast-reports/
+          echo "  ✓ Moved zap-report.json"
+        else
+          echo "  ✗ zap-report.json not found"
+        fi
+        if [ -f "zap-report.xml" ]; then
+          mv zap-report.xml ./dast-reports/
+          echo "  ✓ Moved zap-report.xml"
+        else
+          echo "  ✗ zap-report.xml not found"
+        fi
+        # Check for ZAP API scan artifacts
+        if [ -f "zap-api-report.html" ]; then
+          mv zap-api-report.html ./dast-reports/
+          echo "  ✓ Moved zap-api-report.html"
+        else
+          echo "  ✗ zap-api-report.html not found"
+        fi
+        if [ -f "zap-api-report.json" ]; then
+          mv zap-api-report.json ./dast-reports/
+          echo "  ✓ Moved zap-api-report.json"
+        else
+          echo "  ✗ zap-api-report.json not found"
+        fi
+        echo "ZAP artifact collection complete"
 
         # For GitHub runs, copy SARIF back to root for upload-sarif action
         if [ "${{ github.actor }}" != "nektos/act" ] && [ -f "./dast-reports/nuclei.sarif" ]; then
