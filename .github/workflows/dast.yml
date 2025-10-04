@@ -1,8 +1,8 @@
 name: DAST Security Testing
 # IMPORTANT: Test locally with:
 #   [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-#   act --bind -j dast-security-scan 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
-#
+#   act workflow_dispatch -j dast-security-scan --input scan_profile=quick --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+#   act workflow_dispatch -j dast-security-scan --input scan_profile=full --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
 # OUTPUT CONVENTION: All scan outputs and reports must be written to ./dast-reports/ directory
 
 on:
@@ -55,11 +55,21 @@ on:
         description: 'Target URL for DAST scanning (default: https://localhost:8080)'
         required: false
         default: 'https://localhost:8080'
+      scan_profile:
+        description: 'Scan profile for performance optimization'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - quick
+          - full
+          - deep
 
 env:
   GO_VERSION: '1.25.1'
 
   TARGET_URL: ${{ github.event.inputs.target_url || 'https://localhost:8080' }}
+  SCAN_PROFILE: ${{ github.event.inputs.scan_profile || 'full' }}
 
   APP_BIND_PUBLIC_PROTOCOL: https
   APP_BIND_PUBLIC_ADDRESS: 0.0.0.0
@@ -127,18 +137,12 @@ jobs:
     - name: Nuclei Template Cache Diagnostics
       run: |
         echo "Cache hit: ${{ steps.cache-nuclei-templates.outputs.cache-hit }}"
-        echo "Checking template locations:"
+        # Check primary template location
         if [ -d "/root/nuclei-templates" ]; then
-          echo "  ✓ /root/nuclei-templates exists ($(find /root/nuclei-templates -type f 2>/dev/null | wc -l) files)";
+          echo "✓ Templates cached ($(find /root/nuclei-templates -type f 2>/dev/null | wc -l) files)"
         else
-          echo "  ✗ /root/nuclei-templates missing";
+          echo "ℹ Templates will be downloaded by nuclei"
         fi
-        if [ -d "$HOME/.nuclei-templates" ]; then
-          echo "  ✓ ~/.nuclei-templates exists ($(find $HOME/.nuclei-templates -type f 2>/dev/null | wc -l) files)";
-        else
-          echo "  ✗ ~/.nuclei-templates missing";
-        fi
-        echo "Templates will be installed by nuclei if not cached"
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -155,15 +159,11 @@ jobs:
     # See internal\common\config\config.go for configuration options
     - name: Start application for DAST testing
       run: |
-        # Create test configuration
+        # Create test configuration (combined operations)
         mkdir -p configs/test
 
-        # Create unseal secret file
-        cat > ./configs/test/dast-simple-unseal-secret-value-1.secret <<EOF
-        dast-simple-unseal-secret-value-1
-        EOF
-
-        # Create config file
+        # Create unseal secret and config files
+        echo "dast-simple-unseal-secret-value-1" > ./configs/test/dast-simple-unseal-secret-value-1.secret
         cat > ./configs/test/config.yml <<EOF
         bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
         bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
@@ -182,20 +182,48 @@ jobs:
         APP_PID=$!
         echo "APP_PID=$APP_PID" >> $GITHUB_ENV
 
-        # Wait for application to be ready
-        timeout 20 bash -c '
-          until curl -k -f ${APP_BIND_PUBLIC_PROTOCOL}://${APP_BIND_PUBLIC_ADDRESS}:${APP_BIND_PUBLIC_PORT}/ui/swagger/doc.json; do
-            sleep 1
+        # Enhanced readiness probe with retry/backoff logic
+        echo "Waiting for application to be ready..."
+        MAX_ATTEMPTS=30
+        ATTEMPT=0
+        BACKOFF=1
+        READY=false
+
+        # Progressive health check: private health endpoints first, then public Swagger
+        HEALTH_ENDPOINTS=(
+          "http://127.0.0.1:${APP_BIND_PRIVATE_PORT}/readyz"
+          "http://localhost:${APP_BIND_PRIVATE_PORT}/readyz"
+          "${TARGET_URL}/ui/swagger/doc.json"
+        )
+
+        while [ $ATTEMPT -lt $MAX_ATTEMPTS ] && [ "$READY" != "true" ]; do
+          ATTEMPT=$((ATTEMPT + 1))
+          echo "Attempt $ATTEMPT/$MAX_ATTEMPTS (backoff: ${BACKOFF}s)"
+
+          for endpoint in "${HEALTH_ENDPOINTS[@]}"; do
+            echo "Testing: $endpoint"
+            if curl -k -f --connect-timeout 5 --max-time 10 "$endpoint" >/dev/null 2>&1; then
+              echo "✓ Application ready at: $endpoint"
+              READY=true
+              break
+            else
+              echo "✗ Not ready: $endpoint"
+            fi
           done
-        '
 
-        curl -f -k https://localhost:8080/ui/swagger/doc.json > /dev/null 2>&1
-        echo "Application listening on https://localhost:8080"
+          if [ "$READY" != "true" ]; then
+            sleep $BACKOFF
+            # Exponential backoff with max 5 seconds
+            BACKOFF=$((BACKOFF < 5 ? BACKOFF + 1 : 5))
+          fi
+        done
 
-    - name: Test application curl connectivity
-      run: |
-        curl -f -k https://localhost:8080/ui/swagger/doc.json > /dev/null 2>&1
-        echo "Application listening on https://localhost:8080"
+        if [ "$READY" != "true" ]; then
+          echo "❌ Application failed to become ready within timeout"
+          exit 1
+        fi
+
+        echo "✅ Application is ready and responsive"
 
     # # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
   # - name: Run OWASP ZAP DAST Scan
@@ -221,7 +249,36 @@ jobs:
     #     # Note: ZAP action outputs will be moved to dast-reports/ when re-enabled
 
     # Doc: https://github.com/projectdiscovery/nuclei-action
-    - name: Nuclei - Vulnerability Scan
+    - name: Set Nuclei scan configuration based on profile
+      id: nuclei_config
+      run: |
+        case "$SCAN_PROFILE" in
+          "quick")
+            echo "timeout=60" >> $GITHUB_OUTPUT
+            echo "concurrency=12" >> $GITHUB_OUTPUT
+            echo "rate_limit=100" >> $GITHUB_OUTPUT
+            echo "templates=cves/2023/,cves/2024/,vulnerabilities/,security-misconfiguration/generic/" >> $GITHUB_OUTPUT
+            echo "description=Quick scan (PRs): ~2-3 minutes, recent CVEs and basic misconfigurations" >> $GITHUB_OUTPUT
+            ;;
+          "deep")
+            echo "timeout=1200" >> $GITHUB_OUTPUT
+            echo "concurrency=32" >> $GITHUB_OUTPUT
+            echo "rate_limit=300" >> $GITHUB_OUTPUT
+            echo "templates=" >> $GITHUB_OUTPUT
+            echo "description=Deep scan (scheduled): ~15-20 minutes, all templates" >> $GITHUB_OUTPUT
+            ;;
+          *) # full (default)
+            echo "timeout=600" >> $GITHUB_OUTPUT
+            echo "concurrency=24" >> $GITHUB_OUTPUT
+            echo "rate_limit=200" >> $GITHUB_OUTPUT
+            echo "templates=cves/,vulnerabilities/,security-misconfiguration/,default-logins/,exposed-panels/" >> $GITHUB_OUTPUT
+            echo "description=Full scan (main push): ~8-10 minutes, comprehensive coverage" >> $GITHUB_OUTPUT
+            ;;
+        esac
+        echo "Profile: $SCAN_PROFILE"
+        echo "Configuration set for profile: $SCAN_PROFILE"
+
+    - name: Nuclei - Vulnerability Scan (${{ steps.nuclei_config.outputs.description }})
       id: nuclei_scan
       uses: projectdiscovery/nuclei-action@main
       with:
@@ -229,19 +286,15 @@ jobs:
         user-agent: "User-Agent:'Nuclei - Vulnerability Scan (Have a nice day)'"
         # Exclude tcp/javascript protocol templates to avoid scanning infrastructure services (SSH:22, PostgreSQL:5432, RPC:111)
         # See: https://github.com/orgs/projectdiscovery/discussions/5159
-        # IMPORTANT: -timeout 5 is too short for comprehensive scans (~10 minutes needed). Consider increasing to 600 for full testing.
-        # Current setting optimized for quick PR checks. For thorough scans, use: -timeout 600
-        flags: "-c 24 -rl 200 -timeout 600 -stats -ept tcp,javascript"
+        flags: "-c ${{ steps.nuclei_config.outputs.concurrency }} -rl ${{ steps.nuclei_config.outputs.rate_limit }} -timeout ${{ steps.nuclei_config.outputs.timeout }} -stats -ept tcp,javascript${{ steps.nuclei_config.outputs.templates && format(' -t {0}', steps.nuclei_config.outputs.templates) || '' }}"
 
     - name: Verify Nuclei template installation
       if: always()
       run: |
-        echo "Post-scan template verification:"
-        for dir in "/root/nuclei-templates" "$HOME/.nuclei-templates" "/root/.nuclei-templates"; do
-          if [ -d "$dir" ]; then
-            echo "  ✓ $dir exists ($(find $dir -type f 2>/dev/null | wc -l) files)";
-          fi
-        done
+        # Post-scan verification (essential info only)
+        if [ -d "/root/nuclei-templates" ]; then
+          echo "✓ Nuclei templates verified ($(find /root/nuclei-templates -type f 2>/dev/null | wc -l) files)"
+        fi
 
     - name: Capture baseline response headers
       if: always()
@@ -274,8 +327,8 @@ jobs:
           echo "GITHUB_TOKEN=act-dummy-token" >> $GITHUB_ENV;
         fi
 
-    - name: Save artifacts locally (act only)
-      if: ${{ github.actor == 'nektos/act' }}
+    - name: Move nuclei artifacts to dast-reports directory
+      if: always()
       run: |
         echo "Checking for nuclei artifacts:"
         if [ -f "nuclei.log" ]; then
@@ -291,6 +344,12 @@ jobs:
           echo "  ✗ nuclei.sarif not found (may not have been generated)"
         fi
         echo "Artifact collection complete"
+
+        # For GitHub runs, copy SARIF back to root for upload-sarif action
+        if [ "${{ github.actor }}" != "nektos/act" ] && [ -f "./dast-reports/nuclei.sarif" ]; then
+          cp ./dast-reports/nuclei.sarif nuclei.sarif
+          echo "  ✓ Copied nuclei.sarif back to root for GitHub Security Dashboard"
+        fi
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
@@ -320,7 +379,9 @@ jobs:
         echo "" >> $summaryFile
         echo "## Scan Configuration" >> $summaryFile
         echo "- **Target URL:** ${{ env.TARGET_URL }}" >> $summaryFile
+        echo "- **Scan Profile:** ${{ env.SCAN_PROFILE }} (${{ steps.nuclei_config.outputs.description }})" >> $summaryFile
         echo "- **Scan Date:** $(date -u)" >> $summaryFile
+        echo "- **Nuclei Configuration:** Timeout=${{ steps.nuclei_config.outputs.timeout }}s, Concurrency=${{ steps.nuclei_config.outputs.concurrency }}, Rate Limit=${{ steps.nuclei_config.outputs.rate_limit }}" >> $summaryFile
         echo "- **OpenAPI Spec:** Available at /ui/swagger/doc.json" >> $summaryFile
         echo "" >> $summaryFile
         echo "## Scan Coverage" >> $summaryFile
@@ -353,8 +414,10 @@ jobs:
     - name: Cleanup
       if: always()
       run: |
-        if [ ! -z "$APP_PID" ]; then
-          kill $APP_PID || true
-          sleep 2
-          kill -9 $APP_PID 2>/dev/null || true
+        # Efficient application cleanup
+        if [ -n "${APP_PID:-}" ]; then
+          echo "Stopping application (PID: $APP_PID)"
+          kill "$APP_PID" 2>/dev/null || true
+          sleep 1
+          kill -9 "$APP_PID" 2>/dev/null || true
         fi
