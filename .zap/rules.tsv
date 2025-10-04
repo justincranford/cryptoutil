@@ -6,12 +6,15 @@
 IGNORE	10021	http://localhost:9090/readyz	.*	.*	.*	Admin health check endpoints - expected behavior
 IGNORE	10021	http://localhost:9090/livez	.*	.*	.*	Admin health check endpoints - expected behavior
 IGNORE	10021	http://localhost:9090/shutdown	.*	.*	.*	Admin health check endpoints - expected behavior
-#IGNORE	10021	https://localhost:8080/swagger/.*	.*	.*	.*	Swagger UI static content - expected behavior
+IGNORE	10021	https://localhost:8080/ui/swagger/.*	.*	.*	.*	Swagger UI static content - expected behavior
+IGNORE	10045	https://localhost:8080/ui/swagger/doc.json	.*	.*	.*	OpenAPI spec disclosure - intentional for API documentation
 
-# Cryptographic endpoint specific rules
+# Cryptographic endpoint specific rules - Updated for current API structure
 WARN	90001	https://localhost:8080/service/api/v1/.*	.*	.*	.*	Monitor cryptographic operations for timing attacks
 WARN	90001	https://localhost:8080/browser/api/v1/.*	.*	.*	.*	Monitor cryptographic operations for timing attacks
-#WARN	90022	https://localhost:8080/api/v1/auth/.*	.*	.*	.*	Monitor authentication endpoints for security issues
+WARN	90001	https://localhost:8080/service/api/v1/keygen/.*	.*	.*	.*	Key generation endpoints - monitor for timing and entropy issues
+WARN	90001	https://localhost:8080/browser/api/v1/keygen/.*	.*	.*	.*	Key generation endpoints - monitor for timing and entropy issues
+WARN	90022	https://localhost:8080/.*/csrf-token	.*	.*	.*	CSRF token endpoints - verify proper implementation
 
 # Server security headers - enforce required headers (elevated from IGNORE)
 # 10016 X-Content-Type-Options / XSS related legacy header (treat absence as WARN)

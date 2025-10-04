@@ -96,17 +96,23 @@ Expected: Browser path shows the extended set; service path shows only the core 
 ### GitHub Actions Workflow (`.github/workflows/dast.yml`)
 
 **Triggers:**
-- Push to main branch
-- Pull requests
+- Push to main branch (with paths-ignore for docs-only changes)
+- Pull requests (with paths-ignore for docs-only changes)
 - Weekly scheduled scans (Sundays at 2 AM UTC)
-- Manual dispatch with custom target URL
+- Manual dispatch with custom target URL and scan profile
+
+**Scan Profiles Available:**
+- **Quick Profile** (`scan_profile=quick`): ~2-3 minutes, recent CVEs only, 60s timeout
+- **Full Profile** (`scan_profile=full`, default): ~8-10 minutes, comprehensive templates, 600s timeout  
+- **Deep Profile** (`scan_profile=deep`): ~15-20 minutes, all templates, 1200s timeout
 
 **Scan Process:**
 1. **Application Setup**: Start cryptoutil with test configuration
-2. **Nuclei Scan**: Template-based vulnerability scanning (active)
-3. **Header Baseline Export**: Capture canonical response headers for Swagger UI, Browser API root, Service API root
-4. **Dynamic Summary Generation**: Include only scanners that actually ran (ZAP steps presently disabled)
-5. **Artifact Consolidation**: Bundle nuclei log + SARIF + header baseline (and future ZAP reports) into a single artifact
+2. **Profile Configuration**: Set Nuclei parameters based on selected scan profile
+3. **Nuclei Scan**: Template-based vulnerability scanning with profile-optimized settings
+4. **Header Baseline Export**: Capture canonical response headers for Swagger UI, Browser API root, Service API root
+5. **Dynamic Summary Generation**: Include scan profile info and only scanners that actually ran
+6. **Artifact Consolidation**: Bundle nuclei log + SARIF + header baseline into dast-reports artifact
 
 **Output Directory Convention**: All scan outputs are written to `dast-reports/` directory for consistency and ease of collection.
 
@@ -139,11 +145,42 @@ Expected: Browser path shows the extended set; service path shows only the core 
    - Watch the workflow execution in real-time
    - Download reports from the **Artifacts** section when complete
 
-### Option 2: Local Development Testing
+### Option 2: Local Development Testing with act
 
-**For development and testing:**
+**For development and testing using GitHub Actions locally:**
 
 #### Prerequisites
+```powershell
+# Install act (GitHub Actions runner)
+winget install nektos.act
+# OR: choco install act-cli
+# OR: scoop install act
+
+# Ensure Docker is running for act
+docker --version
+```
+
+#### Local DAST Testing Commands
+```powershell
+# Set proper encoding for PowerShell output
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# Quick scan (2-3 minutes) - ideal for development
+act workflow_dispatch -j dast-security-scan --input scan_profile=quick --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+
+# Full scan (8-10 minutes) - comprehensive testing
+act workflow_dispatch -j dast-security-scan --input scan_profile=full --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+
+# Deep scan (15-20 minutes) - maximum coverage
+act workflow_dispatch -j dast-security-scan --input scan_profile=deep --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+
+# Custom target URL
+act workflow_dispatch -j dast-security-scan --input scan_profile=quick --input target_url=https://localhost:8080 --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+```
+
+#### Traditional Local Testing (Alternative)
+
+**Prerequisites for manual scanning:**
 ```powershell
 # Install OWASP ZAP
 docker pull zaproxy/zap-stable
@@ -220,8 +257,14 @@ docker run --rm -t -v "${PWD}/dast-reports:/zap/wrk/:rw" zaproxy/zap-stable zap-
 
 #### 3. Run Nuclei Scan
 ```powershell
-# Comprehensive vulnerability scan
-nuclei -target http://localhost:8080 -templates cves/,vulnerabilities/,security-misconfiguration/ -json-export dast-reports/nuclei-report.json -stats
+# Quick profile equivalent (development/PR testing)
+nuclei -target http://localhost:8080 -t cves/2023/,cves/2024/,vulnerabilities/,security-misconfiguration/generic/ -c 12 -rl 100 -timeout 60 -stats -ept tcp,javascript -json-export dast-reports/nuclei-report.json
+
+# Full profile equivalent (comprehensive testing)
+nuclei -target http://localhost:8080 -t cves/,vulnerabilities/,security-misconfiguration/,default-logins/,exposed-panels/ -c 24 -rl 200 -timeout 600 -stats -ept tcp,javascript -json-export dast-reports/nuclei-report.json
+
+# Deep profile equivalent (maximum coverage)
+nuclei -target http://localhost:8080 -c 32 -rl 300 -timeout 1200 -stats -ept tcp,javascript -json-export dast-reports/nuclei-report.json
 ```
 
 #### 4. Cleanup
@@ -385,13 +428,43 @@ Common false positives specific to cryptoutil:
 
 ### Common Issues
 
+#### act (Local GitHub Actions) Issues
+```powershell
+# Act fails to start containers
+# Solution: Ensure Docker Desktop is running
+docker info
+
+# Act workflow_dispatch input syntax errors
+# Correct syntax: use workflow_dispatch event, not just job name
+act workflow_dispatch -j dast-security-scan --input scan_profile=quick
+
+# Act exits with code 1 due to service container issues
+# Check act logs for specific postgres container health failures
+Get-Content .\dast-reports\act-dast.log | Select-String -Pattern "error|fail|panic"
+```
+
+#### Scan Profile Performance Issues
+```powershell
+# Quick profile runs too fast, misses vulnerabilities
+# Solution: Use full or deep profile for comprehensive testing
+# Quick profile is optimized for speed, not coverage
+
+# Deep profile takes too long in CI
+# Solution: Use deep profile only for scheduled runs or manual comprehensive testing
+# Configure different profiles for different trigger types
+
+# Nuclei templates out of date
+nuclei -update-templates
+```
+
 #### Application Startup Failures
-```bash
-# Check application logs
+```powershell
+# Check application logs with debug level
 ./cryptoutil --config configs/test/config.yml --log-level DEBUG
 
 # Verify database connectivity
-psql -h localhost -U testuser -d cryptoutil_test -c "SELECT 1;"
+# PowerShell equivalent for connection test
+Test-NetConnection -ComputerName localhost -Port 5432
 ```
 
 #### ZAP Scan Timeouts
@@ -422,11 +495,13 @@ nuclei -validate -templates /path/to/custom/template.yml
 ## Conclusion
 
 The DAST implementation provides comprehensive dynamic security testing for cryptoutil, covering:
-- ✅ **Automated CI/CD Integration**: Seamless security testing in development workflow
-- ✅ **Multiple Tool Coverage**: OWASP ZAP and Nuclei for comprehensive scanning
+- ✅ **Automated CI/CD Integration**: Seamless security testing with performance-optimized scan profiles
+- ✅ **Multiple Scan Profiles**: Quick (2-3min), Full (8-10min), Deep (15-20min) options for different use cases
+- ✅ **Multiple Tool Coverage**: OWASP ZAP (ready for re-enablement) and Nuclei for comprehensive scanning
 - ✅ **Cryptographic API Focus**: Specialized testing for encryption/decryption endpoints
-- ✅ **Custom Configuration**: Project-specific rules and endpoint coverage
-- ✅ **Continuous Monitoring**: Weekly automated scans and real-time feedback
+- ✅ **Custom Configuration**: Project-specific ZAP rules and endpoint coverage
+- ✅ **Local Testing Support**: Full GitHub Actions compatibility via act with scan profile selection
+- ✅ **Continuous Monitoring**: Weekly automated scans and real-time feedback with intelligent path filtering
 
 ## Header Baseline Export
 

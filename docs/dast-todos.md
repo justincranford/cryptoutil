@@ -78,33 +78,13 @@
 
 ### Workflow Optimization (🟢 LOW)
 
-#### Task 4: Review ZAP Rules Configuration (🟢 LOW)
-- **Description**: Ensure ZAP rules reflect current application security requirements
-- **Action Items**:
-  - Review `.zap/rules.tsv` for current endpoints
-  - Update endpoint patterns to match current OpenAPI spec
-  - Add rules for security header validation
-- **Files**: `.zap/rules.tsv`
 
-#### Task 5: Add Job Filters for Docs-Only Changes (🟢 LOW)
-- **Description**: Skip DAST workflow when only documentation files change
-- **Action Items**:
-  - Add `paths-ignore` to workflow triggers
-  - Skip DAST for changes only in: `docs/**`, `*.md`
-  - Test that workflow skips correctly
-- **Files**: `.github/workflows/dast.yml`
-- **Expected Savings**: Significant CI minutes for docs changes
+
+
 
 ### Documentation Updates (🟢 LOW)
 
-#### Task 6: Update SECURITY_TESTING.md (🟢 LOW)
-- **Description**: Update documentation to reflect current working state
-- **Action Items**:
-  - Document successful Nuclei scanning configuration
-  - Add troubleshooting section for common issues
-  - Update scan duration estimates
-  - Document local testing with `act`
-- **Files**: `docs/SECURITY_TESTING.md`
+
 
 ---
 
@@ -120,9 +100,7 @@
 5. **Task 3**: ZAP API Scan re-enablement
 
 ### Next (Sprint 3)  
-6. **Task 4**: ZAP rules configuration review
-7. **Task 6**: Documentation updates
-8. **Task 5**: Additional CI/CD path-ignore optimization
+6. Additional workflow enhancements and ZAP re-enablement validation
 
 ---
 
@@ -140,5 +118,6 @@
 
 ---
 
-**Last Updated**: 2025-10-03  
+**Last Updated**: 2025-10-04  
+**Recent completions**: Tasks 4-6 (ZAP rules, path filtering, documentation)  
 **Completed tasks removed per maintenance guideline**
