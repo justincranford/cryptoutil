@@ -39,6 +39,28 @@ Notes:
 - Prefer here-strings over complex backtick concatenation for multi-line text.
 - Validate script parameters (test help and parameter validation) before use.
 - Use proper error handling and exit codes in scripts.
+---
+descript- **ALWAYS use execution policy bypass for PowerShell scripts**: `powershell -ExecutionPolicy Bypass -File script.ps1` (never run scripts directly with `.\script.ps1`)
+- **NEVER use emojis or Unicode symbols in PowerShell scripts** - they cause parsing errors in here-strings and break script execution
+
+## PowerShell Scripting Common Mistakes to Avoid
+
+- **Switch parameter defaults**: Never set `[switch]$All = $true` - use logic to determine defaults instead
+- **Here-string content**: Avoid complex Unicode characters in here-strings (`@"..."@`) - they cause parsing errors
+- **Variable expansion in paths**: Use `${variable}` syntax for complex variable expansion (e.g., `"${PWD}/${OutputDir}"`)
+- **String concatenation**: Prefer here-strings over complex string concatenation with backticks for multi-line content
+- **Parameter validation**: Always test script parameters, especially help functionality, before completion
+- **Error handling**: Use proper PowerShell error handling patterns and exit codesn: "Instructions for PowerShell usage on Windows"
+applyTo: "**"
+---
+# PowerShell Instructions
+
+- Use PowerShell syntax for Windows terminal commands (not Bash)
+- Use `;` for chaining, `\` for paths, `$env:VAR` for env vars
+- Use `| Select-Object -First 10` for head, `| Select-String` for grep
+- Always use execution policy bypass: `powershell -ExecutionPolicy Bypass -File script.ps1`
+- Never use emojis/unicode in scripts (see formatting instructions)
+- Avoid: `[switch]$All = $true`, complex Unicode in here-strings, improper variable expansion, string concat with backticks, untested params, poor error handling
 
 ## PowerShell gotchas (short, actionable)
 
