@@ -4,7 +4,9 @@ name: DAST Security Testing
 #   act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=quick --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
 #   act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=full --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
 #   act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=deep --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
-# TIMING: Quick=3-5min, Full=10-15min, Deep=20-25min. Wait before checking: Get-Content .\dast-reports\act-dast.log -Tail 100
+# MONITORING: Auto-monitor progress in separate terminal: .\scripts\monitor-act-dast.ps1
+# MANUAL CHECK: Get-Content .\dast-reports\act-dast.log -Tail 100
+# TIMING: Quick=3-5min, Full=10-15min, Deep=20-25min
 # OUTPUT CONVENTION: All scan outputs and reports must be written to ./dast-reports/ directory
 
 on:
