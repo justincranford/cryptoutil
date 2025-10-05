@@ -285,6 +285,26 @@ jobs:
 
         echo "✅ Header capture process completed"
 
+    # IMPORTANT: ZAP runs in a separate Docker container (not inside act/runner)
+    # This is different from Nuclei which runs via projectdiscovery/nuclei-action inside the runner.
+    # We need to verify the target is reachable from a Docker container context.
+    - name: Verify ZAP can reach target
+      run: |
+        echo "🔍 Verifying ZAP can reach target from Docker container..."
+        # Test if target is reachable from a Docker container (same context ZAP will use)
+        docker run --rm --network=host curlimages/curl:latest \
+          curl -skf --connect-timeout 10 --max-time 15 \
+          -o /dev/null -w "HTTP Status: %{http_code}\n" \
+          ${{ env.TARGET_URL }}/ui/swagger/doc.json || {
+            echo "❌ Target ${{ env.TARGET_URL }} is NOT reachable from Docker container"
+            echo "This will cause ZAP scan to fail. Possible solutions:"
+            echo "  1. Use host.docker.internal instead of localhost"
+            echo "  2. Use container IP address"
+            echo "  3. Ensure --network=host is working correctly"
+            exit 1
+          }
+        echo "✅ Target is reachable from Docker container"
+
     # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
     - name: Run OWASP ZAP DAST Scan
       uses: zaproxy/action-full-scan@v0.12.0
@@ -309,6 +329,8 @@ jobs:
         # Note: ZAP action outputs will be moved to dast-reports/ in collect step
 
     # Doc: https://github.com/projectdiscovery/nuclei-action
+    # NOTE: Nuclei runs via composite action inside the GitHub Actions runner/act container,
+    # so it can access localhost:8080 directly without Docker networking complications.
     - name: Set Nuclei scan configuration based on profile
       id: nuclei_config
       run: |
