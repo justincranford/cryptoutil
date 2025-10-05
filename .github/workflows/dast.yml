@@ -72,7 +72,10 @@ on:
 env:
   GO_VERSION: '1.25.1'
 
-  TARGET_URL: ${{ github.event.inputs.target_url || 'https://localhost:8080' }}
+  # Nuclei runs inside GitHub Actions runner/act container - can use localhost directly
+  NUCLEI_TARGET_URL: ${{ github.event.inputs.target_url || 'https://localhost:8080' }}
+  # ZAP runs in separate Docker container - must use host.docker.internal to reach host network
+  ZAP_TARGET_URL: ${{ github.event.inputs.target_url || 'https://host.docker.internal:8080' }}
   SCAN_PROFILE: ${{ github.event.inputs.scan_profile || 'full' }}
 
   APP_BIND_PUBLIC_PROTOCOL: https
@@ -212,11 +215,62 @@ jobs:
 
         echo "✅ Application is ready and responsive"
 
+    - name: Diagnostic - Verify connectivity from runner and Docker contexts
+      if: always()
+      run: |
+        echo "🔍 Testing connectivity from different contexts..."
+        echo ""
+        echo "=== Context 1: GitHub Actions Runner (where Nuclei runs) ==="
+        echo "Testing localhost URLs (should work for Nuclei):"
+
+        echo "1. Testing https://localhost:8080/ui/swagger/doc.json"
+        if curl -skf --connect-timeout 5 --max-time 10 https://localhost:8080/ui/swagger/doc.json -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+          echo "  ✅ localhost:8080 reachable from runner"
+        else
+          echo "  ❌ localhost:8080 NOT reachable from runner (exit code: $?)"
+        fi
+
+        echo "2. Testing http://127.0.0.1:9090/readyz"
+        if curl -skf --connect-timeout 5 --max-time 10 http://127.0.0.1:9090/readyz -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+          echo "  ✅ 127.0.0.1:9090 reachable from runner"
+        else
+          echo "  ❌ 127.0.0.1:9090 NOT reachable from runner (exit code: $?)"
+        fi
+
+        echo ""
+        echo "=== Context 2: Docker Container (where ZAP runs) ==="
+        echo "Testing host.docker.internal URLs (should work for ZAP):"
+
+        echo "3. Testing https://host.docker.internal:8080/ui/swagger/doc.json"
+        if docker run --rm --network=host curlimages/curl:latest \
+          curl -skf --connect-timeout 10 --max-time 15 \
+          -o /dev/null -w "HTTP %{http_code}\n" \
+          https://host.docker.internal:8080/ui/swagger/doc.json 2>&1; then
+          echo "  ✅ host.docker.internal:8080 reachable from Docker container"
+        else
+          echo "  ❌ host.docker.internal:8080 NOT reachable from Docker container (exit code: $?)"
+        fi
+
+        echo "4. Testing localhost from Docker (should fail - for comparison):"
+        if docker run --rm --network=host curlimages/curl:latest \
+          curl -skf --connect-timeout 5 --max-time 10 \
+          -o /dev/null -w "HTTP %{http_code}\n" \
+          https://localhost:8080/ui/swagger/doc.json 2>&1; then
+          echo "  ✅ localhost:8080 reachable from Docker (unexpected)"
+        else
+          echo "  ❌ localhost:8080 NOT reachable from Docker (expected behavior)"
+        fi
+
+        echo ""
+        echo "=== Summary ==="
+        echo "- Nuclei should use: ${{ env.NUCLEI_TARGET_URL }}"
+        echo "- ZAP should use: ${{ env.ZAP_TARGET_URL }}"
+
     - name: Capture baseline response headers (immediate)
       if: always()
       run: |
         # Capture headers from key API endpoints (app is ready per health check)
-        echo "🔍 Starting header capture from ${{ env.TARGET_URL }}..."
+        echo "🔍 Starting header capture from ${{ env.NUCLEI_TARGET_URL }}..."
         echo "📂 Current directory: $(pwd)"
         echo "📁 Contents of dast-reports before capture:"
         ls -la dast-reports/ || echo "dast-reports directory not found"
@@ -225,35 +279,35 @@ jobs:
         echo "🧪 Testing individual endpoints:"
 
         echo "1️⃣ Testing Swagger UI main page..."
-        if curl -skI ${{ env.TARGET_URL }}/ui/swagger/ 2>&1; then
+        if curl -skI ${{ env.NUCLEI_TARGET_URL }}/ui/swagger/ 2>&1; then
           echo "✅ Swagger UI main page - SUCCESS"
         else
           echo "❌ Swagger UI main page - FAILED (exit code: $?)"
         fi
 
         echo "2️⃣ Testing Swagger API spec..."
-        if curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json 2>&1; then
+        if curl -skI ${{ env.NUCLEI_TARGET_URL }}/ui/swagger/doc.json 2>&1; then
           echo "✅ Swagger API spec - SUCCESS"
         else
           echo "❌ Swagger API spec - FAILED (exit code: $?)"
         fi
 
         echo "3️⃣ Testing Browser API CSRF token..."
-        if curl -skI ${{ env.TARGET_URL }}/browser/api/v1/csrf-token 2>&1; then
+        if curl -skI ${{ env.NUCLEI_TARGET_URL }}/browser/api/v1/csrf-token 2>&1; then
           echo "✅ Browser API CSRF token - SUCCESS"
         else
           echo "❌ Browser API CSRF token - FAILED (exit code: $?)"
         fi
 
         echo "4️⃣ Testing Browser API Elastic Keys..."
-        if curl -skI ${{ env.TARGET_URL }}/browser/api/v1/elastickeys 2>&1; then
+        if curl -skI ${{ env.NUCLEI_TARGET_URL }}/browser/api/v1/elastickeys 2>&1; then
           echo "✅ Browser API Elastic Keys - SUCCESS"
         else
           echo "❌ Browser API Elastic Keys - FAILED (exit code: $?)"
         fi
 
         echo "5️⃣ Testing Service API Elastic Keys..."
-        if curl -skI ${{ env.TARGET_URL }}/service/api/v1/elastickeys 2>&1; then
+        if curl -skI ${{ env.NUCLEI_TARGET_URL }}/service/api/v1/elastickeys 2>&1; then
           echo "✅ Service API Elastic Keys - SUCCESS"
         else
           echo "❌ Service API Elastic Keys - FAILED (exit code: $?)"
@@ -263,15 +317,15 @@ jobs:
         {
           echo "# Header Baseline ($(date -u))"
           echo "## Swagger UI (main page)"
-          curl -skI ${{ env.TARGET_URL }}/ui/swagger/ 2>/dev/null || echo "(failed)"
+          curl -skI ${{ env.NUCLEI_TARGET_URL }}/ui/swagger/ 2>/dev/null || echo "(failed)"
           echo -e "\\n## Swagger API spec"
-          curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json 2>/dev/null || echo "(failed)"
+          curl -skI ${{ env.NUCLEI_TARGET_URL }}/ui/swagger/doc.json 2>/dev/null || echo "(failed)"
           echo -e "\\n## Browser API - CSRF token endpoint"
-          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/csrf-token 2>/dev/null || echo "(failed)"
+          curl -skI ${{ env.NUCLEI_TARGET_URL }}/browser/api/v1/csrf-token 2>/dev/null || echo "(failed)"
           echo -e "\\n## Browser API - Elastic Keys endpoint"
-          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/elastickeys 2>/dev/null || echo "(failed)"
+          curl -skI ${{ env.NUCLEI_TARGET_URL }}/browser/api/v1/elastickeys 2>/dev/null || echo "(failed)"
           echo -e "\\n## Service API - Elastic Keys endpoint"
-          curl -skI ${{ env.TARGET_URL }}/service/api/v1/elastickeys 2>/dev/null || echo "(failed)"
+          curl -skI ${{ env.NUCLEI_TARGET_URL }}/service/api/v1/elastickeys 2>/dev/null || echo "(failed)"
         } > dast-reports/response-headers.txt
 
         echo "📄 Verifying file creation:"
@@ -291,20 +345,21 @@ jobs:
 
     # IMPORTANT: ZAP runs in a separate Docker container (not inside act/runner)
     # This is different from Nuclei which runs via projectdiscovery/nuclei-action inside the runner.
-    # We need to verify the target is reachable from a Docker container context.
+    # ZAP must use host.docker.internal to reach the application on the host network.
     - name: Verify ZAP can reach target
       run: |
         echo "🔍 Verifying ZAP can reach target from Docker container..."
+        echo "ZAP will use: ${{ env.ZAP_TARGET_URL }}"
         # Test if target is reachable from a Docker container (same context ZAP will use)
         docker run --rm --network=host curlimages/curl:latest \
           curl -skf --connect-timeout 10 --max-time 15 \
           -o /dev/null -w "HTTP Status: %{http_code}\n" \
-          ${{ env.TARGET_URL }}/ui/swagger/doc.json || {
-            echo "❌ Target ${{ env.TARGET_URL }} is NOT reachable from Docker container"
-            echo "This will cause ZAP scan to fail. Possible solutions:"
-            echo "  1. Use host.docker.internal instead of localhost"
-            echo "  2. Use container IP address"
-            echo "  3. Ensure --network=host is working correctly"
+          ${{ env.ZAP_TARGET_URL }}/ui/swagger/doc.json || {
+            echo "❌ Target ${{ env.ZAP_TARGET_URL }} is NOT reachable from Docker container"
+            echo "This will cause ZAP scan to fail. Troubleshooting:"
+            echo "  1. Verify host.docker.internal resolves correctly"
+            echo "  2. Check if application is bound to 0.0.0.0 (not 127.0.0.1)"
+            echo "  3. Verify firewall allows Docker container access"
             exit 1
           }
         echo "✅ Target is reachable from Docker container"
@@ -313,7 +368,7 @@ jobs:
     - name: Run OWASP ZAP DAST Scan
       uses: zaproxy/action-full-scan@v0.12.0
       with:
-        target: ${{ env.TARGET_URL }}
+        target: ${{ env.ZAP_TARGET_URL }}
         rules_file_name: '.zap/rules.tsv'
         # Cookie ignore list trimmed: only _csrf is used by cryptoutil.
         # JSESSIONID / csrftoken are from other stacks; keeping them caused confusion.
@@ -325,7 +380,7 @@ jobs:
     - name: Run OWASP ZAP API Scan
       uses: zaproxy/action-api-scan@v0.9.0
       with:
-        target: '${{ env.TARGET_URL }}/ui/swagger/doc.json'
+        target: '${{ env.ZAP_TARGET_URL }}/ui/swagger/doc.json'
         format: openapi
         cmd_options: '-a -j -T 60'
         allow_issue_writing: false
@@ -368,7 +423,7 @@ jobs:
       id: nuclei_scan
       uses: projectdiscovery/nuclei-action@main
       with:
-        target: ${{ env.TARGET_URL }}
+        target: ${{ env.NUCLEI_TARGET_URL }}
         user-agent: "User-Agent:'Nuclei - Vulnerability Scan (Have a nice day)'"
         # Exclude tcp/javascript protocol templates to avoid scanning infrastructure services (SSH:22, PostgreSQL:5432, RPC:111)
         # See: https://github.com/orgs/projectdiscovery/discussions/5159
@@ -430,7 +485,8 @@ jobs:
           echo "# DAST Security Scan Results"
           echo ""
           echo "**Profile:** ${{ env.SCAN_PROFILE }} (${{ steps.nuclei_config.outputs.description }})"
-          echo "**Target:** ${{ env.TARGET_URL }} | **Date:** $(date -u)"
+          echo "**Nuclei Target:** ${{ env.NUCLEI_TARGET_URL }} | **ZAP Target:** ${{ env.ZAP_TARGET_URL }}"
+          echo "**Date:** $(date -u)"
           echo ""
           echo "## Scan Coverage"
           [ -f "dast-reports/nuclei.log" ] && echo "- ✅ **Nuclei Scan**" || echo "- ⏭ **Nuclei Scan:** Skipped"
