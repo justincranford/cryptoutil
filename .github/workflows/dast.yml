@@ -74,7 +74,7 @@ env:
 
   SCAN_PROFILE: ${{ github.event.inputs.scan_profile || 'full' }}
 
-  # APP_PUBLIC_TARGET_URL is used for local act runs and defaults to 127.0.0.1:8080
+  # HTTP endpoints use 127.0.0.1 (not localhost) for predictable IPv4 behavior and TLS certificate compatibility
   APP_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://127.0.0.1:8080' }}
   APP_PRIVATE_TARGET_URL: ${{ github.event.inputs.target_url || 'http://127.0.0.1:9090' }}
 
@@ -92,6 +92,7 @@ env:
   APP_BIND_PRIVATE_ADDRESS: 127.0.0.1
   APP_BIND_PRIVATE_PORT: 9090
 
+  # Database uses localhost (not 127.0.0.1) for PostgreSQL client library optimization
   DB_HOST: localhost
   DB_PORT: 5432
   DB_NAME: DB
