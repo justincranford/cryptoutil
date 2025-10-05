@@ -1,4 +1,12 @@
 #!/usr/bin/env pwsh
+#-------------------------------------------------------------------------------
+# Helper script: mutation-test.ps1
+#
+# Recommended invocation (one-shot, safe - does not change machine policy):
+# powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\mutation-test.ps1
+#
+# See .github/instructions/powershell.instructions.md for full guidance
+#-------------------------------------------------------------------------------
 <#
 .SYNOPSIS
     Run mutation testing with Gremlins for the cryptoutil project

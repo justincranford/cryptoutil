@@ -1,3 +1,11 @@
+#-------------------------------------------------------------------------------
+# Helper script: lint.ps1
+#
+# Recommended invocation (one-shot, safe - does not change machine policy):
+# powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\lint.ps1
+#
+# See .github/instructions/powershell.instructions.md for full guidance
+#-------------------------------------------------------------------------------
 # PowerShell script for formatting and linting Go code
 
 Write-Host "🔧 Running gofumpt (stricter gofmt)..." -ForegroundColor Green

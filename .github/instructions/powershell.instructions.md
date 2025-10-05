@@ -1,4 +1,45 @@
 ---
+description: "Instructions for PowerShell usage on Windows"
+applyTo: "**"
+---
+# PowerShell Instructions
+
+## Execution policy: preferred invocation
+
+- ALWAYS prefer a one-shot, process-scoped bypass when running bundled helper scripts. This avoids permanently weakening machine policies and works reliably on systems where script execution is restricted.
+
+```powershell
+# Recommended (one-shot, no persistent policy change)
+powershell -NoProfile -ExecutionPolicy Bypass -File script.ps1 -ScanProfile quick -Timeout 900
+```
+
+- Alternative (session-scoped, safe for interactive runs):
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\scripts\run-act-dast.ps1 -ScanProfile quick -Timeout 900
+```
+
+Notes:
+- The first form launches a new PowerShell process with ExecutionPolicy bypassed for that process only. It's the safest and most repeatable approach for automation and CI helpers.
+- Avoid changing `-Scope LocalMachine` or `-Scope CurrentUser` unless you understand the security implications.
+
+## Scripting best-practices
+
+- Use PowerShell syntax for Windows terminal commands (not Bash).
+- Use `;` for chaining, `\` for paths, and `$env:VAR` for environment variables.
+- Use `| Select-Object -First 10` for head-like behavior and `| Select-String` for grep-like searches.
+- Avoid emojis or complex Unicode in here-strings — they can cause parsing or encoding issues.
+
+## Common mistakes to avoid
+
+- Switch parameter defaults: avoid `[switch]$All = $true`; prefer explicit logic to set defaults.
+- Here-strings: avoid complex Unicode characters inside `@"..."@`.
+- Variable expansion in paths: use `${variable}` for clarity, e.g. `"${PWD}\${OutputDir}"`.
+- Prefer here-strings over complex backtick concatenation for multi-line text.
+- Validate script parameters (test help and parameter validation) before use.
+- Use proper error handling and exit codes in scripts.
+---
 descript- **ALWAYS use execution policy bypass for PowerShell scripts**: `powershell -ExecutionPolicy Bypass -File script.ps1` (never run scripts directly with `.\script.ps1`)
 - **NEVER use emojis or Unicode symbols in PowerShell scripts** - they cause parsing errors in here-strings and break script execution
 

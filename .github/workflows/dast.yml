@@ -159,7 +159,8 @@ jobs:
     - name: Adjust ZAP target for local act runs
       if: ${{ github.actor == 'nektos/act' }}
       run: |
-        echo "Running under act - overriding ZAP_PUBLIC_TARGET_URL to use 127.0.0.1 for container reachability"
+        echo "Running under act - overriding ZAP_PUBLIC_TARGET_URL to use the public HTTPS endpoint for scans"
+        # ZAP should scan the public HTTPS APIs (port 8080). Use 127.0.0.1 to avoid host.docker.internal differences under act.
         echo "ZAP_PUBLIC_TARGET_URL=https://127.0.0.1:8080" >> $GITHUB_ENV
 
     # See internal\common\config\config.go for configuration options
@@ -273,14 +274,34 @@ jobs:
         echo ""
 
         echo "4. Testing ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger"
-        # Run the same timed check from inside a Docker container (ZAP context) and record result
-        if docker run --rm --network=host curlimages/curl:latest \
-          curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
-          echo "  ✅ ${{ env.ZAP_PUBLIC_TARGET_URL }} reachable from Docker container"
-          echo "ZAP_REACHABLE=true" >> $GITHUB_ENV
-          echo "ZAP_REACHABLE=true" >> $GITHUB_OUTPUT
-        else
-          echo "  ❌ ${{ env.ZAP_PUBLIC_TARGET_URL }} NOT reachable from Docker container (exit code: $?)"
+        # Run the same timed check from inside a Docker container (ZAP context) and record result.
+        # If the configured ZAP_PUBLIC_TARGET_URL is not reachable, try common fallbacks so local 'act' and GitHub runners work.
+        ZAP_TRY_URLS=(
+          "${{ env.ZAP_PUBLIC_TARGET_URL }}"
+          "https://host.docker.internal:8080"
+          "https://127.0.0.1:8080"
+          "http://127.0.0.1:9090"
+        )
+
+        ZAP_REACHABLE=false
+        for try_url in "${ZAP_TRY_URLS[@]}"; do
+          echo "  -> Trying from Docker: $try_url/ui/swagger"
+          if docker run --rm --network=host curlimages/curl:latest \
+            curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT "$try_url/ui/swagger" -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+            echo "    ✅ $try_url reachable from Docker container"
+            echo "ZAP_PUBLIC_TARGET_URL=$try_url" >> $GITHUB_ENV
+            echo "ZAP_PUBLIC_TARGET_URL=$try_url" >> $GITHUB_OUTPUT
+            echo "ZAP_REACHABLE=true" >> $GITHUB_ENV
+            echo "ZAP_REACHABLE=true" >> $GITHUB_OUTPUT
+            ZAP_REACHABLE=true
+            break
+          else
+            echo "    ❌ $try_url NOT reachable from Docker container (exit code: $?)"
+          fi
+        done
+
+        if [ "$ZAP_REACHABLE" != "true" ]; then
+          echo "  ❌ No reachable ZAP target from Docker container; setting ZAP_REACHABLE=false"
           echo "ZAP_REACHABLE=false" >> $GITHUB_ENV
           echo "ZAP_REACHABLE=false" >> $GITHUB_OUTPUT
         fi

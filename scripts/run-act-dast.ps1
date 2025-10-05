@@ -1,3 +1,14 @@
+#-------------------------------------------------------------------------------
+# Helper script: run-act-dast.ps1
+#
+# Recommended invocation (one-shot, safe - does not change machine policy):
+# powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-act-dast.ps1 -ScanProfile quick -Timeout 900
+#
+# Alternative (session-scoped):
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\scripts\run-act-dast.ps1 -ScanProfile quick -Timeout 900
+#
+# See .github/instructions/powershell.instructions.md for full guidance
+#-------------------------------------------------------------------------------
 #Requires -Version 5.1
 <#
 .SYNOPSIS

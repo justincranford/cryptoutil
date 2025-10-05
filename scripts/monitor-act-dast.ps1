@@ -1,6 +1,16 @@
 #!/usr/bin/env pwsh
+#-------------------------------------------------------------------------------
+# Helper script: monitor-act-dast.ps1
+#
+# Recommended invocation (one-shot, safe - does not change machine policy):
+# powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\monitor-act-dast.ps1
+#
+# Alternative (session-scoped):
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\scripts\monitor-act-dast.ps1
+#
+# See .github/instructions/powershell.instructions.md for full guidance
+#-------------------------------------------------------------------------------
 #Requires -Version 7.0
-
 <#
 .SYNOPSIS
     Monitor act DAST workflow execution progress.

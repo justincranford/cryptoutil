@@ -1,3 +1,14 @@
+#-------------------------------------------------------------------------------
+# Helper script: dast.ps1
+#
+# Recommended invocation (one-shot, safe - does not change machine policy):
+# powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\dast.ps1 -Config configs/test/config.yml -Port 8080
+#
+# Alternative (session-scoped):
+# Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\scripts\dast.ps1 -Config configs/test/config.yml -Port 8080
+#
+# See .github/instructions/powershell.instructions.md for full guidance
+#-------------------------------------------------------------------------------
 #Requires -Version 5.1
 <#
 .SYNOPSIS
