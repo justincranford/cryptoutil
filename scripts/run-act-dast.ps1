@@ -137,16 +137,44 @@ Write-Status "Log file: $LogFile" $Blue
 Write-Status "This will take 3-25 minutes depending on profile..." $Yellow
 Write-Status "" $Blue
 
+# NOTE FOR WINDOWS USERS:
+# - Ensure Docker Desktop exposes host.docker.internal DNS (default on Docker Desktop).
+# - If ZAP containers cannot reach services on the host you may need to run act with
+#   additional privileges or configure Docker networking appropriately. Example:
+#     act --privileged -P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-latest
+#   or ensure host.docker.internal resolves to the host IP.
+
 # Set encoding and run act, streaming to both console and log file
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-$actCommand = "act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=$ScanProfile --artifact-server-path ./$OutputDir"
-Write-Status "Running: $actCommand" $Blue
+$actCommand = "workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=$ScanProfile --artifact-server-path ./$OutputDir"
+Write-Status "Running: act $actCommand" $Blue
 Write-Status "" $Blue
 
-# Run act and capture output to log file (this blocks until complete)
+# Run act and reliably redirect stdout/stderr to the log file. Start-Process is used
+# so the log file is created even if the act binary buffers or behaves differently when
+# executed via Invoke-Expression. This blocks until the process completes.
+
 $startTime = Get-Date
-Invoke-Expression "$actCommand 2>&1" | Tee-Object -FilePath $LogFile
+
+# Start-Process cannot redirect stdout and stderr to the same file path. Create
+# a temporary stderr file, redirect stdout to the main log, stderr to the temp file,
+# and then append stderr to the main log after completion.
+$tempErr = Join-Path $OutputDir "act-dast.stderr.tmp"
+if (Test-Path $tempErr) { Remove-Item $tempErr -Force }
+
+Start-Process -FilePath "act" -ArgumentList $actCommand -RedirectStandardOutput $LogFile -RedirectStandardError $tempErr -NoNewWindow -Wait
+
+# Ensure both outputs are present in the final log
+if (Test-Path $tempErr) {
+    Get-Content $tempErr | Add-Content -Path $LogFile
+    Remove-Item $tempErr -Force
+}
+
+# Print the final tail of the log so user sees recent output
+if (Test-Path $LogFile) {
+    Get-Content -Path $LogFile -Tail $TailLines | ForEach-Object { Write-Host $_ }
+}
 
 $endTime = Get-Date
 $elapsed = [int](($endTime - $startTime).TotalSeconds)

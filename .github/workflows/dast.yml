@@ -159,9 +159,12 @@ jobs:
     - name: Adjust ZAP target for local act runs
       if: ${{ github.actor == 'nektos/act' }}
       run: |
-        echo "Running under act - overriding ZAP_PUBLIC_TARGET_URL to use the public HTTPS endpoint for scans"
-        # ZAP should scan the public HTTPS APIs (port 8080). Use 127.0.0.1 to avoid host.docker.internal differences under act.
-        echo "ZAP_PUBLIC_TARGET_URL=https://127.0.0.1:8080" >> $GITHUB_ENV
+        echo "Running under act - selecting ZAP_PUBLIC_TARGET_URL for local scans"
+        # For local 'act' runs prefer host.docker.internal (Docker Desktop on Windows) so the ZAP container
+        # can reach services running on the host. If that isn't reachable the diagnostic step will try
+        # additional fallbacks (127.0.0.1 and the private HTTP endpoint) and pick the first reachable one.
+        echo "ZAP_PUBLIC_TARGET_URL=https://host.docker.internal:8080" >> $GITHUB_ENV
+        echo "Note: diagnostic_connectivity will verify reachability and override this value if needed."
 
     # See internal\common\config\config.go for configuration options
     - name: Start application for DAST testing
@@ -276,9 +279,11 @@ jobs:
         echo "4. Testing ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger"
         # Run the same timed check from inside a Docker container (ZAP context) and record result.
         # If the configured ZAP_PUBLIC_TARGET_URL is not reachable, try common fallbacks so local 'act' and GitHub runners work.
+        # Prefer host.docker.internal for Docker Desktop / Windows hosts. The diagnostic will still
+        # try additional fallbacks if this isn't reachable.
         ZAP_TRY_URLS=(
-          "${{ env.ZAP_PUBLIC_TARGET_URL }}"
           "https://host.docker.internal:8080"
+          "${{ env.ZAP_PUBLIC_TARGET_URL }}"
           "https://127.0.0.1:8080"
           "http://127.0.0.1:9090"
         )
@@ -299,6 +304,9 @@ jobs:
             echo "    ❌ $try_url NOT reachable from Docker container (exit code: $?)"
           fi
         done
+
+        # Debug: show final chosen ZAP_PUBLIC_TARGET_URL to help troubleshooting in logs
+        echo "DEBUG: Final ZAP_PUBLIC_TARGET_URL=${ZAP_PUBLIC_TARGET_URL:-${{ env.ZAP_PUBLIC_TARGET_URL }}}"
 
         if [ "$ZAP_REACHABLE" != "true" ]; then
           echo "  ❌ No reachable ZAP target from Docker container; setting ZAP_REACHABLE=false"
