@@ -463,6 +463,17 @@ jobs:
   # This is different from Nuclei which runs via projectdiscovery/nuclei-action inside the runner.
 
     # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
+    - name: "Debug (act): show chosen ZAP URL and dast-reports permissions"
+      if: ${{ github.actor == 'nektos/act' }}
+      run: |
+        echo "DEBUG: Final ZAP_PUBLIC_TARGET_URL=${ZAP_PUBLIC_TARGET_URL:-unset}"
+        echo "DEBUG: Env-configured ZAP_PUBLIC_TARGET_URL='${{ env.ZAP_PUBLIC_TARGET_URL }}'"
+        echo "DEBUG: ZAP_REACHABLE (env)='${ZAP_REACHABLE:-unset}'"
+        echo "Listing ./dast-reports ownership and perms"
+        ls -la ./dast-reports || true
+        echo "Listing workspace root ownership and perms"
+        ls -la . || true
+
     # For local 'act' runs the official zaproxy actions spawn their own Docker
     # containers and bind-mount the entire workspace which can lead to NTFS/ACL
     # permission issues on Windows/WSL2. For act we run the ZAP Docker image

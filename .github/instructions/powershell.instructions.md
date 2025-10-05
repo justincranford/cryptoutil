@@ -39,25 +39,52 @@ Notes:
 - Prefer here-strings over complex backtick concatenation for multi-line text.
 - Validate script parameters (test help and parameter validation) before use.
 - Use proper error handling and exit codes in scripts.
----
-descript- **ALWAYS use execution policy bypass for PowerShell scripts**: `powershell -ExecutionPolicy Bypass -File script.ps1` (never run scripts directly with `.\script.ps1`)
-- **NEVER use emojis or Unicode symbols in PowerShell scripts** - they cause parsing errors in here-strings and break script execution
 
-## PowerShell Scripting Common Mistakes to Avoid
+## PowerShell gotchas (short, actionable)
 
-- **Switch parameter defaults**: Never set `[switch]$All = $true` - use logic to determine defaults instead
-- **Here-string content**: Avoid complex Unicode characters in here-strings (`@"..."@`) - they cause parsing errors
-- **Variable expansion in paths**: Use `${variable}` syntax for complex variable expansion (e.g., `"${PWD}/${OutputDir}"`)
-- **String concatenation**: Prefer here-strings over complex string concatenation with backticks for multi-line content
-- **Parameter validation**: Always test script parameters, especially help functionality, before completion
-- **Error handling**: Use proper PowerShell error handling patterns and exit codesn: "Instructions for PowerShell usage on Windows"
-applyTo: "**"
----
-# PowerShell Instructions
+1) Don't use `&&` / `||` chaining in PowerShell v5.1
 
-- Use PowerShell syntax for Windows terminal commands (not Bash)
-- Use `;` for chaining, `\` for paths, `$env:VAR` for env vars
-- Use `| Select-Object -First 10` for head, `| Select-String` for grep
-- Always use execution policy bypass: `powershell -ExecutionPolicy Bypass -File script.ps1`
-- Never use emojis/unicode in scripts (see formatting instructions)
-- Avoid: `[switch]$All = $true`, complex Unicode in here-strings, improper variable expansion, string concat with backticks, untested params, poor error handling
+	 - Problem: `cmd`/bash-style `&&` and `||` are not supported in older PowerShell (v5.1) and will produce a parser error.
+	 - Safe alternatives:
+		 - Put commands on separate lines in a script step (recommended).
+		 - Use `;` as a simple separator for unrelated commands: `cmd1; cmd2`.
+		 - For conditional execution mimic `&&` with `if ($LASTEXITCODE -eq 0) { cmd2 }`.
+
+	 Example (safe):
+	 ```powershell
+	 git add .github/workflows/dast.yml
+	 if ($LASTEXITCODE -eq 0) { git commit -m 'msg' }
+	 ```
+
+2) Avoid fragile one-liners with nested interpolation and unescaped `$` or `{}`
+
+	 - Problem: PowerShell expands `$var` and `${}` inside double-quoted strings; complex one-liners with `"` and `${}` frequently cause parser errors.
+	 - Safe alternatives:
+		 - Use single-quoted strings when you don't want interpolation: `'literal $value'`.
+		 - Use here-strings for multi-line commands to avoid escaping: `@" ... "@` or `@' ... '@`.
+		 - Put complex logic into a small `.ps1` script and call it from the one-liner.
+
+	 Example (safe here-string):
+	 ```powershell
+	 $script = @'
+	 $lines = Get-Content .github/workflows/dast.yml
+	 $lines[440..490] | ForEach-Object { Write-Output $_ }
+	 '@
+	 Invoke-Expression $script
+	 ```
+
+3) Use robust file-slicing/listing (avoid Select-Object -Index with a range string)
+
+	 - Problem: Trying to pass a range like `440..490` incorrectly to `Select-Object -Index` or using unescaped expressions inside a quoted one-liner will fail.
+	 - Safe alternatives:
+		 - Read the file into a variable and slice the array: `$lines = Get-Content path; $lines[440..490]`.
+		 - Use a simple `for` loop with numeric indices if you need line numbers.
+
+	 Example (safe):
+	 ```powershell
+	 $lines = Get-Content .github/workflows/dast.yml
+	 $start = 440; $end = 490
+	 for ($i = $start; $i -le $end; $i++) { "{0}: {1}" -f $i, $lines[$i-1] }
+	 ```
+
+These short rules prevent the three common failures we saw: unsupported shell operators, quoting/expansion parser errors, and brittle file-slicing one-liners. When in doubt, prefer multi-line script files or small helper scripts invoked from PowerShell.
