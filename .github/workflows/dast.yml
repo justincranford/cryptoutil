@@ -463,6 +463,37 @@ jobs:
   # This is different from Nuclei which runs via projectdiscovery/nuclei-action inside the runner.
 
     # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
+    # For local 'act' runs the official zaproxy actions spawn their own Docker
+    # containers and bind-mount the entire workspace which can lead to NTFS/ACL
+    # permission issues on Windows/WSL2. For act we run the ZAP Docker image
+    # directly and only mount the `dast-reports` directory so report writing
+    # works without requiring root in the container. GitHub-hosted runners keep
+    # using the official actions below.
+
+    - name: Run OWASP ZAP DAST Scan (act-local)
+      if: ${{ github.actor == 'nektos/act' && steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
+      run: |
+        echo "Running ZAP full-scan inside docker for act-local (mount only dast-reports)"
+        mkdir -p ./dast-reports
+        docker run --rm \
+          -v "${{ github.workspace }}/dast-reports":/zap/wrk:rw \
+          --network=host \
+          ghcr.io/zaproxy/zaproxy:stable \
+          zap-full-scan.py -t "${{ env.ZAP_PUBLIC_TARGET_URL }}" -j -r zap-report.html -J zap-report.json -w zap-report.md -T 60 -m 10 -z "-config rules.cookie.ignorelist=_csrf"
+        # move outputs into dast-reports (they are already written there by mount)
+
+    - name: Run OWASP ZAP API Scan (act-local)
+      if: ${{ github.actor == 'nektos/act' && steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
+      run: |
+        echo "Running ZAP API-scan inside docker for act-local (mount only dast-reports)"
+        mkdir -p ./dast-reports
+        docker run --rm \
+          -v "${{ github.workspace }}/dast-reports":/zap/wrk:rw \
+          --network=host \
+          ghcr.io/zaproxy/zaproxy:stable \
+          zap-api-scan.py -t "${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json" -f openapi -J zap-api-report.json -r zap-api-report.html -T 60
+
+    # Official ZAP actions for GitHub-hosted runners (unchanged)
     - name: Run OWASP ZAP DAST Scan
       if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
       uses: zaproxy/action-full-scan@v0.12.0
