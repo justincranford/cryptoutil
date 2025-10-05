@@ -225,10 +225,8 @@ jobs:
     - name: Diagnostic - Verify connectivity from runner and Docker contexts
       if: always()
       run: |
-        echo "🔍 Testing connectivity from different contexts..."
+        echo "🔍 Testing connectivity from runner..."
         echo ""
-        echo "=== Context 1: GitHub Actions Runner (where Nuclei runs) ==="
-        echo "Testing 127.0.0.1 URLs (should work for Nuclei):"
 
         echo "1. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/readyz (readiness probe)"
         if curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PRIVATE_TARGET_URL }}/readyz -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
@@ -237,22 +235,20 @@ jobs:
           echo "  ❌ ${{ env.APP_PRIVATE_TARGET_URL }} NOT reachable from runner (exit code: $?)"
         fi
 
-        echo "2. Testing ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json"
-        if curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+        echo "2. Testing ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger"
+        if curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
           echo "  ✅ ${{ env.APP_PUBLIC_TARGET_URL }} reachable from runner"
         else
           echo "  ❌ ${{ env.APP_PUBLIC_TARGET_URL }} NOT reachable from runner (exit code: $?)"
         fi
 
         echo ""
-        echo "=== Context 2: Docker Container (where ZAP runs) ==="
-        echo "Testing host.docker.internal URLs (should work for ZAP):"
+        echo "🔍 Testing connectivity from Docker container..."
+        echo ""
 
-        echo "3. Testing ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json"
+        echo "3. Testing ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger"
         if docker run --rm --network=host curlimages/curl:latest \
-          curl -skf --connect-timeout 10 --max-time 15 \
-          -o /dev/null -w "HTTP %{http_code}\n" \
-          ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json 2>&1; then
+          curl -skf --connect-timeout 5 --max-time 10 ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
           echo "  ✅ ${{ env.ZAP_PUBLIC_TARGET_URL }} reachable from Docker container"
         else
           echo "  ❌ ${{ env.ZAP_PUBLIC_TARGET_URL }} NOT reachable from Docker container (exit code: $?)"
@@ -260,9 +256,7 @@ jobs:
 
         echo "4. Testing ${{ env.APP_PUBLIC_TARGET_URL }} from Docker (should fail - for comparison):"
         if docker run --rm --network=host curlimages/curl:latest \
-          curl -skf --connect-timeout 5 --max-time 10 \
-          -o /dev/null -w "HTTP %{http_code}\n" \
-          ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json 2>&1; then
+          curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
           echo "  ✅ ${{ env.APP_PUBLIC_TARGET_URL }} reachable from Docker (unexpected)"
         else
           echo "  ❌ ${{ env.APP_PUBLIC_TARGET_URL }} NOT reachable from Docker (expected behavior)"
@@ -270,10 +264,10 @@ jobs:
 
         echo ""
         echo "=== Summary ==="
-        echo "- ACT should use: ${{ env.APP_PUBLIC_TARGET_URL }}"
-        echo "- ACT should use: ${{ env.APP_PRIVATE_TARGET_URL }}"
-        echo "- Nuclei should use: ${{ env.NUCLEI_PUBLIC_TARGET_URL }}"
-        echo "- ZAP should use: ${{ env.ZAP_PUBLIC_TARGET_URL }}"
+        echo "- ACT public target URL should use: ${{ env.APP_PUBLIC_TARGET_URL }}"
+        echo "- ACT private target URL should use: ${{ env.APP_PRIVATE_TARGET_URL }}"
+        echo "- Nuclei public target URL should use: ${{ env.NUCLEI_PUBLIC_TARGET_URL }}"
+        echo "- ZAP public target URL should use: ${{ env.ZAP_PUBLIC_TARGET_URL }}"
 
     - name: Capture baseline response headers (immediate)
       if: always()
@@ -284,56 +278,18 @@ jobs:
         echo "📁 Contents of dast-reports before capture:"
         ls -la dast-reports/ || echo "dast-reports directory not found"
 
-        # Test each endpoint individually with detailed logging
-        echo "🧪 Testing individual endpoints:"
-
-        echo "1️⃣ Testing Swagger UI main page..."
-        if curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/ 2>&1; then
-          echo "✅ Swagger UI main page - SUCCESS"
-        else
-          echo "❌ Swagger UI main page - FAILED (exit code: $?)"
-        fi
-
-        echo "2️⃣ Testing Swagger API spec..."
-        if curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json 2>&1; then
-          echo "✅ Swagger API spec - SUCCESS"
-        else
-          echo "❌ Swagger API spec - FAILED (exit code: $?)"
-        fi
-
-        echo "3️⃣ Testing Browser API CSRF token..."
-        if curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/browser/api/v1/csrf-token 2>&1; then
-          echo "✅ Browser API CSRF token - SUCCESS"
-        else
-          echo "❌ Browser API CSRF token - FAILED (exit code: $?)"
-        fi
-
-        echo "4️⃣ Testing Browser API Elastic Keys..."
-        if curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/browser/api/v1/elastickeys 2>&1; then
-          echo "✅ Browser API Elastic Keys - SUCCESS"
-        else
-          echo "❌ Browser API Elastic Keys - FAILED (exit code: $?)"
-        fi
-
-        echo "5️⃣ Testing Service API Elastic Keys..."
-        if curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/service/api/v1/elastickeys 2>&1; then
-          echo "✅ Service API Elastic Keys - SUCCESS"
-        else
-          echo "❌ Service API Elastic Keys - FAILED (exit code: $?)"
-        fi
-
         echo "📝 Creating header baseline file..."
         {
           echo "# Header Baseline ($(date -u))"
           echo "## Swagger UI (main page)"
           curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/ 2>/dev/null || echo "(failed)"
-          echo -e "\\n## Swagger API spec"
+          echo -e "\n## Swagger API spec (doc.json)"
           curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json 2>/dev/null || echo "(failed)"
-          echo -e "\\n## Browser API - CSRF token endpoint"
+          echo -e "\n## Browser API - CSRF token endpoint"
           curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/browser/api/v1/csrf-token 2>/dev/null || echo "(failed)"
-          echo -e "\\n## Browser API - Elastic Keys endpoint"
+          echo -e "\n## Browser API - Elastic Keys endpoint"
           curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/browser/api/v1/elastickeys 2>/dev/null || echo "(failed)"
-          echo -e "\\n## Service API - Elastic Keys endpoint"
+          echo -e "\n## Service API - Elastic Keys endpoint"
           curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/service/api/v1/elastickeys 2>/dev/null || echo "(failed)"
         } > dast-reports/response-headers.txt
 
