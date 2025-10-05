@@ -219,10 +219,12 @@ jobs:
           curl -skI ${{ env.TARGET_URL }}/ui/swagger/ || echo "(failed)"
           echo -e "\\n## Swagger API spec"
           curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json || echo "(failed)"
-          echo -e "\\n## Browser API root (/browser/api/v1)"
-          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/ || echo "(failed)"
-          echo -e "\\n## Service API root (/service/api/v1)"
-          curl -skI ${{ env.TARGET_URL }}/service/api/v1/ || echo "(failed)"
+          echo -e "\\n## Browser API - CSRF token endpoint"
+          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/csrf-token || echo "(failed)"
+          echo -e "\\n## Browser API - Elastic Keys endpoint"
+          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/elastickeys || echo "(failed)"
+          echo -e "\\n## Service API - Elastic Keys endpoint"
+          curl -skI ${{ env.TARGET_URL }}/service/api/v1/elastickeys || echo "(failed)"
         } > dast-reports/response-headers.txt
         echo "Header capture completed, saved to dast-reports/response-headers.txt"
 
