@@ -1,8 +1,10 @@
 name: DAST Security Testing
-# IMPORTANT: Test locally with:
+# IMPORTANT: Test locally with act (NO TIMEOUT - workflows take 3-25 minutes):
 #   [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-#   act workflow_dispatch -j dast-security-scan --input scan_profile=quick --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
-#   act workflow_dispatch -j dast-security-scan --input scan_profile=full --bind 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+#   act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=quick --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+#   act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=full --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+#   act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=deep --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
+# TIMING: Quick=3-5min, Full=10-15min, Deep=20-25min. Wait before checking: Get-Content .\dast-reports\act-dast.log -Tail 100
 # OUTPUT CONVENTION: All scan outputs and reports must be written to ./dast-reports/ directory
 
 on:
