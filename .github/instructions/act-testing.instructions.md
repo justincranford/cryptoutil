@@ -86,8 +86,13 @@ The `run-act-dast.ps1` script automatically analyzes:
 ❌ **NEVER do this**: `Start-Sleep -Seconds 60` (way too short)
 ❌ **NEVER do this**: Checking terminal output while workflow is running
 ❌ **NEVER do this**: Running act commands directly without monitoring/analysis
+❌ **CRITICAL - NEVER do this**: `Get-Content -Wait` on log file while scan is running - THIS KILLS THE PROCESS
+❌ **CRITICAL - NEVER do this**: Any interactive monitoring commands that lock files or interfere with running processes
+❌ **CRITICAL - NEVER do this**: Opening/tailing log files in another terminal while scan is running
 
 ✅ **ALWAYS do this**: Use `run-act-dast.ps1` script for automated monitoring
 ✅ **ALWAYS do this**: Allow sufficient timeout for scan profile
 ✅ **ALWAYS do this**: Review generated `act-status.txt` summary
-✅ **ALWAYS do this**: Check log file for detailed error messages if tasks fail
+✅ **ALWAYS do this**: Check log file for detailed error messages AFTER tasks complete
+✅ **ALWAYS do this**: Let the script complete fully before checking any outputs
+✅ **ALWAYS do this**: If monitoring is needed, open a SEPARATE PowerShell window and use: `Get-Content .\dast-reports\act-dast.log -Tail 20` (without -Wait flag, run periodically)
