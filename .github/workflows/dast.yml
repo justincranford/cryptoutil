@@ -229,18 +229,18 @@ jobs:
         echo "=== Context 1: GitHub Actions Runner (where Nuclei runs) ==="
         echo "Testing localhost URLs (should work for Nuclei):"
 
-        echo "1. Testing ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json"
-        if curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
-          echo "  ✅ ${{ env.APP_PUBLIC_TARGET_URL }} reachable from runner"
-        else
-          echo "  ❌ ${{ env.APP_PUBLIC_TARGET_URL }} NOT reachable from runner (exit code: $?)"
-        fi
-
-        echo "2. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/readyz"
+        echo "1. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/readyz"
         if curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PRIVATE_TARGET_URL }}/readyz -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
           echo "  ✅ ${{ env.APP_PRIVATE_TARGET_URL }} reachable from runner"
         else
           echo "  ❌ ${{ env.APP_PRIVATE_TARGET_URL }} NOT reachable from runner (exit code: $?)"
+        fi
+
+        echo "2. Testing ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json"
+        if curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+          echo "  ✅ ${{ env.APP_PUBLIC_TARGET_URL }} reachable from runner"
+        else
+          echo "  ❌ ${{ env.APP_PUBLIC_TARGET_URL }} NOT reachable from runner (exit code: $?)"
         fi
 
         echo ""
