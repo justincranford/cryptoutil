@@ -135,6 +135,38 @@ jobs:
         # Ephemeral mode: always use latest nuclei templates
         echo "templates_version=LATEST" >> $GITHUB_OUTPUT
 
+    - name: Diagnostic - System information
+      if: always()
+      run: |
+        mkdir -p ./dast-reports
+        SYSINFO=dast-reports/system-info.txt
+        echo "Date: $(date -u)" > $SYSINFO
+        echo "===== uname -a =====" >> $SYSINFO
+        uname -a >> $SYSINFO 2>&1 || true
+        echo "\n===== lsb_release / os-release =====" >> $SYSINFO
+        [ -f /etc/os-release ] && cat /etc/os-release >> $SYSINFO || true
+        echo "\n===== ip addr =====" >> $SYSINFO
+        ip addr || true >> $SYSINFO 2>&1
+        echo "\n===== ip route =====" >> $SYSINFO
+        ip route || true >> $SYSINFO 2>&1
+        echo "\n===== ss -ltnp (listening TCP sockets) =====" >> $SYSINFO
+        ss -ltnp || netstat -ltnp || true >> $SYSINFO 2>&1
+        echo "\n===== docker version/info =====" >> $SYSINFO
+        docker version >> $SYSINFO 2>&1 || true
+        docker info >> $SYSINFO 2>&1 || true
+        echo "\n===== docker network ls =====" >> $SYSINFO
+        docker network ls >> $SYSINFO 2>&1 || true
+        echo "\n===== docker ps -a =====" >> $SYSINFO
+        docker ps -a >> $SYSINFO 2>&1 || true
+        echo "\n===== Top processes (top -b -n1 | head -30) =====" >> $SYSINFO
+        (top -b -n1 | head -30) >> $SYSINFO 2>&1 || ps aux --sort=-%mem | head -30 >> $SYSINFO 2>&1 || true
+        echo "\n===== Selected environment variables =====" >> $SYSINFO
+        # Print only non-secret env vars that are helpful for diagnostics
+        for v in GO_VERSION SCAN_PROFILE APP_PUBLIC_TARGET_URL APP_PRIVATE_TARGET_URL NUCLEI_PUBLIC_TARGET_URL ZAP_PUBLIC_TARGET_URL APP_BIND_PUBLIC_PORT APP_BIND_PRIVATE_PORT DB_HOST DB_PORT; do
+          echo "$v=${!v}" >> $SYSINFO 2>&1 || true
+        done
+        echo "\nWrote system diagnostics to: $SYSINFO"
+
     - name: Cache Nuclei Templates
       id: cache-nuclei-templates
       uses: actions/cache@v4
@@ -185,9 +217,12 @@ jobs:
         EOF
 
         # Start application in background, capture PID for cleanup; use nohup to avoid termination on shell exit
-        nohup ./cryptoutil server start --config configs/test/config.yml &
+        mkdir -p dast-reports
+        # Redirect stdout/stderr to files under dast-reports for easier post-mortem
+        nohup ./cryptoutil server start --config configs/test/config.yml > dast-reports/app.stdout 2> dast-reports/app.stderr &
         APP_PID=$!
         echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+        echo "Wrote app logs to: dast-reports/app.stdout and dast-reports/app.stderr"
 
         # Enhanced readiness probe with retry/backoff logic
         echo "Waiting for application to be ready..."
@@ -210,8 +245,10 @@ jobs:
           for endpoint in "${HEALTH_ENDPOINTS[@]}"; do
             echo "Testing: $endpoint"
             # Use slightly generous timeouts for containerized environments
-            if curl -k -f --connect-timeout 10 --max-time 15 "$endpoint" >/dev/null 2>&1; then
-              echo "✓ Application ready at: $endpoint"
+            # Save response headers and body to files for debugging
+            SAFE_NAME=$(echo "$endpoint" | sed -e 's/[^a-zA-Z0-9]/_/g' | cut -c1-80)
+            if curl -sk --connect-timeout 10 --max-time 15 -D dast-reports/health_${SAFE_NAME}.headers -o dast-reports/health_${SAFE_NAME}.body "$endpoint" >/dev/null 2>&1; then
+              echo "✓ Application ready at: $endpoint (output saved to dast-reports/health_${SAFE_NAME}.*)"
               READY=true
               break
             else
@@ -247,27 +284,32 @@ jobs:
         echo ""
 
         echo "1. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/readyz (readiness probe)"
-        if curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT ${{ env.APP_PRIVATE_TARGET_URL }}/readyz -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+        curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D dast-reports/connectivity_private_readyz.headers -o dast-reports/connectivity_private_readyz.body ${{ env.APP_PRIVATE_TARGET_URL }}/readyz || true
+        echo "Runner->private_readyz: $(wc -c < dast-reports/connectivity_private_readyz.body 2>/dev/null || echo 0) bytes"
+        if [ -s dast-reports/connectivity_private_readyz.body ]; then
           echo "  ✅ ${{ env.APP_PRIVATE_TARGET_URL }} reachable from runner"
         else
-          echo "  ❌ ${{ env.APP_PRIVATE_TARGET_URL }} NOT reachable from runner (exit code: $?)"
+          echo "  ❌ ${{ env.APP_PRIVATE_TARGET_URL }} NOT reachable from runner"
         fi
 
         echo "2. Testing ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger"
-        if curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+        curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D dast-reports/connectivity_public_swagger.headers -o dast-reports/connectivity_public_swagger.body ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger || true
+        echo "Runner->public_swagger: $(wc -c < dast-reports/connectivity_public_swagger.body 2>/dev/null || echo 0) bytes"
+        if [ -s dast-reports/connectivity_public_swagger.body ]; then
           echo "  ✅ ${{ env.APP_PUBLIC_TARGET_URL }} reachable from runner"
         else
-          echo "  ❌ ${{ env.APP_PUBLIC_TARGET_URL }} NOT reachable from runner (exit code: $?)"
+          echo "  ❌ ${{ env.APP_PUBLIC_TARGET_URL }} NOT reachable from runner"
         fi
 
         echo "3. Testing Nuclei target ${{ env.NUCLEI_PUBLIC_TARGET_URL }}/ui/swagger"
-        # Nuclei runs inside the runner/act container, so test reachability from runner and record result
-        if curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT ${{ env.NUCLEI_PUBLIC_TARGET_URL }}/ui/swagger -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+        curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D dast-reports/connectivity_nuclei.headers -o dast-reports/connectivity_nuclei.body ${{ env.NUCLEI_PUBLIC_TARGET_URL }}/ui/swagger || true
+        echo "Runner->nuclei_swagger: $(wc -c < dast-reports/connectivity_nuclei.body 2>/dev/null || echo 0) bytes"
+        if [ -s dast-reports/connectivity_nuclei.body ]; then
           echo "  ✅ Nuclei target reachable from runner"
           echo "NUCLEI_REACHABLE=true" >> $GITHUB_ENV
           echo "NUCLEI_REACHABLE=true" >> $GITHUB_OUTPUT
         else
-          echo "  ❌ Nuclei target NOT reachable from runner (exit code: $?)"
+          echo "  ❌ Nuclei target NOT reachable from runner"
           echo "NUCLEI_REACHABLE=false" >> $GITHUB_ENV
           echo "NUCLEI_REACHABLE=false" >> $GITHUB_OUTPUT
         fi
@@ -291,9 +333,11 @@ jobs:
         ZAP_REACHABLE=false
         for try_url in "${ZAP_TRY_URLS[@]}"; do
           echo "  -> Trying from Docker: $try_url/ui/swagger"
+          # Capture output from Docker-run curl into dast-reports for debugging
+          OUTFILE=dast-reports/docker_connect_$(echo $try_url | sed -e 's/[^a-zA-Z0-9]/_/g').txt
           if docker run --rm --network=host curlimages/curl:latest \
-            curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT "$try_url/ui/swagger" -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
-            echo "    ✅ $try_url reachable from Docker container"
+            curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D - "$try_url/ui/swagger" > $OUTFILE 2>&1; then
+            echo "    ✅ $try_url reachable from Docker container (details: $OUTFILE)"
             echo "ZAP_PUBLIC_TARGET_URL=$try_url" >> $GITHUB_ENV
             echo "ZAP_PUBLIC_TARGET_URL=$try_url" >> $GITHUB_OUTPUT
             echo "ZAP_REACHABLE=true" >> $GITHUB_ENV
@@ -301,12 +345,13 @@ jobs:
             ZAP_REACHABLE=true
             break
           else
-            echo "    ❌ $try_url NOT reachable from Docker container (exit code: $?)"
+            echo "    ❌ $try_url NOT reachable from Docker container (details: $OUTFILE)"
           fi
         done
 
         # Debug: show final chosen ZAP_PUBLIC_TARGET_URL to help troubleshooting in logs
-        echo "DEBUG: Final ZAP_PUBLIC_TARGET_URL=${ZAP_PUBLIC_TARGET_URL:-${{ env.ZAP_PUBLIC_TARGET_URL }}}"
+        echo "DEBUG: Final ZAP_PUBLIC_TARGET_URL (runtime)='${ZAP_PUBLIC_TARGET_URL:-unset}'"
+        echo "DEBUG: Final ZAP_PUBLIC_TARGET_URL (configured)='${{ env.ZAP_PUBLIC_TARGET_URL }}'"
 
         if [ "$ZAP_REACHABLE" != "true" ]; then
           echo "  ❌ No reachable ZAP target from Docker container; setting ZAP_REACHABLE=false"
@@ -333,12 +378,12 @@ jobs:
       if: always()
       run: |
         # Capture headers from key API endpoints (app is ready per health check)
-        echo "🔍 Starting header capture from ${{ env.APP_PUBLIC_TARGET_URL }}..."
-        echo "📂 Current directory: $(pwd)"
-        echo "📁 Contents of dast-reports before capture:"
+        echo "Starting header capture from ${{ env.APP_PUBLIC_TARGET_URL }}..."
+        echo "Current directory: $(pwd)"
+        echo "Contents of dast-reports before capture:"
         ls -la dast-reports/ || echo "dast-reports directory not found"
 
-        echo "📝 Creating header baseline file..."
+        echo "Creating header baseline file..."
         {
           echo "# Header Baseline ($(date -u))"
           echo "## Private - readyz"
@@ -357,24 +402,31 @@ jobs:
           curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/service/api/v1/elastickeys 2>/dev/null || echo "(failed)"
         } > dast-reports/response-headers.txt
 
-        echo "📄 Verifying file creation:"
+        echo "Verifying file creation:"
         if [ -f "dast-reports/response-headers.txt" ]; then
-          echo "✅ File created successfully: dast-reports/response-headers.txt"
-          echo "📏 File size: $(wc -c < dast-reports/response-headers.txt) bytes"
-          echo "📋 File contents preview (first 10 lines):"
+          echo "File created successfully: dast-reports/response-headers.txt"
+          echo "File size: $(wc -c < dast-reports/response-headers.txt) bytes"
+          echo "File contents preview (first 10 lines):"
           head -10 dast-reports/response-headers.txt
         else
-          echo "❌ File NOT created: dast-reports/response-headers.txt"
+          echo "File NOT created: dast-reports/response-headers.txt"
         fi
 
-        echo "📁 Contents of dast-reports after capture:"
+        echo "Contents of dast-reports after capture:"
         ls -la dast-reports/ || echo "dast-reports directory not found"
 
-        echo "✅ Header capture process completed"
-
-    # IMPORTANT: ZAP runs in a separate Docker container (not inside act/runner)
-    # This is different from Nuclei which runs via projectdiscovery/nuclei-action inside the runner.
-    # ZAP must use host.docker.internal to reach the application on the host network.
+        echo "Header capture process completed"
+        # Also capture a short app log tail for quick inspection
+        if [ -f dast-reports/app.stdout ]; then
+          echo "\n===== APP STDOUT (tail 200) =====" >> dast-reports/system-info.txt || true
+          tail -n 200 dast-reports/app.stdout >> dast-reports/system-info.txt || true
+        fi
+        if [ -f dast-reports/app.stderr ]; then
+          echo "\n===== APP STDERR (tail 200) =====" >> dast-reports/system-info.txt || true
+          tail -n 200 dast-reports/app.stderr >> dast-reports/system-info.txt || true
+        fi
+  # IMPORTANT: ZAP runs in a separate Docker container (not inside act/runner)
+  # This is different from Nuclei which runs via projectdiscovery/nuclei-action inside the runner.
 
     # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
     - name: Run OWASP ZAP DAST Scan
@@ -471,7 +523,14 @@ jobs:
           cp ./dast-reports/nuclei.sarif nuclei.sarif
         fi
 
+    - name: Post-collect artifact listing
+      if: always()
+      run: |
         echo "Artifact collection complete"
+        # Produce a short diagnostic listing of artifacts for easier analysis
+        echo "===== DAST-REPORTS DIR =====" > dast-reports/artifact-listing.txt
+        ls -la dast-reports/ >> dast-reports/artifact-listing.txt 2>&1 || true
+          echo "Wrote artifact listing to dast-reports/artifact-listing.txt"
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
@@ -496,6 +555,7 @@ jobs:
     - name: Generate Security Summary
       if: always()
       run: |
+        SUMMARY_FILE=dast-reports/act-status.txt
         {
           echo "# DAST Security Scan Results"
           echo ""
@@ -511,7 +571,16 @@ jobs:
           [ -f dast-reports/nuclei.log ] && echo "- Nuclei Log/SARIF" || true
           [ -f dast-reports/response-headers.txt ] && echo "- Security Headers" || true
           ls zap-*-report.html >/dev/null 2>&1 && echo "- ZAP Reports" || true
-        } >> $GITHUB_STEP_SUMMARY
+          echo ""
+          echo "## Diagnostic summary"
+          echo "NUCLEI_REACHABLE=${NUCLEI_REACHABLE:-unset}"
+          echo "ZAP_REACHABLE=${ZAP_REACHABLE:-unset}"
+          echo "APP_PID=${APP_PID:-unset}"
+          echo "APP_LOGS: dast-reports/app.stdout (exists=$( [ -f dast-reports/app.stdout ] && echo yes || echo no))"
+          echo "APP_ERRS: dast-reports/app.stderr (exists=$( [ -f dast-reports/app.stderr ] && echo yes || echo no))"
+          echo "System diagnostics file: dast-reports/system-info.txt"
+        } | tee -a $GITHUB_STEP_SUMMARY > $SUMMARY_FILE
+        echo "Wrote final analysis summary to: $SUMMARY_FILE"
 
     - name: Cleanup
       if: always()
