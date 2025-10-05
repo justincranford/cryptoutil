@@ -211,18 +211,20 @@ jobs:
     - name: Capture baseline response headers (immediate)
       if: always()
       run: |
-        # Capture headers immediately after application startup confirmation
+        # Capture headers from key API endpoints (app is ready per health check)
+        echo "Capturing headers from ${{ env.TARGET_URL }}..."
         {
           echo "# Header Baseline ($(date -u))"
           echo "## Swagger UI (main page)"
-          curl -skI ${{ env.TARGET_URL }}/ui/swagger/ 2>/dev/null || echo "(failed)"
+          curl -skI ${{ env.TARGET_URL }}/ui/swagger/ || echo "(failed)"
           echo -e "\\n## Swagger API spec"
-          curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json 2>/dev/null || echo "(failed)"
-          echo -e "\\n## Browser API root"
-          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/ 2>/dev/null || echo "(failed)"
-          echo -e "\\n## Service API root"
-          curl -skI ${{ env.TARGET_URL }}/service/api/v1/ 2>/dev/null || echo "(failed)"
+          curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json || echo "(failed)"
+          echo -e "\\n## Browser API root (/browser/api/v1)"
+          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/ || echo "(failed)"
+          echo -e "\\n## Service API root (/service/api/v1)"
+          curl -skI ${{ env.TARGET_URL }}/service/api/v1/ || echo "(failed)"
         } > dast-reports/response-headers.txt
+        echo "Header capture completed, saved to dast-reports/response-headers.txt"
 
     # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
     # Issue: ZAP action fails in act environment - investigate GitHub-only testing
