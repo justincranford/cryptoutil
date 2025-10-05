@@ -56,6 +56,7 @@ param(
     [int]$Timeout = 600,
     [int]$TailLines = 20,
     [string]$OutputDir = "dast-reports",
+    [string]$ActArgs = "",
     [switch]$Help
 )
 
@@ -148,6 +149,10 @@ Write-Status "" $Blue
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $actCommand = "workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=$ScanProfile --artifact-server-path ./$OutputDir"
+if ($ActArgs -ne "") {
+    Write-Status "Appending extra act args: $ActArgs" $Yellow
+    $actCommand = "$ActArgs $actCommand"
+}
 Write-Status "Running: act $actCommand" $Blue
 Write-Status "" $Blue
 
@@ -163,9 +168,36 @@ $startTime = Get-Date
 $tempErr = Join-Path $OutputDir "act-dast.stderr.tmp"
 if (Test-Path $tempErr) { Remove-Item $tempErr -Force }
 
-Start-Process -FilePath "act" -ArgumentList $actCommand -RedirectStandardOutput $LogFile -RedirectStandardError $tempErr -NoNewWindow -Wait
 
-# Ensure both outputs are present in the final log
+# Start act as a background process and monitor progress by tailing the log.
+# This avoids leaving the terminal idle and lets the script report progress
+# automatically without further prompting.
+$proc = Start-Process -FilePath "act" -ArgumentList $actCommand -RedirectStandardOutput $LogFile -RedirectStandardError $tempErr -NoNewWindow -PassThru
+Write-Status "Started act (PID: $($proc.Id)). Monitoring progress..." $Blue
+
+# Poll the process and print recent log lines periodically
+$lastTail = 0
+while (-not $proc.HasExited) {
+    if (Test-Path $LogFile) {
+        try {
+            $lines = Get-Content -Path $LogFile -Encoding UTF8 -ErrorAction Stop
+            $total = $lines.Count
+            if ($total -gt $lastTail) {
+                $new = $lines[$lastTail..($total - 1)]
+                foreach ($l in $new) { Write-Host $l }
+                $lastTail = $total
+            }
+        } catch {
+            # If file is being written, skip this interval
+        }
+    }
+    Start-Sleep -Seconds 5
+}
+
+# Ensure process exit is observed
+$proc.WaitForExit()
+
+# Ensure both outputs are present in the final log; append stderr and remove temp
 if (Test-Path $tempErr) {
     Get-Content $tempErr | Add-Content -Path $LogFile
     Remove-Item $tempErr -Force
