@@ -286,29 +286,27 @@ jobs:
         echo "✅ Header capture process completed"
 
     # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
-    # Issue: ZAP action fails in act environment - investigate GitHub-only testing
-  # - name: Run OWASP ZAP DAST Scan
-  #   uses: zaproxy/action-full-scan@v0.12.0
-  #   with:
-  #     target: ${{ env.TARGET_URL }}
-  #     rules_file_name: '.zap/rules.tsv'
-  #     # Cookie ignore list trimmed: only _csrf is used by cryptoutil.
-  #     # JSESSIONID / csrftoken are from other stacks; keeping them caused confusion.
-  #     cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=_csrf"'
-  #     allow_issue_writing: false
-  #     artifact_name: 'zap-report'
-  #     # Note: ZAP action outputs will be moved to dast-reports/ when re-enabled
+    - name: Run OWASP ZAP DAST Scan
+      uses: zaproxy/action-full-scan@v0.12.0
+      with:
+        target: ${{ env.TARGET_URL }}
+        rules_file_name: '.zap/rules.tsv'
+        # Cookie ignore list trimmed: only _csrf is used by cryptoutil.
+        # JSESSIONID / csrftoken are from other stacks; keeping them caused confusion.
+        cmd_options: '-a -j -m 10 -T 60 -z "-config rules.cookie.ignorelist=_csrf"'
+        allow_issue_writing: false
+        artifact_name: 'zap-report'
+        # Note: ZAP action outputs will be moved to dast-reports/ in collect step
 
-    # Issue: ZAP API scan also fails in act environment - requires GitHub runner testing
-    # - name: Run OWASP ZAP API Scan
-    #   uses: zaproxy/action-api-scan@v0.9.0
-    #   with:
-    #     target: '${{ env.TARGET_URL }}/ui/swagger/doc.json'
-    #     format: openapi
-    #     cmd_options: '-a -j -T 60'
-    #     allow_issue_writing: false
-    #     artifact_name: 'zap-api-report'
-    #     # Note: ZAP action outputs will be moved to dast-reports/ when re-enabled
+    - name: Run OWASP ZAP API Scan
+      uses: zaproxy/action-api-scan@v0.9.0
+      with:
+        target: '${{ env.TARGET_URL }}/ui/swagger/doc.json'
+        format: openapi
+        cmd_options: '-a -j -T 60'
+        allow_issue_writing: false
+        artifact_name: 'zap-api-report'
+        # Note: ZAP action outputs will be moved to dast-reports/ in collect step
 
     # Doc: https://github.com/projectdiscovery/nuclei-action
     - name: Set Nuclei scan configuration based on profile
