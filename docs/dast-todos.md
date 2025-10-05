@@ -1,4 +1,26 @@
-# DAST TODO List - Active Tasks Only
+# DAST TODO List - Active Tas## Active Tasks
+
+### 🔴 CRITICAL: ZAP Permission Fix Ineffective (Windows/WSL2)
+
+#### Task C1: Implement Working Permission Solution for ZAP Report Writing (🔴 CRITICAL)
+- **Description**: Current chmod 777 fix doesn't work - ZAP container still cannot write reports
+- **Root Cause**: chmod inside act container doesn't propagate to separately-spawned ZAP container
+- **Current State**: Permission fix step runs successfully but ZAP still fails with "Permission denied: '/zap/wrk/report_html.html'"
+- **Investigation Finding**: ZAP action (zaproxy/action-full-scan@v0.12.0) creates its OWN Docker container with separate volume mount
+- **Action Items**:
+  - Research ZAP action source code for docker run parameters
+  - Investigate options: run ZAP as root, modify container user, or host-level permissions
+  - Consider: Pre-create report files with correct permissions before ZAP runs
+  - Alternative: Modify Windows/WSL2 filesystem permissions at host level
+  - Test solution: Verify ZAP can successfully write all report formats (HTML, JSON, MD)
+- **Files**: `.github/workflows/dast.yml` (lines 201-211 current fix, needs replacement)
+- **Expected Outcome**: ZAP successfully writes reports to `./dast-reports/` in act workflow
+- **Priority**: CRITICAL - ZAP scanning works but report generation fails
+- **Commit Reference**: Current fix commit 210696c (ineffective)
+
+---
+
+### DAST Workflow Performance Optimization (🔵 LOW - Optional)Only
 
 **Document Status**: Active Remediation Phase
 **Created**: 2025-09-30
