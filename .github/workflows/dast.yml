@@ -212,21 +212,78 @@ jobs:
       if: always()
       run: |
         # Capture headers from key API endpoints (app is ready per health check)
-        echo "Capturing headers from ${{ env.TARGET_URL }}..."
+        echo "🔍 Starting header capture from ${{ env.TARGET_URL }}..."
+        echo "📂 Current directory: $(pwd)"
+        echo "📁 Contents of dast-reports before capture:"
+        ls -la dast-reports/ || echo "dast-reports directory not found"
+
+        # Test each endpoint individually with detailed logging
+        echo "🧪 Testing individual endpoints:"
+
+        echo "1️⃣ Testing Swagger UI main page..."
+        if curl -skI ${{ env.TARGET_URL }}/ui/swagger/ 2>&1; then
+          echo "✅ Swagger UI main page - SUCCESS"
+        else
+          echo "❌ Swagger UI main page - FAILED (exit code: $?)"
+        fi
+
+        echo "2️⃣ Testing Swagger API spec..."
+        if curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json 2>&1; then
+          echo "✅ Swagger API spec - SUCCESS"
+        else
+          echo "❌ Swagger API spec - FAILED (exit code: $?)"
+        fi
+
+        echo "3️⃣ Testing Browser API CSRF token..."
+        if curl -skI ${{ env.TARGET_URL }}/browser/api/v1/csrf-token 2>&1; then
+          echo "✅ Browser API CSRF token - SUCCESS"
+        else
+          echo "❌ Browser API CSRF token - FAILED (exit code: $?)"
+        fi
+
+        echo "4️⃣ Testing Browser API Elastic Keys..."
+        if curl -skI ${{ env.TARGET_URL }}/browser/api/v1/elastickeys 2>&1; then
+          echo "✅ Browser API Elastic Keys - SUCCESS"
+        else
+          echo "❌ Browser API Elastic Keys - FAILED (exit code: $?)"
+        fi
+
+        echo "5️⃣ Testing Service API Elastic Keys..."
+        if curl -skI ${{ env.TARGET_URL }}/service/api/v1/elastickeys 2>&1; then
+          echo "✅ Service API Elastic Keys - SUCCESS"
+        else
+          echo "❌ Service API Elastic Keys - FAILED (exit code: $?)"
+        fi
+
+        echo "📝 Creating header baseline file..."
         {
           echo "# Header Baseline ($(date -u))"
           echo "## Swagger UI (main page)"
-          curl -skI ${{ env.TARGET_URL }}/ui/swagger/ || echo "(failed)"
+          curl -skI ${{ env.TARGET_URL }}/ui/swagger/ 2>/dev/null || echo "(failed)"
           echo -e "\\n## Swagger API spec"
-          curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json || echo "(failed)"
+          curl -skI ${{ env.TARGET_URL }}/ui/swagger/doc.json 2>/dev/null || echo "(failed)"
           echo -e "\\n## Browser API - CSRF token endpoint"
-          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/csrf-token || echo "(failed)"
+          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/csrf-token 2>/dev/null || echo "(failed)"
           echo -e "\\n## Browser API - Elastic Keys endpoint"
-          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/elastickeys || echo "(failed)"
+          curl -skI ${{ env.TARGET_URL }}/browser/api/v1/elastickeys 2>/dev/null || echo "(failed)"
           echo -e "\\n## Service API - Elastic Keys endpoint"
-          curl -skI ${{ env.TARGET_URL }}/service/api/v1/elastickeys || echo "(failed)"
+          curl -skI ${{ env.TARGET_URL }}/service/api/v1/elastickeys 2>/dev/null || echo "(failed)"
         } > dast-reports/response-headers.txt
-        echo "Header capture completed, saved to dast-reports/response-headers.txt"
+
+        echo "📄 Verifying file creation:"
+        if [ -f "dast-reports/response-headers.txt" ]; then
+          echo "✅ File created successfully: dast-reports/response-headers.txt"
+          echo "📏 File size: $(wc -c < dast-reports/response-headers.txt) bytes"
+          echo "📋 File contents preview (first 10 lines):"
+          head -10 dast-reports/response-headers.txt
+        else
+          echo "❌ File NOT created: dast-reports/response-headers.txt"
+        fi
+
+        echo "📁 Contents of dast-reports after capture:"
+        ls -la dast-reports/ || echo "dast-reports directory not found"
+
+        echo "✅ Header capture process completed"
 
     # Options doc: https://www.zaproxy.org/docs/docker/full-scan/
     # Issue: ZAP action fails in act environment - investigate GitHub-only testing
