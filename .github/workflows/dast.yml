@@ -56,9 +56,9 @@ on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: 'Target URL for DAST scanning (default: https://localhost:8080)'
+        description: 'Target URL for DAST scanning (default: https://127.0.0.1:8080)'
         required: false
-        default: 'https://localhost:8080'
+        default: 'https://127.0.0.1:8080'
       scan_profile:
         description: 'Scan profile for performance optimization'
         required: false
@@ -74,12 +74,12 @@ env:
 
   SCAN_PROFILE: ${{ github.event.inputs.scan_profile || 'full' }}
 
-  # APP_PUBLIC_TARGET_URL is used for local act runs and defaults to localhost:8080
-  APP_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://localhost:8080' }}
+  # APP_PUBLIC_TARGET_URL is used for local act runs and defaults to 127.0.0.1:8080
+  APP_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://127.0.0.1:8080' }}
   APP_PRIVATE_TARGET_URL: ${{ github.event.inputs.target_url || 'http://127.0.0.1:9090' }}
 
-  # Nuclei runs inside GitHub Actions runner/act container - can use localhost directly
-  NUCLEI_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://localhost:8080' }}
+  # Nuclei runs inside GitHub Actions runner/act container - can use 127.0.0.1 directly
+  NUCLEI_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://127.0.0.1:8080' }}
 
   # ZAP runs in separate Docker container - must use host.docker.internal to reach host network
   ZAP_PUBLIC_TARGET_URL: ${{ github.event.inputs.target_url || 'https://host.docker.internal:8080' }}
@@ -187,9 +187,9 @@ jobs:
 
         # Progressive health check: private health endpoints first, then public Swagger
         HEALTH_ENDPOINTS=(
-          "http://127.0.0.1:${APP_BIND_PRIVATE_PORT}/readyz"
-          "http://localhost:${APP_BIND_PRIVATE_PORT}/readyz"
-          "${TARGET_URL}/ui/swagger/doc.json"
+          "${{ env.APP_PRIVATE_TARGET_URL }}/readyz"
+          "${{ env.APP_PRIVATE_TARGET_URL }}/livez"
+          "${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json"
         )
 
         while [ $ATTEMPT -lt $MAX_ATTEMPTS ] && [ "$READY" != "true" ]; do
@@ -227,9 +227,9 @@ jobs:
         echo "🔍 Testing connectivity from different contexts..."
         echo ""
         echo "=== Context 1: GitHub Actions Runner (where Nuclei runs) ==="
-        echo "Testing localhost URLs (should work for Nuclei):"
+        echo "Testing 127.0.0.1 URLs (should work for Nuclei):"
 
-        echo "1. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/readyz"
+        echo "1. Testing ${{ env.APP_PRIVATE_TARGET_URL }}/readyz (readiness probe)"
         if curl -skf --connect-timeout 5 --max-time 10 ${{ env.APP_PRIVATE_TARGET_URL }}/readyz -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
           echo "  ✅ ${{ env.APP_PRIVATE_TARGET_URL }} reachable from runner"
         else
@@ -397,7 +397,7 @@ jobs:
 
     # Doc: https://github.com/projectdiscovery/nuclei-action
     # NOTE: Nuclei runs via composite action inside the GitHub Actions runner/act container,
-    # so it can access localhost:8080 directly without Docker networking complications.
+    # so it can access 127.0.0.1:8080 directly without Docker networking complications.
     - name: Set Nuclei scan configuration based on profile
       id: nuclei_config
       run: |
