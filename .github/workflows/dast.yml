@@ -156,6 +156,12 @@ jobs:
     - name: Build application
       run: go build -o cryptoutil ./cmd/cryptoutil
 
+    - name: Adjust ZAP target for local act runs
+      if: ${{ github.actor == 'nektos/act' }}
+      run: |
+        echo "Running under act - overriding ZAP_PUBLIC_TARGET_URL to use 127.0.0.1 for container reachability"
+        echo "ZAP_PUBLIC_TARGET_URL=https://127.0.0.1:8080" >> $GITHUB_ENV
+
     # See internal\common\config\config.go for configuration options
     - name: Start application for DAST testing
       run: |
@@ -232,6 +238,7 @@ jobs:
         CURL_CONNECT_TIMEOUT=10
         CURL_MAX_TIMEOUT=15
 
+        echo ""
         echo "🔍 Testing connectivity from runner..."
         echo ""
 
