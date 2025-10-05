@@ -198,6 +198,19 @@ jobs:
         echo "ZAP_PUBLIC_TARGET_URL=https://host.docker.internal:8080" >> $GITHUB_ENV
         echo "Note: diagnostic_connectivity will verify reachability and override this value if needed."
 
+    - name: Fix permissions for ZAP report writing (act on Windows/WSL2)
+      if: ${{ github.actor == 'nektos/act' }}
+      run: |
+        # When running act on Windows with WSL2/Docker Desktop, volume mounts from /mnt/c/ can have
+        # permission issues. The ZAP container runs as user 'zap' (UID 1000) which may not have
+        # write permissions to Windows filesystem paths. Pre-create the output directory and ensure
+        # it's writable by any user to work around this limitation.
+        mkdir -p ./dast-reports
+        chmod 777 ./dast-reports
+        # Also ensure the workspace root is writable (ZAP action tries to chmod this)
+        chmod 777 . || true
+        echo "Workspace permissions fixed for ZAP container"
+
     # See internal\common\config\config.go for configuration options
     - name: Start application for DAST testing
       run: |
