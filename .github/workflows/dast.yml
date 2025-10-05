@@ -281,6 +281,10 @@ jobs:
         echo "📝 Creating header baseline file..."
         {
           echo "# Header Baseline ($(date -u))"
+          echo "## Private - readyz"
+          curl -skI ${{ env.APP_PRIVATE_TARGET_URL }}/readyz 2>/dev/null || echo "(failed)"
+          echo -e "\n## Private - livez"
+          curl -skI ${{ env.APP_PRIVATE_TARGET_URL }}/livez 2>/dev/null || echo "(failed)"
           echo "## Swagger UI (main page)"
           curl -skI ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/ 2>/dev/null || echo "(failed)"
           echo -e "\n## Swagger API spec (doc.json)"
