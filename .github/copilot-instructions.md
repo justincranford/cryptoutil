@@ -11,6 +11,7 @@
 - Follow README and instructions files.
 - Refer to architecture and usage examples in README.
 - **Optimize for fastest and most efficient context injection**: Keep instructions clear, concise, and non-duplicate
+ - Keep explanations short and actionable; avoid overwhelming users with unnecessary detail.
 - Each instruction file should focus on its specific domain to minimize context overlap
 - Avoid duplication of guidance across instruction files - each file should cover its unique area
 - **Instruction files MUST be as short and efficient as possible.**
