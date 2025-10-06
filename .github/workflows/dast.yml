@@ -201,31 +201,6 @@ jobs:
     - name: Fix permissions for ZAP report writing (act on Windows/WSL2)
       if: ${{ github.actor == 'nektos/act' }}
       run: |
-        # NOTE (Windows/WSL2/Docker):
-        # - Docker bind-mounts a host directory into the container. On Linux this is usually
-        #   sufficient: container UID/GID map to the host filesystem permissions and chmod/chown
-        #   inside a container will affect container-visible permissions.
-        # - On Windows (Docker Desktop with WSL2 or Hyper-V), the project files live on NTFS and
-        #   Windows ACLs control access. Running `chmod` inside the act runner's container does
-        #   NOT modify host NTFS ACLs that a separately-spawned ZAP container will see. That's why
-        #   the naive `chmod 777` fix may appear to succeed but ZAP still gets "Permission denied".
-        # - The zaproxy actions spawn their own Docker container and mount the GitHub workspace as
-        #   `/zap/wrk`. If that mounted folder isn't writable by the Linux UID ZAP runs as (usually
-        #   UID 1000), ZAP cannot write reports.
-        # Recommended approaches (choose one):
-        # 1) Mount only the `dast-reports` folder into ZAP (best practice). Then ensure the host
-        #    NTFS ACLs allow writes to that folder for the Docker translation layer (see below).
-        # 2) Pre-create the expected report files and set permissive ACLs on them (host-side), so
-        #    ZAP can open/write them when running as a non-root user.
-        # 3) As a last resort for local testing, run the ZAP container as root (not recommended for
-        #    CI). That bypasses UID mapping but is less secure.
-        # Windows host ACL example (PowerShell, run on host):
-        #   New-Item -ItemType Directory -Path .\dast-reports -Force
-        #   icacls .\dast-reports /grant "Users:(OI)(CI)M" /T
-        # This step keeps a lightweight workaround for act: create the output folder and make it
-        # world-writable inside the runner. Note this DOES NOT change NTFS ACLs on Windows hosts
-        # but helps some environments (WSL-native mounts). For a reliable local fix on Windows,
-        # prefer adjusting NTFS ACLs as shown above.
         mkdir -p ./dast-reports
         chmod 777 ./dast-reports || true
         # Also attempt to make workspace root writable (some ZAP versions try to chmod workspace)
@@ -238,6 +213,8 @@ jobs:
         # Create unseal secret and config files
         echo "dast-simple-unseal-secret-value-1" > ./configs/test/dast-simple-unseal-secret-value-1.secret
         cat > ./configs/test/config.yml <<EOF
+        log-level: "DEBUG"
+        verbose: true
         bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
         bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
         bind-public-port: ${APP_BIND_PUBLIC_PORT}
