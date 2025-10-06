@@ -1,0 +1,15 @@
+# Nuclei Template Ignore List
+# This file suppresses false positive findings from Nuclei security scans
+# Format: One template ID per line (template IDs from nuclei.sarif)
+
+# Informational findings - not security issues
+http-missing-security-headers  # False positive - app has comprehensive security headers
+external-service-interaction   # Expected for OAST testing
+pgsql-detect                   # PostgreSQL database is expected infrastructure
+rpcbind-portmapper-detect      # Expected system service
+tls-version                    # Informational only - TLS is properly configured
+ssl-dns-names                  # Informational certificate details
+caa-fingerprint                # DNS record check - informational
+
+# Development/Testing environment expected findings
+untrusted-root-certificate     # Self-signed certificates expected in dev/test

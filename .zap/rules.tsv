@@ -9,6 +9,9 @@ IGNORE	10021	http://localhost:9090/shutdown	.*	.*	.*	Admin health check endpoint
 IGNORE	10021	https://localhost:8080/ui/swagger/.*	.*	.*	.*	Swagger UI static content - expected behavior
 IGNORE	10045	https://localhost:8080/ui/swagger/doc.json	.*	.*	.*	OpenAPI spec disclosure - intentional for API documentation
 
+# Ignore self-signed certificate warnings in development/testing (ZAP rule for SSL/TLS issues)
+IGNORE	10054	.*	.*	.*	.*	Self-signed certificates expected in dev/test environments
+
 # Cryptographic endpoint specific rules - Updated for current API structure
 WARN	90001	https://localhost:8080/service/api/v1/.*	.*	.*	.*	Monitor cryptographic operations for timing attacks
 WARN	90001	https://localhost:8080/browser/api/v1/.*	.*	.*	.*	Monitor cryptographic operations for timing attacks

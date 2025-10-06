@@ -36,6 +36,9 @@ Defines custom scanning rules for OWASP ZAP:
 - **WARN**: Important findings that should be reviewed
 - **IGNORE**: Known false positives or acceptable risks
 
+### `.nuclei-ignore`
+Lists Nuclei template IDs to exclude from scans (one per line with comments).
+
 ### Dual API Context Paths
 cryptoutil exposes the SAME OpenAPI-defined operations under two distinct context paths with different middleware stacks:
 

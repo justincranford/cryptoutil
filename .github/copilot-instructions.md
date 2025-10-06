@@ -19,6 +19,11 @@
   - Use bullet points and lists instead of paragraphs where possible.
   - Avoid restating project-wide rules in every file—link or reference instead.
   - Regularly review and refactor instructions to minimize token usage and keep Copilot context efficient.
+- **NEVER create documentation files unless explicitly requested**
+  - Comments in code/config files are sufficient
+  - README and existing docs should be updated, not supplemented with new docs
+  - User asked for technical solution, not documentation library
+  - Focus on solving the problem, not creating supporting materials
 - When adding new instruction files:
   1. Create the instruction file in `.github/instructions/` with the appropriate frontmatter and content
   2. Use `.instructions.md` extension and proper YAML frontmatter with `applyTo` and `description` properties
