@@ -438,6 +438,7 @@ var defaultCORSAllowedMethods = func() string {
 		"PUT",
 		"DELETE",
 		"OPTIONS",
+		"HEAD",
 	}, ",")
 }()
 
