@@ -437,7 +437,7 @@ jobs:
         rules_file_name: '.zap/rules.tsv'
         # Cookie ignore list: Only _csrf in cryptoutil; JSESSIONID and csrftoken are from other stacks
         # -d: debug/verbose logging, all -config options must be inside -z quotes
-        cmd_options: '-a -j -m 5 -T 30 -d -r zap-report.html -w zap-report.md -x zap-report.xml -J zap-report.json -z "-config rules.cookie.ignorelist=_csrf -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true"'
+        cmd_options: '-a -j -m 5 -T 30 -d -r zap-report.html -w zap-report.md -x zap-report.xml -J zap-report.json -z "-config rules.cookie.ignorelist=_csrf -config api.addrs.addr.name=.* -config api.addrs.addr.regex=true -config connection.hostHeader=127.0.0.1:8080"'
         allow_issue_writing: false
         artifact_name: 'zap-report'
         fail_action: 'false'  # Only controls exit code 1/2, not 3
@@ -470,7 +470,7 @@ jobs:
         target: '${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json'
         docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
         format: openapi
-        cmd_options: '-a -j -T 30 -r zap-api-report.html -J zap-api-report.json'
+        cmd_options: '-a -j -T 30 -r zap-api-report.html -J zap-api-report.json -z "-config connection.hostHeader=127.0.0.1:8080"'
         fail_action: 'false'  # Only controls exit code 1/2, not 3
         allow_issue_writing: false
         artifact_name: 'zap-api-report'
