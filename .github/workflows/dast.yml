@@ -174,7 +174,7 @@ jobs:
           nuclei-templates-${{ runner.os }}-
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: ${{ env.GO_VERSION }}
         cache: true
@@ -185,26 +185,6 @@ jobs:
     - name: Build application
       run: go build -o cryptoutil ./cmd/cryptoutil
 
-    # - name: Adjust ZAP target for local act runs
-    #   if: ${{ github.actor == 'nektos/act' }}
-    #   run: |
-    #     echo "Running under act - selecting ZAP_PUBLIC_TARGET_URL for local scans"
-    #     # For local 'act' runs prefer host.docker.internal (Docker Desktop on Windows) so the ZAP container
-    #     # can reach services running on the host. If that isn't reachable the diagnostic step will try
-    #     # additional fallbacks (127.0.0.1 and the private HTTP endpoint) and pick the first reachable one.
-    #     echo "ZAP_PUBLIC_TARGET_URL=https://host.docker.internal:8080" >> $GITHUB_ENV
-    #     echo "Note: diagnostic_connectivity will verify reachability and override this value if needed."
-
-    # TODO Is this needed?
-    - name: Fix permissions for ZAP report writing (act on Windows/WSL2)
-      if: ${{ github.actor == 'nektos/act' }}
-      run: |
-        mkdir -p ./dast-reports
-        chmod 777 ./dast-reports || true
-        # Also attempt to make workspace root writable (some ZAP versions try to chmod workspace)
-        chmod 777 . || true
-        echo "Workspace permissions attempted for ZAP container (see comments in workflow for guidance)"
-
     # See internal\common\config\config.go for configuration options
     - name: Start application for DAST testing
       run: |
@@ -213,6 +193,7 @@ jobs:
         cat > ./configs/test/config.yml <<EOF
         log-level: "DEBUG"
         verbose: true
+        rate-limit: 1000
         bind-public-protocol: "${APP_BIND_PUBLIC_PROTOCOL}"
         bind-public-address: "${APP_BIND_PUBLIC_ADDRESS}"
         bind-public-port: ${APP_BIND_PUBLIC_PORT}
@@ -228,10 +209,10 @@ jobs:
         # Start application in background, capture PID for cleanup; use nohup to avoid termination on shell exit
         mkdir -p dast-reports
         # Redirect stdout/stderr to files under dast-reports for easier post-mortem
-        nohup ./cryptoutil server start --config configs/test/config.yml > dast-reports/app.stdout 2> dast-reports/app.stderr &
+        nohup ./cryptoutil server start --config configs/test/config.yml > dast-reports/cryptoutil.stdout 2> dast-reports/cryptoutil.stderr &
         APP_PID=$!
         echo "APP_PID=$APP_PID" >> $GITHUB_ENV
-        echo "Wrote app logs to: dast-reports/app.stdout and dast-reports/app.stderr"
+        echo "Wrote app logs to: dast-reports/cryptoutil.stdout and dast-reports/cryptoutil.stderr"
 
         # Enhanced readiness probe with retry/backoff logic
         echo "Waiting for application to be ready..."
@@ -432,13 +413,13 @@ jobs:
 
         echo "Header capture process completed: dast-reports/response-headers.txt"
         # Also capture a short app log tail for quick inspection
-        if [ -f dast-reports/app.stdout ]; then
+        if [ -f dast-reports/cryptoutil.stdout ]; then
           echo "\n===== APP STDOUT (tail 200) =====" >> dast-reports/system-info.txt || true
-          tail -n 200 dast-reports/app.stdout >> dast-reports/system-info.txt || true
+          tail -n 200 dast-reports/cryptoutil.stdout >> dast-reports/system-info.txt || true
         fi
-        if [ -f dast-reports/app.stderr ]; then
+        if [ -f dast-reports/cryptoutil.stderr ]; then
           echo "\n===== APP STDERR (tail 200) =====" >> dast-reports/system-info.txt || true
-          tail -n 200 dast-reports/app.stderr >> dast-reports/system-info.txt || true
+          tail -n 200 dast-reports/cryptoutil.stderr >> dast-reports/system-info.txt || true
         fi
 
     # Official ZAP actions for both GitHub-hosted runners and act-local
@@ -566,6 +547,7 @@ jobs:
         # Move Nuclei artifacts to dast-reports
         [ -f "nuclei.log" ] && mv nuclei.log ./dast-reports/ || true
         [ -f "nuclei.sarif" ] && mv nuclei.sarif ./dast-reports/ || true
+        [ -f "nuclei-templates.version" ] && mv nuclei-templates.version ./dast-reports/ || true
 
         # For GitHub runs, copy SARIF back to root for upload-sarif action
         if [ "${{ github.actor }}" != "nektos/act" ] && [ -f "./dast-reports/nuclei.sarif" ]; then
@@ -626,8 +608,8 @@ jobs:
           echo "NUCLEI_REACHABLE=${NUCLEI_REACHABLE:-unset}"
           echo "ZAP_REACHABLE=${ZAP_REACHABLE:-unset}"
           echo "APP_PID=${APP_PID:-unset}"
-          echo "APP_LOGS: dast-reports/app.stdout (exists=$( [ -f dast-reports/app.stdout ] && echo yes || echo no))"
-          echo "APP_ERRS: dast-reports/app.stderr (exists=$( [ -f dast-reports/app.stderr ] && echo yes || echo no))"
+          echo "APP_LOGS: dast-reports/cryptoutil.stdout (exists=$( [ -f dast-reports/cryptoutil.stdout ] && echo yes || echo no))"
+          echo "APP_ERRS: dast-reports/cryptoutil.stderr (exists=$( [ -f dast-reports/cryptoutil.stderr ] && echo yes || echo no))"
           echo "System diagnostics file: dast-reports/system-info.txt"
         } | tee -a $GITHUB_STEP_SUMMARY > $SUMMARY_FILE
         echo "Wrote final analysis summary to: $SUMMARY_FILE"
