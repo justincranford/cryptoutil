@@ -699,21 +699,9 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 	)
 
 	return func(c *fiber.Ctx) error {
-		// Skip for non-browser API requests
-		if isNonBrowserUserAPIRequestFunc(settings)(c) {
-			return c.Next()
-		}
-
-		// Apply core security headers
+		// Apply common security headers
 		c.Set("X-Content-Type-Options", contentTypeOptions)
 		c.Set("Referrer-Policy", referrerPolicy)
-		c.Set("Permissions-Policy", permissionsPolicy)
-		c.Set("Cross-Origin-Opener-Policy", crossOriginOpenerPolicy)
-		c.Set("Cross-Origin-Embedder-Policy", crossOriginEmbedderPolicy)
-		c.Set("Cross-Origin-Resource-Policy", crossOriginResourcePolicy)
-		c.Set("X-Permitted-Cross-Domain-Policies", xPermittedCrossDomainPolicies)
-
-		// Strict-Transport-Security: Enforce HTTPS (only set for HTTPS requests)
 		if c.Protocol() == protocolHTTPS {
 			if settings.DevMode {
 				c.Set("Strict-Transport-Security", hstsMaxAgeDev)
@@ -721,6 +709,18 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 				c.Set("Strict-Transport-Security", hstsMaxAge)
 			}
 		}
+
+		// Skip for non-browser API requests
+		if isNonBrowserUserAPIRequestFunc(settings)(c) {
+			return c.Next()
+		}
+
+		// Apply common browser-only security headers
+		c.Set("Permissions-Policy", permissionsPolicy)
+		c.Set("Cross-Origin-Opener-Policy", crossOriginOpenerPolicy)
+		c.Set("Cross-Origin-Embedder-Policy", crossOriginEmbedderPolicy)
+		c.Set("Cross-Origin-Resource-Policy", crossOriginResourcePolicy)
+		c.Set("X-Permitted-Cross-Domain-Policies", xPermittedCrossDomainPolicies)
 
 		// Clear-Site-Data for logout endpoints only
 		if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), "/logout") {
