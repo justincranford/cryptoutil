@@ -52,15 +52,27 @@ func TestHttpGetTraceHead(t *testing.T) {
 		url            string
 		tlsRootCAs     *x509.CertPool
 		expectedStatus int
+		expectError    bool
 	}{
-		{name: "Swagger UI root", method: "GET", url: testServerPublicURL + "/ui/swagger", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusMovedPermanently},
-		{name: "Swagger UI index.html", method: "GET", url: testServerPublicURL + "/ui/swagger/index.html", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
-		{name: "OpenAPI Spec", method: "GET", url: testServerPublicURL + "/ui/swagger/doc.json", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
-		{name: "GET Elastic Keys", method: "GET", url: testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
+		{name: "Swagger UI root", method: "GET", url: testServerPublicURL + "/ui/swagger", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusMovedPermanently, expectError: false},
+		{name: "Swagger UI index.html", method: "GET", url: testServerPublicURL + "/ui/swagger/index.html", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK, expectError: false},
+		{name: "OpenAPI Spec", method: "GET", url: testServerPublicURL + "/ui/swagger/doc.json", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK, expectError: false},
+		{name: "GET Elastic Keys", method: "GET", url: testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK, expectError: false},
+
+		{name: "HEAD Elastic Keys", method: "HEAD", url: testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusMethodNotAllowed, expectError: false},
+		{name: "TRACE Elastic Keys", method: "TRACE", url: testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusMethodNotAllowed, expectError: false},
+
+		{name: "GET Non-existent endpoint", method: "GET", url: testServerPublicURL + "/nonexistent", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusBadRequest, expectError: false},
+		{name: "GET Service API without TLS", method: "GET", url: "http://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort)) + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: nil, expectedStatus: 0, expectError: true},
+		{name: "GET Service API with TLS", method: "GET", url: testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort)) + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK, expectError: false},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			body, headers, err := httpResponse(t, tc.method, tc.expectedStatus, tc.url, tc.tlsRootCAs)
+			if tc.expectError {
+				require.Error(t, err, "expected request to fail")
+				return
+			}
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
 			require.NoError(t, err, "failed to get response headers")
@@ -202,16 +214,28 @@ func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url s
 	}
 
 	resp, err := client.Do(req)
-	require.NoError(t, err, "failed to make %s request", httpMethod)
+	if err != nil {
+		if expectedStatusCode == 0 {
+			// Expected error case
+			return nil, nil, err
+		}
+		require.NoError(t, err, "failed to make %s request", httpMethod)
+	}
 	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			t.Errorf("Warning: failed to close response body: %v", closeErr)
+		if resp != nil {
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				t.Errorf("Warning: failed to close response body: %v", closeErr)
+			}
 		}
 	}()
 
+	if resp == nil {
+		return nil, nil, fmt.Errorf("no response received")
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")
-	if resp.StatusCode != expectedStatusCode {
+	if expectedStatusCode != 0 && resp.StatusCode != expectedStatusCode {
 		return nil, nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, string(body))
 	}
 	t.Logf("HTTP Status code: %d, response headers count: %d, response body: %d bytes", resp.StatusCode, len(resp.Header), len(body))
