@@ -217,7 +217,7 @@ func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url s
 	if err != nil {
 		if expectedStatusCode == 0 {
 			// Expected error case
-			return nil, nil, err
+			return nil, nil, fmt.Errorf("expected error occurred: %v", err)
 		}
 		require.NoError(t, err, "failed to make %s request", httpMethod)
 	}
