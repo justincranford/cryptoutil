@@ -45,7 +45,7 @@ func TestMain(m *testing.M) {
 	}
 }
 
-func TestHttpGet200(t *testing.T) {
+func TestHttpGetTraceHead(t *testing.T) {
 	testCases := []struct {
 		name           string
 		method         string
@@ -54,9 +54,9 @@ func TestHttpGet200(t *testing.T) {
 		expectedStatus int
 	}{
 		{name: "Swagger UI root", method: "GET", url: testServerPublicURL + "/ui/swagger", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusMovedPermanently},
-		// {name: "Swagger UI index.html", method: "GET", url: testServerPublicURL + "/ui/swagger/index.html", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
-		// {name: "OpenAPI Spec", method: "GET", url: testServerPublicURL + "/ui/swagger/doc.json", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
-		// {name: "GET Elastic Keys", method: "GET", url: testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
+		{name: "Swagger UI index.html", method: "GET", url: testServerPublicURL + "/ui/swagger/index.html", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
+		{name: "OpenAPI Spec", method: "GET", url: testServerPublicURL + "/ui/swagger/doc.json", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
+		{name: "GET Elastic Keys", method: "GET", url: testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys", tlsRootCAs: startServerListenerApplication.PublicTLSServer.RootCAsPool, expectedStatus: http.StatusOK},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -181,7 +181,11 @@ func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url s
 	require.NoError(t, err, "failed to create %s request", httpMethod)
 	req.Header.Set("Accept", "*/*")
 
-	client := &http.Client{}
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // Don't follow redirects
+		},
+	}
 	if strings.HasPrefix(url, "https://") {
 		transport := &http.Transport{}
 		if rootCAsPool != nil {
