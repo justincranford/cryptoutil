@@ -54,9 +54,9 @@ type Settings struct {
 	TLSPrivateIPAddresses       []string
 	PublicBrowserAPIContextPath string
 	PublicServiceAPIContextPath string
-	CORSAllowedOrigins          string
-	CORSAllowedMethods          string
-	CORSAllowedHeaders          string
+	CORSAllowedOrigins          string // TODO Make this a []string
+	CORSAllowedMethods          string // TODO Make this a []string
+	CORSAllowedHeaders          string // TODO Make this a []string
 	CORSMaxAge                  uint16
 	CSRFTokenName               string
 	CSRFTokenSameSite           string
@@ -438,7 +438,6 @@ var defaultCORSAllowedMethods = func() string {
 		"PUT",
 		"DELETE",
 		"OPTIONS",
-		"HEAD",
 	}, ",")
 }()
 
