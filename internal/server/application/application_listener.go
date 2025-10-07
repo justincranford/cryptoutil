@@ -198,6 +198,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		commonIPFilterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonIPRateLimiterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonHTTPGETCacheControlMiddleware(), // TODO Limit this to Swagger GET APIs, not Swagger UI static content
+		commonUnsupportedHTTPMethodsMiddleware(settings),
 	}
 
 	privateMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
@@ -534,6 +535,18 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 		c.Set("Pragma", "no-cache")
 		c.Set("Expires", "0")
 		return c.Next()
+	}
+}
+
+func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		method := c.Method()
+		for _, supported := range strings.Split(settings.CORSAllowedMethods, ",") {
+			if method == supported {
+				return c.Next()
+			}
+		}
+		return c.Status(fiber.StatusMethodNotAllowed).SendString("Method not allowed")
 	}
 }
 
