@@ -111,6 +111,7 @@ func TestSecurityHeaders(t *testing.T) {
 			expectedHeaders: map[string]string{
 				"X-Content-Type-Options":            "nosniff",
 				"Referrer-Policy":                   "strict-origin-when-cross-origin",
+				"Strict-Transport-Security":         "max-age=86400; includeSubDomains",
 				"Permissions-Policy":                "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()",
 				"Cross-Origin-Opener-Policy":        "same-origin",
 				"Cross-Origin-Embedder-Policy":      "require-corp",
@@ -120,24 +121,24 @@ func TestSecurityHeaders(t *testing.T) {
 			unexpectedHeaders: []string{"Clear-Site-Data"},
 		},
 		{
-			name:            "Service API HTTPS - Standard endpoint",
-			url:             testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys",
-			method:          "GET",
-			isHTTPS:         strings.HasPrefix(testServerPublicURL, "https://"),
-			isBrowserPath:   false,
-			tlsRootCAs:      startServerListenerApplication.PublicTLSServer.RootCAsPool,
+			name:          "Service API HTTPS - Standard endpoint",
+			url:           testServerPublicURL + testSettings.PublicServiceAPIContextPath + "/elastickeys",
+			method:        "GET",
+			isHTTPS:       strings.HasPrefix(testServerPublicURL, "https://"),
+			isBrowserPath: false,
+			tlsRootCAs:    startServerListenerApplication.PublicTLSServer.RootCAsPool,
 			expectedHeaders: map[string]string{
 				// Service API has minimal headers since Helmet and our security middleware are skipped
+				"X-Content-Type-Options":    "nosniff",
+				"Referrer-Policy":           "strict-origin-when-cross-origin",
+				"Strict-Transport-Security": "max-age=86400; includeSubDomains",
 			},
 			unexpectedHeaders: []string{
-				"Referrer-Policy",
 				"Permissions-Policy",
 				"Cross-Origin-Opener-Policy",
 				"Cross-Origin-Embedder-Policy",
 				"Cross-Origin-Resource-Policy",
 				"Clear-Site-Data",
-				"X-Content-Type-Options",    // Helmet is skipped for service API
-				"Strict-Transport-Security", // HSTS is only set in browser middleware
 			},
 		},
 		// Note: We cannot easily test POST /logout without authentication setup in this test

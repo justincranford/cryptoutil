@@ -319,10 +319,34 @@ func (m *oamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptouti
 
 func (m *oamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.MaterialKeySort) ([]string, error) {
 	if keySorts != nil {
-		// Validate sort values
+		// Validate sort values against allowed enum values
+		allowedSorts := map[string]bool{
+			"elastic_key_id":       true,
+			"elastic_key_id:ASC":   true,
+			"elastic_key_id:DESC":  true,
+			"material_key_id":      true,
+			"material_key_id:ASC":  true,
+			"material_key_id:DESC": true,
+			"generate_date":        true,
+			"generate_date:ASC":    true,
+			"generate_date:DESC":   true,
+			"import_date":          true,
+			"import_date:ASC":      true,
+			"import_date:DESC":     true,
+			"expiration_date":      true,
+			"expiration_date:ASC":  true,
+			"expiration_date:DESC": true,
+			"revocation_date":      true,
+			"revocation_date:ASC":  true,
+			"revocation_date:DESC": true,
+		}
 		for _, keySort := range *keySorts {
-			if string(keySort) == "" {
+			sortStr := string(keySort)
+			if sortStr == "" {
 				return nil, fmt.Errorf("material key sort cannot be empty")
+			}
+			if !allowedSorts[sortStr] {
+				return nil, fmt.Errorf("invalid material key sort value: %s", sortStr)
 			}
 		}
 	}
