@@ -69,3 +69,6 @@ WARN	10048	.*	.*	.*	.*	Remote file inclusion
 # Rate limiting and DoS protection
 WARN	90026	.*	.*	.*	.*	Slow HTTP DoS attack
 WARN	90027	.*	.*	.*	.*	HTTP parameter pollution
+
+# Proxy disclosure - TRACE method properly rejected (405 Method Not Allowed is correct behavior)
+IGNORE	20019	.*	.*	.*	.*	Proxy disclosure via TRACE method - server correctly rejects unsupported methods
