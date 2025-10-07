@@ -148,12 +148,6 @@ jobs:
         uname -a >> $SYSINFO 2>&1 || true
         echo "\n===== lsb_release / os-release =====" >> $SYSINFO
         [ -f /etc/os-release ] && cat /etc/os-release >> $SYSINFO || true
-        echo "\n===== ip addr =====" >> $SYSINFO
-        ip addr || true >> $SYSINFO 2>&1
-        echo "\n===== ip route =====" >> $SYSINFO
-        ip route || true >> $SYSINFO 2>&1
-        echo "\n===== ss -ltnp (listening TCP sockets) =====" >> $SYSINFO
-        ss -ltnp || netstat -ltnp || true >> $SYSINFO 2>&1
         echo "\n===== docker version/info =====" >> $SYSINFO
         docker version >> $SYSINFO 2>&1 || true
         docker info >> $SYSINFO 2>&1 || true
