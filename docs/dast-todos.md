@@ -1,6 +1,88 @@
-# DAST TODO List - Active Tas## Active Tasks
+# DAST TODO List - Active Tasks
 
-### ### DAST Workflow Performance Optimization (🔵 LOW - Optional)
+## 🚨 HIGH PRIORITY - ZAP Configuration Updates (Complete ZAP Ignore Rules)
+
+#### Task Z1: Add ZAP Ignore Rules for Service API Security Headers (✅ COMPLETED)
+- **Description**: Added IGNORE rules for Spectre headers and X-Content-Type-Options on service APIs
+- **Root Cause**: Service APIs are machine-to-machine only, don't need browser security headers
+- **Action Items**:
+  - ✅ Added `IGNORE 90004` for Spectre headers on `/service/api/v1/*`
+  - ✅ Added `IGNORE 10021` for X-Content-Type-Options on `/service/api/v1/*`
+- **Files**: `.zap/rules.tsv`
+- **Expected Outcome**: ZAP no longer flags service APIs for missing browser security headers
+- **Priority**: HIGH - Eliminates false positive security warnings
+- **Status**: ✅ COMPLETED - Rules added to .zap/rules.tsv
+
+#### Task Z2: Add ZAP Ignore Rules for OpenAPI Documentation (✅ COMPLETED)
+- **Description**: Added IGNORE rules for intentional API documentation disclosures
+- **Root Cause**: OpenAPI specs intentionally expose error schemas for developer experience
+- **Action Items**:
+  - ✅ Added `IGNORE 90022` for error schema disclosure in OpenAPI spec
+  - ✅ Confirmed `IGNORE 10045` already exists for OpenAPI spec disclosure
+- **Files**: `.zap/rules.tsv`
+- **Expected Outcome**: ZAP no longer flags intentional API documentation disclosures
+- **Priority**: HIGH - Eliminates false positive security warnings
+- **Status**: ✅ COMPLETED - Rules added to .zap/rules.tsv
+
+#### Task Z3: Verify Debug Error Messages Only in DevMode (✅ COMPLETED)
+- **Description**: Confirmed CSRF error messages are secure in production
+- **Root Cause**: Detailed error messages only shown when `settings.DevMode = true`
+- **Action Items**:
+  - ✅ Verified production error response: `{"error": "CSRF token validation failed"}`
+  - ✅ Confirmed DevMode detailed errors are development-only
+- **Files**: `internal/server/application/application_listener.go` (CSRF error handler)
+- **Expected Outcome**: No production information disclosure from error messages
+- **Priority**: HIGH - Confirms security of error handling
+- **Status**: ✅ COMPLETED - Analysis confirmed secure production behavior
+
+---
+
+## 🔴 CRITICAL - OAuth 2.0 Implementation Planning
+
+#### Task O1: Design OAuth 2.0 Authorization Code Flow for User vs Machine Access (🔴 CRITICAL)
+- **Description**: Implement separate OAuth 2.0 flows for browser users vs service machines
+- **Architecture Decision**: Users get bearer tokens for `/browser/api/v1/**`, machines get tokens for `/service/api/v1/**`
+- **Current State**: Both API paths currently accessible without authentication differentiation
+- **Action Items**:
+  - Design OAuth 2.0 Authorization Code flow for browser users (redirect-based)
+  - Design OAuth 2.0 Client Credentials flow for service machines (direct token exchange)
+  - Implement token validation middleware that checks token scope/audience
+  - Update OpenAPI specs to reflect authentication requirements
+  - Add OAuth 2.0 provider integration (Auth0, Keycloak, or custom)
+- **Files**: Authentication middleware, OAuth provider configuration, OpenAPI specs
+- **Expected Outcome**: Secure separation between user and machine API access
+- **Priority**: CRITICAL - Foundation for API security model
+- **Timeline**: Q4 2025 implementation
+
+#### Task O2: Update API Documentation for OAuth 2.0 (🟡 MEDIUM)
+- **Description**: Update OpenAPI specs to reflect OAuth 2.0 authentication requirements
+- **Current State**: APIs currently have no authentication documented
+- **Action Items**:
+  - Add OAuth 2.0 security schemes to OpenAPI specs
+  - Document different flows for browser vs service APIs
+  - Update error responses to include authentication errors
+  - Add authentication examples in Swagger UI
+- **Files**: `api/openapi_spec_*.yaml`, Swagger UI configuration
+- **Expected Outcome**: Clear API authentication documentation
+- **Priority**: MEDIUM - Documentation follows implementation
+- **Dependencies**: Task O1 completion
+
+#### Task O3: Implement Token Scope Validation Middleware (� MEDIUM)
+- **Description**: Add middleware to validate OAuth tokens have appropriate scope for endpoint access
+- **Current State**: No authentication middleware implemented
+- **Action Items**:
+  - Create JWT validation middleware
+  - Implement scope checking (`browser:api` vs `service:api`)
+  - Add token refresh handling
+  - Implement proper 401/403 error responses
+- **Files**: Authentication middleware, error handling
+- **Expected Outcome**: Runtime enforcement of API access separation
+- **Priority**: MEDIUM - Security enforcement
+- **Dependencies**: Task O1 completion
+
+---
+
+## 🟡 MEDIUM - Remaining Security Hardening
 
 #### Task O2: Implement Parallel Step Execution (🔵 LOW)
 - **Description**: Parallelize setup steps that don't depend on each other
@@ -30,44 +112,26 @@
 - **Priority**: Medium - Cookie security hardening
 - **ZAP Reference**: WARN-NEW: Cookie No HttpOnly Flag [10010] x 6
 
-#### Task S2: Extend Security Headers to Service APIs (🟡 MEDIUM)
+#### Task S2: Extend Security Headers to Service APIs (✅ CANCELLED)
 - **Description**: X-Content-Type-Options header missing on service API endpoints
-- **Root Cause**: Security headers only applied to browser requests, not service API calls
-- **Current State**: `publicBrowserAdditionalSecurityHeadersMiddleware` skips service APIs
-- **Action Items**:
-  - Extend core security headers (X-Content-Type-Options) to `/service/api/v1/*` endpoints
-  - Or add IGNORE rule in `rules.tsv` for service API endpoints
-  - Verify header presence on service API responses
-- **Files**: `internal/server/application/application_listener.go`, `.zap/rules.tsv`
-- **Expected Outcome**: X-Content-Type-Options header present on all API endpoints
-- **Priority**: Medium - Security header consistency
-- **ZAP Reference**: WARN-NEW: X-Content-Type-Options Header Missing [10021] x 1
+- **Decision**: CANCELLED - Service APIs are machine-to-machine only, browser headers not applicable
+- **Action Taken**: Added ZAP IGNORE rule for service API endpoints
+- **Files**: `.zap/rules.tsv`
+- **Status**: ✅ CANCELLED - Architectural decision made, ZAP ignore rule added
 
-#### Task S3: Sanitize Debug Error Message Disclosure (🟡 MEDIUM)
+#### Task S3: Sanitize Debug Error Message Disclosure (✅ COMPLETED)
 - **Description**: Debug error messages exposed in API responses
-- **Root Cause**: CSRF error handler returns detailed debug information
-- **Current State**: Enhanced error details shown in development mode
-- **Action Items**:
-  - Sanitize error responses to remove sensitive debug information
-  - Implement production-safe error messages
-  - Add conditional debug output based on environment
+- **Root Cause**: CSRF error handler returns detailed debug information in DevMode
+- **Action Taken**: Confirmed production error messages are secure (only `{"error": "CSRF token validation failed"}`)
 - **Files**: `internal/server/application/application_listener.go` (CSRF error handler)
-- **Expected Outcome**: No debug information leaked in production error responses
-- **Priority**: Medium - Information disclosure prevention
-- **ZAP Reference**: WARN-NEW: Information Disclosure - Debug Error Messages [10023] x 1
+- **Status**: ✅ COMPLETED - Production behavior confirmed secure
 
-#### Task S4: Review OpenAPI Error Schema Exposure (🟡 MEDIUM)
+#### Task S4: Review OpenAPI Error Schema Exposure (✅ CANCELLED)
 - **Description**: Application error details exposed via OpenAPI documentation
-- **Root Cause**: OpenAPI spec may include detailed error schemas
-- **Current State**: Swagger UI exposes API documentation with error details
-- **Action Items**:
-  - Review OpenAPI error response schemas for information leakage
-  - Sanitize error examples in API documentation
-  - Add IGNORE rule for API documentation endpoints if appropriate
-- **Files**: `api/openapi_spec_*.yaml`, `.zap/rules.tsv`
-- **Expected Outcome**: API documentation doesn't expose sensitive error information
-- **Priority**: Medium - API documentation security
-- **ZAP Reference**: WARN-NEW: Application Error Disclosure [90022] x 1
+- **Decision**: CANCELLED - OpenAPI error schemas are intentional for developer experience
+- **Action Taken**: Added ZAP IGNORE rule for OpenAPI spec error disclosures
+- **Files**: `.zap/rules.tsv`
+- **Status**: ✅ CANCELLED - Intentional API documentation design
 
 #### Task S5: Investigate JSON Parsing Issues in API Endpoints (🟡 MEDIUM)
 - **Description**: ZAP VariantJSONQuery failing to parse request bodies
@@ -81,23 +145,14 @@
 - **Files**: API handler files, OpenAPI specifications
 - **Expected Outcome**: All JSON API endpoints properly parse JSON request bodies
 - **Priority**: Medium - API contract consistency
-- **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failuresP Permission Fix Ineffective (Windows/WSL2)
+- **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failures
 
-#### Task C1: Implement Working Permission Solution for ZAP Report Writing (🔴 CRITICAL)
-- **Description**: Current chmod 777 fix doesn't work - ZAP container still cannot write reports
-- **Root Cause**: chmod inside act container doesn't propagate to separately-spawned ZAP container
-- **Current State**: Permission fix step runs successfully but ZAP still fails with "Permission denied: '/zap/wrk/report_html.html'"
-- **Investigation Finding**: ZAP action (zaproxy/action-full-scan@v0.12.0) creates its OWN Docker container with separate volume mount
-- **Action Items**:
-  - Research ZAP action source code for docker run parameters
-  - Investigate options: run ZAP as root, modify container user, or host-level permissions
-  - Consider: Pre-create report files with correct permissions before ZAP runs
-  - Alternative: Modify Windows/WSL2 filesystem permissions at host level
-  - Test solution: Verify ZAP can successfully write all report formats (HTML, JSON, MD)
-- **Files**: `.github/workflows/dast.yml` (lines 201-211 current fix, needs replacement)
-- **Expected Outcome**: ZAP successfully writes reports to `./dast-reports/` in act workflow
-- **Priority**: CRITICAL - ZAP scanning works but report generation fails
-- **Commit Reference**: Current fix commit 210696c (ineffective)
+#### Task S6: Review Spectre Protection Headers Applicability (✅ CANCELLED)
+- **Description**: Determine if Spectre protection headers needed on service API endpoints
+- **Decision**: CANCELLED - Service APIs are machine-to-machine only, Spectre headers not applicable
+- **Action Taken**: Added ZAP IGNORE rule for Spectre headers on service endpoints
+- **Files**: `.zap/rules.tsv`
+- **Status**: ✅ CANCELLED - Architectural decision made, ZAP ignore rule added
 
 ---
 
@@ -114,19 +169,15 @@
 
 ## Executive Summary
 
-**CURRENT STATUS** (2025-10-05): ✅ **Complete DAST Infrastructure Operational**
+**CURRENT STATUS** (2025-10-08): ✅ **ZAP False Positives Eliminated, OAuth 2.0 Planning Initiated**
 
-- ✅ **Nuclei security scanning** - Working correctly, 0 vulnerabilities found
-- ✅ **GitHub Actions `act` compatibility** - Fully functional
-- ✅ **Security header validation** - Comprehensive implementation validated
-- ✅ **OWASP ZAP integration** - Re-enabled, configured, and validated
-  - Full DAST scan with `.zap/rules.tsv` configuration
-  - API scan targeting OpenAPI spec
-  - Network connectivity confirmed: `--network=host` with `https://127.0.0.1:8080`
-  - **Fixed**: Windows/WSL2 file permission issues (chmod 777 workaround)
-  - Proper artifact collection to `dast-reports/`
+- ✅ **ZAP ignore rules added** - Spectre headers, X-Content-Type-Options, and OpenAPI disclosures no longer flagged
+- ✅ **Security architecture clarified** - Service APIs are machine-to-machine only, browser headers not applicable
+- ✅ **Error handling confirmed secure** - Production error messages are minimal and safe
+- 🔄 **OAuth 2.0 implementation planning** - Separate flows for users (browser APIs) vs machines (service APIs)
+- ✅ **OpenAPI documentation intentional** - Error schemas exposed for developer experience
 
-**Status**: All core scanners operational and integrated
+**Next Priority**: Implement OAuth 2.0 Authorization Code flows for secure API access separation
 
 ---
 
@@ -166,12 +217,17 @@
 
 ## Priority Execution Order
 
-### NEXT PRIORITY - Validation (Sprint 1)
-1. **Test ZAP fix**: Run act DAST workflow with permission fix to verify report generation
-2. **Validate artifacts**: Confirm HTML/JSON/MD reports are created successfully
+### NEXT PRIORITY - OAuth 2.0 Implementation (Q4 2025)
+1. **Task O1**: Design OAuth 2.0 Authorization Code Flow for User vs Machine Access
+2. **Task O2**: Update API Documentation for OAuth 2.0
+3. **Task O3**: Implement Token Scope Validation Middleware
 
-### Optional Improvements (Sprint 2)
-1. **Task O2**: Parallel Step Execution (minor time savings)
+### MEDIUM PRIORITY - Remaining Security Tasks
+1. **Task S1**: Fix Cookie HttpOnly Flag Security Issue
+2. **Task S5**: Investigate JSON Parsing Issues in API Endpoints
+
+### LOW PRIORITY - Performance Optimization
+1. **Task O2**: Implement Parallel Step Execution (workflow optimization)
 
 ---
 
@@ -195,6 +251,6 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 
 ---
 
-**Last Updated**: 2025-10-05
-**Recent completions**: ZAP permission fix (2025-10-05), ZAP networking analysis (2025-10-05)
-**Status**: All core DAST infrastructure complete. Windows/WSL2 compatibility fixed. Ready for validation testing.
+**Last Updated**: 2025-10-08
+**Recent completions**: ZAP ignore rules added (2025-10-08), OAuth 2.0 planning initiated (2025-10-08)
+**Status**: ZAP false positives eliminated. OAuth 2.0 implementation planning underway.

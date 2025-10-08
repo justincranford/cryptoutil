@@ -7,7 +7,10 @@ IGNORE	10021	http://localhost:9090/readyz	.*	.*	.*	Admin health check endpoints 
 IGNORE	10021	http://localhost:9090/livez	.*	.*	.*	Admin health check endpoints - expected behavior
 IGNORE	10021	http://localhost:9090/shutdown	.*	.*	.*	Admin health check endpoints - expected behavior
 IGNORE	10021	https://localhost:8080/ui/swagger/.*	.*	.*	.*	Swagger UI static content - expected behavior
+IGNORE	10021	https://localhost:8080/service/api/v1/.*	.*	.*	.*	Service API endpoints - machine-to-machine, Spectre headers not applicable
 IGNORE	10045	https://localhost:8080/ui/swagger/doc.json	.*	.*	.*	OpenAPI spec disclosure - intentional for API documentation
+IGNORE	90004	https://localhost:8080/service/api/v1/.*	.*	.*	.*	Service API endpoints - machine-to-machine, Spectre headers not applicable
+IGNORE	90022	https://localhost:8080/ui/swagger/doc.json	.*	.*	.*	OpenAPI error schema disclosure - intentional for API documentation
 
 # Ignore self-signed certificate warnings in development/testing (ZAP rule for SSL/TLS issues)
 IGNORE	10054	.*	.*	.*	.*	Self-signed certificates expected in dev/test environments
