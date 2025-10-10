@@ -12,15 +12,15 @@ applyTo: "**/*.yml"
 
 - **Prefer inline ignore comments** over pre-commit config parameters
 - Use `# hadolint ignore=DLXXXX` comments directly above the offending line
+- **Append explanations on the same line** after another `#` for conciseness
 - Document the reason for ignoring rules when the ignore provides security/maintainability benefits
-- **Inline explanations supported**: You can add explanations on the same line after another `#`
 - Examples:
   ```dockerfile
   # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
   RUN apk --no-cache add ca-certificates tzdata tini
 
-  # Or use multi-line format:
-  # Intentionally unpinned for automatic security updates
+  # Multi-line format also acceptable for longer explanations:
+  # Intentionally unpinned for automatic security updates and complex reasoning
   # hadolint ignore=DL3018
   RUN apk --no-cache add ca-certificates tzdata tini
   ```
