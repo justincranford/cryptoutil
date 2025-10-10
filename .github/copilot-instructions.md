@@ -48,12 +48,11 @@
 - Use command chaining (`;` in PowerShell) for related operations
 - Prefer existing files over temporary demos when possible
 
-## Pre-commit Hook Compliance
+## Pre-commit Hook Guidelines
 
-- **ALWAYS ensure files end with a single newline** (end-of-file-fixer hook)
-- **NEVER leave trailing whitespace** on any line (trailing-whitespace hook)
-- **USE LF line endings** for all files, never CRLF (Git line ending warnings)
-- Follow formatting.instructions.md for complete file formatting guidelines
+- **NEVER use shell commands** (`sh`, `bash`, `powershell`) in pre-commit configurations
+- Use cross-platform tools directly (e.g., `go`, `python`) or pre-commit's built-in hooks
+- Ensure all hooks work on Windows, Linux, and macOS without shell dependencies
 
 ## Current Instruction Files
 
