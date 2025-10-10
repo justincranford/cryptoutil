@@ -76,6 +76,24 @@ repos:
       - id: hadolint-docker
         args: [--ignore=DL3008, --ignore=DL3018]
 
+  # Comprehensive Go linting (runs on pre-push due to performance)
+  - repo: local
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint
+        entry: golangci-lint
+        args: [run, --timeout=5m]
+        language: system
+        files: '\.go$'
+        exclude: '_gen\.go$|vendor/'
+        stages: [pre-push]
+
+  # GitHub Actions workflow linting
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
 # Global configuration
 default_stages: [pre-commit]
 minimum_pre_commit_version: '2.20.0'
