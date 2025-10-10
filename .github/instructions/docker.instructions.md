@@ -16,10 +16,11 @@ applyTo: "**/*.yml"
 - Document the reason for ignoring rules when the ignore provides security/maintainability benefits
 - Examples:
   ```dockerfile
+  # Preferred: Same-line explanation
   # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
   RUN apk --no-cache add ca-certificates tzdata tini
 
-  # Multi-line format also acceptable for longer explanations:
+  # Alternative: Multi-line for complex explanations
   # Intentionally unpinned for automatic security updates and complex reasoning
   # hadolint ignore=DL3018
   RUN apk --no-cache add ca-certificates tzdata tini
