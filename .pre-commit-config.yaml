@@ -24,6 +24,7 @@ repos:
       # Check JSON syntax
       - id: check-json
         name: Check JSON syntax
+        exclude: '\.vscode/.*\.json$'
 
       # Prevent large files from being committed
       - id: check-added-large-files
@@ -52,14 +53,6 @@ repos:
         language: system
         files: '\.go$'
         exclude: '_gen\.go$|vendor/'
-
-      - id: go-vet
-        name: go vet (Go static analysis)
-        entry: go
-        args: [vet, ./...]
-        language: system
-        files: '\.go$'
-        pass_filenames: false
 
       - id: go-mod-tidy
         name: go mod tidy

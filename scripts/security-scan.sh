@@ -123,51 +123,51 @@ print_info() {
 # Check prerequisites
 check_prerequisites() {
     print_header "Checking Prerequisites"
-    
+
     local missing=()
-    
+
     # Check Go
     if ! command -v go &> /dev/null; then
         missing+=("Go")
     fi
-    
+
     # Check Docker (if not skipping Docker scans)
     if [ "$SKIP_DOCKER" = false ] && ! command -v docker &> /dev/null; then
         missing+=("Docker")
     fi
-    
+
     if [ ${#missing[@]} -gt 0 ]; then
         print_error "Missing required tools: ${missing[*]}"
         exit 1
     fi
-    
+
     print_success "All prerequisites available"
 }
 
 # Create output directory
 initialize_output_directory() {
     print_info "Creating output directory: $OUTPUT_DIR"
-    
+
     rm -rf "$OUTPUT_DIR"
     mkdir -p "$OUTPUT_DIR"
-    
+
     print_success "Output directory ready: $OUTPUT_DIR"
 }
 
 # Install Go security tools
 install_go_tools() {
     print_header "Installing Go Security Tools"
-    
+
     local tools=(
         "staticcheck:honnef.co/go/tools/cmd/staticcheck@latest"
         "govulncheck:golang.org/x/vuln/cmd/govulncheck@latest"
         "golangci-lint:github.com/golangci/golangci-lint/cmd/golangci-lint@latest"
     )
-    
+
     for tool_entry in "${tools[@]}"; do
         local tool_name="${tool_entry%%:*}"
         local tool_package="${tool_entry#*:}"
-        
+
         print_info "Installing $tool_name..."
         if go install "$tool_package"; then
             print_success "$tool_name installed successfully"
@@ -182,9 +182,9 @@ run_static_analysis() {
     if [ "$ALL" = false ] && [ "$STATIC_ONLY" = false ]; then
         return
     fi
-    
+
     print_header "Static Code Analysis"
-    
+
     # Staticcheck
     print_info "Running Staticcheck..."
     if staticcheck -f sarif ./... > "$OUTPUT_DIR/staticcheck.sarif" 2>/dev/null && staticcheck ./...; then
@@ -192,7 +192,7 @@ run_static_analysis() {
     else
         print_warning "Staticcheck found potential issues - check output above"
     fi
-    
+
     # golangci-lint
     print_info "Running golangci-lint..."
     if golangci-lint run --timeout=10m --config=.golangci.yml --out-format=sarif > "$OUTPUT_DIR/golangci-lint.sarif" && \
@@ -208,9 +208,9 @@ run_vulnerability_scans() {
     if [ "$ALL" = false ] && [ "$VULN_ONLY" = false ]; then
         return
     fi
-    
+
     print_header "Vulnerability Scanning"
-    
+
     # govulncheck
     print_info "Running Go vulnerability check..."
     if govulncheck ./... > "$OUTPUT_DIR/govulncheck.txt" 2>&1 && govulncheck ./...; then
@@ -218,7 +218,7 @@ run_vulnerability_scans() {
     else
         print_warning "Go vulnerabilities detected - check output above"
     fi
-    
+
     # Trivy file system scan (if not skipping Docker)
     if [ "$SKIP_DOCKER" = false ]; then
         print_info "Running Trivy file system scan..."
@@ -236,14 +236,14 @@ run_container_scans() {
     if [ "$ALL" = false ] && [ "$CONTAINER_ONLY" = false ]; then
         return
     fi
-    
+
     if [ "$SKIP_DOCKER" = true ]; then
         print_warning "Skipping container scans (Docker disabled)"
         return
     fi
-    
+
     print_header "Container Security Scanning"
-    
+
     # Check if image exists
     print_info "Checking for Docker image: $IMAGE_TAG"
     if ! docker images "$IMAGE_TAG" --format "table" &> /dev/null; then
@@ -254,7 +254,7 @@ run_container_scans() {
         fi
         print_success "Docker image built successfully"
     fi
-    
+
     # Trivy image scan
     print_info "Running Trivy container image scan..."
     if docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$(pwd)/$OUTPUT_DIR:/output" \
@@ -264,38 +264,38 @@ run_container_scans() {
     else
         print_warning "Trivy found container vulnerabilities - check output above"
     fi
-    
+
     # Docker Scout (if available)
     print_info "Running Docker Scout scans..."
-    
+
     # Quick overview
     docker scout quickview "$IMAGE_TAG" > "$OUTPUT_DIR/docker-scout-quickview.txt" 2>&1 || true
     docker scout quickview "$IMAGE_TAG" || true
-    
+
     # CVE analysis
     docker scout cves --format sarif --output "$OUTPUT_DIR/docker-scout-cves.sarif" "$IMAGE_TAG" 2>/dev/null || true
     docker scout cves "$IMAGE_TAG" || true
-    
+
     # Recommendations
     docker scout recommendations "$IMAGE_TAG" > "$OUTPUT_DIR/docker-scout-recommendations.txt" 2>&1 || true
     docker scout recommendations "$IMAGE_TAG" || true
-    
+
     print_success "Docker Scout scans completed"
 }
 
 # Generate summary report
 generate_security_report() {
     print_header "Generating Security Summary Report"
-    
+
     local report_path="$OUTPUT_DIR/security-summary.md"
     local timestamp=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
-    
+
     cat > "$report_path" << EOF
 # Security Scan Results
 
-**Scan Date:** $timestamp  
-**Target:** cryptoutil project  
-**Output Directory:** $OUTPUT_DIR  
+**Scan Date:** $timestamp
+**Target:** cryptoutil project
+**Output Directory:** $OUTPUT_DIR
 
 ## Scan Coverage
 
@@ -312,7 +312,7 @@ EOF
 
     if [ "$ALL" = true ] || [ "$VULN_ONLY" = true ]; then
         cat >> "$report_path" << EOF
-### Vulnerability Scanning  
+### Vulnerability Scanning
 - ✅ **govulncheck**: Official Go vulnerability database scanning
 - ✅ **Trivy FS**: File system and dependency vulnerability scanning
 
@@ -364,17 +364,17 @@ EOF
 main() {
     print_header "Cryptoutil Security Scanner"
     print_info "Starting comprehensive security analysis..."
-    
+
     check_prerequisites
     initialize_output_directory
     install_go_tools
-    
+
     run_static_analysis
     run_vulnerability_scans
     run_container_scans
-    
+
     generate_security_report
-    
+
     print_header "Security Scan Complete"
     print_success "All security scans completed successfully!"
     print_info "Reports saved to: $OUTPUT_DIR"

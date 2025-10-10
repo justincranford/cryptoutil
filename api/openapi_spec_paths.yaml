@@ -4,7 +4,7 @@ info:
   title: API
   version: "0.0.1"
   description: >
-    REST API for an Embedded KMS Micro Service 
+    REST API for an Embedded KMS Micro Service
 servers:
   - url: /
 

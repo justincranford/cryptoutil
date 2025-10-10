@@ -38,10 +38,10 @@ CREATE TABLE elastic_keys (
     CHECK (elastic_key_import_allowed IN (0, 1)),
     CHECK (length(elastic_key_name) >= 1),
     CHECK (elastic_key_provider = 'Internal'),
-    CHECK (elastic_key_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate', 
-                                'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed', 
-                                'pending_delete_was_pending_import', 'pending_delete_was_active', 
-                                'pending_delete_was_disabled', 'pending_delete_was_generate_failed', 
+    CHECK (elastic_key_status IN ('creating', 'import_failed', 'pending_import', 'pending_generate',
+                                'generate_failed', 'active', 'disabled', 'pending_delete_was_import_failed',
+                                'pending_delete_was_pending_import', 'pending_delete_was_active',
+                                'pending_delete_was_disabled', 'pending_delete_was_generate_failed',
                                 'started_delete', 'finished_delete')),
     CHECK (elastic_key_versioning_allowed IN (0, 1))
 );

@@ -1,16 +1,16 @@
 {
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
-  
+
   // GitHub Copilot Privacy Settings
   "github.copilot.advanced.anonymizeData": true,
   "github.copilot.advanced.shareMetadata": false,
   "github.copilot.advanced.telemetry": "off",
   "github.copilot.advanced.listCount": 3,
-  
+
   "markdown.preview.scrollEditorWithPreview": true,
   "markdown.preview.openMarkdownLinks": "inPreview",
   "files.encoding": "utf8",
-  
+
   "chat.tools.terminal.autoApprove": {
     "/^go (test|run|build|mod|generate)/": true,
     "/^docker compose (up|down|logs|ps)/": true,

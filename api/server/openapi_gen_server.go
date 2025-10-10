@@ -169,13 +169,11 @@ type MiddlewareFunc fiber.Handler
 
 // PostElastickey operation middleware
 func (siw *ServerInterfaceWrapper) PostElastickey(c *fiber.Ctx) error {
-
 	return siw.Handler.PostElastickey(c)
 }
 
 // GetElastickeyElasticKeyID operation middleware
 func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyID(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -191,7 +189,6 @@ func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyID(c *fiber.Ctx) error
 
 // PostElastickeyElasticKeyIDDecrypt operation middleware
 func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDDecrypt(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -207,7 +204,6 @@ func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDDecrypt(c *fiber.Ct
 
 // PostElastickeyElasticKeyIDEncrypt operation middleware
 func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDEncrypt(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -239,7 +235,6 @@ func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDEncrypt(c *fiber.Ct
 
 // PostElastickeyElasticKeyIDGenerate operation middleware
 func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDGenerate(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -278,7 +273,6 @@ func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDGenerate(c *fiber.C
 
 // PostElastickeyElasticKeyIDMaterialkey operation middleware
 func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDMaterialkey(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -294,7 +288,6 @@ func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDMaterialkey(c *fibe
 
 // GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID operation middleware
 func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -318,7 +311,6 @@ func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeyMaterialK
 
 // GetElastickeyElasticKeyIDMaterialkeys operation middleware
 func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeys(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -385,7 +377,6 @@ func (siw *ServerInterfaceWrapper) GetElastickeyElasticKeyIDMaterialkeys(c *fibe
 
 // PostElastickeyElasticKeyIDSign operation middleware
 func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDSign(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -417,7 +408,6 @@ func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDSign(c *fiber.Ctx) 
 
 // PostElastickeyElasticKeyIDVerify operation middleware
 func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDVerify(c *fiber.Ctx) error {
-
 	var err error
 
 	// ------------- Path parameter "elasticKeyID" -------------
@@ -433,7 +423,6 @@ func (siw *ServerInterfaceWrapper) PostElastickeyElasticKeyIDVerify(c *fiber.Ctx
 
 // GetElastickeys operation middleware
 func (siw *ServerInterfaceWrapper) GetElastickeys(c *fiber.Ctx) error {
-
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
@@ -520,7 +509,6 @@ func (siw *ServerInterfaceWrapper) GetElastickeys(c *fiber.Ctx) error {
 
 // GetMaterialkeys operation middleware
 func (siw *ServerInterfaceWrapper) GetMaterialkeys(c *fiber.Ctx) error {
-
 	var err error
 
 	// Parameter object where we will unmarshal all parameters from the context
@@ -628,7 +616,6 @@ func RegisterHandlersWithOptions(router fiber.Router, si ServerInterface, option
 	router.Get(options.BaseURL+"/elastickeys", wrapper.GetElastickeys)
 
 	router.Get(options.BaseURL+"/materialkeys", wrapper.GetMaterialkeys)
-
 }
 
 type PostElastickeyRequestObject struct {
@@ -1625,8 +1612,7 @@ type PostElastickeyElasticKeyIDVerifyResponseObject interface {
 	VisitPostElastickeyElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error
 }
 
-type PostElastickeyElasticKeyIDVerify204Response struct {
-}
+type PostElastickeyElasticKeyIDVerify204Response struct{}
 
 func (response PostElastickeyElasticKeyIDVerify204Response) VisitPostElastickeyElasticKeyIDVerifyResponse(ctx *fiber.Ctx) error {
 	ctx.Status(204)
@@ -2350,7 +2336,6 @@ func (sh *strictHandler) GetMaterialkeys(ctx *fiber.Ctx, params GetMaterialkeysP
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
-
 	"H4sIAAAAAAAC/+w97XLbOJKvguJtVZJdWZZkKRtr634ospI4Hic+y05qdybngcmWjA0JagDQsSbld7/C",
 	"B0mAor7lrOaGPxKLINBodAPdje4G+N3z42gSU6CCe93v3gQzHIEApp7iCVA8ITd8Av5NXvFmEGIuiH8G",
 	"0/9JgE0vZKNeOI4ZEXeRahkA9xmZCBJTr+u9IaEAhm6nyLREZzBFOG1R92oePEzCOACvK1gCNY/IZr9J",
@@ -2510,11 +2495,11 @@ func GetSwagger() (swagger *openapi3.T, err error) {
 	var specData []byte
 	specData, err = rawSpec()
 	if err != nil {
-		return
+		return swagger, err
 	}
 	swagger, err = loader.LoadFromData(specData)
 	if err != nil {
-		return
+		return swagger, err
 	}
-	return
+	return swagger, err
 }

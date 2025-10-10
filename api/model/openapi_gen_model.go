@@ -656,7 +656,6 @@ type HTTP504GatewayTimeout struct {
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
-
 	"H4sIAAAAAAAC/+x8bXPbOJLwX0Hx2SrbO7IsyVY21tbzQZGVRPE40Vl2UrszOQ9EtiRsSJADgI41U/7v",
 	"V3jhCyhSlihNkqvzB5fFJrrRL0CjgW7wT8cNgyikQAV3en86EWY4AAFMPQ19zAVxL2H5XzGw5Vi+7Pvz",
 	"kBGxCFQLD7jLSCRISJ2e85r4AhiaLpHBRJewRDjBaDoNBx4iP/TA6QkWQ8MhEu13SdxpOBQH4PSctL3T",
@@ -793,11 +792,11 @@ func GetSwagger() (swagger *openapi3.T, err error) {
 	var specData []byte
 	specData, err = rawSpec()
 	if err != nil {
-		return
+		return swagger, err
 	}
 	swagger, err = loader.LoadFromData(specData)
 	if err != nil {
-		return
+		return swagger, err
 	}
-	return
+	return swagger, err
 }

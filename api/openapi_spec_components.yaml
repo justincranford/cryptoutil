@@ -4,7 +4,7 @@ info:
   title: API
   version: "0.0.1"
   description: >
-    REST API for an Embedded KMS Micro Service 
+    REST API for an Embedded KMS Micro Service
 
 components:
   parameters:
@@ -289,7 +289,7 @@ components:
           $ref: '#/components/schemas/MaterialKeyRevocationDate'
         clear_public:
           $ref: '#/components/schemas/MaterialKeyClearPublic'
-          
+
     ElasticKeyID:
       type: string
       format: uuid
@@ -308,7 +308,7 @@ components:
       maxLength: 255
     ElasticKeyAlgorithm:
       type: string
-      enum: 
+      enum:
         - "A256GCM/A256KW"
         - "A192GCM/A256KW"
         - "A128GCM/A256KW"
@@ -526,7 +526,7 @@ components:
 
     GenerateAlgorithm:
       type: string
-      enum: 
+      enum:
         - "RSA/4096"
         - "RSA/3072"
         - "RSA/2048"

@@ -614,7 +614,6 @@ func NewPostElastickeyElasticKeyIDEncryptRequestWithBody(server string, elasticK
 		queryValues := queryURL.Query()
 
 		if params.Context != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -626,7 +625,6 @@ func NewPostElastickeyElasticKeyIDEncryptRequestWithBody(server string, elasticK
 					}
 				}
 			}
-
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -672,7 +670,6 @@ func NewPostElastickeyElasticKeyIDGenerateRequestWithBody(server string, elastic
 		queryValues := queryURL.Query()
 
 		if params.Context != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -684,11 +681,9 @@ func NewPostElastickeyElasticKeyIDGenerateRequestWithBody(server string, elastic
 					}
 				}
 			}
-
 		}
 
 		if params.Alg != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "alg", runtime.ParamLocationQuery, *params.Alg); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -700,7 +695,6 @@ func NewPostElastickeyElasticKeyIDGenerateRequestWithBody(server string, elastic
 					}
 				}
 			}
-
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -834,7 +828,6 @@ func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID
 		queryValues := queryURL.Query()
 
 		if params.MaterialKeyID != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "material_key_id", runtime.ParamLocationQuery, *params.MaterialKeyID); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -846,11 +839,9 @@ func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID
 					}
 				}
 			}
-
 		}
 
 		if params.MinGenerateDate != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_generate_date", runtime.ParamLocationQuery, *params.MinGenerateDate); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -862,11 +853,9 @@ func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID
 					}
 				}
 			}
-
 		}
 
 		if params.MaxGenerateDate != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_generate_date", runtime.ParamLocationQuery, *params.MaxGenerateDate); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -878,11 +867,9 @@ func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID
 					}
 				}
 			}
-
 		}
 
 		if params.Sort != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -894,11 +881,9 @@ func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID
 					}
 				}
 			}
-
 		}
 
 		if params.Page != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -910,11 +895,9 @@ func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID
 					}
 				}
 			}
-
 		}
 
 		if params.Size != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -926,7 +909,6 @@ func NewGetElastickeyElasticKeyIDMaterialkeysRequest(server string, elasticKeyID
 					}
 				}
 			}
-
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -977,7 +959,6 @@ func NewPostElastickeyElasticKeyIDSignRequestWithBody(server string, elasticKeyI
 		queryValues := queryURL.Query()
 
 		if params.Context != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "context", runtime.ParamLocationQuery, *params.Context); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -989,7 +970,6 @@ func NewPostElastickeyElasticKeyIDSignRequestWithBody(server string, elasticKeyI
 					}
 				}
 			}
-
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -1071,7 +1051,6 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 		queryValues := queryURL.Query()
 
 		if params.ElasticKeyID != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "elastic_key_id", runtime.ParamLocationQuery, *params.ElasticKeyID); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1083,11 +1062,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.Name != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "name", runtime.ParamLocationQuery, *params.Name); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1099,11 +1076,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.Provider != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "provider", runtime.ParamLocationQuery, *params.Provider); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1115,11 +1090,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.Algorithm != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "algorithm", runtime.ParamLocationQuery, *params.Algorithm); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1131,11 +1104,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.VersioningAllowed != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "versioning_allowed", runtime.ParamLocationQuery, *params.VersioningAllowed); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1147,11 +1118,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.ImportAllowed != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "import_allowed", runtime.ParamLocationQuery, *params.ImportAllowed); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1163,11 +1132,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.Status != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "status", runtime.ParamLocationQuery, *params.Status); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1179,11 +1146,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.Sort != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1195,11 +1160,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.Page != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1211,11 +1174,9 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		if params.Size != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1227,7 +1188,6 @@ func NewGetElastickeysRequest(server string, params *GetElastickeysParams) (*htt
 					}
 				}
 			}
-
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -1264,7 +1224,6 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 		queryValues := queryURL.Query()
 
 		if params.ElasticKeyID != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "elastic_key_id", runtime.ParamLocationQuery, *params.ElasticKeyID); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1276,11 +1235,9 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 					}
 				}
 			}
-
 		}
 
 		if params.MaterialKeyID != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "material_key_id", runtime.ParamLocationQuery, *params.MaterialKeyID); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1292,11 +1249,9 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 					}
 				}
 			}
-
 		}
 
 		if params.MinGenerateDate != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "min_generate_date", runtime.ParamLocationQuery, *params.MinGenerateDate); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1308,11 +1263,9 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 					}
 				}
 			}
-
 		}
 
 		if params.MaxGenerateDate != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "max_generate_date", runtime.ParamLocationQuery, *params.MaxGenerateDate); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1324,11 +1277,9 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 					}
 				}
 			}
-
 		}
 
 		if params.Sort != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "sort", runtime.ParamLocationQuery, *params.Sort); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1340,11 +1291,9 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 					}
 				}
 			}
-
 		}
 
 		if params.Page != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "page", runtime.ParamLocationQuery, *params.Page); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1356,11 +1305,9 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 					}
 				}
 			}
-
 		}
 
 		if params.Size != nil {
-
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "size", runtime.ParamLocationQuery, *params.Size); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
@@ -1372,7 +1319,6 @@ func NewGetMaterialkeysRequest(server string, params *GetMaterialkeysParams) (*h
 					}
 				}
 			}
-
 		}
 
 		queryURL.RawQuery = queryValues.Encode()
@@ -3036,7 +2982,6 @@ func ParseGetMaterialkeysResponse(rsp *http.Response) (*GetMaterialkeysResponse,
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
-
 	"H4sIAAAAAAAC/+w97XLbOJKvguJtVZJdWZZkKRtr634ospI4Hic+y05qdybngcmWjA0JagDQsSbld7/C",
 	"B0mAor7lrOaGPxKLINBodAPdje4G+N3z42gSU6CCe93v3gQzHIEApp7iCVA8ITd8Av5NXvFmEGIuiH8G",
 	"0/9JgE0vZKNeOI4ZEXeRahkA9xmZCBJTr+u9IaEAhm6nyLREZzBFOG1R92oePEzCOACvK1gCNY/IZr9J",
@@ -3196,11 +3141,11 @@ func GetSwagger() (swagger *openapi3.T, err error) {
 	var specData []byte
 	specData, err = rawSpec()
 	if err != nil {
-		return
+		return swagger, err
 	}
 	swagger, err = loader.LoadFromData(specData)
 	if err != nil {
-		return
+		return swagger, err
 	}
-	return
+	return swagger, err
 }
