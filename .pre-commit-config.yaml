@@ -61,6 +61,14 @@ repos:
         files: '\.go$'
         pass_filenames: false
 
+      - id: go-mod-tidy
+        name: go mod tidy
+        entry: go
+        args: [mod, tidy]
+        language: system
+        pass_filenames: false
+        files: go\.mod$
+
 # Global configuration
 default_stages: [pre-commit]
 minimum_pre_commit_version: '2.20.0'
