@@ -390,8 +390,20 @@ This project uses **automated code formatting** that runs on every commit. The f
 pip install pre-commit
 pre-commit install
 
+# Set consistent cache location (Windows)
+setx PRE_COMMIT_HOME "C:\Users\%USERNAME%\.cache\pre-commit"
+
 # Test the setup
 pre-commit run --all-files
+```
+
+**Automated Setup (Recommended):**
+```sh
+# Windows Batch
+.\scripts\setup-pre-commit.bat
+
+# Windows PowerShell
+.\scripts\setup-pre-commit.ps1
 ```
 
 **What Gets Formatted Automatically:**

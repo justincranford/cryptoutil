@@ -58,6 +58,16 @@
 **Missing:**
 - Advanced threat modeling documentation
 
+### 7. **Pre-commit Hook Enhancements**
+**Priority:** 🟢 **Low**
+
+**Missing:**
+- Script shebang validation (`check-executables-have-shebangs`)
+- Script executable permissions (`check-shebang-scripts-are-executable`)
+- Shell script linting (`shellcheck` for `.sh` files)
+- PowerShell script analysis (`PSScriptAnalyzer` for `.ps1` files)
+- Private key detection (`detect-private-key` with `.pem` exclusions)
+
 ## 🗺️ **Implementation Roadmap**
 
 ### **Phase 1: Release & Deployment (Immediate)**
@@ -85,12 +95,13 @@
 
 ## 📊 **Progress Summary**
 
-### **🎯 Next Steps (5 Remaining Items)**
+### **🎯 Next Steps (6 Remaining Items)**
 1. **Release automation** - Automated changelog generation and container registry publishing
 2. **Kubernetes deployment** - Production manifests and Helm charts
 3. **Advanced testing** - Performance and integration test automation
 4. **Monitoring setup** - Prometheus metrics and Grafana dashboards
 5. **Documentation** - API versioning and performance benchmarks
+6. **Pre-commit enhancements** - Additional script and security checks
 
 
 
