@@ -9,6 +9,7 @@
 
 ## Core Principles
 - Follow README and instructions files.
+- **ALWAYS check go.mod for the correct Go version** before using any Go version in Docker images, CI/CD configs, or tool installations
 - Refer to architecture and usage examples in README.
 - **Optimize for fastest and most efficient context injection**: Keep instructions clear, concise, and non-duplicate
  - Keep explanations short and actionable; avoid overwhelming users with unnecessary detail.

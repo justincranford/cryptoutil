@@ -10,7 +10,7 @@ repos:
       # Ensure files end with newline
       - id: end-of-file-fixer
         name: Fix end of files
-        exclude: '\.(exe|dll|so|dylib|pem|key|crt)$'
+        exclude: '\.(exe|dll|so|dylib|key|crt)$'
 
       # Remove trailing whitespace
       - id: trailing-whitespace
@@ -21,7 +21,7 @@ repos:
       - id: check-yaml
         name: Check YAML syntax
 
-      # Check JSON syntax
+      # Check JSON syntax (excluding VS Code JSONC files with comments)
       - id: check-json
         name: Check JSON syntax
         exclude: '\.vscode/.*\.json$'
