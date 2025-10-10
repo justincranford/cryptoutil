@@ -30,6 +30,10 @@ repos:
         name: Check for large files
         args: ['--maxkb=1024']
 
+      # Prevent merge conflict markers
+      - id: check-merge-conflict
+        name: Check for merge conflict markers
+
   # Go formatting using local commands (more reliable)
   - repo: local
     hooks:
