@@ -242,6 +242,19 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 ```
 
 ### Mutation Testing
+
+This project uses [Gremlins](https://github.com/go-gremlins/gremlins) for mutation testing to validate test suite quality by introducing small code changes and verifying tests catch them.
+
+#### Prerequisites
+```bash
+# Install Gremlins
+go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+```
+
+#### Automated Execution (CI/CD)
+Mutation testing runs automatically on the `main` branch after all tests pass, focusing on high-coverage packages.
+
+#### Manual Execution
 ```sh
 # Linux/macOS - Test all high-coverage packages
 ./scripts/mutation-test.sh
@@ -258,7 +271,19 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 .\scripts\mutation-test.ps1 -DryRun
 ```
 
-### DAST Security Testing
+#### Direct Gremlins Commands
+```bash
+# Dry run (analyze without testing)
+gremlins unleash --dry-run ./internal/common/util/datetime/
+
+# Full mutation testing on a specific package
+gremlins unleash ./internal/common/util/datetime/
+
+# Test multiple packages with custom settings
+gremlins unleash ./internal/common/util/... --workers 2 --timeout-coefficient 3
+```
+
+**Configuration**: Mutation testing uses `.gremlins.yaml` with quality thresholds (70% efficacy, 60% coverage) and enabled mutation operators (arithmetic, conditionals, increment/decrement, etc.).
 ```sh
 # Linux/macOS - Complete DAST scan
 ./scripts/dast.sh
@@ -312,8 +337,6 @@ go run cmd/pgtest/main.go  # PostgreSQL integration tests
 - **govulncheck**: Official Go vulnerability database scanning
 - **Trivy**: File system and container vulnerability scanning
 - **Docker Scout**: Advanced container security analysis and recommendations
-
-> **Note**: Mutation testing validates test quality by introducing code changes and verifying tests catch them. See [docs/MUTATION_TESTING.md](docs/MUTATION_TESTING.md) for detailed documentation.
 
 ## Development
 
