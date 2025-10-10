@@ -51,8 +51,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 ARG ALPINE_VERSION=3.19
 FROM alpine:${ALPINE_VERSION} AS runtime-deps
-# Intentionally unpinned for automatic security updates
-# hadolint ignore=DL3018
+# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
 RUN apk --no-cache add ca-certificates tzdata tini
 WORKDIR /root/ssl
 RUN update-ca-certificates
