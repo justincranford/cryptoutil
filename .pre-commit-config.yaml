@@ -35,6 +35,18 @@ repos:
       - id: check-merge-conflict
         name: Check for merge conflict markers
 
+  # GitHub Actions workflow linting
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+
   # Go formatting using local commands (more reliable)
   - repo: local
     hooks:
@@ -62,11 +74,14 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Dockerfile linting
-  - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
-    hooks:
-      - id: hadolint-docker
+      # Dependency checking (runs last in pre-commit)
+      - id: check-outdated-deps
+        name: Check for outdated Go dependencies
+        entry: go
+        args: [list, -u, -m, all]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
 
   # Comprehensive Go linting (runs on pre-push due to performance)
   - repo: local
@@ -79,23 +94,6 @@ repos:
         files: '\.go$'
         exclude: '_gen\.go$|vendor/'
         stages: [pre-push]
-
-  # GitHub Actions workflow linting
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
-    hooks:
-      - id: actionlint
-
-  # Dependency checking (runs last in pre-commit)
-  - repo: local
-    hooks:
-      - id: check-outdated-deps
-        name: Check for outdated Go dependencies
-        entry: go
-        args: [list, -u, -m, all]
-        language: system
-        pass_filenames: false
-        stages: [pre-commit]
 
 # Global configuration
 default_stages: [pre-commit]
