@@ -131,23 +131,6 @@
 
 ---
 
-## Recent Completions (2025-10-05)
-
-### ZAP Connectivity Analysis ✅
-- **Issue**: ZAP scan failing in act workflow
-- **Root Cause**: NOT networking - ZAP successfully connected and scanned 14 URLs
-- **Actual Problem**: File permission error on Windows/WSL2 when writing reports
-- **Solution**: Added pre-scan chmod 777 step for act on Windows
-- **Analysis**: See `docs/zap-analysis-2025-10-05.md` for detailed investigation
-
-### Key Findings
-- ✅ ZAP networking works correctly with `--network=host`
-- ✅ ZAP successfully targets `https://127.0.0.1:8080`
-- ✅ All 110+ security checks executed and passed
-- ✅ Fixed Windows/WSL2 volume mount permission issues
-
----
-
 ## Priority Execution Order
 
 ### NEXT PRIORITY - OAuth 2.0 Implementation (Q4 2025)
@@ -165,13 +148,6 @@
 ---
 
 ## Quick Reference
-
-### Successful Configuration
-- **Nuclei flags**: `-c 24 -rl 200 -timeout 600 -stats -ept tcp,javascript`
-- **ZAP network**: `--network=host` targeting `https://127.0.0.1:8080`
-- **Act compatibility**: `github.actor == 'nektos/act'` detection working
-- **Artifact collection**: Local artifacts saved to `./dast-reports/`
-- **Permission fix**: `chmod 777 ./dast-reports` before ZAP runs (act only)
 
 ### Testing Commands
 ```powershell
