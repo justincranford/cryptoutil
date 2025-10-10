@@ -69,6 +69,13 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore=DL3008, --ignore=DL3018]
+
 # Global configuration
 default_stages: [pre-commit]
 minimum_pre_commit_version: '2.20.0'
