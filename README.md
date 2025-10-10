@@ -284,6 +284,34 @@ gremlins unleash ./internal/common/util/... --workers 2 --timeout-coefficient 3
 ```
 
 **Configuration**: Mutation testing uses `.gremlins.yaml` with quality thresholds (70% efficacy, 60% coverage) and enabled mutation operators (arithmetic, conditionals, increment/decrement, etc.).
+### DAST Security Testing
+
+This project uses **Dynamic Application Security Testing (DAST)** to identify runtime vulnerabilities in the running application. DAST complements static analysis by testing the application from the outside, simulating real-world attack scenarios.
+
+#### Tools Used
+- **OWASP ZAP**: Comprehensive web application security scanner (currently disabled, planned re-enablement)
+- **Nuclei**: Fast, template-based vulnerability scanner for CVE detection and security misconfigurations
+
+#### Dual API Context Testing
+cryptoutil exposes identical OpenAPI operations under two distinct context paths with different security middleware:
+
+| Context Path | Intended Clients | Security Features |
+|--------------|------------------|-------------------|
+| `/browser/api/v1/*` | Browser/web clients | CORS, CSRF protection, CSP, comprehensive security headers |
+| `/service/api/v1/*` | Service-to-service clients | Core security only (no browser-specific headers) |
+
+**Testing Note**: Always test both API contexts as they have different security header configurations.
+
+#### Automated Execution (CI/CD)
+DAST runs automatically in GitHub Actions on:
+- Push to `main` branch
+- Pull requests  
+- Weekly scheduled scans (Sundays)
+- Manual workflow dispatch
+
+**Scan Profiles**: Quick (2-3 min), Full (8-10 min), Deep (15-20 min) with different coverage levels.
+
+#### Manual Execution
 ```sh
 # Linux/macOS - Complete DAST scan
 ./scripts/dast.sh
@@ -302,6 +330,18 @@ gremlins unleash ./internal/common/util/... --workers 2 --timeout-coefficient 3
 # Custom output directory
 ./scripts/dast.sh --output-dir security-reports
 .\scripts\dast.ps1 -OutputDir "security-reports"
+```
+
+#### Local Testing with act
+```powershell
+# Quick scan (2-3 minutes)
+act workflow_dispatch -j dast-security-scan --input scan_profile=quick
+
+# Full scan (8-10 minutes)  
+act workflow_dispatch -j dast-security-scan --input scan_profile=full
+
+# Deep scan (15-20 minutes)
+act workflow_dispatch -j dast-security-scan --input scan_profile=deep
 ```
 
 ### Comprehensive Security Scanning
