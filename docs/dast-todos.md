@@ -1,43 +1,6 @@
 # DAST TODO List - Active Tasks
 
-## 🚨 HIGH PRIORITY - ZAP Configuration Updates (Complete ZAP Ignore Rules)
-
-#### Task Z1: Add ZAP Ignore Rules for Service API Security Headers (✅ COMPLETED)
-- **Description**: Added IGNORE rules for Spectre headers and X-Content-Type-Options on service APIs
-- **Root Cause**: Service APIs are machine-to-machine only, don't need browser security headers
-- **Action Items**:
-  - ✅ Added `IGNORE 90004` for Spectre headers on `/service/api/v1/*`
-  - ✅ Added `IGNORE 10021` for X-Content-Type-Options on `/service/api/v1/*`
-- **Files**: `.zap/rules.tsv`
-- **Expected Outcome**: ZAP no longer flags service APIs for missing browser security headers
-- **Priority**: HIGH - Eliminates false positive security warnings
-- **Status**: ✅ COMPLETED - Rules added to .zap/rules.tsv
-
-#### Task Z2: Add ZAP Ignore Rules for OpenAPI Documentation (✅ COMPLETED)
-- **Description**: Added IGNORE rules for intentional API documentation disclosures
-- **Root Cause**: OpenAPI specs intentionally expose error schemas for developer experience
-- **Action Items**:
-  - ✅ Added `IGNORE 90022` for error schema disclosure in OpenAPI spec
-  - ✅ Confirmed `IGNORE 10045` already exists for OpenAPI spec disclosure
-- **Files**: `.zap/rules.tsv`
-- **Expected Outcome**: ZAP no longer flags intentional API documentation disclosures
-- **Priority**: HIGH - Eliminates false positive security warnings
-- **Status**: ✅ COMPLETED - Rules added to .zap/rules.tsv
-
-#### Task Z3: Verify Debug Error Messages Only in DevMode (✅ COMPLETED)
-- **Description**: Confirmed CSRF error messages are secure in production
-- **Root Cause**: Detailed error messages only shown when `settings.DevMode = true`
-- **Action Items**:
-  - ✅ Verified production error response: `{"error": "CSRF token validation failed"}`
-  - ✅ Confirmed DevMode detailed errors are development-only
-- **Files**: `internal/server/application/application_listener.go` (CSRF error handler)
-- **Expected Outcome**: No production information disclosure from error messages
-- **Priority**: HIGH - Confirms security of error handling
-- **Status**: ✅ COMPLETED - Analysis confirmed secure production behavior
-
----
-
-## 🔴 CRITICAL - OAuth 2.0 Implementation Planning
+##  CRITICAL - OAuth 2.0 Implementation Planning
 
 #### Task O1: Design OAuth 2.0 Authorization Code Flow for User vs Machine Access (🔴 CRITICAL)
 - **Description**: Implement separate OAuth 2.0 flows for browser users vs service machines
@@ -112,27 +75,6 @@
 - **Priority**: Medium - Cookie security hardening
 - **ZAP Reference**: WARN-NEW: Cookie No HttpOnly Flag [10010] x 6
 
-#### Task S2: Extend Security Headers to Service APIs (✅ CANCELLED)
-- **Description**: X-Content-Type-Options header missing on service API endpoints
-- **Decision**: CANCELLED - Service APIs are machine-to-machine only, browser headers not applicable
-- **Action Taken**: Added ZAP IGNORE rule for service API endpoints
-- **Files**: `.zap/rules.tsv`
-- **Status**: ✅ CANCELLED - Architectural decision made, ZAP ignore rule added
-
-#### Task S3: Sanitize Debug Error Message Disclosure (✅ COMPLETED)
-- **Description**: Debug error messages exposed in API responses
-- **Root Cause**: CSRF error handler returns detailed debug information in DevMode
-- **Action Taken**: Confirmed production error messages are secure (only `{"error": "CSRF token validation failed"}`)
-- **Files**: `internal/server/application/application_listener.go` (CSRF error handler)
-- **Status**: ✅ COMPLETED - Production behavior confirmed secure
-
-#### Task S4: Review OpenAPI Error Schema Exposure (✅ CANCELLED)
-- **Description**: Application error details exposed via OpenAPI documentation
-- **Decision**: CANCELLED - OpenAPI error schemas are intentional for developer experience
-- **Action Taken**: Added ZAP IGNORE rule for OpenAPI spec error disclosures
-- **Files**: `.zap/rules.tsv`
-- **Status**: ✅ CANCELLED - Intentional API documentation design
-
 #### Task S5: Investigate JSON Parsing Issues in API Endpoints (🟡 MEDIUM)
 - **Description**: ZAP VariantJSONQuery failing to parse request bodies
 - **Root Cause**: API endpoints expect JSON but receive string data
@@ -146,13 +88,6 @@
 - **Expected Outcome**: All JSON API endpoints properly parse JSON request bodies
 - **Priority**: Medium - API contract consistency
 - **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failures
-
-#### Task S6: Review Spectre Protection Headers Applicability (✅ CANCELLED)
-- **Description**: Determine if Spectre protection headers needed on service API endpoints
-- **Decision**: CANCELLED - Service APIs are machine-to-machine only, Spectre headers not applicable
-- **Action Taken**: Added ZAP IGNORE rule for Spectre headers on service endpoints
-- **Files**: `.zap/rules.tsv`
-- **Status**: ✅ CANCELLED - Architectural decision made, ZAP ignore rule added
 
 ---
 
@@ -169,13 +104,11 @@
 
 ## Executive Summary
 
-**CURRENT STATUS** (2025-10-08): ✅ **ZAP False Positives Eliminated, OAuth 2.0 Planning Initiated**
+**CURRENT STATUS** (2025-10-09): 🔄 **OAuth 2.0 Implementation Planning Underway**
 
-- ✅ **ZAP ignore rules added** - Spectre headers, X-Content-Type-Options, and OpenAPI disclosures no longer flagged
-- ✅ **Security architecture clarified** - Service APIs are machine-to-machine only, browser headers not applicable
-- ✅ **Error handling confirmed secure** - Production error messages are minimal and safe
 - 🔄 **OAuth 2.0 implementation planning** - Separate flows for users (browser APIs) vs machines (service APIs)
-- ✅ **OpenAPI documentation intentional** - Error schemas exposed for developer experience
+- 🟡 **Security hardening in progress** - Cookie HttpOnly flags and JSON parsing issues remain
+- 🔵 **Performance optimization pending** - Workflow parallelization opportunity identified
 
 **Next Priority**: Implement OAuth 2.0 Authorization Code flows for secure API access separation
 
@@ -251,6 +184,6 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 
 ---
 
-**Last Updated**: 2025-10-08
-**Recent completions**: ZAP ignore rules added (2025-10-08), OAuth 2.0 planning initiated (2025-10-08)
-**Status**: ZAP false positives eliminated. OAuth 2.0 implementation planning underway.
+**Last Updated**: 2025-10-09
+**Recent completions**: Completed tasks removed from active list (2025-10-09)
+**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active.
