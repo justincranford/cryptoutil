@@ -74,15 +74,6 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-      # Dependency checking (runs last in pre-commit)
-      - id: check-outdated-deps
-        name: Check for outdated Go dependencies
-        entry: go
-        args: [list, -u, -m, all]
-        language: system
-        pass_filenames: false
-        stages: [pre-commit]
-
   # Comprehensive Go linting (runs on pre-push due to performance)
   - repo: local
     hooks:
@@ -93,6 +84,24 @@ repos:
         language: system
         files: '\.go$'
         exclude: '_gen\.go$|vendor/'
+        stages: [pre-push]
+
+      # Dependency checking (runs on pre-push)
+      - id: check-outdated-deps
+        name: Check for outdated Go dependencies
+        entry: go
+        args: [run, scripts/check.go, go-dependency-versions]
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      # GitHub Actions version checking (runs on pre-push)
+      - id: check-outdated-actions
+        name: Check for outdated GitHub Actions
+        entry: go
+        args: [run, scripts/check.go, github-action-versions]
+        language: system
+        pass_filenames: false
         stages: [pre-push]
 
 # Global configuration
