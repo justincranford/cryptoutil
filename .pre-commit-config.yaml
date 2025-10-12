@@ -47,6 +47,18 @@ repos:
     hooks:
       - id: hadolint-docker
 
+  # Go build check
+  - repo: local
+    hooks:
+      - id: go-build
+        name: go build
+        entry: go
+        args: [build, ./...]
+        language: system
+        pass_filenames: false
+        files: '\.go$'
+        exclude: '_gen\.go$|vendor/'
+
   # Go formatting using local commands (more reliable)
   - repo: local
     hooks:
