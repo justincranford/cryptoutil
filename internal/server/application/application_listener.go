@@ -261,14 +261,25 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		c.Set("Content-Type", "application/json")
 		return c.Send(swaggerSpecBytes)
 	})
-	publicFiberApp.Get("/ui/swagger/*", swagger.New(swagger.Config{
-		Title:                  "Cryptoutil API",
-		URL:                    "/ui/swagger/doc.json",
-		TryItOutEnabled:        true,
-		DisplayRequestDuration: true,
-		ShowCommonExtensions:   true,
-		CustomScript:           swaggerUICustomCSRFScript(settings.CSRFTokenName, settings.PublicBrowserAPIContextPath),
-	}))
+	publicFiberApp.Get("/ui/swagger/*", func(c *fiber.Ctx) error {
+		swaggerHandler := swagger.New(swagger.Config{
+			Title:                  "Cryptoutil API",
+			URL:                    "/ui/swagger/doc.json",
+			TryItOutEnabled:        true,
+			DisplayRequestDuration: true,
+			ShowCommonExtensions:   true,
+			CustomScript:           swaggerUICustomCSRFScript(settings.CSRFTokenName, settings.PublicBrowserAPIContextPath),
+		})
+		err := swaggerHandler(c)
+		if err != nil {
+			return err
+		}
+		// Ensure Content-Type includes charset for HTML responses to satisfy security scanners
+		if c.Get("Content-Type") == "text/html" {
+			c.Set("Content-Type", "text/html; charset=utf-8")
+		}
+		return nil
+	})
 	publicFiberApp.Get(settings.PublicBrowserAPIContextPath+"/csrf-token", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
 			"message":         "CSRF token set in cookie",
