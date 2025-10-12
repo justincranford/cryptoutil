@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os/signal"
+	"runtime"
 	"strings"
 	"sync/atomic"
 	"syscall"
@@ -29,7 +30,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
-	"github.com/gofiber/fiber/v2/middleware/healthcheck"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -201,7 +201,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	}
 
 	privateMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
-	privateMiddlewares = append(privateMiddlewares, privateHealthCheckMiddlewareFunction()) // /livez, /readyz
+	privateMiddlewares = append(privateMiddlewares, privateHealthCheckMiddlewareFunction(serverApplicationCore)) // /livez, /readyz
 	privateFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
 	for _, middleware := range privateMiddlewares {
 		privateFiberApp.Use(middleware)
@@ -548,6 +548,94 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 	}
 }
 
+func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[string]interface{} {
+	if serverApplicationCore.SQLRepository == nil {
+		return map[string]interface{}{
+			"status": "error",
+			"error":  "SQL repository not initialized",
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	health, err := serverApplicationCore.SQLRepository.HealthCheck(ctx)
+	if err != nil {
+		return health // HealthCheck already returns the error details
+	}
+
+	return health
+}
+
+func checkMemoryHealth() map[string]interface{} {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+
+	return map[string]interface{}{
+		"status":         "ok",
+		"heap_alloc":     m.HeapAlloc,
+		"heap_sys":       m.HeapSys,
+		"heap_idle":      m.HeapIdle,
+		"heap_released":  m.HeapReleased,
+		"stack_inuse":    m.StackInuse,
+		"stack_sys":      m.StackSys,
+		"gc_cycles":      m.NumGC,
+		"gc_pause_total": m.PauseTotalNs,
+		"num_goroutines": runtime.NumGoroutine(),
+	}
+}
+
+func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]interface{} {
+	deps := map[string]interface{}{
+		"status":   "ok",
+		"services": map[string]interface{}{},
+	}
+
+	services := deps["services"].(map[string]interface{})
+
+	// Check telemetry service
+	if serverApplicationCore.ServerApplicationBasic.TelemetryService == nil {
+		services["telemetry"] = map[string]interface{}{"status": "error", "error": "not initialized"}
+		deps["status"] = "error"
+	} else {
+		services["telemetry"] = map[string]interface{}{"status": "ok"}
+	}
+
+	// Check JWK gen service
+	if serverApplicationCore.ServerApplicationBasic.JWKGenService == nil {
+		services["jwk_generator"] = map[string]interface{}{"status": "error", "error": "not initialized"}
+		deps["status"] = "error"
+	} else {
+		services["jwk_generator"] = map[string]interface{}{"status": "ok"}
+	}
+
+	// Check barrier service
+	if serverApplicationCore.BarrierService == nil {
+		services["barrier"] = map[string]interface{}{"status": "error", "error": "not initialized"}
+		deps["status"] = "error"
+	} else {
+		services["barrier"] = map[string]interface{}{"status": "ok"}
+	}
+
+	// Check business logic service
+	if serverApplicationCore.BusinessLogicService == nil {
+		services["business_logic"] = map[string]interface{}{"status": "error", "error": "not initialized"}
+		deps["status"] = "error"
+	} else {
+		services["business_logic"] = map[string]interface{}{"status": "ok"}
+	}
+
+	// Check ORM repository
+	if serverApplicationCore.OrmRepository == nil {
+		services["orm_repository"] = map[string]interface{}{"status": "error", "error": "not initialized"}
+		deps["status"] = "error"
+	} else {
+		services["orm_repository"] = map[string]interface{}{"status": "ok"}
+	}
+
+	return deps
+}
+
 func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		method := c.Method()
@@ -560,10 +648,48 @@ func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings)
 	}
 }
 
-func privateHealthCheckMiddlewareFunction() fiber.Handler {
-	// TODO Enhance health checks with detailed status (database, dependencies, memory usage)
-	// TODO Implement separate LivenessProbe vs ReadinessProbe functiions for Kubernetes deployments
-	return healthcheck.New()
+func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicationCore) fiber.Handler {
+	// Enhanced health checks with detailed status (database, dependencies, memory usage)
+	return func(c *fiber.Ctx) error {
+		// Check if this is a liveness or readiness probe
+		path := c.Path()
+		isReadiness := strings.HasSuffix(path, "/readyz")
+
+		healthStatus := map[string]interface{}{
+			"status":    "ok",
+			"timestamp": time.Now().UTC().Format(time.RFC3339),
+			"service":   "cryptoutil",
+			"version":   "1.0.0", // TODO: Get from build info
+			"probe":     "liveness",
+		}
+
+		if isReadiness {
+			healthStatus["probe"] = "readiness"
+			healthStatus["database"] = checkDatabaseHealth(serverApplicationCore)
+			healthStatus["memory"] = checkMemoryHealth()
+			healthStatus["dependencies"] = checkDependenciesHealth(serverApplicationCore)
+
+			// Check if any component is unhealthy for readiness
+			if dbStatus, ok := healthStatus["database"].(map[string]interface{}); ok {
+				if status, ok := dbStatus["status"].(string); ok && status != "ok" {
+					healthStatus["status"] = "degraded"
+				}
+			}
+
+			if depsStatus, ok := healthStatus["dependencies"].(map[string]interface{}); ok {
+				if status, ok := depsStatus["status"].(string); ok && status != "ok" {
+					healthStatus["status"] = "degraded"
+				}
+			}
+		}
+
+		statusCode := fiber.StatusOK
+		if healthStatus["status"] != "ok" {
+			statusCode = fiber.StatusServiceUnavailable
+		}
+
+		return c.Status(statusCode).JSON(healthStatus)
+	}
 }
 
 func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ctx) error {

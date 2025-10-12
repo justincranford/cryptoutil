@@ -28,6 +28,42 @@ func (s *SQLRepository) GetDBType() SupportedDBType {
 	return s.dbType
 }
 
+// HealthCheck performs a database connectivity check and returns detailed status.
+func (s *SQLRepository) HealthCheck(ctx context.Context) (map[string]any, error) {
+	if s.sqlDB == nil {
+		return map[string]any{
+			"status": "error",
+			"error":  "database connection not initialized",
+		}, fmt.Errorf("database connection not initialized")
+	}
+
+	// Ping with timeout
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	err := s.sqlDB.PingContext(pingCtx)
+	if err != nil {
+		return map[string]any{
+			"status":  "error",
+			"error":   fmt.Sprintf("database ping failed: %v", err),
+			"db_type": string(s.GetDBType()),
+		}, err
+	}
+
+	// Get connection pool stats
+	stats := s.sqlDB.Stats()
+	return map[string]any{
+		"status":               "ok",
+		"db_type":              string(s.GetDBType()),
+		"open_connections":     stats.OpenConnections,
+		"idle_connections":     stats.Idle,
+		"in_use_connections":   stats.InUse,
+		"max_open_connections": stats.MaxOpenConnections,
+		"wait_count":           stats.WaitCount,
+		"wait_duration":        stats.WaitDuration.String(),
+	}, nil
+}
+
 type (
 	SupportedDBType string
 	ContainerMode   string
