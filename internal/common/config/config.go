@@ -17,11 +17,11 @@ const (
 	httpProtocol  = "http"
 	httpsProtocol = "https"
 
-	localhost       = "localhost"
-	ipv4Loopback    = "127.0.0.1"
-	ipv6Loopback    = "::1"
-	ipv6LoopbackURL = "[::1]"
-	ipv4MappedIPv6  = "::ffff:127.0.0.1"
+	localhost              = "localhost"
+	ipv4Loopback           = "127.0.0.1"
+	ipv6Loopback           = "::1"
+	ipv6LoopbackURL        = "[::1]"
+	ipv4MappedIPv6Loopback = "::ffff:127.0.0.1"
 
 	localhostCIDRv4     = "127.0.0.0/8"
 	linkLocalCIDRv4     = "169.254.0.0/16"
@@ -457,9 +457,9 @@ var defaultCORSAllowedHeaders = []string{
 }
 
 var defaultAllowedIps = []string{
-	localhost,      // localhost (IPv4)
-	ipv6Loopback,   // localhost (IPv6)
-	ipv4MappedIPv6, // localhost (IPv4-mapped IPv6)
+	localhost,              // localhost (IPv4)
+	ipv6Loopback,           // localhost (IPv6)
+	ipv4MappedIPv6Loopback, // localhost (IPv4-mapped IPv6)
 }
 
 var defaultAllowedCIDRs = []string{
@@ -477,9 +477,9 @@ var defaultTLSPublicDNSNames = []string{localhost}
 
 var defaultTLSPrivateDNSNames = []string{localhost}
 
-var defaultTLSPublicIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6}
+var defaultTLSPublicIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
 
-var defaultTLSPrivateIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6}
+var defaultTLSPrivateIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
 
 var defaultUnsealFiles = []string{}
 
