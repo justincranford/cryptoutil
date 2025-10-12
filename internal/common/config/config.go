@@ -58,6 +58,7 @@ const (
 	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // PostgreSQL default with placeholder credentials, SSL disabled for local development
 	defaultDatabaseInitTotalTimeout    = 5 * time.Minute                                        // 5 minutes allows for container startup while preventing indefinite waits
 	defaultDatabaseInitRetryWait       = 1 * time.Second                                        // 1 second retry interval balances responsiveness and resource usage
+	defaultServerShutdownTimeout       = 5 * time.Second                                        // 5 seconds allows graceful shutdown while preventing indefinite waits
 	defaultHelp                        = false
 	defaultVerboseMode                 = false
 	defaultDevMode                     = false
@@ -69,7 +70,7 @@ const (
 	defaultUnsealMode                  = "sysinfo"
 )
 
-// Configuration profiles for common deployment scenarios
+// Configuration profiles for common deployment scenarios.
 var profiles = map[string]map[string]any{
 	"development": {
 		"log-level":                "DEBUG",
@@ -232,6 +233,7 @@ type Settings struct {
 	DatabaseURL                 string
 	DatabaseInitTotalTimeout    time.Duration
 	DatabaseInitRetryWait       time.Duration
+	ServerShutdownTimeout       time.Duration
 	OTLP                        bool
 	OTLPConsole                 bool
 	OTLPScope                   string
@@ -518,6 +520,13 @@ var (
 		usage:       "database init retry wait",
 		description: "Database Init Retry Wait",
 	})
+	serverShutdownTimeout = *registerSetting(&Setting{
+		name:        "server-shutdown-timeout",
+		shorthand:   "",
+		value:       defaultServerShutdownTimeout,
+		usage:       "server shutdown timeout",
+		description: "Server Shutdown Timeout",
+	})
 	otlp = *registerSetting(&Setting{
 		name:        "otlp",
 		shorthand:   "z",
@@ -574,15 +583,34 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	viper.AutomaticEnv()
 
 	// Explicitly bind boolean environment variables (viper.AutomaticEnv may not handle booleans correctly)
-	viper.BindEnv("verbose", "CRYPTOUTIL_VERBOSE")
-	viper.BindEnv("dev", "CRYPTOUTIL_DEV_MODE")
-	viper.BindEnv("dry-run", "CRYPTOUTIL_DRY_RUN")
-	viper.BindEnv("otlp", "CRYPTOUTIL_OTLP")
-	viper.BindEnv("otlp-console", "CRYPTOUTIL_OTLP_CONSOLE")
-	viper.BindEnv("csrf-token-cookie-secure", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE")
-	viper.BindEnv("csrf-token-cookie-http-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY")
-	viper.BindEnv("csrf-token-cookie-session-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY")
-	viper.BindEnv("csrf-token-single-use-token", "CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN")
+	// Note: viper.BindEnv errors are logged but don't prevent startup as they are extremely rare
+	if err := viper.BindEnv("verbose", "CRYPTOUTIL_VERBOSE"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_VERBOSE: %v\n", err)
+	}
+	if err := viper.BindEnv("dev", "CRYPTOUTIL_DEV_MODE"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_DEV_MODE: %v\n", err)
+	}
+	if err := viper.BindEnv("dry-run", "CRYPTOUTIL_DRY_RUN"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_DRY_RUN: %v\n", err)
+	}
+	if err := viper.BindEnv("otlp", "CRYPTOUTIL_OTLP"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP: %v\n", err)
+	}
+	if err := viper.BindEnv("otlp-console", "CRYPTOUTIL_OTLP_CONSOLE"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP_CONSOLE: %v\n", err)
+	}
+	if err := viper.BindEnv("csrf-token-cookie-secure", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE: %v\n", err)
+	}
+	if err := viper.BindEnv("csrf-token-cookie-http-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY: %v\n", err)
+	}
+	if err := viper.BindEnv("csrf-token-cookie-session-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY: %v\n", err)
+	}
+	if err := viper.BindEnv("csrf-token-single-use-token", "CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN: %v\n", err)
+	}
 
 	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
 	pflag.BoolP(help.name, help.shorthand, registerAsBoolSetting(&help), help.usage)
@@ -622,6 +650,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(databaseURL.name, databaseURL.shorthand, registerAsStringSetting(&databaseURL), databaseURL.usage)
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, registerAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.usage)
 	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, registerAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.usage)
+	pflag.DurationP(serverShutdownTimeout.name, serverShutdownTimeout.shorthand, registerAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.usage)
 	pflag.BoolP(otlp.name, otlp.shorthand, registerAsBoolSetting(&otlp), otlp.usage)
 	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, registerAsBoolSetting(&otlpConsole), otlpConsole.usage)
 	pflag.StringP(otlpScope.name, otlpScope.shorthand, registerAsStringSetting(&otlpScope), otlpScope.usage)
@@ -711,6 +740,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		DatabaseURL:                 viper.GetString(databaseURL.name),
 		DatabaseInitTotalTimeout:    viper.GetDuration(databaseInitTotalTimeout.name),
 		DatabaseInitRetryWait:       viper.GetDuration(databaseInitRetryWait.name),
+		ServerShutdownTimeout:       viper.GetDuration(serverShutdownTimeout.name),
 		OTLP:                        viper.GetBool(otlp.name),
 		OTLPConsole:                 viper.GetBool(otlpConsole.name),
 		OTLPScope:                   viper.GetString(otlpScope.name),
@@ -991,7 +1021,7 @@ func analyzeSettings(settings []*Setting) analysisResult {
 }
 
 // validateConfiguration performs comprehensive validation of the configuration
-// and returns detailed error messages with suggestions for fixes
+// and returns detailed error messages with suggestions for fixes.
 func validateConfiguration(s *Settings) error {
 	var errors []string
 
@@ -1007,15 +1037,15 @@ func validateConfiguration(s *Settings) error {
 	}
 
 	// Validate protocols
-	if s.BindPublicProtocol != "http" && s.BindPublicProtocol != "https" {
-		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be 'http' or 'https'", s.BindPublicProtocol))
+	if s.BindPublicProtocol != httpProtocol && s.BindPublicProtocol != httpsProtocol {
+		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be '%s' or '%s'", s.BindPublicProtocol, httpProtocol, httpsProtocol))
 	}
-	if s.BindPrivateProtocol != "http" && s.BindPrivateProtocol != "https" {
-		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be 'http' or 'https'", s.BindPrivateProtocol))
+	if s.BindPrivateProtocol != httpProtocol && s.BindPrivateProtocol != httpsProtocol {
+		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be '%s' or '%s'", s.BindPrivateProtocol, httpProtocol, httpsProtocol))
 	}
 
 	// Validate HTTPS requirements
-	if s.BindPublicProtocol == "https" && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
+	if s.BindPublicProtocol == httpsProtocol && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
 		errors = append(errors, "HTTPS public protocol requires TLS DNS names or IP addresses to be configured")
 	}
 	if s.BindPrivateProtocol == "https" && len(s.TLSPrivateDNSNames) == 0 && len(s.TLSPrivateIPAddresses) == 0 {

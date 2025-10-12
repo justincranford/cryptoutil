@@ -48,9 +48,6 @@ const (
 	protocolHTTPS = "https"
 )
 
-const serverShutdownFinishTimeout = 5 * time.Second
-
-// TODO Make shutdown timeout configurable via settings
 // TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)
 const serverShutdownRequestPath = "/shutdown"
 
@@ -319,7 +316,9 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 
 	privateListener, err := net.Listen("tcp", privateBinding)
 	if err != nil {
-		publicListener.Close()
+		if closeErr := publicListener.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close public listener during cleanup: %v\n", closeErr)
+		}
 		serverApplicationCore.Shutdown()
 		return nil, fmt.Errorf("failed to create private listener: %w", err)
 	}
@@ -352,7 +351,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		settings.BindPublicProtocol, settings.BindPrivateProtocol,
 		publicTLSServer.Config, privateTLSServer.Config,
 		serverApplicationCore.ServerApplicationBasic.TelemetryService)
-	shutdownServerFunction = stopServerFuncWithListeners(serverApplicationCore, publicFiberApp, privateFiberApp, publicListener, privateListener)
+	shutdownServerFunction = stopServerFuncWithListeners(serverApplicationCore, publicFiberApp, privateFiberApp, publicListener, privateListener, settings)
 
 	go stopServerSignalFunc(serverApplicationCore.ServerApplicationBasic.TelemetryService, shutdownServerFunction)() // listen for OS signals to gracefully shutdown the server
 
@@ -404,12 +403,12 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 	}
 }
 
-func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp, privateFiberApp *fiber.App, publicListener, privateListener net.Listener) func() {
+func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp, privateFiberApp *fiber.App, publicListener, privateListener net.Listener, settings *cryptoutilConfig.Settings) func() {
 	return func() {
 		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
 		}
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), serverShutdownFinishTimeout)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), settings.ServerShutdownTimeout)
 		defer cancel() // perform shutdown respecting timeout
 
 		if publicFiberApp != nil {

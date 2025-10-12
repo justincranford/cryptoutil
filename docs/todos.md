@@ -175,7 +175,6 @@
   - `internal/common/crypto/jose/jws_message_util.go:148` - "TODO support multiple signatures"
   - `internal/common/pool/pool.go:43` - "TODO change generateCounter and getCounter from uint64 to telemetryService.MetricsProvider.Counter()"
   - `internal/server/application/application_listener.go` - Multiple TODOs:
-    - Line 53: "TODO Make shutdown timeout configurable via settings"
     - Line 54: "TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)"
     - Line 93: "TODO Only use InsecureSkipVerify for DevMode"
     - Line 195: "TODO Replace this with improved otelFiberTelemetryMiddleware; unstructured logs and no OpenTelemetry are undesirable"

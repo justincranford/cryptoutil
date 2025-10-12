@@ -12,6 +12,12 @@ applyTo: "**"
 - Use Go context for HTTP requests and long-running operations to satisfy noctx linter (http.NewRequestWithContext, t.Context() in tests)
 - Follow maintenance guidelines in files: immediately remove completed/obsolete tasks from actionable lists
 
+## Linter Compliance
+
+- **godot**: All comments must end with a period (`.`). This includes package comments, function comments, and inline comments
+- **goconst**: Avoid repeating string literals. Use named constants for strings that appear 3+ times in the same file
+- **errcheck**: Always check error return values from functions. Never ignore errors with `_` unless explicitly documented why the error can be safely ignored. Don't use `//nolint:errcheck` to suppress legitimate error handling requirements
+
 ## Code Patterns
 
 - **Default Values**: Always declare default values as named variables (e.g., `var defaultConfigFiles = []string{}`) rather than inline literals, following the established pattern in config.go

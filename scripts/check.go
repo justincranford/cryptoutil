@@ -269,7 +269,11 @@ func getLatestVersion(actionName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close HTTP response body: %v\n", closeErr)
+		}
+	}()
 
 	if resp.StatusCode == 404 {
 		// Some actions might not have releases, try tags
@@ -317,7 +321,11 @@ func getLatestTag(actionName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request for tags: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close HTTP response body: %v\n", closeErr)
+		}
+	}()
 
 	if resp.StatusCode == 403 {
 		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
