@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -248,7 +249,9 @@ func getLatestVersion(actionName string) (string, error) {
 	time.Sleep(200 * time.Millisecond)
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", actionName)
-	req, err := http.NewRequest("GET", url, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create HTTP request: %w", err)
 	}
@@ -261,7 +264,7 @@ func getLatestVersion(actionName string) (string, error) {
 	// Set User-Agent as recommended by GitHub API
 	req.Header.Set("User-Agent", "check-script")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request: %w", err)
@@ -296,7 +299,9 @@ func getLatestVersion(actionName string) (string, error) {
 
 func getLatestTag(actionName string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
-	req, err := http.NewRequest("GET", url, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create HTTP request for tags: %w", err)
 	}
@@ -307,7 +312,7 @@ func getLatestTag(actionName string) (string, error) {
 	}
 	req.Header.Set("User-Agent", "check-script")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request for tags: %w", err)

@@ -47,7 +47,10 @@ func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
 }
 
 func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) error {
-	client := &http.Client{Timeout: timeout}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	client := &http.Client{}
 
 	if strings.HasPrefix(*url, "https://") {
 		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{
@@ -56,7 +59,12 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 		}}
 	}
 
-	resp, err := client.Get(*url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, *url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("get %v failed: %w", url, err)
 	}

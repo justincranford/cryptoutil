@@ -191,7 +191,7 @@ func TestSecurityHeaders(t *testing.T) {
 
 func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, http.Header, error) {
 	t.Helper()
-	req, err := http.NewRequest(httpMethod, url, nil)
+	req, err := http.NewRequestWithContext(t.Context(), httpMethod, url, nil)
 	require.NoError(t, err, "failed to create %s request", httpMethod)
 	req.Header.Set("Accept", "*/*")
 

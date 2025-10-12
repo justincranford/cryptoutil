@@ -89,7 +89,10 @@ func TestMutualTLS(t *testing.T) {
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
 		for i := 1; i <= clientConnections; i++ {
-			httpsServerResponse, err := httpsClient.Post(serverURL, "text/plain", bytes.NewReader(httpsClientRequestBody))
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, serverURL, bytes.NewReader(httpsClientRequestBody))
+			require.NoError(t, err, "failed to create POST request (%d of %d)", i, clientConnections)
+			req.Header.Set("Content-Type", "text/plain")
+			httpsServerResponse, err := httpsClient.Do(req)
 			require.NoError(t, err, "client failed to POST to HTTPS Echo Server (%d of %d)", i, clientConnections)
 			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, clientConnections)
 			func() {
