@@ -114,8 +114,6 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	// barrier decrypt using unseal service with second valid JWKs
 	encryptDecryptContentRestartDecryptAgain(t, testOrmRepository, unsealKeysServiceJWKs12, unsealKeysServiceJWK2)
 
-	// TODO barrier decrypt using unseal service with invalid JWKs
-
 	// barrier decrypt using unseal service with both valid JWKs
 	encryptDecryptContentRestartDecryptAgain(t, testOrmRepository, unsealKeysServiceJWKs12, unsealKeysServiceJWKs12)
 }
@@ -203,4 +201,74 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 	require.Error(t, err)
 
 	t.Log("Success")
+}
+
+func Test_ErrorCase_DecryptWithInvalidJWKs(t *testing.T) {
+	// initialize repositories
+	testSQLRepository := cryptoutilSQLRepository.RequireNewForTest(testCtx, testTelemetryService, testSettings)
+	defer testSQLRepository.Shutdown()
+
+	testOrmRepository := cryptoutilOrmRepository.RequireNewForTest(testCtx, testTelemetryService, testSQLRepository, testJWKGenService, testSettings)
+	defer testOrmRepository.Shutdown()
+
+	// generate valid JWKs for encryption
+	_, validJWEJWK1, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
+	require.NotNil(t, validJWEJWK1)
+
+	_, validJWEJWK2, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
+	require.NotNil(t, validJWEJWK2)
+
+	// generate invalid JWK for decryption attempt
+	_, invalidJWEJWK, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW)
+	require.NoError(t, err)
+	require.NotNil(t, invalidJWEJWK)
+
+	// create unseal service with valid JWKs for encryption
+	validUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{validJWEJWK1, validJWEJWK2})
+	require.NoError(t, err)
+	require.NotNil(t, validUnsealKeysService)
+	defer validUnsealKeysService.Shutdown()
+
+	// create unseal service with invalid JWK for decryption attempt
+	invalidUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{invalidJWEJWK})
+	require.NoError(t, err)
+	require.NotNil(t, invalidUnsealKeysService)
+	defer invalidUnsealKeysService.Shutdown()
+
+	plaintext := []byte("hello, world!")
+
+	// encrypt content with valid JWKs
+	var encryptedBytes []byte
+	barrierService, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, validUnsealKeysService)
+	require.NoError(t, err)
+	defer barrierService.Shutdown()
+
+	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		encryptedBytes, err = barrierService.EncryptContent(sqlTransaction, plaintext)
+		return err
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, encryptedBytes)
+
+	// shutdown the valid service
+	barrierService.Shutdown()
+
+	// try to decrypt with invalid JWKs - this should fail
+	barrierServiceInvalid, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, invalidUnsealKeysService)
+	require.NoError(t, err)
+	defer barrierServiceInvalid.Shutdown()
+
+	var decryptedBytes []byte
+	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
+		var err error
+		decryptedBytes, err = barrierServiceInvalid.DecryptContent(sqlTransaction, encryptedBytes)
+		return err
+	})
+	require.Error(t, err, "Decryption should fail with invalid JWKs")
+	require.Empty(t, decryptedBytes, "Decrypted content should be empty when decryption fails")
+
+	t.Log("Success - decryption correctly failed with invalid JWKs")
 }

@@ -185,7 +185,6 @@
     - Line 241: "TODO Add specific rate limiting for Swagger UI endpoints"
     - Line 565: "TODO Enhance health checks with detailed status (database, dependencies, memory usage)"
     - Line 566: "TODO Implement separate LivenessProbe vs ReadinessProbe functions for Kubernetes deployments"
-  - `internal/server/barrier/barrier_service_test.go:117` - "TODO barrier decrypt using unseal service with invalid JWKs"
   - `internal/server/businesslogic/businesslogic.go:250` - "TODO cache GetElasticKey"
   - `internal/server/businesslogic/businesslogic.go:328` - "TODO Use encryptParams.Context for encryption"
 - **Action Items**:
@@ -214,7 +213,7 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 ---
 
 **Last Updated**: 2025-10-12
-**Recent completions**: Request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12)
+**Recent completions**: Invalid JWK decryption test implemented (2025-10-12), request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12)
 **Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue added.
 
 ---
