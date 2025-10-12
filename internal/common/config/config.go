@@ -213,28 +213,28 @@ var (
 	tlsPublicDNSNames = *registerSetting(&Setting{
 		name:        "tls-public-dns-names",
 		shorthand:   "n",
-		value:       []string{"localhost"},
+		value:       defaultTLSPublicDNSNames,
 		usage:       "TLS public DNS names",
 		description: "TLS Public DNS Names",
 	})
 	tlsPrivateDNSNames = *registerSetting(&Setting{
 		name:        "tls-private-dns-names",
 		shorthand:   "j",
-		value:       []string{"localhost"},
+		value:       defaultTLSPrivateDNSNames,
 		usage:       "TLS private DNS names",
 		description: "TLS Private DNS Names",
 	})
 	tlsPublicIPAddresses = *registerSetting(&Setting{
 		name:        "tls-public-ip-addresses",
 		shorthand:   "i",
-		value:       []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
+		value:       defaultTLSPublicIPAddresses,
 		usage:       "TLS public IP addresses",
 		description: "TLS Public IP Addresses",
 	})
 	tlsPrivateIPAddresses = *registerSetting(&Setting{
 		name:        "tls-private-ip-addresses",
 		shorthand:   "k",
-		value:       []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"},
+		value:       defaultTLSPrivateIPAddresses,
 		usage:       "TLS private IP addresses",
 		description: "TLS Private IP Addresses",
 	})
@@ -410,7 +410,7 @@ var (
 	unsealFiles = *registerSetting(&Setting{
 		name:      "unseal-files",
 		shorthand: "F",
-		value:     []string{},
+		value:     defaultUnsealFiles,
 		usage: "unseal files; repeat for multiple files; e.g. " +
 			"\"--unseal-files=/docker/secrets/unseal_1of3 --unseal-files=/docker/secrets/unseal_2of3\"; " +
 			"used for N unseal keys or M-of-N unseal shared secrets",
@@ -473,6 +473,16 @@ var defaultAllowedCIDRs = []string{
 	linkLocalCIDRv6,     // link-local (IPv6)
 	privateLANv6,        // private LAN (IPv6)
 }
+
+var defaultTLSPublicDNSNames = []string{"localhost"}
+
+var defaultTLSPrivateDNSNames = []string{"localhost"}
+
+var defaultTLSPublicIPAddresses = []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"}
+
+var defaultTLSPrivateIPAddresses = []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"}
+
+var defaultUnsealFiles = []string{}
 
 // set of valid subcommands.
 var subcommands = map[string]struct{}{
