@@ -17,10 +17,11 @@ const (
 	httpProtocol  = "http"
 	httpsProtocol = "https"
 
-	localhost      = "localhost"
-	ipv4Loopback   = "127.0.0.1"
-	ipv6Loopback   = "[::1]"
-	ipv4MappedIPv6 = "::ffff:127.0.0.1"
+	localhost       = "localhost"
+	ipv4Loopback    = "127.0.0.1"
+	ipv6Loopback    = "::1"
+	ipv6LoopbackURL = "[::1]"
+	ipv4MappedIPv6  = "::ffff:127.0.0.1"
 
 	localhostCIDRv4     = "127.0.0.0/8"
 	linkLocalCIDRv4     = "169.254.0.0/16"
@@ -31,6 +32,11 @@ const (
 	localhostCIDRv6 = "::1/128"
 	linkLocalCIDRv6 = "fe80::/10"
 	privateLANv6    = "fc00::/7"
+
+	defaultCORSMaxAge        = uint16(3600)
+	defaultCSRFTokenName     = "_csrf"
+	defaultCSRFTokenSameSite = "Strict"
+	defaultCSRFTokenMaxAge   = 1 * time.Hour
 )
 
 var allRegisteredSettings []*Setting
@@ -424,10 +430,10 @@ var defaultBindPostString = strconv.Itoa(int(asUint16(&bindPublicPort)))
 var defaultCORSAllowedOrigins = []string{
 	httpProtocol + "://" + localhost + ":" + defaultBindPostString,
 	httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-	httpProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
+	httpProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
 	httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
 	httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-	httpsProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
+	httpsProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
 }
 
 var defaultCORSAllowedMethods = []string{
@@ -450,14 +456,6 @@ var defaultCORSAllowedHeaders = []string{
 	"_csrf",
 }
 
-const defaultCORSMaxAge = uint16(3600)
-
-const defaultCSRFTokenName = "_csrf"
-
-const defaultCSRFTokenSameSite = "Strict"
-
-const defaultCSRFTokenMaxAge = 1 * time.Hour
-
 var defaultAllowedIps = []string{
 	localhost,      // localhost (IPv4)
 	ipv6Loopback,   // localhost (IPv6)
@@ -475,13 +473,13 @@ var defaultAllowedCIDRs = []string{
 	privateLANv6,        // private LAN (IPv6)
 }
 
-var defaultTLSPublicDNSNames = []string{"localhost"}
+var defaultTLSPublicDNSNames = []string{localhost}
 
-var defaultTLSPrivateDNSNames = []string{"localhost"}
+var defaultTLSPrivateDNSNames = []string{localhost}
 
-var defaultTLSPublicIPAddresses = []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"}
+var defaultTLSPublicIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6}
 
-var defaultTLSPrivateIPAddresses = []string{"127.0.0.1", "::1", "::ffff:127.0.0.1"}
+var defaultTLSPrivateIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6}
 
 var defaultUnsealFiles = []string{}
 
