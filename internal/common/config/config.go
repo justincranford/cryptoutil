@@ -5,6 +5,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -60,6 +61,7 @@ const (
 	defaultHelp                        = false
 	defaultVerboseMode                 = false
 	defaultDevMode                     = false
+	defaultDryRun                      = false
 	defaultOTLP                        = false
 	defaultOTLPConsole                 = false
 	defaultOTLPScope                   = "cryptoutil"
@@ -134,6 +136,7 @@ type Settings struct {
 	LogLevel                    string
 	VerboseMode                 bool
 	DevMode                     bool
+	DryRun                      bool
 	BindPublicProtocol          string
 	BindPublicAddress           string
 	BindPublicPort              uint16
@@ -224,6 +227,13 @@ var (
 		value:       defaultDevMode,
 		usage:       "run in development mode; enables in-memory SQLite",
 		description: "Dev mode",
+	})
+	dryRun = *registerSetting(&Setting{
+		name:        "dry-run",
+		shorthand:   "Y",
+		value:       defaultDryRun,
+		usage:       "validate configuration and exit without starting server",
+		description: "Dry run",
 	})
 	bindPublicProtocol = *registerSetting(&Setting{
 		name:        "bind-public-protocol",
@@ -486,12 +496,29 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	}
 	subCommandParameters := commandParameters[1:]
 
+	// Enable environment variable support with CRYPTOUTIL_ prefix BEFORE parsing flags
+	viper.SetEnvPrefix("CRYPTOUTIL")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.AutomaticEnv()
+
+	// Explicitly bind boolean environment variables (viper.AutomaticEnv may not handle booleans correctly)
+	viper.BindEnv("verbose", "CRYPTOUTIL_VERBOSE")
+	viper.BindEnv("dev", "CRYPTOUTIL_DEV_MODE")
+	viper.BindEnv("dry-run", "CRYPTOUTIL_DRY_RUN")
+	viper.BindEnv("otlp", "CRYPTOUTIL_OTLP")
+	viper.BindEnv("otlp-console", "CRYPTOUTIL_OTLP_CONSOLE")
+	viper.BindEnv("csrf-token-cookie-secure", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE")
+	viper.BindEnv("csrf-token-cookie-http-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY")
+	viper.BindEnv("csrf-token-cookie-session-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY")
+	viper.BindEnv("csrf-token-single-use-token", "CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN")
+
 	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
 	pflag.BoolP(help.name, help.shorthand, registerAsBoolSetting(&help), help.usage)
 	pflag.StringSliceP(configFile.name, configFile.shorthand, registerAsStringSliceSetting(&configFile), configFile.usage)
 	pflag.StringP(logLevel.name, logLevel.shorthand, registerAsStringSetting(&logLevel), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, registerAsBoolSetting(&verboseMode), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, registerAsBoolSetting(&devMode), devMode.usage)
+	pflag.BoolP(dryRun.name, dryRun.shorthand, registerAsBoolSetting(&dryRun), dryRun.usage)
 	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, registerAsStringSetting(&bindPublicProtocol), bindPublicProtocol.usage)
 	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, registerAsStringSetting(&bindPublicAddress), bindPublicAddress.usage)
 	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, registerAsUint16Setting(&bindPublicPort), bindPublicPort.usage)
@@ -531,6 +558,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
 	}
+
 	err = viper.BindPFlags(pflag.CommandLine)
 	if err != nil {
 		return nil, fmt.Errorf("failed to bind flags: %w", err)
@@ -563,6 +591,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		LogLevel:                    viper.GetString(logLevel.name),
 		VerboseMode:                 viper.GetBool(verboseMode.name),
 		DevMode:                     viper.GetBool(devMode.name),
+		DryRun:                      viper.GetBool(dryRun.name),
 		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),
 		BindPublicAddress:           viper.GetString(bindPublicAddress.name),
 		BindPublicPort:              viper.GetUint16(bindPublicPort.name),
@@ -604,13 +633,87 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 
 	if s.Help {
 		pflag.CommandLine.SetOutput(os.Stdout)
-		pflag.CommandLine.PrintDefaults()
-		fmt.Println("\nQuickstart Examples:")
-		fmt.Println("  server start --d                             # Start server with in-memory SQLite (--dev)")
-		fmt.Println("  server start --D required                    # Start server with PostgreSQL container (--database-container)")
-		fmt.Println("  server start --y global.yml --y preprod.yml  # Start server with settings in YAML config file(s) (--config)")
-		fmt.Println("  server stop                                  # Stop server")
-		fmt.Println("  server stop  --y global.yml --y preprod.yml  # Stop server with settings in YAML config file(s) (--config)")
+		fmt.Println("cryptoutil - Cryptographic utility server")
+		fmt.Println()
+		fmt.Println("USAGE:")
+		fmt.Println("  cryptoutil [subcommand] [flags]")
+		fmt.Println()
+		fmt.Println("SUBCOMMANDS:")
+		fmt.Println("  start    Start the server")
+		fmt.Println("  stop     Stop the server")
+		fmt.Println("  init     Initialize the server")
+		fmt.Println()
+		fmt.Println("SERVER SETTINGS:")
+		fmt.Println("  -a, --bind-public-address string    bind public address (default \"localhost\")")
+		fmt.Println("  -p, --bind-public-port uint16       bind public port (default 8080)")
+		fmt.Println("  -t, --bind-public-protocol string   bind public protocol (http or https) (default \"https\")")
+		fmt.Println("  -A, --bind-private-address string   bind private address (default \"localhost\")")
+		fmt.Println("  -P, --bind-private-port uint16      bind private port (default 9090)")
+		fmt.Println("  -T, --bind-private-protocol string  bind private protocol (http or https) (default \"http\")")
+		fmt.Println("  -c, --browser-api-context-path string  context path for Public Browser API (default \"/browser/api/v1\")")
+		fmt.Println("  -b, --service-api-context-path string  context path for Public Service API (default \"/service/api/v1\")")
+		fmt.Println()
+		fmt.Println("SECURITY SETTINGS:")
+		fmt.Println()
+		fmt.Println("NETWORK SECURITY SETTINGS:")
+		fmt.Println("  -I, --allowed-ips strings           comma-separated list of allowed IPs (default [localhost,127.0.0.1,::1,::ffff:127.0.0.1])")
+		fmt.Println("  -C, --allowed-cidrs strings         comma-separated list of allowed CIDRs (default [127.0.0.0/8,169.254.0.0/16,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,::1/128,fe80::/10,fc00::/7])")
+		fmt.Println("  -r, --rate-limit uint16             rate limit requests per second (default 50)")
+		fmt.Println()
+		fmt.Println("BROWSER CORS SECURITY SETTINGS:")
+		fmt.Println("  -o, --cors-origins strings          CORS allowed origins")
+		fmt.Println("  -m, --cors-methods strings          CORS allowed methods (default [POST,GET,PUT,DELETE,OPTIONS])")
+		fmt.Println("  -H, --cors-headers strings          CORS allowed headers (default [Content-Type,Authorization,Accept,Origin,X-Requested-With,Cache-Control,Pragma,Expires,_csrf])")
+		fmt.Println("  -x, --cors-max-age uint16           CORS max age in seconds (default 3600)")
+		fmt.Println()
+		fmt.Println("BROWSER CSRF SECURITY SETTINGS:")
+		fmt.Println("  -N, --csrf-token-name string        CSRF token name (default \"_csrf\")")
+		fmt.Println("  -S, --csrf-token-same-site string   CSRF token SameSite attribute (default \"Strict\")")
+		fmt.Println("  -M, --csrf-token-max-age duration   CSRF token max age (expiration) (default 1h0m0s)")
+		fmt.Println("  -R, --csrf-token-cookie-secure      CSRF token cookie Secure attribute (default true)")
+		fmt.Println("  -J, --csrf-token-cookie-http-only   CSRF token cookie HttpOnly attribute (default false)")
+		fmt.Println("  -E, --csrf-token-cookie-session-only CSRF token cookie SessionOnly attribute (default true)")
+		fmt.Println("  -G, --csrf-token-single-use-token   CSRF token SingleUse attribute (default false)")
+		fmt.Println()
+		fmt.Println("TLS SETTINGS:")
+		fmt.Println("  -n, --tls-public-dns-names strings  TLS public DNS names (default [localhost])")
+		fmt.Println("  -i, --tls-public-ip-addresses strings TLS public IP addresses (default [127.0.0.1,::1,::ffff:127.0.0.1])")
+		fmt.Println("  -j, --tls-private-dns-names strings TLS private DNS names (default [localhost])")
+		fmt.Println("  -k, --tls-private-ip-addresses strings TLS private IP addresses (default [127.0.0.1,::1,::ffff:127.0.0.1])")
+		fmt.Println()
+		fmt.Println("DATABASE SETTINGS:")
+		fmt.Println("  -u, --database-url string           database URL (default \"postgres://USR:PWD@localhost:5432/DB?sslmode=disable\")")
+		fmt.Println("  -D, --database-container string     database container mode (default \"disabled\")")
+		fmt.Println("  -Z, --database-init-total-timeout duration database init total timeout (default 5m0s)")
+		fmt.Println("  -W, --database-init-retry-wait duration database init retry wait (default 1s)")
+		fmt.Println()
+		fmt.Println("BARRIER SETTINGS:")
+		fmt.Println("  -U, --unseal-mode string            unseal mode: N, M-of-N, sysinfo (default \"sysinfo\")")
+		fmt.Println("  -F, --unseal-files strings          unseal files")
+		fmt.Println()
+		fmt.Println("OBSERVABILITY SETTINGS:")
+		fmt.Println("  -l, --log-level string              log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF (default \"INFO\")")
+		fmt.Println("  -v, --verbose                       verbose modifier for log level")
+		fmt.Println("  -z, --otlp                          enable OTLP export")
+		fmt.Println("  -q, --otlp-console                  enable OTLP logging to console (STDOUT)")
+		fmt.Println("  -s, --otlp-scope string             OTLP scope (default \"cryptoutil\")")
+		fmt.Println()
+		fmt.Println("CONFIGURATION SETTINGS:")
+		fmt.Println("  -y, --config strings                path to config file (can be specified multiple times)")
+		fmt.Println("  -d, --dev                           run in development mode; enables in-memory SQLite")
+		fmt.Println("  -Y, --dry-run                       validate configuration and exit without starting server")
+		fmt.Println("  -h, --help                          print help")
+		fmt.Println()
+		fmt.Println("ENVIRONMENT VARIABLES:")
+		fmt.Println("  All flags can be set via environment variables using the CRYPTOUTIL_ prefix.")
+		fmt.Println("  Examples: CRYPTOUTIL_LOG_LEVEL=DEBUG, CRYPTOUTIL_DATABASE_URL=...")
+		fmt.Println()
+		fmt.Println("Quickstart Examples:")
+		fmt.Println("  cryptoutil start --dev                             # Start server with in-memory SQLite")
+		fmt.Println("  cryptoutil start --database-container required     # Start server with PostgreSQL container")
+		fmt.Println("  cryptoutil start --config global.yml --config preprod.yml  # Start server with settings in YAML config files")
+		fmt.Println("  cryptoutil start --dry-run --config config.yml     # Validate configuration without starting")
+		fmt.Println("  cryptoutil stop                                     # Stop server")
 		if exitIfHelp {
 			os.Exit(0)
 		}
@@ -630,6 +733,7 @@ func logSettings(s *Settings) {
 			logLevel.name:                    s.LogLevel,
 			verboseMode.name:                 s.VerboseMode,
 			devMode.name:                     s.DevMode,
+			dryRun.name:                      s.DryRun,
 			bindPublicProtocol.name:          s.BindPublicProtocol,
 			bindPublicAddress.name:           s.BindPublicAddress,
 			bindPublicPort.name:              s.BindPublicPort,

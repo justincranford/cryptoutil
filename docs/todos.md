@@ -219,3 +219,89 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 **Last Updated**: 2025-10-12
 **Recent completions**: Completed tasks removed from active list (2025-10-12)
 **Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue added.
+
+---
+
+## Configuration & UX Improvements (🔵 LOW)
+
+#### Task C1: Implement 12-Factor App Standards Compliance (🔵 LOW)
+- **Description**: Ensure application follows 12-factor app methodology for cloud-native deployment
+- **12-Factor Requirements**:
+  - **I. Codebase**: One codebase tracked in revision control, many deploys
+  - **II. Dependencies**: Explicitly declare and isolate dependencies
+  - **III. Config**: Store config in the environment (✅ Environment variables implemented)
+  - **IV. Backing services**: Treat backing services as attached resources
+  - **V. Build, release, run**: Strictly separate build and run stages
+  - **VI. Processes**: Execute the app as one or more stateless processes
+  - **VII. Port binding**: Export services via port binding (✅ Implemented)
+  - **VIII. Concurrency**: Scale out via the process model
+  - **IX. Disposability**: Maximize robustness with fast startup and graceful shutdown
+  - **X. Dev/prod parity**: Keep development, staging, and production as similar as possible
+  - **XI. Logs**: Treat logs as event streams (✅ OTLP logging implemented)
+  - **XII. Admin processes**: Run admin/management tasks as one-off processes
+- **Current State**: Environment variables and port binding implemented, others need review
+- **Action Items**:
+  - Audit codebase for 12-factor compliance gaps
+  - Implement missing factors (config separation, stateless processes, etc.)
+  - Update deployment configurations for 12-factor compliance
+  - Document 12-factor compliance status
+- **Files**: Docker configs, deployment files, application architecture
+- **Expected Outcome**: Cloud-native, scalable application following industry best practices
+- **Priority**: LOW - Best practices alignment
+- **Timeline**: Ongoing maintenance
+
+#### Task C2: Implement Hot Config File Reload (🔵 LOW)
+- **Description**: Add ability to reload configuration files without restarting the server
+- **Current State**: Configuration loaded only at startup
+- **Action Items**:
+  - Add file watcher for config files (development mode only)
+  - Implement graceful config reload with validation
+  - Add reload endpoint for runtime config updates
+  - Handle config reload failures gracefully
+  - Add configuration versioning/checksum validation
+- **Files**: `internal/common/config/config.go`, server startup code
+- **Expected Outcome**: Development workflow improvement with live config reloading
+- **Priority**: LOW - Developer experience enhancement
+- **Timeline**: Q1 2026
+
+#### Task C3: Enhanced Default Value Documentation (🔵 LOW)
+- **Description**: Improve documentation of default values with reasoning and use cases
+- **Current State**: Basic default values shown in help, limited context
+- **Action Items**:
+  - Document why each default value was chosen
+  - Add use case examples for different default configurations
+  - Create configuration presets for common deployment scenarios
+  - Add inline comments explaining default value rationale
+  - Update README with configuration examples and best practices
+- **Files**: `internal/common/config/config.go`, README.md, help output
+- **Expected Outcome**: Better user understanding of configuration options
+- **Priority**: LOW - Documentation improvement
+- **Timeline**: Q1 2026
+
+#### Task C4: Configuration Profiles/Presets (🔵 LOW)
+- **Description**: Add named configuration profiles for common deployment scenarios
+- **Current State**: Manual configuration required for each environment
+- **Action Items**:
+  - Define standard profiles: development, staging, production, testing
+  - Implement profile loading with override capability
+  - Add profile validation and compatibility checks
+  - Create profile documentation and examples
+  - Add profile selection via command line flag
+- **Files**: `internal/common/config/config.go`, config file examples
+- **Expected Outcome**: Simplified configuration management for different environments
+- **Priority**: LOW - User experience improvement
+- **Timeline**: Q1 2026
+
+#### Task C5: Enhanced Error Messages & Validation (🔵 LOW)
+- **Description**: Improve configuration validation with better error messages and suggestions
+- **Current State**: Basic validation, generic error messages
+- **Action Items**:
+  - Add comprehensive config validation (port ranges, URL formats, etc.)
+  - Implement contextual error messages with suggestions
+  - Add configuration migration helpers for breaking changes
+  - Create validation summary with actionable fixes
+  - Add dry-run mode for configuration testing (✅ Implemented)
+- **Files**: `internal/common/config/config.go`, validation functions
+- **Expected Outcome**: Better user experience with clear configuration guidance
+- **Priority**: LOW - Error handling improvement
+- **Timeline**: Q1 2026

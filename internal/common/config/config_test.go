@@ -107,7 +107,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	s, err := Parse(commandParameters, false) // false => If --help is set, help is printed but the program doesn't exit
 	require.NoError(t, err)
 	require.True(t, s.Help)
-	require.Equal(t, "test.yaml", s.ConfigFile)
+	require.Equal(t, []string{"test.yaml"}, s.ConfigFile)
 	require.Equal(t, "debug", s.LogLevel)
 	require.True(t, s.VerboseMode)
 	require.Equal(t, "http", s.BindPublicProtocol)
@@ -262,4 +262,57 @@ func TestAnalyzeSettings_DuplicateNames_And_DuplicateShorthands(t *testing.T) {
 	require.Contains(t, result.DuplicateShorthands, "d")
 	require.NotContains(t, result.DuplicateShorthands, "u")
 	require.NotContains(t, result.DuplicateShorthands, "U")
+}
+
+func TestParse_EnvironmentVariables(t *testing.T) {
+	resetFlags()
+
+	// Set environment variables
+	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG")
+	t.Setenv("CRYPTOUTIL_DEV_MODE", "true")
+	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "9090")
+	t.Setenv("CRYPTOUTIL_DATABASE_URL", "postgres://env:pass@envdb:5432/envdb?sslmode=require")
+
+	commandParameters := []string{"start"}
+	s, err := Parse(commandParameters, false)
+	require.NoError(t, err)
+
+	// Verify environment variables were loaded
+	require.Equal(t, "DEBUG", s.LogLevel)
+	require.True(t, s.DevMode)
+	require.Equal(t, uint16(9090), s.BindPublicPort)
+	require.Equal(t, "postgres://env:pass@envdb:5432/envdb?sslmode=require", s.DatabaseURL)
+}
+
+func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
+	resetFlags()
+
+	// Set environment variables
+	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG")
+	t.Setenv("CRYPTOUTIL_DEV_MODE", "true")
+
+	// Override with command line flags
+	commandParameters := []string{"start", "--log-level=INFO", "--dev=false"}
+	s, err := Parse(commandParameters, false)
+	require.NoError(t, err)
+
+	// Command line flags should override environment variables
+	require.Equal(t, "INFO", s.LogLevel)
+	require.False(t, s.DevMode)
+}
+
+func TestParse_DryRun(t *testing.T) {
+	resetFlags()
+	commandParameters := []string{"start", "--dry-run"}
+	s, err := Parse(commandParameters, false)
+	require.NoError(t, err)
+	require.True(t, s.DryRun)
+}
+
+func TestParse_DryRun_Default(t *testing.T) {
+	resetFlags()
+	commandParameters := []string{"start"}
+	s, err := Parse(commandParameters, false)
+	require.NoError(t, err)
+	require.False(t, s.DryRun)
 }
