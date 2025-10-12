@@ -593,9 +593,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		pflag.CommandLine.SetOutput(os.Stdout)
 		pflag.CommandLine.PrintDefaults()
 		fmt.Println("\nQuickstart Examples:")
-		fmt.Println("  server start --dev                                    # Start in development mode with SQLite")
-		fmt.Println("  server start --database-container required           # Start with required database container")
-		fmt.Println("  server stop                                          # Stop the running server")
+		fmt.Println("  server start --d          # Start server with in-memory SQLite (--dev)")
+		fmt.Println("  server start --D required # Start server with PostgreSQL container (--database-container)")
+		fmt.Println("  server stop               # Stop server")
 		if exitIfHelp {
 			os.Exit(0)
 		}
