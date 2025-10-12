@@ -8,7 +8,6 @@ bin/
 *.dll
 *.so
 *.dylib
-cryptoutil.exe
 cryptoutil
 
 # Test binary, built with `go test -c`
@@ -20,21 +19,6 @@ coverage.html
 
 # Output of dast workflow
 dast-reports/
-nohup.out
-report_html.html
-report_json.json
-report_md.md
-dast.log
-nuclei
-nuclei*.log
-nuclei.sarif
-nuclei-templates.version
-README_CN.md
-README_ES.md
-README_ID.md
-README_JP.md
-README_KR.md
-README_PT-BR.md
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
