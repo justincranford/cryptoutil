@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -84,10 +84,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -117,9 +117,9 @@ jobs:
         run: go tool cover -html=coverage.out -o coverage.html
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5.5.1
         with:
-          file: ./coverage.out
+          files: ./coverage.out
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
@@ -136,10 +136,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -169,10 +169,10 @@ jobs:
       actions: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -233,7 +233,7 @@ jobs:
         language: [ 'go' ]
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -258,10 +258,10 @@ jobs:
       security-events: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -299,7 +299,7 @@ jobs:
             type=sha,prefix=sha-
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6.18.0
         with:
           context: .
           file: ./deployments/Dockerfile
@@ -328,10 +328,24 @@ jobs:
         if: always() && hashFiles('trivy-image.sarif') != ''
 
       # Docker Scout vulnerability scanning
+      - name: Check Docker Scout authentication
+        id: scout-auth
+        run: |
+          echo "Checking Docker Scout authentication..."
+          if docker scout version >/dev/null 2>&1; then
+            echo "authenticated=true" >> $GITHUB_OUTPUT
+            echo "✅ Docker Scout is authenticated and available"
+          else
+            echo "authenticated=false" >> $GITHUB_OUTPUT
+            echo "❌ Docker Scout authentication failed - skipping Docker Scout scans"
+          fi
+        continue-on-error: true
+
       - name: Enable Docker Scout
         uses: docker/scout-action@v1
         with:
           command: version
+        if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Docker Scout - Quick Overview
         uses: docker/scout-action@v1
@@ -340,6 +354,7 @@ jobs:
           image: ${{ steps.first-tag.outputs.tag }}
           only-severities: critical,high,medium
           write-comment: false
+        if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Docker Scout - CVE Analysis
         uses: docker/scout-action@v1
@@ -350,12 +365,13 @@ jobs:
           output: docker-scout-cves.sarif
           only-severities: critical,high,medium
         continue-on-error: true
+        if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Upload Docker Scout CVE results
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'docker-scout-cves.sarif'
-        if: always() && hashFiles('docker-scout-cves.sarif') != ''
+        if: steps.scout-auth.outputs.authenticated == 'true' && hashFiles('docker-scout-cves.sarif') != ''
 
       - name: Docker Scout - Security Recommendations
         uses: docker/scout-action@v1
@@ -364,10 +380,11 @@ jobs:
           image: ${{ steps.first-tag.outputs.tag }}
           only-severities: critical,high,medium
         continue-on-error: true
+        if: steps.scout-auth.outputs.authenticated == 'true'
 
       - name: Push Docker image
         if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6.18.0
         with:
           context: .
           file: ./deployments/Dockerfile
@@ -381,10 +398,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -418,10 +435,10 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.0
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6.0.0
         with:
           go-version: ${{ env.GO_VERSION }}
 

@@ -17,6 +17,15 @@ type GitHubRelease struct {
 	TagName string `json:"tag_name"`
 }
 
+type ActionException struct {
+	AllowedVersions []string `json:"allowed_versions"`
+	Reason          string   `json:"reason"`
+}
+
+type ActionExceptions struct {
+	Exceptions map[string]ActionException `json:"exceptions"`
+}
+
 type ActionInfo struct {
 	Name           string
 	CurrentVersion string
@@ -73,7 +82,34 @@ func checkDeps() {
 	fmt.Fprintln(os.Stderr, "All Go dependencies are up to date.")
 }
 
+func loadActionExceptions() (*ActionExceptions, error) {
+	exceptionsFile := ".github/workflows-action-version-exceptions.json"
+	if _, err := os.Stat(exceptionsFile); os.IsNotExist(err) {
+		// No exceptions file, return empty exceptions
+		return &ActionExceptions{Exceptions: make(map[string]ActionException)}, nil
+	}
+
+	content, err := os.ReadFile(exceptionsFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var exceptions ActionExceptions
+	if err := json.Unmarshal(content, &exceptions); err != nil {
+		return nil, err
+	}
+
+	return &exceptions, nil
+}
+
 func checkActions() {
+	// Load action exceptions
+	exceptions, err := loadActionExceptions()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Failed to load action exceptions: %v\n", err)
+		exceptions = &ActionExceptions{Exceptions: make(map[string]ActionException)}
+	}
+
 	// Find all workflow files
 	workflowsDir := ".github/workflows"
 	if _, err := os.Stat(workflowsDir); os.IsNotExist(err) {
@@ -84,7 +120,7 @@ func checkActions() {
 	var actions []ActionInfo
 
 	// Walk through workflow files
-	err := filepath.Walk(workflowsDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(workflowsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -117,8 +153,25 @@ func checkActions() {
 
 	var outdated []ActionInfo
 	var errors []string
+	var exempted []ActionInfo
 
 	for _, action := range actionMap {
+		// Check if this action is exempted
+		isExempted := false
+		if exception, exists := exceptions.Exceptions[action.Name]; exists {
+			for _, allowedVersion := range exception.AllowedVersions {
+				if action.CurrentVersion == allowedVersion {
+					exempted = append(exempted, action)
+					isExempted = true
+					break
+				}
+			}
+		}
+
+		if isExempted {
+			continue
+		}
+
 		latest, err := getLatestVersion(action.Name)
 		if err != nil {
 			errors = append(errors, fmt.Sprintf("Failed to check %s: %v", action.Name, err))
@@ -136,6 +189,17 @@ func checkActions() {
 		fmt.Fprintln(os.Stderr, "Warnings:")
 		for _, err := range errors {
 			fmt.Fprintf(os.Stderr, "  %s\n", err)
+		}
+		fmt.Fprintln(os.Stderr, "")
+	}
+
+	if len(exempted) > 0 {
+		fmt.Fprintln(os.Stderr, "Exempted actions (allowed older versions):")
+		for _, action := range exempted {
+			if exception, exists := exceptions.Exceptions[action.Name]; exists {
+				fmt.Fprintf(os.Stderr, "  %s@%s (in %s) - %s\n",
+					action.Name, action.CurrentVersion, action.WorkflowFile, exception.Reason)
+			}
 		}
 		fmt.Fprintln(os.Stderr, "")
 	}

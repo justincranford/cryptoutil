@@ -506,22 +506,26 @@ go run scripts/check.go github-action-versions
 - **Go Dependencies**: Compares current versions against latest available on Go module proxy
 - **GitHub Actions**: Scans `.github/workflows/*.yml` files for action references and checks against latest releases/tags
 
-#### Integration with Pre-commit Hooks
-The checks are also available as pre-commit hooks for local development:
-```yaml
-# In .pre-commit-config.yaml
-- id: go-dependency-versions
-  name: Check Go dependency versions
-  entry: go run scripts/check.go go-dependency-versions
-  language: system
-  pass_filenames: false
+#### Action Version Exceptions
 
-- id: github-action-versions
-  name: Check GitHub Actions versions
-  entry: go run scripts/check.go github-action-versions
-  language: system
-  pass_filenames: false
+For cases where the latest action version has breaking changes or compatibility issues, you can configure exceptions in `.github/workflows-action-version-exceptions.json`:
+
+```json
+{
+  "exceptions": {
+    "actions/checkout": {
+      "allowed_versions": ["v4.1.7"],
+      "reason": "Known stable version, v5.0.0 has Node.js compatibility issues in some environments"
+    },
+    "docker/build-push-action": {
+      "allowed_versions": ["v5.4.0"],
+      "reason": "Compatibility with current Docker daemon version"
+    }
+  }
+}
 ```
+
+The check script will skip validation for actions listed in the exceptions file and display them as "exempted" rather than outdated.
 
 ## Architecture Overview
 
