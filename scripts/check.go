@@ -285,7 +285,7 @@ func isOutdated(current, latest string) bool {
 	}
 
 	// For major version pins (e.g., v4), check if latest major version is higher
-	if matched, _ := regexp.MatchString(`^v(\d+)$`, current); matched {
+	if matched, err := regexp.MatchString(`^v(\d+)$`, current); err == nil && matched {
 		currentMajor := strings.TrimPrefix(current, "v")
 		latestMajor := strings.TrimPrefix(latest, "v")
 		if strings.Contains(latestMajor, ".") {
