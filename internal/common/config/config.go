@@ -116,6 +116,8 @@ var defaultCORSAllowedHeaders = []string{
 
 var defaultUnsealFiles = []string{}
 
+var defaultConfigFiles = []string{}
+
 // set of valid subcommands.
 var subcommands = map[string]struct{}{
 	"start": {},
@@ -128,7 +130,7 @@ var allRegisteredSettings []*Setting
 type Settings struct {
 	SubCommand                  string
 	Help                        bool
-	ConfigFile                  string
+	ConfigFile                  []string
 	LogLevel                    string
 	VerboseMode                 bool
 	DevMode                     bool
@@ -198,9 +200,9 @@ var (
 	configFile = *registerSetting(&Setting{
 		name:        "config",
 		shorthand:   "y",
-		value:       defaultConfigFile,
-		usage:       "path to config file",
-		description: "Config file",
+		value:       defaultConfigFiles,
+		usage:       "path to config file (can be specified multiple times)",
+		description: "Config files",
 	})
 	logLevel = *registerSetting(&Setting{
 		name:        "log-level",
@@ -486,7 +488,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 
 	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
 	pflag.BoolP(help.name, help.shorthand, registerAsBoolSetting(&help), help.usage)
-	pflag.StringP(configFile.name, configFile.shorthand, registerAsStringSetting(&configFile), configFile.usage)
+	pflag.StringSliceP(configFile.name, configFile.shorthand, registerAsStringSliceSetting(&configFile), configFile.usage)
 	pflag.StringP(logLevel.name, logLevel.shorthand, registerAsStringSetting(&logLevel), logLevel.usage)
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, registerAsBoolSetting(&verboseMode), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, registerAsBoolSetting(&devMode), devMode.usage)
@@ -534,11 +536,22 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		return nil, fmt.Errorf("failed to bind flags: %w", err)
 	}
 
-	if configFile := viper.GetString(configFile.name); configFile != "" {
-		if info, err := os.Stat(configFile); err == nil && !info.IsDir() {
-			viper.SetConfigFile(configFile)
+	configFiles := viper.GetStringSlice(configFile.name)
+	if len(configFiles) > 0 {
+		// Set the first config file
+		if info, err := os.Stat(configFiles[0]); err == nil && !info.IsDir() {
+			viper.SetConfigFile(configFiles[0])
 			if err := viper.ReadInConfig(); err != nil {
-				return nil, fmt.Errorf("error reading config file: %w", err)
+				return nil, fmt.Errorf("error reading config file %s: %w", configFiles[0], err)
+			}
+		}
+		// Merge additional config files
+		for i := 1; i < len(configFiles); i++ {
+			if info, err := os.Stat(configFiles[i]); err == nil && !info.IsDir() {
+				viper.SetConfigFile(configFiles[i])
+				if err := viper.MergeInConfig(); err != nil {
+					return nil, fmt.Errorf("error merging config file %s: %w", configFiles[i], err)
+				}
 			}
 		}
 	}
@@ -546,7 +559,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	s := &Settings{
 		SubCommand:                  subCommand,
 		Help:                        viper.GetBool(help.name),
-		ConfigFile:                  viper.GetString(configFile.name),
+		ConfigFile:                  viper.GetStringSlice(configFile.name),
 		LogLevel:                    viper.GetString(logLevel.name),
 		VerboseMode:                 viper.GetBool(verboseMode.name),
 		DevMode:                     viper.GetBool(devMode.name),
@@ -593,9 +606,11 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		pflag.CommandLine.SetOutput(os.Stdout)
 		pflag.CommandLine.PrintDefaults()
 		fmt.Println("\nQuickstart Examples:")
-		fmt.Println("  server start --d          # Start server with in-memory SQLite (--dev)")
-		fmt.Println("  server start --D required # Start server with PostgreSQL container (--database-container)")
-		fmt.Println("  server stop               # Stop server")
+		fmt.Println("  server start --d                             # Start server with in-memory SQLite (--dev)")
+		fmt.Println("  server start --D required                    # Start server with PostgreSQL container (--database-container)")
+		fmt.Println("  server start --y global.yml --y preprod.yml  # Start server with settings in YAML config file(s) (--config)")
+		fmt.Println("  server stop                                  # Stop server")
+		fmt.Println("  server stop  --y global.yml --y preprod.yml  # Stop server with settings in YAML config file(s) (--config)")
 		if exitIfHelp {
 			os.Exit(0)
 		}

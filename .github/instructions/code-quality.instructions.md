@@ -11,3 +11,7 @@ applyTo: "**"
 - Wrap all external package errors with context using fmt.Errorf and %w verb to satisfy wrapcheck linter
 - Use Go context for HTTP requests and long-running operations to satisfy noctx linter (http.NewRequestWithContext, t.Context() in tests)
 - Follow maintenance guidelines in files: immediately remove completed/obsolete tasks from actionable lists
+
+## Code Patterns
+
+- **Default Values**: Always declare default values as named variables (e.g., `var defaultConfigFiles = []string{}`) rather than inline literals, following the established pattern in config.go

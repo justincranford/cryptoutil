@@ -5,9 +5,9 @@ import (
 )
 
 func RequireNewForTest(applicationName string) *Settings {
-	configFileValue, ok := configFile.value.(string)
+	configFileValue, ok := configFile.value.([]string)
 	if !ok {
-		panic("configFile.value must be string")
+		panic("configFile.value must be []string")
 	}
 	logLevelValue, ok := logLevel.value.(string)
 	if !ok {
