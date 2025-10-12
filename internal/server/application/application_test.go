@@ -3,6 +3,7 @@ package application
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -14,6 +15,7 @@ import (
 
 	cryptoutilClient "cryptoutil/internal/client"
 	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilNetwork "cryptoutil/internal/common/util/network"
 
 	"github.com/stretchr/testify/require"
 )
@@ -22,6 +24,7 @@ var (
 	testSettings                   = cryptoutilConfig.RequireNewForTest("application_test")
 	startServerListenerApplication *ServerApplicationListener
 	testServerPublicURL            string
+	testServerPrivateURL           string
 )
 
 func TestMain(m *testing.M) {
@@ -35,7 +38,7 @@ func TestMain(m *testing.M) {
 
 	// Build URLs using actual assigned ports
 	testServerPublicURL = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
-	testServerPrivateURL := testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
+	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
 
 	cryptoutilClient.WaitUntilReady(&testServerPrivateURL, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
@@ -185,6 +188,93 @@ func TestSecurityHeaders(t *testing.T) {
 			}
 
 			t.Logf("✓ Security headers validated for %s", tc.name)
+		})
+	}
+}
+
+func TestHealthChecks(t *testing.T) {
+	testCases := []struct {
+		name           string
+		endpoint       string
+		getResponse    func(*string, *x509.CertPool) ([]byte, int, error)
+		expectedStatus int
+		validateBody   func(t *testing.T, body []byte)
+	}{
+		{
+			name:           "Liveness Check (/livez)",
+			endpoint:       "/livez",
+			getResponse:    cryptoutilNetwork.GetHealthzResponse,
+			expectedStatus: http.StatusOK,
+			validateBody: func(t *testing.T, body []byte) {
+				var response map[string]interface{}
+				err := json.Unmarshal(body, &response)
+				require.NoError(t, err, "should return valid JSON")
+
+				// Liveness should always be "ok"
+				require.Equal(t, "ok", response["status"], "liveness status should be 'ok'")
+				require.Equal(t, "liveness", response["probe"], "probe should be 'liveness'")
+				require.NotEmpty(t, response["timestamp"], "should include timestamp")
+				require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
+
+				// Liveness should not include detailed checks
+				require.NotContains(t, response, "database", "liveness should not include database checks")
+				require.NotContains(t, response, "memory", "liveness should not include memory checks")
+				require.NotContains(t, response, "dependencies", "liveness should not include dependency checks")
+			},
+		},
+		{
+			name:           "Readiness Check (/readyz)",
+			endpoint:       "/readyz",
+			getResponse:    cryptoutilNetwork.GetReadyzResponse,
+			expectedStatus: http.StatusOK,
+			validateBody: func(t *testing.T, body []byte) {
+				var response map[string]interface{}
+				err := json.Unmarshal(body, &response)
+				require.NoError(t, err, "should return valid JSON")
+
+				// Readiness should be "ok" in healthy state
+				require.Equal(t, "ok", response["status"], "readiness status should be 'ok'")
+				require.Equal(t, "readiness", response["probe"], "probe should be 'readiness'")
+				require.NotEmpty(t, response["timestamp"], "should include timestamp")
+				require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
+
+				// Readiness should include detailed checks
+				require.Contains(t, response, "database", "readiness should include database checks")
+				require.Contains(t, response, "memory", "readiness should include memory checks")
+				require.Contains(t, response, "dependencies", "readiness should include dependency checks")
+
+				// Validate database structure
+				dbStatus, ok := response["database"].(map[string]interface{})
+				require.True(t, ok, "database should be an object")
+				require.Contains(t, dbStatus, "status", "database should have status")
+				require.Contains(t, dbStatus, "db_type", "database should have db_type")
+
+				// Validate memory structure
+				memStatus, ok := response["memory"].(map[string]interface{})
+				require.True(t, ok, "memory should be an object")
+				require.Equal(t, "ok", memStatus["status"], "memory status should be 'ok'")
+				require.Contains(t, memStatus, "heap_alloc", "memory should include heap_alloc")
+				require.Contains(t, memStatus, "num_goroutines", "memory should include num_goroutines")
+
+				// Validate dependencies structure
+				depsStatus, ok := response["dependencies"].(map[string]interface{})
+				require.True(t, ok, "dependencies should be an object")
+				require.Contains(t, depsStatus, "status", "dependencies should have status")
+				require.Contains(t, depsStatus, "services", "dependencies should have services")
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			body, statusCode, err := tc.getResponse(&testServerPrivateURL, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+			require.NoError(t, err, "should successfully get response from %s", tc.endpoint)
+			require.Equal(t, tc.expectedStatus, statusCode, "should return expected status code")
+			require.NotNil(t, body, "response body should not be nil")
+
+			tc.validateBody(t, body)
+
+			t.Logf("✓ Health check %s validation passed", tc.endpoint)
 		})
 	}
 }
