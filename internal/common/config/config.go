@@ -17,17 +17,18 @@ const (
 	httpProtocol  = "http"
 	httpsProtocol = "https"
 
-	localhost              = "localhost"
-	ipv4Loopback           = "127.0.0.1"
-	ipv6Loopback           = "::1"
-	ipv6LoopbackURL        = "[::1]"
-	ipv4MappedIPv6Loopback = "::ffff:127.0.0.1"
+	localhost                 = "localhost"
+	ipv4Loopback              = "127.0.0.1"
+	ipv6Loopback              = "::1"
+	ipv4MappedIPv6Loopback    = "::ffff:127.0.0.1"
+	ipv6LoopbackURL           = "[::1]"
+	ipv4MappedIPv6LoopbackURL = "[::ffff:127.0.0.1]"
 
-	localhostCIDRv4     = "127.0.0.0/8"
-	linkLocalCIDRv4     = "169.254.0.0/16"
-	privateClassACIDRv4 = "10.0.0.0/8"
-	privateClassBCIDRv4 = "172.16.0.0/12"
-	privateClassCCIDRv4 = "192.168.0.0/16"
+	localhostCIDRv4        = "127.0.0.0/8"
+	linkLocalCIDRv4        = "169.254.0.0/16"
+	privateLANClassACIDRv4 = "10.0.0.0/8"
+	privateLANClassBCIDRv4 = "172.16.0.0/12"
+	privateLANClassCCIDRv4 = "192.168.0.0/16"
 
 	localhostCIDRv6 = "::1/128"
 	linkLocalCIDRv6 = "fe80::/10"
@@ -38,6 +39,63 @@ const (
 	defaultCSRFTokenSameSite = "Strict"
 	defaultCSRFTokenMaxAge   = 1 * time.Hour
 )
+
+var defaultBindPostString = strconv.Itoa(int(asUint16(&bindPublicPort)))
+
+var defaultCORSAllowedOrigins = []string{
+	httpProtocol + "://" + localhost + ":" + defaultBindPostString,
+	httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
+	httpProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
+	httpProtocol + "://" + ipv4MappedIPv6LoopbackURL + ":" + defaultBindPostString,
+	httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
+	httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
+	httpsProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
+	httpsProtocol + "://" + ipv4MappedIPv6LoopbackURL + ":" + defaultBindPostString,
+}
+
+var defaultAllowedIps = []string{localhost, ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
+
+var defaultTLSPublicDNSNames = []string{localhost}
+
+var defaultTLSPublicIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
+
+var defaultTLSPrivateDNSNames = []string{localhost}
+
+var defaultTLSPrivateIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
+
+var defaultAllowedCIDRs = []string{
+	localhostCIDRv4,
+	linkLocalCIDRv4,
+	privateLANClassACIDRv4,
+	privateLANClassBCIDRv4,
+	privateLANClassCCIDRv4,
+	localhostCIDRv6,
+	linkLocalCIDRv6,
+	privateLANv6,
+}
+
+var defaultCORSAllowedMethods = []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"}
+
+var defaultCORSAllowedHeaders = []string{
+	"Content-Type",
+	"Authorization",
+	"Accept",
+	"Origin",
+	"X-Requested-With",
+	"Cache-Control",
+	"Pragma",
+	"Expires",
+	"_csrf",
+}
+
+var defaultUnsealFiles = []string{}
+
+// set of valid subcommands.
+var subcommands = map[string]struct{}{
+	"start": {},
+	"stop":  {},
+	"init":  {},
+}
 
 var allRegisteredSettings []*Setting
 
@@ -424,71 +482,6 @@ var (
 		description: "Unseal Files",
 	})
 )
-
-var defaultBindPostString = strconv.Itoa(int(asUint16(&bindPublicPort)))
-
-var defaultCORSAllowedOrigins = []string{
-	httpProtocol + "://" + localhost + ":" + defaultBindPostString,
-	httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-	httpProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
-	httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
-	httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-	httpsProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
-}
-
-var defaultCORSAllowedMethods = []string{
-	"POST",
-	"GET",
-	"PUT",
-	"DELETE",
-	"OPTIONS",
-}
-
-var defaultCORSAllowedHeaders = []string{
-	"Content-Type",
-	"Authorization",
-	"Accept",
-	"Origin",
-	"X-Requested-With",
-	"Cache-Control",
-	"Pragma",
-	"Expires",
-	"_csrf",
-}
-
-var defaultAllowedIps = []string{
-	localhost,              // localhost (IPv4)
-	ipv6Loopback,           // localhost (IPv6)
-	ipv4MappedIPv6Loopback, // localhost (IPv4-mapped IPv6)
-}
-
-var defaultAllowedCIDRs = []string{
-	localhostCIDRv4,     // localhost (IPv4)
-	linkLocalCIDRv4,     // link-local (IPv4)
-	privateClassACIDRv4, // private LAN class A (IPv4)
-	privateClassBCIDRv4, // private LAN class B (IPv4)
-	privateClassCCIDRv4, // private LAN class C (IPv4)
-	localhostCIDRv6,     // localhost (IPv6)
-	linkLocalCIDRv6,     // link-local (IPv6)
-	privateLANv6,        // private LAN (IPv6)
-}
-
-var defaultTLSPublicDNSNames = []string{localhost}
-
-var defaultTLSPrivateDNSNames = []string{localhost}
-
-var defaultTLSPublicIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
-
-var defaultTLSPrivateIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
-
-var defaultUnsealFiles = []string{}
-
-// set of valid subcommands.
-var subcommands = map[string]struct{}{
-	"start": {},
-	"stop":  {},
-	"init":  {},
-}
 
 func registerSetting(setting *Setting) *Setting {
 	allRegisteredSettings = append(allRegisteredSettings, setting)
