@@ -95,6 +95,14 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
+      - name: Clean and verify module files
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Check GitHub Actions versions
+        run: go run scripts/check.go github-action-versions
+
       - name: Run tests with coverage
         env:
           POSTGRES_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
@@ -117,27 +125,6 @@ jobs:
         with:
           name: coverage-report
           path: coverage.html
-
-  # Linting and Static Analysis
-  lint:
-    name: Lint & Static Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Run go mod tidy check
-        run: |
-          go mod tidy
-          git diff --exit-code go.mod go.sum
-
-      - name: Check GitHub Actions versions
-        run: go run scripts/check.go github-action-versions
 
   # Security Scanning
   security:
