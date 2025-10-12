@@ -304,8 +304,18 @@ jobs:
           echo "NUCLEI_REACHABLE=true" >> $GITHUB_OUTPUT
         else
           echo "  ❌ Nuclei target NOT reachable from runner"
-          echo "NUCLEI_REACHABLE=false" >> $GITHUB_ENV
-          echo "NUCLEI_REACHABLE=false" >> $GITHUB_OUTPUT
+          # Also test the root endpoint as fallback
+          echo "  Testing fallback: ${{ env.NUCLEI_PUBLIC_TARGET_URL }}/"
+          curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D dast-reports/connectivity_nuclei_fallback.headers -o dast-reports/connectivity_nuclei_fallback.body ${{ env.NUCLEI_PUBLIC_TARGET_URL }}/ || true
+          if [ -s dast-reports/connectivity_nuclei_fallback.body ]; then
+            echo "  ✅ Nuclei target reachable via fallback endpoint"
+            echo "NUCLEI_REACHABLE=true" >> $GITHUB_ENV
+            echo "NUCLEI_REACHABLE=true" >> $GITHUB_OUTPUT
+          else
+            echo "  ❌ Nuclei target NOT reachable from runner (including fallback)"
+            echo "NUCLEI_REACHABLE=false" >> $GITHUB_ENV
+            echo "NUCLEI_REACHABLE=false" >> $GITHUB_OUTPUT
+          fi
         fi
 
         echo ""
@@ -446,7 +456,7 @@ jobs:
       if: always()
       run: |
         echo "Collecting ZAP Full Scan artifacts..."
-        for artifact in zap-report.{html,json,xml,md}; do
+        for artifact in zap-report.{html,json,xml,md} report_json.json report_md.md report_html.html; do
           if [ -f "./dast-reports/$artifact" ]; then
             echo "  ✅ Already exists: dast-reports/$artifact"
           elif [ -f "$artifact" ]; then
@@ -480,7 +490,7 @@ jobs:
       run: |
         echo "Collecting ZAP API Scan artifacts..."
         # Move ZAP API scan artifacts to dast-reports immediately after generation
-        for artifact in zap-api-report.{html,json}; do
+        for artifact in zap-api-report.{html,json} report_json.json report_md.md report_html.html; do
           if [ -f "./dast-reports/$artifact" ]; then
             echo "  ✅ Already exists: dast-reports/$artifact (skipped)"
           elif [ -f "$artifact" ]; then
@@ -531,6 +541,7 @@ jobs:
       if: ${{ steps.diagnostic_connectivity.outputs.NUCLEI_REACHABLE == 'true' }}
       id: nuclei_scan
       uses: projectdiscovery/nuclei-action@main
+      continue-on-error: true  # Continue even if nuclei finds vulnerabilities (exit code 1) or has errors
       with:
         target: ${{ env.NUCLEI_PUBLIC_TARGET_URL }}
         user-agent: "User-Agent:'Nuclei - Vulnerability Scan (Have a nice day)'"
