@@ -10,7 +10,7 @@ repos:
       # Ensure files end with newline
       - id: end-of-file-fixer
         name: Fix end of files
-        exclude: '\.(exe|dll|so|dylib|key|crt)$'
+        exclude: '\.(exe|dll|so|dylib|key|crt)$'  # Skip binary/executable files
 
       # Remove trailing whitespace
       - id: trailing-whitespace
@@ -24,7 +24,7 @@ repos:
       # Check JSON syntax (excluding VS Code JSONC files with comments)
       - id: check-json
         name: Check JSON syntax
-        exclude: '\.vscode/.*\.json$'
+        exclude: '\.vscode/.*\.json$'  # Skip VS Code settings with comments
 
       # Prevent large files from being committed
       - id: check-added-large-files
@@ -56,8 +56,6 @@ repos:
         args: [build, ./...]
         language: system
         pass_filenames: false
-        files: '\.go$'
-        exclude: '_gen\.go$|vendor/'
 
   # Go formatting using local commands (more reliable)
   - repo: local
@@ -68,7 +66,7 @@ repos:
         args: [-extra, -w]
         language: system
         files: '\.go$'
-        exclude: '_gen\.go$|vendor/'
+        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files and dirs
 
       - id: goimports
         name: goimports (Go import organization)
@@ -76,7 +74,7 @@ repos:
         args: [-w]
         language: system
         files: '\.go$'
-        exclude: '_gen\.go$|vendor/'
+        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files and dirs
 
       - id: go-mod-tidy
         name: go mod tidy
@@ -95,7 +93,7 @@ repos:
         args: [run, --timeout=5m]
         language: system
         files: '\.go$'
-        exclude: '_gen\.go$|vendor/'
+        exclude: '_gen\.go$|vendor/'  # Skip generated and vendored code (golangci-lint excludes api/ too)
         stages: [pre-push]
 
       # Dependency checking (runs on pre-push)
