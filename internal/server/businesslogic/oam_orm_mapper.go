@@ -251,7 +251,7 @@ func (*oamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.
 		return nil, nil
 	}
 	if err := cryptoutilUtil.ValidateUUIDs(*uuids, &ErrInvalidUUID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to validate UUIDs: %w", err)
 	}
 	return *uuids, nil
 }
@@ -286,7 +286,10 @@ func (*oamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *t
 			}
 		}
 	}
-	return minDate, maxDate, errors.Join(errs...)
+	if len(errs) > 0 {
+		return minDate, maxDate, fmt.Errorf("invalid date range: %w", errors.Join(errs...))
+	}
+	return minDate, maxDate, nil
 }
 
 func (m *oamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.ElasticKeyAlgorithm) ([]string, error) {

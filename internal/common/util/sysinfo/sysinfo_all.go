@@ -144,7 +144,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 	// If there are errors, return them
 	if len(errs) > 0 {
-		return nil, errors.Join(errs...)
+		return nil, fmt.Errorf("failed to collect system information: %w", errors.Join(errs...))
 	}
 
 	return cryptoutilUtil.StringPointersToBytes(&hostID, &userID, &groupID, &runtimeGoArch, &runtimeGoOS, &runtimeNumCPU, &cpuVendorID, &cpuFamily, &cpuPhysicalID, &cpuModelName, &ramSize, &osHostname, &username), nil

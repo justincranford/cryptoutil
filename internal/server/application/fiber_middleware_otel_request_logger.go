@@ -32,6 +32,6 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.T
 			args = append(args, slog.String("error", err.Error()))
 		}
 		telemetryService.Slogger.Info("responded", args...)
-		return err
+		return err //nolint:wrapcheck
 	}
 }

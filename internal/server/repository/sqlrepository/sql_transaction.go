@@ -149,7 +149,7 @@ func (sqlTransaction *SQLTransaction) commit() error {
 	err := sqlTransaction.state.sqlTx.Commit()
 	if err != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to commit transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("committed transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
@@ -172,7 +172,7 @@ func (sqlTransaction *SQLTransaction) rollback() error {
 	err := sqlTransaction.state.sqlTx.Rollback()
 	if err != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
-		return err
+		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 
 	sqlTransaction.sqlRepository.telemetryService.Slogger.Warn("rolled back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())

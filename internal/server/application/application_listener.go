@@ -755,7 +755,9 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 			}
 		}
 
-		return err
+		// Return the error from c.Next() - in Fiber middleware, errors from c.Next() should be returned as-is
+		// to maintain the middleware chain behavior
+		return err //nolint:wrapcheck
 	}
 }
 

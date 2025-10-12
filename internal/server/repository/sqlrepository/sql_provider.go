@@ -117,7 +117,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 			databaseURL = containerDatabaseURL
 		} else if containerMode == ContainerModeRequired { // container is required, so this error is fatal; give up and return the errors
 			telemetryService.Slogger.Warn("failed to start database container", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrContainerModeRequiredButContainerNotStarted, err))
-			return nil, errors.Join(ErrContainerModeRequiredButContainerNotStarted, fmt.Errorf("dbType: %s", string(dbType)))
+			return nil, fmt.Errorf("failed to start required database container: %w", errors.Join(ErrContainerModeRequiredButContainerNotStarted, fmt.Errorf("dbType: %s", string(dbType))))
 		} else { // container was preferred, so this error not is fatal; fall through and try to connect with the provided databaseUrl parameter
 			telemetryService.Slogger.Warn("failed to start database container", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrContainerModePreferredButContainerNotStarted, err))
 		}
@@ -127,7 +127,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	if err != nil {
 		telemetryService.Slogger.Error("failed to open database", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 		shutdownDBContainer()
-		return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
+		return nil, fmt.Errorf("failed to open database: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 	}
 
 	sqlRepository := &SQLRepository{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer, verboseMode: settings.VerboseMode}
@@ -136,11 +136,11 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		sqlDB.SetMaxOpenConns(1) // SQLite doesn't support concurrent writers; workaround is to limit the pool connections size to 1, but not good for read concurrency
 		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
 			telemetryService.Slogger.Error("failed to enable WAL mode", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
-			return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
+			return nil, fmt.Errorf("failed to enable WAL mode: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 		}
 		if _, err := sqlDB.Exec("PRAGMA busy_timeout = 5000;"); err != nil {
 			telemetryService.Slogger.Error("failed to set busy timeout", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
-			return nil, errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err))
+			return nil, fmt.Errorf("failed to set busy timeout: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 		}
 	} else if firstDBPingAttemptWait > 0 {
 		time.Sleep(firstDBPingAttemptWait)
@@ -163,7 +163,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	if err != nil {
 		telemetryService.Slogger.Warn("giving up trying to ping database", "attempts", maxDBPingAttempts, "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrPingDatabaseFailed, err))
 		sqlRepository.Shutdown()
-		return nil, errors.Join(ErrPingDatabaseFailed, fmt.Errorf("dbType: %s", string(dbType)))
+		return nil, fmt.Errorf("failed to ping database: %w", errors.Join(ErrPingDatabaseFailed, fmt.Errorf("dbType: %s", string(dbType))))
 	}
 
 	telemetryService.Slogger.Debug("applying migrations")

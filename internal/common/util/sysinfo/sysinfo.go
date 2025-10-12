@@ -54,7 +54,11 @@ func RAMSize() (uint64, error) {
 }
 
 func OSHostname() (string, error) {
-	return os.Hostname()
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "", fmt.Errorf("failed to get OS hostname: %w", err)
+	}
+	return hostname, nil
 }
 
 func HostID() (string, error) {

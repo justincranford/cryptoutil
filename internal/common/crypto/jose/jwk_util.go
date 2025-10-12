@@ -89,7 +89,7 @@ func ExtractKidUUID(jwk joseJwk.Key) (*googleUuid.UUID, error) {
 		return nil, fmt.Errorf("failed to parse kid as UUID: %w", err)
 	}
 	if err = cryptoutilUtil.ValidateUUID(&kidUUID, &ErrInvalidJWKKidUUID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to validate kid UUID: %w", err)
 	}
 	return &kidUUID, nil
 }

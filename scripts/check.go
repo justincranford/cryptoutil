@@ -91,12 +91,12 @@ func loadActionExceptions() (*ActionExceptions, error) {
 
 	content, err := os.ReadFile(exceptionsFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read exceptions file: %w", err)
 	}
 
 	var exceptions ActionExceptions
 	if err := json.Unmarshal(content, &exceptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal exceptions JSON: %w", err)
 	}
 
 	return &exceptions, nil
@@ -220,7 +220,7 @@ func checkActions() {
 func parseWorkflowFile(path string) ([]ActionInfo, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read workflow file: %w", err)
 	}
 
 	var actions []ActionInfo
@@ -250,7 +250,7 @@ func getLatestVersion(actionName string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", actionName)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create HTTP request: %w", err)
 	}
 
 	// Use GitHub token if available to increase rate limit
@@ -264,7 +264,7 @@ func getLatestVersion(actionName string) (string, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to make HTTP request: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -283,12 +283,12 @@ func getLatestVersion(actionName string) (string, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	var release GitHubRelease
 	if err := json.Unmarshal(body, &release); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to unmarshal GitHub release JSON: %w", err)
 	}
 
 	return release.TagName, nil
@@ -298,7 +298,7 @@ func getLatestTag(actionName string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create HTTP request for tags: %w", err)
 	}
 
 	// Use GitHub token if available
@@ -310,7 +310,7 @@ func getLatestTag(actionName string) (string, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to make HTTP request for tags: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -324,14 +324,14 @@ func getLatestTag(actionName string) (string, error) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read tags response body: %w", err)
 	}
 
 	var tags []struct {
 		Name string `json:"name"`
 	}
 	if err := json.Unmarshal(body, &tags); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to unmarshal GitHub tags JSON: %w", err)
 	}
 
 	if len(tags) == 0 {

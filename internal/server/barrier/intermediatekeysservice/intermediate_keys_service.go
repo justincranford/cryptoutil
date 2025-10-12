@@ -46,7 +46,10 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 	var err error
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		encryptedIntermediateKeyLatest, err = sqlTransaction.GetIntermediateKeyLatest() // encrypted intermediate JWK from DB
-		return err
+		if err != nil {
+			return fmt.Errorf("failed to get intermediate key latest: %w", err)
+		}
+		return nil
 	})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return fmt.Errorf("failed to get encrypted intermediate JWK latest from DB: %w", err)
