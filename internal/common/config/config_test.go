@@ -270,7 +270,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	// Set environment variables
 	t.Setenv("CRYPTOUTIL_LOG_LEVEL", "DEBUG")
 	t.Setenv("CRYPTOUTIL_DEV_MODE", "true")
-	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "9090")
+	t.Setenv("CRYPTOUTIL_BIND_PUBLIC_PORT", "8080")
 	t.Setenv("CRYPTOUTIL_DATABASE_URL", "postgres://env:pass@envdb:5432/envdb?sslmode=require")
 
 	commandParameters := []string{"start"}
@@ -280,7 +280,7 @@ func TestParse_EnvironmentVariables(t *testing.T) {
 	// Verify environment variables were loaded
 	require.Equal(t, "DEBUG", s.LogLevel)
 	require.True(t, s.DevMode)
-	require.Equal(t, uint16(9090), s.BindPublicPort)
+	require.Equal(t, uint16(8080), s.BindPublicPort)
 	require.Equal(t, "postgres://env:pass@envdb:5432/envdb?sslmode=require", s.DatabaseURL)
 }
 

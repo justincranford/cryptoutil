@@ -35,38 +35,102 @@ const (
 	linkLocalCIDRv6  = "fe80::/10"
 	privateLANCIDRv6 = "fc00::/7"
 
-	defaultConfigFile                  = "config.yaml"
-	defaultLogLevel                    = "INFO"
-	defaultBindPublicProtocol          = httpsProtocol
-	defaultBindPublicAddress           = localhost
-	defaultBindPublicPort              = uint16(8080)
-	defaultBindPrivateProtocol         = httpProtocol
-	defaultBindPrivateAddress          = localhost
-	defaultBindPrivatePort             = uint16(9090)
-	defaultPublicBrowserAPIContextPath = "/browser/api/v1"
-	defaultPublicServiceAPIContextPath = "/service/api/v1"
-	defaultCORSMaxAge                  = uint16(3600)
-	defaultCSRFTokenName               = "_csrf"
-	defaultCSRFTokenSameSite           = "Strict"
-	defaultCSRFTokenMaxAge             = 1 * time.Hour
-	defaultCSRFTokenCookieSecure       = true
-	defaultCSRFTokenCookieHTTPOnly     = false
-	defaultCSRFTokenCookieSessionOnly  = true
-	defaultCSRFTokenSingleUseToken     = false
-	defaultIPRateLimit                 = uint16(50)
-	defaultDatabaseContainer           = "disabled"
-	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable"
-	defaultDatabaseInitTotalTimeout    = 5 * time.Minute
-	defaultDatabaseInitRetryWait       = 1 * time.Second
+	defaultConfigFile                  = "config.yaml"                                          // Standard YAML config file name, widely supported and human-readable
+	defaultLogLevel                    = "INFO"                                                 // Balanced verbosity: shows important events without being overwhelming
+	defaultBindPublicProtocol          = httpsProtocol                                          // HTTPS by default for security in production environments
+	defaultBindPublicAddress           = localhost                                              // Localhost prevents external access by default, requires explicit configuration for exposure
+	defaultBindPublicPort              = uint16(8080)                                           // Standard HTTP/HTTPS port, well-known and commonly available
+	defaultBindPrivateProtocol         = httpProtocol                                           // HTTP for private API (service-to-service), no encryption overhead needed locally
+	defaultBindPrivateAddress          = localhost                                              // Localhost for private API, only accessible from same machine
+	defaultBindPrivatePort             = uint16(9090)                                           // Non-standard port to avoid conflicts with other services
+	defaultPublicBrowserAPIContextPath = "/browser/api/v1"                                      // RESTful API versioning, separates browser from service APIs
+	defaultPublicServiceAPIContextPath = "/service/api/v1"                                      // RESTful API versioning, separates service from browser APIs
+	defaultCORSMaxAge                  = uint16(3600)                                           // 1 hour cache for CORS preflight requests, balances performance and freshness
+	defaultCSRFTokenName               = "_csrf"                                                // Standard CSRF token name, widely recognized by frameworks
+	defaultCSRFTokenSameSite           = "Strict"                                               // Strict SameSite prevents CSRF while maintaining usability
+	defaultCSRFTokenMaxAge             = 1 * time.Hour                                          // 1 hour expiration balances security and user experience
+	defaultCSRFTokenCookieSecure       = true                                                   // Secure cookies in production prevent MITM attacks
+	defaultCSRFTokenCookieHTTPOnly     = false                                                  // False allows JavaScript access for form submissions (Swagger UI workaround)
+	defaultCSRFTokenCookieSessionOnly  = true                                                   // Session-only prevents persistent tracking while maintaining security
+	defaultCSRFTokenSingleUseToken     = false                                                  // Reusable tokens for better UX, can be changed for high-security needs
+	defaultIPRateLimit                 = uint16(50)                                             // Reasonable rate limit prevents abuse while allowing normal usage
+	defaultDatabaseContainer           = "disabled"                                             // Disabled by default to avoid unexpected container dependencies
+	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // PostgreSQL default with placeholder credentials, SSL disabled for local development
+	defaultDatabaseInitTotalTimeout    = 5 * time.Minute                                        // 5 minutes allows for container startup while preventing indefinite waits
+	defaultDatabaseInitRetryWait       = 1 * time.Second                                        // 1 second retry interval balances responsiveness and resource usage
 	defaultHelp                        = false
 	defaultVerboseMode                 = false
 	defaultDevMode                     = false
 	defaultDryRun                      = false
+	defaultProfile                     = "" // Empty means no profile, use explicit configuration
 	defaultOTLP                        = false
 	defaultOTLPConsole                 = false
 	defaultOTLPScope                   = "cryptoutil"
 	defaultUnsealMode                  = "sysinfo"
 )
+
+// Configuration profiles for common deployment scenarios
+var profiles = map[string]map[string]any{
+	"development": {
+		"log-level":                "DEBUG",
+		"dev":                      true,
+		"bind-public-protocol":     "http",
+		"bind-public-address":      "localhost",
+		"bind-public-port":         uint16(8080),
+		"bind-private-protocol":    "http",
+		"bind-private-address":     "localhost",
+		"bind-private-port":        uint16(9090),
+		"database-container":       "disabled",
+		"database-url":             "sqlite://file::memory:?cache=shared",
+		"csrf-token-cookie-secure": false,
+		"otlp":                     false,
+		"otlp-console":             true,
+	},
+	"staging": {
+		"log-level":                "INFO",
+		"dev":                      false,
+		"bind-public-protocol":     "https",
+		"bind-public-address":      "0.0.0.0",
+		"bind-public-port":         uint16(8080),
+		"bind-private-protocol":    "http",
+		"bind-private-address":     "localhost",
+		"bind-private-port":        uint16(9090),
+		"database-container":       "required",
+		"csrf-token-cookie-secure": true,
+		"otlp":                     true,
+		"otlp-console":             false,
+	},
+	"production": {
+		"log-level":                "WARN",
+		"dev":                      false,
+		"bind-public-protocol":     "https",
+		"bind-public-address":      "0.0.0.0",
+		"bind-public-port":         uint16(443),
+		"bind-private-protocol":    "http",
+		"bind-private-address":     "localhost",
+		"bind-private-port":        uint16(9090),
+		"database-container":       "required",
+		"rate-limit":               uint16(100),
+		"csrf-token-cookie-secure": true,
+		"otlp":                     true,
+		"otlp-console":             false,
+	},
+	"testing": {
+		"log-level":                "ERROR",
+		"dev":                      true,
+		"bind-public-protocol":     "http",
+		"bind-public-address":      "localhost",
+		"bind-public-port":         uint16(8081),
+		"bind-private-protocol":    "http",
+		"bind-private-address":     "localhost",
+		"bind-private-port":        uint16(9091),
+		"database-container":       "disabled",
+		"database-url":             "sqlite://file::memory:?cache=shared",
+		"csrf-token-cookie-secure": false,
+		"otlp":                     false,
+		"otlp-console":             false,
+	},
+}
 
 var defaultBindPostString = strconv.Itoa(int(registerAsUint16Setting(&bindPublicPort)))
 
@@ -137,6 +201,7 @@ type Settings struct {
 	VerboseMode                 bool
 	DevMode                     bool
 	DryRun                      bool
+	Profile                     string // Configuration profile: development, staging, production, testing
 	BindPublicProtocol          string
 	BindPublicAddress           string
 	BindPublicPort              uint16
@@ -234,6 +299,13 @@ var (
 		value:       defaultDryRun,
 		usage:       "validate configuration and exit without starting server",
 		description: "Dry run",
+	})
+	profile = *registerSetting(&Setting{
+		name:        "profile",
+		shorthand:   "f",
+		value:       defaultProfile,
+		usage:       "configuration profile: development, staging, production, testing",
+		description: "Configuration profile",
 	})
 	bindPublicProtocol = *registerSetting(&Setting{
 		name:        "bind-public-protocol",
@@ -519,6 +591,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(verboseMode.name, verboseMode.shorthand, registerAsBoolSetting(&verboseMode), verboseMode.usage)
 	pflag.BoolP(devMode.name, devMode.shorthand, registerAsBoolSetting(&devMode), devMode.usage)
 	pflag.BoolP(dryRun.name, dryRun.shorthand, registerAsBoolSetting(&dryRun), dryRun.usage)
+	pflag.StringP(profile.name, profile.shorthand, registerAsStringSetting(&profile), profile.usage)
 	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, registerAsStringSetting(&bindPublicProtocol), bindPublicProtocol.usage)
 	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, registerAsStringSetting(&bindPublicAddress), bindPublicAddress.usage)
 	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, registerAsUint16Setting(&bindPublicPort), bindPublicPort.usage)
@@ -584,6 +657,21 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		}
 	}
 
+	// Apply configuration profile if specified
+	profileName := viper.GetString(profile.name)
+	if profileName != "" {
+		if profileConfig, exists := profiles[profileName]; exists {
+			// Apply profile settings (these can be overridden by config files or command line flags)
+			for key, value := range profileConfig {
+				if !viper.IsSet(key) {
+					viper.Set(key, value)
+				}
+			}
+		} else {
+			return nil, fmt.Errorf("unknown configuration profile: %s (available: development, staging, production, testing)", profileName)
+		}
+	}
+
 	s := &Settings{
 		SubCommand:                  subCommand,
 		Help:                        viper.GetBool(help.name),
@@ -592,6 +680,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		VerboseMode:                 viper.GetBool(verboseMode.name),
 		DevMode:                     viper.GetBool(devMode.name),
 		DryRun:                      viper.GetBool(dryRun.name),
+		Profile:                     viper.GetString(profile.name),
 		BindPublicProtocol:          viper.GetString(bindPublicProtocol.name),
 		BindPublicAddress:           viper.GetString(bindPublicAddress.name),
 		BindPublicPort:              viper.GetUint16(bindPublicPort.name),
@@ -648,6 +737,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  -h, --help                          print help")
 		fmt.Println("  -y, --config strings                path to config file (can be specified multiple times)")
 		fmt.Println("  -Y, --dry-run                       validate configuration and exit without starting server")
+		fmt.Println("  -P, --profile strings                configuration profile: development, staging, production, testing")
 		fmt.Println()
 		fmt.Println("DATABASE SETTINGS:")
 		fmt.Println("  -u, --database-url string           database URL (default " + formatDefault(defaultDatabaseURL) + ")")
@@ -707,14 +797,19 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  Examples: CRYPTOUTIL_LOG_LEVEL=DEBUG, CRYPTOUTIL_DATABASE_URL=...")
 		fmt.Println()
 		fmt.Println("Quickstart Examples:")
-		fmt.Println("  cryptoutil start --dev                             # Start server with in-memory SQLite")
-		fmt.Println("  cryptoutil start --database-container required     # Start server with PostgreSQL container")
-		fmt.Println("  cryptoutil start --config global.yml --config preprod.yml  # Start server with settings in YAML config files")
-		fmt.Println("  cryptoutil start --dry-run --config config.yml     # Validate configuration without starting")
-		fmt.Println("  cryptoutil stop                                     # Stop server")
+		fmt.Println("  cryptoutil start --d                              Start server with in-memory SQLite")
+		fmt.Println("  cryptoutil start --D required                     Start server with PostgreSQL container")
+		fmt.Println("  cryptoutil start --y global.yml --y preprod.yml   Start server with settings in YAML config files")
+		fmt.Println("  cryptoutil start --Y --y config.yml               Validate configuration without starting")
+		fmt.Println("  cryptoutil stop                                   Stop server")
 		if exitIfHelp {
 			os.Exit(0)
 		}
+	}
+
+	// Validate configuration before returning
+	if err := validateConfiguration(s); err != nil {
+		return nil, err
 	}
 
 	return s, nil
@@ -732,6 +827,7 @@ func logSettings(s *Settings) {
 			verboseMode.name:                 s.VerboseMode,
 			devMode.name:                     s.DevMode,
 			dryRun.name:                      s.DryRun,
+			profile.name:                     s.Profile,
 			bindPublicProtocol.name:          s.BindPublicProtocol,
 			bindPublicAddress.name:           s.BindPublicAddress,
 			bindPublicPort.name:              s.BindPublicPort,
@@ -891,4 +987,82 @@ func analyzeSettings(settings []*Setting) analysisResult {
 		}
 	}
 	return result
+}
+
+// validateConfiguration performs comprehensive validation of the configuration
+// and returns detailed error messages with suggestions for fixes
+func validateConfiguration(s *Settings) error {
+	var errors []string
+
+	// Validate port ranges
+	if s.BindPublicPort < 1 {
+		errors = append(errors, fmt.Sprintf("invalid public port %d: must be between 1 and 65535", s.BindPublicPort))
+	}
+	if s.BindPrivatePort < 1 {
+		errors = append(errors, fmt.Sprintf("invalid private port %d: must be between 1 and 65535", s.BindPrivatePort))
+	}
+	if s.BindPublicPort == s.BindPrivatePort {
+		errors = append(errors, fmt.Sprintf("public port (%d) and private port (%d) cannot be the same", s.BindPublicPort, s.BindPrivatePort))
+	}
+
+	// Validate protocols
+	if s.BindPublicProtocol != "http" && s.BindPublicProtocol != "https" {
+		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be 'http' or 'https'", s.BindPublicProtocol))
+	}
+	if s.BindPrivateProtocol != "http" && s.BindPrivateProtocol != "https" {
+		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be 'http' or 'https'", s.BindPrivateProtocol))
+	}
+
+	// Validate HTTPS requirements
+	if s.BindPublicProtocol == "https" && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
+		errors = append(errors, "HTTPS public protocol requires TLS DNS names or IP addresses to be configured")
+	}
+	if s.BindPrivateProtocol == "https" && len(s.TLSPrivateDNSNames) == 0 && len(s.TLSPrivateIPAddresses) == 0 {
+		errors = append(errors, "HTTPS private protocol requires TLS DNS names or IP addresses to be configured")
+	}
+
+	// Validate database URL format
+	if s.DatabaseURL != "" && !strings.Contains(s.DatabaseURL, "://") {
+		errors = append(errors, fmt.Sprintf("invalid database URL format '%s': must contain '://' (e.g., 'postgres://user:pass@host:port/db')", s.DatabaseURL))
+	}
+
+	// Validate CORS origins format
+	for _, origin := range s.CORSAllowedOrigins {
+		if !strings.Contains(origin, "://") {
+			errors = append(errors, fmt.Sprintf("invalid CORS origin format '%s': must contain '://' (e.g., 'https://example.com')", origin))
+		}
+	}
+
+	// Validate log level
+	validLogLevels := []string{"ALL", "TRACE", "DEBUG", "CONFIG", "INFO", "NOTICE", "WARN", "WARNING", "ERROR", "FATAL", "OFF"}
+	logLevelValid := false
+	for _, level := range validLogLevels {
+		if strings.EqualFold(s.LogLevel, level) {
+			logLevelValid = true
+			break
+		}
+	}
+	if !logLevelValid {
+		errors = append(errors, fmt.Sprintf("invalid log level '%s': must be one of %v", s.LogLevel, validLogLevels))
+	}
+
+	// Validate rate limit
+	if s.IPRateLimit == 0 {
+		errors = append(errors, "rate limit cannot be 0 (would block all requests)")
+	} else if s.IPRateLimit > 10000 {
+		errors = append(errors, fmt.Sprintf("rate limit %d is very high (>10000), may impact performance", s.IPRateLimit))
+	}
+
+	// Validate CSRF token max age
+	if s.CSRFTokenMaxAge < time.Minute {
+		errors = append(errors, "CSRF token max age is very short (<1 minute), consider increasing for better user experience")
+	} else if s.CSRFTokenMaxAge > 24*time.Hour {
+		errors = append(errors, "CSRF token max age is very long (>24 hours), consider decreasing for better security")
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("configuration validation failed:\n%s\n\nSuggestions:\n- Use --dry-run to validate configuration without starting\n- Check configuration file syntax\n- Use --profile flag for common deployment scenarios\n- See --help for detailed option descriptions", strings.Join(errors, "\n"))
+	}
+
+	return nil
 }
