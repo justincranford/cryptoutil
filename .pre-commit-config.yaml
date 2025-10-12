@@ -62,14 +62,6 @@ repos:
   # Go formatting using local commands (more reliable)
   - repo: local
     hooks:
-      - id: gofumpt
-        name: gofumpt (Go formatting)
-        entry: gofumpt
-        args: [-extra, -w]
-        language: system
-        files: '\.go$'
-        exclude: '_gen\.go$|vendor/'
-
       - id: goimports
         name: goimports (Go import organization)
         entry: goimports
