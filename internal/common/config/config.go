@@ -40,7 +40,7 @@ const (
 	defaultBindPublicProtocol          = httpsProtocol                                          // HTTPS by default for security in production environments
 	defaultBindPublicAddress           = localhost                                              // Localhost prevents external access by default, requires explicit configuration for exposure
 	defaultBindPublicPort              = uint16(8080)                                           // Standard HTTP/HTTPS port, well-known and commonly available
-	defaultBindPrivateProtocol         = httpProtocol                                           // HTTP for private API (service-to-service), no encryption overhead needed locally
+	defaultBindPrivateProtocol         = httpsProtocol                                          // HTTPS for private API security, even in service-to-service communication
 	defaultBindPrivateAddress          = localhost                                              // Localhost for private API, only accessible from same machine
 	defaultBindPrivatePort             = uint16(9090)                                           // Non-standard port to avoid conflicts with other services
 	defaultPublicBrowserAPIContextPath = "/browser/api/v1"                                      // RESTful API versioning, separates browser from service APIs
@@ -331,7 +331,7 @@ var (
 	bindPrivateProtocol = *registerSetting(&Setting{
 		name:        "bind-private-protocol",
 		shorthand:   "T",
-		value:       defaultBindPrivateProtocol, // TODO https
+		value:       defaultBindPrivateProtocol,
 		usage:       "bind private protocol (http or https)",
 		description: "Bind Private Protocol",
 	})
@@ -797,11 +797,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  Examples: CRYPTOUTIL_LOG_LEVEL=DEBUG, CRYPTOUTIL_DATABASE_URL=...")
 		fmt.Println()
 		fmt.Println("Quickstart Examples:")
-		fmt.Println("  cryptoutil start --d                              Start server with in-memory SQLite")
-		fmt.Println("  cryptoutil start --D required                     Start server with PostgreSQL container")
-		fmt.Println("  cryptoutil start --y global.yml --y preprod.yml   Start server with settings in YAML config files")
-		fmt.Println("  cryptoutil start --Y --y config.yml               Validate configuration without starting")
-		fmt.Println("  cryptoutil stop                                   Stop server")
+		fmt.Println("  cryptoutil server start --d                              Start server with in-memory SQLite")
+		fmt.Println("  cryptoutil server stop  --d                               Stop server")
+		fmt.Println("  cryptoutil server start --D required                     Start server with PostgreSQL container")
+		fmt.Println("  cryptoutil server start --y global.yml --y preprod.yml   Start server with settings in YAML config files")
+		fmt.Println("  cryptoutil server start --Y --y config.yml               Validate configuration without starting")
+		fmt.Println("  cryptoutil server stop                                   Stop server")
 		if exitIfHelp {
 			os.Exit(0)
 		}

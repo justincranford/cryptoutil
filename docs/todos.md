@@ -171,7 +171,6 @@
   - `internal/client/client_oam_mapper.go:89` - "TODO nil allowed if import not nil"
   - `internal/client/client_test.go:334` - "TODO validate public key does not contain any private key or secret key material"
   - `internal/client/client_test_util.go:22` - "TODO Add error checking for https with rootCAsPool=nil"
-  - `internal/common/config/config.go:196` - "TODO https"
   - `internal/common/crypto/jose/jwkgen_service.go:46` - "TODO read from settings"
   - `internal/common/crypto/jose/jws_message_util.go:148` - "TODO support multiple signatures"
   - `internal/common/pool/pool.go:43` - "TODO change generateCounter and getCounter from uint64 to telemetryService.MetricsProvider.Counter()"
