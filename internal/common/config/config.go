@@ -17,9 +17,10 @@ const (
 	httpProtocol  = "http"
 	httpsProtocol = "https"
 
-	localhost    = "localhost"
-	ipv4Loopback = "127.0.0.1"
-	ipv6Loopback = "[::1]"
+	localhost      = "localhost"
+	ipv4Loopback   = "127.0.0.1"
+	ipv6Loopback   = "[::1]"
+	ipv4MappedIPv6 = "::ffff:127.0.0.1"
 
 	localhostCIDRv4     = "127.0.0.0/8"
 	linkLocalCIDRv4     = "169.254.0.0/16"
@@ -449,18 +450,18 @@ var defaultCORSAllowedHeaders = []string{
 	"_csrf",
 }
 
-var defaultCORSMaxAge = uint16(3600)
+const defaultCORSMaxAge = uint16(3600)
 
-var defaultCSRFTokenName = "_csrf"
+const defaultCSRFTokenName = "_csrf"
 
-var defaultCSRFTokenSameSite = "Strict"
+const defaultCSRFTokenSameSite = "Strict"
 
-var defaultCSRFTokenMaxAge = 1 * time.Hour
+const defaultCSRFTokenMaxAge = 1 * time.Hour
 
 var defaultAllowedIps = []string{
-	"127.0.0.1",        // localhost (IPv4)
-	"::1",              // localhost (IPv6)
-	"::ffff:127.0.0.1", // localhost (IPv4-mapped IPv6)
+	localhost,      // localhost (IPv4)
+	ipv6Loopback,   // localhost (IPv6)
+	ipv4MappedIPv6, // localhost (IPv4-mapped IPv6)
 }
 
 var defaultAllowedCIDRs = []string{
