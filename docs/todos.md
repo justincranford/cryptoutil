@@ -179,7 +179,6 @@
     - Line 93: "TODO Only use InsecureSkipVerify for DevMode"
     - Line 195: "TODO Replace this with improved otelFiberTelemetryMiddleware; unstructured logs and no OpenTelemetry are undesirable"
     - Line 200: "TODO Limit this to Swagger GET APIs, not Swagger UI static content"
-    - Line 217: "TODO Consider adding compression middleware for better performance"
     - Line 239: "TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)"
     - Line 240: "TODO Add authentication middleware for Swagger UI access"
     - Line 241: "TODO Add specific rate limiting for Swagger UI endpoints"
@@ -213,7 +212,7 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 ---
 
 **Last Updated**: 2025-10-12
-**Recent completions**: Invalid JWK decryption test implemented (2025-10-12), request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12)
+**Recent completions**: Compression middleware implemented (2025-10-12), invalid JWK decryption test implemented (2025-10-12), request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12)
 **Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue added.
 
 ---

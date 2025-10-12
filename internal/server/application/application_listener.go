@@ -26,6 +26,7 @@ import (
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gofiber/contrib/otelfiber"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/healthcheck"
@@ -189,7 +190,8 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	commonMiddlewares := []fiber.Handler{
 		recover.New(),
 		requestid.New(),
-		logger.New(), // TODO Replace this with improved otelFiberTelemetryMiddleware; unstructured logs and no OpenTelemetry are undesirable
+		logger.New(),   // TODO Replace this with improved otelFiberTelemetryMiddleware; unstructured logs and no OpenTelemetry are undesirable
+		compress.New(), // Enable response compression for better performance
 		commonOtelFiberTelemetryMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonOtelFiberRequestLoggerMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService),
 		commonIPFilterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
@@ -210,7 +212,6 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))                                                                              // Browser-specific: Cross-Site Scripting (XSS)
 	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings)) // Additional security headers
 	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))                                                                             // Browser-specific: Cross-Site Request Forgery (CSRF)
-	// TODO Consider adding compression middleware for better performance
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
 	for _, middleware := range publicMiddlewares {
 		publicFiberApp.Use(middleware)
