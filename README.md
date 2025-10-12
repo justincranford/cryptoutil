@@ -414,7 +414,7 @@ pre-commit run --all-files
 
 **Manual Formatting (if needed):**
 ```sh
-gofumpt -w .        # Format all Go files
+gofumpt -extra -w .        # Format all Go files
 goimports -w .      # Organize imports
 ```
 
@@ -453,7 +453,7 @@ go install golang.org/x/tools/cmd/goimports@latest
 
 # Run linters and formatters
 golangci-lint run
-gofumpt -l -w .
+gofumpt -extra -l -w .
 goimports -l -w .
 ```
 
