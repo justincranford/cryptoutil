@@ -149,16 +149,41 @@ jobs:
 
       - name: Run Staticcheck Security Analysis
         run: |
+          echo "🔍 Running Staticcheck security analysis..."
           staticcheck -f sarif ./... > staticcheck.sarif 2>/dev/null || true
+
           if [ -f staticcheck.sarif ] && [ -s staticcheck.sarif ]; then
-            echo "Staticcheck SARIF file created successfully"
+            echo "✅ Staticcheck SARIF file created successfully"
             ls -la staticcheck.sarif
+            # Validate SARIF format
+            if jq -e '.version' staticcheck.sarif >/dev/null 2>&1; then
+              echo "✅ SARIF file format is valid"
+            else
+              echo "⚠️ SARIF file format may be invalid, but proceeding with upload"
+            fi
           else
-            echo "Staticcheck produced no issues, generating minimal SARIF"
-            echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"staticcheck","version":"latest"}},"results":[]}]}' > staticcheck.sarif
+            echo "ℹ️ Staticcheck produced no issues, generating minimal SARIF for GitHub Security tab"
+            cat > staticcheck.sarif << 'EOF'
+          {
+            "version": "2.1.0",
+            "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+            "runs": [
+              {
+                "tool": {
+                  "driver": {
+                    "name": "Staticcheck",
+                    "version": "2025.1.1",
+                    "informationUri": "https://staticcheck.dev"
+                  }
+                },
+                "results": []
+              }
+            ]
+          }
+          EOF
           fi
 
-      - name: Upload Staticcheck SARIF file
+      - name: Upload Staticcheck results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: staticcheck.sarif
