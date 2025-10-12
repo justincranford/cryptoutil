@@ -418,41 +418,36 @@ var (
 	})
 )
 
-var defaultCORSAllowedOrigins = func() []string {
-	defaultBindPostString := strconv.Itoa(int(asUint16(&bindPublicPort)))
-	return []string{
-		httpProtocol + "://" + localhost + ":" + defaultBindPostString,
-		httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-		httpProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
-		httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
-		httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-		httpsProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
-	}
-}()
+var defaultBindPostString = strconv.Itoa(int(asUint16(&bindPublicPort)))
 
-var defaultCORSAllowedMethods = func() []string {
-	return []string{
-		"POST",
-		"GET",
-		"PUT",
-		"DELETE",
-		"OPTIONS",
-	}
-}()
+var defaultCORSAllowedOrigins = []string{
+	httpProtocol + "://" + localhost + ":" + defaultBindPostString,
+	httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
+	httpProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
+	httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
+	httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
+	httpsProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
+}
 
-var defaultCORSAllowedHeaders = func() []string {
-	return []string{
-		"Content-Type",
-		"Authorization",
-		"Accept",
-		"Origin",
-		"X-Requested-With",
-		"Cache-Control",
-		"Pragma",
-		"Expires",
-		"_csrf",
-	}
-}()
+var defaultCORSAllowedMethods = []string{
+	"POST",
+	"GET",
+	"PUT",
+	"DELETE",
+	"OPTIONS",
+}
+
+var defaultCORSAllowedHeaders = []string{
+	"Content-Type",
+	"Authorization",
+	"Accept",
+	"Origin",
+	"X-Requested-With",
+	"Cache-Control",
+	"Pragma",
+	"Expires",
+	"_csrf",
+}
 
 var defaultCORSMaxAge = uint16(3600)
 
@@ -462,26 +457,22 @@ var defaultCSRFTokenSameSite = "Strict"
 
 var defaultCSRFTokenMaxAge = 1 * time.Hour
 
-var defaultAllowedIps = func() []string {
-	return []string{
-		"127.0.0.1",        // localhost (IPv4)
-		"::1",              // localhost (IPv6)
-		"::ffff:127.0.0.1", // localhost (IPv4-mapped IPv6)
-	}
-}()
+var defaultAllowedIps = []string{
+	"127.0.0.1",        // localhost (IPv4)
+	"::1",              // localhost (IPv6)
+	"::ffff:127.0.0.1", // localhost (IPv4-mapped IPv6)
+}
 
-var defaultAllowedCIDRs = func() []string {
-	return []string{
-		localhostCIDRv4,     // localhost (IPv4)
-		linkLocalCIDRv4,     // link-local (IPv4)
-		privateClassACIDRv4, // private LAN class A (IPv4)
-		privateClassBCIDRv4, // private LAN class B (IPv4)
-		privateClassCCIDRv4, // private LAN class C (IPv4)
-		localhostCIDRv6,     // localhost (IPv6)
-		linkLocalCIDRv6,     // link-local (IPv6)
-		privateLANv6,        // private LAN (IPv6)
-	}
-}()
+var defaultAllowedCIDRs = []string{
+	localhostCIDRv4,     // localhost (IPv4)
+	linkLocalCIDRv4,     // link-local (IPv4)
+	privateClassACIDRv4, // private LAN class A (IPv4)
+	privateClassBCIDRv4, // private LAN class B (IPv4)
+	privateClassCCIDRv4, // private LAN class C (IPv4)
+	localhostCIDRv6,     // localhost (IPv6)
+	linkLocalCIDRv6,     // link-local (IPv6)
+	privateLANv6,        // private LAN (IPv6)
+}
 
 // set of valid subcommands.
 var subcommands = map[string]struct{}{
