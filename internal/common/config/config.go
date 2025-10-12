@@ -40,7 +40,7 @@ const (
 	defaultCSRFTokenMaxAge   = 1 * time.Hour
 )
 
-var defaultBindPostString = strconv.Itoa(int(asUint16(&bindPublicPort)))
+var defaultBindPostString = strconv.Itoa(int(registerAsUint16Setting(&bindPublicPort)))
 
 var defaultCORSAllowedOrigins = []string{
 	httpProtocol + "://" + localhost + ":" + defaultBindPostString,
@@ -153,47 +153,11 @@ type Setting struct {
 	redacted    bool   // whether to redact the value in logs (except in dev+verbose mode)
 }
 
-// Helper functions for safe type assertions in configuration.
-func asBool(s *Setting) bool {
-	if v, ok := s.value.(bool); ok {
-		return v
-	}
-	panic(fmt.Sprintf("setting %s value is not bool", s.name))
-}
-
-func asString(s *Setting) string {
-	if v, ok := s.value.(string); ok {
-		return v
-	}
-	panic(fmt.Sprintf("setting %s value is not string", s.name))
-}
-
-func asUint16(s *Setting) uint16 {
-	if v, ok := s.value.(uint16); ok {
-		return v
-	}
-	panic(fmt.Sprintf("setting %s value is not uint16", s.name))
-}
-
-func asStringSlice(s *Setting) []string {
-	if v, ok := s.value.([]string); ok {
-		return v
-	}
-	panic(fmt.Sprintf("setting %s value is not []string", s.name))
-}
-
-func asStringArray(s *Setting) []string {
-	if v, ok := s.value.([]string); ok {
-		return v
-	}
-	panic(fmt.Sprintf("setting %s value is not []string for array", s.name))
-}
-
-func asDuration(s *Setting) time.Duration {
-	if v, ok := s.value.(time.Duration); ok {
-		return v
-	}
-	panic(fmt.Sprintf("setting %s value is not time.Duration", s.name))
+type analysisResult struct {
+	SettingsByNames      map[string][]*Setting
+	SettingsByShorthands map[string][]*Setting
+	DuplicateNames       []string
+	DuplicateShorthands  []string
 }
 
 var (
@@ -483,38 +447,6 @@ var (
 	})
 )
 
-func registerSetting(setting *Setting) *Setting {
-	allRegisteredSettings = append(allRegisteredSettings, setting)
-	return setting
-}
-
-type analysisResult struct {
-	SettingsByNames      map[string][]*Setting
-	SettingsByShorthands map[string][]*Setting
-	DuplicateNames       []string
-	DuplicateShorthands  []string
-}
-
-func analyzeSettings(settings []*Setting) analysisResult {
-	result := analysisResult{
-		SettingsByNames:      make(map[string][]*Setting),
-		SettingsByShorthands: make(map[string][]*Setting),
-	}
-	for _, setting := range settings {
-		result.SettingsByNames[setting.name] = append(result.SettingsByNames[setting.name], setting)
-		result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
-	}
-	for _, setting := range settings {
-		if len(result.SettingsByNames[setting.name]) > 1 {
-			result.DuplicateNames = append(result.DuplicateNames, setting.name)
-		}
-		if len(result.SettingsByShorthands[setting.shorthand]) > 1 {
-			result.DuplicateShorthands = append(result.DuplicateShorthands, setting.shorthand)
-		}
-	}
-	return result
-}
-
 // Parse parses command line parameters and returns application settings.
 func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if len(commandParameters) == 0 {
@@ -527,46 +459,46 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	subCommandParameters := commandParameters[1:]
 
 	// pflag will parse subCommandParameters, and viper will union them with config file contents (if specified)
-	pflag.BoolP(help.name, help.shorthand, asBool(&help), help.usage)
-	pflag.StringP(configFile.name, configFile.shorthand, asString(&configFile), configFile.usage)
-	pflag.StringP(logLevel.name, logLevel.shorthand, asString(&logLevel), logLevel.usage)
-	pflag.BoolP(verboseMode.name, verboseMode.shorthand, asBool(&verboseMode), verboseMode.usage)
-	pflag.BoolP(devMode.name, devMode.shorthand, asBool(&devMode), devMode.usage)
-	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, asString(&bindPublicProtocol), bindPublicProtocol.usage)
-	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, asString(&bindPublicAddress), bindPublicAddress.usage)
-	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, asUint16(&bindPublicPort), bindPublicPort.usage)
-	pflag.StringSliceP(tlsPublicDNSNames.name, tlsPublicDNSNames.shorthand, asStringSlice(&tlsPublicDNSNames), tlsPublicDNSNames.usage)
-	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, asStringSlice(&tlsPublicIPAddresses), tlsPublicIPAddresses.usage)
-	pflag.StringSliceP(tlsPrivateDNSNames.name, tlsPrivateDNSNames.shorthand, asStringSlice(&tlsPrivateDNSNames), tlsPrivateDNSNames.usage)
-	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, asStringSlice(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.usage)
-	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, asString(&bindPrivateProtocol), bindPrivateProtocol.usage)
-	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, asString(&bindPrivateAddress), bindPrivateAddress.usage)
-	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, asUint16(&bindPrivatePort), bindPrivatePort.usage)
-	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, asString(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.usage)
-	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, asString(&publicServiceAPIContextPath), publicServiceAPIContextPath.usage)
-	pflag.StringSliceP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, asStringSlice(&corsAllowedOrigins), corsAllowedOrigins.usage)
-	pflag.StringSliceP(corsAllowedMethods.name, corsAllowedMethods.shorthand, asStringSlice(&corsAllowedMethods), corsAllowedMethods.usage)
-	pflag.StringSliceP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, asStringSlice(&corsAllowedHeaders), corsAllowedHeaders.usage)
-	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, asUint16(&corsMaxAge), corsMaxAge.usage)
-	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, asString(&csrfTokenName), csrfTokenName.usage)
-	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, asString(&csrfTokenSameSite), csrfTokenSameSite.usage)
-	pflag.DurationP(csrfTokenMaxAge.name, csrfTokenMaxAge.shorthand, asDuration(&csrfTokenMaxAge), csrfTokenMaxAge.usage)
-	pflag.BoolP(csrfTokenCookieSecure.name, csrfTokenCookieSecure.shorthand, asBool(&csrfTokenCookieSecure), csrfTokenCookieSecure.usage)
-	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, asBool(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.usage)
-	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, asBool(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.usage)
-	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, asBool(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.usage)
-	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, asUint16(&ipRateLimit), ipRateLimit.usage)
-	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, asStringSlice(&allowedIps), allowedIps.usage)
-	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, asStringSlice(&allowedCidrs), allowedCidrs.usage)
-	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, asString(&databaseContainer), databaseContainer.usage)
-	pflag.StringP(databaseURL.name, databaseURL.shorthand, asString(&databaseURL), databaseURL.usage)
-	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, asDuration(&databaseInitTotalTimeout), databaseInitTotalTimeout.usage)
-	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, asDuration(&databaseInitRetryWait), databaseInitRetryWait.usage)
-	pflag.BoolP(otlp.name, otlp.shorthand, asBool(&otlp), otlp.usage)
-	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, asBool(&otlpConsole), otlpConsole.usage)
-	pflag.StringP(otlpScope.name, otlpScope.shorthand, asString(&otlpScope), otlpScope.usage)
-	pflag.StringP(unsealMode.name, unsealMode.shorthand, asString(&unsealMode), unsealMode.usage)
-	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, asStringArray(&unsealFiles), unsealFiles.usage)
+	pflag.BoolP(help.name, help.shorthand, registerAsBoolSetting(&help), help.usage)
+	pflag.StringP(configFile.name, configFile.shorthand, registerAsStringSetting(&configFile), configFile.usage)
+	pflag.StringP(logLevel.name, logLevel.shorthand, registerAsStringSetting(&logLevel), logLevel.usage)
+	pflag.BoolP(verboseMode.name, verboseMode.shorthand, registerAsBoolSetting(&verboseMode), verboseMode.usage)
+	pflag.BoolP(devMode.name, devMode.shorthand, registerAsBoolSetting(&devMode), devMode.usage)
+	pflag.StringP(bindPublicProtocol.name, bindPublicProtocol.shorthand, registerAsStringSetting(&bindPublicProtocol), bindPublicProtocol.usage)
+	pflag.StringP(bindPublicAddress.name, bindPublicAddress.shorthand, registerAsStringSetting(&bindPublicAddress), bindPublicAddress.usage)
+	pflag.Uint16P(bindPublicPort.name, bindPublicPort.shorthand, registerAsUint16Setting(&bindPublicPort), bindPublicPort.usage)
+	pflag.StringSliceP(tlsPublicDNSNames.name, tlsPublicDNSNames.shorthand, registerAsStringSliceSetting(&tlsPublicDNSNames), tlsPublicDNSNames.usage)
+	pflag.StringSliceP(tlsPublicIPAddresses.name, tlsPublicIPAddresses.shorthand, registerAsStringSliceSetting(&tlsPublicIPAddresses), tlsPublicIPAddresses.usage)
+	pflag.StringSliceP(tlsPrivateDNSNames.name, tlsPrivateDNSNames.shorthand, registerAsStringSliceSetting(&tlsPrivateDNSNames), tlsPrivateDNSNames.usage)
+	pflag.StringSliceP(tlsPrivateIPAddresses.name, tlsPrivateIPAddresses.shorthand, registerAsStringSliceSetting(&tlsPrivateIPAddresses), tlsPrivateIPAddresses.usage)
+	pflag.StringP(bindPrivateProtocol.name, bindPrivateProtocol.shorthand, registerAsStringSetting(&bindPrivateProtocol), bindPrivateProtocol.usage)
+	pflag.StringP(bindPrivateAddress.name, bindPrivateAddress.shorthand, registerAsStringSetting(&bindPrivateAddress), bindPrivateAddress.usage)
+	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, registerAsUint16Setting(&bindPrivatePort), bindPrivatePort.usage)
+	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, registerAsStringSetting(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.usage)
+	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, registerAsStringSetting(&publicServiceAPIContextPath), publicServiceAPIContextPath.usage)
+	pflag.StringSliceP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, registerAsStringSliceSetting(&corsAllowedOrigins), corsAllowedOrigins.usage)
+	pflag.StringSliceP(corsAllowedMethods.name, corsAllowedMethods.shorthand, registerAsStringSliceSetting(&corsAllowedMethods), corsAllowedMethods.usage)
+	pflag.StringSliceP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, registerAsStringSliceSetting(&corsAllowedHeaders), corsAllowedHeaders.usage)
+	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, registerAsUint16Setting(&corsMaxAge), corsMaxAge.usage)
+	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, registerAsStringSetting(&csrfTokenName), csrfTokenName.usage)
+	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, registerAsStringSetting(&csrfTokenSameSite), csrfTokenSameSite.usage)
+	pflag.DurationP(csrfTokenMaxAge.name, csrfTokenMaxAge.shorthand, registerAsDurationSetting(&csrfTokenMaxAge), csrfTokenMaxAge.usage)
+	pflag.BoolP(csrfTokenCookieSecure.name, csrfTokenCookieSecure.shorthand, registerAsBoolSetting(&csrfTokenCookieSecure), csrfTokenCookieSecure.usage)
+	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, registerAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.usage)
+	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, registerAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.usage)
+	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, registerAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.usage)
+	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, registerAsUint16Setting(&ipRateLimit), ipRateLimit.usage)
+	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, registerAsStringSliceSetting(&allowedIps), allowedIps.usage)
+	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, registerAsStringSliceSetting(&allowedCidrs), allowedCidrs.usage)
+	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, registerAsStringSetting(&databaseContainer), databaseContainer.usage)
+	pflag.StringP(databaseURL.name, databaseURL.shorthand, registerAsStringSetting(&databaseURL), databaseURL.usage)
+	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, registerAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.usage)
+	pflag.DurationP(databaseInitRetryWait.name, databaseInitRetryWait.shorthand, registerAsDurationSetting(&databaseInitRetryWait), databaseInitRetryWait.usage)
+	pflag.BoolP(otlp.name, otlp.shorthand, registerAsBoolSetting(&otlp), otlp.usage)
+	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, registerAsBoolSetting(&otlpConsole), otlpConsole.usage)
+	pflag.StringP(otlpScope.name, otlpScope.shorthand, registerAsStringSetting(&otlpScope), otlpScope.usage)
+	pflag.StringP(unsealMode.name, unsealMode.shorthand, registerAsStringSetting(&unsealMode), unsealMode.usage)
+	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, registerAsStringArraySetting(&unsealFiles), unsealFiles.usage)
 	err := pflag.CommandLine.Parse(subCommandParameters)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
@@ -724,4 +656,72 @@ func logSettings(s *Settings) {
 func resetFlags() {
 	pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
 	viper.Reset()
+}
+
+func registerSetting(setting *Setting) *Setting {
+	allRegisteredSettings = append(allRegisteredSettings, setting)
+	return setting
+}
+
+// Helper functions for safe type assertions in configuration.
+func registerAsBoolSetting(s *Setting) bool {
+	if v, ok := s.value.(bool); ok {
+		return v
+	}
+	panic(fmt.Sprintf("setting %s value is not bool", s.name))
+}
+
+func registerAsStringSetting(s *Setting) string {
+	if v, ok := s.value.(string); ok {
+		return v
+	}
+	panic(fmt.Sprintf("setting %s value is not string", s.name))
+}
+
+func registerAsUint16Setting(s *Setting) uint16 {
+	if v, ok := s.value.(uint16); ok {
+		return v
+	}
+	panic(fmt.Sprintf("setting %s value is not uint16", s.name))
+}
+
+func registerAsStringSliceSetting(s *Setting) []string {
+	if v, ok := s.value.([]string); ok {
+		return v
+	}
+	panic(fmt.Sprintf("setting %s value is not []string", s.name))
+}
+
+func registerAsStringArraySetting(s *Setting) []string {
+	if v, ok := s.value.([]string); ok {
+		return v
+	}
+	panic(fmt.Sprintf("setting %s value is not []string for array", s.name))
+}
+
+func registerAsDurationSetting(s *Setting) time.Duration {
+	if v, ok := s.value.(time.Duration); ok {
+		return v
+	}
+	panic(fmt.Sprintf("setting %s value is not time.Duration", s.name))
+}
+
+func analyzeSettings(settings []*Setting) analysisResult {
+	result := analysisResult{
+		SettingsByNames:      make(map[string][]*Setting),
+		SettingsByShorthands: make(map[string][]*Setting),
+	}
+	for _, setting := range settings {
+		result.SettingsByNames[setting.name] = append(result.SettingsByNames[setting.name], setting)
+		result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
+	}
+	for _, setting := range settings {
+		if len(result.SettingsByNames[setting.name]) > 1 {
+			result.DuplicateNames = append(result.DuplicateNames, setting.name)
+		}
+		if len(result.SettingsByShorthands[setting.shorthand]) > 1 {
+			result.DuplicateShorthands = append(result.DuplicateShorthands, setting.shorthand)
+		}
+	}
+	return result
 }
