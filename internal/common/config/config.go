@@ -34,10 +34,29 @@ const (
 	linkLocalCIDRv6  = "fe80::/10"
 	privateLANCIDRv6 = "fc00::/7"
 
-	defaultCORSMaxAge        = uint16(3600)
-	defaultCSRFTokenName     = "_csrf"
-	defaultCSRFTokenSameSite = "Strict"
-	defaultCSRFTokenMaxAge   = 1 * time.Hour
+	defaultConfigFile                  = "config.yaml"
+	defaultLogLevel                    = "INFO"
+	defaultBindPublicAddress           = "localhost"
+	defaultBindPublicPort              = uint16(8080)
+	defaultBindPrivateAddress          = "localhost"
+	defaultBindPrivatePort             = uint16(9090)
+	defaultPublicBrowserAPIContextPath = "/browser/api/v1"
+	defaultPublicServiceAPIContextPath = "/service/api/v1"
+	defaultCORSMaxAge                  = uint16(3600)
+	defaultCSRFTokenName               = "_csrf"
+	defaultCSRFTokenSameSite           = "Strict"
+	defaultCSRFTokenMaxAge             = 1 * time.Hour
+	defaultCSRFTokenCookieSecure       = true
+	defaultCSRFTokenCookieHTTPOnly     = false
+	defaultCSRFTokenCookieSessionOnly  = true
+	defaultCSRFTokenSingleUseToken     = false
+	defaultIPRateLimit                 = uint16(50)
+	defaultDatabaseContainer           = "disabled"
+	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable"
+	defaultDatabaseInitTotalTimeout    = 5 * time.Minute
+	defaultDatabaseInitRetryWait       = 1 * time.Second
+	defaultOTLPScope                   = "cryptoutil"
+	defaultUnsealMode                  = "sysinfo"
 )
 
 var defaultBindPostString = strconv.Itoa(int(registerAsUint16Setting(&bindPublicPort)))
@@ -172,14 +191,14 @@ var (
 	configFile = *registerSetting(&Setting{
 		name:        "config",
 		shorthand:   "y",
-		value:       "config.yaml",
+		value:       defaultConfigFile,
 		usage:       "path to config file",
 		description: "Config file",
 	})
 	logLevel = *registerSetting(&Setting{
 		name:        "log-level",
 		shorthand:   "l",
-		value:       "INFO",
+		value:       defaultLogLevel,
 		usage:       "log level: ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF",
 		description: "Log Level",
 	})
@@ -207,14 +226,14 @@ var (
 	bindPublicAddress = *registerSetting(&Setting{
 		name:        "bind-public-address",
 		shorthand:   "a",
-		value:       "localhost",
+		value:       defaultBindPublicAddress,
 		usage:       "bind public address",
 		description: "Bind Public Address",
 	})
 	bindPublicPort = *registerSetting(&Setting{
 		name:        "bind-public-port",
 		shorthand:   "p",
-		value:       uint16(8080),
+		value:       defaultBindPublicPort,
 		usage:       "bind public port",
 		description: "Bind Public Port",
 	})
@@ -228,14 +247,14 @@ var (
 	bindPrivateAddress = *registerSetting(&Setting{
 		name:        "bind-private-address",
 		shorthand:   "A",
-		value:       "localhost",
+		value:       defaultBindPrivateAddress,
 		usage:       "bind private address",
 		description: "Bind Private Address",
 	})
 	bindPrivatePort = *registerSetting(&Setting{
 		name:        "bind-private-port",
 		shorthand:   "P",
-		value:       uint16(9090),
+		value:       defaultBindPrivatePort,
 		usage:       "bind private port",
 		description: "Bind Private Port",
 	})
@@ -270,14 +289,14 @@ var (
 	publicBrowserAPIContextPath = *registerSetting(&Setting{
 		name:        "browser-api-context-path",
 		shorthand:   "c",
-		value:       "/browser/api/v1",
+		value:       defaultPublicBrowserAPIContextPath,
 		usage:       "context path for Public Browser API",
 		description: "Public Browser API Context Path",
 	})
 	publicServiceAPIContextPath = *registerSetting(&Setting{
 		name:        "service-api-context-path",
 		shorthand:   "b",
-		value:       "/service/api/v1",
+		value:       defaultPublicServiceAPIContextPath,
 		usage:       "context path for Public Server API",
 		description: "Public Service API Context Path",
 	})
@@ -333,35 +352,35 @@ var (
 	csrfTokenCookieSecure = *registerSetting(&Setting{
 		name:        "csrf-token-cookie-secure",
 		shorthand:   "R",
-		value:       true,
+		value:       defaultCSRFTokenCookieSecure,
 		usage:       "CSRF token cookie Secure attribute",
 		description: "CSRF Token Cookie Secure",
 	})
 	csrfTokenCookieHTTPOnly = *registerSetting(&Setting{
 		name:        "csrf-token-cookie-http-only",
 		shorthand:   "J",
-		value:       false, // False needed for Swagger UI submit CSRF workaround
+		value:       defaultCSRFTokenCookieHTTPOnly, // False needed for Swagger UI submit CSRF workaround
 		usage:       "CSRF token cookie HttpOnly attribute",
 		description: "CSRF Token Cookie HTTPOnly",
 	})
 	csrfTokenCookieSessionOnly = *registerSetting(&Setting{
 		name:        "csrf-token-cookie-session-only",
 		shorthand:   "E",
-		value:       true,
+		value:       defaultCSRFTokenCookieSessionOnly,
 		usage:       "CSRF token cookie SessionOnly attribute",
 		description: "CSRF Token Cookie SessionOnly",
 	})
 	csrfTokenSingleUseToken = *registerSetting(&Setting{
 		name:        "csrf-token-single-use-token",
 		shorthand:   "G",
-		value:       false,
+		value:       defaultCSRFTokenSingleUseToken,
 		usage:       "CSRF token SingleUse attribute",
 		description: "CSRF Token SingleUseToken",
 	})
 	ipRateLimit = *registerSetting(&Setting{
 		name:        "rate-limit",
 		shorthand:   "r",
-		value:       uint16(50),
+		value:       defaultIPRateLimit,
 		usage:       "rate limit requests per second",
 		description: "IP Rate Limit",
 	})
@@ -382,14 +401,14 @@ var (
 	databaseContainer = *registerSetting(&Setting{
 		name:        "database-container",
 		shorthand:   "D",
-		value:       "disabled",
+		value:       defaultDatabaseContainer,
 		usage:       "database container mode; true to use container, false to use local database",
 		description: "Database Container",
 	})
 	databaseURL = *registerSetting(&Setting{
 		name:        "database-url",
 		shorthand:   "u",
-		value:       "postgres://USR:PWD@localhost:5432/DB?sslmode=disable",
+		value:       defaultDatabaseURL,
 		usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n",
 		description: "Database URL",
 		redacted:    true,
@@ -397,14 +416,14 @@ var (
 	databaseInitTotalTimeout = *registerSetting(&Setting{
 		name:        "database-init-total-timeout",
 		shorthand:   "Z",
-		value:       5 * time.Minute,
+		value:       defaultDatabaseInitTotalTimeout,
 		usage:       "database init total timeout",
 		description: "Database Init Total Timeout",
 	})
 	databaseInitRetryWait = *registerSetting(&Setting{
 		name:        "database-init-retry-wait",
 		shorthand:   "W",
-		value:       1 * time.Second,
+		value:       defaultDatabaseInitRetryWait,
 		usage:       "database init retry wait",
 		description: "Database Init Retry Wait",
 	})
@@ -425,14 +444,14 @@ var (
 	otlpScope = *registerSetting(&Setting{
 		name:        "otlp-scope",
 		shorthand:   "s",
-		value:       "cryptoutil",
+		value:       defaultOTLPScope,
 		usage:       "OTLP scope",
 		description: "OTLP Scope",
 	})
 	unsealMode = *registerSetting(&Setting{
 		name:        "unseal-mode",
 		shorthand:   "U",
-		value:       "sysinfo",
+		value:       defaultUnsealMode,
 		usage:       "unseal mode: N, M-of-N, sysinfo; N keys, or M-of-N derived keys from shared secrets, or X-of-Y custom sysinfo as shared secrets",
 		description: "Unseal Mode",
 	})
