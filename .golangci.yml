@@ -30,7 +30,7 @@ linters:
 
     # Code quality
     - gofmt         # Check code formatting
-    - gofumpt       # Stricter Go code formatting (used in CI/pre-commit)
+    # - gofumpt       # Stricter Go code formatting (disabled due to version conflicts with standalone gofumpt)
     - goimports     # Check import formatting and unused imports
     - revive        # Golint replacement with more rules
     - stylecheck    # Go style guide compliance
