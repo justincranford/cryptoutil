@@ -27,7 +27,23 @@ jobs:
 
       - name: Install formatting tools
         run: |
+          go install mvdan.cc/gofumpt@latest
           go install golang.org/x/tools/cmd/goimports@latest
+
+      - name: Check gofumpt formatting
+        run: |
+          # Check if any files need gofumpt formatting
+          UNFORMATTED=$(gofumpt -extra -l .)
+          if [ -n "$UNFORMATTED" ]; then
+            echo "❌ The following files need gofumpt formatting:"
+            echo "$UNFORMATTED"
+            echo ""
+            echo "Please run: gofumpt -extra -w ."
+            echo "Or install pre-commit hooks: pip install pre-commit && pre-commit install"
+            exit 1
+          else
+            echo "✅ All Go files are properly formatted with gofumpt"
+          fi
 
       - name: Check goimports formatting
         run: |
@@ -43,6 +59,9 @@ jobs:
           else
             echo "✅ All Go files have properly organized imports"
           fi
+
+      - name: Go fumpt
+        run: gofumpt -extra -l .
 
   # Comprehensive Testing
   test:

@@ -30,7 +30,7 @@ linters:
 
     # Code quality
     - gofmt         # Check code formatting
-    # - gofumpt       # Stricter Go code formatting (disabled due to version conflicts with standalone gofumpt)
+    # gofumpt       # disabled: handled by pre-commit hooks (gofumpt -extra -w) and CI checks
     - goimports     # Check import formatting and unused imports
     - revive        # Golint replacement with more rules
     - stylecheck    # Go style guide compliance
@@ -73,9 +73,6 @@ linters:
     - gocyclo   # Cyclomatic complexity
 
 linters-settings:
-  # gofumpt:
-  #   extra-rules: false
-
   errcheck:
     check-type-assertions: true
     check-blank: true
