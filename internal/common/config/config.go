@@ -55,6 +55,11 @@ const (
 	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable"
 	defaultDatabaseInitTotalTimeout    = 5 * time.Minute
 	defaultDatabaseInitRetryWait       = 1 * time.Second
+	defaultHelp                        = false
+	defaultVerboseMode                 = false
+	defaultDevMode                     = false
+	defaultOTLP                        = false
+	defaultOTLPConsole                 = false
 	defaultOTLPScope                   = "cryptoutil"
 	defaultUnsealMode                  = "sysinfo"
 )
@@ -205,14 +210,14 @@ var (
 	verboseMode = *registerSetting(&Setting{
 		name:        "verbose",
 		shorthand:   "v",
-		value:       false,
+		value:       defaultVerboseMode,
 		usage:       "verbose modifier for log level",
 		description: "Verbose mode",
 	})
 	devMode = *registerSetting(&Setting{
 		name:        "dev",
 		shorthand:   "d",
-		value:       false,
+		value:       defaultDevMode,
 		usage:       "run in development mode; enables in-memory SQLite",
 		description: "Dev mode",
 	})
@@ -430,14 +435,14 @@ var (
 	otlp = *registerSetting(&Setting{
 		name:        "otlp",
 		shorthand:   "z",
-		value:       false,
+		value:       defaultOTLP,
 		usage:       "enable OTLP export",
 		description: "OTLP Export",
 	})
 	otlpConsole = *registerSetting(&Setting{
 		name:        "otlp-console",
 		shorthand:   "q",
-		value:       false,
+		value:       defaultOTLPConsole,
 		usage:       "enable OTLP logging to console (STDOUT)",
 		description: "OTLP Console",
 	})
