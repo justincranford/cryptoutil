@@ -73,8 +73,8 @@ linters:
     - gocyclo   # Cyclomatic complexity
 
 linters-settings:
-  gofumpt:
-    extra-rules: false
+  # gofumpt:
+  #   extra-rules: false
 
   errcheck:
     check-type-assertions: true
