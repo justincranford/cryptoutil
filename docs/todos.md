@@ -1,4 +1,4 @@
-# DAST TODO List - Active Tasks
+# Project TODO List - Active Tasks
 
 ##  CRITICAL - OAuth 2.0 Implementation Planning
 
@@ -89,14 +89,28 @@
 - **Priority**: Medium - API contract consistency
 - **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failures
 
+#### Task S6: Fix golangci-lint staticcheck Integration Issue (🟡 MEDIUM)
+- **Description**: golangci-lint staticcheck integration is broken and produces no issues despite being enabled
+- **Root Cause**: staticcheck is enabled in .golangci.yml but integration fails silently
+- **Current State**: golangci-lint produces 39KB SARIF vs standalone staticcheck 316KB with comprehensive analysis
+- **Action Items**:
+  - Investigate why golangci-lint staticcheck integration fails
+  - Test standalone staticcheck vs golangci-lint staticcheck output
+  - Fix integration or document limitation in CI workflow
+  - Ensure staticcheck security findings are properly reported to GitHub Security tab
+- **Files**: `.golangci.yml`, `.github/workflows/ci.yml` (staticcheck step)
+- **Expected Outcome**: Either fix golangci-lint integration or clearly document why separate staticcheck run is required
+- **Priority**: Medium - Code quality and security scanning reliability
+- **Timeline**: Q4 2025 investigation and fix
+
 ---
 
-### DAST Workflow Performance Optimization (🔵 LOW - Optional)Only
+### Project Workflow Performance Optimization (🔵 LOW - Optional)
 
 **Document Status**: Active Remediation Phase
 **Created**: 2025-09-30
-**Updated**: 2025-10-05
-**Purpose**: Actionable task list for remaining DAST workflow improvements
+**Updated**: 2025-10-12
+**Purpose**: Actionable task list for remaining project workflow improvements and code quality issues
 
 > Maintenance Guideline: If a file/config/feature is removed or a decision makes a task permanently obsolete, DELETE its tasks and references here immediately. Keep only (1) active remediation work, (2) still-relevant observations, (3) forward-looking backlog items. Historical context belongs in commit messages or durable docs, not this actionable list.
 
@@ -104,10 +118,10 @@
 
 ## Executive Summary
 
-**CURRENT STATUS** (2025-10-09): 🔄 **OAuth 2.0 Implementation Planning Underway**
+**CURRENT STATUS** (2025-10-12): 🔄 **OAuth 2.0 Implementation Planning Underway**
 
 - 🔄 **OAuth 2.0 implementation planning** - Separate flows for users (browser APIs) vs machines (service APIs)
-- 🟡 **Security hardening in progress** - Cookie HttpOnly flags and JSON parsing issues remain
+- 🟡 **Security hardening in progress** - Cookie HttpOnly flags, JSON parsing issues, and staticcheck integration remain
 - 🔵 **Performance optimization pending** - Workflow parallelization opportunity identified
 
 **Next Priority**: Implement OAuth 2.0 Authorization Code flows for secure API access separation
@@ -116,7 +130,7 @@
 
 ## Active Tasks
 
-### DAST Workflow Performance Optimization (� LOW - Optional)
+### Project Workflow Performance Optimization (� LOW - Optional)
 
 #### Task O2: Implement Parallel Step Execution (� LOW)
 - **Description**: Parallelize setup steps that don't depend on each other
@@ -141,6 +155,8 @@
 ### MEDIUM PRIORITY - Remaining Security Tasks
 1. **Task S1**: Fix Cookie HttpOnly Flag Security Issue
 2. **Task S5**: Investigate JSON Parsing Issues in API Endpoints
+3. **Task S6**: Fix golangci-lint staticcheck Integration Issue
+3. **Task S6**: Fix golangci-lint staticcheck Integration Issue
 
 ### LOW PRIORITY - Performance Optimization
 1. **Task O2**: Implement Parallel Step Execution (workflow optimization)
@@ -160,6 +176,6 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 
 ---
 
-**Last Updated**: 2025-10-09
-**Recent completions**: Completed tasks removed from active list (2025-10-09)
-**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active.
+**Last Updated**: 2025-10-12
+**Recent completions**: Completed tasks removed from active list (2025-10-12)
+**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue added.
