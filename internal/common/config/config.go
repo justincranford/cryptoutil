@@ -30,9 +30,9 @@ const (
 	privateLANClassBCIDRv4 = "172.16.0.0/12"
 	privateLANClassCCIDRv4 = "192.168.0.0/16"
 
-	localhostCIDRv6 = "::1/128"
-	linkLocalCIDRv6 = "fe80::/10"
-	privateLANv6    = "fc00::/7"
+	localhostCIDRv6  = "::1/128"
+	linkLocalCIDRv6  = "fe80::/10"
+	privateLANCIDRv6 = "fc00::/7"
 
 	defaultCORSMaxAge        = uint16(3600)
 	defaultCSRFTokenName     = "_csrf"
@@ -71,7 +71,7 @@ var defaultAllowedCIDRs = []string{
 	privateLANClassCCIDRv4,
 	localhostCIDRv6,
 	linkLocalCIDRv6,
-	privateLANv6,
+	privateLANCIDRv6,
 }
 
 var defaultCORSAllowedMethods = []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"}
