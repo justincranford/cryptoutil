@@ -37,10 +37,10 @@ const (
 	defaultConfigFile                  = "config.yaml"
 	defaultLogLevel                    = "INFO"
 	defaultBindPublicProtocol          = httpsProtocol
-	defaultBindPublicAddress           = "localhost"
+	defaultBindPublicAddress           = localhost
 	defaultBindPublicPort              = uint16(8080)
 	defaultBindPrivateProtocol         = httpProtocol
-	defaultBindPrivateAddress          = "localhost"
+	defaultBindPrivateAddress          = localhost
 	defaultBindPrivatePort             = uint16(9090)
 	defaultPublicBrowserAPIContextPath = "/browser/api/v1"
 	defaultPublicServiceAPIContextPath = "/service/api/v1"
