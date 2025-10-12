@@ -62,17 +62,17 @@ func RequireNewForTest(applicationName string) *Settings {
 	if !ok {
 		panic("publicServiceAPIContextPath.value must be string")
 	}
-	corsAllowedOriginsValue, ok := corsAllowedOrigins.value.(string)
+	corsAllowedOriginsValue, ok := corsAllowedOrigins.value.([]string)
 	if !ok {
-		panic("corsAllowedOrigins.value must be string")
+		panic("corsAllowedOrigins.value must be []string")
 	}
-	corsAllowedMethodsValue, ok := corsAllowedMethods.value.(string)
+	corsAllowedMethodsValue, ok := corsAllowedMethods.value.([]string)
 	if !ok {
-		panic("corsAllowedMethods.value must be string")
+		panic("corsAllowedMethods.value must be []string")
 	}
-	corsAllowedHeadersValue, ok := corsAllowedHeaders.value.(string)
+	corsAllowedHeadersValue, ok := corsAllowedHeaders.value.([]string)
 	if !ok {
-		panic("corsAllowedHeaders.value must be string")
+		panic("corsAllowedHeaders.value must be []string")
 	}
 	corsMaxAgeValue, ok := corsMaxAge.value.(uint16)
 	if !ok {

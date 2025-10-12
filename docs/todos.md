@@ -171,7 +171,6 @@
   - `internal/client/client_oam_mapper.go:89` - "TODO nil allowed if import not nil"
   - `internal/client/client_test.go:334` - "TODO validate public key does not contain any private key or secret key material"
   - `internal/client/client_test_util.go:22` - "TODO Add error checking for https with rootCAsPool=nil"
-  - `internal/common/config/config.go:57-59` - "TODO Make this a []string" (CORS settings: CORSAllowedOrigins, CORSAllowedMethods, CORSAllowedHeaders)
   - `internal/common/config/config.go:196` - "TODO https"
   - `internal/common/crypto/jose/jwkgen_service.go:46` - "TODO read from settings"
   - `internal/common/crypto/jose/jws_message_util.go:148` - "TODO support multiple signatures"

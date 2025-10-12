@@ -5,7 +5,6 @@ import (
 	"os"
 	"sort"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -54,9 +53,9 @@ type Settings struct {
 	TLSPrivateIPAddresses       []string
 	PublicBrowserAPIContextPath string
 	PublicServiceAPIContextPath string
-	CORSAllowedOrigins          string // TODO Make this a []string
-	CORSAllowedMethods          string // TODO Make this a []string
-	CORSAllowedHeaders          string // TODO Make this a []string
+	CORSAllowedOrigins          []string
+	CORSAllowedMethods          []string
+	CORSAllowedHeaders          []string
 	CORSMaxAge                  uint16
 	CSRFTokenName               string
 	CSRFTokenSameSite           string
@@ -419,30 +418,30 @@ var (
 	})
 )
 
-var defaultCORSAllowedOrigins = func() string {
+var defaultCORSAllowedOrigins = func() []string {
 	defaultBindPostString := strconv.Itoa(int(asUint16(&bindPublicPort)))
-	return strings.Join([]string{
+	return []string{
 		httpProtocol + "://" + localhost + ":" + defaultBindPostString,
 		httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
 		httpProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
 		httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
 		httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
 		httpsProtocol + "://" + ipv6Loopback + ":" + defaultBindPostString,
-	}, ",")
+	}
 }()
 
-var defaultCORSAllowedMethods = func() string {
-	return strings.Join([]string{
+var defaultCORSAllowedMethods = func() []string {
+	return []string{
 		"POST",
 		"GET",
 		"PUT",
 		"DELETE",
 		"OPTIONS",
-	}, ",")
+	}
 }()
 
-var defaultCORSAllowedHeaders = func() string {
-	defaultHeaders := []string{
+var defaultCORSAllowedHeaders = func() []string {
+	return []string{
 		"Content-Type",
 		"Authorization",
 		"Accept",
@@ -453,7 +452,6 @@ var defaultCORSAllowedHeaders = func() string {
 		"Expires",
 		"_csrf",
 	}
-	return strings.Join(defaultHeaders, ",")
 }()
 
 var defaultCORSMaxAge = uint16(3600)
@@ -553,9 +551,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.Uint16P(bindPrivatePort.name, bindPrivatePort.shorthand, asUint16(&bindPrivatePort), bindPrivatePort.usage)
 	pflag.StringP(publicBrowserAPIContextPath.name, publicBrowserAPIContextPath.shorthand, asString(&publicBrowserAPIContextPath), publicBrowserAPIContextPath.usage)
 	pflag.StringP(publicServiceAPIContextPath.name, publicServiceAPIContextPath.shorthand, asString(&publicServiceAPIContextPath), publicServiceAPIContextPath.usage)
-	pflag.StringP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, asString(&corsAllowedOrigins), corsAllowedOrigins.usage)
-	pflag.StringP(corsAllowedMethods.name, corsAllowedMethods.shorthand, asString(&corsAllowedMethods), corsAllowedMethods.usage)
-	pflag.StringP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, asString(&corsAllowedHeaders), corsAllowedHeaders.usage)
+	pflag.StringSliceP(corsAllowedOrigins.name, corsAllowedOrigins.shorthand, asStringSlice(&corsAllowedOrigins), corsAllowedOrigins.usage)
+	pflag.StringSliceP(corsAllowedMethods.name, corsAllowedMethods.shorthand, asStringSlice(&corsAllowedMethods), corsAllowedMethods.usage)
+	pflag.StringSliceP(corsAllowedHeaders.name, corsAllowedHeaders.shorthand, asStringSlice(&corsAllowedHeaders), corsAllowedHeaders.usage)
 	pflag.Uint16P(corsMaxAge.name, corsMaxAge.shorthand, asUint16(&corsMaxAge), corsMaxAge.usage)
 	pflag.StringP(csrfTokenName.name, csrfTokenName.shorthand, asString(&csrfTokenName), csrfTokenName.usage)
 	pflag.StringP(csrfTokenSameSite.name, csrfTokenSameSite.shorthand, asString(&csrfTokenSameSite), csrfTokenSameSite.usage)
@@ -613,9 +611,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		BindPrivatePort:             viper.GetUint16(bindPrivatePort.name),
 		PublicBrowserAPIContextPath: viper.GetString(publicBrowserAPIContextPath.name),
 		PublicServiceAPIContextPath: viper.GetString(publicServiceAPIContextPath.name),
-		CORSAllowedOrigins:          viper.GetString(corsAllowedOrigins.name),
-		CORSAllowedMethods:          viper.GetString(corsAllowedMethods.name),
-		CORSAllowedHeaders:          viper.GetString(corsAllowedHeaders.name),
+		CORSAllowedOrigins:          viper.GetStringSlice(corsAllowedOrigins.name),
+		CORSAllowedMethods:          viper.GetStringSlice(corsAllowedMethods.name),
+		CORSAllowedHeaders:          viper.GetStringSlice(corsAllowedHeaders.name),
 		CORSMaxAge:                  viper.GetUint16(corsMaxAge.name),
 		CSRFTokenName:               viper.GetString(csrfTokenName.name),
 		CSRFTokenSameSite:           viper.GetString(csrfTokenSameSite.name),

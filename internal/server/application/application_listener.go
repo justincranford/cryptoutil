@@ -552,7 +552,7 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		method := c.Method()
-		for _, supported := range strings.Split(settings.CORSAllowedMethods, ",") {
+		for _, supported := range settings.CORSAllowedMethods {
 			if method == supported {
 				return c.Next()
 			}
@@ -576,9 +576,9 @@ func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ct
 
 func publicBrowserCORSMiddlewareFunction(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return cors.New(cors.Config{ // Cross-Origin Resource Sharing (CORS)
-		AllowOrigins: settings.CORSAllowedOrigins, // cryptoutilConfig.defaultAllowedCORSOrigins
-		AllowMethods: settings.CORSAllowedMethods, // cryptoutilConfig.defaultAllowedCORSMethods
-		AllowHeaders: settings.CORSAllowedHeaders, // cryptoutilConfig.defaultAllowedCORSHeaders
+		AllowOrigins: strings.Join(settings.CORSAllowedOrigins, ","), // cryptoutilConfig.defaultAllowedCORSOrigins
+		AllowMethods: strings.Join(settings.CORSAllowedMethods, ","), // cryptoutilConfig.defaultAllowedCORSMethods
+		AllowHeaders: strings.Join(settings.CORSAllowedHeaders, ","), // cryptoutilConfig.defaultAllowedCORSHeaders
 		MaxAge:       int(settings.CORSMaxAge),
 		Next:         isNonBrowserUserAPIRequestFunc(settings), // Skip check for /service/api/v1/* requests by non-browser clients
 	})
