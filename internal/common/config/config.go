@@ -36,8 +36,10 @@ const (
 
 	defaultConfigFile                  = "config.yaml"
 	defaultLogLevel                    = "INFO"
+	defaultBindPublicProtocol          = httpsProtocol
 	defaultBindPublicAddress           = "localhost"
 	defaultBindPublicPort              = uint16(8080)
+	defaultBindPrivateProtocol         = httpProtocol
 	defaultBindPrivateAddress          = "localhost"
 	defaultBindPrivatePort             = uint16(9090)
 	defaultPublicBrowserAPIContextPath = "/browser/api/v1"
@@ -188,7 +190,7 @@ var (
 	help = *registerSetting(&Setting{
 		name:      "help",
 		shorthand: "h",
-		value:     false,
+		value:     defaultHelp,
 		usage: "print help; you can run the server with parameters like this:\n" +
 			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n",
 		description: "Help",
@@ -224,7 +226,7 @@ var (
 	bindPublicProtocol = *registerSetting(&Setting{
 		name:        "bind-public-protocol",
 		shorthand:   "t",
-		value:       httpsProtocol,
+		value:       defaultBindPublicProtocol,
 		usage:       "bind public protocol (http or https)",
 		description: "Bind Public Protocol",
 	})
@@ -245,7 +247,7 @@ var (
 	bindPrivateProtocol = *registerSetting(&Setting{
 		name:        "bind-private-protocol",
 		shorthand:   "T",
-		value:       httpProtocol, // TODO https
+		value:       defaultBindPrivateProtocol, // TODO https
 		usage:       "bind private protocol (http or https)",
 		description: "Bind Private Protocol",
 	})
