@@ -479,6 +479,50 @@ goimports -l -w .
 └── docs/                   # Additional documentation
 ```
 
+### Dependency and Action Version Checking
+
+This project includes automated tools to check for outdated dependencies and GitHub Actions versions, helping maintain security and compatibility.
+
+#### Automated Execution (CI/CD)
+Version checks run automatically in GitHub Actions on:
+- Push to `main` branch
+- Pull requests
+- Manual workflow dispatch
+
+#### Manual Execution
+```sh
+# Check Go dependency versions
+go run scripts/check.go go-dependency-versions
+
+# Check GitHub Actions versions in workflows
+go run scripts/check.go github-action-versions
+
+# Check both (run both commands)
+go run scripts/check.go go-dependency-versions
+go run scripts/check.go github-action-versions
+```
+
+#### What Gets Checked
+- **Go Dependencies**: Compares current versions against latest available on Go module proxy
+- **GitHub Actions**: Scans `.github/workflows/*.yml` files for action references and checks against latest releases/tags
+
+#### Integration with Pre-commit Hooks
+The checks are also available as pre-commit hooks for local development:
+```yaml
+# In .pre-commit-config.yaml
+- id: go-dependency-versions
+  name: Check Go dependency versions
+  entry: go run scripts/check.go go-dependency-versions
+  language: system
+  pass_filenames: false
+
+- id: github-action-versions
+  name: Check GitHub Actions versions
+  entry: go run scripts/check.go github-action-versions
+  language: system
+  pass_filenames: false
+```
+
 ## Architecture Overview
 
 ### API Context Separation
