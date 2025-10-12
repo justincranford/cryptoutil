@@ -53,6 +53,7 @@ const (
 	defaultCSRFTokenCookieHTTPOnly     = false                                                  // False allows JavaScript access for form submissions (Swagger UI workaround)
 	defaultCSRFTokenCookieSessionOnly  = true                                                   // Session-only prevents persistent tracking while maintaining security
 	defaultCSRFTokenSingleUseToken     = false                                                  // Reusable tokens for better UX, can be changed for high-security needs
+	defaultRequestBodyLimit            = int(2 << 20)                                           // 2MB limit prevents large payload attacks while allowing reasonable API usage
 	defaultIPRateLimit                 = uint16(50)                                             // Reasonable rate limit prevents abuse while allowing normal usage
 	defaultDatabaseContainer           = "disabled"                                             // Disabled by default to avoid unexpected container dependencies
 	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // PostgreSQL default with placeholder credentials, SSL disabled for local development
@@ -226,6 +227,7 @@ type Settings struct {
 	CSRFTokenCookieHTTPOnly     bool
 	CSRFTokenCookieSessionOnly  bool
 	CSRFTokenSingleUseToken     bool
+	RequestBodyLimit            int
 	IPRateLimit                 uint16
 	AllowedIPs                  []string
 	AllowedCIDRs                []string
@@ -491,6 +493,13 @@ var (
 		usage:       "comma-separated list of allowed CIDRs",
 		description: "Allowed CIDRs",
 	})
+	requestBodyLimit = *registerSetting(&Setting{
+		name:        "request-body-limit",
+		shorthand:   "L",
+		value:       defaultRequestBodyLimit,
+		usage:       "Maximum request body size in bytes",
+		description: "Request Body Limit",
+	})
 	databaseContainer = *registerSetting(&Setting{
 		name:        "database-container",
 		shorthand:   "D",
@@ -646,6 +655,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, registerAsUint16Setting(&ipRateLimit), ipRateLimit.usage)
 	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, registerAsStringSliceSetting(&allowedIps), allowedIps.usage)
 	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, registerAsStringSliceSetting(&allowedCidrs), allowedCidrs.usage)
+	pflag.IntP(requestBodyLimit.name, requestBodyLimit.shorthand, registerAsIntSetting(&requestBodyLimit), requestBodyLimit.usage)
 	pflag.StringP(databaseContainer.name, databaseContainer.shorthand, registerAsStringSetting(&databaseContainer), databaseContainer.usage)
 	pflag.StringP(databaseURL.name, databaseURL.shorthand, registerAsStringSetting(&databaseURL), databaseURL.usage)
 	pflag.DurationP(databaseInitTotalTimeout.name, databaseInitTotalTimeout.shorthand, registerAsDurationSetting(&databaseInitTotalTimeout), databaseInitTotalTimeout.usage)
@@ -726,6 +736,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		CORSAllowedMethods:          viper.GetStringSlice(corsAllowedMethods.name),
 		CORSAllowedHeaders:          viper.GetStringSlice(corsAllowedHeaders.name),
 		CORSMaxAge:                  viper.GetUint16(corsMaxAge.name),
+		RequestBodyLimit:            viper.GetInt(requestBodyLimit.name),
 		CSRFTokenName:               viper.GetString(csrfTokenName.name),
 		CSRFTokenSameSite:           viper.GetString(csrfTokenSameSite.name),
 		CSRFTokenMaxAge:             viper.GetDuration(csrfTokenMaxAge.name),
@@ -789,6 +800,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  -I, --allowed-ips strings           comma-separated list of allowed IPs (default " + formatDefault(defaultAllowedIps) + ")")
 		fmt.Println("  -C, --allowed-cidrs strings         comma-separated list of allowed CIDRs (default " + formatDefault(defaultAllowedCIDRs) + ")")
 		fmt.Println("  -r, --rate-limit uint16             rate limit requests per second (default " + formatDefault(defaultIPRateLimit) + ")")
+		fmt.Println("  -L, --request-body-limit int        Maximum request body size in bytes (default " + formatDefault(defaultRequestBodyLimit) + ")")
 		fmt.Println()
 		fmt.Println("BROWSER CORS SECURITY SETTINGS:")
 		fmt.Println("  -o, --cors-origins strings          CORS allowed origins")
@@ -875,6 +887,7 @@ func logSettings(s *Settings) {
 			corsAllowedMethods.name:          s.CORSAllowedMethods,
 			corsAllowedHeaders.name:          s.CORSAllowedHeaders,
 			corsMaxAge.name:                  s.CORSMaxAge,
+			requestBodyLimit.name:            s.RequestBodyLimit,
 			csrfTokenName.name:               s.CSRFTokenName,
 			csrfTokenSameSite.name:           s.CSRFTokenSameSite,
 			csrfTokenMaxAge.name:             s.CSRFTokenMaxAge,
@@ -978,6 +991,13 @@ func registerAsDurationSetting(s *Setting) time.Duration {
 		return v
 	}
 	panic(fmt.Sprintf("setting %s value is not time.Duration", s.name))
+}
+
+func registerAsIntSetting(s *Setting) int {
+	if v, ok := s.value.(int); ok {
+		return v
+	}
+	panic(fmt.Sprintf("setting %s value is not int", s.name))
 }
 
 func formatDefault(value any) string {

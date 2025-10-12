@@ -200,7 +200,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 
 	privateMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
 	privateMiddlewares = append(privateMiddlewares, privateHealthCheckMiddlewareFunction()) // /livez, /readyz
-	privateFiberApp := fiber.New(fiber.Config{Immutable: true})
+	privateFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
 	for _, middleware := range privateMiddlewares {
 		privateFiberApp.Use(middleware)
 	}
@@ -210,9 +210,8 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))                                                                              // Browser-specific: Cross-Site Scripting (XSS)
 	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings)) // Additional security headers
 	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))                                                                             // Browser-specific: Cross-Site Request Forgery (CSRF)
-	// TODO Add request body size limits to prevent large payload attacks
 	// TODO Consider adding compression middleware for better performance
-	publicFiberApp := fiber.New(fiber.Config{Immutable: true})
+	publicFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
 	for _, middleware := range publicMiddlewares {
 		publicFiberApp.Use(middleware)
 	}
