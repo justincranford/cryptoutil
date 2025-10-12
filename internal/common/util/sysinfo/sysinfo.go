@@ -27,7 +27,7 @@ func RuntimeNumCPU() int {
 	return runtime.NumCPU()
 }
 
-// CPUInfo Returns VendorID, Family, Model, PhysicalID, ModelName
+// CPUInfo Returns VendorID, Family, Model, PhysicalID, ModelName.
 func CPUInfo() (string, string, string, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -68,7 +68,7 @@ func HostID() (string, error) {
 	return hostID, nil
 }
 
-// UserInfo Returns UserID, GroupID, Username
+// UserInfo Returns UserID, GroupID, Username.
 func UserInfo() (string, string, string, error) {
 	userInfo, err := user.Current()
 	if err != nil {

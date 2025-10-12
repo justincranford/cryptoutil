@@ -28,14 +28,27 @@ linters:
     - staticcheck   # Advanced static analysis checks
     - unused        # Find unused constants, variables, functions and types
 
-    # Security
-    - gosec         # Security-focused static analysis
-
     # Code quality
     - gofmt         # Check code formatting
+    - gofumpt       # Stricter Go code formatting (used in CI/pre-commit)
     - goimports     # Check import formatting and unused imports
     - revive        # Golint replacement with more rules
     - stylecheck    # Go style guide compliance
+
+    # Security
+    - gosec         # Security-focused static analysis
+
+    # Documentation and maintenance
+    - godot         # Check for missing periods in documentation comments
+    - godox         # Detect TODO/FIXME comments for maintenance tracking
+
+    # Context and error handling
+    - noctx         # Check for missing context in HTTP requests
+    - wrapcheck     # Check error wrapping consistency
+
+    # Testing quality
+    - thelper       # Check test helper functions
+    - tparallel     # Check for parallel test issues
 
     # Performance
     - prealloc      # Find slice declarations that could pre-allocate
@@ -60,6 +73,9 @@ linters:
     - gocyclo   # Cyclomatic complexity
 
 linters-settings:
+  gofumpt:
+    extra-rules: false
+
   errcheck:
     check-type-assertions: true
     check-blank: true
@@ -104,6 +120,29 @@ linters-settings:
 
   stylecheck:
     checks: ["all", "-ST1000"]  # Exclude ST1000 (package comment) - many packages have descriptive names that don't need additional comments
+
+  godot:
+    scope: declarations  # Check periods in all declarations
+    capital: false       # Don't require capitalization
+
+  godox:
+    keywords:            # Detect these maintenance keywords
+      - TODO
+      - FIXME
+      - BUG
+      - HACK
+
+  wrapcheck:
+    ignoreSigs:          # Don't require wrapping for these function signatures
+      - .Errorf(
+      - errors.New(
+      - errors.Unwrap(
+      - .Wrap(
+      - .Wrapf(
+
+  thelper:
+    test:                # Check t.Helper() calls in test functions
+      begin: true
 
 issues:
   exclude-dirs:

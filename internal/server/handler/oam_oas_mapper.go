@@ -78,7 +78,7 @@ func (m *oamOasMapper) toOamPostGenerateQueryParams(openapiParams *cryptoutilOpe
 	return &generateParams
 }
 
-func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJWKBytes []byte, clearPublicJWKBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
+func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJWKBytes, clearPublicJWKBytes []byte) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
 	// clearPublicJWKBytes is intentionally unused in current implementation
 	// but kept for potential future logging/debugging purposes
 	_ = clearPublicJWKBytes

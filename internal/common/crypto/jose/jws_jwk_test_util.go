@@ -11,6 +11,7 @@ import (
 )
 
 func GenerateJWSJWKsForTest(t *testing.T, count int, alg *joseJwa.SignatureAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
+	t.Helper()
 	type jwkOrErr struct {
 		nonPublicJWK joseJwk.Key
 		publicJWK    joseJwk.Key

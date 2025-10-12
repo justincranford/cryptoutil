@@ -123,7 +123,7 @@ func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters
 	return keys, nil
 }
 
-func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID *googleUuid.UUID, materialKeyID *googleUuid.UUID) (*MaterialKey, error) {
+func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID, materialKeyID *googleUuid.UUID) (*MaterialKey, error) {
 	if err := cryptoutilUtil.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
 	} else if err := cryptoutilUtil.ValidateUUID(materialKeyID, &ErrInvalidMaterialKeyID); err != nil {

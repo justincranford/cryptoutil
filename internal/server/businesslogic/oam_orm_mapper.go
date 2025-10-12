@@ -35,7 +35,7 @@ func (m *oamOrmMapper) toOrmAddElasticKey(elasticKeyID *googleUuid.UUID, oamElas
 	}
 }
 
-func (*oamOrmMapper) toOrmAddMaterialKey(elasticKeyID *googleUuid.UUID, materialKeyID *googleUuid.UUID, materialKeyClearPublicJWKBytes []byte, materialKeyEncryptedNonPublicJWKBytes []byte, materialKeyGenerateDate time.Time) *cryptoutilOrmRepository.MaterialKey {
+func (*oamOrmMapper) toOrmAddMaterialKey(elasticKeyID, materialKeyID *googleUuid.UUID, materialKeyClearPublicJWKBytes, materialKeyEncryptedNonPublicJWKBytes []byte, materialKeyGenerateDate time.Time) *cryptoutilOrmRepository.MaterialKey {
 	return &cryptoutilOrmRepository.MaterialKey{
 		ElasticKeyID:                  *elasticKeyID,
 		MaterialKeyID:                 *materialKeyID,
@@ -268,7 +268,7 @@ func (*oamOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
 	return *strings, nil
 }
 
-func (*oamOrmMapper) toOrmDateRange(minDate *time.Time, maxDate *time.Time) (*time.Time, *time.Time, error) {
+func (*oamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *time.Time, error) {
 	var errs []error
 	nonNullMinDate := minDate != nil
 	nonNullMaxDate := maxDate != nil

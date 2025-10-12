@@ -80,6 +80,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestPoolRSA(t *testing.T) {
+	t.Parallel()
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

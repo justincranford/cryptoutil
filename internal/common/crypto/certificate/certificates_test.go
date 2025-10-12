@@ -143,6 +143,7 @@ func TestSerializeEndEntitySubjects(t *testing.T) {
 }
 
 func testSerializeDeserialize(t *testing.T, originalSubjects []*Subject) {
+	t.Helper()
 	for _, includePrivateKey := range []bool{false, true} {
 		t.Run(fmt.Sprintf("includePrivateKey = %t", includePrivateKey), func(t *testing.T) {
 			serializedSubjects, err := SerializeSubjects(originalSubjects, includePrivateKey)

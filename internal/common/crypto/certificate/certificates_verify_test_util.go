@@ -13,11 +13,13 @@ import (
 )
 
 func verifyCertificateTemplate(t *testing.T, err error, certTemplate *x509.Certificate) {
+	t.Helper()
 	require.NoError(t, err, "Failed to create certificate template")
 	require.NotNil(t, certTemplate, "Certificate template should not be nil")
 }
 
-func verifyCACertificate(t *testing.T, err error, certChain []*x509.Certificate, DERChain [][]byte, PEMChain [][]byte, expectedIssuerName string, expectedSubjectName string, expectedDuration time.Duration, expectedMaxPathLen int) {
+func verifyCACertificate(t *testing.T, err error, certChain []*x509.Certificate, DERChain, PEMChain [][]byte, expectedIssuerName, expectedSubjectName string, expectedDuration time.Duration, expectedMaxPathLen int) {
+	t.Helper()
 	require.NoError(t, err, "Failed to sign certificate")
 	require.NotNil(t, certChain, "Signed certificate should not be nil")
 	require.NotEmpty(t, DERChain, "Certificate bytes should not be empty")
@@ -36,7 +38,8 @@ func verifyCACertificate(t *testing.T, err error, certChain []*x509.Certificate,
 	require.True(t, certChain[0].NotAfter.Sub(certChain[0].NotBefore) >= expectedDuration, "Certificate validity period should be >= duration")
 }
 
-func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate, certDER []byte, certPEM []byte, expectedIssuerName string, expectedSubjectName string, expectedDuration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) {
+func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate, certDER, certPEM []byte, expectedIssuerName, expectedSubjectName string, expectedDuration time.Duration, dnsNames []string, ipAddresses []net.IP, emailAddresses []string, uris []*url.URL) {
+	t.Helper()
 	require.NoError(t, err, "Failed to sign certificate")
 	require.NotNil(t, cert, "Signed certificate should not be nil")
 	require.NotEmpty(t, certDER, "Certificate bytes should not be empty")
@@ -66,7 +69,8 @@ func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate,
 // verifyCertChain verifies a certificate chain - kept for future use
 //
 //nolint:unused // Test utility function for future use
-func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots *x509.CertPool, intermediates *x509.CertPool) {
+func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots, intermediates *x509.CertPool) {
+	t.Helper()
 	x509VerifyOptions := x509.VerifyOptions{
 		CurrentTime:   time.Now().UTC(),
 		Roots:         roots,
@@ -79,6 +83,7 @@ func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots *x509.Ce
 }
 
 func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
+	t.Helper()
 	require.NoError(t, err, "Failed to create CA subjects")
 
 	for i, subject := range caSubjects {
@@ -108,6 +113,7 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 }
 
 func verifyEndEntitySubject(t *testing.T, err error, endEntitySubject *Subject) {
+	t.Helper()
 	require.NoError(t, err, "Failed to create end entity subject")
 
 	// Verify subject fields are properly populated

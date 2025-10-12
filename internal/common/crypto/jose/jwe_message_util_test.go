@@ -128,6 +128,7 @@ var happyPathJWETestCases = []happyPathJWETestCase{
 }
 
 func Test_HappyPath_NonJWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
+	t.Parallel()
 	for _, testCase := range happyPathJWETestCases {
 		cleartext := fmt.Appendf(nil, "Hello world enc=%s alg=%s!", testCase.enc, testCase.alg)
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
@@ -164,6 +165,7 @@ func Test_HappyPath_NonJWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 }
 
 func requireJWEJWKHeaders(t *testing.T, nonPublicJWEJWK joseJwk.Key, expectedJWEJWKOps joseJwk.KeyOperationList, testCase *happyPathJWETestCase) {
+	t.Helper()
 	var actualJWKAlg joseJwa.KeyEncryptionAlgorithm
 	require.NoError(t, nonPublicJWEJWK.Get(joseJwk.AlgorithmKey, &actualJWKAlg))
 	require.Equal(t, *testCase.alg, actualJWKAlg)
@@ -182,6 +184,7 @@ func requireJWEJWKHeaders(t *testing.T, nonPublicJWEJWK joseJwk.Key, expectedJWE
 }
 
 func requireJWEMessageHeaders(t *testing.T, jweMessage *joseJwe.Message, actualKeyKid *googleUuid.UUID, testCase *happyPathJWETestCase) {
+	t.Helper()
 	jweHeaders := jweMessage.ProtectedHeaders()
 	encodedJWEHeaders, err := json.Marshal(jweHeaders)
 	require.NoError(t, err)
@@ -202,6 +205,7 @@ func requireJWEMessageHeaders(t *testing.T, jweMessage *joseJwe.Message, actualK
 }
 
 func Test_HappyPath_NonJWKGenService_JWE_JWK_EncryptDecryptKey(t *testing.T) {
+	t.Parallel()
 	for _, testCase := range happyPathJWETestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()

@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-func runSendersReceivers(ctx context.Context, bufferSize int, senderCount int, receiverCount int, senderFunc func() any, receiverFunc func(value any)) func() {
+func runSendersReceivers(ctx context.Context, bufferSize, senderCount, receiverCount int, senderFunc func() any, receiverFunc func(value any)) func() {
 	ch := make(chan any, bufferSize)
 
 	var wg sync.WaitGroup

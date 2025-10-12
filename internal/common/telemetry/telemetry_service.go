@@ -35,7 +35,7 @@ import (
 	oltpSemanticConventions "go.opentelemetry.io/otel/semconv/v1.30.0"
 )
 
-// TelemetryService Composite of OpenTelemetry providers for Logs, Metrics, and Traces
+// TelemetryService Composite of OpenTelemetry providers for Logs, Metrics, and Traces.
 type TelemetryService struct {
 	StartTime          time.Time
 	shutdownOnce       sync.Once

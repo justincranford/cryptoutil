@@ -65,7 +65,7 @@ repos:
       - id: gofumpt
         name: gofumpt (Go formatting)
         entry: gofumpt
-        args: [-w]
+        args: [-extra, -w]
         language: system
         files: '\.go$'
         exclude: '_gen\.go$|vendor/'

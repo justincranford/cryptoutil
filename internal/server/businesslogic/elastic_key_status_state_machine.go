@@ -34,7 +34,7 @@ var validTransitions = func() map[cryptoutilOpenapiModel.ElasticKeyStatus]map[cr
 	return convertedTransitions
 }()
 
-func TransitionElasticKeyStatus(current cryptoutilOpenapiModel.ElasticKeyStatus, next cryptoutilOpenapiModel.ElasticKeyStatus) error {
+func TransitionElasticKeyStatus(current, next cryptoutilOpenapiModel.ElasticKeyStatus) error {
 	allowedTransitions, exists := validTransitions[current]
 	if !exists {
 		return errors.New("invalid current state")

@@ -36,15 +36,15 @@ func NewCode(message string) ProprietaryAppCode {
 	return ProprietaryAppCode(message)
 }
 
-// Generate all HTTP status codes (100-599) using net/http constants
+// Generate all HTTP status codes (100-599) using net/http constants.
 var (
-	// 1xx Informational
+	// 1xx Informational.
 	HTTP100StatusLineAndCodeContinue           = NewHTTPStatusLineAndCode(http.StatusContinue, &InfoCodeContinue)
 	HTTP101StatusLineAndCodeSwitchingProtocols = NewHTTPStatusLineAndCode(http.StatusSwitchingProtocols, &InfoCodeSwitchingProtocols)
 	HTTP102StatusLineAndCodeProcessing         = NewHTTPStatusLineAndCode(http.StatusProcessing, &InfoCodeProcessing)
 	HTTP103StatusLineAndCodeEarlyHints         = NewHTTPStatusLineAndCode(http.StatusEarlyHints, &InfoCodeEarlyHints)
 
-	// 2xx Success
+	// 2xx Success.
 	HTTP200StatusLineAndCodeOK                   = NewHTTPStatusLineAndCode(http.StatusOK, &SuccessCodeOK)
 	HTTP201StatusLineAndCodeCreated              = NewHTTPStatusLineAndCode(http.StatusCreated, &SuccessCodeCreated)
 	HTTP202StatusLineAndCodeAccepted             = NewHTTPStatusLineAndCode(http.StatusAccepted, &SuccessCodeAccepted)
@@ -56,7 +56,7 @@ var (
 	HTTP208StatusLineAndCodeAlreadyReported      = NewHTTPStatusLineAndCode(http.StatusAlreadyReported, &SuccessCodeAlreadyReported)
 	HTTP226StatusLineAndCodeIMUsed               = NewHTTPStatusLineAndCode(http.StatusIMUsed, &SuccessCodeIMUsed)
 
-	// 3xx Redirection
+	// 3xx Redirection.
 	HTTP300StatusLineAndCodeMultipleChoices   = NewHTTPStatusLineAndCode(http.StatusMultipleChoices, &RedirectionCodeMultipleChoices)
 	HTTP301StatusLineAndCodeMovedPermanently  = NewHTTPStatusLineAndCode(http.StatusMovedPermanently, &RedirectionCodeMovedPermanently)
 	HTTP302StatusLineAndCodeFound             = NewHTTPStatusLineAndCode(http.StatusFound, &RedirectionCodeFound)
@@ -66,7 +66,7 @@ var (
 	HTTP307StatusLineAndCodeTemporaryRedirect = NewHTTPStatusLineAndCode(http.StatusTemporaryRedirect, &RedirectionCodeTemporaryRedirect)
 	HTTP308StatusLineAndCodePermanentRedirect = NewHTTPStatusLineAndCode(http.StatusPermanentRedirect, &RedirectionCodePermanentRedirect)
 
-	// 4xx Client Errors
+	// 4xx Client Errors.
 	HTTP400StatusLineAndCodeBadRequest                  = NewHTTPStatusLineAndCode(http.StatusBadRequest, &ClientErrorCodeBadRequest)
 	HTTP401StatusLineAndCodeUnauthorized                = NewHTTPStatusLineAndCode(http.StatusUnauthorized, &ClientErrorCodeUnauthorized)
 	HTTP402StatusLineAndCodePaymentRequired             = NewHTTPStatusLineAndCode(http.StatusPaymentRequired, &ClientErrorCodePaymentRequired)
@@ -97,7 +97,7 @@ var (
 	HTTP431StatusLineAndCodeRequestHeaderFieldsTooLarge = NewHTTPStatusLineAndCode(http.StatusRequestHeaderFieldsTooLarge, &ClientErrorCodeRequestHeaderFieldsTooLarge)
 	HTTP451StatusLineAndCodeUnavailableForLegalReasons  = NewHTTPStatusLineAndCode(http.StatusUnavailableForLegalReasons, &ClientErrorCodeUnavailableForLegalReasons)
 
-	// 5xx Server Errors
+	// 5xx Server Errors.
 	HTTP500StatusLineAndCodeInternalServerError           = NewHTTPStatusLineAndCode(http.StatusInternalServerError, &ServerErrorCodeInternalServerServerError)
 	HTTP501StatusLineAndCodeNotImplemented                = NewHTTPStatusLineAndCode(http.StatusNotImplemented, &ServerErrorCodeNotImplemented)
 	HTTP502StatusLineAndCodeBadGateway                    = NewHTTPStatusLineAndCode(http.StatusBadGateway, &ServerErrorCodeBadGateway)
@@ -112,13 +112,13 @@ var (
 )
 
 var (
-	// 1xx Informational
+	// 1xx Informational.
 	InfoCodeContinue           = ProprietaryAppCode("INFO_CONTINUE")
 	InfoCodeSwitchingProtocols = ProprietaryAppCode("INFO_SWITCHING_PROTOCOLS")
 	InfoCodeProcessing         = ProprietaryAppCode("INFO_PROCESSING")
 	InfoCodeEarlyHints         = ProprietaryAppCode("INFO_EARLY_HINTS")
 
-	// 2xx Success
+	// 2xx Success.
 	SuccessCodeOK                   = ProprietaryAppCode("SUCCESS_OK")
 	SuccessCodeCreated              = ProprietaryAppCode("SUCCESS_CREATED")
 	SuccessCodeAccepted             = ProprietaryAppCode("SUCCESS_ACCEPTED")
@@ -130,7 +130,7 @@ var (
 	SuccessCodeAlreadyReported      = ProprietaryAppCode("SUCCESS_ALREADY_REPORTED")
 	SuccessCodeIMUsed               = ProprietaryAppCode("SUCCESS_IM_USED")
 
-	// 3xx Redirection
+	// 3xx Redirection.
 	RedirectionCodeMultipleChoices   = ProprietaryAppCode("REDIRECTION_MULTIPLE_CHOICES")
 	RedirectionCodeMovedPermanently  = ProprietaryAppCode("REDIRECTION_MOVED_PERMANENTLY")
 	RedirectionCodeFound             = ProprietaryAppCode("REDIRECTION_FOUND")
@@ -140,7 +140,7 @@ var (
 	RedirectionCodeTemporaryRedirect = ProprietaryAppCode("REDIRECTION_TEMPORARY_REDIRECT")
 	RedirectionCodePermanentRedirect = ProprietaryAppCode("REDIRECTION_PERMANENT_REDIRECT")
 
-	// 4xx Client Errors
+	// 4xx Client Errors.
 	ClientErrorCodeBadRequest                  = ProprietaryAppCode("CLIENT_ERROR_BAD_REQUEST")
 	ClientErrorCodeUnauthorized                = ProprietaryAppCode("CLIENT_ERROR_UNAUTHORIZED")
 	ClientErrorCodePaymentRequired             = ProprietaryAppCode("CLIENT_ERROR_PAYMENT_REQUIRED")
@@ -171,7 +171,7 @@ var (
 	ClientErrorCodeRequestHeaderFieldsTooLarge = ProprietaryAppCode("CLIENT_ERROR_REQUEST_HEADER_FIELDS_TOO_LARGE")
 	ClientErrorCodeUnavailableForLegalReasons  = ProprietaryAppCode("CLIENT_ERROR_UNAVAILABLE_FOR_LEGAL_REASONS")
 
-	// 5xx Server Errors
+	// 5xx Server Errors.
 	ServerErrorCodeInternalServerServerError     = ProprietaryAppCode("SERVER_ERROR_INTERNAL_SERVER_ERROR")
 	ServerErrorCodeNotImplemented                = ProprietaryAppCode("SERVER_ERROR_NOT_IMPLEMENTED")
 	ServerErrorCodeBadGateway                    = ProprietaryAppCode("SERVER_ERROR_BAD_GATEWAY")

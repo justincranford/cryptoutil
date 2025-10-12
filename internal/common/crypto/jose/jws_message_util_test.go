@@ -37,6 +37,7 @@ var happyPathJWSTestCases = []happyPathJWSTestCase{
 }
 
 func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
+	t.Parallel()
 	for _, testCase := range happyPathJWSTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
@@ -85,6 +86,7 @@ func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 }
 
 func requireJWSJWKHeaders(t *testing.T, nonPublicJWSJWK joseJwk.Key, expectedJWSJWKOps joseJwk.KeyOperationList, testCase *happyPathJWSTestCase) {
+	t.Helper()
 	var actualJWKAlg joseJwa.KeyAlgorithm
 	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.AlgorithmKey, &actualJWKAlg))
 	require.Equal(t, *testCase.alg, actualJWKAlg)
@@ -103,6 +105,7 @@ func requireJWSJWKHeaders(t *testing.T, nonPublicJWSJWK joseJwk.Key, expectedJWS
 }
 
 func requireJWSMessageHeaders(t *testing.T, jwsMessage *joseJws.Message, jwsJWKKid *googleUuid.UUID, testCase *happyPathJWSTestCase) {
+	t.Helper()
 	jwsHeaders := jwsMessage.Signatures()[0].ProtectedHeaders()
 	encodedJWEHeaders, err := json.Marshal(jwsHeaders)
 	require.NoError(t, err)

@@ -88,24 +88,24 @@ func Uint16ToBytes(val uint16) []byte {
 	return bytes
 }
 
-// safeIntToUint64 safely converts int64 to uint64 preserving bit pattern
-// This conversion is always safe for same-width signed/unsigned types
+// safeIntToUint64 safely converts int64 to uint64 preserving bit pattern.
+// This conversion is always safe for same-width signed/unsigned types.
 func safeIntToUint64(val int64) uint64 {
 	// gosec G115: This conversion is safe - same bit width preserves all values
 	// Negative values are preserved in two's complement representation
 	return uint64(val) // #nosec G115
 }
 
-// safeIntToUint32 safely converts int32 to uint32 preserving bit pattern
-// This conversion is always safe for same-width signed/unsigned types
+// safeIntToUint32 safely converts int32 to uint32 preserving bit pattern.
+// This conversion is always safe for same-width signed/unsigned types.
 func safeIntToUint32(val int32) uint32 {
 	// gosec G115: This conversion is safe - same bit width preserves all values
 	// Negative values are preserved in two's complement representation
 	return uint32(val) // #nosec G115
 }
 
-// safeIntToUint16 safely converts int16 to uint16 preserving bit pattern
-// This conversion is always safe for same-width signed/unsigned types
+// safeIntToUint16 safely converts int16 to uint16 preserving bit pattern.
+// This conversion is always safe for same-width signed/unsigned types.
 func safeIntToUint16(val int16) uint16 {
 	// gosec G115: This conversion is safe - same bit width preserves all values
 	// Negative values are preserved in two's complement representation

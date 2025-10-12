@@ -355,7 +355,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	}, nil
 }
 
-func startServerFuncWithListeners(publicListener net.Listener, privateListener net.Listener, publicFiberApp *fiber.App, privateFiberApp *fiber.App, publicProtocol string, privateProtocol string, publicTLSConfig *tls.Config, privateTLSConfig *tls.Config, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
+func startServerFuncWithListeners(publicListener, privateListener net.Listener, publicFiberApp, privateFiberApp *fiber.App, publicProtocol, privateProtocol string, publicTLSConfig, privateTLSConfig *tls.Config, telemetryService *cryptoutilTelemetry.TelemetryService) func() {
 	return func() {
 		telemetryService.Slogger.Debug("starting fiber listeners with pre-created listeners")
 
@@ -393,7 +393,7 @@ func startServerFuncWithListeners(publicListener net.Listener, privateListener n
 	}
 }
 
-func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp *fiber.App, privateFiberApp *fiber.App, publicListener net.Listener, privateListener net.Listener) func() {
+func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, publicFiberApp, privateFiberApp *fiber.App, publicListener, privateListener net.Listener) func() {
 	return func() {
 		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
@@ -593,7 +593,7 @@ func publicBrowserXSSMiddlewareFunction(settings *cryptoutilConfig.Settings) fib
 	})
 }
 
-// buildContentSecurityPolicy creates a CSP tailored for the cryptoutil application
+// buildContentSecurityPolicy creates a CSP tailored for the cryptoutil application.
 func buildContentSecurityPolicy(settings *cryptoutilConfig.Settings) string {
 	// Base CSP - very restrictive
 	csp := "default-src 'none';"
@@ -650,7 +650,7 @@ func buildContentSecurityPolicy(settings *cryptoutilConfig.Settings) string {
 	return csp
 }
 
-// Security header policy constants - Last reviewed: 2025-10-01
+// Security header policy constants - Last reviewed: 2025-10-01.
 const (
 	hstsMaxAge                    = "max-age=31536000; includeSubDomains; preload"
 	hstsMaxAgeDev                 = "max-age=86400; includeSubDomains"
@@ -664,7 +664,7 @@ const (
 	clearSiteDataLogout           = "\"cache\", \"cookies\", \"storage\""
 )
 
-// Expected browser security headers for runtime validation
+// Expected browser security headers for runtime validation.
 var expectedBrowserHeaders = map[string]string{
 	"X-Content-Type-Options":            contentTypeOptions,
 	"Referrer-Policy":                   referrerPolicy,
@@ -675,7 +675,7 @@ var expectedBrowserHeaders = map[string]string{
 	"X-Permitted-Cross-Domain-Policies": xPermittedCrossDomainPolicies,
 }
 
-// publicBrowserAdditionalSecurityHeadersMiddleware adds security headers not covered by Helmet
+// publicBrowserAdditionalSecurityHeadersMiddleware adds security headers not covered by Helmet.
 func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
 	// Setup metrics for header validation
 	meter := telemetryService.MetricsProvider.Meter("security-headers")
@@ -748,7 +748,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 	}
 }
 
-// validateSecurityHeaders checks that all expected security headers are present
+// validateSecurityHeaders checks that all expected security headers are present.
 func validateSecurityHeaders(c *fiber.Ctx) []string {
 	var missing []string
 	for header, expectedValue := range expectedBrowserHeaders {
@@ -814,14 +814,14 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 // TRUE  => Skip CSRF check for /service/api/v1/* requests by non-browser clients (e.g. curl, Postman, service-to-service calls)
 // ASSUME: Non-browser Authentication only authorizes clients to access /service/api/v1/*
 // FALSE => Enforce CSRF check for /browser/api/v1/* requests by browser clients (e.g. web apps, Swagger UI)
-// ASSUME: UI Authentication only authorizes browser users to access /browser/api/v1/*
+// ASSUME: UI Authentication only authorizes browser users to access /browser/api/v1/*.
 func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) bool {
 	return func(c *fiber.Ctx) bool {
 		return strings.HasPrefix(c.OriginalURL(), settings.PublicServiceAPIContextPath+"/")
 	}
 }
 
-func swaggerUICustomCSRFScript(csrfTokenName string, browserAPIContextPath string) template.JS {
+func swaggerUICustomCSRFScript(csrfTokenName, browserAPIContextPath string) template.JS {
 	csrfTokenEndpoint := browserAPIContextPath + "/csrf-token"
 	return template.JS(fmt.Sprintf(`
 		// Wait for Swagger UI to fully load

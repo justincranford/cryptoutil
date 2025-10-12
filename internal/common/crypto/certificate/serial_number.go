@@ -26,7 +26,7 @@ func GenerateSerialNumber() (*big.Int, error) {
 	return new(big.Int).Add(randomOffsetFromMin, minSerialNumber), nil // Valid range [2^64, 2^159)
 }
 
-func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration time.Duration, minSubtract time.Duration, maxSubtract time.Duration) (time.Time, time.Time, error) {
+func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
 	if requestedDuration > maxCACertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxCACertDuration")
 	}
@@ -39,7 +39,7 @@ func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration t
 	return notBefore, notAfter, nil
 }
 
-func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDuration time.Duration, minSubtract time.Duration, maxSubtract time.Duration) (time.Time, time.Time, error) {
+func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
 	if requestedDuration > maxSubscriberCertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxSubscriberCertDuration")
 	}
@@ -52,7 +52,7 @@ func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDur
 	return notBefore, notAfter, nil
 }
 
-func generateNotBeforeNotAfter(requestedStart time.Time, requestedDuration time.Duration, minSubtract time.Duration, maxSubtract time.Duration) (time.Time, time.Time, error) {
+func generateNotBeforeNotAfter(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
 	maxRangeOffset := int64(maxSubtract - minSubtract)
 	if requestedDuration <= 0 {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration must be positive, got: %v", requestedDuration)

@@ -45,18 +45,21 @@ func Test_Import_Encrypt_Decrypt(t *testing.T) {
 }
 
 func generateJWETestCaseECDH(t *testing.T, ecdhCurve ecdh.Curve, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) testCaseJWE {
+	t.Helper()
 	ecdhPrivateKey, err := ecdhCurve.GenerateKey(rand.Reader)
 	require.NoError(t, err, "failed to generate raw ECDH private key for JWE test case")
 	return testCaseJWE{raw: ecdhPrivateKey, enc: enc, alg: alg}
 }
 
 func generateJWETestCaseRSA(t *testing.T, keyLengthBits int, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) testCaseJWE {
+	t.Helper()
 	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, keyLengthBits)
 	require.NoError(t, err, "failed to generate raw RSA private key for JWE test case")
 	return testCaseJWE{raw: rsaPrivateKey, enc: enc, alg: alg}
 }
 
 func generateJWETestCaseAES(t *testing.T, keyLengthBits int, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) testCaseJWE {
+	t.Helper()
 	aesSecretKey := make([]byte, keyLengthBits/8)
 	_, err := rand.Read(aesSecretKey)
 	require.NoError(t, err, "failed to generate raw AES secret key for JWE test case")
@@ -64,6 +67,7 @@ func generateJWETestCaseAES(t *testing.T, keyLengthBits int, enc jwa.ContentEncr
 }
 
 func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) jwk.Key {
+	t.Helper()
 	nonPublicJWK, err := jwk.Import(raw)
 	require.NoError(t, err, "failed to import raw key into JWK")
 
@@ -93,6 +97,7 @@ func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.K
 }
 
 func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message {
+	t.Helper()
 	require.NotEmpty(t, plaintext, "plaintext can't be empty")
 	isEncryptJWK, err := cryptoutilJose.IsEncryptJWK(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
@@ -130,6 +135,7 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 }
 
 func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
+	t.Helper()
 	require.NotEmpty(t, jweMessage, "JWE message can't be empty")
 	isDecryptJWK, err := cryptoutilJose.IsDecryptJWK(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
@@ -149,6 +155,7 @@ func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte
 
 // getKidEncAlgFromJWK extracts 'kid', 'enc', and 'alg' headers from recipient JWK. All 3 are assumed to be present in the JWK.
 func getKidEncAlgFromJWK(t *testing.T, recipientJWK jwk.Key) (string, jwa.ContentEncryptionAlgorithm, jwa.KeyEncryptionAlgorithm) {
+	t.Helper()
 	var kid string
 	err := recipientJWK.Get(jwk.KeyIDKey, &kid)
 	require.NoError(t, err, "failed to get 'kid' from recipient JWK")

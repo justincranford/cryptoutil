@@ -11,6 +11,7 @@ import (
 )
 
 func Test_HappyPath_JWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
+	t.Parallel()
 	for _, testCase := range happyPathJWETestCases {
 		plaintext := fmt.Appendf(nil, "Hello world enc=%s alg=%s!", testCase.enc, testCase.alg)
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
@@ -55,6 +56,7 @@ func Test_HappyPath_JWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 }
 
 func Test_HappyPath_JWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
+	t.Parallel()
 	for _, testCase := range happyPathJWSTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {

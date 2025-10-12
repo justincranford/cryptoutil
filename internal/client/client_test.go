@@ -212,6 +212,7 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 }
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
+	t.Parallel()
 	context := context.Background()
 	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
 	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl, testRootCAsPool)
@@ -364,12 +365,14 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 }
 
 func logObjectAsJSON(t *testing.T, object any) {
+	t.Helper()
 	jsonString, err := json.MarshalIndent(object, "", " ")
 	require.NoError(t, err)
 	t.Log(string(jsonString))
 }
 
 func logJWE(t *testing.T, encodedJWEMessage *string) {
+	t.Helper()
 	t.Log("JWE Message: {}", *encodedJWEMessage)
 
 	jweMessage, err := joseJwe.Parse([]byte(*encodedJWEMessage))
@@ -378,6 +381,7 @@ func logJWE(t *testing.T, encodedJWEMessage *string) {
 }
 
 func logJWS(t *testing.T, encodedJWSMessage *string) {
+	t.Helper()
 	t.Log("JWS Message: {}", *encodedJWSMessage)
 
 	jwsMessage, err := joseJws.Parse([]byte(*encodedJWSMessage))

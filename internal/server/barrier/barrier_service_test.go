@@ -120,7 +120,8 @@ func Test_HappyPath_EncryptDecryptContent_Restart_DecryptAgain(t *testing.T) {
 	encryptDecryptContentRestartDecryptAgain(t, testOrmRepository, unsealKeysServiceJWKs12, unsealKeysServiceJWKs12)
 }
 
-func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *cryptoutilOrmRepository.OrmRepository, originalUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService, restartedUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) {
+func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *cryptoutilOrmRepository.OrmRepository, originalUnsealKeysService, restartedUnsealKeysService cryptoutilUnsealKeysService.UnsealKeysService) {
+	t.Helper()
 	const numEncryptsDecrypts = 11
 	plaintext := []byte("hello, world!")
 

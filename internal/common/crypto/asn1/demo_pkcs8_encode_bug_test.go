@@ -71,6 +71,7 @@ func TestEncodeDecodeECDSA(t *testing.T) {
 }
 
 func pkcs8EncodeDecode(t *testing.T, key any) (any, error) {
+	t.Helper()
 	encodedBytes, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
 		return nil, fmt.Errorf("encode failed: %w", err)

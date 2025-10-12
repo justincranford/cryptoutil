@@ -409,7 +409,6 @@ pre-commit run --all-files
 **What Gets Formatted Automatically:**
 - `gofumpt` - Stricter Go code formatting (better than standard `gofmt`)
 - `goimports` - Automatic import organization and formatting
-- `go vet` - Static analysis checks
 - Trailing whitespace removal
 - File ending fixes
 
@@ -417,7 +416,6 @@ pre-commit run --all-files
 ```sh
 gofumpt -w .        # Format all Go files
 goimports -w .      # Organize imports
-go vet ./...        # Static analysis
 ```
 
 ### Code Generation

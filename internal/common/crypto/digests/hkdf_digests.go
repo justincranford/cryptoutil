@@ -35,8 +35,8 @@ func HKDFwithSHA224(secret, salt, info []byte, outputBytesLength int) ([]byte, e
 	return HKDF("SHA224", secret, salt, info, outputBytesLength)
 }
 
-// HKDF Supported digestNames: "SHA512", "SHA384", "SHA256", "SHA224"
-func HKDF(digestName string, secretBytes []byte, saltBytes []byte, infoBytes []byte, outputBytesLength int) ([]byte, error) {
+// HKDF Supported digestNames: "SHA512", "SHA384", "SHA256", "SHA224".
+func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputBytesLength int) ([]byte, error) {
 	var digestFunction func() hash.Hash
 	var digestLength int
 	switch digestName {

@@ -11,6 +11,7 @@ import (
 )
 
 func GenerateJWEJWKsForTest(t *testing.T, count int, enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) ([]joseJwk.Key, []joseJwk.Key, error) {
+	t.Helper()
 	type jwkOrErr struct {
 		nonPublicJWK joseJwk.Key
 		publicJWK    joseJwk.Key

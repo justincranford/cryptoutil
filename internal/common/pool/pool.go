@@ -16,7 +16,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-// useful constants for indefinite pools; use smaller values for finite pools
+// useful constants for indefinite pools; use smaller values for finite pools.
 const (
 	maxInt64            = int64(^uint64(0) >> 1)  // Max int64 (= 2^63-1 = 9,223,372,036,854,775,807)
 	MaxLifetimeValues   = uint64(maxInt64)        // Max int64 as uint64
@@ -50,7 +50,7 @@ type ValueGenPoolConfig[T any] struct {
 	verbose             bool
 }
 
-// NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues
+// NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues.
 func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
 	poolStartTime := time.Now().UTC()
 	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check the error value
@@ -112,7 +112,7 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 	return valuePool, nil
 }
 
-func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers uint32, poolSize uint32, maxLifetimeValues uint64, maxLifetimeDuration time.Duration, generateFunction func() (T, error), verbose bool) (*ValueGenPoolConfig[T], error) {
+func NewValueGenPoolConfig[T any](ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, poolName string, numWorkers, poolSize uint32, maxLifetimeValues uint64, maxLifetimeDuration time.Duration, generateFunction func() (T, error), verbose bool) (*ValueGenPoolConfig[T], error) {
 	config := &ValueGenPoolConfig[T]{
 		ctx:                 ctx,
 		telemetryService:    telemetryService,
@@ -246,7 +246,7 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 	}
 }
 
-// IMPORTANT: don't call Cancel() in this function, because it waits for all permissions to be released, and this function doesn't release its permission until it returns
+// IMPORTANT: don't call Cancel() in this function, because it waits for all permissions to be released, and this function doesn't release its permission until it returns.
 func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime time.Time) (*string, error) {
 	defer func() { // always release permission, even if there was an error or panic
 		if recover := recover(); recover != nil {

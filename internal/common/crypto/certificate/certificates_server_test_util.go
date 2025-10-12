@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func startTLSEchoServer(tlsServerListener string, readTimeout time.Duration, writeTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
+func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
 	netListener, err := net.Listen("tcp", tlsServerListener)
 	if err != nil {
 		return "", fmt.Errorf("failed to start TCP Listener: %w", err)
@@ -124,7 +124,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout time.Duration, wri
 	return tlsListener.Addr().String(), nil
 }
 
-func startHTTPSEchoServer(httpsServerListener string, readTimeout time.Duration, writeTimeout time.Duration, serverTLSConfig *tls.Config) (*http.Server, string, error) {
+func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout time.Duration, serverTLSConfig *tls.Config) (*http.Server, string, error) {
 	netListener, err := net.Listen("tcp", httpsServerListener)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to start TCP Listener for HTTPS Server: %w", err)

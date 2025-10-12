@@ -16,7 +16,7 @@ func NewOamOacMapper() *oamOacMapper {
 	return &oamOacMapper{}
 }
 
-func (m *oamOacMapper) toOamElasticKeyCreate(name *string, description *string, algorithm *string, provider *string, importAllowed *bool, versioningAllowed *bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
+func (m *oamOacMapper) toOamElasticKeyCreate(name, description, algorithm, provider *string, importAllowed, versioningAllowed *bool) (*cryptoutilOpenapiModel.ElasticKeyCreate, error) {
 	elasticKeyAlgorithm, err := cryptoutilJose.ToElasticKeyAlgorithm(algorithm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map Elastic Key: %w", err)

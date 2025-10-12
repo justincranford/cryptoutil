@@ -79,7 +79,7 @@ type Settings struct {
 	UnsealFiles                 []string
 }
 
-// Setting Input values for pflag.*P(name, shortname, value, usage)
+// Setting Input values for pflag.*P(name, shortname, value, usage).
 type Setting struct {
 	name        string // unique long name for the flag
 	shorthand   string // unique short name for the flag
@@ -89,7 +89,7 @@ type Setting struct {
 	redacted    bool   // whether to redact the value in logs (except in dev+verbose mode)
 }
 
-// Helper functions for safe type assertions in configuration
+// Helper functions for safe type assertions in configuration.
 func asBool(s *Setting) bool {
 	if v, ok := s.value.(bool); ok {
 		return v
@@ -485,7 +485,7 @@ var defaultAllowedCIDRs = func() []string {
 	}
 }()
 
-// set of valid subcommands
+// set of valid subcommands.
 var subcommands = map[string]struct{}{
 	"start": {},
 	"stop":  {},

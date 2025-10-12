@@ -80,7 +80,7 @@ func (s *SQLRepository) newTransaction() (*SQLTransaction, error) {
 	return &SQLTransaction{sqlRepository: s}, nil
 }
 
-// TransactionID Transaction ID is valid (non-nil) only when a transaction is active
+// TransactionID Transaction ID is valid (non-nil) only when a transaction is active.
 func (sqlTransaction *SQLTransaction) TransactionID() *googleUuid.UUID {
 	if sqlTransaction.state == nil {
 		return nil
@@ -89,7 +89,7 @@ func (sqlTransaction *SQLTransaction) TransactionID() *googleUuid.UUID {
 	return &transactionIDCopy
 }
 
-// Context Transaction context is valid (non-nil) only when a transaction is active
+// Context Transaction context is valid (non-nil) only when a transaction is active.
 func (sqlTransaction *SQLTransaction) Context() context.Context {
 	if sqlTransaction.state == nil {
 		return nil
@@ -97,7 +97,7 @@ func (sqlTransaction *SQLTransaction) Context() context.Context {
 	return sqlTransaction.state.ctx
 }
 
-// IsReadOnly Boolean for if a transaction read-only is valid only when a transaction is active
+// IsReadOnly Boolean for if a transaction read-only is valid only when a transaction is active.
 func (sqlTransaction *SQLTransaction) IsReadOnly() bool {
 	if sqlTransaction.state == nil {
 		return false

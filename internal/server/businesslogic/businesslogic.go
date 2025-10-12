@@ -22,7 +22,7 @@ const (
 	providerInternal = "Internal"
 )
 
-// BusinessLogicService implements methods in StrictServerInterface
+// BusinessLogicService implements methods in StrictServerInterface.
 type BusinessLogicService struct {
 	telemetryService *cryptoutilTelemetry.TelemetryService
 	jwkGenService    *cryptoutilJose.JWKGenService
@@ -270,7 +270,7 @@ func (s *BusinessLogicService) GetMaterialKeys(ctx context.Context, materialKeys
 	return oamMaterialKeys, err
 }
 
-func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx context.Context, elasticKeyID *googleUuid.UUID, materialKeyID *googleUuid.UUID) (*cryptoutilOpenapiModel.MaterialKey, error) {
+func (s *BusinessLogicService) GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx context.Context, elasticKeyID, materialKeyID *googleUuid.UUID) (*cryptoutilOpenapiModel.MaterialKey, error) {
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
 	err := s.ormRepository.WithTransaction(ctx, cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
@@ -443,7 +443,7 @@ func (s *BusinessLogicService) generateJWK(elasticKeyAlgorithm *cryptoutilOpenap
 }
 
 //nolint:unparam // Some callers ignore certain return values by design
-func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.Context, elasticKeyID *googleUuid.UUID, materialKeyKidUUID *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.MaterialKey, joseJwk.Key, joseJwk.Key, error) {
+func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.Context, elasticKeyID, materialKeyKidUUID *googleUuid.UUID) (*cryptoutilOrmRepository.ElasticKey, *cryptoutilOrmRepository.MaterialKey, joseJwk.Key, joseJwk.Key, error) {
 	var ormElasticKey *cryptoutilOrmRepository.ElasticKey
 	var ormMaterialKey *cryptoutilOrmRepository.MaterialKey
 	var materialKeyDecryptedNonPublicJWKBytes []byte
