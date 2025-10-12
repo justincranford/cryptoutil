@@ -508,7 +508,7 @@ go run scripts/check.go github-action-versions
 
 #### Action Version Exceptions
 
-For cases where the latest action version has breaking changes or compatibility issues, you can configure exceptions in `.github/workflows-action-version-exceptions.json`:
+For cases where the latest action version has breaking changes or compatibility issues, you can configure exceptions in `.github/workflows-outdated-action-exemptions.json`:
 
 ```json
 {

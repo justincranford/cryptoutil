@@ -83,7 +83,7 @@ func checkDeps() {
 }
 
 func loadActionExceptions() (*ActionExceptions, error) {
-	exceptionsFile := ".github/workflows-action-version-exceptions.json"
+	exceptionsFile := ".github/workflows-outdated-action-exemptions.json"
 	if _, err := os.Stat(exceptionsFile); os.IsNotExist(err) {
 		// No exceptions file, return empty exceptions
 		return &ActionExceptions{Exceptions: make(map[string]ActionException)}, nil
