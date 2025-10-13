@@ -748,7 +748,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		AllowedIPs:                  viper.GetStringSlice(allowedIps.name),
 		AllowedCIDRs:                viper.GetStringSlice(allowedCidrs.name),
 		DatabaseContainer:           viper.GetString(databaseContainer.name),
-		DatabaseURL:                 viper.GetString(databaseURL.name),
+		DatabaseURL:                 getDatabaseURL(),
 		DatabaseInitTotalTimeout:    viper.GetDuration(databaseInitTotalTimeout.name),
 		DatabaseInitRetryWait:       viper.GetDuration(databaseInitRetryWait.name),
 		ServerShutdownTimeout:       viper.GetDuration(serverShutdownTimeout.name),
@@ -1116,4 +1116,22 @@ func validateConfiguration(s *Settings) error {
 	}
 
 	return nil
+}
+
+// getDatabaseURL reads the database URL from either the direct environment variable
+// or from a file specified by the _FILE environment variable (Docker secrets pattern)
+func getDatabaseURL() string {
+	// First check if a file path is specified
+	filePath := viper.GetString(databaseURL.name + "_file")
+	if filePath != "" {
+		if content, err := os.ReadFile(filePath); err == nil {
+			return strings.TrimSpace(string(content))
+		} else {
+			// If file reading fails, log warning but continue with direct env var
+			fmt.Printf("Warning: failed to read database URL from file %s: %v\n", filePath, err)
+		}
+	}
+
+	// Fall back to direct environment variable
+	return viper.GetString(databaseURL.name)
 }

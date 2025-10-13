@@ -36,7 +36,7 @@ services:
       - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_SERVICE_NAME=cryptoutil-postgres
-      - CRYPTOUTIL_DATABASE_URL=postgres://USR:PWD@postgres:5432/DB?sslmode=disable
+      - CRYPTOUTIL_DATABASE_URL_FILE=/run/secrets/cryptoutil_database-url.secret
     ports:
       - "8081:8080"    # HTTPS public
     volumes:
