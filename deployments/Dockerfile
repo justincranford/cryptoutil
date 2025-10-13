@@ -13,7 +13,7 @@ ARG ALPINE_VERSION=3.19
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
-ARG LDFLAGS="-s -w"
+ARG LDFLAGS="-s -w -extldflags '-static'"
 #############################################################################################
 
 # Validate required build arguments
@@ -55,6 +55,11 @@ WORKDIR /src
 ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
+ARG GO_VERSION
+ARG CGO_ENABLED
+ARG GOOS
+ARG GOARCH
+ARG LDFLAGS
 
 # Copy dependency manifests first to leverage layer caching
 COPY go.mod go.sum ./
@@ -71,7 +76,16 @@ COPY . .
 RUN --mount=type=cache,target=/go/pkg/mod \
 	--mount=type=cache,target=/root/.cache/go-build \
 	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-	go build -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
+	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
+
+# Validate that the binary is statically linked
+RUN if ldd /app/cryptoutil 2>&1 | grep -q "not a dynamic executable"; then \
+        echo "✓ Binary is statically linked"; \
+    else \
+        echo "✗ Binary is dynamically linked - failing build"; \
+        ldd /app/cryptoutil; \
+        exit 1; \
+    fi
 
 # Create /app directory with proper ownership for the application user
 RUN mkdir -p /app && chown -R 65532:65532 /app
@@ -95,8 +109,8 @@ RUN update-ca-certificates
 
 #############################################################################################
 # If shell needed for debugging final image, use alpine instead of scratch
-FROM alpine:${ALPINE_VERSION}
-#FROM scratch
+# FROM alpine:${ALPINE_VERSION}
+FROM scratch
 
 # Copy validation marker to ensure required args were provided
 COPY --from=validation /build-params /app/.build-params
@@ -106,13 +120,13 @@ COPY --from=builder /app/.vcs-ref /app/.vcs-ref
 COPY --from=builder /app/.build-date /app/.build-date
 
 # Copy runtime dependencies (tini for process management)
-COPY --from=runtime-deps /sbin/tini /sbin/tini
+# COPY --from=runtime-deps /sbin/tini /sbin/tini
 
 # Copy the application binary
 COPY --from=builder /app/cryptoutil /app/cryptoutil
 
 # Create /.cache directory with write permissions for the application user
-RUN mkdir -p /.cache && chmod 777 /.cache && chown -R 65532:65532 /.cache
+# RUN mkdir -p /.cache && chmod 777 /.cache && chown -R 65532:65532 /.cache
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION
@@ -132,8 +146,8 @@ LABEL org.opencontainers.image.created="${BUILD_DATE}"
 EXPOSE 8080 9090
 
 # Healthcheck available with Alpine base image
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider --no-check-certificate https://localhost:9090/readyz || exit 1
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#   CMD wget --no-verbose --tries=1 --spider --no-check-certificate https://localhost:9090/readyz || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:
@@ -143,8 +157,8 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 # For Docker Compose: Use external healthcheck or depends_on with condition
 
 # Use tini for proper signal handling and zombie process reaping
-ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]
-CMD ["server", "start", "--verbose", "--dev"]
+# ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]
+ENTRYPOINT ["/app/cryptoutil"]
 
 # Switch to non-root user for security
-USER 65532:65532
+# USER 65532:65532

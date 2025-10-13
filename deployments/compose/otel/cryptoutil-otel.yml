@@ -1,3 +1,9 @@
 # OpenTelemetry configuration
 otlp: true
 otlp-console: false
+
+# TODO Not implemented yet (future)
+# OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4317
+# OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://opentelemetry-collector:4317
+# OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://opentelemetry-collector:4317
+# OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://opentelemetry-collector:4317
