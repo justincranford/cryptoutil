@@ -51,44 +51,16 @@ type TelemetryService struct {
 }
 
 const (
-	OtelGrpcPush      = "127.0.0.1:4317"
 	LogsTimeout       = 500 * time.Millisecond
 	MetricsTimeout    = 500 * time.Millisecond
 	TracesTimeout     = 500 * time.Millisecond
 	ForceFlushTimeout = 3 * time.Second
 )
 
-var (
-	AttrEnv               = "dev"
-	AttrHostName          = "localhost"
-	AttrServiceName       = "cryptoutil" // Default value, will be overridden by settings
-	AttrServiceVersion    = "0.0.1"
-	AttrServiceInstanceID = func() string {
-		return googleUuid.Must(googleUuid.NewV7()).String()
-	}()
-)
-
-func getOtelMetricsTracesAttributes() []attributeApi.KeyValue {
-	return []attributeApi.KeyValue{
-		oltpSemanticConventions.DeploymentID(AttrEnv),                    // deployment.environment.name (e.g. local-standalone, adhoc, dev, qa, preprod, prod)
-		oltpSemanticConventions.HostName(AttrHostName),                   // service.instance.id (e.g. 12)
-		oltpSemanticConventions.ServiceName(AttrServiceName),             // service.name (e.g. cryptoutil)
-		oltpSemanticConventions.ServiceVersion(AttrServiceVersion),       // service.version (e.g. 0.0.1, 1.0.2, 2.1.0)
-		oltpSemanticConventions.ServiceInstanceID(AttrServiceInstanceID), // service.instance.id (e.g. 12, uuidV7)
-	}
-}
-
-func getOtelLogsAttributes() []attributeApi.KeyValue {
-	return getOtelMetricsTracesAttributes() // same (for now)
-}
-
-func getSlogStdoutAttributes() []stdoutLogExporter.Attr {
-	var slogAttrs []stdoutLogExporter.Attr
-	for _, otelLogAttr := range getOtelLogsAttributes() {
-		slogAttrs = append(slogAttrs, stdoutLogExporter.String(string(otelLogAttr.Key), otelLogAttr.Value.AsString()))
-	}
-	return slogAttrs
-}
+// TODO make this a setting? read from container, VM, or OS?
+var AttrServiceInstanceID = func() string {
+	return googleUuid.Must(googleUuid.NewV7()).String()
+}()
 
 func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Settings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
@@ -97,9 +69,6 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	} else if len(settings.OTLPService) == 0 {
 		return nil, fmt.Errorf("service name must be non-empty")
 	}
-
-	// Set the service name from settings
-	AttrServiceName = settings.OTLPService
 
 	slogger, logsProvider, err := initLogger(ctx, settings)
 	if err != nil {
@@ -225,14 +194,14 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	handlerOptions := &stdoutLogExporter.HandlerOptions{
 		Level: slogLevel,
 	}
-	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, handlerOptions).WithAttrs(getSlogStdoutAttributes())
+	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, handlerOptions).WithAttrs(getSlogStdoutAttributes(settings))
 	slogger := stdoutLogExporter.New(stdoutSlogHandler)
 	if settings.VerboseMode {
 		slogger.Debug("initializing otel logs provider")
 	}
 
-	otelLogsResource := resourceSdk.NewWithAttributes("", getOtelLogsAttributes()...)
-	otelExporter, err := grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(OtelGrpcPush), grpcLogExporter.WithInsecure())
+	otelLogsResource := resourceSdk.NewWithAttributes("", getOtelLogsAttributes(settings)...)
+	otelExporter, err := grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(settings.OTLPEndpoint), grpcLogExporter.WithInsecure())
 	if err != nil {
 		slogger.Error("create Otel GRPC logger failed", "error", err)
 		return nil, nil, fmt.Errorf("create Otel GRPC logger failed: %w", err)
@@ -259,7 +228,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 
 	var metricsOptions []metricSdk.Option
 
-	otelMeterTracerTags, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes()...))
+	otelMeterTracerTags, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes(settings)...))
 	if err != nil {
 		slogger.Error("create Otel GRPC metrics resource failed", "error", err)
 		return nil, fmt.Errorf("create Otel GRPC metrics resource failed: %w", err)
@@ -267,7 +236,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
 	if settings.OTLP {
-		otelGrpcMetrics, err := grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(OtelGrpcPush), grpcMetricExporter.WithInsecure())
+		otelGrpcMetrics, err := grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(settings.OTLPEndpoint), grpcMetricExporter.WithInsecure())
 		if err != nil {
 			slogger.Error("create Otel GRPC metrics failed", "error", err)
 			return nil, fmt.Errorf("create Otel GRPC metrics failed: %w", err)
@@ -297,7 +266,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 
 	var tracesOptions []traceSdk.TracerProviderOption
 
-	otelMeterTracerResource, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes()...))
+	otelMeterTracerResource, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes(settings)...))
 	if err != nil {
 		slogger.Error("create Otel GRPC traces resource failed", "error", err)
 		return nil, fmt.Errorf("create Otel GRPC traces resource failed: %w", err)
@@ -305,7 +274,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
 	if settings.OTLP {
-		tracerOtelGrpc, err := grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(OtelGrpcPush), grpcTraceExporterotlptracegrpc.WithInsecure())
+		tracerOtelGrpc, err := grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(settings.OTLPEndpoint), grpcTraceExporterotlptracegrpc.WithInsecure())
 		if err != nil {
 			slogger.Error("create Otel GRPC traces failed", "error", err)
 			return nil, fmt.Errorf("create Otel GRPC traces failed: %w", err)
@@ -346,4 +315,26 @@ func doExampleTraceSpan(ctx context.Context, tracer traceApi.Tracer, slogger *st
 	spanCtx, span := tracer.Start(ctx, "test-span")
 	slogger.Debug(message, "traceid", span.SpanContext().TraceID(), "traceid", span.SpanContext().SpanID())
 	return spanCtx
+}
+
+func getOtelMetricsTracesAttributes(settings *cryptoutilConfig.Settings) []attributeApi.KeyValue {
+	return []attributeApi.KeyValue{
+		oltpSemanticConventions.DeploymentID(settings.OTLPEnvironment),   // deployment.environment.name (e.g. local-standalone, adhoc, dev, qa, preprod, prod)
+		oltpSemanticConventions.HostName(settings.OTLPHostname),          // service.instance.id (e.g. 12)
+		oltpSemanticConventions.ServiceName(settings.OTLPService),        // service.name (e.g. cryptoutil)
+		oltpSemanticConventions.ServiceVersion(settings.OTLPVersion),     // service.version (e.g. 0.0.1, 1.0.2, 2.1.0)
+		oltpSemanticConventions.ServiceInstanceID(AttrServiceInstanceID), // service.instance.id (e.g. 12, uuidV7)
+	}
+}
+
+func getOtelLogsAttributes(settings *cryptoutilConfig.Settings) []attributeApi.KeyValue {
+	return getOtelMetricsTracesAttributes(settings) // same (for now)
+}
+
+func getSlogStdoutAttributes(settings *cryptoutilConfig.Settings) []stdoutLogExporter.Attr {
+	var slogAttrs []stdoutLogExporter.Attr
+	for _, otelLogAttr := range getOtelLogsAttributes(settings) {
+		slogAttrs = append(slogAttrs, stdoutLogExporter.String(string(otelLogAttr.Key), otelLogAttr.Value.AsString()))
+	}
+	return slogAttrs
 }
