@@ -6,8 +6,6 @@ services:
       dockerfile: deployments/Dockerfile
     command: ["server", "start", "--config=/app/config/sqlite.yml"]
     environment:
-      - CRYPTOUTIL_OTLP=true
-      - CRYPTOUTIL_OTLP_CONSOLE=false
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://opentelemetry-collector:4317
@@ -17,6 +15,13 @@ services:
       - "8080:8080"    # HTTPS public
     volumes:
       - ./cryptoutil/sqlite.yml:/app/config/sqlite.yml:ro
+    secrets:
+      - cryptoutil_database-url.secret
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
     depends_on:
       opentelemetry-collector:
         condition: service_started
@@ -29,8 +34,6 @@ services:
       dockerfile: deployments/Dockerfile
     command: server start --config=/app/config/postgresql.yml -u "$(cat /run/secrets/cryptoutil_database-url.secret)"
     environment:
-      - CRYPTOUTIL_OTLP=true
-      - CRYPTOUTIL_OTLP_CONSOLE=false
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://opentelemetry-collector:4317

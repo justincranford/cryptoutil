@@ -315,3 +315,27 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 - **Expected Outcome**: Reproducible deployments with known, tested image versions
 - **Priority**: MEDIUM - Security and reproducibility improvement
 - **Timeline**: Q4 2025
+
+#### Task C7: Make Telemetry Service Configuration Options (🟡 MEDIUM)
+- **Description**: Replace hardcoded telemetry values with configurable options in config.go
+- **Current State**: Telemetry service has hardcoded values for environment, hostname, service name, version, and OTLP endpoint
+- **Hardcoded Values**:
+  - `AttrEnv = "dev"` - deployment environment name
+  - `AttrHostName = "localhost"` - service hostname
+  - `AttrServiceName = "cryptoutil"` - service name
+  - `AttrServiceVersion = "0.0.1"` - service version
+  - `OtelGrpcPush = "127.0.0.1:4317"` - OTLP gRPC endpoint
+- **Action Items**:
+  - Add new config options to `internal/common/config/config.go`:
+    - `--telemetry-environment` (default: "dev")
+    - `--telemetry-hostname` (default: "localhost")
+    - `--telemetry-service-name` (default: "cryptoutil")
+    - `--telemetry-service-version` (default: "0.0.1")
+    - `--telemetry-otlp-endpoint` (default: "127.0.0.1:4317")
+  - Update `internal/common/telemetry/telemetry_service.go` to use config values instead of hardcoded constants
+  - Ensure backward compatibility with existing Docker Compose configurations
+  - Update help documentation and README examples
+- **Files**: `internal/common/config/config.go`, `internal/common/telemetry/telemetry_service.go`
+- **Expected Outcome**: Configurable telemetry service attributes and OTLP endpoint
+- **Priority**: MEDIUM - Operational flexibility improvement
+- **Timeline**: Q4 2025

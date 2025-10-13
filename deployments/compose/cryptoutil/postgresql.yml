@@ -1,11 +1,12 @@
 # Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
 # log-level: "INFO"
 
+# OpenTelemetry configuration
+otlp: true
+otlp-console: false
+
 # Binding address - 0.0.0.0 allows connections from any IP
 bind-public-address: "0.0.0.0"
-
-# Private server binding (for internal/health endpoints)
-bind-private-address: "0.0.0.0"
 
 # CORS configuration - HTTPS origins only (from default config)
 cors-origins:
@@ -13,22 +14,6 @@ cors-origins:
   - "https://127.0.0.1:8081"
   - "https://[::1]:8081"
   - "https://[::ffff:127.0.0.1]:8081"
-
-# TLS configuration for Docker Compose - include host IP for broader access
-tls-public-dns-names:
-  - "localhost"
-tls-public-ip-addresses:
-  - "127.0.0.1"
-  - "::1"
-  - "::ffff:127.0.0.1"
-  - "0.0.0.0"  # Allow connections to any interface
-tls-private-dns-names:
-  - "localhost"
-tls-private-ip-addresses:
-  - "127.0.0.1"
-  - "::1"
-  - "::ffff:127.0.0.1"
-  - "0.0.0.0"
 
 unseal-mode: "3-of-5"
 
@@ -38,7 +23,3 @@ unseal-files:
   - /run/secrets/cryptoutil_unseal_3of5.secret
   - /run/secrets/cryptoutil_unseal_4of5.secret
   - /run/secrets/cryptoutil_unseal_5of5.secret
-
-# OpenTelemetry configuration
-otlp: true
-otlp-console: false

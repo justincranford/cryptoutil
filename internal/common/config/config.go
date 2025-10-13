@@ -35,7 +35,6 @@ const (
 	linkLocalCIDRv6  = "fe80::/10"
 	privateLANCIDRv6 = "fc00::/7"
 
-	defaultConfigFile                  = "config.yaml"                                          // Standard YAML config file name, widely supported and human-readable
 	defaultLogLevel                    = "INFO"                                                 // Balanced verbosity: shows important events without being overwhelming
 	defaultBindPublicProtocol          = httpsProtocol                                          // HTTPS by default for security in production environments
 	defaultBindPublicAddress           = localhost                                              // Localhost prevents external access by default, requires explicit configuration for exposure
@@ -68,6 +67,11 @@ const (
 	defaultOTLP                        = false
 	defaultOTLPConsole                 = false
 	defaultOTLPScope                   = "cryptoutil"
+	defaultTelemetryEnvironment        = "dev"
+	defaultTelemetryHostname           = "localhost"
+	defaultTelemetryServiceName        = "cryptoutil"
+	defaultTelemetryServiceVersion     = "0.0.1"
+	defaultTelemetryOtlpEndpoint       = "127.0.0.1:4317"
 	defaultUnsealMode                  = "sysinfo"
 )
 
@@ -239,6 +243,11 @@ type Settings struct {
 	OTLP                        bool
 	OTLPConsole                 bool
 	OTLPScope                   string
+	TelemetryEnvironment        string
+	TelemetryHostname           string
+	TelemetryServiceName        string
+	TelemetryServiceVersion     string
+	TelemetryOtlpEndpoint       string
 	UnsealMode                  string
 	UnsealFiles                 []string
 }
