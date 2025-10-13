@@ -10,9 +10,6 @@ testing.T.Fatalf
 # Context cancellation - often not checked in cleanup
 context.CancelFunc
 
-# JSON unmarshal in tests - often not checked for test data
-encoding/json.Unmarshal
-
 # Template execution in tests - often not checked
 text/template.Template.Execute
 html/template.Template.Execute
