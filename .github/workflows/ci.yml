@@ -101,7 +101,7 @@ jobs:
           git diff --exit-code go.mod go.sum
 
       - name: Check GitHub Actions versions
-        run: go run scripts/cicd-utils.go github-action-versions
+        run: go run scripts/cicd_utils.go github-action-versions
 
       - name: Run tests with coverage
         env:

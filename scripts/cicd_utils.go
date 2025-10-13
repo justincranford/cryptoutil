@@ -36,7 +36,7 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd-utils.go <command>\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command>\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n")
 		os.Exit(1)
 	}
 

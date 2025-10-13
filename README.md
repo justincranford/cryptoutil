@@ -490,14 +490,14 @@ Version checks run automatically in GitHub Actions on:
 #### Manual Execution
 ```sh
 # Check Go dependency versions
-go run scripts/cicd-utils.go go-dependency-versions
+go run scripts/cicd_utils.go go-dependency-versions
 
 # Check GitHub Actions versions in workflows
-go run scripts/cicd-utils.go github-action-versions
+go run scripts/cicd_utils.go github-action-versions
 
 # Check both (run both commands)
-go run scripts/cicd-utils.go go-dependency-versions
-go run scripts/cicd-utils.go github-action-versions
+go run scripts/cicd_utils.go go-dependency-versions
+go run scripts/cicd_utils.go github-action-versions
 ```
 
 #### What Gets Checked
