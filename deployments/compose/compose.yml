@@ -4,6 +4,10 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-10-13T00:00:00Z"
     command: ["server", "start", "--dev", "--config=/app/config/cryptoutil-sqlite.yml"]
     working_dir: /tmp
     ports:
@@ -28,6 +32,10 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-10-13T00:00:00Z"
     command: server start --config=/app/config/cryptoutil-postgresql.yml -u "file:///run/secrets/cryptoutil_database-url.secret"
     working_dir: /tmp
     ports:

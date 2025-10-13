@@ -203,6 +203,8 @@ var subcommands = map[string]struct{}{
 	"start": {},
 	"stop":  {},
 	"init":  {},
+	"live":  {},
+	"ready": {},
 }
 
 var allRegisteredSettings []*Setting
@@ -640,11 +642,11 @@ var (
 // Parse parses command line parameters and returns application settings.
 func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if len(commandParameters) == 0 {
-		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", or \"init\"")
+		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", \"init\", \"live\", or \"ready\"")
 	}
 	subCommand := commandParameters[0]
 	if _, ok := subcommands[subCommand]; !ok {
-		return nil, fmt.Errorf("invalid subcommand: use \"start\", \"stop\", or \"init\"")
+		return nil, fmt.Errorf("invalid subcommand: use \"start\", \"stop\", \"init\", \"live\", or \"ready\"")
 	}
 	subCommandParameters := commandParameters[1:]
 
@@ -861,6 +863,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  start    Start the server")
 		fmt.Println("  stop     Stop the server")
 		fmt.Println("  init     Initialize the server")
+		fmt.Println("  live     Check server liveness")
+		fmt.Println("  ready    Check server readiness")
 		fmt.Println()
 		fmt.Println("CONFIGURATION SETTINGS:")
 		fmt.Println("  -d, --dev                           run in development mode; enables in-memory SQLite")

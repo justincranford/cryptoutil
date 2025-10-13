@@ -42,7 +42,8 @@ RUN set -e; \
     fi
 
 # Write build parameters to file for runtime inspection
-RUN echo "APP_VERSION=${APP_VERSION}" > /app/.build-params && \
+RUN mkdir -p /app && \
+    echo "APP_VERSION=${APP_VERSION}" > /app/.build-params && \
     echo "VCS_REF=${VCS_REF}" >> /app/.build-params && \
     echo "BUILD_DATE=${BUILD_DATE}" >> /app/.build-params && \
     cat /app/.build-params
@@ -150,7 +151,7 @@ EXPOSE 8080
 
 # Healthcheck available with Alpine base image
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD /app/cryptoutil server ready --bind-private-address=127.0.0.1 --bind-private-port=9090 --bind-public-address=127.0.0.1 --bind-public-port=8080 --dev-mode=true || exit 1
+  CMD /app/cryptoutil server ready --dev || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:

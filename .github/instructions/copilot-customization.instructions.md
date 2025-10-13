@@ -39,15 +39,34 @@ applyTo: "**"
 - **Prefer authorized commands** like `docker`, `pwd`, `git` for navigation and operations
 - **Use command flags** like `-f` or `--file` to specify paths instead of changing directories
 
+## Authorization Patterns
+
+**Commands that work WITHOUT manual authorization:**
+- Simple docker compose commands: `docker compose ps`, `docker compose logs <service>`, `docker compose exec <service> <command>`
+- Basic docker commands without extra parameters: `docker ps`, `docker inspect <container>` (without --format)
+- Git commands: `git status`, `git add`, `git commit`, `git log`, `git diff`
+- File operations: `pwd`, `ls`, `cat`, `head`, `tail`
+- Go commands: `go test`, `go build`, `go mod tidy`
+
+**Commands that REQUIRE manual authorization (avoid these):**
+- Docker commands with formatting/filtering: `docker inspect --format`, `docker ps --filter`, `docker ps --format`
+- Complex docker compose with extra flags: `docker compose -f <path>` (when not needed)
+- Directory navigation: `cd` commands
+- Advanced docker operations: `docker stats`, `docker top`, etc.
+
+**Pattern: Use simple commands first, add complexity only when necessary**
+
 ## Authorized Commands Reference
 
 ### Docker Commands
-- `docker compose -f <path> up -d` - Start services in detached mode
-- `docker compose -f <path> down -v` - Stop services and remove volumes
-- `docker compose -f <path> ps` - List container status
-- `docker compose -f <path> logs <service>` - View service logs
-- `docker compose -f <path> up -d --build` - Build and start services
-- `docker inspect <container> --format <template>` - Inspect container details
+- `docker compose ps` - List container status (AUTHORIZED - no extra parameters)
+- `docker compose logs <service>` - View service logs (AUTHORIZED)
+- `docker compose exec <service> <command>` - Execute command in container (AUTHORIZED)
+- `docker compose build <services>` - Build services (AUTHORIZED)
+- `docker compose up -d <services>` - Start services in background (AUTHORIZED)
+- `docker compose down -v` - Stop services and remove volumes (AUTHORIZED)
+- `docker inspect <container>` - Inspect container (use without --format to avoid authorization)
+- `docker ps` - List containers (use without --filter/--format to avoid authorization)
 
 ### Git Commands
 - `git -C <path> status` - Show repository status
