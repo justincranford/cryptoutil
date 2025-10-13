@@ -768,6 +768,20 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
 	}
 
+	// Handle file:// URLs for database URL (legacy support)
+	log.Error("DEBUG: checking database URL:", s.DatabaseURL)
+	if strings.HasPrefix(s.DatabaseURL, "file://") {
+		filePath := strings.TrimPrefix(s.DatabaseURL, "file://")
+		log.Error("DEBUG: attempting to read database URL from file:", filePath)
+		if content, err := os.ReadFile(filePath); err != nil {
+			log.Error("DEBUG: failed to read file", filePath, "error:", err)
+			return nil, fmt.Errorf("failed to read database URL from file %s: %w", filePath, err)
+		} else {
+			log.Error("DEBUG: successfully read file", filePath, "content:", string(content))
+			s.DatabaseURL = strings.TrimSpace(string(content))
+		}
+	}
+
 	logSettings(s)
 
 	if s.Help {

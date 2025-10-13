@@ -1,0 +1,3 @@
+# OpenTelemetry configuration
+otlp: true
+otlp-console: false

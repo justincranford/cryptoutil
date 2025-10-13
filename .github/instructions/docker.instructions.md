@@ -81,20 +81,34 @@ LABEL org.opencontainers.image.created="${BUILD_DATE}"
 LABEL org.opencontainers.image.authors="Justin Cranford <justin@example.com>"
 ```
 
-## Hadolint Best Practices
+## Docker Secrets Best Practices
 
-- **Prefer inline ignore comments** over pre-commit config parameters
-- Use `# hadolint ignore=DLXXXX` comments directly above the offending line
-- **Append explanations on the same line** after another hash symbol for conciseness
-- Document the reason for ignoring rules when the ignore provides security/maintainability benefits
-- Examples:
-  ```dockerfile
-  # Preferred: Same-line explanation
-  # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
-  RUN apk --no-cache add ca-certificates tzdata tini
+### CRITICAL: Never Use Environment Variables for File Paths
+- **ALWAYS** use Docker secrets directly mounted to `/run/secrets/` for sensitive configuration files
+- **REASON**: Environment variables are visible in container inspect output and logs, while secrets are properly isolated
+- **PATTERN**: Use `secrets:` in compose.yml and reference `/run/secrets/secret_name` directly, not via environment variables
+- **PREFER**: Direct secret mounting and file:// URLs in command arguments or config files
 
-  # Alternative: Multi-line for complex explanations
-  # Intentionally unpinned for automatic security updates and complex reasoning
-  # hadolint ignore=DL3018
-  RUN apk --no-cache add ca-certificates tzdata tini
-  ```
+### Secret Mounting Patterns
+```yaml
+services:
+  app:
+    secrets:
+      - database_url_secret
+    command: ["app", "--database-url=file:///run/secrets/database_url_secret"]
+```
+
+### Environment Variable Anti-Patterns to Avoid
+❌ **NEVER DO THIS**: Using environment variables to specify secret file paths
+```yaml
+environment:
+  - DATABASE_URL_FILE=/run/secrets/db.secret
+command: ["app", "start"]
+```
+
+✅ **ALWAYS DO THIS**: Use secrets directly with file:// URLs
+```yaml
+secrets:
+  - database_url_secret
+command: ["app", "--database-url=file:///run/secrets/database_url_secret"]
+```

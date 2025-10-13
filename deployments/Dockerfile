@@ -79,6 +79,9 @@ RUN mkdir -p /app && chown -R 65532:65532 /app
 # Create runtime directory for application data (certificates, etc.) with proper ownership
 RUN mkdir -p /app/run && chown -R 65532:65532 /app/run
 
+# Create cache directory for Go module cache with proper ownership
+RUN mkdir -p /app/.cache && chown -R 65532:65532 /app/.cache
+
 # Generate build metadata files for runtime inspection
 RUN git rev-parse HEAD > /app/.vcs-ref && \
     date -u +"%Y-%m-%dT%H:%M:%SZ" > /app/.build-date
@@ -107,6 +110,9 @@ COPY --from=runtime-deps /sbin/tini /sbin/tini
 
 # Copy the application binary
 COPY --from=builder /app/cryptoutil /app/cryptoutil
+
+# Create /.cache directory with write permissions for the application user
+RUN mkdir -p /.cache && chmod 777 /.cache && chown -R 65532:65532 /.cache
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION
@@ -138,3 +144,7 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 
 # Use tini for proper signal handling and zombie process reaping
 ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]
+CMD ["server", "start", "--verbose", "--dev"]
+
+# Switch to non-root user for security
+USER 65532:65532
