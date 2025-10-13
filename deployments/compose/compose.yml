@@ -4,9 +4,7 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    entrypoint: []
-    command: >
-      /app/cryptoutil server start --config=/app/sqlite.yml
+    command: ["server", "start", "--config=/app/sqlite.yml"]
     environment:
       - CRYPTOUTIL_OTLP=true
       - CRYPTOUTIL_OTLP_CONSOLE=false
@@ -19,7 +17,6 @@ services:
       - "8090:8080"
     volumes:
       - ./cryptoutil/sqlite.yml:/app/sqlite.yml:ro
-      - sqlite_app:/app
     depends_on:
       opentelemetry-collector:
         condition: service_started
@@ -30,9 +27,7 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    entrypoint: []
-    command: >
-      /app/cryptoutil server start --config=/app/postgresql.yml
+    command: ["server", "start", "--config=/app/postgresql.yml"]
     environment:
       - CRYPTOUTIL_OTLP=true
       - CRYPTOUTIL_OTLP_CONSOLE=false
@@ -46,7 +41,7 @@ services:
       - "8080-8089:8080"
     volumes:
       - ./cryptoutil/postgresql.yml:/app/postgresql.yml:ro
-      - postgres_app:/app
+      - postgres_app:/app/data
     secrets:
       - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
@@ -120,8 +115,6 @@ volumes:
     name: cryptoutil_postgres_volume
   grafana_data:
     name: cryptoutil_grafana_volume
-  sqlite_app:
-    name: cryptoutil_sqlite_app
   postgres_app:
     name: cryptoutil_postgres_app
 
