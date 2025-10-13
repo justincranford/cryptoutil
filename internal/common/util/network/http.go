@@ -11,18 +11,50 @@ import (
 	"time"
 )
 
+const (
+	// Health check endpoints.
+	livezPath    = "/livez"
+	readyzPath   = "/readyz"
+	shutdownPath = "/shutdown"
+)
+
 // HTTPGetHealthzResponse returns the full response from /livez endpoint for content validation.
 func HTTPGetHealthzResponse(baseURL *string, rootCAsPool *x509.CertPool) ([]byte, int, error) {
-	url := *baseURL + "/livez"
-	body, _, statusCode, err := HTTPResponse(context.Background(), http.MethodGet, url, 2*time.Second, true, rootCAsPool)
+	body, _, statusCode, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/livez", 2*time.Second, true, rootCAsPool, false)
 	return body, statusCode, err
 }
 
 // HTTPGetReadyzResponse returns the full response from /readyz endpoint for content validation.
 func HTTPGetReadyzResponse(baseURL *string, rootCAsPool *x509.CertPool) ([]byte, int, error) {
-	url := *baseURL + "/readyz"
-	body, _, statusCode, err := HTTPResponse(context.Background(), http.MethodGet, url, 2*time.Second, true, rootCAsPool)
+	body, _, statusCode, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/readyz", 2*time.Second, true, rootCAsPool, false)
 	return body, statusCode, err
+}
+
+// HTTPGetLivez performs a GET /livez request to the private health endpoint.
+func HTTPGetLivez(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) ([]byte, error) {
+	body, _, _, err := HTTPResponse(ctx, http.MethodGet, baseURL+livezPath, timeout, true, rootCAsPool, insecureSkipVerify)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get %s: %w", livezPath, err)
+	}
+	return body, nil
+}
+
+// HTTPGetReadyz performs a GET /readyz request to the private readiness endpoint.
+func HTTPGetReadyz(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) ([]byte, error) {
+	body, _, _, err := HTTPResponse(ctx, http.MethodGet, baseURL+readyzPath, timeout, true, rootCAsPool, insecureSkipVerify)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get %s: %w", readyzPath, err)
+	}
+	return body, nil
+}
+
+// HTTPPostShutdown performs a POST /shutdown request to the private shutdown endpoint.
+func HTTPPostShutdown(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) error {
+	_, _, _, err := HTTPResponse(ctx, http.MethodPost, baseURL+shutdownPath, timeout, true, rootCAsPool, insecureSkipVerify)
+	if err != nil {
+		return fmt.Errorf("failed to post %s: %w", shutdownPath, err)
+	}
+	return nil
 }
 
 // HTTPResponse performs an HTTP request and returns the response details.
@@ -35,9 +67,10 @@ func HTTPGetReadyzResponse(baseURL *string, rootCAsPool *x509.CertPool) ([]byte,
 //   - timeout: request timeout (0 = no timeout)
 //   - followRedirects: whether to follow HTTP redirects
 //   - rootCAsPool: custom root CA pool for TLS verification (nil = system defaults)
+//   - insecureSkipVerify: skip TLS certificate verification (for development)
 //
 // Returns the response body, headers, status code, and any error encountered.
-func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool) ([]byte, http.Header, int, error) {
+func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool) ([]byte, http.Header, int, error) {
 	if timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, timeout)
@@ -58,10 +91,17 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 	}
 	if strings.HasPrefix(url, "https://") {
 		transport := &http.Transport{}
-		if rootCAsPool == nil {
+		if rootCAsPool == nil && !insecureSkipVerify {
 			transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12}
 		} else {
-			transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12, RootCAs: rootCAsPool}
+			tlsConfig := &tls.Config{MinVersion: tls.VersionTLS12}
+			if rootCAsPool != nil {
+				tlsConfig.RootCAs = rootCAsPool
+			}
+			if insecureSkipVerify {
+				tlsConfig.InsecureSkipVerify = true
+			}
+			transport.TLSClientConfig = tlsConfig
 		}
 		client.Transport = transport
 	}

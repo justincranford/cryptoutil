@@ -70,7 +70,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 2*time.Second, false, tc.tlsRootCAs)
+			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 2*time.Second, false, tc.tlsRootCAs, false)
 			if tc.expectError {
 				require.Error(t, err, "expected request to fail")
 				return
@@ -156,7 +156,7 @@ func TestSecurityHeaders(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 2*time.Second, false, tc.tlsRootCAs)
+			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 2*time.Second, false, tc.tlsRootCAs, false)
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
 			require.NoError(t, err, "failed to get response headers")

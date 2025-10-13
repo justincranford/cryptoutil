@@ -260,6 +260,16 @@ type Settings struct {
 	UnsealFiles                 []string
 }
 
+// PrivateBaseURL returns the private base URL constructed from protocol, address, and port.
+func (s *Settings) PrivateBaseURL() string {
+	return fmt.Sprintf("%s://%s:%d", s.BindPrivateProtocol, s.BindPrivateAddress, s.BindPrivatePort)
+}
+
+// PublicBaseURL returns the public base URL constructed from protocol, address, and port.
+func (s *Settings) PublicBaseURL() string {
+	return fmt.Sprintf("%s://%s:%d", s.BindPublicProtocol, s.BindPublicAddress, s.BindPublicPort)
+}
+
 // Setting Input values for pflag.*P(name, shortname, value, usage).
 type Setting struct {
 	name        string // unique long name for the flag
