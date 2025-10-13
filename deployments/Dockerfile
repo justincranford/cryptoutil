@@ -50,6 +50,9 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # Create /app directory with proper ownership for the application user
 RUN mkdir -p /app && chown -R 65532:65532 /app
 
+# Create runtime directory for application data (certificates, etc.) with proper ownership
+RUN mkdir -p /app/run && chown -R 65532:65532 /app/run
+
 #############################################################################################
 
 ARG ALPINE_VERSION=3.19
@@ -78,6 +81,9 @@ COPY --from=runtime-deps --chown=65532:65532 /sbin/tini /app/tini
 
 # Copy the static binary produced by the single builder stage (already included in /app copy above, but ensuring it's there)
 COPY --from=builder --chown=65532:65532 /app/cryptoutil /app/cryptoutil
+
+# Set working directory for runtime data
+WORKDIR /app/run
 
 # Run as non-root user (65532:65532 industry standard)
 # Note: scratch has no passwd file, so numeric IDs only
