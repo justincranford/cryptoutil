@@ -15,7 +15,6 @@ services:
       - OTEL_SERVICE_NAME=cryptoutil-sqlite
     ports:
       - "8080:8080"    # HTTPS public
-      - "9090:9090"    # HTTPS private
     volumes:
       - ./cryptoutil/sqlite.yml:/app/sqlite.yml:ro
     depends_on:
@@ -40,7 +39,6 @@ services:
       - CRYPTOUTIL_DATABASE_URL=postgres://USR:PWD@postgres:5432/DB?sslmode=disable
     ports:
       - "8081:8080"    # HTTPS public
-      - "9091:9090"    # HTTPS private
     volumes:
       - ./cryptoutil/postgresql.yml:/app/postgresql.yml:ro
       - postgres_app:/app/data
