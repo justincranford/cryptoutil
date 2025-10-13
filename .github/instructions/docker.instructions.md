@@ -13,8 +13,25 @@ applyTo: "**/*.yml"
 ### ARG Scoping Rules
 - **Global ARGs**: Declare all build parameters at the top of Dockerfile for visibility and overrideability
 - **Stage ARGs**: Redeclare ARGs in stages where they're used in LABEL instructions (Docker requirement)
+- **Required ARGs**: Use validation stages to enforce mandatory build arguments
 - **LABEL Placement**: Put ALL LABELs on final published image, not intermediate stages
 - **Build ARGs**: Move build-specific ARGs (CGO_ENABLED, GOOS, etc.) to global section for consistency
+
+### Required Build Arguments
+Dockerfile now enforces `VCS_REF` and `BUILD_DATE` as mandatory:
+
+```dockerfile
+ARG VCS_REF=UNSET
+ARG BUILD_DATE=UNSET
+
+FROM alpine:${ALPINE_VERSION} AS validation
+RUN if [ "$VCS_REF" = "UNSET" ]; then \
+        echo "ERROR: VCS_REF build argument is required" >&2 && \
+        exit 1; \
+    fi
+```
+
+**Build will fail with clear error message if required ARGs are missing.**
 
 ### LABEL Instructions
 - **Final Image Only**: LABELs belong on the published artifact, not intermediate build stages

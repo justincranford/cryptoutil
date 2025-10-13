@@ -589,9 +589,11 @@ DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/Dockerfile .
 ```
 
 **Required Build Arguments:**
-- `VCS_REF`: Git commit hash (use `$(git rev-parse HEAD)`)
-- `BUILD_DATE`: ISO 8601 timestamp (use `$(date -u +"%Y-%m-%dT%H:%M:%SZ")`)
+- `VCS_REF`: Git commit hash (use `$(git rev-parse HEAD)`) - **MANDATORY**
+- `BUILD_DATE`: ISO 8601 timestamp (use `$(date -u +"%Y-%m-%dT%H:%M:%SZ")`) - **MANDATORY**
 - `APP_VERSION`: Application version (optional, defaults to "dev")
+
+**Dockerfile enforces required arguments internally - build will fail with clear error if missing.**
 
 ### Build Scripts
 For convenience, use the provided build scripts that handle mandatory arguments:

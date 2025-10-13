@@ -11,8 +11,26 @@ ARG GOOS=linux
 ARG GOARCH=amd64
 ARG LDFLAGS="-s -w"
 ARG APP_VERSION=dev
-ARG VCS_REF=unspecified
-ARG BUILD_DATE=1970-01-01T00:00:00Z
+ARG VCS_REF=UNSET
+ARG BUILD_DATE=UNSET
+
+#############################################################################################
+FROM alpine:${ALPINE_VERSION} AS validation
+# Validate required build arguments
+ARG VCS_REF=UNSET
+ARG BUILD_DATE=UNSET
+RUN if [ "$VCS_REF" = "UNSET" ]; then \
+        echo "ERROR: VCS_REF build argument is required" >&2 && \
+        echo "Usage: docker build --build-arg VCS_REF=\$(git rev-parse HEAD) ..." >&2 && \
+        exit 1; \
+    fi
+RUN if [ "$BUILD_DATE" = "UNSET" ]; then \
+        echo "ERROR: BUILD_DATE build argument is required" >&2 && \
+        echo "Usage: docker build --build-arg BUILD_DATE=\$(date -u +\"%%Y-%%m-%%dT%%H:%%M:%%SZ\") ..." >&2 && \
+        exit 1; \
+    fi
+# Create validation marker
+RUN echo "Build arguments validated successfully" > /validation-marker
 
 #############################################################################################
 FROM golang:${GO_VERSION} AS builder
@@ -51,35 +69,13 @@ RUN update-ca-certificates
 #############################################################################################
 FROM scratch
 
-# Copy CA certificates for HTTPS requests
-COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-
-# Copy timezone data for proper time handling
-COPY --from=runtime-deps /usr/share/zoneinfo /usr/share/zoneinfo
-
-# Copy musl libc for tini to work in scratch
-COPY --from=runtime-deps /lib/ld-musl-x86_64.so.1 /lib/
-
-# Copy the /app directory with proper ownership from builder stage
-COPY --from=builder --chown=65532:65532 /app /app
-
-# Copy tini for proper signal handling and PID 1 management (after /app to avoid overwrite)
-COPY --from=runtime-deps --chown=65532:65532 /sbin/tini /app/tini
-
-# Copy the static binary produced by the single builder stage (already included in /app copy above, but ensuring it's there)
-COPY --from=builder --chown=65532:65532 /app/cryptoutil /app/cryptoutil
-
-# Set working directory for runtime data
-WORKDIR /app/run
-
-# Run as non-root user (65532:65532 industry standard)
-# Note: scratch has no passwd file, so numeric IDs only
-USER 65532:65532
+# Copy validation marker to ensure required args were provided
+COPY --from=validation /validation-marker /validation-marker
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION=dev
-ARG VCS_REF=unspecified
-ARG BUILD_DATE=1970-01-01T00:00:00Z
+ARG VCS_REF
+ARG BUILD_DATE
 
 # Image metadata labels (set at final stage so they are present in the produced image)
 LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
