@@ -3,20 +3,22 @@
 # To build with cache mounts set DOCKER_BUILDKIT=1
 # Example: DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/Dockerfile .
 #
-# Single pinned Go builder stage (preferred over duplicating builder stages)
+#############################################################################################
+ARG APP_VERSION=UNSET
+ARG VCS_REF=UNSET
+ARG BUILD_DATE=UNSET
+#############################################################################################
 ARG GO_VERSION=1.25.1
 ARG ALPINE_VERSION=3.19
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
 ARG LDFLAGS="-s -w"
-ARG APP_VERSION=UNSET
-ARG VCS_REF=UNSET
-ARG BUILD_DATE=UNSET
+#############################################################################################
 
+# Validate required build arguments
 #############################################################################################
 FROM alpine:${ALPINE_VERSION} AS validation
-# Validate required build arguments
 ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
@@ -42,7 +44,8 @@ RUN set -e; \
 # Write build parameters to file for runtime inspection
 RUN echo "APP_VERSION=${APP_VERSION}" > /build-params && \
     echo "VCS_REF=${VCS_REF}" >> /build-params && \
-    echo "BUILD_DATE=${BUILD_DATE}" >> /build-params
+    echo "BUILD_DATE=${BUILD_DATE}" >> /build-params && \
+    cat /build-params
 
 #############################################################################################
 FROM golang:${GO_VERSION} AS builder
@@ -78,8 +81,7 @@ RUN mkdir -p /app/run && chown -R 65532:65532 /app/run
 
 # Generate build metadata files for runtime inspection
 RUN git rev-parse HEAD > /app/.vcs-ref && \
-    date -u +"%Y-%m-%dT%H:%M:%SZ" > /app/.build-date && \
-    echo "${APP_VERSION}" > /app/.app-version
+    date -u +"%Y-%m-%dT%H:%M:%SZ" > /app/.build-date
 
 #############################################################################################
 FROM alpine:${ALPINE_VERSION} AS runtime-deps
@@ -112,13 +114,13 @@ ARG VCS_REF
 ARG BUILD_DATE
 
 # Image metadata labels (set at final stage so they are present in the produced image)
-LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
-LABEL org.opencontainers.image.version="${APP_VERSION}"
-LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.title="cryptoutil"
 LABEL org.opencontainers.image.description="A small utility for cryptographic key and certificate operations"
+LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
+LABEL org.opencontainers.image.authors="Justin Cranford <justincranford@example.com>"
+LABEL org.opencontainers.image.version="${APP_VERSION}"
+LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.authors="Justin Cranford <justin@example.com>"
 
 # Use non-privileged ports
 EXPOSE 8080 9090
@@ -136,17 +138,3 @@ EXPOSE 8080 9090
 
 # Use tini for proper signal handling and zombie process reaping
 ENTRYPOINT ["/app/tini", "--", "/app/cryptoutil"]
-
-#
-# Example CI build with buildx and cache export/import (GitHub Actions / build servers)
-#
-# docker buildx build \
-#   --builder mybuilder \
-#   --cache-to=type=registry,ref=ghcr.io/ORG/cryptoutil-cache:buildcache,mode=max \
-#   --cache-from=type=registry,ref=ghcr.io/ORG/cryptoutil-cache:buildcache \
-#   --build-arg APP_VERSION=${{ github.ref_name }} \
-#   --build-arg VCS_REF=${{ github.sha }} \
-#   --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
-#   --tag ghcr.io/ORG/cryptoutil:${{ github.ref_name }} \
-#   --push \
-#   -f deployments/Dockerfile .
