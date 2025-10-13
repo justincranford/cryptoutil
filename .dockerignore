@@ -2,7 +2,7 @@
 .dockerignore
 
 # Version control
-.git
+# .git  # Temporarily allow .git for metadata generation
 .gitignore
 
 # Editor/IDE files

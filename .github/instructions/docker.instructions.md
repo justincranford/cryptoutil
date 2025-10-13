@@ -31,7 +31,10 @@ RUN if [ "$VCS_REF" = "UNSET" ]; then \
     fi
 ```
 
-**Build will fail with clear error message if required ARGs are missing.**
+### Base Image Selection
+- **Alpine vs Scratch**: Use Alpine for debugging capabilities, Scratch for minimal size
+- **Current Choice**: Alpine base provides shell access for troubleshooting
+- **Runtime Metadata**: Files generated at build time: `.vcs-ref`, `.build-date`, `.app-version`
 
 ### LABEL Instructions
 - **Final Image Only**: LABELs belong on the published artifact, not intermediate build stages

@@ -36,6 +36,11 @@ RUN echo "Build arguments validated successfully" > /validation-marker
 FROM golang:${GO_VERSION} AS builder
 WORKDIR /src
 
+# Redeclare build args for use in this stage
+ARG VCS_REF
+ARG BUILD_DATE
+ARG APP_VERSION
+
 # Copy dependency manifests first to leverage layer caching
 COPY go.mod go.sum ./
 
@@ -59,6 +64,11 @@ RUN mkdir -p /app && chown -R 65532:65532 /app
 # Create runtime directory for application data (certificates, etc.) with proper ownership
 RUN mkdir -p /app/run && chown -R 65532:65532 /app/run
 
+# Generate build metadata files for runtime inspection
+RUN git rev-parse HEAD > /app/.vcs-ref && \
+    date -u +"%Y-%m-%dT%H:%M:%SZ" > /app/.build-date && \
+    echo "${APP_VERSION}" > /app/.app-version
+
 #############################################################################################
 FROM alpine:${ALPINE_VERSION} AS runtime-deps
 # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
@@ -67,10 +77,23 @@ WORKDIR /root/ssl
 RUN update-ca-certificates
 
 #############################################################################################
-FROM scratch
+# If shell needed for debugging final image, use alpine instead of scratch
+FROM alpine:${ALPINE_VERSION}
+#FROM scratch
 
 # Copy validation marker to ensure required args were provided
 COPY --from=validation /validation-marker /validation-marker
+
+# Copy build metadata files for runtime inspection
+COPY --from=builder /app/.vcs-ref /app/.vcs-ref
+COPY --from=builder /app/.build-date /app/.build-date
+COPY --from=builder /app/.app-version /app/.app-version
+
+# Copy runtime dependencies (tini for process management)
+COPY --from=runtime-deps /sbin/tini /app/tini
+
+# Copy the application binary
+COPY --from=builder /app/cryptoutil /app/cryptoutil
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION=dev
@@ -89,7 +112,10 @@ LABEL org.opencontainers.image.authors="Justin Cranford <justin@example.com>"
 # Use non-privileged ports
 EXPOSE 8080 9090
 
-# Note: No healthcheck possible with scratch (no shell/curl available)
+# Healthcheck available with Alpine base image
+# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+#   CMD wget --no-verbose --tries=1 --spider http://localhost:9090/readyz || exit 1
+
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:
 #     httpGet:
