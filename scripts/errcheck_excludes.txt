@@ -7,10 +7,6 @@ testing.T.Logf
 testing.T.Errorf
 testing.T.Fatalf
 
-# HTTP response body close - often deferred and not checked
-io.Closer.Close
-net/http.Response.Body.Close
-
 # Context cancellation - often not checked in cleanup
 context.CancelFunc
 
