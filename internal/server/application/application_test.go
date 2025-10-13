@@ -206,6 +206,7 @@ func TestHealthChecks(t *testing.T) {
 			getResponse:    cryptoutilNetwork.GetHealthzResponse,
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
+				t.Helper()
 				var response map[string]interface{}
 				err := json.Unmarshal(body, &response)
 				require.NoError(t, err, "should return valid JSON")
@@ -228,6 +229,7 @@ func TestHealthChecks(t *testing.T) {
 			getResponse:    cryptoutilNetwork.GetReadyzResponse,
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
+				t.Helper()
 				var response map[string]interface{}
 				err := json.Unmarshal(body, &response)
 				require.NoError(t, err, "should return valid JSON")

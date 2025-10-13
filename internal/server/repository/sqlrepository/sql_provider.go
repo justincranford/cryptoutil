@@ -47,7 +47,7 @@ func (s *SQLRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 			"status":  "error",
 			"error":   fmt.Sprintf("database ping failed: %v", err),
 			"db_type": string(s.GetDBType()),
-		}, err
+		}, fmt.Errorf("database ping failed: %w", err)
 	}
 
 	// Get connection pool stats

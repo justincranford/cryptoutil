@@ -11,19 +11,19 @@ import (
 	"time"
 )
 
-// GetHealthzResponse returns the full response from /livez endpoint for content validation
+// GetHealthzResponse returns the full response from /livez endpoint for content validation.
 func GetHealthzResponse(baseURL *string, rootCAsPool *x509.CertPool) ([]byte, int, error) {
 	url := *baseURL + "/livez"
 	return httpGetWithResponse(&url, 2*time.Second, rootCAsPool)
 }
 
-// GetReadyzResponse returns the full response from /readyz endpoint for content validation
+// GetReadyzResponse returns the full response from /readyz endpoint for content validation.
 func GetReadyzResponse(baseURL *string, rootCAsPool *x509.CertPool) ([]byte, int, error) {
 	url := *baseURL + "/readyz"
 	return httpGetWithResponse(&url, 2*time.Second, rootCAsPool)
 }
 
-// httpGetWithResponse returns the response body, status code, and any error
+// httpGetWithResponse returns the response body, status code, and any error.
 func httpGetWithResponse(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) ([]byte, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

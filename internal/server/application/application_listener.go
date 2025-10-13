@@ -43,10 +43,9 @@ const (
 	clientShutdownRequestTimeout = 5 * time.Second
 	clientLivenessStartTimeout   = 200 * time.Millisecond
 	clientLivenessRequestTimeout = 3 * time.Second
-)
-
-const (
-	protocolHTTPS = "https"
+	errorStr                     = "error"
+	statusStr                    = "status"
+	protocolHTTPS                = "https"
 )
 
 // TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)
@@ -587,50 +586,56 @@ func checkMemoryHealth() map[string]interface{} {
 
 func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]interface{} {
 	deps := map[string]interface{}{
-		"status":   "ok",
+		statusStr:  "ok",
 		"services": map[string]interface{}{},
 	}
 
-	services := deps["services"].(map[string]interface{})
+	services, ok := deps["services"].(map[string]interface{})
+	if !ok {
+		return map[string]interface{}{
+			statusStr: errorStr,
+			errorStr:  "internal error: failed to create dependencies status map",
+		}
+	}
 
 	// Check telemetry service
 	if serverApplicationCore.ServerApplicationBasic.TelemetryService == nil {
-		services["telemetry"] = map[string]interface{}{"status": "error", "error": "not initialized"}
-		deps["status"] = "error"
+		services["telemetry"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		deps[statusStr] = errorStr
 	} else {
-		services["telemetry"] = map[string]interface{}{"status": "ok"}
+		services["telemetry"] = map[string]interface{}{statusStr: "ok"}
 	}
 
 	// Check JWK gen service
 	if serverApplicationCore.ServerApplicationBasic.JWKGenService == nil {
-		services["jwk_generator"] = map[string]interface{}{"status": "error", "error": "not initialized"}
-		deps["status"] = "error"
+		services["jwk_generator"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		deps[statusStr] = errorStr
 	} else {
-		services["jwk_generator"] = map[string]interface{}{"status": "ok"}
+		services["jwk_generator"] = map[string]interface{}{statusStr: "ok"}
 	}
 
 	// Check barrier service
 	if serverApplicationCore.BarrierService == nil {
-		services["barrier"] = map[string]interface{}{"status": "error", "error": "not initialized"}
-		deps["status"] = "error"
+		services["barrier"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		deps[statusStr] = errorStr
 	} else {
-		services["barrier"] = map[string]interface{}{"status": "ok"}
+		services["barrier"] = map[string]interface{}{statusStr: "ok"}
 	}
 
 	// Check business logic service
 	if serverApplicationCore.BusinessLogicService == nil {
-		services["business_logic"] = map[string]interface{}{"status": "error", "error": "not initialized"}
-		deps["status"] = "error"
+		services["business_logic"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		deps[statusStr] = errorStr
 	} else {
-		services["business_logic"] = map[string]interface{}{"status": "ok"}
+		services["business_logic"] = map[string]interface{}{statusStr: "ok"}
 	}
 
 	// Check ORM repository
 	if serverApplicationCore.OrmRepository == nil {
-		services["orm_repository"] = map[string]interface{}{"status": "error", "error": "not initialized"}
-		deps["status"] = "error"
+		services["orm_repository"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		deps[statusStr] = errorStr
 	} else {
-		services["orm_repository"] = map[string]interface{}{"status": "ok"}
+		services["orm_repository"] = map[string]interface{}{statusStr: "ok"}
 	}
 
 	return deps

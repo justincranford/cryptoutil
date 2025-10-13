@@ -326,8 +326,9 @@ func getOtelLogsAttributes(settings *cryptoutilConfig.Settings) []attributeApi.K
 }
 
 func getSlogStdoutAttributes(settings *cryptoutilConfig.Settings) []stdoutLogExporter.Attr {
-	var slogAttrs []stdoutLogExporter.Attr
-	for _, otelLogAttr := range getOtelLogsAttributes(settings) {
+	otelAttrs := getOtelLogsAttributes(settings)
+	slogAttrs := make([]stdoutLogExporter.Attr, 0, len(otelAttrs))
+	for _, otelLogAttr := range otelAttrs {
 		slogAttrs = append(slogAttrs, stdoutLogExporter.String(string(otelLogAttr.Key), otelLogAttr.Value.AsString()))
 	}
 	return slogAttrs
