@@ -8,6 +8,7 @@ import (
 )
 
 func server(parameters []string) {
+	// reuse same Settings for start, ready, live, stop sub-commands, since they need to share private API coordinates
 	settings, err := cryptoutilConfig.Parse(parameters, true)
 	if err != nil {
 		log.Fatal("Error parsing config:", err)
@@ -23,6 +24,16 @@ func server(parameters []string) {
 		err := cryptoutilServerApplication.SendServerListenerShutdownRequest(settings)
 		if err != nil {
 			log.Fatalf("failed to stop server application: %v", err)
+		}
+	case "live":
+		_, err := cryptoutilServerApplication.SendServerListenerLivenessCheck(settings)
+		if err != nil {
+			log.Fatalf("failed to check server liveness: %v", err)
+		}
+	case "ready":
+		_, err := cryptoutilServerApplication.SendServerListenerReadinessCheck(settings)
+		if err != nil {
+			log.Fatalf("failed to check server readiness: %v", err)
 		}
 	case "init":
 		err := cryptoutilServerApplication.ServerInit(settings)

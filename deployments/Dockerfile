@@ -149,8 +149,8 @@ LABEL org.opencontainers.image.created="${BUILD_DATE}"
 EXPOSE 8080
 
 # Healthcheck available with Alpine base image
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#   CMD wget --no-verbose --tries=1 --spider --no-check-certificate https://localhost:9090/readyz || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD /app/cryptoutil server ready --bind-private-address=127.0.0.1 --bind-private-port=9090 --bind-public-address=127.0.0.1 --bind-public-port=8080 --dev-mode=true || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:
