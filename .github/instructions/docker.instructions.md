@@ -17,6 +17,12 @@ applyTo: "**/*.yml"
 - **LABEL Placement**: Put ALL LABELs on final published image, not intermediate stages
 - **Build ARGs**: Move build-specific ARGs (CGO_ENABLED, GOOS, etc.) to global section for consistency
 
+### WORKDIR Best Practices
+- **Builder Stage**: Use `/src` for source code location (Go ecosystem standard)
+- **Runtime Stage**: Use `/app` for application runtime (clear separation)
+- **Avoid Mixing**: Don't use same WORKDIR for source and final application
+- **Git Safety**: `/src` avoids git ownership issues that can occur with `/app`
+
 ### Required Build Arguments
 Dockerfile now enforces `VCS_REF` and `BUILD_DATE` as mandatory:
 
@@ -55,9 +61,11 @@ ARG VCS_REF=unspecified
 ARG BUILD_DATE=1970-01-01T00:00:00Z
 
 FROM golang:${GO_VERSION} AS builder
+WORKDIR /src                    # Source code location
 # Clean intermediate stage - no LABELs, minimal ARGs
 
-FROM scratch
+FROM alpine:${ALPINE_VERSION}
+WORKDIR /app                    # Runtime application location
 # Stage ARGs required for LABEL instructions
 ARG APP_VERSION=dev
 ARG VCS_REF=unspecified
