@@ -45,7 +45,7 @@ ARG LDFLAGS="-s -w"
 RUN --mount=type=cache,target=/go/pkg/mod \
 	--mount=type=cache,target=/root/.cache/go-build \
 	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
-	go build -trimpath -ldflags="${LDFLAGS}" -o /cryptoutil ./cmd/cryptoutil
+	go build -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
 #############################################################################################
 
@@ -59,7 +59,7 @@ RUN update-ca-certificates
 FROM scratch
 
 # Copy tini for proper signal handling and PID 1 management
-COPY --from=runtime-deps /sbin/tini /tini
+COPY --from=runtime-deps /sbin/tini /app/tini
 
 # Copy CA certificates for HTTPS requests
 COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
@@ -68,11 +68,12 @@ COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=runtime-deps /usr/share/zoneinfo /usr/share/zoneinfo
 
 # Copy the static binary produced by the single builder stage
-COPY --from=builder /cryptoutil /cryptoutil
+COPY --from=builder /app/cryptoutil /app/cryptoutil
 
+# TEMPORARILY run as root to test volume permissions
 # Run as non-root user (65532:65532 industry standard)
 # Note: scratch has no passwd file, so numeric IDs only
-USER 65532:65532
+# USER 65532:65532
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION=dev
@@ -94,7 +95,7 @@ EXPOSE 8080 9090
 # For Docker Compose: Use external healthcheck or depends_on with condition
 
 # Use tini for proper signal handling and zombie process reaping
-ENTRYPOINT ["/tini", "--", "/cryptoutil"]
+ENTRYPOINT ["/app/tini", "--", "/app/cryptoutil"]
 
 #
 # Example CI build with buildx and cache export/import (GitHub Actions / build servers)

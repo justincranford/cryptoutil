@@ -4,17 +4,22 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    entrypoint: ["/cryptoutil"]
-    command: ["server", "start", "--config=/app/sqlite.yml"]
+    entrypoint: []
+    command: >
+      /app/cryptoutil server start --config=/app/sqlite.yml
     environment:
       - CRYPTOUTIL_OTLP=true
       - CRYPTOUTIL_OTLP_CONSOLE=false
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4318
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4317
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://opentelemetry-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://opentelemetry-collector:4317
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_SERVICE_NAME=cryptoutil-sqlite
     ports:
       - "8090:8080"
     volumes:
       - ./cryptoutil/sqlite.yml:/app/sqlite.yml:ro
+      - sqlite_app:/app
     depends_on:
       opentelemetry-collector:
         condition: service_started
@@ -25,18 +30,23 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    entrypoint: ["/cryptoutil"]
-    command: ["server", "start", "--config=/app/postgresql.yml"]
+    entrypoint: []
+    command: >
+      /app/cryptoutil server start --config=/app/postgresql.yml
     environment:
       - CRYPTOUTIL_OTLP=true
       - CRYPTOUTIL_OTLP_CONSOLE=false
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4318
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4317
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://opentelemetry-collector:4317
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://opentelemetry-collector:4317
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://opentelemetry-collector:4317
       - OTEL_SERVICE_NAME=cryptoutil-postgres
       - CRYPTOUTIL_DATABASE_URL=postgres://USR:PWD@postgres:5432/DB?sslmode=disable
     ports:
       - "8080-8089:8080"
     volumes:
       - ./cryptoutil/postgresql.yml:/app/postgresql.yml:ro
+      - postgres_app:/app
     secrets:
       - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
@@ -55,13 +65,9 @@ services:
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
-      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
-      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
-    secrets:
-      - postgres_username.secret
-      - postgres_password.secret
-      - postgres_database.secret
+      POSTGRES_USER: USR
+      POSTGRES_PASSWORD: PWD
+      POSTGRES_DB: DB
     shm_size: 256mb
     ports:
       - "5432:5432"
@@ -114,6 +120,10 @@ volumes:
     name: cryptoutil_postgres_volume
   grafana_data:
     name: cryptoutil_grafana_volume
+  sqlite_app:
+    name: cryptoutil_sqlite_app
+  postgres_app:
+    name: cryptoutil_postgres_app
 
 secrets:
 
