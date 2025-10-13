@@ -4,7 +4,7 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    command: ["server", "start", "--config=/app/sqlite.yml"]
+    command: ["server", "start", "--config=/app/config/sqlite.yml"]
     environment:
       - CRYPTOUTIL_OTLP=true
       - CRYPTOUTIL_OTLP_CONSOLE=false
@@ -16,7 +16,7 @@ services:
     ports:
       - "8080:8080"    # HTTPS public
     volumes:
-      - ./cryptoutil/sqlite.yml:/app/sqlite.yml:ro
+      - ./cryptoutil/sqlite.yml:/app/config/sqlite.yml:ro
     depends_on:
       opentelemetry-collector:
         condition: service_started
@@ -27,7 +27,7 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    command: ["server", "start", "--config=/app/postgresql.yml"]
+    command: ["server", "start", "--config=/app/config/postgresql.yml"]
     environment:
       - CRYPTOUTIL_OTLP=true
       - CRYPTOUTIL_OTLP_CONSOLE=false
@@ -40,7 +40,7 @@ services:
     ports:
       - "8081:8080"    # HTTPS public
     volumes:
-      - ./cryptoutil/postgresql.yml:/app/postgresql.yml:ro
+      - ./cryptoutil/postgresql.yml:/app/config/postgresql.yml:ro
       - postgres_app:/app/data
     secrets:
       - cryptoutil_database-url.secret
