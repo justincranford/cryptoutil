@@ -19,42 +19,42 @@ const (
 )
 
 // HTTPGetHealthzResponse returns the full response from /livez endpoint for content validation.
-func HTTPGetHealthzResponse(baseURL *string, rootCAsPool *x509.CertPool) ([]byte, int, error) {
-	body, _, statusCode, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/livez", 2*time.Second, true, rootCAsPool, false)
-	return body, statusCode, err
+func HTTPGetHealthzResponse(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
+	statusCode, headers, body, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/livez", 2*time.Second, true, rootCAsPool, false)
+	return statusCode, headers, body, err
 }
 
 // HTTPGetReadyzResponse returns the full response from /readyz endpoint for content validation.
-func HTTPGetReadyzResponse(baseURL *string, rootCAsPool *x509.CertPool) ([]byte, int, error) {
-	body, _, statusCode, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/readyz", 2*time.Second, true, rootCAsPool, false)
-	return body, statusCode, err
+func HTTPGetReadyzResponse(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
+	statusCode, headers, body, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/readyz", 2*time.Second, true, rootCAsPool, false)
+	return statusCode, headers, body, err
 }
 
 // HTTPGetLivez performs a GET /livez request to the private health endpoint.
-func HTTPGetLivez(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) ([]byte, error) {
-	body, _, _, err := HTTPResponse(ctx, http.MethodGet, baseURL+livezPath, timeout, true, rootCAsPool, insecureSkipVerify)
+func HTTPGetLivez(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, baseURL+livezPath, timeout, true, rootCAsPool, insecureSkipVerify)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get %s: %w", livezPath, err)
+		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", livezPath, err)
 	}
-	return body, nil
+	return statusCode, headers, body, nil
 }
 
 // HTTPGetReadyz performs a GET /readyz request to the private readiness endpoint.
-func HTTPGetReadyz(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) ([]byte, error) {
-	body, _, _, err := HTTPResponse(ctx, http.MethodGet, baseURL+readyzPath, timeout, true, rootCAsPool, insecureSkipVerify)
+func HTTPGetReadyz(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, baseURL+readyzPath, timeout, true, rootCAsPool, insecureSkipVerify)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get %s: %w", readyzPath, err)
+		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", readyzPath, err)
 	}
-	return body, nil
+	return statusCode, headers, body, nil
 }
 
 // HTTPPostShutdown performs a POST /shutdown request to the private shutdown endpoint.
-func HTTPPostShutdown(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) error {
-	_, _, _, err := HTTPResponse(ctx, http.MethodPost, baseURL+shutdownPath, timeout, true, rootCAsPool, insecureSkipVerify)
+func HTTPPostShutdown(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodPost, baseURL+shutdownPath, timeout, true, rootCAsPool, insecureSkipVerify)
 	if err != nil {
-		return fmt.Errorf("failed to post %s: %w", shutdownPath, err)
+		return 0, nil, nil, fmt.Errorf("failed to post %s: %w", shutdownPath, err)
 	}
-	return nil
+	return statusCode, headers, body, nil
 }
 
 // HTTPResponse performs an HTTP request and returns the response details.
@@ -69,8 +69,8 @@ func HTTPPostShutdown(ctx context.Context, baseURL string, timeout time.Duration
 //   - rootCAsPool: custom root CA pool for TLS verification (nil = system defaults)
 //   - insecureSkipVerify: skip TLS certificate verification (for development)
 //
-// Returns the response body, headers, status code, and any error encountered.
-func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool) ([]byte, http.Header, int, error) {
+// Returns the status code, headers, response body, and any error encountered.
+func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
 	if timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, timeout)
@@ -79,7 +79,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 
 	req, err := http.NewRequestWithContext(ctx, method, url, nil)
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf("failed to create %s request: %w", method, err)
+		return 0, nil, nil, fmt.Errorf("failed to create %s request: %w", method, err)
 	}
 	req.Header.Set("Accept", "*/*")
 
@@ -108,7 +108,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, nil, 0, fmt.Errorf("failed to make %s request: %w", method, err)
+		return 0, nil, nil, fmt.Errorf("failed to make %s request: %w", method, err)
 	}
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
@@ -118,8 +118,8 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, resp.Header, resp.StatusCode, fmt.Errorf("failed to read response body: %w", err)
+		return resp.StatusCode, resp.Header, nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return body, resp.Header, resp.StatusCode, nil
+	return resp.StatusCode, resp.Header, body, nil
 }

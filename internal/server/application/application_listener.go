@@ -81,7 +81,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byt
 	ctx, cancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
 	defer cancel()
 
-	result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	_, _, result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get liveness check: %w", err)
 	}
@@ -92,7 +92,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	ctx, cancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
 	defer cancel()
 
-	err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
 	}
@@ -102,7 +102,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	livenessCtx, livenessCancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
 	defer livenessCancel()
 
-	_, err = cryptoutilNetwork.HTTPGetLivez(livenessCtx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	_, _, _, err = cryptoutilNetwork.HTTPGetLivez(livenessCtx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
 	if err == nil {
 		return fmt.Errorf("server did not shut down properly")
 	}

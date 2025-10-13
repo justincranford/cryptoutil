@@ -21,3 +21,4 @@ applyTo: "**"
 ## Code Patterns
 
 - **Default Values**: Always declare default values as named variables (e.g., `var defaultConfigFiles = []string{}`) rather than inline literals, following the established pattern in config.go
+- **Pass-through Calls**: When making pass-through calls to helper functions, prefer using the same parameter order and return value order as the helper function to maintain API consistency and reduce confusion

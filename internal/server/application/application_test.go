@@ -70,7 +70,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 2*time.Second, false, tc.tlsRootCAs, false)
+			statusCode, headers, body, err := cryptoutilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 2*time.Second, false, tc.tlsRootCAs, false)
 			if tc.expectError {
 				require.Error(t, err, "expected request to fail")
 				return
@@ -156,7 +156,7 @@ func TestSecurityHeaders(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 2*time.Second, false, tc.tlsRootCAs, false)
+			statusCode, headers, body, err := cryptoutilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 2*time.Second, false, tc.tlsRootCAs, false)
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
 			require.NoError(t, err, "failed to get response headers")
@@ -203,7 +203,7 @@ func TestHealthChecks(t *testing.T) {
 	testCases := []struct {
 		name           string
 		endpoint       string
-		getResponse    func(*string, *x509.CertPool) ([]byte, int, error)
+		getResponse    func(*string, *x509.CertPool) (int, http.Header, []byte, error)
 		expectedStatus int
 		validateBody   func(t *testing.T, body []byte)
 	}{
@@ -276,7 +276,7 @@ func TestHealthChecks(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, statusCode, err := tc.getResponse(&testServerPrivateURL, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+			statusCode, _, body, err := tc.getResponse(&testServerPrivateURL, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 			require.NoError(t, err, "should successfully get response from %s", tc.endpoint)
 			require.Equal(t, tc.expectedStatus, statusCode, "should return expected status code")
 			require.NotNil(t, body, "response body should not be nil")
