@@ -103,7 +103,7 @@ COPY --from=builder /app/.vcs-ref /app/.vcs-ref
 COPY --from=builder /app/.build-date /app/.build-date
 
 # Copy runtime dependencies (tini for process management)
-COPY --from=runtime-deps /sbin/tini /app/tini
+COPY --from=runtime-deps /sbin/tini /sbin/tini
 
 # Copy the application binary
 COPY --from=builder /app/cryptoutil /app/cryptoutil
@@ -137,4 +137,4 @@ EXPOSE 8080 9090
 # For Docker Compose: Use external healthcheck or depends_on with condition
 
 # Use tini for proper signal handling and zombie process reaping
-ENTRYPOINT ["/app/tini", "--", "/app/cryptoutil"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]
