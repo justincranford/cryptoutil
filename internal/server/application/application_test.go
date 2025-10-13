@@ -2,9 +2,11 @@ package application
 
 import (
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -319,4 +321,58 @@ func TestSendServerListenerLivenessCheck(t *testing.T) {
 	require.NotContains(t, response, "dependencies", "liveness should not include dependency checks")
 
 	t.Logf("âœ“ SendServerListenerLivenessCheck validation passed")
+}
+
+func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, http.Header, error) {
+	t.Helper()
+	req, err := http.NewRequestWithContext(t.Context(), httpMethod, url, nil)
+	require.NoError(t, err, "failed to create %s request", httpMethod)
+	req.Header.Set("Accept", "*/*")
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // Don't follow redirects
+		},
+	}
+	if strings.HasPrefix(url, "https://") {
+		transport := &http.Transport{}
+		if rootCAsPool != nil {
+			transport.TLSClientConfig = &tls.Config{
+				RootCAs:    rootCAsPool,
+				MinVersion: tls.VersionTLS12,
+			}
+		} else {
+			transport.TLSClientConfig = &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			}
+		}
+		client.Transport = transport
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		if expectedStatusCode == 0 {
+			return nil, nil, fmt.Errorf("expected error occurred: %w", err)
+		}
+		require.NoError(t, err, "failed to make %s request", httpMethod)
+	}
+	defer func() {
+		if resp != nil {
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				t.Errorf("Warning: failed to close response body: %v", closeErr)
+			}
+		}
+	}()
+
+	if resp == nil {
+		return nil, nil, fmt.Errorf("no response received")
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")
+	if expectedStatusCode != 0 && resp.StatusCode != expectedStatusCode {
+		return nil, nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, string(body))
+	}
+	t.Logf("HTTP Status code: %d, response headers count: %d, response body: %d bytes", resp.StatusCode, len(resp.Header), len(body))
+	return body, resp.Header, nil
 }

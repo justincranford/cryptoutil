@@ -88,27 +88,6 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byt
 	return result, nil
 }
 
-func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	ctx, cancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
-	defer cancel()
-
-	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
-	if err != nil {
-		return fmt.Errorf("failed to send shutdown request: %w", err)
-	}
-
-	time.Sleep(clientLivenessStartTimeout)
-
-	livenessCtx, livenessCancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
-	defer livenessCancel()
-
-	_, _, _, err = cryptoutilNetwork.HTTPGetLivez(livenessCtx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
-	if err == nil {
-		return fmt.Errorf("server did not shut down properly")
-	}
-	return nil
-}
-
 // StartServerListenerApplication creates and starts a new server application listener.
 func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*ServerApplicationListener, error) {
 	ctx := context.Background()
@@ -1037,4 +1016,15 @@ func swaggerUICustomCSRFScript(csrfTokenName, browserAPIContextPath string) temp
 			}
 		}, 100);
 	`, csrfTokenName, csrfTokenEndpoint, csrfTokenName, csrfTokenEndpoint))
+}
+
+func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
+	ctx, cancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
+	defer cancel()
+
+	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	if err != nil {
+		return fmt.Errorf("failed to send shutdown request: %w", err)
+	}
+	return nil
 }
