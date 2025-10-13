@@ -16,6 +16,7 @@ applyTo: "**"
 ### Docker Commands
 - `docker compose ps` - List container status (AUTHORIZED - no extra parameters)
 - `docker compose logs <service>` - View service logs (AUTHORIZED)
+- `docker compose logs <service> --tail <n>` - View recent service logs (AUTHORIZED)
 - `docker compose exec <service> <command>` - Execute command in container (AUTHORIZED)
 - `docker compose build <services>` - Build services (AUTHORIZED)
 - `docker compose up -d <services>` - Start services in background (AUTHORIZED)
@@ -24,12 +25,12 @@ applyTo: "**"
 - `docker ps` - List containers (use without --filter/--format to avoid authorization)
 
 ### Git Commands
-- `git -C <path> status` - Show repository status
-- `git -C <path> add <files>` - Stage files for commit
-- `git -C <path> commit -m <message>` - Commit staged changes
-- `git -C <path> log --oneline -<n>` - Show recent commit history
-- `git -C <path> diff` - Show unstaged changes
-- `git -C <path> checkout <branch>` - Switch branches
+- `git status` - Show repository status
+- `git add <files>` - Stage files for commit
+- `git commit -m <message>` - Commit staged changes
+- `git log --oneline -<n>` - Show recent commit history
+- `git diff` - Show unstaged changes
+- `git checkout <branch>` - Switch branches
 
 ### Go Commands
 - `go test ./<path>` - Run tests in specified path
@@ -41,10 +42,14 @@ applyTo: "**"
 ### File/Directory Operations
 - `pwd` - Show current working directory
 - `ls -la <path>` - List directory contents with details
+- `dir` - List directory contents (PowerShell equivalent)
 - `find <path> -name <pattern>` - Find files by name pattern
 - `cat <file>` - Display file contents
+- `type <file>` - Display file contents (PowerShell equivalent)
 - `head -n <lines> <file>` - Show first N lines of file
 - `tail -n <lines> <file>` - Show last N lines of file
+- `grep <pattern> <file>` - Search for patterns in files (AUTHORIZED for log analysis)
+- `Select-String <pattern> <file>` - Search for patterns in files (PowerShell equivalent)
 
 ### Build/Test Tools
 - `make <target>` - Run Makefile targets
@@ -57,6 +62,7 @@ applyTo: "**"
 - `echo <text>` - Display text
 - `date` - Show current date/time
 - `sleep <seconds>` - Pause execution
+- `<command1> | <command2>` - Pipe command output (AUTHORIZED for log filtering and analysis)
 
 ## Commands Requiring Manual Authorization
 
@@ -65,6 +71,9 @@ These commands require manual authorization and should be avoided when possible:
 ### Directory Navigation
 - `cd` commands - Change directory context
 - `Set-Location` commands - Change directory context (PowerShell equivalent)
+
+### Git Operations
+- `git -C <path>` - Specify git repository path (avoid when possible)
 
 ### Advanced Docker Operations
 - `docker stats` - Show container resource usage
