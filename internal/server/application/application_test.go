@@ -1,11 +1,10 @@
 package application
 
 import (
-	"crypto/tls"
+	"context"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -71,14 +70,21 @@ func TestHttpGetTraceHead(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, headers, err := httpResponse(t, tc.method, tc.expectedStatus, tc.url, tc.tlsRootCAs)
+			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 2*time.Second, false, tc.tlsRootCAs)
 			if tc.expectError {
 				require.Error(t, err, "expected request to fail")
 				return
 			}
+			require.NoError(t, err, "failed to get response")
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
-			require.NoError(t, err, "failed to get response headers")
+
+			// Check status code
+			if tc.expectedStatus != 0 && statusCode != tc.expectedStatus {
+				t.Errorf("HTTP Status code: %d, expected: %d, error response body: %v", statusCode, tc.expectedStatus, string(body))
+				return
+			}
+
 			var contentString string
 			if body != nil {
 				contentString = strings.Replace(string(body), "\n", " ", -1)
@@ -150,10 +156,11 @@ func TestSecurityHeaders(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			body, headers, err := httpResponse(t, "GET", http.StatusOK, tc.url, tc.tlsRootCAs)
+			body, headers, statusCode, err := cryptoutilNetwork.HTTPResponse(context.Background(), "GET", tc.url, 2*time.Second, false, tc.tlsRootCAs)
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
 			require.NoError(t, err, "failed to get response headers")
+			require.Equal(t, http.StatusOK, statusCode, "should return 200 OK")
 
 			// Check expected headers are present and have correct values
 			for expectedHeader, expectedValue := range tc.expectedHeaders {
@@ -203,7 +210,7 @@ func TestHealthChecks(t *testing.T) {
 		{
 			name:           "Liveness Check (/livez)",
 			endpoint:       "/livez",
-			getResponse:    cryptoutilNetwork.GetHealthzResponse,
+			getResponse:    cryptoutilNetwork.HTTPGetHealthzResponse,
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()
@@ -226,7 +233,7 @@ func TestHealthChecks(t *testing.T) {
 		{
 			name:           "Readiness Check (/readyz)",
 			endpoint:       "/readyz",
-			getResponse:    cryptoutilNetwork.GetReadyzResponse,
+			getResponse:    cryptoutilNetwork.HTTPGetReadyzResponse,
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()
@@ -281,56 +288,31 @@ func TestHealthChecks(t *testing.T) {
 	}
 }
 
-func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, http.Header, error) {
-	t.Helper()
-	req, err := http.NewRequestWithContext(t.Context(), httpMethod, url, nil)
-	require.NoError(t, err, "failed to create %s request", httpMethod)
-	req.Header.Set("Accept", "*/*")
+func TestSendServerListenerLivenessCheck(t *testing.T) {
+	// Update test settings to use the actual assigned port for the liveness check
+	testSettingsForLiveness := *testSettings
+	testSettingsForLiveness.BindPrivatePort = startServerListenerApplication.ActualPrivatePort
 
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse // Don't follow redirects
-		},
-	}
-	if strings.HasPrefix(url, "https://") {
-		transport := &http.Transport{}
-		if rootCAsPool != nil {
-			transport.TLSClientConfig = &tls.Config{
-				RootCAs:    rootCAsPool,
-				MinVersion: tls.VersionTLS12,
-			}
-		} else {
-			transport.TLSClientConfig = &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			}
-		}
-		client.Transport = transport
-	}
+	body, err := SendServerListenerLivenessCheck(&testSettingsForLiveness)
+	require.NoError(t, err, "SendServerListenerLivenessCheck should not return an error")
+	require.NotNil(t, body, "response body should not be nil")
+	require.NotEmpty(t, body, "response body should not be empty")
 
-	resp, err := client.Do(req)
-	if err != nil {
-		if expectedStatusCode == 0 {
-			return nil, nil, fmt.Errorf("expected error occurred: %w", err)
-		}
-		require.NoError(t, err, "failed to make %s request", httpMethod)
-	}
-	defer func() {
-		if resp != nil {
-			if closeErr := resp.Body.Close(); closeErr != nil {
-				t.Errorf("Warning: failed to close response body: %v", closeErr)
-			}
-		}
-	}()
+	// Parse the JSON response
+	var response map[string]any
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err, "should return valid JSON")
 
-	if resp == nil {
-		return nil, nil, fmt.Errorf("no response received")
-	}
+	// Validate liveness response structure
+	require.Equal(t, "ok", response["status"], "liveness status should be 'ok'")
+	require.Equal(t, "liveness", response["probe"], "probe should be 'liveness'")
+	require.NotEmpty(t, response["timestamp"], "should include timestamp")
+	require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
 
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")
-	if expectedStatusCode != 0 && resp.StatusCode != expectedStatusCode {
-		return nil, nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, string(body))
-	}
-	t.Logf("HTTP Status code: %d, response headers count: %d, response body: %d bytes", resp.StatusCode, len(resp.Header), len(body))
-	return body, resp.Header, nil
+	// Liveness should not include detailed checks
+	require.NotContains(t, response, "database", "liveness should not include database checks")
+	require.NotContains(t, response, "memory", "liveness should not include memory checks")
+	require.NotContains(t, response, "dependencies", "liveness should not include dependency checks")
+
+	t.Logf("âœ“ SendServerListenerLivenessCheck validation passed")
 }
