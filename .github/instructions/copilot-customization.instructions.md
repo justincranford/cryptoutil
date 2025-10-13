@@ -30,3 +30,11 @@ applyTo: "**"
   - Code review: Configure with `github.copilot.chat.reviewSelection.instructions` setting
   - Commit messages: Configure with `github.copilot.chat.commitMessageGeneration.instructions` setting
   - PR descriptions: Configure with `github.copilot.chat.pullRequestDescriptionGeneration.instructions` setting
+
+## Terminal Command Guidelines
+
+- **Avoid `cd` commands** in terminal operations - they are not authorized and break agentic iteration
+- **Use full paths** when referencing files/directories outside current context
+- **Work within current directory** when possible to maintain context
+- **Prefer authorized commands** like `docker`, `pwd`, `git` for navigation and operations
+- **Use command flags** like `-f` or `--file` to specify paths instead of changing directories
