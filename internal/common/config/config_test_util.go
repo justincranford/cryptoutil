@@ -143,6 +143,10 @@ func RequireNewForTest(applicationName string) *Settings {
 	if !ok {
 		panic("otlpService.value must be string")
 	}
+	otlpInstanceValue, ok := otlpInstance.value.(string)
+	if !ok {
+		panic("otlpInstance.value must be string")
+	}
 	otlpVersionValue, ok := otlpVersion.value.(string)
 	if !ok {
 		panic("otlpVersion.value must be string")
@@ -205,6 +209,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		OTLP:                        otlpValue,
 		OTLPConsole:                 otlpConsoleValue,
 		OTLPService:                 otlpServiceValue,
+		OTLPInstance:                otlpInstanceValue,
 		OTLPVersion:                 otlpVersionValue,
 		OTLPEnvironment:             otlpEnvironmentValue,
 		OTLPHostname:                otlpHostnameValue,

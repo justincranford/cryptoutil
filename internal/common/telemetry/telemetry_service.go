@@ -9,7 +9,6 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 
-	googleUuid "github.com/google/uuid"
 	slogMulti "github.com/samber/slog-multi"
 	otelSlogBridge "go.opentelemetry.io/contrib/bridges/otelslog"
 
@@ -56,11 +55,6 @@ const (
 	TracesTimeout     = 500 * time.Millisecond
 	ForceFlushTimeout = 3 * time.Second
 )
-
-// TODO make this a setting? read from container, VM, or OS?
-var AttrServiceInstanceID = func() string {
-	return googleUuid.Must(googleUuid.NewV7()).String()
-}()
 
 func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Settings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
@@ -323,7 +317,7 @@ func getOtelMetricsTracesAttributes(settings *cryptoutilConfig.Settings) []attri
 		oltpSemanticConventions.HostName(settings.OTLPHostname),          // service.instance.id (e.g. 12)
 		oltpSemanticConventions.ServiceName(settings.OTLPService),        // service.name (e.g. cryptoutil)
 		oltpSemanticConventions.ServiceVersion(settings.OTLPVersion),     // service.version (e.g. 0.0.1, 1.0.2, 2.1.0)
-		oltpSemanticConventions.ServiceInstanceID(AttrServiceInstanceID), // service.instance.id (e.g. 12, uuidV7)
+		oltpSemanticConventions.ServiceInstanceID(settings.OTLPInstance), // service.instance.id (e.g. 12, uuidV7)
 	}
 }
 

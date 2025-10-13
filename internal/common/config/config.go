@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	googleUuid "github.com/google/uuid"
+
 	"github.com/gofiber/fiber/v2/log"
 
 	"github.com/spf13/pflag"
@@ -189,6 +191,9 @@ var defaultCORSAllowedHeaders = []string{
 	"_csrf",
 }
 
+var defaultOTLPInstance = func() string {
+	return googleUuid.Must(googleUuid.NewV7()).String()
+}()
 var defaultUnsealFiles = []string{}
 
 var defaultConfigFiles = []string{}
@@ -246,6 +251,7 @@ type Settings struct {
 	OTLP                        bool
 	OTLPConsole                 bool
 	OTLPService                 string
+	OTLPInstance                string
 	OTLPVersion                 string
 	OTLPEnvironment             string
 	OTLPHostname                string
@@ -562,18 +568,18 @@ var (
 		description: "OTLP Console",
 	})
 	otlpService = *registerSetting(&Setting{
-		name:        "otlp-service-name",
+		name:        "otlp-service",
 		shorthand:   "s",
 		value:       defaultOTLPService,
-		usage:       "OTLP service name",
-		description: "OTLP Service Name",
+		usage:       "OTLP service",
+		description: "OTLP Service",
 	})
 	otlpVersion = *registerSetting(&Setting{
-		name:        "otlp-service-version",
+		name:        "otlp-version",
 		shorthand:   "B",
 		value:       defaultOTLPVersion,
-		usage:       "OTLP service version",
-		description: "OTLP Service Version",
+		usage:       "OTLP version",
+		description: "OTLP Version",
 	})
 	otlpEnvironment = *registerSetting(&Setting{
 		name:        "otlp-environment",
@@ -595,6 +601,13 @@ var (
 		value:       defaultOTLPEndpoint,
 		usage:       "OTLP endpoint",
 		description: "OTLP Endpoint",
+	})
+	otlpInstance = *registerSetting(&Setting{
+		name:        "otlp-instance",
+		shorthand:   "V",
+		value:       defaultOTLPInstance,
+		usage:       "OTLP instance id",
+		description: "OTLP Instance",
 	})
 	unsealMode = *registerSetting(&Setting{
 		name:        "unseal-mode",
@@ -643,6 +656,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	}
 	if err := viper.BindEnv("otlp", "CRYPTOUTIL_OTLP"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP: %v\n", err)
+	}
+	if err := viper.BindEnv("otlp-instance", "CRYPTOUTIL_OTLP_INSTANCE"); err != nil {
+		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP_INSTANCE: %v\n", err)
 	}
 	if err := viper.BindEnv("otlp-console", "CRYPTOUTIL_OTLP_CONSOLE"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP_CONSOLE: %v\n", err)
@@ -707,6 +723,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(otlpEnvironment.name, otlpEnvironment.shorthand, registerAsStringSetting(&otlpEnvironment), otlpEnvironment.usage)
 	pflag.StringP(otlpHostname.name, otlpHostname.shorthand, registerAsStringSetting(&otlpHostname), otlpHostname.usage)
 	pflag.StringP(otlpEndpoint.name, otlpEndpoint.shorthand, registerAsStringSetting(&otlpEndpoint), otlpEndpoint.usage)
+	pflag.StringP(otlpInstance.name, otlpInstance.shorthand, registerAsStringSetting(&otlpInstance), otlpInstance.usage)
 	pflag.StringP(unsealMode.name, unsealMode.shorthand, registerAsStringSetting(&unsealMode), unsealMode.usage)
 	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, registerAsStringArraySetting(&unsealFiles), unsealFiles.usage)
 	err := pflag.CommandLine.Parse(subCommandParameters)
@@ -798,6 +815,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		OTLP:                        viper.GetBool(otlp.name),
 		OTLPConsole:                 viper.GetBool(otlpConsole.name),
 		OTLPService:                 viper.GetString(otlpService.name),
+		OTLPInstance:                viper.GetString(otlpInstance.name),
 		OTLPVersion:                 viper.GetString(otlpVersion.name),
 		OTLPEnvironment:             viper.GetString(otlpEnvironment.name),
 		OTLPHostname:                viper.GetString(otlpHostname.name),
@@ -893,8 +911,9 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  -v, --verbose                       verbose modifier for log level")
 		fmt.Println("  -z, --otlp                          enable OTLP export")
 		fmt.Println("  -q, --otlp-console                  enable OTLP logging to console (STDOUT)")
-		fmt.Println("  -s, --otlp-service-name string      OTLP service name (default " + formatDefault(defaultOTLPService) + ")")
-		fmt.Println("  -B, --otlp-service-version string   OTLP service version (default " + formatDefault(defaultOTLPVersion) + ")")
+		fmt.Println("  -s, --otlp-service string           OTLP service (default " + formatDefault(defaultOTLPService) + ")")
+		fmt.Println("  -B, --otlp-version string           OTLP version (default " + formatDefault(defaultOTLPVersion) + ")")
+		fmt.Println("  -I, --otlp-instance string          OTLP instance id (default " + formatDefault(defaultOTLPInstance) + ")")
 		fmt.Println("  -K, --otlp-environment string       OTLP environment (default " + formatDefault(defaultOTLPEnvironment) + ")")
 		fmt.Println("  -O, --otlp-hostname string          OTLP hostname (default " + formatDefault(defaultOTLPHostname) + ")")
 		fmt.Println("  -Q, --otlp-endpoint string          OTLP endpoint (default " + formatDefault(defaultOTLPEndpoint) + ")")
