@@ -432,7 +432,7 @@ type MaterialKeyClearPublic = string
 type MaterialKeyExpirationDate = time.Time
 
 // MaterialKeyGenerate defines model for MaterialKeyGenerate.
-type MaterialKeyGenerate = map[string]interface{}
+type MaterialKeyGenerate = map[string]any
 
 // MaterialKeyGenerateDate ISO 8601 UTC timestamp of Material Key generation.
 type MaterialKeyGenerateDate = time.Time

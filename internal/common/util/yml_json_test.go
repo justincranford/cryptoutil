@@ -11,7 +11,7 @@ var (
 	invalidYAML     = "key1 value1\nkey2: value2\n"
 	validJSON       = `{"key1":"value1","key2":"value2"}`
 	invalidJSON     = `{"key1":"value1", "key2":}`
-	singleParsedObj = map[string]interface{}{"key": "value"}
+	singleParsedObj = map[string]any{"key": "value"}
 	validYAMLSingle = "key: value\n"
 	validJSONSingle = `{"key":"value"}`
 )
@@ -43,8 +43,8 @@ func TestSadPathJSON2YAML(t *testing.T) {
 func TestHappyPathParseYAML(t *testing.T) {
 	object, err := ParseYAML(validYAMLSingle)
 	require.NoError(t, err)
-	objMap, ok := object.(map[string]interface{})
-	require.True(t, ok, "object should be a map[string]interface{}")
+	objMap, ok := object.(map[string]any)
+	require.True(t, ok, "object should be a map[string]any")
 	require.Equal(t, "value", objMap["key"])
 }
 
@@ -57,8 +57,8 @@ func TestSadPathParseYAML(t *testing.T) {
 func TestHappyPathParseJSON(t *testing.T) {
 	object, err := ParseJSON(validJSONSingle)
 	require.NoError(t, err)
-	objMap, ok := object.(map[string]interface{})
-	require.True(t, ok, "object should be a map[string]interface{}")
+	objMap, ok := object.(map[string]any)
+	require.True(t, ok, "object should be a map[string]any")
 	require.Equal(t, "value", objMap["key"])
 }
 

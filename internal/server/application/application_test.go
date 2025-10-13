@@ -187,7 +187,7 @@ func TestSecurityHeaders(t *testing.T) {
 				}
 			}
 
-			t.Logf("✓ Security headers validated for %s", tc.name)
+			t.Logf("âœ“ Security headers validated for %s", tc.name)
 		})
 	}
 }
@@ -207,7 +207,7 @@ func TestHealthChecks(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()
-				var response map[string]interface{}
+				var response map[string]any
 				err := json.Unmarshal(body, &response)
 				require.NoError(t, err, "should return valid JSON")
 
@@ -230,7 +230,7 @@ func TestHealthChecks(t *testing.T) {
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()
-				var response map[string]interface{}
+				var response map[string]any
 				err := json.Unmarshal(body, &response)
 				require.NoError(t, err, "should return valid JSON")
 
@@ -246,20 +246,20 @@ func TestHealthChecks(t *testing.T) {
 				require.Contains(t, response, "dependencies", "readiness should include dependency checks")
 
 				// Validate database structure
-				dbStatus, ok := response["database"].(map[string]interface{})
+				dbStatus, ok := response["database"].(map[string]any)
 				require.True(t, ok, "database should be an object")
 				require.Contains(t, dbStatus, "status", "database should have status")
 				require.Contains(t, dbStatus, "db_type", "database should have db_type")
 
 				// Validate memory structure
-				memStatus, ok := response["memory"].(map[string]interface{})
+				memStatus, ok := response["memory"].(map[string]any)
 				require.True(t, ok, "memory should be an object")
 				require.Equal(t, "ok", memStatus["status"], "memory status should be 'ok'")
 				require.Contains(t, memStatus, "heap_alloc", "memory should include heap_alloc")
 				require.Contains(t, memStatus, "num_goroutines", "memory should include num_goroutines")
 
 				// Validate dependencies structure
-				depsStatus, ok := response["dependencies"].(map[string]interface{})
+				depsStatus, ok := response["dependencies"].(map[string]any)
 				require.True(t, ok, "dependencies should be an object")
 				require.Contains(t, depsStatus, "status", "dependencies should have status")
 				require.Contains(t, depsStatus, "services", "dependencies should have services")
@@ -276,7 +276,7 @@ func TestHealthChecks(t *testing.T) {
 
 			tc.validateBody(t, body)
 
-			t.Logf("✓ Health check %s validation passed", tc.endpoint)
+			t.Logf("âœ“ Health check %s validation passed", tc.endpoint)
 		})
 	}
 }

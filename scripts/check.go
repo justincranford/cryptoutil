@@ -208,7 +208,7 @@ func checkActions() {
 	if len(outdated) > 0 {
 		fmt.Fprintln(os.Stderr, "Found outdated GitHub Actions:")
 		for _, action := range outdated {
-			fmt.Fprintf(os.Stderr, "  %s@%s → %s (in %s)\n",
+			fmt.Fprintf(os.Stderr, "  %s@%s â†’ %s (in %s)\n",
 				action.Name, action.CurrentVersion, action.LatestVersion, action.WorkflowFile)
 		}
 		fmt.Fprintln(os.Stderr, "\nPlease update to the latest versions manually.")

@@ -547,9 +547,9 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 	}
 }
 
-func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[string]interface{} {
+func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
 	if serverApplicationCore.SQLRepository == nil {
-		return map[string]interface{}{
+		return map[string]any{
 			"status": "error",
 			"error":  "SQL repository not initialized",
 		}
@@ -566,11 +566,11 @@ func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[strin
 	return health
 }
 
-func checkMemoryHealth() map[string]interface{} {
+func checkMemoryHealth() map[string]any {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
 
-	return map[string]interface{}{
+	return map[string]any{
 		"status":         "ok",
 		"heap_alloc":     m.HeapAlloc,
 		"heap_sys":       m.HeapSys,
@@ -584,15 +584,15 @@ func checkMemoryHealth() map[string]interface{} {
 	}
 }
 
-func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]interface{} {
-	deps := map[string]interface{}{
+func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
+	deps := map[string]any{
 		statusStr:  "ok",
-		"services": map[string]interface{}{},
+		"services": map[string]any{},
 	}
 
-	services, ok := deps["services"].(map[string]interface{})
+	services, ok := deps["services"].(map[string]any)
 	if !ok {
-		return map[string]interface{}{
+		return map[string]any{
 			statusStr: errorStr,
 			errorStr:  "internal error: failed to create dependencies status map",
 		}
@@ -600,42 +600,42 @@ func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[s
 
 	// Check telemetry service
 	if serverApplicationCore.ServerApplicationBasic.TelemetryService == nil {
-		services["telemetry"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		services["telemetry"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
 		deps[statusStr] = errorStr
 	} else {
-		services["telemetry"] = map[string]interface{}{statusStr: "ok"}
+		services["telemetry"] = map[string]any{statusStr: "ok"}
 	}
 
 	// Check JWK gen service
 	if serverApplicationCore.ServerApplicationBasic.JWKGenService == nil {
-		services["jwk_generator"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		services["jwk_generator"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
 		deps[statusStr] = errorStr
 	} else {
-		services["jwk_generator"] = map[string]interface{}{statusStr: "ok"}
+		services["jwk_generator"] = map[string]any{statusStr: "ok"}
 	}
 
 	// Check barrier service
 	if serverApplicationCore.BarrierService == nil {
-		services["barrier"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		services["barrier"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
 		deps[statusStr] = errorStr
 	} else {
-		services["barrier"] = map[string]interface{}{statusStr: "ok"}
+		services["barrier"] = map[string]any{statusStr: "ok"}
 	}
 
 	// Check business logic service
 	if serverApplicationCore.BusinessLogicService == nil {
-		services["business_logic"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		services["business_logic"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
 		deps[statusStr] = errorStr
 	} else {
-		services["business_logic"] = map[string]interface{}{statusStr: "ok"}
+		services["business_logic"] = map[string]any{statusStr: "ok"}
 	}
 
 	// Check ORM repository
 	if serverApplicationCore.OrmRepository == nil {
-		services["orm_repository"] = map[string]interface{}{statusStr: errorStr, errorStr: "not initialized"}
+		services["orm_repository"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
 		deps[statusStr] = errorStr
 	} else {
-		services["orm_repository"] = map[string]interface{}{statusStr: "ok"}
+		services["orm_repository"] = map[string]any{statusStr: "ok"}
 	}
 
 	return deps
@@ -660,7 +660,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 		path := c.Path()
 		isReadiness := strings.HasSuffix(path, "/readyz")
 
-		healthStatus := map[string]interface{}{
+		healthStatus := map[string]any{
 			"status":    "ok",
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 			"service":   "cryptoutil",
@@ -675,13 +675,13 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 			healthStatus["dependencies"] = checkDependenciesHealth(serverApplicationCore)
 
 			// Check if any component is unhealthy for readiness
-			if dbStatus, ok := healthStatus["database"].(map[string]interface{}); ok {
+			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
 				if status, ok := dbStatus["status"].(string); ok && status != "ok" {
 					healthStatus["status"] = "degraded"
 				}
 			}
 
-			if depsStatus, ok := healthStatus["dependencies"].(map[string]interface{}); ok {
+			if depsStatus, ok := healthStatus["dependencies"].(map[string]any); ok {
 				if status, ok := depsStatus["status"].(string); ok && status != "ok" {
 					healthStatus["status"] = "degraded"
 				}
