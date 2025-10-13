@@ -308,10 +308,10 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
   - Research latest stable versions for each service
   - Update compose.yml to use specific version tags instead of :latest
   - Add version checking to CI/CD pipeline to detect outdated images
-  - Consider extending check.go script to validate Docker image versions in compose files
+  - Consider extending cicd-utils.go script to validate Docker image versions in compose files
   - Evaluate if hadolint or other official tools support compose file version checking
   - Document version update process for maintenance
-- **Files**: `deployments/compose/compose.yml`, `scripts/check.go` (extend if needed)
+- **Files**: `deployments/compose/compose.yml`, `scripts/cicd-utils.go` (extend if needed)
 - **Expected Outcome**: Reproducible deployments with known, tested image versions
 - **Priority**: MEDIUM - Security and reproducibility improvement
 - **Timeline**: Q4 2025

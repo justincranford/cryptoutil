@@ -113,7 +113,7 @@ repos:
       - id: check-outdated-deps
         name: Check for outdated Go dependencies
         entry: go
-        args: [run, scripts/check.go, go-dependency-versions]
+        args: [run, scripts/cicd-utils.go, go-dependency-versions]
         language: system
         pass_filenames: false
         stages: [pre-push]
@@ -122,7 +122,7 @@ repos:
       - id: check-outdated-actions
         name: Check for outdated GitHub Actions
         entry: go
-        args: [run, scripts/check.go, github-action-versions]
+        args: [run, scripts/cicd-utils.go, github-action-versions]
         language: system
         pass_filenames: false
         stages: [pre-push]
