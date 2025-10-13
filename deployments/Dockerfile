@@ -42,10 +42,10 @@ RUN set -e; \
     fi
 
 # Write build parameters to file for runtime inspection
-RUN echo "APP_VERSION=${APP_VERSION}" > /build-params && \
-    echo "VCS_REF=${VCS_REF}" >> /build-params && \
-    echo "BUILD_DATE=${BUILD_DATE}" >> /build-params && \
-    cat /build-params
+RUN echo "APP_VERSION=${APP_VERSION}" > /app/.build-params && \
+    echo "VCS_REF=${VCS_REF}" >> /app/.build-params && \
+    echo "BUILD_DATE=${BUILD_DATE}" >> /app/.build-params && \
+    cat /app/.build-params
 
 #############################################################################################
 FROM golang:${GO_VERSION} AS builder
@@ -122,12 +122,12 @@ COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /app /app
 
 # Copy validation artifacts
-COPY --from=validation /build-params /app/.build-params
+COPY --from=validation /app/.build-params /app/.build-params
 
-# Set working directory for the application
+# Set working directory for the application (generated certs are written to working dir)
 WORKDIR /app/run
 
-# Set Go cache environment variables
+# Set Go cache environment variables (Empty directory is copied from builder)
 ENV GOMODCACHE=/app/run/.cache
 ENV GOCACHE=/app/run/.cache
 
@@ -138,7 +138,7 @@ ARG BUILD_DATE
 
 # Image metadata labels (set at final stage so they are present in the produced image)
 LABEL org.opencontainers.image.title="cryptoutil"
-LABEL org.opencontainers.image.description="A small utility for cryptographic key and certificate operations"
+LABEL org.opencontainers.image.description="AGPL-3.0 Golang embedded KMS"
 LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
 LABEL org.opencontainers.image.authors="Justin Cranford <justincranford@example.com>"
 LABEL org.opencontainers.image.version="${APP_VERSION}"
