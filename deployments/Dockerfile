@@ -103,10 +103,11 @@ RUN git rev-parse HEAD > /app/.vcs-ref && \
 
 #############################################################################################
 FROM alpine:${ALPINE_VERSION} AS runtime-deps
-# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
-RUN apk --no-cache add ca-certificates tzdata tini
 WORKDIR /root/ssl
-RUN update-ca-certificates
+# hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk --no-cache add ca-certificates tzdata tini && \
+    update-ca-certificates
 
 #############################################################################################
 # If shell needed for debugging final image, use alpine instead of scratch
