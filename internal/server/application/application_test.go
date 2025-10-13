@@ -208,9 +208,11 @@ func TestHealthChecks(t *testing.T) {
 		validateBody   func(t *testing.T, body []byte)
 	}{
 		{
-			name:           "Liveness Check (/livez)",
-			endpoint:       "/livez",
-			getResponse:    cryptoutilNetwork.HTTPGetHealthzResponse,
+			name:     "Liveness Check (/livez)",
+			endpoint: "/livez",
+			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
+				return cryptoutilNetwork.HTTPGetLivez(context.Background(), *baseURL, 2*time.Second, rootCAsPool, false)
+			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()
@@ -231,9 +233,11 @@ func TestHealthChecks(t *testing.T) {
 			},
 		},
 		{
-			name:           "Readiness Check (/readyz)",
-			endpoint:       "/readyz",
-			getResponse:    cryptoutilNetwork.HTTPGetReadyzResponse,
+			name:     "Readiness Check (/readyz)",
+			endpoint: "/readyz",
+			getResponse: func(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
+				return cryptoutilNetwork.HTTPGetReadyz(context.Background(), *baseURL, 2*time.Second, rootCAsPool, false)
+			},
 			expectedStatus: http.StatusOK,
 			validateBody: func(t *testing.T, body []byte) {
 				t.Helper()

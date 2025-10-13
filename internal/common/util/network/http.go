@@ -18,18 +18,6 @@ const (
 	shutdownPath = "/shutdown"
 )
 
-// HTTPGetHealthzResponse returns the full response from /livez endpoint for content validation.
-func HTTPGetHealthzResponse(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-	statusCode, headers, body, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/livez", 2*time.Second, true, rootCAsPool, false)
-	return statusCode, headers, body, err
-}
-
-// HTTPGetReadyzResponse returns the full response from /readyz endpoint for content validation.
-func HTTPGetReadyzResponse(baseURL *string, rootCAsPool *x509.CertPool) (int, http.Header, []byte, error) {
-	statusCode, headers, body, err := HTTPResponse(context.Background(), http.MethodGet, *baseURL+"/readyz", 2*time.Second, true, rootCAsPool, false)
-	return statusCode, headers, body, err
-}
-
 // HTTPGetLivez performs a GET /livez request to the private health endpoint.
 func HTTPGetLivez(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
 	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, baseURL+livezPath, timeout, true, rootCAsPool, insecureSkipVerify)
