@@ -589,9 +589,17 @@ DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/Dockerfile .
 ```
 
 **Runtime Metadata Files:**
+- `/app/.build-params`: Build arguments used (APP_VERSION, VCS_REF, BUILD_DATE)
 - `/app/.vcs-ref`: Actual git commit hash from build time
-- `/app/.build-date`: Actual build timestamp (ISO 8601 format)  
+- `/app/.build-date`: Actual build timestamp (ISO 8601 format)
 - `/app/.app-version`: Application version string
+
+**Mandatory Build Arguments:**
+- `APP_VERSION`: Application version (e.g., "v1.0.0") - **MANDATORY**
+- `VCS_REF`: Git commit hash (use `$(git rev-parse HEAD)`) - **MANDATORY**
+- `BUILD_DATE`: ISO 8601 timestamp (use `$(date -u +"%Y-%m-%dT%H:%M:%SZ")`) - **MANDATORY**
+
+**Dockerfile enforces all mandatory arguments internally - build will fail with clear error and usage if missing.**
 
 **Debugging:** Alpine base image provides shell access for troubleshooting.### Build Scripts
 For convenience, use the provided build scripts that handle mandatory arguments:

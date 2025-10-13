@@ -10,36 +10,48 @@ ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
 ARG LDFLAGS="-s -w"
-ARG APP_VERSION=dev
+ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
 
 #############################################################################################
 FROM alpine:${ALPINE_VERSION} AS validation
 # Validate required build arguments
+ARG APP_VERSION=UNSET
 ARG VCS_REF=UNSET
 ARG BUILD_DATE=UNSET
-RUN if [ "$VCS_REF" = "UNSET" ]; then \
-        echo "ERROR: VCS_REF build argument is required" >&2 && \
-        echo "Usage: docker build --build-arg VCS_REF=\$(git rev-parse HEAD) ..." >&2 && \
+
+# Check all mandatory parameters and collect errors
+RUN set -e; \
+    errors=""; \
+    if [ "$APP_VERSION" = "UNSET" ]; then \
+        errors="${errors}ERROR: APP_VERSION build argument is required\n"; \
+    fi; \
+    if [ "$VCS_REF" = "UNSET" ]; then \
+        errors="${errors}ERROR: VCS_REF build argument is required\n"; \
+    fi; \
+    if [ "$BUILD_DATE" = "UNSET" ]; then \
+        errors="${errors}ERROR: BUILD_DATE build argument is required\n"; \
+    fi; \
+    if [ -n "$errors" ]; then \
+        printf "%b" "$errors" >&2; \
+        echo "Usage: DOCKER_BUILDKIT=1 docker build --build-arg APP_VERSION=<version> --build-arg VCS_REF=\$(git rev-parse HEAD) --build-arg BUILD_DATE=\$(date -u +\"%Y-%m-%dT%H:%M:%SZ\") -t cryptoutil -f deployments/Dockerfile ." >&2; \
         exit 1; \
     fi
-RUN if [ "$BUILD_DATE" = "UNSET" ]; then \
-        echo "ERROR: BUILD_DATE build argument is required" >&2 && \
-        echo "Usage: docker build --build-arg BUILD_DATE=\$(date -u +\"%%Y-%%m-%%dT%%H:%%M:%%SZ\") ..." >&2 && \
-        exit 1; \
-    fi
-# Create validation marker
-RUN echo "Build arguments validated successfully" > /validation-marker
+
+# Write build parameters to file for runtime inspection
+RUN echo "APP_VERSION=${APP_VERSION}" > /build-params && \
+    echo "VCS_REF=${VCS_REF}" >> /build-params && \
+    echo "BUILD_DATE=${BUILD_DATE}" >> /build-params
 
 #############################################################################################
 FROM golang:${GO_VERSION} AS builder
 WORKDIR /src
 
 # Redeclare build args for use in this stage
+ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
-ARG APP_VERSION
 
 # Copy dependency manifests first to leverage layer caching
 COPY go.mod go.sum ./
@@ -82,12 +94,11 @@ FROM alpine:${ALPINE_VERSION}
 #FROM scratch
 
 # Copy validation marker to ensure required args were provided
-COPY --from=validation /validation-marker /validation-marker
+COPY --from=validation /build-params /app/.build-params
 
 # Copy build metadata files for runtime inspection
 COPY --from=builder /app/.vcs-ref /app/.vcs-ref
 COPY --from=builder /app/.build-date /app/.build-date
-COPY --from=builder /app/.app-version /app/.app-version
 
 # Copy runtime dependencies (tini for process management)
 COPY --from=runtime-deps /sbin/tini /app/tini
@@ -96,7 +107,7 @@ COPY --from=runtime-deps /sbin/tini /app/tini
 COPY --from=builder /app/cryptoutil /app/cryptoutil
 
 # Re-declare build args in this stage so they are available for labels
-ARG APP_VERSION=dev
+ARG APP_VERSION
 ARG VCS_REF
 ARG BUILD_DATE
 
