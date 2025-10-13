@@ -10,6 +10,29 @@ bind-public-address: "0.0.0.0"
 # Private server binding (for internal/health endpoints)
 bind-private-address: "0.0.0.0"
 
+# CORS configuration - HTTPS origins only (from default config)
+cors-origins:
+  - "https://localhost:8080"
+  - "https://127.0.0.1:8080"
+  - "https://[::1]:8080"
+  - "https://[::ffff:127.0.0.1]:8080"
+
+# TLS configuration for Docker Compose - include host IP for broader access
+tls-public-dns-names:
+  - "localhost"
+tls-public-ip-addresses:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+  - "0.0.0.0"  # Allow connections to any interface
+tls-private-dns-names:
+  - "localhost"
+tls-private-ip-addresses:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+  - "0.0.0.0"
+
 # OpenTelemetry configuration
 otlp: true
 otlp-console: false
