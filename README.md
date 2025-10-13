@@ -601,24 +601,7 @@ DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/Dockerfile .
 
 **Dockerfile enforces all mandatory arguments internally - build will fail with clear error and usage if missing.**
 
-**Debugging:** Alpine base image provides shell access for troubleshooting.### Build Scripts
-For convenience, use the provided build scripts that handle mandatory arguments:
-
-**PowerShell (Recommended):**
-```powershell
-.\scripts\build.ps1 -AppVersion v1.0.0
-```
-
-**Batch (Windows):**
-```batch
-scripts\build.bat v1.0.0
-```
-
-These scripts automatically:
-- Validate required arguments
-- Get current git commit hash
-- Set proper build timestamp
-- Build with correct tags
+**Debugging:** Alpine base image provides shell access for troubleshooting.
 
 This deploys:
 - **PostgreSQL**: Persistent database with encrypted storage

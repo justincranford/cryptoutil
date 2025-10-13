@@ -4,7 +4,8 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml"]
+    command: ["server", "start", "--dev", "--config=/app/config/cryptoutil-sqlite.yml"]
+    working_dir: /tmp
     ports:
       - "8080:8080"    # HTTPS public
     volumes:
@@ -27,7 +28,8 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    command: server start --config=/app/config/cryptoutil-postgresql.yml -u "file://run/secrets/cryptoutil_database-url.secret"
+    command: server start --config=/app/config/cryptoutil-postgresql.yml -u "file:///run/secrets/cryptoutil_database-url.secret"
+    working_dir: /tmp
     ports:
       - "8081:8080"    # HTTPS public
     volumes:
@@ -87,7 +89,7 @@ services:
   #     retries: 3
   #   networks:
   #     - cryptoutil-network
-  # 
+  #
   # grafana:
   #   image: grafana/grafana:latest
   #   environment:
@@ -117,6 +119,10 @@ networks:
 volumes:
   postgres_data:
     name: cryptoutil_postgres_volume
+  cryptoutil_sqlite_certs:
+    name: cryptoutil_sqlite_certs_volume
+  cryptoutil_postgres_certs:
+    name: cryptoutil_postgres_certs_volume
   grafana_data:
     name: cryptoutil_grafana_volume
 

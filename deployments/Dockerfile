@@ -79,6 +79,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
 # Validate that the binary is statically linked
+SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 RUN if ldd /app/cryptoutil 2>&1 | grep -q "not a dynamic executable"; then \
         echo "✓ Binary is statically linked"; \
     else \
@@ -88,13 +89,13 @@ RUN if ldd /app/cryptoutil 2>&1 | grep -q "not a dynamic executable"; then \
     fi
 
 # Create /app directory with proper ownership for the application user
-RUN mkdir -p /app && chown -R 65532:65532 /app
+RUN mkdir -p /app && chmod 555 /app && chown -R 65532:65532 /app
 
 # Create runtime directory for application data (certificates, etc.) with proper ownership
-RUN mkdir -p /app/run && chown -R 65532:65532 /app/run
+RUN mkdir -p /app/run && chmod 775 /app/run && chown -R 65532:65532 /app/run
 
-# Create cache directory for Go module cache with proper ownership
-RUN mkdir -p /app/.cache && chown -R 65532:65532 /app/.cache
+# Create cache directory for any caching needs with proper ownership
+RUN mkdir -p /.cache && chmod 777 /.cache && chown -R 65532:65532 /.cache
 
 # Generate build metadata files for runtime inspection
 RUN git rev-parse HEAD > /app/.vcs-ref && \
@@ -109,8 +110,12 @@ RUN update-ca-certificates
 
 #############################################################################################
 # If shell needed for debugging final image, use alpine instead of scratch
-# FROM alpine:${ALPINE_VERSION}
-FROM scratch
+FROM alpine:${ALPINE_VERSION} AS final
+# FROM scratch
+
+# Copy apk installed dependencies from runtime-deps
+COPY --from=runtime-deps /sbin/tini /sbin/tini
+COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy validation marker to ensure required args were provided
 COPY --from=validation /build-params /app/.build-params
@@ -119,14 +124,17 @@ COPY --from=validation /build-params /app/.build-params
 COPY --from=builder /app/.vcs-ref /app/.vcs-ref
 COPY --from=builder /app/.build-date /app/.build-date
 
-# Copy runtime dependencies (tini for process management)
-# COPY --from=runtime-deps /sbin/tini /sbin/tini
-
 # Copy the application binary
 COPY --from=builder /app/cryptoutil /app/cryptoutil
 
-# Create /.cache directory with write permissions for the application user
-# RUN mkdir -p /.cache && chmod 777 /.cache && chown -R 65532:65532 /.cache
+# Copy the runtime directory with correct permissions
+COPY --from=builder /app/run /app/run
+
+# Copy the cache directory with correct permissions
+COPY --from=builder /.cache /.cache
+
+# Set working directory for the application
+WORKDIR /app/run
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION
@@ -143,7 +151,7 @@ LABEL org.opencontainers.image.revision="${VCS_REF}"
 LABEL org.opencontainers.image.created="${BUILD_DATE}"
 
 # Use non-privileged ports
-EXPOSE 8080 9090
+EXPOSE 8080
 
 # Healthcheck available with Alpine base image
 # HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
@@ -157,8 +165,7 @@ EXPOSE 8080 9090
 # For Docker Compose: Use external healthcheck or depends_on with condition
 
 # Use tini for proper signal handling and zombie process reaping
-# ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]
-ENTRYPOINT ["/app/cryptoutil"]
+ENTRYPOINT ["/sbin/tini", "--", "/app/cryptoutil"]
 
 # Switch to non-root user for security
 # USER 65532:65532
