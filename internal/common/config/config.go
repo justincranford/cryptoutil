@@ -55,7 +55,7 @@ const (
 	defaultRequestBodyLimit            = int(2 << 20)                                           // 2MB limit prevents large payload attacks while allowing reasonable API usage
 	defaultIPRateLimit                 = uint16(50)                                             // Reasonable rate limit prevents abuse while allowing normal usage
 	defaultDatabaseContainer           = "disabled"                                             // Disabled by default to avoid unexpected container dependencies
-	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // PostgreSQL default with placeholder credentials, SSL disabled for local development
+	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // PostgreSQL default with placeholder credentials, SSL disabled for local dev
 	defaultDatabaseInitTotalTimeout    = 5 * time.Minute                                        // 5 minutes allows for container startup while preventing indefinite waits
 	defaultDatabaseInitRetryWait       = 1 * time.Second                                        // 1 second retry interval balances responsiveness and resource usage
 	defaultServerShutdownTimeout       = 5 * time.Second                                        // 5 seconds allows graceful shutdown while preventing indefinite waits
@@ -76,51 +76,7 @@ const (
 
 // Configuration profiles for common deployment scenarios.
 var profiles = map[string]map[string]any{
-	"development": {
-		"log-level":                "DEBUG",
-		"dev":                      true,
-		"bind-public-protocol":     "http",
-		"bind-public-address":      "localhost",
-		"bind-public-port":         uint16(8080),
-		"bind-private-protocol":    "http",
-		"bind-private-address":     "localhost",
-		"bind-private-port":        uint16(9090),
-		"database-container":       "disabled",
-		"database-url":             "sqlite://file::memory:?cache=shared",
-		"csrf-token-cookie-secure": false,
-		"otlp":                     false,
-		"otlp-console":             true,
-	},
-	"staging": {
-		"log-level":                "INFO",
-		"dev":                      false,
-		"bind-public-protocol":     "https",
-		"bind-public-address":      "0.0.0.0",
-		"bind-public-port":         uint16(8080),
-		"bind-private-protocol":    "http",
-		"bind-private-address":     "localhost",
-		"bind-private-port":        uint16(9090),
-		"database-container":       "required",
-		"csrf-token-cookie-secure": true,
-		"otlp":                     true,
-		"otlp-console":             false,
-	},
-	"production": {
-		"log-level":                "WARN",
-		"dev":                      false,
-		"bind-public-protocol":     "https",
-		"bind-public-address":      "0.0.0.0",
-		"bind-public-port":         uint16(443),
-		"bind-private-protocol":    "http",
-		"bind-private-address":     "localhost",
-		"bind-private-port":        uint16(9090),
-		"database-container":       "required",
-		"rate-limit":               uint16(100),
-		"csrf-token-cookie-secure": true,
-		"otlp":                     true,
-		"otlp-console":             false,
-	},
-	"testing": {
+	"test": {
 		"log-level":                "ERROR",
 		"dev":                      true,
 		"bind-public-protocol":     "http",
@@ -134,6 +90,54 @@ var profiles = map[string]map[string]any{
 		"csrf-token-cookie-secure": false,
 		"otlp":                     false,
 		"otlp-console":             false,
+		"otlp-environment":         "test",
+	},
+	"dev": {
+		"log-level":                "DEBUG",
+		"dev":                      true,
+		"bind-public-protocol":     "http",
+		"bind-public-address":      "localhost",
+		"bind-public-port":         uint16(8080),
+		"bind-private-protocol":    "http",
+		"bind-private-address":     "localhost",
+		"bind-private-port":        uint16(9090),
+		"database-container":       "disabled",
+		"database-url":             "sqlite://file::memory:?cache=shared",
+		"csrf-token-cookie-secure": false,
+		"otlp":                     false,
+		"otlp-console":             true,
+		"otlp-environment":         "dev",
+	},
+	"stg": {
+		"log-level":                "INFO",
+		"dev":                      false,
+		"bind-public-protocol":     "https",
+		"bind-public-address":      "0.0.0.0",
+		"bind-public-port":         uint16(8080),
+		"bind-private-protocol":    "http",
+		"bind-private-address":     "localhost",
+		"bind-private-port":        uint16(9090),
+		"database-container":       "required",
+		"csrf-token-cookie-secure": true,
+		"otlp":                     true,
+		"otlp-console":             false,
+		"otlp-environment":         "stg",
+	},
+	"prod": {
+		"log-level":                "WARN",
+		"dev":                      false,
+		"bind-public-protocol":     "https",
+		"bind-public-address":      "0.0.0.0",
+		"bind-public-port":         uint16(443),
+		"bind-private-protocol":    "http",
+		"bind-private-address":     "localhost",
+		"bind-private-port":        uint16(9090),
+		"database-container":       "required",
+		"rate-limit":               uint16(100),
+		"csrf-token-cookie-secure": true,
+		"otlp":                     true,
+		"otlp-console":             false,
+		"otlp-environment":         "prod",
 	},
 }
 
@@ -206,7 +210,7 @@ type Settings struct {
 	VerboseMode                 bool
 	DevMode                     bool
 	DryRun                      bool
-	Profile                     string // Configuration profile: development, staging, production, testing
+	Profile                     string // Configuration profile: dev, stg, prod, test
 	BindPublicProtocol          string
 	BindPublicAddress           string
 	BindPublicPort              uint16
@@ -315,7 +319,7 @@ var (
 		name:        "profile",
 		shorthand:   "f",
 		value:       defaultProfile,
-		usage:       "configuration profile: development, staging, production, testing",
+		usage:       "configuration profile: dev, stg, prod, test",
 		description: "Configuration profile",
 	})
 	bindPublicProtocol = *registerSetting(&Setting{
@@ -746,7 +750,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 				}
 			}
 		} else {
-			return nil, fmt.Errorf("unknown configuration profile: %s (available: development, staging, production, testing)", profileName)
+			return nil, fmt.Errorf("unknown configuration profile: %s (available: dev, stg, prod, test)", profileName)
 		}
 	}
 
@@ -835,7 +839,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  -h, --help                          print help")
 		fmt.Println("  -y, --config strings                path to config file (can be specified multiple times)")
 		fmt.Println("  -Y, --dry-run                       validate configuration and exit without starting server")
-		fmt.Println("  -P, --profile strings                configuration profile: development, staging, production, testing")
+		fmt.Println("  -P, --profile strings                configuration profile: dev, stg, prod, test")
 		fmt.Println()
 		fmt.Println("DATABASE SETTINGS:")
 		fmt.Println("  -u, --database-url string           database URL (default " + formatDefault(defaultDatabaseURL) + ")")
