@@ -6,3 +6,8 @@ dev: true
 
 # Binding address - 0.0.0.0 allows connections from any IP
 bind-public-address: "0.0.0.0"
+bind-public-protocol: "http"
+
+# OpenTelemetry configuration
+otlp: true
+otlp-console: false

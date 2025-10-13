@@ -121,7 +121,7 @@
 **CURRENT STATUS** (2025-10-12): 🔄 **OAuth 2.0 Implementation Planning Underway**
 
 - 🔄 **OAuth 2.0 implementation planning** - Separate flows for users (browser APIs) vs machines (service APIs)
-- 🟡 **Security hardening in progress** - Cookie HttpOnly flags, JSON parsing issues, and staticcheck integration remain
+- 🟡 **Security hardening in progress** - Cookie HttpOnly flags, JSON parsing issues, staticcheck integration, and Docker image version pinning
 - 🔵 **Performance optimization pending** - Workflow parallelization opportunity identified
 
 **Next Priority**: Implement OAuth 2.0 Authorization Code flows for secure API access separation
@@ -156,7 +156,7 @@
 1. **Task S1**: Fix Cookie HttpOnly Flag Security Issue
 2. **Task S5**: Investigate JSON Parsing Issues in API Endpoints
 3. **Task S6**: Fix golangci-lint staticcheck Integration Issue
-3. **Task S6**: Fix golangci-lint staticcheck Integration Issue
+4. **Task C6**: Pin Docker Image Versions in Compose Config
 
 ### LOW PRIORITY - Performance Optimization
 1. **Task O2**: Implement Parallel Step Execution (workflow optimization)
@@ -213,7 +213,7 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 
 **Last Updated**: 2025-10-12
 **Recent completions**: Compression middleware implemented (2025-10-12), invalid JWK decryption test implemented (2025-10-12), request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12)
-**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue added.
+**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue and Docker image version pinning task added.
 
 ---
 
@@ -300,3 +300,18 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 - **Expected Outcome**: Better user experience with clear configuration guidance
 - **Priority**: LOW - Error handling improvement
 - **Timeline**: Q1 2026
+
+#### Task C6: Pin Docker Image Versions in Compose Config (🟡 MEDIUM)
+- **Description**: Replace `:latest` tags with pinned versions in Docker Compose files for reproducible deployments and security
+- **Current State**: Multiple services use `:latest` tags (postgres:latest, otel/opentelemetry-collector-contrib:latest, grafana/grafana:latest)
+- **Action Items**:
+  - Research latest stable versions for each service
+  - Update compose.yml to use specific version tags instead of :latest
+  - Add version checking to CI/CD pipeline to detect outdated images
+  - Consider extending check.go script to validate Docker image versions in compose files
+  - Evaluate if hadolint or other official tools support compose file version checking
+  - Document version update process for maintenance
+- **Files**: `deployments/compose/compose.yml`, `scripts/check.go` (extend if needed)
+- **Expected Outcome**: Reproducible deployments with known, tested image versions
+- **Priority**: MEDIUM - Security and reproducibility improvement
+- **Timeline**: Q4 2025

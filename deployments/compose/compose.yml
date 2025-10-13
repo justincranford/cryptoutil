@@ -4,22 +4,35 @@ services:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    entrypoint: ["/sbin/tini", "--"]
-    command: >
-      sh -c '/app/cryptoutil --config=/app/sqlite.yml'
+    entrypoint: ["/cryptoutil"]
+    command: ["server", "start", "--config=/app/sqlite.yml"]
+    environment:
+      - CRYPTOUTIL_OTLP=true
+      - CRYPTOUTIL_OTLP_CONSOLE=false
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4318
+      - OTEL_SERVICE_NAME=cryptoutil-sqlite
     ports:
       - "8090:8080"
     volumes:
       - ./cryptoutil/sqlite.yml:/app/sqlite.yml:ro
+    depends_on:
+      opentelemetry-collector:
+        condition: service_started
+    networks:
+      - cryptoutil-network
 
   cryptoutil_postgres:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
-    entrypoint: ["/sbin/tini", "--"]
-    command: >
-      sh -c 'DB_URL=$$(cat /run/secrets/cryptoutil_database-url.secret) &&
-      /app/cryptoutil --config=/app/postgresql.yml --database-url="$$DB_URL"'
+    entrypoint: ["/cryptoutil"]
+    command: ["server", "start", "--config=/app/postgresql.yml"]
+    environment:
+      - CRYPTOUTIL_OTLP=true
+      - CRYPTOUTIL_OTLP_CONSOLE=false
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://opentelemetry-collector:4318
+      - OTEL_SERVICE_NAME=cryptoutil-postgres
+      - CRYPTOUTIL_DATABASE_URL=postgres://USR:PWD@postgres:5432/DB?sslmode=disable
     ports:
       - "8080-8089:8080"
     volumes:
@@ -34,6 +47,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      opentelemetry-collector:
+        condition: service_started
     networks:
       - cryptoutil-network
 
@@ -61,13 +76,44 @@ services:
     networks:
       - cryptoutil-network
 
+  opentelemetry-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Metrics endpoint
+      - "8889:8889"   # Prometheus metrics
+    networks:
+      - cryptoutil-network
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - opentelemetry-collector
+    networks:
+      - cryptoutil-network
+
 networks:
   cryptoutil-network:
     driver: bridge
 
 volumes:
- postgres_data:
-   name: cryptoutil_postgres_volume
+  postgres_data:
+    name: cryptoutil_postgres_volume
+  grafana_data:
+    name: cryptoutil_grafana_volume
 
 secrets:
 

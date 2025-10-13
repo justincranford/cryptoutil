@@ -3,6 +3,7 @@
 
 # Binding address - 0.0.0.0 allows connections from any IP
 bind-public-address: "0.0.0.0"
+bind-public-protocol: "http"
 
 unseal-mode: "3-of-5"
 
@@ -12,3 +13,7 @@ unseal-files:
   - /run/secrets/cryptoutil_unseal_3of5.secret
   - /run/secrets/cryptoutil_unseal_4of5.secret
   - /run/secrets/cryptoutil_unseal_5of5.secret
+
+# OpenTelemetry configuration
+otlp: true
+otlp-console: false
