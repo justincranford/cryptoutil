@@ -126,8 +126,8 @@ LABEL org.opencontainers.image.created="${BUILD_DATE}"
 EXPOSE 8080 9090
 
 # Healthcheck available with Alpine base image
-# HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-#   CMD wget --no-verbose --tries=1 --spider http://localhost:9090/readyz || exit 1
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider --no-check-certificate https://localhost:9090/readyz || exit 1
 
 # For Kubernetes: Use liveness/readiness probes like:
 #   livenessProbe:
