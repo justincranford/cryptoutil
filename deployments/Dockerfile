@@ -79,7 +79,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
 # Validate that the binary is statically linked
-SHELL ["/bin/ash", "-o", "pipefail", "-c"]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN if ldd /app/cryptoutil 2>&1 | grep -q "not a dynamic executable"; then \
         echo "✓ Binary is statically linked"; \
     else \
@@ -95,7 +95,7 @@ RUN mkdir -p /app && chmod 555 /app && chown -R 65532:65532 /app
 RUN mkdir -p /app/run && chmod 775 /app/run && chown -R 65532:65532 /app/run
 
 # Create cache directory for any caching needs with proper ownership
-RUN mkdir -p /.cache && chmod 777 /.cache && chown -R 65532:65532 /.cache
+RUN mkdir -p /app/run/.cache && chmod 777 /app/run/.cache && chown -R 65532:65532 /app/run/.cache
 
 # Generate build metadata files for runtime inspection
 RUN git rev-parse HEAD > /app/.vcs-ref && \
@@ -123,18 +123,16 @@ COPY --from=validation /build-params /app/.build-params
 # Copy build metadata files for runtime inspection
 COPY --from=builder /app/.vcs-ref /app/.vcs-ref
 COPY --from=builder /app/.build-date /app/.build-date
-
-# Copy the application binary
 COPY --from=builder /app/cryptoutil /app/cryptoutil
-
-# Copy the runtime directory with correct permissions
 COPY --from=builder /app/run /app/run
-
-# Copy the cache directory with correct permissions
-COPY --from=builder /.cache /.cache
+COPY --from=builder /app/run/.cache /app/run/.cache
 
 # Set working directory for the application
 WORKDIR /app/run
+
+# Set Go cache environment variables
+ENV GOMODCACHE=/app/run/.cache
+ENV GOCACHE=/app/run/.cache
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION
