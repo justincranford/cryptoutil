@@ -78,31 +78,41 @@ type TLSServerConfig struct {
 	Config              *tls.Config
 }
 
+func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byte, error) {
+	client, privateBaseURL := createClient(settings)
+
+	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
+	defer livenessRequestCancel()
+	livenessRequest, err := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, privateBaseURL+"/livez", nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create liveness request: %w", err)
+	}
+	livenessResponse, err := client.Do(livenessRequest)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send liveness request: %w", err)
+	}
+	livenessResponseBody, err := io.ReadAll(livenessResponse.Body)
+	if err != nil {
+		if closeErr := livenessResponse.Body.Close(); closeErr != nil {
+			fmt.Printf("Warning: failed to close liveness response body: %v\n", closeErr)
+		}
+		return nil, fmt.Errorf("failed to read liveness response body: %w", err)
+	}
+	if closeErr := livenessResponse.Body.Close(); closeErr != nil {
+		fmt.Printf("Warning: failed to close liveness response body: %v\n", closeErr)
+	}
+	return livenessResponseBody, nil
+}
+
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	privateBaseURL := fmt.Sprintf("%s://%s:%d", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort)
+	client, privateBaseURL := createClient(settings)
+
 	shutdownRequestCtx, shutdownRequestCancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
 	defer shutdownRequestCancel()
 	shutdownRequest, err := http.NewRequestWithContext(shutdownRequestCtx, http.MethodPost, privateBaseURL+serverShutdownRequestPath, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create shutdown request: %w", err)
 	}
-
-	// TODO Only use InsecureSkipVerify for DevMode
-	// Create HTTP client that accepts self-signed certificates for local testing
-	var client *http.Client
-	if settings.BindPrivateProtocol == protocolHTTPS {
-		client = &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: settings.DevMode, // Only skip verification in dev mode
-					MinVersion:         tls.VersionTLS12,
-				},
-			},
-		}
-	} else {
-		client = http.DefaultClient
-	}
-
 	shutdownResponse, err := client.Do(shutdownRequest)
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
@@ -120,6 +130,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	}
 
 	time.Sleep(clientLivenessStartTimeout)
+
 	livenessRequestCtx, livenessRequestCancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
 	defer livenessRequestCancel()
 	livenessRequest, err := http.NewRequestWithContext(livenessRequestCtx, http.MethodGet, privateBaseURL+"/livez", nil)
@@ -1064,4 +1075,26 @@ func swaggerUICustomCSRFScript(csrfTokenName, browserAPIContextPath string) temp
 			}
 		}, 100);
 	`, csrfTokenName, csrfTokenEndpoint, csrfTokenName, csrfTokenEndpoint))
+}
+
+func createClient(settings *cryptoutilConfig.Settings) (*http.Client, string) {
+	// TODO Only use InsecureSkipVerify for DevMode
+	// Create HTTP client that accepts self-signed certificates for local testing
+	var client *http.Client
+	if settings.BindPrivateProtocol == protocolHTTPS {
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: settings.DevMode, // Only skip verification in dev mode
+					MinVersion:         tls.VersionTLS12,
+				},
+			},
+		}
+	} else {
+		client = http.DefaultClient
+	}
+
+	privateBaseURL := fmt.Sprintf("%s://%s:%d", settings.BindPrivateProtocol, settings.BindPrivateAddress, settings.BindPrivatePort)
+
+	return client, privateBaseURL
 }

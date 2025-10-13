@@ -281,6 +281,35 @@ func TestHealthChecks(t *testing.T) {
 	}
 }
 
+func TestSendServerListenerLivenessCheck(t *testing.T) {
+	// Update test settings to use the actual assigned port for the liveness check
+	testSettingsForLiveness := *testSettings
+	testSettingsForLiveness.BindPrivatePort = startServerListenerApplication.ActualPrivatePort
+
+	body, err := SendServerListenerLivenessCheck(&testSettingsForLiveness)
+	require.NoError(t, err, "SendServerListenerLivenessCheck should not return an error")
+	require.NotNil(t, body, "response body should not be nil")
+	require.NotEmpty(t, body, "response body should not be empty")
+
+	// Parse the JSON response
+	var response map[string]any
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err, "should return valid JSON")
+
+	// Validate liveness response structure
+	require.Equal(t, "ok", response["status"], "liveness status should be 'ok'")
+	require.Equal(t, "liveness", response["probe"], "probe should be 'liveness'")
+	require.NotEmpty(t, response["timestamp"], "should include timestamp")
+	require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
+
+	// Liveness should not include detailed checks
+	require.NotContains(t, response, "database", "liveness should not include database checks")
+	require.NotContains(t, response, "memory", "liveness should not include memory checks")
+	require.NotContains(t, response, "dependencies", "liveness should not include dependency checks")
+
+	t.Logf("âœ“ SendServerListenerLivenessCheck validation passed")
+}
+
 func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, http.Header, error) {
 	t.Helper()
 	req, err := http.NewRequestWithContext(t.Context(), httpMethod, url, nil)
