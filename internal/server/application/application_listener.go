@@ -39,12 +39,13 @@ import (
 )
 
 const (
-	clientShutdownRequestTimeout = 5 * time.Second
-	clientLivenessStartTimeout   = 200 * time.Millisecond
-	clientLivenessRequestTimeout = 3 * time.Second
-	errorStr                     = "error"
-	statusStr                    = "status"
-	protocolHTTPS                = "https"
+	clientShutdownRequestTimeout  = 5 * time.Second
+	clientLivenessRequestTimeout  = 3 * time.Second
+	clientReadinessRequestTimeout = 5 * time.Second
+	clientLivenessStartTimeout    = 200 * time.Millisecond
+	errorStr                      = "error"
+	statusStr                     = "status"
+	protocolHTTPS                 = "https"
 )
 
 // TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)
@@ -86,6 +87,28 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byt
 		return nil, fmt.Errorf("failed to get liveness check: %w", err)
 	}
 	return result, nil
+}
+
+func SendServerListenerReadinessCheck(settings *cryptoutilConfig.Settings) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), clientReadinessRequestTimeout)
+	defer cancel()
+
+	_, _, result, err := cryptoutilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get readiness check: %w", err)
+	}
+	return result, nil
+}
+
+func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
+	ctx, cancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
+	defer cancel()
+
+	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
+	if err != nil {
+		return fmt.Errorf("failed to send shutdown request: %w", err)
+	}
+	return nil
 }
 
 // StartServerListenerApplication creates and starts a new server application listener.
@@ -1016,15 +1039,4 @@ func swaggerUICustomCSRFScript(csrfTokenName, browserAPIContextPath string) temp
 			}
 		}, 100);
 	`, csrfTokenName, csrfTokenEndpoint, csrfTokenName, csrfTokenEndpoint))
-}
-
-func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	ctx, cancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
-	defer cancel()
-
-	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
-	if err != nil {
-		return fmt.Errorf("failed to send shutdown request: %w", err)
-	}
-	return nil
 }

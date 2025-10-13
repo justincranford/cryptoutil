@@ -2,11 +2,9 @@ package application
 
 import (
 	"context"
-	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -303,6 +301,7 @@ func TestSendServerListenerLivenessCheck(t *testing.T) {
 	require.NoError(t, err, "SendServerListenerLivenessCheck should not return an error")
 	require.NotNil(t, body, "response body should not be nil")
 	require.NotEmpty(t, body, "response body should not be empty")
+	t.Logf("Liveness check response: %s", body)
 
 	// Parse the JSON response
 	var response map[string]any
@@ -323,56 +322,50 @@ func TestSendServerListenerLivenessCheck(t *testing.T) {
 	t.Logf("âœ“ SendServerListenerLivenessCheck validation passed")
 }
 
-func httpResponse(t *testing.T, httpMethod string, expectedStatusCode int, url string, rootCAsPool *x509.CertPool) ([]byte, http.Header, error) {
-	t.Helper()
-	req, err := http.NewRequestWithContext(t.Context(), httpMethod, url, nil)
-	require.NoError(t, err, "failed to create %s request", httpMethod)
-	req.Header.Set("Accept", "*/*")
+func TestSendServerListenerReadinessCheck(t *testing.T) {
+	// Update test settings to use the actual assigned port for the readiness check
+	testSettingsForReadiness := *testSettings
+	testSettingsForReadiness.BindPrivatePort = startServerListenerApplication.ActualPrivatePort
 
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse // Don't follow redirects
-		},
-	}
-	if strings.HasPrefix(url, "https://") {
-		transport := &http.Transport{}
-		if rootCAsPool != nil {
-			transport.TLSClientConfig = &tls.Config{
-				RootCAs:    rootCAsPool,
-				MinVersion: tls.VersionTLS12,
-			}
-		} else {
-			transport.TLSClientConfig = &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			}
-		}
-		client.Transport = transport
-	}
+	body, err := SendServerListenerReadinessCheck(&testSettingsForReadiness)
+	require.NoError(t, err, "SendServerListenerReadinessCheck should not return an error")
+	require.NotNil(t, body, "response body should not be nil")
+	require.NotEmpty(t, body, "response body should not be empty")
+	t.Logf("Readiness check response: %s", body)
 
-	resp, err := client.Do(req)
-	if err != nil {
-		if expectedStatusCode == 0 {
-			return nil, nil, fmt.Errorf("expected error occurred: %w", err)
-		}
-		require.NoError(t, err, "failed to make %s request", httpMethod)
-	}
-	defer func() {
-		if resp != nil {
-			if closeErr := resp.Body.Close(); closeErr != nil {
-				t.Errorf("Warning: failed to close response body: %v", closeErr)
-			}
-		}
-	}()
+	// Parse the JSON response
+	var response map[string]any
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err, "should return valid JSON")
 
-	if resp == nil {
-		return nil, nil, fmt.Errorf("no response received")
-	}
+	// Validate readiness response structure
+	require.Equal(t, "ok", response["status"], "readiness status should be 'ok'")
+	require.Equal(t, "readiness", response["probe"], "probe should be 'readiness'")
+	require.NotEmpty(t, response["timestamp"], "should include timestamp")
+	require.Equal(t, "cryptoutil", response["service"], "service name should be 'cryptoutil'")
 
-	body, err := io.ReadAll(resp.Body)
-	require.NoError(t, err, "HTTP Status code: "+strconv.Itoa(resp.StatusCode)+", failed to read error response body")
-	if expectedStatusCode != 0 && resp.StatusCode != expectedStatusCode {
-		return nil, nil, fmt.Errorf("HTTP Status code: %d, error response body: %v", resp.StatusCode, string(body))
-	}
-	t.Logf("HTTP Status code: %d, response headers count: %d, response body: %d bytes", resp.StatusCode, len(resp.Header), len(body))
-	return body, resp.Header, nil
+	// Readiness should include detailed checks
+	require.Contains(t, response, "database", "readiness should include database checks")
+	require.Contains(t, response, "memory", "readiness should include memory checks")
+	require.Contains(t, response, "dependencies", "readiness should include dependency checks")
+
+	// Validate database health structure
+	database, ok := response["database"].(map[string]any)
+	require.True(t, ok, "database should be a map")
+	require.Contains(t, database, "status", "database should have status")
+
+	// Validate memory health structure
+	memory, ok := response["memory"].(map[string]any)
+	require.True(t, ok, "memory should be a map")
+	require.Contains(t, memory, "status", "memory should have status")
+	require.Contains(t, memory, "heap_alloc", "memory should include heap allocation info")
+	require.Contains(t, memory, "num_goroutines", "memory should include goroutine count")
+
+	// Validate dependencies health structure
+	dependencies, ok := response["dependencies"].(map[string]any)
+	require.True(t, ok, "dependencies should be a map")
+	require.Contains(t, dependencies, "status", "dependencies should have status")
+	require.Contains(t, dependencies, "services", "dependencies should include services")
+
+	t.Logf("âœ“ SendServerListenerReadinessCheck validation passed")
 }
