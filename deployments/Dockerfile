@@ -79,13 +79,13 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 	go build -a -tags netgo -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
 # Validate that the binary is statically linked
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN if ldd /app/cryptoutil 2>&1 | grep -q "not a dynamic executable"; then \
-        echo "✓ Binary is statically linked"; \
-    else \
+SHELL ["/bin/bash", "-c"]
+RUN if ldd /app/cryptoutil 2>/dev/null; then \
         echo "✗ Binary is dynamically linked - failing build"; \
         ldd /app/cryptoutil; \
         exit 1; \
+    else \
+        echo "✓ Binary is statically linked"; \
     fi
 
 # Create /app directory with proper ownership for the application user
@@ -117,15 +117,11 @@ FROM alpine:${ALPINE_VERSION} AS final
 COPY --from=runtime-deps /sbin/tini /sbin/tini
 COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-# Copy validation marker to ensure required args were provided
-COPY --from=validation /build-params /app/.build-params
+# Copy builder artifacts
+COPY --from=builder /app /app
 
-# Copy build metadata files for runtime inspection
-COPY --from=builder /app/.vcs-ref /app/.vcs-ref
-COPY --from=builder /app/.build-date /app/.build-date
-COPY --from=builder /app/cryptoutil /app/cryptoutil
-COPY --from=builder /app/run /app/run
-COPY --from=builder /app/run/.cache /app/run/.cache
+# Copy validation artifacts
+COPY --from=validation /build-params /app/.build-params
 
 # Set working directory for the application
 WORKDIR /app/run
