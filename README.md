@@ -574,6 +574,44 @@ cd deployments/compose
 docker compose up -d
 ```
 
+### Manual Docker Build
+```sh
+# Build with proper versioning (recommended)
+docker build \
+  --build-arg VCS_REF=$(git rev-parse HEAD) \
+  --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
+  --build-arg APP_VERSION=dev \
+  -t cryptoutil \
+  -f deployments/Dockerfile .
+
+# Or use the simple build (with default values)
+DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/Dockerfile .
+```
+
+**Required Build Arguments:**
+- `VCS_REF`: Git commit hash (use `$(git rev-parse HEAD)`)
+- `BUILD_DATE`: ISO 8601 timestamp (use `$(date -u +"%Y-%m-%dT%H:%M:%SZ")`)
+- `APP_VERSION`: Application version (optional, defaults to "dev")
+
+### Build Scripts
+For convenience, use the provided build scripts that handle mandatory arguments:
+
+**PowerShell (Recommended):**
+```powershell
+.\scripts\build.ps1 -AppVersion v1.0.0
+```
+
+**Batch (Windows):**
+```batch
+scripts\build.bat v1.0.0
+```
+
+These scripts automatically:
+- Validate required arguments
+- Get current git commit hash
+- Set proper build timestamp
+- Build with correct tags
+
 This deploys:
 - **PostgreSQL**: Persistent database with encrypted storage
 - **cryptoutil**: Production-configured server with secrets management

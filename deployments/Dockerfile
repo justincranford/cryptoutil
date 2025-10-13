@@ -3,26 +3,20 @@
 # To build with cache mounts set DOCKER_BUILDKIT=1
 # Example: DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/Dockerfile .
 #
-ARG ALPINE_VERSION=3.19
 # Single pinned Go builder stage (preferred over duplicating builder stages)
 ARG GO_VERSION=1.25.1
+ARG ALPINE_VERSION=3.19
+ARG CGO_ENABLED=0
+ARG GOOS=linux
+ARG GOARCH=amd64
+ARG LDFLAGS="-s -w"
 ARG APP_VERSION=dev
 ARG VCS_REF=unspecified
 ARG BUILD_DATE=1970-01-01T00:00:00Z
+
+#############################################################################################
 FROM golang:${GO_VERSION} AS builder
 WORKDIR /src
-
-ARG APP_VERSION=dev
-ARG VCS_REF=unspecified
-ARG BUILD_DATE=1970-01-01T00:00:00Z
-
-LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
-LABEL org.opencontainers.image.version="${APP_VERSION}"
-LABEL org.opencontainers.image.revision="${VCS_REF}"
-LABEL org.opencontainers.image.title="cryptoutil"
-LABEL org.opencontainers.image.description="A small utility for cryptographic key and certificate operations"
-LABEL org.opencontainers.image.created="${BUILD_DATE}"
-LABEL org.opencontainers.image.authors="Justin Cranford <justin@example.com>"
 
 # Copy dependency manifests first to leverage layer caching
 COPY go.mod go.sum ./
@@ -34,12 +28,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 # Copy the remainder of the source
 COPY . .
-
-# Build arguments for portability and reproducible builds
-ARG CGO_ENABLED=0
-ARG GOOS=linux
-ARG GOARCH=amd64
-ARG LDFLAGS="-s -w"
 
 # Build the static, trimmed binary. Uses BuildKit cache mounts for faster incremental builds.
 RUN --mount=type=cache,target=/go/pkg/mod \
@@ -54,14 +42,13 @@ RUN mkdir -p /app && chown -R 65532:65532 /app
 RUN mkdir -p /app/run && chown -R 65532:65532 /app/run
 
 #############################################################################################
-
-ARG ALPINE_VERSION=3.19
 FROM alpine:${ALPINE_VERSION} AS runtime-deps
 # hadolint ignore=DL3018 # Intentionally unpinned for automatic security updates
 RUN apk --no-cache add ca-certificates tzdata tini
 WORKDIR /root/ssl
 RUN update-ca-certificates
 
+#############################################################################################
 FROM scratch
 
 # Copy CA certificates for HTTPS requests
@@ -92,10 +79,16 @@ USER 65532:65532
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION=dev
 ARG VCS_REF=unspecified
+ARG BUILD_DATE=1970-01-01T00:00:00Z
 
 # Image metadata labels (set at final stage so they are present in the produced image)
+LABEL org.opencontainers.image.source="https://github.com/justincranford/cryptoutil"
 LABEL org.opencontainers.image.version="${APP_VERSION}"
 LABEL org.opencontainers.image.revision="${VCS_REF}"
+LABEL org.opencontainers.image.title="cryptoutil"
+LABEL org.opencontainers.image.description="A small utility for cryptographic key and certificate operations"
+LABEL org.opencontainers.image.created="${BUILD_DATE}"
+LABEL org.opencontainers.image.authors="Justin Cranford <justin@example.com>"
 
 # Use non-privileged ports
 EXPOSE 8080 9090

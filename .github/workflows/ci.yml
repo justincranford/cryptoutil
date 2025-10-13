@@ -299,6 +299,9 @@ jobs:
           load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=1970-01-01T00:00:00Z
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -383,6 +386,9 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VCS_REF=${{ github.sha }}
+            BUILD_DATE=1970-01-01T00:00:00Z
 
   # SBOM Generation
   sbom:
