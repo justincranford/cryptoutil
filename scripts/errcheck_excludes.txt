@@ -14,10 +14,6 @@ context.CancelFunc
 text/template.Template.Execute
 html/template.Template.Execute
 
-# Database operations - sometimes not checked in cleanup
-database/sql.Rows.Close
-database/sql.DB.Close
-
 # Logging operations - often fire-and-forget
 log.Logger.Printf
 log.Printf
