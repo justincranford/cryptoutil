@@ -61,38 +61,46 @@ const (
 var (
 	AttrEnv               = "dev"
 	AttrHostName          = "localhost"
-	AttrServiceName       = "cryptoutil"
+	AttrServiceName       = "cryptoutil" // Default value, will be overridden by settings
 	AttrServiceVersion    = "0.0.1"
 	AttrServiceInstanceID = func() string {
 		return googleUuid.Must(googleUuid.NewV7()).String()
 	}()
 )
 
-var otelMetricsTracesAttributes = []attributeApi.KeyValue{
-	oltpSemanticConventions.DeploymentID(AttrEnv),                    // deployment.environment.name (e.g. local-standalone, adhoc, dev, qa, preprod, prod)
-	oltpSemanticConventions.HostName(AttrHostName),                   // service.instance.id (e.g. 12)
-	oltpSemanticConventions.ServiceName(AttrServiceName),             // service.name (e.g. cryptoutil)
-	oltpSemanticConventions.ServiceVersion(AttrServiceVersion),       // service.version (e.g. 0.0.1, 1.0.2, 2.1.0)
-	oltpSemanticConventions.ServiceInstanceID(AttrServiceInstanceID), // service.instance.id (e.g. 12, uuidV7)
+func getOtelMetricsTracesAttributes() []attributeApi.KeyValue {
+	return []attributeApi.KeyValue{
+		oltpSemanticConventions.DeploymentID(AttrEnv),                    // deployment.environment.name (e.g. local-standalone, adhoc, dev, qa, preprod, prod)
+		oltpSemanticConventions.HostName(AttrHostName),                   // service.instance.id (e.g. 12)
+		oltpSemanticConventions.ServiceName(AttrServiceName),             // service.name (e.g. cryptoutil)
+		oltpSemanticConventions.ServiceVersion(AttrServiceVersion),       // service.version (e.g. 0.0.1, 1.0.2, 2.1.0)
+		oltpSemanticConventions.ServiceInstanceID(AttrServiceInstanceID), // service.instance.id (e.g. 12, uuidV7)
+	}
 }
 
-var otelLogsAttributes = otelMetricsTracesAttributes // same (for now)
+func getOtelLogsAttributes() []attributeApi.KeyValue {
+	return getOtelMetricsTracesAttributes() // same (for now)
+}
 
-var slogStdoutAttributes = func() []stdoutLogExporter.Attr {
+func getSlogStdoutAttributes() []stdoutLogExporter.Attr {
 	var slogAttrs []stdoutLogExporter.Attr
-	for _, otelLogAttr := range otelLogsAttributes {
+	for _, otelLogAttr := range getOtelLogsAttributes() {
 		slogAttrs = append(slogAttrs, stdoutLogExporter.String(string(otelLogAttr.Key), otelLogAttr.Value.AsString()))
 	}
 	return slogAttrs
-}()
+}
 
 func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Settings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")
-	} else if len(settings.OTLPScope) == 0 {
-		return nil, fmt.Errorf("scope must be non-empty")
+	} else if len(settings.OTLPService) == 0 {
+		return nil, fmt.Errorf("service name must be non-empty")
 	}
+
+	// Set the service name from settings
+	AttrServiceName = settings.OTLPService
+
 	slogger, logsProvider, err := initLogger(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init logger: %w", err)
@@ -217,13 +225,13 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	handlerOptions := &stdoutLogExporter.HandlerOptions{
 		Level: slogLevel,
 	}
-	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, handlerOptions).WithAttrs(slogStdoutAttributes)
+	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, handlerOptions).WithAttrs(getSlogStdoutAttributes())
 	slogger := stdoutLogExporter.New(stdoutSlogHandler)
 	if settings.VerboseMode {
 		slogger.Debug("initializing otel logs provider")
 	}
 
-	otelLogsResource := resourceSdk.NewWithAttributes("", otelLogsAttributes...)
+	otelLogsResource := resourceSdk.NewWithAttributes("", getOtelLogsAttributes()...)
 	otelExporter, err := grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(OtelGrpcPush), grpcLogExporter.WithInsecure())
 	if err != nil {
 		slogger.Error("create Otel GRPC logger failed", "error", err)
@@ -236,7 +244,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	otelProvider := logSdk.NewLoggerProvider(otelProviderOptions...)
 
 	if settings.OTLP {
-		otelSlogHandler := otelSlogBridge.NewHandler(settings.OTLPScope, otelSlogBridge.WithLoggerProvider(otelProvider))
+		otelSlogHandler := otelSlogBridge.NewHandler(settings.OTLPService, otelSlogBridge.WithLoggerProvider(otelProvider))
 		slogger = stdoutLogExporter.New(slogMulti.Fanout(stdoutSlogHandler, otelSlogHandler))
 	}
 
@@ -251,7 +259,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 
 	var metricsOptions []metricSdk.Option
 
-	otelMeterTracerTags, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(otelMetricsTracesAttributes...))
+	otelMeterTracerTags, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes()...))
 	if err != nil {
 		slogger.Error("create Otel GRPC metrics resource failed", "error", err)
 		return nil, fmt.Errorf("create Otel GRPC metrics resource failed: %w", err)
@@ -289,7 +297,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 
 	var tracesOptions []traceSdk.TracerProviderOption
 
-	otelMeterTracerResource, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(otelMetricsTracesAttributes...))
+	otelMeterTracerResource, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes()...))
 	if err != nil {
 		slogger.Error("create Otel GRPC traces resource failed", "error", err)
 		return nil, fmt.Errorf("create Otel GRPC traces resource failed: %w", err)

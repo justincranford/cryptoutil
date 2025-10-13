@@ -139,9 +139,25 @@ func RequireNewForTest(applicationName string) *Settings {
 	if !ok {
 		panic("otlpConsole.value must be bool")
 	}
-	otlpScopeValue, ok := otlpScope.value.(string)
+	otlpServiceValue, ok := otlpService.value.(string)
 	if !ok {
-		panic("otlpScope.value must be string")
+		panic("otlpService.value must be string")
+	}
+	otlpVersionValue, ok := otlpVersion.value.(string)
+	if !ok {
+		panic("otlpVersion.value must be string")
+	}
+	otlpEnvironmentValue, ok := otlpEnvironment.value.(string)
+	if !ok {
+		panic("otlpEnvironment.value must be string")
+	}
+	otlpHostnameValue, ok := otlpHostname.value.(string)
+	if !ok {
+		panic("otlpHostname.value must be string")
+	}
+	otlpEndpointValue, ok := otlpEndpoint.value.(string)
+	if !ok {
+		panic("otlpEndpoint.value must be string")
 	}
 	unsealModeValue, ok := unsealMode.value.(string)
 	if !ok {
@@ -188,7 +204,11 @@ func RequireNewForTest(applicationName string) *Settings {
 		DatabaseInitRetryWait:       databaseInitRetryWaitValue,
 		OTLP:                        otlpValue,
 		OTLPConsole:                 otlpConsoleValue,
-		OTLPScope:                   otlpScopeValue,
+		OTLPService:                 otlpServiceValue,
+		OTLPVersion:                 otlpVersionValue,
+		OTLPEnvironment:             otlpEnvironmentValue,
+		OTLPHostname:                otlpHostnameValue,
+		OTLPEndpoint:                otlpEndpointValue,
 		UnsealMode:                  unsealModeValue,
 		UnsealFiles:                 unsealFilesValue,
 	}
@@ -196,6 +216,6 @@ func RequireNewForTest(applicationName string) *Settings {
 	settings.LogLevel = "ALL"
 	settings.DevMode = true
 	settings.IPRateLimit = 1000
-	settings.OTLPScope = applicationName
+	settings.OTLPService = applicationName
 	return settings
 }

@@ -66,12 +66,11 @@ const (
 	defaultProfile                     = "" // Empty means no profile, use explicit configuration
 	defaultOTLP                        = false
 	defaultOTLPConsole                 = false
-	defaultOTLPScope                   = "cryptoutil"
-	defaultTelemetryEnvironment        = "dev"
-	defaultTelemetryHostname           = "localhost"
-	defaultTelemetryServiceName        = "cryptoutil"
-	defaultTelemetryServiceVersion     = "0.0.1"
-	defaultTelemetryOtlpEndpoint       = "127.0.0.1:4317"
+	defaultOTLPService                 = "cryptoutil"
+	defaultOTLPVersion                 = "0.0.1"
+	defaultOTLPEnvironment             = "dev"
+	defaultOTLPHostname                = "localhost"
+	defaultOTLPEndpoint                = "127.0.0.1:4317"
 	defaultUnsealMode                  = "sysinfo"
 )
 
@@ -242,12 +241,11 @@ type Settings struct {
 	ServerShutdownTimeout       time.Duration
 	OTLP                        bool
 	OTLPConsole                 bool
-	OTLPScope                   string
-	TelemetryEnvironment        string
-	TelemetryHostname           string
-	TelemetryServiceName        string
-	TelemetryServiceVersion     string
-	TelemetryOtlpEndpoint       string
+	OTLPService                 string
+	OTLPVersion                 string
+	OTLPEnvironment             string
+	OTLPHostname                string
+	OTLPEndpoint                string
 	UnsealMode                  string
 	UnsealFiles                 []string
 }
@@ -559,12 +557,40 @@ var (
 		usage:       "enable OTLP logging to console (STDOUT)",
 		description: "OTLP Console",
 	})
-	otlpScope = *registerSetting(&Setting{
-		name:        "otlp-scope",
+	otlpService = *registerSetting(&Setting{
+		name:        "otlp-service-name",
 		shorthand:   "s",
-		value:       defaultOTLPScope,
-		usage:       "OTLP scope",
-		description: "OTLP Scope",
+		value:       defaultOTLPService,
+		usage:       "OTLP service name",
+		description: "OTLP Service Name",
+	})
+	otlpVersion = *registerSetting(&Setting{
+		name:        "otlp-service-version",
+		shorthand:   "B",
+		value:       defaultOTLPVersion,
+		usage:       "OTLP service version",
+		description: "OTLP Service Version",
+	})
+	otlpEnvironment = *registerSetting(&Setting{
+		name:        "otlp-environment",
+		shorthand:   "K",
+		value:       defaultOTLPEnvironment,
+		usage:       "OTLP environment",
+		description: "OTLP Environment",
+	})
+	otlpHostname = *registerSetting(&Setting{
+		name:        "otlp-hostname",
+		shorthand:   "O",
+		value:       defaultOTLPHostname,
+		usage:       "OTLP hostname",
+		description: "OTLP Hostname",
+	})
+	otlpEndpoint = *registerSetting(&Setting{
+		name:        "otlp-endpoint",
+		shorthand:   "Q",
+		value:       defaultOTLPEndpoint,
+		usage:       "OTLP endpoint",
+		description: "OTLP Endpoint",
 	})
 	unsealMode = *registerSetting(&Setting{
 		name:        "unseal-mode",
@@ -672,7 +698,11 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.DurationP(serverShutdownTimeout.name, serverShutdownTimeout.shorthand, registerAsDurationSetting(&serverShutdownTimeout), serverShutdownTimeout.usage)
 	pflag.BoolP(otlp.name, otlp.shorthand, registerAsBoolSetting(&otlp), otlp.usage)
 	pflag.BoolP(otlpConsole.name, otlpConsole.shorthand, registerAsBoolSetting(&otlpConsole), otlpConsole.usage)
-	pflag.StringP(otlpScope.name, otlpScope.shorthand, registerAsStringSetting(&otlpScope), otlpScope.usage)
+	pflag.StringP(otlpService.name, otlpService.shorthand, registerAsStringSetting(&otlpService), otlpService.usage)
+	pflag.StringP(otlpVersion.name, otlpVersion.shorthand, registerAsStringSetting(&otlpVersion), otlpVersion.usage)
+	pflag.StringP(otlpEnvironment.name, otlpEnvironment.shorthand, registerAsStringSetting(&otlpEnvironment), otlpEnvironment.usage)
+	pflag.StringP(otlpHostname.name, otlpHostname.shorthand, registerAsStringSetting(&otlpHostname), otlpHostname.usage)
+	pflag.StringP(otlpEndpoint.name, otlpEndpoint.shorthand, registerAsStringSetting(&otlpEndpoint), otlpEndpoint.usage)
 	pflag.StringP(unsealMode.name, unsealMode.shorthand, registerAsStringSetting(&unsealMode), unsealMode.usage)
 	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, registerAsStringArraySetting(&unsealFiles), unsealFiles.usage)
 	err := pflag.CommandLine.Parse(subCommandParameters)
@@ -763,7 +793,11 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		ServerShutdownTimeout:       viper.GetDuration(serverShutdownTimeout.name),
 		OTLP:                        viper.GetBool(otlp.name),
 		OTLPConsole:                 viper.GetBool(otlpConsole.name),
-		OTLPScope:                   viper.GetString(otlpScope.name),
+		OTLPService:                 viper.GetString(otlpService.name),
+		OTLPVersion:                 viper.GetString(otlpVersion.name),
+		OTLPEnvironment:             viper.GetString(otlpEnvironment.name),
+		OTLPHostname:                viper.GetString(otlpHostname.name),
+		OTLPEndpoint:                viper.GetString(otlpEndpoint.name),
 		UnsealMode:                  viper.GetString(unsealMode.name),
 		UnsealFiles:                 viper.GetStringSlice(unsealFiles.name),
 	}
@@ -855,7 +889,11 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  -v, --verbose                       verbose modifier for log level")
 		fmt.Println("  -z, --otlp                          enable OTLP export")
 		fmt.Println("  -q, --otlp-console                  enable OTLP logging to console (STDOUT)")
-		fmt.Println("  -s, --otlp-scope string             OTLP scope (default " + formatDefault(defaultOTLPScope) + ")")
+		fmt.Println("  -s, --otlp-service-name string      OTLP service name (default " + formatDefault(defaultOTLPService) + ")")
+		fmt.Println("  -B, --otlp-service-version string   OTLP service version (default " + formatDefault(defaultOTLPVersion) + ")")
+		fmt.Println("  -K, --otlp-environment string       OTLP environment (default " + formatDefault(defaultOTLPEnvironment) + ")")
+		fmt.Println("  -O, --otlp-hostname string          OTLP hostname (default " + formatDefault(defaultOTLPHostname) + ")")
+		fmt.Println("  -Q, --otlp-endpoint string          OTLP endpoint (default " + formatDefault(defaultOTLPEndpoint) + ")")
 		fmt.Println()
 		fmt.Println("ENVIRONMENT VARIABLES:")
 		fmt.Println("  All flags can be set via environment variables using the CRYPTOUTIL_ prefix.")
@@ -927,7 +965,11 @@ func logSettings(s *Settings) {
 			databaseInitRetryWait.name:       s.DatabaseInitRetryWait,
 			otlp.name:                        s.OTLP,
 			otlpConsole.name:                 s.OTLPConsole,
-			otlpScope.name:                   s.OTLPScope,
+			otlpService.name:                 s.OTLPService,
+			otlpVersion.name:                 s.OTLPVersion,
+			otlpEnvironment.name:             s.OTLPEnvironment,
+			otlpHostname.name:                s.OTLPHostname,
+			otlpEndpoint.name:                s.OTLPEndpoint,
 			unsealMode.name:                  s.UnsealMode,
 			unsealFiles.name:                 s.UnsealFiles,
 		}
@@ -1056,7 +1098,7 @@ func analyzeSettings(settings []*Setting) analysisResult {
 		if len(result.SettingsByNames[setting.name]) > 1 {
 			result.DuplicateNames = append(result.DuplicateNames, setting.name)
 		}
-		if len(result.SettingsByShorthands[setting.shorthand]) > 1 {
+		if setting.shorthand != "" && len(result.SettingsByShorthands[setting.shorthand]) > 1 {
 			result.DuplicateShorthands = append(result.DuplicateShorthands, setting.shorthand)
 		}
 	}

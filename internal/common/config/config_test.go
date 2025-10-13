@@ -49,7 +49,11 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	require.Equal(t, databaseInitRetryWait.value, s.DatabaseInitRetryWait)
 	require.Equal(t, otlp.value, s.OTLP)
 	require.Equal(t, otlpConsole.value, s.OTLPConsole)
-	require.Equal(t, otlpScope.value, s.OTLPScope)
+	require.Equal(t, otlpService.value, s.OTLPService)
+	require.Equal(t, otlpVersion.value, s.OTLPVersion)
+	require.Equal(t, otlpEnvironment.value, s.OTLPEnvironment)
+	require.Equal(t, otlpHostname.value, s.OTLPHostname)
+	require.Equal(t, otlpEndpoint.value, s.OTLPEndpoint)
 	require.Equal(t, unsealMode.value, s.UnsealMode)
 	unsealFilesSlice, ok := unsealFiles.value.([]string)
 	require.True(t, ok, "unsealFiles.value should be []string")
@@ -97,7 +101,11 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--database-init-retry-wait=30s",
 		"--otlp",
 		"--otlp-console",
-		"--otlp-scope=my-scope",
+		"--otlp-service-name=my-service",
+		"--otlp-service-version=1.0.0",
+		"--otlp-environment=development",
+		"--otlp-hostname=example.com",
+		"--otlp-endpoint=example.com:4317",
 		"--unseal-mode=2-of-3",
 		"--unseal-files=/docker/secrets/unseal1",
 		"--unseal-files=/docker/secrets/unseal2",
@@ -142,7 +150,11 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, 30*time.Second, s.DatabaseInitRetryWait)
 	require.True(t, s.OTLP)
 	require.True(t, s.OTLPConsole)
-	require.Equal(t, "my-scope", s.OTLPScope)
+	require.Equal(t, "my-service", s.OTLPService)
+	require.Equal(t, "1.0.0", s.OTLPVersion)
+	require.Equal(t, "development", s.OTLPEnvironment)
+	require.Equal(t, "example.com", s.OTLPHostname)
+	require.Equal(t, "example.com:4317", s.OTLPEndpoint)
 	require.True(t, s.DevMode)
 	require.Equal(t, "2-of-3", s.UnsealMode)
 	require.Equal(t, []string{"/docker/secrets/unseal1", "/docker/secrets/unseal2", "/docker/secrets/unseal3"}, s.UnsealFiles)
