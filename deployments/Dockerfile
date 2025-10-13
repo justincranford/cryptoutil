@@ -47,6 +47,9 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 	CGO_ENABLED=${CGO_ENABLED} GOOS=${GOOS} GOARCH=${GOARCH} \
 	go build -trimpath -ldflags="${LDFLAGS}" -o /app/cryptoutil ./cmd/cryptoutil
 
+# Create /app directory with proper ownership for the application user
+RUN mkdir -p /app && chown -R 65532:65532 /app
+
 #############################################################################################
 
 ARG ALPINE_VERSION=3.19
@@ -58,22 +61,27 @@ RUN update-ca-certificates
 
 FROM scratch
 
-# Copy tini for proper signal handling and PID 1 management
-COPY --from=runtime-deps /sbin/tini /app/tini
-
 # Copy CA certificates for HTTPS requests
 COPY --from=runtime-deps /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
 # Copy timezone data for proper time handling
 COPY --from=runtime-deps /usr/share/zoneinfo /usr/share/zoneinfo
 
-# Copy the static binary produced by the single builder stage
-COPY --from=builder /app/cryptoutil /app/cryptoutil
+# Copy musl libc for tini to work in scratch
+COPY --from=runtime-deps /lib/ld-musl-x86_64.so.1 /lib/
 
-# TEMPORARILY run as root to test volume permissions
+# Copy the /app directory with proper ownership from builder stage
+COPY --from=builder --chown=65532:65532 /app /app
+
+# Copy tini for proper signal handling and PID 1 management (after /app to avoid overwrite)
+COPY --from=runtime-deps --chown=65532:65532 /sbin/tini /app/tini
+
+# Copy the static binary produced by the single builder stage (already included in /app copy above, but ensuring it's there)
+COPY --from=builder --chown=65532:65532 /app/cryptoutil /app/cryptoutil
+
 # Run as non-root user (65532:65532 industry standard)
 # Note: scratch has no passwd file, so numeric IDs only
-# USER 65532:65532
+USER 65532:65532
 
 # Re-declare build args in this stage so they are available for labels
 ARG APP_VERSION=dev
