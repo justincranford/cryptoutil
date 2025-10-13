@@ -62,6 +62,7 @@
 | ** | '.github/instructions/crypto.instructions.md' | Instructions for cryptographic operations |
 | ** | '.github/instructions/errors.instructions.md' | Instructions for error reporting |
 | ** | '.github/instructions/formatting.instructions.md' | Instructions for file formatting and encoding |
+| ** | '.github/instructions/linting-exclusions.instructions.md' | Instructions for consistent linting exclusions across pre-commit, CI/CD, and scripts |
 | ** | '.github/instructions/testing.instructions.md' | Instructions for testing |
 | ** | '.github/instructions/database.instructions.md' | Instructions for database operations and ORM patterns |
 | ** | '.github/instructions/openapi.instructions.md' | Instructions for OpenAPI and code generation patterns |

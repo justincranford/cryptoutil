@@ -1,0 +1,44 @@
+# errcheck exclusions for cryptoutil project
+# Format: package.FunctionName
+# These are functions where unchecked errors are acceptable
+
+# Common test patterns
+testing.T.Logf
+testing.T.Errorf
+testing.T.Fatalf
+
+# HTTP response body close - often deferred and not checked
+io.Closer.Close
+net/http.Response.Body.Close
+
+# Context cancellation - often not checked in cleanup
+context.CancelFunc
+
+# File operations in tests - cleanup often not checked
+os.File.Close
+os.Remove
+
+# JSON unmarshal in tests - often not checked for test data
+encoding/json.Unmarshal
+
+# Template execution in tests - often not checked
+text/template.Template.Execute
+html/template.Template.Execute
+
+# Database operations - sometimes not checked in cleanup
+database/sql.Rows.Close
+database/sql.DB.Close
+
+# Logging operations - often fire-and-forget
+log.Logger.Printf
+log.Printf
+
+# Channel operations - sometimes not checked in cleanup
+close
+
+# Signal operations - often not checked
+os/signal.Notify
+
+# Time operations - ticker cleanup often not checked
+time.Ticker.Stop
+time.Timer.Stop

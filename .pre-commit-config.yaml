@@ -57,7 +57,7 @@ repos:
         language: system
         pass_filenames: false
 
-  # Go formatting using local commands (more reliable)
+  # Go formatting
   - repo: local
     hooks:
       - id: gofumpt
@@ -68,6 +68,9 @@ repos:
         files: '\.go$'
         exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files and dirs
 
+  # Go linting (subset of golangci-lint embedded linters; just a few fast, local, high-frequency linters)
+  - repo: local
+    hooks:
       - id: goimports
         name: goimports (Go import organization)
         entry: goimports
@@ -76,6 +79,16 @@ repos:
         files: '\.go$'
         exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files and dirs
 
+      - id: errcheck
+        name: errcheck (error checking)
+        entry: powershell
+        args: [-Command, "Get-ChildItem -Recurse -Include *.go -Exclude *_gen.go,*.pb.go | Where-Object { $_.FullName -notmatch 'vendor|api' } | Group-Object { $_.DirectoryName } | ForEach-Object { Push-Location $_.Name; try { & 'C:/Users/justi/go/bin/errcheck.exe' -blank -asserts -exclude ../../../scripts/errcheck_excludes.txt ./ } finally { Pop-Location } }"]
+        language: system
+        pass_filenames: false
+
+  # Go mod tidy
+  - repo: local
+    hooks:
       - id: go-mod-tidy
         name: go mod tidy
         entry: go
@@ -84,7 +97,7 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Comprehensive Go linting (runs on pre-push due to performance)
+  # Comprehensive Go linting (runs on pre-push instead of pre-commit, because it can be slow)
   - repo: local
     hooks:
       - id: golangci-lint
@@ -93,7 +106,7 @@ repos:
         args: [run, --timeout=5m]
         language: system
         files: '\.go$'
-        exclude: '_gen\.go$|vendor/'  # Skip generated and vendored code (golangci-lint excludes api/ too)
+        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files, protobuf, vendor, and API code
         stages: [pre-push]
 
       # Dependency checking (runs on pre-push)
