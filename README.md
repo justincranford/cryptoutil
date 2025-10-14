@@ -108,7 +108,7 @@ cryptoutil services (OTLP GRPC:4317 or HTTP:4318) → OpenTelemetry Collector Co
 Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8889/metrics)
 ```
 - **Purpose**: Monitor collector health and performance
-- **Protocol**: Prometheus scraping - pull-based  
+- **Protocol**: Prometheus scraping - pull-based
 - **Data**: Collector throughput, error rates, queue depths, resource usage
 
 **Why Both Flows?** The collector both **receives application telemetry** (from cryptoutil) and **exposes its own metrics** (for monitoring). This provides complete observability of both your application and the telemetry pipeline itself.
@@ -345,7 +345,7 @@ cryptoutil exposes identical OpenAPI operations under two distinct context paths
 #### Automated Execution (CI/CD)
 DAST runs automatically in GitHub Actions on:
 - Push to `main` branch
-- Pull requests  
+- Pull requests
 - Weekly scheduled scans (Sundays)
 - Manual workflow dispatch
 
@@ -377,7 +377,7 @@ DAST runs automatically in GitHub Actions on:
 # Quick scan (2-3 minutes)
 act workflow_dispatch -j dast-security-scan --input scan_profile=quick
 
-# Full scan (8-10 minutes)  
+# Full scan (8-10 minutes)
 act workflow_dispatch -j dast-security-scan --input scan_profile=full
 
 # Deep scan (15-20 minutes)
@@ -413,7 +413,7 @@ act workflow_dispatch -j dast-security-scan --input scan_profile=deep
 
 **Security Tools Included:**
 - **Staticcheck**: Go static analysis and lint checking
-- **golangci-lint**: Comprehensive Go linting with multiple analyzers  
+- **golangci-lint**: Comprehensive Go linting with multiple analyzers
 - **govulncheck**: Official Go vulnerability database scanning
 - **Trivy**: File system and container vulnerability scanning
 - **Docker Scout**: Advanced container security analysis and recommendations
@@ -426,15 +426,22 @@ This project uses **automated code formatting** that runs on every commit. The f
 
 **Setup (Required for Contributors):**
 ```sh
-# Install pre-commit hooks (runs gofumpt + goimports automatically)
+# Install pre-commit hooks (runs comprehensive code quality checks)
 pip install pre-commit
+# If pip is not in PATH, use:
+# python -m pip install pre-commit
+
 pre-commit install
+# If pre-commit is not in PATH, use:
+# python -m pre_commit install
 
 # Set consistent cache location (Windows)
 setx PRE_COMMIT_HOME "C:\Users\%USERNAME%\.cache\pre-commit"
 
 # Test the setup
 pre-commit run --all-files
+# If pre-commit is not in PATH, use:
+# python -m pre_commit run --all-files
 ```
 
 **Automated Setup (Recommended):**
@@ -446,323 +453,8 @@ pre-commit run --all-files
 .\scripts\setup-pre-commit.ps1
 ```
 
-**What Gets Formatted Automatically:**
-- `gofumpt` - Stricter Go code formatting (better than standard `gofmt`)
-- `goimports` - Automatic import organization and formatting
-- Trailing whitespace removal
-- File ending fixes
-
-**Manual Formatting (if needed):**
-```sh
-gofumpt -extra -w .        # Format all Go files
-goimports -w .      # Organize imports
-```
-
-### Code Generation
-```sh
-# Install oapi-codegen
-go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1
-
-# Generate OpenAPI code
-go generate ./...
-```
-
-The generate command runs oapi-codegen using configurations in [api/generate.go](api/generate.go) to create:
-- `api/model/` - Data models
-- `api/server/` - HTTP handlers
-- `api/client/` - Go client
-
-### Linting & Formatting
-
-#### Automated Formatting (Recommended)
-```sh
-# Install pre-commit for automatic formatting on every commit
-pip install pre-commit
-pre-commit install
-
-# Run formatting on all files manually
-pre-commit run --all-files
-```
-
-#### Manual Tools
-```sh
-# Install tools
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
-go install mvdan.cc/gofumpt@v0.7.0
-go install golang.org/x/tools/cmd/goimports@latest
-
-# Run linters and formatters
-golangci-lint run
-gofumpt -extra -l -w .
-goimports -l -w .
-```
-
-### Project Structure
-```
-├── cmd/                    # Main applications
-│   ├── cryptoutil/         # Main server application
-│   └── pgtest/             # PostgreSQL integration tests
-├── internal/               # Private application code
-│   ├── server/             # HTTP server and business logic
-│   ├── common/             # Shared utilities (crypto, config, etc.)
-│   └── openapi/            # Generated API code
-├── api/                    # OpenAPI specifications
-├── configs/                # Configuration templates
-├── deployments/            # Docker and deployment files
-│   ├── Dockerfile          # Container image definition
-│   └── compose/            # Docker Compose setup
-│       ├── compose.yml     # Docker Compose configuration
-│       ├── cryptoutil/     # Application secrets and configs
-│       └── postgres/       # Database secrets
-└── docs/                   # Additional documentation
-```
-
-### Dependency and Action Version Checking
-
-This project includes automated tools to check for outdated dependencies and GitHub Actions versions, helping maintain security and compatibility.
-
-#### Automated Execution (CI/CD)
-Version checks run automatically in GitHub Actions on:
-- Push to `main` branch
-- Pull requests
-- Manual workflow dispatch
-
-#### Manual Execution
-```sh
-# Check Go dependency versions
-go run scripts/cicd_utils.go go-dependency-versions
-
-# Check GitHub Actions versions in workflows
-go run scripts/cicd_utils.go github-action-versions
-
-# Check both (run both commands)
-go run scripts/cicd_utils.go go-dependency-versions
-go run scripts/cicd_utils.go github-action-versions
-```
-
-#### What Gets Checked
-- **Go Dependencies**: Compares current versions against latest available on Go module proxy
-- **GitHub Actions**: Scans `.github/workflows/*.yml` files for action references and checks against latest releases/tags
-
-#### Action Version Exceptions
-
-For cases where the latest action version has breaking changes or compatibility issues, you can configure exceptions in `.github/workflows-outdated-action-exemptions.json`:
-
-```json
-{
-  "exceptions": {
-    "actions/checkout": {
-      "allowed_versions": ["v4.1.7"],
-      "reason": "Known stable version, v5.0.0 has Node.js compatibility issues in some environments"
-    },
-    "docker/build-push-action": {
-      "allowed_versions": ["v5.4.0"],
-      "reason": "Compatibility with current Docker daemon version"
-    }
-  }
-}
-```
-
-The check script will skip validation for actions listed in the exceptions file and display them as "exempted" rather than outdated.
-
-## Architecture Overview
-
-### API Context Separation
-- **Browser Context** (`/browser/api/v1/*`): Full browser security stack
-  - CORS headers for cross-origin requests
-  - CSRF token validation
-  - Content Security Policy (CSP)
-  - XSS protection headers
-- **Service Context** (`/service/api/v1/*`): Streamlined for services
-  - No browser-specific middleware
-  - Optimized for machine-to-machine communication
-- **Management Interface** (`localhost:9090`): Private operations
-  - Health checks (`/livez`, `/readyz`)
-  - Graceful shutdown (`/shutdown`)
-
-### Security Layers
-1. **Network Security**: IP allowlisting, rate limiting
-2. **Transport Security**: TLS with auto-generated certificates
-3. **Application Security**: CORS, CSRF, CSP, security headers
-4. **Cryptographic Security**: FIPS 140-3 algorithms, hierarchical keys
-5. **Operational Security**: Audit logging, secure failure modes
-
-### Key Management Hierarchy
-```
-┌─────────────────┐
-│   Unseal Keys   │ ← System initialization
-└─────────────────┘
-         │
-┌─────────────────┐
-│   Root Keys     │ ← Encrypted by unseal keys
-└─────────────────┘
-         │
-┌─────────────────┐
-│Intermediate Keys│ ← Encrypted by root keys
-└─────────────────┘
-         │
-┌─────────────────┐
-│ Content Keys    │ ← Material encryption keys
-└─────────────────┘
-```
-
-## Production Deployment
-
-### Docker Compose (Recommended)
-```sh
-cd deployments/compose
-docker compose up -d
-```
-
-### Manual Docker Build
-```sh
-# Build with proper versioning (recommended)
-docker build \
-  --build-arg VCS_REF=$(git rev-parse HEAD) \
-  --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
-  --build-arg APP_VERSION=dev \
-  -t cryptoutil \
-  -f deployments/Dockerfile .
-
-# Or use the simple build (with default values)
-DOCKER_BUILDKIT=1 docker build -t cryptoutil -f deployments/Dockerfile .
-```
-
-**Runtime Metadata Files:**
-- `/app/.build-params`: Build arguments used (APP_VERSION, VCS_REF, BUILD_DATE)
-- `/app/.vcs-ref`: Actual git commit hash from build time
-- `/app/.build-date`: Actual build timestamp (ISO 8601 format)
-- `/app/.app-version`: Application version string
-
-**Mandatory Build Arguments:**
-- `APP_VERSION`: Application version (e.g., "v1.0.0") - **MANDATORY**
-- `VCS_REF`: Git commit hash (use `$(git rev-parse HEAD)`) - **MANDATORY**
-- `BUILD_DATE`: ISO 8601 timestamp (use `$(date -u +"%Y-%m-%dT%H:%M:%SZ")`) - **MANDATORY**
-
-**Dockerfile enforces all mandatory arguments internally - build will fail with clear error and usage if missing.**
-
-**Debugging:** Alpine base image provides shell access for troubleshooting.
-
-This deploys:
-- **PostgreSQL**: Persistent database with encrypted storage
-- **cryptoutil**: Production-configured server with secrets management
-- **Health Monitoring**: Automatic health checks and restarts
-
-### Container Architecture
-```
-┌─────────────────────┐    ┌─────────────────────┐
-│   cryptoutil        │    │    PostgreSQL       │
-│   Port 8080 (HTTPS) │◄──►│   Port 5432         │
-│   Port 9090 (HTTP)  │    │   Persistent Volume │
-└─────────────────────┘    └─────────────────────┘
-         │
-         ▼
-┌─────────────────────┐
-│   Docker Secrets    │
-│   • Database URL    │
-│   • Unseal Keys     │
-│   • Configuration   │
-└─────────────────────┘
-```
-
-### Secret Management
-```sh
-# Create database secrets
-echo "cryptoutil" > postgres/postgres_database.secret
-echo "cryptoutil_user" > postgres/postgres_username.secret
-echo "$(openssl rand -base64 32)" > postgres/postgres_password.secret
-
-# Create unseal key secrets (M-of-N sharing)
-for i in {1..5}; do
-  openssl rand -base64 64 > cryptoutil/cryptoutil_unseal_${i}of5.secret
-done
-```
-
-### Health Monitoring
-```sh
-# Check application health
-curl http://localhost:9090/livez    # Liveness probe
-curl http://localhost:9090/readyz   # Readiness probe
-
-# Graceful shutdown
-curl -X POST http://localhost:9090/shutdown
-```
-
-### Kubernetes Deployment
-```yaml
-# Basic Kubernetes deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cryptoutil
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: cryptoutil
-  template:
-    spec:
-      containers:
-      - name: cryptoutil
-        image: cryptoutil:latest
-        ports:
-        - containerPort: 8080
-        - containerPort: 9090
-        livenessProbe:
-          httpGet:
-            path: /livez
-            port: 9090
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 9090
-```
-
-
-## Tooling: Local GitHub Actions Testing with act
-
-You can run GitHub Actions workflows locally using [`act`](https://github.com/nektos/act):
-
-### Install act (Windows)
-
-1. Download the latest release from [nektos/act releases](https://github.com/nektos/act/releases).
-2. Extract `act.exe` from the zip file.
-3. Move `act.exe` to a directory in your PATH (e.g., `C:\Program Files\act`).
-4. Ensure [Docker Desktop](https://www.docker.com/products/docker-desktop/) is running.
-5. Open a new terminal and verify:
-  ```powershell
-  act --version
-  ```
-
-### Run a Workflow Locally
-
-
-From the project root, run:
-```powershell
-# By default, DAST scans use TARGET_URL=https://host.docker.internal:8080 for Docker compatibility:
-act -j dast-security-scan
-
-The workflow now waits for either the admin API (9090, loopback) or the client API (8080, HTTPS, 0.0.0.0) to be ready before running DAST scans. This ensures ZAP can scan as soon as the externally accessible API is up, even if the admin API is not exposed.
-```
-This will execute the `dast-security-scan` job from `.github/workflows/dast.yml` using Docker containers.
-
-> **Note:** The default DAST scan target is now `https://host.docker.internal:8080` for compatibility with Docker and act. If you need to override the target (e.g., in CI), set the `TARGET_URL` environment variable or use the workflow_dispatch input. Some steps may require adjustment for local paths, secrets, or service compatibility. See the [act documentation](https://github.com/nektos/act#usage) for advanced usage and troubleshooting.
-
-## Documentation
-
-- [Project Overview](docs/README.md) - Comprehensive architectural deep dive
-
-## Contributing
-
-1. **Install pre-commit hooks**: `pip install pre-commit && pre-commit install`
-2. Follow the project layout in [.github/instructions/project-layout.instructions.md](.github/instructions/project-layout.instructions.md)
-3. Use the coding standards in [.github/instructions/](.github/instructions/)
-4. Ensure all tests pass: `go test ./... -cover`
-5. Code formatting is **automatic** via pre-commit hooks (gofumpt + goimports)
-6. Manual linting (if needed): `golangci-lint run`
-
-**Note:** Code formatting (`gofumpt` + `goimports`) is enforced automatically on commit and verified in CI.
-
-## License
-
-See [LICENSE](LICENSE) file for details.
+**What Gets Checked Automatically:**
+- **File formatting**: End-of-file fixes, trailing whitespace removal
+- **Syntax validation**: YAML, JSON, GitHub Actions workflows, Dockerfiles
+- **Go tools**: `gofumpt` (strict formatting), `goimports` (import organization), `errcheck` (error checking), `go build`
+- **Security**: Large file prevention, merge conflict detection

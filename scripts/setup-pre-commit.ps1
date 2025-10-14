@@ -8,14 +8,14 @@ $cachePath = "$env:USERPROFILE\.cache\pre-commit"
 [Environment]::SetEnvironmentVariable("PRE_COMMIT_HOME", $cachePath, "User")
 Write-Host "Set PRE_COMMIT_HOME to: $cachePath"
 
-# Install pre-commit if not already installed
-pip install pre-commit
+# Install pre-commit if not already installed (use python -m pip for PATH compatibility)
+python -m pip install pre-commit
 
-# Install the hooks
-pre-commit install
+# Install the hooks (use python -m pre_commit for PATH compatibility)
+python -m pre_commit install
 
 # Test the setup
-pre-commit run --all-files
+python -m pre_commit run --all-files
 
 Write-Host "Pre-commit setup complete!"
 Write-Host "Cache location: $cachePath"
