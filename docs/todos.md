@@ -222,3 +222,401 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 - **Expected Outcome**: Development workflow improvement with live config reloading
 - **Priority**: LOW - Developer experience enhancement
 - **Timeline**: Q1 2026
+
+#### Task D1: Expand Grafana Dashboards for Custom Metrics (🟡 MEDIUM)
+- **Description**: Current Grafana dashboard only covers basic HTTP metrics but misses all custom application metrics
+- **Current State**: Dashboard shows only `http_requests_total` and `http_request_duration_seconds_bucket` from otelfiber middleware
+- **Missing Metrics Categories**:
+  - **Pool Performance Metrics**: `cryptoutil.pool.get`, `cryptoutil.pool.permission`, `cryptoutil.pool.generate` histograms
+  - **Security Header Metrics**: `security_headers_missing_total` counter
+  - **Business Logic Metrics**: None currently implemented but infrastructure ready
+- **Action Items**:
+  - Create comprehensive dashboard panels for pool performance monitoring
+  - Add security metrics dashboard with header compliance tracking
+  - Implement business logic metrics for cryptographic operations
+  - Update dashboard JSON with proper Prometheus queries for OpenTelemetry metrics
+  - Add alerting rules for security header violations and pool performance issues
+- **Files**: `deployments/compose/grafana-otel-lgtm/dashboards/cryptoutil.json`
+- **Expected Outcome**: Full observability of all custom application metrics
+- **Priority**: MEDIUM - Observability improvement
+- **Timeline**: Q4 2025
+
+---
+
+## Appendix: Grafana Dashboard Expansion
+
+### Current Dashboard Limitations
+
+The existing `cryptoutil.json` dashboard only includes basic HTTP metrics from the `otelfiber` middleware:
+
+```json
+{
+  "panels": [
+    {
+      "title": "Request Rate",
+      "targets": [{"expr": "rate(http_requests_total[5m])"}]
+    },
+    {
+      "title": "Response Time",
+      "targets": [{"expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))"}]
+    }
+  ]
+}
+```
+
+### Missing Custom Metrics Categories
+
+#### 1. Pool Performance Metrics
+**Source**: `internal/common/pool/pool.go`
+
+**Available Metrics**:
+- `cryptoutil.pool.get` - Histogram of get operation duration (milliseconds)
+- `cryptoutil.pool.permission` - Histogram of permission wait duration (milliseconds)
+- `cryptoutil.pool.generate` - Histogram of generate operation duration (milliseconds)
+
+**Attributes**: `workers`, `size`, `values`, `duration`, `type` (per pool instance)
+
+**Recommended Dashboard Panels**:
+```json
+{
+  "title": "Pool Get Latency (95th percentile)",
+  "targets": [{
+    "expr": "histogram_quantile(0.95, rate(cryptoutil_pool_get_bucket[5m]))",
+    "legendFormat": "{{pool}} - {{type}}"
+  }]
+},
+{
+  "title": "Pool Permission Wait Time",
+  "targets": [{
+    "expr": "histogram_quantile(0.95, rate(cryptoutil_pool_permission_bucket[5m]))",
+    "legendFormat": "{{pool}} permission wait"
+  }]
+},
+{
+  "title": "Pool Generation Time",
+  "targets": [{
+    "expr": "histogram_quantile(0.95, rate(cryptoutil_pool_generate_bucket[5m]))",
+    "legendFormat": "{{pool}} generation time"
+  }]
+}
+```
+
+#### 2. Security Header Validation Metrics
+**Source**: `internal/server/application/application_listener.go`
+
+**Available Metrics**:
+- `security_headers_missing_total` - Counter of requests with missing security headers
+
+**Recommended Dashboard Panels**:
+```json
+{
+  "title": "Security Header Violations",
+  "targets": [{
+    "expr": "rate(security_headers_missing_total[5m])",
+    "legendFormat": "Missing headers per second"
+  }]
+},
+{
+  "title": "Security Header Compliance Rate",
+  "targets": [{
+    "expr": "(1 - (rate(security_headers_missing_total[5m]) / rate(http_requests_total[5m]))) * 100",
+    "legendFormat": "Compliance %"
+  }]
+}
+```
+
+### Implementation Architecture
+
+**Metrics Flow**:
+```
+Application (OpenTelemetry) → OTEL Collector → Grafana-OTEL-LGTM (Prometheus + Grafana)
+```
+
+**Dashboard Updates Needed**:
+1. **Add Pool Performance Dashboard**:
+   - Pool utilization metrics
+   - Latency percentiles per pool type
+   - Worker efficiency monitoring
+
+2. **Add Security Dashboard**:
+   - Header compliance rates
+   - Violation trends
+   - Alert thresholds for security issues
+
+3. **Add Business Logic Dashboard** (Future):
+   - Cryptographic operation metrics
+   - Key generation performance
+   - Database operation latency
+
+### OpenTelemetry to Prometheus Metric Name Mapping
+
+OpenTelemetry metrics are automatically converted to Prometheus format:
+- `cryptoutil.pool.get` → `cryptoutil_pool_get`
+- `security_headers_missing_total` → `security_headers_missing_total`
+
+### Alerting Recommendations
+
+```yaml
+# Example alert rules for security headers
+groups:
+  - name: security
+    rules:
+      - alert: HighSecurityHeaderViolations
+        expr: rate(security_headers_missing_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High rate of missing security headers"
+```
+
+### Priority Implementation Order
+
+1. **Phase 1**: Add pool performance metrics dashboard
+2. **Phase 2**: Add security header compliance dashboard  
+3. **Phase 3**: Implement business logic metrics and dashboard
+4. **Phase 4**: Add alerting rules and thresholds
+
+**Timeline**: Q4 2025 implementation alongside OAuth 2.0 work.
+
+---
+
+**Last Updated**: 2025-10-14
+**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue and Docker image version pinning task added.
+
+---
+
+## Appendix: OAuth 2.0 & OIDC Implementation Options
+
+### Recommended Architecture: Hybrid Approach
+
+#### Option 1: Ory Hydra + Custom Provider (RECOMMENDED)
+**Best for your requirements - supports both custom auth provider and GitHub**
+
+**Dependencies to Add:**
+```go
+require (
+    github.com/ory/hydra-client-go v2.2.0+incompatible
+    github.com/coreos/go-oidc/v3 v3.14.1
+    github.com/zitadel/oidc/v2 v2.12.3
+    golang.org/x/oauth2 v0.28.1
+)
+```
+
+**Pros:**
+- ✅ Ory Hydra is Go-based, production-ready OAuth2/OIDC server
+- ✅ Supports Authorization Code + PKCE natively
+- ✅ Easy integration with GitHub OAuth2
+- ✅ Your custom provider can delegate to Hydra
+- ✅ Excellent security defaults
+- ✅ Active CNCF project
+
+**Implementation Example:**
+```go
+// Hydra client setup
+hydraAdmin := hydra.NewAPIClient(&hydra.Configuration{
+    Host:   "hydra.yourdomain.com",
+    Scheme: "https",
+})
+
+// GitHub OAuth2 config
+githubOAuth2 := &oauth2.Config{
+    ClientID:     "your-github-client-id",
+    ClientSecret: "your-github-client-secret",
+    Scopes:       []string{"user:email"},
+    Endpoint:     github.Endpoint,
+}
+
+// Custom provider using Hydra
+func (h *Handler) handleLogin(c *fiber.Ctx) error {
+    // Redirect to Hydra with PKCE
+    loginURL := fmt.Sprintf("%s/oauth2/auth?%s",
+        hydraURL,
+        url.Values{
+            "client_id":     {clientID},
+            "response_type": {"code"},
+            "scope":         {"openid profile email"},
+            "redirect_uri":  {redirectURI},
+            "code_challenge": {pkceChallenge},
+            "code_challenge_method": {"S256"},
+        }.Encode())
+
+    return c.Redirect(loginURL)
+}
+```
+
+#### Option 2: Zitadel OIDC Framework (Pure Go)
+**Excellent for custom implementation with GitHub support**
+
+**Dependencies:**
+```go
+require github.com/zitadel/oidc/v2 v2.12.3
+```
+
+**Pros:**
+- ✅ Pure Go implementation
+- ✅ Built-in Authorization Code + PKCE support
+- ✅ Excellent for custom auth providers
+- ✅ GitHub OAuth2 integration
+- ✅ Modern security standards
+
+**Implementation:**
+```go
+// Zitadel OIDC provider
+provider, err := oidc.NewProvider(context.Background(),
+    "https://your-custom-provider.com")
+
+// GitHub provider  
+githubProvider := oidc.NewProvider(context.Background(),
+    "https://github.com")
+
+// PKCE-enabled flow
+func (h *Handler) handleCallback(c *fiber.Ctx) error {
+    code := c.Query("code")
+    codeVerifier := getPKCEVerifier(c) // From session
+
+    // Exchange code for tokens with PKCE verification
+    tokens, err := provider.Exchange(c.Context(),
+        code, codeVerifier, redirectURI)
+
+    // Validate ID token
+    idToken, err := oidc.VerifyIDToken(c.Context(),
+        tokens.IDToken, provider)
+
+    return h.createSession(c, idToken)
+}
+```
+
+#### Option 3: CoreOS go-oidc + Custom OAuth2 Server
+**If you want full control over the OAuth2 server**
+
+**Dependencies:**
+```go
+require (
+    github.com/coreos/go-oidc/v3 v3.14.1
+    github.com/go-oauth2/oauth2/v4 v4.5.2
+)
+```
+
+**Pros:**
+- ✅ Maximum control over implementation
+- ✅ Can build custom OAuth2 server
+- ✅ GitHub integration straightforward
+- ✅ Good for learning OAuth2 internals
+
+### Machine-to-Machine (M2M) Implementation
+
+For service clients, use **OAuth 2.0 Client Credentials Flow**:
+
+```go
+// Client Credentials flow for M2M
+func (h *Handler) handleM2MToken(c *fiber.Ctx) error {
+    clientID := c.Get("X-Client-ID")
+    clientSecret := c.Get("X-Client-Secret")
+
+    // Validate client credentials
+    if !h.validateClient(clientID, clientSecret) {
+        return c.Status(401).JSON(fiber.Map{"error": "invalid_client"})
+    }
+
+    // Issue access token
+    token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
+        "iss": "cryptoutil",
+        "sub": clientID,
+        "aud": "service-api",
+        "scope": "service:api",
+        "exp": time.Now().Add(time.Hour).Unix(),
+    })
+
+    signedToken, err := token.SignedString(h.privateKey)
+    return c.JSON(fiber.Map{"access_token": signedToken})
+}
+```
+
+### Fiber Integration Pattern
+
+```go
+// Middleware for route protection
+func (h *Handler) authMiddleware(requiredScope string) fiber.Handler {
+    return func(c *fiber.Ctx) error {
+        auth := c.Get("Authorization")
+        if auth == "" {
+            return c.Status(401).JSON(fiber.Map{"error": "missing_token"})
+        }
+
+        token := strings.TrimPrefix(auth, "Bearer ")
+
+        // Verify JWT token
+        claims, err := h.verifyToken(token)
+        if err != nil {
+            return c.Status(401).JSON(fiber.Map{"error": "invalid_token"})
+        }
+
+        // Check scope
+        if !strings.Contains(claims["scope"].(string), requiredScope) {
+            return c.Status(403).JSON(fiber.Map{"error": "insufficient_scope"})
+        }
+
+        c.Locals("claims", claims)
+        return c.Next()
+    }
+}
+
+// Route setup
+app.Get("/browser/api/v1/*", h.authMiddleware("browser:api"))
+app.Get("/service/api/v1/*", h.authMiddleware("service:api"))
+```
+
+### Security Best Practices
+
+1. **PKCE Always**: Use PKCE for all public clients (browsers)
+2. **State Parameter**: Protect against CSRF attacks
+3. **Nonce**: Prevent replay attacks in OIDC
+4. **Secure Cookies**: HttpOnly, Secure, SameSite for session cookies
+5. **Token Storage**: Never store tokens in localStorage (use secure httpOnly cookies)
+6. **Refresh Tokens**: Implement secure refresh token rotation
+7. **Rate Limiting**: Protect auth endpoints from abuse
+
+### Recommended Choice for Cryptoutil Project
+
+**Go with Option 1 (Ory Hydra)** because:
+- Production-ready OAuth2/OIDC server
+- Excellent GitHub integration
+- Your custom provider can leverage Hydra's battle-tested implementation
+- Active community and commercial support available
+- Fits well with your existing Fiber + OpenTelemetry stack
+
+### Alternative OAuth2/OIDC Servers
+
+**Production-Ready Options:**
+- **Keycloak**: Java-based, feature-rich, enterprise-grade
+- **Auth0**: SaaS solution, easy integration
+- **Dex**: CNCF project, Go-based, Kubernetes-native
+- **Fosite**: Ory's OAuth2 framework for custom implementations
+
+**GitHub OAuth2 Integration:**
+```go
+// Direct GitHub OAuth2 (simplest)
+githubConfig := &oauth2.Config{
+    ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
+    ClientSecret: os.Getenv("GITHUB_CLIENT_SECRET"),
+    Scopes:       []string{"user:email", "read:user"},
+    Endpoint:     github.Endpoint,
+}
+```
+
+### Implementation Roadmap
+
+1. **Phase 1**: Set up Ory Hydra in Docker Compose
+2. **Phase 2**: Implement Authorization Code flow with PKCE
+3. **Phase 3**: Add GitHub OAuth2 provider
+4. **Phase 4**: Implement Client Credentials flow for M2M
+5. **Phase 5**: Add token validation middleware
+6. **Phase 6**: Update OpenAPI specs and documentation
+
+**Timeline**: Q4 2025 implementation as planned in Task O1.
+
+---
+
+**Last Updated**: 2025-10-14
+**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue and Docker image version pinning task added.
