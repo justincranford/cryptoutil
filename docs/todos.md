@@ -179,7 +179,6 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 ---
 
 **Last Updated**: 2025-10-14
-**Recent completions**: Compression middleware implemented (2025-10-12), invalid JWK decryption test implemented (2025-10-12), request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12), duplicate sections removed (2025-10-13), configuration tasks C3-C5 and C7 completed (2025-10-13), errcheck exclusions reviewed (2025-10-14), OTLP protocol support implemented (2025-10-14)
 **Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue and Docker image version pinning task added.
 
 ---
