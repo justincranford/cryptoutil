@@ -58,7 +58,9 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	// Create temporary exceptions file
 	tempDir := t.TempDir()
 	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
-	os.MkdirAll(filepath.Dir(exceptionsFile), 0o755)
+	if err := os.MkdirAll(filepath.Dir(exceptionsFile), 0o755); err != nil {
+		t.Fatalf("Failed to create directory: %v", err)
+	}
 
 	exceptionsData := ActionExceptions{
 		Exceptions: map[string]ActionException{
@@ -69,13 +71,27 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 		},
 	}
 
-	data, _ := json.MarshalIndent(exceptionsData, "", "  ")
-	os.WriteFile(exceptionsFile, data, 0o644)
+	data, err := json.MarshalIndent(exceptionsData, "", "  ")
+	if err != nil {
+		t.Fatalf("Failed to marshal JSON: %v", err)
+	}
+	if err := os.WriteFile(exceptionsFile, data, 0o600); err != nil {
+		t.Fatalf("Failed to write file: %v", err)
+	}
 
 	// Change to temp directory
-	oldWd, _ := os.Getwd()
-	os.Chdir(tempDir)
-	defer os.Chdir(oldWd)
+	oldWd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current working directory: %v", err)
+	}
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatalf("Failed to change directory: %v", err)
+	}
+	defer func() {
+		if err := os.Chdir(oldWd); err != nil {
+			t.Errorf("Failed to restore working directory: %v", err)
+		}
+	}()
 
 	exceptions, err := loadActionExceptions()
 	if err != nil {
@@ -103,7 +119,9 @@ jobs:
       - uses: golangci/golangci-lint-action@v4
 `
 
-	os.WriteFile(workflowFile, []byte(content), 0o644)
+	if err := os.WriteFile(workflowFile, []byte(content), 0o600); err != nil {
+		t.Fatalf("Failed to write workflow file: %v", err)
+	}
 
 	actions, err := parseWorkflowFile(workflowFile)
 	if err != nil {
@@ -150,7 +168,7 @@ func TestIsOutdated(t *testing.T) {
 	}
 }
 
-// Test the getLatestVersion function with a mock server
+// Test the getLatestVersion function with a mock server.
 func TestGetLatestVersion(t *testing.T) {
 	server := setupMockGitHubServer()
 	defer server.Close()
@@ -169,12 +187,15 @@ func TestGetLatestVersion(t *testing.T) {
 	}
 }
 
-// Mock HTTP server for testing GitHub API calls
+// Mock HTTP server for testing GitHub API calls.
 func setupMockGitHubServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/releases/latest") {
 			response := GitHubRelease{TagName: "v5.0.0"}
-			json.NewEncoder(w).Encode(response)
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+				return
+			}
 		} else if strings.Contains(r.URL.Path, "/tags") {
 			response := []struct {
 				Name string `json:"name"`
@@ -182,12 +203,15 @@ func setupMockGitHubServer() *httptest.Server {
 				{Name: "v5.0.0"},
 				{Name: "v4.2.0"},
 			}
-			json.NewEncoder(w).Encode(response)
+			if err := json.NewEncoder(w).Encode(response); err != nil {
+				http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+				return
+			}
 		}
 	}))
 }
 
-// Test checkDeps with mocked exec.Command
+// Test checkDeps with mocked exec.Command.
 func TestCheckDeps_NoOutdated(t *testing.T) {
 	// This test would require more complex mocking of exec.Command
 	// For now, we'll skip the actual execution and just test the function signature
