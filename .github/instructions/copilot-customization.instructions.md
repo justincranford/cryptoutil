@@ -83,3 +83,6 @@ These commands require manual authorization and should be avoided when possible:
 
 ### Complex Docker Compose
 - `docker compose -f <path>` - Use specific compose files
+
+### Network Commands
+- `curl.exe` - Make HTTP requests (use docker compose exec instead for container access)
