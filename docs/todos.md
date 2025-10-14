@@ -1,5 +1,48 @@
 # Project TODO List - Active Tasks
 
+## 🟡 MEDIUM - Testing Infrastructure Improvements
+
+#### Task T2: Add Fuzz Testing for Security-Critical Code (🟡 MEDIUM)
+- **Description**: Implement fuzz testing for cryptographic operations and key generation functions
+- **Current State**: No fuzz tests implemented (no `func Fuzz*` functions found)
+- **Action Items**:
+  - Add fuzz tests for key generation functions in `pkg/keygen`
+  - Add fuzz tests for cryptographic operations in `internal/crypto`
+  - Configure appropriate fuzz timeouts (5-30 minutes)
+  - Add fuzz testing to nightly/release CI pipeline
+- **Files**: `*_test.go` files in `pkg/keygen/`, `internal/crypto/`
+- **Expected Outcome**: Property-based testing for security-critical code paths
+- **Priority**: Medium - Security testing enhancement
+- **Dependencies**: Task T1 (separate invocations)
+
+#### Task T3: Add Benchmark Testing Infrastructure (🟡 MEDIUM)
+- **Description**: Implement performance benchmarking for key cryptographic operations
+- **Current State**: No benchmark tests implemented (no `func Benchmark*` functions found)
+- **Action Items**:
+  - Add benchmarks for key generation performance
+  - Add benchmarks for cryptographic operations
+  - Configure benchmark testing in CI pipeline
+  - Add performance regression detection
+- **Files**: `*_test.go` files in `pkg/keygen/`, `internal/crypto/`
+- **Expected Outcome**: Performance monitoring and regression detection
+- **Priority**: Medium - Performance validation
+- **Dependencies**: Task T1 (separate invocations)
+
+#### Task T5: Optimize Test Parallelization Strategy (🟡 MEDIUM)
+- **Description**: Fine-tune test parallelization for optimal CI performance
+- **Current State**: Basic `-p=2` parallelization, but may not be optimal for all packages
+- **Action Items**:
+  - Analyze test execution times by package
+  - Optimize `-p` flag usage (parallel packages vs parallel tests within packages)
+  - Balance test load across CI runners
+  - Monitor and adjust based on CI performance metrics
+- **Files**: `.github/workflows/ci.yml`, test execution analysis
+- **Expected Outcome**: Faster CI execution with better resource utilization
+- **Priority**: Medium - CI performance optimization
+- **Dependencies**: Task T1 completion
+
+---
+
 ##  CRITICAL - OAuth 2.0 Implementation Planning
 
 #### Task O1: Design OAuth 2.0 Authorization Code Flow for User vs Machine Access (🔴 CRITICAL)
@@ -373,7 +416,7 @@ groups:
 ### Priority Implementation Order
 
 1. **Phase 1**: Add pool performance metrics dashboard
-2. **Phase 2**: Add security header compliance dashboard  
+2. **Phase 2**: Add security header compliance dashboard
 3. **Phase 3**: Implement business logic metrics and dashboard
 4. **Phase 4**: Add alerting rules and thresholds
 
@@ -466,7 +509,7 @@ require github.com/zitadel/oidc/v2 v2.12.3
 provider, err := oidc.NewProvider(context.Background(),
     "https://your-custom-provider.com")
 
-// GitHub provider  
+// GitHub provider
 githubProvider := oidc.NewProvider(context.Background(),
     "https://github.com")
 
@@ -594,8 +637,7 @@ app.Get("/service/api/v1/*", h.authMiddleware("service:api"))
 - **Dex**: CNCF project, Go-based, Kubernetes-native
 - **Fosite**: Ory's OAuth2 framework for custom implementations
 
-**GitHub OAuth2 Integration:**
-```go
+**GitHub OAuth2 Integration:```go
 // Direct GitHub OAuth2 (simplest)
 githubConfig := &oauth2.Config{
     ClientID:     os.Getenv("GITHUB_CLIENT_ID"),
@@ -617,6 +659,3 @@ githubConfig := &oauth2.Config{
 **Timeline**: Q4 2025 implementation as planned in Task O1.
 
 ---
-
-**Last Updated**: 2025-10-14
-**Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue and Docker image version pinning task added.
