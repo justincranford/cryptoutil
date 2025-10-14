@@ -90,13 +90,26 @@ cryptoutil Server Applications
 - **Telemetry forwarding architecture**: cryptoutil services → OpenTelemetry Collector → Grafana-OTEL-LGTM
 
 #### Telemetry Architecture
+
+**Dual Telemetry Flows for Complete Observability:**
+
+**Application Telemetry (Push-based):**
 ```
-cryptoutil services (gRPC OTLP) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (HTTP OTLP)
-                                                            ↓
-                                               Prometheus (scrapes collector metrics)
-                                                            ↓
-                                               Grafana (visualizes all telemetry)
+cryptoutil services (OTLP gRPC:4317) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (OTLP HTTP:4318)
 ```
+- **Purpose**: Business application traces, logs, and metrics
+- **Protocol**: OTLP (OpenTelemetry Protocol) - push-based
+- **Data**: Crypto operations, API calls, business logic telemetry
+
+**Infrastructure Telemetry (Pull-based):**
+```
+Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8889/metrics)
+```
+- **Purpose**: Monitor collector health and performance
+- **Protocol**: Prometheus scraping - pull-based  
+- **Data**: Collector throughput, error rates, queue depths, resource usage
+
+**Why Both Flows?** The collector both **receives application telemetry** (from cryptoutil) and **exposes its own metrics** (for monitoring). This provides complete observability of both your application and the telemetry pipeline itself.
 
 **Services:**
 - **Grafana**: http://localhost:3000 (admin/admin)
