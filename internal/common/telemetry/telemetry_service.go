@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,8 +16,11 @@ import (
 	stdoutLogExporter "log/slog"
 
 	grpcLogExporter "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	httpLogExporter "go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	grpcMetricExporter "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+	httpMetricExporter "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	grpcTraceExporterotlptracegrpc "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	httpTraceExporterotlptracehttp "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	stdoutMetricExporter "go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	stdoutTraceExporter "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 
@@ -195,10 +199,32 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	}
 
 	otelLogsResource := resourceSdk.NewWithAttributes("", getOtelLogsAttributes(settings)...)
-	otelExporter, err := grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(settings.OTLPEndpoint), grpcLogExporter.WithInsecure())
-	if err != nil {
-		slogger.Error("create Otel GRPC logger failed", "error", err)
-		return nil, nil, fmt.Errorf("create Otel GRPC logger failed: %w", err)
+
+	// Determine protocol and endpoint
+	isHTTP := strings.HasPrefix(settings.OTLPEndpoint, "http://") || strings.HasPrefix(settings.OTLPEndpoint, "https://")
+	endpoint := settings.OTLPEndpoint
+	if isHTTP {
+		// For HTTP exporters, strip the protocol prefix
+		if strings.HasPrefix(endpoint, "http://") {
+			endpoint = strings.TrimPrefix(endpoint, "http://")
+		} else if strings.HasPrefix(endpoint, "https://") {
+			endpoint = strings.TrimPrefix(endpoint, "https://")
+		}
+	}
+
+	var otelExporter logSdk.Exporter
+	if isHTTP {
+		otelExporter, err = httpLogExporter.New(ctx, httpLogExporter.WithEndpoint(endpoint), httpLogExporter.WithInsecure())
+		if err != nil {
+			slogger.Error("create Otel HTTP logger failed", "error", err)
+			return nil, nil, fmt.Errorf("create Otel HTTP logger failed: %w", err)
+		}
+	} else {
+		otelExporter, err = grpcLogExporter.New(ctx, grpcLogExporter.WithEndpoint(settings.OTLPEndpoint), grpcLogExporter.WithInsecure())
+		if err != nil {
+			slogger.Error("create Otel GRPC logger failed", "error", err)
+			return nil, nil, fmt.Errorf("create Otel GRPC logger failed: %w", err)
+		}
 	}
 	otelProviderOptions := []logSdk.LoggerProviderOption{
 		logSdk.WithResource(otelLogsResource),
@@ -230,12 +256,35 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
 	if settings.OTLP {
-		otelGrpcMetrics, err := grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(settings.OTLPEndpoint), grpcMetricExporter.WithInsecure())
-		if err != nil {
-			slogger.Error("create Otel GRPC metrics failed", "error", err)
-			return nil, fmt.Errorf("create Otel GRPC metrics failed: %w", err)
+		// Determine protocol and endpoint
+		isHTTP := strings.HasPrefix(settings.OTLPEndpoint, "http://") || strings.HasPrefix(settings.OTLPEndpoint, "https://")
+		endpoint := settings.OTLPEndpoint
+		if isHTTP {
+			// For HTTP exporters, strip the protocol prefix
+			if strings.HasPrefix(endpoint, "http://") {
+				endpoint = strings.TrimPrefix(endpoint, "http://")
+			} else if strings.HasPrefix(endpoint, "https://") {
+				endpoint = strings.TrimPrefix(endpoint, "https://")
+			}
 		}
-		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(otelGrpcMetrics, metricSdk.WithInterval(MetricsTimeout))))
+
+		var otelGrpcMetrics metricSdk.Reader
+		if isHTTP {
+			httpMetrics, err := httpMetricExporter.New(ctx, httpMetricExporter.WithEndpoint(endpoint), httpMetricExporter.WithInsecure())
+			if err != nil {
+				slogger.Error("create Otel HTTP metrics failed", "error", err)
+				return nil, fmt.Errorf("create Otel HTTP metrics failed: %w", err)
+			}
+			otelGrpcMetrics = metricSdk.NewPeriodicReader(httpMetrics, metricSdk.WithInterval(MetricsTimeout))
+		} else {
+			grpcMetrics, err := grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(settings.OTLPEndpoint), grpcMetricExporter.WithInsecure())
+			if err != nil {
+				slogger.Error("create Otel GRPC metrics failed", "error", err)
+				return nil, fmt.Errorf("create Otel GRPC metrics failed: %w", err)
+			}
+			otelGrpcMetrics = metricSdk.NewPeriodicReader(grpcMetrics, metricSdk.WithInterval(MetricsTimeout))
+		}
+		metricsOptions = append(metricsOptions, metricSdk.WithReader(otelGrpcMetrics))
 	}
 
 	if settings.OTLPConsole {
@@ -268,10 +317,33 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
 	if settings.OTLP {
-		tracerOtelGrpc, err := grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(settings.OTLPEndpoint), grpcTraceExporterotlptracegrpc.WithInsecure())
-		if err != nil {
-			slogger.Error("create Otel GRPC traces failed", "error", err)
-			return nil, fmt.Errorf("create Otel GRPC traces failed: %w", err)
+		// Determine protocol and endpoint
+		isHTTP := strings.HasPrefix(settings.OTLPEndpoint, "http://") || strings.HasPrefix(settings.OTLPEndpoint, "https://")
+		endpoint := settings.OTLPEndpoint
+		if isHTTP {
+			// For HTTP exporters, strip the protocol prefix
+			if strings.HasPrefix(endpoint, "http://") {
+				endpoint = strings.TrimPrefix(endpoint, "http://")
+			} else if strings.HasPrefix(endpoint, "https://") {
+				endpoint = strings.TrimPrefix(endpoint, "https://")
+			}
+		}
+
+		var tracerOtelGrpc traceSdk.SpanExporter
+		if isHTTP {
+			var err error
+			tracerOtelGrpc, err = httpTraceExporterotlptracehttp.New(ctx, httpTraceExporterotlptracehttp.WithEndpoint(endpoint), httpTraceExporterotlptracehttp.WithInsecure())
+			if err != nil {
+				slogger.Error("create Otel HTTP traces failed", "error", err)
+				return nil, fmt.Errorf("create Otel HTTP traces failed: %w", err)
+			}
+		} else {
+			var err error
+			tracerOtelGrpc, err = grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(settings.OTLPEndpoint), grpcTraceExporterotlptracegrpc.WithInsecure())
+			if err != nil {
+				slogger.Error("create Otel GRPC traces failed", "error", err)
+				return nil, fmt.Errorf("create Otel GRPC traces failed: %w", err)
+			}
 		}
 		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(tracerOtelGrpc, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}

@@ -1,6 +1,6 @@
 # OpenTelemetry configuration
 otlp: true
 #otlp-console: false
-otlp-endpoint: opentelemetry-collector-contrib:4317
+otlp-endpoint: http://opentelemetry-collector-contrib:4318
 otlp-version: "0.0.1"
 otlp-environment: "docker compose"
