@@ -629,7 +629,6 @@ func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings)
 }
 
 func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicationCore) fiber.Handler {
-	// Enhanced health checks with detailed status (database, dependencies, memory usage)
 	return func(c *fiber.Ctx) error {
 		// Check if this is a liveness or readiness probe
 		path := c.Path()
