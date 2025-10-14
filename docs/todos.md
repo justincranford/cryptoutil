@@ -246,3 +246,17 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 - **Expected Outcome**: Development workflow improvement with live config reloading
 - **Priority**: LOW - Developer experience enhancement
 - **Timeline**: Q1 2026
+
+#### Task C3: Add OTLP Protocol Parameter Support (🔵 LOW)
+- **Description**: Add support for OTLPProtocol parameter or refactor OTLPEndpoint to support protocol specification
+- **Current State**: OTLP endpoint hardcoded to assume gRPC protocol, no explicit protocol configuration
+- **Action Items**:
+  - Add OTLPProtocol parameter to configuration (grpc/http/https options)
+  - Or refactor OTLPEndpoint to parse protocol from URL (e.g., grpc://host:port, http://host:port)
+  - Update telemetry_service.go to use appropriate exporter based on protocol
+  - Add validation for protocol/endpoint combinations
+  - Update cryptoutil-otel.yml examples and documentation
+- **Files**: `internal/common/config/config.go`, `internal/common/telemetry/telemetry_service.go`, `cryptoutil-otel.yml`
+- **Expected Outcome**: Flexible OTLP protocol configuration for different deployment scenarios
+- **Priority**: LOW - Configuration flexibility improvement
+- **Timeline**: Q1 2026

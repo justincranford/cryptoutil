@@ -23,7 +23,7 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
     depends_on:
-      opentelemetry-collector:
+      opentelemetry-collector-contrib:
         condition: service_started
     networks:
       - cryptoutil-network
@@ -53,7 +53,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      opentelemetry-collector:
+      opentelemetry-collector-contrib:
         condition: service_started
     networks:
       - cryptoutil-network
@@ -78,46 +78,40 @@ services:
     networks:
       - cryptoutil-network
 
-  opentelemetry-collector:
+  opentelemetry-collector-contrib:
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
       - "8888:8888"   # Metrics endpoint
       - "8889:8889"   # Prometheus metrics
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8889/metrics"]
-      start_period: 5s
-      interval: 30s
-      timeout: 5s
-      retries: 3
+    depends_on:
+      - grafana-otel-lgtm
     networks:
       - cryptoutil-network
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   environment:
-  #     GF_SECURITY_ADMIN_PASSWORD: admin
-  #     GF_USERS_ALLOW_SIGN_UP: "false"
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - grafana_data:/var/lib/grafana
-  #     - ./grafana/provisioning:/etc/grafana/provisioning:ro
-  #     - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
-  #     start_period: 15s
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #   depends_on:
-  #     - opentelemetry-collector
-  #   networks:
-  #     - cryptoutil-network
+  grafana-otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "3000:3000"    # Grafana UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      start_period: 15s
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cryptoutil-network
 
 networks:
   cryptoutil-network:
