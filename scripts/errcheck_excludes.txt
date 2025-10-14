@@ -1,14 +1,18 @@
 # errcheck exclusions for cryptoutil project
 # Format: package.FunctionName
-# These are functions where unchecked errors are acceptable
+# These functions are excluded because they either don't return errors
+# or are designed to be fire-and-forget by convention
 
-# Common test patterns
+# Test framework functions - designed to be fire-and-forget in test code
+# These log information or fail tests but don't return errors to check
 testing.T.Logf
 testing.T.Errorf
 testing.T.Fatalf
 
-# Context cancellation - often not checked in cleanup
+# Context cancellation - function type used for cleanup signaling
+# context.CancelFunc is a function type, not a callable function
 context.CancelFunc
 
-# Logging operations - often fire-and-forget
+# Standard library logging - intentionally fire-and-forget
+# Logging failures shouldn't crash applications or affect core functionality
 log.Printf
