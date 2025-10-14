@@ -37,7 +37,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 		go func() {
 			cpuVendorID, cpuFamily, cpuPhysicalID, cpuModelName, cpuErr = sysInfoProvider.CPUInfo()
-			close(done)
+			close(done) //nolint:errcheck
 		}()
 
 		select {
@@ -57,7 +57,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 			var ram uint64
 			ram, ramErr = sysInfoProvider.RAMSize()
 			ramSize = fmt.Sprintf("%d", ram)
-			close(done)
+			close(done) //nolint:errcheck
 		}()
 
 		select {
@@ -75,7 +75,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 		go func() {
 			osHostname, osErr = sysInfoProvider.OSHostname()
-			close(done)
+			close(done) //nolint:errcheck
 		}()
 
 		select {
@@ -93,7 +93,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 		go func() {
 			hostID, hostIDErr = sysInfoProvider.HostID()
-			close(done)
+			close(done) //nolint:errcheck
 		}()
 
 		select {
@@ -111,7 +111,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 		go func() {
 			userID, groupID, username, userErr = sysInfoProvider.UserInfo()
-			close(done)
+			close(done) //nolint:errcheck
 		}()
 
 		select {

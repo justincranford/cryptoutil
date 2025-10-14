@@ -341,8 +341,8 @@ func (pool *ValueGenPool[T]) closePermissionAndGenerateChannels(waitForWorkers *
 	pool.cfg.telemetryService.Slogger.Debug("waiting for workers", "pool", pool.cfg.poolName)
 	waitForWorkers.Wait() // wait for all workers to stop before closing permissionChannel and valueChannel
 	pool.cfg.telemetryService.Slogger.Debug("closing channels", "pool", pool.cfg.poolName)
-	close(pool.generateChannel)
-	close(pool.permissionChannel)
+	close(pool.generateChannel)   //nolint:errcheck
+	close(pool.permissionChannel) //nolint:errcheck
 }
 
 func validateConfig[T any](config *ValueGenPoolConfig[T]) error {

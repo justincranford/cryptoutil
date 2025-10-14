@@ -11,8 +11,4 @@ testing.T.Fatalf
 context.CancelFunc
 
 # Logging operations - often fire-and-forget
-log.Logger.Printf
 log.Printf
-
-# Channel operations - sometimes not checked in cleanup
-close

@@ -29,7 +29,7 @@ func GenerateJWEJWKsForTest(t *testing.T, count int, enc *joseJwa.ContentEncrypt
 		}()
 	}
 	wg.Wait()
-	close(jwkOrErrs)
+	close(jwkOrErrs) //nolint:errcheck
 
 	nonPublicJWKs := make([]joseJwk.Key, 0, count)
 	publicJWKs := make([]joseJwk.Key, 0, count)

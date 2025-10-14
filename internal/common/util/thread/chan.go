@@ -23,7 +23,7 @@ func runSendersReceivers(ctx context.Context, bufferSize, senderCount, receiverC
 		fmt.Println("waiting")
 		wg.Wait()
 		fmt.Println("closing")
-		close(ch)
+		close(ch) //nolint:errcheck
 		fmt.Println("close complete")
 	}
 }
