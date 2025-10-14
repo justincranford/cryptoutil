@@ -9,7 +9,7 @@ applyTo: "**"
 
 ## Telemetry Forwarding Architecture
 
-**MANDATORY**: All telemetry from cryptoutil services MUST be forwarded through the otel-contrib sidecar (opentelemetry-collector) to upstream telemetry platforms (e.g., grafana/otel-lgtm).
+**MANDATORY**: All telemetry from cryptoutil services MUST be forwarded through the otel-contrib sidecar (opentelemetry-collector) to upstream telemetry platforms (e.g., grafana-otel-lgtm).
 
 ### Dual Telemetry Flows for Complete Observability
 
@@ -38,7 +38,7 @@ cryptoutil services → opentelemetry-collector (sidecar) → upstream telemetry
 
 ### Configuration Requirements:
 - `cryptoutil-otel.yml` MUST point to `opentelemetry-collector:4317`
-- **NEVER** configure `cryptoutil-otel.yml` to forward directly to upstream platforms (e.g., `grafana:4317`)
+- **NEVER** configure `cryptoutil-otel.yml` to forward directly to upstream platforms (e.g., `grafana-otel-lgtm:4317`)
 - The otel-contrib sidecar handles processing, filtering, and routing before forwarding to upstream platforms
 
 ### Rationale:
