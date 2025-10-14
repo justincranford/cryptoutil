@@ -95,10 +95,12 @@ cryptoutil Server Applications
 
 **Application Telemetry (Push-based):**
 ```
-cryptoutil services (OTLP gRPC:4317) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (OTLP HTTP:4318)
+cryptoutil services (OTLP GRPC:4317 or HTTP:4318) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (OTLP HTTP:4318)
 ```
 - **Purpose**: Business application traces, logs, and metrics
-- **Protocol**: OTLP (OpenTelemetry Protocol) - push-based
+- **Protocol**: OTLP (OpenTelemetry Protocol) - push-based with automatic protocol detection
+- **Data**: Crypto operations, API calls, business logic telemetry
+- **Configuration**: Set `otlp-endpoint` with protocol prefix (`grpc://` or `http://`) for automatic exporter selection
 - **Data**: Crypto operations, API calls, business logic telemetry
 
 **Infrastructure Telemetry (Pull-based):**
