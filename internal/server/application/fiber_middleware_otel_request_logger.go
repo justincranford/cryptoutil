@@ -16,7 +16,7 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.T
 		err := c.Next()
 
 		// Extract tracing information
-		span := trace.SpanFromContext(c.Context())
+		span := trace.SpanFromContext(c.UserContext())
 		spanContext := span.SpanContext()
 
 		// Log request details with OpenTelemetry correlation
