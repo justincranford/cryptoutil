@@ -163,27 +163,6 @@
 - **Priority**: LOW - Code maintainability improvement
 - **Note**: godox linter disabled in favor of manual tracking in this file
 
-#### Task CQ2: Review errcheck exclusions in scripts/errcheck_excludes.txt (✅ COMPLETED)
-- **Description**: Review the errcheck exclusions file to identify and fix exclusions that should actually check for errors
-- **Current State**: Multiple exclusions exist for functions where unchecked errors may be acceptable, but some may need proper error handling
-- **Exclusions Reviewed**:
-  - `io.Closer.Close` and `net/http.Response.Body.Close` - HTTP response bodies should always be closed with error checking (✅ REMOVED - already properly checked)
-  - `context.CancelFunc` - Context cancellation should be checked in critical paths (✅ KEPT - appropriate for cleanup operations)
-  - `os.File.Close` and `os.Remove` - File operations should check errors in production code (✅ REMOVED - already properly checked)
-  - `encoding/json.Unmarshal` - JSON parsing should check errors even in tests (✅ REMOVED - already properly checked)
-  - Database operations (`database/sql.Rows.Close`, `database/sql.DB.Close`) - Should check errors (✅ REMOVED - already properly checked)
-  - Logging operations - May be acceptable as fire-and-forget but should be reviewed (✅ KEPT - appropriate for logging)
-- **Action Items**:
-  - Review each exclusion for necessity and safety
-  - Remove exclusions for functions that should check errors
-  - Update code to properly handle errors where exclusions are removed
-  - Consider separate exclusion files for tests vs production code
-  - Document rationale for remaining exclusions
-- **Files**: `scripts/errcheck_excludes.txt`, affected source files
-- **Expected Outcome**: Improved error handling with minimal necessary exclusions
-- **Priority**: MEDIUM - Code quality and reliability improvement
-- **Timeline**: Q4 2025
-
 ---
 
 ## Quick Reference
@@ -199,8 +178,8 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 
 ---
 
-**Last Updated**: 2025-10-13
-**Recent completions**: Compression middleware implemented (2025-10-12), invalid JWK decryption test implemented (2025-10-12), request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12), duplicate sections removed (2025-10-13), configuration tasks C3-C5 and C7 completed (2025-10-13)
+**Last Updated**: 2025-10-14
+**Recent completions**: Compression middleware implemented (2025-10-12), invalid JWK decryption test implemented (2025-10-12), request body size limits implemented (2025-10-12), completed tasks removed from active list (2025-10-12), duplicate sections removed (2025-10-13), configuration tasks C3-C5 and C7 completed (2025-10-13), errcheck exclusions reviewed (2025-10-14), OTLP protocol support implemented (2025-10-14)
 **Status**: OAuth 2.0 implementation planning underway. Security hardening tasks remain active. Staticcheck integration issue and Docker image version pinning task added.
 
 ---
@@ -246,18 +225,3 @@ ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
 - **Expected Outcome**: Development workflow improvement with live config reloading
 - **Priority**: LOW - Developer experience enhancement
 - **Timeline**: Q1 2026
-
-#### Task C3: Add OTLP Protocol Parameter Support (✅ COMPLETED)
-- **Description**: Add support for OTLPProtocol parameter or refactor OTLPEndpoint to support protocol specification
-- **Current State**: ✅ IMPLEMENTED - OTLPEndpoint now supports protocol prefixes (grpc://host:port, http://host:port)
-- **Action Items**:
-  - ✅ Add OTLPProtocol parameter to configuration (grpc/http/https options) - Implemented via endpoint prefix parsing
-  - ✅ Refactor OTLPEndpoint to parse protocol from URL (e.g., grpc://host:port, http://host:port) - Done
-  - ✅ Update telemetry_service.go to use appropriate exporter based on protocol - HTTP/GRPC exporters added with auto-detection
-  - ✅ Add validation for protocol/endpoint combinations - Config validation updated
-  - ✅ Update cryptoutil-otel.yml examples and documentation - Deployment config updated to use HTTP
-- **Files**: `internal/common/config/config.go`, `internal/common/telemetry/telemetry_service.go`, `cryptoutil-otel.yml`
-- **Expected Outcome**: Flexible OTLP protocol configuration for different deployment scenarios
-- **Completion Date**: Current session
-- **Priority**: LOW - Configuration flexibility improvement
-- **Timeline**: Q1 2026 → ✅ COMPLETED

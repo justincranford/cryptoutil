@@ -10,10 +10,6 @@ testing.T.Fatalf
 # Context cancellation - often not checked in cleanup
 context.CancelFunc
 
-# Template execution in tests - often not checked
-text/template.Template.Execute
-html/template.Template.Execute
-
 # Logging operations - often fire-and-forget
 log.Logger.Printf
 log.Printf
@@ -23,7 +19,3 @@ close
 
 # Signal operations - often not checked
 os/signal.Notify
-
-# Time operations - ticker cleanup often not checked
-time.Ticker.Stop
-time.Timer.Stop

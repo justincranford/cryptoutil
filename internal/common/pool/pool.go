@@ -313,7 +313,8 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
 	ticker := time.NewTicker(500 * time.Millisecond) // time keeps on ticking ticking ticking... into the future
-	defer ticker.Stop()
+	defer func() { ticker.Stop() }()                 //nolint:errcheck
+
 	for {
 		select {
 		case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
