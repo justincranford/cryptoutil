@@ -86,3 +86,15 @@ These commands require manual authorization and should be avoided when possible:
 
 ### Network Commands
 - `curl.exe` - Make HTTP requests (use docker compose exec instead for container access)
+
+## OTLP Protocol Support
+
+### Supported Protocols
+- **GRPC Protocol**: `grpc://host:port` - Efficient binary protocol for high-performance telemetry
+- **HTTP Protocol**: `http://host:port` or `https://host:port` - Universal compatibility, firewall-friendly
+
+### Configuration Guidelines
+- Use GRPC for internal service-to-service communication (default, more efficient)
+- Use HTTP for environments with restrictive firewalls or universal compatibility needs
+- Both protocols support traces, metrics, and logs
+- Endpoint format: `protocol://hostname:port` (e.g., `grpc://otel-collector:4317`, `http://otel-collector:4318`)
