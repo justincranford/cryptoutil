@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -21,6 +22,11 @@ import (
 	joseJws "github.com/lestrrat-go/jwx/v3/jws"
 
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	testServerReadyTimeout    = 30 * time.Second       // Conservative timeout for server readiness checks during concurrent testing
+	testServerReadyRetryDelay = 500 * time.Millisecond // Retry delay for server readiness polling
 )
 
 var (
@@ -46,7 +52,7 @@ func TestMain(m *testing.M) {
 
 		// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
 		testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
-		WaitUntilReady(&testServerPrivateURL, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+		WaitUntilReady(&testServerPrivateURL, testServerReadyTimeout, testServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 		rc = m.Run()
 	}()
@@ -62,16 +68,17 @@ type elasticKeyTestCase struct {
 	versioningAllowed bool
 }
 
-var uniqueElasticKeyTestNum = 0
+var uniqueElasticKeyTestNum int64 = 0
 
 func nextElasticKeyName() *string {
-	uniqueElasticKeyTestNum++
-	nextElasticKeyName := "Client Test Elastic Key " + strconv.Itoa(uniqueElasticKeyTestNum)
+	num := atomic.AddInt64(&uniqueElasticKeyTestNum, 1)
+	nextElasticKeyName := "Client Test Elastic Key " + strconv.FormatInt(num, 10)
 	return &nextElasticKeyName
 }
 
 func nextElasticKeyDesc() *string {
-	nextElasticKeyDesc := "Client Test Elastic Key Description" + strconv.Itoa(uniqueElasticKeyTestNum)
+	num := atomic.LoadInt64(&uniqueElasticKeyTestNum)
+	nextElasticKeyDesc := "Client Test Elastic Key Description" + strconv.FormatInt(num, 10)
 	return &nextElasticKeyDesc
 }
 

@@ -78,8 +78,9 @@ const (
 	ContainerModeRequired  ContainerMode = "required"
 
 	firstDBPingAttemptWait = 750 * time.Millisecond
-	maxDBPingAttempts      = 3
+	maxDBPingAttempts      = 5
 	nextDBPingAttemptWait  = 1 * time.Second
+	sqliteBusyTimeout      = 30 * time.Second
 )
 
 var (
@@ -174,7 +175,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 			telemetryService.Slogger.Error("failed to enable WAL mode", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 			return nil, fmt.Errorf("failed to enable WAL mode: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 		}
-		if _, err := sqlDB.Exec("PRAGMA busy_timeout = 5000;"); err != nil {
+		if _, err := sqlDB.Exec(fmt.Sprintf("PRAGMA busy_timeout = %d;", int(sqliteBusyTimeout.Milliseconds()))); err != nil { // 30 seconds for concurrent testing
 			telemetryService.Slogger.Error("failed to set busy timeout", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 			return nil, fmt.Errorf("failed to set busy timeout: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 		}

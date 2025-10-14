@@ -19,6 +19,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	testServerReadyTimeout    = 30 * time.Second
+	testServerReadyRetryDelay = 500 * time.Millisecond
+)
+
 var (
 	testSettings                   = cryptoutilConfig.RequireNewForTest("application_test")
 	startServerListenerApplication *ServerApplicationListener
@@ -39,7 +44,7 @@ func TestMain(m *testing.M) {
 	testServerPublicURL = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
 	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
 
-	cryptoutilClient.WaitUntilReady(&testServerPrivateURL, 3*time.Second, 100*time.Millisecond, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+	cryptoutilClient.WaitUntilReady(&testServerPrivateURL, testServerReadyTimeout, testServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 	exitCode := m.Run()
 	if exitCode != 0 {

@@ -17,6 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	httpHealthRequestTimeout = 5 * time.Second
+)
+
 var oamOacMapperInstance = NewOamOacMapper()
 
 // TODO Add error checking for https with rootCAsPool=nil
@@ -38,12 +42,12 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 
 func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/livez"
-	return httpGet(&url, 2*time.Second, rootCAsPool)
+	return httpGet(&url, httpHealthRequestTimeout, rootCAsPool)
 }
 
 func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/readyz"
-	return httpGet(&url, 2*time.Second, rootCAsPool)
+	return httpGet(&url, httpHealthRequestTimeout, rootCAsPool)
 }
 
 func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) error {
