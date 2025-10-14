@@ -108,7 +108,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--otlp-instance=my-instance",
 		"--otlp-environment=development",
 		"--otlp-hostname=example.com",
-		"--otlp-endpoint=example.com:4317",
+		"--otlp-endpoint=grpc://example.com:4317",
 		"--unseal-mode=2-of-3",
 		"--unseal-files=/docker/secrets/unseal1",
 		"--unseal-files=/docker/secrets/unseal2",
@@ -158,7 +158,7 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, "1.0.0", s.OTLPVersion)
 	require.Equal(t, "development", s.OTLPEnvironment)
 	require.Equal(t, "example.com", s.OTLPHostname)
-	require.Equal(t, "example.com:4317", s.OTLPEndpoint)
+	require.Equal(t, "grpc://example.com:4317", s.OTLPEndpoint)
 	require.True(t, s.DevMode)
 	require.Equal(t, "2-of-3", s.UnsealMode)
 	require.Equal(t, []string{"/docker/secrets/unseal1", "/docker/secrets/unseal2", "/docker/secrets/unseal3"}, s.UnsealFiles)

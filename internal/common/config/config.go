@@ -72,7 +72,7 @@ const (
 	defaultOTLPVersion                 = "0.0.1"
 	defaultOTLPEnvironment             = "dev"
 	defaultOTLPHostname                = "localhost"
-	defaultOTLPEndpoint                = "127.0.0.1:4317"
+	defaultOTLPEndpoint                = "grpc://127.0.0.1:4317"
 	defaultUnsealMode                  = "sysinfo"
 )
 
@@ -611,7 +611,7 @@ var (
 		name:        "otlp-endpoint",
 		shorthand:   "Q",
 		value:       defaultOTLPEndpoint,
-		usage:       "OTLP endpoint",
+		usage:       "OTLP endpoint (grpc://host:port or http://host:port)",
 		description: "OTLP Endpoint",
 	})
 	otlpInstance = *registerSetting(&Setting{
@@ -1206,11 +1206,11 @@ func validateConfiguration(s *Settings) error {
 		errors = append(errors, fmt.Sprintf("rate limit %d is very high (>10000), may impact performance", s.IPRateLimit))
 	}
 
-	// Validate CSRF token max age
-	if s.CSRFTokenMaxAge < time.Minute {
-		errors = append(errors, "CSRF token max age is very short (<1 minute), consider increasing for better user experience")
-	} else if s.CSRFTokenMaxAge > 24*time.Hour {
-		errors = append(errors, "CSRF token max age is very long (>24 hours), consider decreasing for better security")
+	// Validate OTLP endpoint format
+	if s.OTLP && s.OTLPEndpoint != "" {
+		if !strings.HasPrefix(s.OTLPEndpoint, "grpc://") && !strings.HasPrefix(s.OTLPEndpoint, "http://") && !strings.HasPrefix(s.OTLPEndpoint, "https://") {
+			errors = append(errors, fmt.Sprintf("invalid OTLP endpoint format '%s': must start with 'grpc://', 'http://', or 'https://'", s.OTLPEndpoint))
+		}
 	}
 
 	if len(errors) > 0 {
