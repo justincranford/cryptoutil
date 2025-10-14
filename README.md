@@ -86,6 +86,24 @@ cryptoutil Server Applications
 - **Structured logging** with slog
 - **Kubernetes-ready health endpoints** (`/livez`, `/readyz`)
 - **Performance metrics** for cryptographic operations
+- **Grafana-OTEL-LGTM stack**: Integrated Grafana, Loki, Tempo, and Prometheus
+- **Telemetry forwarding architecture**: cryptoutil services → OpenTelemetry Collector → Grafana-OTEL-LGTM
+
+#### Telemetry Architecture
+```
+cryptoutil services (gRPC OTLP) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (HTTP OTLP)
+                                                            ↓
+                                               Prometheus (scrapes collector metrics)
+                                                            ↓
+                                               Grafana (visualizes all telemetry)
+```
+
+**Services:**
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Prometheus**: Integrated into Grafana-OTEL-LGTM stack
+- **Loki**: Integrated log aggregation
+- **Tempo**: Integrated trace storage
+- **OpenTelemetry Collector**: Receives telemetry from cryptoutil services
 
 ### 🏗️ Production Ready
 - **Database support**: PostgreSQL (production), SQLite (development/testing)
@@ -101,12 +119,17 @@ cryptoutil Server Applications
 
 ### Running with Docker Compose
 ```sh
-# Start PostgreSQL and cryptoutil
+# Start full stack: PostgreSQL, cryptoutil, and observability
 cd deployments/compose
 docker compose up -d
 
 # View logs
-docker compose logs -f cryptoutil
+docker compose logs -f cryptoutil_postgres
+
+# Access services
+# Grafana UI: http://localhost:3000 (admin/admin)
+# cryptoutil API: http://localhost:8081 (PostgreSQL) or http://localhost:8080 (SQLite)
+# Swagger UI: http://localhost:8081/ui/swagger or http://localhost:8080/ui/swagger
 ```
 
 ### Running with Go (Development)
@@ -128,10 +151,12 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 ```
 
 ### API Access
-- **Swagger UI**: http://localhost:8080/ui/swagger
-- **Browser API**: http://localhost:8080/browser/api/v1/*
-- **Service API**: http://localhost:8080/service/api/v1/*
+- **Swagger UI**: http://localhost:8081/ui/swagger (PostgreSQL) or http://localhost:8080/ui/swagger (SQLite)
+- **Browser API**: http://localhost:8081/browser/api/v1/* or http://localhost:8080/browser/api/v1/*
+- **Service API**: http://localhost:8081/service/api/v1/* or http://localhost:8080/service/api/v1/*
 - **Health Checks**: http://localhost:9090/livez, http://localhost:9090/readyz
+- **Grafana UI**: http://localhost:3000 (admin/admin)
+- **OpenTelemetry Collector Metrics**: http://localhost:8888/metrics, http://localhost:8889/metrics
 
 ### Example API Usage
 ```sh
