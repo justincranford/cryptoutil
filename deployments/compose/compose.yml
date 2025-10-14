@@ -14,7 +14,7 @@ services:
       - "8080:8080"    # HTTPS public
     volumes:
       - ./cryptoutil/cryptoutil-sqlite.yml:/app/config/cryptoutil-sqlite.yml:ro
-      - ./otel:/app/otel:ro
+      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
       - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
@@ -42,7 +42,7 @@ services:
       - "8081:8080"    # HTTPS public
     volumes:
       - ./cryptoutil/cryptoutil-postgresql.yml:/app/config/cryptoutil-postgresql.yml:ro
-      - ./otel:/app/otel:ro
+      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
       - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
