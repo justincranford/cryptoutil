@@ -16,6 +16,3 @@ log.Printf
 
 # Channel operations - sometimes not checked in cleanup
 close
-
-# Signal operations - often not checked
-os/signal.Notify

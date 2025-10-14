@@ -38,7 +38,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 			}
 		}()
 		osShutdownSignalCh := make(chan os.Signal, 1)
-		signal.Notify(osShutdownSignalCh, os.Interrupt, syscall.SIGTERM)
+		signal.Notify(osShutdownSignalCh, os.Interrupt, syscall.SIGTERM) //nolint:errcheck
 		for {
 			select {
 			case <-callerShutdownSignalCh:
