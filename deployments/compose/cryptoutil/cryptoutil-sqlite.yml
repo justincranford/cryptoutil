@@ -4,7 +4,7 @@
 # Development mode - enables in-memory SQLite
 dev: true
 
-# Binding address - 0.0.0.0 allows connections from any IP
+# Binding address - 0.0.0.0 allows connections from any NIC within the container
 bind-public-address: "0.0.0.0"
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -13,6 +13,18 @@ cors-origins:
   - "https://127.0.0.1:8080"
   - "https://[::1]:8080"
   - "https://[::ffff:127.0.0.1]:8080"
+
+# Allow all IPs for development/testing
+allowed-ips:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+allowed-cidrs:
+  - "0.0.0.0/0"
+  - "::/0"
+
+# Disable CSRF for API testing
+csrf-token-single-use-token: false
 
 unseal-mode: "3-of-5"
 
@@ -23,5 +35,5 @@ unseal-files:
   - /run/secrets/cryptoutil_unseal_4of5.secret
   - /run/secrets/cryptoutil_unseal_5of5.secret
 
-# TODO Not implemented yet (future)
-# OTEL_SERVICE_NAME=cryptoutil-sqlite
+otlp-service: cryptoutil-sqlite
+otlp-hostname: cryptoutil-sqlite

@@ -8,12 +8,13 @@ services:
         APP_VERSION: "dev"
         VCS_REF: "local"
         BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: ["server", "start", "--dev", "--config=/app/config/cryptoutil-sqlite.yml"]
-    working_dir: /tmp
+    command: ["server", "start", "--dev", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/otel/cryptoutil-otel.yml"]
+    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8080:8080"    # HTTPS public
     volumes:
       - ./cryptoutil/cryptoutil-sqlite.yml:/app/config/cryptoutil-sqlite.yml:ro
+      - ./otel:/app/otel:ro
     secrets:
       - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
@@ -21,10 +22,9 @@ services:
       - cryptoutil_unseal_3of5.secret
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
-    # DISABLED FOR TESTING
-    # depends_on:
-    #   opentelemetry-collector:
-    #     condition: service_started
+    depends_on:
+      opentelemetry-collector:
+        condition: service_started
     networks:
       - cryptoutil-network
 
@@ -36,12 +36,13 @@ services:
         APP_VERSION: "dev"
         VCS_REF: "local"
         BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: server start --config=/app/config/cryptoutil-postgresql.yml -u "file:///run/secrets/cryptoutil_database-url.secret"
-    working_dir: /tmp
+    command: server start --config=/app/config/cryptoutil-postgresql.yml --config=/app/otel/cryptoutil-otel.yml -u "file:///run/secrets/cryptoutil_database-url.secret"
+    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8081:8080"    # HTTPS public
     volumes:
       - ./cryptoutil/cryptoutil-postgresql.yml:/app/config/cryptoutil-postgresql.yml:ro
+      - ./otel:/app/otel:ro
     secrets:
       - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
@@ -52,9 +53,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      # DISABLED FOR TESTING
-      # opentelemetry-collector:
-      #   condition: service_started
+      opentelemetry-collector:
+        condition: service_started
     networks:
       - cryptoutil-network
 
@@ -78,26 +78,25 @@ services:
     networks:
       - cryptoutil-network
 
-  # DISABLED FOR TESTING
-  # opentelemetry-collector:
-  #   image: otel/opentelemetry-collector-contrib:latest
-  #   command: ["--config=/etc/otel-collector-config.yaml"]
-  #   volumes:
-  #     - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-  #   ports:
-  #     - "4317:4317"   # OTLP gRPC
-  #     - "4318:4318"   # OTLP HTTP
-  #     - "8888:8888"   # Metrics endpoint
-  #     - "8889:8889"   # Prometheus metrics
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8889/metrics"]
-  #     start_period: 5s
-  #     interval: 30s
-  #     timeout: 5s
-  #     retries: 3
-  #   networks:
-  #     - cryptoutil-network
-  #
+  opentelemetry-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Metrics endpoint
+      - "8889:8889"   # Prometheus metrics
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8889/metrics"]
+      start_period: 5s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - cryptoutil-network
+
   # grafana:
   #   image: grafana/grafana:latest
   #   environment:
