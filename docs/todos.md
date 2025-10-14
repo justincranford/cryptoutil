@@ -149,8 +149,6 @@
     - Line 239: "TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)"
     - Line 240: "TODO Add authentication middleware for Swagger UI access"
     - Line 241: "TODO Add specific rate limiting for Swagger UI endpoints"
-    - Line 565: "TODO Enhance health checks with detailed status (database, dependencies, memory usage)" - **ALREADY IMPLEMENTED**
-    - Line 566: "TODO Implement separate LivenessProbe vs ReadinessProbe functions for Kubernetes deployments" - **MIDDLEWARE IS SUFFICIENT**
   - `internal/server/businesslogic/businesslogic.go:250` - "TODO cache GetElasticKey"
   - `internal/server/businesslogic/businesslogic.go:328` - "TODO Use encryptParams.Context for encryption"
 - **Action Items**:
