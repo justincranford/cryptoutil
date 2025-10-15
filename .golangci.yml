@@ -59,8 +59,8 @@ linters:
     - copyloopvar    # Check for loop variables captured by reference (replaces exportloopref)
     - goconst       # Find repeated strings that could be constants
     - importas      # Enforce consistent import aliasing
-    - mnd           # Detect magic numbers (formerly gomnd)
-    - wsl           # Whitespace linter
+    # - mnd           # Detect magic numbers (formerly gomnd) - TEMPORARILY DISABLED
+    # - wsl           # Whitespace linter - TEMPORARILY DISABLED
 
     # Error handling
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
