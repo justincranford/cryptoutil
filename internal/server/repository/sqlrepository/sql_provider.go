@@ -86,7 +86,7 @@ const (
 )
 
 // extractSchemaFromURL extracts the schema name from PostgreSQL URL search_path parameter.
-// Used for test isolation where each test gets its own schema
+// Used for test isolation where each test gets its own schema.
 func extractSchemaFromURL(databaseURL string) string {
 	parsedURL, err := url.Parse(databaseURL)
 	if err != nil {
@@ -98,7 +98,7 @@ func extractSchemaFromURL(databaseURL string) string {
 		return ""
 	}
 
-	// Extract first schema name (search_path can contain multiple schemas separated by comma)
+	// Extract first schema name (search_path can contain multiple schemas separated by comma).
 	if commaIndex := strings.Index(searchPath, ","); commaIndex != -1 {
 		return strings.TrimSpace(searchPath[:commaIndex])
 	}
@@ -228,7 +228,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 	telemetryService.Slogger.Debug("applying migrations")
 
-	// For PostgreSQL test isolation: create schema if search_path is specified
+	// For PostgreSQL test isolation: create schema if search_path is specified.
 	if dbType == DBTypePostgres {
 		if schemaName := extractSchemaFromURL(databaseURL); schemaName != "" {
 			telemetryService.Slogger.Debug("creating test schema for PostgreSQL", "schema", schemaName)
