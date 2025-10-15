@@ -55,23 +55,10 @@ env:
 
 jobs:
   # Concurrency Testing - Robustness validation
+  # Note: Tests automatically use SQLite in-memory databases for isolation and speed
   concurrency:
     name: Concurrency Tests
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -95,15 +82,11 @@ jobs:
           git diff --exit-code go.mod go.sum
 
       - name: Run concurrency tests
-        env:
-          POSTGRES_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
         run: |
           echo "🔄 Running concurrency tests for CIA triad availability validation..."
           go test -timeout=15m -count=2 -p=2 ./internal/server/application ./internal/client
 
       - name: Run coverage on concurrency tests
-        env:
-          POSTGRES_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
         run: |
           echo "📊 Generating coverage report for concurrency tests..."
           go test -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
@@ -150,23 +133,10 @@ jobs:
           echo "- Duration: 30 seconds per fuzz function" >> $GITHUB_STEP_SUMMARY
 
   # Race Detection Testing
+  # Note: Tests automatically use SQLite in-memory databases for isolation and speed
   race:
     name: Race Detection Tests
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -190,8 +160,6 @@ jobs:
           git diff --exit-code go.mod go.sum
 
       - name: Run race detection tests
-        env:
-          POSTGRES_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
         run: |
           echo "🏁 Running race detection tests..."
           go test -race -timeout=10m ./...
