@@ -3,8 +3,40 @@ name: Test Suite
 on:
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'dast-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
   pull_request:
     branches: [ main, develop ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'dast-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
   workflow_dispatch:
     inputs:
       test_profile:
