@@ -85,7 +85,7 @@ const (
 	sqliteBusyTimeout      = 30 * time.Second
 )
 
-// extractSchemaFromURL extracts the schema name from PostgreSQL URL search_path parameter
+// extractSchemaFromURL extracts the schema name from PostgreSQL URL search_path parameter.
 // Used for test isolation where each test gets its own schema
 func extractSchemaFromURL(databaseURL string) string {
 	parsedURL, err := url.Parse(databaseURL)

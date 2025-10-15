@@ -323,7 +323,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 	for i, testCase := range happyPathElasticKeyTestCasesSign {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
 		t.Run(testCaseNamePrefix, func(t *testing.T) {
-			// t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
+			t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 			var elasticKey *cryptoutilOpenapiModel.ElasticKey
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
 				uniqueName := nextElasticKeyName()
