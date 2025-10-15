@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"net/url"
+	"strings"
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
@@ -82,6 +84,27 @@ const (
 	nextDBPingAttemptWait  = 1 * time.Second
 	sqliteBusyTimeout      = 30 * time.Second
 )
+
+// extractSchemaFromURL extracts the schema name from PostgreSQL URL search_path parameter
+// Used for test isolation where each test gets its own schema
+func extractSchemaFromURL(databaseURL string) string {
+	parsedURL, err := url.Parse(databaseURL)
+	if err != nil {
+		return ""
+	}
+
+	searchPath := parsedURL.Query().Get("search_path")
+	if searchPath == "" {
+		return ""
+	}
+
+	// Extract first schema name (search_path can contain multiple schemas separated by comma)
+	if commaIndex := strings.Index(searchPath, ","); commaIndex != -1 {
+		return strings.TrimSpace(searchPath[:commaIndex])
+	}
+
+	return strings.TrimSpace(searchPath)
+}
 
 var (
 	postgresContainerDBName = func() string {
@@ -204,6 +227,18 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	}
 
 	telemetryService.Slogger.Debug("applying migrations")
+
+	// For PostgreSQL test isolation: create schema if search_path is specified
+	if dbType == DBTypePostgres {
+		if schemaName := extractSchemaFromURL(databaseURL); schemaName != "" {
+			telemetryService.Slogger.Debug("creating test schema for PostgreSQL", "schema", schemaName)
+			if _, err := sqlDB.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName)); err != nil {
+				return nil, fmt.Errorf("failed to create test schema %s: %w", schemaName, err)
+			}
+			telemetryService.Slogger.Debug("test schema created successfully", "schema", schemaName)
+		}
+	}
+
 	err = ApplyEmbeddedSQLMigrations(telemetryService, sqlDB, sqlRepository.GetDBType())
 	if err != nil {
 		return nil, fmt.Errorf("failed to apply SQL migrations: %w", err)
