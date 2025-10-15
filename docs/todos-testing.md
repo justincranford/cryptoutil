@@ -70,6 +70,20 @@
 - **Expected Outcome**: End-to-end testing validation
 - **Priority**: Medium - Production readiness
 
+### Task T6: Code Robustness Review for Brittleness Patterns
+- **Description**: Review all production and main branch code for brittleness patterns that could cause failures under concurrent or parallel execution
+- **Current State**: Recent concurrency test failures revealed brittleness in test code (shared database, non-unique names)
+- **Action Items**:
+  - Conduct systematic review of all production code for shared state assumptions
+  - Identify code that assumes single-threaded execution or unique resources
+  - Review database operations for proper isolation and transaction handling
+  - Check for hardcoded resource names that could conflict in concurrent scenarios
+  - Document findings and implement fixes for identified brittleness patterns
+- **Files**: All production code files, database operations, resource management code
+- **Expected Outcome**: More robust codebase resistant to concurrency-related failures
+- **Priority**: High - Prevents production incidents from concurrency issues
+- **Dependencies**: None - Can be done incrementally
+
 ---
 
 ## Quick Reference
@@ -81,5 +95,4 @@
 
 # Verify report generation
 ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
-```</content>
-<parameter name="filePath">c:\Dev\Projects\cryptoutil\docs\todos-testing.md
+```
