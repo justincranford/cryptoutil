@@ -134,6 +134,9 @@ go run scripts/cicd_utils.go go-dependency-versions
 
 # Check GitHub Actions versions
 go run scripts/cicd_utils.go github-action-versions
+
+# Check both Go dependencies and GitHub Actions versions in a single invocation
+go run scripts/cicd_utils.go go-dependency-versions github-action-versions
 ```
 
 ### count_tokens.py
@@ -194,5 +197,4 @@ Most scripts will install required tools automatically if missing:
 These scripts mirror the functionality available in GitHub Actions workflows:
 - Security scanning matches `.github/workflows/security-scan.yml`
 - DAST testing matches `.github/workflows/dast.yml`
-- Mutation testing can be run locally for development validation</content>
-<parameter name="filePath">c:\Dev\Projects\cryptoutil\scripts\README.md
+- Mutation testing can be run locally for development validation
