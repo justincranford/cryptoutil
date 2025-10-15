@@ -98,6 +98,7 @@ repos:
         files: go\.mod$
 
   # Comprehensive Go linting (runs on pre-push instead of pre-commit, because it can be slow)
+  # Note: Uses exclusions from .golangci.yml config file, not pre-commit file filters
   - repo: local
     hooks:
       - id: golangci-lint
@@ -105,8 +106,7 @@ repos:
         entry: golangci-lint
         args: [run, --timeout=5m]
         language: system
-        files: '\.go$'
-        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files, protobuf, vendor, and API code
+        pass_filenames: false
         stages: [pre-push]
 
       # Dependency and Actions checking (runs on pre-push)
