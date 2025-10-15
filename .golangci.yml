@@ -1,8 +1,7 @@
 # golangci-lint configuration for cryptoutil project
 #
 # This project uses Go 1.25.1 with golangci-lint v1.25.1
-# Note: typecheck is disabled due to import resolution issues with module dependencies
-# All other linters are compatible with the current Go version
+# All linters are compatible with the current Go version
 #
 # Usage: golangci-lint run --timeout=10m
 
@@ -65,9 +64,6 @@ linters:
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
 
   disable:
-    # Disable due to import resolution issues with module dependencies
-    - typecheck    # Type checking - disabled due to module dependency import resolution issues
-
     # Disabled for code quality/complexity management
     - dupl      # Code duplication detection
     - gocyclo   # Cyclomatic complexity
