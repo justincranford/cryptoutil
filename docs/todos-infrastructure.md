@@ -1,7 +1,7 @@
 # Cryptoutil Infrastructure & Deployment TODOs
 
-**Last Updated**: October 14, 2025
-**Status**: Release automation and Kubernetes deployment planning underway
+**Last Updated**: October 15, 2025
+**Status**: Release automation, Kubernetes deployment planning, and configuration priority review underway
 
 ---
 
@@ -43,14 +43,21 @@
 - **Expected Outcome**: Flexible deployment across environments
 - **Priority**: Medium - Production infrastructure
 
-### Task INF4: Pin Docker Image Versions
-- **Description**: Pin all Docker image versions in compose configuration for reproducible builds
-- **Current State**: Some images may use latest tags
+### Task INF5: Configuration Priority Order Review
+- **Description**: Review whole project to ensure correct configuration priority order across all deployment scenarios
+- **Current State**: Configuration sources may not follow proper precedence
+- **Required Priority Order**:
+  1. **Docker/Kubernetes secrets** (credentials and sensitive settings)
+  2. **Configuration YAML files** (non-sensitive settings); may be single config or split based on different groupings
+  3. **Command parameters**, as first fallback to override 1 or 2
+  4. **Environment variables**, as last fallback to override 1, 2, or 3
 - **Action Items**:
-  - Audit all Docker images in compose files
-  - Pin versions to specific tags (avoid :latest)
-  - Set up automated dependency updates for security patches
-- **Files**: `deployments/compose/*.yml`
-- **Expected Outcome**: Reproducible and secure container deployments
-- **Priority**: Medium - Infrastructure stability</content>
+  - Audit all configuration loading code for proper precedence
+  - Confirm Viper configuration conforms to this priority order
+  - Update configuration loading logic if needed
+  - Document configuration precedence in architecture instructions
+  - Test configuration override behavior across all deployment methods
+- **Files**: `internal/common/config/`, Viper setup code, deployment configs
+- **Expected Outcome**: Consistent, secure configuration management across all environments
+- **Priority**: High - Configuration security and reliability</content>
 <parameter name="filePath">c:\Dev\Projects\cryptoutil\docs\todos-infrastructure.md

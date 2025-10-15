@@ -23,6 +23,30 @@ applyTo: ".github/workflows/*.yml"
 - Test locally with the same Go version used in CI/CD
 - Update Docker base images to match Go version when applicable
 
+## Configuration Management
+
+### Application Configuration (Production/CI Deployments)
+- **ALWAYS use config files** for production and CI application deployments
+- **Example**: `cryptoutil server start --config configs/production/config.yml`
+- **Database**: Config files should specify actual database connections (PostgreSQL for production)
+- **CI/CD Pattern**: Copy and modify base config files for different environments rather than using environment variables
+- **Why**: Config files are version-controlled, documented, and prevent environment variable naming mistakes
+
+### Environment Variables (When Necessary)
+- **ONLY use for exceptional cases** when Docker/Kubernetes secrets or config files cannot be used
+- **NEVER use environment variables for secrets in production** - always prefer Docker secrets or Kubernetes secrets
+- Application uses Viper with `CRYPTOUTIL_` prefix: `CRYPTOUTIL_DATABASE_URL`, `CRYPTOUTIL_LOG_LEVEL`, etc.
+- **NEVER use non-standard environment variable names** like `POSTGRES_URL` - they will be ignored by the application
+- **Use sparingly**: Only for emergency overrides or local development when secrets infrastructure isn't available
+- Check `config.go` for the exact setting names and their corresponding environment variables
+
+### Test Configuration (Development/Testing)
+- **Tests ALWAYS use SQLite in-memory databases** regardless of config file database-url settings
+- When running `cryptoutil server start --dev`, the application automatically switches to SQLite for development/testing
+- **Config files in tests**: Can specify any database URL (even PostgreSQL) - tests will ignore it and use SQLite
+- **CI/CD test workflows should NOT include PostgreSQL services** - tests use SQLite automatically for isolation and speed
+- **Why**: Ensures test isolation, faster execution, and eliminates database setup complexity in CI/CD
+
 ## Go Module Caching Best Practices
 
 ### Use `cache: true` on `setup-go` Action

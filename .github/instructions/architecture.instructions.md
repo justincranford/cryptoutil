@@ -6,7 +6,7 @@ applyTo: "**"
 
 - Go project structure: See project-layout.instructions.md
 - Use layered arch: main → app → business logic → repositories
-- Config: YAML files & CLI only (no env vars)
+- Config: YAML files & CLI only (no env vars for configuration; use Docker/Kubernetes secrets for sensitive data)
 - Dependency injection with context propagation
 - Structured config with validation/defaults
 - Lifecycle: graceful startup/shutdown, resource cleanup
