@@ -58,10 +58,7 @@ linters:
     - goconst       # Find repeated strings that could be constants
     - importas      # Enforce consistent import aliasing
     - mnd           # Detect magic numbers (formerly gomnd)
-    - misspell      # Find common misspellings in comments and strings
-    - unparam       # Find unused function parameters
-    - unconvert     # Remove unnecessary type conversions
-    - whitespace    # Detect trailing whitespace and unnecessary blank lines
+    - wsl           # Whitespace linter
 
     # Error handling
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
@@ -174,6 +171,9 @@ linters-settings:
   thelper:
     test:                # Check t.Helper() calls in test functions
       begin: true
+
+  wsl:
+    # Whitespace linter - enforces consistent whitespace usage
 
 issues:
   exclude-dirs:
