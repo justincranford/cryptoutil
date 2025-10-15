@@ -22,3 +22,20 @@ applyTo: ".github/workflows/*.yml"
 - Pin to specific patch versions (e.g., '1.25.1', not '1.25' or '^1.25')
 - Test locally with the same Go version used in CI/CD
 - Update Docker base images to match Go version when applicable
+
+## Go Module Caching Best Practices
+
+### Use `cache: true` on `setup-go` Action
+- **Preferred**: `cache: true` on `actions/setup-go@v6`
+- **Why**: Automatic, self-healing, prevents tar extraction conflicts
+- **Avoid**: Manual `actions/cache@v4` for Go modules (brittle, requires workarounds)
+
+### Cache Key Strategy
+- Use `go.sum` hash for cache invalidation
+- Include OS in key for cross-platform compatibility
+- Consider dependency count for large monorepos
+
+### Troubleshooting
+- Cache misses: Check `go.sum` changes
+- Cache corruption: Let `setup-go` handle it automatically
+- Performance issues: Monitor cache hit rates in workflow logs
