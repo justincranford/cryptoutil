@@ -39,3 +39,26 @@ applyTo: ".github/workflows/*.yml"
 - Cache misses: Check `go.sum` changes
 - Cache corruption: Let `setup-go` handle it automatically
 - Performance issues: Monitor cache hit rates in workflow logs
+
+## Build Flags and Linking
+
+### Static Linking Requirement
+- **ALWAYS use static linking** for both CI and Docker builds to ensure maximum portability
+- Use `-extldflags '-static'` in ldflags for static linking
+- Validate static linking in Docker builds with `ldd` check
+
+### Debug Symbols vs Size Trade-offs
+- **Performance and diagnostics prioritized over binary size**
+- **CI builds**: Use `-s -extldflags '-static'` (strip symbol table but keep DWARF debug symbols with `-w` removed)
+  - Static linking for maximum portability across CI environments
+  - Retains debug symbols for troubleshooting test failures and CI diagnostics
+  - Smaller than full debug build but still debuggable
+- **Docker builds**: Use `-s -extldflags '-static'` (strip symbol table but keep DWARF debug symbols)
+  - Static linking for container portability
+  - Debug symbols retained for production troubleshooting
+- **NEVER use `-w`** in either context (removes DWARF debug symbols, hurts diagnostics)
+
+### Flag Explanations
+- `-s`: Strip symbol table (reduces size, keeps DWARF debug symbols)
+- `-w`: Strip DWARF debug symbols (breaks debugging, never use)
+- `-extldflags '-static'`: Force static linking with external linker

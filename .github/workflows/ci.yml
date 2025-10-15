@@ -169,7 +169,11 @@ jobs:
 
       - name: Build binary
         run: |
-          go build -v -ldflags="-w -s" -o cryptoutil ./cmd/cryptoutil
+          # Build with static linking and minimal symbol stripping for CI/testing
+          # -s: Strip symbol table for smaller binary size (keeps debug symbols for diagnostics)
+          # -extldflags '-static': Force static linking for maximum portability
+          # Performance and diagnostics prioritized over size; debug symbols retained for troubleshooting
+          go build -v -ldflags="-s -extldflags '-static'" -o cryptoutil ./cmd/cryptoutil
 
       - name: Test binary
         run: |

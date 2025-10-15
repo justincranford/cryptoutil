@@ -13,7 +13,11 @@ ARG ALPINE_VERSION=3.19
 ARG CGO_ENABLED=0
 ARG GOOS=linux
 ARG GOARCH=amd64
-ARG LDFLAGS="-s -w -extldflags '-static'"
+# Build flags for production container: static linking with debug symbols retained
+# -s: Strip symbol table for smaller size while keeping DWARF debug symbols (-w removed)
+# -extldflags '-static': Force static linking for maximum portability across environments
+# Performance and diagnostics prioritized over size; debug symbols retained for production troubleshooting
+ARG LDFLAGS="-s -extldflags '-static'"
 #############################################################################################
 
 # Validate required build arguments
