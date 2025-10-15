@@ -29,11 +29,9 @@ on:
       - '.editorconfig'
       - '.gitignore'
       - '.gitattributes'
-      - '.golangci.yml'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/pull_request_template.md'
       - '.github/dependabot.yml'
-      - 'scripts/**'
       - '**/*.log'
       - '**/*.sarif'
   pull_request:
@@ -49,11 +47,9 @@ on:
       - '.editorconfig'
       - '.gitignore'
       - '.gitattributes'
-      - '.golangci.yml'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/pull_request_template.md'
       - '.github/dependabot.yml'
-      - 'scripts/**'
       - '**/*.log'
       - '**/*.sarif'
   schedule:
