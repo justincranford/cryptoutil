@@ -1,5 +1,7 @@
 # Cryptoutil Testing Infrastructure TODOs
 
+**IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
+
 **Last Updated**: October 14, 2025
 **Status**: Testing infrastructure improvements planned for Q4 2025
 

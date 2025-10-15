@@ -1,5 +1,7 @@
 # Cryptoutil Infrastructure & Deployment TODOs
 
+**IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
+
 **Last Updated**: October 15, 2025
 **Status**: Release automation, Kubernetes deployment planning, and configuration priority review underway
 
@@ -59,5 +61,4 @@
   - Test configuration override behavior across all deployment methods
 - **Files**: `internal/common/config/`, Viper setup code, deployment configs
 - **Expected Outcome**: Consistent, secure configuration management across all environments
-- **Priority**: High - Configuration security and reliability</content>
-<parameter name="filePath">c:\Dev\Projects\cryptoutil\docs\todos-infrastructure.md
+- **Priority**: High - Configuration security and reliability

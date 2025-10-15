@@ -1,5 +1,7 @@
 # Cryptoutil Observability & Monitoring TODOs
 
+**IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
+
 **Last Updated**: October 14, 2025
 **Status**: Grafana dashboard expansion planned for Q4 2025
 
@@ -184,5 +186,4 @@ groups:
 3. **Phase 3**: Implement business logic metrics and dashboard
 4. **Phase 4**: Add alerting rules and thresholds
 
-**Timeline**: Q4 2025 implementation alongside OAuth 2.0 work.</content>
-<parameter name="filePath">c:\Dev\Projects\cryptoutil\docs\todos-observability.md
+**Timeline**: Q4 2025 implementation alongside OAuth 2.0 work.

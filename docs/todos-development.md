@@ -1,5 +1,7 @@
 # Cryptoutil Development Workflow & Configuration TODOs
 
+**IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
+
 **Last Updated**: October 14, 2025
 **Status**: Development workflow enhancements planned for ongoing maintenance
 
@@ -97,5 +99,4 @@
   - Add performance expectations to API documentation
 - **Files**: `docs/performance-benchmarks.md`, benchmark results
 - **Expected Outcome**: Performance transparency and expectations
-- **Priority**: Low - Documentation enhancement</content>
-<parameter name="filePath">c:\Dev\Projects\cryptoutil\docs\todos-development.md
+- **Priority**: Low - Documentation enhancement

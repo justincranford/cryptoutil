@@ -1,5 +1,7 @@
 # Cryptoutil Security & Authentication TODOs
 
+**IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
+
 **Last Updated**: October 14, 2025
 **Status**: Critical OAuth 2.0 implementation planning underway. Security hardening tasks remain active.
 
@@ -335,5 +337,4 @@ githubConfig := &oauth2.Config{
 5. **Phase 5**: Add token validation middleware
 6. **Phase 6**: Update OpenAPI specs and documentation
 
-**Timeline**: Q4 2025 implementation as planned in Task O1.</content>
-<parameter name="filePath">c:\Dev\Projects\cryptoutil\docs\todos-security.md
+**Timeline**: Q4 2025 implementation as planned in Task O1
