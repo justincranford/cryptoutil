@@ -40,8 +40,15 @@
 - **Description**: Add more golangci-lint linters for enhanced code quality
 - **Current State**: Additional linters enabled incrementally
 - **Action Items**:
-  - ✅ Evaluate and enable: copyloopvar (replaces deprecated exportloopref), importas
-  - Evaluate and enable: gocognit, goheader, gomoddirectives, gomodguard, lll, nlreturn, testpackage, wsl
+  - Evaluate and enable:
+    - wsl (whitespace linter)
+    - testpackage (test package naming conventions)
+    - gomodguard (forbidden import blocking)
+    - gomoddirectives (module directive validation)
+    - goheader (copyright header enforcement)
+    - lll (line length limits)
+    - nlreturn (newline after return statements)
+    - gocognit (cyclomatic complexity analysis)
   - Configure appropriate settings for each linter
   - Test CI performance impact
 - **Files**: `.golangci.yml`
