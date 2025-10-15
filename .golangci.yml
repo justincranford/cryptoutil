@@ -54,7 +54,9 @@ linters:
     - bodyclose     # Check for HTTP response body closure
 
     # Maintainability
+    - copyloopvar    # Check for loop variables captured by reference (replaces exportloopref)
     - goconst       # Find repeated strings that could be constants
+    - importas      # Enforce consistent import aliasing
     - mnd           # Detect magic numbers (formerly gomnd)
     - misspell      # Find common misspellings in comments and strings
     - unparam       # Find unused function parameters
@@ -104,6 +106,25 @@ linters-settings:
 
   dupl:
     threshold: 100
+
+  copyloopvar:
+    # Check for loop variables captured by reference in closures
+
+  importas:
+    # Enforce consistent import aliasing
+    alias:
+      # Standard library aliases
+      - pkg: encoding/json
+        alias: json
+      - pkg: encoding/xml
+        alias: xml
+      - pkg: net/http
+        alias: http
+      # Common third-party aliases
+      - pkg: github.com/gofiber/fiber/v2
+        alias: fiber
+      - pkg: github.com/stretchr/testify
+        alias: testify
 
   misspell:
     locale: US
