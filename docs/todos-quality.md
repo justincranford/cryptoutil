@@ -41,9 +41,6 @@
 - **Current State**: Additional linters enabled incrementally
 - **Action Items**:
   - Evaluate and enable:
-    - wsl (whitespace linter)
-    - testpackage (test package naming conventions)
-    - gomodguard (forbidden import blocking)
     - gomoddirectives (module directive validation)
     - goheader (copyright header enforcement)
     - lll (line length limits)
@@ -53,8 +50,10 @@
   - Test CI performance impact
 - **Files**: `.golangci.yml`
 - **Results**:
-  - copyloopvar: Enabled and configured - no issues found in codebase
-  - importas: Enabled and configured - no issues found in codebase
+  - testpackage: Enabled and configured - test package naming issues found and flagged
+    - Multiple test files have incorrect package declarations (should be `*_test` instead of package name)
+    - Examples: `internal/client/client_test.go` (package `client` → should be `client_test`), `internal/cmd/cmd_test.go` (package `cmd` → should be `cmd_test`)
+    - Total: ~30+ test files affected across the codebase
 - **Expected Outcome**: Enhanced code quality and consistency checks
 - **Priority**: Medium - Code quality improvement
 

@@ -72,29 +72,6 @@
 - **Expected Outcome**: End-to-end testing validation
 - **Priority**: Medium - Production readiness
 
-### Task T7: PostgreSQL Schema-Based Test Isolation
-- **Description**: Implement and validate PostgreSQL schema-based isolation for concurrent testing
-- **Current State**: ✅ **COMPLETED** - Schema isolation fully implemented with automatic schema creation
-  - Basic schema approach implemented in `config_test_util.go`
-  - **Additional fix implemented**: Added schema creation logic in `sql_provider.go` to create PostgreSQL schemas before applying migrations
-  - Verified PostgreSQL does NOT auto-create schemas when referenced in `search_path`
-  - Migrations now run in correct isolated schemas
-  - Schema logging updated to work with non-public schemas
-  - GORM configuration validated for schema isolation
-  - Tested with GitHub Actions concurrency tests - UNIQUE constraint violations resolved
-- **Action Items**:
-  - ✅ Test current schema implementation with concurrent tests
-  - ✅ Verify if PostgreSQL auto-creates schemas when referenced in `search_path` (confirmed: NO)
-  - ✅ Check if migrations run in correct schema when `search_path` is set
-  - ✅ Update schema logging code to work with non-public schemas
-  - ✅ Modify migrations to use dynamic schema names if needed (not needed - search_path works)
-  - ✅ Validate GORM configuration works with schema isolation
-  - ✅ Test with actual GitHub Actions concurrency tests
-- **Files**: `internal/common/config/config_test_util.go`, `internal/server/repository/sqlrepository/sql_provider.go`, PostgreSQL migration files
-- **Expected Outcome**: Reliable concurrent testing without database conflicts
-- **Priority**: High - Fixes current CI test failures
-- **Dependencies**: None - Can be tested immediately
-
 ---
 
 ## Quick Reference

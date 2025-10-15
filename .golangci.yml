@@ -49,6 +49,7 @@ linters:
     - thelper       # Check test helper functions
     - tparallel     # Check for parallel test issues
     - testpackage   # Test package naming conventions
+    - gomodguard    # Prevent importing blocked modules
 
     # Performance
     - prealloc      # Find slice declarations that could pre-allocate
@@ -178,6 +179,16 @@ linters-settings:
 
   testpackage:
     # Test package naming conventions
+
+  gomodguard:
+    # Prevent importing blocked modules
+    blocked:
+      # Block all versions of these modules
+      modules:
+        - github.com/pkg/errors: # Use Go 1.13+ error wrapping instead
+            recommendations:
+              - errors
+              - fmt
 
 issues:
   exclude-dirs:
