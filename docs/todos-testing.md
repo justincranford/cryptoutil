@@ -70,19 +70,21 @@
 - **Expected Outcome**: End-to-end testing validation
 - **Priority**: Medium - Production readiness
 
-### Task T6: Code Robustness Review for Brittleness Patterns
-- **Description**: Review all production and main branch code for brittleness patterns that could cause failures under concurrent or parallel execution
-- **Current State**: Recent concurrency test failures revealed brittleness in test code (shared database, non-unique names)
+### Task T7: PostgreSQL Schema-Based Test Isolation
+- **Description**: Implement and validate PostgreSQL schema-based isolation for concurrent testing
+- **Current State**: Basic schema approach implemented but may not work due to hardcoded `public` schema usage
 - **Action Items**:
-  - Conduct systematic review of all production code for shared state assumptions
-  - Identify code that assumes single-threaded execution or unique resources
-  - Review database operations for proper isolation and transaction handling
-  - Check for hardcoded resource names that could conflict in concurrent scenarios
-  - Document findings and implement fixes for identified brittleness patterns
-- **Files**: All production code files, database operations, resource management code
-- **Expected Outcome**: More robust codebase resistant to concurrency-related failures
-- **Priority**: High - Prevents production incidents from concurrency issues
-- **Dependencies**: None - Can be done incrementally
+  - Test current schema implementation with concurrent tests
+  - Verify if PostgreSQL auto-creates schemas when referenced in `search_path`
+  - Check if migrations run in correct schema when `search_path` is set
+  - Update schema logging code to work with non-public schemas
+  - Modify migrations to use dynamic schema names if needed
+  - Validate GORM configuration works with schema isolation
+  - Test with actual GitHub Actions concurrency tests
+- **Files**: `internal/common/config/config_test_util.go`, `internal/server/repository/sqlrepository/sql_schema_util.go`, PostgreSQL migration files
+- **Expected Outcome**: Reliable concurrent testing without database conflicts
+- **Priority**: High - Fixes current CI test failures
+- **Dependencies**: None - Can be tested immediately
 
 ---
 
