@@ -27,6 +27,13 @@ type ActionExceptions struct {
 	Exceptions map[string]ActionException `json:"exceptions"`
 }
 
+type DepCheckMode int
+
+const (
+	DepCheckDirect DepCheckMode = iota // Check only direct dependencies
+	DepCheckAll                        // Check all dependencies (direct + transitive)
+)
+
 type ActionInfo struct {
 	Name           string
 	CurrentVersion string
@@ -36,7 +43,7 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n\nExamples:\n  go run scripts/cicd_utils.go go-dependency-versions\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go go-dependency-versions github-action-versions\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-dependency-versions-direct    - Check direct Go dependencies only\n  go-dependency-versions-all       - Check all Go dependencies (direct + transitive)\n  github-action-versions           - Check GitHub Actions versions\n\nExamples:\n  go run scripts/cicd_utils.go go-dependency-versions-direct\n  go run scripts/cicd_utils.go go-dependency-versions-all\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go go-dependency-versions-direct github-action-versions\n")
 		os.Exit(1)
 	}
 
@@ -46,12 +53,14 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
 
 		switch command {
-		case "go-dependency-versions":
-			checkDeps()
+		case "go-dependency-versions-direct":
+			checkDeps(DepCheckDirect)
+		case "go-dependency-versions-all":
+			checkDeps(DepCheckAll)
 		case "github-action-versions":
 			checkActions()
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n", command)
+			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-dependency-versions-direct    - Check direct Go dependencies only\n  go-dependency-versions-all       - Check all Go dependencies (direct + transitive)\n  github-action-versions           - Check GitHub Actions versions\n", command)
 			os.Exit(1)
 		}
 
@@ -62,7 +71,7 @@ func main() {
 	}
 }
 
-func checkDeps() {
+func checkDeps(mode DepCheckMode) {
 	// Run go list -u -m all to check for outdated dependencies
 	cmd := exec.Command("go", "list", "-u", "-m", "all")
 	output, err := cmd.Output()
@@ -72,17 +81,46 @@ func checkDeps() {
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	outdated := []string{}
+	allOutdated := []string{}
 
 	// Check for lines containing [v...] indicating available updates
 	for _, line := range lines {
 		if strings.Contains(line, "[v") && strings.Contains(line, "]") {
-			outdated = append(outdated, line)
+			allOutdated = append(allOutdated, line)
 		}
 	}
 
+	var outdated []string
+	if mode == DepCheckDirect {
+		// For direct mode, only check dependencies that are explicitly listed in go.mod
+		directDeps, err := getDirectDependencies()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading direct dependencies: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Filter to only direct dependencies
+		for _, dep := range allOutdated {
+			// Extract module name from the line (format: "module/path v1.2.3 [v1.2.4]")
+			parts := strings.Fields(dep)
+			if len(parts) > 0 {
+				moduleName := parts[0]
+				if directDeps[moduleName] {
+					outdated = append(outdated, dep)
+				}
+			}
+		}
+	} else {
+		// For all mode, check all dependencies
+		outdated = allOutdated
+	}
+
 	if len(outdated) > 0 {
-		fmt.Fprintln(os.Stderr, "Found outdated Go dependencies:")
+		modeName := "direct"
+		if mode == DepCheckAll {
+			modeName = "all"
+		}
+		fmt.Fprintf(os.Stderr, "Found outdated Go dependencies (checking %s):\n", modeName)
 		for _, dep := range outdated {
 			fmt.Fprintln(os.Stderr, dep)
 		}
@@ -90,7 +128,48 @@ func checkDeps() {
 		os.Exit(1) // Fail to block push
 	}
 
-	fmt.Fprintln(os.Stderr, "All Go dependencies are up to date.")
+	modeName := "direct"
+	if mode == DepCheckAll {
+		modeName = "all"
+	}
+	fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date.\n", modeName)
+}
+
+func getDirectDependencies() (map[string]bool, error) {
+	// Read go.mod file to get direct dependencies
+	goModContent, err := os.ReadFile("go.mod")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read go.mod: %w", err)
+	}
+
+	directDeps := make(map[string]bool)
+	lines := strings.Split(string(goModContent), "\n")
+
+	inRequireBlock := false
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "require (") {
+			inRequireBlock = true
+			continue
+		}
+		if line == ")" {
+			inRequireBlock = false
+			continue
+		}
+		if inRequireBlock || strings.HasPrefix(line, "require ") {
+			// Parse lines like "github.com/example/package v1.2.3"
+			parts := strings.Fields(line)
+			if len(parts) >= 2 {
+				// Skip indirect dependencies
+				if len(parts) >= 3 && parts[2] == "indirect" {
+					continue
+				}
+				directDeps[parts[0]] = true
+			}
+		}
+	}
+
+	return directDeps, nil
 }
 
 func loadActionExceptions() (*ActionExceptions, error) {
