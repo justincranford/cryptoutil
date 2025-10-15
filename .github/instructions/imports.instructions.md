@@ -33,9 +33,15 @@ Use `cryptoutil` prefix followed by descriptive module name in camelCase:
 
 ### Third-Party Packages
 
+
 #### Google UUID
 Use `googleUuid` for the UUID package:
 - `googleUuid "github.com/google/uuid"`
+
+#### UUID Versioning
+- **ALWAYS use `uuid.NewV7()` instead of `uuid.New()` for UUIDs**
+	- Version 7 (time-ordered) is preferred over version 4 (random)
+- Use the alias `googleUuid` for `github.com/google/uuid` in all imports
 
 #### JOSE/JWX Packages
 Use `jose` prefix followed by module name:

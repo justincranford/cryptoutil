@@ -11,7 +11,7 @@ import (
 
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 
-	"github.com/google/uuid"
+	googleUuid "github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v3/jwa"
 	"github.com/lestrrat-go/jwx/v3/jwe"
 	"github.com/lestrrat-go/jwx/v3/jwk"
@@ -71,7 +71,7 @@ func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.K
 	nonPublicJWK, err := jwk.Import(raw)
 	require.NoError(t, err, "failed to import raw key into JWK")
 
-	kid, err := uuid.NewV7()
+	kid, err := googleUuid.NewV7()
 	require.NoError(t, err, "failed to generate UUIDv7 for recipient JWK 'kid'")
 
 	err = nonPublicJWK.Set(jwk.KeyIDKey, kid.String())
