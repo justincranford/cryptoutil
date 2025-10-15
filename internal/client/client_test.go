@@ -222,7 +222,7 @@ var happyPathElasticKeyTestCasesSign = []elasticKeyTestCase{
 }
 
 func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
-	t.Parallel()
+	t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 	context := context.Background()
 	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
 	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl, testRootCAsPool)
@@ -233,9 +233,14 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 		testCaseNamePrefix := strings.ReplaceAll(testCase.algorithm, "/", "_")
 		t.Run(testCaseNamePrefix, func(t *testing.T) {
 			t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
+
+			// Generate unique names per subtest to avoid UNIQUE constraint violations in concurrent tests
+			uniqueName := nextElasticKeyName()
+			uniqueDesc := nextElasticKeyDesc()
+
 			var elasticKey *cryptoutilOpenapiModel.ElasticKey
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
-				elasticKeyCreate := RequireCreateElasticKeyRequest(t, &testCase.name, &testCase.description, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
+				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
 				logObjectAsJSON(t, elasticKey)
 			})
@@ -310,6 +315,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 }
 
 func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
+	t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 	context := context.Background()
 	testPublicServiceAPIUrl := testServerPublicURL + testSettings.PublicServiceAPIContextPath
 	openapiClient := RequireClientWithResponses(t, &testPublicServiceAPIUrl, testRootCAsPool)
@@ -320,7 +326,9 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			// t.Parallel() // PostgreSQL supports N concurrent writers, SQLite supports 1 concurrent writer; concurrent perf is better with PostgreSQL
 			var elasticKey *cryptoutilOpenapiModel.ElasticKey
 			t.Run(testCaseNamePrefix+"  Create Elastic Key", func(t *testing.T) {
-				elasticKeyCreate := RequireCreateElasticKeyRequest(t, &testCase.name, &testCase.description, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
+				uniqueName := nextElasticKeyName()
+				uniqueDesc := nextElasticKeyDesc()
+				elasticKeyCreate := RequireCreateElasticKeyRequest(t, uniqueName, uniqueDesc, &testCase.algorithm, &testCase.provider, &testCase.importAllowed, &testCase.versioningAllowed)
 				elasticKey = RequireCreateElasticKeyResponse(t, context, openapiClient, elasticKeyCreate)
 				logObjectAsJSON(t, elasticKey)
 			})
@@ -371,7 +379,10 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				verifiedtest = RequireVerifyResponse(t, context, openapiClient, elasticKey.ElasticKeyID, verifyRequest)
 			})
 
-			require.NotNil(t, *verifiedtest)
+			// Verify endpoint returns 204 No Content on success, so verifiedtest will be empty
+			// The success of RequireVerifyResponse call indicates signature verification passed
+			require.NotNil(t, verifiedtest)
+			require.Empty(t, *verifiedtest)
 		})
 	}
 }

@@ -105,9 +105,17 @@ func RequireNewForTest(applicationName string) *Settings {
 	if !ok {
 		panic("csrfTokenCookieSessionOnly.value must be bool")
 	}
+	csrfTokenSingleUseTokenValue, ok := csrfTokenSingleUseToken.value.(bool)
+	if !ok {
+		panic("csrfTokenSingleUseToken.value must be bool")
+	}
 	ipRateLimitValue, ok := ipRateLimit.value.(uint16)
 	if !ok {
 		panic("ipRateLimit.value must be uint16")
+	}
+	requestBodyLimitValue, ok := requestBodyLimit.value.(int)
+	if !ok {
+		panic("requestBodyLimit.value must be int")
 	}
 	allowedIPsValue, ok := allowedIps.value.([]string)
 	if !ok {
@@ -133,6 +141,10 @@ func RequireNewForTest(applicationName string) *Settings {
 	databaseInitRetryWaitValue, ok := databaseInitRetryWait.value.(time.Duration)
 	if !ok {
 		panic("databaseInitRetryWait.value must be time.Duration")
+	}
+	serverShutdownTimeoutValue, ok := serverShutdownTimeout.value.(time.Duration)
+	if !ok {
+		panic("serverShutdownTimeout.value must be time.Duration")
 	}
 	otlpValue, ok := otlp.value.(bool)
 	if !ok {
@@ -202,6 +214,8 @@ func RequireNewForTest(applicationName string) *Settings {
 		CSRFTokenCookieSecure:       csrfTokenCookieSecureValue,
 		CSRFTokenCookieHTTPOnly:     csrfTokenCookieHTTPOnlyValue,
 		CSRFTokenCookieSessionOnly:  csrfTokenCookieSessionOnlyValue,
+		CSRFTokenSingleUseToken:     csrfTokenSingleUseTokenValue,
+		RequestBodyLimit:            requestBodyLimitValue,
 		IPRateLimit:                 ipRateLimitValue,
 		AllowedIPs:                  allowedIPsValue,
 		AllowedCIDRs:                allowedCIDRsValue,
@@ -209,6 +223,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		DatabaseURL:                 databaseURLValue,
 		DatabaseInitTotalTimeout:    databaseInitTotalTimeoutValue,
 		DatabaseInitRetryWait:       databaseInitRetryWaitValue,
+		ServerShutdownTimeout:       serverShutdownTimeoutValue,
 		OTLP:                        otlpValue,
 		OTLPConsole:                 otlpConsoleValue,
 		OTLPService:                 otlpServiceValue,
@@ -225,10 +240,14 @@ func RequireNewForTest(applicationName string) *Settings {
 	settings.DevMode = true
 	settings.IPRateLimit = 1000
 	settings.OTLPService = applicationName
+	settings.ServerShutdownTimeout = 60 * time.Second // Increase shutdown timeout for tests to allow cleanup of resources
 	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")
 	if strings.Contains(settings.DatabaseURL, "/DB?") {
 		// SQLite: Randomize the in-memory database name, so it is unique during concurrent testing
 		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "/DB?", "/DB_"+applicationName+"_"+uniqueSuffix+"?", 1)
+	} else if strings.Contains(settings.DatabaseURL, ":memory:") {
+		// SQLite in-memory: Randomize the database name to avoid sharing between concurrent tests
+		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, ":memory:", ":memory:"+applicationName+"_"+uniqueSuffix, 1)
 	} else if strings.Contains(settings.DatabaseURL, "postgres://") {
 		// PostgreSQL: Use a unique schema within the shared database for concurrent testing
 		schemaName := applicationName + "_" + uniqueSuffix
