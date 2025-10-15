@@ -48,6 +48,7 @@ linters:
     # Testing quality
     - thelper       # Check test helper functions
     - tparallel     # Check for parallel test issues
+    - testpackage   # Test package naming conventions
 
     # Performance
     - prealloc      # Find slice declarations that could pre-allocate
@@ -174,6 +175,9 @@ linters-settings:
 
   wsl:
     # Whitespace linter - enforces consistent whitespace usage
+
+  testpackage:
+    # Test package naming conventions
 
 issues:
   exclude-dirs:
