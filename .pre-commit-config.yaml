@@ -66,7 +66,7 @@ repos:
         args: [-extra, -w]
         language: system
         files: '\.go$'
-        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files and dirs
+        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/client|api/model|api/server'  # Skip generated files and dirs
 
   # Go linting (subset of golangci-lint embedded linters; just a few fast, local, high-frequency linters)
   - repo: local
@@ -77,12 +77,12 @@ repos:
         args: [-w]
         language: system
         files: '\.go$'
-        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files and dirs
+        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/client|api/model|api/server'  # Skip generated files and dirs
 
       - id: errcheck
         name: errcheck (error checking)
         entry: powershell
-        args: [-Command, "Get-ChildItem -Recurse -Include *.go -Exclude *_gen.go,*.pb.go | Where-Object { $_.FullName -notmatch 'vendor|api' } | Group-Object { $_.DirectoryName } | ForEach-Object { Push-Location $_.Name; try { & 'C:/Users/justi/go/bin/errcheck.exe' -blank -asserts -exclude ../../../scripts/errcheck_excludes.txt ./ } finally { Pop-Location } }"]
+        args: [-Command, "Get-ChildItem -Recurse -Include *.go -Exclude *_gen.go,*.pb.go | Where-Object { $_.FullName -notmatch 'vendor|api/client|api/model|api/server' } | Group-Object { $_.DirectoryName } | ForEach-Object { Push-Location $_.Name; try { & 'C:/Users/justi/go/bin/errcheck.exe' -blank -asserts -exclude ../../../scripts/errcheck_excludes.txt ./ } finally { Pop-Location } }"]
         language: system
         pass_filenames: false
 
