@@ -156,7 +156,7 @@ var defaultCORSAllowedOrigins = []string{
 	httpsProtocol + "://" + ipv4MappedIPv6LoopbackURL + ":" + defaultBindPostString,
 }
 
-var defaultAllowedIps = []string{localhost, ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
+var defaultAllowedIps = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
 
 var defaultTLSPublicDNSNames = []string{localhost}
 
