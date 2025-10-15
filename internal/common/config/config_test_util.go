@@ -1,7 +1,10 @@
 package config
 
 import (
+	"strings"
 	"time"
+
+	googleUuid "github.com/google/uuid"
 )
 
 func RequireNewForTest(applicationName string) *Settings {
@@ -222,5 +225,14 @@ func RequireNewForTest(applicationName string) *Settings {
 	settings.DevMode = true
 	settings.IPRateLimit = 1000
 	settings.OTLPService = applicationName
+	if strings.Contains(settings.DatabaseURL, "/DB?") {
+		// SQLite: Randomize the in-memory database name, so it is unique during concurrent testing
+		uniqueSuffix := googleUuid.Must(googleUuid.NewV7()).String()
+		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "/DB?", "/DB_"+applicationName+"_"+uniqueSuffix+"?", 1)
+	} else if strings.Contains(settings.DatabaseURL, "postgres://") {
+		// PostgreSQL: do nothing, assume test-containers will create unique containers per test
+	} else {
+		panic("unsupported database type in DATABASE_URL for RequireNewForTest()")
+	}
 	return settings
 }
