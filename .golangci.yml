@@ -144,8 +144,38 @@ linters-settings:
 
 issues:
   exclude-dirs:
-    - vendor # Skip vendored dependencies
-    - api    # Skip generated OpenAPI code
+    # Generated/dependency directories - DO NOT LINT
+    - vendor      # Skip vendored Go dependencies, third-party Go code
+    - api/client  # Skip OpenAPI client code, generated Go code by oapi-codegen
+    - api/model   # Skip OpenAPI model code, generated Go code by oapi-codegen
+    - api/server  # Skip OpenAPI server code, generated Go code by oapi-codegen
+
+    # Build artifacts and reports - DO NOT LINT
+    - dast-reports # Skip generated DAST security scan reports
+
+    # IDE and tool configurations - DO NOT LINT
+    - .idea       # Skip IntelliJ IDEA/GoLand IDE files, no Go files
+    - .vscode     # Skip VS Code IDE files, no Go files
+    - .zap        # Skip ZAP security scanner configuration, no Go files
+
+    # Version control and CI/CD - DO NOT LINT
+    - .git        # Skip Git repository metadata, no Go files
+    - .github     # Skip GitHub workflows and configurations, no Go files
+
+    # Configuration and deployment files - DO NOT LINT
+    - configs     # Skip YAML/JSON configuration files, no Go files
+    - deployments # Skip Docker/K8s deployment configurations, no Go files
+
+    # Documentation and assets - DO NOT LINT
+    - docs        # Skip Markdown documentation files, no Go files
+    - static      # Skip static web assets (CSS, images, etc.), no Go files
+
+    # RECOMMENDED: DO NOT exclude these directories (they contain Go code to lint):
+    # - cmd/        # Application entry points - SHOULD BE LINTED
+    # - internal/   # Internal packages - SHOULD BE LINTED
+    # - pkg/        # Public packages - SHOULD BE LINTED
+    # - scripts/    # Build scripts with Go code - SHOULD BE LINTED
+    # - api/        # OpenAPI generation triggers (generate.go) - SHOULD BE LINTED
   exclude-files:
     - ".*\\.pb\\.go$"
     - ".*_gen\\.go$"
