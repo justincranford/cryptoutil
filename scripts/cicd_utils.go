@@ -36,19 +36,29 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command>\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n\nExamples:\n  go run scripts/cicd_utils.go go-dependency-versions\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go go-dependency-versions github-action-versions\n")
 		os.Exit(1)
 	}
 
-	command := os.Args[1]
-	switch command {
-	case "go-dependency-versions":
-		checkDeps()
-	case "github-action-versions":
-		checkActions()
-	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n", command)
-		os.Exit(1)
+	// Process all commands provided as arguments
+	for i := 1; i < len(os.Args); i++ {
+		command := os.Args[i]
+		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
+
+		switch command {
+		case "go-dependency-versions":
+			checkDeps()
+		case "github-action-versions":
+			checkActions()
+		default:
+			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-dependency-versions    - Check Go dependencies\n  github-action-versions     - Check GitHub Actions versions\n", command)
+			os.Exit(1)
+		}
+
+		// Add a separator between multiple commands
+		if i < len(os.Args)-1 {
+			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", 50)+"\n")
+		}
 	}
 }
 

@@ -109,20 +109,11 @@ repos:
         exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'  # Skip generated files, protobuf, vendor, and API code
         stages: [pre-push]
 
-      # Dependency checking (runs on pre-push)
-      - id: check-outdated-deps
-        name: Check for outdated Go dependencies
+      # Dependency and Actions checking (runs on pre-push)
+      - id: check-outdated-deps-and-actions
+        name: Check for outdated Go dependencies and GitHub Actions
         entry: go
-        args: [run, scripts/cicd_utils.go, go-dependency-versions]
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
-
-      # GitHub Actions version checking (runs on pre-push)
-      - id: check-outdated-actions
-        name: Check for outdated GitHub Actions
-        entry: go
-        args: [run, scripts/cicd_utils.go, github-action-versions]
+        args: [run, scripts/cicd_utils.go, go-dependency-versions, github-action-versions]
         language: system
         pass_filenames: false
         stages: [pre-push]

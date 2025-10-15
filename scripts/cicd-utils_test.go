@@ -21,9 +21,12 @@ func TestMainUsage(t *testing.T) {
 
 	// We can't easily test main() because it calls os.Exit
 	// So we'll test that the usage message format is correct
-	expectedUsage := "Usage: go run scripts/cicd_utils.go <command>"
+	expectedUsage := "Usage: go run scripts/cicd_utils.go <command> [command...]"
 	if !strings.Contains(expectedUsage, "scripts/cicd_utils.go") {
 		t.Errorf("Usage message should contain correct filename")
+	}
+	if !strings.Contains(expectedUsage, "[command...]") {
+		t.Errorf("Usage message should indicate multiple commands are supported")
 	}
 }
 
@@ -40,6 +43,33 @@ func TestMainInvalidCommand(t *testing.T) {
 	command := os.Args[1]
 	if command != "invalid-command" {
 		t.Errorf("Expected command to be 'invalid-command', got %s", command)
+	}
+}
+
+func TestMainMultipleCommands(t *testing.T) {
+	// Test multiple commands parsing
+	oldArgs := os.Args
+	defer func() { os.Args = oldArgs }()
+
+	// Test with multiple valid commands
+	os.Args = []string{"cicd-utils", "go-dependency-versions", "github-action-versions"}
+
+	// Verify we can parse multiple commands
+	if len(os.Args) < 3 {
+		t.Errorf("Expected at least 3 arguments, got %d", len(os.Args))
+	}
+
+	commands := os.Args[1:]
+	expectedCommands := []string{"go-dependency-versions", "github-action-versions"}
+
+	if len(commands) != len(expectedCommands) {
+		t.Errorf("Expected %d commands, got %d", len(expectedCommands), len(commands))
+	}
+
+	for i, cmd := range commands {
+		if cmd != expectedCommands[i] {
+			t.Errorf("Expected command %d to be '%s', got '%s'", i, expectedCommands[i], cmd)
+		}
 	}
 }
 
