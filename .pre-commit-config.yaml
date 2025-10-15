@@ -109,11 +109,11 @@ repos:
         pass_filenames: false
         stages: [pre-push]
 
-      # Dependency and Actions checking (runs on pre-push)
-      - id: check-outdated-deps-and-actions
-        name: Check for outdated Go dependencies and GitHub Actions
+      # Dependency, Actions, and Circular Dependency checking (runs on pre-push)
+      - id: check-deps-actions-circular
+        name: Check for outdated Go dependencies, GitHub Actions, and circular dependencies
         entry: go
-        args: [run, scripts/cicd_utils.go, go-dependency-versions-direct, github-action-versions]
+        args: [run, scripts/cicd_utils.go, go-update-direct-dependencies, github-action-versions, go-check-circular-package-dependencies]
         language: system
         pass_filenames: false
         stages: [pre-push]

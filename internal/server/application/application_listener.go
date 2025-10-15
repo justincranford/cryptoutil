@@ -46,6 +46,8 @@ const (
 	errorStr                      = "error"
 	statusStr                     = "status"
 	protocolHTTPS                 = "https"
+	statusOK                      = "ok"
+	statusDegraded                = "degraded"
 )
 
 // TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)
@@ -650,20 +652,20 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 
 			// Check if any component is unhealthy for readiness
 			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
-				if status, ok := dbStatus["status"].(string); ok && status != "ok" {
-					healthStatus["status"] = "degraded"
+				if status, ok := dbStatus["status"].(string); ok && status != statusOK {
+					healthStatus["status"] = statusDegraded
 				}
 			}
 
 			if depsStatus, ok := healthStatus["dependencies"].(map[string]any); ok {
-				if status, ok := depsStatus["status"].(string); ok && status != "ok" {
-					healthStatus["status"] = "degraded"
+				if status, ok := depsStatus["status"].(string); ok && status != statusOK {
+					healthStatus["status"] = statusDegraded
 				}
 			}
 		}
 
 		statusCode := fiber.StatusOK
-		if healthStatus["status"] != "ok" {
+		if healthStatus["status"] != statusOK {
 			statusCode = fiber.StatusServiceUnavailable
 		}
 

@@ -129,14 +129,20 @@ Advanced script for running GitHub Actions DAST workflows locally with `act`.
 Go utility for CI/CD dependency and version checking.
 
 ```bash
-# Check Go dependency versions
-go run scripts/cicd_utils.go go-dependency-versions
+# Check Go dependency versions (direct dependencies only)
+go run scripts/cicd_utils.go go-update-direct-dependencies
+
+# Check Go dependency versions (all dependencies) - not commonly done in Go, but util supports it
+go run scripts/cicd_utils.go go-update-all-dependencies
 
 # Check GitHub Actions versions
 go run scripts/cicd_utils.go github-action-versions
 
-# Check both Go dependencies and GitHub Actions versions in a single invocation
-go run scripts/cicd_utils.go go-dependency-versions github-action-versions
+# Check for circular dependencies in Go packages
+go run scripts/cicd_utils.go go-check-circular-package-dependencies
+
+# Check all Go dependencies, GitHub Actions versions, and circular dependencies in a single invocation
+go run scripts/cicd_utils.go go-update-direct-dependencies github-action-versions go-check-circular-package-dependencies
 ```
 
 ### count_tokens.py

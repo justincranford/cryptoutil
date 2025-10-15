@@ -86,8 +86,9 @@ linters-settings:
     min-complexity: 15
 
   goconst:
-    min-len: 3
-    min-occurrences: 3
+    min-len: 1
+    min-occurrences: 2
+    numbers: true
     ignore-tests: false
 
   dupl:

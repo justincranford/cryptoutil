@@ -32,6 +32,8 @@ type DepCheckMode int
 const (
 	DepCheckDirect DepCheckMode = iota // Check only direct dependencies
 	DepCheckAll                        // Check all dependencies (direct + transitive)
+	modeNameDirect = "direct"
+	modeNameAll    = "all"
 )
 
 type ActionInfo struct {
@@ -43,7 +45,7 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-dependency-versions-direct    - Check direct Go dependencies only\n  go-dependency-versions-all       - Check all Go dependencies (direct + transitive)\n  github-action-versions           - Check GitHub Actions versions\n\nExamples:\n  go run scripts/cicd_utils.go go-dependency-versions-direct\n  go run scripts/cicd_utils.go go-dependency-versions-all\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go go-dependency-versions-direct github-action-versions\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n\nExamples:\n  go run scripts/cicd_utils.go go-update-direct-dependencies\n  go run scripts/cicd_utils.go go-update-all-dependencies\n  go run scripts/cicd_utils.go go-check-circular-package-dependencies\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go go-update-direct-dependencies github-action-versions\n")
 		os.Exit(1)
 	}
 
@@ -53,14 +55,16 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
 
 		switch command {
-		case "go-dependency-versions-direct":
+		case "go-update-direct-dependencies":
 			checkDeps(DepCheckDirect)
-		case "go-dependency-versions-all":
+		case "go-update-all-dependencies":
 			checkDeps(DepCheckAll)
+		case "go-check-circular-package-dependencies":
+			checkCircularDeps()
 		case "github-action-versions":
 			checkActions()
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-dependency-versions-direct    - Check direct Go dependencies only\n  go-dependency-versions-all       - Check all Go dependencies (direct + transitive)\n  github-action-versions           - Check GitHub Actions versions\n", command)
+			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n", command)
 			os.Exit(1)
 		}
 
@@ -116,9 +120,9 @@ func checkDeps(mode DepCheckMode) {
 	}
 
 	if len(outdated) > 0 {
-		modeName := "direct"
+		modeName := modeNameDirect
 		if mode == DepCheckAll {
-			modeName = "all"
+			modeName = modeNameAll
 		}
 		fmt.Fprintf(os.Stderr, "Found outdated Go dependencies (checking %s):\n", modeName)
 		for _, dep := range outdated {
@@ -464,4 +468,191 @@ func isOutdated(current, latest string) bool {
 
 	// For specific versions, simple comparison
 	return current != latest
+}
+
+func checkCircularDeps() {
+	startTime := time.Now()
+	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
+
+	// Get all packages in the project
+	fmt.Fprintln(os.Stderr, "Running: go list ./...")
+	cmd := exec.Command("go", "list", "./...")
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error running go list: %v\n", err)
+		os.Exit(1)
+	}
+
+	packages := strings.Split(strings.TrimSpace(string(output)), "\n")
+	fmt.Fprintf(os.Stderr, "Found %d packages:\n", len(packages))
+	for i, pkg := range packages {
+		if strings.TrimSpace(pkg) != "" {
+			fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, pkg)
+		}
+	}
+	fmt.Fprintln(os.Stderr, "")
+
+	// Filter out empty packages
+	var validPackages []string
+	for _, pkg := range packages {
+		if strings.TrimSpace(pkg) != "" {
+			validPackages = append(validPackages, pkg)
+		}
+	}
+	packages = validPackages
+
+	if len(packages) == 0 {
+		fmt.Fprintln(os.Stderr, "No packages found")
+		return
+	}
+
+	// Build dependency graph
+	fmt.Fprintln(os.Stderr, "Building dependency graph...")
+	graphStart := time.Now()
+	processed := 0
+	dependencyGraph := make(map[string][]string)
+	for _, pkg := range packages {
+		// Get imports for this package
+		importCmd := exec.Command("go", "list", "-f", "{{.Imports}}", pkg)
+		importOutput, err := importCmd.Output()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: Could not get imports for %s: %v\n", pkg, err)
+			continue
+		}
+
+		importStr := strings.TrimSpace(string(importOutput))
+		if len(importStr) <= 2 { // Empty array "[]"
+			dependencyGraph[pkg] = []string{} // Empty slice instead of nil
+			processed++
+			continue
+		}
+
+		// Parse imports (remove [ and ] and split by space)
+		importStr = strings.Trim(importStr, "[]")
+		if importStr == "" {
+			dependencyGraph[pkg] = []string{}
+			processed++
+			continue
+		}
+
+		imports := strings.Split(importStr, " ")
+		dependencyGraph[pkg] = imports
+		processed++
+		if processed%10 == 0 {
+			elapsed := time.Since(graphStart)
+			fmt.Fprintf(os.Stderr, "Processed %d/%d packages... (%.2fs)\n", processed, len(packages), elapsed.Seconds())
+		}
+	}
+
+	graphElapsed := time.Since(graphStart)
+	fmt.Fprintf(os.Stderr, "Built dependency graph with %d packages (%.2fs)\n", len(dependencyGraph), graphElapsed.Seconds())
+
+	// Show why we have fewer packages in graph
+	if len(dependencyGraph) < len(packages) {
+		fmt.Fprintf(os.Stderr, "Note: %d packages were excluded from graph (failed to get imports)\n", len(packages)-len(dependencyGraph))
+	}
+	fmt.Fprintln(os.Stderr, "")
+
+	// Find circular dependencies using DFS
+	fmt.Fprintln(os.Stderr, "Starting DFS cycle detection...")
+	dfsStart := time.Now()
+	visited := make(map[string]bool)
+	recursionStack := make(map[string]bool)
+	circularDeps := [][]string{}
+
+	var dfs func(string, []string)
+	dfs = func(pkg string, path []string) {
+		// Check if package exists in dependency graph
+		if _, exists := dependencyGraph[pkg]; !exists {
+			return
+		}
+
+		visited[pkg] = true
+		recursionStack[pkg] = true
+
+		for _, dep := range dependencyGraph[pkg] {
+			// Only check internal packages (those starting with our module name)
+			if !strings.HasPrefix(dep, "cryptoutil/") {
+				continue
+			}
+
+			if !visited[dep] {
+				newPath := append(path, dep)
+				dfs(dep, newPath)
+			} else if recursionStack[dep] {
+				// Found a cycle
+				cycleStart := -1
+				for i, p := range path {
+					if p == dep {
+						cycleStart = i
+						break
+					}
+				}
+				if cycleStart >= 0 {
+					cycle := append(path[cycleStart:], dep)
+					circularDeps = append(circularDeps, cycle)
+				}
+			}
+		}
+
+		recursionStack[pkg] = false
+	}
+
+	// Check each package for circular dependencies
+	dfsCount := 0
+	for pkg := range dependencyGraph {
+		if !visited[pkg] {
+			dfs(pkg, []string{pkg})
+			dfsCount++
+			if dfsCount%5 == 0 {
+				elapsed := time.Since(dfsStart)
+				fmt.Fprintf(os.Stderr, "DFS processed %d/%d packages... (%.2fs)\n", dfsCount, len(dependencyGraph), elapsed.Seconds())
+			}
+		}
+	}
+
+	dfsElapsed := time.Since(dfsStart)
+	fmt.Fprintf(os.Stderr, "DFS completed for %d packages (%.2fs)\n", dfsCount, dfsElapsed.Seconds())
+	fmt.Fprintln(os.Stderr, "")
+
+	// Summary report
+	totalElapsed := time.Since(startTime)
+	fmt.Fprintf(os.Stderr, "=== CIRCULAR DEPENDENCY ANALYSIS SUMMARY ===\n")
+	fmt.Fprintf(os.Stderr, "Total execution time: %.2fs\n", totalElapsed.Seconds())
+	fmt.Fprintf(os.Stderr, "Packages analyzed: %d\n", len(dependencyGraph))
+	fmt.Fprintf(os.Stderr, "Internal dependencies checked: %d\n", func() int {
+		count := 0
+		for _, deps := range dependencyGraph {
+			for _, dep := range deps {
+				if strings.HasPrefix(dep, "cryptoutil/") {
+					count++
+				}
+			}
+		}
+		return count
+	}())
+
+	if len(circularDeps) == 0 {
+		fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
+		fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "❌ RESULT: Found %d circular dependency chain(s):\n\n", len(circularDeps))
+
+	for i, cycle := range circularDeps {
+		fmt.Fprintf(os.Stderr, "Chain %d (%d packages):\n", i+1, len(cycle))
+		for j, pkg := range cycle {
+			prefix := "  "
+			if j > 0 {
+				prefix = "  → "
+			}
+			fmt.Fprintf(os.Stderr, "%s%s\n", prefix, pkg)
+		}
+		fmt.Fprintln(os.Stderr, "")
+	}
+
+	fmt.Fprintln(os.Stderr, "Circular dependencies can prevent enabling advanced linters like gomnd.")
+	fmt.Fprintln(os.Stderr, "Consider refactoring to break these cycles.")
+	os.Exit(1) // Fail the build
 }
