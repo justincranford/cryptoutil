@@ -659,3 +659,83 @@ githubConfig := &oauth2.Config{
 **Timeline**: Q4 2025 implementation as planned in Task O1.
 
 ---
+
+## 🟡 MEDIUM - Magic Number Detection Enhancement
+
+#### Task MN1: Enhanced goconst Configuration (🟡 MEDIUM)
+- **Description**: Update goconst linter settings for more aggressive detection of repeated strings and numeric constants
+- **Current State**: Basic goconst configuration with min-len: 3, min-occurrences: 3
+- **Action Items**:
+  - Lower min-len to 2 for shorter repeated strings
+  - Lower min-occurrences to 2 for more aggressive detection
+  - Enable numbers: true for numeric constant detection
+  - Enable match-constant: true to also match existing constants
+  - **Note**: goconst is available both as standalone tool (`goconst`) and built into golangci-lint
+- **Files**: `.golangci.yml`
+- **Expected Outcome**: Better detection of magic strings and numeric literals
+- **Priority**: Medium - Code quality improvement
+
+#### Task MN2: Enable gocritic for Magic Number Detection (🟡 MEDIUM)
+- **Description**: Add gocritic linter with magic number detection capabilities
+- **Current State**: gocritic not enabled in golangci-lint configuration
+- **Action Items**:
+  - Enable gocritic linter in `.golangci.yml`
+  - Configure magic number detection rules
+  - Set appropriate thresholds for hugeParam and rangeValCopy
+  - Test and tune disabled-checks for project compatibility
+  - **Note**: gocritic is available both as standalone tool (`gocritic`) and built into golangci-lint
+- **Files**: `.golangci.yml`
+- **Expected Outcome**: Detection of numeric literals that should be named constants
+- **Priority**: Medium - Code quality improvement
+
+#### Task MN3: Enable gomnd for Additional Magic Number Detection (🟡 MEDIUM)
+- **Description**: Add gomnd (Go Magic Number Detector) linter as complement to gocritic for magic number detection
+- **Current State**: gomnd not enabled in golangci-lint configuration
+- **Action Items**:
+  - Enable gomnd linter in `.golangci.yml`
+  - Configure appropriate settings for magic number detection
+  - Test for overlap/redundancy with gocritic magic number rules
+  - **Note**: gomnd is available both as standalone tool (`gomnd`) and built into golangci-lint
+- **Files**: `.golangci.yml`
+- **Expected Outcome**: Additional detection of numeric literals that should be named constants
+- **Priority**: Medium - Code quality improvement
+- **Dependencies**: Task MN2 (gocritic) completion
+
+**Common Magic Values to Watch For:**
+- HTTP status codes: `200`, `404`, `500`
+- Timeouts: `30`, `60`, `300` (seconds)
+- Buffer sizes: `1024`, `4096`
+- Retry counts: `3`, `5`, `10`
+- Port numbers: `8080`, `5432`
+- String literals: `"localhost"`, `"admin"`, `"default"`
+
+---
+
+## 🟡 MEDIUM - Additional Linters Enhancement
+
+#### Task AL1: Evaluate and Enable Additional Linters (🟡 MEDIUM)
+- **Description**: Assess and enable additional golangci-lint linters for improved code quality
+- **Current State**: Core linters enabled, additional quality linters available
+- **Action Items**:
+  - Evaluate these additional linters for project compatibility:
+    - **Built into golangci-lint only**: None in this list
+    - **Available as separate applications AND built into golangci-lint**:
+      - `exportloopref` - Detects exported loop variable references (standalone: `exportloopref`)
+      - `gocognit` - Cognitive complexity analysis (standalone: `gocognit`)
+      - `goheader` - License header checking (standalone: `goheader`)
+      - `gomoddirectives` - Go module directive checking (standalone: `gomoddirectives`)
+      - `gomodguard` - Block specific modules (standalone: `gomodguard`)
+      - `importas` - Enforce import aliasing (standalone: `importas`)
+      - `lll` - Long line detection (standalone: `lll`)
+      - `nlreturn` - Require newlines before return (standalone: `nlreturn`)
+      - `testpackage` - Test package naming conventions (standalone: `testpackage`)
+      - `wsl` - Whitespace linting (standalone: `wsl`)
+    - **Only available as separate applications**: `ineffassign`, `misspell`, `errcheck` (already enabled)
+  - Enable compatible linters in `.golangci.yml`
+  - Configure appropriate settings for each enabled linter
+  - Test CI performance impact and adjust as needed
+- **Files**: `.golangci.yml`
+- **Expected Outcome**: Enhanced code quality and consistency checks
+- **Priority**: Medium - Code quality improvement
+
+---
