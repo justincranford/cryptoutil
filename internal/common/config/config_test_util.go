@@ -225,12 +225,20 @@ func RequireNewForTest(applicationName string) *Settings {
 	settings.DevMode = true
 	settings.IPRateLimit = 1000
 	settings.OTLPService = applicationName
+	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")
 	if strings.Contains(settings.DatabaseURL, "/DB?") {
 		// SQLite: Randomize the in-memory database name, so it is unique during concurrent testing
-		uniqueSuffix := googleUuid.Must(googleUuid.NewV7()).String()
 		settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "/DB?", "/DB_"+applicationName+"_"+uniqueSuffix+"?", 1)
 	} else if strings.Contains(settings.DatabaseURL, "postgres://") {
-		// PostgreSQL: do nothing, assume test-containers will create unique containers per test
+		// PostgreSQL: Use a unique schema within the shared database for concurrent testing
+		schemaName := applicationName + "_" + uniqueSuffix
+		if strings.Contains(settings.DatabaseURL, "?") {
+			// URL already has query parameters, add search_path
+			settings.DatabaseURL = strings.Replace(settings.DatabaseURL, "?", "?search_path="+schemaName+"&", 1)
+		} else {
+			// No query parameters, add search_path
+			settings.DatabaseURL = settings.DatabaseURL + "?search_path=" + schemaName
+		}
 	} else {
 		panic("unsupported database type in DATABASE_URL for RequireNewForTest()")
 	}
