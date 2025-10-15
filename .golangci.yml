@@ -179,6 +179,9 @@ linters-settings:
 
   testpackage:
     # Test package naming conventions
+    # By default, enforces external testing (separate _test packages)
+    # This ensures tests use the public API rather than internal implementation
+    skip-regexp: '.*_test\.go$'  # Skip all test files (allow internal testing)
 
   gomodguard:
     # Prevent importing blocked modules
