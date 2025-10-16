@@ -168,6 +168,9 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
+      - name: Check GitHub Actions versions
+        run: go run scripts/cicd_utils.go github-action-versions
+
       - name: Run race detection tests
         run: |
           echo "🏁 Running race detection tests..."
