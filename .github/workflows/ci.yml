@@ -131,7 +131,7 @@ jobs:
         env:
           POSTGRES_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
         run: |
-          go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+          go test -v -race -count=1 -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Generate coverage report
         run: go tool cover -html=coverage.out -o coverage.html

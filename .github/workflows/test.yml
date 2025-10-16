@@ -89,7 +89,7 @@ jobs:
       - name: Run coverage on concurrency tests
         run: |
           echo "📊 Generating coverage report for concurrency tests..."
-          go test -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
+          go test -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
 
       - name: Upload concurrency coverage
         uses: codecov/codecov-action@v5.5.1
@@ -162,7 +162,7 @@ jobs:
       - name: Run race detection tests
         run: |
           echo "🏁 Running race detection tests..."
-          go test -race -timeout=10m ./...
+          go test -race -count=1 -timeout=10m ./...
 
       - name: Race test summary
         run: |
