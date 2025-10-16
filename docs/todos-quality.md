@@ -48,6 +48,19 @@
 - **Expected Outcome**: Enhanced code quality and consistency checks
 - **Priority**: Medium - Code quality improvement
 
+### Task CQ4: Update Workflows for Artifact Management Best Practices
+- **Description**: Ensure all CI/CD workflows follow artifact management best practices for Actions tab and Security tab uploads
+- **Current State**: Inconsistent artifact handling across workflows
+- **Action Items**:
+  - Update `sast.yml` to upload SARIF files (staticcheck.sarif, trivy-results.sarif) as downloadable artifacts in Actions tab
+  - Review all workflows (.github/workflows/*.yml) for missing artifact uploads
+  - Ensure security-related artifacts are uploaded to both Security tab (SARIF) and Actions tab (downloadable)
+  - Add retention policies and consistent naming conventions
+  - Test artifact generation and download functionality
+- **Files**: `.github/workflows/*.yml`
+- **Expected Outcome**: Consistent, downloadable artifacts across all workflows with proper security integration
+- **Priority**: Medium - CI/CD reliability and usability improvement
+
 ---
 
 ## Common Magic Values to Watch For

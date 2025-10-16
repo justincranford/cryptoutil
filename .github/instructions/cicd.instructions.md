@@ -86,3 +86,36 @@ applyTo: ".github/workflows/*.yml"
 - `-s`: Strip symbol table (reduces size, keeps DWARF debug symbols)
 - `-w`: Strip DWARF debug symbols (breaks debugging, never use)
 - `-extldflags '-static'`: Force static linking with external linker
+
+## Artifact Management Best Practices
+
+### Actions Tab Artifacts (Downloadable)
+- **ALWAYS upload artifacts to Actions tab** for any generated reports, logs, or outputs that users/developers might need to download
+- Use `actions/upload-artifact@v4` with descriptive names and `if: always()` condition
+- Include retention policies: `retention-days: 30` for reports, `retention-days: 7` for temporary files
+- **Examples**:
+  - Test coverage reports
+  - Security scan reports (SARIF files)
+  - Build artifacts
+  - Log files and diagnostics
+  - SBOM files
+  - Mutation testing reports
+
+### Security Tab Integration (SARIF)
+- **ALWAYS upload security findings to GitHub Security tab** using `github/codeql-action/upload-sarif@v3`
+- Upload SARIF files for SAST, DAST, container scanning, and dependency analysis results
+- Use `if: always() && hashFiles('file.sarif') != ''` to avoid failures when no issues found
+- **Dual upload pattern**: Upload both to Security tab (for visualization) AND Actions tab (for downloadability)
+- **Examples**:
+  - Staticcheck SARIF results
+  - Trivy vulnerability scans
+  - CodeQL analysis results
+  - OWASP ZAP reports
+  - Nuclei security scans
+
+### Additional Best Practices
+- Use consistent artifact naming conventions across workflows
+- Include timestamps or run IDs in artifact names when multiple runs possible
+- Compress large artifacts to reduce storage costs
+- Document artifact contents in workflow comments
+- Clean up temporary artifacts within workflows to avoid clutter
