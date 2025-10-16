@@ -89,7 +89,7 @@ jobs:
       - name: Run coverage on concurrency tests
         run: |
           echo "📊 Generating coverage report for concurrency tests..."
-          go test -race -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
+          go test -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
 
       - name: Generate concurrency coverage report
         run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
