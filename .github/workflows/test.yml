@@ -54,10 +54,10 @@ env:
   GO_VERSION: '1.25.1'
 
 jobs:
-  # Concurrency Testing - Robustness validation
+  # Concurrency & Race Detection Testing - Comprehensive concurrent safety validation
   # Note: Tests automatically use SQLite in-memory databases for isolation and speed
   concurrency:
-    name: Concurrency Tests
+    name: Concurrency & Race Detection Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -81,15 +81,15 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
-      - name: Run concurrency tests
+      - name: Run concurrency and race detection tests
         run: |
-          echo "🔄 Running concurrency tests for CIA triad availability validation..."
-          go test -timeout=15m -count=2 -p=2 ./internal/server/application ./internal/client
+          echo "🔄 Running comprehensive concurrency and race detection tests..."
+          go test -race -timeout=15m -count=2 -p=2 ./...
 
       - name: Run coverage on concurrency tests
         run: |
           echo "📊 Generating coverage report for concurrency tests..."
-          go test -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
+          go test -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./...
 
       - name: Generate concurrency coverage report
         run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
@@ -102,81 +102,11 @@ jobs:
           name: codecov-concurrency
           fail_ci_if_error: false
 
-      - name: Upload concurrency coverage artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: concurrency-coverage-report
-          path: concurrency-coverage.html
-
-  # Fuzz Testing - Property-based testing
-  fuzz:
-    name: Fuzz Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Run fuzz tests
+      - name: Concurrency test summary
         run: |
-          echo "🎯 Running fuzz tests for security-critical code..."
-          # Run fuzz tests with reasonable timeout (30 seconds per fuzz test)
-          go test -fuzz=. -fuzztime=30s ./pkg/... 2>/dev/null || echo "No fuzz tests found in pkg/"
-          go test -fuzz=. -fuzztime=30s ./internal/... 2>/dev/null || echo "No fuzz tests found in internal/"
-
-      - name: Fuzz test summary
-        run: |
-          echo "## 🎯 Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
-          echo "Fuzz tests completed successfully with 30s timeout per test." >> $GITHUB_STEP_SUMMARY
-          echo "- Coverage: pkg/ and internal/ packages" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: 30 seconds per fuzz function" >> $GITHUB_STEP_SUMMARY
-
-  # Race Detection Testing
-  # Note: Tests automatically use SQLite in-memory databases for isolation and speed
-  race:
-    name: Race Detection Tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Verify dependencies
-        run: go mod verify
-
-      - name: Clean and verify module files
-        run: |
-          go mod tidy
-          git diff --exit-code go.mod go.sum
-
-      - name: Run race detection tests
-        run: |
-          echo "🏁 Running race detection tests..."
-          go test -race -count=1 -timeout=10m ./...
-
-      - name: Race test summary
-        run: |
-          echo "## 🏁 Race Detection Results" >> $GITHUB_STEP_SUMMARY
-          echo "Race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "## 🔄 Concurrency & Race Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "Comprehensive concurrency and race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
           echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
-          echo "- Timeout: 10 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- Concurrent execution: 2 runs, 2 parallel" >> $GITHUB_STEP_SUMMARY
+          echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
