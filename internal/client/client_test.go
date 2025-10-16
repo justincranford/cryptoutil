@@ -256,9 +256,14 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 				return
 			}
 
+			elasticKeyAlgorithm := cryptoutilOpenapiModel.ElasticKeyAlgorithm(testCase.algorithm)
+			isAsymmetric, err := cryptoutilJose.IsAsymmetric(&elasticKeyAlgorithm)
+			require.NoError(t, err)
+
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
 
@@ -277,6 +282,7 @@ func TestAllElasticKeyCipherAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
 
@@ -366,16 +372,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
-				if isAsymmetric {
-					require.NotNil(t, key.ClearPublic)
-					jwk, err := joseJwk.ParseKey([]byte(*key.ClearPublic))
-					require.NoError(t, err)
-					// TODO validate public key does not contain any private key or secret key material
-					require.NotNil(t, jwk)
-				} else {
-					require.Nil(t, key.ClearPublic)
-				}
-
+				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
 
@@ -394,6 +391,7 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			t.Run(testCaseNamePrefix+"  Generate Key", func(t *testing.T) {
 				keyGenerate := RequireMaterialKeyGenerateRequest(t)
 				key := RequireMaterialKeyGenerateResponse(t, context, openapiClient, elasticKey.ElasticKeyID, keyGenerate)
+				validateKeyResponsePublicKey(t, key, isAsymmetric)
 				logObjectAsJSON(t, key)
 			})
 
@@ -409,6 +407,24 @@ func TestAllElasticKeySignatureAlgorithms(t *testing.T) {
 			require.NotNil(t, verifiedtest)
 			require.Empty(t, *verifiedtest)
 		})
+	}
+}
+
+func validateKeyResponsePublicKey(t *testing.T, key *cryptoutilOpenapiModel.MaterialKey, isAsymmetric bool) {
+	t.Helper()
+
+	if isAsymmetric {
+		require.NotNil(t, key.ClearPublic)
+		jwk, err := joseJwk.ParseKey([]byte(*key.ClearPublic))
+		require.NoError(t, err)
+
+		isPublic, err := cryptoutilJose.IsPublicJWK(jwk)
+		require.NoError(t, err)
+		require.True(t, isPublic, "parsed JWK must be a public key")
+
+		require.NotNil(t, jwk)
+	} else {
+		require.Nil(t, key.ClearPublic)
 	}
 }
 
