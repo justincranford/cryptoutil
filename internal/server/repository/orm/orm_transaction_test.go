@@ -33,6 +33,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -110,6 +111,7 @@ func TestSQLTransaction_RollbackOnError(t *testing.T) {
 	err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(ormTransaction *OrmTransaction) error {
 		require.NotNil(t, ormTransaction)
 		require.Equal(t, ReadWrite, *ormTransaction.Mode())
+
 		return fmt.Errorf("intentional failure")
 	})
 	require.Error(t, err)
@@ -125,6 +127,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 	tests := []happyPathTestCase{}
 	tests = append(tests, happyPathTestCase{txMode: AutoCommit, expectError: false})
 	tests = append(tests, happyPathTestCase{txMode: ReadWrite, expectError: false})
+
 	if !skipReadOnlyTxTests {
 		tests = append(tests, happyPathTestCase{txMode: ReadOnly, expectError: true})
 	}
@@ -145,10 +148,12 @@ func TestSQLTransaction_Success(t *testing.T) {
 			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 Elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
 			cryptoutilAppErr.RequireNoError(err, "failed to add AES 256 Elastic Key")
+
 			addedElasticKeys = append(addedElasticKeys, elasticKey)
 
 			multipleByteSlices, err := cryptoutilUtil.GenerateMultipleBytes(numMaterialKeys, 32)
 			cryptoutilAppErr.RequireNoError(err, "failed to generate AES 256 key materials")
+
 			for nextKeyID := 1; nextKeyID <= numMaterialKeys; nextKeyID++ {
 				now := time.Now().UTC()
 				key := MaterialKey{
@@ -172,6 +177,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 		})
 
 		testTelemetryService.Slogger.Info("Happy path test case result", "mode", testCase.txMode, "expectError", testCase.expectError, "error", err)
+
 		if testCase.expectError {
 			require.Error(t, err)
 		} else {
@@ -189,6 +195,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 				if err != nil {
 					return fmt.Errorf("failed to get Elastic Key: %w", err)
 				}
+
 				require.Equal(t, addedElasticKey, retrievedElasticKey)
 
 				return nil
@@ -207,6 +214,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 				if err != nil {
 					return fmt.Errorf("failed to get Key: %w", err)
 				}
+
 				require.Equal(t, addedKey, retrievedKey)
 
 				return nil

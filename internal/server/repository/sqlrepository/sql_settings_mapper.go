@@ -15,6 +15,7 @@ func mapDBTypeAndURL(telemetryService *cryptoutilTelemetry.TelemetryService, dev
 		telemetryService.Slogger.Debug("running in production mode, using PostgreSQL database")
 		return DBTypePostgres, databaseURL, nil
 	}
+
 	return "", "", fmt.Errorf("unsupported database URL format: %s", databaseURL)
 }
 

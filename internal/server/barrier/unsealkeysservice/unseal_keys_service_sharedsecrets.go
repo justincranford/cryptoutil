@@ -34,6 +34,7 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 	if sharedSecretsM == nil {
 		return nil, fmt.Errorf("shared secrets can't be nil")
 	}
+
 	countM := len(sharedSecretsM)
 	if countM == 0 {
 		return nil, fmt.Errorf("shared secrets can't be zero")
@@ -46,6 +47,7 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 	} else if chooseN > countM {
 		return nil, fmt.Errorf("n can't be greater than shared secrets count")
 	}
+
 	for i, sharedSecret := range sharedSecretsM {
 		if sharedSecret == nil {
 			return nil, fmt.Errorf("shared secret %d can't be nil", i)
@@ -60,5 +62,6 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWK combinations: %w", err)
 	}
+
 	return &UnsealKeysServiceSharedSecrets{unsealJWKs: unsealJWKs}, nil
 }

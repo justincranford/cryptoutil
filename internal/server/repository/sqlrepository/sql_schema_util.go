@@ -24,6 +24,7 @@ func logSQLiteSchema(sqlRepository *SQLRepository) error {
 		if err != nil {
 			return nil, fmt.Errorf("failed to query SQLite table names: %w", err)
 		}
+
 		defer func() {
 			if closeErr := queryResults.Close(); closeErr != nil {
 				sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
@@ -31,13 +32,16 @@ func logSQLiteSchema(sqlRepository *SQLRepository) error {
 		}() // Ensure query results are closed before for first loop body
 
 		var tableNames []string
+
 		for queryResults.Next() {
 			var tableName string
 			if err := queryResults.Scan(&tableName); err != nil {
 				return nil, fmt.Errorf("failed to scan table name: %w", err)
 			}
+
 			tableNames = append(tableNames, tableName)
 		}
+
 		return tableNames, nil
 	}()
 	if err != nil {
@@ -45,13 +49,16 @@ func logSQLiteSchema(sqlRepository *SQLRepository) error {
 	}
 
 	fmt.Println("SQLite Schema:")
+
 	for _, tableName := range tableNames {
 		fmt.Printf("Table: %s\n", tableName)
+
 		err = func() error {
 			queryResults, err := sqlRepository.sqlDB.Query(fmt.Sprintf("PRAGMA table_info(%s);", tableName))
 			if err != nil {
 				return fmt.Errorf("failed to query table info for %s: %w", tableName, err)
 			}
+
 			defer func() {
 				if closeErr := queryResults.Close(); closeErr != nil {
 					sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
@@ -60,20 +67,26 @@ func logSQLiteSchema(sqlRepository *SQLRepository) error {
 
 			for queryResults.Next() {
 				var cid int
+
 				var name, ctype string
+
 				var notnull, pk int
+
 				var dfltValue any
 				if err := queryResults.Scan(&cid, &name, &ctype, &notnull, &dfltValue, &pk); err != nil {
 					return fmt.Errorf("failed to scan column info: %w", err)
 				}
+
 				fmt.Printf("  Column: %s, Type: %s, NotNull: %d, PrimaryKey: %d\n", name, ctype, notnull, pk)
 			}
+
 			return nil
 		}()
 		if err != nil {
 			return fmt.Errorf("failed to log columns for table %s: %w", tableName, err)
 		}
 	}
+
 	return nil
 }
 
@@ -83,6 +96,7 @@ func logPostgresSchema(sqlRepository *SQLRepository) error {
 		if err != nil {
 			return nil, fmt.Errorf("failed to query PostgreSQL table names: %w", err)
 		}
+
 		defer func() {
 			if closeErr := queryResults.Close(); closeErr != nil {
 				sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
@@ -90,13 +104,16 @@ func logPostgresSchema(sqlRepository *SQLRepository) error {
 		}() // Ensure query results are closed before for first loop body
 
 		var tableNames []string
+
 		for queryResults.Next() {
 			var tableName string
 			if err := queryResults.Scan(&tableName); err != nil {
 				return nil, fmt.Errorf("failed to scan table name: %w", err)
 			}
+
 			tableNames = append(tableNames, tableName)
 		}
+
 		return tableNames, nil
 	}()
 	if err != nil {
@@ -105,11 +122,13 @@ func logPostgresSchema(sqlRepository *SQLRepository) error {
 
 	for _, tableName := range tableNames {
 		fmt.Printf("Table: %s\n", tableName)
+
 		err = func() error {
 			queryResults, err := sqlRepository.sqlDB.Query(fmt.Sprintf(`SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_name = '%s';`, tableName))
 			if err != nil {
 				return fmt.Errorf("failed to query column info for %s: %w", tableName, err)
 			}
+
 			defer func() {
 				if closeErr := queryResults.Close(); closeErr != nil {
 					sqlRepository.telemetryService.Slogger.Error("failed to close query results", "error", closeErr)
@@ -121,13 +140,16 @@ func logPostgresSchema(sqlRepository *SQLRepository) error {
 				if err := queryResults.Scan(&columnName, &dataType, &isNullable); err != nil {
 					return fmt.Errorf("failed to scan column info: %w", err)
 				}
+
 				fmt.Printf("  Column: %s, Type: %s, Nullable: %s\n", columnName, dataType, isNullable)
 			}
+
 			return nil
 		}()
 		if err != nil {
 			return fmt.Errorf("failed to log columns for table %s: %w", tableName, err)
 		}
 	}
+
 	return nil
 }

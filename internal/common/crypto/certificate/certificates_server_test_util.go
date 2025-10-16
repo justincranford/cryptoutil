@@ -19,6 +19,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 	if err != nil {
 		return "", fmt.Errorf("failed to start TCP Listener: %w", err)
 	}
+
 	netTCPListener, ok := netListener.(*net.TCPListener)
 	if !ok {
 		return "", fmt.Errorf("failed to cast net.Listener to *net.TCPListener")
@@ -37,8 +38,10 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 				log.Printf("warning: failed to close TLS listener: %v", err)
 			}
 		}()
+
 		osShutdownSignalCh := make(chan os.Signal, 1)
 		signal.Notify(osShutdownSignalCh, os.Interrupt, syscall.SIGTERM) //nolint:errcheck
+
 		for {
 			select {
 			case <-callerShutdownSignalCh:
@@ -51,6 +54,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 				if err := netTCPListener.SetDeadline(time.Now().Add(readTimeout)); err != nil {
 					log.Printf("warning: failed to set TCP deadline: %v", err)
 				}
+
 				tlsClientConnection, err := tlsListener.Accept()
 				if err != nil {
 					var ne net.Error
@@ -68,14 +72,17 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 						// For other errors, log and retry with backoff
 						log.Printf("error accepting connection (will retry): %v", err)
 						time.Sleep(100 * time.Millisecond) // Brief backoff on errors
+
 						continue
 					}
 				}
+
 				go func(conn net.Conn) {
 					defer func() {
 						if r := recover(); r != nil {
 							log.Printf("panic in TLS connection handler: %v", r)
 						}
+
 						if err := conn.Close(); err != nil {
 							log.Printf("warning: failed to close connection: %v", err)
 						}
@@ -85,11 +92,13 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 					if err := conn.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
 						log.Printf("warning: failed to set read deadline: %v", err)
 					}
+
 					if err := conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
 						log.Printf("warning: failed to set write deadline: %v", err)
 					}
 
 					tlsClientRequestBodyBuffer := make([]byte, 1024) // Increased buffer size
+
 					bytesRead, err := conn.Read(tlsClientRequestBodyBuffer)
 					if err != nil {
 						var ne net.Error
@@ -98,6 +107,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 						} else {
 							log.Printf("failed to read from TLS connection: %v", err)
 						}
+
 						return
 					}
 					// Do not treat empty request as shutdown; just ignore
@@ -106,6 +116,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 						if err := conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
 							log.Printf("warning: failed to set write deadline: %v", err)
 						}
+
 						_, err = conn.Write(tlsClientRequestBodyBuffer[:bytesRead])
 						if err != nil {
 							var ne net.Error
@@ -129,6 +140,7 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to start TCP Listener for HTTPS Server: %w", err)
 	}
+
 	httpHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {
@@ -144,6 +156,7 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 		if err != nil {
 			log.Printf("failed to read request body: %v", err)
 			http.Error(w, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+
 			return
 		}
 
@@ -152,8 +165,8 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 
 		_, err = w.Write(data)
 		if err != nil {
-			log.Printf("failed to write response: %v", err)
 			// Don't call http.Error here as headers are already written
+			log.Printf("failed to write response: %v", err)
 		}
 	})
 	server := &http.Server{
@@ -166,11 +179,14 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 		MaxHeaderBytes:    1 << 20,          // 1MB max header size (prevents large header attacks)
 		ErrorLog:          log.New(os.Stderr, "https-server: ", log.LstdFlags),
 	}
+
 	go func() {
 		if err := server.ServeTLS(netListener, "", ""); err != nil && err != http.ErrServerClosed {
 			log.Printf("HTTPS server error: %v", err)
 		}
 	}()
+
 	url := "https://" + netListener.Addr().String()
+
 	return server, url, nil
 }

@@ -23,6 +23,7 @@ func GenerateSerialNumber() (*big.Int, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random serial number offset: %w", err)
 	}
+
 	return new(big.Int).Add(randomOffsetFromMin, minSerialNumber), nil // Valid range [2^64, 2^159)
 }
 
@@ -30,12 +31,14 @@ func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, 
 	if requestedDuration > maxCACertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxCACertDuration")
 	}
+
 	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
 	} else if notAfter.Sub(notBefore) > maxCACertDuration {
 		return notBefore, notAfter, fmt.Errorf("actual duration exceeds maxCACertDuration")
 	}
+
 	return notBefore, notAfter, nil
 }
 
@@ -43,17 +46,20 @@ func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDur
 	if requestedDuration > maxSubscriberCertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxSubscriberCertDuration")
 	}
+
 	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
 	} else if notAfter.Sub(notBefore) > maxSubscriberCertDuration {
 		return notBefore, notAfter, fmt.Errorf("actual duration exceeds maxSubscriberCertDuration")
 	}
+
 	return notBefore, notAfter, nil
 }
 
 func generateNotBeforeNotAfter(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
 	maxRangeOffset := int64(maxSubtract - minSubtract)
+
 	if requestedDuration <= 0 {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration must be positive, got: %v", requestedDuration)
 	} else if minSubtract <= 0 {
@@ -68,6 +74,7 @@ func generateNotBeforeNotAfter(requestedStart time.Time, requestedDuration, minS
 	if err != nil {
 		return time.Time{}, time.Time{}, fmt.Errorf("failed to generate random range offset: %w", err)
 	}
+
 	notBefore := requestedStart.Add(-minSubtract - time.Duration(rangeOffset.Int64())) // [-minSubtract - maxRangeOffset, -minSubtract)
 	notAfter := requestedStart.Add(requestedDuration)
 

@@ -63,6 +63,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown() // this needs to run before os.Exit
@@ -74,12 +75,15 @@ func TestMain(m *testing.M) {
 
 func TestHappyPath(t *testing.T) {
 	t.Parallel()
+
 	for _, tc := range happyPathTestCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, tc.name, tc.workers, tc.size, tc.maxLifetimeValues, tc.maxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function(), false))
 			require.NoError(t, err)
 			require.NotNil(t, poolInstance)
+
 			defer poolInstance.Cancel()
 
 			for i := uint64(0); i < tc.gets; i++ {
@@ -95,6 +99,7 @@ func TestGenerateError(t *testing.T) {
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "Fail", 1, 1, numGets, time.Second, generateErrorFunction(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)
+
 	defer poolInstance.Cancel()
 
 	for i := uint64(0); i < numGets; i++ {

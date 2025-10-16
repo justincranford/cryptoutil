@@ -32,6 +32,7 @@ func Test_Import_Encrypt_Decrypt(t *testing.T) {
 	}
 
 	plaintext := []byte("Hello, World!")
+
 	for _, testCaseJWE := range testCasesJWE {
 		t.Run(testCaseJWE.alg.String(), func(t *testing.T) {
 			nonPublicJWK := Import(t, testCaseJWE.raw, testCaseJWE.enc, testCaseJWE.alg)
@@ -46,28 +47,35 @@ func Test_Import_Encrypt_Decrypt(t *testing.T) {
 
 func generateJWETestCaseECDH(t *testing.T, ecdhCurve ecdh.Curve, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) testCaseJWE {
 	t.Helper()
+
 	ecdhPrivateKey, err := ecdhCurve.GenerateKey(rand.Reader)
 	require.NoError(t, err, "failed to generate raw ECDH private key for JWE test case")
+
 	return testCaseJWE{raw: ecdhPrivateKey, enc: enc, alg: alg}
 }
 
 func generateJWETestCaseRSA(t *testing.T, keyLengthBits int, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) testCaseJWE {
 	t.Helper()
+
 	rsaPrivateKey, err := rsa.GenerateKey(rand.Reader, keyLengthBits)
 	require.NoError(t, err, "failed to generate raw RSA private key for JWE test case")
+
 	return testCaseJWE{raw: rsaPrivateKey, enc: enc, alg: alg}
 }
 
 func generateJWETestCaseAES(t *testing.T, keyLengthBits int, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) testCaseJWE {
 	t.Helper()
+
 	aesSecretKey := make([]byte, keyLengthBits/8)
 	_, err := rand.Read(aesSecretKey)
 	require.NoError(t, err, "failed to generate raw AES secret key for JWE test case")
+
 	return testCaseJWE{raw: aesSecretKey, enc: enc, alg: alg}
 }
 
 func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.KeyEncryptionAlgorithm) jwk.Key {
 	t.Helper()
+
 	nonPublicJWK, err := jwk.Import(raw)
 	require.NoError(t, err, "failed to import raw key into JWK")
 
@@ -99,6 +107,7 @@ func Import(t *testing.T, raw any, enc jwa.ContentEncryptionAlgorithm, alg jwa.K
 func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message {
 	t.Helper()
 	require.NotEmpty(t, plaintext, "plaintext can't be empty")
+
 	isEncryptJWK, err := cryptoutilJose.IsEncryptJWK(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
 	require.True(t, isEncryptJWK, "recipient JWK must be an encrypt JWK")
@@ -116,12 +125,15 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 	if err := jweProtectedHeaders.Set(jwk.KeyIDKey, kid); err != nil {
 		require.NoError(t, err, "failed to set kid header")
 	}
+
 	if err := jweProtectedHeaders.Set("enc", enc); err != nil {
 		require.NoError(t, err, "failed to set enc header")
 	}
+
 	if err := jweProtectedHeaders.Set(jwk.AlgorithmKey, alg); err != nil {
 		require.NoError(t, err, "failed to set alg header")
 	}
+
 	jweEncryptOptions = append(jweEncryptOptions, jwe.WithKey(alg, recipientJWK, jwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 
 	jweMessageBytes, err := jwe.Encrypt(plaintext, jweEncryptOptions...)
@@ -137,6 +149,7 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte {
 	t.Helper()
 	require.NotEmpty(t, jweMessage, "JWE message can't be empty")
+
 	isDecryptJWK, err := cryptoutilJose.IsDecryptJWK(recipientJWK)
 	require.NoError(t, err, "failed to validate recipient JWK")
 	require.True(t, isDecryptJWK, "recipient JWK must be a decrypt JWK")
@@ -156,21 +169,25 @@ func decrypt(t *testing.T, recipientJWK jwk.Key, jweMessage *jwe.Message) []byte
 // getKidEncAlgFromJWK extracts 'kid', 'enc', and 'alg' headers from recipient JWK. All 3 are assumed to be present in the JWK.
 func getKidEncAlgFromJWK(t *testing.T, recipientJWK jwk.Key) (string, jwa.ContentEncryptionAlgorithm, jwa.KeyEncryptionAlgorithm) {
 	t.Helper()
+
 	var kid string
 	err := recipientJWK.Get(jwk.KeyIDKey, &kid)
 	require.NoError(t, err, "failed to get 'kid' from recipient JWK")
 
 	var enc jwa.ContentEncryptionAlgorithm
+
 	err = recipientJWK.Get("enc", &enc) // EX: A256GCM, A256CBC-HS512, dir
 	if err != nil {
 		var encString string // Workaround: get 'enc' as string and convert to ContentEncryptionAlgorithm
 		err = recipientJWK.Get("enc", &encString)
 		require.NoError(t, err, "failed to get 'enc' from recipient JWK")
+
 		enc = jwa.NewContentEncryptionAlgorithm(encString) // Convert string to ContentEncryptionAlgorithm
 	}
 
 	var alg jwa.KeyEncryptionAlgorithm
 	err = recipientJWK.Get(jwk.AlgorithmKey, &alg) // EX: A256KW, A256GCMKW, RSA_OAEP_512, RSA1_5, ECDH_ES_A256KW
 	require.NoError(t, err, "failed to get 'alg' from recipient JWK")
+
 	return kid, enc, alg
 }

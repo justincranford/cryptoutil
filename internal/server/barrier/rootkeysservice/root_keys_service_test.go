@@ -27,6 +27,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -53,11 +54,13 @@ func TestRootKeysService_HappyPath_OneUnsealJWKs(t *testing.T) {
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
 	require.NotNil(t, unsealKeysServiceSimple)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
 	require.NoError(t, err)
 	require.NotNil(t, rootKeysService)
+
 	defer rootKeysService.Shutdown()
 }
 

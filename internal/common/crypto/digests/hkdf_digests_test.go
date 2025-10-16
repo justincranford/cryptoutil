@@ -39,6 +39,7 @@ func TestHKDFHappyPath(t *testing.T) {
 			if err != nil {
 				t.Errorf("HKDF(%s) unexpected error: %v", tt.digestName, err)
 			}
+
 			if len(output) != tt.outputBytesLength {
 				t.Errorf("HKDF(%s) output length = %d, want %d", tt.digestName, len(output), tt.outputBytesLength)
 			}
@@ -50,10 +51,12 @@ func TestHKDFHappyPath(t *testing.T) {
 		if err != nil {
 			t.Fatalf("HKDF failed: %v", err)
 		}
+
 		output2, err := HKDF("SHA256", []byte("secret"), []byte("salt2"), []byte("info"), 32)
 		if err != nil {
 			t.Fatalf("HKDF failed: %v", err)
 		}
+
 		if bytes.Equal(output1, output2) {
 			t.Errorf("HKDF output should be unique for different salts")
 		}
@@ -65,18 +68,22 @@ func TestHKDFHappyPathDifferentDigest(t *testing.T) {
 	if err != nil {
 		t.Fatalf("HKDF SHA224 failed: %v", err)
 	}
+
 	output2, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info"), 28)
 	if err != nil {
 		t.Fatalf("HKDF SHA256 failed: %v", err)
 	}
+
 	output3, err := HKDF("SHA384", []byte("secret"), []byte("salt"), []byte("info"), 28)
 	if err != nil {
 		t.Fatalf("HKDF SHA384 failed: %v", err)
 	}
+
 	output4, err := HKDF("SHA512", []byte("secret"), []byte("salt"), []byte("info"), 28)
 	if err != nil {
 		t.Fatalf("HKDF SHA512 failed: %v", err)
 	}
+
 	if bytes.Equal(output1, output2) {
 		t.Errorf("HKDF output should be unique for different digests")
 	} else if bytes.Equal(output1, output3) {
@@ -97,10 +104,12 @@ func TestHKDFHappyPathDifferentSecret(t *testing.T) {
 	if err != nil {
 		t.Fatalf("HKDF with secret1 failed: %v", err)
 	}
+
 	output2, err := HKDF("SHA256", []byte("secret2"), []byte("salt"), []byte("info"), 32)
 	if err != nil {
 		t.Fatalf("HKDF with secret2 failed: %v", err)
 	}
+
 	if bytes.Equal(output1, output2) {
 		t.Errorf("HKDF output should be unique for different secrets")
 	}
@@ -111,10 +120,12 @@ func TestHKDFHappyPathDifferentSalt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("HKDF with salt1 failed: %v", err)
 	}
+
 	output2, err := HKDF("SHA256", []byte("secret"), []byte("salt2"), []byte("info"), 32)
 	if err != nil {
 		t.Fatalf("HKDF with salt2 failed: %v", err)
 	}
+
 	if bytes.Equal(output1, output2) {
 		t.Errorf("HKDF output should be unique for different salts")
 	}
@@ -125,10 +136,12 @@ func TestHKDFHappyPathDifferentInfo(t *testing.T) {
 	if err != nil {
 		t.Fatalf("HKDF with info1 failed: %v", err)
 	}
+
 	output2, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info2"), 28)
 	if err != nil {
 		t.Fatalf("HKDF with info2 failed: %v", err)
 	}
+
 	if bytes.Equal(output1, output2) {
 		t.Errorf("HKDF output should be unique for different salts")
 	}

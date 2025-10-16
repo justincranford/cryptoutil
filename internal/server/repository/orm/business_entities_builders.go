@@ -17,6 +17,7 @@ func BuildElasticKey(elasticKeyID googleUuid.UUID, name, description string, pro
 		ElasticKeyImportAllowed:     importAllowed,
 		ElasticKeyStatus:            ElasticKeyStatusInitial(importAllowed),
 	}
+
 	return &elasticKey, nil
 }
 
@@ -24,5 +25,6 @@ func ElasticKeyStatusInitial(importAllowed bool) cryptoutilOpenapiModel.ElasticK
 	if importAllowed {
 		return cryptoutilOpenapiModel.PendingImport
 	}
+
 	return cryptoutilOpenapiModel.PendingGenerate
 }

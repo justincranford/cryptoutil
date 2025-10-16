@@ -62,6 +62,7 @@ const (
 
 func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Settings) (*TelemetryService, error) {
 	startTime := time.Now().UTC()
+
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")
 	} else if len(settings.OTLPService) == 0 {
@@ -72,15 +73,19 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	if err != nil {
 		return nil, fmt.Errorf("failed to init logger: %w", err)
 	}
+
 	metricsProvider, err := initMetrics(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init metrics: %w", err)
 	}
+
 	tracesProvider, err := initTraces(ctx, slogger, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init traces: %w", err)
 	}
+
 	textMapPropagator := initTextMapPropagator()
+
 	if settings.VerboseMode {
 		doExampleTracesSpans(ctx, tracesProvider, slogger)
 	}
@@ -107,78 +112,99 @@ func (s *TelemetryService) Shutdown() {
 
 		if s.tracesProviderSdk != nil || s.metricsProviderSdk != nil || s.logsProviderSdk != nil {
 			startTimeForceFlush := time.Now().UTC()
+
 			forceFlushCtx, forceFlushCancelDueToTimeout := context.WithTimeout(context.Background(), ForceFlushTimeout)
 			defer forceFlushCancelDueToTimeout()
+
 			if s.tracesProviderSdk != nil {
 				if s.VerboseMode {
 					s.Slogger.Debug("traces provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
 				}
+
 				startTimeForceFlushTracesProvider := time.Now().UTC()
+
 				if err := s.tracesProviderSdk.ForceFlush(forceFlushCtx); err != nil {
 					s.Slogger.Error("traces provider force flush failed", "error", fmt.Errorf("traces provider force flush error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("traces provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushTracesProvider).Seconds())
 				}
 			}
+
 			if s.metricsProviderSdk != nil {
 				if s.VerboseMode {
 					s.Slogger.Debug("metrics provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
 				}
+
 				startTimeForceFlushMetricsProvider := time.Now().UTC()
+
 				if err := s.metricsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
 					s.Slogger.Error("metrics provider force flush failed", "error", fmt.Errorf("metrics provider force flush error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("metrics provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushMetricsProvider).Seconds())
 				}
 			}
+
 			if s.logsProviderSdk != nil {
 				if s.VerboseMode {
 					s.Slogger.Debug("logs provider force flushing", "uptime", time.Since(s.StartTime).Seconds())
 				}
+
 				startTimeForceFlushLogsProvider := time.Now().UTC()
+
 				if err := s.logsProviderSdk.ForceFlush(forceFlushCtx); err != nil {
 					s.Slogger.Error("logs provider force flush failed", "error", fmt.Errorf("logs provider force flush error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("logs provider force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlushLogsProvider).Seconds())
 				}
 			}
+
 			s.Slogger.Debug("telemetry providers force flushed", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeForceFlush).Seconds())
 
 			startTimeShutdown := time.Now().UTC()
 			shutdownCtx := context.Background()
+
 			if s.tracesProviderSdk != nil {
 				if s.VerboseMode {
 					s.Slogger.Debug("traces provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
 				}
+
 				startTimeShutdownTracesProvider := time.Now().UTC()
+
 				if err := s.tracesProviderSdk.Shutdown(shutdownCtx); err != nil {
 					s.Slogger.Error("traces provider shutdown failed", "error", fmt.Errorf("traces provider shutdown error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("traces provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownTracesProvider).Seconds())
 				}
 			}
+
 			if s.metricsProviderSdk != nil {
 				if s.VerboseMode {
 					s.Slogger.Debug("metrics provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
 				}
+
 				startTimeShutdownMetricsProvider := time.Now().UTC()
+
 				if err := s.metricsProviderSdk.Shutdown(shutdownCtx); err != nil {
 					s.Slogger.Error("metrics provider shutdown failed", "error", fmt.Errorf("metrics provider shutdown error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("metrics provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownMetricsProvider).Seconds())
 				}
 			}
+
 			if s.logsProviderSdk != nil {
 				if s.VerboseMode {
 					s.Slogger.Debug("logs provider shutting down", "uptime", time.Since(s.StartTime).Seconds())
 				}
+
 				startTimeShutdownLogsProvider := time.Now().UTC()
+
 				if err := s.logsProviderSdk.Shutdown(shutdownCtx); err != nil {
 					s.Slogger.Error("logs provider shutdown failed", "error", fmt.Errorf("logs provider shutdown error: %w", err))
 				} else if s.VerboseMode {
 					s.Slogger.Debug("logs provider shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdownLogsProvider).Seconds())
 				}
 			}
+
 			s.Slogger.Debug("telemetry providers shut down", "uptime", time.Since(s.StartTime).Seconds(), "flush", time.Since(startTimeShutdown).Seconds())
 		}
 	})
@@ -189,10 +215,12 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse log level: %w", err)
 	}
+
 	handlerOptions := &stdoutLogExporter.HandlerOptions{
 		Level: slogLevel,
 	}
 	stdoutSlogHandler := stdoutLogExporter.NewTextHandler(os.Stdout, handlerOptions).WithAttrs(getSlogStdoutAttributes(settings))
+
 	slogger := stdoutLogExporter.New(stdoutSlogHandler)
 	if settings.VerboseMode {
 		slogger.Debug("initializing otel logs provider")
@@ -218,6 +246,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	} else {
 		return nil, nil, fmt.Errorf("unsupported protocol for endpoint: %s", settings.OTLPEndpoint)
 	}
+
 	if err != nil {
 		slogger.Error("create Otel logger exporter failed", "error", err)
 		return nil, nil, fmt.Errorf("create Otel logger exporter failed: %w", err)
@@ -235,6 +264,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	}
 
 	slogger.Debug("initialized otel logs provider")
+
 	return slogger, otelProvider, nil
 }
 
@@ -250,6 +280,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		slogger.Error("create Otel GRPC metrics resource failed", "error", err)
 		return nil, fmt.Errorf("create Otel GRPC metrics resource failed: %w", err)
 	}
+
 	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
 	if settings.OTLP {
@@ -260,7 +291,9 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		}
 
 		var httpMetricsExporter *httpMetricExporter.Exporter
+
 		var grpcMetricsExporter *grpcMetricExporter.Exporter
+
 		if isHTTP {
 			httpMetricsExporter, err = httpMetricExporter.New(ctx, httpMetricExporter.WithEndpoint(*endpoint), httpMetricExporter.WithInsecure())
 		} else if isHTTPS {
@@ -273,6 +306,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 			slogger.Error("unsupported protocol for endpoint", "endpoint", settings.OTLPEndpoint)
 			return nil, fmt.Errorf("unsupported protocol for endpoint: %s", settings.OTLPEndpoint)
 		}
+
 		if err != nil {
 			slogger.Error("create Otel metrics exporter failed", "error", err)
 			return nil, fmt.Errorf("create Otel metrics exporter failed: %w", err)
@@ -286,6 +320,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		} else {
 			return nil, fmt.Errorf("no valid metrics exporter created for endpoint: %s", settings.OTLPEndpoint)
 		}
+
 		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricsReader))
 	}
 
@@ -295,12 +330,15 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 			slogger.Error("create STDOUT metrics failed", "error", err)
 			return nil, fmt.Errorf("create STDOUT metrics failed: %w", err)
 		}
+
 		metricSdk.NewPeriodicReader(stdoutMetrics)
 		metricsOptions = append(metricsOptions, metricSdk.WithReader(metricSdk.NewPeriodicReader(stdoutMetrics, metricSdk.WithInterval(MetricsTimeout))))
 	}
 
 	metricsProvider := metricSdk.NewMeterProvider(metricsOptions...)
+
 	slogger.Debug("initialized metrics provider")
+
 	return metricsProvider, nil
 }
 
@@ -316,6 +354,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 		slogger.Error("create Otel GRPC traces resource failed", "error", err)
 		return nil, fmt.Errorf("create Otel GRPC traces resource failed: %w", err)
 	}
+
 	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
 	if settings.OTLP {
@@ -338,6 +377,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 			slogger.Error("unsupported protocol for endpoint", "endpoint", settings.OTLPEndpoint)
 			return nil, fmt.Errorf("unsupported protocol for endpoint: %s", settings.OTLPEndpoint)
 		}
+
 		if err != nil {
 			slogger.Error("create Otel traces exporter failed", "error", err)
 			return nil, fmt.Errorf("create Otel traces exporter failed: %w", err)
@@ -352,11 +392,14 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 			slogger.Error("create STDOUT traces failed", "error", err)
 			return nil, fmt.Errorf("create STDOUT traces failed: %w", err)
 		}
+
 		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(stdoutTraces, traceSdk.WithBatchTimeout(TracesTimeout))))
 	}
 
 	tracesProvider := traceSdk.NewTracerProvider(tracesOptions...)
+
 	slogger.Debug("initialized traces provider")
+
 	return tracesProvider, nil
 }
 
@@ -365,6 +408,7 @@ func initTextMapPropagator() *propagationApi.TextMapPropagator {
 		propagationApi.TraceContext{},
 		propagationApi.Baggage{},
 	)
+
 	return &textMapPropagator
 }
 
@@ -378,6 +422,7 @@ func doExampleTracesSpans(ctx context.Context, tracesProvider *traceSdk.TracerPr
 func doExampleTraceSpan(ctx context.Context, tracer traceApi.Tracer, slogger *stdoutLogExporter.Logger, message string) context.Context {
 	spanCtx, span := tracer.Start(ctx, "test-span")
 	slogger.Debug(message, "traceid", span.SpanContext().TraceID(), "traceid", span.SpanContext().SpanID())
+
 	return spanCtx
 }
 
@@ -398,9 +443,11 @@ func getOtelLogsAttributes(settings *cryptoutilConfig.Settings) []attributeApi.K
 func getSlogStdoutAttributes(settings *cryptoutilConfig.Settings) []stdoutLogExporter.Attr {
 	otelAttrs := getOtelLogsAttributes(settings)
 	slogAttrs := make([]stdoutLogExporter.Attr, 0, len(otelAttrs))
+
 	for _, otelLogAttr := range otelAttrs {
 		slogAttrs = append(slogAttrs, stdoutLogExporter.String(string(otelLogAttr.Key), otelLogAttr.Value.AsString()))
 	}
+
 	return slogAttrs
 }
 
@@ -414,5 +461,6 @@ func parseProtocolAndEndpoint(otlpEndpoint *string) (bool, bool, bool, bool, *st
 	} else if after, ok := strings.CutPrefix(*otlpEndpoint, "grpcs://"); ok {
 		return false, false, false, true, &after, nil
 	}
+
 	return false, false, false, false, nil, fmt.Errorf("invalid OTLP endpoint protocol, must start with https://, grpcs://, http://, or grpc://")
 }

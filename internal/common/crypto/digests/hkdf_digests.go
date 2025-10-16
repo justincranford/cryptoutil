@@ -38,7 +38,9 @@ func HKDFwithSHA224(secret, salt, info []byte, outputBytesLength int) ([]byte, e
 // HKDF Supported digestNames: "SHA512", "SHA384", "SHA256", "SHA224".
 func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputBytesLength int) ([]byte, error) {
 	var digestFunction func() hash.Hash
+
 	var digestLength int
+
 	switch digestName {
 	case "SHA512":
 		digestFunction = sha512.New
@@ -62,6 +64,7 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 	} else if len(secretBytes) == 0 {
 		errs = append(errs, ErrInvalidEmptySecret)
 	}
+
 	if outputBytesLength < 0 {
 		errs = append(errs, ErrInvalidOutputBytesLengthNegative)
 	} else if outputBytesLength == 0 {
@@ -69,15 +72,18 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 	} else if outputBytesLength > 255*digestLength {
 		errs = append(errs, ErrInvalidOutputBytesLengthTooBig) // HKDF max = 255 blocks of digest size (e.g. SHA224=7140, SHA256=8160, SHA384=12240, SHA512=16320)
 	}
+
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("invalid parameters for HKDF: %w", errors.Join(errs...))
 	}
 
 	hkdfAlgorithm := hkdf.New(digestFunction, secretBytes, saltBytes, infoBytes)
 	hkdfOutputBytes := make([]byte, outputBytesLength)
+
 	_, err := hkdfAlgorithm.Read(hkdfOutputBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compute HKDF: %w", err)
 	}
+
 	return hkdfOutputBytes, nil
 }

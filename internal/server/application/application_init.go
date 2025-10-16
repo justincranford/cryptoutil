@@ -86,6 +86,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode private key as PEM: %w", err)
 	}
+
 	encryptedTLSPrivateKeyPEM, err := serverApplicationBasic.UnsealKeysService.EncryptData(tlsPrivateKeyPEM)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt TLS server private key PEM: %w", err)

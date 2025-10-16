@@ -25,6 +25,7 @@ func TestMainUsage(t *testing.T) {
 	if !strings.Contains(expectedUsage, "scripts/cicd_utils.go") {
 		t.Errorf("Usage message should contain correct filename")
 	}
+
 	if !strings.Contains(expectedUsage, "[command...]") {
 		t.Errorf("Usage message should indicate multiple commands are supported")
 	}
@@ -79,6 +80,7 @@ func TestLoadActionExceptions_NoFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected no error when file doesn't exist, got: %v", err)
 	}
+
 	if exceptions == nil || exceptions.Exceptions == nil {
 		t.Error("Expected empty exceptions struct")
 	}
@@ -87,6 +89,7 @@ func TestLoadActionExceptions_NoFile(t *testing.T) {
 func TestLoadActionExceptions_WithFile(t *testing.T) {
 	// Create temporary exceptions file
 	tempDir := t.TempDir()
+
 	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
 	if err := os.MkdirAll(filepath.Dir(exceptionsFile), 0o755); err != nil {
 		t.Fatalf("Failed to create directory: %v", err)
@@ -105,6 +108,7 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to marshal JSON: %v", err)
 	}
+
 	if err := os.WriteFile(exceptionsFile, data, 0o600); err != nil {
 		t.Fatalf("Failed to write file: %v", err)
 	}
@@ -114,9 +118,11 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to get current working directory: %v", err)
 	}
+
 	if err := os.Chdir(tempDir); err != nil {
 		t.Fatalf("Failed to change directory: %v", err)
 	}
+
 	defer func() {
 		if err := os.Chdir(oldWd); err != nil {
 			t.Errorf("Failed to restore working directory: %v", err)
@@ -127,6 +133,7 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	if err != nil {
 		t.Errorf("Expected no error when loading valid file, got: %v", err)
 	}
+
 	if exceptions.Exceptions["actions/checkout"].AllowedVersions[0] != "v4.1.7" {
 		t.Error("Expected exception data to be loaded correctly")
 	}

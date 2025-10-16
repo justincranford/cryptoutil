@@ -35,18 +35,21 @@ var ecdsaTestCurves = []struct {
 
 func TestEncodeDecodeECDH(t *testing.T) {
 	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
+
 	for _, curve := range ecdhTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
 			original, err := curve.Curve.GenerateKey(rand.Reader)
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
+
 			require.IsType(t, &ecdh.PrivateKey{}, original)
 
 			decoded, err := pkcs8EncodeDecode(t, original)
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
+
 			require.IsType(t, &ecdh.PrivateKey{}, decoded)
 		})
 	}
@@ -59,12 +62,14 @@ func TestEncodeDecodeECDSA(t *testing.T) {
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
+
 			require.IsType(t, &ecdsa.PrivateKey{}, original)
 
 			decoded, err := pkcs8EncodeDecode(t, original)
 			if err != nil {
 				t.Errorf("generate failed: %v", err)
 			}
+
 			require.IsType(t, &ecdsa.PrivateKey{}, decoded)
 		})
 	}
@@ -72,6 +77,7 @@ func TestEncodeDecodeECDSA(t *testing.T) {
 
 func pkcs8EncodeDecode(t *testing.T, key any) (any, error) {
 	t.Helper()
+
 	encodedBytes, err := x509.MarshalPKCS8PrivateKey(key)
 	if err != nil {
 		return nil, fmt.Errorf("encode failed: %w", err)
@@ -84,5 +90,6 @@ func pkcs8EncodeDecode(t *testing.T, key any) (any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("decode failed: %w", err)
 	}
+
 	return decodedKey, nil
 }

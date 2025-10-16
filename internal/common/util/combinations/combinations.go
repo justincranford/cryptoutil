@@ -26,21 +26,26 @@ func ComputeCombinations(m M, n int) (combinations, error) {
 	}
 
 	var result combinations
+
 	combination := make(combination, n) // Properly initialize the 'combination' slice
+
 	var helper func(int, int)
 	helper = func(start, depth int) {
 		if depth == n {
 			// Directly create a new 'combination' instance as a slice
 			combo := append(combination[:0:0], combination...) // Create a copy of 'combination'
 			result = append(result, combo)                     // Add the new combination to the result
+
 			return
 		}
+
 		for i := start; i < len(m); i++ {
 			combination[depth] = m[i]
 			helper(i+1, depth+1)
 		}
 	}
 	helper(0, 0)
+
 	return result, nil
 }
 
@@ -51,6 +56,7 @@ func (c *combinations) Encode() [][]byte {
 	for _, combination := range *c {
 		encodings = append(encodings, combination.Encode())
 	}
+
 	return encodings
 }
 
@@ -61,15 +67,19 @@ func (c *combination) Encode() []byte {
 	if combLen > 255 {
 		panic("combination length exceeds uint8 maximum")
 	}
+
 	buffer.WriteByte(uint8(combLen)) // encode number of values
+
 	for _, value := range *c {
 		valueLen := len(value)
 		if valueLen > 255 {
 			panic("value length exceeds uint8 maximum")
 		}
+
 		buffer.WriteByte(uint8(valueLen)) // encode value length
 		buffer.Write(value)
 	}
+
 	return buffer.Bytes()
 }
 
@@ -77,14 +87,19 @@ func (c *combination) Encode() []byte {
 
 func (m M) ToString() string {
 	var buffer bytes.Buffer
+
 	buffer.WriteString("[")
+
 	for i, v := range m {
 		buffer.WriteString(string(v))
+
 		if i < len(m)-1 {
 			buffer.WriteString(", ")
 		}
 	}
+
 	buffer.WriteString("]")
+
 	return buffer.String()
 }
 
@@ -94,26 +109,36 @@ func (v value) ToString() string {
 
 func (c combination) ToString() string {
 	var buffer bytes.Buffer
+
 	buffer.WriteString("[")
+
 	for i, v := range c {
 		buffer.WriteString(v.ToString())
+
 		if i < len(c)-1 {
 			buffer.WriteString(", ")
 		}
 	}
+
 	buffer.WriteString("]")
+
 	return buffer.String()
 }
 
 func (c combinations) ToString() string {
 	var buffer bytes.Buffer
+
 	buffer.WriteString("[")
+
 	for i, combination := range c {
 		buffer.WriteString(combination.ToString())
+
 		if i < len(c)-1 {
 			buffer.WriteString(", ")
 		}
 	}
+
 	buffer.WriteString("]")
+
 	return buffer.String()
 }

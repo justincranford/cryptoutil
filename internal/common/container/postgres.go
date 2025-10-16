@@ -32,6 +32,7 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Te
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get postgres container host and mapped port", "error", err)
 		terminateContainer()
+
 		return "", nil, fmt.Errorf("failed to get postgres container host and mapped port: %w", err)
 	}
 

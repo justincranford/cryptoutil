@@ -29,14 +29,17 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 	)
 
 	var wg sync.WaitGroup
+
 	wg.Add(5)
 
 	go func() {
 		defer wg.Done()
+
 		done := make(chan struct{})
 
 		go func() {
 			cpuVendorID, cpuFamily, cpuPhysicalID, cpuModelName, cpuErr = sysInfoProvider.CPUInfo()
+
 			close(done) //nolint:errcheck
 		}()
 
@@ -51,12 +54,14 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 	// RAM info with context check
 	go func() {
 		defer wg.Done()
+
 		done := make(chan struct{})
 
 		go func() {
 			var ram uint64
 			ram, ramErr = sysInfoProvider.RAMSize()
 			ramSize = fmt.Sprintf("%d", ram)
+
 			close(done) //nolint:errcheck
 		}()
 
@@ -71,10 +76,12 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 	// Hostname info with context check
 	go func() {
 		defer wg.Done()
+
 		done := make(chan struct{})
 
 		go func() {
 			osHostname, osErr = sysInfoProvider.OSHostname()
+
 			close(done) //nolint:errcheck
 		}()
 
@@ -89,10 +96,12 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 	// Host ID with context check
 	go func() {
 		defer wg.Done()
+
 		done := make(chan struct{})
 
 		go func() {
 			hostID, hostIDErr = sysInfoProvider.HostID()
+
 			close(done) //nolint:errcheck
 		}()
 
@@ -107,10 +116,12 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 	// User info with context check
 	go func() {
 		defer wg.Done()
+
 		done := make(chan struct{})
 
 		go func() {
 			userID, groupID, username, userErr = sysInfoProvider.UserInfo()
+
 			close(done) //nolint:errcheck
 		}()
 
@@ -129,15 +140,19 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 	if cpuErr != nil {
 		errs = append(errs, cpuErr)
 	}
+
 	if ramErr != nil {
 		errs = append(errs, ramErr)
 	}
+
 	if osErr != nil {
 		errs = append(errs, osErr)
 	}
+
 	if hostIDErr != nil {
 		errs = append(errs, hostIDErr)
 	}
+
 	if userErr != nil {
 		errs = append(errs, userErr)
 	}

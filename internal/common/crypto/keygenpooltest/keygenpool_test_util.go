@@ -85,5 +85,6 @@ func RequireNewUUIDV7GenElasticKeyForTest(telemetryService *cryptoutilTelemetry.
 func requireNewGenElasticKeyForTest[T any](config *cryptoutilPool.ValueGenPoolConfig[T], err error) *cryptoutilPool.ValueGenPool[T] {
 	keyGenPool, err := cryptoutilPool.NewValueGenPool(config, err)
 	cryptoutilAppErr.RequireNoError(err, "failed to create key gen pool")
+
 	return keyGenPool
 }

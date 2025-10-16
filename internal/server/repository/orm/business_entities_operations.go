@@ -36,10 +36,12 @@ func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddElasticKey, err)
 	}
+
 	err := tx.state.gormTx.Create(elasticKey).Error
 	if err != nil {
 		return tx.toAppErr(&ErrFailedToAddElasticKey, err)
 	}
+
 	return nil
 }
 
@@ -47,11 +49,14 @@ func (tx *OrmTransaction) GetElasticKey(elasticKeyID *googleUuid.UUID) (*Elastic
 	if err := cryptoutilUtil.ValidateUUID(elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
 	}
+
 	var elasticKey ElasticKey
+
 	err := tx.state.gormTx.First(&elasticKey, "elastic_key_id=?", elasticKeyID).Error
 	if err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetElasticKeyByElasticKeyID, err)
 	}
+
 	return &elasticKey, nil
 }
 
@@ -59,10 +64,12 @@ func (tx *OrmTransaction) UpdateElasticKey(elasticKey *ElasticKey) error {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyByElasticKeyID, err)
 	}
+
 	err := tx.state.gormTx.UpdateColumns(elasticKey).Error
 	if err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyByElasticKeyID, err)
 	}
+
 	return nil
 }
 
@@ -70,20 +77,25 @@ func (tx *OrmTransaction) UpdateElasticKeyStatus(elasticKeyID googleUuid.UUID, e
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
 	}
+
 	err := tx.state.gormTx.Model(&ElasticKey{}).Where("elastic_key_id=?", elasticKeyID).Update("elastic_key_status", elasticKeyStatus).Error
 	if err != nil {
 		return tx.toAppErr(&ErrFailedToUpdateElasticKeyStatusByElasticKeyID, err)
 	}
+
 	return nil
 }
 
 func (tx *OrmTransaction) GetElasticKeys(getElasticKeysFilters *GetElasticKeysFilters) ([]ElasticKey, error) {
 	var elasticKeys []ElasticKey
+
 	query := tx.state.gormTx
+
 	err := applyGetElasticKeysFilters(query, getElasticKeysFilters).Find(&elasticKeys).Error
 	if err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetElasticKeys, err)
 	}
+
 	return elasticKeys, nil
 }
 
@@ -93,10 +105,12 @@ func (tx *OrmTransaction) AddElasticKeyMaterialKey(key *MaterialKey) error {
 	} else if err := cryptoutilUtil.ValidateUUID(&key.MaterialKeyID, &ErrInvalidMaterialKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
 	}
+
 	err := tx.state.gormTx.Create(key).Error
 	if err != nil {
 		return tx.toAppErr(&ErrFailedToAddMaterialKey, err)
 	}
+
 	return nil
 }
 
@@ -104,22 +118,29 @@ func (tx *OrmTransaction) GetMaterialKeysForElasticKey(elasticKeyID *googleUuid.
 	if err := cryptoutilUtil.ValidateUUID(elasticKeyID, &ErrFailedToGetMaterialKeysByElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeysByElasticKeyID, err)
 	}
+
 	var keys []MaterialKey
+
 	query := tx.state.gormTx.Where("elastic_key_id=?", elasticKeyID)
+
 	err := applyGetElasticKeyKeysFilters(query, getElasticKeyKeysFilters).Find(&keys).Error
 	if err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeysByElasticKeyID, err)
 	}
+
 	return keys, nil
 }
 
 func (tx *OrmTransaction) GetMaterialKeys(getKeysFilters *GetMaterialKeysFilters) ([]MaterialKey, error) {
 	var keys []MaterialKey
+
 	query := tx.state.gormTx
+
 	err := applyKeyFilters(query, getKeysFilters).Find(&keys).Error
 	if err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeys, err)
 	}
+
 	return keys, nil
 }
 
@@ -129,11 +150,14 @@ func (tx *OrmTransaction) GetElasticKeyMaterialKeyVersion(elasticKeyID, material
 	} else if err := cryptoutilUtil.ValidateUUID(materialKeyID, &ErrInvalidMaterialKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
 	}
+
 	var key MaterialKey
+
 	err := tx.state.gormTx.First(&key, "elastic_key_id=? AND material_key_id=?", elasticKeyID, materialKeyID).Error
 	if err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID, err)
 	}
+
 	return &key, nil
 }
 
@@ -141,11 +165,14 @@ func (tx *OrmTransaction) GetElasticKeyMaterialKeyLatest(elasticKeyID googleUuid
 	if err := cryptoutilUtil.ValidateUUID(&elasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
 	}
+
 	var key MaterialKey
+
 	err := tx.state.gormTx.Order("material_key_id DESC").First(&key, "elastic_key_id=?", elasticKeyID).Error
 	if err != nil {
 		return nil, tx.toAppErr(&ErrFailedToGetLatestMaterialKeyByElasticKeyID, err)
 	}
+
 	return &key, nil
 }
 
@@ -210,31 +237,40 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 	if filters == nil {
 		return db
 	}
+
 	if len(filters.ElasticKeyID) > 0 {
 		db = db.Where("elastic_key_id IN ?", filters.ElasticKeyID)
 	}
+
 	if len(filters.Name) > 0 {
 		db = db.Where("elastic_key_name IN ?", filters.Name)
 	}
+
 	if len(filters.Algorithm) > 0 {
 		db = db.Where("elastic_key_algorithm IN ?", filters.Algorithm)
 	}
+
 	if filters.VersioningAllowed != nil {
 		db = db.Where("elastic_key_versioning_allowed=?", *filters.VersioningAllowed)
 	}
+
 	if filters.ImportAllowed != nil {
 		db = db.Where("elastic_key_import_allowed=?", *filters.ImportAllowed)
 	}
+
 	if filters.ExportAllowed != nil {
 		db = db.Where("elastic_key_export_allowed=?", *filters.ExportAllowed)
 	}
+
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
 			db = db.Order(sort)
 		}
 	}
+
 	db = db.Offset(filters.PageNumber * filters.PageSize)
 	db = db.Limit(filters.PageSize)
+
 	return db
 }
 
@@ -242,25 +278,32 @@ func applyKeyFilters(db *gorm.DB, filters *GetMaterialKeysFilters) *gorm.DB {
 	if filters == nil {
 		return db
 	}
+
 	if len(filters.MaterialKeyID) > 0 {
 		db = db.Where("material_key_id IN ?", filters.MaterialKeyID)
 	}
+
 	if len(filters.ElasticKeyID) > 0 {
 		db = db.Where("elastic_key_id IN ?", filters.ElasticKeyID)
 	}
+
 	if filters.MinimumGenerateDate != nil {
 		db = db.Where("material_key_generate_date>=?", *filters.MinimumGenerateDate)
 	}
+
 	if filters.MaximumGenerateDate != nil {
 		db = db.Where("material_key_generate_date<=?", *filters.MaximumGenerateDate)
 	}
+
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
 			db = db.Order(sort)
 		}
 	}
+
 	db = db.Offset(filters.PageNumber * filters.PageSize)
 	db = db.Limit(filters.PageSize)
+
 	return db
 }
 
@@ -268,21 +311,27 @@ func applyGetElasticKeyKeysFilters(db *gorm.DB, filters *GetElasticKeyMaterialKe
 	if filters == nil {
 		return db
 	}
+
 	if len(filters.ElasticKeyID) > 0 {
 		db = db.Where("elastic_key_id IN ?", filters.ElasticKeyID)
 	}
+
 	if filters.MinimumGenerateDate != nil {
 		db = db.Where("material_key_generate_date>=?", *filters.MinimumGenerateDate)
 	}
+
 	if filters.MaximumGenerateDate != nil {
 		db = db.Where("material_key_generate_date<=?", *filters.MaximumGenerateDate)
 	}
+
 	if len(filters.Sort) > 0 {
 		for _, sort := range filters.Sort {
 			db = db.Order(sort)
 		}
 	}
+
 	db = db.Offset(filters.PageNumber * filters.PageSize)
 	db = db.Limit(filters.PageSize)
+
 	return db
 }

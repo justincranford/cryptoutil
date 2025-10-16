@@ -129,6 +129,7 @@ var happyPathJWETestCases = []happyPathJWETestCase{
 
 func Test_HappyPath_NonJWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 	t.Parallel()
+
 	for _, testCase := range happyPathJWETestCases {
 		cleartext := fmt.Appendf(nil, "Hello world enc=%s alg=%s!", testCase.enc, testCase.alg)
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
@@ -142,7 +143,9 @@ func Test_HappyPath_NonJWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 			log.Printf("Generated:\n%s\n%s", clearNonPublicJWEJWKBytes, clearPublicJWEJWKBytes)
 
 			var encryptJWK joseJwk.Key
+
 			requireJWEJWKHeaders(t, nonPublicJWEJWK, OpsEncDec, &testCase)
+
 			if publicJWEJWK == nil {
 				encryptJWK = nonPublicJWEJWK
 			} else {
@@ -166,46 +169,56 @@ func Test_HappyPath_NonJWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 
 func requireJWEJWKHeaders(t *testing.T, nonPublicJWEJWK joseJwk.Key, expectedJWEJWKOps joseJwk.KeyOperationList, testCase *happyPathJWETestCase) {
 	t.Helper()
+
 	var actualJWKAlg joseJwa.KeyEncryptionAlgorithm
+
 	require.NoError(t, nonPublicJWEJWK.Get(joseJwk.AlgorithmKey, &actualJWKAlg))
 	require.Equal(t, *testCase.alg, actualJWKAlg)
 
 	var actualJWKOps joseJwk.KeyOperationList
+
 	require.NoError(t, nonPublicJWEJWK.Get(joseJwk.KeyOpsKey, &actualJWKOps))
 	require.Equal(t, expectedJWEJWKOps, actualJWKOps)
 
 	var actualJWKKty joseJwa.KeyType
+
 	require.NoError(t, nonPublicJWEJWK.Get(joseJwk.KeyTypeKey, &actualJWKKty))
 	require.Equal(t, testCase.expectedType, actualJWKKty)
 
 	var actualJWKUse string
+
 	require.NoError(t, nonPublicJWEJWK.Get(joseJwk.KeyUsageKey, &actualJWKUse))
 	require.Equal(t, "enc", actualJWKUse)
 }
 
 func requireJWEMessageHeaders(t *testing.T, jweMessage *joseJwe.Message, actualKeyKid *googleUuid.UUID, testCase *happyPathJWETestCase) {
 	t.Helper()
+
 	jweHeaders := jweMessage.ProtectedHeaders()
 	encodedJWEHeaders, err := json.Marshal(jweHeaders)
 	require.NoError(t, err)
 	log.Printf("JWE Message Headers: %v", string(encodedJWEHeaders))
 
 	var actualJWEKid string
+
 	require.NoError(t, jweHeaders.Get(joseJwk.KeyIDKey, &actualJWEKid))
 	require.NotEmpty(t, actualJWEKid)
 	require.Equal(t, actualKeyKid.String(), actualJWEKid)
 
 	var actualJWEEnc joseJwa.ContentEncryptionAlgorithm
+
 	require.NoError(t, jweHeaders.Get("enc", &actualJWEEnc))
 	// require.Equal(t, AlgCekA256GCM, actualJWEEnc)
 
 	var actualJWEAlg joseJwa.KeyAlgorithm
+
 	require.NoError(t, jweHeaders.Get(joseJwk.AlgorithmKey, &actualJWEAlg))
 	require.Equal(t, *testCase.alg, actualJWEAlg)
 }
 
 func Test_HappyPath_NonJWKGenService_JWE_JWK_EncryptDecryptKey(t *testing.T) {
 	t.Parallel()
+
 	for _, testCase := range happyPathJWETestCases {
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
 			t.Parallel()

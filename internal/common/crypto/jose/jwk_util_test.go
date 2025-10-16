@@ -173,14 +173,20 @@ func TestIsVerifyJWK(t *testing.T) {
 
 func getTestKeys(t *testing.T) *jwkTestKeys {
 	t.Helper()
+
 	testKeys := &jwkTestKeys{}
+
 	var rsaEncryptErr, rsaSignErr, ecdsaErr, ecdhErr, ed25519Err, aesErr, hmacErr error
 
 	var wg sync.WaitGroup
+
 	wg.Add(7)
+
 	go func() {
 		defer wg.Done()
+
 		var rsaEncryptKeyPair *cryptoutilKeyGen.KeyPair
+
 		rsaEncryptKeyPair, rsaEncryptErr = cryptoutilKeyGen.GenerateRSAKeyPair(2048)
 		if rsaEncryptErr == nil {
 			rsaPrivateKey, ok := rsaEncryptKeyPair.Private.(*rsa.PrivateKey)
@@ -189,6 +195,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			} else {
 				testKeys.rsaDecryptPrivateJWK, rsaEncryptErr = joseJwk.Import(rsaPrivateKey)
 			}
+
 			if rsaEncryptErr == nil {
 				rsaPublicKey, ok := rsaEncryptKeyPair.Public.(*rsa.PublicKey)
 				if !ok {
@@ -196,12 +203,13 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				} else {
 					testKeys.rsaEncryptPublicJWK, rsaEncryptErr = joseJwk.Import(rsaPublicKey)
 				}
+
 				if rsaEncryptErr == nil {
 					if rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("alg", "RSA-OAEP-512"); rsaEncryptErr == nil {
 						if rsaEncryptErr = testKeys.rsaDecryptPrivateJWK.Set("enc", "A256GCM"); rsaEncryptErr == nil {
 							if rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("alg", "RSA-OAEP-512"); rsaEncryptErr == nil {
-								rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("enc", "A256GCM")
 								// Error is handled by checking rsaEncryptErr later
+								rsaEncryptErr = testKeys.rsaEncryptPublicJWK.Set("enc", "A256GCM")
 							}
 						}
 					}
@@ -211,7 +219,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	}()
 	go func() {
 		defer wg.Done()
+
 		var rsaSignKeyPair *cryptoutilKeyGen.KeyPair
+
 		rsaSignKeyPair, rsaSignErr = cryptoutilKeyGen.GenerateRSAKeyPair(2048)
 		if rsaSignErr == nil {
 			rsaPrivateKey, ok := rsaSignKeyPair.Private.(*rsa.PrivateKey)
@@ -220,6 +230,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			} else {
 				testKeys.rsaSignPrivateJWK, rsaSignErr = joseJwk.Import(rsaPrivateKey)
 			}
+
 			if rsaSignErr == nil {
 				rsaPublicKey, ok := rsaSignKeyPair.Public.(*rsa.PublicKey)
 				if !ok {
@@ -227,10 +238,11 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				} else {
 					testKeys.rsaVerifyPublicJWK, rsaSignErr = joseJwk.Import(rsaPublicKey)
 				}
+
 				if rsaSignErr == nil {
 					if rsaSignErr = testKeys.rsaSignPrivateJWK.Set("alg", "RS512"); rsaSignErr == nil {
-						rsaSignErr = testKeys.rsaVerifyPublicJWK.Set("alg", "RS512")
 						// Error is handled by checking rsaSignErr later
+						rsaSignErr = testKeys.rsaVerifyPublicJWK.Set("alg", "RS512")
 					}
 				}
 			}
@@ -238,7 +250,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	}()
 	go func() {
 		defer wg.Done()
+
 		var ecdsaKeyPair *cryptoutilKeyGen.KeyPair
+
 		ecdsaKeyPair, ecdsaErr = cryptoutilKeyGen.GenerateECDSAKeyPair(elliptic.P256())
 		if ecdsaErr == nil {
 			ecdsaPrivateKey, ok := ecdsaKeyPair.Private.(*ecdsa.PrivateKey)
@@ -247,6 +261,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			} else {
 				testKeys.ecdsaSignPrivateJWK, ecdsaErr = joseJwk.Import(ecdsaPrivateKey)
 			}
+
 			if ecdsaErr == nil {
 				ecdsaPublicKey, ok := ecdsaKeyPair.Public.(*ecdsa.PublicKey)
 				if !ok {
@@ -254,10 +269,11 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				} else {
 					testKeys.ecdsaVerifyPublicJWK, ecdsaErr = joseJwk.Import(ecdsaPublicKey)
 				}
+
 				if ecdsaErr == nil {
 					if ecdsaErr = testKeys.ecdsaSignPrivateJWK.Set("alg", "ES256"); ecdsaErr == nil {
-						ecdsaErr = testKeys.ecdsaVerifyPublicJWK.Set("alg", "ES256")
 						// Error is handled by checking ecdsaErr later
+						ecdsaErr = testKeys.ecdsaVerifyPublicJWK.Set("alg", "ES256")
 					}
 				}
 			}
@@ -265,7 +281,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	}()
 	go func() {
 		defer wg.Done()
+
 		var ecdhKeyPair *cryptoutilKeyGen.KeyPair
+
 		ecdhKeyPair, ecdhErr = cryptoutilKeyGen.GenerateECDHKeyPair(ecdh.P256())
 		if ecdhErr == nil {
 			ecdhPrivateKey, ok := ecdhKeyPair.Private.(*ecdh.PrivateKey)
@@ -274,6 +292,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			} else {
 				testKeys.ecdhDecryptPrivateJWK, ecdhErr = joseJwk.Import(ecdhPrivateKey)
 			}
+
 			if ecdhErr == nil {
 				ecdhPublicKey, ok := ecdhKeyPair.Public.(*ecdh.PublicKey)
 				if !ok {
@@ -281,12 +300,13 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				} else {
 					testKeys.ecdhEncryptPublicJWK, ecdhErr = joseJwk.Import(ecdhPublicKey)
 				}
+
 				if ecdhErr == nil {
 					if ecdhErr = testKeys.ecdhDecryptPrivateJWK.Set("alg", "ECDH-ES+A256KW"); ecdhErr == nil {
 						if ecdhErr = testKeys.ecdhDecryptPrivateJWK.Set("enc", "A256GCM"); ecdhErr == nil {
 							if ecdhErr = testKeys.ecdhEncryptPublicJWK.Set("alg", "ECDH-ES+A256KW"); ecdhErr == nil {
-								ecdhErr = testKeys.ecdhEncryptPublicJWK.Set("enc", "A256GCM")
 								// Error is handled by checking ecdhErr later
+								ecdhErr = testKeys.ecdhEncryptPublicJWK.Set("enc", "A256GCM")
 							}
 						}
 					}
@@ -296,7 +316,9 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	}()
 	go func() {
 		defer wg.Done()
+
 		var ed25519KeyPair *cryptoutilKeyGen.KeyPair
+
 		ed25519KeyPair, ed25519Err = cryptoutilKeyGen.GenerateEDDSAKeyPair("Ed25519")
 		if ed25519Err == nil {
 			ed25519PrivateKey, ok := ed25519KeyPair.Private.(ed25519.PrivateKey)
@@ -305,6 +327,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			} else {
 				testKeys.ed25519SignPrivateJWK, ed25519Err = joseJwk.Import(ed25519PrivateKey)
 			}
+
 			if ed25519Err == nil {
 				ed25519PublicKey, ok := ed25519KeyPair.Public.(ed25519.PublicKey)
 				if !ok {
@@ -312,10 +335,11 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 				} else {
 					testKeys.ed25519VerifyPublicJWK, ed25519Err = joseJwk.Import(ed25519PublicKey)
 				}
+
 				if ed25519Err == nil {
 					if ed25519Err = testKeys.ed25519SignPrivateJWK.Set("alg", "EdDSA"); ed25519Err == nil {
-						ed25519Err = testKeys.ed25519VerifyPublicJWK.Set("alg", "EdDSA")
 						// Error is handled by checking ed25519Err later
+						ed25519Err = testKeys.ed25519VerifyPublicJWK.Set("alg", "EdDSA")
 					}
 				}
 			}
@@ -323,34 +347,40 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	}()
 	go func() {
 		defer wg.Done()
+
 		var aesSecretKey []byte
+
 		aesSecretKey, aesErr = cryptoutilKeyGen.GenerateAESKey(256)
 		if aesErr == nil {
 			testKeys.aesEncryptDecryptSecretJWK, aesErr = joseJwk.Import(aesSecretKey)
 			if aesErr == nil {
 				if aesErr = testKeys.aesEncryptDecryptSecretJWK.Set("alg", "A256KW"); aesErr == nil {
-					aesErr = testKeys.aesEncryptDecryptSecretJWK.Set("enc", "A256GCM")
 					// Error is handled by checking aesErr later
+					aesErr = testKeys.aesEncryptDecryptSecretJWK.Set("enc", "A256GCM")
 				}
 			}
 		}
 	}()
 	go func() {
 		defer wg.Done()
+
 		var hmacSecretKey []byte
+
 		hmacSecretKey, hmacErr = cryptoutilKeyGen.GenerateHMACKey(256)
 		if hmacErr == nil {
 			testKeys.hmacSignVerifySecretJWK, hmacErr = joseJwk.Import(hmacSecretKey)
 			if hmacErr == nil {
-				hmacErr = testKeys.hmacSignVerifySecretJWK.Set("alg", "HS256")
 				// Error is handled by checking hmacErr later
+				hmacErr = testKeys.hmacSignVerifySecretJWK.Set("alg", "HS256")
 			}
 		}
 	}()
 	wg.Wait()
+
 	if rsaEncryptErr != nil || rsaSignErr != nil || ecdsaErr != nil || ecdhErr != nil || ed25519Err != nil || aesErr != nil || hmacErr != nil {
 		t.Fatalf("failed to generate keys: %v", errors.Join(rsaEncryptErr, rsaSignErr, ecdsaErr, ecdhErr, ed25519Err, aesErr, hmacErr))
 	}
+
 	return testKeys
 }
 
@@ -374,5 +404,6 @@ func getTestCases(t *testing.T) []testCase {
 			{expectedIsSymmetric: true, expectedIsSign: true, expectedIsVerify: true, name: "HMAC sign/verify key", jwk: keys.hmacSignVerifySecretJWK},
 		}
 	})
+
 	return testCases
 }

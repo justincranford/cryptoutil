@@ -30,6 +30,7 @@ func ParseYAML(y string) (any, error) {
 	if err := yaml.Unmarshal([]byte(y), &object); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML: %w", err)
 	}
+
 	return object, nil
 }
 
@@ -38,6 +39,7 @@ func ParseJSON(j string) (any, error) {
 	if err := json.Unmarshal([]byte(j), &object); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
+
 	return object, nil
 }
 
@@ -46,6 +48,7 @@ func EncodeYAML(object any) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to encode YAML: %w", err)
 	}
+
 	return string(yamlContent), nil
 }
 
@@ -54,5 +57,6 @@ func EncodeJSON(object any) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to encode JSON: %w", err)
 	}
+
 	return string(jsonContent), nil
 }

@@ -29,8 +29,10 @@ func (m *oamOasMapper) toOasPostKeyResponse(err error, addedElasticKey *cryptout
 				return cryptoutilOpenapiServer.PostElastickey500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
+
 		return nil, fmt.Errorf("failed to add ElasticKey: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.PostElastickey200JSONResponse(*addedElasticKey), nil
 }
 
@@ -70,6 +72,7 @@ func (m *oamOasMapper) toOasPostDecryptResponse(err error, decryptedBytes []byte
 
 		return nil, fmt.Errorf("failed to decrypt: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecrypt200TextResponse(decryptedBytes), err
 }
 
@@ -102,6 +105,7 @@ func (m *oamOasMapper) toOasPostGenerateResponse(err error, encryptedNonPublicJW
 
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerate200TextResponse(encryptedNonPublicJWKBytes), err
 }
 
@@ -126,6 +130,7 @@ func (m *oamOasMapper) toOasPostEncryptResponse(err error, encryptedBytes []byte
 				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
+
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
 
@@ -148,6 +153,7 @@ func (m *oamOasMapper) toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err er
 
 		return nil, fmt.Errorf("failed to generate Key by ElasticKeyID: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkey200JSONResponse(*generateKeyInElasticKeyResponse), err
 }
 
@@ -200,6 +206,7 @@ func (m *oamOasMapper) toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err er
 
 		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeys200JSONResponse(keys), err
 }
 
@@ -216,6 +223,7 @@ func (m *oamOasMapper) toOasPostSignResponse(err error, encryptedBytes []byte) (
 				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSign500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
+
 		return nil, fmt.Errorf("failed to sign: %w", err)
 	}
 
@@ -235,8 +243,10 @@ func (m *oamOasMapper) toOasPostVerifyResponse(err error) (cryptoutilOpenapiServ
 				return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerify500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
+
 		return nil, fmt.Errorf("failed to verify: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerify204Response{}, err
 }
 
@@ -253,6 +263,7 @@ func (m *oamOasMapper) toOamGetElasticKeyQueryParams(openapiParams *cryptoutilOp
 		Page:              openapiParams.Page,
 		Size:              openapiParams.Size,
 	}
+
 	return &filters
 }
 
@@ -269,8 +280,10 @@ func (m *oamOasMapper) toOasGetElastickeysResponse(err error, elasticKeys []cryp
 				return cryptoutilOpenapiServer.GetElastickeys500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
+
 		return nil, fmt.Errorf("failed to get ElasticKeys: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.GetElastickeys200JSONResponse(elasticKeys), err
 }
 
@@ -284,6 +297,7 @@ func (m *oamOasMapper) toOamGetMaterialKeysQueryParams(openapiParams *cryptoutil
 		Page:            openapiParams.Page,
 		Size:            openapiParams.Size,
 	}
+
 	return &filters
 }
 
@@ -300,8 +314,10 @@ func (m *oamOasMapper) toOasGetMaterialKeysResponse(err error, keys []cryptoutil
 				return cryptoutilOpenapiServer.GetMaterialkeys500JSONResponse{HTTP500InternalServerError: m.toOasHTTP500Response(appErr)}, nil
 			}
 		}
+
 		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.GetMaterialkeys200JSONResponse(keys), err
 }
 

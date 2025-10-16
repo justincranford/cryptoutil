@@ -52,6 +52,7 @@ func toOamElasticKeyStatus(isImportAllowed *bool) *cryptoutilOpenapiModel.Elasti
 	} else {
 		ormElasticKeyStatus = cryptoutilOpenapiModel.PendingGenerate
 	}
+
 	return &ormElasticKeyStatus
 }
 
@@ -62,6 +63,7 @@ func (m *oamOrmMapper) toOamElasticKeys(ormElasticKeys []cryptoutilOrmRepository
 	for i, ormElasticKey := range ormElasticKeys {
 		oamElasticKeys[i] = *m.toOamElasticKey(&ormElasticKey)
 	}
+
 	return oamElasticKeys
 }
 
@@ -80,15 +82,19 @@ func (m *oamOrmMapper) toOamElasticKey(ormElasticKey *cryptoutilOrmRepository.El
 
 func (m *oamOrmMapper) toOamMaterialKeys(ormMaterialKeys []cryptoutilOrmRepository.MaterialKey) ([]cryptoutilOpenapiModel.MaterialKey, error) {
 	oamMaterialKeys := make([]cryptoutilOpenapiModel.MaterialKey, len(ormMaterialKeys))
+
 	var oamMaterialKey *cryptoutilOpenapiModel.MaterialKey
+
 	var err error
 	for i, ormMaterialKey := range ormMaterialKeys {
 		oamMaterialKey, err = m.toOamMaterialKey(&ormMaterialKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get oam key: %w", err)
 		}
+
 		oamMaterialKeys[i] = *oamMaterialKey
 	}
+
 	return oamMaterialKeys, nil
 }
 
@@ -102,10 +108,12 @@ func (m *oamOrmMapper) toOamMaterialKey(ormMaterialKey *cryptoutilOrmRepository.
 	}
 
 	var materialKeyClearPublic *string
+
 	if ormMaterialKey.MaterialKeyClearPublic != nil {
 		tmp := string(ormMaterialKey.MaterialKeyClearPublic)
 		materialKeyClearPublic = &tmp
 	}
+
 	return &cryptoutilOpenapiModel.MaterialKey{
 		ElasticKeyID:   ormMaterialKey.ElasticKeyID,
 		MaterialKeyID:  ormMaterialKey.MaterialKeyID,
@@ -123,31 +131,39 @@ func (m *oamOrmMapper) toOrmGetElasticKeysQueryParams(params *cryptoutilOpenapiM
 	if params == nil {
 		return nil, nil
 	}
+
 	var errs []error
+
 	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyID)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Elastic Key ID: %w", err))
 	}
+
 	names, err := m.toOptionalOrmStrings(params.Name)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Elastic Key Name: %w", err))
 	}
+
 	algorithms, err := m.toOrmAlgorithms(params.Algorithm)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Elastic Key Algorithm: %w", err))
 	}
+
 	sorts, err := m.toOrmElasticKeySorts(params.Sort)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Elastic Key Sort: %w", err))
 	}
+
 	pageNumber, err := m.toOrmPageNumber(params.Page)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Page Number: %w", err))
 	}
+
 	pageSize, err := m.toOrmPageSize(params.Size)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
+
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("invalid Get Elastic Keys parameters: %w", errors.Join(errs...))
 	}
@@ -168,30 +184,38 @@ func (m *oamOrmMapper) toOrmGetMaterialKeysForElasticKeyQueryParams(params *cryp
 	if params == nil {
 		return nil, nil
 	}
+
 	var errs []error
+
 	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyID)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid MaterialKeyID: %w", err))
 	}
+
 	minGenerateDate, maxGenerateDate, err := m.toOrmDateRange(params.MinGenerateDate, params.MaxGenerateDate)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
 	}
+
 	sorts, err := m.toOrmMaterialKeySorts(params.Sort)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Key Sort: %w", err))
 	}
+
 	pageNumber, err := m.toOrmPageNumber(params.Page)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Page Number: %w", err))
 	}
+
 	pageSize, err := m.toOrmPageSize(params.Size)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
+
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("invalid Get Elastic Key Keys parameters: %w", errors.Join(errs...))
 	}
+
 	return &cryptoutilOrmRepository.GetElasticKeyMaterialKeysFilters{
 		ElasticKeyID:        materialKeyIDs,
 		MinimumGenerateDate: minGenerateDate,
@@ -206,31 +230,39 @@ func (m *oamOrmMapper) toOrmGetMaterialKeysQueryParams(params *cryptoutilOpenapi
 	if params == nil {
 		return nil, nil
 	}
+
 	var errs []error
+
 	elasticKeyIDs, err := m.toOptionalOrmUUIDs(params.ElasticKeyID)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid ElasticKeyID: %w", err))
 	}
+
 	materialKeyIDs, err := m.toOptionalOrmUUIDs(params.MaterialKeyID)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid MaterialKeyID: %w", err))
 	}
+
 	minGenerateDate, maxGenerateDate, err := m.toOrmDateRange(params.MinGenerateDate, params.MaxGenerateDate)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Generate Date range: %w", err))
 	}
+
 	sorts, err := m.toOrmMaterialKeySorts(params.Sort)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Key Sort: %w", err))
 	}
+
 	pageNumber, err := m.toOrmPageNumber(params.Page)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Page Number: %w", err))
 	}
+
 	pageSize, err := m.toOrmPageSize(params.Size)
 	if err != nil {
 		errs = append(errs, fmt.Errorf("invalid Page Size: %w", err))
 	}
+
 	if len(errs) > 0 {
 		return nil, fmt.Errorf("invalid Get Keys parameters: %w", errors.Join(errs...))
 	}
@@ -250,9 +282,11 @@ func (*oamOrmMapper) toOptionalOrmUUIDs(uuids *[]googleUuid.UUID) ([]googleUuid.
 	if uuids == nil || len(*uuids) == 0 {
 		return nil, nil
 	}
+
 	if err := cryptoutilUtil.ValidateUUIDs(*uuids, &ErrInvalidUUID); err != nil {
 		return nil, fmt.Errorf("failed to validate UUIDs: %w", err)
 	}
+
 	return *uuids, nil
 }
 
@@ -260,23 +294,28 @@ func (*oamOrmMapper) toOptionalOrmStrings(strings *[]string) ([]string, error) {
 	if strings == nil || len(*strings) == 0 {
 		return nil, nil
 	}
+
 	for _, value := range *strings {
 		if len(value) == 0 {
 			return nil, fmt.Errorf("value must not be empty string")
 		}
 	}
+
 	return *strings, nil
 }
 
 func (*oamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *time.Time, error) {
 	var errs []error
+
 	nonNullMinDate := minDate != nil
 	nonNullMaxDate := maxDate != nil
+
 	if nonNullMinDate || nonNullMaxDate {
 		now := time.Now().UTC()
 		if nonNullMinDate && minDate.Compare(now) > 0 {
 			errs = append(errs, fmt.Errorf("min date can't be in the future"))
 		}
+
 		if nonNullMaxDate {
 			// if maxDate.Compare(now) > 0 {
 			// 	errs = append(errs, fmt.Errorf("Max Date can't be in the future"))
@@ -286,9 +325,11 @@ func (*oamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *t
 			}
 		}
 	}
+
 	if len(errs) > 0 {
 		return minDate, maxDate, fmt.Errorf("invalid date range: %w", errors.Join(errs...))
 	}
+
 	return minDate, maxDate, nil
 }
 
@@ -301,6 +342,7 @@ func (m *oamOrmMapper) toOrmAlgorithms(algorithms *[]cryptoutilOpenapiModel.Elas
 			}
 		}
 	}
+
 	return toStrings(algorithms, func(algorithm cryptoutilOpenapiModel.ElasticKeyAlgorithm) string {
 		return string(algorithm)
 	}), nil
@@ -315,6 +357,7 @@ func (m *oamOrmMapper) toOrmElasticKeySorts(elasticMaterialKeySorts *[]cryptouti
 			}
 		}
 	}
+
 	return toStrings(elasticMaterialKeySorts, func(elasticMaterialKeySort cryptoutilOpenapiModel.ElasticKeySort) string {
 		return string(elasticMaterialKeySort)
 	}), nil
@@ -343,16 +386,19 @@ func (m *oamOrmMapper) toOrmMaterialKeySorts(keySorts *[]cryptoutilOpenapiModel.
 			"revocation_date:ASC":  true,
 			"revocation_date:DESC": true,
 		}
+
 		for _, keySort := range *keySorts {
 			sortStr := string(keySort)
 			if sortStr == "" {
 				return nil, fmt.Errorf("material key sort cannot be empty")
 			}
+
 			if !allowedSorts[sortStr] {
 				return nil, fmt.Errorf("invalid material key sort value: %s", sortStr)
 			}
 		}
 	}
+
 	return toStrings(keySorts, func(keySort cryptoutilOpenapiModel.MaterialKeySort) string {
 		return string(keySort)
 	}), nil
@@ -364,6 +410,7 @@ func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumb
 	} else if *pageNumber >= 0 {
 		return *pageNumber, nil
 	}
+
 	return 0, fmt.Errorf("page number must be zero or higher")
 }
 
@@ -373,6 +420,7 @@ func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (i
 	} else if *pageSize >= 1 {
 		return *pageSize, nil
 	}
+
 	return 0, fmt.Errorf("page size must be one or higher")
 }
 
@@ -380,9 +428,11 @@ func toStrings[T any](items *[]T, toString func(T) string) []string {
 	if items == nil || len(*items) == 0 {
 		return nil
 	}
+
 	converted := make([]string, 0, len(*items))
 	for _, item := range *items {
 		converted = append(converted, toString(item))
 	}
+
 	return converted
 }

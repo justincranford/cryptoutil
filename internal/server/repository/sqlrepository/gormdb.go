@@ -24,6 +24,7 @@ const (
 
 func CreateGormDB(sqlRepository *SQLRepository) (*gorm.DB, error) {
 	var gormDialector gorm.Dialector
+
 	switch sqlRepository.dbType {
 	case DBTypeSQLite:
 		gormDialector = sqlite.Dialector{Conn: sqlRepository.sqlDB}
@@ -47,10 +48,13 @@ func CreateGormDB(sqlRepository *SQLRepository) (*gorm.DB, error) {
 		Logger:         gormLogger,
 		TranslateError: true,
 	}
+
 	gormDB, err := gorm.Open(gormDialector, &gormConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gormDB: %w", err)
 	}
+
 	gormDB = gormDB.Debug()
+
 	return gormDB, nil
 }

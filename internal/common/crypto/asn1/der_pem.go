@@ -31,13 +31,16 @@ func PEMEncodes(keys any) ([][]byte, error) {
 	switch expression := keys.(type) {
 	case []*x509.Certificate:
 		var pemBytesList [][]byte
+
 		for _, k := range expression {
 			pemBytes, err := PEMEncode(k)
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
+
 			pemBytesList = append(pemBytesList, pemBytes)
 		}
+
 		return pemBytesList, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", keys)
@@ -46,6 +49,7 @@ func PEMEncodes(keys any) ([][]byte, error) {
 
 func DEREncodes(key any) ([][]byte, error) {
 	var derBytesList [][]byte
+
 	switch expression := key.(type) {
 	case []*x509.Certificate:
 		for _, k := range expression {
@@ -53,8 +57,10 @@ func DEREncodes(key any) ([][]byte, error) {
 			if err != nil {
 				return nil, fmt.Errorf("encode failed: %w", err)
 			}
+
 			derBytesList = append(derBytesList, derBytes)
 		}
+
 		return derBytesList, nil
 	default:
 		return nil, fmt.Errorf("unsupported type: %T", key)
@@ -66,7 +72,9 @@ func PEMEncode(key any) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("encode failed: %w", err)
 	}
+
 	pemBytes := pem.EncodeToMemory(&pem.Block{Bytes: derBytes, Type: pemType})
+
 	return pemBytes, nil
 }
 
@@ -77,12 +85,14 @@ func DEREncode(key any) ([]byte, string, error) {
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
+
 		return privateKeyBytes, PEMTypePKCS8PrivateKey, nil
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
 		publicKeyBytes, err := x509.MarshalPKIXPublicKey(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
+
 		return publicKeyBytes, PEMTypePKIXPublicKey, nil
 	case *x509.Certificate:
 		return x509Type.Raw, PEMTypeCertificate, nil
@@ -93,6 +103,7 @@ func DEREncode(key any) ([]byte, string, error) {
 		if !ok {
 			return nil, "", fmt.Errorf("type assertion to []byte failed")
 		}
+
 		return byteKey, PEMTypeSecretKey, nil
 	default:
 		return nil, "", fmt.Errorf("not supported [%T]", x509Type)
@@ -101,7 +112,9 @@ func DEREncode(key any) ([]byte, string, error) {
 
 func DERDecode(bytes []byte, x509Type string) (any, error) {
 	var key any
+
 	var err error
+
 	switch x509Type {
 	case PEMTypePKCS8PrivateKey:
 		key, err = x509.ParsePKCS8PrivateKey(bytes) // Generic: RSA, EC, ED
@@ -122,9 +135,11 @@ func DERDecode(bytes []byte, x509Type string) (any, error) {
 	default:
 		return nil, fmt.Errorf("type not supported: %s", x509Type)
 	}
+
 	if err != nil {
 		return nil, fmt.Errorf("decode failed: %w", err)
 	}
+
 	return key, nil
 }
 
@@ -135,15 +150,18 @@ func DERDecodes(bytes []byte) (any, string, error) {
 			return key, derType, nil
 		}
 	}
+
 	return nil, "", fmt.Errorf("decode failed")
 }
 
 func PEMDecode(bytes []byte) (any, error) {
 	block, rest := pem.Decode(bytes)
 	_ = rest // Intentionally ignore remaining bytes after PEM block
+
 	if block == nil {
 		return nil, fmt.Errorf("parse PEM failed")
 	}
+
 	return DERDecode(block.Bytes, block.Type)
 }
 
@@ -166,6 +184,7 @@ func DERRead(filename string) (any, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("decode failed: %w", err)
 	}
+
 	return key, derType, nil
 }
 
@@ -176,6 +195,7 @@ func PEMWrite(key any, filename string) error {
 	}
 
 	dir := filepath.Dir(filename)
+
 	err = os.MkdirAll(dir, 0o750)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
@@ -185,6 +205,7 @@ func PEMWrite(key any, filename string) error {
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}
+
 	return nil
 }
 
@@ -195,6 +216,7 @@ func DERWrite(key any, filename string) error {
 	}
 
 	dir := filepath.Dir(filename)
+
 	err = os.MkdirAll(dir, 0o750)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
@@ -204,5 +226,6 @@ func DERWrite(key any, filename string) error {
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}
+
 	return nil
 }

@@ -32,6 +32,7 @@ func TestTransitionValidStateNextInvalid(t *testing.T) {
 			if potentialNext == current {
 				continue // skip self, it is covered in TestTransitionStateSelfInvalid
 			}
+
 			if !validTransitions[current][potentialNext] {
 				t.Run("invalid_"+string(current)+"_to_"+string(potentialNext), func(t *testing.T) {
 					err := TransitionElasticKeyStatus(current, potentialNext)

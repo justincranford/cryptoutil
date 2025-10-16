@@ -23,6 +23,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 	} else if len(clearBytes) == 0 {
 		return nil, nil, fmt.Errorf("invalid clearBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
+
 	for _, jwk := range jwks {
 		isSignJWK, err := IsSignJWK(jwk)
 		if err != nil {
@@ -33,34 +34,43 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 	}
 
 	algs := make(map[joseJwa.SignatureAlgorithm]struct{})
+
 	jwsSignOptions := make([]joseJws.SignOption, 0, len(jwks))
 	if len(jwks) > 1 {
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithJSON()) // if more than one JWK, must use JSON encoding instead of default Compact encoding
 	}
+
 	iat := time.Now().UTC().Unix()
+
 	for i, jwk := range jwks {
 		kid, err := ExtractKidUUID(jwk)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
+
 		alg, err := ExtractAlgFromJWSJWK(jwk, i)
 		if err != nil {
 			return nil, nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
+
 		algs[*alg] = struct{}{} // track SignatureAlgorithm counts
 		if len(algs) != 1 {     // validate that one-and-only-one SignatureAlgorithm is used across all JWKs
 			return nil, nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
+
 		jwsProtectedHeaders := joseJws.NewHeaders()
 		if err := jwsProtectedHeaders.Set(`iat`, iat); err != nil {
 			return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
 		}
+
 		if err := jwsProtectedHeaders.Set(joseJwk.KeyIDKey, kid.String()); err != nil {
 			return nil, nil, fmt.Errorf("failed to set kid header: %w", err)
 		}
+
 		if err := jwsProtectedHeaders.Set(joseJwk.AlgorithmKey, *alg); err != nil {
 			return nil, nil, fmt.Errorf("failed to set alg header: %w", err)
 		}
+
 		jwsSignOptions = append(jwsSignOptions, joseJws.WithKey(*alg, jwk, joseJws.WithProtectedHeaders(jwsProtectedHeaders)))
 	}
 
@@ -87,6 +97,7 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 	} else if len(jwsMessageBytes) == 0 {
 		return nil, fmt.Errorf("invalid jwsMessageBytes: %w", cryptoutilAppErr.ErrCantBeEmpty)
 	}
+
 	for _, jwk := range jwks {
 		isVerifyJWK, err := IsVerifyJWK(jwk)
 		if err != nil {
@@ -103,21 +114,25 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 
 	algs := make(map[joseJwa.SignatureAlgorithm]struct{})
 	jwsVerifyOptions := make([]joseJws.VerifyOption, 0, len(jwks))
+
 	for i, jwk := range jwks {
 		alg, err := ExtractAlgFromJWSJWK(jwk, i)
 		if err != nil {
 			return nil, fmt.Errorf("JWK %d invalid: %w", i, err)
 		}
+
 		algs[*alg] = struct{}{} // track SignatureAlgorithm counts
-		if len(algs) != 1 {     // validate that one-and-only-one SignatureAlgorithm is used across all JWKs
+		// jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKey(*alg, jwk))
+		if len(algs) != 1 { // validate that one-and-only-one SignatureAlgorithm is used across all JWKs
 			return nil, fmt.Errorf("can't use JWK %d 'alg' attribute; only one unique 'alg' attribute is allowed", i)
 		}
-		// jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKey(*alg, jwk))
 	}
+
 	jwkSet := joseJwk.NewSet()
 	if err := jwkSet.Set("keys", jwks); err != nil {
 		return nil, fmt.Errorf("failed to set keys in JWK set: %w", err)
 	}
+
 	jwkSetOptions := []joseJws.WithKeySetSuboption{joseJws.WithRequireKid(true)}
 	jwsVerifyOptions = append(jwsVerifyOptions, joseJws.WithKeySet(jwkSet, jwkSetOptions...), joseJws.WithMessage(jwsMessage))
 
@@ -131,16 +146,19 @@ func VerifyBytes(jwks []joseJwk.Key, jwsMessageBytes []byte) ([]byte, error) {
 
 func JWSHeadersString(jwsMessage *joseJws.Message) (string, error) {
 	var jwsSignaturesHeadersString string
+
 	for i, jwsMessageSignature := range jwsMessage.Signatures() {
 		jwsSignatureHeadersString, err := json.Marshal(jwsMessageSignature.ProtectedHeaders())
 		if err != nil {
 			return "", fmt.Errorf("failed to marshal JWS headers: %w", err)
 		}
+
 		jwsSignaturesHeadersString += string(jwsSignatureHeadersString)
 		if i < len(jwsMessage.Signatures())-1 {
 			jwsSignaturesHeadersString += "\n"
 		}
 	}
+
 	return jwsSignaturesHeadersString, nil
 }
 
@@ -148,27 +166,33 @@ func ExtractKidAlgFromJWSMessage(jwsMessage *joseJws.Message) (*googleUuid.UUID,
 	if len(jwsMessage.Signatures()) > 1 { // TODO support multiple signatures
 		return nil, nil, fmt.Errorf("unsupported extract kid and alg from JWS with multiple signatures")
 	}
+
 	for _, jwsMessageSignature := range jwsMessage.Signatures() {
 		// Only process first signature since we already checked for multiple signatures above
 		jwsMessageProtectedHeaders := jwsMessageSignature.ProtectedHeaders()
 
 		var kidUUIDString string
+
 		err := jwsMessageProtectedHeaders.Get(joseJwk.KeyIDKey, &kidUUIDString)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get kid UUID: %w", err)
 		}
+
 		kidUUID, err := googleUuid.Parse(kidUUIDString)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to parse kid UUID: %w", err)
 		}
 
 		var alg joseJwa.SignatureAlgorithm
+
 		err = jwsMessageProtectedHeaders.Get(joseJwk.AlgorithmKey, &alg)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get alg: %w", err)
 		}
+
 		return &kidUUID, &alg, nil //nolint:staticcheck // SA4004: intentionally process only first signature
 	}
+
 	return nil, nil, nil
 }
 
@@ -186,30 +210,39 @@ func LogJWSInfo(jwsMessage *joseJws.Message) error {
 		if alg, ok := protectedHeaders.Algorithm(); ok {
 			logMessageSigHeader += fmt.Sprintf(" alg=%s\n", alg)
 		}
+
 		if kid, ok := protectedHeaders.KeyID(); ok {
 			logMessageSigHeader += fmt.Sprintf(" kid=%s\n", kid)
 		}
+
 		if typ, ok := protectedHeaders.Type(); ok {
 			logMessageSigHeader += fmt.Sprintf(" typ=%s\n", typ)
 		}
+
 		if cty, ok := protectedHeaders.ContentType(); ok {
 			logMessageSigHeader += fmt.Sprintf(" cty=%s\n", cty)
 		}
+
 		if jku, ok := protectedHeaders.JWKSetURL(); ok {
 			logMessageSigHeader += fmt.Sprintf(" jku=%s\n", jku)
 		}
+
 		if x5u, ok := protectedHeaders.X509URL(); ok {
 			logMessageSigHeader += fmt.Sprintf(" x5u=%s\n", x5u)
 		}
+
 		if x5c, ok := protectedHeaders.X509CertChain(); ok {
 			logMessageSigHeader += fmt.Sprintf(" x5c=%v\n", x5c)
 		}
+
 		if x5t, ok := protectedHeaders.X509CertThumbprint(); ok {
 			logMessageSigHeader += fmt.Sprintf(" x5t=%s\n", x5t)
 		}
+
 		if x5tS256, ok := protectedHeaders.X509CertThumbprintS256(); ok {
 			logMessageSigHeader += fmt.Sprintf(" x5t#S256=%s\n", x5tS256)
 		}
+
 		if crit, ok := protectedHeaders.Critical(); ok {
 			logMessageSigHeader += fmt.Sprintf(" crit=%v\n", crit)
 		}
@@ -217,6 +250,7 @@ func LogJWSInfo(jwsMessage *joseJws.Message) error {
 		publicHeaders := jwsSignature.PublicHeaders()
 		for _, key := range publicHeaders.Keys() {
 			var value any
+
 			err := publicHeaders.Get(key, &value)
 			if err != nil {
 				logMessageSigHeader += fmt.Sprintf(" %s=%v\n", key, value)

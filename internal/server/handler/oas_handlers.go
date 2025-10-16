@@ -36,6 +36,7 @@ func (s *StrictServer) GetElastickeyElasticKeyID(ctx context.Context, request cr
 func (s *StrictServer) PostElastickeyElasticKeyIDDecrypt(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDDecryptResponseObject, error) {
 	encryptedBytes := []byte(*request.Body)
 	decryptedBytes, err := s.businessLogicService.PostDecryptByElasticKeyID(ctx, &request.ElasticKeyID, encryptedBytes)
+
 	return s.oasOamMapper.toOasPostDecryptResponse(err, decryptedBytes)
 }
 
@@ -45,6 +46,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, re
 	encryptParams := s.oasOamMapper.toOamPostEncryptQueryParams(&request.Params)
 	clearBytes := []byte(*request.Body)
 	encryptedBytes, err := s.businessLogicService.PostEncryptByElasticKeyID(ctx, &request.ElasticKeyID, encryptParams, clearBytes)
+
 	return s.oasOamMapper.toOasPostEncryptResponse(err, encryptedBytes)
 }
 
@@ -53,6 +55,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDEncrypt(ctx context.Context, re
 func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDGenerateResponseObject, error) {
 	generateParams := s.oasOamMapper.toOamPostGenerateQueryParams(&request.Params)
 	encryptedNonPublicJWKBytes, _, clearPublicJWKBytes, err := s.businessLogicService.PostGenerateByElasticKeyID(ctx, &request.ElasticKeyID, generateParams)
+
 	return s.oasOamMapper.toOasPostGenerateResponse(err, encryptedNonPublicJWKBytes, clearPublicJWKBytes)
 }
 
@@ -75,6 +78,7 @@ func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx con
 func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeysResponseObject, error) {
 	elasticKeyMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeyMaterialKeysQueryParams(&request.Params)
 	keys, err := s.businessLogicService.GetMaterialKeysForElasticKey(ctx, &request.ElasticKeyID, elasticKeyMaterialKeysQueryParams)
+
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeysResponse(err, keys)
 }
 
@@ -83,6 +87,7 @@ func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeys(ctx context.Context
 func (s *StrictServer) PostElastickeyElasticKeyIDSign(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSignResponseObject, error) {
 	clearBytes := []byte(*request.Body)
 	signedBytes, err := s.businessLogicService.PostSignByElasticKeyID(ctx, &request.ElasticKeyID, clearBytes)
+
 	return s.oasOamMapper.toOasPostSignResponse(err, signedBytes)
 }
 
@@ -91,6 +96,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDSign(ctx context.Context, reque
 func (s *StrictServer) PostElastickeyElasticKeyIDVerify(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDVerifyResponseObject, error) {
 	signedBytes := []byte(*request.Body)
 	_, err := s.businessLogicService.PostVerifyByElasticKeyID(ctx, &request.ElasticKeyID, signedBytes)
+
 	return s.oasOamMapper.toOasPostVerifyResponse(err)
 }
 
@@ -99,6 +105,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDVerify(ctx context.Context, req
 func (s *StrictServer) GetElastickeys(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeysRequestObject) (cryptoutilOpenapiServer.GetElastickeysResponseObject, error) {
 	elasticMaterialKeysQueryParams := s.oasOamMapper.toOamGetElasticKeyQueryParams(&request.Params)
 	elasticKeys, err := s.businessLogicService.GetElasticKeys(ctx, elasticMaterialKeysQueryParams)
+
 	return s.oasOamMapper.toOasGetElastickeysResponse(err, elasticKeys)
 }
 
@@ -107,5 +114,6 @@ func (s *StrictServer) GetElastickeys(ctx context.Context, request cryptoutilOpe
 func (s *StrictServer) GetMaterialkeys(ctx context.Context, request cryptoutilOpenapiServer.GetMaterialkeysRequestObject) (cryptoutilOpenapiServer.GetMaterialkeysResponseObject, error) {
 	keysQueryParams := s.oasOamMapper.toOamGetMaterialKeysQueryParams(&request.Params)
 	keys, err := s.businessLogicService.GetMaterialKeys(ctx, keysQueryParams)
+
 	return s.oasOamMapper.toOasGetMaterialKeysResponse(err, keys)
 }

@@ -6,5 +6,6 @@ func Contains[T comparable](slice []*T, item *T) bool {
 			return true
 		}
 	}
+
 	return false
 }

@@ -9,6 +9,7 @@ import (
 
 func TestParse_HappyPath_Defaults(t *testing.T) {
 	resetFlags()
+
 	commandParameters := []string{"start"}
 	s, err := Parse(commandParameters, true) // true => If --help is set, help is printed and the program exits
 	require.NoError(t, err)
@@ -64,6 +65,7 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 
 func TestParse_HappyPath_Overrides(t *testing.T) {
 	resetFlags()
+
 	commandParameters := []string{
 		"start",
 		"--help",
@@ -171,12 +173,14 @@ func TestAnalyzeSettings_RealSettings(t *testing.T) {
 	for _, settings := range result.SettingsByNames {
 		totalMappedByName += len(settings)
 	}
+
 	require.Equal(t, len(allRegisteredSettings), totalMappedByName, "All settings should be accounted for by name")
 
 	totalMappedByShorthand := 0
 	for _, settings := range result.SettingsByShorthands {
 		totalMappedByShorthand += len(settings)
 	}
+
 	require.Equal(t, len(allRegisteredSettings), totalMappedByShorthand, "All settings should be accounted for by shorthand")
 
 	require.Empty(t, result.DuplicateNames, "Production settings should have no duplicate names")
@@ -319,6 +323,7 @@ func TestParse_EnvironmentVariables_CommandLineOverride(t *testing.T) {
 
 func TestParse_DryRun(t *testing.T) {
 	resetFlags()
+
 	commandParameters := []string{"start", "--dry-run"}
 	s, err := Parse(commandParameters, false)
 	require.NoError(t, err)
@@ -327,6 +332,7 @@ func TestParse_DryRun(t *testing.T) {
 
 func TestParse_DryRun_Default(t *testing.T) {
 	resetFlags()
+
 	commandParameters := []string{"start"}
 	s, err := Parse(commandParameters, false)
 	require.NoError(t, err)

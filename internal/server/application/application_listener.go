@@ -88,6 +88,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byt
 	if err != nil {
 		return nil, fmt.Errorf("failed to get liveness check: %w", err)
 	}
+
 	return result, nil
 }
 
@@ -99,6 +100,7 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.Settings) ([]by
 	if err != nil {
 		return nil, fmt.Errorf("failed to get readiness check: %w", err)
 	}
+
 	return result, nil
 }
 
@@ -110,6 +112,7 @@ func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) erro
 	if err != nil {
 		return fmt.Errorf("failed to send shutdown request: %w", err)
 	}
+
 	return nil
 }
 
@@ -123,7 +126,9 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	}
 
 	var publicTLSServer *TLSServerConfig
+
 	var privateTLSServer *TLSServerConfig
+
 	if settings.BindPublicProtocol == protocolHTTPS || settings.BindPrivateProtocol == protocolHTTPS {
 		publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
 		if err != nil {
@@ -134,6 +139,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		if err != nil {
 			return nil, fmt.Errorf("failed to build TLS server certificate: %w", err)
 		}
+
 		privateTLSServerCertificate, privateTLSServerRootCACertsPool, privateTLSServerIntermediateCertsPool, err := cryptoutilCertificate.BuildTLSCertificate(privateTLSServerSubject)
 		if err != nil {
 			return nil, fmt.Errorf("failed to build TLS client certificate: %w", err)
@@ -179,6 +185,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	privateMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
 	privateMiddlewares = append(privateMiddlewares, privateHealthCheckMiddlewareFunction(serverApplicationCore)) // /livez, /readyz
 	privateFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
+
 	for _, middleware := range privateMiddlewares {
 		privateFiberApp.Use(middleware)
 	}
@@ -189,6 +196,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings)) // Additional security headers
 	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))                                                                             // Browser-specific: Cross-Site Request Forgery (CSRF)
 	publicFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
+
 	for _, middleware := range publicMiddlewares {
 		publicFiberApp.Use(middleware)
 	}
@@ -199,12 +207,14 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	// Private APIs
 	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
+
 		if shutdownServerFunction != nil {
 			defer func() {
 				time.Sleep(clientLivenessStartTimeout) // allow server small amount of time to finish sending response to client
 				shutdownServerFunction()
 			}()
 		}
+
 		return c.SendString("Server shutdown initiated")
 	})
 
@@ -216,6 +226,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)
 		serverApplicationCore.Shutdown()
+
 		return nil, fmt.Errorf("failed to get swagger: %w", err)
 	}
 
@@ -223,10 +234,12 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		{URL: settings.PublicBrowserAPIContextPath}, // Browser users will access the APIs via this context path, with browser middlewares (CORS, CSRF, etc)
 		{URL: settings.PublicServiceAPIContextPath}, // Service clients will access the APIs via this context path, without browser middlewares
 	}
+
 	swaggerSpecBytes, err := swaggerAPI.MarshalJSON() // Serialize OpenAPI 3 spec to JSON with the added public server context path
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get fiber handler for OpenAPI spec", "error", err)
 		serverApplicationCore.Shutdown()
+
 		return nil, fmt.Errorf("failed to marshal OpenAPI spec: %w", err)
 	}
 
@@ -243,6 +256,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 			ShowCommonExtensions:   true,
 			CustomScript:           swaggerUICustomCSRFScript(settings.CSRFTokenName, settings.PublicBrowserAPIContextPath),
 		})
+
 		err := swaggerHandler(c)
 		if err != nil {
 			return err
@@ -251,6 +265,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		if c.Get("Content-Type") == "text/html" {
 			c.Set("Content-Type", "text/html; charset=utf-8")
 		}
+
 		return nil
 	})
 	publicFiberApp.Get(settings.PublicBrowserAPIContextPath+"/csrf-token", func(c *fiber.Ctx) error {
@@ -276,6 +291,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		BaseURL:     settings.PublicServiceAPIContextPath,
 		Middlewares: commonOapiMiddlewareFiberRequestValidators,
 	}
+
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicBrowserFiberServerOptions)
 	cryptoutilOpenapiServer.RegisterHandlersWithOptions(publicFiberApp, openapiStrictHandler, publicServiceFiberServerOptions)
 
@@ -295,7 +311,9 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		if closeErr := publicListener.Close(); closeErr != nil {
 			fmt.Printf("Warning: failed to close public listener during cleanup: %v\n", closeErr)
 		}
+
 		serverApplicationCore.Shutdown()
+
 		return nil, fmt.Errorf("failed to create private listener: %w", err)
 	}
 
@@ -304,18 +322,22 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	if !ok {
 		return nil, fmt.Errorf("failed to get public listener address")
 	}
+
 	if publicAddr.Port < 0 || publicAddr.Port > 65535 {
 		return nil, fmt.Errorf("invalid public port: %d", publicAddr.Port)
 	}
+
 	actualPublicPort := uint16(publicAddr.Port)
 
 	privateAddr, ok := privateListener.Addr().(*net.TCPAddr)
 	if !ok {
 		return nil, fmt.Errorf("failed to get private listener address")
 	}
+
 	if privateAddr.Port < 0 || privateAddr.Port > 65535 {
 		return nil, fmt.Errorf("invalid private port: %d", privateAddr.Port)
 	}
+
 	actualPrivatePort := uint16(privateAddr.Port)
 
 	serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("assigned ports",
@@ -347,7 +369,9 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 
 		go func() {
 			telemetryService.Slogger.Debug("starting private fiber listener", "addr", privateListener.Addr().String(), "protocol", privateProtocol)
+
 			var err error
+
 			if privateProtocol == protocolHTTPS && privateTLSConfig != nil {
 				// Wrap the listener with TLS
 				tlsListener := tls.NewListener(privateListener, privateTLSConfig)
@@ -355,14 +379,18 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 			} else {
 				err = privateFiberApp.Listener(privateListener)
 			}
+
 			if err != nil {
 				telemetryService.Slogger.Error("failed to start private fiber listener", "error", err)
 			}
+
 			telemetryService.Slogger.Debug("private fiber listener stopped")
 		}()
 
 		telemetryService.Slogger.Debug("starting public fiber listener", "addr", publicListener.Addr().String(), "protocol", publicProtocol)
+
 		var err error
+
 		if publicProtocol == protocolHTTPS && publicTLSConfig != nil {
 			// Wrap the listener with TLS
 			tlsListener := tls.NewListener(publicListener, publicTLSConfig)
@@ -370,9 +398,11 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 		} else {
 			err = publicFiberApp.Listener(publicListener)
 		}
+
 		if err != nil {
 			telemetryService.Slogger.Error("failed to start public fiber listener", "error", err)
 		}
+
 		telemetryService.Slogger.Debug("public fiber listener stopped")
 
 		ready.Store(true)
@@ -384,17 +414,21 @@ func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, p
 		if serverApplicationCore.ServerApplicationBasic.TelemetryService != nil {
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("stopping servers")
 		}
+
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), settings.ServerShutdownTimeout)
 		defer cancel() // perform shutdown respecting timeout
 
 		if publicFiberApp != nil {
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down public fiber app")
+
 			if err := publicFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
 				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop public fiber server", "error", err)
 			}
 		}
+
 		if privateFiberApp != nil {
 			serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("shutting down private fiber app")
+
 			if err := privateFiberApp.ShutdownWithContext(shutdownCtx); err != nil {
 				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to stop private fiber server", "error", err)
 			}
@@ -406,6 +440,7 @@ func stopServerFuncWithListeners(serverApplicationCore *ServerApplicationCore, p
 				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("public listener already closed", "error", err)
 			}
 		}
+
 		if privateListener != nil {
 			if err := privateListener.Close(); err != nil {
 				serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Debug("private listener already closed", "error", err)
@@ -439,6 +474,7 @@ func commonOtelFiberTelemetryMiddleware(telemetryService *cryptoutilTelemetry.Te
 
 func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) func(c *fiber.Ctx) error {
 	allowedIPs := make(map[string]bool)
+
 	if len(settings.AllowedIPs) > 0 {
 		for _, allowedIP := range settings.AllowedIPs {
 			parsedIP := net.ParseIP(allowedIP) // IPv4 (e.g.  192.0.2.1"), IPv6 (e.g. 2001:db8::68), or IPv4-mapped IPv6 (e.g. ::ffff:192.0.2.1)
@@ -446,6 +482,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 				telemetryService.Slogger.Error("invalid allowed IP address:", "IP", allowedIP)
 			} else {
 				allowedIPs[allowedIP] = true
+
 				if settings.VerboseMode {
 					telemetryService.Slogger.Debug("Parsed IP successfully", "IP", allowedIP, "parsed", parsedIP.String())
 				}
@@ -454,6 +491,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 	}
 
 	var allowedCIDRs []*net.IPNet
+
 	if len(settings.AllowedCIDRs) > 0 {
 		for _, allowedCIDR := range settings.AllowedCIDRs {
 			_, network, err := net.ParseCIDR(allowedCIDR) // "192.0.2.1/24" => 192.0.2.1 (not useful) and 192.0.2.0/24 (useful)
@@ -461,6 +499,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 				telemetryService.Slogger.Error("invalid allowed CIDR:", "CIDR", allowedCIDR, "error", err)
 			} else {
 				allowedCIDRs = append(allowedCIDRs, network)
+
 				if settings.VerboseMode {
 					telemetryService.Slogger.Debug("Parsed CIDR successfully", "CIDR", allowedCIDR, "network", network.String())
 				}
@@ -473,6 +512,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 		case string(fiberAppIDPublic): // Apply IP/CIDR filtering for public app requests
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
+
 			if parsedIP == nil {
 				telemetryService.Slogger.Debug("invalid IP", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 				return c.Status(fiber.StatusForbidden).SendString("Invalid IP format")
@@ -480,17 +520,22 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 				if settings.VerboseMode {
 					telemetryService.Slogger.Debug("Allowed IP:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 				}
+
 				return c.Next() // IP is contained in the allowed IPs set
 			}
+
 			for _, allowedCIDR := range allowedCIDRs {
 				if allowedCIDR.Contains(parsedIP) {
 					if settings.VerboseMode {
 						telemetryService.Slogger.Debug("Allowed CIDR:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
 					}
+
 					return c.Next() // IP is contained in the allowed CIDRs list
 				}
 			}
+
 			telemetryService.Slogger.Debug("Access denied:", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
+
 			return c.Status(fiber.StatusForbidden).SendString("Access denied: IP not allowed")
 		case string(fiberAppIDPrivate): // Skip IP/CIDR filtering for private app requests
 			return c.Next()
@@ -520,6 +565,7 @@ func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
 		c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
 		c.Set("Pragma", "no-cache")
 		c.Set("Expires", "0")
+
 		return c.Next()
 	}
 }
@@ -545,6 +591,7 @@ func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[strin
 
 func checkMemoryHealth() map[string]any {
 	var m runtime.MemStats
+
 	runtime.ReadMemStats(&m)
 
 	return map[string]any{
@@ -626,6 +673,7 @@ func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings)
 				return c.Next()
 			}
 		}
+
 		return c.Status(fiber.StatusMethodNotAllowed).SendString("Method not allowed")
 	}
 }
@@ -796,6 +844,7 @@ var expectedBrowserHeaders = map[string]string{
 func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
 	// Setup metrics for header validation
 	meter := telemetryService.MetricsProvider.Meter("security-headers")
+
 	missingHeaderCounter, err := meter.Int64Counter(
 		"security_headers_missing_total",
 		metric.WithDescription("Number of requests with missing expected security headers"),
@@ -819,6 +868,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 		// Apply common security headers
 		c.Set("X-Content-Type-Options", contentTypeOptions)
 		c.Set("Referrer-Policy", referrerPolicy)
+
 		if c.Protocol() == protocolHTTPS {
 			if settings.DevMode {
 				c.Set("Strict-Transport-Security", hstsMaxAgeDev)
@@ -870,6 +920,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 // validateSecurityHeaders checks that all expected security headers are present.
 func validateSecurityHeaders(c *fiber.Ctx) []string {
 	var missing []string
+
 	for header, expectedValue := range expectedBrowserHeaders {
 		if actualValue := c.Get(header); actualValue != expectedValue {
 			missing = append(missing, header)
@@ -927,6 +978,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 			})
 		},
 	}
+
 	return csrf.New(csrfConfig)
 }
 
@@ -942,6 +994,7 @@ func isNonBrowserUserAPIRequestFunc(settings *cryptoutilConfig.Settings) func(c 
 
 func swaggerUICustomCSRFScript(csrfTokenName, browserAPIContextPath string) template.JS {
 	csrfTokenEndpoint := browserAPIContextPath + "/csrf-token"
+
 	return template.JS(fmt.Sprintf(`
 		// Wait for Swagger UI to fully load
 		const interval = setInterval(function() {

@@ -28,14 +28,18 @@ func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryS
 	telemetryService.Slogger.Debug("applying SQL migrations from embedded files", "driver", dbType)
 
 	var sourceDriver source.Driver
+
 	var databaseDriver database.Driver
+
 	var err error
+
 	switch dbType {
 	case DBTypeSQLite:
 		sourceDriver, err = iofs.New(sqliteMigrationsFS, "sqlite")
 		if err != nil {
 			return fmt.Errorf("failed to create iofs source driver for SQLite migration: %w", err)
 		}
+
 		databaseDriver, err = sqlite3.WithInstance(db, &sqlite3.Config{})
 		if err != nil {
 			return fmt.Errorf("failed to create sqlite driver: %w", err)
@@ -45,6 +49,7 @@ func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryS
 		if err != nil {
 			return fmt.Errorf("failed to create migration source: %w", err)
 		}
+
 		databaseDriver, err = postgres.WithInstance(db, &postgres.Config{})
 		if err != nil {
 			return fmt.Errorf("failed to create iofs source driver for PostgreSQL migration: %w", err)
@@ -63,5 +68,6 @@ func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryS
 	}
 
 	telemetryService.Slogger.Debug("successfully applied migrations")
+
 	return nil
 }

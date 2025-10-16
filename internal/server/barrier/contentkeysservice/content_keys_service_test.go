@@ -33,6 +33,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -67,17 +68,21 @@ func TestContentKeysService_HappyPath(t *testing.T) {
 	contentKeysService, err := NewContentKeysService(testTelemetryService, testJWKGenService, testOrmRepository, testIntermediateKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, contentKeysService)
+
 	defer contentKeysService.Shutdown()
 
 	clearBytes := []byte("Hello World")
 
 	var encrypted []byte
+
 	var contentKeyKidUUID *googleUuid.UUID
+
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		encrypted, contentKeyKidUUID, err = contentKeysService.EncryptContent(sqlTransaction, clearBytes)
 		require.NoError(t, err)
 		require.NotNil(t, encrypted)
 		require.NotNil(t, contentKeyKidUUID)
+
 		return err
 	})
 	require.NoError(t, err)
@@ -85,10 +90,12 @@ func TestContentKeysService_HappyPath(t *testing.T) {
 	require.NotNil(t, contentKeyKidUUID)
 
 	var decrypted []byte
+
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		decrypted, err = contentKeysService.DecryptContent(sqlTransaction, encrypted)
 		require.NoError(t, err)
 		require.NotNil(t, decrypted)
+
 		return err
 	})
 	require.NoError(t, err)

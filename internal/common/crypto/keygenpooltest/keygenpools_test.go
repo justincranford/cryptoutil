@@ -39,6 +39,7 @@ func TestPoolsExample(t *testing.T) {
 		slog.Error("failed to generate keys", "error", err)
 		return
 	}
+
 	writeKeys(&tempDir, keys)
 	readKeys(&tempDir, keys)
 }
@@ -51,6 +52,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	aesKeyGenPool, err5 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES 128 GCM", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(128), false))
 	aesHsKeyGenPool, err6 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test AES HS 128", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(256), false))
 	hmacKeyGenPool, err7 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "Test HMAC 256", exampleNumWorkersOther, examplePoolSize, exampleMaxLifetimeKeys, exampleMaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(256), false))
+
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7))
 	}
@@ -64,8 +66,10 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 	defer hmacKeyGenPool.Cancel()
 
 	keys := make([]any, 0, 7*exampleMaxLifetimeKeys) // 7 pools * K keys per pool
+
 	for range exampleMaxLifetimeKeys {
 		telemetryService.Slogger.Info("Getting keys")
+
 		keys = append(keys, rsaKeyGenPool.Get())
 		keys = append(keys, ecdsaKeyGenPool.Get())
 		keys = append(keys, ecdhKeyGenPool.Get())
@@ -80,6 +84,7 @@ func generateKeys(ctx context.Context, telemetryService *cryptoutilTelemetry.Tel
 
 func writeKeys(tempDir *string, keys []any) {
 	var err error
+
 	for i, keyAny := range keys {
 		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))
 
@@ -107,6 +112,7 @@ func writeKeys(tempDir *string, keys []any) {
 				cryptoutilAppErr.RequireNoError(err, "Write failed "+baseFilename+"_pub.der")
 			}
 		}
+
 		secretKey, ok := keyAny.([]byte)
 		if ok {
 			if secretKey != nil {
@@ -125,6 +131,7 @@ func writeKeys(tempDir *string, keys []any) {
 
 func readKeys(tempDir *string, keys []any) {
 	var err error
+
 	for i, keyAny := range keys {
 		baseFilename := filepath.Join(*tempDir, "key_"+strconv.Itoa(i+1))
 
@@ -140,6 +147,7 @@ func readKeys(tempDir *string, keys []any) {
 				_, _, err = cryptoutilAsn1.DERRead(privateDERFilename)
 				cryptoutilAppErr.RequireNoError(err, "Read failed "+privateDERFilename)
 			}
+
 			if keyPair.Public != nil {
 				publicPEMFilename := baseFilename + "_public.pem"
 				publicDERFilename := baseFilename + "_public.der"

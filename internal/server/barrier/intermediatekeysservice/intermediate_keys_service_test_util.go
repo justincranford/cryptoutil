@@ -11,5 +11,6 @@ import (
 func RequireNewForTest(telemetryService *cryptoutilTelemetry.TelemetryService, jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) *IntermediateKeysService {
 	intermediateKeysService, err := NewIntermediateKeysService(telemetryService, jwkGenService, ormRepository, rootKeysService)
 	cryptoutilAppErr.RequireNoError(err, "failed to create intermediateKeysService")
+
 	return intermediateKeysService
 }

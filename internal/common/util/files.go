@@ -19,12 +19,15 @@ func ReadFilesBytes(filePaths []string) ([][]byte, error) {
 	}
 
 	filesContents := make([][]byte, 0, len(filePaths))
+
 	for i, filePath := range filePaths {
 		filePath = strings.TrimSpace(filePath)
+
 		fileContents, err := ReadFileBytes(filePath)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(filePaths), filePath, err)
 		}
+
 		filesContents = append(filesContents, fileContents)
 	}
 
@@ -36,6 +39,7 @@ func ReadFileBytes(filePath string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
+
 	return fileData, nil
 }
 
@@ -54,12 +58,15 @@ func ReadFilesBytesLimit(filePaths []string, maxFiles, maxBytesPerFile int64) ([
 	}
 
 	filesContents := make([][]byte, 0, len(filePaths))
+
 	for i, filePath := range filePaths {
 		filePath = strings.TrimSpace(filePath)
+
 		fileContents, err := ReadFileBytesLimit(filePath, maxBytesPerFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read file %d of %d (%s): %w", i+1, len(filePaths), filePath, err)
 		}
+
 		filesContents = append(filesContents, fileContents)
 	}
 
@@ -77,6 +84,7 @@ func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file %s: %w", filePath, err)
 	}
+
 	defer func() {
 		if closeErr := file.Close(); closeErr != nil {
 			// Log error but don't override the main return error
@@ -98,6 +106,7 @@ func ReadFileBytesLimit(filePath string, maxBytes int64) ([]byte, error) {
 
 	// Read the limited bytes
 	buffer := make([]byte, bytesToRead)
+
 	n, err := file.Read(buffer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read bytes from file %s: %w", filePath, err)

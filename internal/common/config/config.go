@@ -662,30 +662,39 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if err := viper.BindEnv("verbose", "CRYPTOUTIL_VERBOSE"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_VERBOSE: %v\n", err)
 	}
+
 	if err := viper.BindEnv("dev", "CRYPTOUTIL_DEV_MODE"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_DEV_MODE: %v\n", err)
 	}
+
 	if err := viper.BindEnv("dry-run", "CRYPTOUTIL_DRY_RUN"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_DRY_RUN: %v\n", err)
 	}
+
 	if err := viper.BindEnv("otlp", "CRYPTOUTIL_OTLP"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP: %v\n", err)
 	}
+
 	if err := viper.BindEnv("otlp-instance", "CRYPTOUTIL_OTLP_INSTANCE"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP_INSTANCE: %v\n", err)
 	}
+
 	if err := viper.BindEnv("otlp-console", "CRYPTOUTIL_OTLP_CONSOLE"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_OTLP_CONSOLE: %v\n", err)
 	}
+
 	if err := viper.BindEnv("csrf-token-cookie-secure", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_SECURE: %v\n", err)
 	}
+
 	if err := viper.BindEnv("csrf-token-cookie-http-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_HTTP_ONLY: %v\n", err)
 	}
+
 	if err := viper.BindEnv("csrf-token-cookie-session-only", "CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_COOKIE_SESSION_ONLY: %v\n", err)
 	}
+
 	if err := viper.BindEnv("csrf-token-single-use-token", "CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN"); err != nil {
 		fmt.Printf("Warning: failed to bind environment variable CRYPTOUTIL_CSRF_TOKEN_SINGLE_USE_TOKEN: %v\n", err)
 	}
@@ -740,6 +749,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.StringP(otlpInstance.name, otlpInstance.shorthand, registerAsStringSetting(&otlpInstance), otlpInstance.usage)
 	pflag.StringP(unsealMode.name, unsealMode.shorthand, registerAsStringSetting(&unsealMode), unsealMode.usage)
 	pflag.StringArrayP(unsealFiles.name, unsealFiles.shorthand, registerAsStringArraySetting(&unsealFiles), unsealFiles.usage)
+
 	err := pflag.CommandLine.Parse(subCommandParameters)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing flags: %w", err)
@@ -755,6 +765,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		// Set the first config file
 		if info, err := os.Stat(configFiles[0]); err == nil && !info.IsDir() {
 			viper.SetConfigFile(configFiles[0])
+
 			if err := viper.ReadInConfig(); err != nil {
 				return nil, fmt.Errorf("error reading config file %s: %w", configFiles[0], err)
 			}
@@ -763,6 +774,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		for i := 1; i < len(configFiles); i++ {
 			if info, err := os.Stat(configFiles[i]); err == nil && !info.IsDir() {
 				viper.SetConfigFile(configFiles[i])
+
 				if err := viper.MergeInConfig(); err != nil {
 					return nil, fmt.Errorf("error merging config file %s: %w", configFiles[i], err)
 				}
@@ -840,9 +852,11 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 
 	// Handle file:// URLs for database URL (legacy support)
 	log.Error("DEBUG: checking database URL: ", s.DatabaseURL)
+
 	if strings.HasPrefix(s.DatabaseURL, "file://") {
 		filePath := strings.TrimPrefix(s.DatabaseURL, "file://")
 		log.Error("DEBUG: attempting to read database URL from file: ", filePath)
+
 		if content, err := os.ReadFile(filePath); err != nil {
 			log.Error("DEBUG: failed to read file ", filePath, " error: ", err)
 			return nil, fmt.Errorf("failed to read database URL from file %s: %w", filePath, err)
@@ -945,6 +959,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("  cryptoutil server start --y global.yml --y preprod.yml   Start server with settings in YAML config files")
 		fmt.Println("  cryptoutil server start --Y --y config.yml               Validate configuration without starting")
 		fmt.Println("  cryptoutil server stop                                   Stop server")
+
 		if exitIfHelp {
 			os.Exit(0)
 		}
@@ -1019,11 +1034,14 @@ func logSettings(s *Settings) {
 			if setting.redacted && !(s.DevMode && s.VerboseMode) {
 				value = "REDACTED"
 			}
+
 			log.Info(setting.description+" (-"+setting.shorthand+"): ", value)
 		}
 
 		analysis := analyzeSettings(allRegisteredSettings)
+
 		var usedShorthands []string
+
 		var unusedShorthands []string
 
 		// Check all letters (lowercase and uppercase) and digits
@@ -1046,6 +1064,7 @@ func logSettings(s *Settings) {
 
 func resetFlags() {
 	pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
+
 	viper.Reset()
 }
 
@@ -1059,6 +1078,7 @@ func registerAsBoolSetting(s *Setting) bool {
 	if v, ok := s.value.(bool); ok {
 		return v
 	}
+
 	panic(fmt.Sprintf("setting %s value is not bool", s.name))
 }
 
@@ -1066,6 +1086,7 @@ func registerAsStringSetting(s *Setting) string {
 	if v, ok := s.value.(string); ok {
 		return v
 	}
+
 	panic(fmt.Sprintf("setting %s value is not string", s.name))
 }
 
@@ -1073,6 +1094,7 @@ func registerAsUint16Setting(s *Setting) uint16 {
 	if v, ok := s.value.(uint16); ok {
 		return v
 	}
+
 	panic(fmt.Sprintf("setting %s value is not uint16", s.name))
 }
 
@@ -1080,6 +1102,7 @@ func registerAsStringSliceSetting(s *Setting) []string {
 	if v, ok := s.value.([]string); ok {
 		return v
 	}
+
 	panic(fmt.Sprintf("setting %s value is not []string", s.name))
 }
 
@@ -1087,6 +1110,7 @@ func registerAsStringArraySetting(s *Setting) []string {
 	if v, ok := s.value.([]string); ok {
 		return v
 	}
+
 	panic(fmt.Sprintf("setting %s value is not []string for array", s.name))
 }
 
@@ -1094,6 +1118,7 @@ func registerAsDurationSetting(s *Setting) time.Duration {
 	if v, ok := s.value.(time.Duration); ok {
 		return v
 	}
+
 	panic(fmt.Sprintf("setting %s value is not time.Duration", s.name))
 }
 
@@ -1101,6 +1126,7 @@ func registerAsIntSetting(s *Setting) int {
 	if v, ok := s.value.(int); ok {
 		return v
 	}
+
 	panic(fmt.Sprintf("setting %s value is not int", s.name))
 }
 
@@ -1112,6 +1138,7 @@ func formatDefault(value any) string {
 		if len(v) == 0 {
 			return "[]"
 		}
+
 		return fmt.Sprintf("[%s]", strings.Join(v, ","))
 	case bool:
 		return fmt.Sprintf("%t", v)
@@ -1133,14 +1160,17 @@ func analyzeSettings(settings []*Setting) analysisResult {
 		result.SettingsByNames[setting.name] = append(result.SettingsByNames[setting.name], setting)
 		result.SettingsByShorthands[setting.shorthand] = append(result.SettingsByShorthands[setting.shorthand], setting)
 	}
+
 	for _, setting := range settings {
 		if len(result.SettingsByNames[setting.name]) > 1 {
 			result.DuplicateNames = append(result.DuplicateNames, setting.name)
 		}
+
 		if setting.shorthand != "" && len(result.SettingsByShorthands[setting.shorthand]) > 1 {
 			result.DuplicateShorthands = append(result.DuplicateShorthands, setting.shorthand)
 		}
 	}
+
 	return result
 }
 
@@ -1153,9 +1183,11 @@ func validateConfiguration(s *Settings) error {
 	if s.BindPublicPort < 1 {
 		errors = append(errors, fmt.Sprintf("invalid public port %d: must be between 1 and 65535", s.BindPublicPort))
 	}
+
 	if s.BindPrivatePort < 1 {
 		errors = append(errors, fmt.Sprintf("invalid private port %d: must be between 1 and 65535", s.BindPrivatePort))
 	}
+
 	if s.BindPublicPort == s.BindPrivatePort {
 		errors = append(errors, fmt.Sprintf("public port (%d) and private port (%d) cannot be the same", s.BindPublicPort, s.BindPrivatePort))
 	}
@@ -1164,6 +1196,7 @@ func validateConfiguration(s *Settings) error {
 	if s.BindPublicProtocol != httpProtocol && s.BindPublicProtocol != httpsProtocol {
 		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be '%s' or '%s'", s.BindPublicProtocol, httpProtocol, httpsProtocol))
 	}
+
 	if s.BindPrivateProtocol != httpProtocol && s.BindPrivateProtocol != httpsProtocol {
 		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be '%s' or '%s'", s.BindPrivateProtocol, httpProtocol, httpsProtocol))
 	}
@@ -1172,6 +1205,7 @@ func validateConfiguration(s *Settings) error {
 	if s.BindPublicProtocol == httpsProtocol && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
 		errors = append(errors, "HTTPS public protocol requires TLS DNS names or IP addresses to be configured")
 	}
+
 	if s.BindPrivateProtocol == "https" && len(s.TLSPrivateDNSNames) == 0 && len(s.TLSPrivateIPAddresses) == 0 {
 		errors = append(errors, "HTTPS private protocol requires TLS DNS names or IP addresses to be configured")
 	}
@@ -1191,12 +1225,14 @@ func validateConfiguration(s *Settings) error {
 	// Validate log level
 	validLogLevels := []string{"ALL", "TRACE", "DEBUG", "CONFIG", "INFO", "NOTICE", "WARN", "WARNING", "ERROR", "FATAL", "OFF"}
 	logLevelValid := false
+
 	for _, level := range validLogLevels {
 		if strings.EqualFold(s.LogLevel, level) {
 			logLevelValid = true
 			break
 		}
 	}
+
 	if !logLevelValid {
 		errors = append(errors, fmt.Sprintf("invalid log level '%s': must be one of %v", s.LogLevel, validLogLevels))
 	}

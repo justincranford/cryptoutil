@@ -41,8 +41,10 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
 		}
+
 		telemetryService.Slogger.Debug("Generated random unseal secret for dev mode", "length", len(randomBytes))
 		sharedSecretsM := [][]byte{randomBytes}
+
 		return NewUnsealKeysServiceSharedSecrets(sharedSecretsM, len(sharedSecretsM))
 	}
 
@@ -64,10 +66,12 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		if err != nil {
 			return nil, fmt.Errorf("invalid M value in unseal mode %s: %w", settings.UnsealMode, err)
 		}
+
 		n, err := strconv.Atoi(parts[1])
 		if err != nil {
 			return nil, fmt.Errorf("invalid N value in unseal mode %s: %w", settings.UnsealMode, err)
 		}
+
 		if m <= 0 || n <= 0 || m > n {
 			return nil, fmt.Errorf("invalid M-of-N values in unseal mode %s: M must be > 0, N must be >= M", settings.UnsealMode)
 		}
@@ -85,6 +89,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		if err != nil {
 			return nil, fmt.Errorf("invalid unseal mode %s: %w", settings.UnsealMode, err)
 		}
+
 		if n <= 0 {
 			return nil, fmt.Errorf("invalid unseal mode %s: N must be > 0", settings.UnsealMode)
 		}
@@ -97,11 +102,13 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 		}
 
 		unsealJWKs := make([]joseJwk.Key, 0, len(filesContents))
+
 		for _, fileContents := range filesContents {
 			jwk, err := joseJwk.ParseKey(fileContents)
 			if err != nil {
 				return nil, fmt.Errorf("failed to parse JWK from file contents: %w", err)
 			}
+
 			unsealJWKs = append(unsealJWKs, jwk)
 		}
 

@@ -38,6 +38,7 @@ var happyPathJWSTestCases = []happyPathJWSTestCase{
 
 func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 	t.Parallel()
+
 	for _, testCase := range happyPathJWSTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
@@ -52,6 +53,7 @@ func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 			log.Printf("Generated: %s", clearNonPublicJWSJWKBytes)
 
 			requireJWSJWKHeaders(t, nonPublicJWSJWK, OpsSigVer, &testCase)
+
 			if publicJWSJWK != nil {
 				requireJWSJWKHeaders(t, publicJWSJWK, OpsVer, &testCase)
 			}
@@ -72,6 +74,7 @@ func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 			// require.True(t, isVerifyJWK, "publicJWSJWK must be an verify JWK")
 			isSymmetric, err := IsSymmetricJWK(nonPublicJWSJWK)
 			require.NoError(t, err, "failed to validate nonPublicJWSJWK")
+
 			if isSymmetric {
 				verified, err := VerifyBytes([]joseJwk.Key{nonPublicJWSJWK}, encodedJWSMessage)
 				require.NoError(t, err)
@@ -87,36 +90,44 @@ func Test_HappyPath_NonJWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 
 func requireJWSJWKHeaders(t *testing.T, nonPublicJWSJWK joseJwk.Key, expectedJWSJWKOps joseJwk.KeyOperationList, testCase *happyPathJWSTestCase) {
 	t.Helper()
+
 	var actualJWKAlg joseJwa.KeyAlgorithm
+
 	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.AlgorithmKey, &actualJWKAlg))
 	require.Equal(t, *testCase.alg, actualJWKAlg)
 
 	var actualJWKUse string
+
 	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.KeyUsageKey, &actualJWKUse))
 	require.Equal(t, joseJwk.ForSignature.String(), actualJWKUse)
 
 	var actualJWKOps joseJwk.KeyOperationList
+
 	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.KeyOpsKey, &actualJWKOps))
 	require.Equal(t, expectedJWSJWKOps, actualJWKOps)
 
 	var actualJWKKty joseJwa.KeyType
+
 	require.NoError(t, nonPublicJWSJWK.Get(joseJwk.KeyTypeKey, &actualJWKKty))
 	require.Equal(t, testCase.expectedType, actualJWKKty)
 }
 
 func requireJWSMessageHeaders(t *testing.T, jwsMessage *joseJws.Message, jwsJWKKid *googleUuid.UUID, testCase *happyPathJWSTestCase) {
 	t.Helper()
+
 	jwsHeaders := jwsMessage.Signatures()[0].ProtectedHeaders()
 	encodedJWEHeaders, err := json.Marshal(jwsHeaders)
 	require.NoError(t, err)
 	log.Printf("JWS Message Headers: %v", string(encodedJWEHeaders))
 
 	var actualJWEKid string
+
 	require.NoError(t, jwsHeaders.Get(joseJwk.KeyIDKey, &actualJWEKid))
 	require.NotEmpty(t, actualJWEKid)
 	require.Equal(t, jwsJWKKid.String(), actualJWEKid)
 
 	var actualJWSAlg joseJwa.KeyAlgorithm
+
 	require.NoError(t, jwsHeaders.Get(joseJwk.AlgorithmKey, &actualJWSAlg))
 	require.Equal(t, *testCase.alg, actualJWSAlg)
 }

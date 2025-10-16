@@ -13,6 +13,7 @@ func ISO8601Time2String(value *time.Time) *string {
 	}
 
 	converted := (*value).Format(utcFormat)
+
 	return &converted
 }
 

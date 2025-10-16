@@ -51,16 +51,21 @@ func TestMutualTLS(t *testing.T) {
 	}
 
 	const clientConnections = 10
+
 	t.Run("Raw mTLS", func(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
 		tlsListenerAddress, err := startTLSEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start TLS Echo Server")
+
 		defer close(callerShutdownSignalCh)
+
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")
+
 		for i := 1; i <= clientConnections; i++ {
 			func() {
 				tlsClientConnection, err := tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
 				require.NoError(t, err, "client failed to connect to TLS Echo Server")
+
 				defer func() {
 					if err := tlsClientConnection.Close(); err != nil {
 						t.Logf("warning: failed to close TLS connection: %v", err)
@@ -81,13 +86,16 @@ func TestMutualTLS(t *testing.T) {
 	t.Run("HTTP mTLS", func(t *testing.T) {
 		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start HTTPS Echo Server")
+
 		defer func() {
 			if err := httpsServer.Close(); err != nil {
 				t.Logf("warning: failed to close HTTPS server: %v", err)
 			}
 		}()
+
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
+
 		for i := 1; i <= clientConnections; i++ {
 			req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, serverURL, bytes.NewReader(httpsClientRequestBody))
 			require.NoError(t, err, "failed to create POST request (%d of %d)", i, clientConnections)
@@ -101,6 +109,7 @@ func TestMutualTLS(t *testing.T) {
 						t.Logf("warning: failed to close response body: %v", err)
 					}
 				}()
+
 				httpServerResponseBody, err := io.ReadAll(httpsServerResponse.Body)
 				require.NoError(t, err, "client failed to read response body (%d of %d)", i, clientConnections)
 				require.Equal(t, httpsClientRequestBody, httpServerResponseBody, "Echoed message mismatch (%d of %d)", i, clientConnections)
@@ -128,6 +137,7 @@ func TestSerializeCASubjects(t *testing.T) {
 	issuingCASubjects := []*Subject{issuingCASubject, intermediateCASubject, rootCASubject}
 	verifyCASubjects(t, err, issuingCASubjects)
 	testSerializeDeserialize(t, issuingCASubjects)
+
 	intermediateCASubject.KeyMaterial.PrivateKey = nil
 }
 
@@ -147,6 +157,7 @@ func TestSerializeEndEntitySubjects(t *testing.T) {
 
 func testSerializeDeserialize(t *testing.T, originalSubjects []*Subject) {
 	t.Helper()
+
 	for _, includePrivateKey := range []bool{false, true} {
 		t.Run(fmt.Sprintf("includePrivateKey = %t", includePrivateKey), func(t *testing.T) {
 			serializedSubjects, err := SerializeSubjects(originalSubjects, includePrivateKey)
@@ -169,21 +180,27 @@ func testSerializeDeserialize(t *testing.T, originalSubjects []*Subject) {
 				require.NotEmpty(t, deserializedKeyMaterial.CertificateChain, "CertChain should not be empty %d (includePrivateKey=%t)", i, includePrivateKey)
 				require.Equal(t, originalKeyMaterial.PublicKey, deserializedKeyMaterial.PublicKey, "PublicKey mismatch %d (includePrivateKey=%t)", i, includePrivateKey)
 				require.Len(t, deserializedKeyMaterial.CertificateChain, len(originalKeyMaterial.CertificateChain), "CertChain length mismatch %d (includePrivateKey=%t)", i, includePrivateKey)
+
 				for j, originalCertificate := range originalKeyMaterial.CertificateChain {
 					require.Equal(t, originalCertificate.Raw, deserializedKeyMaterial.CertificateChain[j].Raw, "Certificate Raw data mismatch %d, cert %d (includePrivateKey=%t)", i, j, includePrivateKey)
 				}
+
 				require.Equal(t, originalSubject.IsCA, deserializedSubject.IsCA, "IsCA mismatch %d (includePrivateKey=%t)", i, includePrivateKey)
 				require.Equal(t, originalSubject.MaxPathLen, deserializedSubject.MaxPathLen, "MaxPathLen mismatch %d", i)
+
 				if !originalSubject.IsCA {
 					require.Equal(t, originalSubject.DNSNames, deserializedSubject.DNSNames, "DNSNames mismatch %d", i)
 					require.Len(t, deserializedSubject.IPAddresses, len(originalSubject.IPAddresses), "IPAddresses length mismatch %d", i)
+
 					for j, originalIP := range originalSubject.IPAddresses {
 						deserializedIPAddress := deserializedSubject.IPAddresses[j]
 						require.True(t, originalIP.Equal(deserializedIPAddress), "IPAddresses[%d] mismatch %d: expected %v, got %v", j, i, originalIP, deserializedIPAddress)
 					}
+
 					require.Equal(t, originalSubject.EmailAddresses, deserializedSubject.EmailAddresses, "EmailAddresses mismatch %d", i)
 					require.Equal(t, originalSubject.URIs, deserializedSubject.URIs, "URIs mismatch %d", i)
 				}
+
 				if includePrivateKey && i == 0 {
 					require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should not be nil %d when includePrivateKey=true", i)
 					require.Equal(t, originalKeyMaterial.PrivateKey, deserializedKeyMaterial.PrivateKey, "PrivateKey mismatch %d", i)
@@ -197,6 +214,7 @@ func testSerializeDeserialize(t *testing.T, originalSubjects []*Subject) {
 				require.NoError(t, err, "BuildTLSCertificate should not fail (includePrivateKey=%t)", includePrivateKey)
 				require.NotNil(t, rootCACertificatesPool, "Root CA cert pool should be reconstructed (includePrivateKey=%t)", includePrivateKey)
 				require.NotEmpty(t, tlsCertificate.Certificate, "TLS certificate should have cert chain (includePrivateKey=%t)", includePrivateKey)
+
 				verifyOptions := x509.VerifyOptions{
 					Roots:         rootCACertificatesPool,
 					Intermediates: intermediateCertificatesPool,

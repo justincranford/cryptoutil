@@ -91,6 +91,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 			if rootCAsPool != nil {
 				tlsConfig.RootCAs = rootCAsPool
 			}
+
 			if insecureSkipVerify {
 				tlsConfig.InsecureSkipVerify = true
 			}
@@ -105,6 +106,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("failed to make %s request: %w", method, err)
 	}
+
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
 			fmt.Printf("Warning: failed to close response body: %v", closeErr)

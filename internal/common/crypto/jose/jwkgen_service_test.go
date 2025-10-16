@@ -12,6 +12,7 @@ import (
 
 func Test_HappyPath_JWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 	t.Parallel()
+
 	for _, testCase := range happyPathJWETestCases {
 		plaintext := fmt.Appendf(nil, "Hello world enc=%s alg=%s!", testCase.enc, testCase.alg)
 		t.Run(fmt.Sprintf("%s %s", testCase.enc, testCase.alg), func(t *testing.T) {
@@ -25,13 +26,16 @@ func Test_HappyPath_JWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 			log.Printf("Generated:\n%s\n%s", clearNonPublicJWEJWKBytes, clearPublicJWEJWKBytes)
 
 			var encryptJWK joseJwk.Key
+
 			requireJWEJWKHeaders(t, nonPublicJWEJWK, OpsEncDec, &testCase)
+
 			if publicJWEJWK == nil {
 				encryptJWK = nonPublicJWEJWK
 			} else {
 				encryptJWK = publicJWEJWK
 				requireJWEJWKHeaders(t, publicJWEJWK, OpsEnc, &testCase)
 			}
+
 			isEncryptJWK, err := IsEncryptJWK(encryptJWK)
 			require.NoError(t, err)
 			require.True(t, isEncryptJWK)
@@ -57,6 +61,7 @@ func Test_HappyPath_JWKGenService_JWE_JWK_EncryptDecryptBytes(t *testing.T) {
 
 func Test_HappyPath_JWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 	t.Parallel()
+
 	for _, testCase := range happyPathJWSTestCases {
 		plaintext := fmt.Appendf(nil, "Hello world alg=%s!", testCase.alg)
 		t.Run(fmt.Sprintf("%v", testCase.alg), func(t *testing.T) {
@@ -73,6 +78,7 @@ func Test_HappyPath_JWKGenService_JWS_JWK_SignVerifyBytes(t *testing.T) {
 			log.Printf("Generated: %s", clearNonPublicJWSJWKBytes)
 
 			requireJWSJWKHeaders(t, nonPublicJWSJWK, OpsSigVer, &testCase)
+
 			if publicJWSJWK != nil {
 				requireJWSJWKHeaders(t, publicJWSJWK, OpsVer, &testCase)
 			}

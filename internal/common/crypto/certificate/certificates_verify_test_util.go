@@ -24,7 +24,9 @@ func verifyCACertificate(t *testing.T, err error, certChain []*x509.Certificate,
 	require.NotNil(t, certChain, "Signed certificate should not be nil")
 	require.NotEmpty(t, DERChain, "Certificate bytes should not be empty")
 	require.NotEmpty(t, PEMChain, "Certificate PEM should not be empty")
+
 	now := time.Now().UTC()
+
 	require.Equal(t, expectedIssuerName, certChain[0].Issuer.CommonName, "Issuer name mismatch")
 	require.Equal(t, expectedSubjectName, certChain[0].Subject.CommonName, "Subject name mismatch")
 	require.True(t, certChain[0].IsCA, "Certificate should be a CA certificate")
@@ -44,7 +46,9 @@ func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate,
 	require.NotNil(t, cert, "Signed certificate should not be nil")
 	require.NotEmpty(t, certDER, "Certificate bytes should not be empty")
 	require.NotEmpty(t, certPEM, "Certificate PEM should not be empty")
+
 	now := time.Now().UTC()
+
 	require.Equal(t, expectedIssuerName, cert.Issuer.CommonName, "Issuer name mismatch")
 	require.Equal(t, expectedSubjectName, cert.Subject.CommonName, "Subject name mismatch")
 	require.False(t, cert.IsCA, "Certificate should not be a CA certificate")
@@ -71,6 +75,7 @@ func verifyEndEntityCertificate(t *testing.T, err error, cert *x509.Certificate,
 //nolint:unused // Test utility function for future use
 func verifyCertChain(t *testing.T, certificate *x509.Certificate, roots, intermediates *x509.CertPool) {
 	t.Helper()
+
 	x509VerifyOptions := x509.VerifyOptions{
 		CurrentTime:   time.Now().UTC(),
 		Roots:         roots,
@@ -103,10 +108,12 @@ func verifyCASubjects(t *testing.T, err error, caSubjects []*Subject) {
 
 		derChain := make([][]byte, len(subject.KeyMaterial.CertificateChain))
 		pemChain := make([][]byte, len(subject.KeyMaterial.CertificateChain))
+
 		for j, cert := range subject.KeyMaterial.CertificateChain {
 			derChain[j] = cert.Raw
 			pemChain[j] = toCertificatePEM(cert.Raw)
 		}
+
 		verifyCACertificate(t, nil, subject.KeyMaterial.CertificateChain, derChain, pemChain,
 			subject.IssuerName, subject.SubjectName, subject.Duration, subject.MaxPathLen)
 	}

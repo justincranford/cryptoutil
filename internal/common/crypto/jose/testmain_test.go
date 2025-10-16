@@ -19,6 +19,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -26,6 +27,7 @@ func TestMain(m *testing.M) {
 		var err error
 		testJWKGenService, err = NewJWKGenService(testCtx, testTelemetryService)
 		cryptoutilAppErr.RequireNoError(err, "failed to initialize NewJWKGenService")
+
 		defer testJWKGenService.Shutdown()
 
 		rc = m.Run()

@@ -78,6 +78,7 @@ func main() {
 func checkDeps(mode DepCheckMode) {
 	// Run go list -u -m all to check for outdated dependencies
 	cmd := exec.Command("go", "list", "-u", "-m", "all")
+
 	output, err := cmd.Output()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error checking dependencies: %v\n", err)
@@ -95,6 +96,7 @@ func checkDeps(mode DepCheckMode) {
 	}
 
 	var outdated []string
+
 	if mode == DepCheckDirect {
 		// For direct mode, only check dependencies that are explicitly listed in go.mod
 		directDeps, err := getDirectDependencies()
@@ -124,10 +126,13 @@ func checkDeps(mode DepCheckMode) {
 		if mode == DepCheckAll {
 			modeName = modeNameAll
 		}
+
 		fmt.Fprintf(os.Stderr, "Found outdated Go dependencies (checking %s):\n", modeName)
+
 		for _, dep := range outdated {
 			fmt.Fprintln(os.Stderr, dep)
 		}
+
 		fmt.Fprintln(os.Stderr, "\nPlease run 'go get -u ./...' to update dependencies manually.")
 		os.Exit(1) // Fail to block push
 	}
@@ -136,6 +141,7 @@ func checkDeps(mode DepCheckMode) {
 	if mode == DepCheckAll {
 		modeName = "all"
 	}
+
 	fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date.\n", modeName)
 }
 
@@ -150,16 +156,19 @@ func getDirectDependencies() (map[string]bool, error) {
 	lines := strings.Split(string(goModContent), "\n")
 
 	inRequireBlock := false
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "require (") {
 			inRequireBlock = true
 			continue
 		}
+
 		if line == ")" {
 			inRequireBlock = false
 			continue
 		}
+
 		if inRequireBlock || strings.HasPrefix(line, "require ") {
 			// Parse lines like "github.com/example/package v1.2.3"
 			parts := strings.Fields(line)
@@ -168,6 +177,7 @@ func getDirectDependencies() (map[string]bool, error) {
 				if len(parts) >= 3 && parts[2] == "indirect" {
 					continue
 				}
+
 				directDeps[parts[0]] = true
 			}
 		}
@@ -201,6 +211,7 @@ func checkActions() {
 	exceptions, err := loadActionExceptions()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Failed to load action exceptions: %v\n", err)
+
 		exceptions = &ActionExceptions{Exceptions: make(map[string]ActionException)}
 	}
 
@@ -218,14 +229,17 @@ func checkActions() {
 		if err != nil {
 			return err
 		}
+
 		if !info.IsDir() && (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
 			fileActions, err := parseWorkflowFile(path)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: Failed to parse %s: %v\n", path, err)
 				return nil
 			}
+
 			actions = append(actions, fileActions...)
 		}
+
 		return nil
 	})
 	if err != nil {
@@ -240,23 +254,28 @@ func checkActions() {
 
 	// Remove duplicates and check versions
 	actionMap := make(map[string]ActionInfo)
+
 	for _, action := range actions {
 		key := action.Name + "@" + action.CurrentVersion
 		actionMap[key] = action
 	}
 
 	var outdated []ActionInfo
+
 	var errors []string
+
 	var exempted []ActionInfo
 
 	for _, action := range actionMap {
 		// Check if this action is exempted
 		isExempted := false
+
 		if exception, exists := exceptions.Exceptions[action.Name]; exists {
 			for _, allowedVersion := range exception.AllowedVersions {
 				if action.CurrentVersion == allowedVersion {
 					exempted = append(exempted, action)
 					isExempted = true
+
 					break
 				}
 			}
@@ -281,29 +300,35 @@ func checkActions() {
 	// Report results
 	if len(errors) > 0 {
 		fmt.Fprintln(os.Stderr, "Warnings:")
+
 		for _, err := range errors {
 			fmt.Fprintf(os.Stderr, "  %s\n", err)
 		}
+
 		fmt.Fprintln(os.Stderr, "")
 	}
 
 	if len(exempted) > 0 {
 		fmt.Fprintln(os.Stderr, "Exempted actions (allowed older versions):")
+
 		for _, action := range exempted {
 			if exception, exists := exceptions.Exceptions[action.Name]; exists {
 				fmt.Fprintf(os.Stderr, "  %s@%s (in %s) - %s\n",
 					action.Name, action.CurrentVersion, action.WorkflowFile, exception.Reason)
 			}
 		}
+
 		fmt.Fprintln(os.Stderr, "")
 	}
 
 	if len(outdated) > 0 {
 		fmt.Fprintln(os.Stderr, "Found outdated GitHub Actions:")
+
 		for _, action := range outdated {
 			fmt.Fprintf(os.Stderr, "  %s@%s â†’ %s (in %s)\n",
 				action.Name, action.CurrentVersion, action.LatestVersion, action.WorkflowFile)
 		}
+
 		fmt.Fprintln(os.Stderr, "\nPlease update to the latest versions manually.")
 		os.Exit(1) // Fail to block push
 	}
@@ -342,8 +367,10 @@ func getLatestVersion(actionName string) (string, error) {
 	time.Sleep(200 * time.Millisecond)
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", actionName)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create HTTP request: %w", err)
@@ -358,10 +385,12 @@ func getLatestVersion(actionName string) (string, error) {
 	req.Header.Set("User-Agent", "check-script")
 
 	client := &http.Client{}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request: %w", err)
 	}
+
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
 			fmt.Printf("Warning: failed to close HTTP response body: %v\n", closeErr)
@@ -396,8 +425,10 @@ func getLatestVersion(actionName string) (string, error) {
 
 func getLatestTag(actionName string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return "", fmt.Errorf("failed to create HTTP request for tags: %w", err)
@@ -407,13 +438,16 @@ func getLatestTag(actionName string) (string, error) {
 	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
+
 	req.Header.Set("User-Agent", "check-script")
 
 	client := &http.Client{}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request for tags: %w", err)
 	}
+
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
 			fmt.Printf("Warning: failed to close HTTP response body: %v\n", closeErr)
@@ -436,6 +470,7 @@ func getLatestTag(actionName string) (string, error) {
 	var tags []struct {
 		Name string `json:"name"`
 	}
+
 	if err := json.Unmarshal(body, &tags); err != nil {
 		return "", fmt.Errorf("failed to unmarshal GitHub tags JSON: %w", err)
 	}
@@ -457,12 +492,14 @@ func isOutdated(current, latest string) bool {
 	// For major version pins (e.g., v4), check if latest major version is higher
 	if matched, err := regexp.MatchString(`^v(\d+)$`, current); err == nil && matched {
 		currentMajor := strings.TrimPrefix(current, "v")
+
 		latestMajor := strings.TrimPrefix(latest, "v")
 		if strings.Contains(latestMajor, ".") {
 			// Extract major version from latest (e.g., "5.0.0" -> "5")
 			parts := strings.Split(latestMajor, ".")
 			latestMajor = parts[0]
 		}
+
 		return currentMajor != latestMajor
 	}
 
@@ -472,11 +509,14 @@ func isOutdated(current, latest string) bool {
 
 func checkCircularDeps() {
 	startTime := time.Now()
+
 	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
 
 	// Get all packages in the project
 	fmt.Fprintln(os.Stderr, "Running: go list ./...")
+
 	cmd := exec.Command("go", "list", "./...")
+
 	output, err := cmd.Output()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error running go list: %v\n", err)
@@ -485,20 +525,24 @@ func checkCircularDeps() {
 
 	packages := strings.Split(strings.TrimSpace(string(output)), "\n")
 	fmt.Fprintf(os.Stderr, "Found %d packages:\n", len(packages))
+
 	for i, pkg := range packages {
 		if strings.TrimSpace(pkg) != "" {
 			fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, pkg)
 		}
 	}
+
 	fmt.Fprintln(os.Stderr, "")
 
 	// Filter out empty packages
 	var validPackages []string
+
 	for _, pkg := range packages {
 		if strings.TrimSpace(pkg) != "" {
 			validPackages = append(validPackages, pkg)
 		}
 	}
+
 	packages = validPackages
 
 	if len(packages) == 0 {
@@ -508,12 +552,15 @@ func checkCircularDeps() {
 
 	// Build dependency graph
 	fmt.Fprintln(os.Stderr, "Building dependency graph...")
+
 	graphStart := time.Now()
 	processed := 0
 	dependencyGraph := make(map[string][]string)
+
 	for _, pkg := range packages {
 		// Get imports for this package
 		importCmd := exec.Command("go", "list", "-f", "{{.Imports}}", pkg)
+
 		importOutput, err := importCmd.Output()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: Could not get imports for %s: %v\n", pkg, err)
@@ -524,6 +571,7 @@ func checkCircularDeps() {
 		if len(importStr) <= 2 { // Empty array "[]"
 			dependencyGraph[pkg] = []string{} // Empty slice instead of nil
 			processed++
+
 			continue
 		}
 
@@ -532,11 +580,13 @@ func checkCircularDeps() {
 		if importStr == "" {
 			dependencyGraph[pkg] = []string{}
 			processed++
+
 			continue
 		}
 
 		imports := strings.Split(importStr, " ")
 		dependencyGraph[pkg] = imports
+
 		processed++
 		if processed%10 == 0 {
 			elapsed := time.Since(graphStart)
@@ -551,10 +601,12 @@ func checkCircularDeps() {
 	if len(dependencyGraph) < len(packages) {
 		fmt.Fprintf(os.Stderr, "Note: %d packages were excluded from graph (failed to get imports)\n", len(packages)-len(dependencyGraph))
 	}
+
 	fmt.Fprintln(os.Stderr, "")
 
 	// Find circular dependencies using DFS
 	fmt.Fprintln(os.Stderr, "Starting DFS cycle detection...")
+
 	dfsStart := time.Now()
 	visited := make(map[string]bool)
 	recursionStack := make(map[string]bool)
@@ -582,12 +634,14 @@ func checkCircularDeps() {
 			} else if recursionStack[dep] {
 				// Found a cycle
 				cycleStart := -1
+
 				for i, p := range path {
 					if p == dep {
 						cycleStart = i
 						break
 					}
 				}
+
 				if cycleStart >= 0 {
 					cycle := append(path[cycleStart:], dep)
 					circularDeps = append(circularDeps, cycle)
@@ -600,9 +654,11 @@ func checkCircularDeps() {
 
 	// Check each package for circular dependencies
 	dfsCount := 0
+
 	for pkg := range dependencyGraph {
 		if !visited[pkg] {
 			dfs(pkg, []string{pkg})
+
 			dfsCount++
 			if dfsCount%5 == 0 {
 				elapsed := time.Since(dfsStart)
@@ -617,11 +673,13 @@ func checkCircularDeps() {
 
 	// Summary report
 	totalElapsed := time.Since(startTime)
+
 	fmt.Fprintf(os.Stderr, "=== CIRCULAR DEPENDENCY ANALYSIS SUMMARY ===\n")
 	fmt.Fprintf(os.Stderr, "Total execution time: %.2fs\n", totalElapsed.Seconds())
 	fmt.Fprintf(os.Stderr, "Packages analyzed: %d\n", len(dependencyGraph))
 	fmt.Fprintf(os.Stderr, "Internal dependencies checked: %d\n", func() int {
 		count := 0
+
 		for _, deps := range dependencyGraph {
 			for _, dep := range deps {
 				if strings.HasPrefix(dep, "cryptoutil/") {
@@ -629,12 +687,14 @@ func checkCircularDeps() {
 				}
 			}
 		}
+
 		return count
 	}())
 
 	if len(circularDeps) == 0 {
 		fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
 		fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
+
 		return
 	}
 
@@ -642,13 +702,16 @@ func checkCircularDeps() {
 
 	for i, cycle := range circularDeps {
 		fmt.Fprintf(os.Stderr, "Chain %d (%d packages):\n", i+1, len(cycle))
+
 		for j, pkg := range cycle {
 			prefix := "  "
 			if j > 0 {
 				prefix = "  → "
 			}
+
 			fmt.Fprintf(os.Stderr, "%s%s\n", prefix, pkg)
 		}
+
 		fmt.Fprintln(os.Stderr, "")
 	}
 

@@ -30,6 +30,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 
 	fixedContextBytes := []byte("derive unseal JWKs v1")
 	unsealJWKs := make([]joseJwk.Key, 0, len(combinations))
+
 	for _, combination := range combinations {
 		var concatenatedCombinationBytes []byte
 		for _, combinationElement := range combination {
@@ -38,6 +39,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 
 		derivedSecretKeyBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("secret")...))
 		derivedSaltBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("salt")...))
+
 		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, 32)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive key: %w", err)
@@ -47,6 +49,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		if err != nil {
 			return nil, fmt.Errorf("failed to create UUIDv7: %w", err)
 		}
+
 		_, jwk, _, _, _, err := cryptoutilJose.CreateJWEJWKFromKey(&kekKidUUID, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW, cryptoutilKeyGen.SecretKey(derivedKeyBytes)) // use derived JWK for envelope encryption (i.e. A256GCM Key Wrap), not DIRECT encryption
 		if err != nil {
 			return nil, fmt.Errorf("failed to create JWK: %w", err)
@@ -63,6 +66,7 @@ func encryptKey(unsealJWKs []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt root JWK with unseal JWK: %w", err)
 	}
+
 	return encryptedRootKeyBytes, nil
 }
 
@@ -71,6 +75,7 @@ func decryptKey(unsealJWKs []joseJwk.Key, encryptedRootKeyBytes []byte) (joseJwk
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt root JWK with unseal JWK: %w", err)
 	}
+
 	return decryptedRootKey, nil
 }
 
@@ -79,6 +84,7 @@ func encryptData(unsealJWKs []joseJwk.Key, clearData []byte) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt data with unseal JWK: %w", err)
 	}
+
 	return encryptedDataBytes, nil
 }
 
@@ -87,5 +93,6 @@ func decryptData(unsealJWKs []joseJwk.Key, encryptedDataBytes []byte) ([]byte, e
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt data with unseal JWK: %w", err)
 	}
+
 	return decryptedData, nil
 }

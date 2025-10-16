@@ -20,6 +20,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -53,16 +54,19 @@ func TestMetric(t *testing.T) {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
 			return
 		}
+
 		val2, err := rand.Int(rand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
 			return
 		}
+
 		val3, err := rand.Int(rand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
 			return
 		}
+
 		exampleMetricHistogram.Record(testCtx, val1.Int64())
 		exampleMetricHistogram.Record(testCtx, val2.Int64())
 		exampleMetricHistogram.Record(testCtx, val3.Int64())
@@ -77,13 +81,16 @@ func TestTrace(t *testing.T) {
 
 	// simulate time spent in parent function, before calling child 1 function
 	exampleParentSpanContext, exampleParentSpan := exampleTrace.Start(testCtx, "example-parent-span")
+
 	time.Sleep(5 * time.Millisecond)
 	exampleParentSpan.End()
 	testTelemetryService.Slogger.Info("exampleParentSpan", "testCtx", exampleParentSpanContext, "span", exampleParentSpan)
 
 	// simulate time spent in child 1 function
 	exampleChildSpanContext1, exampleChildSpan1 := exampleTrace.Start(exampleParentSpanContext, "example-child-span-1")
+
 	time.Sleep(10 * time.Millisecond)
+
 	defer exampleChildSpan1.End()
 	testTelemetryService.Slogger.Info("exampleChildSpan1", "testCtx", exampleChildSpanContext1, "span", exampleChildSpan1)
 
@@ -92,7 +99,9 @@ func TestTrace(t *testing.T) {
 
 	// simulate time spent in child 2 function
 	exampleChildSpanContext2, exampleChildSpan2 := exampleTrace.Start(exampleParentSpanContext, "example-child-span-2")
+
 	time.Sleep(15 * time.Millisecond)
+
 	defer exampleChildSpan2.End()
 	testTelemetryService.Slogger.Info("exampleChildSpan2", "testCtx", exampleChildSpanContext2, "span", exampleChildSpan2)
 

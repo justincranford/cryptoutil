@@ -39,11 +39,13 @@ func NewIntermediateKeysService(telemetryService *cryptoutilTelemetry.TelemetryS
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize first intermediate JWK: %w", err)
 	}
+
 	return &IntermediateKeysService{telemetryService: telemetryService, jwkGenService: jwkGenService, ormRepository: ormRepository, rootKeysService: rootKeysService}, nil
 }
 
 func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService, ormRepository *cryptoutilOrmRepository.OrmRepository, rootKeysService *cryptoutilRootKeysService.RootKeysService) error {
 	var encryptedIntermediateKeyLatest *cryptoutilOrmRepository.BarrierIntermediateKey
+
 	var err error
 
 	err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -51,6 +53,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 		if err != nil {
 			return fmt.Errorf("failed to get intermediate key latest: %w", err)
 		}
+
 		return nil
 	})
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -64,6 +67,7 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 		}
 
 		var encryptedIntermediateKeyBytes []byte
+
 		var rootKeyKidUUID *googleUuid.UUID
 
 		err = ormRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
@@ -73,16 +77,19 @@ func initializeFirstIntermediateJWK(jwkGenService *cryptoutilJose.JWKGenService,
 			}
 
 			firstEncryptedIntermediateKey := &cryptoutilOrmRepository.BarrierIntermediateKey{UUID: *intermediateKeyKidUUID, Encrypted: string(encryptedIntermediateKeyBytes), KEKUUID: *rootKeyKidUUID}
+
 			err = sqlTransaction.AddIntermediateKey(firstEncryptedIntermediateKey)
 			if err != nil {
 				return fmt.Errorf("failed to store first intermediate JWK: %w", err)
 			}
+
 			return nil
 		})
 		if err != nil {
 			return fmt.Errorf("failed to encrypt and store first intermediate first JWK: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -103,6 +110,7 @@ func (i *IntermediateKeysService) EncryptKey(sqlTransaction *cryptoutilOrmReposi
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to encrypt content JWK with intermediate JWK: %w", err)
 	}
+
 	return encryptedContentKeyBytes, &intermediateKeyLatestKidUUID, nil
 }
 
@@ -113,6 +121,7 @@ func (i *IntermediateKeysService) DecryptKey(sqlTransaction *cryptoutilOrmReposi
 	}
 
 	var intermediateKeyKidUUIDString string
+
 	err = encryptedContentKey.ProtectedHeaders().Get(joseJwk.KeyIDKey, &intermediateKeyKidUUIDString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse encrypted content key message kid UUID: %w", err)

@@ -7,6 +7,7 @@ import (
 
 func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
 	parsedIPs := make([]net.IP, 0, len(ipAddresses))
+
 	for _, ip := range ipAddresses {
 		parsedIP := net.ParseIP(ip)
 		if parsedIP == nil {
@@ -22,6 +23,7 @@ func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
 // NormalizeIPv4Addresses converts IPv4-mapped IPv6 addresses to IPv4.
 func NormalizeIPv4Addresses(ips []net.IP) []net.IP {
 	normalizedIPv4Addresses := make([]net.IP, len(ips))
+
 	for i, ip := range ips {
 		normalizedIPv4Address := ip.To4() // Attempt to convert IPv4-mapped IPv6 address to IPv4
 		if normalizedIPv4Address == nil {

@@ -22,14 +22,18 @@ type stats struct {
 func (s *stats) record(value int64) int64 {
 	s.guard.Lock()
 	defer s.guard.Unlock()
+
 	s.count++
+
 	s.sum += value
 	if value < s.minimum {
 		s.minimum = value
 	}
+
 	if value > s.maximum {
 		s.maximum = value
 	}
+
 	return value
 }
 
@@ -43,6 +47,7 @@ func TestChan(t *testing.T) {
 			t.Errorf("Failed to generate random number: %v", err)
 			return int64(0)
 		}
+
 		return s.record(val.Int64())
 	}
 	receiver := func(value any) {
@@ -53,6 +58,7 @@ func TestChan(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	waitAndClose := runSendersReceivers(ctx, 100, 8, 4, sender, receiver)
+
 	go func() {
 		time.Sleep(5 * time.Millisecond)
 		cancel()

@@ -54,6 +54,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 	if err != nil {
 		rootKeysService.Shutdown()
 		intermediateKeysService.Shutdown()
+
 		return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
 	}
 
@@ -73,10 +74,12 @@ func (d *BarrierService) EncryptContent(sqlTransaction *cryptoutilOrmRepository.
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
+
 	encryptedContentJWEMessageBytes, _, err := d.contentKeysService.EncryptContent(sqlTransaction, clearBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt content bytes: %w", err)
 	}
+
 	return encryptedContentJWEMessageBytes, nil
 }
 
@@ -84,10 +87,12 @@ func (d *BarrierService) DecryptContent(sqlTransaction *cryptoutilOrmRepository.
 	if d.closed {
 		return nil, fmt.Errorf("barrier service is closed")
 	}
+
 	decryptedBytes, err := d.contentKeysService.DecryptContent(sqlTransaction, encryptedContentJWEMessageBytes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt content bytes: %w", err)
 	}
+
 	return decryptedBytes, nil
 }
 
@@ -98,14 +103,17 @@ func (d *BarrierService) Shutdown() {
 			d.contentKeysService.Shutdown()
 			d.contentKeysService = nil
 		}
+
 		if d.intermediateKeysService != nil {
 			d.intermediateKeysService.Shutdown()
 			d.intermediateKeysService = nil
 		}
+
 		if d.rootKeysService != nil {
 			d.rootKeysService.Shutdown()
 			d.rootKeysService = nil
 		}
+
 		d.unsealKeysService = nil
 		d.ormRepository = nil
 		d.telemetryService = nil

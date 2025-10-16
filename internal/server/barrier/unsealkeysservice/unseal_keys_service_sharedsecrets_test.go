@@ -44,6 +44,7 @@ func TestSharedSecretsCountGreaterThan256(t *testing.T) {
 	for i := range sharedSecretsM {
 		sharedSecretsM[i] = make([]byte, 32)
 	}
+
 	_, err := NewUnsealKeysServiceSharedSecrets(sharedSecretsM, 1)
 	require.Error(t, err)
 	require.Equal(t, "shared secrets can't be greater than 256", err.Error())

@@ -33,11 +33,14 @@ var (
 
 func TestMain(m *testing.M) {
 	var err error
+
 	startServerListenerApplication, err = StartServerListenerApplication(testSettings)
 	if err != nil {
 		log.Fatalf("failed to start server application: %v", err)
 	}
+
 	go startServerListenerApplication.StartFunction()
+
 	defer startServerListenerApplication.ShutdownFunction()
 
 	// Build URLs using actual assigned ports
@@ -80,6 +83,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 				require.Error(t, err, "expected request to fail")
 				return
 			}
+
 			require.NoError(t, err, "failed to get response")
 			require.NotNil(t, body, "response body should not be nil")
 			require.NotNil(t, headers, "response headers should not be nil")
@@ -94,6 +98,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 			if body != nil {
 				contentString = strings.Replace(string(body), "\n", " ", -1)
 			}
+
 			if err == nil {
 				t.Logf("PASS: %s, Contents: %s", tc.url, contentString)
 			} else {
@@ -189,12 +194,14 @@ func TestSecurityHeaders(t *testing.T) {
 				hstsValue := headers.Get("Strict-Transport-Security")
 				if tc.isBrowserPath {
 					require.NotEmpty(t, hstsValue, "HSTS header should be present on HTTPS browser requests")
+
 					if testSettings.DevMode {
 						require.Contains(t, hstsValue, "max-age=86400", "HSTS should use shorter duration in dev mode")
 					} else {
 						require.Contains(t, hstsValue, "max-age=31536000", "HSTS should use 1 year duration in production")
 						require.Contains(t, hstsValue, "preload", "HSTS should include preload in production")
 					}
+
 					require.Contains(t, hstsValue, "includeSubDomains", "HSTS should include subdomains")
 				}
 			}

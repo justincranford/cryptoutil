@@ -54,6 +54,7 @@ func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, func
 				s.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
 			}
 		}
+
 		if recover := recover(); recover != nil {
 			s.telemetryService.Slogger.Error("panic occurred during transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "panic", recover, "stack", string(debug.Stack()))
 			panic(recover) // re-throw the panic after rollback
@@ -74,9 +75,11 @@ func (s *SQLRepository) newTransaction() (*SQLTransaction, error) {
 	} else if s.sqlDB == nil {
 		return nil, fmt.Errorf("database connection is not initialized")
 	}
+
 	if s.verboseMode {
 		s.telemetryService.Slogger.Debug("new transaction")
 	}
+
 	return &SQLTransaction{sqlRepository: s}, nil
 }
 
@@ -85,7 +88,9 @@ func (sqlTransaction *SQLTransaction) TransactionID() *googleUuid.UUID {
 	if sqlTransaction.state == nil {
 		return nil
 	}
+
 	transactionIDCopy := sqlTransaction.state.transactionID
+
 	return &transactionIDCopy
 }
 
@@ -94,6 +99,7 @@ func (sqlTransaction *SQLTransaction) Context() context.Context {
 	if sqlTransaction.state == nil {
 		return nil
 	}
+
 	return sqlTransaction.state.ctx
 }
 
@@ -102,6 +108,7 @@ func (sqlTransaction *SQLTransaction) IsReadOnly() bool {
 	if sqlTransaction.state == nil {
 		return false
 	}
+
 	return sqlTransaction.state.readOnly
 }
 
@@ -112,6 +119,7 @@ func (sqlTransaction *SQLTransaction) begin(ctx context.Context, readOnly bool) 
 	if sqlTransaction.sqlRepository.verboseMode {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("beginning transaction", "readOnly", readOnly)
 	}
+
 	if sqlTransaction.state != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("transaction already started", "transactionID", sqlTransaction.TransactionID())
 		return fmt.Errorf("transaction already started")
@@ -131,6 +139,7 @@ func (sqlTransaction *SQLTransaction) begin(ctx context.Context, readOnly bool) 
 
 	sqlTransaction.state = &SQLTransactionState{ctx: ctx, readOnly: readOnly, transactionID: transactionID, sqlTx: sqlTx}
 	sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("started transaction", "transactionID", transactionID, "readOnly", readOnly)
+
 	return nil
 }
 
@@ -141,6 +150,7 @@ func (sqlTransaction *SQLTransaction) commit() error {
 	if sqlTransaction.sqlRepository.verboseMode {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("committing transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	}
+
 	if sqlTransaction.state == nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't commit because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 		return fmt.Errorf("can't commit because transaction not active")
@@ -154,6 +164,7 @@ func (sqlTransaction *SQLTransaction) commit() error {
 
 	sqlTransaction.sqlRepository.telemetryService.Slogger.Debug("committed transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	sqlTransaction.state = nil
+
 	return nil
 }
 
@@ -164,6 +175,7 @@ func (sqlTransaction *SQLTransaction) rollback() error {
 	if sqlTransaction.sqlRepository.verboseMode {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Warn("rolling back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	}
+
 	if sqlTransaction.state == nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 		return fmt.Errorf("can't rollback because transaction not active")
@@ -177,5 +189,6 @@ func (sqlTransaction *SQLTransaction) rollback() error {
 
 	sqlTransaction.sqlRepository.telemetryService.Slogger.Warn("rolled back transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
 	sqlTransaction.state = nil
+
 	return nil
 }

@@ -36,5 +36,6 @@ func NewUnsealKeysServiceSimple(unsealJWKs []joseJwk.Key) (UnsealKeysService, er
 	} else if len(unsealJWKs) == 0 {
 		return nil, fmt.Errorf("unsealJWKs can't be empty")
 	}
+
 	return &UnsealKeysServiceSimple{unsealJWKs: unsealJWKs}, nil
 }

@@ -12,13 +12,17 @@ func runSendersReceivers(ctx context.Context, bufferSize, senderCount, receiverC
 	var wg sync.WaitGroup
 	for i := 0; i < senderCount; i++ {
 		wg.Add(1)
+
 		go sender(ctx, ch, &wg, senderFunc)
 	}
+
 	var receiverWg sync.WaitGroup
 	for i := 0; i < receiverCount; i++ {
 		receiverWg.Add(1)
+
 		go receiver(ctx, ch, &receiverWg, receiverFunc)
 	}
+
 	return func() {
 		fmt.Println("waiting")
 		wg.Wait()
@@ -30,6 +34,7 @@ func runSendersReceivers(ctx context.Context, bufferSize, senderCount, receiverC
 
 func sender(ctx context.Context, ch chan<- any, wg *sync.WaitGroup, senderFunc func() any) {
 	defer wg.Done()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -41,6 +46,7 @@ func sender(ctx context.Context, ch chan<- any, wg *sync.WaitGroup, senderFunc f
 
 func receiver(ctx context.Context, ch <-chan any, wg *sync.WaitGroup, receiverFunc func(any)) {
 	defer wg.Done()
+
 	for {
 		select {
 		case <-ctx.Done():

@@ -71,7 +71,9 @@ func TestCombinations_HappyPath(t *testing.T) {
 			for i, combination := range result {
 				t.Logf("combination[%d] = %s, 0x%x ", i, combination.ToString(), combination.Encode())
 			}
+
 			require.NoError(t, err)
+
 			if !reflect.DeepEqual(result, tc.expected) {
 				t.Errorf("Test %s failed. Expected: %v, Got: %v", tc.name, tc.expected, result)
 			}

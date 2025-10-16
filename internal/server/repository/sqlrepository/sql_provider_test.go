@@ -23,6 +23,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -54,6 +55,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SQLTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
+
 		return nil
 	})
 	require.NoError(t, err)
@@ -104,6 +106,7 @@ func TestSQLTransaction_RollbackOnError(t *testing.T) {
 	err := testSQLRepository.WithTransaction(testCtx, false, func(sqlTransaction *SQLTransaction) error {
 		require.NotNil(t, sqlTransaction)
 		require.False(t, sqlTransaction.IsReadOnly())
+
 		return fmt.Errorf("intentional failure") // Simulate an error within the transaction
 	})
 	require.Error(t, err)

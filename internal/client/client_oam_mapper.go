@@ -48,6 +48,7 @@ func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptout
 		} else if openapiCreateElasticKeyResponse.JSON200 == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, JSON200 is nil")
 		}
+
 		elasticKey := openapiCreateElasticKeyResponse.JSON200
 
 		if elasticKey.ElasticKeyID == nil {
@@ -65,6 +66,7 @@ func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptout
 		} else if elasticKey.Status == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.Status is nil")
 		}
+
 		return elasticKey, nil
 	default:
 		return nil, fmt.Errorf("failed to create Elastic Key, nextElasticKeyName(), Status: %d, Message: %s, Body: %s", openapiCreateElasticKeyResponse.HTTPResponse.StatusCode, openapiCreateElasticKeyResponse.HTTPResponse.Status, openapiCreateElasticKeyResponse.Body)
@@ -85,6 +87,7 @@ func (m *oamOacMapper) toOamMaterialKeyGenerate(openapiMaterialKeyGenerateRespon
 		} else if openapiMaterialKeyGenerateResponse.JSON200 == nil {
 			return nil, fmt.Errorf("failed to generate key, JSON200 is nil")
 		}
+
 		key := openapiMaterialKeyGenerateResponse.JSON200
 
 		if key.ElasticKeyID == googleUuid.Nil {
@@ -94,6 +97,7 @@ func (m *oamOacMapper) toOamMaterialKeyGenerate(openapiMaterialKeyGenerateRespon
 		} else if key.GenerateDate == nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.GenerateDate is nil") // TODO nil allowed if import not nil
 		}
+
 		return key, nil
 	default:
 		return nil, fmt.Errorf("failed to generate key, nextElasticKeyName(), Status: %d, Message: %s, Body: %s", openapiMaterialKeyGenerateResponse.HTTPResponse.StatusCode, openapiMaterialKeyGenerateResponse.HTTPResponse.Status, openapiMaterialKeyGenerateResponse.Body)
@@ -106,6 +110,7 @@ func (m *oamOacMapper) toOacGenerateParams(generateParams *cryptoutilOpenapiMode
 		elastickeyElasticKeyIDGenerateParams.Context = generateParams.Context
 		elastickeyElasticKeyIDGenerateParams.Alg = generateParams.Alg
 	}
+
 	return elastickeyElasticKeyIDGenerateParams
 }
 
@@ -126,6 +131,7 @@ func (m *oamOacMapper) toPlainGenerateResponse(openapiGenerateResponse *cryptout
 		if openapiGenerateResponse.Body == nil {
 			return nil, fmt.Errorf("failed to encrypt, body is nil")
 		}
+
 		ciphertext := string(openapiGenerateResponse.Body)
 
 		return &ciphertext, nil
@@ -139,6 +145,7 @@ func (m *oamOacMapper) toOacEncryptParams(encryptParams *cryptoutilOpenapiModel.
 	if encryptParams != nil {
 		elastickeyElasticKeyIDEncryptParams.Context = encryptParams.Context
 	}
+
 	return elastickeyElasticKeyIDEncryptParams
 }
 
@@ -158,6 +165,7 @@ func (m *oamOacMapper) toPlainEncryptResponse(openapiEncryptResponse *cryptoutil
 		if openapiEncryptResponse.Body == nil {
 			return nil, fmt.Errorf("failed to encrypt, body is nil")
 		}
+
 		ciphertext := string(openapiEncryptResponse.Body)
 
 		return &ciphertext, nil
@@ -182,7 +190,9 @@ func (m *oamOacMapper) toPlainDecryptResponse(openapiDecryptResponse *cryptoutil
 		if openapiDecryptResponse.Body == nil {
 			return nil, fmt.Errorf("failed to decrypt, body is nil")
 		}
+
 		decrypted := string(openapiDecryptResponse.Body)
+
 		return &decrypted, nil
 	default:
 		return nil, fmt.Errorf("failed to decrypt, nextElasticKeyName(), Status: %d, Message: %s, Body: %s", openapiDecryptResponse.HTTPResponse.StatusCode, openapiDecryptResponse.HTTPResponse.Status, openapiDecryptResponse.Body)
@@ -194,6 +204,7 @@ func (m *oamOacMapper) toOacSignParams(signParams *cryptoutilOpenapiModel.SignPa
 	if signParams != nil {
 		elastickeyElasticKeyIDSignParams.Context = signParams.Context
 	}
+
 	return elastickeyElasticKeyIDSignParams
 }
 
@@ -213,6 +224,7 @@ func (m *oamOacMapper) toPlainSignResponse(openapiSignResponse *cryptoutilOpenap
 		if openapiSignResponse.Body == nil {
 			return nil, fmt.Errorf("failed to sign, body is nil")
 		}
+
 		ciphertext := string(openapiSignResponse.Body)
 
 		return &ciphertext, nil

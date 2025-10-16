@@ -57,5 +57,6 @@ func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoPr
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWKs: %w", err)
 	}
+
 	return &UnsealKeysServiceFromSysInfo{unsealJWKs: unsealJWKs}, nil
 }

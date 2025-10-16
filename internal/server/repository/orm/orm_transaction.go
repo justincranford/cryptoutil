@@ -49,6 +49,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 				r.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
 			}
 		}
+
 		if recover := recover(); recover != nil {
 			r.telemetryService.Slogger.Error("panic occurred during transaction", "txID", tx.ID(), "mode", tx.Mode(), "panic", recover, "stack", string(debug.Stack()))
 			panic(recover)
@@ -66,6 +67,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 	}
+
 	return nil
 }
 
@@ -77,6 +79,7 @@ func (tx *OrmTransaction) ID() *googleUuid.UUID {
 	if tx.state == nil {
 		return nil
 	}
+
 	return &tx.state.txID
 }
 
@@ -86,6 +89,7 @@ func (tx *OrmTransaction) Context() context.Context {
 	if tx.state == nil {
 		return nil
 	}
+
 	return tx.state.ctx
 }
 
@@ -95,6 +99,7 @@ func (tx *OrmTransaction) Mode() *TransactionMode {
 	if tx.state == nil {
 		return nil
 	}
+
 	return &tx.state.txMode
 }
 
@@ -114,6 +119,7 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 	}
 
 	txID := tx.ormRepository.jwkGenService.GenerateUUIDv7()
+
 	gormTx, err := tx.beginImplementation(ctx, transactionMode)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -121,6 +127,7 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 
 	tx.state = &OrmTransactionState{ctx: ctx, txMode: transactionMode, txID: *txID, gormTx: gormTx}
 	tx.ormRepository.telemetryService.Slogger.Debug("started transaction", "txID", txID, "mode", transactionMode)
+
 	return nil
 }
 
@@ -147,6 +154,7 @@ func (tx *OrmTransaction) commit() error {
 
 	tx.ormRepository.telemetryService.Slogger.Debug("committed transaction", "txID", tx.ID(), "mode", tx.Mode())
 	tx.state = nil
+
 	return nil
 }
 
@@ -157,6 +165,7 @@ func (tx *OrmTransaction) rollback() error {
 	if tx.ormRepository.verboseMode {
 		tx.ormRepository.telemetryService.Slogger.Debug("rolling back transaction", "txID", tx.ID(), "mode", tx.Mode())
 	}
+
 	if tx.state == nil {
 		tx.ormRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
 		return fmt.Errorf("can't rollback because transaction not active")
@@ -172,6 +181,7 @@ func (tx *OrmTransaction) rollback() error {
 
 	tx.ormRepository.telemetryService.Slogger.Warn("rolled back transaction", "txID", tx.ID(), "mode", tx.Mode())
 	tx.state = nil
+
 	return nil
 }
 
@@ -179,6 +189,7 @@ func (tx *OrmTransaction) rollback() error {
 
 func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMode TransactionMode) (*gorm.DB, error) {
 	gormTx := tx.ormRepository.gormDB.WithContext(ctx)
+
 	switch transactionMode {
 	case AutoCommit:
 		return gormTx, nil
@@ -187,9 +198,11 @@ func (tx *OrmTransaction) beginImplementation(ctx context.Context, transactionMo
 	default:
 		gormTx = gormTx.Begin(&sql.TxOptions{Isolation: sql.LevelReadCommitted, ReadOnly: true})
 	}
+
 	if gormTx.Error != nil {
 		return nil, fmt.Errorf("failed to begin gorm transaction: %w", gormTx.Error)
 	}
+
 	return gormTx, nil
 }
 
@@ -198,6 +211,7 @@ func (tx *OrmTransaction) commitImplementation() (*gorm.DB, error) {
 	if gormTx.Error != nil {
 		return nil, fmt.Errorf("failed to commit gorm transaction: %w", gormTx.Error)
 	}
+
 	return gormTx, nil
 }
 
@@ -206,5 +220,6 @@ func (tx *OrmTransaction) rollbackImplementation() (*gorm.DB, error) {
 	if gormTx.Error != nil {
 		return nil, fmt.Errorf("failed to rollback gorm transaction: %w", gormTx.Error)
 	}
+
 	return gormTx, nil
 }

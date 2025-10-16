@@ -27,6 +27,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -39,8 +40,10 @@ func TestMain(m *testing.M) {
 func TestPEMEncodeDecodeRSA(t *testing.T) {
 	keyPairOriginal, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
+
 	privateKeyOriginal := keyPairOriginal
 	publicKeyOriginal := &keyPairOriginal.PublicKey
+
 	require.IsType(t, &rsa.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, &rsa.PublicKey{}, publicKeyOriginal)
 
@@ -72,8 +75,10 @@ func TestPEMEncodeDecodeRSA(t *testing.T) {
 func TestPEMEncodeDecodeECDSA(t *testing.T) {
 	keyPairOriginal, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	require.NoError(t, err)
+
 	privateKeyOriginal := keyPairOriginal
 	publicKeyOriginal := &keyPairOriginal.PublicKey
+
 	require.IsType(t, &ecdsa.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, &ecdsa.PublicKey{}, publicKeyOriginal)
 
@@ -104,10 +109,13 @@ func TestPEMEncodeDecodeECDSA(t *testing.T) {
 
 func TestPEMEncodeDecodeECDH(t *testing.T) {
 	t.Skip("Blocked by bug: https://github.com/golang/go/issues/71919")
+
 	keyPairOriginal, err := ecdh.P256().GenerateKey(rand.Reader)
 	require.NoError(t, err)
+
 	privateKeyOriginal := keyPairOriginal
 	publicKeyOriginal := keyPairOriginal.PublicKey()
+
 	require.IsType(t, &ecdh.PrivateKey{}, privateKeyOriginal)
 	require.IsType(t, &ecdh.PublicKey{}, publicKeyOriginal)
 
