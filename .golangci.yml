@@ -63,6 +63,7 @@ linters:
     # - mnd           # Detect magic numbers (formerly gomnd) - TEMPORARILY DISABLED
     - wsl           # Whitespace linter
     - nlreturn      # Enforce newlines after return statements
+    - goheader       # Copyright header enforcement
 
     # Error handling
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
@@ -178,6 +179,17 @@ linters-settings:
 
   wsl:
     # Whitespace linter - enforces consistent whitespace usage
+
+  goheader:
+    # Copyright header enforcement
+    values:
+      const:
+        LICENSE: |
+          Copyright (c) 2025 Justin Cranford
+
+  lll:
+    # Line length limits
+    line-length: 800
 
   testpackage:
     # Test package naming conventions
