@@ -52,6 +52,7 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string, du
 	subjects := make([]*Subject, len(keyPairs))
 	for i := len(keyPairs) - 1; i >= 0; i-- {
 		subjectName := fmt.Sprintf("%s %d", caSubjectNamePrefix, len(keyPairs)-1-i)
+
 		var err error
 		if i == len(keyPairs)-1 {
 			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], duration, i)

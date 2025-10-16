@@ -27,13 +27,17 @@ var oamOacMapperInstance = NewOamOacMapper()
 
 func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPool *x509.CertPool) {
 	giveUpTime := time.Now().UTC().Add(maxTime)
+
 	for {
 		log.Printf("Checking if server is ready %s", *baseURL)
+
 		if err := CheckReadyz(baseURL, rootCAsPool); err == nil {
 			log.Printf("Server is ready")
 			break
 		}
+
 		time.Sleep(retryTime)
+
 		if !time.Now().UTC().Before(giveUpTime) {
 			log.Fatalf("server not ready after %v", maxTime)
 		}
@@ -72,11 +76,13 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	if err != nil {
 		return fmt.Errorf("get %v failed: %w", url, err)
 	}
+
 	defer func() {
 		if closeErr := resp.Body.Close(); closeErr != nil {
 			fmt.Printf("Warning: failed to close response body: %v\n", closeErr)
 		}
 	}()
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("%s returned %d", *url, resp.StatusCode)
 	}
@@ -85,6 +91,7 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 
 func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509.CertPool) *cryptoutilOpenapiClient.ClientWithResponses {
 	t.Helper()
+
 	var openapiClient *cryptoutilOpenapiClient.ClientWithResponses
 	var err error
 
@@ -252,7 +259,10 @@ func ValidateCreateElasticKeyVsElasticKey(elasticKeyCreate *cryptoutilOpenapiMod
 		return fmt.Errorf("versioningAllowed mismatch: expected %t, got %t", *elasticKeyCreate.VersioningAllowed, *elasticKey.VersioningAllowed)
 	} else if cryptoutilOpenapiModel.Active != *elasticKey.Status {
 		return fmt.Errorf("status mismatch: expected %s, got %s", cryptoutilOpenapiModel.Active, *elasticKey.Status)
+	} else if cryptoutilOpenapiModel.Active != *elasticKey.Status {
+		return fmt.Errorf("status mismatch: expected %s, got %s", cryptoutilOpenapiModel.Active, *elasticKey.Status)
 	}
+
 	if *elasticKey.ImportAllowed {
 		if cryptoutilOpenapiModel.PendingImport != *elasticKey.Status {
 			return fmt.Errorf("status mismatch: expected %v, got %v", cryptoutilOpenapiModel.PendingImport, *elasticKey.Status)

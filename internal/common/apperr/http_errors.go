@@ -21,9 +21,11 @@ func (e *Error) Error() string {
 	id := e.ID.String()
 	code := e.HTTPStatusLineAndCode.Code
 	summary := e.Summary
+
 	if e.Err != nil {
 		return fmt.Sprintf("[%s] [%s] [%s] [%s]: %v", timestamp, code, summary, id, e.Err)
 	}
+
 	return fmt.Sprintf("%s %s %s %s", timestamp, code, summary, id)
 }
 

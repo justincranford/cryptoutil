@@ -12,8 +12,10 @@ func ParseIPAddresses(ipAddresses []string) ([]net.IP, error) {
 		if parsedIP == nil {
 			return nil, fmt.Errorf("failed to parse IP address: %s", ip)
 		}
+
 		parsedIPs = append(parsedIPs, parsedIP)
 	}
+
 	return parsedIPs, nil
 }
 
@@ -28,5 +30,6 @@ func NormalizeIPv4Addresses(ips []net.IP) []net.IP {
 			normalizedIPv4Addresses[i] = normalizedIPv4Address
 		}
 	}
+
 	return normalizedIPv4Addresses
 }

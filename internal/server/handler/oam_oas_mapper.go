@@ -49,6 +49,7 @@ func (m *oamOasMapper) toOasGetElastickeyElasticKeyIDResponse(err error, elastic
 		}
 		return nil, fmt.Errorf("failed to get ElasticKey by ElasticKeyID: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.GetElastickeyElasticKeyID200JSONResponse(*elasticKey), err
 }
 
@@ -122,6 +123,7 @@ func (m *oamOasMapper) toOasPostEncryptResponse(err error, encryptedBytes []byte
 		}
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDEncrypt200TextResponse(encryptedBytes), err
 }
 
@@ -158,6 +160,7 @@ func (m *oamOasMapper) toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRes
 		}
 		return nil, fmt.Errorf("failed to list Keys by ElasticKeyID: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID200JSONResponse(*key), err
 }
 
@@ -206,6 +209,7 @@ func (m *oamOasMapper) toOasPostSignResponse(err error, encryptedBytes []byte) (
 		}
 		return nil, fmt.Errorf("failed to sign: %w", err)
 	}
+
 	return cryptoutilOpenapiServer.PostElastickeyElasticKeyIDSign200TextResponse(encryptedBytes), err
 }
 

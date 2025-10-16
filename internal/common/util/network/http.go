@@ -24,6 +24,7 @@ func HTTPGetLivez(ctx context.Context, baseURL string, timeout time.Duration, ro
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", livezPath, err)
 	}
+
 	return statusCode, headers, body, nil
 }
 
@@ -33,6 +34,7 @@ func HTTPGetReadyz(ctx context.Context, baseURL string, timeout time.Duration, r
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", readyzPath, err)
 	}
+
 	return statusCode, headers, body, nil
 }
 
@@ -42,6 +44,7 @@ func HTTPPostShutdown(ctx context.Context, baseURL string, timeout time.Duration
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("failed to post %s: %w", shutdownPath, err)
 	}
+
 	return statusCode, headers, body, nil
 }
 
@@ -69,6 +72,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 	if err != nil {
 		return 0, nil, nil, fmt.Errorf("failed to create %s request: %w", method, err)
 	}
+
 	req.Header.Set("Accept", "*/*")
 
 	client := &http.Client{}
@@ -77,6 +81,7 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 			return http.ErrUseLastResponse // Don't follow redirects
 		}
 	}
+
 	if strings.HasPrefix(url, "https://") {
 		transport := &http.Transport{}
 		if rootCAsPool == nil && !insecureSkipVerify {
@@ -89,8 +94,10 @@ func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration
 			if insecureSkipVerify {
 				tlsConfig.InsecureSkipVerify = true
 			}
+
 			transport.TLSClientConfig = tlsConfig
 		}
+
 		client.Transport = transport
 	}
 

@@ -12,6 +12,7 @@ import (
 
 func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, containerRequest testcontainers.ContainerRequest) (testcontainers.Container, func(), error) {
 	telemetryService.Slogger.Debug("starting container")
+
 	startedContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
 		ContainerRequest: containerRequest,
 		Started:          true,
@@ -23,7 +24,9 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.T
 
 	terminateContainer := func() {
 		telemetryService.Slogger.Debug("terminating container")
+
 		err := startedContainer.Terminate(ctx)
+
 		if err == nil {
 			telemetryService.Slogger.Debug("successfully terminated container")
 		} else {

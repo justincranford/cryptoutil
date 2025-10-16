@@ -29,6 +29,7 @@ func TestISO8601String2Time(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to parse date: %v", err)
 	}
+
 	result, err := ISO8601String2Time(&now)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -51,7 +52,7 @@ func TestISO8601String2Time(t *testing.T) {
 	var nilString *string = nil
 	result, err = ISO8601String2Time(nilString)
 	if err != nil {
-		t.Fatalf("expected no error for nil input, got %v", err)
+		t.Errorf("expected no error, got %v", err)
 	}
 	if result != nil {
 		t.Errorf("expected nil, got %v", result)

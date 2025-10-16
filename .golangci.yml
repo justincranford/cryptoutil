@@ -60,7 +60,7 @@ linters:
     - goconst       # Find repeated strings that could be constants
     - importas      # Enforce consistent import aliasing
     # - mnd           # Detect magic numbers (formerly gomnd) - TEMPORARILY DISABLED
-    # - wsl           # Whitespace linter - TEMPORARILY DISABLED
+    - wsl           # Whitespace linter
 
     # Error handling
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping

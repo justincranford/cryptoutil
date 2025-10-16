@@ -36,5 +36,6 @@ func ContainsError(errs []error, target error) bool {
 			return true
 		}
 	}
+
 	return false
 }

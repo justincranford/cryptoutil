@@ -21,7 +21,9 @@ func (m *oamOacMapper) toOamElasticKeyCreate(name, description, algorithm, provi
 	if err != nil {
 		return nil, fmt.Errorf("failed to map Elastic Key: %w", err)
 	}
+
 	elasticKeyProvider := cryptoutilOpenapiModel.ElasticKeyProvider(*provider)
+
 	return &cryptoutilOpenapiModel.ElasticKeyCreate{
 		Name:              *name,
 		Description:       *description,
@@ -38,6 +40,7 @@ func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptout
 	} else if openapiCreateElasticKeyResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to create Elastic Key, HTTP response is nil")
 	}
+
 	switch openapiCreateElasticKeyResponse.HTTPResponse.StatusCode {
 	case 200:
 		if openapiCreateElasticKeyResponse.Body == nil {
@@ -46,6 +49,7 @@ func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptout
 			return nil, fmt.Errorf("failed to create Elastic Key, JSON200 is nil")
 		}
 		elasticKey := openapiCreateElasticKeyResponse.JSON200
+
 		if elasticKey.ElasticKeyID == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.ElasticKeyID is nil")
 		} else if elasticKey.Description == nil {
@@ -73,6 +77,7 @@ func (m *oamOacMapper) toOamMaterialKeyGenerate(openapiMaterialKeyGenerateRespon
 	} else if openapiMaterialKeyGenerateResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to generate key, HTTP response is nil")
 	}
+
 	switch openapiMaterialKeyGenerateResponse.HTTPResponse.StatusCode {
 	case 200:
 		if openapiMaterialKeyGenerateResponse.Body == nil {
@@ -81,6 +86,7 @@ func (m *oamOacMapper) toOamMaterialKeyGenerate(openapiMaterialKeyGenerateRespon
 			return nil, fmt.Errorf("failed to generate key, JSON200 is nil")
 		}
 		key := openapiMaterialKeyGenerateResponse.JSON200
+
 		if key.ElasticKeyID == googleUuid.Nil {
 			return nil, fmt.Errorf("failed to generate key, elasticKey.ElasticKeyID is zero")
 		} else if key.MaterialKeyID == googleUuid.Nil {
@@ -114,12 +120,14 @@ func (m *oamOacMapper) toPlainGenerateResponse(openapiGenerateResponse *cryptout
 	} else if openapiGenerateResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to encrypt, HTTP response is nil")
 	}
+
 	switch openapiGenerateResponse.HTTPResponse.StatusCode {
 	case 200:
 		if openapiGenerateResponse.Body == nil {
 			return nil, fmt.Errorf("failed to encrypt, body is nil")
 		}
 		ciphertext := string(openapiGenerateResponse.Body)
+
 		return &ciphertext, nil
 	default:
 		return nil, fmt.Errorf("failed to encrypt, nextElasticKeyName(), Status: %d, Message: %s, Body: %s", openapiGenerateResponse.HTTPResponse.StatusCode, openapiGenerateResponse.HTTPResponse.Status, openapiGenerateResponse.Body)
@@ -144,12 +152,14 @@ func (m *oamOacMapper) toPlainEncryptResponse(openapiEncryptResponse *cryptoutil
 	} else if openapiEncryptResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to encrypt, HTTP response is nil")
 	}
+
 	switch openapiEncryptResponse.HTTPResponse.StatusCode {
 	case 200:
 		if openapiEncryptResponse.Body == nil {
 			return nil, fmt.Errorf("failed to encrypt, body is nil")
 		}
 		ciphertext := string(openapiEncryptResponse.Body)
+
 		return &ciphertext, nil
 	default:
 		return nil, fmt.Errorf("failed to encrypt, nextElasticKeyName(), Status: %d, Message: %s, Body: %s", openapiEncryptResponse.HTTPResponse.StatusCode, openapiEncryptResponse.HTTPResponse.Status, openapiEncryptResponse.Body)
@@ -166,6 +176,7 @@ func (m *oamOacMapper) toPlainDecryptResponse(openapiDecryptResponse *cryptoutil
 	} else if openapiDecryptResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to decrypt, HTTP response is nil")
 	}
+
 	switch openapiDecryptResponse.HTTPResponse.StatusCode {
 	case 200:
 		if openapiDecryptResponse.Body == nil {
@@ -196,12 +207,14 @@ func (m *oamOacMapper) toPlainSignResponse(openapiSignResponse *cryptoutilOpenap
 	} else if openapiSignResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to sign, HTTP response is nil")
 	}
+
 	switch openapiSignResponse.HTTPResponse.StatusCode {
 	case 200:
 		if openapiSignResponse.Body == nil {
 			return nil, fmt.Errorf("failed to sign, body is nil")
 		}
 		ciphertext := string(openapiSignResponse.Body)
+
 		return &ciphertext, nil
 	default:
 		return nil, fmt.Errorf("failed to sign, nextElasticKeyName(), Status: %d, Message: %s, Body: %s", openapiSignResponse.HTTPResponse.StatusCode, openapiSignResponse.HTTPResponse.Status, openapiSignResponse.Body)
@@ -218,6 +231,7 @@ func (m *oamOacMapper) toPlainVerifyResponse(openapiVerifyResponse *cryptoutilOp
 	} else if openapiVerifyResponse.HTTPResponse == nil {
 		return nil, fmt.Errorf("failed to verify, HTTP response is nil")
 	}
+
 	switch openapiVerifyResponse.HTTPResponse.StatusCode {
 	case 204:
 		// 204 No Content means verification succeeded, return empty string

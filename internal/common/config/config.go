@@ -644,10 +644,12 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	if len(commandParameters) == 0 {
 		return nil, fmt.Errorf("missing subcommand: use \"start\", \"stop\", \"init\", \"live\", or \"ready\"")
 	}
+
 	subCommand := commandParameters[0]
 	if _, ok := subcommands[subCommand]; !ok {
 		return nil, fmt.Errorf("invalid subcommand: use \"start\", \"stop\", \"init\", \"live\", or \"ready\"")
 	}
+
 	subCommandParameters := commandParameters[1:]
 
 	// Enable environment variable support with CRYPTOUTIL_ prefix BEFORE parsing flags
