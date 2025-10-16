@@ -84,6 +84,9 @@ jobs:
       - name: Run golangci-lint
         run: golangci-lint run --timeout=10m --config=.golangci.yml
 
+      - name: Check GitHub Actions versions
+        run: go run scripts/cicd_utils.go github-action-versions
+
   # Build and Container Security
   build:
     name: Build & Container Scan
