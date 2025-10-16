@@ -39,7 +39,6 @@ linters:
 
     # Documentation and maintenance
     - godot         # Check for missing periods in documentation comments
-    # - godox         # disabled: TODO/FIXME comments tracked in todos.md instead
 
     # Context and error handling
     - noctx         # Check for missing context in HTTP requests
