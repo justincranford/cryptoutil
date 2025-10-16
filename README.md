@@ -458,3 +458,6 @@ pre-commit run --all-files
 - **Syntax validation**: YAML, JSON, GitHub Actions workflows, Dockerfiles
 - **Go tools**: `gofumpt` (strict formatting), `goimports` (import organization), `errcheck` (error checking), `go build`
 - **Security**: Large file prevention, merge conflict detection
+- **Linting**: `golangci-lint` with automatic fixes for supported linters (e.g., WSL whitespace consistency: `golangci-lint run --enable-only=wsl --fix`)
+  - **Auto-fixable linters**: wsl, gofmt, goimports, godot, goconst, importas, copyloopvar, testpackage, revive
+  - **Manual-only linters**: errcheck, gosimple, govet, ineffassign, staticcheck, unused, gosec, noctx, wrapcheck, thelper, tparallel, gomodguard, prealloc, bodyclose, errorlint, stylecheck

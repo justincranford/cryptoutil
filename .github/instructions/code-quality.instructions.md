@@ -14,9 +14,49 @@ applyTo: "**"
 
 ## Linter Compliance
 
-- **godot**: All comments must end with a period (`.`). This includes package comments, function comments, and inline comments
-- **goconst**: Avoid repeating string literals. Use named constants for strings that appear 3+ times in the same file
+### Automatic Fixing with --fix
+
+**ALWAYS attempt automatic fixing first** before manually fixing individual issues:
+
+```bash
+# Fix all auto-fixable linting issues across the entire codebase
+golangci-lint run --fix
+
+# Fix specific linters only
+golangci-lint run --enable-only=wsl,gofmt,goimports --fix
+
+# Fix issues in specific files
+golangci-lint run --fix path/to/file.go
+```
+
+**Linters that support automatic fixing:**
+- **wsl**: Whitespace consistency (blank lines between statements)
+- **gofmt**: Go code formatting
+- **goimports**: Import organization and formatting
+- **godot**: Adds missing periods to documentation comments
+- **goconst**: Creates named constants for repeated strings
+- **importas**: Fixes import aliases to match configured rules
+- **copyloopvar**: Fixes loop variable capture issues
+- **testpackage**: Renames test packages to follow conventions
+- **revive**: Fixes various style and code quality issues
+
+**Linters that require manual fixing:**
 - **errcheck**: Always check error return values from functions. Never ignore errors with `_` unless explicitly documented why the error can be safely ignored. Don't use `//nolint:errcheck` to suppress legitimate error handling requirements
+- **gosimple**: Suggest code simplifications (manual review required)
+- **govet**: Reports suspicious constructs (manual review required)
+- **ineffassign**: Detect ineffectual assignments (manual review required)
+- **staticcheck**: Advanced static analysis checks (manual review required)
+- **unused**: Find unused constants, variables, functions and types (manual review required)
+- **gosec**: Security-focused static analysis (manual review required)
+- **noctx**: Check for missing context in HTTP requests (manual review required)
+- **wrapcheck**: Check error wrapping consistency (manual review required)
+- **thelper**: Check test helper functions (manual review required)
+- **tparallel**: Check for parallel test issues (manual review required)
+- **gomodguard**: Prevent importing blocked modules (manual review required)
+- **prealloc**: Find slice declarations that could pre-allocate (manual review required)
+- **bodyclose**: Check for HTTP response body closure (manual review required)
+- **errorlint**: Find code that will cause problems with Go 1.13 error wrapping (manual review required)
+- **stylecheck**: Go style guide compliance (manual review required)
 
 ## Code Patterns
 
