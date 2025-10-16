@@ -228,7 +228,6 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	// Public Swagger UI
 	// TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)
 	// TODO Add authentication middleware for Swagger UI access
-	// TODO Add specific rate limiting for Swagger UI endpoints
 	swaggerAPI, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Error("failed to get swagger", "error", err)

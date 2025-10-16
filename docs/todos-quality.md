@@ -23,7 +23,6 @@
     - Line 200: "TODO Limit this to Swagger GET APIs, not Swagger UI static content"
     - Line 239: "TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)"
     - Line 240: "TODO Add authentication middleware for Swagger UI access"
-    - Line 241: "TODO Add specific rate limiting for Swagger UI endpoints"
 - **Action Items**:
   - Review each TODO comment for relevance and priority
   - Implement high-priority TODOs or convert to proper issues
