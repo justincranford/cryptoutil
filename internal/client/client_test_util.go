@@ -65,7 +65,7 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 		if rootCAsPool == nil {
 			return fmt.Errorf("https request requires rootCAsPool but it is nil")
 		}
-		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{
+		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{ //nolint:wsl // gofumpt removes blank line required by wsl linter
 			RootCAs:    rootCAsPool,
 			MinVersion: tls.VersionTLS12,
 		}}
