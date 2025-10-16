@@ -81,6 +81,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 			statusCode, headers, body, err := cryptoutilNetwork.HTTPResponse(context.Background(), tc.method, tc.url, 2*time.Second, false, tc.tlsRootCAs, false)
 			if tc.expectError {
 				require.Error(t, err, "expected request to fail")
+
 				return
 			}
 
@@ -91,6 +92,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 			// Check status code
 			if tc.expectedStatus != 0 && statusCode != tc.expectedStatus {
 				t.Errorf("HTTP Status code: %d, expected: %d, error response body: %v", statusCode, tc.expectedStatus, string(body))
+
 				return
 			}
 

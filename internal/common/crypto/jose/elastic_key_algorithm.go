@@ -375,11 +375,13 @@ func ToJWSAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (
 
 func IsJWE(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) bool {
 	_, ok := elasticKeyAlgorithmToJoseEncAndAlg[*elasticKeyAlgorithm]
+
 	return ok
 }
 
 func IsJWS(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) bool {
 	_, ok := elasticKeyAlgorithmToJoseAlg[*elasticKeyAlgorithm]
+
 	return ok
 }
 

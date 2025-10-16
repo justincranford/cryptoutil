@@ -62,6 +62,7 @@ linters:
     - importas      # Enforce consistent import aliasing
     # - mnd           # Detect magic numbers (formerly gomnd) - TEMPORARILY DISABLED
     - wsl           # Whitespace linter
+    - nlreturn      # Enforce newlines after return statements
 
     # Error handling
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping

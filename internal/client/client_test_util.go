@@ -33,6 +33,7 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 
 		if err := CheckReadyz(baseURL, rootCAsPool); err == nil {
 			log.Printf("Server is ready")
+
 			break
 		}
 
@@ -46,11 +47,13 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 
 func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/livez"
+
 	return httpGet(&url, httpHealthRequestTimeout, rootCAsPool)
 }
 
 func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/readyz"
+
 	return httpGet(&url, httpHealthRequestTimeout, rootCAsPool)
 }
 
@@ -184,6 +187,7 @@ func RequireGenerateResponse(t *testing.T, context context.Context, openapiClien
 
 func RequireEncryptRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.EncryptRequest {
 	t.Helper()
+
 	return oamOacMapperInstance.toOamEncryptRequest(cleartext)
 }
 
@@ -202,6 +206,7 @@ func RequireEncryptResponse(t *testing.T, context context.Context, openapiClient
 
 func RequireDecryptRequest(t *testing.T, ciphertext *string) *cryptoutilOpenapiModel.DecryptRequest {
 	t.Helper()
+
 	return oamOacMapperInstance.toOamDecryptRequest(ciphertext)
 }
 
@@ -219,6 +224,7 @@ func RequireDecryptResponse(t *testing.T, context context.Context, openapiClient
 
 func RequireSignRequest(t *testing.T, cleartext *string) *cryptoutilOpenapiModel.SignRequest {
 	t.Helper()
+
 	return oamOacMapperInstance.toOamSignRequest(cleartext)
 }
 
@@ -237,6 +243,7 @@ func RequireSignResponse(t *testing.T, context context.Context, openapiClient *c
 
 func RequireVerifyRequest(t *testing.T, signedtext *string) *cryptoutilOpenapiModel.VerifyRequest {
 	t.Helper()
+
 	return oamOacMapperInstance.toOamVerifyRequest(signedtext)
 }
 

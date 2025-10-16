@@ -252,6 +252,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 
 	publicFiberApp.Get("/ui/swagger/doc.json", func(c *fiber.Ctx) error {
 		c.Set("Content-Type", "application/json")
+
 		return c.Send(swaggerSpecBytes)
 	})
 	publicFiberApp.Get("/ui/swagger/*", func(c *fiber.Ctx) error {
@@ -310,6 +311,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	publicListener, err := net.Listen("tcp", publicBinding)
 	if err != nil {
 		serverApplicationCore.Shutdown()
+
 		return nil, fmt.Errorf("failed to create public listener: %w", err)
 	}
 
@@ -522,6 +524,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 
 			if parsedIP == nil {
 				telemetryService.Slogger.Debug("invalid IP", "#", c.Locals("requestid"), "method", c.Method(), "IP", clientIP, "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
+
 				return c.Status(fiber.StatusForbidden).SendString("Invalid IP format")
 			} else if _, allowed := allowedIPs[parsedIP.String()]; allowed {
 				if settings.VerboseMode {
@@ -548,6 +551,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 			return c.Next()
 		default:
 			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIDRequestAttribute))
+
 			return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 		}
 	}
@@ -562,6 +566,7 @@ func commonIPRateLimiterMiddleware(telemetryService *cryptoutilTelemetry.Telemet
 		},
 		LimitReached: func(c *fiber.Ctx) error {
 			telemetryService.Slogger.Warn("Rate limit exceeded", "requestid", c.Locals("requestid"), "method", c.Method(), "IP", c.IP(), "URL", c.OriginalURL(), "Headers", c.GetReqHeaders())
+
 			return c.Status(fiber.StatusTooManyRequests).SendString("Rate limit exceeded")
 		},
 	})
@@ -731,6 +736,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		c.Locals(fiberAppIDRequestAttribute, string(fiberAppIDValue))
+
 		return c.Next()
 	}
 }
@@ -980,6 +986,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 					"request_id":      c.Locals("requestid"),
 				})
 			}
+
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "CSRF token validation failed",
 			})

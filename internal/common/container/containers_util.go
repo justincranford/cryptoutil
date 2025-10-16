@@ -19,6 +19,7 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.T
 	})
 	if err != nil {
 		telemetryService.Slogger.Error("failed to start container", "error", err)
+
 		return nil, nil, fmt.Errorf("failed to start container: %w", err)
 	}
 
@@ -41,12 +42,14 @@ func GetContainerHostAndMappedPort(ctx context.Context, telemetryService *crypto
 	host, err := container.Host(ctx)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get container host", "error", err)
+
 		return "", "", fmt.Errorf("failed to get container host: %w", err)
 	}
 
 	mappedPort, err := container.MappedPort(ctx, nat.Port(port))
 	if err != nil {
 		telemetryService.Slogger.Error("failed to get container mapped port", "error", err)
+
 		return "", "", fmt.Errorf("failed to get container mapped port: %w", err)
 	}
 

@@ -47,6 +47,7 @@ func NewBarrierService(ctx context.Context, telemetryService *cryptoutilTelemetr
 	intermediateKeysService, err := cryptoutilIntermediateKeysService.NewIntermediateKeysService(telemetryService, jwkGenService, ormRepository, rootKeysService)
 	if err != nil {
 		rootKeysService.Shutdown()
+
 		return nil, fmt.Errorf("failed to create intermediate keys service: %w", err)
 	}
 

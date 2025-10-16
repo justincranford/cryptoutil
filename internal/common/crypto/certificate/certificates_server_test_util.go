@@ -46,9 +46,11 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 			select {
 			case <-callerShutdownSignalCh:
 				log.Printf("stopping TLS Echo Server, caller shutdown signal received")
+
 				return
 			case <-osShutdownSignalCh:
 				log.Printf("stopping TLS Echo Server, OS shutdown signal received")
+
 				return
 			default:
 				if err := netTCPListener.SetDeadline(time.Now().Add(readTimeout)); err != nil {
@@ -67,6 +69,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 					case err.Error() == "use of closed network connection":
 						// Server is shutting down
 						log.Printf("server shutting down: %v", err)
+
 						return
 					default:
 						// For other errors, log and retry with backoff

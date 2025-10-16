@@ -52,18 +52,21 @@ func TestMetric(t *testing.T) {
 		val1, err := rand.Int(rand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+
 			return
 		}
 
 		val2, err := rand.Int(rand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+
 			return
 		}
 
 		val3, err := rand.Int(rand.Reader, big.NewInt(100))
 		if err != nil {
 			testTelemetryService.Slogger.Error("random generation failed", "error", err)
+
 			return
 		}
 

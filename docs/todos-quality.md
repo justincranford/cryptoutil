@@ -42,7 +42,6 @@
   - Evaluate and enable:
     - goheader (copyright header enforcement)
     - lll (line length limits)
-    - nlreturn (newline after return statements)
     - gocognit (cyclomatic complexity analysis)
   - Configure appropriate settings for each linter
   - Test CI performance impact
@@ -61,6 +60,9 @@
     - No violations found in current codebase
   - gomoddirectives: Enabled - module directive validation
     - No violations found in current go.mod
+  - nlreturn: Enabled - newline after return statements enforcement
+    - Fixed ~17 violations across multiple files by adding blank lines before return/break/continue statements
+    - Files affected: client_oam_mapper.go, client_test_util.go, config.go, containers_util.go, postgres.go, oas_handlers.go, sql_provider.go, cicd_utils.go
 - **Expected Outcome**: Enhanced code quality and consistency checks
 - **Priority**: Medium - Code quality improvement
 

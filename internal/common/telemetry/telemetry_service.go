@@ -231,6 +231,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 	if err != nil {
 		slogger.Error("parse protocol and endpoint failed", "error", err)
+
 		return nil, nil, fmt.Errorf("parse protocol and endpoint failed: %w", err)
 	}
 
@@ -249,6 +250,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 
 	if err != nil {
 		slogger.Error("create Otel logger exporter failed", "error", err)
+
 		return nil, nil, fmt.Errorf("create Otel logger exporter failed: %w", err)
 	}
 
@@ -278,6 +280,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 	otelMeterTracerTags, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes(settings)...))
 	if err != nil {
 		slogger.Error("create Otel GRPC metrics resource failed", "error", err)
+
 		return nil, fmt.Errorf("create Otel GRPC metrics resource failed: %w", err)
 	}
 
@@ -287,6 +290,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 		if err != nil {
 			slogger.Error("parse protocol and endpoint failed", "error", err)
+
 			return nil, fmt.Errorf("parse protocol and endpoint failed: %w", err)
 		}
 
@@ -304,11 +308,13 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 			grpcMetricsExporter, err = grpcMetricExporter.New(ctx, grpcMetricExporter.WithEndpoint(*endpoint))
 		} else {
 			slogger.Error("unsupported protocol for endpoint", "endpoint", settings.OTLPEndpoint)
+
 			return nil, fmt.Errorf("unsupported protocol for endpoint: %s", settings.OTLPEndpoint)
 		}
 
 		if err != nil {
 			slogger.Error("create Otel metrics exporter failed", "error", err)
+
 			return nil, fmt.Errorf("create Otel metrics exporter failed: %w", err)
 		}
 
@@ -328,6 +334,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 		stdoutMetrics, err := stdoutMetricExporter.New(stdoutMetricExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT metrics failed", "error", err)
+
 			return nil, fmt.Errorf("create STDOUT metrics failed: %w", err)
 		}
 
@@ -352,6 +359,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 	otelMeterTracerResource, err := resourceSdk.New(ctx, resourceSdk.WithAttributes(getOtelMetricsTracesAttributes(settings)...))
 	if err != nil {
 		slogger.Error("create Otel GRPC traces resource failed", "error", err)
+
 		return nil, fmt.Errorf("create Otel GRPC traces resource failed: %w", err)
 	}
 
@@ -361,6 +369,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 		isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 		if err != nil {
 			slogger.Error("parse protocol and endpoint failed", "error", err)
+
 			return nil, fmt.Errorf("parse protocol and endpoint failed: %w", err)
 		}
 
@@ -375,11 +384,13 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 			tracesSpanExporter, err = grpcTraceExporterotlptracegrpc.New(ctx, grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint))
 		} else {
 			slogger.Error("unsupported protocol for endpoint", "endpoint", settings.OTLPEndpoint)
+
 			return nil, fmt.Errorf("unsupported protocol for endpoint: %s", settings.OTLPEndpoint)
 		}
 
 		if err != nil {
 			slogger.Error("create Otel traces exporter failed", "error", err)
+
 			return nil, fmt.Errorf("create Otel traces exporter failed: %w", err)
 		}
 
@@ -390,6 +401,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 		stdoutTraces, err := stdoutTraceExporter.New(stdoutTraceExporter.WithPrettyPrint())
 		if err != nil {
 			slogger.Error("create STDOUT traces failed", "error", err)
+
 			return nil, fmt.Errorf("create STDOUT traces failed: %w", err)
 		}
 

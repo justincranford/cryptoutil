@@ -28,6 +28,7 @@ func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, func
 		switch s.dbType {
 		case DBTypeSQLite: // SQLite lacks support for read-only transactions
 			s.telemetryService.Slogger.Warn("database doesn't support read-only transactions", "dbType", string(s.dbType))
+
 			return fmt.Errorf("database %s doesn't support read-only transactions", string(s.dbType))
 		case DBTypePostgres:
 			s.telemetryService.Slogger.Debug("database supports read-only transactions", "dbType", string(s.dbType))
@@ -39,12 +40,14 @@ func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, func
 	sqlTransaction, err := s.newTransaction()
 	if err != nil {
 		s.telemetryService.Slogger.Error("failed to create transaction", "error", err)
+
 		return fmt.Errorf("failed to create transaction: %w", err)
 	}
 
 	err = sqlTransaction.begin(ctx, readOnly)
 	if err != nil {
 		s.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
+
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
@@ -63,6 +66,7 @@ func (s *SQLRepository) WithTransaction(ctx context.Context, readOnly bool, func
 
 	if err := function(sqlTransaction); err != nil {
 		s.telemetryService.Slogger.Error("transaction function failed", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
@@ -122,18 +126,21 @@ func (sqlTransaction *SQLTransaction) begin(ctx context.Context, readOnly bool) 
 
 	if sqlTransaction.state != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("transaction already started", "transactionID", sqlTransaction.TransactionID())
+
 		return fmt.Errorf("transaction already started")
 	}
 
 	transactionID, err := googleUuid.NewV7()
 	if err != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to generate transaction ID", "error", err)
+
 		return fmt.Errorf("failed to generate transaction ID: %w", err)
 	}
 
 	sqlTx, err := sqlTransaction.sqlRepository.sqlDB.BeginTx(ctx, &sql.TxOptions{ReadOnly: readOnly})
 	if err != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to begin transaction", "transactionID", transactionID, "readOnly", readOnly, "error", err)
+
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
@@ -153,12 +160,14 @@ func (sqlTransaction *SQLTransaction) commit() error {
 
 	if sqlTransaction.state == nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't commit because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+
 		return fmt.Errorf("can't commit because transaction not active")
 	}
 
 	err := sqlTransaction.state.sqlTx.Commit()
 	if err != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to commit transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
@@ -178,12 +187,14 @@ func (sqlTransaction *SQLTransaction) rollback() error {
 
 	if sqlTransaction.state == nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly())
+
 		return fmt.Errorf("can't rollback because transaction not active")
 	}
 
 	err := sqlTransaction.state.sqlTx.Rollback()
 	if err != nil {
 		sqlTransaction.sqlRepository.telemetryService.Slogger.Error("failed to rollback transaction", "transactionID", sqlTransaction.TransactionID(), "readOnly", sqlTransaction.IsReadOnly(), "error", err)
+
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 

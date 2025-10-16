@@ -161,11 +161,13 @@ func getDirectDependencies() (map[string]bool, error) {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "require (") {
 			inRequireBlock = true
+
 			continue
 		}
 
 		if line == ")" {
 			inRequireBlock = false
+
 			continue
 		}
 
@@ -234,6 +236,7 @@ func checkActions() {
 			fileActions, err := parseWorkflowFile(path)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: Failed to parse %s: %v\n", path, err)
+
 				return nil
 			}
 
@@ -288,6 +291,7 @@ func checkActions() {
 		latest, err := getLatestVersion(action.Name)
 		if err != nil {
 			errors = append(errors, fmt.Sprintf("Failed to check %s: %v", action.Name, err))
+
 			continue
 		}
 
@@ -547,6 +551,7 @@ func checkCircularDeps() {
 
 	if len(packages) == 0 {
 		fmt.Fprintln(os.Stderr, "No packages found")
+
 		return
 	}
 
@@ -564,6 +569,7 @@ func checkCircularDeps() {
 		importOutput, err := importCmd.Output()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: Could not get imports for %s: %v\n", pkg, err)
+
 			continue
 		}
 
@@ -638,6 +644,7 @@ func checkCircularDeps() {
 				for i, p := range path {
 					if p == dep {
 						cycleStart = i
+
 						break
 					}
 				}

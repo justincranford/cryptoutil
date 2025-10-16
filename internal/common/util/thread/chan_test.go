@@ -45,6 +45,7 @@ func TestChan(t *testing.T) {
 		val, err := rand.Int(rand.Reader, big.NewInt(101))
 		if err != nil {
 			t.Errorf("Failed to generate random number: %v", err)
+
 			return int64(0)
 		}
 

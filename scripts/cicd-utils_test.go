@@ -231,6 +231,7 @@ func setupMockGitHubServer() *httptest.Server {
 			response := GitHubRelease{TagName: "v5.0.0"}
 			if err := json.NewEncoder(w).Encode(response); err != nil {
 				http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+
 				return
 			}
 		} else if strings.Contains(r.URL.Path, "/tags") {
@@ -242,6 +243,7 @@ func setupMockGitHubServer() *httptest.Server {
 			}
 			if err := json.NewEncoder(w).Encode(response); err != nil {
 				http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+
 				return
 			}
 		}

@@ -37,6 +37,7 @@ func TestPoolsExample(t *testing.T) {
 	keys, err := generateKeys(ctx, telemetryService)
 	if err != nil {
 		slog.Error("failed to generate keys", "error", err)
+
 		return
 	}
 

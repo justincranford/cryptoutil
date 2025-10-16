@@ -31,6 +31,7 @@ var validTransitions = func() map[cryptoutilOpenapiModel.ElasticKeyStatus]map[cr
 			convertedTransitions[current][next] = true
 		}
 	}
+
 	return convertedTransitions
 }()
 

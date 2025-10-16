@@ -21,6 +21,7 @@ func NewOpenapiStrictServer(service *cryptoutilBusinessLogic.BusinessLogicServic
 // (POST /elastickey).
 func (s *StrictServer) PostElastickey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyResponseObject, error) {
 	addedElasticKey, err := s.businessLogicService.AddElasticKey(ctx, request.Body)
+
 	return s.oasOamMapper.toOasPostKeyResponse(err, addedElasticKey)
 }
 
@@ -28,6 +29,7 @@ func (s *StrictServer) PostElastickey(ctx context.Context, request cryptoutilOpe
 // (GET /elastickey/{elasticKeyID}).
 func (s *StrictServer) GetElastickeyElasticKeyID(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDResponseObject, error) {
 	elasticKey, err := s.businessLogicService.GetElasticKeyByElasticKeyID(ctx, &request.ElasticKeyID)
+
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDResponse(err, elasticKey)
 }
 
@@ -63,6 +65,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDGenerate(ctx context.Context, r
 // (POST /elastickey/{elasticKeyID}/materialkey).
 func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context, request cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyRequestObject) (cryptoutilOpenapiServer.PostElastickeyElasticKeyIDMaterialkeyResponseObject, error) {
 	key, err := s.businessLogicService.GenerateMaterialKeyInElasticKey(ctx, &request.ElasticKeyID, request.Body)
+
 	return s.oasOamMapper.toOasPostElastickeyElasticKeyIDMaterialkeyResponse(err, key)
 }
 
@@ -70,6 +73,7 @@ func (s *StrictServer) PostElastickeyElasticKeyIDMaterialkey(ctx context.Context
 // (GET /elastickey/{elasticKeyID}/materialkey/{materialKeyID}).
 func (s *StrictServer) GetElastickeyElasticKeyIDMaterialkeyMaterialKeyID(ctx context.Context, request cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDRequestObject) (cryptoutilOpenapiServer.GetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponseObject, error) {
 	key, err := s.businessLogicService.GetMaterialKeyByElasticKeyAndMaterialKeyID(ctx, &request.ElasticKeyID, &request.MaterialKeyID)
+
 	return s.oasOamMapper.toOasGetElastickeyElasticKeyIDMaterialkeyMaterialKeyIDResponse(err, key)
 }
 

@@ -248,6 +248,7 @@ func (m *oamOacMapper) toPlainVerifyResponse(openapiVerifyResponse *cryptoutilOp
 	case 204:
 		// 204 No Content means verification succeeded, return empty string
 		empty := ""
+
 		return &empty, nil
 	default:
 		return nil, fmt.Errorf("failed to verify, Status: %d, Message: %s, Body: %s", openapiVerifyResponse.HTTPResponse.StatusCode, openapiVerifyResponse.HTTPResponse.Status, openapiVerifyResponse.Body)

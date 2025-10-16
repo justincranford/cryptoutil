@@ -40,6 +40,7 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 	err := tx.begin(ctx, transactionMode)
 	if err != nil {
 		r.telemetryService.Slogger.Error("failed to begin transaction", "error", err)
+
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
@@ -58,12 +59,14 @@ func (r *OrmRepository) WithTransaction(ctx context.Context, transactionMode Tra
 
 	if err := function(tx); err != nil {
 		r.telemetryService.Slogger.Error("transaction function failed", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+
 		return fmt.Errorf("failed to execute transaction: %w", err)
 	}
 
 	if tx.state.txMode != AutoCommit {
 		if err := tx.commit(); err != nil { // clears state
 			r.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 	}
@@ -115,6 +118,7 @@ func (tx *OrmTransaction) begin(ctx context.Context, transactionMode Transaction
 
 	if tx.state != nil {
 		tx.ormRepository.telemetryService.Slogger.Error("transaction already started", "txID", tx.ID(), "mode", tx.Mode())
+
 		return fmt.Errorf("transaction already started")
 	}
 
@@ -141,14 +145,17 @@ func (tx *OrmTransaction) commit() error {
 
 	if tx.state == nil {
 		tx.ormRepository.telemetryService.Slogger.Error("can't commit because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
+
 		return fmt.Errorf("can't commit because transaction not active")
 	} else if tx.state.txMode == AutoCommit {
 		tx.ormRepository.telemetryService.Slogger.Error("can't commit because transaction is autocommit", "txID", tx.ID(), "mode", tx.Mode())
+
 		return fmt.Errorf("can't commit because transaction is autocommit")
 	}
 
 	if _, err := tx.commitImplementation(); err != nil {
 		tx.ormRepository.telemetryService.Slogger.Error("failed to commit transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+
 		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
@@ -168,14 +175,17 @@ func (tx *OrmTransaction) rollback() error {
 
 	if tx.state == nil {
 		tx.ormRepository.telemetryService.Slogger.Error("can't rollback because transaction not active", "txID", tx.ID(), "mode", tx.Mode())
+
 		return fmt.Errorf("can't rollback because transaction not active")
 	} else if tx.state.txMode == AutoCommit {
 		tx.ormRepository.telemetryService.Slogger.Error("can't rollback because transaction is autocommit", "txID", tx.ID(), "mode", tx.Mode())
+
 		return fmt.Errorf("can't rollback because transaction is autocommit")
 	}
 
 	if _, err := tx.rollbackImplementation(); err != nil {
 		tx.ormRepository.telemetryService.Slogger.Error("failed to rollback transaction", "txID", tx.ID(), "mode", tx.Mode(), "error", err)
+
 		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 

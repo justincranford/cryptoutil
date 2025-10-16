@@ -870,6 +870,7 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 
 		if content, err := os.ReadFile(filePath); err != nil {
 			log.Error("DEBUG: failed to read file ", filePath, " error: ", err)
+
 			return nil, fmt.Errorf("failed to read database URL from file %s: %w", filePath, err)
 		} else {
 			log.Error("DEBUG: successfully read file ", filePath, " content: ", string(content))
@@ -1083,6 +1084,7 @@ func resetFlags() {
 
 func registerSetting(setting *Setting) *Setting {
 	allRegisteredSettings = append(allRegisteredSettings, setting)
+
 	return setting
 }
 
@@ -1242,6 +1244,7 @@ func validateConfiguration(s *Settings) error {
 	for _, level := range validLogLevels {
 		if strings.EqualFold(s.LogLevel, level) {
 			logLevelValid = true
+
 			break
 		}
 	}

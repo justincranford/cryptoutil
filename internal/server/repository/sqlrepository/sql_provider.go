@@ -113,6 +113,7 @@ var (
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random database name: %v", err))
 		}
+
 		return fmt.Sprintf("keyservice%04d", val.Int64())
 	}()
 	postgresContainerDBUsername = func() string {
@@ -120,6 +121,7 @@ var (
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random username: %v", err))
 		}
+
 		return fmt.Sprintf("postgresUsername%04d", val.Int64())
 	}()
 	postgresContainerDBPassword = func() string {
@@ -127,6 +129,7 @@ var (
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random password: %v", err))
 		}
+
 		return fmt.Sprintf("postgresPassword%04d", val.Int64())
 	}()
 
@@ -182,6 +185,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 			databaseURL = containerDatabaseURL
 		} else if containerMode == ContainerModeRequired { // container is required, so this error is fatal; give up and return the errors
 			telemetryService.Slogger.Warn("failed to start database container", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrContainerModeRequiredButContainerNotStarted, err))
+
 			return nil, fmt.Errorf("failed to start required database container: %w", errors.Join(ErrContainerModeRequiredButContainerNotStarted, fmt.Errorf("dbType: %s", string(dbType))))
 		} else { // container was preferred, so this error not is fatal; fall through and try to connect with the provided databaseUrl parameter
 			telemetryService.Slogger.Warn("failed to start database container", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrContainerModePreferredButContainerNotStarted, err))
@@ -203,11 +207,13 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 
 		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
 			telemetryService.Slogger.Error("failed to enable WAL mode", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
+
 			return nil, fmt.Errorf("failed to enable WAL mode: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 		}
 
 		if _, err := sqlDB.Exec(fmt.Sprintf("PRAGMA busy_timeout = %d;", int(sqliteBusyTimeout.Milliseconds()))); err != nil { // 30 seconds for concurrent testing
 			telemetryService.Slogger.Error("failed to set busy timeout", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
+
 			return nil, fmt.Errorf("failed to set busy timeout: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 		}
 	} else if firstDBPingAttemptWait > 0 {
@@ -220,6 +226,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		err = sqlDB.Ping()
 		if err == nil {
 			telemetryService.Slogger.Debug("successfully pinged database", "attempt", attempt, "containerMode", string(containerMode), "dbType", string(dbType))
+
 			break
 		}
 
