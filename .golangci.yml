@@ -189,7 +189,7 @@ linters-settings:
 
   lll:
     # Line length limits
-    line-length: 800
+    line-length: 190
 
   testpackage:
     # Test package naming conventions
