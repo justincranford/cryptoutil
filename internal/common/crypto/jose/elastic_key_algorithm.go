@@ -124,8 +124,6 @@ var (
 		string(cryptoutilOpenapiModel.A256CBCHS512ECDHESA192KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA192KW,
 		string(cryptoutilOpenapiModel.A192CBCHS384ECDHESA192KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA192KW,
 		string(cryptoutilOpenapiModel.A128CBCHS256ECDHESA192KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA192KW,
-		string(cryptoutilOpenapiModel.A256CBCHS512ECDHESA128KW): cryptoutilOpenapiModel.A256CBCHS512ECDHESA128KW,
-		string(cryptoutilOpenapiModel.A192CBCHS384ECDHESA128KW): cryptoutilOpenapiModel.A192CBCHS384ECDHESA128KW,
 		string(cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW): cryptoutilOpenapiModel.A128CBCHS256ECDHESA128KW,
 		string(cryptoutilOpenapiModel.A256CBCHS512ECDHES):       cryptoutilOpenapiModel.A256CBCHS512ECDHES,
 		string(cryptoutilOpenapiModel.A192CBCHS384ECDHES):       cryptoutilOpenapiModel.A192CBCHS384ECDHES,
@@ -363,6 +361,7 @@ func ToJWEEncAndAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgori
 	if encAndAlg, ok := elasticKeyAlgorithmToJoseEncAndAlg[*elasticKeyAlgorithm]; ok {
 		return encAndAlg.enc, encAndAlg.alg, nil
 	}
+
 	return nil, nil, fmt.Errorf("unsupported JWE ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
@@ -370,6 +369,7 @@ func ToJWSAlg(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm) (
 	if alg, ok := elasticKeyAlgorithmToJoseAlg[*elasticKeyAlgorithm]; ok {
 		return alg, nil
 	}
+
 	return nil, fmt.Errorf("unsupported JWS ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
@@ -388,6 +388,7 @@ func IsSymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorithm
 	if ok {
 		return isSymmetric, nil
 	}
+
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
@@ -396,6 +397,7 @@ func IsAsymmetric(elasticKeyAlgorithm *cryptoutilOpenapiModel.ElasticKeyAlgorith
 	if ok {
 		return isAsymmetric, nil
 	}
+
 	return false, fmt.Errorf("unsupported ElasticKeyAlgorithm '%s'", *elasticKeyAlgorithm)
 }
 
@@ -403,6 +405,7 @@ func ToElasticKeyAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.ElasticKe
 	if alg, exists := elasticKeyAlgorithms[*algorithm]; exists {
 		return &alg, nil
 	}
+
 	return nil, fmt.Errorf("invalid elastic Key algorithm: %v", algorithm)
 }
 
@@ -410,5 +413,6 @@ func ToGenerateAlgorithm(algorithm *string) (*cryptoutilOpenapiModel.GenerateAlg
 	if alg, exists := generateAlgorithms[*algorithm]; exists {
 		return &alg, nil
 	}
+
 	return nil, fmt.Errorf("invalid generate algorithm: %v", algorithm)
 }
