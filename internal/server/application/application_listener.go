@@ -177,7 +177,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		commonOtelFiberTelemetryMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonOtelFiberRequestLoggerMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService),
 		commonIPFilterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
-		commonIPRateLimiterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
+		commonIPRateLimiterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, int(settings.IPRateLimit)),
 		commonHTTPGETCacheControlMiddleware(), // TODO Limit this to Swagger GET APIs, not Swagger UI static content
 		commonUnsupportedHTTPMethodsMiddleware(settings),
 	}
@@ -546,9 +546,9 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 	}
 }
 
-func commonIPRateLimiterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) fiber.Handler {
+func commonIPRateLimiterMiddleware(telemetryService *cryptoutilTelemetry.TelemetryService, ipRateLimit int) fiber.Handler {
 	return limiter.New(limiter.Config{ // Mitigate DOS by throttling clients
-		Max:        int(settings.IPRateLimit),
+		Max:        ipRateLimit,
 		Expiration: time.Second,
 		KeyGenerator: func(c *fiber.Ctx) string {
 			return c.IP() // throttle by IP, could be improved in future (e.g. append JWTClaim.sub or JWTClaim.tenantid)
