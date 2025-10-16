@@ -61,7 +61,7 @@ linters:
     - goconst       # Find repeated strings that could be constants
     - importas      # Enforce consistent import aliasing
     # - mnd           # Detect magic numbers (formerly gomnd) - TEMPORARILY DISABLED
-    - wsl           # Whitespace linter
+    # - wsl         # DISABLED: Conflicts with gofumpt formatting
     - nlreturn      # Enforce newlines after return statements
     - goheader       # Copyright header enforcement
 
