@@ -133,9 +133,14 @@ func RequireNewForTest(applicationName string) *Settings {
 		panic("csrfTokenSingleUseToken.value must be bool")
 	}
 
-	ipRateLimitValue, ok := ipRateLimit.value.(uint16)
+	browserIPRateLimitValue, ok := browserIPRateLimit.value.(uint16)
 	if !ok {
-		panic("ipRateLimit.value must be uint16")
+		panic("browserIPRateLimit.value must be uint16")
+	}
+
+	serviceIPRateLimitValue, ok := serviceIPRateLimit.value.(uint16)
+	if !ok {
+		panic("serviceIPRateLimit.value must be uint16")
 	}
 
 	requestBodyLimitValue, ok := requestBodyLimit.value.(int)
@@ -257,7 +262,8 @@ func RequireNewForTest(applicationName string) *Settings {
 		CSRFTokenCookieSessionOnly:  csrfTokenCookieSessionOnlyValue,
 		CSRFTokenSingleUseToken:     csrfTokenSingleUseTokenValue,
 		RequestBodyLimit:            requestBodyLimitValue,
-		IPRateLimit:                 ipRateLimitValue,
+		BrowserIPRateLimit:          browserIPRateLimitValue,
+		ServiceIPRateLimit:          serviceIPRateLimitValue,
 		AllowedIPs:                  allowedIPsValue,
 		AllowedCIDRs:                allowedCIDRsValue,
 		DatabaseContainer:           databaseContainerValue,
@@ -279,7 +285,8 @@ func RequireNewForTest(applicationName string) *Settings {
 	// Overrides for testing
 	settings.LogLevel = "ALL"
 	settings.DevMode = true
-	settings.IPRateLimit = 1000
+	settings.BrowserIPRateLimit = 1000
+	settings.ServiceIPRateLimit = 500
 	settings.OTLPService = applicationName
 	settings.ServerShutdownTimeout = 60 * time.Second // Increase shutdown timeout for tests to allow cleanup of resources
 	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")

@@ -55,7 +55,8 @@ const (
 	defaultCSRFTokenCookieSessionOnly  = true                                                   // Session-only prevents persistent tracking while maintaining security
 	defaultCSRFTokenSingleUseToken     = false                                                  // Reusable tokens for better UX, can be changed for high-security needs
 	defaultRequestBodyLimit            = int(2 << 20)                                           // 2MB limit prevents large payload attacks while allowing reasonable API usage
-	defaultIPRateLimit                 = uint16(50)                                             // Reasonable rate limit prevents abuse while allowing normal usage
+	defaultBrowserIPRateLimit          = uint16(100)                                            // More lenient rate limit for browser APIs (user interactions)
+	defaultServiceIPRateLimit          = uint16(25)                                             // More restrictive rate limit for service APIs (automated systems)
 	defaultDatabaseContainer           = "disabled"                                             // Disabled by default to avoid unexpected container dependencies
 	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // PostgreSQL default with placeholder credentials, SSL disabled for local dev
 	defaultDatabaseInitTotalTimeout    = 5 * time.Minute                                        // 5 minutes allows for container startup while preventing indefinite waits
@@ -242,7 +243,8 @@ type Settings struct {
 	CSRFTokenCookieSessionOnly  bool
 	CSRFTokenSingleUseToken     bool
 	RequestBodyLimit            int
-	IPRateLimit                 uint16
+	BrowserIPRateLimit          uint16
+	ServiceIPRateLimit          uint16
 	AllowedIPs                  []string
 	AllowedCIDRs                []string
 	DatabaseContainer           string
@@ -501,12 +503,19 @@ var (
 		usage:       "CSRF token SingleUse attribute",
 		description: "CSRF Token SingleUseToken",
 	})
-	ipRateLimit = *registerSetting(&Setting{
-		name:        "rate-limit",
-		shorthand:   "r",
-		value:       defaultIPRateLimit,
-		usage:       "rate limit requests per second",
-		description: "IP Rate Limit",
+	browserIPRateLimit = *registerSetting(&Setting{
+		name:        "browser-rate-limit",
+		shorthand:   "e",
+		value:       defaultBrowserIPRateLimit,
+		usage:       "rate limit for browser API requests per second",
+		description: "Browser IP Rate Limit",
+	})
+	serviceIPRateLimit = *registerSetting(&Setting{
+		name:        "service-rate-limit",
+		shorthand:   "w",
+		value:       defaultServiceIPRateLimit,
+		usage:       "rate limit for service API requests per second",
+		description: "Service IP Rate Limit",
 	})
 	allowedIps = *registerSetting(&Setting{
 		name:        "allowed-ips",
@@ -730,7 +739,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 	pflag.BoolP(csrfTokenCookieHTTPOnly.name, csrfTokenCookieHTTPOnly.shorthand, registerAsBoolSetting(&csrfTokenCookieHTTPOnly), csrfTokenCookieHTTPOnly.usage)
 	pflag.BoolP(csrfTokenCookieSessionOnly.name, csrfTokenCookieSessionOnly.shorthand, registerAsBoolSetting(&csrfTokenCookieSessionOnly), csrfTokenCookieSessionOnly.usage)
 	pflag.BoolP(csrfTokenSingleUseToken.name, csrfTokenSingleUseToken.shorthand, registerAsBoolSetting(&csrfTokenSingleUseToken), csrfTokenSingleUseToken.usage)
-	pflag.Uint16P(ipRateLimit.name, ipRateLimit.shorthand, registerAsUint16Setting(&ipRateLimit), ipRateLimit.usage)
+	pflag.Uint16P(browserIPRateLimit.name, browserIPRateLimit.shorthand, registerAsUint16Setting(&browserIPRateLimit), browserIPRateLimit.usage)
+	pflag.Uint16P(serviceIPRateLimit.name, serviceIPRateLimit.shorthand, registerAsUint16Setting(&serviceIPRateLimit), serviceIPRateLimit.usage)
 	pflag.StringSliceP(allowedIps.name, allowedIps.shorthand, registerAsStringSliceSetting(&allowedIps), allowedIps.usage)
 	pflag.StringSliceP(allowedCidrs.name, allowedCidrs.shorthand, registerAsStringSliceSetting(&allowedCidrs), allowedCidrs.usage)
 	pflag.IntP(requestBodyLimit.name, requestBodyLimit.shorthand, registerAsIntSetting(&requestBodyLimit), requestBodyLimit.usage)
@@ -830,7 +840,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		CSRFTokenCookieHTTPOnly:     viper.GetBool(csrfTokenCookieHTTPOnly.name),
 		CSRFTokenCookieSessionOnly:  viper.GetBool(csrfTokenCookieSessionOnly.name),
 		CSRFTokenSingleUseToken:     viper.GetBool(csrfTokenSingleUseToken.name),
-		IPRateLimit:                 viper.GetUint16(ipRateLimit.name),
+		BrowserIPRateLimit:          viper.GetUint16(browserIPRateLimit.name),
+		ServiceIPRateLimit:          viper.GetUint16(serviceIPRateLimit.name),
 		AllowedIPs:                  viper.GetStringSlice(allowedIps.name),
 		AllowedCIDRs:                viper.GetStringSlice(allowedCidrs.name),
 		DatabaseContainer:           viper.GetString(databaseContainer.name),
@@ -908,7 +919,8 @@ func Parse(commandParameters []string, exitIfHelp bool) (*Settings, error) {
 		fmt.Println("NETWORK SECURITY SETTINGS:")
 		fmt.Println("  -I, --allowed-ips strings           comma-separated list of allowed IPs (default " + formatDefault(defaultAllowedIps) + ")")
 		fmt.Println("  -C, --allowed-cidrs strings         comma-separated list of allowed CIDRs (default " + formatDefault(defaultAllowedCIDRs) + ")")
-		fmt.Println("  -r, --rate-limit uint16             rate limit requests per second (default " + formatDefault(defaultIPRateLimit) + ")")
+		fmt.Println("  -e, --browser-rate-limit uint16     rate limit for browser API requests per second (default " + formatDefault(defaultBrowserIPRateLimit) + ")")
+		fmt.Println("  -w, --service-rate-limit uint16     rate limit for service API requests per second (default " + formatDefault(defaultServiceIPRateLimit) + ")")
 		fmt.Println("  -L, --request-body-limit int        Maximum request body size in bytes (default " + formatDefault(defaultRequestBodyLimit) + ")")
 		fmt.Println()
 		fmt.Println("BROWSER CORS SECURITY SETTINGS:")
@@ -1010,7 +1022,8 @@ func logSettings(s *Settings) {
 			csrfTokenCookieHTTPOnly.name:     s.CSRFTokenCookieHTTPOnly,
 			csrfTokenCookieSessionOnly.name:  s.CSRFTokenCookieSessionOnly,
 			csrfTokenSingleUseToken.name:     s.CSRFTokenSingleUseToken,
-			ipRateLimit.name:                 s.IPRateLimit,
+			browserIPRateLimit.name:          s.BrowserIPRateLimit,
+			serviceIPRateLimit.name:          s.ServiceIPRateLimit,
 			allowedIps.name:                  s.AllowedIPs,
 			allowedCidrs.name:                s.AllowedCIDRs,
 			databaseContainer.name:           s.DatabaseContainer,
@@ -1237,11 +1250,17 @@ func validateConfiguration(s *Settings) error {
 		errors = append(errors, fmt.Sprintf("invalid log level '%s': must be one of %v", s.LogLevel, validLogLevels))
 	}
 
-	// Validate rate limit
-	if s.IPRateLimit == 0 {
-		errors = append(errors, "rate limit cannot be 0 (would block all requests)")
-	} else if s.IPRateLimit > 10000 {
-		errors = append(errors, fmt.Sprintf("rate limit %d is very high (>10000), may impact performance", s.IPRateLimit))
+	// Validate rate limits
+	if s.BrowserIPRateLimit == 0 {
+		errors = append(errors, "browser rate limit cannot be 0 (would block all browser requests)")
+	} else if s.BrowserIPRateLimit > 10000 {
+		errors = append(errors, fmt.Sprintf("browser rate limit %d is very high (>10000), may impact performance", s.BrowserIPRateLimit))
+	}
+
+	if s.ServiceIPRateLimit == 0 {
+		errors = append(errors, "service rate limit cannot be 0 (would block all service requests)")
+	} else if s.ServiceIPRateLimit > 10000 {
+		errors = append(errors, fmt.Sprintf("service rate limit %d is very high (>10000), may impact performance", s.ServiceIPRateLimit))
 	}
 
 	// Validate OTLP endpoint format

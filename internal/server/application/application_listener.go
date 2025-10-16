@@ -167,9 +167,8 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		}
 	}
 
-	// Middlewares
-
-	commonMiddlewares := []fiber.Handler{
+	// Common middlewares for both Fiber apps
+	commonBaseMiddlewares := []fiber.Handler{
 		recover.New(),
 		requestid.New(),
 		logger.New(),   // TODO Replace this with improved otelFiberTelemetryMiddleware; unstructured logs and no OpenTelemetry are undesirable
@@ -177,26 +176,33 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		commonOtelFiberTelemetryMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonOtelFiberRequestLoggerMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService),
 		commonIPFilterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
-		commonIPRateLimiterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, int(settings.IPRateLimit)),
-		commonHTTPGETCacheControlMiddleware(), // TODO Limit this to Swagger GET APIs, not Swagger UI static content
-		commonUnsupportedHTTPMethodsMiddleware(settings),
 	}
 
-	privateMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPrivate)}, commonMiddlewares...)
-	privateMiddlewares = append(privateMiddlewares, privateHealthCheckMiddlewareFunction(serverApplicationCore)) // /livez, /readyz
-	privateFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
+	// Fiber app for Service-to-Service API calls
 
+	privateMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPrivate)}, commonBaseMiddlewares...)
+	privateMiddlewares = append(privateMiddlewares, commonIPRateLimiterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, int(settings.ServiceIPRateLimit)))
+	privateMiddlewares = append(privateMiddlewares, commonHTTPGETCacheControlMiddleware())
+	privateMiddlewares = append(privateMiddlewares, commonUnsupportedHTTPMethodsMiddleware(settings))
+	privateMiddlewares = append(privateMiddlewares, privateHealthCheckMiddlewareFunction(serverApplicationCore))
+
+	privateFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
 	for _, middleware := range privateMiddlewares {
 		privateFiberApp.Use(middleware)
 	}
 
-	publicMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPublic)}, commonMiddlewares...)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings))                                                                             // Browser-specific: Cross-Origin Resource Sharing (CORS)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))                                                                              // Browser-specific: Cross-Site Scripting (XSS)
-	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings)) // Additional security headers
-	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))                                                                             // Browser-specific: Cross-Site Request Forgery (CSRF)
-	publicFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
+	// Fiber app for Browser-to-Service API calls and Swagger UI
 
+	publicMiddlewares := append([]fiber.Handler{commonSetFiberRequestAttribute(fiberAppIDPublic)}, commonBaseMiddlewares...)
+	publicMiddlewares = append(publicMiddlewares, commonIPRateLimiterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, int(settings.BrowserIPRateLimit)))
+	publicMiddlewares = append(publicMiddlewares, commonHTTPGETCacheControlMiddleware())
+	publicMiddlewares = append(publicMiddlewares, commonUnsupportedHTTPMethodsMiddleware(settings))
+	publicMiddlewares = append(publicMiddlewares, publicBrowserCORSMiddlewareFunction(settings))
+	publicMiddlewares = append(publicMiddlewares, publicBrowserXSSMiddlewareFunction(settings))
+	publicMiddlewares = append(publicMiddlewares, publicBrowserAdditionalSecurityHeadersMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings))
+	publicMiddlewares = append(publicMiddlewares, publicBrowserCSRFMiddlewareFunction(settings))
+
+	publicFiberApp := fiber.New(fiber.Config{Immutable: true, BodyLimit: settings.RequestBodyLimit})
 	for _, middleware := range publicMiddlewares {
 		publicFiberApp.Use(middleware)
 	}

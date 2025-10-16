@@ -41,7 +41,8 @@ func TestParse_HappyPath_Defaults(t *testing.T) {
 	require.Equal(t, csrfTokenCookieHTTPOnly.value, s.CSRFTokenCookieHTTPOnly)
 	require.Equal(t, csrfTokenCookieSessionOnly.value, s.CSRFTokenCookieSessionOnly)
 	require.Equal(t, csrfTokenSingleUseToken.value, s.CSRFTokenSingleUseToken)
-	require.Equal(t, ipRateLimit.value, s.IPRateLimit)
+	require.Equal(t, browserIPRateLimit.value, s.BrowserIPRateLimit)
+	require.Equal(t, serviceIPRateLimit.value, s.ServiceIPRateLimit)
 	require.Equal(t, allowedIps.value, s.AllowedIPs)
 	require.Equal(t, allowedCidrs.value, s.AllowedCIDRs)
 	require.Equal(t, databaseContainer.value, s.DatabaseContainer)
@@ -96,7 +97,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 		"--csrf-token-cookie-http-only=false",
 		"--csrf-token-cookie-session-only=false",
 		"--csrf-token-single-use-token=true",
-		"--rate-limit=100",
+		"--browser-rate-limit=100",
+		"--service-rate-limit=50",
 		"--allowed-ips=192.168.1.100,192.168.1.101",
 		"--allowed-cidrs=10.0.0.0/8,192.168.1.0/24",
 		"--database-container=required",
@@ -146,7 +148,8 @@ func TestParse_HappyPath_Overrides(t *testing.T) {
 	require.Equal(t, false, s.CSRFTokenCookieHTTPOnly)
 	require.Equal(t, false, s.CSRFTokenCookieSessionOnly)
 	require.Equal(t, true, s.CSRFTokenSingleUseToken)
-	require.Equal(t, uint16(100), s.IPRateLimit)
+	require.Equal(t, uint16(100), s.BrowserIPRateLimit)
+	require.Equal(t, uint16(50), s.ServiceIPRateLimit)
 	require.Equal(t, []string{"192.168.1.100", "192.168.1.101"}, s.AllowedIPs)
 	require.Equal(t, []string{"10.0.0.0/8", "192.168.1.0/24"}, s.AllowedCIDRs)
 	require.Equal(t, "required", s.DatabaseContainer)
