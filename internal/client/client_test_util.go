@@ -23,8 +23,6 @@ const (
 
 var oamOacMapperInstance = NewOamOacMapper()
 
-// TODO Add error checking for https with rootCAsPool=nil
-
 func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPool *x509.CertPool) {
 	giveUpTime := time.Now().UTC().Add(maxTime)
 
@@ -64,6 +62,9 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	client := &http.Client{}
 
 	if strings.HasPrefix(*url, "https://") {
+		if rootCAsPool == nil {
+			return fmt.Errorf("https request requires rootCAsPool but it is nil")
+		}
 		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{
 			RootCAs:    rootCAsPool,
 			MinVersion: tls.VersionTLS12,
