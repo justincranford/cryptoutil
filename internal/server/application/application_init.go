@@ -36,6 +36,7 @@ func generateTLSServerSubjects(settings *cryptoutilConfig.Settings, serverApplic
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse public TLS server IP addresses: %w", err)
 	}
+
 	privateTLSServerIPAddresses, err := cryptoutilNetwork.ParseIPAddresses(settings.TLSPrivateIPAddresses)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to parse private TLS server IP addresses: %w", err)
@@ -50,6 +51,7 @@ func generateTLSServerSubjects(settings *cryptoutilConfig.Settings, serverApplic
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create TLS private server certs: %w", err)
 	}
+
 	return public, private, nil
 }
 
@@ -71,6 +73,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	if err != nil {
 		return nil, fmt.Errorf("failed to encode certificate chain as PEM: %w", err)
 	}
+
 	for i, certPEM := range tlsServerCertificateChainPEMs {
 		filename := fmt.Sprintf("%scertificate_%d.pem", prefix, i)
 		if err := os.WriteFile(filename, certPEM, 0o600); err != nil {
@@ -87,6 +90,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt TLS server private key PEM: %w", err)
 	}
+
 	err = os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, 0o600)
 	if err != nil {
 		return nil, fmt.Errorf("failed to write encrypted TLS server private key PEM file: %w", err)

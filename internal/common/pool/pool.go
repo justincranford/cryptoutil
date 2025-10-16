@@ -53,6 +53,7 @@ type ValueGenPoolConfig[T any] struct {
 // NewValueGenPool supports indefinite pools, or finite pools based on maxTime and/or maxValues.
 func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPool[T], error) {
 	poolStartTime := time.Now().UTC()
+
 	if err != nil { // config and err are from the call to NewValueGenPoolConfig, check the error value
 		return nil, fmt.Errorf("failed to create pool config: %w", err)
 	} else if err := validateConfig(cfg); err != nil { // check the config value

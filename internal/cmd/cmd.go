@@ -11,6 +11,7 @@ func Execute() {
 		printUsage(executable)
 		os.Exit(1)
 	}
+
 	command := os.Args[1]     // Example command: server
 	parameters := os.Args[2:] // Example parameters: --config-file, --port, --host, etc.
 

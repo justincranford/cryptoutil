@@ -31,6 +31,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var rc int
+
 	func() {
 		testTelemetryService = cryptoutilTelemetry.RequireNewForTest(testCtx, testSettings)
 		defer testTelemetryService.Shutdown()
@@ -62,6 +63,7 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 	intermediateKeysService, err := NewIntermediateKeysService(testTelemetryService, testJWKGenService, testOrmRepository, testRootKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, intermediateKeysService)
+
 	defer intermediateKeysService.Shutdown()
 
 	_, clearContentKey, _, _, _, err := testJWKGenService.GenerateJWEJWK(&cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgDir)
@@ -70,6 +72,7 @@ func TestIntermediateKeysService_HappyPath(t *testing.T) {
 
 	var encryptedContentKeyBytes []byte
 	var intermediateKeyKidUUID *googleUuid.UUID
+
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadOnly, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		encryptedContentKeyBytes, intermediateKeyKidUUID, err = intermediateKeysService.EncryptKey(sqlTransaction, clearContentKey)
 		require.NoError(t, err)
