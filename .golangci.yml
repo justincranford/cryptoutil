@@ -50,6 +50,7 @@ linters:
     - tparallel     # Check for parallel test issues
     - testpackage   # Test package naming conventions
     - gomodguard    # Prevent importing blocked modules
+    - gomoddirectives # Validate Go module directives
 
     # Performance
     - prealloc      # Find slice declarations that could pre-allocate

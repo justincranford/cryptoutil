@@ -40,7 +40,6 @@
 - **Current State**: Additional linters enabled incrementally
 - **Action Items**:
   - Evaluate and enable:
-    - gomoddirectives (module directive validation)
     - goheader (copyright header enforcement)
     - lll (line length limits)
     - nlreturn (newline after return statements)
@@ -60,6 +59,8 @@
   - gomodguard: Enabled - deprecated module blocking configured
     - Prevents use of deprecated packages like `golang.org/x/crypto/md4`
     - No violations found in current codebase
+  - gomoddirectives: Enabled - module directive validation
+    - No violations found in current go.mod
 - **Expected Outcome**: Enhanced code quality and consistency checks
 - **Priority**: Medium - Code quality improvement
 
