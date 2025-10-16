@@ -124,7 +124,8 @@ The system implements a sophisticated multi-tier key hierarchy:
 # Network Security
 allowed_ips: ["127.0.0.1", "::1", "192.168.1.100"]
 allowed_cidrs: ["10.0.0.0/8", "192.168.0.0/16"]
-ip_rate_limit: 100
+browser_ip_rate_limit: 100
+service_ip_rate_limit: 25
 
 # CORS Configuration (Browser API)
 cors_allowed_origins: "https://app.example.com,https://admin.example.com"

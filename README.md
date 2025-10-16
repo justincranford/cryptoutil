@@ -75,7 +75,7 @@ cryptoutil Server Applications
 
 ### 🛡️ Security Features
 - **Multi-layered IP allowlisting** (individual IPs + CIDR blocks)
-- **Per-IP rate limiting** with configurable thresholds
+- **Per-IP rate limiting** with separate thresholds for browser vs service APIs (100 req/sec browser, 25 req/sec service)
 - **CSRF protection** with secure token handling for browser clients
 - **Content Security Policy (CSP)** for XSS prevention
 - **Comprehensive security headers** (Helmet.js equivalent)
@@ -205,7 +205,8 @@ service_api_context_path: "/service/api/v1"
 database_url: "postgres://user:pass@localhost:5432/cryptoutil"
 allowed_ips: ["127.0.0.1", "::1"]
 allowed_cidrs: ["10.0.0.0/8", "192.168.0.0/16"]
-ip_rate_limit: 100
+browser_ip_rate_limit: 100
+service_ip_rate_limit: 25
 
 # Security Configuration
 cors_allowed_origins: "https://app.example.com"
@@ -236,7 +237,7 @@ go run main.go \
 
 ### Security Configuration
 - **IP Allowlisting**: Configure `allowed_ips` and `allowed_cidrs` for production
-- **Rate Limiting**: Set conservative `ip_rate_limit` (10-100 requests/second per IP)
+- **Rate Limiting**: Set conservative `browser_ip_rate_limit` (10-100 requests/second per IP) and `service_ip_rate_limit` (10-25 requests/second per IP)
 - **CORS**: Configure specific origins, avoid wildcards in production
 - **CSRF**: Use `csrf_token_cookie_secure: true` and `csrf_token_same_site: "Strict"`
 - **TLS**: Always use HTTPS in production (`bind_public_protocol: "https"`)
