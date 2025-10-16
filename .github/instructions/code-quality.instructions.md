@@ -29,6 +29,16 @@ golangci-lint run --enable-only=wsl,gofmt,goimports --fix
 golangci-lint run --fix path/to/file.go
 ```
 
+**After fixing golangci-lint errors, ALWAYS run gofumpt to auto-fix formatting:**
+
+```bash
+# Format all Go files in the project
+gofumpt -w .
+
+# Format specific files
+gofumpt -w path/to/file.go
+```
+
 **Linters that support automatic fixing:**
 - **wsl**: Whitespace consistency (blank lines between statements)
 - **gofmt**: Go code formatting

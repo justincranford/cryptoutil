@@ -273,8 +273,6 @@ func ValidateCreateElasticKeyVsElasticKey(elasticKeyCreate *cryptoutilOpenapiMod
 		return fmt.Errorf("versioningAllowed mismatch: expected %t, got %t", *elasticKeyCreate.VersioningAllowed, *elasticKey.VersioningAllowed)
 	} else if cryptoutilOpenapiModel.Active != *elasticKey.Status {
 		return fmt.Errorf("status mismatch: expected %s, got %s", cryptoutilOpenapiModel.Active, *elasticKey.Status)
-	} else if cryptoutilOpenapiModel.Active != *elasticKey.Status {
-		return fmt.Errorf("status mismatch: expected %s, got %s", cryptoutilOpenapiModel.Active, *elasticKey.Status)
 	}
 
 	if *elasticKey.ImportAllowed {
