@@ -127,19 +127,11 @@ jobs:
       - name: Check GitHub Actions versions
         run: go run scripts/cicd_utils.go github-action-versions
 
-      - name: Run tests with coverage
+      - name: Run tests
         env:
           POSTGRES_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
         run: |
-          go test -v -race -count=1 -coverprofile=coverage.out -covermode=atomic ./...
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5.5.1
-        with:
-          files: ./coverage.out
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
+          go test -v -race -count=1 ./...
 
   # Build and Container Security
   build:
