@@ -89,7 +89,10 @@ jobs:
       - name: Run coverage on concurrency tests
         run: |
           echo "📊 Generating coverage report for concurrency tests..."
-          go test -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
+          go test -race -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/server/application ./internal/client
+
+      - name: Generate concurrency coverage report
+        run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
 
       - name: Upload concurrency coverage
         uses: codecov/codecov-action@v5.5.1
@@ -98,6 +101,12 @@ jobs:
           flags: concurrency-tests
           name: codecov-concurrency
           fail_ci_if_error: false
+
+      - name: Upload concurrency coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: concurrency-coverage-report
+          path: concurrency-coverage.html
 
   # Fuzz Testing - Property-based testing
   fuzz:
