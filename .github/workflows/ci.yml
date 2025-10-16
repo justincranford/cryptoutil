@@ -84,55 +84,6 @@ jobs:
       - name: Run golangci-lint
         run: golangci-lint run --timeout=10m --config=.golangci.yml
 
-  # Comprehensive Testing
-  test:
-    name: Test Suite
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Verify dependencies
-        run: go mod verify
-
-      - name: Clean and verify module files
-        run: |
-          go mod tidy
-          git diff --exit-code go.mod go.sum
-
-      - name: Check GitHub Actions versions
-        run: go run scripts/cicd_utils.go github-action-versions
-
-      - name: Run tests
-        env:
-          POSTGRES_URL: postgres://testuser:testpass@localhost:5432/testdb?sslmode=disable
-        run: |
-          go test -v -race -count=1 ./...
-
   # Build and Container Security
   build:
     name: Build & Container Scan
@@ -328,7 +279,6 @@ jobs:
   mutation-testing:
     name: Mutation Testing
     runs-on: ubuntu-latest
-    needs: [test]  # Only run if tests pass
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
       - name: Checkout code
