@@ -13,7 +13,12 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
-const numKeyPairsNeeded = 50
+// numKeyPairsNeeded defines the maximum number of key pairs that can be generated
+// by the test key pool. This value must be large enough to accommodate all
+// parallel test executions. Current tests require approximately 16 keys total,
+// but we use a larger value (100) to provide headroom for parallel execution
+// and future test additions.
+const numKeyPairsNeeded = 100
 
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("certificates_test")
