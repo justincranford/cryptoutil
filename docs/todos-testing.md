@@ -2,8 +2,8 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: October 14, 2025
-**Status**: Testing infrastructure improvements planned for Q4 2025
+**Last Updated**: October 16, 2025
+**Status**: Testing infrastructure improvements planned for Q4 2025 - Go test flags analysis added for optimization review
 
 ---
 
@@ -60,17 +60,53 @@
 - **Expected Outcome**: Automated performance validation and regression detection
 - **Priority**: Medium - Production readiness
 
-### Task T5: Integration Test Automation
-- **Description**: Implement automated integration testing in CI pipeline
-- **Current State**: Unit tests only, no integration testing
+### Task T6: Go Test Flags Optimization & Best Practices Analysis
+- **Description**: Analyze and optimize Go test flag usage for comprehensive testing coverage and CI efficiency
+- **Current State**: Basic flag usage implemented, but comprehensive analysis needed for optimal combinations
 - **Action Items**:
-  - Create integration test suite with database and external dependencies
-  - Set up test database instances for CI
-  - Implement API contract testing
-  - Add integration tests to CI pipeline
-- **Files**: Integration test files, CI workflow updates
-- **Expected Outcome**: End-to-end testing validation
-- **Priority**: Medium - Production readiness
+  - Document effects of key Go test flags (`-race`, `-covermode`, `-count`, `-p`)
+  - Analyze flag interactions and problematic combinations
+  - Optimize CI workflow flag usage for performance vs coverage balance
+  - Establish testing flag best practices for the project
+- **Files**: `.github/workflows/test.yml`, `.github/workflows/ci.yml`, test execution analysis
+- **Expected Outcome**: Optimized test execution with comprehensive coverage and minimal redundancy
+- **Priority**: Medium - Testing efficiency and reliability
+- **Dependencies**: None
+
+#### Go Test Flags Reference & Analysis
+
+##### `-race` Flag Effects
+- **Purpose**: Enables Go's race detector for concurrent memory access validation
+- **Performance Impact**: 2-10x slower execution, 5-10x higher memory usage
+- **Detection**: Identifies race conditions in concurrent code
+- **Best Usage**: CI/CD pipelines, development testing, pre-release validation
+- **Avoid In**: Production builds, performance benchmarks, memory-constrained environments
+
+##### `-covermode=atomic` Effects
+- **Purpose**: Thread-safe coverage counting for concurrent programs
+- **Behavior**: Uses atomic operations for accurate coverage in multi-goroutine tests
+- **Performance**: Minimal overhead, automatically enabled with `-race`
+- **Alternatives**: `set` (fast but not thread-safe), `count` (slower but thread-safe)
+- **Best Usage**: Always with concurrent tests, required for accurate coverage reporting
+
+##### Problematic Flag Combinations (AVOID)
+- **`-race` + `-bench`**: Race detector distorts benchmark timing results
+- **`-race` + high `-cpu` values**: Overhead scales poorly (limit to `-cpu=4` max)
+- **`-covermode=set` + concurrent tests**: Not thread-safe, causes inaccurate coverage
+- **`-short` + comprehensive testing**: May miss race conditions that need load
+- **`-race` + memory-intensive tests**: May cause OOM in constrained environments
+
+##### Recommended Flag Combinations (SAFE)
+- **`-race -covermode=atomic -count=2 -p=2`**: Comprehensive concurrent testing (CURRENT USAGE)
+- **`-race -timeout=15m -v`**: Verbose race detection with timeout protection
+- **`-cover -coverprofile=coverage.out -covermode=atomic`**: Standard coverage collection
+- **`-fuzz=. -fuzztime=30s`**: Fuzz testing (separate from race detection)
+
+##### Optimization Opportunities
+- **Current Workflow Analysis**: Combined concurrency+race detection job is optimal
+- **Performance Monitoring**: Track test execution times, identify bottlenecks
+- **Flag Tuning**: Adjust `-count`, `-p`, and timeout values based on performance metrics
+- **Separate Concerns**: Consider separating fast unit tests from slow comprehensive tests
 
 ---
 
