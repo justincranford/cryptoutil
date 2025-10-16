@@ -2,7 +2,7 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: October 14, 2025
+**Last Updated**: October 16, 2025
 **Status**: Critical OAuth 2.0 implementation planning underway. Security hardening tasks remain active.
 
 ---
@@ -81,21 +81,7 @@
 - **Priority**: Medium - API contract consistency
 - **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failures
 
-### Task S3: Fix golangci-lint staticcheck Integration Issue
-- **Description**: golangci-lint staticcheck integration is broken and produces no issues despite being enabled
-- **Root Cause**: staticcheck is enabled in .golangci.yml but integration fails silently
-- **Current State**: golangci-lint produces 39KB SARIF vs standalone staticcheck 316KB with comprehensive analysis
-- **Action Items**:
-  - Investigate why golangci-lint staticcheck integration fails
-  - Test standalone staticcheck vs golangci-lint staticcheck output
-  - Fix integration or document limitation in CI workflow
-  - Ensure staticcheck security findings are properly reported to GitHub Security tab
-- **Files**: `.golangci.yml`, `.github/workflows/ci.yml` (staticcheck step)
-- **Expected Outcome**: Either fix golangci-lint integration or clearly document why separate staticcheck run is required
-- **Priority**: Medium - Code quality and security scanning reliability
-- **Timeline**: Q4 2025 investigation and fix
-
-### Task S4: Advanced Threat Modeling Documentation
+### Task S3: Advanced Threat Modeling Documentation
 - **Description**: Create comprehensive threat modeling documentation for advanced security analysis
 - **Current State**: Basic security practices implemented but no formal threat modeling
 - **Action Items**:
