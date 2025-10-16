@@ -39,6 +39,16 @@ gofumpt -w .
 gofumpt -w path/to/file.go
 ```
 
+### CRITICAL: wsl and gofumpt Conflict Recognition
+
+**RECOGNIZE IMMEDIATELY**: When `wsl` linter complains about "assignments should only be cuddled with other assignments" but `gofumpt` removes blank lines, this is a known conflict:
+
+- `wsl` wants assignments grouped without blank lines for consistency
+- `gofumpt` removes "unnecessary" blank lines as stricter formatting
+- **SOLUTION**: Use `//nolint:wsl // gofumpt removes blank line required by wsl linter` comment
+- **PATTERN**: Place comment inline with the assignment (not on separate line, as gofumpt removes separate-line comments)
+- **EXAMPLES**: See `internal/common/util/random.go` and `internal/client/client_test_util.go`
+
 **Linters that support automatic fixing:**
 - **wsl**: Whitespace consistency (blank lines between statements)
 - **gofmt**: Go code formatting
