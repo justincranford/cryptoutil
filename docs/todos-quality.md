@@ -54,6 +54,13 @@
     - Multiple test files have incorrect package declarations (should be `*_test` instead of package name)
     - Examples: `internal/client/client_test.go` (package `client` → should be `client_test`), `internal/cmd/cmd_test.go` (package `cmd` → should be `cmd_test`)
     - Total: ~30+ test files affected across the codebase
+  - wsl: Enabled - whitespace consistency linting errors found and partially resolved
+    - Fixed ~50+ wsl violations across 14 files by adding proper blank lines between incompatible statement types
+    - Files updated: client_oam_mapper.go, client_test_util.go, apperr/*.go, config.go, containers_util.go, certificates.go, keygen.go, datetime.go, datetime_test.go, http.go, ip.go, oam_oas_mapper.go
+    - Remaining: ~150 wsl errors still need fixing (significant progress made)
+  - gomodguard: Enabled - deprecated module blocking configured
+    - Prevents use of deprecated packages like `golang.org/x/crypto/md4`
+    - No violations found in current codebase
 - **Expected Outcome**: Enhanced code quality and consistency checks
 - **Priority**: Medium - Code quality improvement
 
