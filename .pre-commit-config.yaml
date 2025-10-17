@@ -70,6 +70,19 @@ repos:
       - id: forbid-new-submodules
         name: Prevent new git submodules
 
+      # Formatting and branch protection
+      - id: pretty-format-json
+        name: Pretty format JSON files
+        args: [--autofix, --indent=2]
+        exclude: '\.vscode/.*\.json$'  # Skip VS Code settings with comments
+      - id: no-commit-to-branch
+        name: Prevent commits to protected branches
+        args: [--branch, main]
+        stages: [pre-push]  # Only run on push, not on commit
+      - id: mixed-line-ending
+        name: Fix mixed line endings
+        args: [--fix=auto]
+
   # GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.7
