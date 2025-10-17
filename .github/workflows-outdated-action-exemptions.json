@@ -1,11 +1,15 @@
 {
   "exceptions": {
     "actions/checkout": {
-      "allowed_versions": ["v4.1.7"],
+      "allowed_versions": [
+        "v4.1.7"
+      ],
       "reason": "Known stable version, v5.0.0 has Node.js compatibility issues in some environments"
     },
     "docker/build-push-action": {
-      "allowed_versions": ["v5.4.0"],
+      "allowed_versions": [
+        "v5.4.0"
+      ],
       "reason": "Compatibility with current Docker daemon version"
     }
   }
