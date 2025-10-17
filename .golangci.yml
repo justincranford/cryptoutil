@@ -126,35 +126,37 @@ linters-settings:
         alias: fiber
       - pkg: github.com/stretchr/testify
         alias: testify
-      # Cryptoutil-specific aliases (camelCase with cryptoutil prefix)
+      # Cryptoutil-specific aliases (based on actual codebase usage)
       - pkg: github.com/jcranford/cryptoutil/internal/client
         alias: cryptoutilClient
       - pkg: github.com/jcranford/cryptoutil/internal/cmd
         alias: cryptoutilCmd
       - pkg: github.com/jcranford/cryptoutil/internal/common/apperr
-        alias: cryptoutilApperr
+        alias: cryptoutilAppErr
       - pkg: github.com/jcranford/cryptoutil/internal/common/config
         alias: cryptoutilConfig
       - pkg: github.com/jcranford/cryptoutil/internal/common/container
         alias: cryptoutilContainer
-      - pkg: github.com/jcranford/cryptoutil/internal/common/crypto
-        alias: cryptoutilCrypto
+      - pkg: github.com/jcranford/cryptoutil/internal/common/crypto/asn1
+        alias: cryptoutilAsn1
+      - pkg: github.com/jcranford/cryptoutil/internal/common/crypto/certificate
+        alias: cryptoutilCertificate
       - pkg: github.com/jcranford/cryptoutil/internal/common/pool
         alias: cryptoutilPool
       - pkg: github.com/jcranford/cryptoutil/internal/common/telemetry
-        alias: cryptoutilTelemetry
-      - pkg: github.com/jcranford/cryptoutil/internal/common/util
-        alias: cryptoutilUtil
+        alias: telemetryService
+      - pkg: github.com/jcranford/cryptoutil/internal/common/util/datetime
+        alias: cryptoutilDateTime
+      - pkg: github.com/jcranford/cryptoutil/internal/common/util/network
+        alias: cryptoutilNetwork
       - pkg: github.com/jcranford/cryptoutil/internal/server/application
-        alias: cryptoutilApplication
+        alias: cryptoutilServerApplication
       - pkg: github.com/jcranford/cryptoutil/internal/server/barrier
-        alias: cryptoutilBarrier
-      - pkg: github.com/jcranford/cryptoutil/internal/server/businesslogic
-        alias: cryptoutilBusinesslogic
+        alias: cryptoutilBarrierService
       - pkg: github.com/jcranford/cryptoutil/internal/server/handler
-        alias: cryptoutilHandler
-      - pkg: github.com/jcranford/cryptoutil/internal/server/repository
-        alias: cryptoutilRepository
+        alias: cryptoutilOpenapiHandler
+      - pkg: github.com/jcranford/cryptoutil/api/client
+        alias: cryptoutilOpenapiClient
       # Crypto/acronym aliases (standard Go conventions)
       - pkg: crypto/aes
         alias: aes

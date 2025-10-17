@@ -87,13 +87,13 @@ repos:
 
   # GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
+    rev: v1.7.8
     hooks:
       - id: actionlint
 
   # Dockerfile linting
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
+    rev: v2.14.0
     hooks:
       - id: hadolint-docker
 
@@ -157,6 +157,14 @@ repos:
         language: system
         pass_filenames: false
         files: go\.mod$  # Only run when go.mod changes (not per test file)
+
+  # Conventional commit validation
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.29.1
+    hooks:
+      - id: commitizen
+        name: Check conventional commit message
+        stages: [commit-msg]
 
 # Global configuration
 default_stages: [pre-commit]

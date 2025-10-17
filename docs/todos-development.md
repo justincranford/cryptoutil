@@ -55,16 +55,13 @@
 - **Description**: Enhance pre-commit hooks with additional validation checks
 - **Current State**: Basic pre-commit setup
 - **Action Items**:
-  - Add script shebang validation (`check-executables-have-shebangs`)
-  - Add script executable permissions (`check-shebang-scripts-are-executable`)
   - Enable shell script linting (`shellcheck` for `.sh` files)
   - Enable PowerShell script analysis (`PSScriptAnalyzer` for `.ps1` files)
-  - Add private key detection (`detect-private-key` with `.pem` exclusions)
-  - **NEW**: Implement automated validation for instruction files (see todos-quality.md Task CQ5)
-  - **NEW**: Add conventional commit message validation
-  - **NEW**: Add import alias naming validation
+  - **COMPLETED**: Implement automated validation for instruction files (see todos-quality.md Task CQ5)
+  - **COMPLETED**: Add conventional commit message validation (commitizen cz-check)
+  - **COMPLETED**: Add import alias naming validation (golangci-lint importas linter)
   - **NEW**: Add security scanning for high-risk file changes
-- **Files**: `.pre-commit-config.yaml`
+- **Files**: `.pre-commit-config.yaml`, `.golangci.yml`
 - **Expected Outcome**: Enhanced development workflow security and quality
 - **Priority**: MEDIUM (increased) - Development tooling improvement with automation focus
 - **Timeline**: Q4 2025 - Implement high-priority automation hooks
