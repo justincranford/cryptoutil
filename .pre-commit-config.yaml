@@ -44,6 +44,8 @@ repos:
       - id: detect-aws-credentials
         name: Check for AWS credentials
         args: [--allow-missing-credentials]
+      - id: detect-private-key
+        name: Check for private keys
 
       # Cross-platform compatibility
       - id: check-case-conflict
