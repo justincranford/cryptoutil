@@ -60,27 +60,6 @@
 - **Expected Outcome**: Reduced reliance on AI for routine validation, faster feedback, more reliable enforcement ✅ ACHIEVED
 - **Completion Date**: October 16, 2025
 
-### Task CQ6: Add Recommended Pre-commit Hooks
-- **Description**: Add additional pre-commit hooks from pre-commit-hooks repository for enhanced code quality and security
-- **Recommended Hooks** (ordered by priority):
-  1. **detect-private-key** - Check for existence of private keys (critical for crypto project)
-  2. **detect-aws-credentials** - Check for AWS secrets with --allow-missing-credentials flag
-  3. **check-case-conflict** - Check for files with names that would conflict on case-insensitive filesystems
-  4. **check-illegal-windows-names** - Check for files that cannot be created on Windows
-  5. **check-toml** - Validate TOML file syntax
-  6. **check-symlinks** - Check for symlinks which do not point to anything
-  7. **check-executables-have-shebangs** - Check that non-binary executables have proper shebang
-  8. **check-shebang-scripts-are-executable** - Check that scripts with shebangs are executable
-  9. **mixed-line-ending** - Fix mixed line endings with --fix=auto flag
-  10. **pretty-format-json** - Pretty format JSON files with --autofix and --indent=2 flags
-  11. **check-vcs-permalinks** - Ensure that links to VCS websites are permalinks
-  12. **no-commit-to-branch** - Prevent commits to protected branches with --branch main flag
-  13. **forbid-new-submodules** - Prevent addition of new git submodules
-- **Implementation Plan**: Add hooks incrementally based on priority and testing
-- **Files**: `.pre-commit-config.yaml`
-- **Expected Outcome**: Enhanced security, cross-platform compatibility, and code quality checks
-- **Priority**: MEDIUM - Code quality and security enhancement
-
 ---
 
 ## Common Magic Values to Watch For
