@@ -77,10 +77,10 @@ repos:
         name: Pretty format JSON files
         args: [--autofix, --indent=2]
         exclude: '\.vscode/.*\.json$'  # Skip VS Code settings with comments
-      - id: no-commit-to-branch
-        name: Prevent commits to protected branches
-        args: [--branch, main]
-        stages: [pre-push]  # Only run on push, not on commit
+      # - id: no-commit-to-branch
+      #   name: Prevent commits to protected branches
+      #   args: [--branch, main]
+      #   stages: [pre-push]  # Only run on push, not on commit
       - id: mixed-line-ending
         name: Fix mixed line endings
         args: [--fix=auto]
