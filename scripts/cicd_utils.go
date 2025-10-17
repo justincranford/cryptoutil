@@ -755,6 +755,7 @@ func enforceTestPatterns() {
 
 	if len(testFiles) == 0 {
 		fmt.Fprintln(os.Stderr, "No test files found")
+
 		return
 	}
 
@@ -765,11 +766,14 @@ func enforceTestPatterns() {
 
 	for _, filePath := range testFiles {
 		issues := checkTestFile(filePath)
+
 		if len(issues) > 0 {
 			fmt.Fprintf(os.Stderr, "%s:\n", filePath)
+
 			for _, issue := range issues {
 				fmt.Fprintf(os.Stderr, "  - %s\n", issue)
 			}
+
 			totalIssues += len(issues)
 		}
 	}
@@ -790,6 +794,7 @@ func checkTestFile(filePath string) []string {
 	}
 
 	var issues []string
+
 	contentStr := string(content)
 
 	// Pattern 1: Check for UUIDv7 usage
