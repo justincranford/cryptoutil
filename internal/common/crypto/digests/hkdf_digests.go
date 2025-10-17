@@ -19,6 +19,13 @@ var (
 	ErrInvalidOutputBytesLengthTooBig   = errors.New("outputBytesLength too big; maximum is 255 * digest block size")
 )
 
+const (
+	DigestSHA512 = "SHA512" // pragma: allowlist secret
+	DigestSHA384 = "SHA384" // pragma: allowlist secret
+	DigestSHA256 = "SHA256" // pragma: allowlist secret
+	DigestSHA224 = "SHA224" // pragma: allowlist secret
+)
+
 func HKDFwithSHA512(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {
 	return HKDF("SHA512", secret, salt, info, outputBytesLength)
 }
@@ -42,16 +49,16 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 	var digestLength int
 
 	switch digestName {
-	case "SHA512":
+	case DigestSHA512:
 		digestFunction = sha512.New
 		digestLength = 64
-	case "SHA384":
+	case DigestSHA384:
 		digestFunction = sha512.New384
 		digestLength = 48
-	case "SHA256":
+	case DigestSHA256:
 		digestFunction = sha256.New
 		digestLength = 32
-	case "SHA224":
+	case DigestSHA224:
 		digestFunction = sha256.New224
 		digestLength = 28
 	default:
@@ -59,7 +66,7 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 	}
 
 	var errs []error
-	if secretBytes == nil {
+	if secretBytes == nil { // pragma: allowlist secret
 		errs = append(errs, ErrInvalidNilSecret)
 	} else if len(secretBytes) == 0 {
 		errs = append(errs, ErrInvalidEmptySecret)
@@ -70,7 +77,7 @@ func HKDF(digestName string, secretBytes, saltBytes, infoBytes []byte, outputByt
 	} else if outputBytesLength == 0 {
 		errs = append(errs, ErrInvalidOutputBytesLengthZero)
 	} else if outputBytesLength > 255*digestLength {
-		errs = append(errs, ErrInvalidOutputBytesLengthTooBig) // HKDF max = 255 blocks of digest size (e.g. SHA224=7140, SHA256=8160, SHA384=12240, SHA512=16320)
+		errs = append(errs, ErrInvalidOutputBytesLengthTooBig)
 	}
 
 	if len(errs) > 0 {

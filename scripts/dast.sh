@@ -12,7 +12,6 @@ TARGET_URL=""
 SKIP_ZAP=false
 SKIP_NUCLEI=false
 OUTPUT_DIR="dast-reports"
-SHOW_HELP=false
 
 # Colors for output
 RED='\033[0;31m'
@@ -23,19 +22,19 @@ NC='\033[0m' # No Color
 
 # Status functions
 write_status() {
-    echo -e "${BLUE}🔒 DAST: $1${NC}"
+    echo -e "${BLUE}???? DAST: $1${NC}"
 }
 
 write_error() {
-    echo -e "${RED}❌ ERROR: $1${NC}"
+    echo -e "${RED}??? ERROR: $1${NC}"
 }
 
 write_success() {
-    echo -e "${GREEN}✅ SUCCESS: $1${NC}"
+    echo -e "${GREEN}??? SUCCESS: $1${NC}"
 }
 
 write_warning() {
-    echo -e "${YELLOW}⚠️  WARNING: $1${NC}"
+    echo -e "${YELLOW}??????  WARNING: $1${NC}"
 }
 
 # Help function
@@ -301,15 +300,15 @@ EOF
 
 if [[ "$SKIP_ZAP" != true ]]; then
     cat >> "$SUMMARY_FILE" << EOF
-- ✅ **OWASP ZAP Full Scan:** Comprehensive web application security testing
-- ✅ **OWASP ZAP API Scan:** OpenAPI specification-driven API security testing
+- ??? **OWASP ZAP Full Scan:** Comprehensive web application security testing
+- ??? **OWASP ZAP API Scan:** OpenAPI specification-driven API security testing
 
 EOF
 fi
 
 if [[ "$SKIP_NUCLEI" != true ]]; then
     cat >> "$SUMMARY_FILE" << EOF
-- ✅ **Nuclei Scan:** CVE and vulnerability template-based testing
+- ??? **Nuclei Scan:** CVE and vulnerability template-based testing
 
 EOF
 fi

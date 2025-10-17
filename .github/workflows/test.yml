@@ -48,6 +48,7 @@ on:
           - all
           - concurrency
           - fuzz
+          - benchmark
           - race
 
 env:
@@ -110,3 +111,97 @@ jobs:
           echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
           echo "- Concurrent execution: 2 runs, 2 parallel" >> $GITHUB_STEP_SUMMARY
           echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+
+  # Fuzz Testing - Property-based testing for security-critical code
+  fuzz:
+    name: Fuzz Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Clean and verify module files
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Run fuzz tests
+        run: |
+          echo "🔍 Running fuzz tests for security-critical code..."
+          # Run fuzz tests with 5 minute timeout per function
+          go test -fuzz=. -fuzztime=5m ./internal/common/crypto/...
+
+      - name: Fuzz test summary
+        run: |
+          echo "## 🔍 Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Fuzz tests for cryptographic operations completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: 5 minutes per fuzz function" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: Key generation and digest functions" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Property-based testing for security-critical code" >> $GITHUB_STEP_SUMMARY
+
+  # Benchmark Testing - Performance validation and regression detection
+  benchmark:
+    name: Benchmark Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Clean and verify module files
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Run benchmark tests
+        run: |
+          echo "📊 Running benchmark tests for performance validation..."
+          go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
+
+      - name: Display benchmark results
+        run: |
+          echo "## 📊 Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat benchmark-results.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4.4.3
+        with:
+          name: benchmark-results
+          path: benchmark-results.txt
+
+      - name: Benchmark test summary
+        run: |
+          echo "## 📊 Benchmark Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
+          echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY

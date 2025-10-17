@@ -29,6 +29,14 @@ type Key interface { // &KeyPair or SecretKey
 func (k *KeyPair) isKey()  {}
 func (s SecretKey) isKey() {}
 
+const (
+	EdCurveEd448   = "Ed448"
+	EdCurveEd25519 = "Ed25519"
+	ECCurveP256    = "P256"
+	ECCurveP384    = "P384"
+	ECCurveP521    = "P521"
+)
+
 func GenerateRSAKeyPairFunction(rsaBits int) func() (*KeyPair, error) {
 	return func() (*KeyPair, error) { return GenerateRSAKeyPair(rsaBits) }
 }
@@ -74,14 +82,14 @@ func GenerateEDDSAKeyPairFunction(edCurve string) func() (*KeyPair, error) {
 
 func GenerateEDDSAKeyPair(edCurve string) (*KeyPair, error) {
 	switch edCurve {
-	case "Ed448":
+	case EdCurveEd448:
 		publicKey, privateKey, err := ed448.GenerateKey(rand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed448 key pair failed: %w", err)
 		}
 
 		return &KeyPair{Private: privateKey, Public: publicKey}, nil
-	case "Ed25519":
+	case EdCurveEd25519:
 		publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("generate Ed25519 key pair failed: %w", err)

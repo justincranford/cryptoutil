@@ -2,40 +2,50 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: October 16, 2025
-**Status**: Testing infrastructure improvements planned for Q4 2025 - Go test flags analysis added for optimization review
+**Last Updated**: October 17, 2025
+**Status**: Testing infrastructure improvements completed - fuzz and benchmark testing implemented for cryptographic operations. Test file organization audit and migration completed. Completed tasks removed from list.
 
 ---
 
 ## 🟡 MEDIUM - Testing Infrastructure Improvements
 
-### Task T1: Add Fuzz Testing for Security-Critical Code
-- **Description**: Implement fuzz testing for cryptographic operations and key generation functions
-- **Current State**: No fuzz tests implemented (no `func Fuzz*` functions found)
-- **Action Items**:
-  - Add fuzz tests for key generation functions in `pkg/keygen`
-  - Add fuzz tests for cryptographic operations in `internal/crypto`
-  - Configure appropriate fuzz timeouts (5-30 minutes)
-  - Add fuzz testing to nightly/release CI pipeline
-- **Files**: `*_test.go` files in `pkg/keygen/`, `internal/crypto/`
-- **Expected Outcome**: Property-based testing for security-critical code paths
-- **Priority**: Medium - Security testing enhancement
-- **Dependencies**: Separate invocations required
-
-### Task T2: Add Benchmark Testing Infrastructure
-- **Description**: Implement performance benchmarking for key cryptographic operations
-- **Current State**: No benchmark tests implemented (no `func Benchmark*` functions found)
-- **Action Items**:
-  - Add benchmarks for key generation performance
-  - Add benchmarks for cryptographic operations
-  - Configure benchmark testing in CI pipeline
-  - Add performance regression detection
-- **Files**: `*_test.go` files in `pkg/keygen/`, `internal/crypto/`
-- **Expected Outcome**: Performance monitoring and regression detection
-- **Priority**: Medium - Performance validation
-- **Dependencies**: Separate invocations required
-
 ### Task T3: Optimize Test Parallelization Strategy
+- **Description**: Fine-tune test parallelization for optimal CI performance
+- **Current State**: Basic `-p=2` parallelization, but may not be optimal for all packages
+- **Action Items**:
+  - Analyze test execution times by package
+  - Optimize `-p` flag usage (parallel packages vs parallel tests within packages)
+  - Balance test load across CI runners
+  - Monitor and adjust based on CI performance metrics
+- **Files**: `.github/workflows/ci.yml`, test execution analysis
+- **Expected Outcome**: Faster CI execution with better resource utilization
+- **Priority**: Medium - CI performance optimization
+- **Dependencies**: Task T1/T2 completion
+
+### Task T4: Performance/Load Testing Framework
+- **Description**: Implement comprehensive performance and load testing capabilities
+- **Current State**: Basic unit tests only, no performance testing
+- **Action Items**:
+  - Set up performance testing framework (k6, Artillery, or custom)
+  - Create load test scenarios for key API endpoints
+  - Implement performance regression detection
+  - Add performance testing to CI pipeline
+- **Files**: Performance test scripts, CI workflow updates
+- **Expected Outcome**: Automated performance validation and regression detection
+- **Priority**: Medium - Production readiness
+
+### Task T6: Go Test Flags Optimization & Best Practices Analysis
+- **Description**: Analyze and optimize Go test flag usage for comprehensive testing coverage and CI efficiency
+- **Current State**: Basic flag usage implemented, but comprehensive analysis needed for optimal combinations
+- **Action Items**:
+  - Document effects of key Go test flags (`-race`, `-covermode`, `-count`, `-p`)
+  - Analyze flag interactions and problematic combinations
+  - Optimize CI workflow flag usage for performance vs coverage balance
+  - Establish testing flag best practices for the project
+- **Files**: `.github/workflows/test.yml`, `.github/workflows/ci.yml`, test execution analysis
+- **Expected Outcome**: Optimized test execution with comprehensive coverage and minimal redundancy
+- **Priority**: Medium - Testing efficiency and reliability
+- **Dependencies**: None
 - **Description**: Fine-tune test parallelization for optimal CI performance
 - **Current State**: Basic `-p=2` parallelization, but may not be optimal for all packages
 - **Action Items**:
@@ -212,4 +222,4 @@ func FuzzAdd(f *testing.F) {
 - **Existing**: Mix of internal/external test patterns
 - **testpackage linter**: Currently configured to allow internal testing
 - **Recommendation**: Gradually migrate toward external testing for better API design
-- **Next Steps**: Audit current test files and plan migration strategy
+- **Completed**: ✅ Audited current test files and implemented migration strategy - separated mixed test types into dedicated files (_test.go for unit tests, _fuzz_test.go for fuzz tests, _bench_test.go for benchmarks)

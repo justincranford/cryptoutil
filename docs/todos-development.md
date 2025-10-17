@@ -26,7 +26,6 @@
   - **XII. Admin processes**: Run admin/management tasks as one-off processes - **Status: ❓ NEEDS AUDIT** (Admin task separation needs verification)
 - **Current State**: 8/12 factors fully implemented, 2 partially implemented, 2 need audit
 - **Action Items**:
-  - ✅ **COMPLETED**: Audit Factors I, II, III, IV, V, VII, IX, X, XI for implementation status
   - Audit Factor VI (stateless processes) - verify no local file storage or in-memory state
   - Audit Factor VIII (concurrency) - verify horizontal scaling capability with multiple instances
   - Audit Factor XII (admin processes) - verify admin tasks run as separate processes
@@ -51,24 +50,7 @@
 - **Priority**: LOW - Developer experience enhancement
 - **Timeline**: Q1 2026
 
-### Task DW3: Pre-commit Hook Enhancements
-- **Description**: Enhance pre-commit hooks with additional validation checks
-- **Current State**: Basic pre-commit setup
-- **Action Items**:
-  - Enable shell script linting (`shellcheck` for `.sh` files)
-  - Enable PowerShell script analysis (`PSScriptAnalyzer` for `.ps1` files)
-  - **COMPLETED**: Implement automated validation for instruction files (see todos-quality.md Task CQ5)
-  - **COMPLETED**: Add conventional commit message validation (commitizen cz-check)
-  - **COMPLETED**: Add import alias naming validation (golangci-lint importas linter)
-  - **COMPLETED**: Add golangci-lint full suite as pre-push hook
-  - **NEW**: Add security scanning for high-risk file changes
-- **Files**: `.pre-commit-config.yaml`, `.golangci.yml`
-- **Expected Outcome**: Enhanced development workflow security and quality
-- **Priority**: MEDIUM (increased) - Development tooling improvement with automation focus
-- **Timeline**: Q4 2025 - Implement high-priority automation hooks
-
 ### Task DW4: Implement Parallel Step Execution
-- **Description**: Parallelize setup steps that don't depend on each other
 - **Context**: Currently all setup steps run sequentially, but some can run in parallel
 - **Action Items**:
   - Run directory creation in background (`mkdir -p configs/test & mkdir -p ./dast-reports &`)

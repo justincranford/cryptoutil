@@ -49,18 +49,18 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "🧪 Starting Mutation Testing with Gremlins"
+echo "???? Starting Mutation Testing with Gremlins"
 echo "=========================================="
 
 # Check if gremlins is installed
 if ! command -v gremlins &> /dev/null; then
-    echo "❌ Gremlins not found. Installing..."
+    echo "??? Gremlins not found. Installing..."
     go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
     if [[ $? -ne 0 ]]; then
-        echo "❌ Failed to install Gremlins"
+        echo "??? Failed to install Gremlins"
         exit 1
     fi
-    echo "✅ Gremlins installed successfully"
+    echo "??? Gremlins installed successfully"
 fi
 
 # High-coverage packages to test
@@ -86,14 +86,14 @@ TOTAL_NOT_COVERED=0
 TOTAL_TIMED_OUT=0
 TOTAL_NOT_VIABLE=0
 
-echo "📊 Target packages:"
+echo "???? Target packages:"
 for package in "${TARGETS_TO_TEST[@]}"; do
     echo "  - $package"
 done
 echo ""
 
 for package in "${TARGETS_TO_TEST[@]}"; do
-    echo "🎯 Testing package: $package"
+    echo "???? Testing package: $package"
     echo "----------------------------------------"
 
     # Build the gremlins command
@@ -111,9 +111,9 @@ for package in "${TARGETS_TO_TEST[@]}"; do
 
     # Run gremlins and capture output
     if OUTPUT=$(gremlins "${CMD_ARGS[@]}" 2>&1); then
-        echo "✅ Mutation testing completed for $package"
+        echo "??? Mutation testing completed for $package"
     else
-        echo "⚠️  Mutation testing completed with warnings for $package"
+        echo "??????  Mutation testing completed with warnings for $package"
     fi
 
     # Parse results from output
@@ -140,7 +140,7 @@ for package in "${TARGETS_TO_TEST[@]}"; do
 done
 
 # Summary
-echo "📈 MUTATION TESTING SUMMARY"
+echo "???? MUTATION TESTING SUMMARY"
 echo "==========================="
 echo "Total Killed: $TOTAL_KILLED"
 echo "Total Lived: $TOTAL_LIVED"
@@ -152,9 +152,9 @@ TOTAL_TESTED=$((TOTAL_KILLED + TOTAL_LIVED))
 if [[ $TOTAL_TESTED -gt 0 ]]; then
     EFFICACY=$(( (TOTAL_KILLED * 100) / TOTAL_TESTED ))
     if [[ $EFFICACY -ge 75 ]]; then
-        echo "Test Efficacy: ${EFFICACY}% ✅"
+        echo "Test Efficacy: ${EFFICACY}% ???"
     else
-        echo "Test Efficacy: ${EFFICACY}% ❌"
+        echo "Test Efficacy: ${EFFICACY}% ???"
     fi
 else
     echo "Test Efficacy: N/A (no mutations tested)"
@@ -162,9 +162,9 @@ fi
 
 # Set exit code based on results
 if [[ $TOTAL_LIVED -gt 0 && "$DRY_RUN" != "true" ]]; then
-    echo "❌ Mutation testing found $TOTAL_LIVED survived mutations"
+    echo "??? Mutation testing found $TOTAL_LIVED survived mutations"
     exit 1
 else
-    echo "✅ Mutation testing completed successfully"
+    echo "??? Mutation testing completed successfully"
     exit 0
 fi

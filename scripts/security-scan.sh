@@ -100,24 +100,24 @@ fi
 # Color output functions
 print_header() {
     echo
-    echo -e "\e[36m🛡️  $1\e[0m"
+    echo -e "\e[36m???????  $1\e[0m"
     echo -e "\e[36m$(printf '=%.0s' $(seq 1 $((${#1} + 4))))\e[0m"
 }
 
 print_success() {
-    echo -e "\e[32m✅ $1\e[0m"
+    echo -e "\e[32m??? $1\e[0m"
 }
 
 print_warning() {
-    echo -e "\e[33m⚠️  $1\e[0m"
+    echo -e "\e[33m??????  $1\e[0m"
 }
 
 print_error() {
-    echo -e "\e[31m❌ $1\e[0m"
+    echo -e "\e[31m??? $1\e[0m"
 }
 
 print_info() {
-    echo -e "\e[34mℹ️  $1\e[0m"
+    echo -e "\e[34m??????  $1\e[0m"
 }
 
 # Check prerequisites
@@ -288,7 +288,8 @@ generate_security_report() {
     print_header "Generating Security Summary Report"
 
     local report_path="$OUTPUT_DIR/security-summary.md"
-    local timestamp=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
+    local timestamp
+    timestamp=$(date -u '+%Y-%m-%d %H:%M:%S UTC')
 
     cat > "$report_path" << EOF
 # Security Scan Results
@@ -304,8 +305,8 @@ EOF
     if [ "$ALL" = true ] || [ "$STATIC_ONLY" = true ]; then
         cat >> "$report_path" << EOF
 ### Static Analysis
-- ✅ **Staticcheck**: Go static analysis and lint checking
-- ✅ **golangci-lint**: Comprehensive Go linting with multiple analyzers
+- ??? **Staticcheck**: Go static analysis and lint checking
+- ??? **golangci-lint**: Comprehensive Go linting with multiple analyzers
 
 EOF
     fi
@@ -313,8 +314,8 @@ EOF
     if [ "$ALL" = true ] || [ "$VULN_ONLY" = true ]; then
         cat >> "$report_path" << EOF
 ### Vulnerability Scanning
-- ✅ **govulncheck**: Official Go vulnerability database scanning
-- ✅ **Trivy FS**: File system and dependency vulnerability scanning
+- ??? **govulncheck**: Official Go vulnerability database scanning
+- ??? **Trivy FS**: File system and dependency vulnerability scanning
 
 EOF
     fi
@@ -322,8 +323,8 @@ EOF
     if ([ "$ALL" = true ] || [ "$CONTAINER_ONLY" = true ]) && [ "$SKIP_DOCKER" = false ]; then
         cat >> "$report_path" << EOF
 ### Container Security
-- ✅ **Trivy Image**: Container image vulnerability scanning
-- ✅ **Docker Scout**: Advanced container security analysis and recommendations
+- ??? **Trivy Image**: Container image vulnerability scanning
+- ??? **Docker Scout**: Advanced container security analysis and recommendations
 
 EOF
     fi

@@ -1,9 +1,9 @@
 package digests
 
 import (
-	"bytes"
-	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type TestCaseHKDFHappyPath struct {
@@ -36,115 +36,72 @@ func TestHKDFHappyPath(t *testing.T) {
 	for _, tt := range happyPathTests {
 		t.Run(tt.name, func(t *testing.T) {
 			output, err := HKDF(tt.digestName, tt.secret, tt.salt, tt.info, tt.outputBytesLength)
-			if err != nil {
-				t.Errorf("HKDF(%s) unexpected error: %v", tt.digestName, err)
-			}
+			require.NoError(t, err, "HKDF should not fail with valid input")
 
-			if len(output) != tt.outputBytesLength {
-				t.Errorf("HKDF(%s) output length = %d, want %d", tt.digestName, len(output), tt.outputBytesLength)
-			}
+			require.Len(t, output, tt.outputBytesLength, "HKDF should return output of correct length")
 		})
 	}
 
 	t.Run("Unique Output for Different Salts", func(t *testing.T) {
 		output1, err := HKDF("SHA256", []byte("secret"), []byte("salt1"), []byte("info"), 32)
-		if err != nil {
-			t.Fatalf("HKDF failed: %v", err)
-		}
+		require.NoError(t, err, "HKDF should not fail")
 
 		output2, err := HKDF("SHA256", []byte("secret"), []byte("salt2"), []byte("info"), 32)
-		if err != nil {
-			t.Fatalf("HKDF failed: %v", err)
-		}
+		require.NoError(t, err, "HKDF should not fail")
 
-		if bytes.Equal(output1, output2) {
-			t.Errorf("HKDF output should be unique for different salts")
-		}
+		require.NotEqual(t, output1, output2, "HKDF output should be unique for different salts")
 	})
 }
 
 func TestHKDFHappyPathDifferentDigest(t *testing.T) {
 	output1, err := HKDF("SHA224", []byte("secret"), []byte("salt"), []byte("info"), 28)
-	if err != nil {
-		t.Fatalf("HKDF SHA224 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF SHA224 should not fail")
 
 	output2, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info"), 28)
-	if err != nil {
-		t.Fatalf("HKDF SHA256 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF SHA256 should not fail")
 
 	output3, err := HKDF("SHA384", []byte("secret"), []byte("salt"), []byte("info"), 28)
-	if err != nil {
-		t.Fatalf("HKDF SHA384 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF SHA384 should not fail")
 
 	output4, err := HKDF("SHA512", []byte("secret"), []byte("salt"), []byte("info"), 28)
-	if err != nil {
-		t.Fatalf("HKDF SHA512 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF SHA512 should not fail")
 
-	if bytes.Equal(output1, output2) {
-		t.Errorf("HKDF output should be unique for different digests")
-	} else if bytes.Equal(output1, output3) {
-		t.Errorf("HKDF output should be unique for different digests")
-	} else if bytes.Equal(output1, output4) {
-		t.Errorf("HKDF output should be unique for different digests")
-	} else if bytes.Equal(output2, output3) {
-		t.Errorf("HKDF output should be unique for different digests")
-	} else if bytes.Equal(output2, output4) {
-		t.Errorf("HKDF output should be unique for different digests")
-	} else if bytes.Equal(output3, output4) {
-		t.Errorf("HKDF output should be unique for different digests")
-	}
+	require.NotEqual(t, output1, output2, "HKDF output should be unique for different digests")
+	require.NotEqual(t, output1, output3, "HKDF output should be unique for different digests")
+	require.NotEqual(t, output1, output4, "HKDF output should be unique for different digests")
+	require.NotEqual(t, output2, output3, "HKDF output should be unique for different digests")
+	require.NotEqual(t, output2, output4, "HKDF output should be unique for different digests")
+	require.NotEqual(t, output3, output4, "HKDF output should be unique for different digests")
 }
 
 func TestHKDFHappyPathDifferentSecret(t *testing.T) {
 	output1, err := HKDF("SHA256", []byte("secret1"), []byte("salt"), []byte("info"), 32)
-	if err != nil {
-		t.Fatalf("HKDF with secret1 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF with secret1 should not fail")
 
 	output2, err := HKDF("SHA256", []byte("secret2"), []byte("salt"), []byte("info"), 32)
-	if err != nil {
-		t.Fatalf("HKDF with secret2 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF with secret2 should not fail")
 
-	if bytes.Equal(output1, output2) {
-		t.Errorf("HKDF output should be unique for different secrets")
-	}
+	require.NotEqual(t, output1, output2, "HKDF output should be unique for different secrets")
 }
 
 func TestHKDFHappyPathDifferentSalt(t *testing.T) {
 	output1, err := HKDF("SHA256", []byte("secret"), []byte("salt1"), []byte("info"), 32)
-	if err != nil {
-		t.Fatalf("HKDF with salt1 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF with salt1 should not fail")
 
 	output2, err := HKDF("SHA256", []byte("secret"), []byte("salt2"), []byte("info"), 32)
-	if err != nil {
-		t.Fatalf("HKDF with salt2 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF with salt2 should not fail")
 
-	if bytes.Equal(output1, output2) {
-		t.Errorf("HKDF output should be unique for different salts")
-	}
+	require.NotEqual(t, output1, output2, "HKDF output should be unique for different salts")
 }
 
 func TestHKDFHappyPathDifferentInfo(t *testing.T) {
 	output1, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info1"), 28)
-	if err != nil {
-		t.Fatalf("HKDF with info1 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF with info1 should not fail")
 
 	output2, err := HKDF("SHA256", []byte("secret"), []byte("salt"), []byte("info2"), 28)
-	if err != nil {
-		t.Fatalf("HKDF with info2 failed: %v", err)
-	}
+	require.NoError(t, err, "HKDF with info2 should not fail")
 
-	if bytes.Equal(output1, output2) {
-		t.Errorf("HKDF output should be unique for different salts")
-	}
+	require.NotEqual(t, output1, output2, "HKDF output should be unique for different info")
 }
 
 func TestHKDFSadPath(t *testing.T) {
@@ -167,9 +124,8 @@ func TestHKDFSadPath(t *testing.T) {
 	for _, tt := range sadPathTests {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := HKDF(tt.digestName, tt.secret, tt.salt, tt.info, tt.outputBytesLength)
-			if err == nil || !errors.Is(err, tt.expectedError) {
-				t.Errorf("HKDF(%s) error = %v, expected %v", tt.digestName, err, tt.expectedError)
-			}
+			require.Error(t, err, "HKDF should fail with invalid input")
+			require.ErrorIs(t, err, tt.expectedError, "HKDF should return expected error")
 		})
 	}
 }
