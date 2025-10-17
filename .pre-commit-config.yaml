@@ -166,6 +166,17 @@ repos:
         name: Check conventional commit message
         stages: [commit-msg]
 
+  # Go linting (full golangci-lint suite for pre-push)
+  - repo: local
+    hooks:
+      - id: golangci-lint
+        name: golangci-lint (full suite)
+        entry: golangci-lint
+        args: [run, --timeout=10m]
+        language: system
+        pass_filenames: false
+        stages: [pre-push]  # Run full linting on push, not on every commit
+
 # Global configuration
 default_stages: [pre-commit]
 minimum_pre_commit_version: '2.20.0'

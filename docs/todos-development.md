@@ -60,6 +60,7 @@
   - **COMPLETED**: Implement automated validation for instruction files (see todos-quality.md Task CQ5)
   - **COMPLETED**: Add conventional commit message validation (commitizen cz-check)
   - **COMPLETED**: Add import alias naming validation (golangci-lint importas linter)
+  - **COMPLETED**: Add golangci-lint full suite as pre-push hook
   - **NEW**: Add security scanning for high-risk file changes
 - **Files**: `.pre-commit-config.yaml`, `.golangci.yml`
 - **Expected Outcome**: Enhanced development workflow security and quality
