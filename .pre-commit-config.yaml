@@ -113,7 +113,7 @@ repos:
       - id: check-deps-actions-circular
         name: Check for outdated Go dependencies, GitHub Actions, and circular dependencies
         entry: go
-        args: [run, scripts/cicd_utils.go, go-update-direct-dependencies, github-action-versions, go-check-circular-package-dependencies]
+        args: [run, scripts/cicd_utils.go, go-update-direct-dependencies, github-action-versions, go-check-circular-package-dependencies, gofumpter]
         language: system
         pass_filenames: false
         stages: [pre-push]

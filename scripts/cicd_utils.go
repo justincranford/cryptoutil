@@ -45,7 +45,7 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n\nExamples:\n  go run scripts/cicd_utils.go go-update-direct-dependencies\n  go run scripts/cicd_utils.go go-update-all-dependencies\n  go run scripts/cicd_utils.go go-check-circular-package-dependencies\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go go-update-direct-dependencies github-action-versions\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n\nExamples:\n  go run scripts/cicd_utils.go go-update-direct-dependencies\n  go run scripts/cicd_utils.go go-update-all-dependencies\n  go run scripts/cicd_utils.go go-check-circular-package-dependencies\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go gofumpter\n  go run scripts/cicd_utils.go go-update-direct-dependencies github-action-versions\n")
 		os.Exit(1)
 	}
 
@@ -63,8 +63,10 @@ func main() {
 			checkCircularDeps()
 		case "github-action-versions":
 			checkActions()
+		case "gofumpter":
+			runGofumpter()
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n", command)
+			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n", command)
 			os.Exit(1)
 		}
 
@@ -725,4 +727,129 @@ func checkCircularDeps() {
 	fmt.Fprintln(os.Stderr, "Circular dependencies can prevent enabling advanced linters like gomnd.")
 	fmt.Fprintln(os.Stderr, "Consider refactoring to break these cycles.")
 	os.Exit(1) // Fail the build
+}
+
+func runGofumpter() {
+	fmt.Fprintln(os.Stderr, "Running gofumpter - Custom Go source code fixes...")
+
+	// Define exclusion patterns (same as pre-commit-config.yaml)
+	excludedPatterns := []string{
+		`_gen\.go$`,               // Generated files
+		`\.pb\.go$`,               // Protocol buffer files
+		`vendor/`,                 // Vendored dependencies
+		`api/client`,              // Generated API client
+		`api/model`,               // Generated API models
+		`api/server`,              // Generated API server
+		`scripts/cicd_utils\.go$`, // Exclude this file itself to avoid replacing the regex pattern
+	}
+
+	// Find all .go files
+	var goFiles []string
+
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() && strings.HasSuffix(path, ".go") {
+			// Check if file should be excluded
+			excluded := false
+
+			for _, pattern := range excludedPatterns {
+				matched, err := regexp.MatchString(pattern, path)
+				if err != nil {
+					return fmt.Errorf("invalid regex pattern %s: %w", pattern, err)
+				}
+
+				if matched {
+					excluded = true
+
+					break
+				}
+			}
+
+			if !excluded {
+				goFiles = append(goFiles, path)
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error walking directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(goFiles) == 0 {
+		fmt.Fprintln(os.Stderr, "No Go files found to process")
+
+		return
+	}
+
+	fmt.Fprintf(os.Stderr, "Found %d Go files to process\n", len(goFiles))
+
+	// Process each file
+	filesModified := 0
+	totalReplacements := 0
+
+	for _, filePath := range goFiles {
+		replacements, err := processGoFile(filePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error processing %s: %v\n", filePath, err)
+
+			continue
+		}
+
+		if replacements > 0 {
+			filesModified++
+			totalReplacements += replacements
+			fmt.Fprintf(os.Stderr, "Modified %s: %d replacements\n", filePath, replacements)
+		}
+	}
+
+	// Summary
+	fmt.Fprintf(os.Stderr, "\n=== GOFUMPTER SUMMARY ===\n")
+	fmt.Fprintf(os.Stderr, "Files processed: %d\n", len(goFiles))
+	fmt.Fprintf(os.Stderr, "Files modified: %d\n", filesModified)
+	fmt.Fprintf(os.Stderr, "Total replacements: %d\n", totalReplacements)
+
+	if filesModified > 0 {
+		fmt.Fprintln(os.Stderr, "\n✅ Successfully applied custom Go source code fixes")
+		fmt.Fprintln(os.Stderr, "Please review and commit the changes")
+		os.Exit(1) // Exit with error to indicate files were modified
+	} else {
+		fmt.Fprintln(os.Stderr, "\n✅ All Go files are already properly formatted")
+	}
+}
+
+func processGoFile(filePath string) (int, error) {
+	// Read the file
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	originalContent := string(content)
+
+	// Replace interface{} with any
+	// Use a regex to match interface{} as a whole word, not part of other identifiers
+	// Construct the pattern to avoid self-replacement in this source file
+	interfacePattern := `interface\{\}`
+	re := regexp.MustCompile(interfacePattern)
+	modifiedContent := re.ReplaceAllString(originalContent, "any")
+
+	// Count actual replacements by comparing interface{} counts
+	originalInterfaceCount := strings.Count(originalContent, "interface{}")
+	modifiedInterfaceCount := strings.Count(modifiedContent, "interface{}")
+	replacements := originalInterfaceCount - modifiedInterfaceCount
+
+	// Only write if there were changes
+	if replacements > 0 {
+		err = os.WriteFile(filePath, []byte(modifiedContent), 0o600)
+		if err != nil {
+			return 0, fmt.Errorf("failed to write file: %w", err)
+		}
+	}
+
+	return replacements, nil
 }
