@@ -49,12 +49,3 @@
 - **Priority**: Medium - Code quality improvement
 
 ---
-
-## Common Magic Values to Watch For
-
-- HTTP status codes: `200`, `404`, `500`
-- Timeouts: `30`, `60`, `300` (seconds)
-- Buffer sizes: `1024`, `4096`
-- Retry counts: `3`, `5`, `10`
-- Port numbers: `8080`, `5432`
-- String literals: `"localhost"`, `"admin"`, `"default"`
