@@ -1,4 +1,4 @@
-﻿--
+--
 -- SQLite database schema
 --
 

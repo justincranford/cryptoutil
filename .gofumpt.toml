@@ -1,0 +1,9 @@
+# gofumpt configuration for cryptoutil project
+# gofumpt is a stricter gofmt with additional formatting rules
+# Usage: gofumpt -extra -w . (applied via pre-commit hooks)
+
+# Enable extra formatting rules beyond standard gofmt
+extra-rules = true
+
+# Module path for import grouping (groups local imports together)
+module-path = "github.com/jcranford/cryptoutil"

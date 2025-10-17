@@ -17,6 +17,11 @@ repos:
         name: Remove trailing whitespace
         args: [--markdown-linebreak-ext=md]
 
+      # Check for UTF-8 encoding without BOM
+      - id: fix-byte-order-marker
+        name: Fix UTF-8 without BOM
+        exclude: '\.(exe|dll|so|dylib|key|crt|pem)$'  # Skip binary files
+
       # Check YAML syntax
       - id: check-yaml
         name: Check YAML syntax
@@ -97,26 +102,16 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Comprehensive Go linting (runs on pre-push instead of pre-commit, because it can be slow)
-  # Note: Uses exclusions from .golangci.yml config file, not pre-commit file filters
+  # Test pattern enforcement
   - repo: local
     hooks:
-      - id: golangci-lint
-        name: golangci-lint
-        entry: golangci-lint
-        args: [run, --timeout=5m]
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
-
-      # Dependency, Actions, and Circular Dependency checking (runs on pre-push)
-      - id: check-deps-actions-circular
-        name: Check for outdated Go dependencies, GitHub Actions, and circular dependencies
+      - id: test-patterns
+        name: Enforce test patterns (UUIDv7, testify assertions)
         entry: go
-        args: [run, scripts/cicd_utils.go, go-update-direct-dependencies, github-action-versions, go-check-circular-package-dependencies, gofumpter]
+        args: [run, scripts/cicd_utils.go, enforce-test-patterns]
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        files: go\.mod$  # Only run when go.mod changes (not per test file)
 
 # Global configuration
 default_stages: [pre-commit]

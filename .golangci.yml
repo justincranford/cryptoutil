@@ -126,6 +126,59 @@ linters-settings:
         alias: fiber
       - pkg: github.com/stretchr/testify
         alias: testify
+      # Cryptoutil-specific aliases (camelCase with cryptoutil prefix)
+      - pkg: github.com/jcranford/cryptoutil/internal/client
+        alias: cryptoutilClient
+      - pkg: github.com/jcranford/cryptoutil/internal/cmd
+        alias: cryptoutilCmd
+      - pkg: github.com/jcranford/cryptoutil/internal/common/apperr
+        alias: cryptoutilApperr
+      - pkg: github.com/jcranford/cryptoutil/internal/common/config
+        alias: cryptoutilConfig
+      - pkg: github.com/jcranford/cryptoutil/internal/common/container
+        alias: cryptoutilContainer
+      - pkg: github.com/jcranford/cryptoutil/internal/common/crypto
+        alias: cryptoutilCrypto
+      - pkg: github.com/jcranford/cryptoutil/internal/common/pool
+        alias: cryptoutilPool
+      - pkg: github.com/jcranford/cryptoutil/internal/common/telemetry
+        alias: cryptoutilTelemetry
+      - pkg: github.com/jcranford/cryptoutil/internal/common/util
+        alias: cryptoutilUtil
+      - pkg: github.com/jcranford/cryptoutil/internal/server/application
+        alias: cryptoutilApplication
+      - pkg: github.com/jcranford/cryptoutil/internal/server/barrier
+        alias: cryptoutilBarrier
+      - pkg: github.com/jcranford/cryptoutil/internal/server/businesslogic
+        alias: cryptoutilBusinesslogic
+      - pkg: github.com/jcranford/cryptoutil/internal/server/handler
+        alias: cryptoutilHandler
+      - pkg: github.com/jcranford/cryptoutil/internal/server/repository
+        alias: cryptoutilRepository
+      # Crypto/acronym aliases (standard Go conventions)
+      - pkg: crypto/aes
+        alias: aes
+      - pkg: crypto/ecdsa
+        alias: ecdsa
+      - pkg: crypto/hmac
+        alias: hmac
+      - pkg: crypto/rsa
+        alias: rsa
+      - pkg: crypto/sha256
+        alias: sha256
+      - pkg: crypto/sha512
+        alias: sha512
+      - pkg: crypto/rand
+        alias: crand
+      # JOSE (JSON Web Encryption/Signatures) library aliases
+      - pkg: github.com/lestrrat-go/jwx/v3/jwe
+        alias: joseJwe
+      - pkg: github.com/lestrrat-go/jwx/v3/jwk
+        alias: joseJwk
+      - pkg: github.com/lestrrat-go/jwx/v3/jws
+        alias: joseJws
+      - pkg: github.com/lestrrat-go/jwx/v3/jwa
+        alias: joseJwa
 
   misspell:
     locale: US
