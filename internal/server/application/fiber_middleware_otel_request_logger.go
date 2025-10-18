@@ -42,7 +42,6 @@ import (
 func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.TelemetryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now().UTC()
-		err := c.Next()
 
 		userContext := c.UserContext()
 		span := trace.SpanFromContext(userContext)
@@ -80,6 +79,7 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.T
 		}
 
 		// Add error information if present
+		err := c.Next()
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
 		}
