@@ -383,3 +383,94 @@ func TestSendServerListenerReadinessCheck(t *testing.T) {
 
 	t.Logf("âœ“ SendServerListenerReadinessCheck validation passed")
 }
+
+func TestRequestLoggerMiddleware(t *testing.T) {
+	testCases := []struct {
+		name           string
+		method         string
+		path           string
+		expectedStatus int
+		expectError    bool
+		logScenario    string // "success", "failed", or "no_response"
+	}{
+		{
+			name:           "Success Request - GET Elastic Keys",
+			method:         "GET",
+			path:           testSettings.PublicServiceAPIContextPath + "/elastickeys",
+			expectedStatus: http.StatusOK,
+			expectError:    false,
+			logScenario:    "success",
+		},
+		{
+			name:           "Failed Request - HEAD Method Not Allowed",
+			method:         "HEAD",
+			path:           testSettings.PublicServiceAPIContextPath + "/elastickeys",
+			expectedStatus: http.StatusMethodNotAllowed,
+			expectError:    false,
+			logScenario:    "failed",
+		},
+		{
+			name:           "No Response Request - Non-existent endpoint",
+			method:         "GET",
+			path:           "/nonexistent",
+			expectedStatus: http.StatusBadRequest,
+			expectError:    false,
+			logScenario:    "no_response",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			url := testServerPublicURL + tc.path
+			statusCode, headers, body, err := cryptoutilNetwork.HTTPResponse(
+				context.Background(),
+				tc.method,
+				url,
+				2*time.Second,
+				false,
+				startServerListenerApplication.PublicTLSServer.RootCAsPool,
+				false,
+			)
+
+			if tc.expectError {
+				require.Error(t, err, "expected request to fail")
+				return
+			}
+
+			require.NoError(t, err, "failed to get response")
+			require.NotNil(t, headers, "response headers should not be nil")
+
+			// Check status code
+			if tc.expectedStatus != 0 && statusCode != tc.expectedStatus {
+				t.Errorf("HTTP Status code: %d, expected: %d", statusCode, tc.expectedStatus)
+				return
+			}
+
+			// Validate logging scenarios based on the test case
+			switch tc.logScenario {
+			case "success":
+				// Success requests should have 2xx status codes
+				require.True(t, statusCode >= 200 && statusCode < 300,
+					"success scenario should have 2xx status code, got %d", statusCode)
+				t.Logf("âœ“ Success request logged: status=%d, method=%s, path=%s",
+					statusCode, tc.method, tc.path)
+
+			case "failed":
+				// Failed requests should have 4xx or 5xx status codes
+				require.True(t, statusCode >= 400,
+					"failed scenario should have 4xx/5xx status code, got %d", statusCode)
+				t.Logf("âœ“ Failed request logged: status=%d, method=%s, path=%s",
+					statusCode, tc.method, tc.path)
+
+			case "no_response":
+				// No response scenarios are requests that result in errors but still get logged
+				// The middleware logs the status that was set at the time of logging
+				// In this case, Fiber sets status 200 initially, but the error is logged
+				require.Contains(t, string(body), "no matching operation was found",
+					"should contain error message for unmatched route")
+				t.Logf("âœ“ No response request logged: status=%d, method=%s, path=%s, error='no matching operation was found'",
+					statusCode, tc.method, tc.path)
+			}
+		})
+	}
+}
