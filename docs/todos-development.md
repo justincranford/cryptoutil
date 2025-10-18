@@ -60,6 +60,30 @@
 - **Expected Savings**: ~10-15 seconds per run (minor optimization)
 - **Priority**: Low - workflow already runs efficiently with scan profiles
 
+### Task DW5: VS Code Settings Optimization for Go Development
+- **Description**: Review and implement recommended VS Code settings for enhanced Go development experience
+- **Current State**: Partially implemented - some settings added, others still pending
+- **Action Items**:
+  - **✅ COMPLETED - Markdown Settings Enhancements**:
+    - ✅ Enable `markdown.validate.enabled: true` for link validation in README.md and docs
+    - ✅ Enable `markdown.math.enabled: true` for technical documentation with math formulas
+    - ✅ Set `markdown.updateLinksOnFileMove.enabled: "prompt"` to maintain link integrity during refactoring
+  - **✅ COMPLETED - Copilot Chat Improvements**:
+    - ✅ Enable `chat.checkpoints.enabled: true` for safe AI code change experimentation
+    - ✅ Set `chat.editRequests: "inline"` for refining AI prompts without losing context
+  - **✅ COMPLETED - Copilot Customization**:
+    - ✅ Configure `github.copilot.chat.reviewSelection.instructions` with Go-specific code review guidelines
+    - ✅ Set up `github.copilot.chat.commitMessageGeneration.instructions` for conventional commit format
+  - **🔄 PENDING - Go Extension Optimizations**:
+    - Enable `go.coverOnSave: true` for automatic test coverage on file save (currently `false`)
+    - Enable `go.testExplorer.enable: true` for built-in test explorer integration
+    - Set `go.vetOnSave: "package"` for enhanced error detection (currently `"workspace"`)
+    - Set `go.terminal.activateEnvironment: true` to ensure Go environment in integrated terminals
+- **Files**: `.vscode/settings.json`
+- **Expected Outcome**: Enhanced development productivity with better tooling integration
+- **Priority**: LOW - Developer experience enhancement
+- **Timeline**: Q4 2025
+
 ---
 
 ## 🟢 LOW - Documentation & API Management
