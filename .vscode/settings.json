@@ -1,16 +1,15 @@
 {
-  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
-
-  // GitHub Copilot Privacy Settings
-  "github.copilot.advanced.anonymizeData": true,
-  "github.copilot.advanced.shareMetadata": false,
-  "github.copilot.advanced.telemetry": "off",
-  "github.copilot.advanced.listCount": 3,
-
+  // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
   "markdown.preview.scrollEditorWithPreview": true,
   "markdown.preview.openMarkdownLinks": "inPreview",
+
+  // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
   "files.encoding": "utf8",
 
+  // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
+  "editor.aiStats.enabled": true, // Experimental setting
+
+  // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
     "/^go (test|run|build|mod|generate)/": true,
     "/^docker compose (up|down|logs|ps)/": true,
@@ -18,14 +17,14 @@
     "/^Remove-Item\\b/i": false,
     "/\\.ps1\\b/i": { "approve": false, "matchCommandLine": true }
   },
-  "github.copilot.chat.virtualTools.threshold": 64,
-  "editor.aiStats.enabled": true,
-  "chat.math.enabled": true,
-  "chat.todoListTool.enabled": true,
+  "github.copilot.chat.virtualTools.threshold": 64, // Experimental setting
+  "chat.math.enabled": true, // Experimental setting
 
-  // Go Language Server and Development Settings
+  // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+
+  // Go Extension Settings https://github.com/golang/vscode-go/blob/master/docs/settings.md
   "go.useLanguageServer": true,
-  // Ensure VS Code uses gopls explicitly (helps when multiple Go toolchains are present)
   "go.alternateTools": {
     "gopls": "gopls"
   },
@@ -36,18 +35,12 @@
   ],
   "go.formatTool": "gofumpt",
   "go.lintTool": "golangci-lint",
-  "go.vetOnSave": "package",
-  "go.formatOnSave": true,
-  "go.lintOnSave": "package",
+  "go.vetOnSave": "workspace",
+  "go.lintOnSave": "workspace",
   "go.testOnSave": false,
   "go.coverOnSave": false,
-  "go.gocodeAutoBuild": false,
-  "go.useCodeSnippetsOnFunctionSuggest": true,
-  "go.formatOnType": true,
+  "go.formatOnSave": true,
   "go.suggest.snippets": true,
-  "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
-
-  // Go Language Server (gopls) Configuration
   "gopls": {
     "ui.completion.usePlaceholders": false,
     "ui.completion.completionBudget": "100ms",
