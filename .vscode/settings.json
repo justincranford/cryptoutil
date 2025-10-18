@@ -51,7 +51,7 @@
   "go.formatTool": "gofumpt",
   "go.lintTool": "golangci-lint",
   "go.vetOnSave": "off",
-  "go.lintOnSave": "workspace",
+  "go.lintOnSave": "package",
   "go.testOnSave": false,
   "go.coverOnSave": false,
   "go.formatOnSave": true,
