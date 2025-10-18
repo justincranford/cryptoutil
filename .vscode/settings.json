@@ -2,6 +2,9 @@
   // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
   "markdown.preview.scrollEditorWithPreview": true,
   "markdown.preview.openMarkdownLinks": "inPreview",
+  "markdown.validate.enabled": true,
+  "markdown.math.enabled": true,
+  "markdown.updateLinksOnFileMove.enabled": "prompt",
 
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
   "files.encoding": "utf8",
@@ -19,9 +22,21 @@
   },
   "github.copilot.chat.virtualTools.threshold": 64, // Experimental setting
   "chat.math.enabled": true, // Experimental setting
+  "chat.checkpoints.enabled": true,
+  "chat.editRequests": "inline",
 
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.reviewSelection.instructions": [
+    {
+      "text": "Follow Go best practices: clear naming, proper error handling, comprehensive tests, and maintainable code structure."
+    }
+  ],
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Use conventional commit format: type(scope): description. Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert."
+    }
+  ],
 
   // Go Extension Settings https://github.com/golang/vscode-go/blob/master/docs/settings.md
   "go.useLanguageServer": true,
@@ -41,6 +56,7 @@
   "go.coverOnSave": false,
   "go.formatOnSave": true,
   "go.suggest.snippets": true,
+  "go.toolsManagement.autoUpdate": true,
   "gopls": {
     "ui.completion.usePlaceholders": false,
     "ui.completion.completionBudget": "100ms",
