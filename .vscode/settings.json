@@ -11,6 +11,7 @@
 
   // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
   "editor.aiStats.enabled": true, // Experimental setting
+  "editor.rulers": [40, 80, 120, 160, 200],
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
