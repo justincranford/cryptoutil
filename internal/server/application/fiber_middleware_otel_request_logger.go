@@ -41,27 +41,49 @@ import (
 //   - Note: Status may be 200 (initial/default) when middleware executes, but error field captures the actual issue
 func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.TelemetryService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// PHASE 1: PRE-REQUEST PROCESSING
+		// Capture timing and request details that are available before processing
 		start := time.Now().UTC()
 
+		// Extract tracing information (available at request start)
 		userContext := c.UserContext()
 		span := trace.SpanFromContext(userContext)
 		spanContext := span.SpanContext()
 
+		// Get request details (available at request start)
 		request := c.Request()
-		response := c.Response()
 
-		// Log comprehensive request details with OpenTelemetry correlation
+		// PHASE 2: REQUEST PROCESSING
+		// Execute the request through subsequent middleware and handlers
+		// This populates the response object with status, headers, and body
+		err := c.Next()
+
+		// PHASE 3: POST-REQUEST PROCESSING
+		// Now response details are available for logging
+		response := c.Response()
+		duration := time.Since(start)
+
+		// Build comprehensive logging arguments with all available data
 		args := []any{
+			// Response details (now available after processing)
 			slog.Int("status", response.StatusCode()),
-			slog.Duration("duration", time.Since(start)),
+			slog.Duration("duration", duration),
+
+			// Request size details
 			slog.Int("reqhead", len(request.Header.Header())),
 			slog.Int("reqbody", len(request.Body())),
+
+			// Response size details
 			slog.Int("resphead", len(response.Header.Header())),
 			slog.Int("respbody", len(response.Body())),
+
+			// Request metadata
 			slog.String("method", c.Method()),
 			slog.String("path", c.Path()),
 			slog.String("ip", c.IP()),
 			slog.String("user_agent", c.Get("User-Agent")),
+
+			// Tracing correlation
 			slog.String("trace_id", spanContext.TraceID().String()),
 			slog.String("span_id", spanContext.SpanID().String()),
 		}
@@ -78,12 +100,12 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.T
 			args = append(args, slog.String("query", string(query)))
 		}
 
-		// Add error information if present
-		err := c.Next()
+		// Add error information if request processing failed
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
 		}
 
+		// Log the complete request/response details
 		telemetryService.Slogger.Info("http_request", args...)
 
 		return err //nolint:wrapcheck
