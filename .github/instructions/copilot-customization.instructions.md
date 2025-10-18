@@ -10,6 +10,7 @@ applyTo: "**"
 - Each instruction should be a single, simple statement
 - Don't reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
+- When completing a task in a docs/todos-*.md file, delete the completed task; don't keep it and mark it as completed, delete it to keep the file focused on remaining TODOs only
 
 ## Authorized Commands Reference
 
