@@ -443,6 +443,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			// Check status code
 			if tc.expectedStatus != 0 && statusCode != tc.expectedStatus {
 				t.Errorf("HTTP Status code: %d, expected: %d", statusCode, tc.expectedStatus)
+
 				return
 			}
 

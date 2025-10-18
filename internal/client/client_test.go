@@ -39,6 +39,7 @@ var (
 
 func TestMain(m *testing.M) {
 	var err error
+
 	var startServerListenerApplication *cryptoutilServerApplication.ServerApplicationListener
 
 	startServerListenerApplication, err = cryptoutilServerApplication.StartServerListenerApplication(testSettings)
