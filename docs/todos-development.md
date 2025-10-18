@@ -60,6 +60,115 @@
 - **Expected Savings**: ~10-15 seconds per run (minor optimization)
 - **Priority**: Low - workflow already runs efficiently with scan profiles
 
+### Task DW5: Evaluate and Configure Go Extension Settings
+- **Description**: Systematically evaluate and configure VS Code Go extension settings for optimal development experience
+- **Current State**: Basic settings configured, comprehensive evaluation needed
+- **Action Items**: Review and decide on each setting below
+
+#### 🟢 **RECOMMENDED TO INCLUDE** (High-value, safe settings)
+- **`go.terminal.activateEnvironment: true`** - Default: `true`, Recommended: ✅ INCLUDE
+  - Ensures Go environment variables are available in VS Code integrated terminals
+  - Improves development workflow consistency
+- **`go.testExplorer.enable: true`** - Default: `true`, Recommended: ✅ INCLUDE
+  - Enables built-in test explorer for better test management
+  - Provides visual test execution and results
+- **`go.toolsManagement.autoUpdate: true`** - Default: `false`, Recommended: ✅ INCLUDE
+  - Automatically keeps Go tools (gopls, etc.) updated
+  - Ensures latest features and bug fixes
+- **`go.tasks.provideDefault: true`** - Default: `true`, Recommended: ✅ INCLUDE
+  - Provides default Go build/test tasks
+  - Enables standard VS Code task integration
+- **`go.enableCodeLens: true`** - Default: `true`, Recommended: ✅ INCLUDE
+  - Shows run/debug test buttons above test functions
+  - Improves test execution workflow
+- **`go.editorContextMenuCommands.testAtCursor: true`** - Default: `true`, Recommended: ✅ INCLUDE
+  - Adds "Run Test at Cursor" to editor context menu
+  - Quick access to test execution
+- **`go.editorContextMenuCommands.debugTestAtCursor: true`** - Default: `false`, Recommended: ✅ INCLUDE
+  - Adds "Debug Test at Cursor" to editor context menu
+  - Enables debugging individual tests
+- **`go.inlayHints.parameterNames: true`** - Default: `false`, Recommended: ✅ INCLUDE
+  - Shows parameter names in function calls
+  - Improves code readability
+- **`go.inlayHints.assignVariableTypes: true`** - Default: `false`, Recommended: ✅ INCLUDE
+  - Shows variable types in assignments
+  - Reduces need to hover for type information
+
+#### 🟡 **RECOMMENDED TO EXCLUDE** (Performance/safety concerns)
+- **`go.coverOnSave: false`** - Default: `false`, Recommended: ❌ EXCLUDE
+  - Would run test coverage on every file save
+  - Performance impact, especially with large test suites
+- **`go.vetOnSave: "off"`** - Default: `"package"`, Recommended: ❌ EXCLUDE
+  - Would run `go vet` on save (redundant with golangci-lint)
+  - Performance impact, duplicate analysis
+- **`go.lintOnSave: "workspace"`** - Default: `"package"`, Recommended: ❌ EXCLUDE
+  - Would lint entire workspace on save
+  - Significant performance impact on large projects
+
+#### 🤔 **NEEDS EVALUATION** (Project-specific decision needed)
+- **`go.buildOnSave: "off"`** - Default: `"package"`, Recommended: ❓ EVALUATE
+  - Compiles code on save using 'go build'
+  - May be useful for immediate feedback but can be slow
+- **`go.testOnSave: false`** - Default: `false`, Recommended: ❓ EVALUATE
+  - Runs tests on save for current package
+  - Useful for TDD but may be disruptive with auto-save
+- **`go.coverOnSingleTest: false`** - Default: `false`, Recommended: ❓ EVALUATE
+  - Shows coverage when running individual tests
+  - Useful for focused coverage analysis
+- **`go.experiments.testExplorer: true`** - Default: `true`, Recommended: ❓ EVALUATE
+  - Uses experimental test explorer (already enabled)
+  - May have new features but could be unstable
+- **`go.survey.prompt: true`** - Default: `true`, Recommended: ❓ EVALUATE
+  - Prompts for Go developer surveys
+  - Contributes to Go ecosystem but may be annoying
+
+#### 🔧 **CONFIGURATION SETTINGS** (Set as needed)
+- **`go.buildFlags: []`** - Default: `[]`, Recommended: ❓ CONFIGURE IF NEEDED
+  - Additional flags for `go build`/`go test`
+  - Use for custom build requirements (e.g., `["-ldflags='-s'"]`)
+- **`go.buildTags: ""`** - Default: `""`, Recommended: ❓ CONFIGURE IF NEEDED
+  - Build tags for conditional compilation
+  - Use for platform-specific or feature-gated code
+- **`go.testFlags: []`** - Default: `[]`, Recommended: ❓ CONFIGURE IF NEEDED
+  - Additional flags for `go test`
+  - Use for custom test configuration
+- **`go.testTimeout: "30s"`** - Default: `"30s"`, Recommended: ❓ CONFIGURE IF NEEDED
+  - Timeout for test execution
+  - Increase for slow integration tests
+- **`go.lintFlags: []`** - Default: `[]`, Recommended: ❓ CONFIGURE IF NEEDED
+  - Additional flags for linter
+  - Configure golangci-lint behavior
+- **`go.toolsEnvVars: {}`** - Default: `{}`, Recommended: ❓ CONFIGURE IF NEEDED
+  - Environment variables for Go tools
+  - Use for CGO or custom tool configuration
+
+#### 📊 **VISUALIZATION SETTINGS** (Personal preference)
+- **`go.coverageDecorator: {type: "highlight", ...}`** - Default: complex object, Recommended: ❓ PERSONAL PREFERENCE
+  - Configures test coverage visualization
+  - Choose between highlight or gutter display
+- **`go.coverMode: "default"`** - Default: `"default"`, Recommended: ❓ PERSONAL PREFERENCE
+  - Code coverage mode (set/count/atomic)
+  - "atomic" for concurrent programs
+- **`go.showWelcome: true`** - Default: `true`, Recommended: ❓ PERSONAL PREFERENCE
+  - Shows welcome screen on first install
+  - Disable if you find it annoying
+
+#### 🧪 **ADVANCED/EXPERIMENTAL SETTINGS** (Use with caution)
+- **`go.delveConfig: {}`** - Default: complex object, Recommended: ❌ AVOID UNLESS NEEDED
+  - Advanced debugger configuration
+  - Only modify if you have specific debugging requirements
+- **`go.trace.server: "off"`** - Default: `"off"`, Recommended: ❌ AVOID UNLESS DEBUGGING
+  - Traces communication between VS Code and language server
+  - Only enable for troubleshooting LSP issues
+- **`go.languageServerFlags: []`** - Default: `[]`, Recommended: ❌ AVOID UNLESS NEEDED
+  - Additional flags for gopls language server
+  - Only modify for advanced LSP configuration
+
+- **Files**: `.vscode/settings.json`
+- **Expected Outcome**: Optimized VS Code Go development experience with appropriate settings
+- **Priority**: LOW - Developer experience enhancement
+- **Timeline**: Q4 2025
+
 ---
 
 ## 🟢 LOW - Documentation & API Management
