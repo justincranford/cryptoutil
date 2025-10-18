@@ -60,20 +60,6 @@
 - **Expected Savings**: ~10-15 seconds per run (minor optimization)
 - **Priority**: Low - workflow already runs efficiently with scan profiles
 
-### Task DW5: VS Code Settings Optimization for Go Development
-- **Description**: Review and implement recommended VS Code settings for enhanced Go development experience
-- **Current State**: Partially implemented - some settings added, others still pending
-- **Action Items**:
-  - **🔄 PENDING - Go Extension Optimizations**:
-    - Enable `go.coverOnSave: true` for automatic test coverage on file save (currently `false`)
-    - ✅ Enable `go.testExplorer.enable: true` for built-in test explorer integration
-    - ✅ Set `go.vetOnSave: "off"` (replaced with golangci-lint which includes govet + 30+ additional linters)
-    - Set `go.terminal.activateEnvironment: true` to ensure Go environment in integrated terminals
-- **Files**: `.vscode/settings.json`
-- **Expected Outcome**: Enhanced development productivity with better tooling integration
-- **Priority**: LOW - Developer experience enhancement
-- **Timeline**: Q4 2025
-
 ---
 
 ## 🟢 LOW - Documentation & API Management

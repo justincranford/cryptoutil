@@ -51,11 +51,9 @@
   "go.formatTool": "gofumpt",
   "go.lintTool": "golangci-lint",
   "go.vetOnSave": "off",
-  "go.lintOnSave": "package",
+  "go.lintOnSave": "file",
   "go.testOnSave": false,
   "go.coverOnSave": false,
-  "go.formatOnSave": true,
-  "go.suggest.snippets": true,
   "go.testExplorer.enable": true,
   "go.toolsManagement.autoUpdate": true,
   "gopls": {
