@@ -31,36 +31,35 @@ const (
 )
 
 var (
-	testSettings         = cryptoutilConfig.RequireNewForTest("client_test")
+	testSettings         = cryptoutilConfig.RequireNewForTest("application_test")
 	testServerPublicURL  string
 	testServerPrivateURL string
 	testRootCAsPool      *x509.CertPool
 )
 
 func TestMain(m *testing.M) {
-	var rc int
+	var err error
 
-	func() {
-		startServerListenerApplication, err := cryptoutilServerApplication.StartServerListenerApplication(testSettings)
-		if err != nil {
-			log.Fatalf("failed to start server application: %v", err)
-		}
+	var startServerListenerApplication *cryptoutilServerApplication.ServerApplicationListener
 
-		go startServerListenerApplication.StartFunction()
+	startServerListenerApplication, err = cryptoutilServerApplication.StartServerListenerApplication(testSettings)
+	if err != nil {
+		log.Fatalf("failed to start server application: %v", err)
+	}
 
-		defer startServerListenerApplication.ShutdownFunction()
+	go startServerListenerApplication.StartFunction()
 
-		// Build URLs using actual port bindings
-		testServerPublicURL = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
-		testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
+	defer startServerListenerApplication.ShutdownFunction()
 
-		// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
-		testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
-		WaitUntilReady(&testServerPrivateURL, testServerReadyTimeout, testServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+	// Build URLs using actual port bindings
+	testServerPublicURL = testSettings.BindPublicProtocol + "://" + testSettings.BindPublicAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPublicPort))
+	testServerPrivateURL = testSettings.BindPrivateProtocol + "://" + testSettings.BindPrivateAddress + ":" + strconv.Itoa(int(startServerListenerApplication.ActualPrivatePort))
 
-		rc = m.Run()
-	}()
-	os.Exit(rc)
+	// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
+	testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
+	WaitUntilReady(&testServerPrivateURL, testServerReadyTimeout, testServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+
+	os.Exit(m.Run())
 }
 
 type elasticKeyTestCase struct {
