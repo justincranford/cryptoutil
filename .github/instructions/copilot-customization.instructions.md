@@ -98,3 +98,55 @@ These commands require manual authorization and should be avoided when possible:
 - Use HTTP for environments with restrictive firewalls or universal compatibility needs
 - Both protocols support traces, metrics, and logs
 - Endpoint format: `protocol://hostname:port` (e.g., `grpc://otel-collector:4317`, `http://otel-collector:4318`)
+
+## VS Code Go Development Settings
+
+### Intelligent Variable Naming (F2 Rename)
+The workspace includes optimized VS Code settings in `.vscode/settings.json` that enable IntelliJ-like intelligent variable naming:
+
+**Key Settings for Intelligent F2 Renaming:**
+```json
+{
+  "go.useLanguageServer": true,
+  "go.alternateTools": {
+    "gopls": "gopls"
+  },
+  "go.languageServerFlags": [
+    "-rpc.trace",
+    "serve",
+    "--debug=localhost:6060"
+  ],
+  "gopls": {
+    "ui.completion.usePlaceholders": false,
+    "ui.completion.completionBudget": "100ms",
+    "ui.diagnostic.analyses": {
+      "unusedparams": true,
+      "unusedvariables": true
+    },
+    "formatting.gofumpt": true,
+    "formatting.local": "cryptoutil",
+    "ui.inlayhint.hints": {
+      "assignVariableTypes": true,
+      "compositeLiteralFields": true,
+      "compositeLiteralTypes": true,
+      "constantValues": true,
+      "functionTypeParameters": true,
+      "parameterNames": true,
+      "rangeVariableTypes": true
+    }
+  }
+}
+```
+
+**What These Settings Enable:**
+- **F2 Rename Symbol**: Provides context-aware variable name suggestions (like IntelliJ/Eclipse)
+- **Inlay Hints**: Shows parameter names, variable types, and other contextual information
+- **Enhanced Completion**: Better code completion with proper placeholders
+- **Automatic Formatting**: Uses gofumpt for strict Go formatting
+- **Real-time Diagnostics**: Unused variable detection and other code analysis
+
+**Usage:**
+- Press `F2` on any variable/function to rename with intelligent suggestions
+- Inlay hints appear automatically showing parameter names and types
+- Formatting happens automatically on save
+- Code analysis runs continuously for immediate feedback

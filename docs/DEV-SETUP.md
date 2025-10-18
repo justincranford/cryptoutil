@@ -413,6 +413,35 @@ go run main.go --dev --config=configs/dev/config.yml
 - **Health Checks**: http://localhost:9090/livez, http://localhost:9090/readyz
 - **Grafana**: http://localhost:3000 (admin/admin)
 
+### 4. Documentation Maintenance
+
+**Keep these files up-to-date as the project evolves:**
+
+- **`.github/instructions/`** - **CRITICAL: All Copilot instruction files** that guide AI-assisted development:
+  - `copilot-customization.instructions.md` - VS Code Copilot behavior and tool usage
+  - `code-quality.instructions.md` - Code standards and linting compliance
+  - `testing.instructions.md` - Testing patterns and coverage requirements
+  - `architecture.instructions.md` - Application architecture and design patterns
+  - `security.instructions.md` - Security implementation guidelines
+  - `commits.instructions.md` - Conventional commit message standards
+  - `formatting.instructions.md` - Code formatting and encoding standards
+  - `project-layout.instructions.md` - Go project structure conventions
+  - And all other `.instructions.md` files for specific domains
+- **`README.md`** - Main project documentation and usage examples
+- **`docs/README.md`** - Deep-dive technical documentation and architecture details
+- **`docs/DEV-SETUP.md`** - This development setup guide
+- **`.vscode/settings.json`** - VS Code workspace configuration and Go language server settings
+- **`.github/workflows/`** - CI/CD pipeline configurations and GitHub Actions
+- **`scripts/`** - All utility scripts and their documentation
+
+**When making changes:**
+- Update tool versions and installation instructions when dependencies change
+- Document new setup requirements or configuration options
+- Keep platform-specific instructions current across Windows, Linux, and macOS
+- Test setup instructions on clean systems periodically
+- Update troubleshooting section with new common issues and solutions
+- **Especially important**: Keep Copilot instruction files current as development practices evolve
+
 ## Verification
 
 ### Run Full Test Suite
