@@ -5,6 +5,8 @@
   "markdown.validate.enabled": true,
   "markdown.math.enabled": true,
   "markdown.updateLinksOnFileMove.enabled": "prompt",
+  "markdown.validate.fragmentLinks.enabled": true,
+  "markdown.validate.fileLinks.enabled": true,
 
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
   "files.encoding": "utf8",
@@ -24,7 +26,9 @@
   "github.copilot.chat.virtualTools.threshold": 64, // Experimental setting
   "chat.math.enabled": true, // Experimental setting
   "chat.checkpoints.enabled": true,
+  "chat.checkpoints.showFileChanges": true,
   "chat.editRequests": "inline",
+  "workbench.secondarySideBar.defaultVisibility": "visible",
 
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
@@ -47,6 +51,7 @@
   "go.coverOnSave": false,
   "go.testExplorer.enable": true,
   "go.toolsManagement.autoUpdate": true,
+  "go.terminal.activateEnvironment": true,
   "gopls": {
     "ui.completion.usePlaceholders": false,
     "ui.completion.completionBudget": "100ms",
