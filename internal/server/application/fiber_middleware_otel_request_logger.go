@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -52,6 +53,13 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.T
 
 		// Get request details (available at request start)
 		request := c.Request()
+		clientIP := c.IP()
+		requestHeaderSize := len(request.Header.Header())
+		requestBodySize := len(request.Body())
+		httpMethod := c.Method()
+		requestPath := c.Path()
+		queryString := request.URI().QueryString()
+		userAgent := c.Get("User-Agent")
 
 		// PHASE 2: REQUEST PROCESSING
 		// Execute the request through subsequent middleware and handlers
@@ -61,43 +69,58 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *telemetryService.T
 		// PHASE 3: POST-REQUEST PROCESSING
 		// Now response details are available for logging
 		response := c.Response()
+		statusCode := response.StatusCode()
+		responseHeaderSize := len(response.Header.Header())
+		responseBodySize := len(response.Body())
 		duration := time.Since(start)
 
 		// Build comprehensive logging arguments with all available data
+		traceID := spanContext.TraceID().String()
+		spanID := spanContext.SpanID().String()
 		args := []any{
 			// Response details (now available after processing)
-			slog.Int("status", response.StatusCode()),
+			slog.Int("status", statusCode),
 			slog.Duration("duration", duration),
 
 			// Request size details
-			slog.Int("reqhead", len(request.Header.Header())),
-			slog.Int("reqbody", len(request.Body())),
+			slog.Int("reqhead", requestHeaderSize),
+			slog.Int("reqbody", requestBodySize),
 
 			// Response size details
-			slog.Int("resphead", len(response.Header.Header())),
-			slog.Int("respbody", len(response.Body())),
+			slog.Int("resphead", responseHeaderSize),
+			slog.Int("respbody", responseBodySize),
 
 			// Request metadata
-			slog.String("method", c.Method()),
-			slog.String("path", c.Path()),
-			slog.String("ip", c.IP()),
-			slog.String("user_agent", c.Get("User-Agent")),
+			slog.String("method", httpMethod),
+			slog.String("path", requestPath),
+			slog.String("ip", clientIP),
+			slog.String("user_agent", userAgent),
 
 			// Tracing correlation
-			slog.String("trace_id", spanContext.TraceID().String()),
-			slog.String("span_id", spanContext.SpanID().String()),
+			slog.String("trace_id", traceID),
+			slog.String("span_id", spanID),
 		}
 
-		// Add request ID if available (from requestid middleware)
-		if requestID := c.Locals("requestid"); requestID != nil {
-			if requestIDStr, ok := requestID.(string); ok {
-				args = append(args, slog.String("req_id", requestIDStr))
+		// Add request ID always (from requestid middleware)
+		// Convert to string representation even if nil or non-string
+		requestID := c.Locals("requestid")
+
+		var requestIDStr string
+
+		if requestID != nil {
+			if str, ok := requestID.(string); ok {
+				requestIDStr = str
+			} else {
+				// Convert non-string values to string representation
+				requestIDStr = fmt.Sprintf("%v", requestID)
 			}
 		}
+		// Always include req_id field, even if empty
+		args = append(args, slog.String("req_id", requestIDStr))
 
 		// Add query string if present
-		if query := request.URI().QueryString(); len(query) > 0 {
-			args = append(args, slog.String("query", string(query)))
+		if len(queryString) > 0 {
+			args = append(args, slog.String("query", string(queryString)))
 		}
 
 		// Add error information if request processing failed

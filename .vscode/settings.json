@@ -21,5 +21,50 @@
   "github.copilot.chat.virtualTools.threshold": 64,
   "editor.aiStats.enabled": true,
   "chat.math.enabled": true,
-  "chat.todoListTool.enabled": true
+  "chat.todoListTool.enabled": true,
+
+  // Go Language Server and Development Settings
+  "go.useLanguageServer": true,
+  // Ensure VS Code uses gopls explicitly (helps when multiple Go toolchains are present)
+  "go.alternateTools": {
+    "gopls": "gopls"
+  },
+  "go.languageServerFlags": [
+    "-rpc.trace",
+    "serve",
+    "--debug=localhost:6060"
+  ],
+  "go.formatTool": "gofmt",
+  "go.lintTool": "golint",
+  "go.vetOnSave": "package",
+  "go.formatOnSave": true,
+  "go.lintOnSave": "package",
+  "go.testOnSave": false,
+  "go.coverOnSave": false,
+  "go.gocodeAutoBuild": false,
+  "go.useCodeSnippetsOnFunctionSuggest": true,
+  "go.formatOnType": true,
+  "go.suggest.snippets": true,
+  "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
+
+  // Go Language Server (gopls) Configuration
+  "gopls": {
+    "ui.completion.usePlaceholders": false,
+    "ui.completion.completionBudget": "100ms",
+    "ui.diagnostic.analyses": {
+      "unusedparams": true,
+      "unusedvariables": true
+    },
+    "formatting.gofumpt": true,
+    "formatting.local": "cryptoutil",
+    "ui.inlayhint.hints": {
+      "assignVariableTypes": true,
+      "compositeLiteralFields": true,
+      "compositeLiteralTypes": true,
+      "constantValues": true,
+      "functionTypeParameters": true,
+      "parameterNames": true,
+      "rangeVariableTypes": true
+    }
+  }
 }
