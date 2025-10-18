@@ -1,21 +1,32 @@
 {
   // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
+  // scrollEditorWithPreview: Sync scroll between editor and preview - Default: true, Recommended: true
   "markdown.preview.scrollEditorWithPreview": true,
+  // openMarkdownLinks: How to open links in markdown files - Default: "inPreview", Recommended: "inPreview"
   "markdown.preview.openMarkdownLinks": "inPreview",
+  // validate.enabled: Enable markdown validation - Default: true, Recommended: true
   "markdown.validate.enabled": true,
+  // math.enabled: Enable math expressions in markdown - Default: false, Recommended: true
   "markdown.math.enabled": true,
+  // updateLinksOnFileMove.enabled: Update links when files are moved - Default: "prompt", Recommended: "prompt"
   "markdown.updateLinksOnFileMove.enabled": "prompt",
-  "markdown.validate.fragmentLinks.enabled": true,
-  "markdown.validate.fileLinks.enabled": true,
+  // validate.fragmentLinks.enabled: Validate fragment links in markdown - Default: "ignore", Recommended: "warning"
+  "markdown.validate.fragmentLinks.enabled": "warning",
+  // validate.fileLinks.enabled: Validate file links in markdown - Default: "ignore", Recommended: "warning"
+  "markdown.validate.fileLinks.enabled": "warning",
 
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
+  // encoding: File encoding to use - Default: "utf8", Recommended: "utf8"
   "files.encoding": "utf8",
 
   // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
+  // aiStats.enabled: Enable AI-powered statistics in editor - Default: false, Recommended: true (experimental)
   "editor.aiStats.enabled": true, // Experimental setting
+  // rulers: Show vertical rulers at specified columns - Default: [], Recommended: [40, 80, 120, 160, 200]
   "editor.rulers": [40, 80, 120, 160, 200],
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
+  // tools.terminal.autoApprove: Auto-approve terminal commands matching patterns - Default: {}, Recommended: configured patterns
   "chat.tools.terminal.autoApprove": {
     "/^go (test|run|build|mod|generate)/": true,
     "/^docker compose (up|down|logs|ps)/": true,
@@ -23,51 +34,84 @@
     "/^Remove-Item\\b/i": false,
     "/\\.ps1\\b/i": { "approve": false, "matchCommandLine": true }
   },
+  // github.copilot.chat.virtualTools.threshold: Threshold for virtual tools - Default: 64, Recommended: 64 (experimental)
   "github.copilot.chat.virtualTools.threshold": 64, // Experimental setting
+  // math.enabled: Enable math expressions in chat - Default: false, Recommended: true (experimental)
   "chat.math.enabled": true, // Experimental setting
+  // checkpoints.enabled: Enable chat checkpoints - Default: true, Recommended: true
   "chat.checkpoints.enabled": true,
+  // checkpoints.showFileChanges: Show file changes in checkpoints - Default: true, Recommended: true
   "chat.checkpoints.showFileChanges": true,
+  // editRequests: How to handle edit requests - Default: "inline", Recommended: "inline"
   "chat.editRequests": "inline",
+  // secondarySideBar.defaultVisibility: Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
   "workbench.secondarySideBar.defaultVisibility": "visible",
 
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
+  // codeGeneration.useInstructionFiles: Use instruction files for code generation - Default: false, Recommended: true
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
 
   // Go Extension Settings https://github.com/golang/vscode-go/blob/master/docs/settings.md
+  // useLanguageServer: Use gopls language server - Default: true, Recommended: true
   "go.useLanguageServer": true,
+  // alternateTools: Override default tools - Default: {}, Recommended: {"gopls": "gopls"}
   "go.alternateTools": {
     "gopls": "gopls"
   },
+  // languageServerFlags: Additional flags for language server - Default: [], Recommended: ["-rpc.trace", "serve", "--debug=localhost:6060"]
   "go.languageServerFlags": [
     "-rpc.trace",
     "serve",
     "--debug=localhost:6060"
   ],
+  // formatTool: Tool to use for formatting - Default: "gofmt", Recommended: "gofumpt"
   "go.formatTool": "gofumpt",
+  // lintTool: Tool to use for linting - Default: "golint", Recommended: "golangci-lint"
   "go.lintTool": "golangci-lint",
+  // vetOnSave: Run go vet on save - Default: "package", Recommended: "off"
   "go.vetOnSave": "off",
+  // lintOnSave: Run linter on save - Default: "package", Recommended: "file"
   "go.lintOnSave": "file",
+  // testOnSave: Run tests on save - Default: false, Recommended: false
   "go.testOnSave": false,
+  // coverOnSave: Run coverage on save - Default: false, Recommended: false
   "go.coverOnSave": false,
+  // testExplorer.enable: Enable test explorer - Default: false, Recommended: true
   "go.testExplorer.enable": true,
+  // toolsManagement.autoUpdate: Auto-update Go tools - Default: true, Recommended: true
   "go.toolsManagement.autoUpdate": true,
+  // terminal.activateEnvironment: Activate Go environment in terminal - Default: true, Recommended: true
   "go.terminal.activateEnvironment": true,
+  // gopls: gopls language server configuration - Default: {}, Recommended: configured settings
   "gopls": {
+    // ui.completion.usePlaceholders: Use placeholders in completion - Default: true, Recommended: false
     "ui.completion.usePlaceholders": false,
+    // ui.completion.completionBudget: Time budget for completion - Default: "100ms", Recommended: "100ms"
     "ui.completion.completionBudget": "100ms",
+    // ui.diagnostic.analyses: Enable specific diagnostic analyses - Default: {}, Recommended: {"unusedparams": true, "unusedvariables": true}
     "ui.diagnostic.analyses": {
       "unusedparams": true,
       "unusedvariables": true
     },
+    // formatting.gofumpt: Use gofumpt for formatting - Default: false, Recommended: true
     "formatting.gofumpt": true,
+    // formatting.local: Local import prefix - Default: "", Recommended: "cryptoutil"
     "formatting.local": "cryptoutil",
+    // ui.inlayhint.hints: Configure inlay hints - Default: {}, Recommended: all enabled
     "ui.inlayhint.hints": {
+      // assignVariableTypes: Show variable types in assignments - Default: false, Recommended: true
       "assignVariableTypes": true,
+      // compositeLiteralFields: Show field names in composite literals - Default: false, Recommended: true
       "compositeLiteralFields": true,
+      // compositeLiteralTypes: Show types in composite literals - Default: false, Recommended: true
       "compositeLiteralTypes": true,
+      // constantValues: Show constant values - Default: false, Recommended: true
       "constantValues": true,
+      // functionTypeParameters: Show function type parameters - Default: false, Recommended: true
       "functionTypeParameters": true,
+      // parameterNames: Show parameter names - Default: false, Recommended: true
       "parameterNames": true,
+      // rangeVariableTypes: Show range variable types - Default: false, Recommended: true
       "rangeVariableTypes": true
     }
   }
