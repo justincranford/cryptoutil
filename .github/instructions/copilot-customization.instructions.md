@@ -116,6 +116,8 @@ The workspace includes optimized VS Code settings in `.vscode/settings.json` tha
     "serve",
     "--debug=localhost:6060"
   ],
+  "go.formatTool": "gofumpt",
+  "go.lintTool": "golangci-lint",
   "gopls": {
     "ui.completion.usePlaceholders": false,
     "ui.completion.completionBudget": "100ms",

@@ -34,8 +34,8 @@
     "serve",
     "--debug=localhost:6060"
   ],
-  "go.formatTool": "gofmt",
-  "go.lintTool": "golint",
+  "go.formatTool": "gofumpt",
+  "go.lintTool": "golangci-lint",
   "go.vetOnSave": "package",
   "go.formatOnSave": true,
   "go.lintOnSave": "package",
