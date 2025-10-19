@@ -85,12 +85,18 @@ jobs:
       - name: Run concurrency and race detection tests
         run: |
           echo "🔄 Running comprehensive concurrency and race detection tests..."
-          go test -race -timeout=15m -count=2 -p=2 ./...
+          SECONDS=0
+          go test -race -timeout=15m -count=2 ./...
+          TEST_DURATION=$SECONDS
+          echo "⏱️ Race detection tests completed in: ${TEST_DURATION}s"
 
       - name: Run coverage on concurrency tests
         run: |
           echo "📊 Generating coverage report for concurrency tests..."
-          go test -count=1 -coverprofile=concurrency-coverage.out -covermode=atomic ./...
+          SECONDS=0
+          go test -count=1 -p=2 -coverprofile=concurrency-coverage.out -covermode=atomic ./...
+          COVERAGE_DURATION=$SECONDS
+          echo "⏱️ Coverage tests completed in: ${COVERAGE_DURATION}s"
 
       - name: Generate concurrency coverage report
         run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
@@ -108,9 +114,12 @@ jobs:
           echo "## 🔄 Concurrency & Race Detection Results" >> $GITHUB_STEP_SUMMARY
           echo "Comprehensive concurrency and race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
-          echo "- Race detector: Enabled" >> $GITHUB_STEP_SUMMARY
-          echo "- Concurrent execution: 2 runs, 2 parallel" >> $GITHUB_STEP_SUMMARY
+          echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
+          echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
           echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+          echo "- Race detection duration: \${TEST_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage collection duration: \${COVERAGE_DURATION}s" >> $GITHUB_STEP_SUMMARY
 
   # Fuzz Testing - Property-based testing for security-critical code
   fuzz:
