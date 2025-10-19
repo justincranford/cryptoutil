@@ -47,8 +47,82 @@ cryptoutil exposes three distinct API contexts with different security and perfo
 
 ## Prerequisites
 
-- Java 25 or higher
+- Java 21 or higher
 - Maven (or use the included Maven Wrapper)
+
+## JDK Configuration
+
+This project is configured to use Java 21. If you have Java 21 installed at a custom location, you can configure it in several ways:
+
+### Option 1: Project-specific JVM Configuration (Recommended)
+
+The project includes a `.mvn/jvm.config` file that specifies the JDK path. Update this file to point to your Java 21 installation:
+
+```properties
+--java-home
+C:\Dev\jdk21
+```
+
+### Option 2: Environment Variable
+
+Set the `JAVA_HOME` environment variable to point to your Java 21 installation:
+
+```powershell
+$env:JAVA_HOME = "C:\Dev\jdk21"
+```
+
+### Option 3: Maven Toolchains
+
+Create a `~/.m2/toolchains.xml` file:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<toolchains>
+  <toolchain>
+    <type>jdk</type>
+    <provides>
+      <version>21</version>
+      <vendor>oracle</vendor>
+    </provides>
+    <configuration>
+      <jdkHome>C:\Dev\jdk21</jdkHome>
+    </configuration>
+  </toolchain>
+</toolchains>
+```
+
+Then update the pom.xml to use toolchains:
+
+```xml
+<properties>
+  <maven.compiler.release>21</maven.compiler.release>
+</properties>
+
+<build>
+  <plugins>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-toolchains-plugin</artifactId>
+      <version>3.2.0</version>
+      <executions>
+        <execution>
+          <goals>
+            <goal>toolchain</goal>
+          </goals>
+        </execution>
+      </executions>
+      <configuration>
+        <toolchains>
+          <jdk>
+            <version>21</version>
+          </jdk>
+        </toolchains>
+      </configuration>
+    </plugin>
+    <!-- other plugins -->
+  </plugins>
+</build>
+```
 
 ## Quick Start
 
@@ -313,7 +387,7 @@ private static final Assertion adminAssertions = global()
 
 ### Common Issues
 
-1. **JAVA_HOME not set**: Ensure Java 11+ is installed and JAVA_HOME is configured
+1. **JAVA_HOME not set**: Ensure Java 21+ is installed and JAVA_HOME is configured
 2. **Port conflicts**: Ensure cryptoutil is running on the expected ports (8080 for public APIs, 9090 for admin)
 3. **SSL/TLS issues**: Use `https://` for public APIs (ports 8080), `http://` for admin API (port 9090)
 4. **CSRF token errors**: Browser API requires CSRF tokens; ensure `/csrf-token` endpoint is accessible
