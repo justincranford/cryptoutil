@@ -13,6 +13,9 @@ Always exclude these from linting operations:
 - `.pb.go` - Protocol buffer files
 - `api/` - OpenAPI generated code
 
+### Test Directories
+- `test/` - Test directory (contains Java Gatling performance tests, not Go code)
+
 ### Dependencies
 - `vendor/` - Vendored dependencies
 
@@ -25,28 +28,28 @@ Always exclude these from linting operations:
 
 ## Application
 
-Use regex pattern: `'_gen\.go$|\.pb\.go$|vendor/|api/'`
+Use regex pattern: `'_gen\.go$|\.pb\.go$|vendor/|api/|test/'`
 
 ### Pre-commit
 ```yaml
-exclude: '_gen\.go$|\.pb\.go$|vendor/|api/'
+exclude: '_gen\.go$|\.pb\.go$|vendor/|api/|test/'
 ```
 
 ### CI/CD
 ```yaml
 skip-files: '.*_gen\.go$|.*\.pb\.go$'
-skip-dirs: vendor,api
+skip-dirs: vendor,api,test
 ```
 
 ### Scripts
 ```bash
-golangci-lint run --skip-files='.*_gen\.go$|.*\.pb\.go$' --skip-dirs=vendor,api
+golangci-lint run --skip-files='.*_gen\.go$|.*\.pb\.go$' --skip-dirs=vendor,api,test
 ```
 
 ### golangci-lint Config
 ```yaml
 issues:
-  exclude-dirs: [vendor, api]
+  exclude-dirs: [vendor, api, test]
   exclude-files: [".*\\.pb\\.go$", ".*_gen\\.go$"]
 ```
 

@@ -1,0 +1,171 @@
+name: Performance Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Performance test profile'
+        required: true
+        default: 'quick'
+        type: choice
+        options:
+        - quick
+        - full
+        - deep
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'cmd/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'scripts/perf/perf-test.go'
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: cryptoutil_test
+          POSTGRES_DB: cryptoutil_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version-file: 'go.mod'
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Build application
+      run: go build -o cryptoutil ./cmd/cryptoutil
+
+    - name: Start application for testing
+      run: |
+        # Create unseal secret and config files
+        echo "test-unseal-1" > ./configs/test/perf-unseal-secret.secret
+        cat > ./configs/test/config.yml <<EOF
+        log-level: "DEBUG"
+        verbose: true
+        rate-limit: 1000
+        bind-public-protocol: "http"
+        bind-public-address: "127.0.0.1"
+        bind-public-port: 8080
+        bind-private-protocol: "http"
+        bind-private-address: "127.0.0.1"
+        bind-private-port: 8081
+        database-url: "postgres://postgres:cryptoutil_test@localhost:5432/cryptoutil_test?sslmode=disable"
+        unseal-mode: "1-of-1"
+        unseal-files:
+          - ./configs/test/perf-unseal-secret.secret
+        EOF
+
+        # Start application in background, capture PID for cleanup
+        mkdir -p performance-results
+        nohup ./cryptoutil server start --config configs/test/config.yml > performance-results/cryptoutil.stdout 2> performance-results/cryptoutil.stderr &
+        APP_PID=$!
+        echo "APP_PID=$APP_PID" >> $GITHUB_ENV
+        echo "Wrote app logs to: performance-results/cryptoutil.stdout and performance-results/cryptoutil.stderr"
+
+        # Wait for application to be ready
+        echo "Waiting for application to be ready..."
+        MAX_ATTEMPTS=30
+        ATTEMPT=0
+        READY=false
+
+        while [ $ATTEMPT -lt $MAX_ATTEMPTS ] && [ "$READY" != "true" ]; do
+          ATTEMPT=$((ATTEMPT + 1))
+          echo "Attempt $ATTEMPT/$MAX_ATTEMPTS"
+
+          # Test health endpoint
+          if curl -sk --connect-timeout 5 --max-time 10 http://localhost:8081/readyz >/dev/null 2>&1; then
+            echo "✅ Application ready at: http://localhost:8081/readyz"
+            READY=true
+            break
+          else
+            echo "✗ Not ready yet, waiting..."
+            sleep 2
+          fi
+        done
+
+        if [ "$READY" != "true" ]; then
+          echo "❌ Application failed to become ready within timeout"
+          exit 1
+        fi
+
+        echo "✅ Application is ready and responsive"
+
+    - name: Run performance tests
+      run: |
+        PROFILE="${{ github.event.inputs.profile || 'quick' }}"
+        echo "Running performance tests with profile: $PROFILE"
+        go run ./scripts/perf/perf-test.go run -profile $PROFILE -base-url http://localhost:8080 -output ./performance-results
+
+    - name: Analyze performance results
+      id: analyze
+      run: |
+        go run ./scripts/perf/perf-test.go analyze -results-dir ./performance-results -output-dir ./performance-reports
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-results-${{ github.run_number }}
+        path: |
+          performance-results/
+          performance-reports/
+        retention-days: 30
+
+    - name: Deploy performance dashboard to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v4
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./performance-reports
+        destination_dir: performance/${{ github.run_number }}
+
+    - name: Performance regression check
+      id: regression
+      run: |
+        # The perf-test analyze command outputs performance_status directly
+        # Check if there was a significant change in performance
+        if [ "${{ steps.analyze.outputs.performance_status }}" = "significant_change" ]; then
+          echo "⚠️ Performance regression detected!"
+          echo "performance_regression=true" >> $GITHUB_OUTPUT
+        else
+          echo "✅ Performance stable"
+          echo "performance_regression=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Notify on performance regression
+      if: steps.regression.outputs.performance_regression == 'true'
+      uses: actions/github-script@v8
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '🚨 Performance Regression Detected',
+            body: `Performance regression detected in run #${{ github.run_number }}\n\n[View Dashboard](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/performance/${{ github.run_number }}/performance-dashboard.html)\n\n[View Results](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})`,
+            labels: ['performance', 'regression']
+          })
+
+    - name: Stop application
+      if: always()
+      run: |
+        # Stop application
+        [ -n "${APP_PID:-}" ] && { kill "$APP_PID" 2>/dev/null || true; sleep 1; kill -9 "$APP_PID" 2>/dev/null || true; }

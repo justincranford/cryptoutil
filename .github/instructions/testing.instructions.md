@@ -10,6 +10,7 @@ applyTo: "**"
 - Ensure coverage for all key types and pool configs
 - Update/fix tests and run linters before committing (`golangci-lint run`)
 - Script testing: always test scripts after add/update tests, verify help/params, test functional/error/cross-platform paths, document results (see README for details)
+- Test directories may contain non-Go performance testing tools (e.g., Java Gatling in `/test/gatling/`)
 - Use constants for repeated test values if it improves clarity; prefer meaningful test data
 - When updating dependencies: run `go test ./...` first to confirm code and tests work before attempting updates; only after tests pass, update one dependency at a time and repeat `go test ./...` to iterate on fixing any issues caused by the update
 

@@ -3,7 +3,7 @@
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
 **Last Updated**: October 17, 2025
-**Status**: Testing infrastructure improvements completed - fuzz and benchmark testing implemented for cryptographic operations. Test file organization audit and migration completed. Completed tasks removed from list.
+**Status**: Testing infrastructure improvements completed - fuzz and benchmark testing implemented for cryptographic operations. Test file organization audit and migration completed. Performance testing framework fully implemented with k6 integration, automated CI/CD, and GitHub Pages dashboards.
 
 ---
 
@@ -20,18 +20,6 @@
 - **Priority**: Medium - CI performance optimization
 - **Dependencies**: Task T1/T2 completion
 
-### Task T4: Performance/Load Testing Framework
-- **Description**: Implement comprehensive performance and load testing capabilities
-- **Current State**: Basic unit tests only, no performance testing
-- **Action Items**:
-  - Set up performance testing framework (k6, Artillery, or custom)
-  - Create load test scenarios for key API endpoints
-  - Implement performance regression detection
-  - Add performance testing to CI pipeline
-- **Files**: Performance test scripts, CI workflow updates
-- **Expected Outcome**: Automated performance validation and regression detection
-- **Priority**: Medium - Production readiness
-
 ---
 
 ## Quick Reference
@@ -43,6 +31,21 @@
 
 # Verify report generation
 ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
+```
+
+### Performance Testing Commands
+```bash
+# Run quick performance test
+go run ./scripts/run-performance-tests -profile quick
+
+# Run full performance test with custom base URL
+go run ./scripts/run-performance-tests -profile full -base-url https://api.example.com
+
+# Analyze results and generate dashboard
+go run ./scripts/analyze-performance-results
+
+# View dashboard
+start .\performance-reports\performance-dashboard.html
 ```
 
 ---

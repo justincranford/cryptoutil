@@ -34,25 +34,9 @@ Docker build script with mandatory version tagging and proper build arguments.
 - Sets BUILD_DATE to current timestamp
 - Builds cryptoutil Docker image with proper tagging
 
-## Testing Scripts
+## Performance Testing
 
-### mutation-test.ps1 / mutation-test.sh
-
-Runs mutation testing with Gremlins to validate test suite quality.
-
-```powershell
-# PowerShell
-.\scripts\mutation-test.ps1
-
-# Bash
-./scripts/mutation-test.sh
-```
-
-**Features:**
-- Installs Gremlins if not present
-- Tests high-coverage packages
-- Configurable workers and timeout coefficients
-- Dry-run mode available
+See `scripts/perf/README.doc` for detailed performance testing documentation and usage.
 
 ## Security Scripts
 
@@ -157,6 +141,29 @@ python .\scripts\count_tokens.py --model gpt-4o --glob ".github/instructions/*.m
 python .\scripts\count_tokens.py --file .github/copilot-instructions.md --as-message none --model gpt-4o
 ```
 
+## Mutation Testing Scripts
+
+### mutation-test.ps1 / mutation-test.sh
+
+Runs mutation testing using Gremlins to ensure test quality.
+
+```powershell
+# PowerShell - Default settings
+.\scripts\mutation-test.ps1
+
+# PowerShell - Custom timeout and workers
+.\scripts\mutation-test.ps1 -Timeout 10m -Workers 4
+
+# Bash
+./scripts/mutation-test.sh -t 10m -w 4
+```
+
+**Features:**
+- Automated mutation testing with Gremlins
+- Configurable timeout and worker count
+- Test quality validation
+- Cross-platform support
+
 ## Configuration Files
 
 ### errcheck_excludes.txt
@@ -197,6 +204,7 @@ Most scripts will install required tools automatically if missing:
 - `staticcheck`, `golangci-lint`, `govulncheck` (security scanning)
 - `trivy`, `docker-scout` (container scanning)
 - `act` (GitHub Actions local testing)
+- `k6` (performance testing)
 
 ## Integration with CI/CD
 
@@ -204,3 +212,4 @@ These scripts mirror the functionality available in GitHub Actions workflows:
 - Security scanning matches `.github/workflows/security-scan.yml`
 - DAST testing matches `.github/workflows/dast.yml`
 - Mutation testing can be run locally for development validation
+- Performance testing can be integrated into CI/CD pipelines

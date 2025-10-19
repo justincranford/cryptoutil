@@ -17,24 +17,26 @@
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
-    "/^go (mod edit)/": false,
-    "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify)/": true,
-    "/^(gofumpt|goimports|golangci-lint run)/": true,
-    "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|fetch)/": true,
-    "/^git (push|pull|reset|rebase)/": false,
-    "/^docker system df/": true,
-    "/^docker (run|exec|stop|kill|system|rm|rmi|swarm|prune)/": false,
-    "/^docker compose (exec)/": false,
-    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (create|update|scale|rollback|connect|disconnect|restart)/": false,
-    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (ls|inspect|logs|history)/": true,
-    "/^docker (pull|build|tag|inspect|version|info)/": true,
-    "/^docker compose (up|down|logs|ps|build|pull|start|stop|restart|config)/": true,
-    "/^kubectl/": false,         // Kubernetes operations (if used in future)
-    "/^pre-commit run/": true,
-    "/^act /": true,
-    "/^(Remove-Item|del)\\b/i": false, // Windows file deletion
-    "/^rm\\b/": false,                 // Unix file deletion (complement to Remove-Item)
-    "/^python/": false,                // Used for count_tokens.py but you didn't enable
+    "/^go (mod edit).*/": false,
+    "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify).*/": true,
+    "/^golangci-lint run.*/": true,
+    "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|fetch).*/": true,
+    "/^git (push|pull|reset|rebase).*/": false,
+    "/^docker system df.*/": true,
+    "/^docker (run|exec|stop|kill|system|rm|rmi|swarm|prune).*/": false,
+    "/^docker compose (exec).*/": false,
+    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (create|update|scale|rollback|connect|disconnect|restart).*/": false,
+    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (ls|inspect|logs|history).*/": true,
+    "/^docker (pull|build|tag|inspect|version|info).*/": true,
+    "/^docker compose (up|down|logs|ps|build|pull|start|stop|restart|config).*/": true,
+    "/^kubectl.*/": false,         // Kubernetes operations (if used in future)
+    "/^pre-commit run.*/": true,
+    "/^act .*/": true,
+    "/^(mkdir|rmdir)\\b.*/": true,
+    "/^(ls|dir)\\b.*/": true,
+    "/^(Remove-Item|del)\\b/i.*/": false, // Windows file deletion
+    "/^rm\\b.*/": false,                 // Unix file deletion (complement to Remove-Item)
+    "/^python.*/": false,                // Used for count_tokens.py but you didn't enable
     "/\\.ps1\\b/i": { "approve": false, "matchCommandLine": true }
   }, // Auto-approve terminal commands matching patterns - Default: {}, Recommended: configured patterns
   "github.copilot.chat.virtualTools.threshold": 64, // Threshold for virtual tools - Default: 64, Recommended: 64 (experimental)

@@ -57,6 +57,8 @@ applyTo: "**"
 - `npm run <script>` - Run npm scripts
 - `python -m <module>` - Run Python modules
 - `pytest <path>` - Run Python tests
+- `./mvnw <goals>` - Run Maven goals with Maven Wrapper (for Java Gatling tests)
+- `mvnw.cmd <goals>` - Run Maven goals with Maven Wrapper on Windows
 
 ### System Commands
 - `which <command>` - Find command location
