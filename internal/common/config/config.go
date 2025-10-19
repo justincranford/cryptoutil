@@ -37,12 +37,16 @@ const (
 	linkLocalCIDRv6  = "fe80::/10"
 	privateLANCIDRv6 = "fc00::/7"
 
-	defaultLogLevel                    = "INFO"                                                 // Balanced verbosity: shows important events without being overwhelming
-	defaultBindPublicProtocol          = httpsProtocol                                          // HTTPS by default for security in production environments
-	defaultBindPublicAddress           = localhost                                              // Localhost prevents external access by default, requires explicit configuration for exposure
-	defaultBindPublicPort              = uint16(8080)                                           // Standard HTTP/HTTPS port, well-known and commonly available
-	defaultBindPrivateProtocol         = httpsProtocol                                          // HTTPS for private API security, even in service-to-service communication
-	defaultBindPrivateAddress          = localhost                                              // Localhost for private API, only accessible from same machine
+	defaultLogLevel           = "INFO"        // Balanced verbosity: shows important events without being overwhelming
+	defaultBindPublicProtocol = httpsProtocol // HTTPS by default for security in production environments
+	defaultBindPublicAddress  = ipv4Loopback  // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
+	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
+	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
+	defaultBindPublicPort      = uint16(8080)  // Standard HTTP/HTTPS port, well-known and commonly available
+	defaultBindPrivateProtocol = httpsProtocol // HTTPS for private API security, even in service-to-service communication
+	defaultBindPrivateAddress  = ipv4Loopback  // IPv4 loopback for private API, only accessible from same machine
+	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
+	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
 	defaultBindPrivatePort             = uint16(9090)                                           // Non-standard port to avoid conflicts with other services
 	defaultPublicBrowserAPIContextPath = "/browser/api/v1"                                      // RESTful API versioning, separates browser from service APIs
 	defaultPublicServiceAPIContextPath = "/service/api/v1"                                      // RESTful API versioning, separates service from browser APIs
@@ -58,7 +62,7 @@ const (
 	defaultBrowserIPRateLimit          = uint16(100)                                            // More lenient rate limit for browser APIs (user interactions)
 	defaultServiceIPRateLimit          = uint16(25)                                             // More restrictive rate limit for service APIs (automated systems)
 	defaultDatabaseContainer           = "disabled"                                             // Disabled by default to avoid unexpected container dependencies
-	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // PostgreSQL default with placeholder credentials, SSL disabled for local dev
+	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
 	defaultDatabaseInitTotalTimeout    = 5 * time.Minute                                        // 5 minutes allows for container startup while preventing indefinite waits
 	defaultDatabaseInitRetryWait       = 1 * time.Second                                        // 1 second retry interval balances responsiveness and resource usage
 	defaultServerShutdownTimeout       = 5 * time.Second                                        // 5 seconds allows graceful shutdown while preventing indefinite waits
@@ -83,10 +87,10 @@ var profiles = map[string]map[string]any{
 		"log-level":                "ERROR",
 		"dev":                      true,
 		"bind-public-protocol":     "http",
-		"bind-public-address":      "localhost",
+		"bind-public-address":      ipv4Loopback,
 		"bind-public-port":         uint16(8081),
 		"bind-private-protocol":    "http",
-		"bind-private-address":     "localhost",
+		"bind-private-address":     ipv4Loopback,
 		"bind-private-port":        uint16(9091),
 		"database-container":       "disabled",
 		"database-url":             "sqlite://file::memory:?cache=shared",
@@ -99,10 +103,10 @@ var profiles = map[string]map[string]any{
 		"log-level":                "DEBUG",
 		"dev":                      true,
 		"bind-public-protocol":     "http",
-		"bind-public-address":      "localhost",
+		"bind-public-address":      ipv4Loopback,
 		"bind-public-port":         uint16(8080),
 		"bind-private-protocol":    "http",
-		"bind-private-address":     "localhost",
+		"bind-private-address":     ipv4Loopback,
 		"bind-private-port":        uint16(9090),
 		"database-container":       "disabled",
 		"database-url":             "sqlite://file::memory:?cache=shared",
@@ -118,7 +122,7 @@ var profiles = map[string]map[string]any{
 		"bind-public-address":      "0.0.0.0",
 		"bind-public-port":         uint16(8080),
 		"bind-private-protocol":    "http",
-		"bind-private-address":     "localhost",
+		"bind-private-address":     ipv4Loopback,
 		"bind-private-port":        uint16(9090),
 		"database-container":       "required",
 		"csrf-token-cookie-secure": true,
@@ -133,7 +137,7 @@ var profiles = map[string]map[string]any{
 		"bind-public-address":      "0.0.0.0",
 		"bind-public-port":         uint16(443),
 		"bind-private-protocol":    "http",
-		"bind-private-address":     "localhost",
+		"bind-private-address":     ipv4Loopback,
 		"bind-private-port":        uint16(9090),
 		"database-container":       "required",
 		"rate-limit":               uint16(100),
@@ -297,7 +301,7 @@ var (
 		shorthand: "h",
 		value:     defaultHelp,
 		usage: "print help; you can run the server with parameters like this:\n" +
-			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n",
+			"cmd -l=INFO -v -M -u=postgres://USR:PWD@localhost:5432/DB?sslmode=disable\n", // pragma: allowlist secret
 		description: "Help",
 	})
 	configFile = *registerSetting(&Setting{
@@ -549,7 +553,7 @@ var (
 		name:        "database-url",
 		shorthand:   "u",
 		value:       defaultDatabaseURL,
-		usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n",
+		usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n", // pragma: allowlist secret
 		description: "Database URL",
 		redacted:    true,
 	})

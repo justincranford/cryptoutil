@@ -1,0 +1,9 @@
+# CORS configuration - HTTPS origins only (from default config)
+cors-origins:
+  - "https://localhost:8081"
+  - "https://127.0.0.1:8081"
+  - "https://[::1]:8081"
+  - "https://[::ffff:127.0.0.1]:8081"
+
+otlp-service: cryptoutil-postgresql-1
+otlp-hostname: cryptoutil-postgresql-1

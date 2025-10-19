@@ -62,3 +62,49 @@
 - **Files**: `internal/common/config/`, Viper setup code, deployment configs
 - **Expected Outcome**: Consistent, secure configuration management across all environments
 - **Priority**: High - Configuration security and reliability
+
+### Task INF6: IPv6 vs IPv4 Loopback Networking Investigation
+- **Description**: Investigate and resolve IPv6/IPv4 loopback address inconsistencies in containerized deployments
+- **Current State**: Health checks failing due to localhost resolving to IPv6 (::1) while servers only listen on IPv4 (127.0.0.1)
+- **Action Items**:
+  - Audit entire project for use of "localhost" hostname vs explicit IP addresses
+  - Improve `application_listener.go` to listen on both IPv6 and IPv4 loopback addresses
+  - Update Docker health checks to use explicit IP addresses instead of localhost
+  - Review container networking configuration for proper IPv4/IPv6 support
+  - Test health checks and connectivity in various container environments
+  - Update Docker instructions with IPv6/IPv4 loopback best practices
+- **Files**: `internal/server/application/application_listener.go`, `deployments/compose/compose.yml`, Docker health checks, networking code
+- **Expected Outcome**: Reliable networking in containerized environments with proper IPv4/IPv6 loopback support
+- **Priority**: Medium - Container networking reliability
+
+### Task INF7: Revert Docker Compose to Use Mounted Secrets
+- **Description**: Revert `deployments/compose/compose.yml` postgres service to use mounted Docker secrets instead of hard-coded credential values
+- **Current State**: Postgres service uses hard-coded environment variables (USR, PWD, DB)
+- **Required Changes**:
+  - Change `POSTGRES_USER: USR` to `POSTGRES_USER_FILE: /run/secrets/postgres_username.secret`
+  - Change `POSTGRES_PASSWORD: PWD` to `POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret`
+  - Change `POSTGRES_DB: DB` to `POSTGRES_DB_FILE: /run/secrets/postgres_database.secret`
+- **Action Items**:
+  - Update postgres service environment variables in `deployments/compose/compose.yml`
+  - Ensure secrets are properly mounted (already configured)
+  - Test database connectivity after changes
+  - Verify health checks still work with secret-based configuration
+- **Files**: `deployments/compose/compose.yml`
+- **Expected Outcome**: Secure credential management using Docker secrets instead of hard-coded values
+- **Priority**: High - Security and deployment best practices
+- **Examples of Changes**:
+  ```yaml
+  # BEFORE (hard-coded values):
+  postgres:
+    environment:
+      POSTGRES_USER: USR
+      POSTGRES_PASSWORD: PWD
+      POSTGRES_DB: DB
+
+  # AFTER (mounted secrets):
+  postgres:
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
+  ```

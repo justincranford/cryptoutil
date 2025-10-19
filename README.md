@@ -139,12 +139,12 @@ cd deployments/compose
 docker compose up -d
 
 # View logs
-docker compose logs -f cryptoutil_postgres
+docker compose logs -f cryptoutil_postgres_1
 
 # Access services
 # Grafana UI: http://localhost:3000 (admin/admin)
-# cryptoutil API: http://localhost:8081 (PostgreSQL) or http://localhost:8080 (SQLite)
-# Swagger UI: http://localhost:8081/ui/swagger or http://localhost:8080/ui/swagger
+# cryptoutil API: http://localhost:8081 (PostgreSQL instance 1), http://localhost:8082 (PostgreSQL instance 2), or http://localhost:8080 (SQLite)
+# Swagger UI: http://localhost:8081/ui/swagger, http://localhost:8082/ui/swagger, or http://localhost:8080/ui/swagger
 ```
 
 ### Running with Go (Development)
@@ -166,9 +166,9 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 ```
 
 ### API Access
-- **Swagger UI**: http://localhost:8081/ui/swagger (PostgreSQL) or http://localhost:8080/ui/swagger (SQLite)
-- **Browser API**: http://localhost:8081/browser/api/v1/* or http://localhost:8080/browser/api/v1/*
-- **Service API**: http://localhost:8081/service/api/v1/* or http://localhost:8080/service/api/v1/*
+- **Swagger UI**: http://localhost:8081/ui/swagger (PostgreSQL instance 1), http://localhost:8082/ui/swagger (PostgreSQL instance 2), or http://localhost:8080/ui/swagger (SQLite)
+- **Browser API**: http://localhost:8081/browser/api/v1/*, http://localhost:8082/browser/api/v1/*, or http://localhost:8080/browser/api/v1/*
+- **Service API**: http://localhost:8081/service/api/v1/*, http://localhost:8082/service/api/v1/*, or http://localhost:8080/service/api/v1/*
 - **Health Checks**: http://localhost:9090/livez, http://localhost:9090/readyz
 - **Grafana UI**: http://localhost:3000 (admin/admin)
 - **OpenTelemetry Collector Metrics**: http://localhost:8888/metrics, http://localhost:8889/metrics
@@ -281,6 +281,26 @@ curl http://localhost:9090/readyz
 # Run with test containers
 go run cmd/pgtest/main.go  # PostgreSQL integration tests
 ```
+
+### Docker Compose Cleanup
+
+After testing with Docker Compose, always clean up properly to ensure clean state for subsequent tests:
+
+```sh
+# Stop services and remove containers/networks
+docker compose down
+
+# Stop services, remove containers/networks, AND volumes (for complete cleanup)
+docker compose down --volumes
+
+# Remove everything including images (use with caution)
+docker compose down --volumes --rmi all
+```
+
+**Always use `docker compose down --volumes` before starting new tests** after `compose.yml` changes to ensure:
+- No state interference from previous tests
+- Fresh database state for each test execution
+- Proper resource management in CI/CD environments
 
 ### Mutation Testing
 

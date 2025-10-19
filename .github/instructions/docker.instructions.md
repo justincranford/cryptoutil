@@ -112,3 +112,18 @@ secrets:
   - database_url_secret
 command: ["app", "--database-url=file:///run/secrets/database_url_secret"]
 ```
+
+## Networking Considerations
+
+### IPv4 vs IPv6 Loopback Addresses
+- **CRITICAL**: `localhost` resolves differently in containers vs host systems
+- **Alpine Linux**: `localhost` → `::1` (IPv6 loopback), NOT `127.0.0.1` (IPv4 loopback)
+- **Connection Failures**: If your application only listens on IPv4 (`127.0.0.1`), health checks using `localhost` will fail
+- **Health Check Fix**: Use explicit IP addresses (`127.0.0.1` or `::1`) instead of `localhost` in health checks
+- **Verification**: Check with `getent hosts localhost` in containers to see actual resolution
+
+### Health Check Best Practices
+- **Explicit IPs**: Prefer `127.0.0.1` over `localhost` for IPv4-only services
+- **Available Tools**: Use `wget` instead of `curl` (curl may not be installed in Alpine containers)
+- **Certificate Handling**: Use `--no-check-certificate` for self-signed certificates in development
+- **Example**: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/health`

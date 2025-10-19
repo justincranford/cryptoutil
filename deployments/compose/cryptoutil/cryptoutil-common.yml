@@ -4,13 +4,6 @@
 # Binding address - 0.0.0.0 allows connections from any NIC within the container
 bind-public-address: "0.0.0.0"
 
-# CORS configuration - HTTPS origins only (from default config)
-cors-origins:
-  - "https://localhost:8081"
-  - "https://127.0.0.1:8081"
-  - "https://[::1]:8081"
-  - "https://[::ffff:127.0.0.1]:8081"
-
 unseal-mode: "3-of-5"
 
 unseal-files:
@@ -20,5 +13,14 @@ unseal-files:
   - /run/secrets/cryptoutil_unseal_4of5.secret
   - /run/secrets/cryptoutil_unseal_5of5.secret
 
-otlp-service: cryptoutil-postgresql
-otlp-hostname: cryptoutil-postgresql
+# Allow all IPs for development/testing
+allowed-ips:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+allowed-cidrs:
+  - "0.0.0.0/0"
+  - "::/0"
+
+# Disable CSRF for API testing
+csrf-token-single-use-token: false

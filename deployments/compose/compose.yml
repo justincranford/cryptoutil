@@ -8,12 +8,13 @@ services:
         APP_VERSION: "dev"
         VCS_REF: "local"
         BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: ["server", "start", "--dev", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/otel/cryptoutil-otel.yml"]
+    command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8080:8080"    # HTTPS public
     volumes:
       - ./cryptoutil/cryptoutil-sqlite.yml:/app/config/cryptoutil-sqlite.yml:ro
+      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
       - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
       - cryptoutil_database-url.secret
@@ -25,10 +26,16 @@ services:
     depends_on:
       opentelemetry-collector-contrib:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - cryptoutil-network
 
-  cryptoutil_postgres:
+  cryptoutil_postgres_1:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
@@ -36,12 +43,13 @@ services:
         APP_VERSION: "dev"
         VCS_REF: "local"
         BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: server start --config=/app/config/cryptoutil-postgresql.yml --config=/app/otel/cryptoutil-otel.yml -u "file:///run/secrets/cryptoutil_database-url.secret"
+    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/cryptoutil_database-url.secret"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8081:8080"    # HTTPS public
     volumes:
-      - ./cryptoutil/cryptoutil-postgresql.yml:/app/config/cryptoutil-postgresql.yml:ro
+      - ./cryptoutil/cryptoutil-postgresql-1.yml:/app/config/cryptoutil-postgresql-1.yml:ro
+      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
       - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
       - cryptoutil_database-url.secret
@@ -55,22 +63,67 @@ services:
         condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cryptoutil-network
+
+  cryptoutil_postgres_2:
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-10-13T00:00:00Z"
+    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/cryptoutil_database-url.secret"]
+    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
+    ports:
+      - "8082:8080"    # HTTPS public
+    volumes:
+      - ./cryptoutil/cryptoutil-postgresql-2.yml:/app/config/cryptoutil-postgresql-2.yml:ro
+      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
+      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
+    secrets:
+      - cryptoutil_database-url.secret
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
+    depends_on:
+      cryptoutil_postgres_1:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      opentelemetry-collector-contrib:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - cryptoutil-network
 
   postgres:
     image: postgres:latest
     environment:
-      POSTGRES_USER: USR
-      POSTGRES_PASSWORD: PWD
-      POSTGRES_DB: DB
+      POSTGRES_USER: USR # pragma: allowlist secret
+      POSTGRES_PASSWORD: PWD # pragma: allowlist secret
+      POSTGRES_DB: DB # pragma: allowlist secret
     shm_size: 256mb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$(cat /run/secrets/postgres_username.secret) -d $$(cat /run/secrets/postgres_database.secret)"]
+      test: ["CMD-SHELL", "pg_isready -U USR -d DB"] # pragma: allowlist secret
       start_period: 5s
       interval: 5s
       timeout: 3s
@@ -94,7 +147,7 @@ services:
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin # pragma: allowlist secret
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
       - "3000:3000"    # Grafana UI
@@ -140,7 +193,7 @@ secrets:
     file: ./cryptoutil/cryptoutil_database_url.secret
 
   cryptoutil_unseal_1of5.secret:
-    file: ./cryptoutil/cryptoutil_unseal_1of5.secret
+    file: ./cryptoutil/cryptoutil_unseal_1of5.secret # pragma: allowlist secret
   cryptoutil_unseal_2of5.secret:
     file: ./cryptoutil/cryptoutil_unseal_2of5.secret
   cryptoutil_unseal_3of5.secret:

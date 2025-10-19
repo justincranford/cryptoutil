@@ -81,17 +81,19 @@
 - **Priority**: Medium - API contract consistency
 - **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failures
 
-### Task S3: Advanced Threat Modeling Documentation
-- **Description**: Create comprehensive threat modeling documentation for advanced security analysis
-- **Current State**: Basic security practices implemented but no formal threat modeling
+### Task S4: Implement Trusted CA Certificate Management
+- **Description**: Replace self-signed certificates with trusted CA certificates for production deployments
+- **Current State**: Development uses self-signed certificates with `-k` flag for health checks
 - **Action Items**:
-  - Document threat modeling methodology (STRIDE, PASTA, or OCTAVE)
-  - Identify potential attack vectors and mitigation strategies
-  - Document security boundaries and trust zones
-  - Create threat modeling diagrams and risk assessments
-- **Files**: `docs/security-threat-model.md` or similar
-- **Expected Outcome**: Comprehensive security analysis framework
-- **Priority**: Low - Advanced security documentation
+  - Set up certificate authority infrastructure (Let's Encrypt, internal CA, or commercial CA)
+  - Update Docker Compose to mount trusted certificates instead of generating self-signed ones
+  - Remove `-k` flag from health check curl commands
+  - Update certificate generation logic to support CA-signed certificates
+  - Add certificate renewal automation for production environments
+- **Files**: Docker Compose configuration, certificate generation scripts, health check configurations
+- **Expected Outcome**: Production deployments use trusted certificates without security warnings
+- **Priority**: Medium - Production readiness
+- **Timeline**: Future production deployment preparation
 
 ---
 
@@ -131,7 +133,7 @@ hydraAdmin := hydra.NewAPIClient(&hydra.Configuration{
 // GitHub OAuth2 config
 githubOAuth2 := &oauth2.Config{
     ClientID:     "your-github-client-id",
-    ClientSecret: "your-github-client-secret",
+    ClientSecret: "your-github-client-secret", # pragma: allowlist secret
     Scopes:       []string{"user:email"},
     Endpoint:     github.Endpoint,
 }
