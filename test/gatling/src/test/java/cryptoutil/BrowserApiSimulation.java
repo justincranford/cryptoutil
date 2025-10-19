@@ -18,7 +18,9 @@ public class BrowserApiSimulation extends Simulation {
       .acceptHeader("application/json")
       .contentTypeHeader("application/json")
       .userAgentHeader("Gatling-Cryptoutil-Browser-API-Test/1.0")
-      .inferHtmlResources(); // Handle potential HTML resources
+      .inferHtmlResources() // Handle potential HTML resources
+      .disableFollowRedirect(); // Disable redirects for API testing
+      // SSL certificate validation disabled via JVM system properties
 
   // CSRF token retrieval chain
   private static final ChainBuilder getCsrfTokenChain = exec(http("Get CSRF Token")

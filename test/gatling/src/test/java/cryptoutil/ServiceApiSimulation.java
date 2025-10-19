@@ -17,7 +17,9 @@ public class ServiceApiSimulation extends Simulation {
       .baseUrl(baseUrl)
       .acceptHeader("application/json")
       .contentTypeHeader("application/json")
-      .userAgentHeader("Gatling-Cryptoutil-Service-API-Test/1.0");
+      .userAgentHeader("Gatling-Cryptoutil-Service-API-Test/1.0")
+      .disableFollowRedirect(); // Disable redirects for API testing
+      // SSL certificate validation disabled via JVM system properties
 
   // Key generation chain
   private static final ChainBuilder keyGenChain = exec(http("Generate RSA Key")

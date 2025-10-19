@@ -9,7 +9,7 @@ import io.gatling.javaapi.http.*;
 public class AdminApiSimulation extends Simulation {
 
   // Load configuration from system properties
-  private static final String baseUrl = System.getProperty("adminApiBaseUrl", "http://localhost:9090");
+  private static final String baseUrl = System.getProperty("adminApiBaseUrl", "https://localhost:9090");
   private static final int virtualadminclients = Integer.getInteger("virtualadminclients", 1);
 
   // Define HTTP configuration for admin API (private interface)
@@ -17,6 +17,7 @@ public class AdminApiSimulation extends Simulation {
       .baseUrl(baseUrl)
       .acceptHeader("application/json")
       .userAgentHeader("Gatling-Cryptoutil-Admin-API-Test/1.0");
+      // SSL certificate validation disabled via JVM system properties
 
   // Liveness probe chain
   private static final ChainBuilder livenessChain = exec(http("Liveness Check")
