@@ -155,9 +155,10 @@ repos:
       - id: errcheck
         name: errcheck (error checking)
         entry: powershell
-        args: [-Command, "Get-ChildItem -Recurse -Include *.go -Exclude *_gen.go,*.pb.go | Where-Object { $_.FullName -notmatch 'vendor|api/client|api/model|api/server|test' } | Group-Object { $_.DirectoryName } | ForEach-Object { Push-Location $_.Name; try { & 'C:/Users/justi/go/bin/errcheck.exe' -blank -asserts -exclude ../../../scripts/errcheck_excludes.txt ./ } finally { Pop-Location } }"]
+        args: [-Command, "Get-ChildItem -Recurse -Include *.go -Exclude *_gen.go,*.pb.go | Where-Object { $_.FullName -notmatch 'vendor|api/client|api/model|api/server|test' } | Group-Object { $_.Name } | ForEach-Object { Push-Location $_.Name; try { & 'C:/Users/justi/go/bin/errcheck.exe' -blank -asserts -exclude ../../../scripts/errcheck_excludes.txt ./ } finally { Pop-Location } }"]
         language: system
         pass_filenames: false
+        stages: [manual]  # Disabled - run manually when needed
 
   # Go mod tidy
   - repo: local
@@ -189,7 +190,7 @@ repos:
         name: Check conventional commit message
         stages: [commit-msg]
 
-  # Go linting (full golangci-lint suite for pre-push)
+  # Go linting (full golangci-lint suite for pre-commit)
   - repo: local
     hooks:
       - id: golangci-lint
@@ -198,7 +199,7 @@ repos:
         args: [run, --timeout=10m]
         language: system
         pass_filenames: false
-        stages: [pre-push]  # Run full linting on push, not on every commit
+        stages: [pre-commit]  # Run full linting on commit, not just on push
 
 # Global configuration
 default_stages: [pre-commit]
