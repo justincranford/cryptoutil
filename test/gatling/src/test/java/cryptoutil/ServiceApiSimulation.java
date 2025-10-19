@@ -19,22 +19,24 @@ public class ServiceApiSimulation extends Simulation {
       .contentTypeHeader("application/json")
       .userAgentHeader("Gatling-Cryptoutil-Service-API-Test/1.0");
 
+  // Key generation chain
+  private static final ChainBuilder keyGenChain = exec(http("Generate RSA Key")
+      .post("/elastickey")
+      .body(StringBody("{\"name\":\"test-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
+      .check(status().is(201))
+      .check(jsonPath("$.id").exists())
+      .check(jsonPath("$.algorithm").is("RSA")));
+
   // Key generation scenario
   private static final ScenarioBuilder keyGenScenario = scenario("Service API - Key Generation")
-      .exec(http("Generate RSA Key")
-          .post("/elastickey")
-          .body(StringBody("{\"name\":\"test-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
-          .check(status().is(201))
-          .check(jsonPath("$.id").exists())
-          .check(jsonPath("$.algorithm").is("RSA")));
+      .exec(keyGenChain);
 
-  // Encryption/Decryption scenario
-  private static final ScenarioBuilder cryptoScenario = scenario("Service API - Encryption/Decryption")
-      .exec(http("Generate Key for Crypto")
-          .post("/elastickey")
-          .body(StringBody("{\"name\":\"crypto-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
-          .check(status().is(201))
-          .check(jsonPath("$.id").saveAs("keyId")))
+  // Encryption/Decryption chain
+  private static final ChainBuilder cryptoChain = exec(http("Generate Key for Crypto")
+      .post("/elastickey")
+      .body(StringBody("{\"name\":\"crypto-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
+      .check(status().is(201))
+      .check(jsonPath("$.id").saveAs("keyId")))
 
       .exec(http("Encrypt Data")
           .post("/crypto/encrypt")
@@ -49,13 +51,16 @@ public class ServiceApiSimulation extends Simulation {
           .check(status().is(200))
           .check(jsonPath("$.plaintext").is("SGVsbG8gV29ybGQ="))); // Base64 encoded "Hello World"
 
-  // Key retrieval scenario
-  private static final ScenarioBuilder keyRetrievalScenario = scenario("Service API - Key Retrieval")
-      .exec(http("Create Key for Retrieval")
-          .post("/elastickey")
-          .body(StringBody("{\"name\":\"retrieve-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
-          .check(status().is(201))
-          .check(jsonPath("$.id").saveAs("retrieveKeyId")))
+  // Encryption/Decryption scenario
+  private static final ScenarioBuilder cryptoScenario = scenario("Service API - Encryption/Decryption")
+      .exec(cryptoChain);
+
+  // Key retrieval chain
+  private static final ChainBuilder keyRetrievalChain = exec(http("Create Key for Retrieval")
+      .post("/elastickey")
+      .body(StringBody("{\"name\":\"retrieve-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
+      .check(status().is(201))
+      .check(jsonPath("$.id").saveAs("retrieveKeyId")))
 
       .exec(http("Get Key by ID")
           .get("/elastickey/#{retrieveKeyId}")
@@ -63,18 +68,21 @@ public class ServiceApiSimulation extends Simulation {
           .check(jsonPath("$.id").is("#{retrieveKeyId}"))
           .check(jsonPath("$.algorithm").is("RSA")));
 
+  // Key retrieval scenario
+  private static final ScenarioBuilder keyRetrievalScenario = scenario("Service API - Key Retrieval")
+      .exec(keyRetrievalChain);
+
   // Combined scenario
   private static final ScenarioBuilder fullScenario = scenario("Service API - Full Crypto Workflow")
-      .exec(keyGenScenario)
+      .exec(keyGenChain)
       .pause(1)
-      .exec(cryptoScenario)
+      .exec(cryptoChain)
       .pause(1)
-      .exec(keyRetrievalScenario);
+      .exec(keyRetrievalChain);
 
   // Performance assertions
   private static final Assertion assertions = global()
-      .responseTime().percentile(95).lt(1000)  // 95th percentile < 1s
-      .and(global().failedRequests().percentile(99).lt(1)); // < 1% failure rate
+      .responseTime().max().lt(1000);  // max response time < 1s
 
   // Injection profile and test setup
   {

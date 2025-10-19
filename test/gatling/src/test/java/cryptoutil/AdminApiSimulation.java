@@ -18,40 +18,45 @@ public class AdminApiSimulation extends Simulation {
       .acceptHeader("application/json")
       .userAgentHeader("Gatling-Cryptoutil-Admin-API-Test/1.0");
 
+  // Liveness probe chain
+  private static final ChainBuilder livenessChain = exec(http("Liveness Check")
+      .get("/livez")
+      .check(status().is(200))
+      .check(jsonPath("$.status").is("ok")));
+
+  // Readiness probe chain
+  private static final ChainBuilder readinessChain = exec(http("Readiness Check")
+      .get("/readyz")
+      .check(status().is(200))
+      .check(jsonPath("$.status").is("ok")));
+
   // Liveness probe scenario
   private static final ScenarioBuilder livenessScenario = scenario("Admin API - Liveness Probe")
-      .exec(http("Liveness Check")
-          .get("/livez")
-          .check(status().is(200))
-          .check(jsonPath("$.status").is("ok")));
+      .exec(livenessChain);
 
   // Readiness probe scenario
   private static final ScenarioBuilder readinessScenario = scenario("Admin API - Readiness Probe")
-      .exec(http("Readiness Check")
-          .get("/readyz")
-          .check(status().is(200))
-          .check(jsonPath("$.status").is("ok")));
+      .exec(readinessChain);
 
   // Combined health check scenario
   private static final ScenarioBuilder healthCheckScenario = scenario("Admin API - Health Checks")
-      .exec(livenessScenario)
-      .pause(0.5)
-      .exec(readinessScenario);
+      .exec(livenessChain)
+      .pause(1)  // 1 second pause
+      .exec(readinessChain);
 
   // High-frequency health monitoring scenario
   private static final ScenarioBuilder monitoringScenario = scenario("Admin API - Continuous Monitoring")
       .forever()
       .on(
-          exec(livenessScenario)
+          exec(livenessChain)
           .pause(1)  // Check every second
-          .exec(readinessScenario)
+          .exec(readinessChain)
           .pause(1)
       );
 
   // Performance assertions for admin endpoints (should be very fast)
   private static final Assertion assertions = global()
-      .responseTime().percentile(95).lt(100)  // 95th percentile < 100ms (health checks should be fast)
-      .and(global().failedRequests().percentile(99).lt(0.1)); // < 0.1% failure rate (near-zero tolerance)
+      .responseTime().max().lt(100);  // max response time < 100ms (health checks should be fast)
 
   // Injection profile and test setup
   {

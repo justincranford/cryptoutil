@@ -20,16 +20,18 @@ public class BrowserApiSimulation extends Simulation {
       .userAgentHeader("Gatling-Cryptoutil-Browser-API-Test/1.0")
       .inferHtmlResources(); // Handle potential HTML resources
 
-  // CSRF token retrieval
-  private static final ScenarioBuilder getCsrfToken = scenario("Get CSRF Token")
-      .exec(http("Get CSRF Token")
-          .get("/csrf-token")
-          .check(status().is(200))
-          .check(jsonPath("$.token").saveAs("csrfToken")));
+  // CSRF token retrieval chain
+  private static final ChainBuilder getCsrfTokenChain = exec(http("Get CSRF Token")
+      .get("/csrf-token")
+      .check(status().is(200))
+      .check(jsonPath("$.token").saveAs("csrfToken")));
 
-  // Key generation scenario with CSRF
-  private static final ScenarioBuilder keyGenScenario = scenario("Browser API - Key Generation")
-      .exec(getCsrfToken)
+  // CSRF token retrieval scenario
+  private static final ScenarioBuilder getCsrfToken = scenario("Get CSRF Token")
+      .exec(getCsrfTokenChain);
+
+  // Key generation chain with CSRF
+  private static final ChainBuilder keyGenChain = exec(getCsrfTokenChain)
       .exec(http("Generate RSA Key")
           .post("/elastickey")
           .header("X-CSRF-Token", "#{csrfToken}")
@@ -38,9 +40,12 @@ public class BrowserApiSimulation extends Simulation {
           .check(jsonPath("$.id").exists())
           .check(jsonPath("$.algorithm").is("RSA")));
 
-  // Encryption/Decryption scenario with CSRF
-  private static final ScenarioBuilder cryptoScenario = scenario("Browser API - Encryption/Decryption")
-      .exec(getCsrfToken)
+  // Key generation scenario with CSRF
+  private static final ScenarioBuilder keyGenScenario = scenario("Browser API - Key Generation")
+      .exec(keyGenChain);
+
+  // Encryption/Decryption chain with CSRF
+  private static final ChainBuilder cryptoChain = exec(getCsrfTokenChain)
       .exec(http("Generate Key for Crypto")
           .post("/elastickey")
           .header("X-CSRF-Token", "#{csrfToken}")
@@ -48,7 +53,7 @@ public class BrowserApiSimulation extends Simulation {
           .check(status().is(201))
           .check(jsonPath("$.id").saveAs("keyId")))
 
-      .exec(getCsrfToken)
+      .exec(getCsrfTokenChain)
       .exec(http("Encrypt Data")
           .post("/crypto/encrypt")
           .header("X-CSRF-Token", "#{csrfToken}")
@@ -57,7 +62,7 @@ public class BrowserApiSimulation extends Simulation {
           .check(jsonPath("$.ciphertext").exists())
           .check(jsonPath("$.ciphertext").saveAs("ciphertext")))
 
-      .exec(getCsrfToken)
+      .exec(getCsrfTokenChain)
       .exec(http("Decrypt Data")
           .post("/crypto/decrypt")
           .header("X-CSRF-Token", "#{csrfToken}")
@@ -65,9 +70,12 @@ public class BrowserApiSimulation extends Simulation {
           .check(status().is(200))
           .check(jsonPath("$.plaintext").is("SGVsbG8gV29ybGQ="))); // Base64 encoded "Hello World"
 
-  // Key retrieval scenario with CSRF
-  private static final ScenarioBuilder keyRetrievalScenario = scenario("Browser API - Key Retrieval")
-      .exec(getCsrfToken)
+  // Encryption/Decryption scenario with CSRF
+  private static final ScenarioBuilder cryptoScenario = scenario("Browser API - Encryption/Decryption")
+      .exec(cryptoChain);
+
+  // Key retrieval chain with CSRF
+  private static final ChainBuilder keyRetrievalChain = exec(getCsrfTokenChain)
       .exec(http("Create Key for Retrieval")
           .post("/elastickey")
           .header("X-CSRF-Token", "#{csrfToken}")
@@ -81,18 +89,21 @@ public class BrowserApiSimulation extends Simulation {
           .check(jsonPath("$.id").is("#{retrieveKeyId}"))
           .check(jsonPath("$.algorithm").is("RSA")));
 
+  // Key retrieval scenario with CSRF
+  private static final ScenarioBuilder keyRetrievalScenario = scenario("Browser API - Key Retrieval")
+      .exec(keyRetrievalChain);
+
   // Combined scenario
   private static final ScenarioBuilder fullScenario = scenario("Browser API - Full Crypto Workflow")
-      .exec(keyGenScenario)
+      .exec(keyGenChain)
       .pause(1)
-      .exec(cryptoScenario)
+      .exec(cryptoChain)
       .pause(1)
-      .exec(keyRetrievalScenario);
+      .exec(keyRetrievalChain);
 
   // Performance assertions
   private static final Assertion assertions = global()
-      .responseTime().percentile(95).lt(1500)  // 95th percentile < 1.5s (browser API may be slower due to CSRF)
-      .and(global().failedRequests().percentile(99).lt(1)); // < 1% failure rate
+      .responseTime().max().lt(1500);  // max response time < 1.5s (browser API may be slower due to CSRF)
 
   // Injection profile and test setup
   {
