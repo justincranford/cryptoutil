@@ -15,6 +15,7 @@ import (
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type jwkTestKeys struct {
@@ -378,7 +379,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 	wg.Wait()
 
 	if rsaEncryptErr != nil || rsaSignErr != nil || ecdsaErr != nil || ecdhErr != nil || ed25519Err != nil || aesErr != nil || hmacErr != nil {
-		t.Fatalf("failed to generate keys: %v", errors.Join(rsaEncryptErr, rsaSignErr, ecdsaErr, ecdhErr, ed25519Err, aesErr, hmacErr))
+		require.FailNow(t, "failed to generate keys: %v", errors.Join(rsaEncryptErr, rsaSignErr, ecdsaErr, ecdhErr, ed25519Err, aesErr, hmacErr))
 	}
 
 	return testKeys

@@ -6,8 +6,11 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestMainUsage(t *testing.T) {
@@ -22,13 +25,9 @@ func TestMainUsage(t *testing.T) {
 	// We can't easily test main() because it calls os.Exit
 	// So we'll test that the usage message format is correct
 	expectedUsage := "Usage: go run scripts/cicd_utils.go <command> [command...]"
-	if !strings.Contains(expectedUsage, "scripts/cicd_utils.go") {
-		t.Errorf("Usage message should contain correct filename")
-	}
+	require.Contains(t, expectedUsage, "scripts/cicd_utils.go", "Usage message should contain correct filename")
 
-	if !strings.Contains(expectedUsage, "[command...]") {
-		t.Errorf("Usage message should indicate multiple commands are supported")
-	}
+	require.Contains(t, expectedUsage, "[command...]", "Usage message should indicate multiple commands are supported")
 }
 
 func TestMainInvalidCommand(t *testing.T) {
@@ -42,9 +41,7 @@ func TestMainInvalidCommand(t *testing.T) {
 	// We can't easily test main() because it calls os.Exit
 	// So we'll just verify the command parsing logic would work
 	command := os.Args[1]
-	if command != "invalid-command" {
-		t.Errorf("Expected command to be 'invalid-command', got %s", command)
-	}
+	require.Equal(t, "invalid-command", command)
 }
 
 func TestMainMultipleCommands(t *testing.T) {
@@ -56,34 +53,25 @@ func TestMainMultipleCommands(t *testing.T) {
 	os.Args = []string{"cicd-utils", "go-update-direct-dependencies", "github-action-versions"}
 
 	// Verify we can parse multiple commands
-	if len(os.Args) < 3 {
-		t.Errorf("Expected at least 3 arguments, got %d", len(os.Args))
-	}
+	require.GreaterOrEqual(t, len(os.Args), 3, "Expected at least 3 arguments")
 
 	commands := os.Args[1:]
 	expectedCommands := []string{"go-update-direct-dependencies", "github-action-versions"}
 
-	if len(commands) != len(expectedCommands) {
-		t.Errorf("Expected %d commands, got %d", len(expectedCommands), len(commands))
-	}
+	require.Len(t, commands, len(expectedCommands))
 
 	for i, cmd := range commands {
-		if cmd != expectedCommands[i] {
-			t.Errorf("Expected command %d to be '%s', got '%s'", i, expectedCommands[i], cmd)
-		}
+		require.Equal(t, expectedCommands[i], cmd, "Expected command %d to be '%s'", i, expectedCommands[i])
 	}
 }
 
 func TestLoadActionExceptions_NoFile(t *testing.T) {
 	// Test when exceptions file doesn't exist
 	exceptions, err := loadActionExceptions()
-	if err != nil {
-		t.Errorf("Expected no error when file doesn't exist, got: %v", err)
-	}
+	require.NoError(t, err, "Expected no error when file doesn't exist")
 
-	if exceptions == nil || exceptions.Exceptions == nil {
-		t.Error("Expected empty exceptions struct")
-	}
+	require.NotNil(t, exceptions)
+	require.NotNil(t, exceptions.Exceptions, "Expected empty exceptions struct")
 }
 
 func TestLoadActionExceptions_WithFile(t *testing.T) {
@@ -91,9 +79,7 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	tempDir := t.TempDir()
 
 	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
-	if err := os.MkdirAll(filepath.Dir(exceptionsFile), 0o755); err != nil {
-		t.Fatalf("Failed to create directory: %v", err)
-	}
+	require.NoError(t, os.MkdirAll(filepath.Dir(exceptionsFile), 0o755), "Failed to create directory")
 
 	exceptionsData := ActionExceptions{
 		Exceptions: map[string]ActionException{
@@ -105,38 +91,24 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	}
 
 	data, err := json.MarshalIndent(exceptionsData, "", "  ")
-	if err != nil {
-		t.Fatalf("Failed to marshal JSON: %v", err)
-	}
+	require.NoError(t, err, "Failed to marshal JSON")
 
-	if err := os.WriteFile(exceptionsFile, data, 0o600); err != nil {
-		t.Fatalf("Failed to write file: %v", err)
-	}
+	require.NoError(t, os.WriteFile(exceptionsFile, data, 0o600), "Failed to write file")
 
 	// Change to temp directory
 	oldWd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Failed to get current working directory: %v", err)
-	}
+	require.NoError(t, err, "Failed to get current working directory")
 
-	if err := os.Chdir(tempDir); err != nil {
-		t.Fatalf("Failed to change directory: %v", err)
-	}
+	require.NoError(t, os.Chdir(tempDir), "Failed to change directory")
 
 	defer func() {
-		if err := os.Chdir(oldWd); err != nil {
-			t.Errorf("Failed to restore working directory: %v", err)
-		}
+		require.NoError(t, os.Chdir(oldWd), "Failed to restore working directory")
 	}()
 
 	exceptions, err := loadActionExceptions()
-	if err != nil {
-		t.Errorf("Expected no error when loading valid file, got: %v", err)
-	}
+	require.NoError(t, err, "Expected no error when loading valid file")
 
-	if exceptions.Exceptions["actions/checkout"].AllowedVersions[0] != "v4.1.7" {
-		t.Error("Expected exception data to be loaded correctly")
-	}
+	require.Equal(t, "v4.1.7", exceptions.Exceptions["actions/checkout"].AllowedVersions[0], "Expected exception data to be loaded correctly")
 }
 
 func TestParseWorkflowFile(t *testing.T) {
@@ -157,18 +129,13 @@ jobs:
 `
 
 	if err := os.WriteFile(workflowFile, []byte(content), 0o600); err != nil {
-		t.Fatalf("Failed to write workflow file: %v", err)
+		require.NoError(t, err, "Failed to write workflow file")
 	}
 
 	actions, err := parseWorkflowFile(workflowFile)
-	if err != nil {
-		t.Errorf("Expected no error parsing workflow file, got: %v", err)
-	}
+	require.NoError(t, err, "Expected no error parsing workflow file")
 
-	expectedActions := 3
-	if len(actions) != expectedActions {
-		t.Errorf("Expected %d actions, got %d", expectedActions, len(actions))
-	}
+	require.Len(t, actions, 3, "Expected %d actions", 3)
 
 	// Check specific actions
 	actionNames := make(map[string]bool)
@@ -178,9 +145,7 @@ jobs:
 
 	expectedNames := []string{"actions/checkout", "actions/setup-go", "golangci/golangci-lint-action"}
 	for _, name := range expectedNames {
-		if !actionNames[name] {
-			t.Errorf("Expected action %s not found", name)
-		}
+		require.True(t, actionNames[name], "Expected action %s not found", name)
 	}
 }
 
@@ -199,9 +164,7 @@ func TestIsOutdated(t *testing.T) {
 
 	for _, test := range tests {
 		result := isOutdated(test.current, test.latest)
-		if result != test.expected {
-			t.Errorf("isOutdated(%s, %s) = %v, expected %v", test.current, test.latest, result, test.expected)
-		}
+		require.Equal(t, test.expected, result, "isOutdated(%s, %s) = %v, expected %v", test.current, test.latest, result, test.expected)
 	}
 }
 
@@ -308,24 +271,18 @@ func process(data interface{}) interface{} {
 }
 `
 	if err := os.WriteFile(testFile1, []byte(content1), 0o600); err != nil { //nolint:wsl // gofumpt removes blank line required by wsl linter
-		t.Fatalf("Failed to create test file: %v", err)
+		require.NoError(t, err, "Failed to create test file")
 	}
 
 	// Process the file
 	replacements1, err := processGoFile(testFile1)
-	if err != nil {
-		t.Errorf("processGoFile failed: %v", err)
-	}
+	require.NoError(t, err, "processGoFile failed")
 
-	if replacements1 != 4 {
-		t.Errorf("Expected 4 replacements, got %d", replacements1)
-	}
+	require.Equal(t, 4, replacements1, "Expected 4 replacements")
 
 	// Verify the content was modified correctly
 	modifiedContent1, err := os.ReadFile(testFile1)
-	if err != nil {
-		t.Fatalf("Failed to read modified file: %v", err)
-	}
+	require.NoError(t, err, "Failed to read modified file")
 
 	expectedContent1 := `package main
 
@@ -344,9 +301,7 @@ func process(data any) any {
 	return data
 }
 `
-	if string(modifiedContent1) != expectedContent1 {
-		t.Errorf("File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent1), expectedContent1)
-	}
+	require.Equal(t, expectedContent1, string(modifiedContent1), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent1), expectedContent1)
 
 	// Test case 2: File with no interface{} (should not be modified)
 	testFile2 := filepath.Join(tempDir, "test2.go")
@@ -361,28 +316,20 @@ func main() {
 `
 
 	if err := os.WriteFile(testFile2, []byte(content2), 0o600); err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
+		require.NoError(t, err, "Failed to create test file")
 	}
 
 	// Process the file
 	replacements2, err := processGoFile(testFile2)
-	if err != nil {
-		t.Errorf("processGoFile failed: %v", err)
-	}
+	require.NoError(t, err, "processGoFile failed")
 
-	if replacements2 != 0 {
-		t.Errorf("Expected 0 replacements, got %d", replacements2)
-	}
+	require.Equal(t, 0, replacements2, "Expected 0 replacements")
 
 	// Verify the content was not modified
 	modifiedContent2, err := os.ReadFile(testFile2)
-	if err != nil {
-		t.Fatalf("Failed to read modified file: %v", err)
-	}
+	require.NoError(t, err, "Failed to read modified file")
 
-	if string(modifiedContent2) != content2 {
-		t.Errorf("File content was unexpectedly modified.\nGot:\n%s\nExpected:\n%s", string(modifiedContent2), content2)
-	}
+	require.Equal(t, content2, string(modifiedContent2), "File content was unexpectedly modified.\nGot:\n%s\nExpected:\n%s", string(modifiedContent2), content2)
 
 	// Test case 3: File with interface{} in comments and strings (currently replaced - limitation of simple regex)
 	testFile3 := filepath.Join(tempDir, "test3.go")
@@ -397,24 +344,18 @@ func main() {
 `
 
 	if err := os.WriteFile(testFile3, []byte(content3), 0o600); err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
+		require.NoError(t, err, "Failed to create test file")
 	}
 
 	// Process the file
 	replacements3, err := processGoFile(testFile3)
-	if err != nil {
-		t.Errorf("processGoFile failed: %v", err)
-	}
+	require.NoError(t, err, "processGoFile failed")
 
-	if replacements3 != 2 {
-		t.Errorf("Expected 2 replacements (in comment and string), got %d", replacements3)
-	}
+	require.Equal(t, 2, replacements3, "Expected 2 replacements (in comment and string)")
 
 	// Verify the content was modified (currently replaces everywhere due to simple regex)
 	modifiedContent3, err := os.ReadFile(testFile3)
-	if err != nil {
-		t.Fatalf("Failed to read modified file: %v", err)
-	}
+	require.NoError(t, err, "Failed to read modified file")
 
 	expectedContent3 := `package main
 
@@ -425,9 +366,7 @@ func main() {
 	fmt.Println(x, str)
 }
 `
-	if string(modifiedContent3) != expectedContent3 {
-		t.Errorf("File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent3), expectedContent3)
-	}
+	require.Equal(t, expectedContent3, string(modifiedContent3), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent3), expectedContent3)
 }
 
 func TestGofumpter_RunGofumpter(t *testing.T) {
@@ -445,7 +384,7 @@ func main() {
 `
 
 	if err := os.WriteFile(testFile1, []byte(content1), 0o600); err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
+		require.NoError(t, err, "Failed to create test file")
 	}
 
 	testFile2 := filepath.Join(tempDir, "test2.go")
@@ -457,7 +396,7 @@ type MyStruct struct {
 `
 
 	if err := os.WriteFile(testFile2, []byte(content2), 0o600); err != nil {
-		t.Fatalf("Failed to create test file: %v", err)
+		require.NoError(t, err, "Failed to create test file")
 	}
 
 	// Simulate the file discovery logic from runGofumpter
@@ -474,13 +413,9 @@ type MyStruct struct {
 
 		return nil
 	})
-	if err != nil {
-		t.Fatalf("Failed to walk temp dir: %v", err)
-	}
+	require.NoError(t, err, "Failed to walk temp dir")
 
-	if len(goFiles) != 2 {
-		t.Errorf("Expected 2 Go files, got %d", len(goFiles))
-	}
+	require.Len(t, goFiles, 2, "Expected 2 Go files")
 
 	// Process each file
 	filesModified := 0
@@ -488,11 +423,7 @@ type MyStruct struct {
 
 	for _, filePath := range goFiles {
 		replacements, err := processGoFile(filePath)
-		if err != nil {
-			t.Errorf("Error processing %s: %v", filePath, err)
-
-			continue
-		}
+		require.NoError(t, err, "Error processing %s", filePath)
 
 		if replacements > 0 {
 			filesModified++
@@ -500,30 +431,61 @@ type MyStruct struct {
 		}
 	}
 
-	if filesModified != 2 {
-		t.Errorf("Expected 2 files modified, got %d", filesModified)
-	}
+	require.Equal(t, 2, filesModified, "Expected 2 files modified")
 
-	if totalReplacements != 2 {
-		t.Errorf("Expected 2 total replacements, got %d", totalReplacements)
-	}
+	require.Equal(t, 2, totalReplacements, "Expected 2 total replacements")
 
 	// Verify files were actually modified
 	modifiedContent1, err := os.ReadFile(testFile1)
-	if err != nil {
-		t.Fatalf("Failed to read modified file: %v", err)
-	}
+	require.NoError(t, err, "Failed to read modified file")
 
-	if !strings.Contains(string(modifiedContent1), "var x any") {
-		t.Errorf("File 1 was not modified correctly. Content: %s", string(modifiedContent1))
-	}
+	require.Contains(t, string(modifiedContent1), "var x any", "File 1 was not modified correctly. Content: %s", string(modifiedContent1))
 
 	modifiedContent2, err := os.ReadFile(testFile2)
-	if err != nil {
-		t.Fatalf("Failed to read modified file: %v", err)
-	}
+	require.NoError(t, err, "Failed to read modified file")
 
-	if !strings.Contains(string(modifiedContent2), "Data any") {
-		t.Errorf("File 2 was not modified correctly. Content: %s", string(modifiedContent2))
-	}
+	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly. Content: %s", string(modifiedContent2))
+}
+
+func TestEnforceTestPatterns_RegexValidation(t *testing.T) { //nolint:wsl // gofumpt removes blank line required by wsl linter
+	// Test the regex patterns used in checkTestFile to ensure they work correctly
+	// This was originally created as a one-off test during chat session
+
+	// Test t.Errorf pattern
+	errorfPattern := regexp.MustCompile(`^t\.Errorf\([^)]+\)$`)
+	t.Logf("Compiled regex pattern: %s", `t\.Errorf\([^)]+\)`) //nolint:wsl // gofumpt removes blank line required by wsl linter
+
+	// Debug: test with f.Errorf pattern
+	fErrorfPattern := regexp.MustCompile(`^f\.Errorf\([^)]+\)$`)
+	testString1 := `fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2))`
+	fMatches := fErrorfPattern.FindAllString(testString1, -1)
+	t.Logf("F pattern matches for string: %s", testString1)
+	t.Logf("F pattern matches found: %v", fMatches)
+
+	// Should match t.Errorf calls
+	require.True(t, errorfPattern.MatchString(`t.Errorf("test failed: %v", err)`), "Should match t.Errorf call")
+	require.True(t, errorfPattern.MatchString(`t.Errorf("expected %d, got %d", expected, actual)`), "Should match t.Errorf with multiple args")
+
+	// Should NOT match fmt.Errorf calls (these are legitimate error creation)
+	matches1 := errorfPattern.FindAllString(testString1, -1)
+	t.Logf("T pattern matches for string: %s", testString1)
+	t.Logf("T pattern matches found: %v", matches1)
+	require.False(t, errorfPattern.MatchString(testString1), "Should NOT match fmt.Errorf call")
+
+	testString3 := `var x = 1`
+	matches3 := errorfPattern.FindAllString(testString3, -1)
+	t.Logf("Testing string 3: %s", testString3)
+	t.Logf("Regex matches found: %v", matches3)
+	require.False(t, errorfPattern.MatchString(testString3), "Should NOT match simple assignment")
+
+	// Test t.Fatalf pattern
+	fatalfPattern := regexp.MustCompile(`t\.Fatalf\([^)]+\)`)
+
+	// Should match t.Fatalf calls
+	require.True(t, fatalfPattern.MatchString(`t.Fatalf("failed to parse date: %v", err)`), "Should match t.Fatalf call")
+	require.True(t, fatalfPattern.MatchString(`t.Fatalf("expected error, got nil")`), "Should match t.Fatalf with simple message")
+
+	// Should NOT match other patterns
+	require.False(t, fatalfPattern.MatchString(`fmt.Errorf("some error")`), "Should NOT match fmt.Errorf")
+	require.False(t, fatalfPattern.MatchString(`t.Errorf("some error")`), "Should NOT match t.Errorf")
 }

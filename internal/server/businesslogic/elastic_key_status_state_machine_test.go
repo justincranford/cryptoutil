@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestTransitionInvalidState(t *testing.T) {
 	err := TransitionElasticKeyStatus("DoesNotExist", cryptoutilOpenapiModel.Creating)
-	if err == nil {
-		t.Errorf("Expected transition from DoesNotExist to %s to fail, but it succeeded", cryptoutilOpenapiModel.Creating)
-	}
+	require.Error(t, err)
 }
 
 func TestTransitionValidStateNextValid(t *testing.T) {
@@ -18,9 +18,7 @@ func TestTransitionValidStateNextValid(t *testing.T) {
 		for next := range allowedNextStatuses {
 			t.Run("valid_"+string(current)+"_to_"+string(next), func(t *testing.T) {
 				err := TransitionElasticKeyStatus(current, next)
-				if err != nil {
-					t.Errorf("Expected transition from %s to %s to succeed, but it failed with error: %v", current, next, err)
-				}
+				require.NoError(t, err)
 			})
 		}
 	}
@@ -36,9 +34,7 @@ func TestTransitionValidStateNextInvalid(t *testing.T) {
 			if !validTransitions[current][potentialNext] {
 				t.Run("invalid_"+string(current)+"_to_"+string(potentialNext), func(t *testing.T) {
 					err := TransitionElasticKeyStatus(current, potentialNext)
-					if err == nil {
-						t.Errorf("Expected transition from %s to %s to fail, but it succeeded", current, potentialNext)
-					}
+					require.Error(t, err)
 				})
 			}
 		}
@@ -49,9 +45,7 @@ func TestTransitionValidStateNextSelfInvalid(t *testing.T) {
 	for current := range validTransitions {
 		t.Run("self_"+string(current), func(t *testing.T) {
 			err := TransitionElasticKeyStatus(current, current)
-			if err == nil {
-				t.Errorf("Expected self-transition for %s to fail, but it succeeded", current)
-			}
+			require.Error(t, err)
 		})
 	}
 }

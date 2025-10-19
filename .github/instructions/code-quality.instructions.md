@@ -39,15 +39,27 @@ gofumpt -w .
 gofumpt -w path/to/file.go
 ```
 
-### CRITICAL: wsl and gofumpt Conflict Recognition
+### CRITICAL: wsl and gofumpt Conflict Resolution
 
-**RECOGNIZE IMMEDIATELY**: When `wsl` linter complains about "assignments should only be cuddled with other assignments" but `gofumpt` removes blank lines, this is a known conflict:
+**RECOGNIZE IMMEDIATELY**: `wsl` linter may complain about "assignments should only be cuddled with other assignments" when `gofumpt` removes blank lines between statements.
 
-- `wsl` wants assignments grouped without blank lines for consistency
-- `gofumpt` removes "unnecessary" blank lines as stricter formatting
-- **SOLUTION**: Use `//nolint:wsl // gofumpt removes blank line required by wsl linter` comment
-- **PATTERN**: Place comment inline with the assignment (not on separate line, as gofumpt removes separate-line comments)
-- **EXAMPLES**: See `internal/common/util/random.go` and `internal/client/client_test_util.go`
+**WHY THIS CONFLICT EXISTS**:
+- `wsl` enforces grouping related assignments without blank lines for readability
+- `gofumpt` removes all "unnecessary" blank lines as stricter formatting
+
+**PREFERRED SOLUTIONS** (in order):
+1. **Restructure code** to avoid the conflict (preferred)
+2. **Accept gofumpt formatting** and suppress wsl with `//nolint:wsl`
+3. **Use alternative formatting** that satisfies both tools
+
+**SUPPRESSION PATTERN**:
+```go
+variable := value //nolint:wsl // gofumpt removes blank line required by wsl linter
+```
+
+**PLACEMENT**: Always inline with the statement (not on separate line, as gofumpt removes separate comments).
+
+**WHEN TO USE**: Only when code restructuring would harm readability or when the conflict is unavoidable. Avoid unnecessary nolint usage.
 
 ### CRITICAL: godot Comment Period Requirements
 

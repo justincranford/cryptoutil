@@ -39,16 +39,12 @@ func TestEncodeDecodeECDH(t *testing.T) {
 	for _, curve := range ecdhTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
 			original, err := curve.Curve.GenerateKey(rand.Reader)
-			if err != nil {
-				t.Errorf("generate failed: %v", err)
-			}
+			require.NoError(t, err)
 
 			require.IsType(t, &ecdh.PrivateKey{}, original)
 
 			decoded, err := pkcs8EncodeDecode(t, original)
-			if err != nil {
-				t.Errorf("generate failed: %v", err)
-			}
+			require.NoError(t, err)
 
 			require.IsType(t, &ecdh.PrivateKey{}, decoded)
 		})
@@ -59,16 +55,12 @@ func TestEncodeDecodeECDSA(t *testing.T) {
 	for _, curve := range ecdsaTestCurves {
 		t.Run(curve.Name, func(t *testing.T) {
 			original, err := ecdsa.GenerateKey(curve.Curve, rand.Reader)
-			if err != nil {
-				t.Errorf("generate failed: %v", err)
-			}
+			require.NoError(t, err)
 
 			require.IsType(t, &ecdsa.PrivateKey{}, original)
 
 			decoded, err := pkcs8EncodeDecode(t, original)
-			if err != nil {
-				t.Errorf("generate failed: %v", err)
-			}
+			require.NoError(t, err)
 
 			require.IsType(t, &ecdsa.PrivateKey{}, decoded)
 		})

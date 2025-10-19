@@ -9,6 +9,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 type stats struct {
@@ -43,11 +45,7 @@ func TestChan(t *testing.T) {
 	sender := func() any {
 		// Generate cryptographically secure random number 0-100 inclusive
 		val, err := rand.Int(rand.Reader, big.NewInt(101))
-		if err != nil {
-			t.Errorf("Failed to generate random number: %v", err)
-
-			return int64(0)
-		}
+		require.NoError(t, err)
 
 		return s.record(val.Int64())
 	}

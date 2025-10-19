@@ -89,10 +89,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 			require.NotNil(t, headers, "response headers should not be nil")
 
 			// Check status code
-			if tc.expectedStatus != 0 && statusCode != tc.expectedStatus {
-				t.Errorf("HTTP Status code: %d, expected: %d", statusCode, tc.expectedStatus)
-				return //nolint:nlreturn // gofumpt removes blank line required by nlreturn linter
-			}
+			require.Equal(t, tc.expectedStatus, statusCode)
 
 			var contentString string
 			if body != nil {
@@ -102,7 +99,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 			if err == nil {
 				t.Logf("PASS: %s, Contents: %s", tc.url, contentString)
 			} else {
-				t.Errorf("FAILED: %s, Contents: %s, Error: %v", tc.url, contentString, err)
+				require.Fail(t, fmt.Sprintf("FAILED: %s, Contents: %s, Error: %v", tc.url, contentString, err))
 			}
 		})
 	}
@@ -439,10 +436,7 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 			require.NotNil(t, headers, "response headers should not be nil")
 
 			// Check status code
-			if tc.expectedStatus != 0 && statusCode != tc.expectedStatus {
-				t.Errorf("HTTP Status code: %d, expected: %d", statusCode, tc.expectedStatus)
-				return //nolint:nlreturn // gofumpt removes blank line required by nlreturn linter
-			}
+			require.Equal(t, tc.expectedStatus, statusCode)
 
 			// Validate logging scenarios based on the test case
 			switch tc.logScenario {

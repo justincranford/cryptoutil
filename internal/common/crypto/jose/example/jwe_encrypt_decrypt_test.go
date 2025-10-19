@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
@@ -137,11 +136,11 @@ func encrypt(t *testing.T, recipientJWK jwk.Key, plaintext []byte) *jwe.Message 
 	jweEncryptOptions = append(jweEncryptOptions, jwe.WithKey(alg, recipientJWK, jwe.WithPerRecipientHeaders(jweProtectedHeaders)))
 
 	jweMessageBytes, err := jwe.Encrypt(plaintext, jweEncryptOptions...)
-	require.NoError(t, err, fmt.Errorf("failed to encrypt plaintext: %w", err))
+	require.NoError(t, err, "failed to encrypt plaintext")
 	t.Logf("JWE Message:\n%s", string(jweMessageBytes))
 
 	jweMessage, err := jwe.Parse(jweMessageBytes)
-	require.NoError(t, err, fmt.Errorf("failed to parse JWE message bytes: %w", err))
+	require.NoError(t, err, "failed to parse JWE message bytes")
 
 	return jweMessage
 }

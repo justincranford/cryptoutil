@@ -1,7 +1,6 @@
 package combinations
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -73,10 +72,7 @@ func TestCombinations_HappyPath(t *testing.T) {
 			}
 
 			require.NoError(t, err)
-
-			if !reflect.DeepEqual(result, tc.expected) {
-				t.Errorf("Test %s failed. Expected: %v, Got: %v", tc.name, tc.expected, result)
-			}
+			require.Equal(t, tc.expected, result)
 		})
 	}
 }

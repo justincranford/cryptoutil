@@ -33,3 +33,13 @@ Follow Go testing file naming conventions for proper organization:
 - When creating test names, test code, test utilities, and test data (e.g. unique database names), ensure they are concurrency safe for parallel testing; use UUIDv7 suffixes for uniqueness instead of counters or timestamps which can reset or collide during parallel execution
 - UUIDv7 provides time-ordered uniqueness and randomness, making it ideal for concurrent testing while maintaining deterministic ordering for debugging
 - Design tests, utilities, and data for robustness: avoid brittleness and brittle patterns that could cause intermittent failures
+
+## Copilot Testing Guidelines
+
+When testing linting of code samples or validating regex patterns during chat sessions:
+
+- **Create permanent tests in `scripts/cicd_utils_test.go`** instead of one-off temporary test files
+- This ensures test coverage persists across chat sessions and serves as regression testing
+- Examples: regex validation tests, linting pattern tests, code transformation tests
+- All tests in `cicd_utils_test.go` execute automatically during Go test runs
+- Use descriptive test names that indicate the validation purpose (e.g., `TestEnforceTestPatterns_RegexValidation`)

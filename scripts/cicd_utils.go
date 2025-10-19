@@ -825,7 +825,7 @@ func checkTestFile(filePath string) []string {
 
 	// Pattern 4: Check for testify imports if testify assertions are used
 	hasTestifyUsage := strings.Contains(contentStr, "require.") || strings.Contains(contentStr, "assert.")
-	hasTestifyImport := strings.Contains(contentStr, `"github.com/stretchr/testify"`)
+	hasTestifyImport := strings.Contains(contentStr, "github.com/stretchr/testify")
 
 	if hasTestifyUsage && !hasTestifyImport {
 		issues = append(issues, "Test file uses testify assertions but doesn't import testify")
