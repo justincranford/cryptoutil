@@ -15,6 +15,22 @@ import (
 	"time"
 )
 
+const (
+	// Trend analysis constants.
+	trendClassNeutral  = "neutral"
+	trendClassPositive = "positive"
+	trendClassNegative = "negative"
+	trendNoChange      = "→ No change"
+
+	// Status constants.
+	statusPass = "PASS"
+	statusFail = "FAIL"
+
+	// Compliance indicators.
+	compliancePass = "✅"
+	complianceFail = "❌"
+)
+
 type TestProfile struct {
 	Name        string                            `json:"name"`
 	VUs         int                               `json:"vus"`
@@ -143,10 +159,14 @@ func runTests(args []string) {
 	verbose := fs.Bool("verbose", false, "Enable verbose output")
 	help := fs.Bool("help", false, "Show help message")
 
-	fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
 
 	if *help {
 		showRunHelp()
+
 		return
 	}
 
@@ -210,6 +230,7 @@ func runTestsInternal(profile, baseURL, outputDir string, dryRun, verbose bool) 
 	if dryRun {
 		fmt.Println("🔍 Dry run mode - would execute:")
 		fmt.Printf("k6 run --out json=%s %s\n", resultFile, scriptFile)
+
 		return nil
 	}
 
@@ -254,10 +275,14 @@ func analyzeResults(args []string) {
 	outputDir := fs.String("output-dir", "./performance-reports", "Directory to store analysis reports")
 	help := fs.Bool("help", false, "Show help message")
 
-	fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
 
 	if *help {
 		showAnalyzeHelp()
+
 		return
 	}
 
@@ -304,8 +329,20 @@ func analyzeResultsInternal(resultsDir, outputDir string) error {
 
 	// Sort by modification time (newest first)
 	sort.Slice(resultFiles, func(i, j int) bool {
-		iInfo, _ := os.Stat(resultFiles[i])
-		jInfo, _ := os.Stat(resultFiles[j])
+		iInfo, err := os.Stat(resultFiles[i])
+		if err != nil {
+			log.Printf("Warning: Failed to stat file %s: %v", resultFiles[i], err)
+
+			return false
+		}
+
+		jInfo, err := os.Stat(resultFiles[j])
+		if err != nil {
+			log.Printf("Warning: Failed to stat file %s: %v", resultFiles[j], err)
+
+			return true
+		}
+
 		return iInfo.ModTime().After(jInfo.ModTime())
 	})
 
@@ -313,6 +350,7 @@ func analyzeResultsInternal(resultsDir, outputDir string) error {
 	history, err := loadHistoricalData(outputDir)
 	if err != nil {
 		log.Printf("Warning: Failed to load historical data: %v", err)
+
 		history = []PerformanceResult{}
 	}
 
@@ -372,10 +410,14 @@ func generateScript(args []string) {
 	duration := fs.String("duration", "", "Test duration (overrides profile)")
 	help := fs.Bool("help", false, "Show help message")
 
-	fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
 
 	if *help {
 		showGenerateHelp()
+
 		return
 	}
 
@@ -460,6 +502,7 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 	if vus > 0 {
 		profile.VUs = vus
 	}
+
 	if duration != "" {
 		profile.Duration = duration
 	}
@@ -468,7 +511,7 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 	script := generateK6Script(profile, baseURL)
 
 	// Write to output file
-	if err := os.WriteFile(outputFile, []byte(script), 0o644); err != nil {
+	if err := os.WriteFile(outputFile, []byte(script), 0o600); err != nil {
 		return fmt.Errorf("error writing to file %s: %w", outputFile, err)
 	}
 
@@ -476,9 +519,11 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 	fmt.Printf("📊 Profile: %s (%s)\n", profile.Name, profile.Description)
 	fmt.Printf("👥 Virtual Users: %d\n", profile.VUs)
 	fmt.Printf("⏱️  Duration: %s\n", profile.Duration)
+
 	if profile.RampUp != "" {
 		fmt.Printf("📈 Ramp Up: %s\n", profile.RampUp)
 	}
+
 	fmt.Println("\nTo run the test:")
 	fmt.Printf("  k6 run %s\n", outputFile)
 
@@ -491,15 +536,20 @@ func runQuickTest(args []string) {
 	outputDir := fs.String("output", "./performance-results", "Directory to store test results")
 	help := fs.Bool("help", false, "Show help message")
 
-	fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing flags: %v\n", err)
+		os.Exit(1)
+	}
 
 	if *help {
 		showQuickHelp()
+
 		return
 	}
 
 	// Generate quick test script
 	tempScript := filepath.Join(*outputDir, "perf-test-quick.js")
+
 	if err := os.MkdirAll(*outputDir, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output directory: %v\n", err)
 		os.Exit(1)
@@ -607,11 +657,13 @@ func getTestProfile(profileName string) TestProfile {
 func generateK6Script(profile TestProfile, baseURL string) string {
 	// Convert thresholds to JavaScript object format
 	thresholds := make([]string, 0, len(profile.Thresholds))
+
 	for metric, conditions := range profile.Thresholds {
 		conditionsStr := make([]string, 0, len(conditions))
 		for condition := range conditions {
 			conditionsStr = append(conditionsStr, fmt.Sprintf("'%s'", condition))
 		}
+
 		thresholds = append(thresholds, fmt.Sprintf("    %s: [%s]", metric, strings.Join(conditionsStr, ", ")))
 	}
 
@@ -766,15 +818,22 @@ export function teardown(data) {
 
 func generateK6ScriptInternal(scriptPath string, config TestProfile, baseURL string) error {
 	k6Script := generateK6Script(config, baseURL)
-	return os.WriteFile(scriptPath, []byte(k6Script), 0o644)
+
+	if err := os.WriteFile(scriptPath, []byte(k6Script), 0o600); err != nil {
+		return fmt.Errorf("failed to write k6 script to %s: %w", scriptPath, err)
+	}
+
+	return nil
 }
 
 func findResultFiles(resultsDir string) ([]string, error) {
 	pattern := filepath.Join(resultsDir, "perf-test-*.json")
+
 	files, err := filepath.Glob(pattern)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to glob pattern %s: %w", pattern, err)
 	}
+
 	return files, nil
 }
 
@@ -807,9 +866,11 @@ func parseK6Results(filePath string) (*PerformanceResult, error) {
 	if k6Data.Metrics.KeyGenerationDuration != nil {
 		result.KeyGenDuration = k6Data.Metrics.KeyGenerationDuration.Values.Avg
 	}
+
 	if k6Data.Metrics.EncryptionDuration != nil {
 		result.EncryptDuration = k6Data.Metrics.EncryptionDuration.Values.Avg
 	}
+
 	if k6Data.Metrics.DecryptionDuration != nil {
 		result.DecryptDuration = k6Data.Metrics.DecryptionDuration.Values.Avg
 	}
@@ -819,17 +880,19 @@ func parseK6Results(filePath string) (*PerformanceResult, error) {
 
 func loadHistoricalData(outputDir string) ([]PerformanceResult, error) {
 	historyFile := filepath.Join(outputDir, "performance-history.json")
+
 	data, err := os.ReadFile(historyFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return []PerformanceResult{}, nil
 		}
-		return nil, err
+
+		return nil, fmt.Errorf("failed to read history file: %w", err)
 	}
 
 	var history []PerformanceResult
 	if err := json.Unmarshal(data, &history); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal history data: %w", err)
 	}
 
 	return history, nil
@@ -837,12 +900,17 @@ func loadHistoricalData(outputDir string) ([]PerformanceResult, error) {
 
 func saveHistoricalData(history []PerformanceResult, outputDir string) error {
 	historyFile := filepath.Join(outputDir, "performance-history.json")
+
 	data, err := json.MarshalIndent(history, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal history data: %w", err)
 	}
 
-	return os.WriteFile(historyFile, data, 0o644)
+	if err := os.WriteFile(historyFile, data, 0o600); err != nil {
+		return fmt.Errorf("failed to write history file: %w", err)
+	}
+
+	return nil
 }
 
 func generateTrendAnalysis(history []PerformanceResult) TrendAnalysis {
@@ -884,7 +952,7 @@ func generatePerformanceDashboard(history []PerformanceResult, outputDir string)
 	// Convert history to JSON for JavaScript
 	historyJSON, err := json.Marshal(history)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal history for dashboard: %w", err)
 	}
 
 	dashboardTemplate := `<!DOCTYPE html>
@@ -1039,6 +1107,7 @@ func generatePerformanceDashboard(history []PerformanceResult, outputDir string)
 	// Prepare template data
 	statusClass := "status-good"
 	statusText := "✅ Healthy"
+
 	if latest.ErrorRate >= 0.1 {
 		statusClass = "status-error"
 		statusText = "❌ Critical"
@@ -1047,33 +1116,36 @@ func generatePerformanceDashboard(history []PerformanceResult, outputDir string)
 		statusText = "⚠️ Warning"
 	}
 
-	responseTimeTrendClass := "neutral"
-	responseTimeTrend := "→ No change"
+	responseTimeTrendClass := trendClassNeutral
+	responseTimeTrend := trendNoChange
+
 	if trend.ResponseTimeChange > 0 {
-		responseTimeTrendClass = "positive"
+		responseTimeTrendClass = trendClassPositive
 		responseTimeTrend = fmt.Sprintf("↗ +%.1f%%", trend.ResponseTimeChange)
 	} else if trend.ResponseTimeChange < 0 {
-		responseTimeTrendClass = "negative"
+		responseTimeTrendClass = trendClassNegative
 		responseTimeTrend = fmt.Sprintf("↘ %.1f%%", trend.ResponseTimeChange)
 	}
 
-	throughputTrendClass := "neutral"
-	throughputTrend := "→ No change"
+	throughputTrendClass := trendClassNeutral
+	throughputTrend := trendNoChange
+
 	if trend.ThroughputChange > 0 {
-		throughputTrendClass = "positive"
+		throughputTrendClass = trendClassPositive
 		throughputTrend = fmt.Sprintf("↗ +%.1f%%", trend.ThroughputChange)
 	} else if trend.ThroughputChange < 0 {
-		throughputTrendClass = "negative"
+		throughputTrendClass = trendClassNegative
 		throughputTrend = fmt.Sprintf("↘ %.1f%%", trend.ThroughputChange)
 	}
 
-	errorRateTrendClass := "neutral"
-	errorRateTrend := "→ No change"
+	errorRateTrendClass := trendClassNeutral
+	errorRateTrend := trendNoChange
+
 	if trend.ErrorRateChange > 0 {
-		errorRateTrendClass = "positive"
+		errorRateTrendClass = trendClassPositive
 		errorRateTrend = fmt.Sprintf("↗ +%.1f%%", trend.ErrorRateChange)
 	} else if trend.ErrorRateChange < 0 {
-		errorRateTrendClass = "negative"
+		errorRateTrendClass = trendClassNegative
 		errorRateTrend = fmt.Sprintf("↘ %.1f%%", trend.ErrorRateChange)
 	}
 
@@ -1113,21 +1185,24 @@ func generatePerformanceDashboard(history []PerformanceResult, outputDir string)
 
 	tmpl, err := template.New("dashboard").Parse(dashboardTemplate)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse dashboard template: %w", err)
 	}
 
 	outputFile := filepath.Join(outputDir, "performance-dashboard.html")
+
 	f, err := os.Create(outputFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create dashboard file: %w", err)
 	}
+
 	defer f.Close()
 
 	if err := tmpl.Execute(f, templateData); err != nil {
-		return err
+		return fmt.Errorf("failed to execute dashboard template: %w", err)
 	}
 
 	fmt.Printf("📊 Performance dashboard generated: %s\n", outputFile)
+
 	return nil
 }
 
@@ -1165,18 +1240,20 @@ func generateSummaryReport(history []PerformanceResult, trend TrendAnalysis, out
 ## Historical Data Points: {{.HistoryCount}}
 `
 
-	responseTimeCompliance := "✅"
-	responseTimeStatus := "PASS"
+	responseTimeCompliance := compliancePass
+	responseTimeStatus := statusPass
+
 	if latest.P95ResponseTime >= 500 {
-		responseTimeCompliance = "❌"
-		responseTimeStatus = "FAIL"
+		responseTimeCompliance = complianceFail
+		responseTimeStatus = statusFail
 	}
 
-	errorRateCompliance := "✅"
-	errorRateStatus := "PASS"
+	errorRateCompliance := compliancePass
+	errorRateStatus := statusPass
+
 	if latest.ErrorRate >= 0.1 {
-		errorRateCompliance = "❌"
-		errorRateStatus = "FAIL"
+		errorRateCompliance = complianceFail
+		errorRateStatus = statusFail
 	}
 
 	templateData := struct {
@@ -1219,20 +1296,21 @@ func generateSummaryReport(history []PerformanceResult, trend TrendAnalysis, out
 
 	tmpl, err := template.New("summary").Parse(summaryTemplate)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse summary template: %w", err)
 	}
 
 	f, err := os.Create(summaryFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create summary file: %w", err)
 	}
 	defer f.Close()
 
 	if err := tmpl.Execute(f, templateData); err != nil {
-		return err
+		return fmt.Errorf("failed to execute summary template: %w", err)
 	}
 
 	fmt.Printf("📋 Summary report generated: %s\n", summaryFile)
+
 	return nil
 }
 
@@ -1242,5 +1320,6 @@ func contains(slice []string, item string) bool {
 			return true
 		}
 	}
+
 	return false
 }

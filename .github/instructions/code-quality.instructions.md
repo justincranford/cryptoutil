@@ -49,6 +49,31 @@ gofumpt -w path/to/file.go
 - **PATTERN**: Place comment inline with the assignment (not on separate line, as gofumpt removes separate-line comments)
 - **EXAMPLES**: See `internal/common/util/random.go` and `internal/client/client_test_util.go`
 
+### CRITICAL: godot Comment Period Requirements
+
+**ALWAYS end comments with periods** to satisfy the godot linter:
+
+- **Package comments**: `// Package cryptoutil provides cryptographic utilities.`
+- **Function comments**: `// NewCipher creates a new cipher instance.`
+- **Variable comments**: `// defaultTimeout is the default request timeout.`
+- **Constant group comments**: `// HTTP status codes.`
+- **Struct field comments**: `// Name is the user's full name.`
+
+**Pattern for constant groups:**
+```go
+const (
+    // HTTP status codes.
+    statusOK    = 200
+    statusError = 500
+
+    // Database connection settings.
+    maxConnections = 10
+    timeoutSeconds = 30
+)
+```
+
+**NEVER use incomplete sentences** in comments - always ensure they form complete thoughts ending with periods.
+
 **Linters that support automatic fixing:**
 - **wsl**: Whitespace consistency (blank lines between statements)
 - **gofmt**: Go code formatting
