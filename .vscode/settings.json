@@ -3,8 +3,8 @@
   "markdown.preview.scrollEditorWithPreview": true, // Sync scroll between editor and preview - Default: true
   "markdown.preview.openMarkdownLinks": "inPreview", // How to open links in markdown files - Default: "inPreview"
   "markdown.validate.enabled": true, // Enable markdown validation - Default: true
-  "markdown.math.enabled": true, // Enable math expressions in markdown - Default: false, Recommended: true
   "markdown.updateLinksOnFileMove.enabled": "prompt", // Update links when files are moved - Default: "prompt"
+  "markdown.math.enabled": true, // Enable math expressions in markdown - Default: false, Recommended: true (experimental)
   "markdown.validate.fragmentLinks.enabled": "warning", // Validate fragment links in markdown - Default: "ignore", Recommended: "warning"
   "markdown.validate.fileLinks.enabled": "warning", // Validate file links in markdown - Default: "ignore", Recommended: "warning"
 
@@ -13,14 +13,28 @@
 
   // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
   "editor.aiStats.enabled": true, // Enable AI-powered statistics in editor - Default: false, Recommended: true (experimental)
-  "editor.rulers": [40, 80, 120, 160, 200], // Show vertical rulers at specified columns - Default: [], Recommended: [40, 80, 120, 160, 200]
+  "editor.rulers": [80, 120, 160, 200], // Show vertical rulers at specified columns - Default: [], Recommended: [80, 120]
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
-    "/^go (test|run|build|mod|generate)/": true,
-    "/^docker compose (up|down|logs|ps)/": true,
-    "/^git (status|log|diff|branch)/": true,
-    "/^Remove-Item\\b/i": false,
+    "/^go (mod edit)/": false,
+    "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify)/": true,
+    "/^(gofumpt|goimports|golangci-lint run)/": true,
+    "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|fetch)/": true,
+    "/^git (push|pull|reset|rebase)/": false,
+    "/^docker system df/": true,
+    "/^docker (run|exec|stop|kill|system|rm|rmi|swarm|prune)/": false,
+    "/^docker compose (exec)/": false,
+    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (create|update|scale|rollback|connect|disconnect|restart)/": false,
+    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (ls|inspect|logs|history)/": true,
+    "/^docker (pull|build|tag|inspect|version|info)/": true,
+    "/^docker compose (up|down|logs|ps|build|pull|start|stop|restart|config)/": true,
+    "/^kubectl/": false,         // Kubernetes operations (if used in future)
+    "/^pre-commit run/": true,
+    "/^act /": true,
+    "/^(Remove-Item|del)\\b/i": false, // Windows file deletion
+    "/^rm\\b/": false,                 // Unix file deletion (complement to Remove-Item)
+    "/^python/": false,                // Used for count_tokens.py but you didn't enable
     "/\\.ps1\\b/i": { "approve": false, "matchCommandLine": true }
   }, // Auto-approve terminal commands matching patterns - Default: {}, Recommended: configured patterns
   "github.copilot.chat.virtualTools.threshold": 64, // Threshold for virtual tools - Default: 64, Recommended: 64 (experimental)

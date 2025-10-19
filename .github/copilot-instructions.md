@@ -77,5 +77,7 @@
 | **/*.go | '.github/instructions/go-dependencies.instructions.md' | Instructions for Go dependency management |
 | **/*.go | '.github/instructions/imports.instructions.md' | Instructions for Go import alias naming conventions |
 | .github/workflows/*.yml | '.github/instructions/cicd.instructions.md' | Instructions for CI/CD workflow configuration and Go version consistency |
+| ** | '.github/instructions/testing.instructions.md' | Instructions for testing |
+| ** | '.github/instructions/terminal-auto-approve.instructions.md' | Instructions for terminal command auto-approval pattern management |
 | **/dast-todos.md | '.github/instructions/todo-maintenance.instructions.md' | Instructions for maintaining actionable TODO/task lists (delete completed tasks immediately) |
 | ** | '.github/instructions/act-testing.instructions.md' | Instructions for testing GitHub Actions workflows locally with act (CRITICAL: proper timeouts) |
