@@ -151,8 +151,11 @@ jobs:
       - name: Run fuzz tests
         run: |
           echo "🔍 Running fuzz tests for security-critical code..."
-          # Run fuzz tests with 5 minute timeout per function
-          go test -fuzz=. -fuzztime=5m ./internal/common/crypto/...
+          # Run fuzz tests with 5 minute timeout per function for each package
+          echo "Running fuzz tests for keygen package..."
+          go test -fuzz=. -fuzztime=5m ./internal/common/crypto/keygen/
+          echo "Running fuzz tests for digests package..."
+          go test -fuzz=. -fuzztime=5m ./internal/common/crypto/digests/
 
       - name: Fuzz test summary
         run: |
