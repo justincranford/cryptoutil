@@ -122,7 +122,7 @@ jobs:
         go run ./scripts/perf/perf-test.go analyze -results-dir ./performance-results -output-dir ./performance-reports
 
     - name: Upload performance results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       with:
         name: performance-results-${{ github.run_number }}
         path: |

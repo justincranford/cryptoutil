@@ -264,7 +264,7 @@ jobs:
           output-file: sbom.spdx.json
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: sbom
           path: sbom.spdx.json
@@ -371,7 +371,7 @@ jobs:
           fi
 
       - name: Upload mutation testing reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         if: always()
         with:
           name: mutation-testing-reports
