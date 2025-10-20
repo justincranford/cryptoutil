@@ -4,6 +4,10 @@
 # Binding address - 0.0.0.0 allows connections from any NIC within the container
 bind-public-address: "0.0.0.0"
 
+# TLS configuration for HTTPS
+tls-cert-file: /app/tls_public_server_certificate_0.pem
+tls-key-file: /app/tls_public_server_private_key.pem
+
 unseal-mode: "3-of-5"
 
 unseal-files:

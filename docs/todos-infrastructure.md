@@ -108,3 +108,28 @@
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
       POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
   ```
+
+### Task INF8: Use HTTPS 127.0.0.1:9090 for Admin APIs
+- **Description**: Ensure admin APIs (shutdown, livez, readyz) are accessed via private server HTTPS 127.0.0.1:9090, not public server
+- **Current State**: Admin APIs incorrectly accessed on public ports (8080)
+- **Action Items**:
+  - Update e2e tests to check readiness on private server URLs (9090)
+  - Update documentation to show correct admin API endpoints
+  - Ensure health checks use private server endpoints
+  - Remove admin API routes from public server if accidentally added
+- **Files**: `test/e2e_integration_test.go`, documentation, health check scripts
+- **Expected Outcome**: Admin APIs properly isolated to private server
+- **Priority**: High - API security and correct architecture
+
+### Task INF9: Add /admin/v1 Prefix to Private Admin APIs
+- **Description**: Add configurable /admin/v1 prefix to private admin APIs (shutdown, livez, readyz) on HTTPS 127.0.0.1:9090
+- **Current State**: Admin APIs use root paths (/shutdown, /livez, /readyz)
+- **Action Items**:
+  - Add `privateAdminAPIContextPath` setting to config.go with default "/admin/v1"
+  - Update application_listener.go to use prefixed paths for admin endpoints
+  - Update health check functions to use prefixed endpoints
+  - Update e2e tests to use prefixed admin API endpoints
+  - Update documentation with new admin API paths
+- **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `test/e2e_integration_test.go`, documentation
+- **Expected Outcome**: Properly prefixed admin APIs with configurable context path
+- **Priority**: Medium - API organization and consistency

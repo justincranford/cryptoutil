@@ -284,7 +284,7 @@ Add to your CI/CD pipeline:
 ```yaml
 - name: Run Service API Performance Tests
   run: |
-    cd test/gatling
+    cd test/load
     ./mvnw gatling:test \
       -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
       -DserviceApiBaseUrl=${{ secrets.SERVICE_API_BASE_URL }} \
@@ -295,7 +295,7 @@ Add to your CI/CD pipeline:
 ```yaml
 - name: Run Browser API Performance Tests
   run: |
-    cd test/gatling
+    cd test/load
     ./mvnw gatling:test \
       -Dgatling.simulationClass=cryptoutil.BrowserApiSimulation \
       -DbrowserApiBaseUrl=${{ secrets.BROWSER_API_BASE_URL }} \
@@ -306,7 +306,7 @@ Add to your CI/CD pipeline:
 ```yaml
 - name: Run Admin API Health Check Tests
   run: |
-    cd test/gatling
+    cd test/load
     ./mvnw gatling:test \
       -Dgatling.simulationClass=cryptoutil.AdminApiSimulation \
       -DadminApiBaseUrl=${{ secrets.ADMIN_API_BASE_URL }} \
@@ -332,7 +332,7 @@ Add to your CI/CD pipeline:
           virtual-clients: ${{ vars.ADMIN_API_LOAD_TEST_USERS || 2 }}
           api-type: admin
   run: |
-    cd test/gatling
+    cd test/load
     ./mvnw gatling:test \
       -Dgatling.simulationClass=${{ matrix.simulation }} \
       -D${{ matrix.api-type }}ApiBaseUrl=${{ matrix.base-url }} \

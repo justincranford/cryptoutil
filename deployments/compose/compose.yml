@@ -27,7 +27,7 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "-k", "https://localhost:9090/livez"]
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
       start_period: 10s
       interval: 5s
       timeout: 5s
@@ -141,6 +141,12 @@ services:
       - "8889:8889"   # Prometheus metrics
     depends_on:
       - grafana-otel-lgtm
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8889/health"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - cryptoutil-network
 
