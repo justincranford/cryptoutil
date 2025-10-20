@@ -8,12 +8,15 @@ receivers:
 
 processors:
   batch:
+    timeout: 5s
+    send_batch_size: 16384
+    send_batch_max_size: 32768
 
 exporters:
   otlphttp:
     endpoint: "http://grafana-otel-lgtm:4318"
-  debug:
-    verbosity: detailed
+  # debug:
+  #   verbosity: detailed
 
 extensions:
   health_check:
