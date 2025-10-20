@@ -153,16 +153,30 @@ jobs:
           echo "🔍 Running fuzz tests for security-critical code..."
           # Run fuzz tests with 5 minute timeout per function for each package
           echo "Running fuzz tests for keygen package..."
-          go test -fuzz=. -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=FuzzGenerateAESKey -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=FuzzGenerateAESHSKey -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=FuzzGenerateHMACKey -fuzztime=5m ./internal/common/crypto/keygen/
           echo "Running fuzz tests for digests package..."
-          go test -fuzz=. -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzHKDF -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzSHA512 -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzSHA384 -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzSHA256 -fuzztime=5m ./internal/common/crypto/digests/
+          go test -fuzz=FuzzSHA224 -fuzztime=5m ./internal/common/crypto/digests/
 
       - name: Fuzz test summary
         run: |
           echo "## 🔍 Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic operations completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Duration: 5 minutes per fuzz function" >> $GITHUB_STEP_SUMMARY
-          echo "- Coverage: Key generation and digest functions" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: 7 keygen functions + 9 digest functions (16 total)" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for security-critical code" >> $GITHUB_STEP_SUMMARY
 
   # Benchmark Testing - Performance validation and regression detection
