@@ -42,6 +42,7 @@ const (
 	clientLivenessRequestTimeout  = 3 * time.Second
 	clientReadinessRequestTimeout = 5 * time.Second
 	clientLivenessStartTimeout    = 200 * time.Millisecond
+	healthCheckTimeout            = 5 * time.Second
 	errorStr                      = "error"
 	statusStr                     = "status"
 	protocolHTTPS                 = "https"
@@ -587,7 +588,7 @@ func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[strin
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), healthCheckTimeout)
 	defer cancel()
 
 	health, err := serverApplicationCore.SQLRepository.HealthCheck(ctx)
@@ -605,15 +606,35 @@ func checkMemoryHealth() map[string]any {
 
 	return map[string]any{
 		"status":         "ok",
-		"heap_alloc":     m.HeapAlloc,
-		"heap_sys":       m.HeapSys,
-		"heap_idle":      m.HeapIdle,
-		"heap_released":  m.HeapReleased,
-		"stack_inuse":    m.StackInuse,
-		"stack_sys":      m.StackSys,
-		"gc_cycles":      m.NumGC,
-		"gc_pause_total": m.PauseTotalNs,
+		"heap_alloc":     m.Alloc,
 		"num_goroutines": runtime.NumGoroutine(),
+	}
+}
+
+func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
+	// Only check sidecar health if OTLP is enabled
+	if !serverApplicationCore.Settings.OTLP {
+		return map[string]any{
+			"status": "disabled",
+			"note":   "OTLP export is disabled",
+		}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), healthCheckTimeout)
+	defer cancel()
+
+	// Check sidecar connectivity using the telemetry service method
+	err := serverApplicationCore.ServerApplicationBasic.TelemetryService.CheckSidecarHealth(ctx)
+	if err != nil {
+		return map[string]any{
+			"status": "error",
+			"error":  fmt.Sprintf("sidecar connectivity check failed: %v", err),
+		}
+	}
+
+	return map[string]any{
+		"status":   "ok",
+		"endpoint": serverApplicationCore.Settings.OTLPEndpoint,
 	}
 }
 
@@ -706,6 +727,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 			healthStatus["database"] = checkDatabaseHealth(serverApplicationCore)
 			healthStatus["memory"] = checkMemoryHealth()
 			healthStatus["dependencies"] = checkDependenciesHealth(serverApplicationCore)
+			healthStatus["sidecar"] = checkSidecarHealth(serverApplicationCore)
 
 			// Check if any component is unhealthy for readiness
 			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
@@ -716,6 +738,12 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 
 			if depsStatus, ok := healthStatus["dependencies"].(map[string]any); ok {
 				if status, ok := depsStatus["status"].(string); ok && status != statusOK {
+					healthStatus["status"] = statusDegraded
+				}
+			}
+
+			if sidecarStatus, ok := healthStatus["sidecar"].(map[string]any); ok {
+				if status, ok := sidecarStatus["status"].(string); ok && status == "error" {
 					healthStatus["status"] = statusDegraded
 				}
 			}

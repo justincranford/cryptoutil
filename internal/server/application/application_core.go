@@ -17,6 +17,7 @@ type ServerApplicationCore struct {
 	OrmRepository          *cryptoutilOrmRepository.OrmRepository
 	BarrierService         *cryptoutilBarrierService.BarrierService
 	BusinessLogicService   *cryptoutilBusinessLogic.BusinessLogicService
+	Settings               *cryptoutilConfig.Settings
 }
 
 func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.Settings) (*ServerApplicationCore, error) {
@@ -29,6 +30,7 @@ func StartServerApplicationCore(ctx context.Context, settings *cryptoutilConfig.
 
 	serverApplicationCore := &ServerApplicationCore{}
 	serverApplicationCore.ServerApplicationBasic = serverApplicationBasic
+	serverApplicationCore.Settings = settings
 
 	sqlRepository, err := cryptoutilSQLRepository.NewSQLRepository(ctx, serverApplicationBasic.TelemetryService, settings)
 	if err != nil {

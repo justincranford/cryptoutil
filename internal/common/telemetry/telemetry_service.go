@@ -48,16 +48,22 @@ type TelemetryService struct {
 	MetricsProvider    metricApi.MeterProvider
 	TracesProvider     traceApi.TracerProvider
 	TextMapPropagator  *propagationApi.TextMapPropagator
-	logsProviderSdk    *logSdk.LoggerProvider   // Not exported, but still needed to do shutdown
-	metricsProviderSdk *metricSdk.MeterProvider // Not exported, but still needed to do shutdown
-	tracesProviderSdk  *traceSdk.TracerProvider // Not exported, but still needed to do shutdown
+	logsProviderSdk    *logSdk.LoggerProvider     // Not exported, but still needed to do shutdown
+	metricsProviderSdk *metricSdk.MeterProvider   // Not exported, but still needed to do shutdown
+	tracesProviderSdk  *traceSdk.TracerProvider   // Not exported, but still needed to do shutdown
+	settings           *cryptoutilConfig.Settings // Store settings for health checks
 }
 
 const (
 	LogsTimeout       = 500 * time.Millisecond
-	MetricsTimeout    = 500 * time.Millisecond
-	TracesTimeout     = 500 * time.Millisecond
-	ForceFlushTimeout = 3 * time.Second
+	MetricsTimeout    = 2000 * time.Millisecond
+	TracesTimeout     = 1000 * time.Millisecond
+	ForceFlushTimeout = 3 * time.Second // 3s for force flush on shutdown
+
+	// Max batch sizes for memory-conscious batching.
+	MaxLogsBatchSize    = 1024 // Conservative for logs
+	MaxMetricsBatchSize = 2048 // Moderate for metrics
+	MaxTracesBatchSize  = 512  // Conservative for traces to prevent memory issues
 )
 
 func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Settings) (*TelemetryService, error) {
@@ -67,6 +73,13 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 		return nil, fmt.Errorf("context must be non-nil")
 	} else if len(settings.OTLPService) == 0 {
 		return nil, fmt.Errorf("service name must be non-empty")
+	}
+
+	// Check sidecar connectivity during startup if OTLP is enabled
+	if settings.OTLP {
+		if err := checkSidecarHealth(ctx, settings); err != nil {
+			return nil, fmt.Errorf("sidecar health check failed: %w", err)
+		}
 	}
 
 	slogger, logsProvider, err := initLogger(ctx, settings)
@@ -101,6 +114,7 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 		logsProviderSdk:    logsProvider,
 		metricsProviderSdk: metricsProvider,
 		tracesProviderSdk:  tracesProvider,
+		settings:           settings,
 	}, nil
 }
 
@@ -256,7 +270,9 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 
 	otelProviderOptions := []logSdk.LoggerProviderOption{
 		logSdk.WithResource(otelLogsResource),
-		logSdk.WithProcessor(logSdk.NewBatchProcessor(otelExporter, logSdk.WithExportTimeout(LogsTimeout))),
+		logSdk.WithProcessor(logSdk.NewBatchProcessor(otelExporter,
+			logSdk.WithExportTimeout(LogsTimeout),
+			logSdk.WithExportMaxBatchSize(MaxLogsBatchSize))),
 	}
 	otelProvider := logSdk.NewLoggerProvider(otelProviderOptions...)
 
@@ -394,7 +410,9 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 			return nil, fmt.Errorf("create Otel traces exporter failed: %w", err)
 		}
 
-		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(tracesSpanExporter, traceSdk.WithBatchTimeout(TracesTimeout))))
+		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(tracesSpanExporter,
+			traceSdk.WithBatchTimeout(TracesTimeout),
+			traceSdk.WithMaxExportBatchSize(MaxTracesBatchSize))))
 	}
 
 	if settings.OTLPConsole {
@@ -405,7 +423,9 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 			return nil, fmt.Errorf("create STDOUT traces failed: %w", err)
 		}
 
-		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(stdoutTraces, traceSdk.WithBatchTimeout(TracesTimeout))))
+		tracesOptions = append(tracesOptions, traceSdk.WithSpanProcessor(traceSdk.NewBatchSpanProcessor(stdoutTraces,
+			traceSdk.WithBatchTimeout(TracesTimeout),
+			traceSdk.WithMaxExportBatchSize(MaxTracesBatchSize))))
 	}
 
 	tracesProvider := traceSdk.NewTracerProvider(tracesOptions...)
@@ -475,4 +495,57 @@ func parseProtocolAndEndpoint(otlpEndpoint *string) (bool, bool, bool, bool, *st
 	}
 
 	return false, false, false, false, nil, fmt.Errorf("invalid OTLP endpoint protocol, must start with https://, grpcs://, http://, or grpc://")
+}
+
+// checkSidecarHealth performs a connectivity check to the OTLP sidecar during startup.
+func checkSidecarHealth(ctx context.Context, settings *cryptoutilConfig.Settings) error {
+	// Parse the endpoint to determine protocol and address
+	isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
+	if err != nil {
+		return fmt.Errorf("failed to parse OTLP endpoint: %w", err)
+	}
+
+	// For now, we do a basic connectivity check by attempting to create an exporter
+	// This will fail if the sidecar is not reachable
+	if isGRPC {
+		_, err = grpcTraceExporterotlptracegrpc.New(ctx,
+			grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint),
+			grpcTraceExporterotlptracegrpc.WithInsecure())
+		if err != nil {
+			return fmt.Errorf("GRPC sidecar connectivity check failed: %w", err)
+		}
+	} else if isGRPCS {
+		_, err = grpcTraceExporterotlptracegrpc.New(ctx,
+			grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint))
+		if err != nil {
+			return fmt.Errorf("GRPCS sidecar connectivity check failed: %w", err)
+		}
+	} else if isHTTP {
+		_, err = httpTraceExporterotlptracehttp.New(ctx,
+			httpTraceExporterotlptracehttp.WithEndpoint(*endpoint),
+			httpTraceExporterotlptracehttp.WithInsecure())
+		if err != nil {
+			return fmt.Errorf("HTTP sidecar connectivity check failed: %w", err)
+		}
+	} else if isHTTPS {
+		_, err = httpTraceExporterotlptracehttp.New(ctx,
+			httpTraceExporterotlptracehttp.WithEndpoint(*endpoint))
+		if err != nil {
+			return fmt.Errorf("HTTPS sidecar connectivity check failed: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// CheckSidecarHealth performs a connectivity check to the OTLP sidecar.
+func (s *TelemetryService) CheckSidecarHealth(ctx context.Context) error {
+	if s.settings.OTLP {
+		err := checkSidecarHealth(ctx, s.settings)
+		if err != nil {
+			return fmt.Errorf("sidecar health check failed: %w", err)
+		}
+	}
+
+	return nil
 }

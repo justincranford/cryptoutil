@@ -77,7 +77,7 @@ const (
 	defaultOTLPVersion                 = "0.0.1"
 	defaultOTLPEnvironment             = "dev"
 	defaultOTLPHostname                = "localhost"
-	defaultOTLPEndpoint                = "grpc://127.0.0.1:4317"
+	defaultOTLPEndpoint                = "grpc://127.0.0.1:4317" // GRPC preferred over HTTP for performance
 	defaultUnsealMode                  = "sysinfo"
 )
 
