@@ -41,35 +41,31 @@ func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
 	u.unsealJWKs = nil
 }
 
-// pragma: allowlist
 func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) {
-	// pragma: allowlist
 	if sharedSecretsM == nil {
-		// pragma: allowlist
 		return nil, fmt.Errorf("shared secrets can't be nil")
 	}
 
 	countM := len(sharedSecretsM)
 	if countM == 0 {
-		return nil, fmt.Errorf("shared secrets can't be zero") // pragma: allowlist secret
+		return nil, fmt.Errorf("shared secrets can't be zero")
 	} else if countM >= maxSharedSecrets {
-		return nil, fmt.Errorf("shared secrets can't be greater than %d", maxSharedSecrets) // pragma: allowlist secret
+		return nil, fmt.Errorf("shared secrets can't be greater than %d", maxSharedSecrets)
 	} else if chooseN == 0 {
 		return nil, fmt.Errorf("n can't be zero")
 	} else if chooseN < 0 {
 		return nil, fmt.Errorf("n can't be negative")
 	} else if chooseN > countM {
-		return nil, fmt.Errorf("n can't be greater than shared secrets count") // pragma: allowlist secret
+		return nil, fmt.Errorf("n can't be greater than shared secrets count")
 	}
 
-	// pragma: allowlist secret
-	for i, sharedSecret := range sharedSecretsM { // pragma: allowlist secret
+	for i, sharedSecret := range sharedSecretsM {
 		if sharedSecret == nil {
-			return nil, fmt.Errorf("shared secret %d can't be nil", i) // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d can't be nil", i)
 		} else if len(sharedSecret) < minSharedSecretLength {
-			return nil, fmt.Errorf("shared secret %d length can't be less than %d", i, minSharedSecretLength) // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d length can't be less than %d", i, minSharedSecretLength)
 		} else if len(sharedSecret) > maxSharedSecretLength {
-			return nil, fmt.Errorf("shared secret %d length can't be greater than %d", i, maxSharedSecretLength) // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d length can't be greater than %d", i, maxSharedSecretLength)
 		}
 	}
 
