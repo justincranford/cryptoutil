@@ -468,16 +468,18 @@ func TestRequestLoggerMiddleware(t *testing.T) {
 	}
 }
 
-// List and delete PEM files created during testing
+// List and delete PEM files created during testing.
 func TestCleanupTestCertificates(t *testing.T) {
 	// List PEM files in the current package directory
 	files, err := os.ReadDir(".")
 	if err != nil {
 		t.Logf("Warning: Could not read directory for PEM file cleanup: %v", err)
+
 		return
 	}
 
 	var pemFiles []string
+
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".pem") {
 			pemFiles = append(pemFiles, file.Name())
@@ -487,6 +489,7 @@ func TestCleanupTestCertificates(t *testing.T) {
 	// List the PEM files found
 	if len(pemFiles) > 0 {
 		t.Logf("Found PEM files in %s directory:", "internal/server/application")
+
 		for _, pemFile := range pemFiles {
 			t.Logf("  - %s", pemFile)
 		}

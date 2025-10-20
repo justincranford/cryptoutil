@@ -38,8 +38,8 @@
     "/^rm\\b.*/": false,                 // Unix file deletion (complement to Remove-Item)
     "/^python.*/": false,                // Used for count_tokens.py but you didn't enable
     "/^Test-NetConnection\\b.*/": true, // Network connectivity testing
-    "/^\\[System\\.Net\\.ServicePointManager\\]::ServerCertificateValidationCallback = \\{\\$true\\}; Invoke-WebRequest\\b.*/": true, // HTTPS requests with cert bypass
-    "/\\.ps1\\b/i": { "approve": false, "matchCommandLine": true }
+    "/^\\[System\\.IO\\.File\\]::ReadAllBytes\\b.*/": false, // File reading operations - use read_file tool instead
+    "/^(Get-Content|cat|type)\\b.*/": false, // File content reading - use read_file tool instead
   }, // Auto-approve terminal commands matching patterns - Default: {}, Recommended: configured patterns
   "github.copilot.chat.virtualTools.threshold": 64, // Threshold for virtual tools - Default: 64, Recommended: 64 (experimental)
   "chat.math.enabled": true, // Enable math expressions in chat - Default: false, Recommended: true (experimental)

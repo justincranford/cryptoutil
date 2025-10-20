@@ -27,6 +27,7 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     healthcheck:
+      # curl is not available in Alpine-based containers, use wget instead
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
       start_period: 10s
       interval: 5s
@@ -64,6 +65,7 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     healthcheck:
+      # curl is not available in Alpine-based containers, use wget instead
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
       start_period: 10s
       interval: 5s
@@ -103,6 +105,7 @@ services:
       opentelemetry-collector-contrib:
         condition: service_started
     healthcheck:
+      # curl is not available in Alpine-based containers, use wget instead
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
       start_period: 10s
       interval: 5s
@@ -142,7 +145,8 @@ services:
     depends_on:
       - grafana-otel-lgtm
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8889/health"]
+      # curl is not available in Alpine-based containers, use wget instead
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8889/health"]
       start_period: 10s
       interval: 5s
       timeout: 5s
@@ -164,6 +168,8 @@ services:
       - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
       - ./grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
     healthcheck:
+      # curl is available in this container, but using wget would be consistent with other containers
+      # however wget is not available here, so curl is used for this container only
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       start_period: 15s
       interval: 30s

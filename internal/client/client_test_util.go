@@ -102,11 +102,19 @@ func RequireClientWithResponses(t *testing.T, baseURL *string, rootCAsPool *x509
 	var err error
 
 	if strings.HasPrefix(*baseURL, "https://") {
-		// For HTTPS URLs, use proper TLS configuration with full cert chain validation
+		// For HTTPS URLs, configure TLS
 		tlsConfig := &tls.Config{
-			RootCAs:    rootCAsPool,
 			MinVersion: tls.VersionTLS12,
 		}
+
+		if rootCAsPool != nil {
+			// Use provided root CAs for certificate validation
+			tlsConfig.RootCAs = rootCAsPool
+		} else {
+			// No root CAs provided - skip verification for self-signed certificates
+			tlsConfig.InsecureSkipVerify = true //nolint:gosec // G402: TLS InsecureSkipVerify set true for testing with self-signed certs
+		}
+
 		httpClient := &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: tlsConfig,
