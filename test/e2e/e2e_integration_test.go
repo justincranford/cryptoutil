@@ -163,27 +163,32 @@ func startDockerCompose(ctx context.Context) error {
 	// Stop any existing services first to ensure clean state
 	stopCmd := exec.CommandContext(ctx, "docker", "compose", "-f", "../../deployments/compose/compose.yml", "down", "-v", "--remove-orphans")
 
+	fmt.Printf("📋 [DOCKER] Executing stop command: %s\n", stopCmd.String())
 	stopOutput, stopErr := stopCmd.CombinedOutput()
+	fmt.Printf("📋 [DOCKER] Stop command output: %s\n", string(stopOutput))
+
 	if stopErr != nil {
 		// Log warning but don't fail - services might not be running
-		fmt.Printf("⚠️  Warning: failed to stop existing services: %v, output: %s\n", stopErr, string(stopOutput))
+		fmt.Printf("⚠️  [DOCKER] Warning: failed to stop existing services: %v\n", stopErr)
 	} else {
-		fmt.Println("✅ Existing services stopped successfully")
+		fmt.Println("✅ [DOCKER] Existing services stopped successfully")
 	}
 
 	fmt.Println("🚀 Starting fresh Docker Compose services...")
 	// Start fresh services
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", "../../deployments/compose/compose.yml", "up", "-d", "--force-recreate")
 
-	fmt.Printf("📋 Executing: %s\n", cmd.String())
+	fmt.Printf("📋 [DOCKER] Executing start command: %s\n", cmd.String())
 	output, err := cmd.CombinedOutput()
-	fmt.Printf("📋 Docker Compose output: %s\n", string(output))
+	fmt.Printf("📋 [DOCKER] Start command output: %s\n", string(output))
 
 	if err != nil {
+		fmt.Printf("❌ [DOCKER] Docker compose up failed: %v\n", err)
+
 		return fmt.Errorf("docker compose up failed: %w, output: %s", err, string(output))
 	}
 
-	fmt.Printf("✅ Docker Compose services started successfully\n")
+	fmt.Printf("✅ [DOCKER] Docker Compose services started successfully\n")
 
 	return nil
 }
@@ -194,15 +199,17 @@ func stopDockerCompose(ctx context.Context) error {
 
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", "../../deployments/compose/compose.yml", "down", "-v")
 
+	fmt.Printf("📋 [DOCKER] Executing stop command: %s\n", cmd.String())
 	output, err := cmd.CombinedOutput()
+	fmt.Printf("📋 [DOCKER] Stop command output: %s\n", string(output))
+
 	if err != nil {
-		fmt.Printf("❌ Failed to stop Docker Compose services: %v\n", err)
-		fmt.Printf("Output: %s\n", string(output))
+		fmt.Printf("❌ [DOCKER] Failed to stop Docker Compose services: %v\n", err)
 
 		return fmt.Errorf("docker compose down failed: %w, output: %s", err, string(output))
 	}
 
-	fmt.Println("✅ Docker Compose services stopped successfully")
+	fmt.Println("✅ [DOCKER] Docker Compose services stopped successfully")
 
 	return nil
 }
@@ -321,17 +328,21 @@ func waitForDockerServicesHealthy(t *testing.T, ctx context.Context, startTime t
 func isDockerServiceHealthy(serviceName string, startTime time.Time) bool {
 	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", serviceName, "--format", "json")
 
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Executing health check for %s: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, cmd.String())
 	output, err := cmd.Output()
+
 	if err != nil {
-		fmt.Printf("[%s] [%v] ❌ Failed to check %s health: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, err)
+		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to check %s health: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, err)
 
 		return false
 	}
 
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Health check output for %s: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, string(output))
+
 	// Parse the JSON output to check health status
 	var service map[string]interface{}
 	if err := json.Unmarshal(output, &service); err != nil {
-		fmt.Printf("[%s] [%v] ❌ Failed to parse JSON for %s: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, err)
+		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to parse JSON for %s: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, err)
 
 		return false
 	}
@@ -390,18 +401,22 @@ func waitForCryptoutilReady(t *testing.T, ctx context.Context, baseURL *string, 
 		fmt.Printf("[%s] [%v] 🔍 Cryptoutil readiness check #%d for %s...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), checkCount, *baseURL)
 
 		// Try to create an OpenAPI client and make a simple API call to verify the service is unsealed and ready
+		fmt.Printf("📋 [API] Creating OpenAPI client for %s\n", *baseURL)
 		client := cryptoutilClient.RequireClientWithResponses(t, baseURL, rootCAsPool)
 
 		// Try to list elastic keys - this should work if the service is unsealed
+		fmt.Printf("📋 [API] Making GetElastickeys request to %s\n", *baseURL)
+
 		_, err := client.GetElastickeysWithResponse(ctx, nil)
+
 		if err != nil {
-			fmt.Printf("[%s] [%v] ⏳ Cryptoutil at %s not ready yet (attempt %d, API call failed: %v), waiting %v...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *baseURL, checkCount, err, serviceRetryInterval)
+			fmt.Printf("[%s] [%v] ⏳ [API] Cryptoutil at %s not ready yet (attempt %d, API call failed: %v), waiting %v...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *baseURL, checkCount, err, serviceRetryInterval)
 			time.Sleep(serviceRetryInterval)
 
 			continue
 		}
 
-		fmt.Printf("[%s] [%v] ✅ Cryptoutil service ready at %s after %d checks\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *baseURL, checkCount)
+		fmt.Printf("[%s] [%v] ✅ [API] Cryptoutil service ready at %s after %d checks\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *baseURL, checkCount)
 
 		return
 	}
@@ -425,13 +440,24 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 			t.Fatalf("Service not ready after %v: %s", timeout, url)
 		}
 
+		fmt.Printf("📋 [HTTP] Making GET request to: %s\n", url)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+
 		if err != nil {
+			fmt.Printf("❌ [HTTP] Failed to create request to %s: %v\n", url, err)
+
 			return
 		}
 
 		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Printf("❌ [HTTP] Request to %s failed: %v\n", url, err)
+		} else {
+			fmt.Printf("📋 [HTTP] Response from %s: status %d\n", url, resp.StatusCode)
+		}
+
 		if err == nil && resp.StatusCode == http.StatusOK {
+			fmt.Printf("✅ [HTTP] Service ready at %s\n", url)
 			resp.Body.Close()
 
 			return
@@ -482,7 +508,15 @@ func testHealthCheck(t *testing.T, ctx context.Context, publicBaseURL *string, r
 	t.Helper()
 
 	// Test liveness probe
+	fmt.Printf("📋 [API] Making health check request to %s/livez\n", *publicBaseURL)
 	err := cryptoutilClient.CheckHealthz(publicBaseURL, rootCAsPool)
+
+	if err != nil {
+		fmt.Printf("❌ [API] Health check failed for %s: %v\n", *publicBaseURL, err)
+	} else {
+		fmt.Printf("✅ [API] Health check passed for %s\n", *publicBaseURL)
+	}
+
 	require.NoError(t, err, "Health check failed for %s", *publicBaseURL)
 }
 
@@ -498,8 +532,12 @@ func testCreateElasticKey(t *testing.T, ctx context.Context, client *cryptoutilO
 		&testAlgorithmVar, &testProviderVar, &importAllowed, &versioningAllowed,
 	)
 
+	fmt.Printf("📋 [API] Making PostElastickey request to create elastic key\n")
+
 	elasticKey := cryptoutilClient.RequireCreateElasticKeyResponse(t, ctx, client, elasticKeyCreate)
 	require.NotNil(t, elasticKey.ElasticKeyID)
+
+	fmt.Printf("✅ [API] Elastic key created with ID: %s\n", *elasticKey.ElasticKeyID)
 
 	return elasticKey
 }
@@ -509,8 +547,12 @@ func testGenerateMaterialKey(t *testing.T, ctx context.Context, client *cryptout
 	t.Helper()
 
 	keyGenerate := cryptoutilClient.RequireMaterialKeyGenerateRequest(t)
+
+	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDMaterialkey request for key %s\n", *elasticKey.ElasticKeyID)
 	materialKey := cryptoutilClient.RequireMaterialKeyGenerateResponse(t, ctx, client, elasticKey.ElasticKeyID, keyGenerate)
 	require.NotNil(t, materialKey.MaterialKeyID)
+
+	fmt.Printf("✅ [API] Material key generated with ID: %s\n", materialKey.MaterialKeyID)
 }
 
 // testEncryptDecryptCycle tests a full encrypt/decrypt cycle.
@@ -519,13 +561,21 @@ func testEncryptDecryptCycle(t *testing.T, ctx context.Context, client *cryptout
 
 	// Encrypt
 	encryptRequest := cryptoutilClient.RequireEncryptRequest(t, &testCleartextVar)
+
+	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDEncrypt request for key %s\n", *elasticKey.ElasticKeyID)
 	encryptedText := cryptoutilClient.RequireEncryptResponse(t, ctx, client, elasticKey.ElasticKeyID, nil, encryptRequest)
 	require.NotEmpty(t, *encryptedText)
 
+	fmt.Printf("✅ [API] Text encrypted successfully\n")
+
 	// Decrypt
 	decryptRequest := cryptoutilClient.RequireDecryptRequest(t, encryptedText)
+
+	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDDecrypt request for key %s\n", *elasticKey.ElasticKeyID)
 	decryptedText := cryptoutilClient.RequireDecryptResponse(t, ctx, client, elasticKey.ElasticKeyID, decryptRequest)
 	require.Equal(t, testCleartext, *decryptedText)
+
+	fmt.Printf("✅ [API] Text decrypted successfully\n")
 }
 
 // testSignVerifyCycle tests a full sign/verify cycle.
@@ -534,13 +584,21 @@ func testSignVerifyCycle(t *testing.T, ctx context.Context, client *cryptoutilOp
 
 	// Sign
 	signRequest := cryptoutilClient.RequireSignRequest(t, &testCleartextVar)
+
+	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDSign request for key %s\n", *elasticKey.ElasticKeyID)
 	signedText := cryptoutilClient.RequireSignResponse(t, ctx, client, elasticKey.ElasticKeyID, nil, signRequest)
 	require.NotEmpty(t, *signedText)
 
+	fmt.Printf("✅ [API] Text signed successfully\n")
+
 	// Verify
 	verifyRequest := cryptoutilClient.RequireVerifyRequest(t, signedText)
+
+	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDVerify request for key %s\n", *elasticKey.ElasticKeyID)
 	verifyResponse := cryptoutilClient.RequireVerifyResponse(t, ctx, client, elasticKey.ElasticKeyID, verifyRequest)
 	require.Equal(t, "true", *verifyResponse)
+
+	fmt.Printf("✅ [API] Signature verified successfully\n")
 }
 
 // verifyTelemetryFlow verifies that telemetry is flowing to Grafana.
@@ -551,6 +609,7 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
 	client := &http.Client{Timeout: httpClientTimeout}
 
 	// Check Grafana health
+	fmt.Printf("📋 [HTTP] Making GET request to Grafana health endpoint: %s\n", grafanaURL+"/api/health")
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", nil)
 	require.NoError(t, err, "Failed to create Grafana health request")
 
@@ -560,7 +619,10 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusOK, resp.StatusCode, "Grafana health check failed")
 
+	fmt.Printf("✅ [HTTP] Grafana health check passed\n")
+
 	// Check OTEL collector metrics endpoint
+	fmt.Printf("📋 [HTTP] Making GET request to OTEL collector metrics endpoint: %s\n", otelCollectorURL+"/metrics")
 	req, err = http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorURL+"/metrics", nil)
 	require.NoError(t, err, "Failed to create OTEL collector metrics request")
 
@@ -569,6 +631,8 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
 
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusOK, resp.StatusCode, "OTEL collector metrics check failed")
+
+	fmt.Printf("✅ [HTTP] OTEL collector metrics check passed\n")
 
 	// Verify metrics contain cryptoutil service data
 	body := make([]byte, 1024*1024) // 1MB buffer
@@ -586,4 +650,6 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
 	hasMetrics := strings.Contains(metrics, "metrics") || strings.Contains(metrics, "data_points")
 
 	require.True(t, hasTraces || hasLogs || hasMetrics, "No telemetry data found in OTEL collector")
+
+	fmt.Printf("✅ [TELEMETRY] Telemetry flow verification passed\n")
 }
