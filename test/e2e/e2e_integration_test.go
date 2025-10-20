@@ -38,7 +38,7 @@ const (
 	dockerHealthTimeout      = 30 * time.Second // Docker services should be healthy in under 20s
 	cryptoutilReadyTimeout   = 30 * time.Second // Cryptoutil needs time to unseal - reduced for fast fail
 	testExecutionTimeout     = 30 * time.Second // Overall test timeout - reduced for fast fail
-	dockerComposeInitTimeout = 30 * time.Second // Time to wait for Docker Compose services to initialize after startup
+	dockerComposeInitTimeout = 15 * time.Second // Time to wait for Docker Compose services to initialize after startup
 	httpClientTimeout        = 10 * time.Second
 	serviceRetryInterval     = 2 * time.Second // Check more frequently
 	httpRetryInterval        = 1 * time.Second
@@ -49,6 +49,10 @@ const (
 	testAlgorithm             = "RSA"
 	testProvider              = "GO"
 	testCleartext             = "Hello, World!"
+
+	// Status constants.
+	statusHealthy   = "HEALTHY"
+	statusUnhealthy = "UNHEALTHY"
 )
 
 var (
@@ -103,10 +107,6 @@ func TestE2EIntegration(t *testing.T) {
 	err = startDockerCompose(ctx, startTime)
 	require.NoError(t, err, "Failed to start docker compose")
 
-	// Give Docker Compose time to start services
-	fmt.Printf("[%s] [%v] ⏳ Waiting for Docker Compose services to initialize...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
-	time.Sleep(dockerComposeInitTimeout)
-
 	defer func() {
 		fmt.Printf("[%s] [%v] 🧹 CLEANUP: Stopping docker compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
@@ -115,6 +115,10 @@ func TestE2EIntegration(t *testing.T) {
 			fmt.Printf("[%s] [%v] ⚠️  CLEANUP WARNING: failed to stop docker compose: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
 		}
 	}()
+
+	// Wait before starting checks to allow services to initialize
+	fmt.Printf("[%s] [%v] ⏳ Waiting %v for Docker Compose services to initialize...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), dockerComposeInitTimeout)
+	time.Sleep(dockerComposeInitTimeout)
 
 	// Wait for all services to be ready (Docker health checks)
 	waitForServicesReady(t, ctx, startTime)
@@ -251,16 +255,13 @@ func waitForDockerServicesHealthy(t *testing.T, ctx context.Context, startTime t
 			// Log detailed status of all services before failing
 			t.Logf("[%s] [%v] TIMEOUT: Docker services health check failed. Current status:", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
-			for _, service := range services {
-				healthy := isDockerServiceHealthy(service, startTime)
-				status := "UNHEALTHY"
+			// Get current health status for all services
+			healthStatus := areDockerServicesHealthy(services, startTime)
 
-				if healthy {
-					status = "HEALTHY"
-				}
-
+			logFunc := func(service, status string) {
 				t.Logf("[%s] [%v]   %s: %s", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), service, status)
 			}
+			_ = logServiceStatuses(services, healthStatus, startTime, logFunc)
 
 			t.Fatalf("Docker services not healthy after %v", dockerHealthTimeout)
 		}
@@ -269,25 +270,18 @@ func waitForDockerServicesHealthy(t *testing.T, ctx context.Context, startTime t
 		fmt.Printf("[%s] [%v] 🔍 Health check #%d: Checking %d services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), checkCount, len(services))
 
 		// Check if all services are healthy
-		allHealthy := true
-		unhealthyServices := []string{}
+		healthStatus := areDockerServicesHealthy(services, startTime)
 
-		for _, service := range services {
-			healthy := isDockerServiceHealthy(service, startTime)
-			status := "❌ UNHEALTHY"
-
-			if healthy {
-				status = "✅ HEALTHY"
+		logFunc := func(service, status string) {
+			emojiStatus := "❌ UNHEALTHY"
+			if status == statusHealthy {
+				emojiStatus = "✅ HEALTHY"
 			}
 
-			fmt.Printf("[%s] [%v]    %s: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), service, status)
-
-			if !healthy {
-				allHealthy = false
-
-				unhealthyServices = append(unhealthyServices, service)
-			}
+			fmt.Printf("[%s] [%v]    %s: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), service, emojiStatus)
 		}
+		unhealthyServices := logServiceStatuses(services, healthStatus, startTime, logFunc)
+		allHealthy := len(unhealthyServices) == 0
 
 		if allHealthy {
 			fmt.Printf("[%s] [%v] ✅ All %d Docker services are healthy after %d checks\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services), checkCount)
@@ -378,25 +372,17 @@ func areDockerServicesHealthy(services []string, startTime time.Time) map[string
 		// Check health status - services with health checks will have "Health" field set to "healthy"
 		if health, ok := service["Health"].(string); ok {
 			if health == "healthy" {
-				fmt.Printf("[%s] [%v] 📊 %s health field: '%s' -> true\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, health)
-
 				healthStatus[serviceName] = true
 			} else {
 				// Explicitly unhealthy - never consider healthy
-				fmt.Printf("[%s] [%v] 📊 %s health field: '%s' -> false (explicitly unhealthy)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, health)
-
 				healthStatus[serviceName] = false
 			}
 		} else {
 			// For services without health checks, check if they're running
 			if state, ok := service["State"].(string); ok && state == "running" {
-				fmt.Printf("[%s] [%v] 📊 %s state field: '%s' -> true (no health check)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, state)
-
 				healthStatus[serviceName] = true
 			} else {
 				// If health is present but not healthy, or state is not running
-				fmt.Printf("[%s] [%v] ❌ %s is not healthy (state: %v, health: %v)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, service["State"], service["Health"])
-
 				healthStatus[serviceName] = false
 			}
 		}
@@ -405,13 +391,26 @@ func areDockerServicesHealthy(services []string, startTime time.Time) map[string
 	return healthStatus
 }
 
-// isDockerServiceHealthy checks if a specific Docker service is healthy.
-// DEPRECATED: Use areDockerServicesHealthy for better performance.
-func isDockerServiceHealthy(serviceName string, startTime time.Time) bool {
-	// Call the new batch function with a single service
-	healthStatus := areDockerServicesHealthy([]string{serviceName}, startTime)
+// logServiceStatuses logs the status of all services using the provided log function and returns unhealthy services.
+func logServiceStatuses(services []string, healthStatus map[string]bool, startTime time.Time, logFunc func(service, status string)) []string {
+	var unhealthyServices []string
 
-	return healthStatus[serviceName]
+	for _, service := range services {
+		healthy := healthStatus[service]
+		status := statusUnhealthy
+
+		if healthy {
+			status = statusHealthy
+		}
+
+		logFunc(service, status)
+
+		if !healthy {
+			unhealthyServices = append(unhealthyServices, service)
+		}
+	}
+
+	return unhealthyServices
 }
 
 // waitForCryptoutilReady waits for a cryptoutil instance to be ready via its public API.
