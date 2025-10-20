@@ -1,5 +1,9 @@
 package test
 
+// LOGGING REQUIREMENT: All logs in this e2e test file MUST include timestamp and duration since start time.
+// Format: fmt.Printf("[%s] [%v] message...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), ...)
+// This ensures consistent, traceable logging for debugging test failures and performance analysis.
+
 import (
 	"context"
 	"crypto/x509"
@@ -79,7 +83,7 @@ func checkIfServicesAlreadyHealthy(t *testing.T, startTime time.Time) bool {
 		"opentelemetry-collector-contrib", // Now has proper health check with wget
 	}
 
-	t.Logf("[%s] [%v] Checking if %d services are already healthy...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services))
+	fmt.Printf("[%s] [%v] Checking if %d services are already healthy...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services))
 
 	allHealthy := true
 
@@ -87,11 +91,11 @@ func checkIfServicesAlreadyHealthy(t *testing.T, startTime time.Time) bool {
 		healthy := isDockerServiceHealthy(service, startTime)
 
 		if !healthy {
-			t.Logf("❌ Service %s is not healthy", service)
+			fmt.Printf("❌ Service %s is not healthy\n", service)
 
 			allHealthy = false
 		} else {
-			t.Logf("✅ Service %s is healthy", service)
+			fmt.Printf("✅ Service %s is healthy\n", service)
 		}
 	}
 
@@ -103,39 +107,39 @@ func TestE2EIntegration(t *testing.T) {
 	t.Parallel()
 
 	startTime := time.Now()
-	t.Logf("🔄 TEST START: %s", startTime.Format("15:04:05"))
+	fmt.Printf("[%s] [%v] 🔄 TEST START\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	ctx, cancel := context.WithTimeout(context.Background(), testExecutionTimeout)
 	defer cancel()
 
-	t.Log("📋 Loading test certificates...")
+	fmt.Printf("[%s] [%v] 📋 Loading test certificates...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 	// Load test certificates for TLS validation
 	rootCAsPool := (*x509.CertPool)(nil) // Using InsecureSkipVerify for tests
-	t.Logf("✅ Certificates loaded (nil: %v)", rootCAsPool == nil)
+	fmt.Printf("[%s] [%v] ✅ Certificates loaded (nil: %v)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), rootCAsPool == nil)
 
 	// Check if services are already running and healthy
-	t.Log("🔍 Checking if services are already running...")
+	fmt.Printf("[%s] [%v] 🔍 Checking if services are already running...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 	servicesAlreadyHealthy := checkIfServicesAlreadyHealthy(t, startTime)
 
 	if servicesAlreadyHealthy {
-		t.Log("✅ Services are already running and healthy, skipping Docker Compose startup")
+		fmt.Printf("[%s] [%v] ✅ Services are already running and healthy, skipping Docker Compose startup\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 	} else {
 		// Start docker compose
-		t.Logf("[%s] [%v] Starting docker compose services...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+		fmt.Printf("[%s] [%v] Starting docker compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
-		err := startDockerCompose(ctx)
+		err := startDockerCompose(ctx, startTime)
 		require.NoError(t, err, "Failed to start docker compose")
 
 		// Give Docker Compose time to start services
-		t.Log("⏳ Waiting for Docker Compose services to initialize...")
+		fmt.Printf("[%s] [%v] ⏳ Waiting for Docker Compose services to initialize...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 		time.Sleep(30 * time.Second)
 
 		defer func() {
-			t.Log("🧹 CLEANUP: Stopping docker compose services...")
+			fmt.Printf("[%s] [%v] 🧹 CLEANUP: Stopping docker compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
-			err := stopDockerCompose(context.Background()) // Use background context for cleanup
+			err := stopDockerCompose(context.Background(), startTime) // Use background context for cleanup
 			if err != nil {
-				t.Logf("⚠️  CLEANUP WARNING: failed to stop docker compose: %v", err)
+				fmt.Printf("[%s] [%v] ⚠️  CLEANUP WARNING: failed to stop docker compose: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
 			}
 		}()
 	}
@@ -147,69 +151,69 @@ func TestE2EIntegration(t *testing.T) {
 	verifyServicesAreReachable(t, ctx, rootCAsPool, startTime)
 
 	// Test each cryptoutil instance
-	testCryptoutilInstance(t, ctx, "cryptoutil_sqlite", &cryptoutilSqliteURL, &cryptoutilSqliteAdminURL, rootCAsPool)
-	testCryptoutilInstance(t, ctx, "cryptoutil_postgres_1", &cryptoutilPostgres1URL, &cryptoutilPostgres1AdminURL, rootCAsPool)
-	testCryptoutilInstance(t, ctx, "cryptoutil_postgres_2", &cryptoutilPostgres2URL, &cryptoutilPostgres2AdminURL, rootCAsPool)
+	testCryptoutilInstance(t, ctx, "cryptoutil_sqlite", &cryptoutilSqliteURL, &cryptoutilSqliteAdminURL, rootCAsPool, startTime)
+	testCryptoutilInstance(t, ctx, "cryptoutil_postgres_1", &cryptoutilPostgres1URL, &cryptoutilPostgres1AdminURL, rootCAsPool, startTime)
+	testCryptoutilInstance(t, ctx, "cryptoutil_postgres_2", &cryptoutilPostgres2URL, &cryptoutilPostgres2AdminURL, rootCAsPool, startTime)
 
 	// Verify telemetry is flowing to Grafana
-	verifyTelemetryFlow(t, ctx)
+	verifyTelemetryFlow(t, ctx, startTime)
 
-	t.Logf("✅ TEST PASSED: %s (duration: %v)", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	fmt.Printf("✅ TEST PASSED: %s (duration: %v)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
 
 // startDockerCompose starts the docker compose services.
-func startDockerCompose(ctx context.Context) error {
-	fmt.Println("🔄 Stopping any existing Docker Compose services...")
+func startDockerCompose(ctx context.Context, startTime time.Time) error {
+	fmt.Printf("[%s] [%v] 🔄 Stopping any existing Docker Compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 	// Stop any existing services first to ensure clean state
 	stopCmd := exec.CommandContext(ctx, "docker", "compose", "-f", "../../deployments/compose/compose.yml", "down", "-v", "--remove-orphans")
 
-	fmt.Printf("📋 [DOCKER] Executing stop command: %s\n", stopCmd.String())
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Executing stop command: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), stopCmd.String())
 	stopOutput, stopErr := stopCmd.CombinedOutput()
-	fmt.Printf("📋 [DOCKER] Stop command output: %s\n", string(stopOutput))
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Stop command output: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(stopOutput))
 
 	if stopErr != nil {
 		// Log warning but don't fail - services might not be running
-		fmt.Printf("⚠️  [DOCKER] Warning: failed to stop existing services: %v\n", stopErr)
+		fmt.Printf("[%s] [%v] ⚠️ [DOCKER] Warning: failed to stop existing services: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), stopErr)
 	} else {
-		fmt.Println("✅ [DOCKER] Existing services stopped successfully")
+		fmt.Printf("[%s] [%v] ✅ [DOCKER] Existing services stopped successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 	}
 
-	fmt.Println("🚀 Starting fresh Docker Compose services...")
+	fmt.Printf("[%s] [%v] 🚀 Starting fresh Docker Compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 	// Start fresh services
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", "../../deployments/compose/compose.yml", "up", "-d", "--force-recreate")
 
-	fmt.Printf("📋 [DOCKER] Executing start command: %s\n", cmd.String())
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Executing start command: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), cmd.String())
 	output, err := cmd.CombinedOutput()
-	fmt.Printf("📋 [DOCKER] Start command output: %s\n", string(output))
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Start command output: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(output))
 
 	if err != nil {
-		fmt.Printf("❌ [DOCKER] Docker compose up failed: %v\n", err)
+		fmt.Printf("[%s] [%v] ❌ [DOCKER] Docker compose up failed: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
 
 		return fmt.Errorf("docker compose up failed: %w, output: %s", err, string(output))
 	}
 
-	fmt.Printf("✅ [DOCKER] Docker Compose services started successfully\n")
+	fmt.Printf("[%s] [%v] ✅ [DOCKER] Docker Compose services started successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	return nil
 }
 
 // stopDockerCompose stops the docker compose services.
-func stopDockerCompose(ctx context.Context) error {
-	fmt.Println("🛑 Stopping Docker Compose services...")
+func stopDockerCompose(ctx context.Context, startTime time.Time) error {
+	fmt.Printf("[%s] [%v] 🛑 Stopping Docker Compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", "../../deployments/compose/compose.yml", "down", "-v")
 
-	fmt.Printf("📋 [DOCKER] Executing stop command: %s\n", cmd.String())
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Executing stop command: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), cmd.String())
 	output, err := cmd.CombinedOutput()
-	fmt.Printf("📋 [DOCKER] Stop command output: %s\n", string(output))
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Stop command output: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(output))
 
 	if err != nil {
-		fmt.Printf("❌ [DOCKER] Failed to stop Docker Compose services: %v\n", err)
+		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to stop Docker Compose services: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
 
 		return fmt.Errorf("docker compose down failed: %w, output: %s", err, string(output))
 	}
 
-	fmt.Println("✅ [DOCKER] Docker Compose services stopped successfully")
+	fmt.Printf("[%s] [%v] ✅ [DOCKER] Docker Compose services stopped successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	return nil
 }
@@ -217,18 +221,18 @@ func stopDockerCompose(ctx context.Context) error {
 // waitForServicesReady waits for all services to report ready via Docker health checks.
 func waitForServicesReady(t *testing.T, ctx context.Context, startTime time.Time) {
 	t.Helper()
-	t.Logf("[%s] [%v] 🔍 Checking service readiness...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	fmt.Printf("[%s] [%v] 🔍 Checking service readiness...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	// Wait for all Docker services to be healthy (they have their own health checks)
 	waitForDockerServicesHealthy(t, ctx, startTime)
 
-	t.Logf("[%s] [%v] ✅ All services are ready", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	fmt.Printf("[%s] [%v] ✅ All services are ready\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
 
 // verifyServicesAreReachable verifies that all services are reachable via their public APIs.
 func verifyServicesAreReachable(t *testing.T, ctx context.Context, rootCAsPool *x509.CertPool, startTime time.Time) {
 	t.Helper()
-	t.Logf("[%s] [%v] 🌐 Verifying services are reachable...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	fmt.Printf("[%s] [%v] 🌐 Verifying services are reachable...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	// Verify cryptoutil instances are accessible via public APIs (they should be unsealed now)
 	waitForCryptoutilReady(t, ctx, &cryptoutilSqliteURL, rootCAsPool, startTime)
@@ -236,14 +240,14 @@ func verifyServicesAreReachable(t *testing.T, ctx context.Context, rootCAsPool *
 	waitForCryptoutilReady(t, ctx, &cryptoutilPostgres2URL, rootCAsPool, startTime)
 
 	// Wait for Grafana
-	t.Logf("[%s] [%v] ⏳ Waiting for Grafana...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
-	waitForHTTPReady(t, ctx, grafanaURL+"/api/health", cryptoutilReadyTimeout)
+	fmt.Printf("[%s] [%v] ⏳ Waiting for Grafana...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	waitForHTTPReady(t, ctx, grafanaURL+"/api/health", cryptoutilReadyTimeout, startTime)
 
 	// Wait for OTEL collector
-	t.Logf("[%s] [%v] ⏳ Waiting for OTEL collector...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
-	waitForHTTPReady(t, ctx, otelCollectorURL+"/metrics", cryptoutilReadyTimeout)
+	fmt.Printf("[%s] [%v] ⏳ Waiting for OTEL collector...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	waitForHTTPReady(t, ctx, otelCollectorURL+"/metrics", cryptoutilReadyTimeout, startTime)
 
-	t.Logf("[%s] [%v] ✅ All services are reachable", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	fmt.Printf("[%s] [%v] ✅ All services are reachable\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
 
 // waitForDockerServicesHealthy waits for all Docker services to report healthy status.
@@ -283,7 +287,7 @@ func waitForDockerServicesHealthy(t *testing.T, ctx context.Context, startTime t
 					status = "HEALTHY"
 				}
 
-				t.Logf("  %s: %s", service, status)
+				t.Logf("[%s] [%v]   %s: %s", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), service, status)
 			}
 
 			t.Fatalf("Docker services not healthy after %v", dockerHealthTimeout)
@@ -324,59 +328,118 @@ func waitForDockerServicesHealthy(t *testing.T, ctx context.Context, startTime t
 	}
 }
 
-// isDockerServiceHealthy checks if a specific Docker service is healthy.
-func isDockerServiceHealthy(serviceName string, startTime time.Time) bool {
-	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", serviceName, "--format", "json")
+// areDockerServicesHealthy checks all Docker services at once and returns their health status.
+// This reduces the number of external docker compose ps calls from N to 1.
+func areDockerServicesHealthy(services []string, startTime time.Time) map[string]bool {
+	healthStatus := make(map[string]bool)
 
-	fmt.Printf("[%s] [%v] 📋 [DOCKER] Executing health check for %s: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, cmd.String())
+	// Call docker compose ps once for all services
+	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", "--format", "json")
+
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Executing batch health check for %d services: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services), cmd.String())
 	output, err := cmd.Output()
-
 	if err != nil {
-		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to check %s health: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, err)
+		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to check services health: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
+		// Mark all services as unhealthy
+		for _, service := range services {
+			healthStatus[service] = false
+		}
 
-		return false
+		return healthStatus
 	}
 
-	fmt.Printf("[%s] [%v] 📋 [DOCKER] Health check output for %s: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, string(output))
+	fmt.Printf("[%s] [%v] 📋 [DOCKER] Batch health check output: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(output))
 
-	// Parse the JSON output to check health status
-	var service map[string]interface{}
-	if err := json.Unmarshal(output, &service); err != nil {
-		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to parse JSON for %s: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, err)
+	// Parse the JSON output - it should be an array of service objects
+	var serviceList []map[string]interface{}
+	if err := json.Unmarshal(output, &serviceList); err != nil {
+		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to parse JSON array: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
+		// Mark all services as unhealthy
+		for _, service := range services {
+			healthStatus[service] = false
+		}
 
-		return false
+		return healthStatus
 	}
 
-	// Debug: print the raw JSON for troubleshooting
-	if serviceName == "opentelemetry-collector-contrib" {
-		fmt.Printf("[%s] [%v] 🔍 OTEL service JSON: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(output))
-	}
+	// Create a map of service name to service data for quick lookup
+	serviceMap := make(map[string]map[string]interface{})
 
-	// Check health status - services with health checks will have "Health" field set to "healthy"
-	if health, ok := service["Health"].(string); ok {
-		if health == "healthy" {
-			fmt.Printf("[%s] [%v] 📊 %s health field: '%s' -> true\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, health)
-
-			return true
-		} else {
-			// Explicitly unhealthy - never consider healthy
-			fmt.Printf("[%s] [%v] 📊 %s health field: '%s' -> false (explicitly unhealthy)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, health)
-
-			return false
+	for _, service := range serviceList {
+		if name, ok := service["Name"].(string); ok {
+			// Extract just the service name from the full container name
+			// Container names are like "compose-cryptoutil_sqlite-1"
+			// We want to extract "cryptoutil_sqlite" from this
+			if strings.Contains(name, "compose-") {
+				parts := strings.Split(name, "-")
+				if len(parts) >= 3 {
+					// Remove "compose-" prefix and container number suffix
+					serviceName := strings.Join(parts[1:len(parts)-1], "-")
+					serviceMap[serviceName] = service
+				}
+			}
 		}
 	}
 
-	// For services without health checks, check if they're running
-	if state, ok := service["State"].(string); ok && state == "running" {
-		fmt.Printf("[%s] [%v] 📊 %s state field: '%s' -> true (no health check)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, state)
+	// Check health status for each requested service
+	for _, serviceName := range services {
+		service, exists := serviceMap[serviceName]
 
-		return true
+		if !exists {
+			fmt.Printf("[%s] [%v] ❌ [DOCKER] Service %s not found in docker compose output\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName)
+
+			healthStatus[serviceName] = false
+
+			continue
+		}
+
+		// Debug: print the raw JSON for troubleshooting OTEL service
+		if serviceName == "opentelemetry-collector-contrib" {
+			serviceJSON, err := json.Marshal(service)
+			if err != nil {
+				fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to marshal OTEL service JSON: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
+			} else {
+				fmt.Printf("[%s] [%v] 🔍 OTEL service JSON: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(serviceJSON))
+			}
+		}
+
+		// Check health status - services with health checks will have "Health" field set to "healthy"
+		if health, ok := service["Health"].(string); ok {
+			if health == "healthy" {
+				fmt.Printf("[%s] [%v] 📊 %s health field: '%s' -> true\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, health)
+
+				healthStatus[serviceName] = true
+			} else {
+				// Explicitly unhealthy - never consider healthy
+				fmt.Printf("[%s] [%v] 📊 %s health field: '%s' -> false (explicitly unhealthy)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, health)
+
+				healthStatus[serviceName] = false
+			}
+		} else {
+			// For services without health checks, check if they're running
+			if state, ok := service["State"].(string); ok && state == "running" {
+				fmt.Printf("[%s] [%v] 📊 %s state field: '%s' -> true (no health check)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, state)
+
+				healthStatus[serviceName] = true
+			} else {
+				// If health is present but not healthy, or state is not running
+				fmt.Printf("[%s] [%v] ❌ %s is not healthy (state: %v, health: %v)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, service["State"], service["Health"])
+
+				healthStatus[serviceName] = false
+			}
+		}
 	}
 
-	// If health is present but not healthy, or state is not running
-	fmt.Printf("[%s] [%v] ❌ %s is not healthy (state: %v, health: %v)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), serviceName, service["State"], service["Health"])
+	return healthStatus
+}
 
-	return false
+// isDockerServiceHealthy checks if a specific Docker service is healthy.
+// DEPRECATED: Use areDockerServicesHealthy for better performance.
+func isDockerServiceHealthy(serviceName string, startTime time.Time) bool {
+	// Call the new batch function with a single service
+	healthStatus := areDockerServicesHealthy([]string{serviceName}, startTime)
+
+	return healthStatus[serviceName]
 }
 
 // waitForCryptoutilReady waits for a cryptoutil instance to be ready via its public API.
@@ -408,7 +471,6 @@ func waitForCryptoutilReady(t *testing.T, ctx context.Context, baseURL *string, 
 		fmt.Printf("📋 [API] Making GetElastickeys request to %s\n", *baseURL)
 
 		_, err := client.GetElastickeysWithResponse(ctx, nil)
-
 		if err != nil {
 			fmt.Printf("[%s] [%v] ⏳ [API] Cryptoutil at %s not ready yet (attempt %d, API call failed: %v), waiting %v...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *baseURL, checkCount, err, serviceRetryInterval)
 			time.Sleep(serviceRetryInterval)
@@ -423,7 +485,7 @@ func waitForCryptoutilReady(t *testing.T, ctx context.Context, baseURL *string, 
 }
 
 // waitForHTTPReady waits for an HTTP endpoint to return 200.
-func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout time.Duration) {
+func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout time.Duration, startTime time.Time) {
 	t.Helper()
 
 	giveUpTime := time.Now().Add(timeout)
@@ -440,24 +502,23 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 			t.Fatalf("Service not ready after %v: %s", timeout, url)
 		}
 
-		fmt.Printf("📋 [HTTP] Making GET request to: %s\n", url)
+		fmt.Printf("[%s] [%v] 📋 [HTTP] Making GET request to: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-
 		if err != nil {
-			fmt.Printf("❌ [HTTP] Failed to create request to %s: %v\n", url, err)
+			fmt.Printf("[%s] [%v] ❌ [HTTP] Failed to create request to %s: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url, err)
 
 			return
 		}
 
 		resp, err := client.Do(req)
 		if err != nil {
-			fmt.Printf("❌ [HTTP] Request to %s failed: %v\n", url, err)
+			fmt.Printf("[%s] [%v] ❌ [HTTP] Request to %s failed: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url, err)
 		} else {
-			fmt.Printf("📋 [HTTP] Response from %s: status %d\n", url, resp.StatusCode)
+			fmt.Printf("[%s] [%v] 📋 [HTTP] Response from %s: status %d\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url, resp.StatusCode)
 		}
 
 		if err == nil && resp.StatusCode == http.StatusOK {
-			fmt.Printf("✅ [HTTP] Service ready at %s\n", url)
+			fmt.Printf("[%s] [%v] ✅ [HTTP] Service ready at %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url)
 			resp.Body.Close()
 
 			return
@@ -472,56 +533,56 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 }
 
 // testCryptoutilInstance tests a single cryptoutil instance.
-func testCryptoutilInstance(t *testing.T, ctx context.Context, instanceName string, publicBaseURL *string, privateAdminBaseURL *string, rootCAsPool *x509.CertPool) {
+func testCryptoutilInstance(t *testing.T, ctx context.Context, instanceName string, publicBaseURL *string, privateAdminBaseURL *string, rootCAsPool *x509.CertPool, startTime time.Time) {
 	t.Helper()
-	t.Logf("🧪 Testing %s at %s", instanceName, *publicBaseURL)
+	fmt.Printf("[%s] [%v] 🧪 Testing %s at %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), instanceName, *publicBaseURL)
 
 	// Create OpenAPI client for public APIs
-	t.Logf("📡 Creating OpenAPI client for %s", *publicBaseURL)
+	fmt.Printf("[%s] [%v] 📡 Creating OpenAPI client for %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *publicBaseURL)
 	client := cryptoutilClient.RequireClientWithResponses(t, publicBaseURL, rootCAsPool)
 
 	// Test health check (liveness on public server)
-	t.Logf("💚 Testing health check for %s", *publicBaseURL)
-	testHealthCheck(t, ctx, publicBaseURL, rootCAsPool)
+	fmt.Printf("[%s] [%v] 💚 Testing health check for %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *publicBaseURL)
+	testHealthCheck(t, ctx, publicBaseURL, rootCAsPool, startTime)
 
 	// Test service API - create elastic key
-	t.Logf("🔑 Creating elastic key for %s", instanceName)
-	elasticKey := testCreateElasticKey(t, ctx, client)
+	fmt.Printf("[%s] [%v] 🔑 Creating elastic key for %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), instanceName)
+	elasticKey := testCreateElasticKey(t, ctx, client, startTime)
 
 	// Test service API - generate material key
-	t.Logf("🗝️  Generating material key for %s", instanceName)
-	testGenerateMaterialKey(t, ctx, client, elasticKey)
+	fmt.Printf("[%s] [%v] 🗝️  Generating material key for %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), instanceName)
+	testGenerateMaterialKey(t, ctx, client, elasticKey, startTime)
 
 	// Test service API - encrypt/decrypt cycle
-	t.Logf("🔐 Testing encrypt/decrypt cycle for %s", instanceName)
-	testEncryptDecryptCycle(t, ctx, client, elasticKey)
+	fmt.Printf("[%s] [%v] 🔐 Testing encrypt/decrypt cycle for %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), instanceName)
+	testEncryptDecryptCycle(t, ctx, client, elasticKey, startTime)
 
 	// Test service API - sign/verify cycle
-	t.Logf("✍️  Testing sign/verify cycle for %s", instanceName)
-	testSignVerifyCycle(t, ctx, client, elasticKey)
+	fmt.Printf("[%s] [%v] ✍️  Testing sign/verify cycle for %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), instanceName)
+	testSignVerifyCycle(t, ctx, client, elasticKey, startTime)
 
-	t.Logf("✅ %s tests passed", instanceName)
+	fmt.Printf("[%s] [%v] ✅ %s tests passed\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), instanceName)
 }
 
 // testHealthCheck verifies the health endpoints work.
-func testHealthCheck(t *testing.T, ctx context.Context, publicBaseURL *string, rootCAsPool *x509.CertPool) {
+func testHealthCheck(t *testing.T, ctx context.Context, publicBaseURL *string, rootCAsPool *x509.CertPool, startTime time.Time) {
 	t.Helper()
 
 	// Test liveness probe
-	fmt.Printf("📋 [API] Making health check request to %s/livez\n", *publicBaseURL)
+	fmt.Printf("[%s] [%v] 📋 [API] Making health check request to %s/livez\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *publicBaseURL)
 	err := cryptoutilClient.CheckHealthz(publicBaseURL, rootCAsPool)
 
 	if err != nil {
-		fmt.Printf("❌ [API] Health check failed for %s: %v\n", *publicBaseURL, err)
+		fmt.Printf("[%s] [%v] ❌ [API] Health check failed for %s: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *publicBaseURL, err)
 	} else {
-		fmt.Printf("✅ [API] Health check passed for %s\n", *publicBaseURL)
+		fmt.Printf("[%s] [%v] ✅ [API] Health check passed for %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *publicBaseURL)
 	}
 
 	require.NoError(t, err, "Health check failed for %s", *publicBaseURL)
 }
 
 // testCreateElasticKey tests creating an elastic key.
-func testCreateElasticKey(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses) *cryptoutilOpenapiModel.ElasticKey {
+func testCreateElasticKey(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses, startTime time.Time) *cryptoutilOpenapiModel.ElasticKey {
 	t.Helper()
 
 	importAllowed := false
@@ -532,84 +593,84 @@ func testCreateElasticKey(t *testing.T, ctx context.Context, client *cryptoutilO
 		&testAlgorithmVar, &testProviderVar, &importAllowed, &versioningAllowed,
 	)
 
-	fmt.Printf("📋 [API] Making PostElastickey request to create elastic key\n")
+	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickey request to create elastic key\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	elasticKey := cryptoutilClient.RequireCreateElasticKeyResponse(t, ctx, client, elasticKeyCreate)
 	require.NotNil(t, elasticKey.ElasticKeyID)
 
-	fmt.Printf("✅ [API] Elastic key created with ID: %s\n", *elasticKey.ElasticKeyID)
+	fmt.Printf("[%s] [%v] ✅ [API] Elastic key created with ID: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 
 	return elasticKey
 }
 
 // testGenerateMaterialKey tests generating a material key.
-func testGenerateMaterialKey(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey) {
+func testGenerateMaterialKey(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey, startTime time.Time) {
 	t.Helper()
 
 	keyGenerate := cryptoutilClient.RequireMaterialKeyGenerateRequest(t)
 
-	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDMaterialkey request for key %s\n", *elasticKey.ElasticKeyID)
+	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDMaterialkey request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	materialKey := cryptoutilClient.RequireMaterialKeyGenerateResponse(t, ctx, client, elasticKey.ElasticKeyID, keyGenerate)
 	require.NotNil(t, materialKey.MaterialKeyID)
 
-	fmt.Printf("✅ [API] Material key generated with ID: %s\n", materialKey.MaterialKeyID)
+	fmt.Printf("[%s] [%v] ✅ [API] Material key generated with ID: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), materialKey.MaterialKeyID)
 }
 
 // testEncryptDecryptCycle tests a full encrypt/decrypt cycle.
-func testEncryptDecryptCycle(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey) {
+func testEncryptDecryptCycle(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey, startTime time.Time) {
 	t.Helper()
 
 	// Encrypt
 	encryptRequest := cryptoutilClient.RequireEncryptRequest(t, &testCleartextVar)
 
-	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDEncrypt request for key %s\n", *elasticKey.ElasticKeyID)
+	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDEncrypt request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	encryptedText := cryptoutilClient.RequireEncryptResponse(t, ctx, client, elasticKey.ElasticKeyID, nil, encryptRequest)
 	require.NotEmpty(t, *encryptedText)
 
-	fmt.Printf("✅ [API] Text encrypted successfully\n")
+	fmt.Printf("[%s] [%v] ✅ [API] Text encrypted successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	// Decrypt
 	decryptRequest := cryptoutilClient.RequireDecryptRequest(t, encryptedText)
 
-	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDDecrypt request for key %s\n", *elasticKey.ElasticKeyID)
+	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDDecrypt request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	decryptedText := cryptoutilClient.RequireDecryptResponse(t, ctx, client, elasticKey.ElasticKeyID, decryptRequest)
 	require.Equal(t, testCleartext, *decryptedText)
 
-	fmt.Printf("✅ [API] Text decrypted successfully\n")
+	fmt.Printf("[%s] [%v] ✅ [API] Text decrypted successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
 
 // testSignVerifyCycle tests a full sign/verify cycle.
-func testSignVerifyCycle(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey) {
+func testSignVerifyCycle(t *testing.T, ctx context.Context, client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey, startTime time.Time) {
 	t.Helper()
 
 	// Sign
 	signRequest := cryptoutilClient.RequireSignRequest(t, &testCleartextVar)
 
-	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDSign request for key %s\n", *elasticKey.ElasticKeyID)
+	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDSign request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	signedText := cryptoutilClient.RequireSignResponse(t, ctx, client, elasticKey.ElasticKeyID, nil, signRequest)
 	require.NotEmpty(t, *signedText)
 
-	fmt.Printf("✅ [API] Text signed successfully\n")
+	fmt.Printf("[%s] [%v] ✅ [API] Text signed successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	// Verify
 	verifyRequest := cryptoutilClient.RequireVerifyRequest(t, signedText)
 
-	fmt.Printf("📋 [API] Making PostElastickeyElasticKeyIDVerify request for key %s\n", *elasticKey.ElasticKeyID)
+	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDVerify request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	verifyResponse := cryptoutilClient.RequireVerifyResponse(t, ctx, client, elasticKey.ElasticKeyID, verifyRequest)
 	require.Equal(t, "true", *verifyResponse)
 
-	fmt.Printf("✅ [API] Signature verified successfully\n")
+	fmt.Printf("[%s] [%v] ✅ [API] Signature verified successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
 
 // verifyTelemetryFlow verifies that telemetry is flowing to Grafana.
-func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
+func verifyTelemetryFlow(t *testing.T, ctx context.Context, startTime time.Time) {
 	t.Helper()
-	t.Log("Verifying telemetry flow to Grafana...")
+	fmt.Printf("[%s] [%v] Verifying telemetry flow to Grafana...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	client := &http.Client{Timeout: httpClientTimeout}
 
 	// Check Grafana health
-	fmt.Printf("📋 [HTTP] Making GET request to Grafana health endpoint: %s\n", grafanaURL+"/api/health")
+	fmt.Printf("[%s] [%v] 📋 [HTTP] Making GET request to Grafana health endpoint: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), grafanaURL+"/api/health")
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, grafanaURL+"/api/health", nil)
 	require.NoError(t, err, "Failed to create Grafana health request")
 
@@ -619,10 +680,10 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusOK, resp.StatusCode, "Grafana health check failed")
 
-	fmt.Printf("✅ [HTTP] Grafana health check passed\n")
+	fmt.Printf("[%s] [%v] ✅ [HTTP] Grafana health check passed\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	// Check OTEL collector metrics endpoint
-	fmt.Printf("📋 [HTTP] Making GET request to OTEL collector metrics endpoint: %s\n", otelCollectorURL+"/metrics")
+	fmt.Printf("[%s] [%v] 📋 [HTTP] Making GET request to OTEL collector metrics endpoint: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), otelCollectorURL+"/metrics")
 	req, err = http.NewRequestWithContext(ctx, http.MethodGet, otelCollectorURL+"/metrics", nil)
 	require.NoError(t, err, "Failed to create OTEL collector metrics request")
 
@@ -632,7 +693,7 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
 	defer resp.Body.Close()
 	require.Equal(t, http.StatusOK, resp.StatusCode, "OTEL collector metrics check failed")
 
-	fmt.Printf("✅ [HTTP] OTEL collector metrics check passed\n")
+	fmt.Printf("[%s] [%v] ✅ [HTTP] OTEL collector metrics check passed\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 
 	// Verify metrics contain cryptoutil service data
 	body := make([]byte, 1024*1024) // 1MB buffer
@@ -651,5 +712,5 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context) {
 
 	require.True(t, hasTraces || hasLogs || hasMetrics, "No telemetry data found in OTEL collector")
 
-	fmt.Printf("✅ [TELEMETRY] Telemetry flow verification passed\n")
+	fmt.Printf("[%s] [%v] ✅ [TELEMETRY] Telemetry flow verification passed\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
