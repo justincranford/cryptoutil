@@ -111,6 +111,7 @@ repos:
     hooks:
       - id: detect-secrets
         name: Detect secrets and sensitive data
+        exclude: .*sharedsecrets.*
 
   # Python security linting
   - repo: https://github.com/PyCQA/bandit

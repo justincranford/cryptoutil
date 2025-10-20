@@ -59,7 +59,7 @@ linters:
     - copyloopvar    # Check for loop variables captured by reference (replaces exportloopref)
     - goconst       # Find repeated strings that could be constants
     - importas      # Enforce consistent import aliasing
-    # - mnd           # Detect magic numbers (formerly gomnd) - TEMPORARILY DISABLED
+    - mnd           # Detect magic numbers (formerly gomnd)
     - wsl           # Whitespace linter
     - nlreturn      # Enforce newlines after return statements
     - goheader       # Copyright header enforcement
@@ -115,6 +115,8 @@ linters-settings:
       - '0.05'      # 5% tolerance, common percentage value
       - '0.1'       # 10% tolerance, common percentage value
       - '0.5'       # 50% tolerance, common percentage value
+      - '0o750'     # File permission: owner read/write/execute, group read/execute (octal)
+      - '0o600'     # File permission: owner read/write only (octal)
     # List of file patterns to exclude from analysis
     ignored-files:
       - 'magic_.*.go'

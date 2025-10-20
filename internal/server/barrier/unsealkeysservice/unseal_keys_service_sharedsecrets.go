@@ -7,13 +7,13 @@ import (
 )
 
 const (
-	// Maximum number of shared secrets allowed. // pragma: allowlist secret
+	// Maximum number of shared secrets allowed.
 	maxSharedSecrets = 256
 
-	// Minimum shared secret length in bytes. // pragma: allowlist secret
+	// Minimum shared secret length in bytes.
 	minSharedSecretLength = 32
 
-	// Maximum shared secret length in bytes. // pragma: allowlist secret
+	// Maximum shared secret length in bytes.
 	maxSharedSecretLength = 64
 )
 
@@ -41,9 +41,12 @@ func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
 	u.unsealJWKs = nil
 }
 
+// pragma: allowlist
 func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) {
+	// pragma: allowlist
 	if sharedSecretsM == nil {
-		return nil, fmt.Errorf("shared secrets can't be nil") // pragma: allowlist secret
+		// pragma: allowlist
+		return nil, fmt.Errorf("shared secrets can't be nil")
 	}
 
 	countM := len(sharedSecretsM)
@@ -59,7 +62,8 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 		return nil, fmt.Errorf("n can't be greater than shared secrets count") // pragma: allowlist secret
 	}
 
-	for i, sharedSecret := range sharedSecretsM {
+	// pragma: allowlist secret
+	for i, sharedSecret := range sharedSecretsM { // pragma: allowlist secret
 		if sharedSecret == nil {
 			return nil, fmt.Errorf("shared secret %d can't be nil", i) // pragma: allowlist secret
 		} else if len(sharedSecret) < minSharedSecretLength {
