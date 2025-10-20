@@ -32,13 +32,16 @@ const (
 	otelCollectorPort       = "8888"
 
 	// Test timeouts.
-	composeUpTimeout       = 5 * time.Minute
-	dockerHealthTimeout    = 30 * time.Second // Docker services should be healthy in under 20s
-	cryptoutilReadyTimeout = 30 * time.Second // Cryptoutil needs time to unseal - reduced for fast fail
-	testExecutionTimeout   = 30 * time.Second // Overall test timeout - reduced for fast fail
-	httpClientTimeout      = 10 * time.Second
-	serviceRetryInterval   = 2 * time.Second // Check more frequently
-	httpRetryInterval      = 1 * time.Second
+	// IMPORTANT: All timeout values MUST be defined as constants at the top of the file for visibility and maintainability.
+	// Never hardcode timeout values in the middle of functions - always use named constants.
+	composeUpTimeout         = 5 * time.Minute
+	dockerHealthTimeout      = 30 * time.Second // Docker services should be healthy in under 20s
+	cryptoutilReadyTimeout   = 30 * time.Second // Cryptoutil needs time to unseal - reduced for fast fail
+	testExecutionTimeout     = 30 * time.Second // Overall test timeout - reduced for fast fail
+	dockerComposeInitTimeout = 30 * time.Second // Time to wait for Docker Compose services to initialize after startup
+	httpClientTimeout        = 10 * time.Second
+	serviceRetryInterval     = 2 * time.Second // Check more frequently
+	httpRetryInterval        = 1 * time.Second
 
 	// Test data.
 	testElasticKeyName        = "e2e-test-key"
@@ -70,38 +73,6 @@ var (
 	testCleartextVar             = testCleartext
 )
 
-// checkIfServicesAlreadyHealthy checks if all required services are already running and healthy.
-func checkIfServicesAlreadyHealthy(t *testing.T, startTime time.Time) bool {
-	t.Helper()
-
-	services := []string{
-		"cryptoutil_sqlite",
-		"cryptoutil_postgres_1",
-		"cryptoutil_postgres_2",
-		"postgres",
-		"grafana-otel-lgtm",
-		"opentelemetry-collector-contrib", // Now has proper health check with wget
-	}
-
-	fmt.Printf("[%s] [%v] Checking if %d services are already healthy...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services))
-
-	allHealthy := true
-
-	for _, service := range services {
-		healthy := isDockerServiceHealthy(service, startTime)
-
-		if !healthy {
-			fmt.Printf("❌ Service %s is not healthy\n", service)
-
-			allHealthy = false
-		} else {
-			fmt.Printf("✅ Service %s is healthy\n", service)
-		}
-	}
-
-	return allHealthy
-}
-
 // TestE2EIntegration performs end-to-end testing of all cryptoutil instances with telemetry verification.
 func TestE2EIntegration(t *testing.T) {
 	t.Parallel()
@@ -117,32 +88,33 @@ func TestE2EIntegration(t *testing.T) {
 	rootCAsPool := (*x509.CertPool)(nil) // Using InsecureSkipVerify for tests
 	fmt.Printf("[%s] [%v] ✅ Certificates loaded (nil: %v)\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), rootCAsPool == nil)
 
-	// Check if services are already running and healthy
-	fmt.Printf("[%s] [%v] 🔍 Checking if services are already running...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
-	servicesAlreadyHealthy := checkIfServicesAlreadyHealthy(t, startTime)
-
-	if servicesAlreadyHealthy {
-		fmt.Printf("[%s] [%v] ✅ Services are already running and healthy, skipping Docker Compose startup\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	// Always stop any existing services first to ensure clean test state
+	fmt.Printf("[%s] [%v] 🧹 Ensuring clean test state by stopping any existing Docker Compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	err := stopDockerCompose(ctx, startTime)
+	if err != nil { //nolint:wsl // gofumpt removes blank line required by wsl linter
+		fmt.Printf("[%s] [%v] ⚠️  Warning: failed to stop existing services: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
 	} else {
-		// Start docker compose
-		fmt.Printf("[%s] [%v] Starting docker compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
-
-		err := startDockerCompose(ctx, startTime)
-		require.NoError(t, err, "Failed to start docker compose")
-
-		// Give Docker Compose time to start services
-		fmt.Printf("[%s] [%v] ⏳ Waiting for Docker Compose services to initialize...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
-		time.Sleep(30 * time.Second)
-
-		defer func() {
-			fmt.Printf("[%s] [%v] 🧹 CLEANUP: Stopping docker compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
-
-			err := stopDockerCompose(context.Background(), startTime) // Use background context for cleanup
-			if err != nil {
-				fmt.Printf("[%s] [%v] ⚠️  CLEANUP WARNING: failed to stop docker compose: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
-			}
-		}()
+		fmt.Printf("[%s] [%v] ✅ Existing services stopped successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 	}
+
+	// Start docker compose services fresh
+	fmt.Printf("[%s] [%v] 🚀 Starting Docker Compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+
+	err = startDockerCompose(ctx, startTime)
+	require.NoError(t, err, "Failed to start docker compose")
+
+	// Give Docker Compose time to start services
+	fmt.Printf("[%s] [%v] ⏳ Waiting for Docker Compose services to initialize...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	time.Sleep(dockerComposeInitTimeout)
+
+	defer func() {
+		fmt.Printf("[%s] [%v] 🧹 CLEANUP: Stopping docker compose services...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+
+		err := stopDockerCompose(context.Background(), startTime) // Use background context for cleanup
+		if err != nil {
+			fmt.Printf("[%s] [%v] ⚠️  CLEANUP WARNING: failed to stop docker compose: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
+		}
+	}()
 
 	// Wait for all services to be ready (Docker health checks)
 	waitForServicesReady(t, ctx, startTime)
@@ -171,7 +143,7 @@ func startDockerCompose(ctx context.Context, startTime time.Time) error {
 	stopOutput, stopErr := stopCmd.CombinedOutput()
 	fmt.Printf("[%s] [%v] 📋 [DOCKER] Stop command output: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(stopOutput))
 
-	if stopErr != nil {
+	if stopErr != nil { //nolint:wsl // gofumpt removes blank line required by wsl linter
 		// Log warning but don't fail - services might not be running
 		fmt.Printf("[%s] [%v] ⚠️ [DOCKER] Warning: failed to stop existing services: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), stopErr)
 	} else {
@@ -338,7 +310,7 @@ func areDockerServicesHealthy(services []string, startTime time.Time) map[string
 
 	fmt.Printf("[%s] [%v] 📋 [DOCKER] Executing batch health check for %d services: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services), cmd.String())
 	output, err := cmd.Output()
-	if err != nil {
+	if err != nil { //nolint:wsl // gofumpt removes blank line required by wsl linter
 		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to check services health: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
 		// Mark all services as unhealthy
 		for _, service := range services {
@@ -504,7 +476,7 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 
 		fmt.Printf("[%s] [%v] 📋 [HTTP] Making GET request to: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-		if err != nil {
+		if err != nil { //nolint:wsl // gofumpt removes blank line required by wsl linter
 			fmt.Printf("[%s] [%v] ❌ [HTTP] Failed to create request to %s: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url, err)
 
 			return
