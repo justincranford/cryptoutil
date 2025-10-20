@@ -6,6 +6,17 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+const (
+	// Maximum number of shared secrets allowed. // pragma: allowlist secret
+	maxSharedSecrets = 256
+
+	// Minimum shared secret length in bytes. // pragma: allowlist secret
+	minSharedSecretLength = 32
+
+	// Maximum shared secret length in bytes. // pragma: allowlist secret
+	maxSharedSecretLength = 64
+)
+
 type UnsealKeysServiceSharedSecrets struct {
 	unsealJWKs []joseJwk.Key
 }
@@ -32,29 +43,29 @@ func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
 
 func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) {
 	if sharedSecretsM == nil {
-		return nil, fmt.Errorf("shared secrets can't be nil")
+		return nil, fmt.Errorf("shared secrets can't be nil") // pragma: allowlist secret
 	}
 
 	countM := len(sharedSecretsM)
 	if countM == 0 {
-		return nil, fmt.Errorf("shared secrets can't be zero")
-	} else if countM >= 256 {
-		return nil, fmt.Errorf("shared secrets can't be greater than 256")
+		return nil, fmt.Errorf("shared secrets can't be zero") // pragma: allowlist secret
+	} else if countM >= maxSharedSecrets {
+		return nil, fmt.Errorf("shared secrets can't be greater than %d", maxSharedSecrets) // pragma: allowlist secret
 	} else if chooseN == 0 {
 		return nil, fmt.Errorf("n can't be zero")
 	} else if chooseN < 0 {
 		return nil, fmt.Errorf("n can't be negative")
 	} else if chooseN > countM {
-		return nil, fmt.Errorf("n can't be greater than shared secrets count")
+		return nil, fmt.Errorf("n can't be greater than shared secrets count") // pragma: allowlist secret
 	}
 
 	for i, sharedSecret := range sharedSecretsM {
 		if sharedSecret == nil {
-			return nil, fmt.Errorf("shared secret %d can't be nil", i)
-		} else if len(sharedSecret) < 32 {
-			return nil, fmt.Errorf("shared secret %d length can't be less than 32", i)
-		} else if len(sharedSecret) > 64 {
-			return nil, fmt.Errorf("shared secret %d length can't be greater than 64", i)
+			return nil, fmt.Errorf("shared secret %d can't be nil", i) // pragma: allowlist secret
+		} else if len(sharedSecret) < minSharedSecretLength {
+			return nil, fmt.Errorf("shared secret %d length can't be less than %d", i, minSharedSecretLength) // pragma: allowlist secret
+		} else if len(sharedSecret) > maxSharedSecretLength {
+			return nil, fmt.Errorf("shared secret %d length can't be greater than %d", i, maxSharedSecretLength) // pragma: allowlist secret
 		}
 	}
 

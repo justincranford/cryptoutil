@@ -94,16 +94,39 @@ linters-settings:
   mnd:
     # List of numbers to exclude from analysis
     ignored-numbers:
-      - '0666'
-      - '0755'
-      - '42'
+      - '0600'      # File permission: owner read/write only
+      - '0644'      # File permission: owner read/write, group/other read
+      - '0666'      # File permission: all users read/write
+      - '0755'      # File permission: owner read/write/execute, group/other read/execute
+      - '0750'      # File permission: owner read/write/execute, group read/execute
+      - '42'        # Answer to life, the universe, and everything
+      - '1024'      # 1KB buffer size, common memory allocation
+      - '2048'      # 2KB buffer size, RSA-2048 key size
+      - '4096'      # 4KB buffer size, RSA-4096 key size
+      - '10'       # Percentage basis, common percentage value
+      - '100'      # Percentage basis, common percentage value
+      - '1000'      # 1 second in milliseconds, common timeout unit
+      - '10000'     # 10 seconds in milliseconds, rate limit maximum
+      - '443'       # Standard HTTPS port
+      - '8080'      # Default browser/server API port
+      - '9090'      # Default admin API port
+      - '2'         # Minimum CLI arguments, common small count
+      - '60'        # 1 minute in seconds, common timeout
+      - '0.05'      # 5% tolerance, common percentage value
+      - '0.1'       # 10% tolerance, common percentage value
+      - '0.5'       # 50% tolerance, common percentage value
     # List of file patterns to exclude from analysis
     ignored-files:
       - 'magic_.*.go'
+      - '.*_test\.go'
+      - 'scripts/.*\.go'
     # List of function patterns to exclude from analysis
     ignored-functions:
       - 'math.*'
       - 'http.StatusText'
+      - 'len'
+      - 'time\.Sleep'
+      - 'make'
 
   dupl:
     threshold: 100

@@ -16,6 +16,11 @@ import (
 	"cryptoutil/internal/common/crypto/keygen"
 )
 
+const (
+	// Certificate validity randomization range in minutes.
+	certificateRandomizationRangeMinutes = 120
+)
+
 type KeyMaterial struct {
 	CertificateChain []*x509.Certificate
 	PublicKey        crypto.PublicKey
@@ -192,7 +197,7 @@ func CertificateTemplateCA(issuerName, subjectName string, duration time.Duratio
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, 120*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, certificateRandomizationRangeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
@@ -217,7 +222,7 @@ func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, 120*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, certificateRandomizationRangeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS server: %w", err)
 	}

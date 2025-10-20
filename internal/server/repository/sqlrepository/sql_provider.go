@@ -16,6 +16,24 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
+const (
+	DBTypeSQLite   SupportedDBType = "sqlite"
+	DBTypePostgres SupportedDBType = "postgres"
+
+	ContainerModeDisabled  ContainerMode = "disabled"
+	ContainerModePreferred ContainerMode = "preferred"
+	ContainerModeRequired  ContainerMode = "required"
+
+	firstDBPingAttemptWait = 750 * time.Millisecond
+	maxDBPingAttempts      = 5
+	nextDBPingAttemptWait  = 1 * time.Second
+	sqliteBusyTimeout      = 30 * time.Second
+	// Local constants for this provider.
+	defaultPingTimeout       = 5 * time.Second
+	sqliteMaxOpenConnections = 1
+	randSuffixMax            = int64(10000)
+)
+
 type SQLRepository struct {
 	telemetryService    *cryptoutilTelemetry.TelemetryService
 	dbType              SupportedDBType // Caution: modernc.org/sqlite doesn't support read-only transactions, but PostgreSQL does
@@ -40,7 +58,7 @@ func (s *SQLRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	}
 
 	// Ping with timeout
-	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	pingCtx, cancel := context.WithTimeout(ctx, defaultPingTimeout)
 	defer cancel()
 
 	err := s.sqlDB.PingContext(pingCtx)
@@ -72,20 +90,6 @@ type (
 	ContainerMode   string
 )
 
-const (
-	DBTypeSQLite   SupportedDBType = "sqlite"
-	DBTypePostgres SupportedDBType = "postgres"
-
-	ContainerModeDisabled  ContainerMode = "disabled"
-	ContainerModePreferred ContainerMode = "preferred"
-	ContainerModeRequired  ContainerMode = "required"
-
-	firstDBPingAttemptWait = 750 * time.Millisecond
-	maxDBPingAttempts      = 5
-	nextDBPingAttemptWait  = 1 * time.Second
-	sqliteBusyTimeout      = 30 * time.Second
-)
-
 // extractSchemaFromURL extracts the schema name from PostgreSQL URL search_path parameter.
 // Used for test isolation where each test gets its own schema.
 func extractSchemaFromURL(databaseURL string) string {
@@ -109,7 +113,7 @@ func extractSchemaFromURL(databaseURL string) string {
 
 var (
 	postgresContainerDBName = func() string {
-		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
+		val, err := rand.Int(rand.Reader, big.NewInt(randSuffixMax))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random database name: %v", err))
 		}
@@ -117,7 +121,7 @@ var (
 		return fmt.Sprintf("keyservice%04d", val.Int64())
 	}()
 	postgresContainerDBUsername = func() string {
-		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
+		val, err := rand.Int(rand.Reader, big.NewInt(randSuffixMax))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random username: %v", err))
 		}
@@ -125,7 +129,7 @@ var (
 		return fmt.Sprintf("postgresUsername%04d", val.Int64())
 	}()
 	postgresContainerDBPassword = func() string {
-		val, err := rand.Int(rand.Reader, big.NewInt(10_000))
+		val, err := rand.Int(rand.Reader, big.NewInt(randSuffixMax))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random password: %v", err))
 		}
@@ -203,7 +207,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	sqlRepository := &SQLRepository{telemetryService: telemetryService, dbType: dbType, sqlDB: sqlDB, containerMode: containerMode, shutdownDBContainer: shutdownDBContainer, verboseMode: settings.VerboseMode}
 
 	if dbType == DBTypeSQLite {
-		sqlDB.SetMaxOpenConns(1) // SQLite doesn't support concurrent writers; workaround is to limit the pool connections size to 1, but not good for read concurrency
+		sqlDB.SetMaxOpenConns(sqliteMaxOpenConnections) // SQLite doesn't support concurrent writers; workaround is to limit the pool connections size, but not good for read concurrency
 
 		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
 			telemetryService.Slogger.Error("failed to enable WAL mode", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))

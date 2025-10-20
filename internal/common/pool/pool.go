@@ -21,6 +21,9 @@ const (
 	maxInt64            = int64(^uint64(0) >> 1)  // Max int64 (= 2^63-1 = 9,223,372,036,854,775,807)
 	MaxLifetimeValues   = uint64(maxInt64)        // Max int64 as uint64
 	MaxLifetimeDuration = time.Duration(maxInt64) // Max int64 as nanoseconds (= 292.47 years)
+
+	// Ticker interval for periodic pool maintenance checks.
+	poolMaintenanceInterval = 500 * time.Millisecond
 )
 
 type ValueGenPool[T any] struct {
@@ -356,8 +359,8 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 	}
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
-	ticker := time.NewTicker(500 * time.Millisecond) // time keeps on ticking ticking ticking... into the future
-	defer func() { ticker.Stop() }()                 //nolint:errcheck
+	ticker := time.NewTicker(poolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
+	defer func() { ticker.Stop() }()                  //nolint:errcheck
 
 	for {
 		select {

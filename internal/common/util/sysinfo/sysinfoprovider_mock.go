@@ -1,5 +1,13 @@
 package sysinfo
 
+const (
+	// Mock values for testing.
+	mockNumCPU    = 4
+	mockRAMSizeMB = 8192 // 8GB in MB
+	mockCPUFamily = "6"
+	mockCPUModel  = "0"
+)
+
 var mockSysInfoProvider = &MockSysInfoProvider{}
 
 type MockSysInfoProvider struct{}
@@ -13,15 +21,15 @@ func (mock *MockSysInfoProvider) RuntimeGoOS() string {
 }
 
 func (mock *MockSysInfoProvider) RuntimeNumCPU() int {
-	return 4
+	return mockNumCPU
 }
 
 func (mock *MockSysInfoProvider) CPUInfo() (string, string, string, string, error) {
-	return "GenuineIntel", "6", "0", "Intel(R) Core(TM) i7-8550U", nil
+	return "GenuineIntel", mockCPUFamily, mockCPUModel, "Intel(R) Core(TM) i7-8550U", nil
 }
 
 func (mock *MockSysInfoProvider) RAMSize() (uint64, error) {
-	return 8192, nil
+	return mockRAMSizeMB, nil
 }
 
 func (mock *MockSysInfoProvider) OSHostname() (string, error) {

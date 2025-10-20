@@ -10,6 +10,11 @@ import (
 	cryptoutilUtil "cryptoutil/internal/common/util"
 )
 
+const (
+	// Number of concurrent info gathering operations.
+	numConcurrentInfoOps = 5
+)
+
 func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duration) ([][]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -30,7 +35,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 	var wg sync.WaitGroup
 
-	wg.Add(5)
+	wg.Add(numConcurrentInfoOps)
 
 	go func() {
 		defer wg.Done()

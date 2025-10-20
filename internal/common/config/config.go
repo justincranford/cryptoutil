@@ -61,6 +61,7 @@ const (
 	defaultRequestBodyLimit            = int(2 << 20)                                           // 2MB limit prevents large payload attacks while allowing reasonable API usage
 	defaultBrowserIPRateLimit          = uint16(100)                                            // More lenient rate limit for browser APIs (user interactions)
 	defaultServiceIPRateLimit          = uint16(25)                                             // More restrictive rate limit for service APIs (automated systems)
+	defaultMaxIPRateLimit              = uint16(10000)                                          // Maximum allowed rate limit to prevent performance issues
 	defaultDatabaseContainer           = "disabled"                                             // Disabled by default to avoid unexpected container dependencies
 	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
 	defaultDatabaseInitTotalTimeout    = 5 * time.Minute                                        // 5 minutes allows for container startup while preventing indefinite waits
@@ -88,10 +89,10 @@ var profiles = map[string]map[string]any{
 		"dev":                      true,
 		"bind-public-protocol":     "http",
 		"bind-public-address":      ipv4Loopback,
-		"bind-public-port":         uint16(8081),
+		"bind-public-port":         defaultBindPublicPort,
 		"bind-private-protocol":    "http",
 		"bind-private-address":     ipv4Loopback,
-		"bind-private-port":        uint16(9091),
+		"bind-private-port":        defaultBindPrivatePort,
 		"database-container":       "disabled",
 		"database-url":             "sqlite://file::memory:?cache=shared",
 		"csrf-token-cookie-secure": false,
@@ -104,10 +105,10 @@ var profiles = map[string]map[string]any{
 		"dev":                      true,
 		"bind-public-protocol":     "http",
 		"bind-public-address":      ipv4Loopback,
-		"bind-public-port":         uint16(8080),
+		"bind-public-port":         defaultBindPublicPort,
 		"bind-private-protocol":    "http",
 		"bind-private-address":     ipv4Loopback,
-		"bind-private-port":        uint16(9090),
+		"bind-private-port":        defaultBindPrivatePort,
 		"database-container":       "disabled",
 		"database-url":             "sqlite://file::memory:?cache=shared",
 		"csrf-token-cookie-secure": false,
@@ -120,10 +121,10 @@ var profiles = map[string]map[string]any{
 		"dev":                      false,
 		"bind-public-protocol":     "https",
 		"bind-public-address":      "0.0.0.0",
-		"bind-public-port":         uint16(8080),
+		"bind-public-port":         defaultBindPublicPort,
 		"bind-private-protocol":    "http",
 		"bind-private-address":     ipv4Loopback,
-		"bind-private-port":        uint16(9090),
+		"bind-private-port":        defaultBindPrivatePort,
 		"database-container":       "required",
 		"csrf-token-cookie-secure": true,
 		"otlp":                     true,
@@ -135,12 +136,12 @@ var profiles = map[string]map[string]any{
 		"dev":                      false,
 		"bind-public-protocol":     "https",
 		"bind-public-address":      "0.0.0.0",
-		"bind-public-port":         uint16(443),
+		"bind-public-port":         defaultBindPublicPort,
 		"bind-private-protocol":    "http",
 		"bind-private-address":     ipv4Loopback,
-		"bind-private-port":        uint16(9090),
+		"bind-private-port":        defaultBindPrivatePort,
 		"database-container":       "required",
-		"rate-limit":               uint16(100),
+		"rate-limit":               defaultBrowserIPRateLimit,
 		"csrf-token-cookie-secure": true,
 		"otlp":                     true,
 		"otlp-console":             false,
@@ -1260,14 +1261,14 @@ func validateConfiguration(s *Settings) error {
 	// Validate rate limits
 	if s.BrowserIPRateLimit == 0 {
 		errors = append(errors, "browser rate limit cannot be 0 (would block all browser requests)")
-	} else if s.BrowserIPRateLimit > 10000 {
-		errors = append(errors, fmt.Sprintf("browser rate limit %d is very high (>10000), may impact performance", s.BrowserIPRateLimit))
+	} else if s.BrowserIPRateLimit > defaultMaxIPRateLimit {
+		errors = append(errors, fmt.Sprintf("browser rate limit %d is very high (>%d), may impact performance", s.BrowserIPRateLimit, defaultMaxIPRateLimit))
 	}
 
 	if s.ServiceIPRateLimit == 0 {
 		errors = append(errors, "service rate limit cannot be 0 (would block all service requests)")
-	} else if s.ServiceIPRateLimit > 10000 {
-		errors = append(errors, fmt.Sprintf("service rate limit %d is very high (>10000), may impact performance", s.ServiceIPRateLimit))
+	} else if s.ServiceIPRateLimit > defaultMaxIPRateLimit {
+		errors = append(errors, fmt.Sprintf("service rate limit %d is very high (>%d), may impact performance", s.ServiceIPRateLimit, defaultMaxIPRateLimit))
 	}
 
 	// Validate OTLP endpoint format
