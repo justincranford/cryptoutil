@@ -10,17 +10,19 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	cryptoutilConstants "cryptoutil/internal/common/constants"
 )
 
 const (
-	PEMTypePKCS8PrivateKey = "PRIVATE KEY"
-	PEMTypePKIXPublicKey   = "PUBLIC KEY"
-	PEMTypeRSAPrivateKey   = "RSA PRIVATE KEY"
-	PEMTypeRSAPublicKey    = "RSA PUBLIC KEY"
-	PEMTypeECPrivateKey    = "EC PRIVATE KEY"
-	PEMTypeCertificate     = "CERTIFICATE"
-	PEMTypeCSR             = "CERTIFICATE REQUEST"
-	PEMTypeSecretKey       = "SECRET KEY"
+	PEMTypePKCS8PrivateKey = "PRIVATE KEY"         // # pragma: allowlist secret
+	PEMTypePKIXPublicKey   = "PUBLIC KEY"          // # pragma: allowlist secret
+	PEMTypeRSAPrivateKey   = "RSA PRIVATE KEY"     // # pragma: allowlist secret
+	PEMTypeRSAPublicKey    = "RSA PUBLIC KEY"      // # pragma: allowlist secret
+	PEMTypeECPrivateKey    = "EC PRIVATE KEY"      // # pragma: allowlist secret
+	PEMTypeCertificate     = "CERTIFICATE"         // # pragma: allowlist secret
+	PEMTypeCSR             = "CERTIFICATE REQUEST" // # pragma: allowlist secret
+	PEMTypeSecretKey       = "SECRET KEY"          // # pragma: allowlist secret
 )
 
 var PEMTypes = []string{
@@ -196,12 +198,12 @@ func PEMWrite(key any, filename string) error {
 
 	dir := filepath.Dir(filename)
 
-	err = os.MkdirAll(dir, 0o750)
+	err = os.MkdirAll(dir, cryptoutilConstants.PermOwnerReadWriteExecuteGroupReadExecute)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
-	err = os.WriteFile(filename, pemBytes, 0o600)
+	err = os.WriteFile(filename, pemBytes, cryptoutilConstants.PermOwnerReadWriteOnly)
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}
@@ -217,12 +219,12 @@ func DERWrite(key any, filename string) error {
 
 	dir := filepath.Dir(filename)
 
-	err = os.MkdirAll(dir, 0o750)
+	err = os.MkdirAll(dir, cryptoutilConstants.PermOwnerReadWriteExecuteGroupReadExecute)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
-	err = os.WriteFile(filename, derBytes, 0o600)
+	err = os.WriteFile(filename, derBytes, cryptoutilConstants.PermOwnerReadWriteOnly)
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}

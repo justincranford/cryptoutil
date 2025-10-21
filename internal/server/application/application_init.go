@@ -8,6 +8,7 @@ import (
 	"os"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilConstants "cryptoutil/internal/common/constants"
 	cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"
 	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
@@ -21,7 +22,7 @@ const (
 	tlsServerKeyPairsNeeded  = 2   // number of keypairs requested for server TLS
 
 	// File mode for written PEM files.
-	defaultPEMFileMode = 0o600
+	defaultPEMFileMode = cryptoutilConstants.PermOwnerReadWriteOnly
 )
 
 func ServerInit(settings *cryptoutilConfig.Settings) error {

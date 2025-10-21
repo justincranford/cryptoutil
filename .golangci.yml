@@ -94,11 +94,7 @@ linters-settings:
   mnd:
     # List of numbers to exclude from analysis
     ignored-numbers:
-      - '0600'      # File permission: owner read/write only
-      - '0644'      # File permission: owner read/write, group/other read
-      - '0666'      # File permission: all users read/write
-      - '0755'      # File permission: owner read/write/execute, group/other read/execute
-      - '0750'      # File permission: owner read/write/execute, group read/execute
+    # File permission constants - now defined in internal/common/util/files.go
       - '42'        # Answer to life, the universe, and everything
       - '1024'      # 1KB buffer size, common memory allocation
       - '2048'      # 2KB buffer size, RSA-2048 key size
@@ -115,8 +111,6 @@ linters-settings:
       - '0.05'      # 5% tolerance, common percentage value
       - '0.1'       # 10% tolerance, common percentage value
       - '0.5'       # 50% tolerance, common percentage value
-      - '0o750'     # File permission: owner read/write/execute, group read/execute (octal)
-      - '0o600'     # File permission: owner read/write only (octal)
     # List of file patterns to exclude from analysis
     ignored-files:
       - 'magic_.*.go'
@@ -172,6 +166,10 @@ linters-settings:
         alias: telemetryService
       - pkg: github.com/jcranford/cryptoutil/internal/common/util/datetime
         alias: cryptoutilDateTime
+      - pkg: github.com/jcranford/cryptoutil/internal/common/util/files
+        alias: cryptoutilFiles
+      - pkg: github.com/jcranford/cryptoutil/internal/common/constants
+        alias: cryptoutilConstants
       - pkg: github.com/jcranford/cryptoutil/internal/common/util/network
         alias: cryptoutilNetwork
       - pkg: github.com/jcranford/cryptoutil/internal/server/application
@@ -293,7 +291,8 @@ issues:
     - api/client  # Skip OpenAPI client code, generated Go code by oapi-codegen
     - api/model   # Skip OpenAPI model code, generated Go code by oapi-codegen
     - api/server  # Skip OpenAPI server code, generated Go code by oapi-codegen
-    - test        # Skip test directory (contains Java Gatling performance tests, not Go code)
+    - test        # Skip test directory TEMPORARILY IGNORE test/e2e (integration tests with Go code)
+    - test/load   # Skip test/load directory (Java Gatling performance tests, no Go code)
 
     # Build artifacts and reports - DO NOT LINT
     - dast-reports # Skip generated DAST security scan reports
