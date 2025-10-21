@@ -100,8 +100,6 @@ linters-settings:
     # List of file patterns to exclude from analysis
     ignored-files:
       - 'magic_.*.go'
-      - '.*_test\.go'
-      - 'scripts/.*\.go'
     ignored-functions:
       - 'math.*'
       - 'len'

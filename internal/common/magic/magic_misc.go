@@ -8,4 +8,6 @@ const (
 	AnswerToLifeUniverseEverything = 42
 	// FingerprintLeeway - Leeway for fingerprint matching in unseal operations.
 	FingerprintLeeway = 1
+	// FilePermissionsDefault - Default file permissions for created files.
+	FilePermissionsDefault = 0o600
 )

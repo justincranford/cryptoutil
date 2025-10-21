@@ -16,4 +16,8 @@ const (
 	Timeout5Seconds = 5
 	// Timeout100Milliseconds - 100 milliseconds timeout for brief backoff operations.
 	Timeout100Milliseconds = 100
+	// TimeoutGitHubAPIDelay - Delay between GitHub API calls to avoid rate limits.
+	TimeoutGitHubAPIDelay = 200
+	// TimeoutGitHubAPITimeout - Timeout for GitHub API requests.
+	TimeoutGitHubAPITimeout = 10
 )

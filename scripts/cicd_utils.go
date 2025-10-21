@@ -12,27 +12,29 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 const (
 	// UI constants.
-	separatorLength = 50
+	separatorLength = cryptoutilMagic.UIConsoleSeparatorLength
 
 	// GitHub API constants.
-	githubAPIDelay   = 200 * time.Millisecond
-	githubAPITimeout = 10 * time.Second
+	githubAPIDelay   = cryptoutilMagic.TimeoutGitHubAPIDelay * time.Millisecond
+	githubAPITimeout = cryptoutilMagic.TimeoutGitHubAPITimeout * time.Second
 
 	// Progress reporting.
-	progressInterval = 10
+	progressInterval = cryptoutilMagic.CountUIProgressInterval
 
 	// File permissions.
-	filePermissions = 0o600 // Permissions for created files.
+	filePermissions = cryptoutilMagic.FilePermissionsDefault // Permissions for created files.
 
 	// UUID regex pattern for validation.
 	uuidRegexPattern = `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`
 
 	// Minimum number of regex match groups for action parsing.
-	minActionMatchGroups = 3
+	minActionMatchGroups = cryptoutilMagic.CountMinActionMatchGroups
 )
 
 type GitHubRelease struct {
