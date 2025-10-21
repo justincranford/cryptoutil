@@ -21,11 +21,3 @@ const (
 	// UIConsoleSeparatorLength - Length of console separator lines.
 	UIConsoleSeparatorLength = 50
 )
-
-// Mock CPU specifications for testing.
-const (
-	// MockCPUFamily - Mock CPU family identifier for testing.
-	MockCPUFamily = "6"
-	// MockCPUModel - Mock CPU model identifier for testing.
-	MockCPUModel = "0"
-)
