@@ -8,6 +8,8 @@ import (
 	"hash"
 
 	"golang.org/x/crypto/hkdf"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 var (
@@ -20,10 +22,10 @@ var (
 )
 
 const (
-	DigestSHA512 = "SHA512" // pragma: allowlist secret
-	DigestSHA384 = "SHA384" // pragma: allowlist secret
-	DigestSHA256 = "SHA256" // pragma: allowlist secret
-	DigestSHA224 = "SHA224" // pragma: allowlist secret
+	DigestSHA512 = cryptoutilMagic.SHADigestSHA512
+	DigestSHA384 = cryptoutilMagic.SHADigestSHA384
+	DigestSHA256 = cryptoutilMagic.SHADigestSHA256
+	DigestSHA224 = cryptoutilMagic.SHADigestSHA224
 )
 
 func HKDFwithSHA512(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {

@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"github.com/cloudflare/circl/sign/ed448"
@@ -30,27 +31,27 @@ func (k *KeyPair) isKey()  {}
 func (s SecretKey) isKey() {}
 
 const (
-	EdCurveEd448   = "Ed448"
-	EdCurveEd25519 = "Ed25519"
-	ECCurveP256    = "P256"
-	ECCurveP384    = "P384"
-	ECCurveP521    = "P521"
+	EdCurveEd448   = cryptoutilMagic.EdCurveEd448
+	EdCurveEd25519 = cryptoutilMagic.EdCurveEd25519
+	ECCurveP256    = cryptoutilMagic.ECCurveP256
+	ECCurveP384    = cryptoutilMagic.ECCurveP384
+	ECCurveP521    = cryptoutilMagic.ECCurveP521
 
 	// AES key sizes in bits.
-	aesKeySize128 = 128
-	aesKeySize192 = 192
-	aesKeySize256 = 256
+	aesKeySize128 = cryptoutilMagic.AESKeySize128
+	aesKeySize192 = cryptoutilMagic.AESKeySize192
+	aesKeySize256 = cryptoutilMagic.AESKeySize256
 
 	// AES HMAC-SHA2 key sizes in bits.
-	aesHsKeySize256 = 256
-	aesHsKeySize384 = 384
-	aesHsKeySize512 = 512
+	aesHsKeySize256 = cryptoutilMagic.AESHSKeySize256
+	aesHsKeySize384 = cryptoutilMagic.AESHSKeySize384
+	aesHsKeySize512 = cryptoutilMagic.AESHSKeySize512
 
 	// Minimum HMAC key size in bits.
-	minHMACKeySize = 256
+	minHMACKeySize = cryptoutilMagic.MinHMACKeySize
 
 	// Bits to bytes conversion factor.
-	bitsToBytes = 8
+	bitsToBytes = cryptoutilMagic.BitsToBytes
 )
 
 func GenerateRSAKeyPairFunction(rsaBits int) func() (*KeyPair, error) {

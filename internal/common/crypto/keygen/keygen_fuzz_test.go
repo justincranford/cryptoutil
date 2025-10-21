@@ -6,18 +6,20 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // FuzzGenerateRSAKeyPair tests RSA key pair generation with various bit sizes.
 func FuzzGenerateRSAKeyPair(f *testing.F) {
 	// Add seed corpus with valid RSA key sizes
-	f.Add(2048)
-	f.Add(3072)
-	f.Add(4096)
+	f.Add(cryptoutilMagic.RSAKeySize2048)
+	f.Add(cryptoutilMagic.RSAKeySize3072)
+	f.Add(cryptoutilMagic.RSAKeySize4096)
 
 	f.Fuzz(func(t *testing.T, rsaBits int) {
 		// Only test valid RSA key sizes to avoid expected errors
-		if rsaBits != 2048 && rsaBits != 3072 && rsaBits != 4096 {
+		if rsaBits != cryptoutilMagic.RSAKeySize2048 && rsaBits != cryptoutilMagic.RSAKeySize3072 && rsaBits != cryptoutilMagic.RSAKeySize4096 {
 			t.Skip("Skipping invalid RSA key size for fuzzing")
 		}
 
@@ -116,20 +118,20 @@ func FuzzGenerateEDDSAKeyPair(f *testing.F) {
 // FuzzGenerateAESKey tests AES key generation with various key sizes.
 func FuzzGenerateAESKey(f *testing.F) {
 	// Add seed corpus with valid AES key sizes
-	f.Add(128)
-	f.Add(192)
-	f.Add(256)
+	f.Add(cryptoutilMagic.AESKeySize128)
+	f.Add(cryptoutilMagic.AESKeySize192)
+	f.Add(cryptoutilMagic.AESKeySize256)
 
 	f.Fuzz(func(t *testing.T, aesBits int) {
 		// Only test valid AES key sizes
-		if aesBits != 128 && aesBits != 192 && aesBits != 256 {
+		if aesBits != cryptoutilMagic.AESKeySize128 && aesBits != cryptoutilMagic.AESKeySize192 && aesBits != cryptoutilMagic.AESKeySize256 {
 			t.Skip("Skipping invalid AES key size for fuzzing")
 		}
 
 		key, err := GenerateAESKey(aesBits)
 		require.NoError(t, err, "GenerateAESKey should not fail with valid input")
 
-		expectedLength := aesBits / 8
+		expectedLength := aesBits / cryptoutilMagic.BitsToBytes
 		require.Len(t, key, expectedLength, "GenerateAESKey should return key of correct length")
 	})
 }
@@ -137,20 +139,20 @@ func FuzzGenerateAESKey(f *testing.F) {
 // FuzzGenerateAESHSKey tests AES HMAC-SHA2 key generation with various key sizes.
 func FuzzGenerateAESHSKey(f *testing.F) {
 	// Add seed corpus with valid AES HS key sizes
-	f.Add(256)
-	f.Add(384)
-	f.Add(512)
+	f.Add(cryptoutilMagic.AESHSKeySize256)
+	f.Add(cryptoutilMagic.AESHSKeySize384)
+	f.Add(cryptoutilMagic.AESHSKeySize512)
 
 	f.Fuzz(func(t *testing.T, aesHsBits int) {
 		// Only test valid AES HS key sizes
-		if aesHsBits != 256 && aesHsBits != 384 && aesHsBits != 512 {
+		if aesHsBits != cryptoutilMagic.AESHSKeySize256 && aesHsBits != cryptoutilMagic.AESHSKeySize384 && aesHsBits != cryptoutilMagic.AESHSKeySize512 {
 			t.Skip("Skipping invalid AES HS key size for fuzzing")
 		}
 
 		key, err := GenerateAESHSKey(aesHsBits)
 		require.NoError(t, err, "GenerateAESHSKey should not fail with valid input")
 
-		expectedLength := aesHsBits / 8
+		expectedLength := aesHsBits / cryptoutilMagic.BitsToBytes
 		require.Len(t, key, expectedLength, "GenerateAESHSKey should return key of correct length")
 	})
 }
@@ -158,20 +160,20 @@ func FuzzGenerateAESHSKey(f *testing.F) {
 // FuzzGenerateHMACKey tests HMAC key generation with various key sizes.
 func FuzzGenerateHMACKey(f *testing.F) {
 	// Add seed corpus with valid HMAC key sizes
-	f.Add(256)
-	f.Add(384)
-	f.Add(512)
+	f.Add(cryptoutilMagic.MinHMACKeySize)
+	f.Add(cryptoutilMagic.HMACKeySize384)
+	f.Add(cryptoutilMagic.HMACKeySize512)
 
 	f.Fuzz(func(t *testing.T, hmacBits int) {
 		// Only test valid HMAC key sizes (minimum 256 bits)
-		if hmacBits < 256 {
+		if hmacBits < cryptoutilMagic.MinHMACKeySize {
 			t.Skip("Skipping invalid HMAC key size for fuzzing")
 		}
 
 		key, err := GenerateHMACKey(hmacBits)
 		require.NoError(t, err, "GenerateHMACKey should not fail with valid input")
 
-		expectedLength := hmacBits / 8
+		expectedLength := hmacBits / cryptoutilMagic.BitsToBytes
 		require.Len(t, key, expectedLength, "GenerateHMACKey should return key of correct length")
 	})
 }

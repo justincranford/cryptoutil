@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	EmptyString = ""
+	EmptyString = cryptoutilMagic.EmptyString
 
 	// Timeouts for system info queries to prevent hanging.
 	cpuInfoTimeout = cryptoutilMagic.Timeout10Seconds

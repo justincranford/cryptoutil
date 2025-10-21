@@ -25,12 +25,17 @@ import (
 
 const (
 	// Docker compose service names and ports.
-	cryptoutilSqlitePort    = "8080"
-	cryptoutilPostgres1Port = "8081"
-	cryptoutilPostgres2Port = "8082"
-	cryptoutilPrivatePort   = "9090"
-	grafanaPort             = "3000"
-	otelCollectorPort       = "8888"
+	cryptoutilSqlitePort    = cryptoutilMagic.PortDefaultBrowserAPI
+	cryptoutilPostgres1Port = cryptoutilMagic.PortCryptoutilPostgres1
+	cryptoutilPostgres2Port = cryptoutilMagic.PortCryptoutilPostgres2
+	cryptoutilPrivatePort   = cryptoutilMagic.PortDefaultAdminAPI
+	grafanaPort             = cryptoutilMagic.PortGrafana
+	otelCollectorPort       = cryptoutilMagic.PortOtelCollector
+	testCleartext           = cryptoutilMagic.TestCleartext
+
+	// Status constants.
+	statusHealthy   = cryptoutilMagic.StatusHealthy
+	statusUnhealthy = cryptoutilMagic.StatusUnhealthy
 
 	// Test timeouts.
 	// IMPORTANT: All timeout values MUST be defined as constants at the top of the file for visibility and maintainability.
@@ -45,30 +50,25 @@ const (
 	httpRetryInterval        = cryptoutilMagic.Timeout1Second
 
 	// Test data.
-	testElasticKeyName        = "e2e-test-key"
-	testElasticKeyDescription = "E2E integration test key"
-	testAlgorithm             = "RSA"
-	testProvider              = "GO"
-	testCleartext             = "Hello, World!"
-
-	// Status constants.
-	statusHealthy   = "HEALTHY"
-	statusUnhealthy = "UNHEALTHY"
+	testElasticKeyName        = cryptoutilMagic.TestElasticKeyName
+	testElasticKeyDescription = cryptoutilMagic.TestElasticKeyDescription
+	testAlgorithm             = cryptoutilMagic.TestAlgorithmRSA
+	testProvider              = cryptoutilMagic.TestProviderGO
 )
 
 var (
 	// Public API URLs (ports 8080+).
-	cryptoutilSqliteURL    = "https://127.0.0.1:" + cryptoutilSqlitePort
-	cryptoutilPostgres1URL = "https://127.0.0.1:" + cryptoutilPostgres1Port
-	cryptoutilPostgres2URL = "https://127.0.0.1:" + cryptoutilPostgres2Port
+	cryptoutilSqliteURL    = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSqlitePort)
+	cryptoutilPostgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPostgres1Port)
+	cryptoutilPostgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPostgres2Port)
 
 	// Private admin API URLs (port 9090 inside containers).
-	cryptoutilSqliteAdminURL    = "https://127.0.0.1:" + cryptoutilPrivatePort
-	cryptoutilPostgres1AdminURL = "https://127.0.0.1:" + cryptoutilPrivatePort
-	cryptoutilPostgres2AdminURL = "https://127.0.0.1:" + cryptoutilPrivatePort
+	cryptoutilSqliteAdminURL    = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPrivatePort)
+	cryptoutilPostgres1AdminURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPrivatePort)
+	cryptoutilPostgres2AdminURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPrivatePort)
 
-	grafanaURL       = "http://127.0.0.1:" + grafanaPort
-	otelCollectorURL = "http://127.0.0.1:" + otelCollectorPort
+	grafanaURL       = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", grafanaPort)
+	otelCollectorURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", otelCollectorPort)
 
 	// Test data variables (so we can take their addresses).
 	testElasticKeyNameVar        = testElasticKeyName

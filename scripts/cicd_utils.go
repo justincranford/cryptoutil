@@ -31,7 +31,7 @@ const (
 	filePermissions = cryptoutilMagic.FilePermissionsDefault // Permissions for created files.
 
 	// UUID regex pattern for validation.
-	uuidRegexPattern = `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`
+	uuidRegexPattern = cryptoutilMagic.StringUUIDRegexPattern
 
 	// Minimum number of regex match groups for action parsing.
 	minActionMatchGroups = cryptoutilMagic.CountMinActionMatchGroups
@@ -55,8 +55,8 @@ type DepCheckMode int
 const (
 	DepCheckDirect DepCheckMode = iota // Check only direct dependencies
 	DepCheckAll                        // Check all dependencies (direct + transitive)
-	modeNameDirect = "direct"
-	modeNameAll    = "all"
+	modeNameDirect = cryptoutilMagic.ModeNameDirect
+	modeNameAll    = cryptoutilMagic.ModeNameAll
 )
 
 type ActionInfo struct {

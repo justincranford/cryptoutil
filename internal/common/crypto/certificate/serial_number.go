@@ -5,21 +5,14 @@ import (
 	"fmt"
 	"math/big"
 	"time"
-)
 
-const (
-	maxSubscriberCertDuration = 398 * 24 * time.Hour      // 398 days for subscriber certificates
-	maxCACertDuration         = 25 * 365 * 24 * time.Hour // 25 years for CA certificates
-
-	// Serial number bit sizes for cryptographic range.
-	minSerialNumberBits = 64
-	maxSerialNumberBits = 159
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 var (
-	minSerialNumber   = new(big.Int).Lsh(big.NewInt(1), minSerialNumberBits) // 2^64
-	maxSerialNumber   = new(big.Int).Lsh(big.NewInt(1), maxSerialNumberBits) // 2^159
-	rangeSerialNumber = new(big.Int).Sub(maxSerialNumber, minSerialNumber)   // Range size: 2^159 - 2^64
+	minSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilMagic.MinSerialNumberBits) // 2^64
+	maxSerialNumber   = new(big.Int).Lsh(big.NewInt(1), cryptoutilMagic.MaxSerialNumberBits) // 2^159
+	rangeSerialNumber = new(big.Int).Sub(maxSerialNumber, minSerialNumber)                   // Range size: 2^159 - 2^64
 )
 
 func GenerateSerialNumber() (*big.Int, error) {
@@ -32,14 +25,14 @@ func GenerateSerialNumber() (*big.Int, error) {
 }
 
 func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
-	if requestedDuration > maxCACertDuration {
+	if requestedDuration > cryptoutilMagic.TLSMaxCACertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxCACertDuration")
 	}
 
 	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
-	} else if notAfter.Sub(notBefore) > maxCACertDuration {
+	} else if notAfter.Sub(notBefore) > cryptoutilMagic.TLSMaxCACertDuration {
 		return notBefore, notAfter, fmt.Errorf("actual duration exceeds maxCACertDuration")
 	}
 
@@ -47,14 +40,14 @@ func randomizedNotBeforeNotAfterCA(requestedStart time.Time, requestedDuration, 
 }
 
 func randomizedNotBeforeNotAfterEndEntity(requestedStart time.Time, requestedDuration, minSubtract, maxSubtract time.Duration) (time.Time, time.Time, error) {
-	if requestedDuration > maxSubscriberCertDuration {
+	if requestedDuration > cryptoutilMagic.TLSMaxSubscriberCertDuration {
 		return time.Time{}, time.Time{}, fmt.Errorf("requestedDuration exceeds maxSubscriberCertDuration")
 	}
 
 	notBefore, notAfter, err := generateNotBeforeNotAfter(requestedStart, requestedDuration, minSubtract, maxSubtract)
 	if err != nil {
 		return notBefore, notAfter, fmt.Errorf("failed to generate notBefore/notAfter: %w", err)
-	} else if notAfter.Sub(notBefore) > maxSubscriberCertDuration {
+	} else if notAfter.Sub(notBefore) > cryptoutilMagic.TLSMaxSubscriberCertDuration {
 		return notBefore, notAfter, fmt.Errorf("actual duration exceeds maxSubscriberCertDuration")
 	}
 

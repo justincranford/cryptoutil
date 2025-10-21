@@ -285,7 +285,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		UnsealFiles:                 unsealFilesValue,
 	}
 	// Overrides for testing
-	settings.LogLevel = "ALL"
+	settings.LogLevel = cryptoutilMagic.LogLevelAll
 	settings.DevMode = true
 	settings.BrowserIPRateLimit = cryptoutilMagic.RateLimitBrowserIP
 	settings.ServiceIPRateLimit = cryptoutilMagic.RateLimitServiceIP

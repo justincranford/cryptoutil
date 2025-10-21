@@ -14,6 +14,14 @@ const (
 	DBPingTimeout = 5 * time.Second
 	// SQLiteBusyTimeout - Timeout for SQLite busy operations.
 	SQLiteBusyTimeout = 30 * time.Second
+	// DBPostgresContainerStartupTimeout - PostgreSQL container startup timeout.
+	DBPostgresContainerStartupTimeout = 30 * time.Second
+	// DBInitTotalTimeout - Total timeout for database initialization (5 minutes).
+	DBInitTotalTimeout = 5 * time.Minute
+	// DBInitRetryWait - Retry wait time for database initialization (1 second).
+	DBInitRetryWait = 1 * time.Second
+	// DBServerShutdownTimeout - Server shutdown timeout (5 seconds).
+	DBServerShutdownTimeout = 5 * time.Second
 )
 
 // Database connection retry and pooling.

@@ -11,7 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
-	cryptoutilConstants "cryptoutil/internal/common/constants"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 const (
@@ -198,12 +198,12 @@ func PEMWrite(key any, filename string) error {
 
 	dir := filepath.Dir(filename)
 
-	err = os.MkdirAll(dir, cryptoutilConstants.PermOwnerReadWriteExecuteGroupReadExecute)
+	err = os.MkdirAll(dir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
-	err = os.WriteFile(filename, pemBytes, cryptoutilConstants.PermOwnerReadWriteOnly)
+	err = os.WriteFile(filename, pemBytes, cryptoutilMagic.FilePermOwnerReadWriteOnly)
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}
@@ -219,12 +219,12 @@ func DERWrite(key any, filename string) error {
 
 	dir := filepath.Dir(filename)
 
-	err = os.MkdirAll(dir, cryptoutilConstants.PermOwnerReadWriteExecuteGroupReadExecute)
+	err = os.MkdirAll(dir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupReadExecute)
 	if err != nil {
 		return fmt.Errorf("mkdir failed: %w", err)
 	}
 
-	err = os.WriteFile(filename, derBytes, cryptoutilConstants.PermOwnerReadWriteOnly)
+	err = os.WriteFile(filename, derBytes, cryptoutilMagic.FilePermOwnerReadWriteOnly)
 	if err != nil {
 		return fmt.Errorf("write failed: %w", err)
 	}
