@@ -4,6 +4,8 @@ import (
 	"strings"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	googleUuid "github.com/google/uuid"
 )
 
@@ -288,7 +290,7 @@ func RequireNewForTest(applicationName string) *Settings {
 	settings.BrowserIPRateLimit = 1000
 	settings.ServiceIPRateLimit = 500
 	settings.OTLPService = applicationName
-	settings.ServerShutdownTimeout = 60 * time.Second // Increase shutdown timeout for tests to allow cleanup of resources
+	settings.ServerShutdownTimeout = time.Duration(cryptoutilMagic.Timeout1MinuteSeconds) * time.Second // Increase shutdown timeout for tests to allow cleanup of resources
 	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")
 
 	if strings.Contains(settings.DatabaseURL, "/DB?") {

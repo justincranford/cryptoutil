@@ -92,31 +92,16 @@ linters-settings:
     ignore-tests: false
 
   mnd:
-    # List of numbers to exclude from analysis
+    # Magic numbers should be defined as named constants in internal/common/magic package
+    # Only ignore numbers in specific cases where constants don't make sense
     ignored-numbers:
-    # File permission constants - now defined in internal/common/util/files.go
-      - '42'        # Answer to life, the universe, and everything
-      - '1024'      # 1KB buffer size, common memory allocation
-      - '2048'      # 2KB buffer size, RSA-2048 key size
-      - '4096'      # 4KB buffer size, RSA-4096 key size
-      - '10'       # Percentage basis, common percentage value
-      - '100'      # Percentage basis, common percentage value
-      - '1000'      # 1 second in milliseconds, common timeout unit
-      - '10000'     # 10 seconds in milliseconds, rate limit maximum
-      - '443'       # Standard HTTPS port
-      - '8080'      # Default browser/server API port
-      - '9090'      # Default admin API port
-      - '2'         # Minimum CLI arguments, common small count
-      - '60'        # 1 minute in seconds, common timeout
-      - '0.05'      # 5% tolerance, common percentage value
-      - '0.1'       # 10% tolerance, common percentage value
-      - '0.5'       # 50% tolerance, common percentage value
+      # Mathematical operations that are self-documenting
+      - '2'        # Common in bit operations, array splits, CLI arg checks (when context makes it clear)
     # List of file patterns to exclude from analysis
     ignored-files:
       - 'magic_.*.go'
       - '.*_test\.go'
       - 'scripts/.*\.go'
-    # List of function patterns to exclude from analysis
     ignored-functions:
       - 'math.*'
       - 'http.StatusText'
@@ -170,6 +155,8 @@ linters-settings:
         alias: cryptoutilFiles
       - pkg: github.com/jcranford/cryptoutil/internal/common/constants
         alias: cryptoutilConstants
+      - pkg: github.com/jcranford/cryptoutil/internal/common/magic
+        alias: cryptoutilMagic
       - pkg: github.com/jcranford/cryptoutil/internal/common/util/network
         alias: cryptoutilNetwork
       - pkg: github.com/jcranford/cryptoutil/internal/server/application
@@ -296,6 +283,7 @@ issues:
 
     # Build artifacts and reports - DO NOT LINT
     - dast-reports # Skip generated DAST security scan reports
+    - scripts      # Skip scripts directory (performance testing scripts with appropriate magic numbers)
 
     # IDE and tool configurations - DO NOT LINT
     - .idea       # Skip IntelliJ IDEA/GoLand IDE files, no Go files
@@ -332,6 +320,9 @@ issues:
       linters:
         - dupl      # Code duplication detection
         - gocyclo   # Cyclomatic complexity
+    - path: scripts/.*
+      linters:
+        - mnd       # Magic number detection (performance scripts use appropriate literals)
 
 severity:
   default-severity: error  # Most issues should block builds (security, logic bugs, crashes)
