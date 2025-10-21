@@ -19,6 +19,18 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+const (
+	// RSA key sizes in bits for different signature algorithms.
+	rsaKeySize2048 = 2048
+	rsaKeySize3072 = 3072
+	rsaKeySize4096 = 4096
+
+	// HMAC key sizes in bits.
+	hmacKeySize256 = 256
+	hmacKeySize384 = 384
+	hmacKeySize512 = 512
+)
+
 var ErrInvalidJWSJWKKidUUID = "invalid JWS JWK kid UUID"
 
 func GenerateJWSJWKForAlg(alg *joseJwa.SignatureAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
@@ -46,7 +58,7 @@ func CreateJWSJWKFromKey(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm, 
 	var nonPublicJWK joseJwk.Key
 
 	switch typedKey := key.(type) {
-	case cryptoutilKeyGen.SecretKey: // HMAC
+	case cryptoutilKeyGen.SecretKey: // HMAC // pragma: allowlist secret
 		if nonPublicJWK, err = joseJwk.Import([]byte(typedKey)); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key material into JWS JWK: %w", err)
 		}
@@ -138,11 +150,11 @@ func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 
 	switch *alg {
 	case AlgRS512, AlgPS512:
-		return validateOrGenerateJWSRSAJWK(key, alg, 4096)
+		return validateOrGenerateJWSRSAJWK(key, alg, rsaKeySize4096)
 	case AlgRS384, AlgPS384:
-		return validateOrGenerateJWSRSAJWK(key, alg, 3072)
+		return validateOrGenerateJWSRSAJWK(key, alg, rsaKeySize3072)
 	case AlgRS256, AlgPS256:
-		return validateOrGenerateJWSRSAJWK(key, alg, 2048)
+		return validateOrGenerateJWSRSAJWK(key, alg, rsaKeySize2048)
 	case AlgES256:
 		return validateOrGenerateJWSEcdsaJWK(key, alg, elliptic.P521())
 	case AlgES384:
@@ -152,11 +164,11 @@ func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	case AlgEdDSA:
 		return validateOrGenerateJWSEddsaJWK(key, alg, "Ed25519")
 	case AlgHS512:
-		return validateOrGenerateJWSHMACJWK(key, alg, 512)
+		return validateOrGenerateJWSHMACJWK(key, alg, hmacKeySize512)
 	case AlgHS384:
-		return validateOrGenerateJWSHMACJWK(key, alg, 384)
+		return validateOrGenerateJWSHMACJWK(key, alg, hmacKeySize384)
 	case AlgHS256:
-		return validateOrGenerateJWSHMACJWK(key, alg, 256)
+		return validateOrGenerateJWSHMACJWK(key, alg, hmacKeySize256)
 	default:
 		return nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}
@@ -258,7 +270,7 @@ func validateOrGenerateJWSEddsaJWK(key cryptoutilKeyGen.Key, alg *joseJwa.Signat
 	}
 }
 
-func validateOrGenerateJWSHMACJWK(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) {
+func validateOrGenerateJWSHMACJWK(key cryptoutilKeyGen.Key, alg *joseJwa.SignatureAlgorithm, keyBitsLength int) (cryptoutilKeyGen.SecretKey, error) { // pragma: allowlist secret
 	if key == nil {
 		generatedKey, err := cryptoutilKeyGen.GenerateHMACKey(keyBitsLength)
 		if err != nil {
@@ -267,9 +279,9 @@ func validateOrGenerateJWSHMACJWK(key cryptoutilKeyGen.Key, alg *joseJwa.Signatu
 
 		return generatedKey, nil
 	} else {
-		hmacKey, ok := key.(cryptoutilKeyGen.SecretKey)
+		hmacKey, ok := key.(cryptoutilKeyGen.SecretKey) // pragma: allowlist secret
 		if !ok {
-			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key type %T; use cryptoKeygen.SecretKey", *alg, key)
+			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid key type %T; use cryptoKeygen.SecretKey", *alg, key) // pragma: allowlist secret
 		} else if hmacKey == nil {
 			return nil, fmt.Errorf("valid JWS JWK alg %s, but invalid nil key bytes", *alg)
 		} else if len(hmacKey) != keyBitsLength/8 {

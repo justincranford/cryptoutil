@@ -144,6 +144,7 @@ func TestSQLTransaction_Success(t *testing.T) {
 			require.Equal(t, testCase.txMode, *ormTransaction.Mode())
 
 			uuidV7 := testJWKGenService.GenerateUUIDv7()
+
 			elasticKey, err := BuildElasticKey(*uuidV7, "Elastic Key Name "+uuidV7.String(), "Elastic Key Description "+uuidV7.String(), cryptoutilOpenapiModel.Internal, cryptoutilOpenapiModel.A256GCMDir, true, true, true, string(cryptoutilOpenapiModel.Creating))
 			cryptoutilAppErr.RequireNoError(err, "failed to create AES 256 Elastic Key")
 			err = ormTransaction.AddElasticKey(elasticKey)
@@ -156,9 +157,10 @@ func TestSQLTransaction_Success(t *testing.T) {
 
 			for nextKeyID := 1; nextKeyID <= numMaterialKeys; nextKeyID++ {
 				now := time.Now().UTC()
+				materialKeyID := testJWKGenService.GenerateUUIDv7()
 				key := MaterialKey{
 					ElasticKeyID:                  elasticKey.ElasticKeyID,
-					MaterialKeyID:                 *testJWKGenService.GenerateUUIDv7(),
+					MaterialKeyID:                 *materialKeyID,
 					MaterialKeyClearPublic:        nil,
 					MaterialKeyEncryptedNonPublic: multipleByteSlices[nextKeyID-1],
 					MaterialKeyGenerateDate:       &now,

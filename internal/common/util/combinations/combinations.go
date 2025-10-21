@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+const (
+	// maxUint8Value is the maximum value for uint8 (255), used for bounds checking in encoding.
+	maxUint8Value = 255
+)
+
 type (
 	M            [][]byte
 	value        []byte
@@ -15,8 +20,8 @@ type (
 func ComputeCombinations(m M, n int) (combinations, error) {
 	if m == nil {
 		return nil, fmt.Errorf("m can't be nil")
-	} else if len(m) >= 255 {
-		return nil, fmt.Errorf("m can't be greater than 255")
+	} else if len(m) >= maxUint8Value {
+		return nil, fmt.Errorf("m can't be greater than %d", maxUint8Value)
 	} else if n == 0 {
 		return combinations{}, nil
 	} else if n < 0 {
@@ -64,7 +69,7 @@ func (c *combination) Encode() []byte {
 	var buffer bytes.Buffer
 	// Add bounds checking for uint8 conversion
 	combLen := len(*c)
-	if combLen > 255 {
+	if combLen > maxUint8Value {
 		panic("combination length exceeds uint8 maximum")
 	}
 
@@ -72,7 +77,7 @@ func (c *combination) Encode() []byte {
 
 	for _, value := range *c {
 		valueLen := len(value)
-		if valueLen > 255 {
+		if valueLen > maxUint8Value {
 			panic("value length exceeds uint8 maximum")
 		}
 

@@ -12,6 +12,11 @@ import (
 	googleUuid "github.com/google/uuid"
 )
 
+const (
+	// Default page size for pagination.
+	defaultPageSize = 25
+)
+
 type oamOrmMapper struct{} // Mapper between OpenAPI Model models and ORM objects
 
 func NewOamOrmMapper() *oamOrmMapper {
@@ -416,7 +421,7 @@ func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumb
 
 func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
 	if pageSize == nil {
-		return 25, nil
+		return defaultPageSize, nil
 	} else if *pageSize >= 1 {
 		return *pageSize, nil
 	}

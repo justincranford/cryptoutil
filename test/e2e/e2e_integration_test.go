@@ -504,7 +504,7 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 }
 
 // testCryptoutilInstance tests a single cryptoutil instance.
-func testCryptoutilInstance(t *testing.T, ctx context.Context, instanceName string, publicBaseURL *string, privateAdminBaseURL *string, rootCAsPool *x509.CertPool, startTime time.Time) {
+func testCryptoutilInstance(t *testing.T, ctx context.Context, instanceName string, publicBaseURL, privateAdminBaseURL *string, rootCAsPool *x509.CertPool, startTime time.Time) {
 	t.Helper()
 	fmt.Printf("[%s] [%v] 🧪 Testing %s at %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), instanceName, *publicBaseURL)
 

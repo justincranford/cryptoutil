@@ -14,6 +14,16 @@ import (
 	cryptoutilNetwork "cryptoutil/internal/common/util/network"
 )
 
+const (
+	// TLS certificate validity and helper constants.
+	tlsCACertValidityYears   = 10  // years for CA certificates
+	tlsEndEntityValidityDays = 397 // days for server end-entity certificate
+	tlsServerKeyPairsNeeded  = 2   // number of keypairs requested for server TLS
+
+	// File mode for written PEM files.
+	defaultPEMFileMode = 0o600
+)
+
 func ServerInit(settings *cryptoutilConfig.Settings) error {
 	ctx := context.Background()
 
@@ -56,14 +66,14 @@ func generateTLSServerSubjects(settings *cryptoutilConfig.Settings, serverApplic
 }
 
 func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, prefix string, publicTLSServerDNSNames []string, publicTLSServerIPAddresses []net.IP) (*cryptoutilCertificate.Subject, error) {
-	tlsServerSubjectsKeyPairs := serverApplicationBasic.JWKGenService.ECDSAP256KeyGenPool.GetMany(2)
+	tlsServerSubjectsKeyPairs := serverApplicationBasic.JWKGenService.ECDSAP256KeyGenPool.GetMany(tlsServerKeyPairsNeeded)
 
-	tlsServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", 10*365*cryptoutilDateTime.Days1)
+	tlsServerCASubjects, err := cryptoutilCertificate.CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "TLS Server CA", tlsCACertValidityYears*365*cryptoutilDateTime.Days1)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create TLS server CA subjects: %w", err)
 	}
 
-	tlsServerEndEntitySubject, err := cryptoutilCertificate.CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "TLS Server", 397*cryptoutilDateTime.Days1, publicTLSServerDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	tlsServerEndEntitySubject, err := cryptoutilCertificate.CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "TLS Server", tlsEndEntityValidityDays*cryptoutilDateTime.Days1, publicTLSServerDNSNames, publicTLSServerIPAddresses, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create TLS server end entity subject: %w", err)
 	}
@@ -76,7 +86,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 
 	for i, certPEM := range tlsServerCertificateChainPEMs {
 		filename := fmt.Sprintf("%scertificate_%d.pem", prefix, i)
-		if err := os.WriteFile(filename, certPEM, 0o600); err != nil {
+		if err := os.WriteFile(filename, certPEM, defaultPEMFileMode); err != nil {
 			return nil, fmt.Errorf("failed to write TLS server certificate PEM file %s: %w", filename, err)
 		}
 	}
@@ -92,7 +102,7 @@ func generateTLSServerSubject(serverApplicationBasic *ServerApplicationBasic, pr
 		return nil, fmt.Errorf("failed to encrypt TLS server private key PEM: %w", err)
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, 0o600)
+	err = os.WriteFile(fmt.Sprintf("%sprivate_key.pem", prefix), encryptedTLSPrivateKeyPEM, defaultPEMFileMode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to write encrypted TLS server private key PEM file: %w", err)
 	}

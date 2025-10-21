@@ -32,6 +32,18 @@ var (
 	ErrFailedToGetLatestMaterialKeyByElasticKeyID           = "failed to get latest Material Key by Elastic Key ID"
 )
 
+// Database error code constants (SQLite numeric codes and Postgres SQLSTATE strings).
+const (
+	sqliteErrUniqueConstraint = 2067
+	sqliteErrForeignKey       = 787
+	sqliteErrCheckConstraint  = 1299
+
+	pgCodeUniqueViolation      = "23505"
+	pgCodeForeignKeyViolation  = "23503"
+	pgCodeCheckViolation       = "23514"
+	pgCodeStringDataTruncation = "22001"
+)
+
 func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {
 	if err := cryptoutilUtil.ValidateUUID(&elasticKey.ElasticKeyID, &ErrInvalidElasticKeyID); err != nil {
 		return tx.toAppErr(&ErrFailedToAddElasticKey, err)
@@ -206,11 +218,11 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	var sqliteErr *sqlite.Error
 	if errors.As(err, &sqliteErr) {
 		switch sqliteErr.Code() {
-		case 2067: // UNIQUE constraint failed
+		case sqliteErrUniqueConstraint: // UNIQUE constraint failed
 			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case 787: // FOREIGN KEY constraint failed
+		case sqliteErrForeignKey: // FOREIGN KEY constraint failed
 			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case 1299: // CHECK constraint failed
+		case sqliteErrCheckConstraint: // CHECK constraint failed
 			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		}
 	}
@@ -219,13 +231,13 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	var pgErr *pq.Error
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
-		case "23505": // unique_violation
+		case pgCodeUniqueViolation: // unique_violation
 			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case "23503": // foreign_key_violation
+		case pgCodeForeignKeyViolation: // foreign_key_violation
 			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case "23514": // check_violation
+		case pgCodeCheckViolation: // check_violation
 			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
-		case "22001": // string_data_right_truncation
+		case pgCodeStringDataTruncation: // string_data_right_truncation
 			return cryptoutilAppErr.NewHTTP400BadRequest(msg, fmt.Errorf("%s: %w", *msg, err))
 		}
 	}

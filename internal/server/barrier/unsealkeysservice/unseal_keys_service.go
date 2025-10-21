@@ -12,6 +12,11 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+const (
+	// Derived key size in bytes for HKDF.
+	derivedKeySizeBytes = 32
+)
+
 type UnsealKeysService interface {
 	EncryptKey(clearRootKey joseJwk.Key) ([]byte, error)
 	DecryptKey(encryptedRootKeyBytes []byte) (joseJwk.Key, error)
@@ -40,7 +45,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		derivedSecretKeyBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("secret")...))
 		derivedSaltBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("salt")...))
 
-		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, 32)
+		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, derivedKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive key: %w", err)
 		}

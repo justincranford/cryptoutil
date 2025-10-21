@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
@@ -42,7 +43,7 @@ func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptout
 	}
 
 	switch openapiCreateElasticKeyResponse.HTTPResponse.StatusCode {
-	case 200:
+	case http.StatusOK:
 		if openapiCreateElasticKeyResponse.Body == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, body is nil")
 		} else if openapiCreateElasticKeyResponse.JSON200 == nil {
@@ -81,7 +82,7 @@ func (m *oamOacMapper) toOamMaterialKeyGenerate(openapiMaterialKeyGenerateRespon
 	}
 
 	switch openapiMaterialKeyGenerateResponse.HTTPResponse.StatusCode {
-	case 200:
+	case http.StatusOK:
 		if openapiMaterialKeyGenerateResponse.Body == nil {
 			return nil, fmt.Errorf("failed to generate key, body is nil")
 		} else if openapiMaterialKeyGenerateResponse.JSON200 == nil {
@@ -127,7 +128,7 @@ func (m *oamOacMapper) toPlainGenerateResponse(openapiGenerateResponse *cryptout
 	}
 
 	switch openapiGenerateResponse.HTTPResponse.StatusCode {
-	case 200:
+	case http.StatusOK:
 		if openapiGenerateResponse.Body == nil {
 			return nil, fmt.Errorf("failed to encrypt, body is nil")
 		}
@@ -161,7 +162,7 @@ func (m *oamOacMapper) toPlainEncryptResponse(openapiEncryptResponse *cryptoutil
 	}
 
 	switch openapiEncryptResponse.HTTPResponse.StatusCode {
-	case 200:
+	case http.StatusOK:
 		if openapiEncryptResponse.Body == nil {
 			return nil, fmt.Errorf("failed to encrypt, body is nil")
 		}
@@ -186,7 +187,7 @@ func (m *oamOacMapper) toPlainDecryptResponse(openapiDecryptResponse *cryptoutil
 	}
 
 	switch openapiDecryptResponse.HTTPResponse.StatusCode {
-	case 200:
+	case http.StatusOK:
 		if openapiDecryptResponse.Body == nil {
 			return nil, fmt.Errorf("failed to decrypt, body is nil")
 		}
@@ -220,7 +221,7 @@ func (m *oamOacMapper) toPlainSignResponse(openapiSignResponse *cryptoutilOpenap
 	}
 
 	switch openapiSignResponse.HTTPResponse.StatusCode {
-	case 200:
+	case http.StatusOK:
 		if openapiSignResponse.Body == nil {
 			return nil, fmt.Errorf("failed to sign, body is nil")
 		}
@@ -245,7 +246,7 @@ func (m *oamOacMapper) toPlainVerifyResponse(openapiVerifyResponse *cryptoutilOp
 	}
 
 	switch openapiVerifyResponse.HTTPResponse.StatusCode {
-	case 204:
+	case http.StatusNoContent:
 		// 204 No Content means verification succeeded, return empty string
 		empty := ""
 

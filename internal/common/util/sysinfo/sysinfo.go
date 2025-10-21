@@ -13,7 +13,14 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
-const EmptyString = ""
+const (
+	EmptyString = ""
+
+	// Timeouts for system info queries to prevent hanging.
+	cpuInfoTimeout = 10 * time.Second
+	memoryTimeout  = 5 * time.Second
+	hostIDTimeout  = 5 * time.Second
+)
 
 func RuntimeGoArch() string {
 	return runtime.GOARCH
@@ -29,7 +36,7 @@ func RuntimeNumCPU() int {
 
 // CPUInfo Returns VendorID, Family, Model, PhysicalID, ModelName.
 func CPUInfo() (string, string, string, string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cpuInfoTimeout)
 	defer cancel()
 
 	cpuInfo, err := cpu.InfoWithContext(ctx)
@@ -45,7 +52,7 @@ func CPUInfo() (string, string, string, string, error) {
 }
 
 func RAMSize() (uint64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), memoryTimeout)
 	defer cancel()
 
 	vmStats, err := mem.VirtualMemoryWithContext(ctx)
@@ -66,7 +73,7 @@ func OSHostname() (string, error) {
 }
 
 func HostID() (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), hostIDTimeout)
 	defer cancel()
 
 	hostID, err := host.HostIDWithContext(ctx)

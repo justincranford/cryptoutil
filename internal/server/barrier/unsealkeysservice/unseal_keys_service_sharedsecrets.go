@@ -6,6 +6,17 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
+const (
+	// Maximum number of shared secrets allowed.
+	maxSharedSecrets = 256
+
+	// Minimum shared secret length in bytes.
+	minSharedSecretLength = 32
+
+	// Maximum shared secret length in bytes.
+	maxSharedSecretLength = 64
+)
+
 type UnsealKeysServiceSharedSecrets struct {
 	unsealJWKs []joseJwk.Key
 }
@@ -30,38 +41,38 @@ func (u *UnsealKeysServiceSharedSecrets) Shutdown() {
 	u.unsealJWKs = nil
 }
 
-func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) {
-	if sharedSecretsM == nil {
-		return nil, fmt.Errorf("shared secrets can't be nil")
+func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (UnsealKeysService, error) { // pragma: allowlist secret
+	if sharedSecretsM == nil { // pragma: allowlist secret
+		return nil, fmt.Errorf("shared secrets can't be nil") // pragma: allowlist secret
 	}
 
-	countM := len(sharedSecretsM)
+	countM := len(sharedSecretsM) // pragma: allowlist secret
 	if countM == 0 {
-		return nil, fmt.Errorf("shared secrets can't be zero")
-	} else if countM >= 256 {
-		return nil, fmt.Errorf("shared secrets can't be greater than 256")
+		return nil, fmt.Errorf("shared secrets can't be zero") // pragma: allowlist secret
+	} else if countM >= maxSharedSecrets { // pragma: allowlist secret
+		return nil, fmt.Errorf("shared secrets can't be greater than %d", maxSharedSecrets) // pragma: allowlist secret
 	} else if chooseN == 0 {
 		return nil, fmt.Errorf("n can't be zero")
 	} else if chooseN < 0 {
 		return nil, fmt.Errorf("n can't be negative")
 	} else if chooseN > countM {
-		return nil, fmt.Errorf("n can't be greater than shared secrets count")
+		return nil, fmt.Errorf("n can't be greater than shared secrets count") // pragma: allowlist secret
 	}
 
-	for i, sharedSecret := range sharedSecretsM {
-		if sharedSecret == nil {
-			return nil, fmt.Errorf("shared secret %d can't be nil", i)
-		} else if len(sharedSecret) < 32 {
-			return nil, fmt.Errorf("shared secret %d length can't be less than 32", i)
-		} else if len(sharedSecret) > 64 {
-			return nil, fmt.Errorf("shared secret %d length can't be greater than 64", i)
+	for i, sharedSecret := range sharedSecretsM { // pragma: allowlist secret
+		if sharedSecret == nil { // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d can't be nil", i) // pragma: allowlist secret
+		} else if len(sharedSecret) < minSharedSecretLength { // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d length can't be less than %d", i, minSharedSecretLength) // pragma: allowlist secret
+		} else if len(sharedSecret) > maxSharedSecretLength { // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d length can't be greater than %d", i, maxSharedSecretLength) // pragma: allowlist secret
 		}
 	}
 
-	unsealJWKs, err := deriveJWKsFromMChooseNCombinations(sharedSecretsM, chooseN)
+	unsealJWKs, err := deriveJWKsFromMChooseNCombinations(sharedSecretsM, chooseN) // pragma: allowlist secret
 	if err != nil {
 		return nil, fmt.Errorf("failed to create unseal JWK combinations: %w", err)
 	}
 
-	return &UnsealKeysServiceSharedSecrets{unsealJWKs: unsealJWKs}, nil
+	return &UnsealKeysServiceSharedSecrets{unsealJWKs: unsealJWKs}, nil // pragma: allowlist secret
 }

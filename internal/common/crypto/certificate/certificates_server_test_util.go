@@ -14,6 +14,20 @@ import (
 	"time"
 )
 
+const (
+	// Maximum request body size for test server.
+	maxRequestBodySize = 1 << 20 // 1MB
+
+	// Idle timeout for test server connections.
+	serverIdleTimeout = 30 * time.Second
+
+	// Header read timeout for test server.
+	serverReadHeaderTimeout = 10 * time.Second
+
+	// Maximum header bytes for test server.
+	serverMaxHeaderBytes = 1 << 20 // 1MB
+)
+
 func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time.Duration, serverTLSConfig *tls.Config, callerShutdownSignalCh <-chan struct{}) (string, error) {
 	netListener, err := net.Listen("tcp", tlsServerListener)
 	if err != nil {
@@ -153,7 +167,7 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 		}()
 
 		// Limit request body size to prevent memory exhaustion
-		r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1MB limit
+		r.Body = http.MaxBytesReader(w, r.Body, maxRequestBodySize)
 
 		data, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -177,9 +191,9 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 		TLSConfig:         serverTLSConfig,
 		ReadTimeout:       readTimeout,
 		WriteTimeout:      writeTimeout,
-		IdleTimeout:       30 * time.Second, // Close idle connections after 30s
-		ReadHeaderTimeout: 10 * time.Second, // Timeout for reading headers (prevents slowloris)
-		MaxHeaderBytes:    1 << 20,          // 1MB max header size (prevents large header attacks)
+		IdleTimeout:       serverIdleTimeout,       // Close idle connections after 30s
+		ReadHeaderTimeout: serverReadHeaderTimeout, // Timeout for reading headers (prevents slowloris)
+		MaxHeaderBytes:    serverMaxHeaderBytes,    // 1MB max header size (prevents large header attacks)
 		ErrorLog:          log.New(os.Stderr, "https-server: ", log.LstdFlags),
 	}
 

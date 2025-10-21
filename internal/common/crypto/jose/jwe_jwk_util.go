@@ -22,6 +22,20 @@ import (
 
 var ErrInvalidJWEJWKKidUUID = "invalid JWE JWK kid UUID"
 
+const (
+	// JWE content encryption key sizes in bits.
+	jweA256KeySize = 256
+	jweA192KeySize = 192
+	jweA128KeySize = 128
+	jweA512KeySize = 512
+	jweA384KeySize = 384
+
+	// JWE key encryption key sizes in bits.
+	jweKEA256KeySize = 256
+	jweKEA192KeySize = 192
+	jweKEA128KeySize = 128
+)
+
 func GenerateJWEJWKForEncAndAlg(enc *joseJwa.ContentEncryptionAlgorithm, alg *joseJwa.KeyEncryptionAlgorithm) (*googleUuid.UUID, joseJwk.Key, joseJwk.Key, []byte, []byte, error) {
 	kid, err := googleUuid.NewV7()
 	if err != nil {
@@ -153,22 +167,22 @@ func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 		return validateOrGenerateJWEAESJWK(key, enc, alg, encKeyBitsLength, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgA256KW, AlgA256GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, 256, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, jweKEA256KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA192KW, AlgA192GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, 192, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, jweKEA192KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA128KW, AlgA128GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, 128, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, jweKEA128KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgRSAOAEP512:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, 4096, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, rsa4096KeySizeBits, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP384:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, 3072, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, rsa3072KeySizeBits, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP256:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, rsa2048KeySizeBits, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSAOAEP:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, rsa2048KeySizeBits, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgRSA15:
-		return validateOrGenerateJWERSAJWK(key, enc, alg, 2048, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWERSAJWK(key, enc, alg, rsa2048KeySizeBits, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgECDHES, AlgECDHESA256KW:
 		return validateOrGenerateJWEEcdhJWK(key, enc, alg, ecdh.P521(), &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
@@ -295,17 +309,17 @@ func validateOrGenerateJWEEcdhJWK(key cryptoutilKeyGen.Key, enc *joseJwa.Content
 func EncToBitsLength(enc *joseJwa.ContentEncryptionAlgorithm) (int, error) {
 	switch *enc {
 	case EncA256GCM:
-		return 256, nil
+		return jweA256KeySize, nil
 	case EncA192GCM:
-		return 192, nil
+		return jweA192KeySize, nil
 	case EncA128GCM:
-		return 128, nil
+		return jweA128KeySize, nil
 	case EncA256CBCHS512:
-		return 512, nil
+		return jweA512KeySize, nil
 	case EncA192CBCHS384:
-		return 384, nil
+		return jweA384KeySize, nil
 	case EncA128CBCHS256:
-		return 256, nil
+		return jweA256KeySize, nil
 	default:
 		return 0, fmt.Errorf("unsupported JWE JWK enc %s", *enc)
 	}

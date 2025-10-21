@@ -17,6 +17,9 @@ import (
 const (
 	MaxFiles        = 9
 	MaxBytesPerFile = 4096
+
+	// Random bytes length for dev mode unseal key.
+	devModeRandomBytesLength = 64
 )
 
 type UnsealKeysServiceFromSettings struct {
@@ -37,7 +40,7 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
-		randomBytes, err := cryptoutilUtil.GenerateBytes(64)
+		randomBytes, err := cryptoutilUtil.GenerateBytes(devModeRandomBytesLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
 		}

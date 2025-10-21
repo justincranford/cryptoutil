@@ -14,6 +14,16 @@ applyTo: "**"
 - **NEVER use curl in chat sessions** - curl is not installed in Windows PowerShell or Alpine container images; use PowerShell Invoke-WebRequest or docker compose exec instead
 - **NEVER use -SkipCertificateCheck in PowerShell commands** - this parameter only exists in PowerShell 6+; use `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}` for PowerShell 5.1
 - **ALWAYS use HTTPS 127.0.0.1:9090 for admin APIs** (/shutdown, /livez, /readyz) - these are private server endpoints, not public server endpoints
+- **ALWAYS declare values as constants near the top of the file** to proactively mitigate "mnd" (magic number detector) linter errors in .golangci-lint.yml:
+  - **HTTP status codes**: `http.StatusOK`, `http.StatusNotFound`, `http.StatusForbidden` instead of `200`, `404`, `403`
+  - **Durations**: `timeout = 30 * time.Second`, `delay = 100 * time.Millisecond` instead of inline `30000`, `100`
+  - **Special strings**: `statusPass = "PASS"`, `statusFail = "FAIL"`, `trendNoChange = "→ No change"` instead of inline strings
+  - **Special numbers**: `rsaKeySize2048 = 2048`, `aes256KeySize = 256`, `bufferSize1KB = 1024` instead of magic numbers
+  - **Pool sizes**: `poolMin = 3`, `poolMax = 9` instead of inline numbers in pool configurations
+  - **Port numbers**: `defaultPort = 8080`, `adminPort = 9090` instead of `8080`, `9090`
+  - **Common counts/limits**: `maxRetries = 3`, `minArgs = 2` instead of `3`, `2`
+  - **Percentage values**: `tolerance5Percent = 0.05`, `halfValue = 0.5` instead of `0.05`, `0.5`
+  - **File permissions**: `fileMode = 0o600`, `dirMode = 0o755` instead of `0o600`, `0o755`
 
 ## Authorized Commands Reference
 

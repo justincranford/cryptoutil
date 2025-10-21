@@ -35,6 +35,22 @@ const (
 	ECCurveP256    = "P256"
 	ECCurveP384    = "P384"
 	ECCurveP521    = "P521"
+
+	// AES key sizes in bits.
+	aesKeySize128 = 128
+	aesKeySize192 = 192
+	aesKeySize256 = 256
+
+	// AES HMAC-SHA2 key sizes in bits.
+	aesHsKeySize256 = 256
+	aesHsKeySize384 = 384
+	aesHsKeySize512 = 512
+
+	// Minimum HMAC key size in bits.
+	minHMACKeySize = 256
+
+	// Bits to bytes conversion factor.
+	bitsToBytes = 8
 )
 
 func GenerateRSAKeyPairFunction(rsaBits int) func() (*KeyPair, error) {
@@ -106,11 +122,11 @@ func GenerateAESKeyFunction(aesBits int) func() (SecretKey, error) {
 }
 
 func GenerateAESKey(aesBits int) (SecretKey, error) {
-	if aesBits != 128 && aesBits != 192 && aesBits != 256 {
-		return nil, fmt.Errorf("invalid AES key size: %d (must be 128, 192, or 256 bits)", aesBits)
+	if aesBits != aesKeySize128 && aesBits != aesKeySize192 && aesBits != aesKeySize256 {
+		return nil, fmt.Errorf("invalid AES key size: %d (must be %d, %d, or %d bits)", aesBits, aesKeySize128, aesKeySize192, aesKeySize256)
 	}
 
-	aesSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(aesBits / 8)
+	aesSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(aesBits / bitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES %d key failed: %w", aesBits, err)
 	}
@@ -123,11 +139,11 @@ func GenerateAESHSKeyFunction(aesHsBits int) func() (SecretKey, error) {
 }
 
 func GenerateAESHSKey(aesHsBits int) (SecretKey, error) {
-	if aesHsBits != 256 && aesHsBits != 384 && aesHsBits != 512 {
-		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be 256, 384, or 512 bits)", aesHsBits)
+	if aesHsBits != aesHsKeySize256 && aesHsBits != aesHsKeySize384 && aesHsBits != aesHsKeySize512 {
+		return nil, fmt.Errorf("invalid AES HAMC-SHA2 key size: %d (must be %d, %d, or %d bits)", aesHsBits, aesHsKeySize256, aesHsKeySize384, aesHsKeySize512)
 	}
 
-	aesHsSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(aesHsBits / 8)
+	aesHsSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(aesHsBits / bitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate AES HAMC-SHA2 %d key failed: %w", aesHsBits, err)
 	}
@@ -140,11 +156,11 @@ func GenerateHMACKeyFunction(hmacBits int) func() (SecretKey, error) {
 }
 
 func GenerateHMACKey(hmacBits int) (SecretKey, error) {
-	if hmacBits < 256 {
-		return nil, fmt.Errorf("invalid HMAC key size: %d (must be 256 bits or higher)", hmacBits)
+	if hmacBits < minHMACKeySize {
+		return nil, fmt.Errorf("invalid HMAC key size: %d (must be %d bits or higher)", hmacBits, minHMACKeySize)
 	}
 
-	hmacSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(hmacBits / 8)
+	hmacSecretKeyBytes, err := cryptoutilUtil.GenerateBytes(hmacBits / bitsToBytes)
 	if err != nil {
 		return nil, fmt.Errorf("generate HMAC %d key failed: %w", hmacBits, err)
 	}

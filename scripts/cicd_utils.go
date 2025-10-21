@@ -14,6 +14,27 @@ import (
 	"time"
 )
 
+const (
+	// UI constants.
+	separatorLength = 50
+
+	// GitHub API constants.
+	githubAPIDelay   = 200 * time.Millisecond
+	githubAPITimeout = 10 * time.Second
+
+	// Progress reporting.
+	progressInterval = 10
+
+	// File permissions.
+	filePermissions = 0o600 // Permissions for created files.
+
+	// UUID regex pattern for validation.
+	uuidRegexPattern = `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`
+
+	// Minimum number of regex match groups for action parsing.
+	minActionMatchGroups = 3
+)
+
 type GitHubRelease struct {
 	TagName string `json:"tag_name"`
 }
@@ -74,7 +95,7 @@ func main() {
 
 		// Add a separator between multiple commands
 		if i < len(os.Args)-1 {
-			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", 50)+"\n")
+			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", separatorLength)+"\n")
 		}
 	}
 }
@@ -357,7 +378,7 @@ func parseWorkflowFile(path string) ([]ActionInfo, error) {
 	matches := re.FindAllStringSubmatch(string(content), -1)
 
 	for _, match := range matches {
-		if len(match) >= 3 {
+		if len(match) >= minActionMatchGroups {
 			action := ActionInfo{
 				Name:           match[1],
 				CurrentVersion: match[2],
@@ -372,11 +393,11 @@ func parseWorkflowFile(path string) ([]ActionInfo, error) {
 
 func getLatestVersion(actionName string) (string, error) {
 	// GitHub API has rate limits, so add a delay
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(githubAPIDelay)
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", actionName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), githubAPITimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -405,16 +426,16 @@ func getLatestVersion(actionName string) (string, error) {
 		}
 	}()
 
-	if resp.StatusCode == 404 {
+	if resp.StatusCode == http.StatusNotFound {
 		// Some actions might not have releases, try tags
 		return getLatestTag(actionName)
 	}
 
-	if resp.StatusCode == 403 {
+	if resp.StatusCode == http.StatusForbidden {
 		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
@@ -434,7 +455,7 @@ func getLatestVersion(actionName string) (string, error) {
 func getLatestTag(actionName string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), githubAPITimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -462,11 +483,11 @@ func getLatestTag(actionName string) (string, error) {
 		}
 	}()
 
-	if resp.StatusCode == 403 {
+	if resp.StatusCode == http.StatusForbidden {
 		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
@@ -598,7 +619,7 @@ func checkCircularDeps() {
 		dependencyGraph[pkg] = imports
 
 		processed++
-		if processed%10 == 0 {
+		if processed%progressInterval == 0 {
 			elapsed := time.Since(graphStart)
 			fmt.Fprintf(os.Stderr, "Processed %d/%d packages... (%.2fs)\n", processed, len(packages), elapsed.Seconds())
 		}
@@ -804,7 +825,7 @@ func checkTestFile(filePath string) []string {
 	}
 
 	// Pattern 2: Check for hardcoded UUIDs (basic pattern)
-	uuidPattern := regexp.MustCompile(`[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`)
+	uuidPattern := regexp.MustCompile(uuidRegexPattern)
 	if uuidPattern.MatchString(contentStr) {
 		issues = append(issues, "Found hardcoded UUID - consider using uuid.NewV7() for test data")
 	}
@@ -950,7 +971,7 @@ func processGoFile(filePath string) (int, error) {
 
 	// Only write if there were changes
 	if replacements > 0 {
-		err = os.WriteFile(filePath, []byte(modifiedContent), 0o600)
+		err = os.WriteFile(filePath, []byte(modifiedContent), filePermissions)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}

@@ -31,6 +31,37 @@ const (
 	complianceFail = "❌"
 )
 
+// Test profile and analysis constants.
+const (
+	// Default test profiles (VUs, durations, rampups).
+	defaultQuickVUs = 1
+	defaultQuickDur = "30s"
+
+	defaultFullVUs    = 5
+	defaultFullDur    = "2m"
+	defaultFullRampUp = "30s"
+
+	defaultDeepVUs    = 10
+	defaultDeepDur    = "5m"
+	defaultDeepRampUp = "1m"
+
+	// File mode defaults used for created files and directories.
+	defaultDirMode  = 0o755
+	defaultFileMode = 0o600
+	// Thresholds and sizes..
+	historyMaxEntries    = 50
+	trendResponseTimePct = 10.0 // percent change considered significant
+	trendErrorRatePct    = 5.0  // percent change considered significant
+
+	// Compliance thresholds used in summary/reporting.
+	p95ResponseTimeThreshold     = 500.0 // ms, P95 response time threshold for compliance
+	errorRateComplianceThreshold = 0.10  // fractional (0.10 == 10%)
+
+	// Dashboard thresholds.s.
+	dashboardErrorRateCritical = 0.10 // 10%
+	dashboardErrorRateWarning  = 0.05 // 5%
+)
+
 type TestProfile struct {
 	Name        string                            `json:"name"`
 	VUs         int                               `json:"vus"`
@@ -204,7 +235,7 @@ func runTestsInternal(profile, baseURL, outputDir string, dryRun, verbose bool) 
 	}
 
 	// Ensure output directory exists
-	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+	if err := os.MkdirAll(outputDir, defaultDirMode); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
@@ -311,7 +342,7 @@ func showAnalyzeHelp() {
 
 func analyzeResultsInternal(resultsDir, outputDir string) error {
 	// Ensure output directory exists
-	if err := os.MkdirAll(outputDir, 0o755); err != nil {
+	if err := os.MkdirAll(outputDir, defaultDirMode); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
@@ -366,9 +397,9 @@ func analyzeResultsInternal(resultsDir, outputDir string) error {
 	// Add to history
 	history = append(history, *latestResults)
 
-	// Keep only last 50 entries
-	if len(history) > 50 {
-		history = history[len(history)-50:]
+	// Keep only last historyMaxEntries entries
+	if len(history) > historyMaxEntries {
+		history = history[len(history)-historyMaxEntries:]
 	}
 
 	// Save updated history
@@ -451,8 +482,8 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 	profiles := map[string]TestProfile{
 		"quick": {
 			Name:     "quick",
-			VUs:      1,
-			Duration: "30s",
+			VUs:      defaultQuickVUs,
+			Duration: defaultQuickDur,
 			Thresholds: map[string]map[string]interface{}{
 				"http_req_duration":       {"p(95)<500": true},
 				"http_req_failed":         {"rate<0.1": true},
@@ -464,9 +495,9 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 		},
 		"full": {
 			Name:     "full",
-			VUs:      5,
-			Duration: "2m",
-			RampUp:   "30s",
+			VUs:      defaultFullVUs,
+			Duration: defaultFullDur,
+			RampUp:   defaultFullRampUp,
 			Thresholds: map[string]map[string]interface{}{
 				"http_req_duration":       {"p(95)<750": true},
 				"http_req_failed":         {"rate<0.05": true},
@@ -478,9 +509,9 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 		},
 		"deep": {
 			Name:     "deep",
-			VUs:      10,
-			Duration: "5m",
-			RampUp:   "1m",
+			VUs:      defaultDeepVUs,
+			Duration: defaultDeepDur,
+			RampUp:   defaultDeepRampUp,
 			Thresholds: map[string]map[string]interface{}{
 				"http_req_duration":       {"p(95)<1000": true},
 				"http_req_failed":         {"rate<0.02": true},
@@ -511,7 +542,7 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 	script := generateK6Script(profile, baseURL)
 
 	// Write to output file
-	if err := os.WriteFile(outputFile, []byte(script), 0o600); err != nil {
+	if err := os.WriteFile(outputFile, []byte(script), defaultFileMode); err != nil {
 		return fmt.Errorf("error writing to file %s: %w", outputFile, err)
 	}
 
@@ -550,7 +581,7 @@ func runQuickTest(args []string) {
 	// Generate quick test script
 	tempScript := filepath.Join(*outputDir, "perf-test-quick.js")
 
-	if err := os.MkdirAll(*outputDir, 0o755); err != nil {
+	if err := os.MkdirAll(*outputDir, defaultDirMode); err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating output directory: %v\n", err)
 		os.Exit(1)
 	}
@@ -610,8 +641,8 @@ func getTestProfile(profileName string) TestProfile {
 	profiles := map[string]TestProfile{
 		"quick": {
 			Name:     "quick",
-			VUs:      1,
-			Duration: "30s",
+			VUs:      defaultQuickVUs,
+			Duration: defaultQuickDur,
 			Thresholds: map[string]map[string]interface{}{
 				"http_req_duration":       {"p(95)<500": true},
 				"http_req_failed":         {"rate<0.1": true},
@@ -623,9 +654,9 @@ func getTestProfile(profileName string) TestProfile {
 		},
 		"full": {
 			Name:     "full",
-			VUs:      5,
-			Duration: "2m",
-			RampUp:   "30s",
+			VUs:      defaultFullVUs,
+			Duration: defaultFullDur,
+			RampUp:   defaultFullRampUp,
 			Thresholds: map[string]map[string]interface{}{
 				"http_req_duration":       {"p(95)<750": true},
 				"http_req_failed":         {"rate<0.05": true},
@@ -637,9 +668,9 @@ func getTestProfile(profileName string) TestProfile {
 		},
 		"deep": {
 			Name:     "deep",
-			VUs:      10,
-			Duration: "5m",
-			RampUp:   "1m",
+			VUs:      defaultDeepVUs,
+			Duration: defaultDeepDur,
+			RampUp:   defaultDeepRampUp,
 			Thresholds: map[string]map[string]interface{}{
 				"http_req_duration":       {"p(95)<1000": true},
 				"http_req_failed":         {"rate<0.02": true},
@@ -819,7 +850,7 @@ export function teardown(data) {
 func generateK6ScriptInternal(scriptPath string, config TestProfile, baseURL string) error {
 	k6Script := generateK6Script(config, baseURL)
 
-	if err := os.WriteFile(scriptPath, []byte(k6Script), 0o600); err != nil {
+	if err := os.WriteFile(scriptPath, []byte(k6Script), defaultFileMode); err != nil {
 		return fmt.Errorf("failed to write k6 script to %s: %w", scriptPath, err)
 	}
 
@@ -906,7 +937,7 @@ func saveHistoricalData(history []PerformanceResult, outputDir string) error {
 		return fmt.Errorf("failed to marshal history data: %w", err)
 	}
 
-	if err := os.WriteFile(historyFile, data, 0o600); err != nil {
+	if err := os.WriteFile(historyFile, data, defaultFileMode); err != nil {
 		return fmt.Errorf("failed to write history file: %w", err)
 	}
 
@@ -929,7 +960,7 @@ func generateTrendAnalysis(history []PerformanceResult) TrendAnalysis {
 	throughputTrend := ((latest.RequestsPerSecond - previous.RequestsPerSecond) / previous.RequestsPerSecond) * 100
 
 	status := "stable"
-	if math.Abs(responseTimeTrend) > 10 || math.Abs(errorRateTrend) > 5 {
+	if math.Abs(responseTimeTrend) > trendResponseTimePct || math.Abs(errorRateTrend) > trendErrorRatePct {
 		status = "significant_change"
 	}
 
@@ -1108,10 +1139,10 @@ func generatePerformanceDashboard(history []PerformanceResult, outputDir string)
 	statusClass := "status-good"
 	statusText := "✅ Healthy"
 
-	if latest.ErrorRate >= 0.1 {
+	if latest.ErrorRate >= dashboardErrorRateCritical {
 		statusClass = "status-error"
 		statusText = "❌ Critical"
-	} else if latest.ErrorRate >= 0.05 {
+	} else if latest.ErrorRate >= dashboardErrorRateWarning {
 		statusClass = "status-warning"
 		statusText = "⚠️ Warning"
 	}
@@ -1243,7 +1274,7 @@ func generateSummaryReport(history []PerformanceResult, trend TrendAnalysis, out
 	responseTimeCompliance := compliancePass
 	responseTimeStatus := statusPass
 
-	if latest.P95ResponseTime >= 500 {
+	if latest.P95ResponseTime >= p95ResponseTimeThreshold {
 		responseTimeCompliance = complianceFail
 		responseTimeStatus = statusFail
 	}
@@ -1251,7 +1282,7 @@ func generateSummaryReport(history []PerformanceResult, trend TrendAnalysis, out
 	errorRateCompliance := compliancePass
 	errorRateStatus := statusPass
 
-	if latest.ErrorRate >= 0.1 {
+	if latest.ErrorRate >= errorRateComplianceThreshold {
 		errorRateCompliance = complianceFail
 		errorRateStatus = statusFail
 	}
