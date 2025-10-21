@@ -11,15 +11,16 @@ import (
 	cryptoutilConstants "cryptoutil/internal/common/constants"
 	cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"
 	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 	cryptoutilNetwork "cryptoutil/internal/common/util/network"
 )
 
 const (
 	// TLS certificate validity and helper constants.
-	tlsCACertValidityYears   = 10  // years for CA certificates
-	tlsEndEntityValidityDays = 397 // days for server end-entity certificate
-	tlsServerKeyPairsNeeded  = 2   // number of keypairs requested for server TLS
+	tlsCACertValidityYears   = cryptoutilMagic.TLSValidityCACertYears   // years for CA certificates
+	tlsEndEntityValidityDays = cryptoutilMagic.TLSValidityEndEntityDays // days for server end-entity certificate
+	tlsServerKeyPairsNeeded  = cryptoutilMagic.TLSKeyPairsNeeded        // number of keypairs requested for server TLS
 
 	// File mode for written PEM files.
 	defaultPEMFileMode = cryptoutilConstants.PermOwnerReadWriteOnly

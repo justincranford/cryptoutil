@@ -10,7 +10,7 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-const fingerprintLeeway = 1
+const fingerprintLeeway = cryptoutilMagic.FingerprintLeeway
 
 type UnsealKeysServiceFromSysInfo struct {
 	unsealJWKs []joseJwk.Key

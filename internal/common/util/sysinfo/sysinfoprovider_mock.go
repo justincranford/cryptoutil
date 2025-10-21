@@ -1,8 +1,12 @@
 package sysinfo
 
+import (
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+)
+
 const (
 	// Mock values for testing.
-	mockNumCPU    = 4
+	mockNumCPU    = cryptoutilMagic.CountMockCPU
 	mockRAMSizeMB = 8192 // 8GB in MB
 	mockCPUFamily = "6"
 	mockCPUModel  = "0"

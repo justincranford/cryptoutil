@@ -8,6 +8,8 @@ import (
 	"runtime"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/host"
 	"github.com/shirou/gopsutil/mem"
@@ -17,9 +19,9 @@ const (
 	EmptyString = ""
 
 	// Timeouts for system info queries to prevent hanging.
-	cpuInfoTimeout = 10 * time.Second
-	memoryTimeout  = 5 * time.Second
-	hostIDTimeout  = 5 * time.Second
+	cpuInfoTimeout = cryptoutilMagic.Timeout10Seconds * time.Second
+	memoryTimeout  = cryptoutilMagic.Timeout5Seconds * time.Second
+	hostIDTimeout  = cryptoutilMagic.Timeout5Seconds * time.Second
 )
 
 func RuntimeGoArch() string {
