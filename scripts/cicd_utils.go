@@ -21,8 +21,8 @@ const (
 	separatorLength = cryptoutilMagic.UIConsoleSeparatorLength
 
 	// GitHub API constants.
-	githubAPIDelay   = cryptoutilMagic.TimeoutGitHubAPIDelay * time.Millisecond
-	githubAPITimeout = cryptoutilMagic.TimeoutGitHubAPITimeout * time.Second
+	githubAPIDelay   = cryptoutilMagic.TimeoutGitHubAPIDelay
+	githubAPITimeout = cryptoutilMagic.TimeoutGitHubAPITimeout
 
 	// Progress reporting.
 	progressInterval = cryptoutilMagic.CountUIProgressInterval

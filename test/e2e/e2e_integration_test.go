@@ -18,6 +18,7 @@ import (
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilClient "cryptoutil/internal/client"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
 )
@@ -34,14 +35,14 @@ const (
 	// Test timeouts.
 	// IMPORTANT: All timeout values MUST be defined as constants at the top of the file for visibility and maintainability.
 	// Never hardcode timeout values in the middle of functions - always use named constants.
-	composeUpTimeout         = 5 * time.Minute
-	dockerHealthTimeout      = 30 * time.Second // Docker services should be healthy in under 20s
-	cryptoutilReadyTimeout   = 30 * time.Second // Cryptoutil needs time to unseal - reduced for fast fail
-	testExecutionTimeout     = 30 * time.Second // Overall test timeout - reduced for fast fail
-	dockerComposeInitTimeout = 15 * time.Second // Time to wait for Docker Compose services to initialize after startup
-	httpClientTimeout        = 10 * time.Second
-	serviceRetryInterval     = 2 * time.Second // Check more frequently
-	httpRetryInterval        = 1 * time.Second
+	composeUpTimeout         = cryptoutilMagic.Timeout5Minutes
+	dockerHealthTimeout      = cryptoutilMagic.Timeout30Seconds // Docker services should be healthy in under 20s
+	cryptoutilReadyTimeout   = cryptoutilMagic.Timeout30Seconds // Cryptoutil needs time to unseal - reduced for fast fail
+	testExecutionTimeout     = cryptoutilMagic.Timeout30Seconds // Overall test timeout - reduced for fast fail
+	dockerComposeInitTimeout = cryptoutilMagic.Timeout15Seconds // Time to wait for Docker Compose services to initialize after startup
+	httpClientTimeout        = cryptoutilMagic.Timeout10Seconds
+	serviceRetryInterval     = cryptoutilMagic.Timeout2Seconds // Check more frequently
+	httpRetryInterval        = cryptoutilMagic.Timeout1Second
 
 	// Test data.
 	testElasticKeyName        = "e2e-test-key"

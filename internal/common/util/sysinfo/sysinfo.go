@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/user"
 	"runtime"
-	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
@@ -19,9 +18,9 @@ const (
 	EmptyString = ""
 
 	// Timeouts for system info queries to prevent hanging.
-	cpuInfoTimeout = cryptoutilMagic.Timeout10Seconds * time.Second
-	memoryTimeout  = cryptoutilMagic.Timeout5Seconds * time.Second
-	hostIDTimeout  = cryptoutilMagic.Timeout5Seconds * time.Second
+	cpuInfoTimeout = cryptoutilMagic.Timeout10Seconds
+	memoryTimeout  = cryptoutilMagic.Timeout5Seconds
+	hostIDTimeout  = cryptoutilMagic.Timeout5Seconds
 )
 
 func RuntimeGoArch() string {

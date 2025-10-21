@@ -290,7 +290,7 @@ func RequireNewForTest(applicationName string) *Settings {
 	settings.BrowserIPRateLimit = cryptoutilMagic.RateLimitBrowserIP
 	settings.ServiceIPRateLimit = cryptoutilMagic.RateLimitServiceIP
 	settings.OTLPService = applicationName
-	settings.ServerShutdownTimeout = time.Duration(cryptoutilMagic.Timeout1MinuteSeconds) * time.Second // Increase shutdown timeout for tests to allow cleanup of resources
+	settings.ServerShutdownTimeout = cryptoutilMagic.Timeout1Minute // Increase shutdown timeout for tests to allow cleanup of resources
 	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")
 
 	if strings.Contains(settings.DatabaseURL, "/DB?") {

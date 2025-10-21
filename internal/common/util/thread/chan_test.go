@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -59,7 +61,7 @@ func TestChan(t *testing.T) {
 	waitAndClose := runSendersReceivers(ctx, 100, 8, 4, sender, receiver)
 
 	go func() {
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(cryptoutilMagic.Timeout5Milliseconds)
 		cancel()
 	}()
 	waitAndClose()
