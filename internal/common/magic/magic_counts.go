@@ -6,10 +6,6 @@ package magic
 const (
 	// CountMinimumCLIArgs - Minimum CLI arguments, common small count.
 	CountMinimumCLIArgs = 2
-	// CountMockCPU - Mock number of CPUs for testing.
-	CountMockCPU = 4
-	// CountMockRAMMB - Mock RAM size in MB for testing (8GB).
-	CountMockRAMMB = 8192
 	// CountUIProgressInterval - Progress reporting interval for UI operations.
 	CountUIProgressInterval = 10
 	// CountMinActionMatchGroups - Minimum number of regex match groups for action parsing.

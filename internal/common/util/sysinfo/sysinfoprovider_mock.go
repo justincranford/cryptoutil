@@ -6,8 +6,8 @@ import (
 
 const (
 	// Mock values for testing.
-	mockNumCPU    = cryptoutilMagic.CountMockCPU
-	mockRAMSizeMB = cryptoutilMagic.CountMockRAMMB
+	mockNumCPU    = cryptoutilMagic.MockCPUCount
+	mockRAMSizeMB = cryptoutilMagic.MockRAMMB
 	mockCPUFamily = cryptoutilMagic.MockCPUFamily
 	mockCPUModel  = cryptoutilMagic.MockCPUModel
 	mockGoArch    = cryptoutilMagic.MockRuntimeGoArch

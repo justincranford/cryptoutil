@@ -26,4 +26,8 @@ const (
 	MockGroupID = "mock-group-id-1000"
 	// MockUsername - Mock username for testing.
 	MockUsername = "mock-username"
+	// MockCPUCount - Mock number of CPUs for testing.
+	MockCPUCount = 4
+	// MockRAMMB - Mock RAM size in MB for testing (8GB).
+	MockRAMMB = 8192
 )
