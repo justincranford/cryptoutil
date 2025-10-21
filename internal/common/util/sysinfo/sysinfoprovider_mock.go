@@ -7,9 +7,9 @@ import (
 const (
 	// Mock values for testing.
 	mockNumCPU    = cryptoutilMagic.CountMockCPU
-	mockRAMSizeMB = 8192 // 8GB in MB
-	mockCPUFamily = "6"
-	mockCPUModel  = "0"
+	mockRAMSizeMB = cryptoutilMagic.CountMockRAMMB
+	mockCPUFamily = cryptoutilMagic.MockCPUFamily
+	mockCPUModel  = cryptoutilMagic.MockCPUModel
 )
 
 var mockSysInfoProvider = &MockSysInfoProvider{}

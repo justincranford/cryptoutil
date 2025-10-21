@@ -14,6 +14,7 @@ applyTo: "**"
 - **NEVER use curl in chat sessions** - curl is not installed in Windows PowerShell or Alpine container images; use PowerShell Invoke-WebRequest or docker compose exec instead
 - **NEVER use -SkipCertificateCheck in PowerShell commands** - this parameter only exists in PowerShell 6+; use `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}` for PowerShell 5.1
 - **ALWAYS use HTTPS 127.0.0.1:9090 for admin APIs** (/shutdown, /livez, /readyz) - these are private server endpoints, not public server endpoints
+- **ALWAYS rely on golangci-lint exclusions defined in .golangci-lint.yml** - never use --skip-files or --skip-dirs command line flags
 - **ALWAYS declare values as constants near the top of the file** to proactively mitigate "mnd" (magic number detector) linter errors in .golangci-lint.yml:
   - **HTTP status codes**: `http.StatusOK`, `http.StatusNotFound`, `http.StatusForbidden` instead of `200`, `404`, `403`
   - **Durations**: `timeout = 30 * time.Second`, `delay = 100 * time.Millisecond` instead of inline `30000`, `100`
@@ -51,7 +52,7 @@ applyTo: "**"
 - `go build ./<path>` - Build packages
 - `go mod tidy` - Clean up module dependencies
 - `go run ./<path>` - Run Go program
-- `golangci-lint run --skip-files=<pattern> --skip-dirs=<dirs> ./<path>` - Run linter
+- `golangci-lint run` - Run linter (relies on exclusions in .golangci-lint.yml)
 
 ### File/Directory Operations
 - `pwd` - Show current working directory

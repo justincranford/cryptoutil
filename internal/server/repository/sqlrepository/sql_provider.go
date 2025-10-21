@@ -13,6 +13,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilContainer "cryptoutil/internal/common/container"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
@@ -24,14 +25,14 @@ const (
 	ContainerModePreferred ContainerMode = "preferred"
 	ContainerModeRequired  ContainerMode = "required"
 
-	firstDBPingAttemptWait = 750 * time.Millisecond
-	maxDBPingAttempts      = 5
-	nextDBPingAttemptWait  = 1 * time.Second
-	sqliteBusyTimeout      = 30 * time.Second
+	firstDBPingAttemptWait = cryptoutilMagic.DBPingAttemptWait
+	maxDBPingAttempts      = cryptoutilMagic.DBMaxPingAttempts
+	nextDBPingAttemptWait  = cryptoutilMagic.DBNextPingAttemptWait
+	sqliteBusyTimeout      = cryptoutilMagic.SQLiteBusyTimeout
 	// Local constants for this provider.
-	defaultPingTimeout       = 5 * time.Second
-	sqliteMaxOpenConnections = 1
-	randSuffixMax            = int64(10000)
+	defaultPingTimeout       = cryptoutilMagic.DBPingTimeout
+	sqliteMaxOpenConnections = cryptoutilMagic.SQLiteMaxOpenConnections
+	randSuffixMax            = cryptoutilMagic.DBRandSuffixMax
 )
 
 type SQLRepository struct {

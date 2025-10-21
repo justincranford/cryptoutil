@@ -14,4 +14,6 @@ const (
 	Timeout10Seconds = 10
 	// Timeout5Seconds - 5 seconds timeout for memory and host ID operations.
 	Timeout5Seconds = 5
+	// Timeout100Milliseconds - 100 milliseconds timeout for brief backoff operations.
+	Timeout100Milliseconds = 100
 )

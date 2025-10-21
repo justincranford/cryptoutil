@@ -12,6 +12,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 const (
@@ -88,7 +90,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 					default:
 						// For other errors, log and retry with backoff
 						log.Printf("error accepting connection (will retry): %v", err)
-						time.Sleep(100 * time.Millisecond) // Brief backoff on errors
+						time.Sleep(cryptoutilMagic.Timeout100Milliseconds * time.Millisecond) // Brief backoff on errors
 
 						continue
 					}

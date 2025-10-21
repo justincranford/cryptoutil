@@ -6,6 +6,7 @@ import (
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"gorm.io/gorm"
@@ -13,6 +14,18 @@ import (
 	googleUuid "github.com/google/uuid"
 	"github.com/lib/pq"
 	"modernc.org/sqlite"
+)
+
+// Database error code constants (SQLite numeric codes and Postgres SQLSTATE strings).
+const (
+	sqliteErrUniqueConstraint = cryptoutilMagic.SQLiteErrUniqueConstraint
+	sqliteErrForeignKey       = cryptoutilMagic.SQLiteErrForeignKey
+	sqliteErrCheckConstraint  = cryptoutilMagic.SQLiteErrCheckConstraint
+
+	pgCodeUniqueViolation      = cryptoutilMagic.PGCodeUniqueViolation
+	pgCodeForeignKeyViolation  = cryptoutilMagic.PGCodeForeignKeyViolation
+	pgCodeCheckViolation       = cryptoutilMagic.PGCodeCheckViolation
+	pgCodeStringDataTruncation = cryptoutilMagic.PGCodeStringDataTruncation
 )
 
 // Service-Repository calls
@@ -30,18 +43,6 @@ var (
 	ErrFailedToGetMaterialKeys                              = "failed to get Material Keys"
 	ErrFailedToGetMaterialKeyByElasticKeyIDAndMaterialKeyID = "failed to get Material Key by Elastic Key ID and Material Key ID"
 	ErrFailedToGetLatestMaterialKeyByElasticKeyID           = "failed to get latest Material Key by Elastic Key ID"
-)
-
-// Database error code constants (SQLite numeric codes and Postgres SQLSTATE strings).
-const (
-	sqliteErrUniqueConstraint = 2067
-	sqliteErrForeignKey       = 787
-	sqliteErrCheckConstraint  = 1299
-
-	pgCodeUniqueViolation      = "23505"
-	pgCodeForeignKeyViolation  = "23503"
-	pgCodeCheckViolation       = "23514"
-	pgCodeStringDataTruncation = "22001"
 )
 
 func (tx *OrmTransaction) AddElasticKey(elasticKey *ElasticKey) error {

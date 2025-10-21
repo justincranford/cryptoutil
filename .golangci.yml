@@ -104,9 +104,7 @@ linters-settings:
       - 'scripts/.*\.go'
     ignored-functions:
       - 'math.*'
-      - 'http.StatusText'
       - 'len'
-      - 'time\.Sleep'
       - 'make'
 
   dupl:

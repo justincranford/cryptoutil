@@ -4,19 +4,20 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
 )
 
 const (
-	gormLoggerSlowThreshold             = 200 * time.Millisecond
+	gormLoggerSlowThreshold             = cryptoutilMagic.DBLoggerSlowThreshold
 	gormLoggerLogLevel                  = logger.Info
 	gormLoggerIgnoreRecordNotFoundError = false
 	gormLoggerColorful                  = true
