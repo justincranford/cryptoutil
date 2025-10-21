@@ -12,27 +12,13 @@ import (
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-)
-
-const (
-	// Key sizes in bits.
-	rsa4096KeySizeBits = 4096
-	rsa3072KeySizeBits = 3072
-	rsa2048KeySizeBits = 2048
-	hmac512KeySizeBits = 512
-	hmac384KeySizeBits = 384
-	aes256KeySizeBits  = 256 // used as hmac256KeySizeBits too.
-	aes192KeySizeBits  = 192
-	aes128KeySizeBits  = 128
-
-	// Conversion factor.
-	bitsToBytes = 8
 )
 
 var (
@@ -251,11 +237,11 @@ func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 
 	switch *alg {
 	case cryptoutilOpenapiModel.RSA4096:
-		return validateOrGenerateRSAJWK(key, rsa4096KeySizeBits)
+		return validateOrGenerateRSAJWK(key, cryptoutilMagic.RSAKeySize4096)
 	case cryptoutilOpenapiModel.RSA3072:
-		return validateOrGenerateRSAJWK(key, rsa3072KeySizeBits)
+		return validateOrGenerateRSAJWK(key, cryptoutilMagic.RSAKeySize3072)
 	case cryptoutilOpenapiModel.RSA2048:
-		return validateOrGenerateRSAJWK(key, rsa2048KeySizeBits)
+		return validateOrGenerateRSAJWK(key, cryptoutilMagic.RSAKeySize2048)
 	case cryptoutilOpenapiModel.ECP521:
 		return validateOrGenerateEcdsaJWK(key, elliptic.P521())
 	case cryptoutilOpenapiModel.ECP384:
@@ -265,15 +251,15 @@ func validateJWKHeaders2(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Gener
 	case cryptoutilOpenapiModel.OKPEd25519:
 		return validateOrGenerateEddsaJWK(key, "Ed25519")
 	case cryptoutilOpenapiModel.Oct512:
-		return validateOrGenerateHMACJWK(key, hmac512KeySizeBits)
+		return validateOrGenerateHMACJWK(key, cryptoutilMagic.HMACKeySize512)
 	case cryptoutilOpenapiModel.Oct384:
-		return validateOrGenerateHMACJWK(key, hmac384KeySizeBits)
+		return validateOrGenerateHMACJWK(key, cryptoutilMagic.HMACKeySize384)
 	case cryptoutilOpenapiModel.Oct256:
-		return validateOrGenerateAESJWK(key, aes256KeySizeBits)
+		return validateOrGenerateAESJWK(key, cryptoutilMagic.AESKeySize256)
 	case cryptoutilOpenapiModel.Oct192:
-		return validateOrGenerateAESJWK(key, aes192KeySizeBits)
+		return validateOrGenerateAESJWK(key, cryptoutilMagic.AESKeySize192)
 	case cryptoutilOpenapiModel.Oct128:
-		return validateOrGenerateAESJWK(key, aes128KeySizeBits)
+		return validateOrGenerateAESJWK(key, cryptoutilMagic.AESKeySize128)
 	default:
 		return nil, fmt.Errorf("unsupported JWK alg: %v", alg)
 	}
@@ -296,7 +282,7 @@ func validateOrGenerateRSAJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (*cry
 		rsaPrivateKey, ok := keyPair.Private.(*rsa.PrivateKey)
 		if !ok {
 			return nil, fmt.Errorf("invalid key type %T; use *rsa.PrivateKey", keyPair.Private)
-		} else if rsaPrivateKey == nil {
+		} else if rsaPrivateKey == nil { // pragma: allowlist secret
 			return nil, fmt.Errorf("invalid nil RSA private key")
 		}
 
@@ -328,7 +314,7 @@ func validateOrGenerateEcdsaJWK(key cryptoutilKeyGen.Key, curve elliptic.Curve) 
 		rsaPrivateKey, ok := keyPair.Private.(*ecdsa.PrivateKey)
 		if !ok {
 			return nil, fmt.Errorf("invalid key type %T; use *ecdsa.PrivateKey", keyPair.Private)
-		} else if rsaPrivateKey == nil {
+		} else if rsaPrivateKey == nil { // pragma: allowlist secret
 			return nil, fmt.Errorf("invalid nil ECDSA private key")
 		}
 
@@ -360,7 +346,7 @@ func validateOrGenerateEddsaJWK(key cryptoutilKeyGen.Key, curve string) (*crypto
 		rsaPrivateKey, ok := keyPair.Private.(ed25519.PrivateKey)
 		if !ok {
 			return nil, fmt.Errorf("invalid key type %T; use ed25519.PrivateKey", keyPair.Private)
-		} else if rsaPrivateKey == nil {
+		} else if rsaPrivateKey == nil { // pragma: allowlist secret
 			return nil, fmt.Errorf("invalid nil Ed29919 private key")
 		}
 
@@ -389,7 +375,7 @@ func validateOrGenerateHMACJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cry
 			return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
 		} else if hmacKey == nil {
 			return nil, fmt.Errorf("invalid nil key bytes")
-		} else if len(hmacKey) != keyBitsLength/bitsToBytes {
+		} else if len(hmacKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
 			return nil, fmt.Errorf("invalid key length %d; use HMAC %d", len(hmacKey), keyBitsLength)
 		}
 
@@ -411,7 +397,7 @@ func validateOrGenerateAESJWK(key cryptoutilKeyGen.Key, keyBitsLength int) (cryp
 			return nil, fmt.Errorf("invalid key type %T; use cryptoKeygen.SecretKey", key) // pragma: allowlist secret
 		} else if aesKey == nil {
 			return nil, fmt.Errorf("invalid nil key bytes")
-		} else if len(aesKey) != keyBitsLength/bitsToBytes {
+		} else if len(aesKey) != keyBitsLength/cryptoutilMagic.BitsToBytes {
 			return nil, fmt.Errorf("invalid key length %d; use AES %d", len(aesKey), keyBitsLength)
 		}
 

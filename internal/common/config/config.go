@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -14,72 +13,64 @@ import (
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 const (
-	httpProtocol  = "http"
-	httpsProtocol = "https"
+	httpProtocol  = cryptoutilMagic.StringProtocolHTTP
+	httpsProtocol = cryptoutilMagic.StringProtocolHTTPS
 
-	localhost                 = "localhost"
-	ipv4Loopback              = "127.0.0.1"
-	ipv6Loopback              = "::1"
-	ipv4MappedIPv6Loopback    = "::ffff:127.0.0.1"
-	ipv6LoopbackURL           = "[::1]"
-	ipv4MappedIPv6LoopbackURL = "[::ffff:127.0.0.1]"
+	localhost                 = cryptoutilMagic.StringLocalhost
+	ipv4Loopback              = cryptoutilMagic.StringIPv4Loopback
+	ipv6Loopback              = cryptoutilMagic.StringIPv6Loopback
+	ipv4MappedIPv6Loopback    = cryptoutilMagic.StringIPv4MappedIPv6Loopback
+	ipv6LoopbackURL           = cryptoutilMagic.StringIPv6LoopbackURL
+	ipv4MappedIPv6LoopbackURL = cryptoutilMagic.StringIPv4MappedIPv6LoopbackURL
 
-	localhostCIDRv4        = "127.0.0.0/8"
-	linkLocalCIDRv4        = "169.254.0.0/16"
-	privateLANClassACIDRv4 = "10.0.0.0/8"
-	privateLANClassBCIDRv4 = "172.16.0.0/12"
-	privateLANClassCCIDRv4 = "192.168.0.0/16"
-
-	localhostCIDRv6  = "::1/128"
-	linkLocalCIDRv6  = "fe80::/10"
-	privateLANCIDRv6 = "fc00::/7"
-
-	defaultLogLevel           = "INFO"        // Balanced verbosity: shows important events without being overwhelming
-	defaultBindPublicProtocol = httpsProtocol // HTTPS by default for security in production environments
-	defaultBindPublicAddress  = ipv4Loopback  // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
+	defaultLogLevel           = cryptoutilMagic.StringLogLevelInfo  // Balanced verbosity: shows important events without being overwhelming
+	defaultBindPublicProtocol = cryptoutilMagic.StringProtocolHTTPS // HTTPS by default for security in production environments
+	defaultBindPublicAddress  = cryptoutilMagic.StringIPv4Loopback  // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
 	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
 	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
-	defaultBindPublicPort      = uint16(8080)  // Standard HTTP/HTTPS port, well-known and commonly available
-	defaultBindPrivateProtocol = httpsProtocol // HTTPS for private API security, even in service-to-service communication
-	defaultBindPrivateAddress  = ipv4Loopback  // IPv4 loopback for private API, only accessible from same machine
+	defaultBindPublicPort      = cryptoutilMagic.PortDefaultBrowserAPI // Standard HTTP/HTTPS port, well-known and commonly available
+	defaultBindPrivateProtocol = cryptoutilMagic.StringProtocolHTTPS   // HTTPS for private API security, even in service-to-service communication
+	defaultBindPrivateAddress  = cryptoutilMagic.StringIPv4Loopback    // IPv4 loopback for private API, only accessible from same machine
 	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
 	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
-	defaultBindPrivatePort             = uint16(9090)                                           // Non-standard port to avoid conflicts with other services
-	defaultPublicBrowserAPIContextPath = "/browser/api/v1"                                      // RESTful API versioning, separates browser from service APIs
-	defaultPublicServiceAPIContextPath = "/service/api/v1"                                      // RESTful API versioning, separates service from browser APIs
-	defaultCORSMaxAge                  = uint16(3600)                                           // 1 hour cache for CORS preflight requests, balances performance and freshness
-	defaultCSRFTokenName               = "_csrf"                                                // Standard CSRF token name, widely recognized by frameworks
-	defaultCSRFTokenSameSite           = "Strict"                                               // Strict SameSite prevents CSRF while maintaining usability
-	defaultCSRFTokenMaxAge             = 1 * time.Hour                                          // 1 hour expiration balances security and user experience
-	defaultCSRFTokenCookieSecure       = true                                                   // Secure cookies in production prevent MITM attacks
-	defaultCSRFTokenCookieHTTPOnly     = false                                                  // False allows JavaScript access for form submissions (Swagger UI workaround)
-	defaultCSRFTokenCookieSessionOnly  = true                                                   // Session-only prevents persistent tracking while maintaining security
-	defaultCSRFTokenSingleUseToken     = false                                                  // Reusable tokens for better UX, can be changed for high-security needs
-	defaultRequestBodyLimit            = int(2 << 20)                                           // 2MB limit prevents large payload attacks while allowing reasonable API usage
-	defaultBrowserIPRateLimit          = uint16(100)                                            // More lenient rate limit for browser APIs (user interactions)
-	defaultServiceIPRateLimit          = uint16(25)                                             // More restrictive rate limit for service APIs (automated systems)
-	defaultMaxIPRateLimit              = uint16(10000)                                          // Maximum allowed rate limit to prevent performance issues
-	defaultDatabaseContainer           = "disabled"                                             // Disabled by default to avoid unexpected container dependencies
-	defaultDatabaseURL                 = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
-	defaultDatabaseInitTotalTimeout    = 5 * time.Minute                                        // 5 minutes allows for container startup while preventing indefinite waits
-	defaultDatabaseInitRetryWait       = 1 * time.Second                                        // 1 second retry interval balances responsiveness and resource usage
-	defaultServerShutdownTimeout       = 5 * time.Second                                        // 5 seconds allows graceful shutdown while preventing indefinite waits
-	defaultHelp                        = false
-	defaultVerboseMode                 = false
-	defaultDevMode                     = false
-	defaultDryRun                      = false
-	defaultProfile                     = "" // Empty means no profile, use explicit configuration
-	defaultOTLP                        = false
-	defaultOTLPConsole                 = false
-	defaultOTLPService                 = "cryptoutil"
-	defaultOTLPVersion                 = "0.0.1"
-	defaultOTLPEnvironment             = "dev"
-	defaultOTLPHostname                = "localhost"
-	defaultOTLPEndpoint                = "grpc://127.0.0.1:4317" // GRPC preferred over HTTP for performance
-	defaultUnsealMode                  = "sysinfo"
+	defaultBindPrivatePort             = cryptoutilMagic.PortDefaultAdminAPI               // Non-standard port to avoid conflicts with other services
+	defaultPublicBrowserAPIContextPath = cryptoutilMagic.StringPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
+	defaultPublicServiceAPIContextPath = cryptoutilMagic.StringPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
+	defaultCORSMaxAge                  = cryptoutilMagic.CountCORSMaxAge                   // 1 hour cache for CORS preflight requests, balances performance and freshness
+	defaultCSRFTokenName               = cryptoutilMagic.StringCSRFTokenName               // Standard CSRF token name, widely recognized by frameworks
+	defaultCSRFTokenSameSite           = cryptoutilMagic.StringCSRFTokenSameSiteStrict     // Strict SameSite prevents CSRF while maintaining usability
+	defaultCSRFTokenMaxAge             = cryptoutilMagic.TimeoutCSRFTokenMaxAge            // 1 hour expiration balances security and user experience
+	defaultCSRFTokenCookieSecure       = cryptoutilMagic.BoolCSRFTokenCookieSecure         // Secure cookies in production prevent MITM attacks
+	defaultCSRFTokenCookieHTTPOnly     = cryptoutilMagic.BoolCSRFTokenCookieHTTPOnly       // False allows JavaScript access for form submissions (Swagger UI workaround)
+	defaultCSRFTokenCookieSessionOnly  = cryptoutilMagic.BoolCSRFTokenCookieSessionOnly    // Session-only prevents persistent tracking while maintaining security
+	defaultCSRFTokenSingleUseToken     = cryptoutilMagic.BoolCSRFTokenSingleUseToken       // Reusable tokens for better UX, can be changed for high-security needs
+	defaultRequestBodyLimit            = cryptoutilMagic.CountRequestBodyLimit             // 2MB limit prevents large payload attacks while allowing reasonable API usage
+	defaultBrowserIPRateLimit          = cryptoutilMagic.RateLimitBrowserIPDefault         // More lenient rate limit for browser APIs (user interactions)
+	defaultServiceIPRateLimit          = cryptoutilMagic.RateLimitServiceIPDefault         // More restrictive rate limit for service APIs (automated systems)
+	defaultMaxIPRateLimit              = cryptoutilMagic.RateLimitMaxIP                    // Maximum allowed rate limit to prevent performance issues
+	defaultDatabaseContainer           = cryptoutilMagic.StringDatabaseContainerDisabled   // Disabled by default to avoid unexpected container dependencies
+	defaultDatabaseURL                 = cryptoutilMagic.StringDatabaseURLDefault          // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
+	defaultDatabaseInitTotalTimeout    = cryptoutilMagic.DBInitTotalTimeout                // 5 minutes allows for container startup while preventing indefinite waits
+	defaultDatabaseInitRetryWait       = cryptoutilMagic.DBInitRetryWait                   // 1 second retry interval balances responsiveness and resource usage
+	defaultServerShutdownTimeout       = cryptoutilMagic.DBServerShutdownTimeout           // 5 seconds allows graceful shutdown while preventing indefinite waits
+	defaultHelp                        = cryptoutilMagic.BoolDefaultHelp
+	defaultVerboseMode                 = cryptoutilMagic.BoolDefaultVerboseMode
+	defaultDevMode                     = cryptoutilMagic.BoolDefaultDevMode
+	defaultDryRun                      = cryptoutilMagic.BoolDefaultDryRun
+	defaultProfile                     = cryptoutilMagic.StringEmpty // Empty means no profile, use explicit configuration
+	defaultOTLP                        = cryptoutilMagic.BoolDefaultOTLP
+	defaultOTLPConsole                 = cryptoutilMagic.BoolDefaultOTLPConsole
+	defaultOTLPService                 = cryptoutilMagic.StringOTLPServiceDefault
+	defaultOTLPVersion                 = cryptoutilMagic.StringOTLPVersionDefault
+	defaultOTLPEnvironment             = cryptoutilMagic.StringOTLPEnvironmentDefault
+	defaultOTLPHostname                = cryptoutilMagic.StringOTLPHostnameDefault
+	defaultOTLPEndpoint                = cryptoutilMagic.StringOTLPEndpointDefault // GRPC preferred over HTTP for performance
+	defaultUnsealMode                  = cryptoutilMagic.StringUnsealModeSysinfo
 )
 
 // Configuration profiles for common deployment scenarios.
@@ -149,60 +140,30 @@ var profiles = map[string]map[string]any{
 	},
 }
 
-var defaultBindPostString = strconv.Itoa(int(registerAsUint16Setting(&bindPublicPort)))
+var defaultCORSAllowedOrigins = cryptoutilMagic.SliceDefaultCORSAllowedOrigins
 
-var defaultCORSAllowedOrigins = []string{
-	httpProtocol + "://" + localhost + ":" + defaultBindPostString,
-	httpProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-	httpProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
-	httpProtocol + "://" + ipv4MappedIPv6LoopbackURL + ":" + defaultBindPostString,
-	httpsProtocol + "://" + localhost + ":" + defaultBindPostString,
-	httpsProtocol + "://" + ipv4Loopback + ":" + defaultBindPostString,
-	httpsProtocol + "://" + ipv6LoopbackURL + ":" + defaultBindPostString,
-	httpsProtocol + "://" + ipv4MappedIPv6LoopbackURL + ":" + defaultBindPostString,
-}
+var defaultAllowedIps = cryptoutilMagic.SliceDefaultAllowedIPs
 
-var defaultAllowedIps = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
+var defaultTLSPublicDNSNames = cryptoutilMagic.SliceDefaultTLSPublicDNSNames
 
-var defaultTLSPublicDNSNames = []string{localhost}
+var defaultTLSPublicIPAddresses = cryptoutilMagic.SliceDefaultTLSPublicIPAddresses
 
-var defaultTLSPublicIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
+var defaultTLSPrivateDNSNames = cryptoutilMagic.SliceDefaultTLSPrivateDNSNames
 
-var defaultTLSPrivateDNSNames = []string{localhost}
+var defaultTLSPrivateIPAddresses = cryptoutilMagic.SliceDefaultTLSPrivateIPAddresses
 
-var defaultTLSPrivateIPAddresses = []string{ipv4Loopback, ipv6Loopback, ipv4MappedIPv6Loopback}
+var defaultAllowedCIDRs = cryptoutilMagic.SliceDefaultAllowedCIDRs
 
-var defaultAllowedCIDRs = []string{
-	localhostCIDRv4,
-	linkLocalCIDRv4,
-	privateLANClassACIDRv4,
-	privateLANClassBCIDRv4,
-	privateLANClassCCIDRv4,
-	localhostCIDRv6,
-	linkLocalCIDRv6,
-	privateLANCIDRv6,
-}
+var defaultCORSAllowedMethods = cryptoutilMagic.SliceDefaultCORSAllowedMethods
 
-var defaultCORSAllowedMethods = []string{"POST", "GET", "PUT", "DELETE", "OPTIONS"}
-
-var defaultCORSAllowedHeaders = []string{
-	"Content-Type",
-	"Authorization",
-	"Accept",
-	"Origin",
-	"X-Requested-With",
-	"Cache-Control",
-	"Pragma",
-	"Expires",
-	"_csrf",
-}
+var defaultCORSAllowedHeaders = cryptoutilMagic.SliceDefaultCORSAllowedHeaders
 
 var defaultOTLPInstance = func() string {
 	return googleUuid.Must(googleUuid.NewV7()).String()
 }()
-var defaultUnsealFiles = []string{}
+var defaultUnsealFiles = cryptoutilMagic.SliceDefaultUnsealFiles
 
-var defaultConfigFiles = []string{}
+var defaultConfigFiles = cryptoutilMagic.SliceDefaultConfigFiles
 
 // set of valid subcommands.
 var subcommands = map[string]struct{}{

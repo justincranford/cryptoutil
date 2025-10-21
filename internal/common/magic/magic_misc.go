@@ -53,4 +53,24 @@ const (
 	LogLevelWarn = 4
 	// LogLevelMax - Maximum log level.
 	LogLevelMax = math.MaxInt
+	// BoolDefaultHelp - Default help flag value.
+	BoolDefaultHelp = false
+	// BoolDefaultVerboseMode - Default verbose mode flag value.
+	BoolDefaultVerboseMode = false
+	// BoolDefaultDevMode - Default dev mode flag value.
+	BoolDefaultDevMode = false
+	// BoolDefaultDryRun - Default dry run flag value.
+	BoolDefaultDryRun = false
+	// BoolDefaultOTLP - Default OTLP flag value.
+	BoolDefaultOTLP = false
+	// BoolDefaultOTLPConsole - Default OTLP console flag value.
+	BoolDefaultOTLPConsole = false
+	// BoolCSRFTokenCookieSecure - Default CSRF token cookie secure flag.
+	BoolCSRFTokenCookieSecure = true
+	// BoolCSRFTokenCookieHTTPOnly - Default CSRF token cookie HTTPOnly flag.
+	BoolCSRFTokenCookieHTTPOnly = false
+	// BoolCSRFTokenCookieSessionOnly - Default CSRF token cookie session only flag.
+	BoolCSRFTokenCookieSessionOnly = true
+	// BoolCSRFTokenSingleUseToken - Default CSRF token single use flag.
+	BoolCSRFTokenSingleUseToken = false
 )

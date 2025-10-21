@@ -3,15 +3,13 @@ package container
 import (
 	"context"
 	"fmt"
-	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
-
-const postgresContainerStartupTimeout = 30 * time.Second
 
 func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
 	postgresContainerRequest := testcontainers.ContainerRequest{
@@ -19,7 +17,7 @@ func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.Te
 		ExposedPorts: []string{"5432/tcp"},
 		Env:          map[string]string{"POSTGRES_DB": dbName, "POSTGRES_USER": dbUsername, "POSTGRES_PASSWORD": dbPassword},
 		// WaitingFor:   wait.ForListeningPort("5432/tcp").WithStartupTimeout(postgresContainerStartupTimeout),
-		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(postgresContainerStartupTimeout),
+		WaitingFor: wait.ForLog("database system is ready to accept connections").WithStartupTimeout(cryptoutilMagic.DBPostgresContainerStartupTimeout),
 	}
 
 	container, terminateContainer, err := StartContainer(ctx, telemetryService, postgresContainerRequest)

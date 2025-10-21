@@ -14,6 +14,7 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
@@ -38,8 +39,8 @@ var (
 	testTelemetryService         *cryptoutilTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
 	happyPathSize                = []uint32{1, 3}
-	happyPathMaxLifetimeKeys     = []uint64{1, cryptoutilPool.MaxLifetimeValues}
-	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilPool.MaxLifetimeDuration}
+	happyPathMaxLifetimeKeys     = []uint64{1, cryptoutilMagic.MaxLifetimeValues}
+	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilMagic.MaxLifetimeDuration}
 	happyPathGets                = []uint64{0, 1, 3}
 	happyPathTestCases           = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))

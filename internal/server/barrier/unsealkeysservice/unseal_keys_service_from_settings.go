@@ -7,19 +7,12 @@ import (
 	"strings"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"
 
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-)
-
-const (
-	MaxFiles        = 9
-	MaxBytesPerFile = 4096
-
-	// Random bytes length for dev mode unseal key.
-	devModeRandomBytesLength = 64
 )
 
 type UnsealKeysServiceFromSettings struct {
@@ -40,7 +33,7 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
-		randomBytes, err := cryptoutilUtil.GenerateBytes(devModeRandomBytesLength)
+		randomBytes, err := cryptoutilUtil.GenerateBytes(cryptoutilMagic.CountDevModeRandomBytesLength)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
 		}
@@ -79,7 +72,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid M-of-N values in unseal mode %s: M must be > 0, N must be >= M", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, MaxFiles, MaxBytesPerFile)
+		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.CountMaxFiles, cryptoutilMagic.CountMaxBytesPerFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {
@@ -97,7 +90,7 @@ func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cry
 			return nil, fmt.Errorf("invalid unseal mode %s: N must be > 0", settings.UnsealMode)
 		}
 
-		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, MaxFiles, MaxBytesPerFile)
+		filesContents, err := cryptoutilUtil.ReadFilesBytesLimit(settings.UnsealFiles, cryptoutilMagic.CountMaxFiles, cryptoutilMagic.CountMaxBytesPerFile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read shared secrets files: %w", err)
 		} else if len(filesContents) != n {

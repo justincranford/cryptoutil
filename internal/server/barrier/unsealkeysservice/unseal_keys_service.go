@@ -6,15 +6,11 @@ import (
 	cryptoutilDigests "cryptoutil/internal/common/crypto/digests"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilCombinations "cryptoutil/internal/common/util/combinations"
 
 	googleUuid "github.com/google/uuid"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-)
-
-const (
-	// Derived key size in bytes for HKDF.
-	derivedKeySizeBytes = 32
 )
 
 type UnsealKeysService interface {
@@ -45,7 +41,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		derivedSecretKeyBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("secret")...))
 		derivedSaltBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("salt")...))
 
-		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, derivedKeySizeBytes)
+		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, cryptoutilMagic.CountDerivedKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive key: %w", err)
 		}

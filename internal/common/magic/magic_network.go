@@ -5,19 +5,19 @@ package magic
 // Network ports.
 const (
 	// PortHTTPS - Standard HTTPS port.
-	PortHTTPS = 443
+	PortHTTPS uint16 = 443
 	// PortDefaultBrowserAPI - Default browser/server API port.
-	PortDefaultBrowserAPI = 8080
+	PortDefaultBrowserAPI uint16 = 8080
 	// PortCryptoutilPostgres1 - Port for cryptoutil postgres instance 1.
-	PortCryptoutilPostgres1 = 8081
+	PortCryptoutilPostgres1 uint16 = 8081
 	// PortCryptoutilPostgres2 - Port for cryptoutil postgres instance 2.
-	PortCryptoutilPostgres2 = 8082
+	PortCryptoutilPostgres2 uint16 = 8082
 	// PortDefaultAdminAPI - Default admin API port.
-	PortDefaultAdminAPI = 9090
+	PortDefaultAdminAPI uint16 = 9090
 	// PortGrafana - Default Grafana port.
-	PortGrafana = 3000
+	PortGrafana uint16 = 3000
 	// PortOtelCollector - Default OpenTelemetry collector port.
-	PortOtelCollector = 8888
+	PortOtelCollector uint16 = 8888
 )
 
 // Network URLs and prefixes.
@@ -31,7 +31,13 @@ const (
 // Rate limiting defaults.
 const (
 	// RateLimitBrowserIP - Default browser IP rate limit.
-	RateLimitBrowserIP = 1000
+	RateLimitBrowserIP uint16 = 1000
 	// RateLimitServiceIP - Default service IP rate limit.
-	RateLimitServiceIP = 500
+	RateLimitServiceIP uint16 = 500
+	// RateLimitBrowserIPDefault - Default browser IP rate limit (100 requests/second).
+	RateLimitBrowserIPDefault uint16 = 100
+	// RateLimitServiceIPDefault - Default service IP rate limit (25 requests/second).
+	RateLimitServiceIPDefault uint16 = 25
+	// RateLimitMaxIP - Maximum allowed IP rate limit.
+	RateLimitMaxIP uint16 = 10000
 )

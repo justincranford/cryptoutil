@@ -3,18 +3,9 @@ package unsealkeysservice
 import (
 	"fmt"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-)
-
-const (
-	// Maximum number of shared secrets allowed.
-	maxSharedSecrets = 256
-
-	// Minimum shared secret length in bytes.
-	minSharedSecretLength = 32
-
-	// Maximum shared secret length in bytes.
-	maxSharedSecretLength = 64
 )
 
 type UnsealKeysServiceSharedSecrets struct {
@@ -49,8 +40,8 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 	countM := len(sharedSecretsM) // pragma: allowlist secret
 	if countM == 0 {
 		return nil, fmt.Errorf("shared secrets can't be zero") // pragma: allowlist secret
-	} else if countM >= maxSharedSecrets { // pragma: allowlist secret
-		return nil, fmt.Errorf("shared secrets can't be greater than %d", maxSharedSecrets) // pragma: allowlist secret
+	} else if countM >= cryptoutilMagic.CountMaxSharedSecrets { // pragma: allowlist secret
+		return nil, fmt.Errorf("shared secrets can't be greater than %d", cryptoutilMagic.CountMaxSharedSecrets) // pragma: allowlist secret
 	} else if chooseN == 0 {
 		return nil, fmt.Errorf("n can't be zero")
 	} else if chooseN < 0 {
@@ -62,10 +53,10 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 	for i, sharedSecret := range sharedSecretsM { // pragma: allowlist secret
 		if sharedSecret == nil { // pragma: allowlist secret
 			return nil, fmt.Errorf("shared secret %d can't be nil", i) // pragma: allowlist secret
-		} else if len(sharedSecret) < minSharedSecretLength { // pragma: allowlist secret
-			return nil, fmt.Errorf("shared secret %d length can't be less than %d", i, minSharedSecretLength) // pragma: allowlist secret
-		} else if len(sharedSecret) > maxSharedSecretLength { // pragma: allowlist secret
-			return nil, fmt.Errorf("shared secret %d length can't be greater than %d", i, maxSharedSecretLength) // pragma: allowlist secret
+		} else if len(sharedSecret) < cryptoutilMagic.CountMinSharedSecretLength { // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d length can't be less than %d", i, cryptoutilMagic.CountMinSharedSecretLength) // pragma: allowlist secret
+		} else if len(sharedSecret) > cryptoutilMagic.CountMaxSharedSecretLength { // pragma: allowlist secret
+			return nil, fmt.Errorf("shared secret %d length can't be greater than %d", i, cryptoutilMagic.CountMaxSharedSecretLength) // pragma: allowlist secret
 		}
 	}
 

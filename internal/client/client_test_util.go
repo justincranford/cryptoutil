@@ -13,12 +13,9 @@ import (
 
 	cryptoutilOpenapiClient "cryptoutil/api/client"
 	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
-)
-
-const (
-	httpHealthRequestTimeout = 5 * time.Second
 )
 
 var oamOacMapperInstance = NewOamOacMapper()
@@ -46,13 +43,13 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/livez"
 
-	return httpGet(&url, httpHealthRequestTimeout, rootCAsPool)
+	return httpGet(&url, cryptoutilMagic.TimeoutHTTPHealthRequest, rootCAsPool)
 }
 
 func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
 	url := *baseURL + "/readyz"
 
-	return httpGet(&url, httpHealthRequestTimeout, rootCAsPool)
+	return httpGet(&url, cryptoutilMagic.TimeoutHTTPHealthRequest, rootCAsPool)
 }
 
 func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) error {

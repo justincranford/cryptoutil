@@ -14,11 +14,7 @@ import (
 	"time"
 
 	"cryptoutil/internal/common/crypto/keygen"
-)
-
-const (
-	// Certificate validity randomization range in minutes.
-	certificateRandomizationRangeMinutes = 120
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 type KeyMaterial struct {
@@ -64,7 +60,7 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string, du
 			subjects[i], err = CreateCASubject(nil, nil, subjectName, keyPairs[i], duration, i)
 		} else {
 			subjects[i], err = CreateCASubject(subjects[i+1], subjects[i+1].KeyMaterial.PrivateKey, subjectName, keyPairs[i], duration, i)
-			subjects[i+1].KeyMaterial.PrivateKey = nil
+			subjects[i+1].KeyMaterial.PrivateKey = nil // pragma: allowlist secret
 		}
 
 		if err != nil {
@@ -76,9 +72,9 @@ func CreateCASubjects(keyPairs []*keygen.KeyPair, caSubjectNamePrefix string, du
 }
 
 func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey, subjectName string, subjectKeyPair *keygen.KeyPair, duration time.Duration, maxPathLen int) (*Subject, error) {
-	if issuerSubject == nil && issuerPrivateKey != nil {
+	if issuerSubject == nil && issuerPrivateKey != nil { // pragma: allowlist secret
 		return nil, fmt.Errorf("issuerSubject is nil but issuerPrivateKey is not nil for CA %s", subjectName)
-	} else if issuerSubject != nil && issuerPrivateKey == nil {
+	} else if issuerSubject != nil && issuerPrivateKey == nil { // pragma: allowlist secret
 		return nil, fmt.Errorf("issuerSubject is not nil but issuerPrivateKey is nil for CA %s", subjectName)
 	} else if len(subjectName) == 0 {
 		return nil, fmt.Errorf("subjectName should not be empty for CA %s", subjectName)
@@ -98,10 +94,10 @@ func CreateCASubject(issuerSubject *Subject, issuerPrivateKey crypto.PrivateKey,
 
 	var issuerCertificate *x509.Certificate
 
-	if issuerPrivateKey == nil || issuerSubject == nil {
+	if issuerPrivateKey == nil || issuerSubject == nil { // pragma: allowlist secret
 		issuerName = subjectName
 		issuerCertificateChain = []*x509.Certificate{}
-		issuerPrivateKey = subjectKeyPair.Private
+		issuerPrivateKey = subjectKeyPair.Private // pragma: allowlist secret
 	} else {
 		issuerName = issuerSubject.SubjectName
 		issuerCertificateChain = issuerSubject.KeyMaterial.CertificateChain
@@ -167,7 +163,7 @@ func CreateEndEntitySubject(issuingCASubject *Subject, keyPair *keygen.KeyPair, 
 func BuildTLSCertificate(endEntitySubject *Subject) (*tls.Certificate, *x509.CertPool, *x509.CertPool, error) {
 	if len(endEntitySubject.KeyMaterial.CertificateChain) == 0 {
 		return nil, nil, nil, fmt.Errorf("certificate chain is empty")
-	} else if endEntitySubject.KeyMaterial.PrivateKey == nil {
+	} else if endEntitySubject.KeyMaterial.PrivateKey == nil { // pragma: allowlist secret
 		return nil, nil, nil, fmt.Errorf("private key is nil")
 	}
 
@@ -197,7 +193,7 @@ func CertificateTemplateCA(issuerName, subjectName string, duration time.Duratio
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, certificateRandomizationRangeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CountCertificateRandomizationRangeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
@@ -222,7 +218,7 @@ func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, certificateRandomizationRangeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CountCertificateRandomizationRangeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS server: %w", err)
 	}
@@ -387,7 +383,7 @@ func serializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 		keyMaterialEncoded.PEMCertificateChain[i] = toCertificatePEM(certificate.Raw)
 	}
 
-	if includePrivateKey && keyMaterial.PrivateKey != nil {
+	if includePrivateKey && keyMaterial.PrivateKey != nil { // pragma: allowlist secret
 		keyMaterialEncoded.DERPrivateKey, err = x509.MarshalPKCS8PrivateKey(keyMaterial.PrivateKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal private key to DER: %w", err)

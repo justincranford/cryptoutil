@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
@@ -30,8 +31,8 @@ var (
 
 	happyPathWorkers             = []uint32{1, 3, 10}
 	happyPathSize                = []uint32{1, 4, 20}
-	happyPathMaxLifetimeValues   = []uint64{1, 50, MaxLifetimeValues}
-	happyPathMaxLifetimeDuration = []time.Duration{MaxLifetimeDuration}
+	happyPathMaxLifetimeValues   = []uint64{1, 50, cryptoutilMagic.MaxLifetimeValues}
+	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilMagic.MaxLifetimeDuration}
 	happyPathGets                = []uint64{0, 1, 4, 50}
 
 	happyPathTestCases = func() []*TestCase {

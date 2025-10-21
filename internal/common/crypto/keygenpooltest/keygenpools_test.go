@@ -14,6 +14,7 @@ import (
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilPool "cryptoutil/internal/common/pool"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
@@ -23,7 +24,7 @@ const (
 	exampleNumWorkersOther     = 1
 	examplePoolSize            = 3
 	exampleMaxLifetimeKeys     = 3
-	exampleMaxLifetimeDuration = cryptoutilPool.MaxLifetimeDuration
+	exampleMaxLifetimeDuration = cryptoutilMagic.MaxLifetimeDuration
 )
 
 func TestPoolsExample(t *testing.T) {
@@ -114,11 +115,11 @@ func writeKeys(tempDir *string, keys []any) {
 			}
 		}
 
-		secretKey, ok := keyAny.([]byte)
+		secretKey, ok := keyAny.([]byte) // pragma: allowlist secret
 		if ok {
-			if secretKey != nil {
-				secretPEMFilename := baseFilename + "_secret.pem"
-				secretDERFilename := baseFilename + "_secret.der"
+			if secretKey != nil { // pragma: allowlist secret
+				secretPEMFilename := baseFilename + "_secret.pem" // pragma: allowlist secret
+				secretDERFilename := baseFilename + "_secret.der" // pragma: allowlist secret
 
 				err = cryptoutilAsn1.PEMWrite(secretKey, secretPEMFilename)
 				cryptoutilAppErr.RequireNoError(err, "Write failed "+secretPEMFilename)
@@ -163,9 +164,9 @@ func readKeys(tempDir *string, keys []any) {
 
 		secretKey, ok := keyAny.([]byte)
 		if ok {
-			if secretKey != nil {
-				secretPEMFilename := baseFilename + "_secret.pem"
-				secretDERFilename := baseFilename + "_secret.der"
+			if secretKey != nil { // pragma: allowlist secret
+				secretPEMFilename := baseFilename + "_secret.pem" // pragma: allowlist secret
+				secretDERFilename := baseFilename + "_secret.der" // pragma: allowlist secret
 
 				_, err := cryptoutilAsn1.PEMRead(secretPEMFilename)
 				cryptoutilAppErr.RequireNoError(err, "Read failed "+secretPEMFilename)

@@ -6,15 +6,11 @@ import (
 	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 
 	googleUuid "github.com/google/uuid"
-)
-
-const (
-	// Default page size for pagination.
-	defaultPageSize = 25
 )
 
 type oamOrmMapper struct{} // Mapper between OpenAPI Model models and ORM objects
@@ -421,7 +417,7 @@ func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumb
 
 func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
 	if pageSize == nil {
-		return defaultPageSize, nil
+		return cryptoutilMagic.CountDefaultPageSize, nil
 	} else if *pageSize >= 1 {
 		return *pageSize, nil
 	}

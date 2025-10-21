@@ -10,11 +10,11 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	cryptoutilOpenapiModel "cryptoutil/api/model"
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilJose "cryptoutil/internal/common/crypto/jose"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilServerApplication "cryptoutil/internal/server/application"
 
 	joseJwe "github.com/lestrrat-go/jwx/v3/jwe"
@@ -23,11 +23,6 @@ import (
 
 	googleUuid "github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-)
-
-const (
-	testServerReadyTimeout    = 30 * time.Second       // Conservative timeout for server readiness checks during concurrent testing
-	testServerReadyRetryDelay = 500 * time.Millisecond // Retry delay for server readiness polling
 )
 
 var (
@@ -57,7 +52,7 @@ func TestMain(m *testing.M) {
 
 	// Store the root CA pool for use in tests - use public server's pool since tests connect to public API
 	testRootCAsPool = startServerListenerApplication.PublicTLSServer.RootCAsPool
-	WaitUntilReady(&testServerPrivateURL, testServerReadyTimeout, testServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
+	WaitUntilReady(&testServerPrivateURL, cryptoutilMagic.TimeoutTestServerReady, cryptoutilMagic.TimeoutTestServerReadyRetryDelay, startServerListenerApplication.PrivateTLSServer.RootCAsPool)
 
 	os.Exit(m.Run())
 }

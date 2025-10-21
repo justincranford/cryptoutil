@@ -3,27 +3,17 @@ package pool
 import (
 	"context"
 	"fmt"
-	"math"
 	"reflect"
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-)
-
-// useful constants for indefinite pools; use smaller values for finite pools.
-const (
-	maxInt64            = int64(^uint64(0) >> 1)  // Max int64 (= 2^63-1 = 9,223,372,036,854,775,807)
-	MaxLifetimeValues   = uint64(maxInt64)        // Max int64 as uint64
-	MaxLifetimeDuration = time.Duration(maxInt64) // Max int64 as nanoseconds (= 292.47 years)
-
-	// Ticker interval for periodic pool maintenance checks.
-	poolMaintenanceInterval = 500 * time.Millisecond
 )
 
 type ValueGenPool[T any] struct {
@@ -65,10 +55,10 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 
 	// Safe conversion with bounds checking
 	var maxLifetimeValuesInt64 int64
-	if cfg.maxLifetimeValues <= math.MaxInt64 {
+	if cfg.maxLifetimeValues <= cryptoutilMagic.MaxLifetimeValues {
 		maxLifetimeValuesInt64 = int64(cfg.maxLifetimeValues)
 	} else {
-		maxLifetimeValuesInt64 = math.MaxInt64
+		maxLifetimeValuesInt64 = cryptoutilMagic.MaxInt64
 	}
 
 	meter := cfg.telemetryService.MetricsProvider.Meter("cryptoutil.pool."+cfg.poolName, []metric.MeterOption{
@@ -359,8 +349,8 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 	}
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
-	ticker := time.NewTicker(poolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
-	defer func() { ticker.Stop() }()                  //nolint:errcheck
+	ticker := time.NewTicker(cryptoutilMagic.TimeoutPoolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
+	defer func() { ticker.Stop() }()                                         //nolint:errcheck
 
 	for {
 		select {

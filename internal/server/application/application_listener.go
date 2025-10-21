@@ -17,6 +17,7 @@ import (
 	cryptoutilOpenapiServer "cryptoutil/api/server"
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 	cryptoutilNetwork "cryptoutil/internal/common/util/network"
 	cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"
@@ -38,29 +39,28 @@ import (
 )
 
 const (
-	clientShutdownRequestTimeout  = 5 * time.Second
-	clientLivenessRequestTimeout  = 3 * time.Second
-	clientReadinessRequestTimeout = 5 * time.Second
-	clientLivenessStartTimeout    = 200 * time.Millisecond
-	healthCheckTimeout            = 5 * time.Second
-	errorStr                      = "error"
-	statusStr                     = "status"
-	protocolHTTPS                 = "https"
-	statusOK                      = "ok"
-	statusDegraded                = "degraded"
-)
+	serverShutdownRequestPath = cryptoutilMagic.StringShutdownPath
 
-// TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)
-const serverShutdownRequestPath = "/shutdown"
+	protocolHTTP               = cryptoutilMagic.StringProtocolHTTP
+	protocolHTTPS              = cryptoutilMagic.StringProtocolHTTPS
+	fiberAppIDRequestAttribute = "fiberAppID"
+	statusStr                  = cryptoutilMagic.StringStatus
+	errorStr                   = cryptoutilMagic.StringError
+	statusOK                   = cryptoutilMagic.StringStatusOK
+	statusDegraded             = cryptoutilMagic.StringStatusDegraded
 
-const fiberAppIDRequestAttribute = "fiberAppID"
-
-type fiberAppID string
-
-const (
 	fiberAppIDPublic  fiberAppID = "public"
 	fiberAppIDPrivate fiberAppID = "private"
+
+	// healthCheckTimeout is the timeout used for internal health checks.
+	healthCheckTimeout = cryptoutilMagic.TimeoutHealthCheck
+
+	// clientLivenessStartTimeout is a short delay to allow the server to finish
+	// sending the response to the client before beginning shutdown.
+	clientLivenessStartTimeout = cryptoutilMagic.TimeoutClientLivenessStart
 )
+
+type fiberAppID string
 
 var ready atomic.Bool
 
@@ -81,7 +81,7 @@ type TLSServerConfig struct {
 }
 
 func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), clientLivenessRequestTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutClientLivenessRequest)
 	defer cancel()
 
 	_, _, result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
@@ -93,7 +93,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byt
 }
 
 func SendServerListenerReadinessCheck(settings *cryptoutilConfig.Settings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), clientReadinessRequestTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutClientReadinessRequest)
 	defer cancel()
 
 	_, _, result, err := cryptoutilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
@@ -105,7 +105,7 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.Settings) ([]by
 }
 
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	ctx, cancel := context.WithTimeout(context.Background(), clientShutdownRequestTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutClientShutdownRequest)
 	defer cancel()
 
 	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
@@ -715,7 +715,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 		isReadiness := strings.HasSuffix(path, "/readyz")
 
 		healthStatus := map[string]any{
-			"status":    "ok",
+			statusStr:   "ok",
 			"timestamp": time.Now().UTC().Format(time.RFC3339),
 			"service":   "cryptoutil",
 			"version":   "1.0.0", // TODO: Get from build info
@@ -731,26 +731,26 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 
 			// Check if any component is unhealthy for readiness
 			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
-				if status, ok := dbStatus["status"].(string); ok && status != statusOK {
-					healthStatus["status"] = statusDegraded
+				if status, ok := dbStatus[statusStr].(string); ok && status != statusOK {
+					healthStatus[statusStr] = statusDegraded
 				}
 			}
 
 			if depsStatus, ok := healthStatus["dependencies"].(map[string]any); ok {
-				if status, ok := depsStatus["status"].(string); ok && status != statusOK {
-					healthStatus["status"] = statusDegraded
+				if status, ok := depsStatus[statusStr].(string); ok && status != statusOK {
+					healthStatus[statusStr] = statusDegraded
 				}
 			}
 
 			if sidecarStatus, ok := healthStatus["sidecar"].(map[string]any); ok {
-				if status, ok := sidecarStatus["status"].(string); ok && status == "error" {
-					healthStatus["status"] = statusDegraded
+				if status, ok := sidecarStatus[statusStr].(string); ok && status == "error" {
+					healthStatus[statusStr] = statusDegraded
 				}
 			}
 		}
 
 		statusCode := fiber.StatusOK
-		if healthStatus["status"] != statusOK {
+		if healthStatus[statusStr] != statusOK {
 			statusCode = fiber.StatusServiceUnavailable
 		}
 

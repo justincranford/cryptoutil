@@ -62,4 +62,6 @@ const (
 	TimeoutDays30 = 30 * TimeoutDays1
 	// TimeoutDays365 - 365 days duration.
 	TimeoutDays365 = 365 * TimeoutDays1
+	// TimeoutHTTPHealthRequest - HTTP health request timeout.
+	TimeoutHTTPHealthRequest = 5 * time.Second
 )

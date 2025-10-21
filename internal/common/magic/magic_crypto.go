@@ -52,4 +52,25 @@ const (
 	// Serial number bit sizes for cryptographic range.
 	MinSerialNumberBits = 64
 	MaxSerialNumberBits = 159
+
+	// HKDF test constants.
+	HKDFSHA256OutputLength = 32
+	HKDFSHA384OutputLength = 48
+	HKDFSHA512OutputLength = 64
+	HKDFSHA224OutputLength = 28
+	HKDFMaxMultiplier      = 255
+	HKDFSHA256MaxLength    = 8160  // 255 * 32
+	HKDFSHA384MaxLength    = 12240 // 255 * 48
+	HKDFSHA512MaxLength    = 16320 // 255 * 64
+	HKDFSHA224MaxLength    = 7140  // 255 * 28
+
+	// JWE key sizes in bits.
+	JWEA256KeySize   = 256
+	JWEA192KeySize   = 192
+	JWEA128KeySize   = 128
+	JWEA512KeySize   = 512
+	JWEA384KeySize   = 384
+	JWEKEA256KeySize = 256
+	JWEKEA192KeySize = 192
+	JWEKEA128KeySize = 128
 )

@@ -14,19 +14,8 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-const (
-	PEMTypePKCS8PrivateKey = "PRIVATE KEY"         // # pragma: allowlist secret
-	PEMTypePKIXPublicKey   = "PUBLIC KEY"          // # pragma: allowlist secret
-	PEMTypeRSAPrivateKey   = "RSA PRIVATE KEY"     // # pragma: allowlist secret
-	PEMTypeRSAPublicKey    = "RSA PUBLIC KEY"      // # pragma: allowlist secret
-	PEMTypeECPrivateKey    = "EC PRIVATE KEY"      // # pragma: allowlist secret
-	PEMTypeCertificate     = "CERTIFICATE"         // # pragma: allowlist secret
-	PEMTypeCSR             = "CERTIFICATE REQUEST" // # pragma: allowlist secret
-	PEMTypeSecretKey       = "SECRET KEY"          // # pragma: allowlist secret
-)
-
 var PEMTypes = []string{
-	PEMTypePKCS8PrivateKey, PEMTypePKIXPublicKey, PEMTypeRSAPrivateKey, PEMTypeRSAPublicKey, PEMTypeECPrivateKey, PEMTypeCertificate, PEMTypeCSR, PEMTypeSecretKey,
+	cryptoutilMagic.StringPEMTypePKCS8PrivateKey, cryptoutilMagic.StringPEMTypePKIXPublicKey, cryptoutilMagic.StringPEMTypeRSAPrivateKey, cryptoutilMagic.StringPEMTypeRSAPublicKey, cryptoutilMagic.StringPEMTypeECPrivateKey, cryptoutilMagic.StringPEMTypeCertificate, cryptoutilMagic.StringPEMTypeCSR, cryptoutilMagic.StringPEMTypeSecretKey,
 }
 
 func PEMEncodes(keys any) ([][]byte, error) {
@@ -88,25 +77,25 @@ func DEREncode(key any) ([]byte, string, error) {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
 
-		return privateKeyBytes, PEMTypePKCS8PrivateKey, nil
+		return privateKeyBytes, cryptoutilMagic.StringPEMTypePKCS8PrivateKey, nil
 	case *rsa.PublicKey, *ecdsa.PublicKey, ed25519.PublicKey, *ecdh.PublicKey:
 		publicKeyBytes, err := x509.MarshalPKIXPublicKey(x509Type)
 		if err != nil {
 			return nil, "", fmt.Errorf("encode failed: %w", err)
 		}
 
-		return publicKeyBytes, PEMTypePKIXPublicKey, nil
+		return publicKeyBytes, cryptoutilMagic.StringPEMTypePKIXPublicKey, nil
 	case *x509.Certificate:
-		return x509Type.Raw, PEMTypeCertificate, nil
+		return x509Type.Raw, cryptoutilMagic.StringPEMTypeCertificate, nil
 	case *x509.CertificateRequest:
-		return x509Type.Raw, PEMTypeCSR, nil
+		return x509Type.Raw, cryptoutilMagic.StringPEMTypeCSR, nil
 	case []byte:
 		byteKey, ok := key.([]byte)
 		if !ok {
 			return nil, "", fmt.Errorf("type assertion to []byte failed")
 		}
 
-		return byteKey, PEMTypeSecretKey, nil
+		return byteKey, cryptoutilMagic.StringPEMTypeSecretKey, nil
 	default:
 		return nil, "", fmt.Errorf("not supported [%T]", x509Type)
 	}
@@ -118,21 +107,21 @@ func DERDecode(bytes []byte, x509Type string) (any, error) {
 	var err error
 
 	switch x509Type {
-	case PEMTypePKCS8PrivateKey:
+	case cryptoutilMagic.StringPEMTypePKCS8PrivateKey:
 		key, err = x509.ParsePKCS8PrivateKey(bytes) // Generic: RSA, EC, ED
-	case PEMTypePKIXPublicKey:
+	case cryptoutilMagic.StringPEMTypePKIXPublicKey:
 		key, err = x509.ParsePKIXPublicKey(bytes) // Generic: RSA, EC, ED
-	case PEMTypeRSAPrivateKey:
+	case cryptoutilMagic.StringPEMTypeRSAPrivateKey:
 		key, err = x509.ParsePKCS1PrivateKey(bytes) // RSA PrivateKey
-	case PEMTypeRSAPublicKey:
+	case cryptoutilMagic.StringPEMTypeRSAPublicKey:
 		key, err = x509.ParsePKCS1PublicKey(bytes) // RSA PublicKey
-	case PEMTypeECPrivateKey:
+	case cryptoutilMagic.StringPEMTypeECPrivateKey:
 		key, err = x509.ParseECPrivateKey(bytes) // EC, ED PrivateKey
-	case PEMTypeCertificate:
+	case cryptoutilMagic.StringPEMTypeCertificate:
 		key, err = x509.ParseCertificate(bytes)
-	case PEMTypeCSR:
+	case cryptoutilMagic.StringPEMTypeCSR:
 		key, err = x509.ParseCertificateRequest(bytes)
-	case PEMTypeSecretKey:
+	case cryptoutilMagic.StringPEMTypeSecretKey:
 		key, err = bytes, nil // AES, HMAC, AES-HMAC
 	default:
 		return nil, fmt.Errorf("type not supported: %s", x509Type)

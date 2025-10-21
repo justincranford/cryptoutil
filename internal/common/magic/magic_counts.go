@@ -28,6 +28,18 @@ const (
 	CountMaxMetricsBatchSize = 2048
 	// CountMaxTracesBatchSize - Maximum batch size for traces.
 	CountMaxTracesBatchSize = 512
+	// CountCertificateRandomizationRangeMinutes - Certificate validity randomization range in minutes.
+	CountCertificateRandomizationRangeMinutes = 120
+	// CountCORSMaxAge - Default CORS max age in seconds.
+	CountCORSMaxAge uint16 = 3600
+	// CountRequestBodyLimit - Default request body limit in bytes (2MB).
+	CountRequestBodyLimit = 2 << 20
+	// CountMaxFiles - Maximum number of files allowed.
+	CountMaxFiles = 10
+	// CountMaxBytesPerFile - Maximum bytes per file allowed.
+	CountMaxBytesPerFile = 10 << 20 // 10MB
+	// CountDevModeRandomBytesLength - Random bytes length for dev mode.
+	CountDevModeRandomBytesLength = 32
 )
 
 // UI display constants.
