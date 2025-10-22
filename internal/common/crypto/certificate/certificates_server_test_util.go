@@ -155,7 +155,7 @@ func startHTTPSEchoServer(httpsServerListener string, readTimeout, writeTimeout 
 		}()
 
 		// Limit request body size to prevent memory exhaustion
-		r.Body = http.MaxBytesReader(w, r.Body, cryptoutilMagic.DefaultServerMaxRequestBodySize)
+		r.Body = http.MaxBytesReader(w, r.Body, cryptoutilMagic.DefaultHTTPRequestBodyLimit)
 
 		data, err := io.ReadAll(r.Body)
 		if err != nil {

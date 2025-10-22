@@ -18,22 +18,13 @@ import (
 )
 
 const (
-	httpProtocol  = cryptoutilMagic.StringProtocolHTTP
-	httpsProtocol = cryptoutilMagic.StringProtocolHTTPS
-
-	ipv4Loopback = cryptoutilMagic.StringIPv4Loopback
-
-	defaultLogLevel           = cryptoutilMagic.DefaultLogLevelInfo // Balanced verbosity: shows important events without being overwhelming
-	defaultBindPublicProtocol = cryptoutilMagic.StringProtocolHTTPS // HTTPS by default for security in production environments
-	defaultBindPublicAddress  = cryptoutilMagic.StringIPv4Loopback  // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
-	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
-	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
-	defaultBindPublicPort      = cryptoutilMagic.DefaultPortDefaultBrowserAPI // Standard HTTP/HTTPS port, well-known and commonly available
-	defaultBindPrivateProtocol = cryptoutilMagic.StringProtocolHTTPS          // HTTPS for private API security, even in service-to-service communication
-	defaultBindPrivateAddress  = cryptoutilMagic.StringIPv4Loopback           // IPv4 loopback for private API, only accessible from same machine
-	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
-	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
-	defaultBindPrivatePort             = cryptoutilMagic.DefaultPortAdminAPI                // Non-standard port to avoid conflicts with other services
+	defaultLogLevel                    = cryptoutilMagic.DefaultLogLevelInfo                // Balanced verbosity: shows important events without being overwhelming
+	defaultBindPublicProtocol          = cryptoutilMagic.DefaultPublicProtocolCryptoutil    // HTTPS by default for security in production environments
+	defaultBindPublicAddress           = cryptoutilMagic.DefaultPublicAddressCryptoutil     // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
+	defaultBindPublicPort              = cryptoutilMagic.DefaultPublicPortCryptoutil        // Standard HTTP/HTTPS port, well-known and commonly available
+	defaultBindPrivateProtocol         = cryptoutilMagic.DefaultPrivateProtocolCryptoutil   // HTTPS for private API security, even in service-to-service communication
+	defaultBindPrivateAddress          = cryptoutilMagic.DefaultPrivateAddressCryptoutil    // IPv4 loopback for private API, only accessible from same machine
+	defaultBindPrivatePort             = cryptoutilMagic.DefaultPrivatePortCryptoutil       // Non-standard port to avoid conflicts with other services
 	defaultPublicBrowserAPIContextPath = cryptoutilMagic.DefaultPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
 	defaultPublicServiceAPIContextPath = cryptoutilMagic.DefaultPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
 	defaultCORSMaxAge                  = cryptoutilMagic.DefaultCORSMaxAge                  // 1 hour cache for CORS preflight requests, balances performance and freshness
@@ -45,9 +36,8 @@ const (
 	defaultCSRFTokenCookieSessionOnly  = cryptoutilMagic.DefaultCSRFTokenCookieSessionOnly  // Session-only prevents persistent tracking while maintaining security
 	defaultCSRFTokenSingleUseToken     = cryptoutilMagic.DefaultCSRFTokenSingleUseToken     // Reusable tokens for better UX, can be changed for high-security needs
 	defaultRequestBodyLimit            = cryptoutilMagic.DefaultHTTPRequestBodyLimit        // 2MB limit prevents large payload attacks while allowing reasonable API usage
-	defaultBrowserIPRateLimit          = cryptoutilMagic.DefaultRateLimitBrowserIP          // More lenient rate limit for browser APIs (user interactions)
-	defaultServiceIPRateLimit          = cryptoutilMagic.DefaultRateLimitServiceIP          // More restrictive rate limit for service APIs (automated systems)
-	defaultMaxIPRateLimit              = cryptoutilMagic.MaxRateLimitIP                     // Maximum allowed rate limit to prevent performance issues
+	defaultBrowserIPRateLimit          = cryptoutilMagic.DefaultPublicBrowserAPIIPRateLimit // More lenient rate limit for browser APIs (user interactions)
+	defaultServiceIPRateLimit          = cryptoutilMagic.DefaultPublicServiceAPIIPRateLimit // More restrictive rate limit for service APIs (automated systems)
 	defaultDatabaseContainer           = cryptoutilMagic.DefaultDatabaseContainerDisabled   // Disabled by default to avoid unexpected container dependencies
 	defaultDatabaseURL                 = cryptoutilMagic.DefaultDatabaseURL                 // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
 	defaultDatabaseInitTotalTimeout    = cryptoutilMagic.DefaultDatabaseInitTotalTimeout    // 5 minutes allows for container startup while preventing indefinite waits
@@ -72,14 +62,14 @@ const (
 var profiles = map[string]map[string]any{
 	"test": {
 		"log-level":                "ERROR",
-		"dev":                      true,
-		"bind-public-protocol":     "http",
-		"bind-public-address":      ipv4Loopback,
+		"dev":                      defaultDevMode,
+		"bind-public-protocol":     defaultBindPublicProtocol,
+		"bind-public-address":      defaultBindPublicAddress,
 		"bind-public-port":         defaultBindPublicPort,
-		"bind-private-protocol":    "http",
-		"bind-private-address":     ipv4Loopback,
+		"bind-private-protocol":    defaultBindPrivateProtocol,
+		"bind-private-address":     defaultBindPrivateAddress,
 		"bind-private-port":        defaultBindPrivatePort,
-		"database-container":       "disabled",
+		"database-container":       defaultDatabaseContainer,
 		"database-url":             "sqlite://file::memory:?cache=shared",
 		"csrf-token-cookie-secure": false,
 		"otlp":                     false,
@@ -88,14 +78,14 @@ var profiles = map[string]map[string]any{
 	},
 	"dev": {
 		"log-level":                "DEBUG",
-		"dev":                      true,
-		"bind-public-protocol":     "http",
-		"bind-public-address":      ipv4Loopback,
+		"dev":                      defaultDevMode,
+		"bind-public-protocol":     defaultBindPrivateProtocol,
+		"bind-public-address":      defaultBindPublicAddress,
 		"bind-public-port":         defaultBindPublicPort,
-		"bind-private-protocol":    "http",
-		"bind-private-address":     ipv4Loopback,
+		"bind-private-protocol":    defaultBindPrivateProtocol,
+		"bind-private-address":     defaultBindPrivateAddress,
 		"bind-private-port":        defaultBindPrivatePort,
-		"database-container":       "disabled",
+		"database-container":       defaultDatabaseContainer,
 		"database-url":             "sqlite://file::memory:?cache=shared",
 		"csrf-token-cookie-secure": false,
 		"otlp":                     false,
@@ -105,13 +95,13 @@ var profiles = map[string]map[string]any{
 	"stg": {
 		"log-level":                "INFO",
 		"dev":                      false,
-		"bind-public-protocol":     "https",
+		"bind-public-protocol":     defaultBindPrivateProtocol,
 		"bind-public-address":      "0.0.0.0",
 		"bind-public-port":         defaultBindPublicPort,
-		"bind-private-protocol":    "http",
-		"bind-private-address":     ipv4Loopback,
+		"bind-private-protocol":    defaultBindPrivateProtocol,
+		"bind-private-address":     defaultBindPrivateAddress,
 		"bind-private-port":        defaultBindPrivatePort,
-		"database-container":       "required",
+		"database-container":       defaultDatabaseContainer,
 		"csrf-token-cookie-secure": true,
 		"otlp":                     true,
 		"otlp-console":             false,
@@ -120,13 +110,13 @@ var profiles = map[string]map[string]any{
 	"prod": {
 		"log-level":                "WARN",
 		"dev":                      false,
-		"bind-public-protocol":     "https",
+		"bind-public-protocol":     defaultBindPublicProtocol,
 		"bind-public-address":      "0.0.0.0",
 		"bind-public-port":         defaultBindPublicPort,
-		"bind-private-protocol":    "http",
-		"bind-private-address":     ipv4Loopback,
+		"bind-private-protocol":    defaultBindPrivateProtocol,
+		"bind-private-address":     defaultBindPrivateAddress,
 		"bind-private-port":        defaultBindPrivatePort,
-		"database-container":       "required",
+		"database-container":       defaultDatabaseContainer,
 		"rate-limit":               defaultBrowserIPRateLimit,
 		"csrf-token-cookie-secure": true,
 		"otlp":                     true,
@@ -135,30 +125,30 @@ var profiles = map[string]map[string]any{
 	},
 }
 
-var defaultCORSAllowedOrigins = cryptoutilMagic.SliceDefaultCORSAllowedOrigins
+var defaultCORSAllowedOrigins = cryptoutilMagic.DefaultCORSAllowedOrigins
 
-var defaultAllowedIps = cryptoutilMagic.SliceDefaultAllowedIPs
+var defaultAllowedIps = cryptoutilMagic.DefaultIPFilterAllowedIPs
 
-var defaultTLSPublicDNSNames = cryptoutilMagic.SliceDefaultTLSPublicDNSNames
+var defaultTLSPublicDNSNames = cryptoutilMagic.DefaultTLSPublicDNSNames
 
-var defaultTLSPublicIPAddresses = cryptoutilMagic.SliceDefaultTLSPublicIPAddresses
+var defaultTLSPublicIPAddresses = cryptoutilMagic.DefaultTLSPublicIPAddresses
 
-var defaultTLSPrivateDNSNames = cryptoutilMagic.SliceDefaultTLSPrivateDNSNames
+var defaultTLSPrivateDNSNames = cryptoutilMagic.DefaultTLSPrivateDNSNames
 
-var defaultTLSPrivateIPAddresses = cryptoutilMagic.SliceDefaultTLSPrivateIPAddresses
+var defaultTLSPrivateIPAddresses = cryptoutilMagic.DefaultTLSPrivateIPAddresses
 
-var defaultAllowedCIDRs = cryptoutilMagic.SliceDefaultAllowedCIDRs
+var defaultAllowedCIDRs = cryptoutilMagic.DefaultIPFilterAllowedCIDRs
 
-var defaultCORSAllowedMethods = cryptoutilMagic.SliceDefaultCORSAllowedMethods
+var defaultCORSAllowedMethods = cryptoutilMagic.DefaultCORSAllowedMethods
 
-var defaultCORSAllowedHeaders = cryptoutilMagic.SliceDefaultCORSAllowedHeaders
+var defaultCORSAllowedHeaders = cryptoutilMagic.DefaultCORSAllowedHeaders
 
 var defaultOTLPInstance = func() string {
 	return googleUuid.Must(googleUuid.NewV7()).String()
 }()
-var defaultUnsealFiles = cryptoutilMagic.SliceDefaultUnsealFiles
+var defaultUnsealFiles = cryptoutilMagic.DefaultUnsealFiles
 
-var defaultConfigFiles = cryptoutilMagic.SliceDefaultConfigFiles
+var defaultConfigFiles = cryptoutilMagic.DefaultConfigFiles
 
 // set of valid subcommands.
 var subcommands = map[string]struct{}{
@@ -1169,16 +1159,16 @@ func validateConfiguration(s *Settings) error {
 	}
 
 	// Validate protocols
-	if s.BindPublicProtocol != httpProtocol && s.BindPublicProtocol != httpsProtocol {
-		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be '%s' or '%s'", s.BindPublicProtocol, httpProtocol, httpsProtocol))
+	if s.BindPublicProtocol != cryptoutilMagic.ProtocolHTTP && s.BindPublicProtocol != cryptoutilMagic.ProtocolHTTPS {
+		errors = append(errors, fmt.Sprintf("invalid public protocol '%s': must be '%s' or '%s'", s.BindPublicProtocol, cryptoutilMagic.ProtocolHTTP, cryptoutilMagic.ProtocolHTTPS))
 	}
 
-	if s.BindPrivateProtocol != httpProtocol && s.BindPrivateProtocol != httpsProtocol {
-		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be '%s' or '%s'", s.BindPrivateProtocol, httpProtocol, httpsProtocol))
+	if s.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTP && s.BindPrivateProtocol != cryptoutilMagic.ProtocolHTTPS {
+		errors = append(errors, fmt.Sprintf("invalid private protocol '%s': must be '%s' or '%s'", s.BindPrivateProtocol, cryptoutilMagic.ProtocolHTTP, cryptoutilMagic.ProtocolHTTPS))
 	}
 
 	// Validate HTTPS requirements
-	if s.BindPublicProtocol == httpsProtocol && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
+	if s.BindPublicProtocol == cryptoutilMagic.ProtocolHTTPS && len(s.TLSPublicDNSNames) == 0 && len(s.TLSPublicIPAddresses) == 0 {
 		errors = append(errors, "HTTPS public protocol requires TLS DNS names or IP addresses to be configured")
 	}
 
@@ -1217,14 +1207,14 @@ func validateConfiguration(s *Settings) error {
 	// Validate rate limits
 	if s.BrowserIPRateLimit == 0 {
 		errors = append(errors, "browser rate limit cannot be 0 (would block all browser requests)")
-	} else if s.BrowserIPRateLimit > defaultMaxIPRateLimit {
-		errors = append(errors, fmt.Sprintf("browser rate limit %d is very high (>%d), may impact performance", s.BrowserIPRateLimit, defaultMaxIPRateLimit))
+	} else if s.BrowserIPRateLimit > cryptoutilMagic.MaxIPRateLimit {
+		errors = append(errors, fmt.Sprintf("browser rate limit %d is very high (>%d), may impact performance", s.BrowserIPRateLimit, cryptoutilMagic.MaxIPRateLimit))
 	}
 
 	if s.ServiceIPRateLimit == 0 {
 		errors = append(errors, "service rate limit cannot be 0 (would block all service requests)")
-	} else if s.ServiceIPRateLimit > defaultMaxIPRateLimit {
-		errors = append(errors, fmt.Sprintf("service rate limit %d is very high (>%d), may impact performance", s.ServiceIPRateLimit, defaultMaxIPRateLimit))
+	} else if s.ServiceIPRateLimit > cryptoutilMagic.MaxIPRateLimit {
+		errors = append(errors, fmt.Sprintf("service rate limit %d is very high (>%d), may impact performance", s.ServiceIPRateLimit, cryptoutilMagic.MaxIPRateLimit))
 	}
 
 	// Validate OTLP endpoint format

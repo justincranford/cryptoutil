@@ -24,55 +24,35 @@ import (
 )
 
 const (
-	// Docker compose service names and ports.
-	cryptoutilSqlitePort    = cryptoutilMagic.DefaultPortDefaultBrowserAPI
-	cryptoutilPostgres1Port = cryptoutilMagic.DefaultPortCryptoutilPostgres1
-	cryptoutilPostgres2Port = cryptoutilMagic.DefaultPortCryptoutilPostgres2
-	cryptoutilPrivatePort   = cryptoutilMagic.DefaultPortAdminAPI
-	grafanaPort             = cryptoutilMagic.DefaultPortGrafana
-	otelCollectorPort       = cryptoutilMagic.DefaultPortOtelCollectorMetrics
-	testCleartext           = cryptoutilMagic.TestCleartext
-
-	// Status constants.
-	statusHealthy   = cryptoutilMagic.StatusHealthy
-	statusUnhealthy = cryptoutilMagic.StatusUnhealthy
-
 	// Test timeouts.
 	dockerHealthTimeout      = cryptoutilMagic.TestTimeoutDockerHealth      // Docker services should be healthy in under 20s
 	cryptoutilReadyTimeout   = cryptoutilMagic.TestTimeoutCryptoutilReady   // Cryptoutil needs time to unseal - reduced for fast fail
 	testExecutionTimeout     = cryptoutilMagic.TestTimeoutTestExecution     // Overall test timeout - reduced for fast fail
 	dockerComposeInitTimeout = cryptoutilMagic.TestTimeoutDockerComposeInit // Time to wait for Docker Compose services to initialize after startup
 	serviceRetryInterval     = cryptoutilMagic.TestTimeoutServiceRetry      // Check more frequently
-	httpClientTimeout        = cryptoutilMagic.TestDefaultHTTPClientTimeout
-	httpRetryInterval        = cryptoutilMagic.TestDefaultHTTPRetryInterval
-
-	// Test data.
-	testElasticKeyName        = "e2e-test-key"
-	testElasticKeyDescription = "E2E integration test key"
-	testAlgorithm             = "RSA"
-	testProvider              = "GO"
+	httpClientTimeout        = cryptoutilMagic.TestTimeoutHTTPClient
+	httpRetryInterval        = cryptoutilMagic.TestTimeoutHTTPRetryInterval
 )
 
 var (
 	// Public API URLs (ports 8080+).
-	cryptoutilSqliteURL    = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilSqlitePort)
-	cryptoutilPostgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPostgres1Port)
-	cryptoutilPostgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPostgres2Port)
+	cryptoutilSqliteURL    = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose0)
+	cryptoutilPostgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1)
+	cryptoutilPostgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose2)
 
 	// Private admin API URLs (port 9090 inside containers).
-	cryptoutilSqliteAdminURL    = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPrivatePort)
-	cryptoutilPostgres1AdminURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPrivatePort)
-	cryptoutilPostgres2AdminURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilPrivatePort)
+	cryptoutilSqliteAdminURL    = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPrivatePortCryptoutil)
+	cryptoutilPostgres1AdminURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPrivatePortCryptoutil)
+	cryptoutilPostgres2AdminURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPrivatePortCryptoutil)
 
-	grafanaURL       = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", grafanaPort)
-	otelCollectorURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", otelCollectorPort)
+	grafanaURL       = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)
+	otelCollectorURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortInternalMetrics)
 
 	// Test data variables (so we can take their addresses).
-	testElasticKeyNameVar        = testElasticKeyName
-	testElasticKeyDescriptionVar = testElasticKeyDescription
-	testAlgorithmVar             = testAlgorithm
-	testProviderVar              = testProvider
-	testCleartextVar             = testCleartext
+	testElasticKeyName        = "e2e-test-key"
+	testElasticKeyDescription = "E2E integration test key"
+	testAlgorithm             = "RSA"
+	testProvider              = "GO"
 )
 
 // TestE2EIntegration performs end-to-end testing of all cryptoutil instances with telemetry verification.
@@ -272,7 +252,7 @@ func waitForDockerServicesHealthy(t *testing.T, ctx context.Context, startTime t
 
 		logFunc := func(service, status string) {
 			emojiStatus := "❌ UNHEALTHY"
-			if status == statusHealthy {
+			if status == cryptoutilMagic.StatusHealthy {
 				emojiStatus = "✅ HEALTHY"
 			}
 
@@ -395,10 +375,10 @@ func logServiceStatuses(services []string, healthStatus map[string]bool, startTi
 
 	for _, service := range services {
 		healthy := healthStatus[service]
-		status := statusUnhealthy
+		status := cryptoutilMagic.StatusUnhealthy
 
 		if healthy {
-			status = statusHealthy
+			status = cryptoutilMagic.StatusHealthy
 		}
 
 		logFunc(service, status)
@@ -558,8 +538,8 @@ func testCreateElasticKey(t *testing.T, ctx context.Context, client *cryptoutilO
 	versioningAllowed := true
 
 	elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
-		t, &testElasticKeyNameVar, &testElasticKeyDescriptionVar,
-		&testAlgorithmVar, &testProviderVar, &importAllowed, &versioningAllowed,
+		t, &testElasticKeyName, &testElasticKeyDescription,
+		&testAlgorithm, &testProvider, &importAllowed, &versioningAllowed,
 	)
 
 	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickey request to create elastic key\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
@@ -590,7 +570,7 @@ func testEncryptDecryptCycle(t *testing.T, ctx context.Context, client *cryptout
 	t.Helper()
 
 	// Encrypt
-	encryptRequest := cryptoutilClient.RequireEncryptRequest(t, &testCleartextVar)
+	encryptRequest := cryptoutilClient.RequireEncryptRequest(t, &cryptoutilMagic.TestCleartext)
 
 	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDEncrypt request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	encryptedText := cryptoutilClient.RequireEncryptResponse(t, ctx, client, elasticKey.ElasticKeyID, nil, encryptRequest)
@@ -603,7 +583,7 @@ func testEncryptDecryptCycle(t *testing.T, ctx context.Context, client *cryptout
 
 	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDDecrypt request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	decryptedText := cryptoutilClient.RequireDecryptResponse(t, ctx, client, elasticKey.ElasticKeyID, decryptRequest)
-	require.Equal(t, testCleartext, *decryptedText)
+	require.Equal(t, cryptoutilMagic.TestCleartext, *decryptedText)
 
 	fmt.Printf("[%s] [%v] ✅ [API] Text decrypted successfully\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
@@ -613,7 +593,7 @@ func testSignVerifyCycle(t *testing.T, ctx context.Context, client *cryptoutilOp
 	t.Helper()
 
 	// Sign
-	signRequest := cryptoutilClient.RequireSignRequest(t, &testCleartextVar)
+	signRequest := cryptoutilClient.RequireSignRequest(t, &cryptoutilMagic.TestCleartext)
 
 	fmt.Printf("[%s] [%v] 📋 [API] Making PostElastickeyElasticKeyIDSign request for key %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), *elasticKey.ElasticKeyID)
 	signedText := cryptoutilClient.RequireSignResponse(t, ctx, client, elasticKey.ElasticKeyID, nil, signRequest)

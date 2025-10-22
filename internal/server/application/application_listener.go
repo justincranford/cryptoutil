@@ -39,10 +39,6 @@ import (
 )
 
 const (
-	serverShutdownRequestPath = cryptoutilMagic.StringShutdownPath
-
-	protocolHTTP               = cryptoutilMagic.StringProtocolHTTP
-	protocolHTTPS              = cryptoutilMagic.StringProtocolHTTPS
 	fiberAppIDRequestAttribute = cryptoutilMagic.FiberAppIDRequestAttribute
 	statusStr                  = cryptoutilMagic.StringStatus
 	errorStr                   = cryptoutilMagic.StringError
@@ -129,7 +125,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 
 	var privateTLSServer *TLSServerConfig
 
-	if settings.BindPublicProtocol == protocolHTTPS || settings.BindPrivateProtocol == protocolHTTPS {
+	if settings.BindPublicProtocol == cryptoutilMagic.ProtocolHTTPS || settings.BindPrivateProtocol == cryptoutilMagic.ProtocolHTTPS {
 		publicTLSServerSubject, privateTLSServerSubject, err := generateTLSServerSubjects(settings, serverApplicationCore.ServerApplicationBasic)
 		if err != nil {
 			return nil, fmt.Errorf("failed to run new function: %w", err)
@@ -211,7 +207,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	var shutdownServerFunction func()
 
 	// Private APIs
-	privateFiberApp.Post(serverShutdownRequestPath, func(c *fiber.Ctx) error {
+	privateFiberApp.Post(cryptoutilMagic.PrivateAdminShutdownRequestPath, func(c *fiber.Ctx) error {
 		serverApplicationCore.ServerApplicationBasic.TelemetryService.Slogger.Info("shutdown requested via API endpoint")
 
 		if shutdownServerFunction != nil {
@@ -379,7 +375,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 
 			var err error
 
-			if privateProtocol == protocolHTTPS && privateTLSConfig != nil {
+			if privateProtocol == cryptoutilMagic.ProtocolHTTPS && privateTLSConfig != nil {
 				// Wrap the listener with TLS
 				tlsListener := tls.NewListener(privateListener, privateTLSConfig)
 				err = privateFiberApp.Listener(tlsListener)
@@ -398,7 +394,7 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 
 		var err error
 
-		if publicProtocol == protocolHTTPS && publicTLSConfig != nil {
+		if publicProtocol == cryptoutilMagic.ProtocolHTTPS && publicTLSConfig != nil {
 			// Wrap the listener with TLS
 			tlsListener := tls.NewListener(publicListener, publicTLSConfig)
 			err = publicFiberApp.Listener(tlsListener)
@@ -712,7 +708,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 	return func(c *fiber.Ctx) error {
 		// Check if this is a liveness or readiness probe
 		path := c.Path()
-		isReadiness := strings.HasSuffix(path, "/readyz")
+		isReadiness := strings.HasSuffix(path, cryptoutilMagic.PrivateAdminReadyzRequestPath)
 
 		healthStatus := map[string]any{
 			statusStr:   "ok",
@@ -907,7 +903,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 		c.Set("X-Content-Type-Options", contentTypeOptions)
 		c.Set("Referrer-Policy", referrerPolicy)
 
-		if c.Protocol() == protocolHTTPS {
+		if c.Protocol() == cryptoutilMagic.ProtocolHTTPS {
 			if settings.DevMode {
 				c.Set("Strict-Transport-Security", hstsMaxAgeDev)
 			} else {
@@ -966,7 +962,7 @@ func validateSecurityHeaders(c *fiber.Ctx) []string {
 	}
 
 	// Check HSTS is present if HTTPS
-	if c.Protocol() == protocolHTTPS {
+	if c.Protocol() == cryptoutilMagic.ProtocolHTTPS {
 		if hsts := c.Get("Strict-Transport-Security"); hsts == "" {
 			missing = append(missing, "Strict-Transport-Security")
 		}

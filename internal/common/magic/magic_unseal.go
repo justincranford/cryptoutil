@@ -35,3 +35,6 @@ const (
 	// RandomKeySizeBytes - Random bytes length for dev mode.
 	RandomKeySizeBytes = 32
 )
+
+// DefaultUnsealFiles - Default unseal files slice.
+var DefaultUnsealFiles = []string{}

@@ -21,13 +21,13 @@ public class AdminApiSimulation extends Simulation {
 
   // Liveness probe chain
   private static final ChainBuilder livenessChain = exec(http("Liveness Check")
-      .get("/livez")
+      .get(cryptoutilMagic.DefaultLivezRequestPath)
       .check(status().is(200))
       .check(jsonPath("$.status").is("ok")));
 
   // Readiness probe chain
   private static final ChainBuilder readinessChain = exec(http("Readiness Check")
-      .get("/readyz")
+      .get(cryptoutilMagic.DefaultReadyzRequestPath)
       .check(status().is(200))
       .check(jsonPath("$.status").is("ok")));
 

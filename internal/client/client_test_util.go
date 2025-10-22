@@ -41,13 +41,13 @@ func WaitUntilReady(baseURL *string, maxTime, retryTime time.Duration, rootCAsPo
 }
 
 func CheckHealthz(baseURL *string, rootCAsPool *x509.CertPool) error {
-	url := *baseURL + "/livez"
+	url := *baseURL + cryptoutilMagic.PrivateAdminLivezRequestPath
 
 	return httpGet(&url, cryptoutilMagic.TimeoutHTTPHealthRequest, rootCAsPool)
 }
 
 func CheckReadyz(baseURL *string, rootCAsPool *x509.CertPool) error {
-	url := *baseURL + "/readyz"
+	url := *baseURL + cryptoutilMagic.PrivateAdminReadyzRequestPath
 
 	return httpGet(&url, cryptoutilMagic.TimeoutHTTPHealthRequest, rootCAsPool)
 }

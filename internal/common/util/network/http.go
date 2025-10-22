@@ -9,20 +9,15 @@ import (
 	"net/http"
 	"strings"
 	"time"
-)
 
-const (
-	// Health check endpoints.
-	livezPath    = "/livez"
-	readyzPath   = "/readyz"
-	shutdownPath = "/shutdown"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // HTTPGetLivez performs a GET /livez request to the private health endpoint.
 func HTTPGetLivez(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
-	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, baseURL+livezPath, timeout, true, rootCAsPool, insecureSkipVerify)
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, baseURL+cryptoutilMagic.PrivateAdminLivezRequestPath, timeout, true, rootCAsPool, insecureSkipVerify)
 	if err != nil {
-		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", livezPath, err)
+		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", cryptoutilMagic.PrivateAdminLivezRequestPath, err)
 	}
 
 	return statusCode, headers, body, nil
@@ -30,9 +25,9 @@ func HTTPGetLivez(ctx context.Context, baseURL string, timeout time.Duration, ro
 
 // HTTPGetReadyz performs a GET /readyz request to the private readiness endpoint.
 func HTTPGetReadyz(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
-	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, baseURL+readyzPath, timeout, true, rootCAsPool, insecureSkipVerify)
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodGet, baseURL+cryptoutilMagic.PrivateAdminReadyzRequestPath, timeout, true, rootCAsPool, insecureSkipVerify)
 	if err != nil {
-		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", readyzPath, err)
+		return 0, nil, nil, fmt.Errorf("failed to get %s: %w", cryptoutilMagic.PrivateAdminReadyzRequestPath, err)
 	}
 
 	return statusCode, headers, body, nil
@@ -40,9 +35,9 @@ func HTTPGetReadyz(ctx context.Context, baseURL string, timeout time.Duration, r
 
 // HTTPPostShutdown performs a POST /shutdown request to the private shutdown endpoint.
 func HTTPPostShutdown(ctx context.Context, baseURL string, timeout time.Duration, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
-	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodPost, baseURL+shutdownPath, timeout, true, rootCAsPool, insecureSkipVerify)
+	statusCode, headers, body, err := HTTPResponse(ctx, http.MethodPost, baseURL+cryptoutilMagic.PrivateAdminShutdownRequestPath, timeout, true, rootCAsPool, insecureSkipVerify)
 	if err != nil {
-		return 0, nil, nil, fmt.Errorf("failed to post %s: %w", shutdownPath, err)
+		return 0, nil, nil, fmt.Errorf("failed to post %s: %w", cryptoutilMagic.PrivateAdminShutdownRequestPath, err)
 	}
 
 	return statusCode, headers, body, nil

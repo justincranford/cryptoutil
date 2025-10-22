@@ -38,3 +38,6 @@ const (
 	// DefaultDryRun - Default dry run flag value.
 	DefaultDryRun = false
 )
+
+// DefaultConfigFiles - Default config files slice.
+var DefaultConfigFiles = []string{}

@@ -4,11 +4,11 @@ package magic
 
 import "time"
 
+// TestCleartext - Standard test cleartext for encryption/decryption tests.
+var TestCleartext = "Hello, World!"
+
 // Test data constants.
 const (
-	// TestCleartext - Standard test cleartext for encryption/decryption tests.
-	TestCleartext = "Hello, World!"
-
 	// StatusHealthy - Healthy status string.
 	StatusHealthy = "HEALTHY"
 	// StatusUnhealthy - Unhealthy status string.
@@ -35,10 +35,10 @@ const (
 	// TestDefaultServerShutdownTimeout - Default server shutdown timeout duration.
 	TestDefaultServerShutdownTimeout = 1 * time.Minute //nolint:stylecheck // established API name
 
-	// TestDefaultHTTPRetryInterval - Default HTTP retry interval duration.
-	TestDefaultHTTPRetryInterval = 1 * time.Second //nolint:stylecheck // established API name
-	// TestDefaultHTTPClientTimeout - Default HTTP client timeout duration.
-	TestDefaultHTTPClientTimeout = 10 * time.Second //nolint:stylecheck // established API name
+	// TestTimeoutHTTPRetryInterval - Default HTTP retry interval duration.
+	TestTimeoutHTTPRetryInterval = 1 * time.Second //nolint:stylecheck // established API name
+	// TestTimeoutHTTPClient - Default HTTP client timeout duration.
+	TestTimeoutHTTPClient = 10 * time.Second //nolint:stylecheck // established API name
 
 	// TimeoutHTTPHealthRequest - HTTP health request timeout.
 	TimeoutHTTPHealthRequest = 5 * time.Second
