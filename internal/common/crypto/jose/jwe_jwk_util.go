@@ -154,11 +154,11 @@ func validateJWEJWKHeaders(kid *googleUuid.UUID, enc *joseJwa.ContentEncryptionA
 		return validateOrGenerateJWEAESJWK(key, enc, alg, encKeyBitsLength, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgA256KW, AlgA256GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEKEA256KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEA256KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA192KW, AlgA192GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEKEA192KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEA192KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 	case AlgA128KW, AlgA128GCMKW:
-		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEKEA128KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
+		return validateOrGenerateJWEAESJWK(key, enc, alg, cryptoutilMagic.JWEA128KeySize, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)
 
 	case AlgRSAOAEP512:
 		return validateOrGenerateJWERSAJWK(key, enc, alg, cryptoutilMagic.RSAKeySize4096, &EncA256GCM, &EncA256CBCHS512, &EncA192GCM, &EncA192CBCHS384, &EncA128GCM, &EncA128CBCHS256)

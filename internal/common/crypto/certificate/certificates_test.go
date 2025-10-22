@@ -126,9 +126,9 @@ func TestSerializeCASubjects(t *testing.T) {
 	verifyCASubjects(t, err, rootCASubjects)
 	testSerializeDeserialize(t, rootCASubjects)
 
-	intermediateCASubject, err := CreateCASubject(rootCASubject, rootCASubject.KeyMaterial.PrivateKey, "Round Trip Intermediate CA", subjectsKeyPairs[1], 10*365*cryptoutilDateTime.Days1, 1)
+	intermediateCASubject, err := CreateCASubject(rootCASubject, rootCASubject.KeyMaterial.PrivateKey, "Round Trip Intermediate CA", subjectsKeyPairs[1], 10*365*cryptoutilDateTime.Days1, 1) // pragma: allowlist secret
 	rootCASubject.KeyMaterial.PrivateKey = nil
-	intermediateCASubjects := []*Subject{intermediateCASubject, rootCASubject}
+	intermediateCASubjects := []*Subject{intermediateCASubject, rootCASubject} // pragma: allowlist secret
 	verifyCASubjects(t, err, intermediateCASubjects)
 	testSerializeDeserialize(t, intermediateCASubjects)
 
@@ -146,7 +146,7 @@ func TestSerializeEndEntitySubjects(t *testing.T) {
 	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", 10*365*cryptoutilDateTime.Days1)
 	verifyCASubjects(t, err, originalCASubjects)
 
-	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}) // pragma: allowlist secret
 	verifyEndEntitySubject(t, err, endEntitySubject)
 
 	originalCASubjects[0].KeyMaterial.PrivateKey = nil
@@ -160,7 +160,7 @@ func testSerializeDeserialize(t *testing.T, originalSubjects []*Subject) {
 
 	for _, includePrivateKey := range []bool{false, true} {
 		t.Run(fmt.Sprintf("includePrivateKey = %t", includePrivateKey), func(t *testing.T) {
-			serializedSubjects, err := SerializeSubjects(originalSubjects, includePrivateKey)
+			serializedSubjects, err := SerializeSubjects(originalSubjects, includePrivateKey) // pragma: allowlist secret
 			require.NoError(t, err, "Failed to serialize subjects (includePrivateKey=%t)", includePrivateKey)
 			require.NotEmpty(t, serializedSubjects, "Serialized data should not be empty (includePrivateKey=%t)", includePrivateKey)
 
@@ -202,14 +202,14 @@ func testSerializeDeserialize(t *testing.T, originalSubjects []*Subject) {
 				}
 
 				if includePrivateKey && i == 0 {
-					require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should not be nil %d when includePrivateKey=true", i)
-					require.Equal(t, originalKeyMaterial.PrivateKey, deserializedKeyMaterial.PrivateKey, "PrivateKey mismatch %d", i)
+					require.NotNil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should not be nil %d when includePrivateKey=true", i) // pragma: allowlist secret
+					require.Equal(t, originalKeyMaterial.PrivateKey, deserializedKeyMaterial.PrivateKey, "PrivateKey mismatch %d", i)       // pragma: allowlist secret
 				} else {
-					require.Nil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should be nil %d when includePrivateKey=false", i)
+					require.Nil(t, deserializedKeyMaterial.PrivateKey, "PrivateKey should be nil %d when includePrivateKey=false", i) // pragma: allowlist secret
 				}
 			}
 
-			if len(deserializedSubjects[0].KeyMaterial.CertificateChain) > 1 && includePrivateKey {
+			if len(deserializedSubjects[0].KeyMaterial.CertificateChain) > 1 && includePrivateKey { // pragma: allowlist secret
 				tlsCertificate, rootCACertificatesPool, intermediateCertificatesPool, err := BuildTLSCertificate(deserializedSubjects[0])
 				require.NoError(t, err, "BuildTLSCertificate should not fail (includePrivateKey=%t)", includePrivateKey)
 				require.NotNil(t, rootCACertificatesPool, "Root CA cert pool should be reconstructed (includePrivateKey=%t)", includePrivateKey)

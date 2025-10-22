@@ -104,7 +104,29 @@ const (
 - **ineffassign**: Detect ineffectual assignments (manual review required)
 - **staticcheck**: Advanced static analysis checks (manual review required)
 - **unused**: Find unused constants, variables, functions and types (manual review required)
-- **gosec**: Security-focused static analysis (manual review required)
+- **gosec**: Security-focused static analysis (manual review required). **USE THIS INSTEAD OF detect-secrets** - detect-secrets is not installed and incorrectly flags legitimate test code referencing cryptographic keys/materials
+
+### detect-secrets Inline Allowlisting
+
+**WHEN USING detect-secrets (despite recommendation to use gosec instead)**, use inline allowlisting comments to suppress false positives:
+
+**Same-line allowlisting:**
+```go
+secret = "hunter2"      # pragma: allowlist secret
+```
+
+**Next-line allowlisting:**
+```go
+// pragma: allowlist nextline secret
+const secret = "hunter2";
+```
+
+**Supported comment styles:**
+- `# pragma: allowlist secret` (Python/shell)
+- `// pragma: allowlist secret` (Go/JavaScript/C++)
+- `/* pragma: allowlist secret */` (multi-line comments)
+
+**WHEN TO USE**: Only for legitimate test code or configuration that must reference cryptographic materials. Prefer gosec over detect-secrets for security scanning.
 - **noctx**: Check for missing context in HTTP requests (manual review required)
 - **wrapcheck**: Check error wrapping consistency (manual review required)
 - **thelper**: Check test helper functions (manual review required)

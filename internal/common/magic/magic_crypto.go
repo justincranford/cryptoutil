@@ -29,23 +29,37 @@ const (
 	RSAKeySize3072 = 3072
 	RSAKeySize4096 = 4096
 
+	// Symmetric key sizes in bits.
+	SymmetricKeySize128 = 128
+	SymmetricKeySize192 = 192
+	SymmetricKeySize256 = 256
+	SymmetricKeySize384 = 384
+	SymmetricKeySize512 = 512
+
+	// JWE key sizes in bits.
+	JWEA128KeySize = SymmetricKeySize128
+	JWEA192KeySize = SymmetricKeySize192
+	JWEA256KeySize = SymmetricKeySize256
+	JWEA384KeySize = SymmetricKeySize384
+	JWEA512KeySize = SymmetricKeySize512
+
 	// AES key sizes in bits.
-	AESKeySize128 = 128
-	AESKeySize192 = 192
-	AESKeySize256 = 256
+	AESKeySize128 = SymmetricKeySize128
+	AESKeySize192 = SymmetricKeySize192
+	AESKeySize256 = SymmetricKeySize256
 
 	// AES HMAC-SHA2 key sizes in bits.
-	AESHSKeySize256 = 256
-	AESHSKeySize384 = 384
-	AESHSKeySize512 = 512
+	AESHSKeySize256 = SymmetricKeySize256
+	AESHSKeySize384 = SymmetricKeySize384
+	AESHSKeySize512 = SymmetricKeySize512
 
 	// HMAC key sizes in bits.
-	HMACKeySize256 = 256
-	HMACKeySize384 = 384
-	HMACKeySize512 = 512
+	HMACKeySize256 = SymmetricKeySize256
+	HMACKeySize384 = SymmetricKeySize384
+	HMACKeySize512 = SymmetricKeySize512
 
 	// Minimum HMAC key size in bits.
-	MinHMACKeySize = 256
+	MinHMACKeySize = SymmetricKeySize256
 
 	// SHA digest algorithm names.
 	SHADigestSHA512 = "SHA512"
@@ -71,49 +85,39 @@ const (
 	HKDFSHA512MaxLength    = 16320 // 255 * 64
 	HKDFSHA224MaxLength    = 7140  // 255 * 28
 
-	// JWE key sizes in bits.
-	JWEA256KeySize   = 256
-	JWEA192KeySize   = 192
-	JWEA128KeySize   = 128
-	JWEA512KeySize   = 512
-	JWEA384KeySize   = 384
-	JWEKEA256KeySize = 256
-	JWEKEA192KeySize = 192
-	JWEKEA128KeySize = 128
-
 	// JWK generation pool sizes (min, max) by algorithm type.
-	JWKGenPoolRSA4096Min   = 9
-	JWKGenPoolRSA4096Max   = 9
-	JWKGenPoolRSA3072Min   = 6
-	JWKGenPoolRSA3072Max   = 6
-	JWKGenPoolRSA2048Min   = 3
-	JWKGenPoolRSA2048Max   = 3
-	JWKGenPoolECDSAP521Min = 3
-	JWKGenPoolECDSAP521Max = 9
-	JWKGenPoolECDSAP384Min = 2
-	JWKGenPoolECDSAP384Max = 6
-	JWKGenPoolECDSAP256Min = 1
-	JWKGenPoolECDSAP256Max = 3
-	JWKGenPoolECDHP521Min  = 3
-	JWKGenPoolECDHP521Max  = 9
-	JWKGenPoolECDHP384Min  = 2
-	JWKGenPoolECDHP384Max  = 6
-	JWKGenPoolECDHP256Min  = 1
-	JWKGenPoolECDHP256Max  = 3
-	JWKGenPoolED25519Min   = 1
-	JWKGenPoolED25519Max   = 2
-	JWKGenPoolAES256Min    = 3
-	JWKGenPoolAES256Max    = 9
-	JWKGenPoolAES192Min    = 2
-	JWKGenPoolAES192Max    = 6
-	JWKGenPoolAES128Min    = 1
-	JWKGenPoolAES128Max    = 3
-	JWKGenPoolHMAC512Min   = 3
-	JWKGenPoolHMAC512Max   = 9
-	JWKGenPoolHMAC384Min   = 2
-	JWKGenPoolHMAC384Max   = 6
-	JWKGenPoolHMAC256Min   = 1
-	JWKGenPoolHMAC256Max   = 3
-	JWKGenPoolUUIDv7Min    = 2
-	JWKGenPoolUUIDv7Max    = 20
+	JWKGenPoolRSA4096NumWorkers   = 9
+	JWKGenPoolRSA4096PoolSize     = 9
+	JWKGenPoolRSA3072NumWorkers   = 6
+	JWKGenPoolRSA3072PoolSize     = 6
+	JWKGenPoolRSA2048NumWorkers   = 3
+	JWKGenPoolRSA2048PoolSize     = 3
+	JWKGenPoolECDSAP521NumWorkers = 3
+	JWKGenPoolECDSAP521PoolSize   = 9
+	JWKGenPoolECDSAP384NumWorkers = 2
+	JWKGenPoolECDSAP384PoolSize   = 6
+	JWKGenPoolECDSAP256NumWorkers = 1
+	JWKGenPoolECDSAP256PoolSize   = 3
+	JWKGenPoolECDHP521NumWorkers  = 3
+	JWKGenPoolECDHP521PoolSize    = 9
+	JWKGenPoolECDHP384NumWorkers  = 2
+	JWKGenPoolECDHP384PoolSize    = 6
+	JWKGenPoolECDHP256NumWorkers  = 1
+	JWKGenPoolECDHP256PoolSize    = 3
+	JWKGenPoolED25519NumWorkers   = 1
+	JWKGenPoolED25519PoolSize     = 2
+	JWKGenPoolAES256NumWorkers    = 3
+	JWKGenPoolAES256PoolSize      = 9
+	JWKGenPoolAES192NumWorkers    = 2
+	JWKGenPoolAES192PoolSize      = 6
+	JWKGenPoolAES128NumWorkers    = 1
+	JWKGenPoolAES128PoolSize      = 3
+	JWKGenPoolHMAC512NumWorkers   = 3
+	JWKGenPoolHMAC512PoolSize     = 9
+	JWKGenPoolHMAC384NumWorkers   = 2
+	JWKGenPoolHMAC384PoolSize     = 6
+	JWKGenPoolHMAC256NumWorkers   = 1
+	JWKGenPoolHMAC256PoolSize     = 3
+	JWKGenPoolUUIDv7NumWorkers    = 2
+	JWKGenPoolUUIDv7PoolSize      = 20
 )
