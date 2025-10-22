@@ -39,21 +39,8 @@ import (
 )
 
 const (
-	fiberAppIDRequestAttribute = cryptoutilMagic.FiberAppIDRequestAttribute
-	statusStr                  = cryptoutilMagic.StringStatus
-	errorStr                   = cryptoutilMagic.StringError
-	statusOK                   = cryptoutilMagic.StringStatusOK
-	statusDegraded             = cryptoutilMagic.StringStatusDegraded
-
 	fiberAppIDPublic  fiberAppID = "public"
 	fiberAppIDPrivate fiberAppID = "private"
-
-	// healthCheckTimeout is the timeout used for internal health checks.
-	healthCheckTimeout = cryptoutilMagic.TimeoutHealthCheck
-
-	// clientLivenessStartTimeout is a short delay to allow the server to finish
-	// sending the response to the client before beginning shutdown.
-	clientLivenessStartTimeout = cryptoutilMagic.TimeoutClientLivenessStart
 )
 
 type fiberAppID string
@@ -77,7 +64,7 @@ type TLSServerConfig struct {
 }
 
 func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutClientLivenessRequest)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientLivenessRequestTimeout)
 	defer cancel()
 
 	_, _, result, err := cryptoutilNetwork.HTTPGetLivez(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
@@ -89,7 +76,7 @@ func SendServerListenerLivenessCheck(settings *cryptoutilConfig.Settings) ([]byt
 }
 
 func SendServerListenerReadinessCheck(settings *cryptoutilConfig.Settings) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutClientReadinessRequest)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientReadinessRequestTimeout)
 	defer cancel()
 
 	_, _, result, err := cryptoutilNetwork.HTTPGetReadyz(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
@@ -101,7 +88,7 @@ func SendServerListenerReadinessCheck(settings *cryptoutilConfig.Settings) ([]by
 }
 
 func SendServerListenerShutdownRequest(settings *cryptoutilConfig.Settings) error {
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutClientShutdownRequest)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.ClientShutdownRequestTimeout)
 	defer cancel()
 
 	_, _, _, err := cryptoutilNetwork.HTTPPostShutdown(ctx, settings.PrivateBaseURL(), 0, nil, settings.DevMode)
@@ -212,7 +199,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 
 		if shutdownServerFunction != nil {
 			defer func() {
-				time.Sleep(clientLivenessStartTimeout) // allow server small amount of time to finish sending response to client
+				time.Sleep(cryptoutilMagic.WaitBeforeShutdownDuration) // allow server small amount of time to finish sending response to client
 				shutdownServerFunction()
 			}()
 		}
@@ -511,7 +498,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 	}
 
 	return func(c *fiber.Ctx) error { // Mitigate against DDOS by allowlisting IP addresses and CIDRs
-		switch c.Locals(fiberAppIDRequestAttribute) {
+		switch c.Locals(cryptoutilMagic.FiberAppIDRequestAttribute) {
 		case string(fiberAppIDPublic): // Apply IP/CIDR filtering for public app requests
 			clientIP := c.IP()
 			parsedIP := net.ParseIP(clientIP)
@@ -544,7 +531,7 @@ func commonIPFilterMiddleware(telemetryService *cryptoutilTelemetry.TelemetrySer
 		case string(fiberAppIDPrivate): // Skip IP/CIDR filtering for private app requests
 			return c.Next()
 		default:
-			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(fiberAppIDRequestAttribute))
+			telemetryService.Slogger.Error("Unexpected app ID:", c.Locals(cryptoutilMagic.FiberAppIDRequestAttribute))
 
 			return c.Status(fiber.StatusInternalServerError).SendString("Internal server error")
 		}
@@ -584,7 +571,7 @@ func checkDatabaseHealth(serverApplicationCore *ServerApplicationCore) map[strin
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), healthCheckTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.DatabaseHealthCheckTimeout)
 	defer cancel()
 
 	health, err := serverApplicationCore.SQLRepository.HealthCheck(ctx)
@@ -616,7 +603,7 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 		}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), healthCheckTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.OtelCollectorHealthCheckTimeout)
 	defer cancel()
 
 	// Check sidecar connectivity using the telemetry service method
@@ -636,56 +623,56 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 
 func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
 	deps := map[string]any{
-		statusStr:  "ok",
-		"services": map[string]any{},
+		cryptoutilMagic.StringStatus: "ok",
+		"services":                   map[string]any{},
 	}
 
 	services, ok := deps["services"].(map[string]any)
 	if !ok {
 		return map[string]any{
-			statusStr: errorStr,
-			errorStr:  "internal error: failed to create dependencies status map",
+			cryptoutilMagic.StringStatus: cryptoutilMagic.StringError,
+			cryptoutilMagic.StringError:  "internal error: failed to create dependencies status map",
 		}
 	}
 
 	// Check telemetry service
 	if serverApplicationCore.ServerApplicationBasic.TelemetryService == nil {
-		services["telemetry"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
-		deps[statusStr] = errorStr
+		services["telemetry"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
+		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
 	} else {
-		services["telemetry"] = map[string]any{statusStr: "ok"}
+		services["telemetry"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
 	}
 
 	// Check JWK gen service
 	if serverApplicationCore.ServerApplicationBasic.JWKGenService == nil {
-		services["jwk_generator"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
-		deps[statusStr] = errorStr
+		services["jwk_generator"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
+		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
 	} else {
-		services["jwk_generator"] = map[string]any{statusStr: "ok"}
+		services["jwk_generator"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
 	}
 
 	// Check barrier service
 	if serverApplicationCore.BarrierService == nil {
-		services["barrier"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
-		deps[statusStr] = errorStr
+		services["barrier"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
+		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
 	} else {
-		services["barrier"] = map[string]any{statusStr: "ok"}
+		services["barrier"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
 	}
 
 	// Check business logic service
 	if serverApplicationCore.BusinessLogicService == nil {
-		services["business_logic"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
-		deps[statusStr] = errorStr
+		services["business_logic"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
+		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
 	} else {
-		services["business_logic"] = map[string]any{statusStr: "ok"}
+		services["business_logic"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
 	}
 
 	// Check ORM repository
 	if serverApplicationCore.OrmRepository == nil {
-		services["orm_repository"] = map[string]any{statusStr: errorStr, errorStr: "not initialized"}
-		deps[statusStr] = errorStr
+		services["orm_repository"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
+		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
 	} else {
-		services["orm_repository"] = map[string]any{statusStr: "ok"}
+		services["orm_repository"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
 	}
 
 	return deps
@@ -711,14 +698,16 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 		isReadiness := strings.HasSuffix(path, cryptoutilMagic.PrivateAdminReadyzRequestPath)
 
 		healthStatus := map[string]any{
-			statusStr:   "ok",
-			"timestamp": time.Now().UTC().Format(time.RFC3339),
-			"service":   "cryptoutil",
-			"version":   "1.0.0", // TODO: Get from build info
-			"probe":     "liveness",
+			cryptoutilMagic.StringStatus: "ok",
+			"timestamp":                  time.Now().UTC().Format(time.RFC3339),
+			"service":                    "cryptoutil",
+			"version":                    "1.0.0", // TODO: Get from build info
+			"probe":                      "liveness",
 		}
 
 		if isReadiness {
+			// TODO Add more readiness checks as needed
+			// TODO Do readiness checks concurrently for better performance
 			healthStatus["probe"] = "readiness"
 			healthStatus["database"] = checkDatabaseHealth(serverApplicationCore)
 			healthStatus["memory"] = checkMemoryHealth()
@@ -727,26 +716,26 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 
 			// Check if any component is unhealthy for readiness
 			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
-				if status, ok := dbStatus[statusStr].(string); ok && status != statusOK {
-					healthStatus[statusStr] = statusDegraded
+				if status, ok := dbStatus[cryptoutilMagic.StringStatus].(string); ok && status != cryptoutilMagic.StringStatusOK {
+					healthStatus[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringStatusDegraded
 				}
 			}
 
 			if depsStatus, ok := healthStatus["dependencies"].(map[string]any); ok {
-				if status, ok := depsStatus[statusStr].(string); ok && status != statusOK {
-					healthStatus[statusStr] = statusDegraded
+				if status, ok := depsStatus[cryptoutilMagic.StringStatus].(string); ok && status != cryptoutilMagic.StringStatusOK {
+					healthStatus[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringStatusDegraded
 				}
 			}
 
 			if sidecarStatus, ok := healthStatus["sidecar"].(map[string]any); ok {
-				if status, ok := sidecarStatus[statusStr].(string); ok && status == "error" {
-					healthStatus[statusStr] = statusDegraded
+				if status, ok := sidecarStatus[cryptoutilMagic.StringStatus].(string); ok && status == "error" {
+					healthStatus[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringStatusDegraded
 				}
 			}
 		}
 
 		statusCode := fiber.StatusOK
-		if healthStatus[statusStr] != statusOK {
+		if healthStatus[cryptoutilMagic.StringStatus] != cryptoutilMagic.StringStatusOK {
 			statusCode = fiber.StatusServiceUnavailable
 		}
 
@@ -756,7 +745,7 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 
 func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		c.Locals(fiberAppIDRequestAttribute, string(fiberAppIDValue))
+		c.Locals(cryptoutilMagic.FiberAppIDRequestAttribute, string(fiberAppIDValue))
 
 		return c.Next()
 	}

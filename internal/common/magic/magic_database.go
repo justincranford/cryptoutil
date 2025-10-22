@@ -12,14 +12,24 @@ const (
 
 // Database connection and query timeouts.
 const (
-	// DBPingAttemptWait - Initial wait time before first database ping attempt.
-	DBPingAttemptWait = 750 * time.Millisecond
-	// DBLoggerSlowThreshold - Threshold for logging slow database queries.
-	DBLoggerSlowThreshold = 200 * time.Millisecond
+	// DBMaxPingAttempts - Maximum number of database ping attempts.
+	DBMaxPingAttempts = 5
 	// DBPingTimeout - Default timeout for database ping operations.
 	DBPingTimeout = 5 * time.Second
-	// SQLiteBusyTimeout - Timeout for SQLite busy operations.
-	SQLiteBusyTimeout = 30 * time.Second
+
+	// DBPingFirstAttemptWait - Initial wait time before first database ping attempt.
+	DBPingFirstAttemptWait = 750 * time.Millisecond
+	// DBPingNextAttemptWait - Wait time between database ping attempts.
+	DBPingNextAttemptWait = 1 * time.Second
+
+	// DBLoggerSlowThreshold - Threshold for logging slow database queries.
+	DBLoggerSlowThreshold = 200 * time.Millisecond
+
+	// DBSQLiteBusyTimeout - Timeout for SQLite busy operations.
+	DBSQLiteBusyTimeout = 30 * time.Second
+	// SQLiteMaxOpenConnections - Maximum open connections for SQLite.
+	SQLiteMaxOpenConnections = 1
+
 	// DBPostgresContainerStartupTimeout - PostgreSQL container startup timeout.
 	DBPostgresContainerStartupTimeout = 30 * time.Second
 	// DefaultDatabaseInitTotalTimeout - Total timeout for database initialization (5 minutes).
@@ -30,20 +40,10 @@ const (
 	DefaultDataServerShutdownTimeout = 5 * time.Second
 )
 
-// Database connection retry and pooling.
-const (
-	// DBMaxPingAttempts - Maximum number of database ping attempts.
-	DBMaxPingAttempts = 5
-	// DBNextPingAttemptWait - Wait time between database ping attempts.
-	DBNextPingAttemptWait = 1 * time.Second
-	// SQLiteMaxOpenConnections - Maximum open connections for SQLite.
-	SQLiteMaxOpenConnections = 1
-)
-
 // Database random suffix generation.
 const (
-	// DBRandSuffixMax - Maximum value for random database suffix generation.
-	DBRandSuffixMax = 10000
+	// DBContainerRandSuffixMax - Maximum value for random database suffix generation.
+	DBContainerRandSuffixMax = 10000
 )
 
 // SQLite error codes.

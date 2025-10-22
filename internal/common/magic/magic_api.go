@@ -18,16 +18,18 @@ const (
 	// StringProviderInternal - Internal provider string.
 	StringProviderInternal = "Internal"
 
-	// TimeoutClientLivenessStart - Client liveness start timeout.
-	TimeoutClientLivenessStart = 200 * time.Millisecond
+	// WaitBeforeShutdownDuration - Client liveness start timeout.
+	WaitBeforeShutdownDuration = 200 * time.Millisecond
 
-	// TimeoutClientLivenessRequest - Client liveness request timeout.
-	TimeoutClientLivenessRequest = 3 * time.Second
-	// TimeoutClientReadinessRequest - Client readiness request timeout.
-	TimeoutClientReadinessRequest = 5 * time.Second
-	// TimeoutClientShutdownRequest - Client shutdown request timeout.
-	TimeoutClientShutdownRequest = 5 * time.Second
+	// ClientLivenessRequestTimeout - Client liveness request timeout.
+	ClientLivenessRequestTimeout = 3 * time.Second
+	// ClientReadinessRequestTimeout - Client readiness request timeout.
+	ClientReadinessRequestTimeout = 5 * time.Second
+	// ClientShutdownRequestTimeout - Client shutdown request timeout.
+	ClientShutdownRequestTimeout = 5 * time.Second
 
-	// TimeoutHealthCheck - Health check timeout.
-	TimeoutHealthCheck = 5 * time.Second
+	// DatabaseHealthCheckTimeout - Database health check timeout.
+	DatabaseHealthCheckTimeout = 5 * time.Second
+	// OtelCollectorHealthCheckTimeout - Otel collector health check timeout.
+	OtelCollectorHealthCheckTimeout = 5 * time.Second
 )

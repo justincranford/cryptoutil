@@ -25,14 +25,12 @@ const (
 	ContainerModePreferred ContainerMode = "preferred"
 	ContainerModeRequired  ContainerMode = "required"
 
-	firstDBPingAttemptWait = cryptoutilMagic.DBPingAttemptWait
+	firstDBPingAttemptWait = cryptoutilMagic.DBPingFirstAttemptWait
 	maxDBPingAttempts      = cryptoutilMagic.DBMaxPingAttempts
-	nextDBPingAttemptWait  = cryptoutilMagic.DBNextPingAttemptWait
-	sqliteBusyTimeout      = cryptoutilMagic.SQLiteBusyTimeout
+	nextDBPingAttemptWait  = cryptoutilMagic.DBPingNextAttemptWait
+	sqliteBusyTimeout      = cryptoutilMagic.DBSQLiteBusyTimeout
 	// Local constants for this provider.
-	defaultPingTimeout       = cryptoutilMagic.DBPingTimeout
 	sqliteMaxOpenConnections = cryptoutilMagic.SQLiteMaxOpenConnections
-	randSuffixMax            = cryptoutilMagic.DBRandSuffixMax
 )
 
 type SQLRepository struct {
@@ -59,7 +57,7 @@ func (s *SQLRepository) HealthCheck(ctx context.Context) (map[string]any, error)
 	}
 
 	// Ping with timeout
-	pingCtx, cancel := context.WithTimeout(ctx, defaultPingTimeout)
+	pingCtx, cancel := context.WithTimeout(ctx, cryptoutilMagic.DBPingTimeout)
 	defer cancel()
 
 	err := s.sqlDB.PingContext(pingCtx)
@@ -113,30 +111,17 @@ func extractSchemaFromURL(databaseURL string) string {
 }
 
 var (
-	postgresContainerDBName = func() string {
-		val, err := rand.Int(rand.Reader, big.NewInt(randSuffixMax))
+	postgresContainerRandSuffix = func() string {
+		postgresContainerRandSuffix, err := rand.Int(rand.Reader, big.NewInt(cryptoutilMagic.DBContainerRandSuffixMax))
 		if err != nil {
 			panic(fmt.Sprintf("failed to generate random database name: %v", err))
 		}
 
-		return fmt.Sprintf("keyservice%04d", val.Int64())
+		return fmt.Sprintf("%04d", postgresContainerRandSuffix.Int64())
 	}()
-	postgresContainerDBUsername = func() string {
-		val, err := rand.Int(rand.Reader, big.NewInt(randSuffixMax))
-		if err != nil {
-			panic(fmt.Sprintf("failed to generate random username: %v", err))
-		}
-
-		return fmt.Sprintf("postgresUsername%04d", val.Int64())
-	}()
-	postgresContainerDBPassword = func() string {
-		val, err := rand.Int(rand.Reader, big.NewInt(randSuffixMax))
-		if err != nil {
-			panic(fmt.Sprintf("failed to generate random password: %v", err))
-		}
-
-		return fmt.Sprintf("postgresPassword%04d", val.Int64())
-	}()
+	postgresContainerDBName     = "postgresDatabase" + postgresContainerRandSuffix
+	postgresContainerDBUsername = "postgresUsername" + postgresContainerRandSuffix
+	postgresContainerDBPassword = "postgresPassword" + postgresContainerRandSuffix
 
 	ErrContainerOptionNotExist                      = errors.New("container option not available for sqlite")
 	ErrUnsupportedDBType                            = errors.New("unsupported database type")
