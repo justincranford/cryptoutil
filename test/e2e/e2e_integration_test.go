@@ -30,7 +30,7 @@ const (
 	cryptoutilPostgres2Port = cryptoutilMagic.PortCryptoutilPostgres2
 	cryptoutilPrivatePort   = cryptoutilMagic.PortDefaultAdminAPI
 	grafanaPort             = cryptoutilMagic.PortGrafana
-	otelCollectorPort       = cryptoutilMagic.PortOtelCollector
+	otelCollectorPort       = cryptoutilMagic.PortOtelCollectorMetrics
 	testCleartext           = cryptoutilMagic.TestCleartext
 
 	// Status constants.
@@ -50,10 +50,10 @@ const (
 	httpRetryInterval        = cryptoutilMagic.Timeout1Second
 
 	// Test data.
-	testElasticKeyName        = cryptoutilMagic.TestElasticKeyName
-	testElasticKeyDescription = cryptoutilMagic.TestElasticKeyDescription
-	testAlgorithm             = cryptoutilMagic.TestAlgorithmRSA
-	testProvider              = cryptoutilMagic.TestProviderGO
+	testElasticKeyName        = "e2e-test-key"
+	testElasticKeyDescription = "E2E integration test key"
+	testAlgorithm             = "RSA"
+	testProvider              = "GO"
 )
 
 var (

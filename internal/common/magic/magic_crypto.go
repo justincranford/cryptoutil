@@ -4,6 +4,17 @@ package magic
 // This file contains all crypto-related magic values used throughout the application.
 
 const (
+	// CountExpectedSysInfos - Expected number of system info items.
+	CountExpectedSysInfos = 13
+	// CountMaxSharedSecrets - Maximum number of shared secrets allowed.
+	CountMaxSharedSecrets = 256
+	// CountMinSharedSecretLength - Minimum shared secret length in bytes.
+	CountMinSharedSecretLength = 32
+	// CountMaxSharedSecretLength - Maximum shared secret length in bytes.
+	CountMaxSharedSecretLength = 64
+	// CountDerivedKeySizeBytes - Derived key size in bytes.
+	CountDerivedKeySizeBytes = 32
+
 	// EdDSA curve names.
 	EdCurveEd448   = "Ed448"
 	EdCurveEd25519 = "Ed25519"
@@ -45,10 +56,6 @@ const (
 	// Bits to bytes conversion factor.
 	BitsToBytes = 8
 
-	// Test algorithm and provider constants.
-	TestAlgorithmRSA = "RSA"
-	TestProviderGO   = "GO"
-
 	// Serial number bit sizes for cryptographic range.
 	MinSerialNumberBits = 64
 	MaxSerialNumberBits = 159
@@ -73,4 +80,40 @@ const (
 	JWEKEA256KeySize = 256
 	JWEKEA192KeySize = 192
 	JWEKEA128KeySize = 128
+
+	// JWK generation pool sizes (min, max) by algorithm type.
+	JWKGenPoolRSA4096Min   = 9
+	JWKGenPoolRSA4096Max   = 9
+	JWKGenPoolRSA3072Min   = 6
+	JWKGenPoolRSA3072Max   = 6
+	JWKGenPoolRSA2048Min   = 3
+	JWKGenPoolRSA2048Max   = 3
+	JWKGenPoolECDSAP521Min = 3
+	JWKGenPoolECDSAP521Max = 9
+	JWKGenPoolECDSAP384Min = 2
+	JWKGenPoolECDSAP384Max = 6
+	JWKGenPoolECDSAP256Min = 1
+	JWKGenPoolECDSAP256Max = 3
+	JWKGenPoolECDHP521Min  = 3
+	JWKGenPoolECDHP521Max  = 9
+	JWKGenPoolECDHP384Min  = 2
+	JWKGenPoolECDHP384Max  = 6
+	JWKGenPoolECDHP256Min  = 1
+	JWKGenPoolECDHP256Max  = 3
+	JWKGenPoolED25519Min   = 1
+	JWKGenPoolED25519Max   = 2
+	JWKGenPoolAES256Min    = 3
+	JWKGenPoolAES256Max    = 9
+	JWKGenPoolAES192Min    = 2
+	JWKGenPoolAES192Max    = 6
+	JWKGenPoolAES128Min    = 1
+	JWKGenPoolAES128Max    = 3
+	JWKGenPoolHMAC512Min   = 3
+	JWKGenPoolHMAC512Max   = 9
+	JWKGenPoolHMAC384Min   = 2
+	JWKGenPoolHMAC384Max   = 6
+	JWKGenPoolHMAC256Min   = 1
+	JWKGenPoolHMAC256Max   = 3
+	JWKGenPoolUUIDv7Min    = 2
+	JWKGenPoolUUIDv7Max    = 20
 )

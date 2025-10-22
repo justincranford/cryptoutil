@@ -140,8 +140,8 @@ services:
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
-      - "8888:8888"   # Metrics endpoint
-      - "8889:8889"   # Prometheus metrics
+      - "8888:8888"   # Collector internal metrics (Prometheus scraping)
+      - "8889:8889"   # Health check endpoint
     depends_on:
       - grafana-otel-lgtm
     healthcheck:

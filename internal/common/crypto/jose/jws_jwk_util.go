@@ -11,24 +11,13 @@ import (
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilUtil "cryptoutil/internal/common/util"
 
 	"github.com/cloudflare/circl/sign/ed448"
 	googleUuid "github.com/google/uuid"
 	joseJwa "github.com/lestrrat-go/jwx/v3/jwa"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-)
-
-const (
-	// RSA key sizes in bits for different signature algorithms.
-	rsaKeySize2048 = 2048
-	rsaKeySize3072 = 3072
-	rsaKeySize4096 = 4096
-
-	// HMAC key sizes in bits.
-	hmacKeySize256 = 256
-	hmacKeySize384 = 384
-	hmacKeySize512 = 512
 )
 
 var ErrInvalidJWSJWKKidUUID = "invalid JWS JWK kid UUID"
@@ -150,11 +139,11 @@ func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 
 	switch *alg {
 	case AlgRS512, AlgPS512:
-		return validateOrGenerateJWSRSAJWK(key, alg, rsaKeySize4096)
+		return validateOrGenerateJWSRSAJWK(key, alg, cryptoutilMagic.RSAKeySize4096)
 	case AlgRS384, AlgPS384:
-		return validateOrGenerateJWSRSAJWK(key, alg, rsaKeySize3072)
+		return validateOrGenerateJWSRSAJWK(key, alg, cryptoutilMagic.RSAKeySize3072)
 	case AlgRS256, AlgPS256:
-		return validateOrGenerateJWSRSAJWK(key, alg, rsaKeySize2048)
+		return validateOrGenerateJWSRSAJWK(key, alg, cryptoutilMagic.RSAKeySize2048)
 	case AlgES256:
 		return validateOrGenerateJWSEcdsaJWK(key, alg, elliptic.P521())
 	case AlgES384:
@@ -164,11 +153,11 @@ func validateJWSJWKHeaders(kid *googleUuid.UUID, alg *joseJwa.SignatureAlgorithm
 	case AlgEdDSA:
 		return validateOrGenerateJWSEddsaJWK(key, alg, "Ed25519")
 	case AlgHS512:
-		return validateOrGenerateJWSHMACJWK(key, alg, hmacKeySize512)
+		return validateOrGenerateJWSHMACJWK(key, alg, cryptoutilMagic.HMACKeySize512)
 	case AlgHS384:
-		return validateOrGenerateJWSHMACJWK(key, alg, hmacKeySize384)
+		return validateOrGenerateJWSHMACJWK(key, alg, cryptoutilMagic.HMACKeySize384)
 	case AlgHS256:
-		return validateOrGenerateJWSHMACJWK(key, alg, hmacKeySize256)
+		return validateOrGenerateJWSHMACJWK(key, alg, cryptoutilMagic.HMACKeySize256)
 	default:
 		return nil, fmt.Errorf("unsupported JWS JWK alg: %s", alg)
 	}

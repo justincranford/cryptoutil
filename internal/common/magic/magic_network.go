@@ -6,6 +6,23 @@ package magic
 const (
 	// PortHTTPS - Standard HTTPS port.
 	PortHTTPS uint16 = 443
+
+	// PortGrafana - Default Grafana port.
+	PortGrafana uint16 = 3000
+
+	// PortOtelCollectorMetrics - Default OpenTelemetry collector internal metrics port (Prometheus).
+	PortOtelCollectorMetrics uint16 = 8888
+	// PortOtelCollectorHealth - Default OpenTelemetry collector health port.
+	PortOtelCollectorHealth uint16 = 8889
+
+	// PortOtelGRPC - Default OpenTelemetry OTLP gRPC port.
+	PortOtelGRPC uint16 = 4317
+	// PortOtelHTTP - Default OpenTelemetry OTLP HTTP port.
+	PortOtelHTTP uint16 = 4318
+
+	// PortPostgres - Default PostgreSQL port.
+	PortPostgres uint16 = 5432
+
 	// PortDefaultBrowserAPI - Default browser/server API port.
 	PortDefaultBrowserAPI uint16 = 8080
 	// PortCryptoutilPostgres1 - Port for cryptoutil postgres instance 1.
@@ -14,10 +31,6 @@ const (
 	PortCryptoutilPostgres2 uint16 = 8082
 	// PortDefaultAdminAPI - Default admin API port.
 	PortDefaultAdminAPI uint16 = 9090
-	// PortGrafana - Default Grafana port.
-	PortGrafana uint16 = 3000
-	// PortOtelCollector - Default OpenTelemetry collector port.
-	PortOtelCollector uint16 = 8888
 )
 
 // Network URLs and prefixes.

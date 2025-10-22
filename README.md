@@ -105,13 +105,28 @@ cryptoutil services (OTLP GRPC:4317 or HTTP:4318) → OpenTelemetry Collector Co
 
 **Infrastructure Telemetry (Pull-based):**
 ```
-Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8889/metrics)
+Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/metrics)
 ```
 - **Purpose**: Monitor collector health and performance
 - **Protocol**: Prometheus scraping - pull-based
 - **Data**: Collector throughput, error rates, queue depths, resource usage
 
 **Why Both Flows?** The collector both **receives application telemetry** (from cryptoutil) and **exposes its own metrics** (for monitoring). This provides complete observability of both your application and the telemetry pipeline itself.
+
+#### Port Architecture
+
+**OpenTelemetry Collector Ports:**
+- **4317**: OTLP gRPC receiver (application telemetry ingress)
+- **4318**: OTLP HTTP receiver (application telemetry ingress)  
+- **8888**: Internal metrics exposure (Prometheus scraping endpoint)
+- **8889**: Health check extension (container health monitoring)
+
+**Application Ports:**
+- **3000**: Grafana UI
+- **5432**: PostgreSQL database
+- **8080**: cryptoutil public API (HTTPS)
+- **8081-8082**: Additional cryptoutil instances
+- **9090**: cryptoutil private admin API (health checks, graceful shutdown)
 
 **Services:**
 - **Grafana**: http://localhost:3000 (admin/admin)
@@ -171,7 +186,8 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 - **Service API**: http://localhost:8081/service/api/v1/*, http://localhost:8082/service/api/v1/*, or http://localhost:8080/service/api/v1/*
 - **Health Checks**: http://localhost:9090/livez, http://localhost:9090/readyz
 - **Grafana UI**: http://localhost:3000 (admin/admin)
-- **OpenTelemetry Collector Metrics**: http://localhost:8888/metrics, http://localhost:8889/metrics
+- **OpenTelemetry Collector Metrics**: http://localhost:8888/metrics
+- **OpenTelemetry Collector Health**: http://localhost:8889/health
 
 ### Example API Usage
 ```sh

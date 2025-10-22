@@ -17,9 +17,9 @@ import (
 
 const (
 	// TLS certificate validity and helper constants.
-	tlsCACertValidityYears   = cryptoutilMagic.TLSValidityCACertYears   // years for CA certificates
-	tlsEndEntityValidityDays = cryptoutilMagic.TLSValidityEndEntityDays // days for server end-entity certificate
-	tlsServerKeyPairsNeeded  = cryptoutilMagic.TLSKeyPairsNeeded        // number of keypairs requested for server TLS
+	tlsCACertValidityYears   = cryptoutilMagic.TLSDefaultValidityCACertYears // years for CA certificates
+	tlsEndEntityValidityDays = 396                                           // days for server end-entity certificate (reduced from 397 to allow for randomization)
+	tlsServerKeyPairsNeeded  = 2                                             // number of keypairs requested for server TLS
 
 	// File mode for written PEM files.
 	defaultPEMFileMode = cryptoutilMagic.FilePermOwnerReadWriteOnly

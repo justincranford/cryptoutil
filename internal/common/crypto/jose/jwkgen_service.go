@@ -19,68 +19,6 @@ import (
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
 )
 
-const (
-	// Pool sizes for key generation pools (min, max).
-	rsa4096PoolMin = 9
-	rsa4096PoolMax = 9
-	rsa3072PoolMin = 6
-	rsa3072PoolMax = 6
-	rsa2048PoolMin = 3
-	rsa2048PoolMax = 3
-
-	ecdsaP521PoolMin = 3
-	ecdsaP521PoolMax = 9
-	ecdsaP384PoolMin = 2
-	ecdsaP384PoolMax = 6
-	ecdsaP256PoolMin = 1
-	ecdsaP256PoolMax = 3
-
-	ecdhP521PoolMin = 3
-	ecdhP521PoolMax = 9
-	ecdhP384PoolMin = 2
-	ecdhP384PoolMax = 6
-	ecdhP256PoolMin = 1
-	ecdhP256PoolMax = 3
-
-	ed25519PoolMin = 1
-	ed25519PoolMax = 2
-
-	aes256PoolMin = 3
-	aes256PoolMax = 9
-	aes192PoolMin = 2
-	aes192PoolMax = 6
-	aes128PoolMin = 1
-	aes128PoolMax = 3
-
-	aes256HS512PoolMin = 3
-	aes256HS512PoolMax = 9
-	aes192HS384PoolMin = 2
-	aes192HS384PoolMax = 6
-	aes128HS256PoolMin = 1
-	aes128HS256PoolMax = 3
-
-	hmac512PoolMin = 3
-	hmac512PoolMax = 9
-	hmac384PoolMin = 2
-	hmac384PoolMax = 6
-	hmac256PoolMin = 1
-	hmac256PoolMax = 3
-
-	uuidV7PoolMin = 2
-	uuidV7PoolMax = 20
-
-	// Cryptographic key sizes (bits).
-	rsa4096KeySize = 4096
-	rsa3072KeySize = 3072
-	rsa2048KeySize = 2048
-	aes256KeySize  = 256
-	aes192KeySize  = 192
-	aes128KeySize  = 128
-	hmac512KeySize = 512
-	hmac384KeySize = 384
-	hmac256KeySize = 256
-)
-
 type JWKGenService struct {
 	telemetryService      *cryptoutilTelemetry.TelemetryService
 	RSA4096KeyGenPool     *cryptoutilPool.ValueGenPool[*cryptoutilKeyGen.KeyPair]  // 512-bytes
@@ -114,26 +52,26 @@ func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilTelemetry
 		return nil, fmt.Errorf("telemetry service must be non-nil")
 	}
 
-	rsa4096KeyGenPool, err1 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService RSA 4096", rsa4096PoolMin, rsa4096PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(rsa4096KeySize), verbose))
-	rsa3072KeyGenPool, err2 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService RSA 3072", rsa3072PoolMin, rsa3072PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(rsa3072KeySize), verbose))
-	rsa2048KeyGenPool, err3 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService RSA 2048", rsa2048PoolMin, rsa2048PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(rsa2048KeySize), verbose))
-	ecdsaP521KeyGenPool, err4 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDSA-P521", ecdsaP521PoolMin, ecdsaP521PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P521()), verbose))
-	ecdsaP384KeyGenPool, err5 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDSA-P384", ecdsaP384PoolMin, ecdsaP384PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P384()), verbose))
-	ecdsaP256KeyGenPool, err6 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDSA-P256", ecdsaP256PoolMin, ecdsaP256PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), verbose))
-	ecdhP521KeyGenPool, err7 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P521", ecdhP521PoolMin, ecdhP521PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P521()), verbose))
-	ecdhP384KeyGenPool, err8 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P384", ecdhP384PoolMin, ecdhP384PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P384()), verbose))
-	ecdhP256KeyGenPool, err9 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P256", ecdhP256PoolMin, ecdhP256PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256()), verbose))
-	ed25519KeyGenPool, err10 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService Ed25519", ed25519PoolMin, ed25519PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519"), verbose))
-	aes256KeyGenPool, err11 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-256-GCM", aes256PoolMin, aes256PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(aes256KeySize), verbose))
-	aes192KeyGenPool, err12 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-192-GCM", aes192PoolMin, aes192PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(aes192KeySize), verbose))
-	aes128KeyGenPool, err13 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-128-GCM", aes128PoolMin, aes128PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(aes128KeySize), verbose))
-	aes256HS512KeyGenPool, err14 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-256-CBC HS-512", aes256HS512PoolMin, aes256HS512PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(hmac512KeySize), verbose))
-	aes192HS384KeyGenPool, err15 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-192-CBC HS-384", aes192HS384PoolMin, aes192HS384PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(hmac384KeySize), verbose))
-	aes128HS256KeyGenPool, err16 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-128-CBC HS-256", aes128HS256PoolMin, aes128HS256PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(hmac256KeySize), verbose))
-	hmac512KeyGenPool, err17 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-512", hmac512PoolMin, hmac512PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(hmac512KeySize), verbose))
-	hmac384KeyGenPool, err18 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-384", hmac384PoolMin, hmac384PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(hmac384KeySize), verbose))
-	hmac256KeyGenPool, err19 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-256", hmac256PoolMin, hmac256PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(hmac256KeySize), verbose))
-	uuidV7KeyGenPool, err20 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService UUIDv7", uuidV7PoolMin, uuidV7PoolMax, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function(), verbose))
+	rsa4096KeyGenPool, err1 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService RSA 4096", cryptoutilMagic.JWKGenPoolRSA4096Min, cryptoutilMagic.JWKGenPoolRSA4096Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(cryptoutilMagic.RSAKeySize4096), verbose))
+	rsa3072KeyGenPool, err2 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService RSA 3072", cryptoutilMagic.JWKGenPoolRSA3072Min, cryptoutilMagic.JWKGenPoolRSA3072Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(cryptoutilMagic.RSAKeySize3072), verbose))
+	rsa2048KeyGenPool, err3 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService RSA 2048", cryptoutilMagic.JWKGenPoolRSA2048Min, cryptoutilMagic.JWKGenPoolRSA2048Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateRSAKeyPairFunction(cryptoutilMagic.RSAKeySize2048), verbose))
+	ecdsaP521KeyGenPool, err4 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDSA-P521", cryptoutilMagic.JWKGenPoolECDSAP521Min, cryptoutilMagic.JWKGenPoolECDSAP521Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P521()), verbose))
+	ecdsaP384KeyGenPool, err5 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDSA-P384", cryptoutilMagic.JWKGenPoolECDSAP384Min, cryptoutilMagic.JWKGenPoolECDSAP384Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P384()), verbose))
+	ecdsaP256KeyGenPool, err6 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDSA-P256", cryptoutilMagic.JWKGenPoolECDSAP256Min, cryptoutilMagic.JWKGenPoolECDSAP256Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), verbose))
+	ecdhP521KeyGenPool, err7 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P521", cryptoutilMagic.JWKGenPoolECDHP521Min, cryptoutilMagic.JWKGenPoolECDHP521Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P521()), verbose))
+	ecdhP384KeyGenPool, err8 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P384", cryptoutilMagic.JWKGenPoolECDHP384Min, cryptoutilMagic.JWKGenPoolECDHP384Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P384()), verbose))
+	ecdhP256KeyGenPool, err9 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService ECDH-P256", cryptoutilMagic.JWKGenPoolECDHP256Min, cryptoutilMagic.JWKGenPoolECDHP256Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDHKeyPairFunction(ecdh.P256()), verbose))
+	ed25519KeyGenPool, err10 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService Ed25519", cryptoutilMagic.JWKGenPoolED25519Min, cryptoutilMagic.JWKGenPoolED25519Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateEDDSAKeyPairFunction("Ed25519"), verbose))
+	aes256KeyGenPool, err11 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-256-GCM", cryptoutilMagic.JWKGenPoolAES256Min, cryptoutilMagic.JWKGenPoolAES256Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(cryptoutilMagic.AESKeySize256), verbose))
+	aes192KeyGenPool, err12 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-192-GCM", cryptoutilMagic.JWKGenPoolAES192Min, cryptoutilMagic.JWKGenPoolAES192Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(cryptoutilMagic.AESKeySize192), verbose))
+	aes128KeyGenPool, err13 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-128-GCM", cryptoutilMagic.JWKGenPoolAES128Min, cryptoutilMagic.JWKGenPoolAES128Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESKeyFunction(cryptoutilMagic.AESKeySize128), verbose))
+	aes256HS512KeyGenPool, err14 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-256-CBC HS-512", cryptoutilMagic.JWKGenPoolAES256Min, cryptoutilMagic.JWKGenPoolAES256Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(cryptoutilMagic.HMACKeySize512), verbose))
+	aes192HS384KeyGenPool, err15 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-192-CBC HS-384", cryptoutilMagic.JWKGenPoolAES192Min, cryptoutilMagic.JWKGenPoolAES192Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(cryptoutilMagic.HMACKeySize384), verbose))
+	aes128HS256KeyGenPool, err16 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService AES-128-CBC HS-256", cryptoutilMagic.JWKGenPoolAES128Min, cryptoutilMagic.JWKGenPoolAES128Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateAESHSKeyFunction(cryptoutilMagic.HMACKeySize256), verbose))
+	hmac512KeyGenPool, err17 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-512", cryptoutilMagic.JWKGenPoolHMAC512Min, cryptoutilMagic.JWKGenPoolHMAC512Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(cryptoutilMagic.HMACKeySize512), verbose))
+	hmac384KeyGenPool, err18 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-384", cryptoutilMagic.JWKGenPoolHMAC384Min, cryptoutilMagic.JWKGenPoolHMAC384Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(cryptoutilMagic.HMACKeySize384), verbose))
+	hmac256KeyGenPool, err19 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService HMAC-256", cryptoutilMagic.JWKGenPoolHMAC256Min, cryptoutilMagic.JWKGenPoolHMAC256Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateHMACKeyFunction(cryptoutilMagic.HMACKeySize256), verbose))
+	uuidV7KeyGenPool, err20 := cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(ctx, telemetryService, "JWKGenService UUIDv7", cryptoutilMagic.JWKGenPoolUUIDv7Min, cryptoutilMagic.JWKGenPoolUUIDv7Max, cryptoutilMagic.MaxLifetimeValues, cryptoutilMagic.MaxLifetimeDuration, cryptoutilUtil.GenerateUUIDv7Function(), verbose))
 
 	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil || err7 != nil || err8 != nil || err9 != nil || err10 != nil || err11 != nil || err12 != nil || err13 != nil || err14 != nil || err15 != nil || err16 != nil || err17 != nil || err18 != nil || err19 != nil || err20 != nil {
 		return nil, fmt.Errorf("failed to create pools: %w", errors.Join(err1, err2, err3, err4, err5, err6, err7, err8, err9, err10, err11, err12, err13, err14, err15, err16, err17, err18, err19, err20))

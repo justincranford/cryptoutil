@@ -6,18 +6,23 @@ import "time"
 
 // TLS certificate validity periods.
 const (
-	// TLSValidityCACertYears - Years for CA certificates.
-	TLSValidityCACertYears = 10
-	// TLSValidityEndEntityDays - Days for server end-entity certificate.
-	TLSValidityEndEntityDays = 397
-	// TLSMaxSubscriberCertDuration - Maximum duration for subscriber certificates (398 days).
-	TLSMaxSubscriberCertDuration = 398 * 24 * time.Hour
+	// TLSMaxValidityCACertYears - Maximum years for CA certificates.
+	TLSMaxValidityCACertYears = 25
 	// TLSMaxCACertDuration - Maximum duration for CA certificates (25 years).
-	TLSMaxCACertDuration = 25 * 365 * 24 * time.Hour
-)
+	TLSMaxCACertDuration = TLSMaxValidityCACertYears * 365 * 24 * time.Hour
 
-// TLS server configuration.
-const (
-	// TLSKeyPairsNeeded - Number of keypairs requested for server TLS.
-	TLSKeyPairsNeeded = 2
+	// TLSDefaultValidityCACertYears - Years for CA certificates.
+	TLSDefaultValidityCACertYears = 10
+	// TLSDefaultMaxCACertDuration - Maximum duration for CA certificates (25 years).
+	TLSDefaultMaxCACertDuration = TLSMaxValidityCACertYears * 365 * 24 * time.Hour
+
+	// TLSMaxValidityEndEntityDays - Maximum days for server end-entity certificate.
+	TLSMaxValidityEndEntityDays = 398
+	// TLSMaxSubscriberCertDuration - Maximum duration for subscriber certificates (398 days).
+	TLSMaxSubscriberCertDuration = TLSMaxValidityEndEntityDays * 24 * time.Hour
+
+	// TLSDefaultValidityEndEntityDays - Days for server end-entity certificate.
+	TLSDefaultValidityEndEntityDays = 397
+	// TLSDefaultSubscriberCertDuration - Maximum duration for subscriber certificates (398 days).
+	TLSDefaultSubscriberCertDuration = TLSDefaultValidityEndEntityDays * 24 * time.Hour
 )

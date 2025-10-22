@@ -10,16 +10,7 @@ const (
 	CountUIProgressInterval = 10
 	// CountMinActionMatchGroups - Minimum number of regex match groups for action parsing.
 	CountMinActionMatchGroups = 3
-	// CountExpectedSysInfos - Expected number of system info items.
-	CountExpectedSysInfos = 13
-	// CountMaxSharedSecrets - Maximum number of shared secrets allowed.
-	CountMaxSharedSecrets = 256
-	// CountMinSharedSecretLength - Minimum shared secret length in bytes.
-	CountMinSharedSecretLength = 32
-	// CountMaxSharedSecretLength - Maximum shared secret length in bytes.
-	CountMaxSharedSecretLength = 64
-	// CountDerivedKeySizeBytes - Derived key size in bytes.
-	CountDerivedKeySizeBytes = 32
+
 	// CountDefaultPageSize - Default page size for pagination.
 	CountDefaultPageSize = 25
 	// CountMaxLogsBatchSize - Maximum batch size for logs.
