@@ -113,45 +113,97 @@ jobs:
     - name: Install dependencies
       run: go mod download
 
-    - name: Start services with Docker Compose
-      if: false  # DISABLED: Local testing and fixes needed before re-enabling
+    - name: Pre-pull Docker images
       run: |
+        echo "Pre-pulling Docker images to avoid timeouts during compose up..."
         # Copy compose files to workspace root for easier access
         cp -r deployments/compose .
 
-        # Start PostgreSQL, OpenTelemetry collector, and cryptoutil instances
+        # Pre-pull all images used in the compose file
         cd compose
-        docker compose up -d postgres opentelemetry-collector-contrib grafana-otel-lgtm cryptoutil_postgres_1 cryptoutil_postgres_2
+        echo "Pulling postgres:latest..."
+        docker pull postgres:latest
+        echo "Pulling otel/opentelemetry-collector-contrib:latest..."
+        docker pull otel/opentelemetry-collector-contrib:latest
+        echo "Pulling grafana/otel-lgtm:latest..."
+        docker pull grafana/otel-lgtm:latest
+        echo "All images pre-pulled successfully"
 
-        # Wait for services to be ready
-        echo "Waiting for PostgreSQL to be ready..."
-        for i in {1..30}; do
-          if docker compose exec -T postgres pg_isready -U USR -d DB; then
+    - name: Start infrastructure services
+      run: |
+        cd compose
+        echo "Starting infrastructure services (postgres, opentelemetry-collector-contrib, grafana-otel-lgtm)..."
+        docker compose up -d postgres opentelemetry-collector-contrib grafana-otel-lgtm
+
+        # Wait for infrastructure services to be healthy
+        echo "Waiting for postgres to be ready..."
+        timeout=300
+        while [ $timeout -gt 0 ]; do
+          if docker compose exec -T postgres pg_isready -U postgres -h localhost; then
             echo "PostgreSQL is ready"
             break
           fi
-          echo "Waiting for PostgreSQL... ($i/30)"
-          sleep 2
+          echo "Waiting for PostgreSQL... ($timeout seconds remaining)"
+          sleep 5
+          timeout=$((timeout - 5))
         done
 
-        echo "Waiting for cryptoutil instances to be ready..."
-        for instance in cryptoutil_postgres_1 cryptoutil_postgres_2; do
-          echo "Checking $instance..."
-          for i in {1..30}; do
-            if docker compose exec -T $instance curl -sk --connect-timeout 5 --max-time 10 http://localhost:8080/readyz >/dev/null 2>&1; then
-              echo "$instance is ready"
-              break
-            fi
-            echo "Waiting for $instance... ($i/30)"
-            sleep 2
-          done
+        if [ $timeout -le 0 ]; then
+          echo "PostgreSQL failed to start within timeout"
+          docker compose logs postgres
+          exit 1
+        fi
+
+        echo "Waiting for OpenTelemetry Collector to be ready..."
+        timeout=60
+        while [ $timeout -gt 0 ]; do
+          if curl -f http://localhost:8889/metrics >/dev/null 2>&1; then
+            echo "OpenTelemetry Collector is ready"
+            break
+          fi
+          echo "Waiting for OpenTelemetry Collector... ($timeout seconds remaining)"
+          sleep 5
+          timeout=$((timeout - 5))
         done
 
-        echo "All services are ready"
+        if [ $timeout -le 0 ]; then
+          echo "OpenTelemetry Collector failed to start within timeout"
+          docker compose logs opentelemetry-collector-contrib
+          exit 1
+        fi
+
+        echo "Infrastructure services are ready"
+
+    - name: Start application services
+      run: |
+        cd compose
+        echo "Starting application services (cryptoutil instances)..."
+        docker compose up -d cryptoutil_sqlite cryptoutil_postgres_1 cryptoutil_postgres_2
+
+        # Wait for application services to be healthy
+        echo "Waiting for cryptoutil services to be ready..."
+        timeout=120
+        while [ $timeout -gt 0 ]; do
+          if curl -f http://localhost:8080/livez >/dev/null 2>&1 && \
+             curl -f http://localhost:8081/livez >/dev/null 2>&1 && \
+             curl -f http://localhost:8082/livez >/dev/null 2>&1; then
+            echo "All cryptoutil services are ready"
+            break
+          fi
+          echo "Waiting for cryptoutil services... ($timeout seconds remaining)"
+          sleep 5
+          timeout=$((timeout - 5))
+        done
+
+        if [ $timeout -le 0 ]; then
+          echo "Cryptoutil services failed to start within timeout"
+          docker compose logs cryptoutil_sqlite cryptoutil_postgres_1 cryptoutil_postgres_2
+          exit 1
+        fi
+
+        echo "All services are ready for testing"
 
     - name: Diagnostic - Verify connectivity from runner and Docker contexts
-      id: diagnostic_connectivity
-      if: false  # DISABLED: Local testing and fixes needed before re-enabling
       run: |
         # Diagnostic connectivity checks: quick reachability tests that return concise status codes.
         # Use consistent timeouts for all diagnostic curl calls.
@@ -237,7 +289,6 @@ jobs:
         echo "- ZAP public target URL should use: ${{ env.ZAP_PUBLIC_TARGET_URL }}"
 
     - name: Capture baseline response headers (immediate)
-      if: false  # DISABLED: Local testing and fixes needed before re-enabling
       run: |
         # Capture headers from key API endpoints (app is ready per health check)
         # NOTE: -v flag enables verbose output showing request headers (add back if debugging needed)
@@ -314,7 +365,6 @@ jobs:
 
     # Official ZAP actions for both GitHub-hosted runners and act-local
     - name: Run OWASP ZAP DAST Scan
-      if: false  # DISABLED: Local testing and fixes needed before re-enabling
       continue-on-error: true  # ZAP exit code 3 (informational findings) treated as failure by action
       uses: zaproxy/action-full-scan@v0.12.0
       with:
@@ -349,7 +399,6 @@ jobs:
         echo "ZAP DAST scan artifact collection completed"
 
     - name: Run OWASP ZAP API Scan
-      if: false  # DISABLED: Local testing and fixes needed before re-enabling
       continue-on-error: true  # ZAP exit code 3 (informational findings) treated as failure by action
       uses: zaproxy/action-api-scan@v0.9.0
       with:
@@ -414,7 +463,6 @@ jobs:
         echo "Configuration set for profile: $SCAN_PROFILE"
 
     - name: Nuclei - Vulnerability Scan (${{ steps.nuclei_config.outputs.description }})
-      if: false  # DISABLED: Local testing and fixes needed before re-enabling
       id: nuclei_scan
       uses: projectdiscovery/nuclei-action@main
       continue-on-error: true  # Continue even if nuclei finds vulnerabilities (exit code 1) or has errors

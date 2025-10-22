@@ -8,6 +8,12 @@
 # - 8888: Internal metrics exposure (Prometheus scraping - configured by default, not in this file)
 # - 8889: Health check extension (container health monitoring)
 receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
 
 processors:
   batch:
@@ -31,12 +37,12 @@ service:
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlphttp, debug]
+      exporters: [otlphttp]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlphttp, debug]
+      exporters: [otlphttp]
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlphttp, debug]
+      exporters: [otlphttp]
