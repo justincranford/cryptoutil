@@ -115,4 +115,7 @@ const (
 	MaxLifetimeValues = uint64(MaxLifetimeValuesInt64)
 	// MaxLifetimeDuration - Max int64 as nanoseconds (= 292.47 years).
 	MaxLifetimeDuration = time.Duration(MaxLifetimeValuesInt64)
+
+	// TimeoutPoolMaintenanceInterval - Ticker interval for periodic pool maintenance checks.
+	TimeoutPoolMaintenanceInterval = 500 * time.Millisecond
 )

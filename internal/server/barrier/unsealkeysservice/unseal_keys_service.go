@@ -41,7 +41,7 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		derivedSecretKeyBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("secret")...))
 		derivedSaltBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("salt")...))
 
-		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, cryptoutilMagic.DefaultDerivedKeySizeBytes)
+		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, cryptoutilMagic.DerivedKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to derive key: %w", err)
 		}

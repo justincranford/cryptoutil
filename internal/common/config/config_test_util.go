@@ -185,7 +185,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		panic("serverShutdownTimeout.value must be time.Duration")
 	}
 
-	otlpValue, ok := otlp.value.(bool)
+	otlpValue, ok := otlpEnabled.value.(bool)
 	if !ok {
 		panic("otlp.value must be bool")
 	}
@@ -273,7 +273,7 @@ func RequireNewForTest(applicationName string) *Settings {
 		DatabaseInitTotalTimeout:    databaseInitTotalTimeoutValue,
 		DatabaseInitRetryWait:       databaseInitRetryWaitValue,
 		ServerShutdownTimeout:       serverShutdownTimeoutValue,
-		OTLP:                        otlpValue,
+		OTLPEnabled:                 otlpValue,
 		OTLPConsole:                 otlpConsoleValue,
 		OTLPService:                 otlpServiceValue,
 		OTLPInstance:                otlpInstanceValue,
@@ -290,7 +290,7 @@ func RequireNewForTest(applicationName string) *Settings {
 	settings.BrowserIPRateLimit = cryptoutilMagic.TestDefaultRateLimitBrowserIP
 	settings.ServiceIPRateLimit = cryptoutilMagic.TestDefaultRateLimitServiceIP
 	settings.OTLPService = applicationName
-	settings.ServerShutdownTimeout = cryptoutilMagic.Timeout1Minute // Increase shutdown timeout for tests to allow cleanup of resources
+	settings.ServerShutdownTimeout = cryptoutilMagic.TestDefaultServerShutdownTimeout // Increase shutdown timeout for tests to allow cleanup of resources
 	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")
 
 	if strings.Contains(settings.DatabaseURL, "/DB?") {

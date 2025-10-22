@@ -18,9 +18,9 @@ const (
 	EmptyString = cryptoutilMagic.EmptyString
 
 	// Timeouts for system info queries to prevent hanging.
-	cpuInfoTimeout = cryptoutilMagic.Timeout10Seconds
-	memoryTimeout  = cryptoutilMagic.Timeout5Seconds
-	hostIDTimeout  = cryptoutilMagic.Timeout5Seconds
+	cpuInfoTimeout = cryptoutilMagic.DefaultSysInfoCPUTimeout
+	memoryTimeout  = cryptoutilMagic.DefaultSysInfoMemoryTimeout
+	hostIDTimeout  = cryptoutilMagic.DefaultSysInfoHostTimeout
 )
 
 func RuntimeGoArch() string {

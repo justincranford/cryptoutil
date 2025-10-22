@@ -28,7 +28,7 @@ const (
 	cryptoutilSqlitePort    = cryptoutilMagic.DefaultPortDefaultBrowserAPI
 	cryptoutilPostgres1Port = cryptoutilMagic.DefaultPortCryptoutilPostgres1
 	cryptoutilPostgres2Port = cryptoutilMagic.DefaultPortCryptoutilPostgres2
-	cryptoutilPrivatePort   = cryptoutilMagic.DefaultPortDefaultAdminAPI
+	cryptoutilPrivatePort   = cryptoutilMagic.DefaultPortAdminAPI
 	grafanaPort             = cryptoutilMagic.DefaultPortGrafana
 	otelCollectorPort       = cryptoutilMagic.DefaultPortOtelCollectorMetrics
 	testCleartext           = cryptoutilMagic.TestCleartext
@@ -38,13 +38,13 @@ const (
 	statusUnhealthy = cryptoutilMagic.StatusUnhealthy
 
 	// Test timeouts.
-	dockerHealthTimeout      = cryptoutilMagic.Timeout30Seconds // Docker services should be healthy in under 20s
-	cryptoutilReadyTimeout   = cryptoutilMagic.Timeout30Seconds // Cryptoutil needs time to unseal - reduced for fast fail
-	testExecutionTimeout     = cryptoutilMagic.Timeout30Seconds // Overall test timeout - reduced for fast fail
-	dockerComposeInitTimeout = cryptoutilMagic.Timeout15Seconds // Time to wait for Docker Compose services to initialize after startup
-	httpClientTimeout        = cryptoutilMagic.Timeout10Seconds
-	serviceRetryInterval     = cryptoutilMagic.Timeout2Seconds // Check more frequently
-	httpRetryInterval        = cryptoutilMagic.Timeout1Second
+	dockerHealthTimeout      = cryptoutilMagic.TestTimeoutDockerHealth      // Docker services should be healthy in under 20s
+	cryptoutilReadyTimeout   = cryptoutilMagic.TestTimeoutCryptoutilReady   // Cryptoutil needs time to unseal - reduced for fast fail
+	testExecutionTimeout     = cryptoutilMagic.TestTimeoutTestExecution     // Overall test timeout - reduced for fast fail
+	dockerComposeInitTimeout = cryptoutilMagic.TestTimeoutDockerComposeInit // Time to wait for Docker Compose services to initialize after startup
+	serviceRetryInterval     = cryptoutilMagic.TestTimeoutServiceRetry      // Check more frequently
+	httpClientTimeout        = cryptoutilMagic.TestDefaultHTTPClientTimeout
+	httpRetryInterval        = cryptoutilMagic.TestDefaultHTTPRetryInterval
 
 	// Test data.
 	testElasticKeyName        = "e2e-test-key"

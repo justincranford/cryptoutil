@@ -417,7 +417,7 @@ func (*oamOrmMapper) toOrmPageNumber(pageNumber *cryptoutilOpenapiModel.PageNumb
 
 func (*oamOrmMapper) toOrmPageSize(pageSize *cryptoutilOpenapiModel.PageSize) (int, error) {
 	if pageSize == nil {
-		return cryptoutilMagic.CountDefaultPageSize, nil
+		return cryptoutilMagic.DefaultPageSize, nil
 	} else if *pageSize >= 1 {
 		return *pageSize, nil
 	}

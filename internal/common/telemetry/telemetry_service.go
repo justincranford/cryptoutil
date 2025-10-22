@@ -77,7 +77,7 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	}
 
 	// Check sidecar connectivity during startup if OTLP is enabled
-	if settings.OTLP {
+	if settings.OTLPEnabled {
 		if err := checkSidecarHealth(ctx, settings); err != nil {
 			return nil, fmt.Errorf("sidecar health check failed: %w", err)
 		}
@@ -277,7 +277,7 @@ func initLogger(ctx context.Context, settings *cryptoutilConfig.Settings) (*stdo
 	}
 	otelProvider := logSdk.NewLoggerProvider(otelProviderOptions...)
 
-	if settings.OTLP {
+	if settings.OTLPEnabled {
 		otelSlogHandler := otelSlogBridge.NewHandler(settings.OTLPService, otelSlogBridge.WithLoggerProvider(otelProvider))
 		slogger = stdoutLogExporter.New(slogMulti.Fanout(stdoutSlogHandler, otelSlogHandler))
 	}
@@ -303,7 +303,7 @@ func initMetrics(ctx context.Context, slogger *stdoutLogExporter.Logger, setting
 
 	metricsOptions = append(metricsOptions, metricSdk.WithResource(otelMeterTracerTags))
 
-	if settings.OTLP {
+	if settings.OTLPEnabled {
 		isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 		if err != nil {
 			slogger.Error("parse protocol and endpoint failed", "error", err)
@@ -382,7 +382,7 @@ func initTraces(ctx context.Context, slogger *stdoutLogExporter.Logger, settings
 
 	tracesOptions = append(tracesOptions, traceSdk.WithResource(otelMeterTracerResource))
 
-	if settings.OTLP {
+	if settings.OTLPEnabled {
 		isHTTP, isHTTPS, isGRPC, isGRPCS, endpoint, err := parseProtocolAndEndpoint(&settings.OTLPEndpoint)
 		if err != nil {
 			slogger.Error("parse protocol and endpoint failed", "error", err)
@@ -541,7 +541,7 @@ func checkSidecarHealth(ctx context.Context, settings *cryptoutilConfig.Settings
 
 // CheckSidecarHealth performs a connectivity check to the OTLP sidecar.
 func (s *TelemetryService) CheckSidecarHealth(ctx context.Context) error {
-	if s.settings.OTLP {
+	if s.settings.OTLPEnabled {
 		err := checkSidecarHealth(ctx, s.settings)
 		if err != nil {
 			return fmt.Errorf("sidecar health check failed: %w", err)

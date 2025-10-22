@@ -15,6 +15,46 @@ const (
 	StatusUnhealthy = "UNHEALTHY"
 )
 
+const (
+	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize.
+	TestTimeoutDockerHealth = 30 * time.Second //nolint:stylecheck // established API name
+	// TestTimeoutDockerHealth - Timeout for Docker health checks.
+	TestTimeoutCryptoutilReady = 30 * time.Second //nolint:stylecheck // Cryptoutil needs time to unseal - reduced for fast fail
+	// TestTimeoutCryptoutilReady - Timeout for Cryptoutil readiness checks.
+	TestTimeoutTestExecution = 30 * time.Second //nolint:stylecheck // Overall test timeout - reduced for fast fail
+	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize.
+	TestTimeoutDockerComposeInit = 15 * time.Second //nolint:stylecheck // Time to wait for Docker Compose services to initialize after startup
+	// TestTimeoutServiceRetry - Timeout for service retry intervals.
+	TestTimeoutServiceRetry = 2 * time.Second //nolint:stylecheck // Check more frequently
+
+	// TimeoutTestServerReady - Test server ready timeout.
+	TimeoutTestServerReady = 30 * time.Second
+	// TimeoutTestServerReadyRetryDelay - Test server ready retry delay.
+	TimeoutTestServerReadyRetryDelay = 500 * time.Millisecond
+
+	// TestDefaultServerShutdownTimeout - Default server shutdown timeout duration.
+	TestDefaultServerShutdownTimeout = 1 * time.Minute //nolint:stylecheck // established API name
+
+	// TestDefaultHTTPRetryInterval - Default HTTP retry interval duration.
+	TestDefaultHTTPRetryInterval = 1 * time.Second //nolint:stylecheck // established API name
+	// TestDefaultHTTPClientTimeout - Default HTTP client timeout duration.
+	TestDefaultHTTPClientTimeout = 10 * time.Second //nolint:stylecheck // established API name
+
+	// TimeoutHTTPHealthRequest - HTTP health request timeout.
+	TimeoutHTTPHealthRequest = 5 * time.Second
+
+	// TimeoutGitHubAPIDelay - Delay between GitHub API calls to avoid rate limits.
+	TimeoutGitHubAPIDelay = 200 * time.Millisecond
+	// TimeoutGitHubAPITimeout - Timeout for GitHub API requests.
+	TimeoutGitHubAPITimeout = 10 * time.Second
+
+	// TestSleepCancelChanContext - 5 milliseconds duration for test delays.
+	TestSleepCancelChanContext = 5 * time.Millisecond //nolint:stylecheck // established API name
+
+	// TestTLSClientRetryWait - 100 milliseconds duration for brief backoff operations.
+	TestTLSClientRetryWait = 100 * time.Millisecond //nolint:stylecheck // established API name
+)
+
 // Test settings constants.
 const (
 	// TestDefaultLogLevelAll - All log level for comprehensive logging.

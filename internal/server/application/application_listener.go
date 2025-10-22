@@ -613,7 +613,7 @@ func checkMemoryHealth() map[string]any {
 
 func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
 	// Only check sidecar health if OTLP is enabled
-	if !serverApplicationCore.Settings.OTLP {
+	if !serverApplicationCore.Settings.OTLPEnabled {
 		return map[string]any{
 			"status": "disabled",
 			"note":   "OTLP export is disabled",

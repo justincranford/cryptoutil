@@ -10,6 +10,9 @@ const (
 	// EmptyString - Empty string constant.
 	EmptyString = ""
 
+	// DefaultProfile - Default profile name. Empty means no profile, use explicit configuration.
+	DefaultProfile = EmptyString
+
 	// StringUTCFormat - UTC time format string.
 	StringUTCFormat = "2006-01-02T15:04:05Z"
 	// StringUUIDRegexPattern - UUID regex pattern for validation.
@@ -28,10 +31,10 @@ const (
 	// FilePermOwnerReadWriteExecuteGroupOtherReadExecute - Owner read/write/execute, group/other read/execute (0o755).
 	FilePermOwnerReadWriteExecuteGroupOtherReadExecute = 0o755
 
-	// DefaultBoolHelp - Default help flag value.
-	DefaultBoolHelp = false
-	// DefaultBoolDevMode - Default dev mode flag value.
-	DefaultBoolDevMode = false
-	// DefaultBoolDryRun - Default dry run flag value.
-	DefaultBoolDryRun = false
+	// DefaultHelp - Default help flag value.
+	DefaultHelp = false
+	// DefaultDevMode - Default dev mode flag value.
+	DefaultDevMode = false
+	// DefaultDryRun - Default dry run flag value.
+	DefaultDryRun = false
 )

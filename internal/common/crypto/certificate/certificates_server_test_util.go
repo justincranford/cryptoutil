@@ -76,7 +76,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 					default:
 						// For other errors, log and retry with backoff
 						log.Printf("error accepting connection (will retry): %v", err)
-						time.Sleep(cryptoutilMagic.Timeout100Milliseconds * time.Millisecond) // Brief backoff on errors
+						time.Sleep(cryptoutilMagic.TestTLSClientRetryWait) // Brief backoff on errors
 
 						continue
 					}

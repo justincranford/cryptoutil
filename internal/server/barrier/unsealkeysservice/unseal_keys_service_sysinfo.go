@@ -36,7 +36,7 @@ func (u *UnsealKeysServiceFromSysInfo) Shutdown() {
 }
 
 func NewUnsealKeysServiceFromSysInfo(sysInfoProvider cryptoutilSysinfo.SysInfoProvider) (UnsealKeysService, error) {
-	sysinfos, err := cryptoutilSysinfo.GetAllInfoWithTimeout(sysInfoProvider, cryptoutilMagic.Timeout10Seconds)
+	sysinfos, err := cryptoutilSysinfo.GetAllInfoWithTimeout(sysInfoProvider, cryptoutilMagic.DefaultSysInfoAllTimeout)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sysinfo: %w", err)
 	}

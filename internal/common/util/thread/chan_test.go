@@ -61,7 +61,7 @@ func TestChan(t *testing.T) {
 	waitAndClose := runSendersReceivers(ctx, 100, 8, 4, sender, receiver)
 
 	go func() {
-		time.Sleep(cryptoutilMagic.Timeout5Milliseconds)
+		time.Sleep(cryptoutilMagic.TestSleepCancelChanContext)
 		cancel()
 	}()
 	waitAndClose()

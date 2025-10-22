@@ -28,12 +28,12 @@ const (
 	// DefaultLogLevelInfo - Default log level INFO.
 	DefaultLogLevelInfo = "INFO"
 
-	// DefaultBoolVerboseMode - Default verbose mode flag value.
-	DefaultBoolVerboseMode = false
-	// DefaultBoolOTLP - Default OTLP flag value.
-	DefaultBoolOTLP = false
-	// DefaultBoolOTLPConsole - Default OTLP console flag value.
-	DefaultBoolOTLPConsole = false
+	// DefaultVerboseMode - Default verbose mode flag value.
+	DefaultVerboseMode = false
+	// DefaultOTLPEnabled - Default OTLP enabled flag value.
+	DefaultOTLPEnabled = false
+	// DefaultOTLPConsole - Default OTLP console flag value.
+	DefaultOTLPConsole = false
 
 	// LogLevelAllValue - Lowest possible level (enable everything).
 	LogLevelAllValue = math.MinInt
@@ -54,6 +54,6 @@ const (
 	DefaultOTLPEnvironmentDefault = "dev"
 	// DefaultOTLPHostnameDefault - Default OTLP hostname.
 	DefaultOTLPHostnameDefault = "localhost"
-	// DefaultOTLPEndpointDefault - Default OTLP endpoint.
+	// DefaultOTLPEndpointDefault - Default OTLP endpoint. GRPC preferred over HTTP for performance.
 	DefaultOTLPEndpointDefault = "grpc://127.0.0.1:4317"
 )

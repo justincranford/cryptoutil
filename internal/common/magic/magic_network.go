@@ -2,6 +2,8 @@
 // This file contains network-related constants.
 package magic
 
+import "time"
+
 // Network ports.
 const (
 	// PortHTTPS - Standard HTTPS port.
@@ -29,8 +31,8 @@ const (
 	DefaultPortCryptoutilPostgres1 uint16 = 8081
 	// DefaultPortCryptoutilPostgres2 - Port for cryptoutil postgres instance 2.
 	DefaultPortCryptoutilPostgres2 uint16 = 8082
-	// DefaultPortDefaultAdminAPI - Default admin API port.
-	DefaultPortDefaultAdminAPI uint16 = 9090
+	// DefaultPortAdminAPI - Default admin API port.
+	DefaultPortAdminAPI uint16 = 9090
 )
 
 // Network URLs and prefixes.
@@ -57,10 +59,10 @@ const (
 )
 
 const (
-	// DefaultStringPublicBrowserAPIContextPath - Default public browser API context path.
-	DefaultStringPublicBrowserAPIContextPath = "/browser/api/v1"
-	// DefaultStringPublicServiceAPIContextPath - Default public service API context path.
-	DefaultStringPublicServiceAPIContextPath = "/service/api/v1"
+	// DefaultPublicBrowserAPIContextPath - Default public browser API context path.
+	DefaultPublicBrowserAPIContextPath = "/browser/api/v1"
+	// DefaultPublicServiceAPIContextPath - Default public service API context path.
+	DefaultPublicServiceAPIContextPath = "/service/api/v1"
 	// StringLivezPath - Livez endpoint path.
 	StringLivezPath = "/livez"
 	// StringReadyzPath - Readyz endpoint path.
@@ -110,15 +112,17 @@ const (
 	DefaultCSRFTokenName = "_csrf"
 	// DefaultCSRFTokenSameSiteStrict - Strict SameSite attribute.
 	DefaultCSRFTokenSameSiteStrict = "Strict"
+	// DefaultCSRFTokenMaxAge - CSRF token maximum age (1 hour).
+	DefaultCSRFTokenMaxAge = 1 * time.Hour
 
-	// DefaultBoolCSRFTokenCookieSecure - Default CSRF token cookie secure flag.
-	DefaultBoolCSRFTokenCookieSecure = true
-	// DefaultBoolCSRFTokenCookieHTTPOnly - Default CSRF token cookie HTTPOnly flag.
-	DefaultBoolCSRFTokenCookieHTTPOnly = false
-	// DefaultBoolCSRFTokenCookieSessionOnly - Default CSRF token cookie session only flag.
-	DefaultBoolCSRFTokenCookieSessionOnly = true
-	// DefaultBoolCSRFTokenSingleUseToken - Default CSRF token single use flag.
-	DefaultBoolCSRFTokenSingleUseToken = false
+	// DefaultCSRFTokenCookieSecure - Default CSRF token cookie secure flag.
+	DefaultCSRFTokenCookieSecure = true
+	// DefaultCSRFTokenCookieHTTPOnly - Default CSRF token cookie HTTPOnly flag.
+	DefaultCSRFTokenCookieHTTPOnly = false
+	// DefaultCSRFTokenCookieSessionOnly - Default CSRF token cookie session only flag.
+	DefaultCSRFTokenCookieSessionOnly = true
+	// DefaultCSRFTokenSingleUseToken - Default CSRF token single use flag.
+	DefaultCSRFTokenSingleUseToken = false
 )
 
 var (

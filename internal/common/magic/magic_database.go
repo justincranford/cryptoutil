@@ -4,6 +4,12 @@ package magic
 
 import "time"
 
+// Pagination defaults.
+const (
+	// DefaultPageSize - Default page size for pagination.
+	DefaultPageSize = 25
+)
+
 // Database connection and query timeouts.
 const (
 	// DBPingAttemptWait - Initial wait time before first database ping attempt.
@@ -16,12 +22,12 @@ const (
 	SQLiteBusyTimeout = 30 * time.Second
 	// DBPostgresContainerStartupTimeout - PostgreSQL container startup timeout.
 	DBPostgresContainerStartupTimeout = 30 * time.Second
-	// DBInitTotalTimeout - Total timeout for database initialization (5 minutes).
-	DBInitTotalTimeout = 5 * time.Minute
-	// DBInitRetryWait - Retry wait time for database initialization (1 second).
-	DBInitRetryWait = 1 * time.Second
-	// DBServerShutdownTimeout - Server shutdown timeout (5 seconds).
-	DBServerShutdownTimeout = 5 * time.Second
+	// DefaultDatabaseInitTotalTimeout - Total timeout for database initialization (5 minutes).
+	DefaultDatabaseInitTotalTimeout = 5 * time.Minute
+	// DefaultDataInitRetryWait - Retry wait time for database initialization (1 second).
+	DefaultDataInitRetryWait = 1 * time.Second
+	// DefaultDataServerShutdownTimeout - Server shutdown timeout (5 seconds).
+	DefaultDataServerShutdownTimeout = 5 * time.Second
 )
 
 // Database connection retry and pooling.
@@ -63,8 +69,8 @@ const (
 )
 
 const (
-	// StringDatabaseContainerDisabled - Disabled database container mode.
-	StringDatabaseContainerDisabled = "disabled"
-	// StringDatabaseURLDefault - Default database URL with placeholder credentials.
-	StringDatabaseURLDefault = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret
+	// DefaultDatabaseContainerDisabled - Disabled database container mode.
+	DefaultDatabaseContainerDisabled = "disabled"
+	// DefaultDatabaseURL - Default database URL with placeholder credentials.
+	DefaultDatabaseURL = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret
 )
