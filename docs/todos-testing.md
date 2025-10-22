@@ -85,7 +85,7 @@ start .\performance-reports\performance-dashboard.html
 | Unit (internal) | `_internal_test.go` | (same) | `go test` | Whitebox testing of internal logic |
 | Integration | `_integration_test.go` | `_test` | `go test -tags=integration` | End-to-end with real dependencies |
 | Benchmarks | `_bench_test.go` | `_test` or same | `go test -bench=.` | Performance testing |
-| Fuzz | `_fuzz_test.go` | `_test` or same | `go test -fuzz=FuzzXXX` | Property-based testing |
+| Fuzz | `_fuzz_test.go` | `_test` or same | `go test -fuzz=^FuzzXXX$` | Property-based testing |
 | E2E | `e2e/*_test.go` | `e2e` | `go test ./e2e` | Full system testing |
 
 ### Testing Approach Examples

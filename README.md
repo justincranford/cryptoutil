@@ -298,6 +298,36 @@ curl http://localhost:9090/readyz
 go run cmd/pgtest/main.go  # PostgreSQL integration tests
 ```
 
+### Fuzz Testing
+
+This project uses **Go fuzz testing** for property-based testing to find edge cases and potential crashes in cryptographic functions.
+
+#### Automated Execution (CI/CD)
+Fuzz tests run automatically in GitHub Actions on:
+- Push to `main` branch
+- Pull requests
+
+#### Manual Execution
+```sh
+# Run all fuzz tests in a package (use regex anchors for exact matching)
+go test -fuzz=^FuzzHKDF$ -fuzztime=5s ./internal/common/crypto/digests/
+go test -fuzz=^FuzzSHA256$ -fuzztime=5s ./internal/common/crypto/digests/
+
+# Run fuzz tests for 1 minute (CI/CD duration)
+go test -fuzz=^FuzzHKDF$ -fuzztime=1m ./internal/common/crypto/digests/
+
+# Quick verification during development
+go test -fuzz=^FuzzHKDF$ -fuzztime=5s ./internal/common/crypto/digests/
+```
+
+**Important**: Always use regex anchors (`^FuzzXXX$`) for exact function matching when multiple fuzz tests exist in the same package, as Go's `-fuzz` flag uses prefix matching by default.
+
+#### Fuzz Test Organization
+- **File naming**: `*_fuzz_test.go` (separate from unit tests)
+- **Function naming**: `FuzzXXX` where XXX describes the function being fuzzed
+- **Duration**: 5 seconds for development, 1 minute for CI/CD
+- **Coverage**: Focus on cryptographic functions with complex input handling
+
 ### Docker Compose Cleanup
 
 After testing with Docker Compose, always clean up properly to ensure clean state for subsequent tests:

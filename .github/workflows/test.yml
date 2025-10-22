@@ -153,13 +153,13 @@ jobs:
           echo "🔍 Running fuzz tests for security-critical code..."
           # Run fuzz tests with 5 minute timeout per function for each package
           echo "Running fuzz tests for keygen package..."
-          go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=5m ./internal/common/crypto/keygen/
-          go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=1m ./internal/common/crypto/keygen/
-          go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=1m ./internal/common/crypto/keygen/
-          go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=1m ./internal/common/crypto/keygen/
-          go test -fuzz=FuzzGenerateAESKey -fuzztime=1m ./internal/common/crypto/keygen/
-          go test -fuzz=FuzzGenerateAESHSKey -fuzztime=1m ./internal/common/crypto/keygen/
-          go test -fuzz=FuzzGenerateHMACKey -fuzztime=1m ./internal/common/crypto/keygen/
+          go test -fuzz=^FuzzGenerateRSAKeyPair$ -fuzztime=5m ./internal/common/crypto/keygen/
+          go test -fuzz=^FuzzGenerateECDSAKeyPair$ -fuzztime=1m ./internal/common/crypto/keygen/
+          go test -fuzz=^FuzzGenerateECDHKeyPair$ -fuzztime=1m ./internal/common/crypto/keygen/
+          go test -fuzz=^FuzzGenerateEDDSAKeyPair$ -fuzztime=1m ./internal/common/crypto/keygen/
+          go test -fuzz=^FuzzGenerateAESKey$ -fuzztime=1m ./internal/common/crypto/keygen/
+          go test -fuzz=^FuzzGenerateAESHSKey$ -fuzztime=1m ./internal/common/crypto/keygen/
+          go test -fuzz=^FuzzGenerateHMACKey$ -fuzztime=1m ./internal/common/crypto/keygen/
           echo "Running fuzz tests for digests package..."
           go test -fuzz=^FuzzHKDF$ -fuzztime=1m ./internal/common/crypto/digests/
           go test -fuzz=^FuzzHKDFwithSHA256$ -fuzztime=1m ./internal/common/crypto/digests/
