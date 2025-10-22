@@ -33,43 +33,43 @@ const (
 	defaultBindPublicAddress  = cryptoutilMagic.StringIPv4Loopback  // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
 	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
 	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
-	defaultBindPublicPort      = cryptoutilMagic.PortDefaultBrowserAPI // Standard HTTP/HTTPS port, well-known and commonly available
-	defaultBindPrivateProtocol = cryptoutilMagic.StringProtocolHTTPS   // HTTPS for private API security, even in service-to-service communication
-	defaultBindPrivateAddress  = cryptoutilMagic.StringIPv4Loopback    // IPv4 loopback for private API, only accessible from same machine
+	defaultBindPublicPort      = cryptoutilMagic.DefaultPortDefaultBrowserAPI // Standard HTTP/HTTPS port, well-known and commonly available
+	defaultBindPrivateProtocol = cryptoutilMagic.StringProtocolHTTPS          // HTTPS for private API security, even in service-to-service communication
+	defaultBindPrivateAddress  = cryptoutilMagic.StringIPv4Loopback           // IPv4 loopback for private API, only accessible from same machine
 	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
 	// with Docker containers where 'localhost' resolves to IPv6 (::1) but health checks expect IPv4.
-	defaultBindPrivatePort             = cryptoutilMagic.PortDefaultAdminAPI               // Non-standard port to avoid conflicts with other services
-	defaultPublicBrowserAPIContextPath = cryptoutilMagic.StringPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
-	defaultPublicServiceAPIContextPath = cryptoutilMagic.StringPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
-	defaultCORSMaxAge                  = cryptoutilMagic.CountCORSMaxAge                   // 1 hour cache for CORS preflight requests, balances performance and freshness
-	defaultCSRFTokenName               = cryptoutilMagic.StringCSRFTokenName               // Standard CSRF token name, widely recognized by frameworks
-	defaultCSRFTokenSameSite           = cryptoutilMagic.StringCSRFTokenSameSiteStrict     // Strict SameSite prevents CSRF while maintaining usability
-	defaultCSRFTokenMaxAge             = cryptoutilMagic.TimeoutCSRFTokenMaxAge            // 1 hour expiration balances security and user experience
-	defaultCSRFTokenCookieSecure       = cryptoutilMagic.BoolCSRFTokenCookieSecure         // Secure cookies in production prevent MITM attacks
-	defaultCSRFTokenCookieHTTPOnly     = cryptoutilMagic.BoolCSRFTokenCookieHTTPOnly       // False allows JavaScript access for form submissions (Swagger UI workaround)
-	defaultCSRFTokenCookieSessionOnly  = cryptoutilMagic.BoolCSRFTokenCookieSessionOnly    // Session-only prevents persistent tracking while maintaining security
-	defaultCSRFTokenSingleUseToken     = cryptoutilMagic.BoolCSRFTokenSingleUseToken       // Reusable tokens for better UX, can be changed for high-security needs
-	defaultRequestBodyLimit            = cryptoutilMagic.CountRequestBodyLimit             // 2MB limit prevents large payload attacks while allowing reasonable API usage
-	defaultBrowserIPRateLimit          = cryptoutilMagic.RateLimitBrowserIPDefault         // More lenient rate limit for browser APIs (user interactions)
-	defaultServiceIPRateLimit          = cryptoutilMagic.RateLimitServiceIPDefault         // More restrictive rate limit for service APIs (automated systems)
-	defaultMaxIPRateLimit              = cryptoutilMagic.RateLimitMaxIP                    // Maximum allowed rate limit to prevent performance issues
-	defaultDatabaseContainer           = cryptoutilMagic.StringDatabaseContainerDisabled   // Disabled by default to avoid unexpected container dependencies
-	defaultDatabaseURL                 = cryptoutilMagic.StringDatabaseURLDefault          // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
-	defaultDatabaseInitTotalTimeout    = cryptoutilMagic.DBInitTotalTimeout                // 5 minutes allows for container startup while preventing indefinite waits
-	defaultDatabaseInitRetryWait       = cryptoutilMagic.DBInitRetryWait                   // 1 second retry interval balances responsiveness and resource usage
-	defaultServerShutdownTimeout       = cryptoutilMagic.DBServerShutdownTimeout           // 5 seconds allows graceful shutdown while preventing indefinite waits
-	defaultHelp                        = cryptoutilMagic.BoolDefaultHelp
+	defaultBindPrivatePort             = cryptoutilMagic.DefaultPortDefaultAdminAPI               // Non-standard port to avoid conflicts with other services
+	defaultPublicBrowserAPIContextPath = cryptoutilMagic.DefaultStringPublicBrowserAPIContextPath // RESTful API versioning, separates browser from service APIs
+	defaultPublicServiceAPIContextPath = cryptoutilMagic.DefaultStringPublicServiceAPIContextPath // RESTful API versioning, separates service from browser APIs
+	defaultCORSMaxAge                  = cryptoutilMagic.DefaultCORSMaxAge                        // 1 hour cache for CORS preflight requests, balances performance and freshness
+	defaultCSRFTokenName               = cryptoutilMagic.DefaultCSRFTokenName                     // Standard CSRF token name, widely recognized by frameworks
+	defaultCSRFTokenSameSite           = cryptoutilMagic.DefaultCSRFTokenSameSiteStrict           // Strict SameSite prevents CSRF while maintaining usability
+	defaultCSRFTokenMaxAge             = cryptoutilMagic.TimeoutCSRFTokenMaxAge                   // 1 hour expiration balances security and user experience
+	defaultCSRFTokenCookieSecure       = cryptoutilMagic.DefaultBoolCSRFTokenCookieSecure         // Secure cookies in production prevent MITM attacks
+	defaultCSRFTokenCookieHTTPOnly     = cryptoutilMagic.DefaultBoolCSRFTokenCookieHTTPOnly       // False allows JavaScript access for form submissions (Swagger UI workaround)
+	defaultCSRFTokenCookieSessionOnly  = cryptoutilMagic.DefaultBoolCSRFTokenCookieSessionOnly    // Session-only prevents persistent tracking while maintaining security
+	defaultCSRFTokenSingleUseToken     = cryptoutilMagic.DefaultBoolCSRFTokenSingleUseToken       // Reusable tokens for better UX, can be changed for high-security needs
+	defaultRequestBodyLimit            = cryptoutilMagic.DefaultHTTPRequestBodyLimit              // 2MB limit prevents large payload attacks while allowing reasonable API usage
+	defaultBrowserIPRateLimit          = cryptoutilMagic.DefaultRateLimitBrowserIP                // More lenient rate limit for browser APIs (user interactions)
+	defaultServiceIPRateLimit          = cryptoutilMagic.DefaultRateLimitServiceIP                // More restrictive rate limit for service APIs (automated systems)
+	defaultMaxIPRateLimit              = cryptoutilMagic.MaxRateLimitIP                           // Maximum allowed rate limit to prevent performance issues
+	defaultDatabaseContainer           = cryptoutilMagic.StringDatabaseContainerDisabled          // Disabled by default to avoid unexpected container dependencies
+	defaultDatabaseURL                 = cryptoutilMagic.StringDatabaseURLDefault                 // pragma: allowlist secret // PostgreSQL default with placeholder credentials, SSL disabled for local dev
+	defaultDatabaseInitTotalTimeout    = cryptoutilMagic.DBInitTotalTimeout                       // 5 minutes allows for container startup while preventing indefinite waits
+	defaultDatabaseInitRetryWait       = cryptoutilMagic.DBInitRetryWait                          // 1 second retry interval balances responsiveness and resource usage
+	defaultServerShutdownTimeout       = cryptoutilMagic.DBServerShutdownTimeout                  // 5 seconds allows graceful shutdown while preventing indefinite waits
+	defaultHelp                        = cryptoutilMagic.DefaultBoolHelp
 	defaultVerboseMode                 = cryptoutilMagic.DefaultBoolVerboseMode
-	defaultDevMode                     = cryptoutilMagic.BoolDefaultDevMode
-	defaultDryRun                      = cryptoutilMagic.BoolDefaultDryRun
+	defaultDevMode                     = cryptoutilMagic.DefaultBoolDevMode
+	defaultDryRun                      = cryptoutilMagic.DefaultBoolDryRun
 	defaultProfile                     = cryptoutilMagic.EmptyString // Empty means no profile, use explicit configuration
 	defaultOTLP                        = cryptoutilMagic.DefaultBoolOTLP
 	defaultOTLPConsole                 = cryptoutilMagic.DefaultBoolOTLPConsole
-	defaultOTLPService                 = cryptoutilMagic.StringOTLPServiceDefault
-	defaultOTLPVersion                 = cryptoutilMagic.StringOTLPVersionDefault
-	defaultOTLPEnvironment             = cryptoutilMagic.StringOTLPEnvironmentDefault
-	defaultOTLPHostname                = cryptoutilMagic.StringOTLPHostnameDefault
-	defaultOTLPEndpoint                = cryptoutilMagic.StringOTLPEndpointDefault // GRPC preferred over HTTP for performance
+	defaultOTLPService                 = cryptoutilMagic.DefaultOTLPServiceDefault
+	defaultOTLPVersion                 = cryptoutilMagic.DefaultOTLPVersionDefault
+	defaultOTLPEnvironment             = cryptoutilMagic.DefaultOTLPEnvironmentDefault
+	defaultOTLPHostname                = cryptoutilMagic.DefaultOTLPHostnameDefault
+	defaultOTLPEndpoint                = cryptoutilMagic.DefaultOTLPEndpointDefault // GRPC preferred over HTTP for performance
 	defaultUnsealMode                  = cryptoutilMagic.StringUnsealModeSysinfo
 )
 

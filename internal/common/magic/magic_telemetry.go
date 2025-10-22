@@ -2,16 +2,28 @@
 // This file contains count and limit constants.
 package magic
 
-import "math"
+import (
+	"math"
+	"time"
+)
 
 // Telemetry and monitoring constants.
 const (
-	// CountMaxLogsBatchSize - Maximum batch size for logs.
-	CountMaxLogsBatchSize = 1024
-	// CountMaxMetricsBatchSize - Maximum batch size for metrics.
-	CountMaxMetricsBatchSize = 2048
-	// CountMaxTracesBatchSize - Maximum batch size for traces.
-	CountMaxTracesBatchSize = 512
+	// DefaultLogsTimeout - Default timeout for logs export.
+	DefaultLogsTimeout = 500 * time.Millisecond
+	// DefaultMetricsTimeout - Default timeout for metrics export.
+	DefaultMetricsTimeout = 2000 * time.Millisecond
+	// DefaultTracesTimeout - Default timeout for traces export.
+	DefaultTracesTimeout = 1000 * time.Millisecond
+	// DefaultForceFlushTimeout - Default timeout for force flush on shutdown.
+	DefaultForceFlushTimeout = 3 * time.Second // 3s for force flush on shutdown
+
+	// DefaultLogsBatchSize - Maximum batch size for logs.
+	DefaultLogsBatchSize = 1024
+	// DefaultMetricsBatchSize - Maximum batch size for metrics.
+	DefaultMetricsBatchSize = 2048
+	// DefaultTracesBatchSize - Maximum batch size for traces.
+	DefaultTracesBatchSize = 512
 
 	// DefaultLogLevelInfo - Default log level INFO.
 	DefaultLogLevelInfo = "INFO"
@@ -33,4 +45,15 @@ const (
 	LogLevelWarn = 4
 	// LogLevelMax - Maximum log level.
 	LogLevelMax = math.MaxInt
+
+	// DefaultOTLPServiceDefault - Default OTLP service name.
+	DefaultOTLPServiceDefault = "cryptoutil"
+	// DefaultOTLPVersionDefault - Default OTLP version.
+	DefaultOTLPVersionDefault = "0.0.1"
+	// DefaultOTLPEnvironmentDefault - Default OTLP environment.
+	DefaultOTLPEnvironmentDefault = "dev"
+	// DefaultOTLPHostnameDefault - Default OTLP hostname.
+	DefaultOTLPHostnameDefault = "localhost"
+	// DefaultOTLPEndpointDefault - Default OTLP endpoint.
+	DefaultOTLPEndpointDefault = "grpc://127.0.0.1:4317"
 )

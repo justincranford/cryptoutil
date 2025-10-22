@@ -1,5 +1,7 @@
 package magic
 
+import "time"
+
 // Cryptographic algorithm and key constants.
 // This file contains all crypto-related magic values used throughout the application.
 
@@ -105,4 +107,12 @@ const (
 	JWKGenPoolHMAC256PoolSize     = 3
 	JWKGenPoolUUIDv7NumWorkers    = 2
 	JWKGenPoolUUIDv7PoolSize      = 20
+
+	// MaxLifetimeValuesInt64 - Maximum int64 value (= 2^63-1 = 9,223,372,036,854,775,807).
+	MaxLifetimeValuesInt64 = int64(^uint64(0) >> 1)
+
+	// MaxLifetimeValues - Max int64 as uint64.
+	MaxLifetimeValues = uint64(MaxLifetimeValuesInt64)
+	// MaxLifetimeDuration - Max int64 as nanoseconds (= 292.47 years).
+	MaxLifetimeDuration = time.Duration(MaxLifetimeValuesInt64)
 )

@@ -58,7 +58,7 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 	if cfg.maxLifetimeValues <= cryptoutilMagic.MaxLifetimeValues {
 		maxLifetimeValuesInt64 = int64(cfg.maxLifetimeValues)
 	} else {
-		maxLifetimeValuesInt64 = cryptoutilMagic.MaxInt64
+		maxLifetimeValuesInt64 = cryptoutilMagic.MaxLifetimeValuesInt64
 	}
 
 	meter := cfg.telemetryService.MetricsProvider.Meter("cryptoutil.pool."+cfg.poolName, []metric.MeterOption{

@@ -43,7 +43,7 @@ const (
 
 	protocolHTTP               = cryptoutilMagic.StringProtocolHTTP
 	protocolHTTPS              = cryptoutilMagic.StringProtocolHTTPS
-	fiberAppIDRequestAttribute = "fiberAppID"
+	fiberAppIDRequestAttribute = cryptoutilMagic.FiberAppIDRequestAttribute
 	statusStr                  = cryptoutilMagic.StringStatus
 	errorStr                   = cryptoutilMagic.StringError
 	statusOK                   = cryptoutilMagic.StringStatusOK

@@ -20,6 +20,9 @@ const (
 	// CountMaxSharedSecretLength - Maximum shared secret length in bytes.
 	CountMaxSharedSecretLength = 64
 
-	// CountDerivedKeySizeBytes - Derived key size in bytes.
-	CountDerivedKeySizeBytes = 32
+	// DefaultDerivedKeySizeBytes - Derived key size in bytes.
+	DefaultDerivedKeySizeBytes = 32
+
+	// DefaultRandomKeySizeBytes - Random bytes length for dev mode.
+	DefaultRandomKeySizeBytes = 32
 )

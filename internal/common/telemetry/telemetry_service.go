@@ -9,6 +9,7 @@ import (
 	"time"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	slogMulti "github.com/samber/slog-multi"
 	otelSlogBridge "go.opentelemetry.io/contrib/bridges/otelslog"
@@ -55,15 +56,15 @@ type TelemetryService struct {
 }
 
 const (
-	LogsTimeout       = 500 * time.Millisecond
-	MetricsTimeout    = 2000 * time.Millisecond
-	TracesTimeout     = 1000 * time.Millisecond
-	ForceFlushTimeout = 3 * time.Second // 3s for force flush on shutdown
+	LogsTimeout       = cryptoutilMagic.DefaultLogsTimeout
+	MetricsTimeout    = cryptoutilMagic.DefaultMetricsTimeout
+	TracesTimeout     = cryptoutilMagic.DefaultTracesTimeout
+	ForceFlushTimeout = cryptoutilMagic.DefaultForceFlushTimeout
 
 	// Max batch sizes for memory-conscious batching.
-	MaxLogsBatchSize    = 1024 // Conservative for logs
-	MaxMetricsBatchSize = 2048 // Moderate for metrics
-	MaxTracesBatchSize  = 512  // Conservative for traces to prevent memory issues
+	MaxLogsBatchSize    = cryptoutilMagic.DefaultLogsBatchSize    // Conservative for logs
+	MaxMetricsBatchSize = cryptoutilMagic.DefaultMetricsBatchSize // Moderate for metrics
+	MaxTracesBatchSize  = cryptoutilMagic.DefaultTracesBatchSize  // Conservative for traces to prevent memory issues
 )
 
 func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Settings) (*TelemetryService, error) {

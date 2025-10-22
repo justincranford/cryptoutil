@@ -2,18 +2,16 @@
 // This file contains network-related constants.
 package magic
 
-import "time"
-
 // Network ports.
 const (
 	// PortHTTPS - Standard HTTPS port.
 	PortHTTPS uint16 = 443
 
-	// PortGrafana - Default Grafana port.
-	PortGrafana uint16 = 3000
+	// DefaultPortGrafana - Default Grafana port.
+	DefaultPortGrafana uint16 = 3000
 
-	// PortOtelCollectorMetrics - Default OpenTelemetry collector internal metrics port (Prometheus).
-	PortOtelCollectorMetrics uint16 = 8888
+	// DefaultPortOtelCollectorMetrics - Default OpenTelemetry collector internal metrics port (Prometheus).
+	DefaultPortOtelCollectorMetrics uint16 = 8888
 	// PortOtelCollectorHealth - Default OpenTelemetry collector health port.
 	PortOtelCollectorHealth uint16 = 8889
 
@@ -25,14 +23,14 @@ const (
 	// PortPostgres - Default PostgreSQL port.
 	PortPostgres uint16 = 5432
 
-	// PortDefaultBrowserAPI - Default browser/server API port.
-	PortDefaultBrowserAPI uint16 = 8080
-	// PortCryptoutilPostgres1 - Port for cryptoutil postgres instance 1.
-	PortCryptoutilPostgres1 uint16 = 8081
-	// PortCryptoutilPostgres2 - Port for cryptoutil postgres instance 2.
-	PortCryptoutilPostgres2 uint16 = 8082
-	// PortDefaultAdminAPI - Default admin API port.
-	PortDefaultAdminAPI uint16 = 9090
+	// DefaultPortDefaultBrowserAPI - Default browser/server API port.
+	DefaultPortDefaultBrowserAPI uint16 = 8080
+	// DefaultPortCryptoutilPostgres1 - Port for cryptoutil postgres instance 1.
+	DefaultPortCryptoutilPostgres1 uint16 = 8081
+	// DefaultPortCryptoutilPostgres2 - Port for cryptoutil postgres instance 2.
+	DefaultPortCryptoutilPostgres2 uint16 = 8082
+	// DefaultPortDefaultAdminAPI - Default admin API port.
+	DefaultPortDefaultAdminAPI uint16 = 9090
 )
 
 // Network URLs and prefixes.
@@ -44,31 +42,25 @@ const (
 )
 
 const (
-	// ServerMaxRequestBodySize - Maximum request body size for test server (1MB).
-	ServerMaxRequestBodySize = 1 << 20
-	// ServerIdleTimeout - Idle timeout for test server connections (30 seconds).
-	ServerIdleTimeout = 30 * time.Second
-	// ServerReadHeaderTimeout - Header read timeout for test server (10 seconds).
-	ServerReadHeaderTimeout = 10 * time.Second
-	// ServerMaxHeaderBytes - Maximum header bytes for test server (1MB).
-	ServerMaxHeaderBytes = 1 << 20
+	// DefaultServerMaxRequestBodySize - Maximum request body size for test server (1MB).
+	DefaultServerMaxRequestBodySize = 1 << 20
 )
 
 // Rate limiting defaults.
 const (
-	// RateLimitBrowserIPDefault - Default browser IP rate limit (100 requests/second).
-	RateLimitBrowserIPDefault uint16 = 100
-	// RateLimitServiceIPDefault - Default service IP rate limit (25 requests/second).
-	RateLimitServiceIPDefault uint16 = 25
-	// RateLimitMaxIP - Maximum allowed IP rate limit.
-	RateLimitMaxIP uint16 = 10000
+	// DefaultRateLimitBrowserIP - Default browser IP rate limit (100 requests/second).
+	DefaultRateLimitBrowserIP uint16 = 100
+	// DefaultRateLimitServiceIP - Default service IP rate limit (25 requests/second).
+	DefaultRateLimitServiceIP uint16 = 25
+	// MaxRateLimitIP - Maximum allowed IP rate limit.
+	MaxRateLimitIP uint16 = 10000
 )
 
 const (
-	// StringPublicBrowserAPIContextPath - Default public browser API context path.
-	StringPublicBrowserAPIContextPath = "/browser/api/v1"
-	// StringPublicServiceAPIContextPath - Default public service API context path.
-	StringPublicServiceAPIContextPath = "/service/api/v1"
+	// DefaultStringPublicBrowserAPIContextPath - Default public browser API context path.
+	DefaultStringPublicBrowserAPIContextPath = "/browser/api/v1"
+	// DefaultStringPublicServiceAPIContextPath - Default public service API context path.
+	DefaultStringPublicServiceAPIContextPath = "/service/api/v1"
 	// StringLivezPath - Livez endpoint path.
 	StringLivezPath = "/livez"
 	// StringReadyzPath - Readyz endpoint path.
@@ -110,24 +102,23 @@ const (
 )
 
 const (
-	// CountCORSMaxAge - Default CORS max age in seconds.
-	CountCORSMaxAge uint16 = 3600
-	// CountRequestBodyLimit - Default request body limit in bytes (2MB).
-	CountRequestBodyLimit = 2 << 20
-	// StringCSRFTokenName - Default CSRF token name.
-	StringCSRFTokenName = "_csrf"
-	// StringCSRFTokenSameSiteStrict - Strict SameSite attribute.
-	StringCSRFTokenSameSiteStrict = "Strict"
-	// StringOTLPServiceDefault - Default OTLP service name.
-	StringOTLPServiceDefault = "cryptoutil"
-	// StringOTLPVersionDefault - Default OTLP version.
-	StringOTLPVersionDefault = "0.0.1"
-	// StringOTLPEnvironmentDefault - Default OTLP environment.
-	StringOTLPEnvironmentDefault = "dev"
-	// StringOTLPHostnameDefault - Default OTLP hostname.
-	StringOTLPHostnameDefault = "localhost"
-	// StringOTLPEndpointDefault - Default OTLP endpoint.
-	StringOTLPEndpointDefault = "grpc://127.0.0.1:4317"
+	// DefaultCORSMaxAge - Default CORS max age in seconds.
+	DefaultCORSMaxAge uint16 = 3600
+	// DefaultHTTPRequestBodyLimit - Default request body limit in bytes (2MB).
+	DefaultHTTPRequestBodyLimit = 2 << 20
+	// DefaultCSRFTokenName - Default CSRF token name.
+	DefaultCSRFTokenName = "_csrf"
+	// DefaultCSRFTokenSameSiteStrict - Strict SameSite attribute.
+	DefaultCSRFTokenSameSiteStrict = "Strict"
+
+	// DefaultBoolCSRFTokenCookieSecure - Default CSRF token cookie secure flag.
+	DefaultBoolCSRFTokenCookieSecure = true
+	// DefaultBoolCSRFTokenCookieHTTPOnly - Default CSRF token cookie HTTPOnly flag.
+	DefaultBoolCSRFTokenCookieHTTPOnly = false
+	// DefaultBoolCSRFTokenCookieSessionOnly - Default CSRF token cookie session only flag.
+	DefaultBoolCSRFTokenCookieSessionOnly = true
+	// DefaultBoolCSRFTokenSingleUseToken - Default CSRF token single use flag.
+	DefaultBoolCSRFTokenSingleUseToken = false
 )
 
 var (

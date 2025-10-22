@@ -2,10 +2,17 @@
 // This file contains test-specific constants.
 package magic
 
+import "time"
+
 // Test data constants.
 const (
 	// TestCleartext - Standard test cleartext for encryption/decryption tests.
 	TestCleartext = "Hello, World!"
+
+	// StatusHealthy - Healthy status string.
+	StatusHealthy = "HEALTHY"
+	// StatusUnhealthy - Unhealthy status string.
+	StatusUnhealthy = "UNHEALTHY"
 )
 
 // Test settings constants.
@@ -20,6 +27,13 @@ const (
 	TestDefaultRateLimitBrowserIP uint16 = 1000
 	// TestDefaultRateLimitServiceIP - Default service IP rate limit.
 	TestDefaultRateLimitServiceIP uint16 = 500
+
+	// TestDefaultServerIdleTimeout - Idle timeout for test server connections (30 seconds).
+	TestDefaultServerIdleTimeout = 30 * time.Second
+	// TestDefaultServerReadHeaderTimeout - Header read timeout for test server (10 seconds).
+	TestDefaultServerReadHeaderTimeout = 10 * time.Second
+	// TestDefaultServerMaxHeaderBytes - Maximum header bytes for test server (1MB).
+	TestDefaultServerMaxHeaderBytes = 1 << 20
 )
 
 // Test data for mock system information.

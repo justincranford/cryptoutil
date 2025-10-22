@@ -25,12 +25,12 @@ import (
 
 const (
 	// Docker compose service names and ports.
-	cryptoutilSqlitePort    = cryptoutilMagic.PortDefaultBrowserAPI
-	cryptoutilPostgres1Port = cryptoutilMagic.PortCryptoutilPostgres1
-	cryptoutilPostgres2Port = cryptoutilMagic.PortCryptoutilPostgres2
-	cryptoutilPrivatePort   = cryptoutilMagic.PortDefaultAdminAPI
-	grafanaPort             = cryptoutilMagic.PortGrafana
-	otelCollectorPort       = cryptoutilMagic.PortOtelCollectorMetrics
+	cryptoutilSqlitePort    = cryptoutilMagic.DefaultPortDefaultBrowserAPI
+	cryptoutilPostgres1Port = cryptoutilMagic.DefaultPortCryptoutilPostgres1
+	cryptoutilPostgres2Port = cryptoutilMagic.DefaultPortCryptoutilPostgres2
+	cryptoutilPrivatePort   = cryptoutilMagic.DefaultPortDefaultAdminAPI
+	grafanaPort             = cryptoutilMagic.DefaultPortGrafana
+	otelCollectorPort       = cryptoutilMagic.DefaultPortOtelCollectorMetrics
 	testCleartext           = cryptoutilMagic.TestCleartext
 
 	// Status constants.
@@ -38,9 +38,6 @@ const (
 	statusUnhealthy = cryptoutilMagic.StatusUnhealthy
 
 	// Test timeouts.
-	// IMPORTANT: All timeout values MUST be defined as constants at the top of the file for visibility and maintainability.
-	// Never hardcode timeout values in the middle of functions - always use named constants.
-	composeUpTimeout         = cryptoutilMagic.Timeout5Minutes
 	dockerHealthTimeout      = cryptoutilMagic.Timeout30Seconds // Docker services should be healthy in under 20s
 	cryptoutilReadyTimeout   = cryptoutilMagic.Timeout30Seconds // Cryptoutil needs time to unseal - reduced for fast fail
 	testExecutionTimeout     = cryptoutilMagic.Timeout30Seconds // Overall test timeout - reduced for fast fail

@@ -33,7 +33,7 @@ func (u *UnsealKeysServiceFromSettings) Shutdown() {
 
 func NewUnsealKeysServiceFromSettings(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, settings *cryptoutilConfig.Settings) (UnsealKeysService, error) {
 	if settings.DevMode { // Generate random unseal key for dev mode
-		randomBytes, err := cryptoutilUtil.GenerateBytes(cryptoutilMagic.CountDevModeRandomBytesLength)
+		randomBytes, err := cryptoutilUtil.GenerateBytes(cryptoutilMagic.DefaultRandomKeySizeBytes)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate random bytes for dev mode: %w", err)
 		}
