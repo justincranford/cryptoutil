@@ -15,6 +15,8 @@ applyTo: "**"
 - **NEVER use -SkipCertificateCheck in PowerShell commands** - this parameter only exists in PowerShell 6+; use `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}` for PowerShell 5.1
 - **ALWAYS use HTTPS 127.0.0.1:9090 for admin APIs** (/shutdown, /livez, /readyz) - these are private server endpoints, not public server endpoints
 - **ALWAYS rely on golangci-lint exclusions defined in .golangci-lint.yml** - never use --skip-files or --skip-dirs command line flags
+- **ALWAYS run Go fuzz tests from project root** - never use `cd` commands before `go test -fuzz` (causes module detection failures)
+- **ALWAYS use PowerShell `;` for command chaining** - never use bash `&&` syntax (PowerShell 5.1 doesn't support it)
 - **ALWAYS declare values as constants near the top of the file** to proactively mitigate "mnd" (magic number detector) linter errors in .golangci-lint.yml:
   - **HTTP status codes**: `http.StatusOK`, `http.StatusNotFound`, `http.StatusForbidden` instead of `200`, `404`, `403`
   - **Durations**: `timeout = 30 * time.Second`, `delay = 100 * time.Millisecond` instead of inline `30000`, `100`
@@ -53,6 +55,8 @@ applyTo: "**"
 - `go mod tidy` - Clean up module dependencies
 - `go run ./<path>` - Run Go program
 - `golangci-lint run` - Run linter (relies on exclusions in .golangci-lint.yml)
+- `go test -fuzz=. -fuzztime=5s ./<path>` - Run fuzz tests for 5 seconds (ALWAYS run from project root, NEVER use cd commands)
+- `go test -run=FuzzXXX -fuzz=FuzzXXX -fuzztime=5s ./<path>` - Run specific fuzz test (use PowerShell `;` not bash `&&` for command chaining)
 
 ### File/Directory Operations
 - `pwd` - Show current working directory
@@ -169,3 +173,20 @@ The workspace includes optimized VS Code settings in `.vscode/settings.json` tha
 - Inlay hints appear automatically showing parameter names and types
 - Formatting happens automatically on save
 - Code analysis runs continuously for immediate feedback
+
+## Fuzz Testing Guidelines
+
+### Common Mistakes to Avoid
+- **NEVER do this**: `cd internal/common/crypto/keygen; go test -fuzz=.` (causes "go.mod file not found" errors)
+- **NEVER do this**: `go test -fuzz=. && other-command` (PowerShell 5.1 doesn't support `&&`)
+- **NEVER do this**: Running fuzz tests from subdirectories (breaks Go module detection)
+
+### Correct Fuzz Test Execution
+- **ALWAYS do this**: Run from project root: `go test -fuzz=. -fuzztime=5s ./internal/common/crypto/keygen`
+- **ALWAYS do this**: Use PowerShell `;` for chaining: `go test -fuzz=. -fuzztime=5s ./path; echo "Done"`
+- **ALWAYS do this**: Specify full package paths: `./internal/common/crypto/digests`
+
+### Fuzz Test Patterns
+- **All fuzz tests**: `go test -fuzz=. -fuzztime=5s ./<package>`
+- **Specific fuzz test**: `go test -run=FuzzSHA512 -fuzz=FuzzSHA512 -fuzztime=5s ./<package>`
+- **Quick verification**: Use `-fuzztime=5s` for fast feedback during development
