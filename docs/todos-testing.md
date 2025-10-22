@@ -149,7 +149,7 @@ func FuzzAdd(f *testing.F) {
     })
 }
 
-// Run specific fuzz test: go test -fuzz=FuzzAdd -fuzztime=5s
+// Run specific fuzz test: go test -fuzz=^FuzzAdd$ -fuzztime=5s
 // Run all fuzz tests in package: go test -fuzz=. -fuzztime=5s (fails if multiple tests match same pattern)
 ```
 
