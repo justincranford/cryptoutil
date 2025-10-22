@@ -180,6 +180,7 @@ The workspace includes optimized VS Code settings in `.vscode/settings.json` tha
 - **NEVER do this**: `cd internal/common/crypto/keygen; go test -fuzz=.` (causes "go.mod file not found" errors)
 - **NEVER do this**: `go test -fuzz=. && other-command` (PowerShell 5.1 doesn't support `&&`)
 - **NEVER do this**: Running fuzz tests from subdirectories (breaks Go module detection)
+- **NEVER do this**: `go test -fuzz=.` on packages with multiple fuzz tests (Go fails with "matches more than one fuzz test")
 
 ### Correct Fuzz Test Execution
 - **ALWAYS do this**: Run from project root: `go test -fuzz=. -fuzztime=5s ./internal/common/crypto/keygen`
@@ -190,3 +191,4 @@ The workspace includes optimized VS Code settings in `.vscode/settings.json` tha
 - **All fuzz tests**: `go test -fuzz=. -fuzztime=5s ./<package>`
 - **Specific fuzz test**: `go test -run=FuzzSHA512 -fuzz=FuzzSHA512 -fuzztime=5s ./<package>`
 - **Quick verification**: Use `-fuzztime=5s` for fast feedback during development
+- **Multiple fuzz tests in package**: When `-fuzz=.` matches multiple tests, Go fails with "matches more than one fuzz test" - use specific test names instead
