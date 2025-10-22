@@ -4,17 +4,6 @@ package magic
 // This file contains all crypto-related magic values used throughout the application.
 
 const (
-	// CountExpectedSysInfos - Expected number of system info items.
-	CountExpectedSysInfos = 13
-	// CountMaxSharedSecrets - Maximum number of shared secrets allowed.
-	CountMaxSharedSecrets = 256
-	// CountMinSharedSecretLength - Minimum shared secret length in bytes.
-	CountMinSharedSecretLength = 32
-	// CountMaxSharedSecretLength - Maximum shared secret length in bytes.
-	CountMaxSharedSecretLength = 64
-	// CountDerivedKeySizeBytes - Derived key size in bytes.
-	CountDerivedKeySizeBytes = 32
-
 	// EdDSA curve names.
 	EdCurveEd448   = "Ed448"
 	EdCurveEd25519 = "Ed25519"
@@ -69,10 +58,6 @@ const (
 
 	// Bits to bytes conversion factor.
 	BitsToBytes = 8
-
-	// Serial number bit sizes for cryptographic range.
-	MinSerialNumberBits = 64
-	MaxSerialNumberBits = 159
 
 	// HKDF test constants.
 	HKDFSHA256OutputLength = 32

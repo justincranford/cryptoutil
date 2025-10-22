@@ -285,10 +285,10 @@ func RequireNewForTest(applicationName string) *Settings {
 		UnsealFiles:                 unsealFilesValue,
 	}
 	// Overrides for testing
-	settings.LogLevel = cryptoutilMagic.LogLevelAll
-	settings.DevMode = true
-	settings.BrowserIPRateLimit = cryptoutilMagic.RateLimitBrowserIP
-	settings.ServiceIPRateLimit = cryptoutilMagic.RateLimitServiceIP
+	settings.LogLevel = cryptoutilMagic.TestDefaultLogLevelAll
+	settings.DevMode = cryptoutilMagic.TestDefaultDevMode
+	settings.BrowserIPRateLimit = cryptoutilMagic.TestDefaultRateLimitBrowserIP
+	settings.ServiceIPRateLimit = cryptoutilMagic.TestDefaultRateLimitServiceIP
 	settings.OTLPService = applicationName
 	settings.ServerShutdownTimeout = cryptoutilMagic.Timeout1Minute // Increase shutdown timeout for tests to allow cleanup of resources
 	uniqueSuffix := strings.ReplaceAll(googleUuid.Must(googleUuid.NewV7()).String(), "-", "")

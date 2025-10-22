@@ -18,14 +18,14 @@ import (
 
 const (
 	// UI constants.
-	separatorLength = cryptoutilMagic.UIConsoleSeparatorLength
+	separatorLength = 50
 
 	// GitHub API constants.
 	githubAPIDelay   = cryptoutilMagic.TimeoutGitHubAPIDelay
 	githubAPITimeout = cryptoutilMagic.TimeoutGitHubAPITimeout
 
 	// Progress reporting.
-	progressInterval = cryptoutilMagic.CountUIProgressInterval
+	progressInterval = 10
 
 	// File permissions.
 	filePermissions = cryptoutilMagic.FilePermissionsDefault // Permissions for created files.
@@ -34,7 +34,7 @@ const (
 	uuidRegexPattern = cryptoutilMagic.StringUUIDRegexPattern
 
 	// Minimum number of regex match groups for action parsing.
-	minActionMatchGroups = cryptoutilMagic.CountMinActionMatchGroups
+	minActionMatchGroups = 3
 )
 
 type GitHubRelease struct {
@@ -55,8 +55,8 @@ type DepCheckMode int
 const (
 	DepCheckDirect DepCheckMode = iota // Check only direct dependencies
 	DepCheckAll                        // Check all dependencies (direct + transitive)
-	modeNameDirect = cryptoutilMagic.ModeNameDirect
-	modeNameAll    = cryptoutilMagic.ModeNameAll
+	modeNameDirect = "direct"
+	modeNameAll    = "all"
 )
 
 type ActionInfo struct {

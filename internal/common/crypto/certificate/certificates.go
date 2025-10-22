@@ -193,7 +193,7 @@ func CertificateTemplateCA(issuerName, subjectName string, duration time.Duratio
 		return nil, fmt.Errorf("failed to generate serial number for TLS root CA: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CountCertificateRandomizationRangeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterCA(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS root CA: %w", err)
 	}
@@ -218,7 +218,7 @@ func CertificateTemplateEndEntity(issuerName, subjectName string, duration time.
 		return nil, fmt.Errorf("failed to generate serial number for TLS server: %w", err)
 	}
 
-	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CountCertificateRandomizationRangeMinutes*time.Minute)
+	notBefore, notAfter, err := randomizedNotBeforeNotAfterEndEntity(time.Now().UTC(), duration, 1*time.Minute, cryptoutilMagic.CertificateRandomizationNotBeforeMinutes*time.Minute)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate certificate validity period for TLS server: %w", err)
 	}

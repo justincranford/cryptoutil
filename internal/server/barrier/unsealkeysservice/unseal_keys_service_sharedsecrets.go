@@ -40,8 +40,8 @@ func NewUnsealKeysServiceSharedSecrets(sharedSecretsM [][]byte, chooseN int) (Un
 	countM := len(sharedSecretsM) // pragma: allowlist secret
 	if countM == 0 {
 		return nil, fmt.Errorf("shared secrets can't be zero") // pragma: allowlist secret
-	} else if countM >= cryptoutilMagic.CountMaxSharedSecrets { // pragma: allowlist secret
-		return nil, fmt.Errorf("shared secrets can't be greater than %d", cryptoutilMagic.CountMaxSharedSecrets) // pragma: allowlist secret
+	} else if countM >= cryptoutilMagic.CountMaxUnsealSharedSecrets { // pragma: allowlist secret
+		return nil, fmt.Errorf("shared secrets can't be greater than %d", cryptoutilMagic.CountMaxUnsealSharedSecrets) // pragma: allowlist secret
 	} else if chooseN == 0 {
 		return nil, fmt.Errorf("n can't be zero")
 	} else if chooseN < 0 {

@@ -28,7 +28,7 @@ const (
 	ipv6LoopbackURL           = cryptoutilMagic.StringIPv6LoopbackURL
 	ipv4MappedIPv6LoopbackURL = cryptoutilMagic.StringIPv4MappedIPv6LoopbackURL
 
-	defaultLogLevel           = cryptoutilMagic.StringLogLevelInfo  // Balanced verbosity: shows important events without being overwhelming
+	defaultLogLevel           = cryptoutilMagic.DefaultLogLevelInfo // Balanced verbosity: shows important events without being overwhelming
 	defaultBindPublicProtocol = cryptoutilMagic.StringProtocolHTTPS // HTTPS by default for security in production environments
 	defaultBindPublicAddress  = cryptoutilMagic.StringIPv4Loopback  // IPv4 loopback prevents external access by default, requires explicit configuration for exposure
 	// NOTE: Using explicit IPv4 (127.0.0.1) instead of 'localhost' hostname to ensure compatibility
@@ -59,12 +59,12 @@ const (
 	defaultDatabaseInitRetryWait       = cryptoutilMagic.DBInitRetryWait                   // 1 second retry interval balances responsiveness and resource usage
 	defaultServerShutdownTimeout       = cryptoutilMagic.DBServerShutdownTimeout           // 5 seconds allows graceful shutdown while preventing indefinite waits
 	defaultHelp                        = cryptoutilMagic.BoolDefaultHelp
-	defaultVerboseMode                 = cryptoutilMagic.BoolDefaultVerboseMode
+	defaultVerboseMode                 = cryptoutilMagic.DefaultBoolVerboseMode
 	defaultDevMode                     = cryptoutilMagic.BoolDefaultDevMode
 	defaultDryRun                      = cryptoutilMagic.BoolDefaultDryRun
-	defaultProfile                     = cryptoutilMagic.StringEmpty // Empty means no profile, use explicit configuration
-	defaultOTLP                        = cryptoutilMagic.BoolDefaultOTLP
-	defaultOTLPConsole                 = cryptoutilMagic.BoolDefaultOTLPConsole
+	defaultProfile                     = cryptoutilMagic.EmptyString // Empty means no profile, use explicit configuration
+	defaultOTLP                        = cryptoutilMagic.DefaultBoolOTLP
+	defaultOTLPConsole                 = cryptoutilMagic.DefaultBoolOTLPConsole
 	defaultOTLPService                 = cryptoutilMagic.StringOTLPServiceDefault
 	defaultOTLPVersion                 = cryptoutilMagic.StringOTLPVersionDefault
 	defaultOTLPEnvironment             = cryptoutilMagic.StringOTLPEnvironmentDefault

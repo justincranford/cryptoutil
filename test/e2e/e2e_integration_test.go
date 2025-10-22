@@ -318,7 +318,7 @@ func areDockerServicesHealthy(services []string, startTime time.Time) map[string
 	fmt.Printf("[%s] [%v] 📋 [DOCKER] Batch health check output: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(output))
 
 	// Parse the JSON output - it should be an array of service objects
-	var serviceList []map[string]interface{}
+	var serviceList []map[string]any
 	if err := json.Unmarshal(output, &serviceList); err != nil {
 		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to parse JSON array: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
 		// Mark all services as unhealthy
@@ -330,7 +330,7 @@ func areDockerServicesHealthy(services []string, startTime time.Time) map[string
 	}
 
 	// Create a map of service name to service data for quick lookup
-	serviceMap := make(map[string]map[string]interface{})
+	serviceMap := make(map[string]map[string]any)
 
 	for _, service := range serviceList {
 		if name, ok := service["Name"].(string); ok {

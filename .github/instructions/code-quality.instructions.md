@@ -110,12 +110,12 @@ const (
 
 **WHEN USING detect-secrets (despite recommendation to use gosec instead)**, use inline allowlisting comments to suppress false positives:
 
-**Same-line allowlisting:**
+**Preferred: Same-line allowlisting (recommended for Go):**
 ```go
-secret = "hunter2"      # pragma: allowlist secret
+intermediateCASubject, err := CreateCASubject(rootCASubject, rootCASubject.KeyMaterial.PrivateKey, "Round Trip Intermediate CA", subjectsKeyPairs[1], 10*365*cryptoutilDateTime.Days1, 1) // pragma: allowlist secret
 ```
 
-**Next-line allowlisting:**
+**Alternative: Next-line allowlisting:**
 ```go
 // pragma: allowlist nextline secret
 const secret = "hunter2";
@@ -123,7 +123,7 @@ const secret = "hunter2";
 
 **Supported comment styles:**
 - `# pragma: allowlist secret` (Python/shell)
-- `// pragma: allowlist secret` (Go/JavaScript/C++)
+- `// pragma: allowlist secret` (Go/JavaScript/C++) - **PREFERRED for Go code**
 - `/* pragma: allowlist secret */` (multi-line comments)
 
 **WHEN TO USE**: Only for legitimate test code or configuration that must reference cryptographic materials. Prefer gosec over detect-secrets for security scanning.

@@ -61,3 +61,10 @@ const (
 	// PGCodeStringDataTruncation - PostgreSQL string data truncation error code.
 	PGCodeStringDataTruncation = "22001"
 )
+
+const (
+	// StringDatabaseContainerDisabled - Disabled database container mode.
+	StringDatabaseContainerDisabled = "disabled"
+	// StringDatabaseURLDefault - Default database URL with placeholder credentials.
+	StringDatabaseURLDefault = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret
+)

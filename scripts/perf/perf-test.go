@@ -63,12 +63,12 @@ const (
 )
 
 type TestProfile struct {
-	Name        string                            `json:"name"`
-	VUs         int                               `json:"vus"`
-	Duration    string                            `json:"duration"`
-	RampUp      string                            `json:"rampUp,omitempty"`
-	Thresholds  map[string]map[string]interface{} `json:"thresholds"`
-	Description string                            `json:"description"`
+	Name        string                    `json:"name"`
+	VUs         int                       `json:"vus"`
+	Duration    string                    `json:"duration"`
+	RampUp      string                    `json:"rampUp,omitempty"`
+	Thresholds  map[string]map[string]any `json:"thresholds"`
+	Description string                    `json:"description"`
 }
 
 type K6Metrics struct {
@@ -484,7 +484,7 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 			Name:     "quick",
 			VUs:      defaultQuickVUs,
 			Duration: defaultQuickDur,
-			Thresholds: map[string]map[string]interface{}{
+			Thresholds: map[string]map[string]any{
 				"http_req_duration":       {"p(95)<500": true},
 				"http_req_failed":         {"rate<0.1": true},
 				"key_generation_duration": {"p(95)<1000": true},
@@ -498,7 +498,7 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 			VUs:      defaultFullVUs,
 			Duration: defaultFullDur,
 			RampUp:   defaultFullRampUp,
-			Thresholds: map[string]map[string]interface{}{
+			Thresholds: map[string]map[string]any{
 				"http_req_duration":       {"p(95)<750": true},
 				"http_req_failed":         {"rate<0.05": true},
 				"key_generation_duration": {"p(95)<1500": true},
@@ -512,7 +512,7 @@ func generateScriptInternal(baseURL, outputFile, profileName string, vus int, du
 			VUs:      defaultDeepVUs,
 			Duration: defaultDeepDur,
 			RampUp:   defaultDeepRampUp,
-			Thresholds: map[string]map[string]interface{}{
+			Thresholds: map[string]map[string]any{
 				"http_req_duration":       {"p(95)<1000": true},
 				"http_req_failed":         {"rate<0.02": true},
 				"key_generation_duration": {"p(95)<2000": true},
@@ -643,7 +643,7 @@ func getTestProfile(profileName string) TestProfile {
 			Name:     "quick",
 			VUs:      defaultQuickVUs,
 			Duration: defaultQuickDur,
-			Thresholds: map[string]map[string]interface{}{
+			Thresholds: map[string]map[string]any{
 				"http_req_duration":       {"p(95)<500": true},
 				"http_req_failed":         {"rate<0.1": true},
 				"key_generation_duration": {"p(95)<1000": true},
@@ -657,7 +657,7 @@ func getTestProfile(profileName string) TestProfile {
 			VUs:      defaultFullVUs,
 			Duration: defaultFullDur,
 			RampUp:   defaultFullRampUp,
-			Thresholds: map[string]map[string]interface{}{
+			Thresholds: map[string]map[string]any{
 				"http_req_duration":       {"p(95)<750": true},
 				"http_req_failed":         {"rate<0.05": true},
 				"key_generation_duration": {"p(95)<1500": true},
@@ -671,7 +671,7 @@ func getTestProfile(profileName string) TestProfile {
 			VUs:      defaultDeepVUs,
 			Duration: defaultDeepDur,
 			RampUp:   defaultDeepRampUp,
-			Thresholds: map[string]map[string]interface{}{
+			Thresholds: map[string]map[string]any{
 				"http_req_duration":       {"p(95)<1000": true},
 				"http_req_failed":         {"rate<0.02": true},
 				"key_generation_duration": {"p(95)<2000": true},

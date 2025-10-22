@@ -8,7 +8,21 @@ const (
 	TestCleartext = "Hello, World!"
 )
 
-// Mock system information for testing.
+// Test settings constants.
+const (
+	// TestDefaultLogLevelAll - All log level for comprehensive logging.
+	TestDefaultLogLevelAll = "ALL"
+
+	// TestDefaultDevMode - Default dev mode flag for tests.
+	TestDefaultDevMode = true
+
+	// TestDefaultRateLimitBrowserIP - Default browser IP rate limit.
+	TestDefaultRateLimitBrowserIP uint16 = 1000
+	// TestDefaultRateLimitServiceIP - Default service IP rate limit.
+	TestDefaultRateLimitServiceIP uint16 = 500
+)
+
+// Test data for mock system information.
 const (
 	// MockRuntimeGoArch - Mock architecture for testing.
 	MockRuntimeGoArch = "amd64"
