@@ -10,6 +10,9 @@ const (
 	// EmptyString - Empty string constant.
 	EmptyString = ""
 
+	// Bits to bytes conversion factor.
+	BitsToBytes = 8
+
 	// DefaultProfile - Default profile name. Empty means no profile, use explicit configuration.
 	DefaultProfile = EmptyString
 

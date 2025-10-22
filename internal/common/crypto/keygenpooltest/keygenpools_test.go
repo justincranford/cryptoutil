@@ -24,7 +24,7 @@ const (
 	exampleNumWorkersOther     = 1
 	examplePoolSize            = 3
 	exampleMaxLifetimeKeys     = 3
-	exampleMaxLifetimeDuration = cryptoutilMagic.MaxLifetimeDuration
+	exampleMaxLifetimeDuration = cryptoutilMagic.MaxPoolLifetimeDuration
 )
 
 func TestPoolsExample(t *testing.T) {

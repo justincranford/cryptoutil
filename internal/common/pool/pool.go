@@ -55,10 +55,10 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 
 	// Safe conversion with bounds checking
 	var maxLifetimeValuesInt64 int64
-	if cfg.maxLifetimeValues <= cryptoutilMagic.MaxLifetimeValues {
+	if cfg.maxLifetimeValues <= cryptoutilMagic.MaxPoolLifetimeValues {
 		maxLifetimeValuesInt64 = int64(cfg.maxLifetimeValues)
 	} else {
-		maxLifetimeValuesInt64 = cryptoutilMagic.MaxLifetimeValuesInt64
+		maxLifetimeValuesInt64 = cryptoutilMagic.MaxPoolLifetimeValuesInt64
 	}
 
 	meter := cfg.telemetryService.MetricsProvider.Meter("cryptoutil.pool."+cfg.poolName, []metric.MeterOption{
@@ -349,8 +349,8 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 	}
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
-	ticker := time.NewTicker(cryptoutilMagic.TimeoutPoolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
-	defer func() { ticker.Stop() }()                                         //nolint:errcheck
+	ticker := time.NewTicker(cryptoutilMagic.PoolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
+	defer func() { ticker.Stop() }()                                  //nolint:errcheck
 
 	for {
 		select {

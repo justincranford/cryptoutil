@@ -22,10 +22,10 @@ var (
 )
 
 const (
-	DigestSHA512 = cryptoutilMagic.SHADigestSHA512
-	DigestSHA384 = cryptoutilMagic.SHADigestSHA384
-	DigestSHA256 = cryptoutilMagic.SHADigestSHA256
-	DigestSHA224 = cryptoutilMagic.SHADigestSHA224
+	DigestSHA512 = cryptoutilMagic.SHA512
+	DigestSHA384 = cryptoutilMagic.SHA384
+	DigestSHA256 = cryptoutilMagic.SHA256
+	DigestSHA224 = cryptoutilMagic.SHA224
 )
 
 func HKDFwithSHA512(secret, salt, info []byte, outputBytesLength int) ([]byte, error) {

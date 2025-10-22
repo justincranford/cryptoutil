@@ -39,8 +39,8 @@ var (
 	testTelemetryService         *cryptoutilTelemetry.TelemetryService
 	happyPathWorkers             = []uint32{1, 2}
 	happyPathSize                = []uint32{1, 3}
-	happyPathMaxLifetimeKeys     = []uint64{1, cryptoutilMagic.MaxLifetimeValues}
-	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilMagic.MaxLifetimeDuration}
+	happyPathMaxLifetimeKeys     = []uint64{1, cryptoutilMagic.MaxPoolLifetimeValues}
+	happyPathMaxLifetimeDuration = []time.Duration{cryptoutilMagic.MaxPoolLifetimeDuration}
 	happyPathGets                = []uint64{0, 1, 3}
 	happyPathTestCases           = func() []*TestCase {
 		testCases := make([]*TestCase, 0, len(happyPathWorkers)*len(happyPathSize)*len(happyPathMaxLifetimeKeys)*len(happyPathMaxLifetimeDuration)*len(happyPathGets))

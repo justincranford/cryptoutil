@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/big"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -117,7 +118,7 @@ var (
 			panic(fmt.Sprintf("failed to generate random database name: %v", err))
 		}
 
-		return fmt.Sprintf("%04d", postgresContainerRandSuffix.Int64())
+		return strconv.FormatInt(postgresContainerRandSuffix.Int64(), 36)
 	}()
 	postgresContainerDBName     = "postgresDatabase" + postgresContainerRandSuffix
 	postgresContainerDBUsername = "postgresUsername" + postgresContainerRandSuffix

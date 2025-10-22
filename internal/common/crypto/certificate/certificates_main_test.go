@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 
 		var err error
 
-		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", 1, numKeyPairsNeeded, numKeyPairsNeeded, cryptoutilMagic.MaxLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
+		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", 1, numKeyPairsNeeded, numKeyPairsNeeded, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
 		if err != nil {
 			log.Fatalf("failed to create key pool: %v", err)
 		}

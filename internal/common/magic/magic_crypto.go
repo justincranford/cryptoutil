@@ -15,6 +15,12 @@ const (
 	ECCurveP384 = "P384"
 	ECCurveP521 = "P521"
 
+	// SHA2 digest algorithm names.
+	SHA512 = "SHA512"
+	SHA384 = "SHA384"
+	SHA256 = "SHA256"
+	SHA224 = "SHA224"
+
 	// RSA key sizes in bits.
 	RSAKeySize2048 = 2048
 	RSAKeySize3072 = 3072
@@ -52,25 +58,16 @@ const (
 	// Minimum HMAC key size in bits.
 	MinHMACKeySize = SymmetricKeySize256
 
-	// SHA digest algorithm names.
-	SHADigestSHA512 = "SHA512"
-	SHADigestSHA384 = "SHA384"
-	SHADigestSHA256 = "SHA256"
-	SHADigestSHA224 = "SHA224"
-
-	// Bits to bytes conversion factor.
-	BitsToBytes = 8
-
 	// HKDF test constants.
+	HKDFSHA224OutputLength = 28
 	HKDFSHA256OutputLength = 32
 	HKDFSHA384OutputLength = 48
 	HKDFSHA512OutputLength = 64
-	HKDFSHA224OutputLength = 28
 	HKDFMaxMultiplier      = 255
+	HKDFSHA224MaxLength    = 7140  // 255 * 28
 	HKDFSHA256MaxLength    = 8160  // 255 * 32
 	HKDFSHA384MaxLength    = 12240 // 255 * 48
 	HKDFSHA512MaxLength    = 16320 // 255 * 64
-	HKDFSHA224MaxLength    = 7140  // 255 * 28
 
 	// JWK generation pool sizes (min, max) by algorithm type.
 	JWKGenPoolRSA4096NumWorkers   = 9
@@ -108,14 +105,14 @@ const (
 	JWKGenPoolUUIDv7NumWorkers    = 2
 	JWKGenPoolUUIDv7PoolSize      = 20
 
-	// MaxLifetimeValuesInt64 - Maximum int64 value (= 2^63-1 = 9,223,372,036,854,775,807).
-	MaxLifetimeValuesInt64 = int64(^uint64(0) >> 1)
+	// MaxPoolLifetimeValuesInt64 - Maximum int64 value (= 2^63-1 = 9,223,372,036,854,775,807).
+	MaxPoolLifetimeValuesInt64 = int64(^uint64(0) >> 1)
 
-	// MaxLifetimeValues - Max int64 as uint64.
-	MaxLifetimeValues = uint64(MaxLifetimeValuesInt64)
-	// MaxLifetimeDuration - Max int64 as nanoseconds (= 292.47 years).
-	MaxLifetimeDuration = time.Duration(MaxLifetimeValuesInt64)
+	// MaxPoolLifetimeValues - Max int64 as uint64.
+	MaxPoolLifetimeValues = uint64(MaxPoolLifetimeValuesInt64)
+	// MaxPoolLifetimeDuration - Max int64 as nanoseconds (= 292.47 years).
+	MaxPoolLifetimeDuration = time.Duration(MaxPoolLifetimeValuesInt64)
 
-	// TimeoutPoolMaintenanceInterval - Ticker interval for periodic pool maintenance checks.
-	TimeoutPoolMaintenanceInterval = 500 * time.Millisecond
+	// PoolMaintenanceInterval - Ticker interval for periodic pool maintenance checks.
+	PoolMaintenanceInterval = 500 * time.Millisecond
 )
