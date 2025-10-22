@@ -85,7 +85,7 @@ start .\performance-reports\performance-dashboard.html
 | Unit (internal) | `_internal_test.go` | (same) | `go test` | Whitebox testing of internal logic |
 | Integration | `_integration_test.go` | `_test` | `go test -tags=integration` | End-to-end with real dependencies |
 | Benchmarks | `_bench_test.go` | `_test` or same | `go test -bench=.` | Performance testing |
-| Fuzz | `_fuzz_test.go` | `_test` or same | `go test -fuzz=.` | Property-based testing |
+| Fuzz | `_fuzz_test.go` | `_test` or same | `go test -fuzz=FuzzXXX` | Property-based testing |
 | E2E | `e2e/*_test.go` | `e2e` | `go test ./e2e` | Full system testing |
 
 ### Testing Approach Examples
@@ -148,6 +148,9 @@ func FuzzAdd(f *testing.F) {
         assert.Equal(t, calculator.Add(b, a), result) // Commutative
     })
 }
+
+// Run specific fuzz test: go test -fuzz=FuzzAdd -fuzztime=5s
+// Run all fuzz tests in package: go test -fuzz=. -fuzztime=5s (fails if multiple tests match same pattern)
 ```
 
 ### Implementation Priority Recommendations
