@@ -161,15 +161,15 @@ jobs:
           go test -fuzz=FuzzGenerateAESHSKey -fuzztime=1m ./internal/common/crypto/keygen/
           go test -fuzz=FuzzGenerateHMACKey -fuzztime=1m ./internal/common/crypto/keygen/
           echo "Running fuzz tests for digests package..."
-          go test -fuzz=FuzzHKDF -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzSHA512 -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzSHA384 -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzSHA256 -fuzztime=1m ./internal/common/crypto/digests/
-          go test -fuzz=FuzzSHA224 -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzHKDF$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzHKDFwithSHA256$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzHKDFwithSHA384$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzHKDFwithSHA512$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzHKDFwithSHA224$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzSHA512$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzSHA384$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzSHA256$ -fuzztime=1m ./internal/common/crypto/digests/
+          go test -fuzz=^FuzzSHA224$ -fuzztime=1m ./internal/common/crypto/digests/
 
       - name: Fuzz test summary
         run: |
