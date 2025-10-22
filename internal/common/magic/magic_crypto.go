@@ -2,6 +2,12 @@ package magic
 
 import "time"
 
+// DefaultPoolConfig defines the worker and pool size configuration for key generation pools.
+type DefaultPoolConfig struct {
+	NumWorkers uint32
+	MaxSize    uint32
+}
+
 // Cryptographic algorithm and key constants.
 // This file contains all crypto-related magic values used throughout the application.
 
@@ -70,40 +76,6 @@ const (
 	HKDFSHA512MaxLength    = 16320 // 255 * 64
 
 	// JWK generation pool sizes (min, max) by algorithm type.
-	JWKGenPoolRSA4096NumWorkers   = 9
-	JWKGenPoolRSA4096PoolSize     = 9
-	JWKGenPoolRSA3072NumWorkers   = 6
-	JWKGenPoolRSA3072PoolSize     = 6
-	JWKGenPoolRSA2048NumWorkers   = 3
-	JWKGenPoolRSA2048PoolSize     = 3
-	JWKGenPoolECDSAP521NumWorkers = 3
-	JWKGenPoolECDSAP521PoolSize   = 9
-	JWKGenPoolECDSAP384NumWorkers = 2
-	JWKGenPoolECDSAP384PoolSize   = 6
-	JWKGenPoolECDSAP256NumWorkers = 1
-	JWKGenPoolECDSAP256PoolSize   = 3
-	JWKGenPoolECDHP521NumWorkers  = 3
-	JWKGenPoolECDHP521PoolSize    = 9
-	JWKGenPoolECDHP384NumWorkers  = 2
-	JWKGenPoolECDHP384PoolSize    = 6
-	JWKGenPoolECDHP256NumWorkers  = 1
-	JWKGenPoolECDHP256PoolSize    = 3
-	JWKGenPoolED25519NumWorkers   = 1
-	JWKGenPoolED25519PoolSize     = 2
-	JWKGenPoolAES256NumWorkers    = 3
-	JWKGenPoolAES256PoolSize      = 9
-	JWKGenPoolAES192NumWorkers    = 2
-	JWKGenPoolAES192PoolSize      = 6
-	JWKGenPoolAES128NumWorkers    = 1
-	JWKGenPoolAES128PoolSize      = 3
-	JWKGenPoolHMAC512NumWorkers   = 3
-	JWKGenPoolHMAC512PoolSize     = 9
-	JWKGenPoolHMAC384NumWorkers   = 2
-	JWKGenPoolHMAC384PoolSize     = 6
-	JWKGenPoolHMAC256NumWorkers   = 1
-	JWKGenPoolHMAC256PoolSize     = 3
-	JWKGenPoolUUIDv7NumWorkers    = 2
-	JWKGenPoolUUIDv7PoolSize      = 20
 
 	// MaxPoolLifetimeValuesInt64 - Maximum int64 value (= 2^63-1 = 9,223,372,036,854,775,807).
 	MaxPoolLifetimeValuesInt64 = int64(^uint64(0) >> 1)
@@ -115,4 +87,27 @@ const (
 
 	// PoolMaintenanceInterval - Ticker interval for periodic pool maintenance checks.
 	PoolMaintenanceInterval = 500 * time.Millisecond
+)
+
+var (
+	DefaultPoolConfigRSA4096     = DefaultPoolConfig{NumWorkers: 9, MaxSize: 9}
+	DefaultPoolConfigRSA3072     = DefaultPoolConfig{NumWorkers: 6, MaxSize: 6}
+	DefaultPoolConfigRSA2048     = DefaultPoolConfig{NumWorkers: 3, MaxSize: 3}
+	DefaultPoolConfigECDSAP521   = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}
+	DefaultPoolConfigECDSAP384   = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}
+	DefaultPoolConfigECDSAP256   = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}
+	DefaultPoolConfigECDHP521    = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}
+	DefaultPoolConfigECDHP384    = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}
+	DefaultPoolConfigECDHP256    = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}
+	DefaultPoolConfigED25519     = DefaultPoolConfig{NumWorkers: 1, MaxSize: 2}
+	DefaultPoolConfigAES256      = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}
+	DefaultPoolConfigAES192      = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}
+	DefaultPoolConfigAES128      = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}
+	DefaultPoolConfigAES256HS512 = DefaultPoolConfig{NumWorkers: 3, MaxSize: 6}
+	DefaultPoolConfigAES192HS384 = DefaultPoolConfig{NumWorkers: 2, MaxSize: 4}
+	DefaultPoolConfigAES128HS256 = DefaultPoolConfig{NumWorkers: 1, MaxSize: 2}
+	DefaultPoolConfigHMAC512     = DefaultPoolConfig{NumWorkers: 3, MaxSize: 9}
+	DefaultPoolConfigHMAC384     = DefaultPoolConfig{NumWorkers: 2, MaxSize: 6}
+	DefaultPoolConfigHMAC256     = DefaultPoolConfig{NumWorkers: 1, MaxSize: 3}
+	DefaultPoolConfigUUIDv7      = DefaultPoolConfig{NumWorkers: 2, MaxSize: 20}
 )
