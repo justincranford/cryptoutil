@@ -170,7 +170,7 @@ repos:
       - id: test-patterns
         name: Enforce test patterns (UUIDv7, testify assertions)
         entry: go
-        args: [run, scripts/cicd_utils.go, enforce-test-patterns]
+        args: [run, scripts/cicd_checks.go, enforce-test-patterns]
         language: system
         pass_filenames: false
         files: go\.mod$  # Only run when go.mod changes (not per test file)

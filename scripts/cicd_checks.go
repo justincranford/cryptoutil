@@ -68,7 +68,7 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_utils.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n\nExamples:\n  go run scripts/cicd_utils.go go-update-direct-dependencies\n  go run scripts/cicd_utils.go go-update-all-dependencies\n  go run scripts/cicd_utils.go go-check-circular-package-dependencies\n  go run scripts/cicd_utils.go github-action-versions\n  go run scripts/cicd_utils.go gofumpter\n  go run scripts/cicd_utils.go enforce-test-patterns\n  go run scripts/cicd_utils.go go-update-direct-dependencies github-action-versions\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_checks.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n\nExamples:\n  go run scripts/cicd_checks.go go-update-direct-dependencies\n  go run scripts/cicd_checks.go go-update-all-dependencies\n  go run scripts/cicd_checks.go go-check-circular-package-dependencies\n  go run scripts/cicd_checks.go github-action-versions\n  go run scripts/cicd_checks.go gofumpter\n  go run scripts/cicd_checks.go enforce-test-patterns\n  go run scripts/cicd_checks.go go-update-direct-dependencies github-action-versions\n")
 		os.Exit(1)
 	}
 
@@ -862,13 +862,13 @@ func runGofumpter() {
 
 	// Define exclusion patterns (same as pre-commit-config.yaml)
 	excludedPatterns := []string{
-		`_gen\.go$`,               // Generated files
-		`\.pb\.go$`,               // Protocol buffer files
-		`vendor/`,                 // Vendored dependencies
-		`api/client`,              // Generated API client
-		`api/model`,               // Generated API models
-		`api/server`,              // Generated API server
-		`scripts/cicd_utils\.go$`, // Exclude this file itself to avoid replacing the regex pattern
+		`_gen\.go$`,                // Generated files
+		`\.pb\.go$`,                // Protocol buffer files
+		`vendor/`,                  // Vendored dependencies
+		`api/client`,               // Generated API client
+		`api/model`,                // Generated API models
+		`api/server`,               // Generated API server
+		`scripts/cicd_checks\.go$`, // Exclude this file itself to avoid replacing the regex pattern
 	}
 
 	// Find all .go files

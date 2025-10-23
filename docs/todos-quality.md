@@ -39,7 +39,7 @@
   - Evaluate and enable:
     - gocognit (cyclomatic complexity analysis)
       - Analysis: 10 functions exceed complexity threshold of 30
-      - Files affected: config.go (1), config_test_util.go (1), certificates_server_test_util.go (1), jwe_jwk_util.go (1), jwk_util_test.go (1), jws_jwk_util.go (1), telemetry_service.go (1), application_listener.go (1), sql_provider.go (1), cicd_utils.go (2)
+      - Files affected: config.go (1), config_test_util.go (1), certificates_server_test_util.go (1), jwe_jwk_util.go (1), jwk_util_test.go (1), jws_jwk_util.go (1), telemetry_service.go (1), application_listener.go (1), sql_provider.go (1), cicd_checks.go (2)
       - Highest complexity: 157 (jwk_util_test.go)
   - Configure appropriate settings for each linter
   - Test CI performance impact

@@ -17,15 +17,15 @@ const (
 
 const (
 	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize.
-	TestTimeoutDockerHealth = 30 * time.Second //nolint:stylecheck // established API name
+	TestTimeoutDockerHealth = 10 * time.Second //nolint:stylecheck // established API name
 	// TestTimeoutDockerHealth - Timeout for Docker health checks.
-	TestTimeoutCryptoutilReady = 30 * time.Second //nolint:stylecheck // Cryptoutil needs time to unseal - reduced for fast fail
+	TestTimeoutCryptoutilReady = 10 * time.Second //nolint:stylecheck // Cryptoutil needs time to unseal - reduced for fast fail
 	// TestTimeoutCryptoutilReady - Timeout for Cryptoutil readiness checks.
-	TestTimeoutTestExecution = 30 * time.Second //nolint:stylecheck // Overall test timeout - reduced for fast fail
+	TestTimeoutTestExecution = 60 * time.Second //nolint:stylecheck // Overall test timeout - reduced for fast fail
 	// TestTimeoutDockerComposeInit - Timeout for Docker Compose services to initialize.
-	TestTimeoutDockerComposeInit = 15 * time.Second //nolint:stylecheck // Time to wait for Docker Compose services to initialize after startup
+	TestTimeoutDockerComposeInit = 5 * time.Second //nolint:stylecheck // Time to wait for Docker Compose services to initialize after startup
 	// TestTimeoutServiceRetry - Timeout for service retry intervals.
-	TestTimeoutServiceRetry = 2 * time.Second //nolint:stylecheck // Check more frequently
+	TestTimeoutServiceRetry = 500 * time.Millisecond //nolint:stylecheck // Check more frequently
 
 	// TimeoutTestServerReady - Test server ready timeout.
 	TimeoutTestServerReady = 30 * time.Second

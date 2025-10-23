@@ -8,6 +8,7 @@ package test
 
 import (
 	"context"
+	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
@@ -185,10 +186,49 @@ func waitForServicesReady(t *testing.T, ctx context.Context, startTime time.Time
 	fmt.Printf("[%s] [%v] ✅ All services are ready\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
 }
 
+// verifyCryptoutilPortsReachable verifies that the HTTPS ports 8080, 8081, 8082 are accessible.
+func verifyCryptoutilPortsReachable(t *testing.T, ctx context.Context, startTime time.Time) {
+	t.Helper()
+
+	ports := []int{8080, 8081, 8082}
+	for _, port := range ports {
+		url := fmt.Sprintf("https://localhost:%d/health", port)
+		fmt.Printf("[%s] [%v] 🔍 Checking port %d at %s...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), port, url)
+
+		// Create HTTP client with TLS config that accepts the test certificates
+		client := &http.Client{
+			Timeout: 5 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					InsecureSkipVerify: true, // Accept test certificates
+				},
+			},
+		}
+
+		req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+		require.NoError(t, err, "Failed to create request for port %d", port)
+
+		resp, err := client.Do(req)
+		require.NoError(t, err, "Port %d is not reachable", port)
+		defer func() {
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				t.Logf("Warning: failed to close response body for port %d: %v", port, closeErr)
+			}
+		}()
+
+		require.Equal(t, http.StatusOK, resp.StatusCode, "Port %d returned unexpected status", port)
+		fmt.Printf("[%s] [%v] ✅ Port %d is reachable\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), port)
+	}
+}
+
 // verifyServicesAreReachable verifies that all services are reachable via their public APIs.
 func verifyServicesAreReachable(t *testing.T, ctx context.Context, rootCAsPool *x509.CertPool, startTime time.Time) {
 	t.Helper()
 	fmt.Printf("[%s] [%v] 🌐 Verifying services are reachable...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+
+	// First verify the HTTPS ports 8080, 8081, 8082 are reachable
+	fmt.Printf("[%s] [%v] 🔍 Verifying HTTPS ports 8080, 8081, 8082 are accessible...\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+	verifyCryptoutilPortsReachable(t, ctx, startTime)
 
 	// Verify cryptoutil instances are accessible via public APIs (they should be unsealed now)
 	waitForCryptoutilReady(t, ctx, &cryptoutilSqliteURL, rootCAsPool, startTime)
@@ -470,13 +510,17 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 
 		if err == nil && resp.StatusCode == http.StatusOK {
 			fmt.Printf("[%s] [%v] ✅ [HTTP] Service ready at %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url)
-			resp.Body.Close()
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				t.Logf("Warning: failed to close response body for %s: %v", url, closeErr)
+			}
 
 			return
 		}
 
 		if resp != nil {
-			resp.Body.Close()
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				t.Logf("Warning: failed to close response body for %s: %v", url, closeErr)
+			}
 		}
 
 		time.Sleep(httpRetryInterval)
@@ -628,7 +672,11 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context, startTime time.Time)
 	resp, err := client.Do(req)
 	require.NoError(t, err, "Failed to connect to Grafana")
 
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Logf("Warning: failed to close Grafana response body: %v", closeErr)
+		}
+	}()
 	require.Equal(t, http.StatusOK, resp.StatusCode, "Grafana health check failed")
 
 	fmt.Printf("[%s] [%v] ✅ [HTTP] Grafana health check passed\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
@@ -641,7 +689,11 @@ func verifyTelemetryFlow(t *testing.T, ctx context.Context, startTime time.Time)
 	resp, err = client.Do(req)
 	require.NoError(t, err, "Failed to connect to OTEL collector")
 
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			t.Logf("Warning: failed to close OTEL collector response body: %v", closeErr)
+		}
+	}()
 	require.Equal(t, http.StatusOK, resp.StatusCode, "OTEL collector metrics check failed")
 
 	fmt.Printf("[%s] [%v] ✅ [HTTP] OTEL collector metrics check passed\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))

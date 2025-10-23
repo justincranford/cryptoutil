@@ -20,12 +20,12 @@ func TestMainUsage(t *testing.T) {
 	defer func() { os.Args = oldArgs }()
 
 	// Test with no arguments (should show usage)
-	os.Args = []string{"cicd-utils"}
+	os.Args = []string{"cicd_checks"}
 
 	// We can't easily test main() because it calls os.Exit
 	// So we'll test that the usage message format is correct
-	expectedUsage := "Usage: go run scripts/cicd_utils.go <command> [command...]"
-	require.Contains(t, expectedUsage, "scripts/cicd_utils.go", "Usage message should contain correct filename")
+	expectedUsage := "Usage: go run scripts/cicd_checks.go <command> [command...]"
+	require.Contains(t, expectedUsage, "scripts/cicd_checks.go", "Usage message should contain correct filename")
 
 	require.Contains(t, expectedUsage, "[command...]", "Usage message should indicate multiple commands are supported")
 }
@@ -36,7 +36,7 @@ func TestMainInvalidCommand(t *testing.T) {
 	defer func() { os.Args = oldArgs }()
 
 	// Test with invalid command
-	os.Args = []string{"cicd-utils", "invalid-command"}
+	os.Args = []string{"cicd_checks", "invalid-command"}
 
 	// We can't easily test main() because it calls os.Exit
 	// So we'll just verify the command parsing logic would work
@@ -50,7 +50,7 @@ func TestMainMultipleCommands(t *testing.T) {
 	defer func() { os.Args = oldArgs }()
 
 	// Test with multiple valid commands
-	os.Args = []string{"cicd-utils", "go-update-direct-dependencies", "github-action-versions"}
+	os.Args = []string{"cicd_checks", "go-update-direct-dependencies", "github-action-versions"}
 
 	// Verify we can parse multiple commands
 	require.GreaterOrEqual(t, len(os.Args), 3, "Expected at least 3 arguments")
