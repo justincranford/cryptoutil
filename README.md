@@ -118,8 +118,11 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 **OpenTelemetry Collector Ports:**
 - **4317**: OTLP gRPC receiver (application telemetry ingress)
 - **4318**: OTLP HTTP receiver (application telemetry ingress)  
-- **8888**: Internal metrics exposure (Prometheus scraping endpoint)
-- **8889**: Health check extension (container health monitoring)
+- **8888**: Self-metrics (Prometheus, internal scraping)
+- **8889**: Received-metrics (Prometheus, for re-export)
+- **13133**: Health check extension (container health monitoring)
+- **1777**: pprof (performance profiling)
+- **55679**: zPages (debugging UI)
 
 **Application Ports:**
 - **3000**: Grafana UI
@@ -186,8 +189,14 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 - **Service API**: http://localhost:8081/service/api/v1/*, http://localhost:8082/service/api/v1/*, or http://localhost:8080/service/api/v1/*
 - **Health Checks**: http://localhost:9090/livez, http://localhost:9090/readyz
 - **Grafana UI**: http://localhost:3000 (admin/admin)
-- **OpenTelemetry Collector Metrics**: http://localhost:8888/metrics
-- **OpenTelemetry Collector Health**: http://localhost:8889/health
+- **OpenTelemetry Collector**:
+  - **OTLP gRPC**: http://localhost:4317 (receive telemetry from applications)
+  - **OTLP HTTP**: http://localhost:4318 (receive telemetry from applications)
+  - **Self-metrics**: http://localhost:8888/metrics (Prometheus format)
+  - **Received-metrics**: http://localhost:8889/metrics (Prometheus format, for re-export)
+  - **Health Check**: http://127.0.0.1:13133/
+  - **pprof**: http://localhost:1777 (performance profiling)
+  - **zPages**: http://localhost:55679 (debugging UI)
 
 ### Example API Usage
 ```sh

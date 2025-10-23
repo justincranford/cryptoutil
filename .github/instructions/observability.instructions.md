@@ -4,32 +4,30 @@ applyTo: "**"
 ---
 # Observability and Monitoring Instructions
 
-- Use [OpenTelemetry](https://opentelemetry.io/) for tracing, metrics, logging
+- Use [OpenTelemetry](https://opentelemetry.io/docs/collector/configuration/) for tracing, metrics, logging
 - Use structured logging, OTLP export, health endpoints, Prometheus metrics, proper log levels, no sensitive data
 
 ## Telemetry Forwarding Architecture
 
-**MANDATORY**: All telemetry from cryptoutil services MUST be forwarded through the otel-contrib sidecar (opentelemetry-collector) to upstream telemetry platforms (e.g., grafana-otel-lgtm).
+**MANDATORY**: All telemetry from cryptoutil services MUST be forwarded through the otel-contrib sidecar (opentelemetry-collector-contrib) to upstream telemetry platforms (e.g., grafana-otel-lgtm).
 
-### Dual Telemetry Flows for Complete Observability
+### Push-Based Telemetry Flow
 
 **Application Telemetry (Push-based):**
 ```
-cryptoutil services (OTLP gRPC:4317) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (OTLP HTTP:4318)
+cryptoutil services (OTLP gRPC:4317 or HTTP:4318) → OpenTelemetry Collector Contrib → Grafana-OTEL-LGTM (OTLP gRPC:14317 or HTTP:14318)
 ```
 - **Purpose**: Business application traces, logs, and metrics
 - **Protocol**: OTLP (OpenTelemetry Protocol) - push-based
 - **Data**: Crypto operations, API calls, business logic telemetry
 
-**Infrastructure Telemetry (Pull-based):**
+**Collector Self-Monitoring:**
 ```
-Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8889/metrics)
+OpenTelemetry Collector Contrib (internal) → Grafana-OTEL-LGTM (OTLP HTTP:14318)
 ```
 - **Purpose**: Monitor collector health and performance
-- **Protocol**: Prometheus scraping - pull-based
+- **Protocol**: OTLP - push-based (collector exports its own telemetry)
 - **Data**: Collector throughput, error rates, queue depths, resource usage
-
-**Why Both Flows?** The collector both **receives application telemetry** (from cryptoutil) and **exposes its own metrics** (for monitoring). This provides complete observability of both your application and the telemetry pipeline itself.
 
 ### Architecture Flow:
 ```
@@ -38,8 +36,9 @@ cryptoutil services → opentelemetry-collector (sidecar) → upstream telemetry
 
 ### Configuration Requirements:
 - `cryptoutil-otel.yml` MUST point to `opentelemetry-collector:4317`
-- **NEVER** configure `cryptoutil-otel.yml` to forward directly to upstream platforms (e.g., `grafana-otel-lgtm:4317`)
+- **NEVER** configure cryptoutil to bypass otel-collector-contrib sidecar
 - The otel-contrib sidecar handles processing, filtering, and routing before forwarding to upstream platforms
+- **Grafana receives telemetry only** - no Prometheus scraping of collector metrics
 
 ### Rationale:
 - Ensures centralized telemetry processing and filtering

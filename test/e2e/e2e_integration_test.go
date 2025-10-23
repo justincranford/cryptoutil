@@ -200,7 +200,7 @@ func verifyCryptoutilPortsReachable(t *testing.T, ctx context.Context, startTime
 			Timeout: 5 * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true, // Accept test certificates
+					InsecureSkipVerify: true, //nolint:gosec // Accept test certificates
 				},
 			},
 		}
@@ -336,10 +336,30 @@ func areDockerServicesHealthy(services []string, startTime time.Time) map[string
 
 	fmt.Printf("[%s] [%v] 📋 [DOCKER] Batch health check output: %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), string(output))
 
-	// Parse the JSON output - it should be an array of service objects
+	// Parse the JSON output - docker compose ps --format json outputs newline-delimited JSON objects, not an array
 	var serviceList []map[string]any
-	if err := json.Unmarshal(output, &serviceList); err != nil {
-		fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to parse JSON array: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
+
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		var service map[string]any
+
+		if err := json.Unmarshal([]byte(line), &service); err != nil {
+			fmt.Printf("[%s] [%v] ❌ [DOCKER] Failed to parse JSON line: %v\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), err)
+
+			continue
+		}
+
+		serviceList = append(serviceList, service)
+	}
+
+	if len(serviceList) == 0 {
+		fmt.Printf("[%s] [%v] ❌ [DOCKER] No services found in docker compose output\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second))
+
 		// Mark all services as unhealthy
 		for _, service := range services {
 			healthStatus[service] = false
@@ -510,7 +530,9 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 
 		if err == nil && resp.StatusCode == http.StatusOK {
 			fmt.Printf("[%s] [%v] ✅ [HTTP] Service ready at %s\n", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), url)
-			if closeErr := resp.Body.Close(); closeErr != nil {
+
+			closeErr := resp.Body.Close()
+			if closeErr != nil {
 				t.Logf("Warning: failed to close response body for %s: %v", url, closeErr)
 			}
 
@@ -518,7 +540,8 @@ func waitForHTTPReady(t *testing.T, ctx context.Context, url string, timeout tim
 		}
 
 		if resp != nil {
-			if closeErr := resp.Body.Close(); closeErr != nil {
+			closeErr := resp.Body.Close()
+			if closeErr != nil {
 				t.Logf("Warning: failed to close response body for %s: %v", url, closeErr)
 			}
 		}

@@ -1,48 +1,192 @@
+#######################################################################
 # OpenTelemetry Collector Configuration
-# This collector receives application telemetry from cryptoutil services and forwards it to Grafana-OTEL-LGTM.
-# It also exposes its own internal metrics for monitoring and provides health check endpoints.
+# ---------------------------------------------------------------------
+# Docs: https://opentelemetry.io/docs/collector/configuration/
 #
-# Ports:
-# - 4317: OTLP gRPC receiver (application telemetry ingress)
-# - 4318: OTLP HTTP receiver (application telemetry ingress)
-# - 8888: Internal metrics exposure (Prometheus scraping - configured by default, not in this file)
-# - 8889: Health check extension (container health monitoring)
+# This collector runs in a Docker container and:
+#   • Receives OTLP telemetry (metrics, logs, traces) from cryptoutil services
+#   • Exports them to Grafana-OTEL-LGTM via OTLP/HTTP
+#   • Collects its own metrics, logs, and traces for self-observability
+#######################################################################
+
 receivers:
+  ###################################################################
+  # Receives telemetry from external applications (your services)
+  ###################################################################
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317
+        endpoint: 0.0.0.0:4317      # OTLP/gRPC receiver (default port)
+        # tls:
+        #   cert_file: /etc/otel/certs/server.crt
+        #   key_file: /etc/otel/certs/server.key
       http:
-        endpoint: 0.0.0.0:4318
+        endpoint: 0.0.0.0:4318      # OTLP/HTTP receiver (default port)
+        # tls:
+        #   cert_file: /etc/otel/certs/server.crt
+        #   key_file: /etc/otel/certs/server.key
+
+  ###################################################################
+  # Scrapes the Collector's own Prometheus metrics (e.g., CPU, queue)
+  ###################################################################
+  prometheus/self:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 2s
+          static_configs:
+            - targets: ['127.0.0.1:8888']  # Collector's internal metrics port
+
+  ###################################################################
+  # Collects the Collector's own logs (works for Docker setups)
+  ###################################################################
+  filelog/self:
+    include: [/dev/stdout, /dev/stderr]
+    start_at: beginning
+    operators:
+      # Normalize log structure to extract attributes correctly
+      - type: move
+        from: attributes["log"]
+        to: body
+      - type: json_parser                 # Parse structured JSON logs if present
+        if: body matches '^{'
+      - type: severity_parser             # Derive severity (info, warn, error)
+
+extensions:
+  ###################################################################
+  # Enables a health check endpoint (for liveness/readiness probes)
+  ###################################################################
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+  ###################################################################
+  # pprof provides CPU/memory profiling (useful for debugging)
+  ###################################################################
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  ###################################################################
+  # zPages exposes in-memory trace and metrics debugging UI
+  ###################################################################
+  zpages:
+    endpoint: 0.0.0.0:55679
 
 processors:
+  ###################################################################
+  # Adds metadata about the running environment (Docker, env vars)
+  ###################################################################
+  resourcedetection:
+    detectors: [env, docker, system]
+    timeout: 5s
+    override: false
+
+  ###################################################################
+  # Adds or modifies resource attributes for all telemetry
+  ###################################################################
+  attributes:
+    actions:
+      - key: service.instance.id
+        from_attribute: container.id
+        action: insert
+
+      # 🔽 Optional attributes — uncomment as needed
+      # - key: service.container.image.name
+      #   from_attribute: container.image.name
+      #   action: insert
+      # - key: service.container.image.tag
+      #   from_attribute: container.image.tag
+      #   action: insert
+      # - key: service.deployment.environment
+      #   value: production
+      #   action: insert
+      # - key: host.name
+      #   from_attribute: host.hostname
+      #   action: insert
+      # - key: cloud.provider
+      #   from_attribute: cloud.provider
+      #   action: insert
+
+  ###################################################################
+  # Prevents memory overload by throttling ingestion
+  ###################################################################
+  memory_limiter:
+    limit_mib: 512
+    spike_limit_mib: 128
+    check_interval: 5s
+
+  ###################################################################
+  # Batches telemetry before export for efficiency
+  ###################################################################
   batch:
     timeout: 5s
     send_batch_size: 16384
     send_batch_max_size: 32768
 
 exporters:
+  ###################################################################
+  # Sends telemetry to Grafana LGTM stack via OTLP/HTTP
+  ###################################################################
   otlphttp:
     endpoint: "http://grafana-otel-lgtm:4318"
-  # debug:
-  #   verbosity: detailed
+    # compression: gzip
+    # headers: { "Authorization": "Bearer <token>" }   # optional
 
-extensions:
-  health_check:
-    endpoint: 0.0.0.0:8889  # Health check endpoint for container monitoring
+  ###################################################################
+  # Logs all exported telemetry to stdout (useful for debugging)
+  ###################################################################
+  debug:
+    verbosity: detailed
 
 service:
-  extensions: [health_check]
+  extensions: [health_check, pprof, zpages]
+
   pipelines:
-    metrics:
-      receivers: [otlp]
-      processors: [batch]
+    #################################################################
+    # 🔹 Collector's own logs (from Docker stdout/stderr)
+    #################################################################
+    logs/self:
+      receivers: [filelog/self]
+      processors: [resourcedetection, attributes, memory_limiter, batch]
       exporters: [otlphttp]
+
+    #################################################################
+    # 🔹 Collector's own metrics (from internal Prometheus endpoint)
+    #################################################################
+    metrics/internal:
+      receivers: [prometheus/self]
+      processors: [resourcedetection, attributes, memory_limiter, batch]
+      exporters: [otlphttp, debug]
+
+    #################################################################
+    # 🔹 Application logs received from external OTLP clients
+    #################################################################
     logs:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp]
+      processors: [resourcedetection, attributes, memory_limiter, batch]
+      exporters: [otlphttp, debug]
+
+    #################################################################
+    # 🔹 Application metrics received from external OTLP clients
+    #################################################################
+    metrics:
+      receivers: [otlp]
+      processors: [resourcedetection, attributes, memory_limiter, batch]
+      exporters: [otlphttp, debug]
+
+    #################################################################
+    # 🔹 Application traces received from external OTLP clients
+    #################################################################
     traces:
       receivers: [otlp]
-      processors: [batch]
-      exporters: [otlphttp]
+      processors: [resourcedetection, attributes, memory_limiter, batch]
+      exporters: [otlphttp, debug]
+
+  ###################################################################
+  # Self-telemetry of the Collector itself (for debugging/tuning)
+  ###################################################################
+  telemetry:
+    logs:
+      level: info
+      encoding: json
+    metrics:
+      level: detailed

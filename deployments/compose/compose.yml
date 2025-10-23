@@ -164,13 +164,16 @@ services:
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
-      - "8888:8888"   # Collector internal metrics (Prometheus scraping)
-      - "8889:8889"   # Health check endpoint
-    depends_on:
-      - grafana-otel-lgtm
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Self-metrics (Prometheus)
+      - "8889:8889"   # Received-metrics (Prometheus, for re-export)
+      - "13133:13133" # Health check
+      - "1777:1777"   # pprof
+      - "55679:55679" # zPages
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8889/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
       start_period: 10s
       interval: 5s
       timeout: 5s
@@ -193,8 +196,8 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
       - "3000:3000"    # Grafana UI
-      - "4317:4317"    # OTLP gRPC
-      - "4318:4318"    # OTLP HTTP
+      - "14317:4317"    # OTLP gRPC
+      - "14318:4318"    # OTLP HTTP
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro

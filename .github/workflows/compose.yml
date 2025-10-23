@@ -157,7 +157,7 @@ jobs:
         echo "Waiting for OpenTelemetry Collector to be ready..."
         timeout=60
         while [ $timeout -gt 0 ]; do
-          if curl -f http://localhost:8889/metrics >/dev/null 2>&1; then
+          if curl -f http://127.0.0.1:13133/ >/dev/null 2>&1; then
             echo "OpenTelemetry Collector is ready"
             break
           fi
