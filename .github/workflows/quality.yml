@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Quality Testing
 
 on:
   push:

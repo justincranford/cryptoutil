@@ -1,3 +1,5 @@
+//go:build e2e
+
 package test
 
 // LOGGING REQUIREMENT: All logs in this e2e test file MUST include timestamp and duration since start time.
