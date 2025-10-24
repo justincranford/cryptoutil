@@ -54,7 +54,14 @@ func NewTestFixture(t *testing.T) *TestFixture {
 	startTime := time.Now()
 
 	// Create log file
-	logFileName := filepath.Join("test", "e2e", "e2e-reports", fmt.Sprintf("e2e-test-%s.log", startTime.Format("2006-01-02_15-04-05")))
+	logFileName := filepath.Join("..", "..", "test", "e2e", "e2e-reports", fmt.Sprintf("e2e-test-%s.log", startTime.Format("2006-01-02_15-04-05")))
+
+	// Ensure the directory exists
+	logDir := filepath.Dir(logFileName)
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		t.Fatalf("Failed to create log directory %s: %v", logDir, err)
+	}
+
 	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		t.Fatalf("Failed to create log file %s: %v", logFileName, err)

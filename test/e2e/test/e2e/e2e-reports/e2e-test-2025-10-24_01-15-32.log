@@ -1,0 +1,110 @@
+[01:15:32] [0s] 🚀 Setting up test fixture
+[01:15:32] [0s] ✅ Test certificates configured (InsecureSkipVerify)
+[01:15:32] [0s] 🧹 Ensuring clean test environment
+[01:15:38] [6s] 📋 [Stop existing services] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml down -v --remove-orphans
+[01:15:38] [6s] 📋 [Stop existing services] Output: Container compose-cryptoutil_postgres_2-1  Stopping
+ Container compose-cryptoutil_sqlite-1  Stopping
+ Container compose-cryptoutil_postgres_2-1  Stopped
+ Container compose-cryptoutil_postgres_2-1  Removing
+ Container compose-cryptoutil_postgres_2-1  Removed
+ Container compose-cryptoutil_postgres_1-1  Stopping
+ Container compose-cryptoutil_sqlite-1  Stopped
+ Container compose-cryptoutil_sqlite-1  Removing
+ Container compose-cryptoutil_sqlite-1  Removed
+ Container compose-cryptoutil_postgres_1-1  Stopped
+ Container compose-cryptoutil_postgres_1-1  Removing
+ Container compose-cryptoutil_postgres_1-1  Removed
+ Container compose-postgres-1  Stopping
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Stopping
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Stopped
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Removing
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Removed
+ Container compose-opentelemetry-collector-contrib-1  Stopping
+ Container compose-postgres-1  Stopped
+ Container compose-postgres-1  Removing
+ Container compose-postgres-1  Removed
+ Container compose-opentelemetry-collector-contrib-1  Stopped
+ Container compose-opentelemetry-collector-contrib-1  Removing
+ Container compose-opentelemetry-collector-contrib-1  Removed
+ Container compose-grafana-otel-lgtm-1  Stopping
+ Container compose-grafana-otel-lgtm-1  Stopped
+ Container compose-grafana-otel-lgtm-1  Removing
+ Container compose-grafana-otel-lgtm-1  Removed
+ Network compose_cryptoutil-network  Removing
+ Volume cryptoutil_postgres_volume  Removing
+ Volume cryptoutil_grafana_volume  Removing
+ Volume cryptoutil_postgres_volume  Removed
+ Volume cryptoutil_grafana_volume  Removed
+ Network compose_cryptoutil-network  Removed
+[01:15:38] [6s] ✅ Existing services stopped successfully
+[01:15:38] [6s] 🚀 Starting Docker Compose services
+[01:15:38] [6s] 📋 [Pre-start cleanup] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml down -v --remove-orphans
+[01:15:53] [21s] 📋 [Start services] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml up -d --force-recreate
+[01:15:53] [21s] 📋 [Start services] Output: Network compose_cryptoutil-network  Creating
+ Network compose_cryptoutil-network  Created
+ Volume cryptoutil_grafana_volume  Creating
+ Volume cryptoutil_grafana_volume  Created
+ Volume cryptoutil_postgres_volume  Creating
+ Volume cryptoutil_postgres_volume  Created
+ Container compose-grafana-otel-lgtm-1  Creating
+ Container compose-postgres-1  Creating
+ Container compose-grafana-otel-lgtm-1  Created
+ Container compose-opentelemetry-collector-contrib-1  Creating
+ Container compose-postgres-1  Created
+ Container compose-opentelemetry-collector-contrib-1  Created
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Creating
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Created
+ Container compose-cryptoutil_postgres_1-1  Creating
+ Container compose-cryptoutil_sqlite-1  Creating
+ Container compose-cryptoutil_postgres_1-1  Created
+ Container compose-cryptoutil_postgres_2-1  Creating
+ Container compose-cryptoutil_sqlite-1  Created
+ Container compose-cryptoutil_postgres_2-1  Created
+ Container compose-grafana-otel-lgtm-1  Starting
+ Container compose-postgres-1  Starting
+ Container compose-postgres-1  Started
+ Container compose-grafana-otel-lgtm-1  Started
+ Container compose-opentelemetry-collector-contrib-1  Starting
+ Container compose-opentelemetry-collector-contrib-1  Started
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Starting
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Started
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Waiting
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Waiting
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Exited
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Exited
+ Container compose-cryptoutil_sqlite-1  Starting
+ Container compose-cryptoutil_postgres_1-1  Starting
+ Container compose-cryptoutil_sqlite-1  Started
+ Container compose-cryptoutil_postgres_1-1  Started
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Waiting
+ Container compose-cryptoutil_postgres_1-1  Waiting
+ Container compose-opentelemetry-collector-contrib-healthcheck-1  Exited
+ Container compose-cryptoutil_postgres_1-1  Healthy
+ Container compose-cryptoutil_postgres_2-1  Starting
+ Container compose-cryptoutil_postgres_2-1  Started
+[01:15:53] [21s] ✅ Docker Compose services started successfully
+[01:15:53] [21s] ⏳ Waiting for Docker Compose services to initialize...
+[01:15:58] [26s] 🔍 Health check #1: Checking 6 services...
+[01:15:58] [26s] 📋 [Batch health check] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml ps --format json
+[01:15:58] [26s] ❌ Service opentelemetry-collector-contrib-healthcheck not found in docker compose output
+[01:15:58] [26s] ⏳ Waiting 500ms before next health check... (1 unhealthy: [opentelemetry-collector-contrib-healthcheck])
+[01:15:59] [27s] 🔍 Health check #2: Checking 6 services...
+[01:15:59] [27s] 📋 [Batch health check] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml ps --format json
+[01:15:59] [27s] ❌ Service opentelemetry-collector-contrib-healthcheck not found in docker compose output
+[01:15:59] [27s] ⏳ Waiting 500ms before next health check... (1 unhealthy: [opentelemetry-collector-contrib-healthcheck])
+[01:15:59] [27s] 🔍 Health check #3: Checking 6 services...
+[01:15:59] [27s] 📋 [Batch health check] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml ps --format json
+[01:15:59] [28s] ❌ Service opentelemetry-collector-contrib-healthcheck not found in docker compose output
+[01:15:59] [28s] ⏳ Waiting 500ms before next health check... (1 unhealthy: [opentelemetry-collector-contrib-healthcheck])
+[01:16:00] [28s] 🔍 Health check #4: Checking 6 services...
+[01:16:00] [28s] 📋 [Batch health check] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml ps --format json
+[01:16:00] [28s] ❌ Service opentelemetry-collector-contrib-healthcheck not found in docker compose output
+[01:16:00] [28s] ⏳ Waiting 500ms before next health check... (1 unhealthy: [opentelemetry-collector-contrib-healthcheck])
+[01:16:01] [29s] 🔍 Health check #5: Checking 6 services...
+[01:16:01] [29s] 📋 [Batch health check] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml ps --format json
+[01:16:01] [29s] ❌ Service opentelemetry-collector-contrib-healthcheck not found in docker compose output
+[01:16:01] [29s] ⏳ Waiting 500ms before next health check... (1 unhealthy: [opentelemetry-collector-contrib-healthcheck])
+[01:16:01] [29s] 🔍 Health check #6: Checking 6 services...
+[01:16:01] [29s] 📋 [Batch health check] C:\Program Files\Docker\Docker\resources\bin\docker.exe compose -f ../../deployments/compose/compose.yml ps --format json
+[01:16:01] [30s] ❌ Service opentelemetry-collector-contrib-healthcheck not found in docker compose output
+[01:16:01] [30s] ⏳ Waiting 500ms before next health check... (1 unhealthy: [opentelemetry-collector-contrib-healthcheck])
