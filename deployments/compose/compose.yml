@@ -24,8 +24,8 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
     depends_on:
-      opentelemetry-collector-contrib:
-        condition: service_started
+      opentelemetry-collector-contrib-healthcheck:
+        condition: service_completed_successfully
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
@@ -66,10 +66,10 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
     depends_on:
+      opentelemetry-collector-contrib-healthcheck:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_started
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
@@ -110,12 +110,12 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
     depends_on:
-      cryptoutil_postgres_1:
-        condition: service_healthy
+      opentelemetry-collector-contrib-healthcheck:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
-      opentelemetry-collector-contrib:
-        condition: service_started
+      cryptoutil_postgres_1:
+        condition: service_healthy
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
@@ -161,8 +161,6 @@ services:
   opentelemetry-collector-contrib:
     image: otel/opentelemetry-collector-contrib:latest
     command: ["--config=/etc/otel-collector-config.yaml"]
-    volumes:
-      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
       - "4317:4317"   # OTLP gRPC
       - "4318:4318"   # OTLP HTTP
@@ -171,13 +169,11 @@ services:
       - "13133:13133" # Health check
       - "1777:1777"   # pprof
       - "55679:55679" # zPages
-    healthcheck:
-      # curl is not available in Alpine-based containers, use wget instead
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:13133/"]
-      start_period: 10s
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    depends_on:
+      grafana-otel-lgtm:
+        condition: service_completed_successfully
     networks:
       - cryptoutil-network
     deploy:
@@ -188,6 +184,18 @@ services:
         reservations:
           memory: 128M
           cpus: '0.1'
+
+  opentelemetry-collector-contrib-healthcheck:
+    image: alpine:latest
+    command: ["wget", "--quiet", "--tries=1", "--spider", "http://opentelemetry-collector-contrib:13133/"]
+    networks:
+      - cryptoutil-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
 
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest

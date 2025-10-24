@@ -127,3 +127,77 @@ command: ["app", "--database-url=file:///run/secrets/database_url_secret"]
 - **Available Tools**: Use `wget` instead of `curl` (curl may not be installed in Alpine containers)
 - **Certificate Handling**: Use `--no-check-certificate` for self-signed certificates in development
 - **Example**: `wget --no-check-certificate -q -O /dev/null https://127.0.0.1:9090/health`
+
+## Docker Container Guidelines
+
+### Loopback Addresses
+- **ALWAYS use 127.0.0.1 for loopback inside all Docker containers**
+- **NEVER use ::1 (IPv6 loopback) or localhost for loopback inside containers**
+- Use `127.0.0.1` for health checks, internal service communication, and localhost connections
+
+### Sidecar Health Checks for Minimal Containers
+
+**WHEN containers cannot perform internal health checks** (e.g., otel-collector-contrib), use a sidecar container for external health monitoring:
+
+#### Recommended Approach: Alpine Sidecar with wget
+```yaml
+services:
+  minimal-service:
+    image: otel/opentelemetry-collector-contrib:latest
+    # ... service configuration ...
+    ports:
+      - "13133:13133"  # Health check port
+
+  minimal-service-health-check:
+    image: alpine:latest  # Minimal image with wget preinstalled via busybox
+    command: ["wget", "--quiet", "--tries=1", "--spider", "http://minimal-service:13133/"]
+    networks:
+      - app-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    depends_on:
+      minimal-service:
+        condition: service_started  # Wait for service to start, then check health
+
+  dependent-service:
+    # ... other service configuration ...
+    depends_on:
+      minimal-service-health-check:
+        condition: service_completed_successfully  # Wait for health check to pass
+```
+
+#### Alternative: BusyBox Sidecar
+```yaml
+  minimal-service-health-check:
+    image: busybox:latest  # Even more minimal, includes wget
+    command: ["wget", "--quiet", "--tries=1", "--spider", "http://minimal-service:13133/"]
+    # ... same configuration as Alpine example ...
+```
+
+#### Key Benefits
+- **Minimal footprint**: Alpine/BusyBox images are very small (< 10MB)
+- **Preinstalled tools**: wget comes with busybox (Alpine/BusyBox base)
+- **External monitoring**: Checks service health from network perspective
+- **Dependency management**: Use `service_completed_successfully` for clean startup ordering
+- **Retry logic**: Built-in restart policy handles temporary failures
+
+#### When to Use Sidecar Health Checks
+- Containers lacking shell or standard utilities (curl, wget, etc.)
+- Minimal images with only application binaries
+- Services that cannot health-check themselves internally
+- Need for external validation of service readiness
+
+### otel-collector-contrib Container Limitations
+- **NO shell available**: Cannot execute shell commands or scripts
+- **NO standard utilities**: Missing commands: `which`, `curl`, `ls`, `wget`, `bash`, `sh`, `find`, `grep`, `cat`, etc.
+- **Limited debugging**: Cannot use common container inspection commands
+- **Health checks**: Must use external health checking (from host) since curl/wget unavailable
+- **Available tools**: Only OTEL collector binary (`/otelcol-contrib`) and basic system tools
+- **Executable limitations**: `/otelcol-contrib` does not support running as a client to health check its own in-memory server process
+- **External health checks**: When containers don't support internal memory checks, use docker compose.yml `healthcheck` directive for external monitoring
+- **Container contents**: Minimal Alpine-based image with only `/otelcontribcol` binary and `/etc/ssl/certs/ca-certificates.crt`
+- **No internal health check files**: No log files, status files, or other mechanisms for internal health validation

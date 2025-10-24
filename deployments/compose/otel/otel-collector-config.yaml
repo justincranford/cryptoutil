@@ -39,18 +39,17 @@ receivers:
 
   ###################################################################
   # Collects the Collector's own logs (works for Docker setups)
+  # DISABLED: filelog receiver requires parse_from field which has compatibility issues
   ###################################################################
-  filelog/self:
-    include: [/dev/stdout, /dev/stderr]
-    start_at: beginning
-    operators:
-      # Normalize log structure to extract attributes correctly
-      - type: move
-        from: attributes["log"]
-        to: body
-      - type: json_parser                 # Parse structured JSON logs if present
-        if: body matches '^{'
-      - type: severity_parser             # Derive severity (info, warn, error)
+  # filelog/self:
+  #   include: [/dev/stdout, /dev/stderr]
+  #   start_at: beginning
+  #   parse_from: body
+  #   operators:
+  #     # Normalize log structure to extract attributes correctly
+  #     - type: json_parser                 # Parse structured JSON logs if present
+  #       if: body matches '^{'
+  #     - type: severity_parser             # Derive severity (info, warn, error)
 
 extensions:
   ###################################################################
@@ -58,6 +57,9 @@ extensions:
   ###################################################################
   health_check:
     endpoint: 0.0.0.0:13133
+    path: "/"
+    check_collector_pipeline:
+      enabled: false
 
   ###################################################################
   # pprof provides CPU/memory profiling (useful for debugging)
@@ -143,11 +145,12 @@ service:
   pipelines:
     #################################################################
     # 🔹 Collector's own logs (from Docker stdout/stderr)
+    # DISABLED: filelog receiver has compatibility issues
     #################################################################
-    logs/self:
-      receivers: [filelog/self]
-      processors: [resourcedetection, attributes, memory_limiter, batch]
-      exporters: [otlphttp]
+    # logs/self:
+    #   receivers: [filelog/self]
+    #   processors: [resourcedetection, attributes, memory_limiter, batch]
+    #   exporters: [otlphttp]
 
     #################################################################
     # 🔹 Collector's own metrics (from internal Prometheus endpoint)
