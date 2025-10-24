@@ -119,6 +119,10 @@ const (
 
 	// DefaultPublicPortGrafana - Default Grafana port.
 	DefaultPublicPortGrafana uint16 = 3000
+	// PortGrafanaOTLPGRPC - Grafana OTEL LGTM OTLP gRPC receiver port (receives from OTEL collector).
+	PortGrafanaOTLPGRPC uint16 = 14317
+	// PortGrafanaOTLPHTTP - Grafana OTEL LGTM OTLP HTTP receiver port (receives from OTEL collector).
+	PortGrafanaOTLPHTTP uint16 = 14318
 	// DefaultPublicPortPrometheus - Default Prometheus port.
 	DefaultPublicPortPrometheus uint16 = 9090
 )

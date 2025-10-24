@@ -276,6 +276,109 @@ This system is well-suited for:
 - **Compliance**: Meeting regulatory requirements for key management
 - **Development**: Providing crypto-as-a-service for development teams
 
+## Docker Compose Architecture
+
+The project includes a comprehensive multi-service Docker Compose setup for local development, testing, and observability:
+
+### Service Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                        Docker Compose Network (cryptoutil-network)              │
+│                                                                                 │
+│  ┌────────────────────┐     ┌────────────────────┐     ┌────────────────────┐ │
+│  │ cryptoutil_sqlite  │     │cryptoutil_postgres1│     │cryptoutil_postgres2│ │
+│  │   Port: 8080       │     │   Port: 8081       │     │   Port: 8082       │ │
+│  │   Admin: 9090      │     │   Admin: 9090      │     │   Admin: 9090      │ │
+│  │   Backend: SQLite  │     │   Backend: Postgres│     │   Backend: Postgres│ │
+│  └─────────┬──────────┘     └─────────┬──────────┘     └─────────┬──────────┘ │
+│            │                          │                           │            │
+│            │                          │                           │            │
+│            └──────────────┬───────────┴───────────────┬───────────┘            │
+│                           │                           │                        │
+│                           ▼                           ▼                        │
+│                  ┌────────────────────┐      ┌────────────────────┐           │
+│                  │     PostgreSQL     │      │  OTEL Collector    │           │
+│                  │    Port: 5432      │      │  GRPC: 4317        │           │
+│                  │  Database: DB      │      │  HTTP: 4318        │           │
+│                  │  User: USR         │      │  Metrics: 8888     │           │
+│                  └────────────────────┘      │  Health: 13133     │           │
+│                                              │  pprof: 1777       │           │
+│                                              │  zPages: 55679     │           │
+│                                              └─────────┬──────────┘           │
+│                                                        │                       │
+│                                              ┌─────────▼──────────┐           │
+│                                              │ OTEL Healthcheck   │           │
+│                                              │ (Alpine Sidecar)   │           │
+│                                              └─────────┬──────────┘           │
+│                                                        │                       │
+│                                                        ▼                       │
+│                                              ┌────────────────────┐           │
+│                                              │  Grafana OTEL LGTM │           │
+│                                              │  UI: 3000          │           │
+│                                              │  OTLP GRPC: 14317  │           │
+│                                              │  OTLP HTTP: 14318  │           │
+│                                              └────────────────────┘           │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+Dependencies Flow:
+1. postgres → cryptoutil_postgres_1 → cryptoutil_postgres_2
+2. opentelemetry-collector-contrib → opentelemetry-collector-contrib-healthcheck
+3. grafana-otel-lgtm → opentelemetry-collector-contrib
+4. cryptoutil_sqlite (independent of postgres)
+
+Telemetry Flow:
+cryptoutil services → OTEL Collector (4317/4318) → Grafana LGTM (14317/14318)
+OTEL Collector self-metrics → Prometheus scraping (8888)
+
+Health Checks:
+- cryptoutil services: wget https://127.0.0.1:9090/livez
+- postgres: pg_isready -U USR -d DB
+- grafana: curl http://localhost:3000/api/health
+- otel-collector: External via healthcheck sidecar (ping + wget http://otel:13133/)
+```
+
+### Port Mapping Reference
+
+| Service | Public Port(s) | Admin Port | Protocol | Purpose |
+|---------|---------------|------------|----------|---------|
+| cryptoutil_sqlite | 8080 | 9090 | HTTPS | SQLite backend instance |
+| cryptoutil_postgres_1 | 8081 | 9090 | HTTPS | PostgreSQL backend instance #1 |
+| cryptoutil_postgres_2 | 8082 | 9090 | HTTPS | PostgreSQL backend instance #2 |
+| postgres | 5432 | - | TCP | PostgreSQL database |
+| opentelemetry-collector | 4317 (GRPC), 4318 (HTTP) | 8888 (metrics), 13133 (health) | OTLP | Telemetry collection |
+| grafana-otel-lgtm | 3000 | 14317 (GRPC), 14318 (HTTP) | HTTP | Observability stack |
+
+### Resource Allocation
+
+| Service | Memory Limit | Memory Reserved | CPU Limit | CPU Reserved |
+|---------|-------------|----------------|-----------|--------------|
+| cryptoutil_* | 256M | 128M | - | - |
+| postgres | 512M | 256M | - | - |
+| opentelemetry-collector | 256M | 128M | 0.25 | 0.1 |
+| grafana-otel-lgtm | 512M | 256M | 0.5 | 0.25 |
+
+### Security Architecture
+
+**Docker Secrets (Best Practice Implementation):**
+- Database URLs: `cryptoutil_database_url.secret`
+- Unseal Keys: 5-of-5 Shamir secret shares
+- No environment variables for sensitive data
+- Secrets mounted to `/run/secrets/` in containers
+
+**Network Isolation:**
+- All services communicate via `cryptoutil-network` bridge
+- No direct host network exposure except mapped ports
+- Service-to-service DNS resolution
+
+**Volume Management:**
+- `postgres_data`: Persistent PostgreSQL storage
+- `grafana_data`: Persistent Grafana configuration and dashboards
+- Named volumes for data persistence across restarts
+
 ## Conclusion
 
 Cryptoutil represents a mature, well-architected cryptographic service that successfully balances security, performance, and usability. The codebase demonstrates strong software engineering practices, comprehensive security measures, and production readiness. It's particularly notable for its adherence to cryptographic standards and its sophisticated key management hierarchy.
+
+The Docker Compose architecture provides a complete local development and testing environment with proper observability, multi-instance testing capabilities, and production-like configuration management.

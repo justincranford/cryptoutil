@@ -81,3 +81,53 @@
 | ** | '.github/instructions/terminal-auto-approve.instructions.md' | Instructions for terminal command auto-approval pattern management |
 | **/dast-todos.md | '.github/instructions/todo-maintenance.instructions.md' | Instructions for maintaining actionable TODO/task lists (delete completed tasks immediately) |
 | ** | '.github/instructions/act-testing.instructions.md' | Instructions for testing GitHub Actions workflows locally with act (CRITICAL: proper timeouts) |
+| ** | '.github/instructions/code-quality.instructions.md' | Instructions for code quality and maintenance standards |
+| ** | '.github/instructions/magic-values.instructions.md' | Instructions for defining magic numbers and values in dedicated constants package |
+| ** | '.github/instructions/git.instructions.md' | Instructions for git operations and workflow |
+| **/*.go | '.github/instructions/cabf.instructions.md' | Instructions for CA/Browser Forum Baseline Requirements compliance |
+| ** | '.github/instructions/pull-requests.instructions.md' | Instructions for Pull Request description generation |
+| scripts/** | '.github/instructions/scripts.instructions.md' | Instructions for cross-platform script development |
+
+## Instruction File Cross-Reference Guide
+
+**When working with Docker Compose:**
+- Primary: `docker.instructions.md` - Docker/Compose configuration, health checks, secrets
+- Related: `architecture.instructions.md` - Service architecture patterns
+- Related: `observability.instructions.md` - Telemetry forwarding architecture
+- Related: `security.instructions.md` - Docker secrets vs environment variables
+- Related: `testing.instructions.md` - E2E integration testing with compose
+
+**When working with compose.yml specifically:**
+- Primary: `docker.instructions.md` - Compose service definitions, port mappings, dependencies
+- Secondary: `magic-values.instructions.md` - Port constants in magic_network.go
+- Related: `testing.instructions.md` - E2E tests that verify compose services
+
+**When working with CI/CD workflows:**
+- Primary: `cicd.instructions.md` - Workflow configuration, Go version consistency
+- Related: `docker.instructions.md` - Docker-based testing in workflows
+- Related: `act-testing.instructions.md` - Local workflow testing with act
+- Related: `testing.instructions.md` - Test execution in CI/CD
+
+**When working with security:**
+- Primary: `security.instructions.md` - Security implementation patterns
+- Related: `docker.instructions.md` - Docker secrets management
+- Related: `crypto.instructions.md` - Cryptographic operations
+- Related: `cabf.instructions.md` - Certificate authority compliance
+
+**When working with observability:**
+- Primary: `observability.instructions.md` - OpenTelemetry integration
+- Related: `docker.instructions.md` - OTEL collector compose configuration
+- Related: `architecture.instructions.md` - Telemetry architecture patterns
+
+**When working with testing:**
+- Primary: `testing.instructions.md` - Test organization and execution
+- Related: `docker.instructions.md` - E2E testing with Docker Compose
+- Related: `act-testing.instructions.md` - Local workflow testing
+- Related: `code-quality.instructions.md` - Test coverage and quality
+
+**When working with Go code:**
+- Primary: `imports.instructions.md` - Import alias conventions
+- Primary: `go-dependencies.instructions.md` - Dependency management
+- Related: `magic-values.instructions.md` - Magic number constants
+- Related: `code-quality.instructions.md` - Linting and code standards
+- Related: `cabf.instructions.md` - Certificate/crypto code compliance

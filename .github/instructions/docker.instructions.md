@@ -201,3 +201,92 @@ services:
 - **External health checks**: When containers don't support internal memory checks, use docker compose.yml `healthcheck` directive for external monitoring
 - **Container contents**: Minimal Alpine-based image with only `/otelcontribcol` binary and `/etc/ssl/certs/ca-certificates.crt`
 - **No internal health check files**: No log files, status files, or other mechanisms for internal health validation
+
+## Docker Compose Service Port Reference
+
+### cryptoutil Services (3 instances)
+
+**cryptoutil_sqlite** (Port 8080)
+- Public API (HTTPS): `https://127.0.0.1:8080`
+- Browser API: `https://127.0.0.1:8080/browser/api/v1/*`
+- Service API: `https://127.0.0.1:8080/service/api/v1/*`
+- Swagger UI: `https://127.0.0.1:8080/ui/swagger`
+- Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
+- Backend: SQLite in-memory database
+
+**cryptoutil_postgres_1** (Port 8081)
+- Public API (HTTPS): `https://127.0.0.1:8081`
+- Browser API: `https://127.0.0.1:8081/browser/api/v1/*`
+- Service API: `https://127.0.0.1:8081/service/api/v1/*`
+- Swagger UI: `https://127.0.0.1:8081/ui/swagger`
+- Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
+- Backend: PostgreSQL database (shared with postgres_2)
+
+**cryptoutil_postgres_2** (Port 8082)
+- Public API (HTTPS): `https://127.0.0.1:8082`
+- Browser API: `https://127.0.0.1:8082/browser/api/v1/*`
+- Service API: `https://127.0.0.1:8082/service/api/v1/*`
+- Swagger UI: `https://127.0.0.1:8082/ui/swagger`
+- Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
+- Backend: PostgreSQL database (shared with postgres_1)
+
+### PostgreSQL Database
+
+**postgres** (Port 5432)
+- Host: `localhost:5432` (or `postgres:5432` from containers)
+- Database: `DB`
+- User: `USR`
+- Password: `PWD`
+- Health Check: `pg_isready -U USR -d DB`
+
+### OpenTelemetry Collector
+
+**opentelemetry-collector-contrib** (Multiple Ports)
+- OTLP gRPC: `http://127.0.0.1:4317` (receive application telemetry)
+- OTLP HTTP: `http://127.0.0.1:4318` (receive application telemetry)
+- Self-metrics (Prometheus): `http://127.0.0.1:8888/metrics` (collector internal metrics)
+- Received-metrics (Prometheus): `http://127.0.0.1:8889/metrics` (re-export received metrics)
+- Health Check: `http://127.0.0.1:13133/` (external health monitoring)
+- pprof: `http://127.0.0.1:1777` (performance profiling)
+- zPages: `http://127.0.0.1:55679` (debugging UI)
+- Health Monitoring: Via `opentelemetry-collector-contrib-healthcheck` sidecar (Alpine with wget)
+
+**opentelemetry-collector-contrib-healthcheck** (Sidecar)
+- Purpose: External health validation for OTEL collector
+- Implementation: Alpine container with ping + wget validation
+- Exit Code: 0 = healthy, non-zero = unhealthy
+- Dependency: Other services wait for `service_completed_successfully`
+
+### Grafana Observability Stack
+
+**grafana-otel-lgtm** (Port 3000)
+- Grafana UI: `http://127.0.0.1:3000` (admin/admin)
+- OTLP gRPC Receiver: `http://127.0.0.1:14317` (receive from OTEL collector)
+- OTLP HTTP Receiver: `http://127.0.0.1:14318` (receive from OTEL collector)
+- Health Check: `curl http://localhost:3000/api/health`
+- Includes: Grafana, Loki (logs), Tempo (traces), Prometheus (metrics)
+
+### Telemetry Data Flow
+
+```
+cryptoutil services → OTEL Collector (4317/4318 OTLP) → Grafana LGTM (14317/14318 OTLP)
+                      OTEL Collector self-metrics (8888) → Prometheus scraping
+```
+
+### Common Connection Patterns
+
+**From Host (Development/Testing):**
+- cryptoutil APIs: `https://127.0.0.1:8080-8082`
+- PostgreSQL: `localhost:5432`
+- OTEL Collector: `http://127.0.0.1:4317-4318`
+- Grafana UI: `http://127.0.0.1:3000`
+
+**From Containers (Docker Network):**
+- cryptoutil APIs: `https://cryptoutil_sqlite:8080` (or postgres_1:8081, postgres_2:8082)
+- PostgreSQL: `postgres:5432`
+- OTEL Collector: `http://opentelemetry-collector-contrib:4317-4318`
+- Grafana: `http://grafana-otel-lgtm:3000`
+
+**Admin APIs (Internal Only):**
+- All cryptoutil instances expose admin endpoints on HTTPS port 9090 (not mapped to host)
+- Access via: `docker compose exec cryptoutil_sqlite wget --no-check-certificate -q -O - https://127.0.0.1:9090/livez`

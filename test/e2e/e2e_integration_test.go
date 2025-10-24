@@ -250,16 +250,18 @@ func verifyServicesAreReachable(t *testing.T, ctx context.Context, rootCAsPool *
 func waitForDockerServicesHealthy(t *testing.T, ctx context.Context, startTime time.Time) {
 	t.Helper()
 
+	// CRITICAL: opentelemetry-collector-contrib does not have internal health check capability
+	// Use opentelemetry-collector-contrib-healthcheck sidecar completion status instead
 	services := []string{
 		"cryptoutil_sqlite",
 		"cryptoutil_postgres_1",
 		"cryptoutil_postgres_2",
 		"postgres",
 		"grafana-otel-lgtm",
-		"opentelemetry-collector-contrib",
+		"opentelemetry-collector-contrib-healthcheck", // Sidecar health checker for OTEL collector
 	}
 
-	t.Logf("[%s] [%v] Waiting for %d Docker services to be healthy...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services))
+	t.Logf("[%s] [%v] Waiting for %d Docker services to be healthy (including OTEL healthcheck sidecar)...", time.Now().Format("15:04:05"), time.Since(startTime).Round(time.Second), len(services))
 
 	giveUpTime := time.Now().Add(dockerHealthTimeout)
 	checkCount := 0
@@ -418,12 +420,31 @@ func areDockerServicesHealthy(services []string, startTime time.Time) map[string
 				healthStatus[serviceName] = false
 			}
 		} else {
-			// For services without health checks, check if they're running
-			if state, ok := service["State"].(string); ok && state == "running" {
-				healthStatus[serviceName] = true
+			// For services without health checks (sidecar jobs), check if they completed successfully or are running
+			// CRITICAL: opentelemetry-collector-contrib-healthcheck is a one-shot sidecar that exits after validation
+			if serviceName == "opentelemetry-collector-contrib-healthcheck" {
+				// Sidecar health checker - check if it completed successfully (exit code 0)
+				if state, ok := service["State"].(string); ok && state == "exited" {
+					// Check exit code
+					if exitCode, ok := service["ExitCode"].(float64); ok && exitCode == 0 {
+						healthStatus[serviceName] = true
+					} else {
+						healthStatus[serviceName] = false
+					}
+				} else if state == "running" {
+					// Still running the health check - not yet complete
+					healthStatus[serviceName] = false
+				} else {
+					healthStatus[serviceName] = false
+				}
 			} else {
-				// If health is present but not healthy, or state is not running
-				healthStatus[serviceName] = false
+				// For services without health checks (like opentelemetry-collector-contrib), check if they're running
+				if state, ok := service["State"].(string); ok && state == "running" {
+					healthStatus[serviceName] = true
+				} else {
+					// If health is present but not healthy, or state is not running
+					healthStatus[serviceName] = false
+				}
 			}
 		}
 	}
