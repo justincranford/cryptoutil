@@ -436,7 +436,7 @@ jobs:
     - name: Run OWASP ZAP DAST Scan
       if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
       continue-on-error: true  # ZAP exit code 3 (informational findings) treated as failure by action
-      uses: zaproxy/action-full-scan@v0.12.0
+      uses: zaproxy/action-full-scan@v0.13.0
       with:
         target: ${{ env.ZAP_PUBLIC_TARGET_URL }}
         docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
@@ -471,7 +471,7 @@ jobs:
     - name: Run OWASP ZAP API Scan
       if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
       continue-on-error: true  # ZAP exit code 3 (informational findings) treated as failure by action
-      uses: zaproxy/action-api-scan@v0.9.0
+      uses: zaproxy/action-api-scan@v0.10.0
       with:
         target: '${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json'
         docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
@@ -579,9 +579,43 @@ jobs:
         ls -la dast-reports/ >> dast-reports/artifact-listing.txt 2>&1 || true
           echo "Wrote artifact listing to dast-reports/artifact-listing.txt"
 
+    - name: Capture container logs
+      if: always()
+      run: |
+        echo "Capturing Docker container logs for debugging..."
+        mkdir -p dast-reports/container-logs
+
+        # List all containers for reference
+        echo "=== Docker Containers ===" > dast-reports/container-logs/containers.txt
+        docker ps -a --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}" >> dast-reports/container-logs/containers.txt 2>&1 || echo "No containers found or docker not available" >> dast-reports/container-logs/containers.txt
+
+        # Capture logs from relevant containers (ZAP, postgres service containers, etc.)
+        # Use a broad pattern to catch any containers that might be related
+        for container in $(docker ps -a --format "{{.Names}}" 2>/dev/null | grep -E "(zap|postgres|cryptoutil|grafana|otel|compose)" | head -20); do
+          echo "Capturing logs for container: $container"
+          if docker logs "$container" > "dast-reports/container-logs/${container}.log" 2>&1; then
+            echo "✅ Successfully captured logs for: $container ($(wc -l < "dast-reports/container-logs/${container}.log") lines)"
+          else
+            echo "❌ Failed to capture logs for: $container" >> dast-reports/container-logs/errors.txt
+          fi
+        done
+
+        # Also capture Docker system information
+        docker info > dast-reports/container-logs/docker-info.txt 2>&1 || echo "Docker info not available" > dast-reports/container-logs/docker-info.txt
+        docker system df > dast-reports/container-logs/docker-df.txt 2>&1 || echo "Docker system df not available" > dast-reports/container-logs/docker-df.txt
+
+        echo "Container log capture completed"
+
+    - name: Upload container logs
+      if: always()
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: container-logs
+        path: dast-reports/container-logs/
+
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v5.0.0
       with:
         name: dast-reports
         path: |
