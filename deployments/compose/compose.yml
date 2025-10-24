@@ -24,6 +24,8 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
     depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_started
       opentelemetry-collector-contrib-healthcheck:
         condition: service_completed_successfully
     healthcheck:
@@ -66,10 +68,12 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
     depends_on:
+      postgres:
+        condition: service_started
+      opentelemetry-collector-contrib:
+        condition: service_started
       opentelemetry-collector-contrib-healthcheck:
         condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
@@ -110,10 +114,12 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
     depends_on:
+      postgres:
+        condition: service_started
+      opentelemetry-collector-contrib:
+        condition: service_started
       opentelemetry-collector-contrib-healthcheck:
         condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
       cryptoutil_postgres_1:
         condition: service_healthy
     healthcheck:
@@ -173,7 +179,8 @@ services:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     depends_on:
       grafana-otel-lgtm:
-        condition: service_completed_successfully
+        condition: service_healthy
+        # condition: service_started
     networks:
       - cryptoutil-network
     deploy:
@@ -187,15 +194,18 @@ services:
 
   opentelemetry-collector-contrib-healthcheck:
     image: alpine:latest
-    command: ["wget", "--quiet", "--tries=1", "--spider", "http://opentelemetry-collector-contrib:13133/"]
+    command: ["sh", "-c", "for i in $(seq 1 30); do if ping -c 1 -W 1 opentelemetry-collector-contrib; then wget --quiet --spider http://opentelemetry-collector-contrib:13133/ && echo 'Health check successful' && exit 0; fi; sleep 1; done; echo 'Health check failed after 30 attempts'; exit 1"]
+    depends_on:
+      opentelemetry-collector-contrib:
+        condition: service_started
     networks:
       - cryptoutil-network
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+    # deploy:
+    #   restart_policy:
+    #     condition: on-failure
+    #     delay: 2s
+    #     max_attempts: 120
+    #     window: 120s
 
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest
