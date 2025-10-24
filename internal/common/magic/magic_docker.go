@@ -1,0 +1,25 @@
+// Package magic provides commonly used magic numbers and values as named constants.
+// This file contains Docker-related constants.
+package magic
+
+// Docker service states.
+const (
+	// DockerServiceStateRunning - Docker service running state.
+	DockerServiceStateRunning = "running"
+	// DockerServiceStateExited - Docker service exited state.
+	DockerServiceStateExited = "exited"
+)
+
+// Docker service names.
+const (
+	// DockerServiceOtelCollectorHealthcheck - OpenTelemetry collector healthcheck service name.
+	DockerServiceOtelCollectorHealthcheck = "opentelemetry-collector-contrib-healthcheck"
+)
+
+// Docker-related magic numbers.
+const (
+	// DockerServiceNamePartsMin - Minimum number of parts in a Docker service name.
+	DockerServiceNamePartsMin = 3
+	// DockerHTTPClientTimeoutSeconds - HTTP client timeout for Docker operations in seconds.
+	DockerHTTPClientTimeoutSeconds = 5
+)

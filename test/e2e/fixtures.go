@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestFixture provides shared test infrastructure and utilities
+// TestFixture provides shared test infrastructure and utilities.
 type TestFixture struct {
 	t         *testing.T
 	startTime time.Time
@@ -42,11 +42,11 @@ type TestFixture struct {
 	rootCAsPool *x509.CertPool
 }
 
-// NewTestFixture creates a new test fixture
 func NewTestFixture(t *testing.T) *TestFixture {
-	startTime := time.Now()
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TestTimeoutTestExecution)
+	t.Helper()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	startTime := time.Now()
 	return &TestFixture{
 		t:         t,
 		startTime: startTime,
@@ -56,7 +56,7 @@ func NewTestFixture(t *testing.T) *TestFixture {
 	}
 }
 
-// Setup initializes the test infrastructure
+// Setup initializes the test infrastructure.
 func (f *TestFixture) Setup() {
 	f.log("🚀 Setting up test fixture")
 
@@ -72,7 +72,7 @@ func (f *TestFixture) Setup() {
 	f.log("✅ Test fixture setup complete")
 }
 
-// Teardown cleans up the test infrastructure
+// Teardown cleans up the test infrastructure.
 func (f *TestFixture) Teardown() {
 	f.log("🧹 Tearing down test fixture")
 
@@ -88,7 +88,7 @@ func (f *TestFixture) Teardown() {
 	f.log("✅ Test fixture teardown complete")
 }
 
-// initializeServiceURLs sets up all service URLs
+// initializeServiceURLs sets up all service URLs.
 func (f *TestFixture) initializeServiceURLs() {
 	f.sqliteURL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose0)
 	f.postgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1)
@@ -97,14 +97,14 @@ func (f *TestFixture) initializeServiceURLs() {
 	f.otelURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortInternalMetrics)
 }
 
-// loadTestCertificates configures TLS settings for tests
+// loadTestCertificates configures TLS settings for tests.
 func (f *TestFixture) loadTestCertificates() {
 	// Using InsecureSkipVerify for e2e tests
 	f.rootCAsPool = nil
 	f.log("✅ Test certificates configured (InsecureSkipVerify)")
 }
 
-// setupInfrastructure initializes Docker and services
+// setupInfrastructure initializes Docker and services.
 func (f *TestFixture) setupInfrastructure() {
 	// Ensure clean environment
 	require.NoError(f.t, f.infraMgr.EnsureCleanEnvironment(f.ctx), "Failed to ensure clean environment")
@@ -116,7 +116,7 @@ func (f *TestFixture) setupInfrastructure() {
 	require.NoError(f.t, f.infraMgr.WaitForServicesReady(f.ctx), "Failed to wait for services ready")
 }
 
-// InitializeAPIClients creates API clients for all services
+// InitializeAPIClients creates API clients for all services.
 func (f *TestFixture) InitializeAPIClients() {
 	f.sqliteClient = cryptoutilClient.RequireClientWithResponses(f.t, &f.sqliteURL, f.rootCAsPool)
 	f.postgres1Client = cryptoutilClient.RequireClientWithResponses(f.t, &f.postgres1URL, f.rootCAsPool)
@@ -124,29 +124,30 @@ func (f *TestFixture) InitializeAPIClients() {
 	f.log("✅ API clients initialized")
 }
 
-// GetClient returns the API client for the specified instance
+// GetClient returns the API client for the specified instance.
 func (f *TestFixture) GetClient(instanceName string) *cryptoutilOpenapiClient.ClientWithResponses {
 	switch instanceName {
-	case "sqlite":
+	case cryptoutilMagic.TestDatabaseSQLite:
 		return f.sqliteClient
-	case "postgres1":
+	case cryptoutilMagic.TestDatabasePostgres1:
 		return f.postgres1Client
-	case "postgres2":
+	case cryptoutilMagic.TestDatabasePostgres2:
 		return f.postgres2Client
 	default:
 		require.Fail(f.t, "Unknown instance name", "Instance %s not found", instanceName)
+
 		return nil
 	}
 }
 
-// GetServiceURL returns the service URL for the specified instance
+// GetServiceURL returns the service URL for the specified instance.
 func (f *TestFixture) GetServiceURL(instanceName string) string {
 	switch instanceName {
-	case "sqlite":
+	case cryptoutilMagic.TestDatabaseSQLite:
 		return f.sqliteURL
-	case "postgres1":
+	case cryptoutilMagic.TestDatabasePostgres1:
 		return f.postgres1URL
-	case "postgres2":
+	case cryptoutilMagic.TestDatabasePostgres2:
 		return f.postgres2URL
 	case "grafana":
 		return f.grafanaURL
@@ -154,11 +155,12 @@ func (f *TestFixture) GetServiceURL(instanceName string) string {
 		return f.otelURL
 	default:
 		require.Fail(f.t, "Unknown service name", "Service %s not found", instanceName)
+
 		return ""
 	}
 }
 
-// log provides structured logging for the fixture
+// log provides structured logging for the fixture.
 func (f *TestFixture) log(format string, args ...interface{}) {
 	fmt.Printf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),

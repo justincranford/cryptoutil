@@ -15,19 +15,19 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// InfrastructureManager handles Docker Compose operations and service management
+// InfrastructureManager handles Docker Compose operations and service management.
 type InfrastructureManager struct {
 	startTime time.Time
 }
 
-// NewInfrastructureManager creates a new infrastructure manager
+// NewInfrastructureManager creates a new infrastructure manager.
 func NewInfrastructureManager(startTime time.Time) *InfrastructureManager {
 	return &InfrastructureManager{
 		startTime: startTime,
 	}
 }
 
-// EnsureCleanEnvironment stops any existing Docker Compose services
+// EnsureCleanEnvironment stops any existing Docker Compose services.
 func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) error {
 	im.log("🧹 Ensuring clean test environment")
 
@@ -37,14 +37,16 @@ func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) err
 
 	if err != nil {
 		im.log("⚠️ Warning: failed to stop existing services: %v", err)
+
 		return nil // Don't fail on cleanup
 	}
 
 	im.log("✅ Existing services stopped successfully")
+
 	return nil
 }
 
-// StartServices starts Docker Compose services
+// StartServices starts Docker Compose services.
 func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	im.log("🚀 Starting Docker Compose services")
 
@@ -52,6 +54,7 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	stopCmd := exec.CommandContext(ctx, "docker", "compose", "-f", "../../deployments/compose/compose.yml", "down", "-v", "--remove-orphans")
 	stopOutput, stopErr := stopCmd.CombinedOutput()
 	im.logCommand("Pre-start cleanup", stopCmd.String(), string(stopOutput))
+
 	if stopErr != nil {
 		im.log("⚠️ Warning: pre-start cleanup failed: %v", stopErr)
 	}
@@ -66,10 +69,11 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	}
 
 	im.log("✅ Docker Compose services started successfully")
+
 	return nil
 }
 
-// StopServices stops Docker Compose services
+// StopServices stops Docker Compose services.
 func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 	im.log("🛑 Stopping Docker Compose services")
 
@@ -82,10 +86,11 @@ func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 	}
 
 	im.log("✅ Docker Compose services stopped successfully")
+
 	return nil
 }
 
-// WaitForServicesReady waits for all services to be ready
+// WaitForServicesReady waits for all services to be ready.
 func (im *InfrastructureManager) WaitForServicesReady(ctx context.Context) error {
 	im.log("⏳ Waiting for Docker Compose services to initialize...")
 	time.Sleep(cryptoutilMagic.TestTimeoutDockerComposeInit)
@@ -101,6 +106,7 @@ func (im *InfrastructureManager) WaitForServicesReady(ctx context.Context) error
 	}
 
 	im.log("✅ All services are ready")
+
 	return nil
 }
 
@@ -140,6 +146,7 @@ func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Contex
 			if healthy {
 				status = "✅ HEALTHY"
 			}
+
 			fmt.Printf("[%s] [%v]    %s: %s\n",
 				time.Now().Format("15:04:05"),
 				time.Since(im.startTime).Round(time.Second),
@@ -179,7 +186,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	var serviceList []map[string]interface{}
+	serviceList := make([]map[string]interface{}, 0, len(lines))
 
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
@@ -190,6 +197,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 		if err := json.Unmarshal([]byte(line), &service); err != nil {
 			continue
 		}
+
 		serviceList = append(serviceList, service)
 	}
 
@@ -198,7 +206,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 		if name, ok := service["Name"].(string); ok {
 			if strings.Contains(name, "compose-") {
 				parts := strings.Split(name, "-")
-				if len(parts) >= 3 {
+				if len(parts) >= cryptoutilMagic.DockerServiceNamePartsMin {
 					serviceName := strings.Join(parts[1:len(parts)-1], "-")
 					serviceMap[serviceName] = service
 				}
@@ -211,6 +219,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 		if !exists {
 			im.log("❌ Service %s not found in docker compose output", serviceName)
 			healthStatus[serviceName] = false
+
 			continue
 		}
 
@@ -229,7 +238,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 				healthStatus[serviceName] = false
 			}
 		} else {
-			if state, ok := service["State"].(string); ok && state == "running" {
+			if state, ok := service["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
 				healthStatus[serviceName] = true
 			} else {
 				healthStatus[serviceName] = false
@@ -272,7 +281,7 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 		im.log("🔍 Checking port %d at %s...", port, url)
 
 		client := &http.Client{
-			Timeout: 5 * time.Second,
+			Timeout: cryptoutilMagic.DockerHTTPClientTimeoutSeconds * time.Second,
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 			},
@@ -287,6 +296,7 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 		if err != nil {
 			return fmt.Errorf("port %d not reachable: %w", port, err)
 		}
+
 		resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
@@ -344,6 +354,7 @@ func (im *InfrastructureManager) log(format string, args ...interface{}) {
 
 func (im *InfrastructureManager) logCommand(description, command, output string) {
 	im.log("📋 [%s] %s", description, command)
+
 	if output != "" {
 		im.log("📋 [%s] Output: %s", description, strings.TrimSpace(output))
 	}

@@ -74,3 +74,13 @@ const (
 	// DefaultDatabaseURL - Default database URL with placeholder credentials.
 	DefaultDatabaseURL = "postgres://USR:PWD@localhost:5432/DB?sslmode=disable" // pragma: allowlist secret
 )
+
+// Test database configurations.
+const (
+	// TestDatabaseSQLite - SQLite test database configuration name.
+	TestDatabaseSQLite = "sqlite"
+	// TestDatabasePostgres1 - PostgreSQL test database configuration name 1.
+	TestDatabasePostgres1 = "postgres1"
+	// TestDatabasePostgres2 - PostgreSQL test database configuration name 2.
+	TestDatabasePostgres2 = "postgres2"
+)
