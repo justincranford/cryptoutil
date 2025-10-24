@@ -79,6 +79,7 @@
     }, // Enable specific diagnostic analyses - Default: {}, Recommended: {"unusedparams": true, "unusedvariables": true}
     "formatting.gofumpt": true, // Use gofumpt for formatting - Default: false, Recommended: true
     "formatting.local": "cryptoutil", // Local import prefix - Default: "", Recommended: "cryptoutil"
+    "buildFlags": ["-tags=e2e"], // Include files with e2e build tag in analysis - Required for e2e test files
     "ui.inlayhint.hints": {
       "assignVariableTypes": true, // Show variable types in assignments - Default: false, Recommended: true
       "compositeLiteralFields": true, // Show field names in composite literals - Default: false, Recommended: true
