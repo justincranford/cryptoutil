@@ -30,7 +30,7 @@ func (suite *E2ETestSuite) SetupSuite() {
 	suite.fixture = NewTestFixture(suite.T())
 
 	// Create assertions helper
-	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.startTime)
+	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.startTime, suite.fixture.logFile)
 
 	// Setup infrastructure
 	suite.fixture.Setup()

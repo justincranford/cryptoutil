@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -23,14 +24,16 @@ import (
 type ServiceAssertions struct {
 	t         *testing.T
 	startTime time.Time
+	logFile   *os.File
 }
 
 // NewServiceAssertions creates a new service assertions helper.
-func NewServiceAssertions(t *testing.T, startTime time.Time) *ServiceAssertions {
+func NewServiceAssertions(t *testing.T, startTime time.Time, logFile *os.File) *ServiceAssertions {
 	t.Helper()
 	return &ServiceAssertions{
 		t:         t,
 		startTime: startTime,
+		logFile:   logFile,
 	}
 }
 
@@ -223,8 +226,19 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 
 // log provides structured logging for assertions.
 func (a *ServiceAssertions) log(format string, args ...interface{}) {
-	fmt.Printf("[%s] [%v] %s\n",
+	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
 		time.Since(a.startTime).Round(time.Second),
 		fmt.Sprintf(format, args...))
+
+	// Write to console
+	fmt.Print(message)
+
+	// Write to log file if available
+	if a.logFile != nil {
+		if _, err := a.logFile.WriteString(message); err != nil {
+			// If we can't write to the log file, at least write to console
+			fmt.Printf("⚠️ Failed to write to log file: %v\n", err)
+		}
+	}
 }

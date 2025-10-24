@@ -20,6 +20,9 @@ coverage.html
 # Output of dast workflow
 dast-reports/
 
+# E2E test reports
+test/e2e/e2e-reports/
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 

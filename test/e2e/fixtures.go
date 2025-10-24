@@ -6,6 +6,8 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -22,6 +24,9 @@ type TestFixture struct {
 	startTime time.Time
 	ctx       context.Context
 	cancel    context.CancelFunc
+
+	// Logging
+	logFile *os.File
 
 	// Infrastructure
 	infraMgr *InfrastructureManager
@@ -42,17 +47,26 @@ type TestFixture struct {
 	rootCAsPool *x509.CertPool
 }
 
+// NewTestFixture creates a new test fixture.
 func NewTestFixture(t *testing.T) *TestFixture {
 	t.Helper()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	startTime := time.Now()
+
+	// Create log file
+	logFileName := filepath.Join("test", "e2e", "e2e-reports", fmt.Sprintf("e2e-test-%s.log", startTime.Format("2006-01-02_15-04-05")))
+	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	if err != nil {
+		t.Fatalf("Failed to create log file %s: %v", logFileName, err)
+	}
+
 	return &TestFixture{
 		t:         t,
 		startTime: startTime,
 		ctx:       ctx,
 		cancel:    cancel,
-		infraMgr:  NewInfrastructureManager(startTime),
+		logFile:   logFile,
+		infraMgr:  NewInfrastructureManager(startTime, logFile),
 	}
 }
 
@@ -83,6 +97,13 @@ func (f *TestFixture) Teardown() {
 	// Stop infrastructure
 	if err := f.infraMgr.StopServices(context.Background()); err != nil {
 		f.log("⚠️ Warning: failed to stop infrastructure: %v", err)
+	}
+
+	// Close log file
+	if f.logFile != nil {
+		if err := f.logFile.Close(); err != nil {
+			f.log("⚠️ Warning: failed to close log file: %v", err)
+		}
 	}
 
 	f.log("✅ Test fixture teardown complete")
@@ -162,8 +183,19 @@ func (f *TestFixture) GetServiceURL(instanceName string) string {
 
 // log provides structured logging for the fixture.
 func (f *TestFixture) log(format string, args ...interface{}) {
-	fmt.Printf("[%s] [%v] %s\n",
+	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
 		time.Since(f.startTime).Round(time.Second),
 		fmt.Sprintf(format, args...))
+
+	// Write to console
+	fmt.Print(message)
+
+	// Write to log file if available
+	if f.logFile != nil {
+		if _, err := f.logFile.WriteString(message); err != nil {
+			// If we can't write to the log file, at least write to console
+			fmt.Printf("⚠️ Failed to write to log file: %v\n", err)
+		}
+	}
 }

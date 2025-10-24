@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -18,12 +19,14 @@ import (
 // InfrastructureManager handles Docker Compose operations and service management.
 type InfrastructureManager struct {
 	startTime time.Time
+	logFile   *os.File
 }
 
 // NewInfrastructureManager creates a new infrastructure manager.
-func NewInfrastructureManager(startTime time.Time) *InfrastructureManager {
+func NewInfrastructureManager(startTime time.Time, logFile *os.File) *InfrastructureManager {
 	return &InfrastructureManager{
 		startTime: startTime,
+		logFile:   logFile,
 	}
 }
 
@@ -346,10 +349,21 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 
 // Helper methods
 func (im *InfrastructureManager) log(format string, args ...interface{}) {
-	fmt.Printf("[%s] [%v] %s\n",
+	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
 		time.Since(im.startTime).Round(time.Second),
 		fmt.Sprintf(format, args...))
+
+	// Write to console
+	fmt.Print(message)
+
+	// Write to log file if available
+	if im.logFile != nil {
+		if _, err := im.logFile.WriteString(message); err != nil {
+			// If we can't write to the log file, at least write to console
+			fmt.Printf("⚠️ Failed to write to log file: %v\n", err)
+		}
+	}
 }
 
 func (im *InfrastructureManager) logCommand(description, command, output string) {
