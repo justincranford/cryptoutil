@@ -283,44 +283,39 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 ### Service Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                        Docker Compose Network (cryptoutil-network)              │
-│                                                                                 │
-│  ┌────────────────────┐     ┌────────────────────┐     ┌────────────────────┐ │
-│  │ cryptoutil_sqlite  │     │cryptoutil_postgres1│     │cryptoutil_postgres2│ │
-│  │   Port: 8080       │     │   Port: 8081       │     │   Port: 8082       │ │
-│  │   Admin: 9090      │     │   Admin: 9090      │     │   Admin: 9090      │ │
-│  │   Backend: SQLite  │     │   Backend: Postgres│     │   Backend: Postgres│ │
-│  └─────────┬──────────┘     └─────────┬──────────┘     └─────────┬──────────┘ │
-│            │                          │                           │            │
-│            │                          │                           │            │
-│            └──────────────┬───────────┴───────────────┬───────────┘            │
-│                           │                           │                        │
-│                           ▼                           ▼                        │
-│                  ┌────────────────────┐      ┌────────────────────┐           │
-│                  │     PostgreSQL     │      │  OTEL Collector    │           │
-│                  │    Port: 5432      │      │  GRPC: 4317        │           │
-│                  │  Database: DB      │      │  HTTP: 4318        │           │
-│                  │  User: USR         │      │  Metrics: 8888     │           │
-│                  └────────────────────┘      │  Health: 13133     │           │
-│                                              │  pprof: 1777       │           │
-│                                              │  zPages: 55679     │           │
-│                                              └─────────┬──────────┘           │
-│                                                        │                       │
-│                                              ┌─────────▼──────────┐           │
-│                                              │ OTEL Healthcheck   │           │
-│                                              │ (Alpine Sidecar)   │           │
-│                                              └─────────┬──────────┘           │
-│                                                        │                       │
-│                                                        ▼                       │
-│                                              ┌────────────────────┐           │
-│                                              │  Grafana OTEL LGTM │           │
-│                                              │  UI: 3000          │           │
-│                                              │  OTLP GRPC: 14317  │           │
-│                                              │  OTLP HTTP: 14318  │           │
-│                                              └────────────────────┘           │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        Docker Compose Network (cryptoutil-network)                     │
+│                                                                                        │
+│  ┌─────────────────────────┐   ┌─────────────────────────┐   ┌───────────────────────┐ │
+│  │    cryptoutil_sqlite    │   │   cryptoutil_postgres1  │   │  cryptoutil_postgres2 │ │
+│  │ Port:      0.0.0.0:8080 │   │ Port:      0.0.0.0:8081 │   │ Port:    0.0.0.0:8082 │ │
+│  │ Admin:   127.0.0.1:9090 │   │ Admin:   127.0.0.1:9090 │   │ Admin: 127.0.0.1:9090 │ │
+│  │ Backend: SQLite         │   │ Backend: PostgreSQL     │   │ Backend: PostgreSQL   │ │
+│  └─────────┬───────────────┘   └──────────┬────────────┬─┘   └─┬─────────┬───────────┘ │
+│            │                              │            └───┬───┘         │             │
+│            │                              │                │             │             │
+│            └──────────────────────────────┴──────────────────────────────┘             │
+│                                           │                │                           │
+│                                           ▼                ▼                           │
+│  ┌────────────────────┐      ┌────────────────────┐     ┌──────────────┐               |
+│  │ OTEL Healthcheck   │─────>│  OTEL Collector    │     │  PostgreSQL  │               |
+│  │ (Alpine Sidecar)   │      │  GRPC: 4317        │     │ Port: 5432   │               |
+│  └────────────────────┘      │  HTTP: 4318        │     │ Database: DB │               |
+│                              │  Metrics: 8888     │     │ User: USR    │               |
+│                              │  Health: 13133     │     └──────────────┘               |
+│                              │  pprof: 1777       │                                    |
+│                              │  zPages: 55679     │                                    |
+│                              └─────────┬──────────┘                                    |
+│                                        │                                               |
+│                                        ▼                                               │
+│                              ┌────────────────────┐                                    │
+│                              │  Grafana OTEL LGTM │                                    │
+│                              │  UI: 3000          │                                    │
+│                              │  OTLP GRPC: 14317  │                                    │
+│                              │  OTLP HTTP: 14318  │                                    │
+│                              └────────────────────┘                                    │
+│                                                                                        │
+└────────────────────────────────────────────────────────────────────────────────────────┘
 
 Dependencies Flow:
 1. postgres → cryptoutil_postgres_1 → cryptoutil_postgres_2
