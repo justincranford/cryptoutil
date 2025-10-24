@@ -194,7 +194,7 @@ services:
 
   opentelemetry-collector-contrib-healthcheck:
     image: alpine:latest
-    command: ["sh", "-c", "for i in $(seq 1 30); do if ping -c 1 -W 1 opentelemetry-collector-contrib; then wget --quiet --spider http://opentelemetry-collector-contrib:13133/ && echo 'Health check successful' && exit 0; fi; sleep 1; done; echo 'Health check failed after 30 attempts'; exit 1"]
+    command: ["sh", "-c", "ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib; }; for i in $(seq 1 10); do if ping_success; then for j in $(seq 1 20); do wget --quiet --spider http://opentelemetry-collector-contrib:13133/ && echo 'Health check successful' && exit 0; sleep 1; done; echo 'Wget failed after ping success'; exit 1; fi; sleep 1; done; echo 'Ping failed after 10 attempts'; exit 1"]
     depends_on:
       opentelemetry-collector-contrib:
         condition: service_started
