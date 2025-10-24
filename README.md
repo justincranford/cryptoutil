@@ -128,8 +128,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **3000**: Grafana UI
 - **5432**: PostgreSQL database
 - **8080**: cryptoutil public API (HTTPS)
-- **8081-8082**: Additional cryptoutil instances
-- **9090**: cryptoutil private admin API (health checks, graceful shutdown)
+- **8081-8082**: Additional cryptoutil instances in Docker Compose (HTTPS)
+- **9090**: cryptoutil private admin API (health checks, graceful shutdown) on all instances
 - **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
 - **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
 
