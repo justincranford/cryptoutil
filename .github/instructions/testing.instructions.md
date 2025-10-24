@@ -23,7 +23,8 @@ Follow Go testing file naming conventions for proper organization:
 | Unit Tests | `_test.go` | Blackbox/whitebox testing of functions | `calculator_test.go` |
 | Benchmarks | `_bench_test.go` | Performance testing | `calculator_bench_test.go` |
 | Fuzz Tests | `_fuzz_test.go` | Property-based testing | `calculator_fuzz_test.go` |
-| Integration | `_integration_test.go` | End-to-end with real dependencies | `api_integration_test.go` |
+| Integration | `_integration_test.go` | Component interaction testing | `api_integration_test.go` |
+| E2E | `*_test.go` with `//go:build e2e` | Full system end-to-end testing | `e2e_test.go` |
 
 **File Separation Rules:**
 - Keep unit tests, benchmarks, and fuzz tests in separate files
