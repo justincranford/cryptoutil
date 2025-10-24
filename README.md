@@ -130,6 +130,8 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 - **8080**: cryptoutil public API (HTTPS)
 - **8081-8082**: Additional cryptoutil instances
 - **9090**: cryptoutil private admin API (health checks, graceful shutdown)
+- **14317**: Grafana OTLP gRPC receiver (telemetry ingress)
+- **14318**: Grafana OTLP HTTP receiver (telemetry ingress)
 
 **Services:**
 - **Grafana**: http://localhost:3000 (admin/admin)
