@@ -178,9 +178,10 @@ services:
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     depends_on:
+      # grafana takes a long time to be healthy, so only wait for it to start
       grafana-otel-lgtm:
-        condition: service_healthy
-        # condition: service_started
+        # condition: service_healthy
+        condition: service_started
     networks:
       - cryptoutil-network
     deploy:
@@ -200,12 +201,6 @@ services:
         condition: service_started
     networks:
       - cryptoutil-network
-    # deploy:
-    #   restart_policy:
-    #     condition: on-failure
-    #     delay: 2s
-    #     max_attempts: 120
-    #     window: 120s
 
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest
