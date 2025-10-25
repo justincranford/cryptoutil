@@ -76,6 +76,29 @@ jobs:
       - name: Download dependencies
         run: go mod download
 
+      - name: Pre-pull Docker images (parallel)
+        run: |
+          echo "🐳 Pre-pulling Docker images in parallel..."
+
+          # Array of all images used in this workflow
+          IMAGES=(
+            "postgres:18"
+            "otel/opentelemetry-collector-contrib:latest"
+            "grafana/otel-lgtm:latest"
+            "alpine:latest"
+          )
+
+          # Pull all images concurrently
+          for image in "${IMAGES[@]}"; do
+            echo "Pulling $image..."
+            docker pull "$image" &
+          done
+
+          # Wait for all pulls to complete
+          wait
+
+          echo "✅ All images pre-pulled successfully"
+
       - name: Verify dependencies
         run: go mod verify
 

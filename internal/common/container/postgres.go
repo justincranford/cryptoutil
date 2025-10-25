@@ -13,7 +13,7 @@ import (
 
 func StartPostgres(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, dbName, dbUsername, dbPassword string) (string, func(), error) {
 	postgresContainerRequest := testcontainers.ContainerRequest{
-		Image:        "postgres:latest",
+		Image:        "postgres:18",
 		ExposedPorts: []string{"5432/tcp"},
 		Env:          map[string]string{"POSTGRES_DB": dbName, "POSTGRES_USER": dbUsername, "POSTGRES_PASSWORD": dbPassword},
 		// WaitingFor:   wait.ForListeningPort("5432/tcp").WithStartupTimeout(postgresContainerStartupTimeout),

@@ -59,6 +59,7 @@
 | Pattern | File Path | Description |
 | ------- | --------- | ----------- |
 | **/*.yml | '.github/instructions/docker.instructions.md' | Instructions for Docker and Docker Compose configuration |
+| .github/workflows/*.yml | '.github/instructions/docker-prepull.instructions.md' | Instructions for optimizing Docker image pulls in CI/CD workflows |
 | ** | '.github/instructions/crypto.instructions.md' | Instructions for cryptographic operations |
 | ** | '.github/instructions/errors.instructions.md' | Instructions for error reporting |
 | ** | '.github/instructions/formatting.instructions.md' | Instructions for file formatting and encoding |
@@ -104,6 +105,7 @@
 
 **When working with CI/CD workflows:**
 - Primary: `cicd.instructions.md` - Workflow configuration, Go version consistency
+- Primary: `docker-prepull.instructions.md` - Docker image pre-pull optimization
 - Related: `docker.instructions.md` - Docker-based testing in workflows
 - Related: `act-testing.instructions.md` - Local workflow testing with act
 - Related: `testing.instructions.md` - Test execution in CI/CD

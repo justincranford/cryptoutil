@@ -500,7 +500,7 @@ var (
 		name:        "database-url",
 		shorthand:   "u",
 		value:       defaultDatabaseURL,
-		usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:latest\n", // pragma: allowlist secret
+		usage:       "database URL; start a container with:\ndocker run -d --name postgres -p 5432:5432 -e POSTGRES_USER=USR -e POSTGRES_PASSWORD=PWD -e POSTGRES_DB=DB postgres:18\n", // pragma: allowlist secret
 		description: "Database URL",
 		redacted:    true,
 	})

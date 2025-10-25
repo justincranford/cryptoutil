@@ -108,7 +108,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:latest
+        image: postgres:18
         env:
           POSTGRES_DB: ${{ env.DB_NAME }}
           POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
@@ -178,6 +178,27 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
         cache: true
+
+    - name: Pre-pull Docker images (parallel)
+      run: |
+        echo "🐳 Pre-pulling Docker images in parallel..."
+
+        # Array of all images used in this workflow
+        IMAGES=(
+          "postgres:18"
+          "ghcr.io/zaproxy/zaproxy:stable"
+        )
+
+        # Pull all images concurrently
+        for image in "${IMAGES[@]}"; do
+          echo "Pulling $image..."
+          docker pull "$image" &
+        done
+
+        # Wait for all pulls to complete
+        wait
+
+        echo "✅ All images pre-pulled successfully"
 
     - name: Install dependencies
       run: go mod download
@@ -321,8 +342,7 @@ jobs:
         echo "4. Testing ${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json"
         # Test only the configured ZAP_PUBLIC_TARGET_URL from Docker context
         OUTFILE=dast-reports/docker_connect_$(echo "${{ env.ZAP_PUBLIC_TARGET_URL }}" | sed -e 's/[^a-zA-Z0-9]/_/g').txt
-        if docker run --rm --network=host curlimages/curl:latest \
-          curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D - "${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json" > $OUTFILE 2>&1; then
+        if curl -sk --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT -D - "${{ env.ZAP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json" > $OUTFILE 2>&1; then
           echo "  ✅ ${{ env.ZAP_PUBLIC_TARGET_URL }} reachable from Docker container (details: $OUTFILE)"
           echo "ZAP_REACHABLE=true" >> $GITHUB_ENV
           echo "ZAP_REACHABLE=true" >> $GITHUB_OUTPUT
@@ -333,8 +353,7 @@ jobs:
         fi
 
         echo "5. Testing ${{ env.APP_PUBLIC_TARGET_URL }} from Docker:"
-        if docker run --rm --network=host curlimages/curl:latest \
-          curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
+        if curl -skf --connect-timeout $CURL_CONNECT_TIMEOUT --max-time $CURL_MAX_TIMEOUT ${{ env.APP_PUBLIC_TARGET_URL }}/ui/swagger/doc.json -o /dev/null -w "HTTP %{http_code}\n" 2>&1; then
           echo "  ✅ ${{ env.APP_PUBLIC_TARGET_URL }} reachable from Docker"
         else
           echo "  ❌ ${{ env.APP_PUBLIC_TARGET_URL }} NOT reachable from Docker"

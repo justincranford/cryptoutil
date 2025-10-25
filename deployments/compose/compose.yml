@@ -139,7 +139,7 @@ services:
           memory: 128M
 
   postgres:
-    image: postgres:latest
+    image: postgres:18
     environment:
       POSTGRES_USER: USR # pragma: allowlist secret
       POSTGRES_PASSWORD: PWD # pragma: allowlist secret
