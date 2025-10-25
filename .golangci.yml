@@ -28,9 +28,9 @@ linters:
     - unused        # Find unused constants, variables, functions and types
 
     # Code quality
-    - gofmt         # Check code formatting
-    # gofumpt       # disabled: handled by pre-commit hooks (gofumpt -extra -w) and CI checks
-    - goimports     # Check import formatting and unused imports
+    # gofmt         # disabled: gofumpt is a stricter superset of gofmt
+    # gofumpt       # disabled: `gofumpt -extra -w` (auto-fix) called in pre-commit hooks
+    # goimports     # disabled: `goimports -w` (auto-fix) called in pre-commit hooks
     - revive        # Golint replacement with more rules
     - stylecheck    # Go style guide compliance
 
