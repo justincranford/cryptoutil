@@ -59,6 +59,9 @@ func TestMutualTLS(t *testing.T) {
 
 		defer close(callerShutdownSignalCh)
 
+		// Brief delay to ensure server goroutine is ready to accept connections
+		time.Sleep(10 * time.Millisecond)
+
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")
 
 		for i := 1; i <= clientConnections; i++ {
