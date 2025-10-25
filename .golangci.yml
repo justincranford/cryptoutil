@@ -144,7 +144,7 @@ linters-settings:
       - pkg: github.com/jcranford/cryptoutil/internal/common/pool
         alias: cryptoutilPool
       - pkg: github.com/jcranford/cryptoutil/internal/common/telemetry
-        alias: telemetryService
+        alias: cryptoutilTelemetry
       - pkg: github.com/jcranford/cryptoutil/internal/common/util/datetime
         alias: cryptoutilDateTime
       - pkg: github.com/jcranford/cryptoutil/internal/common/util/files
