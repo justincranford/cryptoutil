@@ -1,4 +1,4 @@
-name: Robustness Testing
+name: CI - Robustness Testing
 
 on:
   push:
@@ -64,6 +64,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Workflow Start - CI - Robustness Testing / concurrency (ci-robust.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Robustness Testing"
+          echo "File: .github/workflows/ci-robust.yml"
+          echo "Job: concurrency"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 
@@ -130,6 +139,15 @@ jobs:
     if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
 
     steps:
+      - name: Workflow Start - CI - Robustness Testing / fuzz-keygen (ci-robust.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Robustness Testing"
+          echo "File: .github/workflows/ci-robust.yml"
+          echo "Job: fuzz-keygen"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 
@@ -200,6 +218,15 @@ jobs:
     if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
 
     steps:
+      - name: Workflow Start - CI - Robustness Testing / fuzz-digests (ci-robust.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Robustness Testing"
+          echo "File: .github/workflows/ci-robust.yml"
+          echo "Job: fuzz-digests"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 
@@ -280,6 +307,15 @@ jobs:
     if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
 
     steps:
+      - name: Workflow Start - CI - Robustness Testing / benchmark (ci-robust.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Robustness Testing"
+          echo "File: .github/workflows/ci-robust.yml"
+          echo "Job: benchmark"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 

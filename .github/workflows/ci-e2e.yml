@@ -1,4 +1,4 @@
-name: End-to-End Testing
+name: CI - End-to-End Testing
 
 on:
   push:
@@ -61,6 +61,15 @@ jobs:
           --health-retries 5
 
     steps:
+      - name: Workflow Start - CI - End-to-End Testing (ci-e2e.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - End-to-End Testing"
+          echo "File: .github/workflows/ci-e2e.yml"
+          echo "Job: e2e"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 

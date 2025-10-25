@@ -48,6 +48,16 @@
 - Use command chaining (`;` in PowerShell) for related operations
 - Prefer existing files over temporary demos when possible
 
+## Copilot testing guidance for `scripts/cicd_checks.go`
+
+- When adding or updating `scripts/cicd_checks.go`, always implement programmatic tests in `scripts/cicd_checks_test.go` that:
+  - write any generated code to a temporary file (use the test's TempDir),
+  - run the lint/check function against that temporary file, and
+  - read and assert the temporary file contents/results programmatically.
+  This avoids interactive prompts or external side-effects during Copilot-assisted sessions.
+
+- Avoid asking Copilot to output or run ephemeral shell commands that create/update repository files via chat (for example: piping PowerShell Get-Content replace commands into Set-Content). Those patterns often trigger unwanted prompts and premium LLM watch requests. Instead, prefer programmatic edits via tests or using the repository's scripted tools.
+
 ## Pre-commit Hook Guidelines
 
 - **NEVER use shell commands** (`sh`, `bash`, `powershell`) in pre-commit configurations

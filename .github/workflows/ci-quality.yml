@@ -1,4 +1,4 @@
-name: Quality Testing
+name: CI - Quality Testing
 
 on:
   push:
@@ -49,6 +49,15 @@ jobs:
     name: Code Quality
     runs-on: ubuntu-latest
     steps:
+      - name: Workflow Start - CI - Quality Testing / code-quality (ci-quality.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Quality Testing"
+          echo "File: .github/workflows/ci-quality.yml"
+          echo "Job: code-quality"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 
@@ -96,6 +105,15 @@ jobs:
       packages: write
       security-events: write
     steps:
+      - name: Workflow Start - CI - Quality Testing / build (ci-quality.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Quality Testing"
+          echo "File: .github/workflows/ci-quality.yml"
+          echo "Job: build"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 
@@ -248,6 +266,15 @@ jobs:
     name: Generate SBOM
     runs-on: ubuntu-latest
     steps:
+      - name: Workflow Start - CI - Quality Testing / sbom (ci-quality.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Quality Testing"
+          echo "File: .github/workflows/ci-quality.yml"
+          echo "Job: sbom"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 
@@ -285,6 +312,15 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
+      - name: Workflow Start - CI - Quality Testing / mutation-testing (ci-quality.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: CI - Quality Testing"
+          echo "File: .github/workflows/ci-quality.yml"
+          echo "Job: mutation-testing"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
+
       - name: Checkout code
         uses: actions/checkout@v5.0.0
 
