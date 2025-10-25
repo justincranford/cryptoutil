@@ -29,6 +29,7 @@ applyTo: "**"
   - **File permissions**: `fileMode = 0o600`, `dirMode = 0o755` instead of `0o600`, `0o755`
 - **ALWAYS use `golangci-lint run --fix` for auto-fixing** - this single command handles formatting (gofumpt), imports (goimports), and all other auto-fixable linters in one pass
 - **Pre-commit hooks automatically run `golangci-lint run --fix`** - no need to run standalone gofumpt or goimports commands separately
+- **CRITICAL: gofumpt is ALWAYS preferred over gofmt in ALL SITUATIONS** - gofumpt is a stricter superset of gofmt with additional formatting rules; NEVER use `gofmt` directly, even if you see a "gofmt" lint error from any tool including golangci-lint; always use `golangci-lint run --fix` which applies gofumpt formatting
 
 ## Authorized Commands Reference
 

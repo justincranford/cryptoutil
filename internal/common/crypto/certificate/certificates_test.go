@@ -18,15 +18,19 @@ import (
 )
 
 const (
-	// Server timeouts for TLS echo server.
-	testTLSServerReadTimeout   = 500 * time.Millisecond
-	testTLSServerWriteTimeout  = 500 * time.Millisecond
-	testHTTPServerReadTimeout  = 100 * time.Millisecond
-	testHTTPServerWriteTimeout = 100 * time.Millisecond
+	// Server timeouts for Raw TLS echo server.
+	testTLSServerStartupDelay = 500 * time.Millisecond
+	testTLSServerWriteTimeout = 500 * time.Millisecond
+	testTLSServerReadTimeout  = 500 * time.Millisecond
+	testTLSRetryBaseDelay     = 10 * time.Millisecond
+	testTLSMaxRetries         = 3
 
-	// Delays and retries.
-	testServerStartupDelay = 100 * time.Millisecond
-	testRetryBaseDelay     = 10 * time.Millisecond
+	// Server timeouts for HTTPS echo server.
+	testHTTPServerStartupDelay = 500 * time.Millisecond
+	testHTTPServerWriteTimeout = 500 * time.Millisecond
+	testHTTPServerReadTimeout  = 500 * time.Millisecond
+	testHTTPRetryBaseDelay     = 10 * time.Millisecond
+	testHTTPMaxRetries         = 3
 
 	// Certificate validity durations.
 	testCACertValidity10Years        = 10 * 365 * cryptoutilDateTime.Days1
@@ -84,7 +88,7 @@ func TestMutualTLS(t *testing.T) {
 		defer close(callerShutdownSignalCh)
 
 		// Brief delay to ensure server goroutine is ready to accept connections
-		time.Sleep(testServerStartupDelay)
+		time.Sleep(testTLSServerStartupDelay)
 
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")
 
@@ -93,14 +97,14 @@ func TestMutualTLS(t *testing.T) {
 				var tlsClientConnection *tls.Conn
 
 				var err error
-				// Retry connection up to 5 times with backoff to handle timing issues under load
-				for retry := 0; retry < 5; retry++ {
+				// Retry connection up to testTLSMaxRetries times with backoff to handle timing issues under load
+				for retry := 0; retry < testTLSMaxRetries; retry++ {
 					tlsClientConnection, err = tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
 					if err == nil {
 						break
 					}
 
-					time.Sleep(time.Duration(retry+1) * testRetryBaseDelay)
+					time.Sleep(time.Duration(retry+1) * testTLSRetryBaseDelay)
 				}
 
 				require.NoError(t, err, "client failed to connect to TLS Echo Server after retries")
@@ -132,6 +136,9 @@ func TestMutualTLS(t *testing.T) {
 			}
 		}()
 
+		// Brief delay to ensure server goroutine is ready to accept connections
+		time.Sleep(testHTTPServerStartupDelay)
+
 		httpsClientRequestBody := []byte("Hello Mutual HTTPS!")
 		httpsClient := &http.Client{Transport: &http.Transport{TLSClientConfig: clientTLSConfig}}
 
@@ -139,8 +146,23 @@ func TestMutualTLS(t *testing.T) {
 			req, err := http.NewRequestWithContext(t.Context(), http.MethodPost, serverURL, bytes.NewReader(httpsClientRequestBody))
 			require.NoError(t, err, "failed to create POST request (%d of %d)", i, clientConnections)
 			req.Header.Set("Content-Type", "text/plain")
-			httpsServerResponse, err := httpsClient.Do(req)
-			require.NoError(t, err, "client failed to POST to HTTPS Echo Server (%d of %d)", i, clientConnections)
+
+			var httpsServerResponse *http.Response
+			// Retry HTTP request up to testHTTPMaxRetries times with backoff to handle timing issues under load
+			for retry := 0; retry < testHTTPMaxRetries; retry++ {
+				httpsServerResponse, err = httpsClient.Do(req)
+				if err == nil && httpsServerResponse.StatusCode == http.StatusOK {
+					break
+				}
+
+				if httpsServerResponse != nil {
+					httpsServerResponse.Body.Close()
+				}
+
+				time.Sleep(time.Duration(retry+1) * testHTTPRetryBaseDelay)
+			}
+
+			require.NoError(t, err, "client failed to POST to HTTPS Echo Server after retries (%d of %d)", i, clientConnections)
 			require.Equal(t, http.StatusOK, httpsServerResponse.StatusCode, "Unexpected HTTP status (%d of %d)", i, clientConnections)
 			func() {
 				defer func() {

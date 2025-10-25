@@ -28,7 +28,7 @@ linters:
     - unused        # Find unused constants, variables, functions and types
 
     # Code quality
-    - gofmt         # Go code formatting (auto-fixable with --fix)
+    # gofmt         # DISABLED! Go code formatting (auto-fixable with --fix), but gofumpt is always preferred
     - gofumpt       # Stricter Go formatting (auto-fixable with --fix)
     - goimports     # Import organization and formatting (auto-fixable with --fix)
     - revive        # Golint replacement with more rules
