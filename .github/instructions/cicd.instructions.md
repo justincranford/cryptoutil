@@ -92,7 +92,7 @@ applyTo: ".github/workflows/*.yml"
 ### Actions Tab Artifacts (Downloadable)
 - **ALWAYS upload artifacts to Actions tab** for any generated reports, logs, or outputs that users/developers might need to download
 - Use `actions/upload-artifact@v4` with descriptive names and `if: always()` condition
-- Include retention policies: `retention-days: 30` for reports, `retention-days: 7` for temporary files
+- Include retention policies: `retention-days: 2` for reports, `retention-days: 1` for temporary files
 - **Examples**:
   - Test coverage reports
   - Security scan reports (SARIF files)

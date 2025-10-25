@@ -612,6 +612,7 @@ jobs:
       with:
         name: container-logs
         path: dast-reports/container-logs/
+        retention-days: 1
 
     - name: GitHub Workflow artifacts
       if: ${{ github.actor != 'nektos/act' }}
@@ -622,6 +623,7 @@ jobs:
           dast-reports/nuclei.log
           dast-reports/nuclei.sarif
           dast-reports/response-headers.txt
+        retention-days: 2
 
     - name: GitHub Security Dashboard Alerts update
       uses: github/codeql-action/upload-sarif@v3
