@@ -33,6 +33,13 @@ const (
 	// TLSDefaultSubscriberCertDuration - Maximum duration for subscriber certificates (398 days).
 	TLSDefaultSubscriberCertDuration = TLSDefaultValidityEndEntityDays * 24 * time.Hour
 
+	// Test certificate validity durations.
+	TLSTestCACertValidity20Years        = 20
+	TLSTestCACertValidity5Years         = 5
+	TLSTestEndEntityCertValidity396Days = 396
+	TLSTestEndEntityCertValidity30Days  = 30
+	TLSTestEndEntityCertValidity1Year   = 365
+
 	// StringPEMTypePKCS8PrivateKey - PKCS8 private key PEM type.
 	StringPEMTypePKCS8PrivateKey = "PRIVATE KEY" // pragma: allowlist secret
 	// StringPEMTypePKIXPublicKey - PKIX public key PEM type.

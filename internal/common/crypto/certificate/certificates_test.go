@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilDateTime "cryptoutil/internal/common/util/datetime"
 
 	"github.com/stretchr/testify/require"
@@ -19,30 +20,30 @@ import (
 
 const (
 	// Server timeouts for Raw TLS echo server.
-	testTLSServerStartupDelay = 500 * time.Millisecond
-	testTLSServerWriteTimeout = 500 * time.Millisecond
-	testTLSServerReadTimeout  = 500 * time.Millisecond
-	testTLSRetryBaseDelay     = 10 * time.Millisecond
-	testTLSMaxRetries         = 3
+	testTLSServerStartupDelay = cryptoutilMagic.TestTLSServerStartupDelay
+	testTLSServerWriteTimeout = cryptoutilMagic.TestTLSServerWriteTimeout
+	testTLSServerReadTimeout  = cryptoutilMagic.TestTLSServerReadTimeout
+	testTLSRetryBaseDelay     = cryptoutilMagic.TestTLSRetryBaseDelay
+	testTLSMaxRetries         = cryptoutilMagic.TestTLSMaxRetries
 
 	// Server timeouts for HTTPS echo server.
-	testHTTPServerStartupDelay = 500 * time.Millisecond
-	testHTTPServerWriteTimeout = 500 * time.Millisecond
-	testHTTPServerReadTimeout  = 500 * time.Millisecond
-	testHTTPRetryBaseDelay     = 10 * time.Millisecond
-	testHTTPMaxRetries         = 3
+	testHTTPServerStartupDelay = cryptoutilMagic.TestHTTPServerStartupDelay
+	testHTTPServerWriteTimeout = cryptoutilMagic.TestHTTPServerWriteTimeout
+	testHTTPServerReadTimeout  = cryptoutilMagic.TestHTTPServerReadTimeout
+	testHTTPRetryBaseDelay     = cryptoutilMagic.TestHTTPRetryBaseDelay
+	testHTTPMaxRetries         = cryptoutilMagic.TestHTTPMaxRetries
 
 	// Certificate validity durations.
-	testCACertValidity10Years        = 10 * 365 * cryptoutilDateTime.Days1
-	testCACertValidity20Years        = 20 * 365 * cryptoutilDateTime.Days1
-	testCACertValidity5Years         = 5 * 365 * cryptoutilDateTime.Days1
-	testEndEntityCertValidity396Days = 396 * cryptoutilDateTime.Days1
-	testEndEntityCertValidity30Days  = 30 * cryptoutilDateTime.Days1
-	testEndEntityCertValidity1Year   = 365 * cryptoutilDateTime.Days1
+	testCACertValidity10Years        = cryptoutilMagic.TLSDefaultValidityCACertYears * 365 * cryptoutilDateTime.Days1
+	testCACertValidity20Years        = cryptoutilMagic.TLSTestCACertValidity20Years * 365 * cryptoutilDateTime.Days1
+	testCACertValidity5Years         = cryptoutilMagic.TLSTestCACertValidity5Years * 365 * cryptoutilDateTime.Days1
+	testEndEntityCertValidity396Days = cryptoutilMagic.TLSTestEndEntityCertValidity396Days * cryptoutilDateTime.Days1
+	testEndEntityCertValidity30Days  = cryptoutilMagic.TLSTestEndEntityCertValidity30Days * cryptoutilDateTime.Days1
+	testEndEntityCertValidity1Year   = cryptoutilMagic.TLSTestEndEntityCertValidity1Year * cryptoutilDateTime.Days1
 
 	// Test constants.
-	testNegativeDuration = -1
-	testHourDuration     = time.Hour
+	testNegativeDuration = cryptoutilMagic.TestNegativeDuration
+	testHourDuration     = cryptoutilMagic.TestHourDuration
 )
 
 func TestMutualTLS(t *testing.T) {

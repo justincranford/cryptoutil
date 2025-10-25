@@ -55,6 +55,39 @@ const (
 	TestTLSClientRetryWait = 100 * time.Millisecond //nolint:stylecheck // established API name
 )
 
+// Test server timeout constants.
+const (
+	// TestTLSServerStartupDelay - TLS server startup delay for tests.
+	TestTLSServerStartupDelay = 500 * time.Millisecond
+	// TestTLSServerWriteTimeout - TLS server write timeout for tests.
+	TestTLSServerWriteTimeout = 500 * time.Millisecond
+	// TestTLSServerReadTimeout - TLS server read timeout for tests.
+	TestTLSServerReadTimeout = 500 * time.Millisecond
+	// TestTLSRetryBaseDelay - Base delay for TLS retry operations in tests.
+	TestTLSRetryBaseDelay = 10 * time.Millisecond
+	// TestTLSMaxRetries - Maximum retry attempts for TLS operations in tests.
+	TestTLSMaxRetries = 3
+
+	// TestHTTPServerStartupDelay - HTTP server startup delay for tests.
+	TestHTTPServerStartupDelay = 500 * time.Millisecond
+	// TestHTTPServerWriteTimeout - HTTP server write timeout for tests.
+	TestHTTPServerWriteTimeout = 500 * time.Millisecond
+	// TestHTTPServerReadTimeout - HTTP server read timeout for tests.
+	TestHTTPServerReadTimeout = 500 * time.Millisecond
+	// TestHTTPRetryBaseDelay - Base delay for HTTP retry operations in tests.
+	TestHTTPRetryBaseDelay = 10 * time.Millisecond
+	// TestHTTPMaxRetries - Maximum retry attempts for HTTP operations in tests.
+	TestHTTPMaxRetries = 3
+)
+
+// Test duration constants.
+const (
+	// TestNegativeDuration - Negative duration for testing invalid inputs.
+	TestNegativeDuration = -1
+	// TestHourDuration - One hour duration for testing.
+	TestHourDuration = time.Hour
+)
+
 // Test settings constants.
 const (
 	// TestDefaultLogLevelAll - All log level for comprehensive logging.
