@@ -48,6 +48,8 @@ on:
           - all
           - concurrency
           - fuzz
+          - fuzz-keygen
+          - fuzz-digests
           - benchmark
           - race
 
@@ -121,9 +123,9 @@ jobs:
           echo "- Race detection duration: \${TEST_DURATION}s" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage collection duration: \${COVERAGE_DURATION}s" >> $GITHUB_STEP_SUMMARY
 
-  # Fuzz Testing - Property-based testing for security-critical code
-  fuzz:
-    name: Fuzz Tests
+  # Fuzz Testing - Keygen Package - Property-based testing for cryptographic key generation
+  fuzz-keygen:
+    name: Fuzz Tests - Keygen
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
 
@@ -148,44 +150,128 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
-      - name: Run fuzz tests
+      - name: Run RSA keygen fuzz test
         run: |
-          echo "🔍 Running fuzz tests for security-critical code..."
-          # Run fuzz tests with optimized timing - RSA is expensive, others are fast
-          echo "Running fuzz tests for keygen package..."
-          # Run RSA test separately (expensive) with longer timeout for individual cases
-          go test -fuzz=^FuzzGenerateRSAKeyPair$ -fuzztime=1m -fuzztimeout=10m ./internal/common/crypto/keygen/
+          echo "� Running RSA keygen fuzz test..."
+          go test -fuzz="FuzzGenerateRSAKeyPair" -fuzztime=1m -fuzztimeout=10m ./internal/common/crypto/keygen
 
-          # Run other keygen tests in parallel batches with reduced time
-          go test -fuzz=^FuzzGenerateECDSAKeyPair$ -fuzztime=15s ./internal/common/crypto/keygen/ &
-          go test -fuzz=^FuzzGenerateECDHKeyPair$ -fuzztime=15s ./internal/common/crypto/keygen/ &
-          go test -fuzz=^FuzzGenerateEDDSAKeyPair$ -fuzztime=15s ./internal/common/crypto/keygen/ &
-          go test -fuzz=^FuzzGenerateAESKey$ -fuzztime=15s ./internal/common/crypto/keygen/ &
-          go test -fuzz=^FuzzGenerateAESHSKey$ -fuzztime=15s ./internal/common/crypto/keygen/ &
-          go test -fuzz=^FuzzGenerateHMACKey$ -fuzztime=15s ./internal/common/crypto/keygen/ &
-          wait
-
-          echo "Running fuzz tests for digests package..."
-          # Run digest tests (fast) with reduced time
-          go test -fuzz=^FuzzHKDF$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzHKDFwithSHA256$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzHKDFwithSHA384$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzHKDFwithSHA512$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzHKDFwithSHA224$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzSHA512$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzSHA384$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzSHA256$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          go test -fuzz=^FuzzSHA224$ -fuzztime=15s ./internal/common/crypto/digests/ &
-          wait
-
-      - name: Fuzz test summary
+      - name: Run ECDSA keygen fuzz test
         run: |
-          echo "## 🔍 Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
-          echo "Fuzz tests for cryptographic operations completed successfully." >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: RSA=1min (10min timeout per case), Keygen=15s each (parallel), Digests=15s each (parallel)" >> $GITHUB_STEP_SUMMARY
-          echo "- Coverage: 7 keygen functions + 9 digest functions (16 total)" >> $GITHUB_STEP_SUMMARY
-          echo "- Purpose: Property-based testing for security-critical code" >> $GITHUB_STEP_SUMMARY
-          echo "- Optimization: Parallel execution + reduced timing cuts total time from ~20min to ~2.5min" >> $GITHUB_STEP_SUMMARY
+          echo "🔑 Running ECDSA keygen fuzz test..."
+          go test -fuzz="FuzzGenerateECDSAKeyPair" -fuzztime=15s ./internal/common/crypto/keygen
+
+      - name: Run ECDH keygen fuzz test
+        run: |
+          echo "🔑 Running ECDH keygen fuzz test..."
+          go test -fuzz="FuzzGenerateECDHKeyPair" -fuzztime=15s ./internal/common/crypto/keygen
+
+      - name: Run EdDSA keygen fuzz test
+        run: |
+          echo "🔑 Running EdDSA keygen fuzz test..."
+          go test -fuzz="FuzzGenerateEDDSAKeyPair" -fuzztime=15s ./internal/common/crypto/keygen
+
+      - name: Run AES keygen fuzz test
+        run: |
+          echo "🔑 Running AES keygen fuzz test..."
+          go test -fuzz="FuzzGenerateAESKey" -fuzztime=15s ./internal/common/crypto/keygen
+
+      - name: Run AES-HS keygen fuzz test
+        run: |
+          echo "🔑 Running AES-HS keygen fuzz test..."
+          go test -fuzz="FuzzGenerateAESHSKey" -fuzztime=15s ./internal/common/crypto/keygen
+
+      - name: Run HMAC keygen fuzz test
+        run: |
+          echo "🔑 Running HMAC keygen fuzz test..."
+          go test -fuzz="FuzzGenerateHMACKey" -fuzztime=15s ./internal/common/crypto/keygen
+
+      - name: Keygen fuzz test summary
+        run: |
+          echo "## 🔑 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: RSA=1min (10min timeout per case), Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Property-based testing for secure key generation" >> $GITHUB_STEP_SUMMARY
+
+  # Fuzz Testing - Digests Package - Property-based testing for cryptographic hash functions
+  fuzz-digests:
+    name: Fuzz Tests - Digests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Verify dependencies
+        run: go mod verify
+
+      - name: Clean and verify module files
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Run HKDF fuzz test
+        run: |
+          echo "� Running HKDF fuzz test..."
+          go test -fuzz="FuzzHKDF" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run HKDF-SHA256 fuzz test
+        run: |
+          echo "🔐 Running HKDF-SHA256 fuzz test..."
+          go test -fuzz="FuzzHKDFwithSHA256" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run HKDF-SHA384 fuzz test
+        run: |
+          echo "🔐 Running HKDF-SHA384 fuzz test..."
+          go test -fuzz="FuzzHKDFwithSHA384" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run HKDF-SHA512 fuzz test
+        run: |
+          echo "🔐 Running HKDF-SHA512 fuzz test..."
+          go test -fuzz="FuzzHKDFwithSHA512" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run HKDF-SHA224 fuzz test
+        run: |
+          echo "🔐 Running HKDF-SHA224 fuzz test..."
+          go test -fuzz="FuzzHKDFwithSHA224" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run SHA512 fuzz test
+        run: |
+          echo "🔐 Running SHA512 fuzz test..."
+          go test -fuzz="FuzzSHA512" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run SHA384 fuzz test
+        run: |
+          echo "🔐 Running SHA384 fuzz test..."
+          go test -fuzz="FuzzSHA384" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run SHA256 fuzz test
+        run: |
+          echo "🔐 Running SHA256 fuzz test..."
+          go test -fuzz="FuzzSHA256" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Run SHA224 fuzz test
+        run: |
+          echo "🔐 Running SHA224 fuzz test..."
+          go test -fuzz="FuzzSHA224" -fuzztime=15s ./internal/common/crypto/digests
+
+      - name: Digests fuzz test summary
+        run: |
+          echo "## � Digests Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Fuzz tests for cryptographic digest functions completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: 15s each (sequential)" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: 9 digest functions (HKDF variants + SHA-2 family)" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Property-based testing for secure hash operations" >> $GITHUB_STEP_SUMMARY
 
   # Benchmark Testing - Performance validation and regression detection
   benchmark:
