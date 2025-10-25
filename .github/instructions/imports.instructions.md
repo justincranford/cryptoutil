@@ -8,28 +8,47 @@ applyTo: "**/*.go"
 
 Follow these established naming patterns when importing packages with aliases:
 
-### cryptoutil/** Packages
-Use `cryptoutil` prefix followed by descriptive module name in camelCase:
+### cryptoutil/** Packages (REQUIRED)
+
+**ALL cryptoutil imports MUST use camelCase aliases starting with "cryptoutil" prefix.**
+**NEVER use unaliased imports for cryptoutil packages.**
+
+The importas linter in `.golangci.yml` enforces consistent aliasing for all cryptoutil packages.
+
+Common cryptoutil import aliases:
+- `cryptoutilOpenapiClient "cryptoutil/api/client"`
 - `cryptoutilOpenapiModel "cryptoutil/api/model"`
 - `cryptoutilOpenapiServer "cryptoutil/api/server"`
+- `cryptoutilClient "cryptoutil/internal/client"`
+- `cryptoutilCmd "cryptoutil/internal/cmd"`
 - `cryptoutilAppErr "cryptoutil/internal/common/apperr"`
 - `cryptoutilConfig "cryptoutil/internal/common/config"`
 - `cryptoutilContainer "cryptoutil/internal/common/container"`
-- `cryptoutilDigests "cryptoutil/internal/common/crypto/digests"`
-- `cryptoutilJose "cryptoutil/internal/common/crypto/jose"`
-- `cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"`
+- `cryptoutilMagic "cryptoutil/internal/common/magic"`
 - `cryptoutilPool "cryptoutil/internal/common/pool"`
 - `cryptoutilTelemetry "cryptoutil/internal/common/telemetry"`
 - `cryptoutilUtil "cryptoutil/internal/common/util"`
-- `cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"`
 - `cryptoutilCombinations "cryptoutil/internal/common/util/combinations"`
+- `cryptoutilDateTime "cryptoutil/internal/common/util/datetime"`
+- `cryptoutilNetwork "cryptoutil/internal/common/util/network"`
+- `cryptoutilSysinfo "cryptoutil/internal/common/util/sysinfo"`
+- `cryptoutilAsn1 "cryptoutil/internal/common/crypto/asn1"`
+- `cryptoutilCertificate "cryptoutil/internal/common/crypto/certificate"`
+- `cryptoutilDigests "cryptoutil/internal/common/crypto/digests"`
+- `cryptoutilJose "cryptoutil/internal/common/crypto/jose"`
+- `cryptoutilKeyGen "cryptoutil/internal/common/crypto/keygen"`
+- `cryptoutilServerApplication "cryptoutil/internal/server/application"`
 - `cryptoutilBusinessLogic "cryptoutil/internal/server/businesslogic"`
-- `cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"`
-- `cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"`
-- `cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"`
+- `cryptoutilOpenapiHandler "cryptoutil/internal/server/handler"`
+- `cryptoutilBarrierService "cryptoutil/internal/server/barrier"`
 - `cryptoutilContentKeysService "cryptoutil/internal/server/barrier/contentkeysservice"`
 - `cryptoutilIntermediateKeysService "cryptoutil/internal/server/barrier/intermediatekeysservice"`
 - `cryptoutilRootKeysService "cryptoutil/internal/server/barrier/rootkeysservice"`
+- `cryptoutilUnsealKeysService "cryptoutil/internal/server/barrier/unsealkeysservice"`
+- `cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"`
+- `cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"`
+
+**See `.golangci.yml` importas section for the complete list of required aliases.**
 
 ### Third-Party Packages
 
