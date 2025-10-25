@@ -176,7 +176,7 @@ func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Contex
 func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map[string]bool {
 	healthStatus := make(map[string]bool)
 
-	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", "--format", "json")
+	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", "-a", "--format", "json")
 	im.logCommand("Batch health check", cmd.String(), "")
 
 	output, err := cmd.Output()

@@ -140,14 +140,41 @@ jobs:
         if: always()
         run: |
           echo "📋 Collecting service logs..."
+
+          # Create directory for individual container logs
+          mkdir -p e2e-container-logs
+
+          # Get list of running containers from compose
+          containers=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format "{{.Name}}" | tr '\n' ' ')
+
+          # Collect individual container logs
+          for container in $containers; do
+            echo "📄 Collecting logs for container: $container"
+            docker compose -f ${{ env.COMPOSE_FILE }} logs "$container" > "e2e-container-logs/${container}.log" 2>&1 || echo "Failed to collect logs for $container" >> e2e-container-logs/errors.txt
+          done
+
+          # Collect combined logs with service prefixes (existing behavior)
+          echo "📋 Collecting combined service logs with prefixes..."
           docker compose -f ${{ env.COMPOSE_FILE }} logs > e2e-service-logs.txt
+
+          # Create a summary of log collection
+          echo "=== E2E Log Collection Summary ===" > e2e-container-logs/collection-summary.txt
+          echo "Date: $(date -u)" >> e2e-container-logs/collection-summary.txt
+          echo "Containers found: $containers" >> e2e-container-logs/collection-summary.txt
+          echo "" >> e2e-container-logs/collection-summary.txt
+          echo "Individual log files:" >> e2e-container-logs/collection-summary.txt
+          ls -la e2e-container-logs/*.log >> e2e-container-logs/collection-summary.txt 2>/dev/null || echo "No individual log files found" >> e2e-container-logs/collection-summary.txt
+          echo "" >> e2e-container-logs/collection-summary.txt
+          echo "Combined log file: e2e-service-logs.txt ($(wc -l < e2e-service-logs.txt 2>/dev/null || echo 0) lines)" >> e2e-container-logs/collection-summary.txt
 
       - name: Upload service logs
         uses: actions/upload-artifact@v5.0.0
         if: always()
         with:
           name: e2e-service-logs
-          path: e2e-service-logs.txt
+          path: |
+            e2e-service-logs.txt
+            e2e-container-logs/
 
       - name: E2E test summary
         if: always()
