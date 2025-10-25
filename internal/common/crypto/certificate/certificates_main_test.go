@@ -14,12 +14,10 @@ import (
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
 )
 
-// numKeyPairsNeeded defines the maximum number of key pairs that can be generated
-// by the test key pool. This value must be large enough to accommodate all
-// parallel test executions. Current tests require approximately 16 keys total,
-// but we use a larger value (100) to provide headroom for parallel execution
-// and future test additions.
-const numKeyPairsNeeded = 100
+const (
+	numWorkers = 4
+	poolSize   = 20
+)
 
 var (
 	testSettings         = cryptoutilConfig.RequireNewForTest("certificates_test")
@@ -37,7 +35,7 @@ func TestMain(m *testing.M) {
 
 		var err error
 
-		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", 1, numKeyPairsNeeded, numKeyPairsNeeded, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
+		testKeyGenPool, err = cryptoutilPool.NewValueGenPool(cryptoutilPool.NewValueGenPoolConfig(testCtx, testTelemetryService, "certificates_test", numWorkers, poolSize, cryptoutilMagic.MaxPoolLifetimeValues, cryptoutilMagic.MaxPoolLifetimeDuration, cryptoutilKeyGen.GenerateECDSAKeyPairFunction(elliptic.P256()), false))
 		if err != nil {
 			log.Fatalf("failed to create key pool: %v", err)
 		}
