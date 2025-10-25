@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"cryptoutil/internal/common/crypto/keygen"
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"net/url"
 	"time"
 
-	"cryptoutil/internal/common/crypto/keygen"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 

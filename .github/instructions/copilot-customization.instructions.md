@@ -27,6 +27,8 @@ applyTo: "**"
   - **Common counts/limits**: `maxRetries = 3`, `minArgs = 2` instead of `3`, `2`
   - **Percentage values**: `tolerance5Percent = 0.05`, `halfValue = 0.5` instead of `0.05`, `0.5`
   - **File permissions**: `fileMode = 0o600`, `dirMode = 0o755` instead of `0o600`, `0o755`
+- **ALWAYS use `golangci-lint run --fix` for auto-fixing** - this single command handles formatting (gofumpt), imports (goimports), and all other auto-fixable linters in one pass
+- **Pre-commit hooks automatically run `golangci-lint run --fix`** - no need to run standalone gofumpt or goimports commands separately
 
 ## Authorized Commands Reference
 

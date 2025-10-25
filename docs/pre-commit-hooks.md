@@ -29,7 +29,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 ### High-Level Flow
 
 ```
-1. Generic File Checks → 2. Go Auto-Fixes → 3. Dependency Mgmt → 4. Go Validation → 5. Build Check → 6. Custom Rules → 7. Specialized Linting → 8. Commit Validation
+1. Generic File Checks → 2. Dependency Mgmt → 3. Go Auto-Fix & Validation → 4. Build Check → 5. Custom Rules → 6. Specialized Linting → 7. Commit Validation
 ```
 
 ### Detailed Stage Breakdown
@@ -37,13 +37,12 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 | Stage | Purpose | Tools | Rationale |
 |-------|---------|-------|-----------|
 | **1. Generic File Checks** | Universal file validation | pre-commit-hooks | Fast, catches basic issues first |
-| **2. Go Auto-Fixes** | Code formatting and imports | gofumpt, goimports | Fix before validate to reduce noise |
-| **3. Dependency Management** | Module cleanup | go mod tidy | Clean state before expensive linting |
-| **4. Go Validation** | Comprehensive Go linting | golangci-lint | Full analysis after fixes applied |
-| **5. Build Validation** | Compilation verification | go build | Ensure code compiles after linting |
-| **6. Custom Rules** | Project-specific checks | test-patterns | Business logic validation |
-| **7. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit | Targeted validation by file type |
-| **8. Commit Validation** | Message format checking | commitizen | Final gate before push |
+| **2. Dependency Management** | Module cleanup | go mod tidy | Clean state before expensive linting |
+| **3. Go Auto-Fix & Validation** | Formatting, imports, and comprehensive linting | golangci-lint --fix | Single tool handles all auto-fixable issues + validation |
+| **4. Build Validation** | Compilation verification | go build | Ensure code compiles after linting |
+| **5. Custom Rules** | Project-specific checks | test-patterns | Business logic validation |
+| **6. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit | Targeted validation by file type |
+| **7. Commit Validation** | Message format checking | commitizen | Final gate before push |
 
 ## Tool Details and Configuration
 
@@ -76,62 +75,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Customization**: Standard pre-commit-hooks configuration options available.
 
-### 2. Go Formatting (gofumpt)
-
-**Purpose**: Strict Go code formatting with enhanced rules beyond standard `gofmt`.
-
-**Configuration**:
-```yaml
-- id: gofumpt
-  name: gofumpt (Go formatting)
-  entry: gofumpt
-  args: [-extra, -w]
-  language: system
-  files: '\.go$'
-  exclude: '_gen\.go$|\.pb\.go$|vendor/|api/client|api/model|api/server|test/'
-```
-
-**Key Parameters**:
-- `-extra`: Enables additional formatting rules
-- `-w`: Write changes to files (auto-fix mode)
-- `exclude`: Skips generated code and test directories
-
-**Integration**: Works with VS Code settings in [../.vscode/settings.json](../.vscode/settings.json):
-```json
-{
-  "go.formatTool": "gofumpt",
-  "gopls": {
-    "formatting.gofumpt": true
-  }
-}
-```
-
-**Documentation**: [gofumpt GitHub](https://github.com/mvdan/gofumpt)
-
-### 3. Go Import Organization (goimports)
-
-**Purpose**: Automatically organizes and formats Go import statements.
-
-**Configuration**:
-```yaml
-- id: goimports
-  name: goimports (Go import organization)
-  entry: goimports
-  args: [-w]
-  language: system
-  files: '\.go$'
-  exclude: '_gen\.go$|\.pb\.go$|vendor/|api/client|api/model|api/server|test/'
-```
-
-**Key Parameters**:
-- `-w`: Write changes to files (auto-fix mode)
-- `exclude`: Skips generated code and test directories
-
-**Integration**: Works with golangci-lint import organization checks.
-
-**Documentation**: [goimports](https://pkg.go.dev/golang.org/x/tools/cmd/goimports)
-
-### 4. Go Module Tidy (go mod tidy)
+### 2. Go Module Tidy (go mod tidy)
 
 **Purpose**: Cleans up Go module dependencies by removing unused modules and adding missing ones.
 
@@ -154,36 +98,49 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [Go Modules](https://go.dev/ref/mod)
 
-### 5. Go Linting (golangci-lint)
+### 3. Go Linting with Auto-Fix (golangci-lint)
 
-**Purpose**: Comprehensive Go code linting with 40+ built-in linters.
+**Purpose**: Comprehensive Go code linting with 40+ built-in linters plus automatic fixing for formatting, imports, and code quality issues.
 
 **Configuration**:
 ```yaml
 - id: golangci-lint
-  name: golangci-lint (full suite)
+  name: golangci-lint (auto-fix + validation)
   entry: golangci-lint
-  args: [run, --timeout=10m]
+  args: [run, --fix, --timeout=10m]
   language: system
   pass_filenames: false
   stages: [pre-commit]
 ```
 
 **Key Parameters**:
+- `--fix`: Automatically fixes all auto-fixable issues (formatting, imports, whitespace, etc.)
 - `--timeout=10m`: Prevents hanging on complex codebases
 - `stages: [pre-commit]`: Runs on commit (not just push)
 
+**Auto-Fixable Linters** (enabled via --fix):
+- `gofmt`: Go code formatting
+- `gofumpt`: Stricter Go formatting with extra rules (replaces standalone gofumpt -extra -w)
+- `goimports`: Import organization and formatting (replaces standalone goimports -w)
+- `wsl`: Whitespace consistency (blank lines between statements)
+- `godot`: Adds missing periods to documentation comments
+- `goconst`: Creates named constants for repeated strings
+- `importas`: Fixes import aliases to match configured rules
+- `copyloopvar`: Fixes loop variable capture issues
+- `testpackage`: Renames test packages to follow conventions
+- `revive`: Fixes various style and code quality issues (subset of rules)
+
 **Integration**: Uses [../.golangci.yml](../.golangci.yml) for detailed configuration including:
 - Enabled/disabled linters
-- Custom settings per linter
+- Custom settings per linter (gofumpt extra-rules, module-path)
 - Exclusion rules for generated code
 - Severity levels and output formatting
 
-**Enabled Linters**: errcheck, gosimple, govet, ineffassign, staticcheck, unused, gofmt, goimports, revive, stylecheck, gosec, godot, noctx, wrapcheck, thelper, tparallel, testpackage, gomodguard, gomoddirectives, prealloc, bodyclose, copyloopvar, goconst, importas, mnd, wsl, nlreturn, goheader, errorlint
+**Rationale**: Single tool consolidates all auto-fixes (formatting, imports, style) plus validation, eliminating need for separate gofumpt/goimports hooks. This reduces hook count, simplifies pipeline, and ensures consistency.
 
 **Documentation**: [golangci-lint](https://golangci-lint.run/)
 
-### 6. Go Build Check (go build)
+### 4. Go Build Check (go build)
 
 **Purpose**: Verifies that Go code compiles successfully.
 
@@ -205,7 +162,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [Go Build](https://go.dev/cmd/go/#hdr-Compile_packages_and_dependencies)
 
-### 7. Test Pattern Enforcement
+### 5. Test Pattern Enforcement
 
 **Purpose**: Enforces project-specific testing patterns and conventions.
 
@@ -231,7 +188,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: See [../scripts/cicd_checks.go](../scripts/cicd_checks.go) for implementation details.
 
-### 8. GitHub Actions Linting (actionlint)
+### 6. GitHub Actions Linting (actionlint)
 
 **Purpose**: Lints GitHub Actions workflow files for syntax and best practices.
 
@@ -251,7 +208,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [actionlint](https://github.com/rhysd/actionlint)
 
-### 9. Dockerfile Linting (hadolint)
+### 7. Dockerfile Linting (hadolint)
 
 **Purpose**: Lints Dockerfiles for best practices and security issues.
 
@@ -271,7 +228,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [hadolint](https://github.com/hadolint/hadolint)
 
-### 10. Shell Script Linting (shellcheck)
+### 8. Shell Script Linting (shellcheck)
 
 **Purpose**: Lints shell scripts for common issues and best practices.
 
@@ -291,7 +248,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [shellcheck](https://www.shellcheck.net/)
 
-### 11. Python Security Linting (bandit)
+### 9. Python Security Linting (bandit)
 
 **Purpose**: Security linting for Python code in scripts and utilities.
 
@@ -312,7 +269,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [bandit](https://bandit.readthedocs.io/)
 
-### 12. Conventional Commit Validation (commitizen)
+### 10. Conventional Commit Validation (commitizen)
 
 **Purpose**: Enforces conventional commit message formatting.
 

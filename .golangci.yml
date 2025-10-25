@@ -28,9 +28,9 @@ linters:
     - unused        # Find unused constants, variables, functions and types
 
     # Code quality
-    # gofmt         # disabled: gofumpt is a stricter superset of gofmt
-    # gofumpt       # disabled: `gofumpt -extra -w` (auto-fix) called in pre-commit hooks
-    # goimports     # disabled: `goimports -w` (auto-fix) called in pre-commit hooks
+    - gofmt         # Go code formatting (auto-fixable with --fix)
+    - gofumpt       # Stricter Go formatting (auto-fixable with --fix)
+    - goimports     # Import organization and formatting (auto-fixable with --fix)
     - revive        # Golint replacement with more rules
     - stylecheck    # Go style guide compliance
 
@@ -77,6 +77,12 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+
+  gofumpt:
+    # Enable all extra rules (equivalent to -extra flag)
+    extra-rules: true
+    # Set module path for proper formatting
+    module-path: github.com/jcranford/cryptoutil
 
   gosec:
     severity: medium

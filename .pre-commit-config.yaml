@@ -84,26 +84,7 @@ repos:
       - id: mixed-line-ending
         name: Fix mixed line endings
 
-  # Go formatting and imports (auto-fix early)
-  - repo: local
-    hooks:
-      - id: gofumpt
-        name: gofumpt (Go formatting)
-        entry: gofumpt
-        args: [-extra, -w]
-        language: system
-        files: '\.go$'
-        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/client|api/model|api/server|test/'  # Skip generated files and dirs, and test directory (contains Java Gatling tests)
-
-      - id: goimports
-        name: goimports (Go import organization)
-        entry: goimports
-        args: [-w]
-        language: system
-        files: '\.go$'
-        exclude: '_gen\.go$|\.pb\.go$|vendor/|api/client|api/model|api/server|test/'  # Skip generated files and dirs, and test directory (contains Java Gatling tests)
-
-  # Go dependency management
+  # Go dependency management (clean state before linting)
   - repo: local
     hooks:
       - id: go-mod-tidy
@@ -114,13 +95,13 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Go linting (full golangci-lint suite)
+  # Go linting with auto-fix (includes formatting, imports, and all enabled linters)
   - repo: local
     hooks:
       - id: golangci-lint
-        name: golangci-lint (full suite)
+        name: golangci-lint (auto-fix + validation)
         entry: golangci-lint
-        args: [run, --timeout=10m]
+        args: [run, --fix, --timeout=10m]
         language: system
         pass_filenames: false
         stages: [pre-commit]  # Run full linting on commit, not just on push

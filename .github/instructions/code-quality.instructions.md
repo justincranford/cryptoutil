@@ -34,28 +34,23 @@ applyTo: "**"
 
 ### Automatic Fixing with --fix
 
-**ALWAYS attempt automatic fixing first** before manually fixing individual issues:
+**ALWAYS use golangci-lint --fix as the primary auto-fix tool** - it runs all auto-fixable linters including formatting, imports, and code quality fixes in one command:
 
 ```bash
 # Fix all auto-fixable linting issues across the entire codebase
 golangci-lint run --fix
 
 # Fix specific linters only
-golangci-lint run --enable-only=wsl,gofmt,goimports --fix
+golangci-lint run --enable-only=wsl,gofmt,goimports,gofumpt --fix
 
 # Fix issues in specific files
 golangci-lint run --fix path/to/file.go
 ```
 
-**After fixing golangci-lint errors, ALWAYS run gofumpt to auto-fix formatting:**
-
-```bash
-# Format all Go files in the project
-gofumpt -w .
-
-# Format specific files
-gofumpt -w path/to/file.go
-```
+**The pre-commit hooks automatically run `golangci-lint run --fix`** so formatting and imports are handled during commit. Manual usage is only needed for:
+- Quick fixes during development
+- Testing specific linter configurations
+- Debugging linting issues
 
 ### CRITICAL: wsl and gofumpt Conflict Resolution
 
