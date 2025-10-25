@@ -114,6 +114,15 @@ linters-settings:
   importas:
     # Enforce consistent import aliasing
     alias:
+      # JOSE (JSON Web Encryption/Signatures) library aliases
+      - pkg: github.com/lestrrat-go/jwx/v3/jwe
+        alias: joseJwe
+      - pkg: github.com/lestrrat-go/jwx/v3/jwk
+        alias: joseJwk
+      - pkg: github.com/lestrrat-go/jwx/v3/jws
+        alias: joseJws
+      - pkg: github.com/lestrrat-go/jwx/v3/jwa
+        alias: joseJwa
       # Standard library aliases
       - pkg: encoding/json
         alias: json
@@ -178,15 +187,6 @@ linters-settings:
         alias: sha512
       - pkg: crypto/rand
         alias: crand
-      # JOSE (JSON Web Encryption/Signatures) library aliases
-      - pkg: github.com/lestrrat-go/jwx/v3/jwe
-        alias: joseJwe
-      - pkg: github.com/lestrrat-go/jwx/v3/jwk
-        alias: joseJwk
-      - pkg: github.com/lestrrat-go/jwx/v3/jws
-        alias: joseJws
-      - pkg: github.com/lestrrat-go/jwx/v3/jwa
-        alias: joseJwa
 
   misspell:
     locale: US
