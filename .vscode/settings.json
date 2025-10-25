@@ -56,9 +56,9 @@
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
       "source": "PowerShell",
-      "args": ["-NoLogo", "-ExecutionPolicy", "Bypass"]
+      "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"]
     }
-  }, // Configure PowerShell terminal to suppress banner and bypass execution policy
+  }, // Configure PowerShell terminal to suppress banner and set execution policy to RemoteSigned for consistency with system policy
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
   "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv

@@ -96,13 +96,22 @@ go install golang.org/x/vuln/cmd/govulncheck@latest
 # Install Gremlins (mutation testing) - installed automatically by scripts
 ```
 
-#### 4. Set Environment Variables
+#### 4. Configure PowerShell Execution Policy
+
+**Important Security Requirement:** PowerShell's default execution policy prevents scripts from running, including Python virtual environment activation.
 
 ```powershell
-# Add Go bin to PATH (usually done automatically by Go installer)
-# Add Docker Desktop to PATH
-# Add Python Scripts to PATH
+# Check current policy
+Get-ExecutionPolicy -List
+
+# Set policy to allow local scripts (recommended for development)
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+
+# Alternative: Maximum security (requires all scripts to be signed)
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy AllSigned -Force
 ```
+
+**Security Note:** `RemoteSigned` allows locally created scripts while blocking unsigned downloads. This is the industry standard for development environments. The VS Code integrated terminal is configured with the same `RemoteSigned` policy for consistency.
 
 ### Linux
 
@@ -508,14 +517,13 @@ pre-commit clean
 gopls version
 ```
 
-**Python/pip issues:**
-```bash
-# Ensure python3 and pip3 are used
-python3 --version
-pip3 --version
+**PowerShell execution policy reset after reboot:**
+```powershell
+# If scripts stop working after system reboot
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
 
-# Upgrade pip
-pip3 install --upgrade pip
+# Verify the policy is set
+Get-ExecutionPolicy -List
 ```
 
 ### Getting Help
