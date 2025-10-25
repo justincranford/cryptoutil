@@ -12,6 +12,24 @@ applyTo: "**"
 - Use Go context for HTTP requests and long-running operations to satisfy noctx linter (http.NewRequestWithContext, t.Context() in tests)
 - Follow maintenance guidelines in files: immediately remove completed/obsolete tasks from actionable lists
 
+## Pre-commit Hook Documentation Maintenance
+
+**CRITICAL**: When modifying any of these files, review and update `docs/pre-commit-hooks.md`:
+- `.pre-commit-config.yaml` - Hook ordering, tool configuration, exclusions
+- `.golangci.yml` - Linter configuration, enabled/disabled linters, severity settings
+- `.gofumpt.toml` - Go formatting rules and module path
+- `.gremlins.yaml` - Mutation testing configuration (if it affects pre-commit indirectly)
+- `scripts/cicd_checks.go` - Test pattern enforcement logic
+- `scripts/setup-pre-commit.ps1` / `setup-pre-commit.bat` - Setup script changes
+- `.vscode/settings.json` - VS Code integration with pre-commit tools
+
+**What to update in docs/pre-commit-hooks.md**:
+- Tool ordering changes in pipeline flow diagram and stage breakdown table
+- New/removed tools in configuration sections
+- Parameter changes in tool-specific sections (args, exclusions, files patterns)
+- Integration changes (VS Code settings, golangci-lint config references)
+- New troubleshooting guidance for common issues
+
 ## Linter Compliance
 
 ### Automatic Fixing with --fix
