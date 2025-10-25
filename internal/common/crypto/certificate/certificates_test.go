@@ -17,18 +17,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	// Server timeouts for TLS echo server.
+	testTLSServerReadTimeout   = 500 * time.Millisecond
+	testTLSServerWriteTimeout  = 500 * time.Millisecond
+	testHTTPServerReadTimeout  = 100 * time.Millisecond
+	testHTTPServerWriteTimeout = 100 * time.Millisecond
+
+	// Delays and retries.
+	testServerStartupDelay = 100 * time.Millisecond
+	testRetryBaseDelay     = 10 * time.Millisecond
+
+	// Certificate validity durations.
+	testCACertValidity10Years        = 10 * 365 * cryptoutilDateTime.Days1
+	testCACertValidity20Years        = 20 * 365 * cryptoutilDateTime.Days1
+	testCACertValidity5Years         = 5 * 365 * cryptoutilDateTime.Days1
+	testEndEntityCertValidity396Days = 396 * cryptoutilDateTime.Days1
+	testEndEntityCertValidity30Days  = 30 * cryptoutilDateTime.Days1
+	testEndEntityCertValidity1Year   = 365 * cryptoutilDateTime.Days1
+
+	// Test constants.
+	testNegativeDuration = -1
+	testHourDuration     = time.Hour
+)
+
 func TestMutualTLS(t *testing.T) {
 	tlsServerSubjectsKeyPairs := testKeyGenPool.GetMany(4) // End Entity + 2 Intermediate CAs + Root CA
 	tlsClientSubjectsKeyPairs := testKeyGenPool.GetMany(3) // End Entity + 1 Intermediate CA + Root CA
 
-	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA", 10*365*cryptoutilDateTime.Days1)
+	tlsServerCASubjects, err := CreateCASubjects(tlsServerSubjectsKeyPairs[1:], "Test TLS Server CA", testCACertValidity10Years)
 	verifyCASubjects(t, err, tlsServerCASubjects)
-	tlsClientCASubjects, err := CreateCASubjects(tlsClientSubjectsKeyPairs[1:], "Test TLS Client CA", 10*365*cryptoutilDateTime.Days1)
+	tlsClientCASubjects, err := CreateCASubjects(tlsClientSubjectsKeyPairs[1:], "Test TLS Client CA", testCACertValidity10Years)
 	verifyCASubjects(t, err, tlsClientCASubjects)
 
-	tlsServerEndEntitySubject, err := CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "Test TLS Server End Entity", 396*cryptoutilDateTime.Days1, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
+	tlsServerEndEntitySubject, err := CreateEndEntitySubject(tlsServerCASubjects[0], tlsServerSubjectsKeyPairs[0], "Test TLS Server End Entity", testEndEntityCertValidity396Days, []string{"localhost", "tlsserver.example.com"}, []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")}, nil, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth})
 	verifyEndEntitySubject(t, err, tlsServerEndEntitySubject)
-	tlsClientEndEntitySubject, err := CreateEndEntitySubject(tlsClientCASubjects[0], tlsClientSubjectsKeyPairs[0], "Test TLS Client End Entity", 30*cryptoutilDateTime.Days1, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
+	tlsClientEndEntitySubject, err := CreateEndEntitySubject(tlsClientCASubjects[0], tlsClientSubjectsKeyPairs[0], "Test TLS Client End Entity", testEndEntityCertValidity30Days, nil, nil, []string{"client1@tlsclient.example.com"}, nil, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth})
 	verifyEndEntitySubject(t, err, tlsClientEndEntitySubject)
 
 	tlsServerCertChain, tlsServerRootCAs, _, err := BuildTLSCertificate(tlsServerEndEntitySubject)
@@ -54,20 +78,32 @@ func TestMutualTLS(t *testing.T) {
 
 	t.Run("Raw mTLS", func(t *testing.T) {
 		callerShutdownSignalCh := make(chan struct{})
-		tlsListenerAddress, err := startTLSEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
+		tlsListenerAddress, err := startTLSEchoServer("127.0.0.1:0", testTLSServerReadTimeout, testTLSServerWriteTimeout, serverTLSConfig, callerShutdownSignalCh) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start TLS Echo Server")
 
 		defer close(callerShutdownSignalCh)
 
 		// Brief delay to ensure server goroutine is ready to accept connections
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(testServerStartupDelay)
 
 		tlsClientRequestBody := []byte("Hello Mutual TLS!")
 
 		for i := 1; i <= clientConnections; i++ {
 			func() {
-				tlsClientConnection, err := tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
-				require.NoError(t, err, "client failed to connect to TLS Echo Server")
+				var tlsClientConnection *tls.Conn
+
+				var err error
+				// Retry connection up to 5 times with backoff to handle timing issues under load
+				for retry := 0; retry < 5; retry++ {
+					tlsClientConnection, err = tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
+					if err == nil {
+						break
+					}
+
+					time.Sleep(time.Duration(retry+1) * testRetryBaseDelay)
+				}
+
+				require.NoError(t, err, "client failed to connect to TLS Echo Server after retries")
 
 				defer func() {
 					if err := tlsClientConnection.Close(); err != nil {
@@ -87,7 +123,7 @@ func TestMutualTLS(t *testing.T) {
 	})
 
 	t.Run("HTTP mTLS", func(t *testing.T) {
-		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", 100*time.Millisecond, 100*time.Millisecond, serverTLSConfig) // or "0.0.0.0:0" for all interfaces
+		httpsServer, serverURL, err := startHTTPSEchoServer("127.0.0.1:0", testHTTPServerReadTimeout, testHTTPServerWriteTimeout, serverTLSConfig) // or "0.0.0.0:0" for all interfaces
 		require.NoError(t, err, "failed to start HTTPS Echo Server")
 
 		defer func() {
@@ -124,18 +160,18 @@ func TestMutualTLS(t *testing.T) {
 func TestSerializeCASubjects(t *testing.T) {
 	subjectsKeyPairs := testKeyGenPool.GetMany(3)
 
-	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], 20*365*cryptoutilDateTime.Days1, 2)
+	rootCASubject, err := CreateCASubject(nil, nil, "Round Trip Root CA", subjectsKeyPairs[0], testCACertValidity20Years, 2)
 	rootCASubjects := []*Subject{rootCASubject}
 	verifyCASubjects(t, err, rootCASubjects)
 	testSerializeDeserialize(t, rootCASubjects)
 
-	intermediateCASubject, err := CreateCASubject(rootCASubject, rootCASubject.KeyMaterial.PrivateKey, "Round Trip Intermediate CA", subjectsKeyPairs[1], 10*365*cryptoutilDateTime.Days1, 1) // pragma: allowlist secret
+	intermediateCASubject, err := CreateCASubject(rootCASubject, rootCASubject.KeyMaterial.PrivateKey, "Round Trip Intermediate CA", subjectsKeyPairs[1], testCACertValidity10Years, 1) // pragma: allowlist secret
 	rootCASubject.KeyMaterial.PrivateKey = nil
 	intermediateCASubjects := []*Subject{intermediateCASubject, rootCASubject} // pragma: allowlist secret
 	verifyCASubjects(t, err, intermediateCASubjects)
 	testSerializeDeserialize(t, intermediateCASubjects)
 
-	issuingCASubject, err := CreateCASubject(intermediateCASubject, intermediateCASubject.KeyMaterial.PrivateKey, "Round Trip Issuing CA", subjectsKeyPairs[2], 5*365*cryptoutilDateTime.Days1, 0)
+	issuingCASubject, err := CreateCASubject(intermediateCASubject, intermediateCASubject.KeyMaterial.PrivateKey, "Round Trip Issuing CA", subjectsKeyPairs[2], testCACertValidity5Years, 0)
 	intermediateCASubject.KeyMaterial.PrivateKey = nil
 	issuingCASubjects := []*Subject{issuingCASubject, intermediateCASubject, rootCASubject}
 	verifyCASubjects(t, err, issuingCASubjects)
@@ -146,10 +182,10 @@ func TestSerializeCASubjects(t *testing.T) {
 
 func TestSerializeEndEntitySubjects(t *testing.T) {
 	subjectsKeyPairs := testKeyGenPool.GetMany(3)
-	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", 10*365*cryptoutilDateTime.Days1)
+	originalCASubjects, err := CreateCASubjects(subjectsKeyPairs[1:], "Round Trip CA", testCACertValidity10Years)
 	verifyCASubjects(t, err, originalCASubjects)
 
-	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", 365*cryptoutilDateTime.Days1, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}) // pragma: allowlist secret
+	endEntitySubject, err := CreateEndEntitySubject(originalCASubjects[0], subjectsKeyPairs[0], "Round Trip End Entity", testEndEntityCertValidity1Year, []string{"example.com"}, []net.IP{net.ParseIP("127.0.0.1")}, []string{"test@example.com"}, []*url.URL{{Scheme: "https", Host: "example.com"}}, x509.KeyUsageDigitalSignature, []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth}) // pragma: allowlist secret
 	verifyEndEntitySubject(t, err, endEntitySubject)
 
 	originalCASubjects[0].KeyMaterial.PrivateKey = nil
@@ -249,7 +285,7 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test Subject",
 			IssuerName:  "Test Issuer",
-			Duration:    time.Hour,
+			Duration:    testHourDuration,
 			IsCA:        false,
 			MaxPathLen:  1, // Invalid for end entity
 			KeyMaterial: KeyMaterial{
@@ -265,7 +301,7 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test Subject",
 			IssuerName:  "Test Issuer",
-			Duration:    time.Hour,
+			Duration:    testHourDuration,
 			IsCA:        true,
 			MaxPathLen:  0,
 			DNSNames:    []string{"example.com"}, // Invalid for CA
@@ -278,9 +314,9 @@ func TestSerializeSubjectsSadPaths(t *testing.T) {
 		subjects := []*Subject{{
 			SubjectName: "Test CA",
 			IssuerName:  "Test Issuer",
-			Duration:    time.Hour,
+			Duration:    testHourDuration,
 			IsCA:        true,
-			MaxPathLen:  -1, // Invalid negative MaxPathLen
+			MaxPathLen:  testNegativeDuration, // Invalid negative MaxPathLen
 		}}
 		_, err := SerializeSubjects(subjects, false)
 		require.Error(t, err)
@@ -297,7 +333,7 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 	t.Run("nil PublicKey", func(t *testing.T) {
 		keyPair := testKeyGenPool.GetMany(1)[0]
 
-		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", 10*365*cryptoutilDateTime.Days1, 0)
+		certTemplate, err := CertificateTemplateCA("Test Issuer", "Test CA", testCACertValidity10Years, 0)
 		verifyCertificateTemplate(t, err, certTemplate)
 
 		cert, _, _, err := SignCertificate(nil, keyPair.Private, certTemplate, keyPair.Public, x509.ECDSAWithSHA256)
@@ -334,6 +370,6 @@ func TestSerializeKeyMaterialSadPaths(t *testing.T) {
 }
 
 func TestNegativeDuration(t *testing.T) {
-	_, err := CertificateTemplateCA("Root CA", "Root CA", -1, 1)
+	_, err := CertificateTemplateCA("Root CA", "Root CA", testNegativeDuration, 1)
 	require.Error(t, err, "Creating a certificate with negative duration should fail")
 }
