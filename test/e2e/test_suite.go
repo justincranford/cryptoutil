@@ -83,21 +83,21 @@ func (suite *E2ETestSuite) TearDownSuite() {
 
 // SetupTest runs before each test method.
 func (suite *E2ETestSuite) SetupTest() {
-	fmt.Printf("[%s] [%v] 📋 Setting up test: %s\n",
-		time.Now().Format("15:04:05"),
-		time.Since(suite.fixture.startTime).Round(time.Second),
-		suite.T().Name())
-
 	// Initialize API clients for each test
 	suite.fixture.InitializeAPIClients()
+
+	// Log test setup
+	if suite.fixture != nil {
+		suite.fixture.logger.LogTestSetup(suite.T().Name())
+	}
 }
 
 // TearDownTest runs after each test method.
 func (suite *E2ETestSuite) TearDownTest() {
-	fmt.Printf("[%s] [%v] 🧹 Cleaning up test: %s\n",
-		time.Now().Format("15:04:05"),
-		time.Since(suite.fixture.startTime).Round(time.Second),
-		suite.T().Name())
+	// Log test cleanup
+	if suite.fixture != nil {
+		suite.fixture.logger.LogTestCleanup(suite.T().Name())
+	}
 
 	// Clean up any test data created during the test
 	suite.cleanupTestData()
@@ -390,9 +390,10 @@ func (suite *E2ETestSuite) completeStep(status, result string) {
 	}
 
 	statusEmoji := cryptoutilMagic.TestStatusEmojiPass
-	if status == cryptoutilMagic.TestStatusFail {
+	switch status {
+	case cryptoutilMagic.TestStatusFail:
 		statusEmoji = cryptoutilMagic.TestStatusEmojiFail
-	} else if status == cryptoutilMagic.TestStatusSkip {
+	case cryptoutilMagic.TestStatusSkip:
 		statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
 	}
 
@@ -432,9 +433,10 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 
 	for i, step := range suite.summary.Steps {
 		statusEmoji := cryptoutilMagic.TestStatusEmojiPass
-		if step.Status == cryptoutilMagic.TestStatusFail {
+		switch step.Status {
+		case cryptoutilMagic.TestStatusFail:
 			statusEmoji = cryptoutilMagic.TestStatusEmojiFail
-		} else if step.Status == cryptoutilMagic.TestStatusSkip {
+		case cryptoutilMagic.TestStatusSkip:
 			statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
 		}
 

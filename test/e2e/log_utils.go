@@ -60,3 +60,13 @@ func (l *Logger) LogTestStep(name, description string) {
 func (l *Logger) LogTestStepCompletion(statusEmoji, name, result string, duration time.Duration) {
 	l.Log("%s %s: %s (took %v)", statusEmoji, name, result, duration.Round(time.Millisecond))
 }
+
+// LogTestSetup provides structured logging for test setup with timestamp and elapsed time.
+func (l *Logger) LogTestSetup(testName string) {
+	l.Log("📋 Setting up test: %s", testName)
+}
+
+// LogTestCleanup provides structured logging for test cleanup with timestamp and elapsed time.
+func (l *Logger) LogTestCleanup(testName string) {
+	l.Log("🧹 Cleaning up test: %s", testName)
+}
