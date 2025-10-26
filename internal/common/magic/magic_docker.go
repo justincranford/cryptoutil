@@ -12,6 +12,16 @@ const (
 
 // Docker service names.
 const (
+	// DockerServiceCryptoutilSqlite - Cryptoutil SQLite service name.
+	DockerServiceCryptoutilSqlite = "cryptoutil_sqlite"
+	// DockerServiceCryptoutilPostgres1 - Cryptoutil PostgreSQL 1 service name.
+	DockerServiceCryptoutilPostgres1 = "cryptoutil_postgres_1"
+	// DockerServiceCryptoutilPostgres2 - Cryptoutil PostgreSQL 2 service name.
+	DockerServiceCryptoutilPostgres2 = "cryptoutil_postgres_2"
+	// DockerServicePostgres - PostgreSQL service name.
+	DockerServicePostgres = "postgres"
+	// DockerServiceGrafanaOtelLgtm - Grafana OTEL LGTM service name.
+	DockerServiceGrafanaOtelLgtm = "grafana-otel-lgtm"
 	// DockerServiceOtelCollectorHealthcheck - OpenTelemetry collector healthcheck service name.
 	DockerServiceOtelCollectorHealthcheck = "opentelemetry-collector-contrib-healthcheck"
 )

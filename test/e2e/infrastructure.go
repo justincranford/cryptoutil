@@ -24,6 +24,25 @@ var (
 	dockerComposeArgsPsServices    = []string{"ps", "-a", "--format", "json"}
 )
 
+// Docker compose command description constants.
+const (
+	dockerComposeDescStopServices  = "Stop services"
+	dockerComposeDescStartServices = "Start services"
+	dockerComposeDescBatchHealth   = "Batch health check"
+)
+
+// Docker compose service names for batch health checking.
+var (
+	dockerComposeServicesForHealthCheck = []string{
+		cryptoutilMagic.DockerServiceCryptoutilSqlite,
+		cryptoutilMagic.DockerServiceCryptoutilPostgres1,
+		cryptoutilMagic.DockerServiceCryptoutilPostgres2,
+		cryptoutilMagic.DockerServicePostgres,
+		cryptoutilMagic.DockerServiceGrafanaOtelLgtm,
+		cryptoutilMagic.DockerServiceOtelCollectorHealthcheck,
+	}
+)
+
 // InfrastructureManager handles Docker Compose operations and service management.
 type InfrastructureManager struct {
 	startTime time.Time
@@ -40,42 +59,27 @@ func NewInfrastructureManager(startTime time.Time, logFile *os.File) *Infrastruc
 
 // StopServices stops Docker Compose services.
 func (im *InfrastructureManager) StopServices(ctx context.Context) error {
-	im.log("🧹 Stopping Docker Compose services")
-
-	output, err := im.runDockerComposeCommand(ctx, "Stop services", dockerComposeArgsStopServices)
+	output, err := im.runDockerComposeCommand(ctx, dockerComposeDescStopServices, dockerComposeArgsStopServices)
 	if err != nil {
 		return fmt.Errorf("failed to stop services: %w, output: %s", err, string(output))
 	}
-
-	im.log("✅ Existing services stopped successfully")
 
 	return nil
 }
 
 // StartServices starts Docker Compose services.
 func (im *InfrastructureManager) StartServices(ctx context.Context) error {
-	im.log("🚀 Starting Docker Compose services")
-
-	output, err := im.runDockerComposeCommand(ctx, "Start services", dockerComposeArgsStartServices)
+	output, err := im.runDockerComposeCommand(ctx, dockerComposeDescStartServices, dockerComposeArgsStartServices)
 	if err != nil {
 		return fmt.Errorf("docker compose up failed: %w, output: %s", err, string(output))
 	}
-
-	im.log("✅ Docker Compose services started successfully")
 
 	return nil
 }
 
 // WaitForDockerServicesHealthy waits for Docker services to report healthy status.
 func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Context) error {
-	services := []string{
-		"cryptoutil_sqlite",
-		"cryptoutil_postgres_1",
-		"cryptoutil_postgres_2",
-		"postgres",
-		"grafana-otel-lgtm",
-		"opentelemetry-collector-contrib-healthcheck",
-	}
+	services := dockerComposeServicesForHealthCheck
 
 	giveUpTime := time.Now().Add(cryptoutilMagic.TestTimeoutDockerHealth)
 	checkCount := 0
@@ -131,7 +135,7 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, services []string) map[string]bool {
 	healthStatus := make(map[string]bool)
 
-	output, err := im.runDockerComposeCommand(ctx, "Batch health check", dockerComposeArgsPsServices)
+	output, err := im.runDockerComposeCommand(ctx, dockerComposeDescBatchHealth, dockerComposeArgsPsServices)
 	if err != nil {
 		im.log("❌ Failed to check services health: %v", err)
 
@@ -184,7 +188,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 		if health, ok := service["Health"].(string); ok {
 			healthStatus[serviceName] = health == "healthy"
-		} else if serviceName == "opentelemetry-collector-contrib-healthcheck" {
+		} else if serviceName == cryptoutilMagic.DockerServiceOtelCollectorHealthcheck {
 			if state, ok := service["State"].(string); ok && state == "exited" {
 				if exitCode, ok := service["ExitCode"].(float64); ok && exitCode == 0 {
 					healthStatus[serviceName] = true
@@ -349,6 +353,14 @@ func (im *InfrastructureManager) getComposeFilePath() string {
 // Always use relative path for cross-platform compatibility in
 // in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func (im *InfrastructureManager) runDockerComposeCommand(ctx context.Context, description string, args []string) ([]byte, error) {
+	// Log start message based on description
+	switch description {
+	case dockerComposeDescStopServices:
+		im.log("🧹 Stopping Docker Compose services")
+	case dockerComposeDescStartServices:
+		im.log("🚀 Starting Docker Compose services")
+	}
+
 	composeFile := im.getComposeFilePath()
 	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
 	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
@@ -357,6 +369,14 @@ func (im *InfrastructureManager) runDockerComposeCommand(ctx context.Context, de
 
 	if err != nil {
 		return output, fmt.Errorf("docker compose command failed: %w", err)
+	}
+
+	// Log success message based on description
+	switch description {
+	case dockerComposeDescStopServices:
+		im.log("✅ Existing services stopped successfully")
+	case dockerComposeDescStartServices:
+		im.log("✅ Docker Compose services started successfully")
 	}
 
 	return output, nil
