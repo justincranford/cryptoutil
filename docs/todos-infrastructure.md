@@ -133,3 +133,112 @@
 - **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `internal/e2e/e2e_test.go`, documentation
 - **Expected Outcome**: Properly prefixed admin APIs with configurable context path
 - **Priority**: Medium - API organization and consistency
+
+---
+
+## 🔵 HIGH - Artifact Consolidation Refactoring
+
+### Task INF10: Consolidate All Temporary Artifacts to `.build/` Directory
+- **Description**: Refactor entire project to consolidate all temporary build, test, and scan artifacts under single `.build/` directory for easier management, cleanup, and gitignore maintenance
+- **Current State**: Artifacts scattered across 10+ locations (see DEEP-ANALYSIS.md for full inventory)
+- **Proposed Structure**:
+  ```
+  .build/                         # Single consolidated directory for ALL temporary artifacts
+  ├── bin/                        # Compiled binaries
+  │   ├── cryptoutil              # Main application binary
+  │   └── *.test                  # Test binaries (per-package)
+  ├── coverage/                   # Test coverage reports
+  │   ├── coverage.out            # Coverage profile
+  │   ├── coverage.html           # HTML report
+  │   └── coverage-{timestamp}.* # Timestamped archives
+  ├── dast/                       # DAST security scan outputs
+  │   ├── nuclei/                 # Nuclei scan results
+  │   │   ├── nuclei.log
+  │   │   ├── nuclei.sarif
+  │   │   └── nuclei-templates.version
+  │   ├── zap/                    # OWASP ZAP scan results
+  │   │   ├── full/               # Full scan reports
+  │   │   └── api/                # API scan reports
+  │   ├── headers/                # Security header captures
+  │   ├── app-logs/               # Application logs during DAST
+  │   │   ├── cryptoutil.stdout
+  │   │   └── cryptoutil.stderr
+  │   ├── container-logs/         # Docker container logs
+  │   └── diagnostics/            # System diagnostics
+  ├── e2e/                        # End-to-end test artifacts
+  │   ├── service-logs/           # Combined service logs
+  │   ├── container-logs/         # Individual container logs
+  │   └── reports/                # E2E test reports
+  ├── workflows/                  # GitHub workflow execution logs
+  │   ├── {workflow}-{timestamp}.log
+  │   ├── {workflow}-analysis-{timestamp}.md
+  │   └── combined-{timestamp}.log
+  ├── mutation/                   # Mutation testing results
+  │   └── mutation-{package}.json
+  ├── sarif/                      # SARIF security scan results
+  │   ├── trivy-image.sarif
+  │   ├── docker-scout-cves.sarif
+  │   └── nuclei.sarif (symlink to dast/nuclei/)
+  ├── sbom/                       # Software Bill of Materials
+  │   └── sbom.spdx.json
+  ├── load/                       # Gatling load test results
+  │   └── gatling/                # Gatling simulation results
+  └── tmp/                        # Ephemeral temporary files
+      └── nohup.out
+  ```
+- **Action Items**:
+  1. **Phase 1 - Create Directory Structure & Update .gitignore**:
+     - Create `.build/` directory and subdirectories
+     - Update `.gitignore` to ignore entire `.build/` directory (single line)
+     - Remove existing scattered artifact patterns from `.gitignore`
+
+  2. **Phase 2 - Update Go Code**:
+     - Update `scripts/github-workflows/run_github_workflow_locally.go` to use `.build/workflows/`
+     - Update E2E test code in `internal/e2e/` to output to `.build/e2e/`
+     - Update test helpers to write coverage to `.build/coverage/`
+
+  3. **Phase 3 - Update Workflow Files**:
+     - Update `ci-dast.yml` to use `.build/dast/` for all DAST artifacts
+     - Update `ci-e2e.yml` to use `.build/e2e/` for E2E artifacts
+     - Update `ci-quality.yml` to use `.build/{coverage,sarif,sbom}/`
+
+  4. **Phase 4 - Update Scripts**:
+     - Update `dast.ps1` / `dast.sh` to use `.build/dast/`
+     - Update `security-scan.ps1` / `security-scan.sh` to use `.build/sarif/`
+     - Update `mutation-test.ps1` / `mutation-test.sh` to use `.build/mutation/`
+
+  5. **Phase 5 - Update Build Configuration**:
+     - Update Makefile (if exists) to use `.build/bin/`
+     - Update `go build` commands in documentation to output to `.build/bin/`
+     - Update Gatling POM to output to `.build/load/` instead of `test/load/target/`
+
+  6. **Phase 6 - Cleanup & Documentation**:
+     - Add cleanup script: `scripts/clean-build.{ps1,sh}` to remove `.build/`
+     - Update README.md with new artifact locations
+     - Update DEEP-ANALYSIS.md with refactored structure
+     - Remove old scattered artifact directories from repository
+- **Files Modified**:
+  - `.gitignore` (simplified to single `.build/` exclusion)
+  - `scripts/github-workflows/run_github_workflow_locally.go`
+  - `internal/e2e/*.go` (E2E test utilities)
+  - `.github/workflows/*.yml` (all 5 workflows)
+  - `scripts/dast.{ps1,sh}`
+  - `scripts/security-scan.{ps1,sh}`
+  - `scripts/mutation-test.{ps1,sh}`
+  - `test/load/pom.xml` (Gatling output directory)
+  - `README.md` and `docs/DEEP-ANALYSIS.md`
+- **Expected Outcome**:
+  - Single directory for all temporary artifacts
+  - Simplified `.gitignore` (one line instead of 15+)
+  - Easy cleanup: `rm -rf .build/` or `scripts/clean-build.sh`
+  - Better artifact discovery and organization
+  - Consistent artifact paths across all tools
+- **Benefits**:
+  - **Developer Experience**: Easier to find all artifacts in one place
+  - **Cleanup**: Single command removes all temporary files
+  - **Gitignore Maintenance**: One pattern vs 15+ scattered patterns
+  - **CI/CD**: Consistent artifact paths across workflows
+  - **Documentation**: Clear, predictable artifact locations
+- **Priority**: High - Developer productivity and project organization
+- **Estimated Effort**: 4-6 hours across 6 phases
+- **Dependencies**: None (can be done incrementally per phase)
