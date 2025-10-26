@@ -50,3 +50,13 @@ func (l *Logger) LogCommand(description, command, output string) {
 		l.Log("📋 [%s] Output: %s", description, strings.TrimSpace(output))
 	}
 }
+
+// LogTestStep provides structured logging for test steps with timestamp and elapsed time.
+func (l *Logger) LogTestStep(name, description string) {
+	l.Log("📋 %s: %s", name, description)
+}
+
+// LogTestStepCompletion provides structured logging for test step completion with status and timing.
+func (l *Logger) LogTestStepCompletion(statusEmoji, name, result string, duration time.Duration) {
+	l.Log("%s %s: %s (took %v)", statusEmoji, name, result, duration.Round(time.Millisecond))
+}

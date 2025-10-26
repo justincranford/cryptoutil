@@ -15,9 +15,6 @@ const (
 	// StringStatusDegraded - Degraded status string.
 	StringStatusDegraded = "degraded"
 
-	// StringProviderInternal - Internal provider string.
-	StringProviderInternal = "Internal"
-
 	// WaitBeforeShutdownDuration - Client liveness start timeout.
 	WaitBeforeShutdownDuration = 200 * time.Millisecond
 
@@ -33,3 +30,6 @@ const (
 	// OtelCollectorHealthCheckTimeout - Otel collector health check timeout.
 	OtelCollectorHealthCheckTimeout = 5 * time.Second
 )
+
+// StringProviderInternal - Internal provider string.
+var StringProviderInternal = "Internal"

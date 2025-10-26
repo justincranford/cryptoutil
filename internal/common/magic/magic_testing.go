@@ -153,3 +153,18 @@ const (
 	// MockRAMMB - Mock RAM size in MB for testing (8GB).
 	MockRAMMB = 8192
 )
+
+// Test cryptographic algorithm constants for E2E tests.
+const (
+	// TestJwkJwsAlgorithm - JWS algorithm for elastic key signing in tests.
+	TestJwkJwsAlgorithm = "RS256"
+)
+
+var (
+	// TestJwkJweAlgorithm - JWE algorithm for elastic key encryption in tests.
+	TestJwkJweAlgorithm = "A256GCM/A256KW"
+	// TestElasticKeyImportAllowed - Default import allowed setting for test elastic keys.
+	TestElasticKeyImportAllowed = false
+	// TestElasticKeyVersioningAllowed - Default versioning allowed setting for test elastic keys.
+	TestElasticKeyVersioningAllowed = true
+)
