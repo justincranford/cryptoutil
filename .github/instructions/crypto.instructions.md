@@ -10,3 +10,5 @@ applyTo: "**"
 - Use provided pool and keygen abstractions for for concurrent cryptographic key generation operations
 - Review cryptographic practices for compliance and security
 - Periodically audit cryptographic code for compliance
+- **CRITICAL**: All cryptoutil instances using the same set of shared, unseal secrets MUST derive the same unseal JWKs, including the KIDs and key materials, for cryptographic interoperability between instances
+- **CRITICAL**: If only key materials were derived deterministically, using different KIDs would break interoperability
