@@ -200,11 +200,11 @@ func TestValidateWorkflowFile_SadPath(t *testing.T) {
 	tempDir := t.TempDir()
 
 	tests := []struct {
-		name            string
-		filename        string
-		content         string
-		expectedIssues  []string
-		minIssueCount   int
+		name           string
+		filename       string
+		content        string
+		expectedIssues []string
+		minIssueCount  int
 	}{
 		{
 			name:     "missing ci- prefix",
@@ -293,17 +293,17 @@ func TestValidateWorkflowFile_EdgeCases(t *testing.T) {
 	tempDir := t.TempDir()
 
 	tests := []struct {
-		name          string
-		filename      string
-		content       string
-		expectError   bool
-		expectIssues  bool
+		name         string
+		filename     string
+		content      string
+		expectError  bool
+		expectIssues bool
 	}{
 		{
-			name:     "empty file",
-			filename: "ci-empty.yml",
-			content:  "",
-			expectError: false,
+			name:         "empty file",
+			filename:     "ci-empty.yml",
+			content:      "",
+			expectError:  false,
 			expectIssues: true, // Missing name and logging
 		},
 		{
@@ -318,7 +318,7 @@ jobs:
       - name: Log workflow
         run: echo "Workflow: ${{ github.workflow }}"
 `,
-			expectError: false,
+			expectError:  false,
 			expectIssues: true, // Missing actual name field
 		},
 		{
@@ -334,7 +334,7 @@ jobs:
         # run: echo "Workflow: ${{ github.workflow }}"
         run: echo "hello"
 `,
-			expectError: false,
+			expectError:  false,
 			expectIssues: false, // github.workflow is present even though commented
 		},
 		{
@@ -349,7 +349,7 @@ jobs:
       - name: Log workflow
         run: echo "Workflow: ${{ github.workflow }}"
 `,
-			expectError: false,
+			expectError:  false,
 			expectIssues: false, // This is valid
 		},
 	}
