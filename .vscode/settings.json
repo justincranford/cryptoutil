@@ -40,6 +40,7 @@
     "/^Test-NetConnection\\b.*/": true, // Network connectivity testing
     "/^\\[System\\.IO\\.File\\]::ReadAllBytes\\b.*/": false, // File reading operations - use read_file tool instead
     "/^(Get-Content|cat|type)\\b.*/": false, // File content reading - use read_file tool instead
+    "/^tee\\b.*/": false, // Output redirection - E2E tests already log automatically
   }, // Auto-approve terminal commands matching patterns - Default: {}, Recommended: configured patterns
   "github.copilot.chat.virtualTools.threshold": 64, // Threshold for virtual tools - Default: 64, Recommended: 64 (experimental)
   "chat.math.enabled": true, // Enable math expressions in chat - Default: false, Recommended: true (experimental)

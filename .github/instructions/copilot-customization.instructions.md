@@ -111,6 +111,7 @@ These commands require manual authorization and should be avoided when possible:
 
 ### Network Commands
 - `curl.exe` - Make HTTP requests (use docker compose exec instead for container access)
+- `tee` - Output redirection to files (E2E tests already log automatically)
 
 ## OTLP Protocol Support
 
