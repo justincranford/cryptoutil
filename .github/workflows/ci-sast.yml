@@ -68,6 +68,8 @@ jobs:
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
+        with:
+          sparse-checkout-cone-mode: false
 
       - name: Set up Go
         uses: actions/setup-go@v6.0.0
@@ -172,6 +174,8 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
+        with:
+          sparse-checkout-cone-mode: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
