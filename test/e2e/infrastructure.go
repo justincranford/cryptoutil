@@ -78,13 +78,6 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	im.log("🚀 Starting Docker Compose services")
 
 	composeFile := im.getComposeFilePath()
-
-	// Ensure clean environment before starting
-	if err := im.EnsureCleanEnvironment(ctx); err != nil {
-		return fmt.Errorf("failed to ensure clean environment: %w", err)
-	}
-
-	// Start fresh services
 	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "up", "-d", "--force-recreate")
 	output, err := cmd.CombinedOutput()
 	im.logCommand("Start services", cmd.String(), string(output))
