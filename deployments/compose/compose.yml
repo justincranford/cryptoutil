@@ -195,7 +195,8 @@ services:
 
   opentelemetry-collector-contrib-healthcheck:
     image: alpine:latest
-    command: ["sh", "-c", "ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib; }; for i in $(seq 1 10); do if ping_success; then for j in $(seq 1 20); do wget --quiet --spider http://opentelemetry-collector-contrib:13133/ && echo 'Health check successful' && exit 0; sleep 1; done; echo 'Wget failed after ping success'; exit 1; fi; sleep 1; done; echo 'Ping failed after 10 attempts'; exit 1"]
+#   command: ["sh", "-c", "ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib; }; for i in $(seq 1 10); do if ping_success; then for j in $(seq 1 20); do wget --quiet --spider http://opentelemetry-collector-contrib:13133/ && echo 'Health check successful' && exit 0; sleep 1; done; echo 'Wget failed after ping success'; exit 1; fi; sleep 1; done; echo 'Ping failed after 10 attempts'; exit 1"]
+    command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib >/dev/null 2>&1; }; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 15); do echo \"Attempt $$i: Checking OTEL collector...\"; if ping_success; then echo 'Ping successful, checking health endpoint...'; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying...'; fi; else echo 'Ping failed, waiting...'; fi; sleep 2; done; echo 'Health check failed after 15 attempts'; exit 1"]
     depends_on:
       opentelemetry-collector-contrib:
         condition: service_started
@@ -249,7 +250,6 @@ volumes:
     name: cryptoutil_grafana_volume
 
 secrets:
-
   postgres_username.secret:
     file: ./postgres/postgres_username.secret
   postgres_password.secret:

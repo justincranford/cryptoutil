@@ -48,6 +48,20 @@
 - Use command chaining (`;` in PowerShell) for related operations
 - Prefer existing files over temporary demos when possible
 
+## Docker Compose Cross-Platform Path Requirements
+
+- **CRITICAL: NEVER use absolute paths in `deployments/compose/compose.yml`**
+- **ALWAYS use relative paths** for all file references (volumes, secrets, configs)
+- Absolute Windows paths (`C:\...`) break cross-platform compatibility with:
+  - GitHub Actions Ubuntu runners
+  - `act` local workflow testing on Windows/WSL
+  - Docker Compose path resolution in Linux containers
+- Relative paths resolve correctly from the compose file's directory on all platforms
+- Example corrections:
+  - ❌ BAD: `file: C:\Dev\Projects\cryptoutil\deployments\compose\postgres\postgres_username.secret`
+  - ✅ GOOD: `file: ./postgres/postgres_username.secret`
+- This applies to ALL path references in compose.yml: secrets, volumes, configs, dockerfiles
+
 ## Copilot testing guidance for `scripts/cicd_checks.go`
 
 - When adding or updating `scripts/cicd_checks.go`, always implement programmatic tests in `scripts/cicd_checks_test.go` that:
