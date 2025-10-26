@@ -87,6 +87,12 @@ linters-settings:
   gosec:
     severity: medium
     confidence: medium
+    excludes:
+      - G204  # Subprocess launched with variable - acceptable for controlled docker compose commands in tests
+      - G301  # Directory permissions too permissive - acceptable for test directories
+      - G302  # File permissions too permissive - acceptable for test files
+      - G304  # Potential file inclusion via variable - acceptable for controlled test file operations
+      - G402  # TLS InsecureSkipVerify set true - required for test code connecting to self-signed certificates
 
   gocyclo:
     min-complexity: 15

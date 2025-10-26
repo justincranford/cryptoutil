@@ -105,7 +105,7 @@ For workflows using `docker compose`, pull compose-managed images separately:
 - name: Build Docker images (after pre-pull)
   run: |
     echo "🏗️ Building Docker images for end-to-end testing..."
-    docker compose -f ${{ env.COMPOSE_FILE }} build
+    docker compose -f ./deployments/compose/compose.yml build
 ```
 
 ### Placement Guidelines

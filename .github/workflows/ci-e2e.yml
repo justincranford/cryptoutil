@@ -45,7 +45,6 @@ on:
 
 env:
   GO_VERSION: '1.25.1'
-  COMPOSE_FILE: './deployments/compose/compose.yml'
 
 jobs:
   # End-to-End Testing - Full system validation with Docker Compose
@@ -125,12 +124,12 @@ jobs:
       - name: Build Docker images
         run: |
           echo "🏗️ Building Docker images for end-to-end testing..."
-          docker compose -f ${{ env.COMPOSE_FILE }} build
+          docker compose -f ./deployments/compose/compose.yml build
 
       - name: Start services
         run: |
           echo "🚀 Starting services for end-to-end testing..."
-          docker compose -f ${{ env.COMPOSE_FILE }} up -d
+          docker compose -f ./deployments/compose/compose.yml up -d
 
       - name: Wait for services to be healthy
         run: |
@@ -138,8 +137,8 @@ jobs:
           timeout=300
           elapsed=0
           while [ $elapsed -lt $timeout ]; do
-            healthy=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Health' | grep -c "healthy" || true)
-            total=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Service' | wc -l)
+            healthy=$(docker compose -f ./deployments/compose/compose.yml ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Health' | grep -c "healthy" || true)
+            total=$(docker compose -f ./deployments/compose/compose.yml ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Service' | wc -l)
             if [ "$healthy" -eq "$total" ]; then
               echo "✅ All $total services are healthy"
               break
@@ -150,8 +149,8 @@ jobs:
           done
           if [ $elapsed -ge $timeout ]; then
             echo "❌ Timeout waiting for services to be healthy"
-            docker compose -f ${{ env.COMPOSE_FILE }} ps
-            docker compose -f ${{ env.COMPOSE_FILE }} logs
+            docker compose -f ./deployments/compose/compose.yml ps
+            docker compose -f ./deployments/compose/compose.yml logs
             exit 1
           fi
 
@@ -183,17 +182,17 @@ jobs:
           mkdir -p e2e-container-logs
 
           # Get list of running containers from compose
-          containers=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format "{{.Name}}" | tr '\n' ' ')
+          containers=$(docker compose -f ./deployments/compose/compose.yml ps --format "{{.Name}}" | tr '\n' ' ')
 
           # Collect individual container logs
           for container in $containers; do
             echo "📄 Collecting logs for container: $container"
-            docker compose -f ${{ env.COMPOSE_FILE }} logs "$container" > "e2e-container-logs/${container}.log" 2>&1 || echo "Failed to collect logs for $container" >> e2e-container-logs/errors.txt
+            docker compose -f ./deployments/compose/compose.yml logs "$container" > "e2e-container-logs/${container}.log" 2>&1 || echo "Failed to collect logs for $container" >> e2e-container-logs/errors.txt
           done
 
           # Collect combined logs with service prefixes (existing behavior)
           echo "📋 Collecting combined service logs with prefixes..."
-          docker compose -f ${{ env.COMPOSE_FILE }} logs > e2e-service-logs.txt
+          docker compose -f ./deployments/compose/compose.yml logs > e2e-service-logs.txt
 
           # Create a summary of log collection
           echo "=== E2E Log Collection Summary ===" > e2e-container-logs/collection-summary.txt
@@ -233,4 +232,4 @@ jobs:
         if: always()
         run: |
           echo "🧹 Stopping services..."
-          docker compose -f ${{ env.COMPOSE_FILE }} down -v
+          docker compose -f ./deployments/compose/compose.yml down -v

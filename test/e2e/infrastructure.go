@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -30,24 +31,22 @@ func NewInfrastructureManager(startTime time.Time, logFile *os.File) *Infrastruc
 	}
 }
 
-// getComposeFilePath returns the compose file path from COMPOSE_FILE env var or default.
+// getComposeFilePath returns the compose file path appropriate for the current OS.
 func (im *InfrastructureManager) getComposeFilePath() string {
-	if composeFile := os.Getenv("COMPOSE_FILE"); composeFile != "" {
-		return composeFile
+	if runtime.GOOS == "windows" {
+		return cryptoutilMagic.DockerComposeRelativeFilePathWindows
 	}
-	// Default fallback path relative to test/e2e/ directory
-	return "../../deployments/compose/compose.yml"
+
+	return cryptoutilMagic.DockerComposeRelativeFilePathLinux
 }
 
 // EnsureCleanEnvironment stops any existing Docker Compose services.
-// NOTE: These docker compose commands work when run manually from command line:
 //
-//	docker compose -f .\deployments\compose\compose.yml down -v
-//	docker compose -f .\deployments\compose\compose.yml up -d
+//	Windows: docker compose -f .\deployments\compose\compose.yml down -v
+//	Linux:   docker compose -f ./deployments/compose/compose.yml down -v
 //
-// The relative path "../../deployments/compose/compose.yml" is used for cross-platform compatibility
-// in GitHub Actions (Ubuntu runners) and local testing with Windows `act` runner.
-// Uses COMPOSE_FILE environment variable if set, otherwise falls back to default path.
+// Always use relative path for cross-platform compatibility in
+// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) error {
 	im.log("🧹 Ensuring clean test environment")
 
@@ -70,24 +69,19 @@ func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) err
 // StartServices starts Docker Compose services.
 // NOTE: These docker compose commands work when run manually from command line:
 //
-//	docker compose -f .\deployments\compose\compose.yml down -v
-//	docker compose -f .\deployments\compose\compose.yml up -d
+//	Windows: docker compose -f .\deployments\compose\compose.yml up -d
+//	Linux:   docker compose -f ./deployments/compose/compose.yml up -d
 //
-// The relative path "../../deployments/compose/compose.yml" is used for cross-platform compatibility
-// in GitHub Actions (Ubuntu runners) and local testing with Windows `act` runner.
-// Uses COMPOSE_FILE environment variable if set, otherwise falls back to default path.
+// Always use relative path for cross-platform compatibility in
+// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	im.log("🚀 Starting Docker Compose services")
 
 	composeFile := im.getComposeFilePath()
 
-	// Stop any existing services first
-	stopCmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "down", "-v", "--remove-orphans")
-	stopOutput, stopErr := stopCmd.CombinedOutput()
-	im.logCommand("Pre-start cleanup", stopCmd.String(), string(stopOutput))
-
-	if stopErr != nil {
-		im.log("⚠️ Warning: pre-start cleanup failed: %v", stopErr)
+	// Ensure clean environment before starting
+	if err := im.EnsureCleanEnvironment(ctx); err != nil {
+		return fmt.Errorf("failed to ensure clean environment: %w", err)
 	}
 
 	// Start fresh services
@@ -110,9 +104,8 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 //	docker compose -f .\deployments\compose\compose.yml down -v
 //	docker compose -f .\deployments\compose\compose.yml up -d
 //
-// The relative path "../../deployments/compose/compose.yml" is used for cross-platform compatibility
-// in GitHub Actions (Ubuntu runners) and local testing with Windows `act` runner.
-// Uses COMPOSE_FILE environment variable if set, otherwise falls back to default path.
+// The relative path from project root is used for cross-platform compatibility
+// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 	im.log("🛑 Stopping Docker Compose services")
 
@@ -216,7 +209,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 	healthStatus := make(map[string]bool)
 
 	composeFile := im.getComposeFilePath()
-	cmd := exec.Command("docker", "compose", "-f", composeFile, "ps", "-a", "--format", "json")
+	cmd := exec.Command("docker", "compose", "-f", composeFile, "ps", "-a", "--format", "json") //nolint:gosec G204 -- composeFile comes from controlled getComposeFilePath method
 	im.logCommand("Batch health check", cmd.String(), "")
 
 	output, err := cmd.Output()

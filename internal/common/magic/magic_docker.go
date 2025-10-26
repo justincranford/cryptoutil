@@ -23,3 +23,11 @@ const (
 	// DockerHTTPClientTimeoutSeconds - HTTP client timeout for Docker operations in seconds.
 	DockerHTTPClientTimeoutSeconds = 5
 )
+
+// Docker Compose relative file paths from project root.
+const (
+	// DockerComposeRelativeFilePathWindows - Docker Compose relative file path for Windows from project root.
+	DockerComposeRelativeFilePathWindows = ".\\deployments\\compose\\compose.yml"
+	// DockerComposeRelativeFilePathLinux - Docker Compose relative file path for Linux/Mac from project root.
+	DockerComposeRelativeFilePathLinux = "./deployments/compose/compose.yml"
+)

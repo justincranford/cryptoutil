@@ -136,7 +136,7 @@ func (f *TestFixture) loadTestCertificates() {
 // setupInfrastructure initializes Docker and services.
 func (f *TestFixture) setupInfrastructure() {
 	// Ensure clean environment
-	require.NoError(f.t, f.infraMgr.EnsureCleanEnvironment(f.ctx), "Failed to ensure clean environment")
+	require.NoError(f.t, f.infraMgr.StopServices(f.ctx), "Failed to ensure clean environment")
 
 	// Start services
 	require.NoError(f.t, f.infraMgr.StartServices(f.ctx), "Failed to start services")
