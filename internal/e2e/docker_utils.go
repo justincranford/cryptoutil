@@ -27,9 +27,9 @@ const (
 )
 
 // getComposeFilePath returns the compose file path appropriate for the current OS.
-// Since E2E tests run from test/e2e/ directory, we need to navigate up to project root.
+// Since E2E tests run from internal/e2e/ directory, we need to navigate up to project root.
 func getComposeFilePath() string {
-	// Navigate up from test/e2e/ to project root, then to deployments/compose/compose.yml
+	// Navigate up from internal/e2e/ to project root, then to deployments/compose/compose.yml
 	projectRoot := filepath.Join("..", "..")
 	composePath := filepath.Join(projectRoot, "deployments", "compose", "compose.yml")
 

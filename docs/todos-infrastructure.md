@@ -117,7 +117,7 @@
   - Update documentation to show correct admin API endpoints
   - Ensure health checks use private server endpoints
   - Remove admin API routes from public server if accidentally added
-- **Files**: `test/e2e_integration_test.go`, documentation, health check scripts
+- **Files**: `internal/e2e/e2e_test.go`, documentation, health check scripts
 - **Expected Outcome**: Admin APIs properly isolated to private server
 - **Priority**: High - API security and correct architecture
 
@@ -130,6 +130,6 @@
   - Update health check functions to use prefixed endpoints
   - Update e2e tests to use prefixed admin API endpoints
   - Update documentation with new admin API paths
-- **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `test/e2e_integration_test.go`, documentation
+- **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `internal/e2e/e2e_test.go`, documentation
 - **Expected Outcome**: Properly prefixed admin APIs with configurable context path
 - **Priority**: Medium - API organization and consistency

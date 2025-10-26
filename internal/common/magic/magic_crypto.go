@@ -87,6 +87,9 @@ const (
 
 	// PoolMaintenanceInterval - Ticker interval for periodic pool maintenance checks.
 	PoolMaintenanceInterval = 500 * time.Millisecond
+
+	// TestPoolMaxSize - Maximum pool size for test configurations.
+	TestPoolMaxSize = 3
 )
 
 var (

@@ -319,7 +319,6 @@ issues:
     - api/client  # Skip OpenAPI client code, generated Go code by oapi-codegen
     - api/model   # Skip OpenAPI model code, generated Go code by oapi-codegen
     - api/server  # Skip OpenAPI server code, generated Go code by oapi-codegen
-    - test        # Skip test directory TEMPORARILY IGNORE test/e2e (integration tests with Go code)
     - test/load   # Skip test/load directory (Java Gatling performance tests, no Go code)
 
     # Build artifacts and reports - DO NOT LINT

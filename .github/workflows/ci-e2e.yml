@@ -171,7 +171,7 @@ jobs:
       - name: Run E2E tests
         run: |
           echo "🧪 Running end-to-end tests..."
-          go test -tags=e2e -v -timeout=30m ./test/e2e/
+          go test -tags=e2e -v -timeout=30m ./internal/e2e/
 
       - name: Collect service logs
         if: always()
