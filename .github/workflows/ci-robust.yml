@@ -1,4 +1,8 @@
 name: CI - Robustness Testing
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+# Example: Use './deployments/compose/compose.yml'
 
 on:
   push:

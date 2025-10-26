@@ -31,6 +31,13 @@ func NewInfrastructureManager(startTime time.Time, logFile *os.File) *Infrastruc
 }
 
 // EnsureCleanEnvironment stops any existing Docker Compose services.
+// NOTE: These docker compose commands work when run manually from command line:
+//
+//	docker compose -f .\deployments\compose\compose.yml down -v
+//	docker compose -f .\deployments\compose\compose.yml up -d
+//
+// The relative path "../../deployments/compose/compose.yml" is used for cross-platform compatibility
+// in GitHub Actions (Ubuntu runners) and local testing with Windows `act` runner.
 func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) error {
 	im.log("🧹 Ensuring clean test environment")
 
@@ -50,6 +57,13 @@ func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) err
 }
 
 // StartServices starts Docker Compose services.
+// NOTE: These docker compose commands work when run manually from command line:
+//
+//	docker compose -f .\deployments\compose\compose.yml down -v
+//	docker compose -f .\deployments\compose\compose.yml up -d
+//
+// The relative path "../../deployments/compose/compose.yml" is used for cross-platform compatibility
+// in GitHub Actions (Ubuntu runners) and local testing with Windows `act` runner.
 func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	im.log("🚀 Starting Docker Compose services")
 
@@ -77,6 +91,13 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 }
 
 // StopServices stops Docker Compose services.
+// NOTE: These docker compose commands work when run manually from command line:
+//
+//	docker compose -f .\deployments\compose\compose.yml down -v
+//	docker compose -f .\deployments\compose\compose.yml up -d
+//
+// The relative path "../../deployments/compose/compose.yml" is used for cross-platform compatibility
+// in GitHub Actions (Ubuntu runners) and local testing with Windows `act` runner.
 func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 	im.log("🛑 Stopping Docker Compose services")
 
@@ -113,7 +134,7 @@ func (im *InfrastructureManager) WaitForServicesReady(ctx context.Context) error
 	return nil
 }
 
-// waitForDockerServicesHealthy waits for Docker services to report healthy status
+// waitForDockerServicesHealthy waits for Docker services to report healthy status.
 func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Context) error {
 	services := []string{
 		"cryptoutil_sqlite",
@@ -144,6 +165,7 @@ func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Contex
 		healthStatus := im.areDockerServicesHealthy(services)
 
 		unhealthyServices := []string{}
+
 		for service, healthy := range healthStatus {
 			status := "❌ UNHEALTHY"
 			if healthy {
@@ -163,6 +185,7 @@ func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Contex
 		allHealthy := len(unhealthyServices) == 0
 		if allHealthy {
 			im.log("✅ All %d Docker services are healthy after %d checks", len(services), checkCount)
+
 			return nil
 		}
 
@@ -172,7 +195,7 @@ func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Contex
 	}
 }
 
-// areDockerServicesHealthy checks all Docker services health status
+// areDockerServicesHealthy checks all Docker services health status.
 func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map[string]bool {
 	healthStatus := make(map[string]bool)
 
@@ -182,9 +205,11 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 	output, err := cmd.Output()
 	if err != nil {
 		im.log("❌ Failed to check services health: %v", err)
+
 		for _, service := range services {
 			healthStatus[service] = false
 		}
+
 		return healthStatus
 	}
 
@@ -205,6 +230,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 	}
 
 	serviceMap := make(map[string]map[string]interface{})
+
 	for _, service := range serviceList {
 		if name, ok := service["Name"].(string); ok {
 			if strings.Contains(name, "compose-") {
@@ -221,6 +247,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 		service, exists := serviceMap[serviceName]
 		if !exists {
 			im.log("❌ Service %s not found in docker compose output", serviceName)
+
 			healthStatus[serviceName] = false
 
 			continue
@@ -252,7 +279,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map
 	return healthStatus
 }
 
-// waitForServicesReachable waits for services to be reachable via HTTP
+// waitForServicesReachable waits for services to be reachable via HTTP.
 func (im *InfrastructureManager) waitForServicesReachable(ctx context.Context) error {
 	// Verify cryptoutil ports are accessible
 	if err := im.verifyCryptoutilPortsReachable(ctx); err != nil {
@@ -276,7 +303,7 @@ func (im *InfrastructureManager) waitForServicesReachable(ctx context.Context) e
 	return nil
 }
 
-// verifyCryptoutilPortsReachable verifies HTTPS ports 8080, 8081, 8082 are accessible
+// verifyCryptoutilPortsReachable verifies HTTPS ports 8080, 8081, 8082 are accessible.
 func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Context) error {
 	ports := []int{8080, 8081, 8082}
 	for _, port := range ports {
@@ -308,10 +335,11 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 
 		im.log("✅ Port %d is reachable", port)
 	}
+
 	return nil
 }
 
-// waitForHTTPReady waits for an HTTP endpoint to return 200
+// waitForHTTPReady waits for an HTTP endpoint to return 200.
 func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url string, timeout time.Duration) error {
 	giveUpTime := time.Now().Add(timeout)
 	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
@@ -336,6 +364,7 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
 			im.log("✅ Service ready at %s", url)
+
 			return nil
 		}
 
@@ -347,7 +376,7 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 	}
 }
 
-// Helper methods
+// Helper methods.
 func (im *InfrastructureManager) log(format string, args ...interface{}) {
 	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
