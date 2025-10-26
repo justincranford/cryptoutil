@@ -10,21 +10,21 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// ServiceNameAndJob represents a service and its optional healthcheck job.
-type ServiceNameAndJob struct {
-	Name           string // The service name to check
-	HealthcheckJob string // Optional healthcheck job name (empty if no healthcheck job)
+// ServiceAndJob represents a service and its optional healthcheck job.
+type ServiceAndJob struct {
+	Service string // The service name to check
+	Job     string // Optional healthcheck job name (empty if no healthcheck job)
 }
 
 // Docker compose service names for batch health checking.
 var (
-	dockerComposeServicesForHealthCheck = []ServiceNameAndJob{
-		{Name: cryptoutilMagic.DockerServiceCryptoutilSqlite},
-		{Name: cryptoutilMagic.DockerServiceCryptoutilPostgres1},
-		{Name: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
-		{Name: cryptoutilMagic.DockerServicePostgres},
-		{Name: cryptoutilMagic.DockerServiceGrafanaOtelLgtm},
-		{Name: cryptoutilMagic.DockerServiceOtelCollector, HealthcheckJob: cryptoutilMagic.DockerJobOtelCollectorHealthcheck},
+	dockerComposeServicesForHealthCheck = []ServiceAndJob{
+		{Service: cryptoutilMagic.DockerServiceCryptoutilSqlite},
+		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres1},
+		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
+		{Service: cryptoutilMagic.DockerServicePostgres},
+		{Service: cryptoutilMagic.DockerServiceGrafanaOtelLgtm},
+		{Service: cryptoutilMagic.DockerServiceOtelCollector, Job: cryptoutilMagic.DockerJobOtelCollectorHealthcheck},
 	}
 )
 
@@ -70,34 +70,34 @@ func parseDockerComposePsOutput(output []byte) (map[string]map[string]any, error
 // determineServiceHealthStatus determines the health status of services from a service map.
 // This function contains the shared logic for determining if services are healthy.
 // It handles services with and without healthcheck jobs.
-func determineServiceHealthStatus(serviceMap map[string]map[string]any, services []ServiceNameAndJob) map[string]bool {
+func determineServiceHealthStatus(serviceMap map[string]map[string]any, services []ServiceAndJob) map[string]bool {
 	healthStatus := make(map[string]bool)
 
 	for _, service := range services {
 		var serviceNameToCheck string
-		if service.HealthcheckJob != "" {
+		if service.Job != "" {
 			// Use the healthcheck job to determine service health
-			serviceNameToCheck = service.HealthcheckJob
+			serviceNameToCheck = service.Job
 		} else {
 			// Check the service directly
-			serviceNameToCheck = service.Name
+			serviceNameToCheck = service.Service
 		}
 
 		serviceData, exists := serviceMap[serviceNameToCheck]
 		if !exists {
 			// Service/job not found
-			if service.HealthcheckJob != "" {
+			if service.Job != "" {
 				// For healthcheck jobs: not found means it completed successfully and was cleaned up
-				healthStatus[service.Name] = true
+				healthStatus[service.Service] = true
 			} else {
 				// For regular services: not found means unhealthy
-				healthStatus[service.Name] = false
+				healthStatus[service.Service] = false
 			}
 
 			continue
 		}
 
-		if service.HealthcheckJob != "" {
+		if service.Job != "" {
 			// This is a healthcheck job - check if it exited successfully
 			if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
 				// Handle both int and float64 types for ExitCode
@@ -108,27 +108,27 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 					exitCode = exitCodeInt
 				} else {
 					// ExitCode field not found or wrong type
-					healthStatus[service.Name] = false
+					healthStatus[service.Service] = false
 
 					continue
 				}
 
-				healthStatus[service.Name] = exitCode == 0
+				healthStatus[service.Service] = exitCode == 0
 			} else {
 				// Not in exited state
-				healthStatus[service.Name] = false
+				healthStatus[service.Service] = false
 			}
 		} else {
 			// Regular service - check health or running state
 			if health, ok := serviceData["Health"].(string); ok && health != "" {
 				// Services with health checks
-				healthStatus[service.Name] = health == cryptoutilMagic.DockerServiceHealthHealthy
+				healthStatus[service.Service] = health == cryptoutilMagic.DockerServiceHealthHealthy
 			} else {
 				// Services without health checks: check if running
 				if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
-					healthStatus[service.Name] = true
+					healthStatus[service.Service] = true
 				} else {
-					healthStatus[service.Name] = false
+					healthStatus[service.Service] = false
 				}
 			}
 		}

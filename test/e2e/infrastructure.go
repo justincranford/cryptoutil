@@ -83,14 +83,14 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 }
 
 // areDockerServicesHealthy checks all Docker services health status.
-func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, services []ServiceNameAndJob) map[string]bool {
+func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, services []ServiceAndJob) map[string]bool {
 	output, err := runDockerComposeCommand(ctx, im.logger, dockerComposeDescBatchHealth, dockerComposeArgsPsServices)
 	if err != nil {
 		Log(im.logger, "❌ Failed to check services health: %v", err)
 
 		healthStatus := make(map[string]bool)
 		for _, service := range services {
-			healthStatus[service.Name] = false
+			healthStatus[service.Service] = false
 		}
 
 		return healthStatus
@@ -102,7 +102,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 		healthStatus := make(map[string]bool)
 		for _, service := range services {
-			healthStatus[service.Name] = false
+			healthStatus[service.Service] = false
 		}
 
 		return healthStatus
@@ -112,9 +112,9 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 	// Add logging for healthcheck service special cases
 	for _, service := range services {
-		if service.HealthcheckJob != "" {
+		if service.Job != "" {
 			// This service uses a healthcheck job
-			jobName := service.HealthcheckJob
+			jobName := service.Job
 			jobData, exists := serviceMap[jobName]
 
 			if exists {
@@ -150,10 +150,10 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 			} else {
 				Log(im.logger, "🔍 Healthcheck job %s not found (completed successfully)", jobName)
 			}
-		} else if !healthStatus[service.Name] {
+		} else if !healthStatus[service.Service] {
 			// Log when regular services are not found
-			if _, exists := serviceMap[service.Name]; !exists {
-				Log(im.logger, "❌ Service %s not found in docker compose output", service.Name)
+			if _, exists := serviceMap[service.Service]; !exists {
+				Log(im.logger, "❌ Service %s not found in docker compose output", service.Service)
 			}
 		}
 	}
