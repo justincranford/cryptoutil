@@ -18,12 +18,16 @@ services:
       - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
       - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
-      - cryptoutil_database-url.secret
+      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
+      # to enable shared encryption/decryption of data in the database. NEVER use
+      # instance-specific secrets as this breaks cryptographic interoperability.
       - cryptoutil_unseal_1of5.secret
       - cryptoutil_unseal_2of5.secret
       - cryptoutil_unseal_3of5.secret
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
+      # IMPORTANT: ALL cryptoutil-sqlite instances MUST NOT use url secret
+      # for database connection, as they do not share data.
     depends_on:
       opentelemetry-collector-contrib:
         condition: service_started
@@ -53,7 +57,7 @@ services:
         APP_VERSION: "dev"
         VCS_REF: "local"
         BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/cryptoutil_database-url.secret"]
+    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8081:8080"    # HTTPS public
@@ -62,12 +66,17 @@ services:
       - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
       - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
-      - cryptoutil_database-url.secret
+      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
+      # to enable shared encryption/decryption of data in the database. NEVER use
+      # instance-specific secrets as this breaks cryptographic interoperability.
       - cryptoutil_unseal_1of5.secret
       - cryptoutil_unseal_2of5.secret
       - cryptoutil_unseal_3of5.secret
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
+      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
+      # for database connection to enable shared data in the database.
+      - postgres_url.secret
     depends_on:
       postgres:
         condition: service_started
@@ -99,7 +108,7 @@ services:
         APP_VERSION: "dev"
         VCS_REF: "local"
         BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/cryptoutil_database-url.secret"]
+    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8082:8080"    # HTTPS public
@@ -112,12 +121,14 @@ services:
       # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
       # to enable shared encryption/decryption of data in the database. NEVER use
       # instance-specific secrets as this breaks cryptographic interoperability.
-      - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
       - cryptoutil_unseal_2of5.secret
       - cryptoutil_unseal_3of5.secret
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
+      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
+      # for database connection to enable shared data in the database.
+      - postgres_url.secret
     depends_on:
       postgres:
         condition: service_started
@@ -145,6 +156,8 @@ services:
 
   postgres:
     image: postgres:18
+    # TODO: Switch postgres service to use mounted secrets files instead of hard-coded environment variables
+    # TODO: Update cryptoutil-postgres services to use individual postgres secrets (username, password, database) instead of postgres_url.secret
     environment:
       POSTGRES_USER: USR # pragma: allowlist secret
       POSTGRES_PASSWORD: PWD # pragma: allowlist secret
@@ -255,15 +268,19 @@ volumes:
     name: cryptoutil_grafana_volume
 
 secrets:
+  # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME secrets
+  # for database connection to enable shared data in the database.
+  # NEVER create instance-specific database connection.
+  # IMPORTANT: All cryptoutil-sqlite instances MAY use different database
+  # connection secrets as they do not share data.
   postgres_username.secret:
     file: ./postgres/postgres_username.secret
   postgres_password.secret:
     file: ./postgres/postgres_password.secret
   postgres_database.secret:
     file: ./postgres/postgres_database.secret
-
-  cryptoutil_database-url.secret:
-    file: ./cryptoutil/cryptoutil_database_url.secret
+  postgres_url.secret:
+    file: ./postgres/postgres_url.secret
 
   # IMPORTANT: ALL cryptoutil instances MUST use the SAME unseal secrets
   # to enable shared encryption/decryption of data in the database.
