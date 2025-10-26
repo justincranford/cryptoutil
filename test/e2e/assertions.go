@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -155,14 +157,22 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 	a.log("🔍 Verifying Docker services health")
 
-	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", "-a", "--format", "json")
-	output, err := cmd.Output()
+	services := []ServiceNameAndJob{
+		{Name: cryptoutilMagic.DockerServiceCryptoutilSqlite},
+		{Name: cryptoutilMagic.DockerServiceCryptoutilPostgres1},
+		{Name: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
+		{Name: cryptoutilMagic.DockerServicePostgres},
+		{Name: cryptoutilMagic.DockerServiceGrafanaOtelLgtm},
+		{Name: cryptoutilMagic.DockerServiceOtelCollector, HealthcheckJob: cryptoutilMagic.DockerJobOtelCollectorHealthcheck},
+	}
+
+	output, err := a.runDockerComposeCommand(context.Background(), "Batch health check", dockerComposeArgsPsServices)
 	require.NoError(a.t, err, "Failed to check Docker services health")
 
 	serviceMap, err := parseDockerComposePsOutput(output)
 	require.NoError(a.t, err, "Failed to parse Docker compose output")
 
-	healthStatus := determineServiceHealthStatus(serviceMap, dockerComposeServicesForHealthCheck)
+	healthStatus := determineServiceHealthStatus(serviceMap, services)
 
 	// Assert all services are healthy
 	unhealthyServices := make([]string, 0)
@@ -193,5 +203,50 @@ func (a *ServiceAssertions) log(format string, args ...any) {
 			// If we can't write to the log file, at least write to console
 			fmt.Printf("⚠️ Failed to write to log file: %v\n", err)
 		}
+	}
+}
+
+// runDockerComposeCommand executes a docker compose command with the given arguments.
+func (a *ServiceAssertions) runDockerComposeCommand(ctx context.Context, description string, args []string) ([]byte, error) {
+	composeFile := a.getComposeFilePath()
+	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
+	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
+	output, err := cmd.CombinedOutput()
+	a.logCommand(description, cmd.String(), string(output))
+
+	if err != nil {
+		return output, fmt.Errorf("docker compose command failed: %w", err)
+	}
+
+	return output, nil
+}
+
+// getComposeFilePath returns the compose file path appropriate for the current OS.
+// Since E2E tests run from test/e2e/ directory, we need to navigate up to project root.
+func (a *ServiceAssertions) getComposeFilePath() string {
+	// Navigate up from test/e2e/ to project root, then to deployments/compose/compose.yml
+	projectRoot := filepath.Join("..", "..")
+	composePath := filepath.Join(projectRoot, "deployments", "compose", "compose.yml")
+
+	// Convert to absolute path to ensure it works regardless of working directory
+	absPath, err := filepath.Abs(composePath)
+	if err != nil {
+		// Fallback to relative path if absolute path fails
+		if runtime.GOOS == "windows" {
+			return cryptoutilMagic.DockerComposeRelativeFilePathWindows
+		}
+
+		return cryptoutilMagic.DockerComposeRelativeFilePathLinux
+	}
+
+	return absPath
+}
+
+// logCommand provides structured logging for commands.
+func (a *ServiceAssertions) logCommand(description, command, output string) {
+	a.log("📋 [%s] %s", description, command)
+
+	if output != "" {
+		a.log("📋 [%s] Output: %s", description, strings.TrimSpace(output))
 	}
 }
