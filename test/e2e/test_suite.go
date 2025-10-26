@@ -60,7 +60,7 @@ func (suite *E2ETestSuite) SetupSuite() {
 	suite.fixture = NewTestFixture(suite.T())
 
 	// Create assertions helper
-	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.startTime, suite.fixture.logFile)
+	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.logger)
 
 	// Setup infrastructure
 	suite.fixture.Setup()
@@ -72,13 +72,13 @@ func (suite *E2ETestSuite) SetupSuite() {
 func (suite *E2ETestSuite) TearDownSuite() {
 	suite.logStep("E2E Test Suite Cleanup", "Starting test suite cleanup")
 
+	// Generate final summary report before tearing down infrastructure
+	suite.generateSummaryReport()
+
 	// Teardown infrastructure
 	suite.fixture.Teardown()
 
 	suite.completeStep("PASS", "Test suite cleanup completed")
-
-	// Generate final summary report
-	suite.generateSummaryReport()
 }
 
 // SetupTest runs before each test method.
@@ -118,7 +118,7 @@ func (suite *E2ETestSuite) TestInfrastructureHealth() {
 
 	suite.assertions.AssertDockerServicesHealthy()
 	suite.assertions.AssertHTTPReady(suite.fixture.ctx, suite.fixture.GetServiceURL("grafana")+"/api/health", cryptoutilMagic.TestTimeoutCryptoutilReady)
-	suite.assertions.AssertHTTPReady(suite.fixture.ctx, suite.fixture.GetServiceURL("otel")+"/metrics", cryptoutilMagic.TestTimeoutCryptoutilReady)
+	suite.assertions.AssertHTTPReady(suite.fixture.ctx, suite.fixture.GetServiceURL("otel"), cryptoutilMagic.TestTimeoutCryptoutilReady)
 }
 
 // TestCryptoutilSQLite tests SQLite-based cryptoutil instance.
@@ -209,16 +209,78 @@ func (suite *E2ETestSuite) testCryptoutilInstance(instanceName string) {
 	suite.assertions.AssertCryptoutilReady(suite.fixture.ctx, baseURL, suite.fixture.rootCAsPool)
 
 	// Test core functionality
-	elasticKey := suite.testCreateElasticKey(client)
-	suite.testGenerateMaterialKey(client, elasticKey)
-	suite.testEncryptDecryptCycle(client, elasticKey)
-	suite.testSignVerifyCycle(client, elasticKey)
+	encryptionKey := suite.testCreateEncryptionKey(client, instanceName)
+	suite.testGenerateMaterialKey(client, encryptionKey)
+	suite.testEncryptDecryptCycle(client, encryptionKey)
+
+	signingKey := suite.testCreateSigningKey(client, instanceName)
+	suite.testSignVerifyCycle(client, signingKey)
 
 	suite.completeStep("PASS", fmt.Sprintf("%s instance tests completed successfully", instanceName))
 }
 
+// testCreateEncryptionKey creates a test elastic key for encryption operations.
+func (suite *E2ETestSuite) testCreateEncryptionKey(client *cryptoutilOpenapiClient.ClientWithResponses, instanceName string) *cryptoutilOpenapiModel.ElasticKey {
+	suite.logStep("Create Encryption Key", "Creating test elastic key for encryption operations")
+
+	defer func() {
+		if r := recover(); r != nil {
+			suite.completeStep("FAIL", fmt.Sprintf("Encryption key creation failed: %v", r))
+			panic(r)
+		}
+	}()
+
+	// Create instance-specific key name to avoid conflicts
+	instanceKeyName := fmt.Sprintf("e2e-test-encrypt-key-%s", instanceName)
+	instanceKeyDescription := fmt.Sprintf("E2E integration test encryption key for %s", instanceName)
+
+	encryptionAlgorithm := "A256GCM/A256KW" // JWE algorithm for encryption
+
+	elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
+		suite.T(), &instanceKeyName, &instanceKeyDescription,
+		&encryptionAlgorithm, &testProvider, &importAllowed, &versioningAllowed,
+	)
+
+	elasticKey := cryptoutilClient.RequireCreateElasticKeyResponse(suite.T(), suite.fixture.ctx, client, elasticKeyCreate)
+	require.NotNil(suite.T(), elasticKey.ElasticKeyID)
+
+	suite.completeStep("PASS", fmt.Sprintf("Encryption key created with ID: %s", *elasticKey.ElasticKeyID))
+
+	return elasticKey
+}
+
+// testCreateSigningKey creates a test elastic key for signing operations.
+func (suite *E2ETestSuite) testCreateSigningKey(client *cryptoutilOpenapiClient.ClientWithResponses, instanceName string) *cryptoutilOpenapiModel.ElasticKey {
+	suite.logStep("Create Signing Key", "Creating test elastic key for signing operations")
+
+	defer func() {
+		if r := recover(); r != nil {
+			suite.completeStep("FAIL", fmt.Sprintf("Signing key creation failed: %v", r))
+			panic(r)
+		}
+	}()
+
+	// Create instance-specific key name to avoid conflicts
+	instanceKeyName := fmt.Sprintf("e2e-test-sign-key-%s", instanceName)
+	instanceKeyDescription := fmt.Sprintf("E2E integration test signing key for %s", instanceName)
+
+	signingAlgorithm := "RS256" // RSA signature algorithm for signing
+
+	elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
+		suite.T(), &instanceKeyName, &instanceKeyDescription,
+		&signingAlgorithm, &testProvider, &importAllowed, &versioningAllowed,
+	)
+
+	elasticKey := cryptoutilClient.RequireCreateElasticKeyResponse(suite.T(), suite.fixture.ctx, client, elasticKeyCreate)
+	require.NotNil(suite.T(), elasticKey.ElasticKeyID)
+
+	suite.completeStep("PASS", fmt.Sprintf("Signing key created with ID: %s", *elasticKey.ElasticKeyID))
+
+	return elasticKey
+}
+
 // testCreateElasticKey creates a test elastic key.
-func (suite *E2ETestSuite) testCreateElasticKey(client *cryptoutilOpenapiClient.ClientWithResponses) *cryptoutilOpenapiModel.ElasticKey {
+func (suite *E2ETestSuite) testCreateElasticKey(client *cryptoutilOpenapiClient.ClientWithResponses, instanceName string) *cryptoutilOpenapiModel.ElasticKey {
 	suite.logStep("Create Elastic Key", "Creating test elastic key for cryptographic operations")
 
 	defer func() {
@@ -228,8 +290,12 @@ func (suite *E2ETestSuite) testCreateElasticKey(client *cryptoutilOpenapiClient.
 		}
 	}()
 
+	// Create instance-specific key name to avoid conflicts
+	instanceKeyName := fmt.Sprintf("e2e-test-key-%s", instanceName)
+	instanceKeyDescription := fmt.Sprintf("E2E integration test key for %s", instanceName)
+
 	elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
-		suite.T(), &testElasticKeyName, &testElasticKeyDescription,
+		suite.T(), &instanceKeyName, &instanceKeyDescription,
 		&testAlgorithm, &testProvider, &importAllowed, &versioningAllowed,
 	)
 
@@ -324,7 +390,7 @@ func (suite *E2ETestSuite) logStep(name, description string) {
 
 	// Only log to fixture if it exists (it won't exist during very early setup)
 	if suite.fixture != nil {
-		suite.fixture.log("[%s] [%v] 📋 %s: %s",
+		suite.fixture.logger.Log("[%s] [%v] 📋 %s: %s",
 			step.StartTime.Format("15:04:05"),
 			time.Since(suite.fixture.startTime).Round(time.Second),
 			name, description)
@@ -362,7 +428,7 @@ func (suite *E2ETestSuite) completeStep(status, result string) {
 
 	// Only log to fixture if it exists
 	if suite.fixture != nil {
-		suite.fixture.log("[%s] [%v] %s %s: %s (took %v)",
+		suite.fixture.logger.Log("[%s] [%v] %s %s: %s (took %v)",
 			step.EndTime.Format("15:04:05"),
 			time.Since(suite.fixture.startTime).Round(time.Second),
 			statusEmoji, step.Name, result, step.Duration.Round(time.Millisecond))
@@ -420,15 +486,13 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
 
 	// Log the report to both console and file
-	suite.fixture.log("%s", report.String())
+	suite.fixture.logger.Log("%s", report.String())
 }
 
 // Test constants (moved from original file).
 var (
-	testElasticKeyName        = "e2e-test-key"
-	testElasticKeyDescription = "E2E integration test key"
-	testAlgorithm             = "A256GCM/A256KW" // Use EncA256GCM from jwk_util.go
-	testProvider              = "Internal"       // Use StringProviderInternal from magic_api.go
-	importAllowed             = false            // Search for magic value to use
-	versioningAllowed         = true             // Search for magic value to use
+	testAlgorithm     = "A256GCM/A256KW" // Use JWE algorithm for elastic key encryption (default from OpenAPI spec)
+	testProvider      = "Internal"       // Use StringProviderInternal from magic_api.go
+	importAllowed     = false            // Search for magic value to use
+	versioningAllowed = true             // Search for magic value to use
 )

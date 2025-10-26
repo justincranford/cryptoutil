@@ -47,13 +47,7 @@ func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptout
 		if openapiCreateElasticKeyResponse.Body == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, body is nil")
 		} else if openapiCreateElasticKeyResponse.JSON200 == nil {
-			// Return error with body content for debugging
-			bodyStr := "nil"
-			if openapiCreateElasticKeyResponse.Body != nil {
-				bodyStr = string(openapiCreateElasticKeyResponse.Body)
-			}
-
-			return nil, fmt.Errorf("failed to create Elastic Key, JSON200 is nil but body exists: %s", bodyStr)
+			return nil, fmt.Errorf("failed to create Elastic Key, JSON200 is nil")
 		}
 
 		elasticKey := openapiCreateElasticKeyResponse.JSON200

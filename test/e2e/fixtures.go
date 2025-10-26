@@ -26,7 +26,7 @@ type TestFixture struct {
 	cancel    context.CancelFunc
 
 	// Logging
-	logFile *os.File
+	logger *Logger
 
 	// Infrastructure
 	infraMgr *InfrastructureManager
@@ -73,14 +73,14 @@ func NewTestFixture(t *testing.T) *TestFixture {
 		startTime: startTime,
 		ctx:       ctx,
 		cancel:    cancel,
-		logFile:   logFile,
+		logger:    NewLogger(startTime, logFile),
 		infraMgr:  NewInfrastructureManager(startTime, logFile),
 	}
 }
 
 // Setup initializes the test infrastructure.
 func (f *TestFixture) Setup() {
-	f.log("🚀 Setting up test fixture")
+	f.logger.Log("🚀 Setting up test fixture")
 
 	// Initialize service URLs
 	f.initializeServiceURLs()
@@ -91,30 +91,16 @@ func (f *TestFixture) Setup() {
 	// Setup infrastructure
 	f.setupInfrastructure()
 
-	f.log("✅ Test fixture setup complete")
+	f.logger.Log("✅ Test fixture setup complete")
 }
 
 // Teardown cleans up the test infrastructure.
 func (f *TestFixture) Teardown() {
-	f.log("🧹 Tearing down test fixture")
-
-	if f.cancel != nil {
-		f.cancel()
+	f.cancel()
+	f.logger.Log("Teardown: Closing log file")
+	if f.logger.logFile != nil {
+		f.logger.logFile.Close()
 	}
-
-	// Stop infrastructure
-	if err := f.infraMgr.StopServices(context.Background()); err != nil {
-		f.log("⚠️ Warning: failed to stop infrastructure: %v", err)
-	}
-
-	// Close log file
-	if f.logFile != nil {
-		if err := f.logFile.Close(); err != nil {
-			f.log("⚠️ Warning: failed to close log file: %v", err)
-		}
-	}
-
-	f.log("✅ Test fixture teardown complete")
 }
 
 // initializeServiceURLs sets up all service URLs.
@@ -123,14 +109,14 @@ func (f *TestFixture) initializeServiceURLs() {
 	f.postgres1URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose1) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.postgres2URL = cryptoutilMagic.URLPrefixLocalhostHTTPS + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortCryptoutilCompose2) + cryptoutilMagic.DefaultPublicServiceAPIContextPath
 	f.grafanaURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortGrafana)
-	f.otelURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortInternalMetrics)
+	f.otelURL = cryptoutilMagic.URLPrefixLocalhostHTTP + fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortOtelCollectorHealth)
 }
 
 // loadTestCertificates configures TLS settings for tests.
 func (f *TestFixture) loadTestCertificates() {
 	// Using InsecureSkipVerify for e2e tests
 	f.rootCAsPool = nil
-	f.log("✅ Test certificates configured (InsecureSkipVerify)")
+	f.logger.Log("✅ Test certificates configured (InsecureSkipVerify)")
 }
 
 // setupInfrastructure initializes Docker and services.
@@ -142,11 +128,11 @@ func (f *TestFixture) setupInfrastructure() {
 	require.NoError(f.t, f.infraMgr.StartServices(f.ctx), "Failed to start services")
 
 	// Wait for services to be ready
-	f.log("⏳ Waiting for Docker Compose services to initialize...")
+	f.logger.Log("⏳ Waiting for Docker Compose services to initialize...")
 	time.Sleep(cryptoutilMagic.TestTimeoutDockerComposeInit)
 	require.NoError(f.t, f.infraMgr.WaitForDockerServicesHealthy(f.ctx), "Failed to wait for docker services healthy")
 	require.NoError(f.t, f.infraMgr.WaitForServicesReachable(f.ctx), "Failed to wait for services reachable")
-	f.log("✅ All services are ready")
+	f.logger.Log("✅ All services are ready")
 }
 
 // InitializeAPIClients creates API clients for all services.
@@ -154,7 +140,7 @@ func (f *TestFixture) InitializeAPIClients() {
 	f.sqliteClient = cryptoutilClient.RequireClientWithResponses(f.t, &f.sqliteURL, f.rootCAsPool)
 	f.postgres1Client = cryptoutilClient.RequireClientWithResponses(f.t, &f.postgres1URL, f.rootCAsPool)
 	f.postgres2Client = cryptoutilClient.RequireClientWithResponses(f.t, &f.postgres2URL, f.rootCAsPool)
-	f.log("✅ API clients initialized")
+	f.logger.Log("✅ API clients initialized")
 }
 
 // GetClient returns the API client for the specified instance.
@@ -190,24 +176,5 @@ func (f *TestFixture) GetServiceURL(instanceName string) string {
 		require.Fail(f.t, "Unknown service name", "Service %s not found", instanceName)
 
 		return ""
-	}
-}
-
-// log provides structured logging for the fixture.
-func (f *TestFixture) log(format string, args ...any) {
-	message := fmt.Sprintf("[%s] [%v] %s\n",
-		time.Now().Format("15:04:05"),
-		time.Since(f.startTime).Round(time.Second),
-		fmt.Sprintf(format, args...))
-
-	// Write to console
-	fmt.Print(message)
-
-	// Write to log file if available
-	if f.logFile != nil {
-		if _, err := f.logFile.WriteString(message); err != nil {
-			// If we can't write to the log file, at least write to console
-			fmt.Printf("⚠️ Failed to write to log file: %v\n", err)
-		}
 	}
 }

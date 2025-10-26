@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/x509"
 	"net/http"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -24,12 +23,12 @@ type ServiceAssertions struct {
 }
 
 // NewServiceAssertions creates a new service assertions helper.
-func NewServiceAssertions(t *testing.T, startTime time.Time, logFile *os.File) *ServiceAssertions {
+func NewServiceAssertions(t *testing.T, logger *Logger) *ServiceAssertions {
 	t.Helper()
 
 	return &ServiceAssertions{
 		t:      t,
-		logger: NewLogger(startTime, logFile),
+		logger: logger,
 	}
 }
 

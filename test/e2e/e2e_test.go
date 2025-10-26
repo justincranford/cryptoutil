@@ -44,7 +44,7 @@ func (suite *SummaryTestSuite) SetupSuite() {
 	suite.fixture = NewTestFixture(suite.T())
 
 	// Create assertions helper
-	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.startTime, suite.fixture.logFile)
+	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.logger)
 
 	suite.completeStep("PASS", "Summary test setup completed successfully")
 }
@@ -92,7 +92,7 @@ func (suite *SummaryTestSuite) logStep(name, description string) {
 	suite.summary.Steps = append(suite.summary.Steps, step)
 
 	if suite.fixture != nil {
-		suite.fixture.log("[%s] [%v] 📋 %s: %s",
+		suite.fixture.logger.Log("[%s] [%v] 📋 %s: %s",
 			step.StartTime.Format("15:04:05"),
 			time.Since(suite.fixture.startTime).Round(time.Second),
 			name, description)
@@ -128,7 +128,7 @@ func (suite *SummaryTestSuite) completeStep(status, result string) {
 	}
 
 	if suite.fixture != nil {
-		suite.fixture.log("[%s] [%v] %s %s: %s (took %v)",
+		suite.fixture.logger.Log("[%s] [%v] %s %s: %s (took %v)",
 			step.EndTime.Format("15:04:05"),
 			time.Since(suite.fixture.startTime).Round(time.Second),
 			statusEmoji, step.Name, result, step.Duration.Round(time.Millisecond))
@@ -184,6 +184,6 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("=", 80) + "\n")
 
 	if suite.fixture != nil {
-		suite.fixture.log("%s", report.String())
+		suite.fixture.logger.Log("%s", report.String())
 	}
 }
