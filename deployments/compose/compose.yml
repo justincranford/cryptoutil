@@ -109,6 +109,9 @@ services:
       - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
       - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
     secrets:
+      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
+      # to enable shared encryption/decryption of data in the database. NEVER use
+      # instance-specific secrets as this breaks cryptographic interoperability.
       - cryptoutil_database-url.secret
       - cryptoutil_unseal_1of5.secret
       - cryptoutil_unseal_2of5.secret
@@ -262,6 +265,9 @@ secrets:
   cryptoutil_database-url.secret:
     file: ./cryptoutil/cryptoutil_database_url.secret
 
+  # IMPORTANT: ALL cryptoutil instances MUST use the SAME unseal secrets
+  # to enable shared encryption/decryption of data in the database.
+  # NEVER create instance-specific secrets as this breaks cryptographic interoperability.
   cryptoutil_unseal_1of5.secret:
     file: ./cryptoutil/cryptoutil_unseal_1of5.secret # pragma: allowlist secret
   cryptoutil_unseal_2of5.secret:

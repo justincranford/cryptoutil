@@ -83,19 +83,42 @@ LABEL org.opencontainers.image.authors="Justin Cranford <justin@example.com>"
 
 ## Docker Secrets Best Practices
 
-### CRITICAL: Never Use Environment Variables for File Paths
-- **ALWAYS** use Docker secrets directly mounted to `/run/secrets/` for sensitive configuration files
-- **REASON**: Environment variables are visible in container inspect output and logs, while secrets are properly isolated
-- **PATTERN**: Use `secrets:` in compose.yml and reference `/run/secrets/secret_name` directly, not via environment variables
-- **PREFER**: Direct secret mounting and file:// URLs in command arguments or config files
+### CRITICAL: Shared Secrets for Cryptographic Interoperability
+- **ALL cryptoutil instances MUST use the SAME unseal secrets** to enable shared encryption/decryption of data in the database
+- **NEVER create instance-specific secrets** as this breaks cryptographic interoperability between services
+- **REASON**: Each cryptoutil instance needs to access the same encrypted data (keys, certificates, etc.) stored in the shared database
+- **PATTERN**: All services reference the same secret files in their `secrets:` configuration
+- **CONSEQUENCE**: Using different secrets per instance causes "failed to find key with key ID" errors and cryptographic isolation
 
 ### Secret Mounting Patterns
 ```yaml
 services:
-  app:
+  cryptoutil_sqlite:
     secrets:
-      - database_url_secret
-    command: ["app", "--database-url=file:///run/secrets/database_url_secret"]
+      # ALL instances use the SAME secrets for cryptographic compatibility
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
+
+  cryptoutil_postgres_1:
+    secrets:
+      # SAME secrets as other instances - CRITICAL for shared database access
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
+
+  cryptoutil_postgres_2:
+    secrets:
+      # SAME secrets as other instances - NEVER use postgres2-specific secrets
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
 ```
 
 ### Environment Variable Anti-Patterns to Avoid
@@ -229,6 +252,120 @@ services:
 - Swagger UI: `https://127.0.0.1:8082/ui/swagger`
 - Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
 - Backend: PostgreSQL database (shared with postgres_1)
+
+## cryptoutil Configuration File Requirements
+
+### Instance-Specific Configuration Files
+
+**CRITICAL: ALL settings in instance-specific config files MUST BE UNIQUE and CORRESPOND TO the service name in compose.yml**
+
+Each cryptoutil service has its own configuration file with settings that must be unique to that specific service instance:
+
+#### cryptoutil-sqlite.yml (for cryptoutil_sqlite service)
+```yaml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil_sqlite' service name in compose.yml
+# Changing any values here will break cryptographic interoperability and service identification
+
+# CORS configuration - HTTPS origins only (from default config)
+cors-origins:
+  - "https://localhost:8080"
+  - "https://127.0.0.1:8080"
+  - "https://[::1]:8080"
+  - "https://[::ffff:127.0.0.1]:8080"
+
+otlp-service: cryptoutil-sqlite
+otlp-hostname: cryptoutil-sqlite
+
+# Development mode - enables in-memory SQLite
+dev: true
+```
+
+#### cryptoutil-postgresql-1.yml (for cryptoutil_postgres_1 service)
+```yaml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil_postgres_1' service name in compose.yml
+# Changing any values here will break cryptographic interoperability and service identification
+
+# CORS configuration - HTTPS origins only (from default config)
+cors-origins:
+  - "https://localhost:8081"
+  - "https://127.0.0.1:8081"
+  - "https://[::1]:8081"
+  - "https://[::ffff:127.0.0.1]:8081"
+
+otlp-service: cryptoutil-postgresql-1
+otlp-hostname: cryptoutil-postgresql-1
+```
+
+#### cryptoutil-postgresql-2.yml (for cryptoutil_postgres_2 service)
+```yaml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil_postgres_2' service name in compose.yml
+# Changing any values here will break cryptographic interoperability and service identification
+
+# CORS configuration - HTTPS origins only (from default config)
+cors-origins:
+  - "https://localhost:8082"
+  - "https://127.0.0.1:8082"
+  - "https://[::1]:8082"
+  - "https://[::ffff:127.0.0.1]:8082"
+
+otlp-service: cryptoutil-postgresql-2
+otlp-hostname: cryptoutil-postgresql-2
+```
+
+**Key Requirements for Instance-Specific Files:**
+- **Service Name Correspondence**: Comments must reference the EXACT service name from compose.yml
+- **Unique Settings**: ALL settings must be unique per instance (ports, service names, hostnames, CORS origins)
+- **No Shared Values**: Never duplicate settings between instance files
+- **CORS Origins**: Must match the exposed ports for each service
+- **OTLP Service/Hostname**: Must be unique and match the service identity
+
+### Common Configuration File
+
+#### cryptoutil-common.yml (shared by ALL cryptoutil services)
+```yaml
+# CRITICAL: This file contains COMMON settings used by ALL cryptoutil services in compose.yml
+# ALL cryptoutil instances (cryptoutil_sqlite, cryptoutil_postgres_1, cryptoutil_postgres_2)
+# MUST use this file for shared configuration. Instance-specific settings belong in
+# their respective config files (cryptoutil-sqlite.yml, cryptoutil-postgresql-1.yml, cryptoutil-postgresql-2.yml)
+# Changing settings here affects ALL cryptoutil services.
+
+# Logging level (ALL, TRACE, DEBUG, CONFIG, INFO, NOTICE, WARN, ERROR, FATAL, OFF)
+# log-level: "INFO"
+
+# Binding address - 0.0.0.0 allows connections from any NIC within the container
+bind-public-address: "0.0.0.0"
+
+# TLS configuration for HTTPS
+tls-cert-file: /app/tls_public_server_certificate_0.pem
+tls-key-file: /app/tls_public_server_private_key.pem
+
+unseal-mode: "3-of-5"
+
+unseal-files:
+  - /run/secrets/cryptoutil_unseal_1of5.secret
+  - /run/secrets/cryptoutil_unseal_2of5.secret
+  - /run/secrets/cryptoutil_unseal_3of5.secret
+  - /run/secrets/cryptoutil_unseal_4of5.secret
+  - /run/secrets/cryptoutil_unseal_5of5.secret
+
+# Allow all IPs for development/testing
+allowed-ips:
+  - "127.0.0.1"
+  - "::1"
+  - "::ffff:127.0.0.1"
+allowed-cidrs:
+  - "0.0.0.0/0"
+  - "::/0"
+
+# Disable CSRF for API testing
+csrf-token-single-use-token: false
+```
+
+**Key Requirements for Common File:**
+- **Shared Settings**: Contains settings used by ALL cryptoutil instances
+- **Cryptographic Configuration**: Unseal settings, TLS config, security policies
+- **No Instance-Specific Values**: Never include service-specific settings
+- **Critical for Interoperability**: Settings here ensure all instances can access shared encrypted data
 
 ### PostgreSQL Database
 
