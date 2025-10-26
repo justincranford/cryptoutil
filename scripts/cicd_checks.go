@@ -534,13 +534,9 @@ func getLatestVersion(actionName string) (string, error) {
 	if resp.StatusCode == http.StatusNotFound {
 		// Some actions might not have releases, try tags
 		return getLatestTag(actionName)
-	}
-
-	if resp.StatusCode == http.StatusForbidden {
+	} else if resp.StatusCode == http.StatusForbidden {
 		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
-	}
-
-	if resp.StatusCode != http.StatusOK {
+	} else if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
@@ -590,9 +586,7 @@ func getLatestTag(actionName string) (string, error) {
 
 	if resp.StatusCode == http.StatusForbidden {
 		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
-	}
-
-	if resp.StatusCode != http.StatusOK {
+	} else if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
