@@ -78,7 +78,7 @@ func (suite *E2ETestSuite) TearDownSuite() {
 	// Mark cleanup step as completed before closing log file
 	CompleteStep(suite.summary, suite.fixture.logger, "PASS", "Test suite cleanup completed")
 
-	// Teardown infrastructure (closes log file)
+	// Teardown infrastructure (IMPORTANT: close log file must be last step)
 	suite.fixture.Teardown()
 }
 
