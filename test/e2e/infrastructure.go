@@ -38,36 +38,6 @@ func NewInfrastructureManager(startTime time.Time, logFile *os.File) *Infrastruc
 	}
 }
 
-// getComposeFilePath returns the compose file path appropriate for the current OS.
-func (im *InfrastructureManager) getComposeFilePath() string {
-	if runtime.GOOS == "windows" {
-		return cryptoutilMagic.DockerComposeRelativeFilePathWindows
-	}
-
-	return cryptoutilMagic.DockerComposeRelativeFilePathLinux
-}
-
-// runDockerComposeCommand executes a docker compose command with the given arguments.
-//
-//	Windows: docker compose -f .\deployments\compose\compose.yml <command> <args>
-//	Linux:   docker compose -f ./deployments/compose/compose.yml <command> <args>
-//
-// Always use relative path for cross-platform compatibility in
-// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
-func (im *InfrastructureManager) runDockerComposeCommand(ctx context.Context, description string, args []string) ([]byte, error) {
-	composeFile := im.getComposeFilePath()
-	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
-	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
-	output, err := cmd.CombinedOutput()
-	im.logCommand(description, cmd.String(), string(output))
-
-	if err != nil {
-		return output, fmt.Errorf("docker compose command failed: %w", err)
-	}
-
-	return output, nil
-}
-
 // StopServices stops Docker Compose services.
 func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 	im.log("🧹 Stopping Docker Compose services")
@@ -96,28 +66,8 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	return nil
 }
 
-// WaitForServicesReady waits for all services to be ready.
-func (im *InfrastructureManager) WaitForServicesReady(ctx context.Context) error {
-	im.log("⏳ Waiting for Docker Compose services to initialize...")
-	time.Sleep(cryptoutilMagic.TestTimeoutDockerComposeInit)
-
-	// Wait for Docker services to be healthy
-	if err := im.waitForDockerServicesHealthy(ctx); err != nil {
-		return fmt.Errorf("docker services health check failed: %w", err)
-	}
-
-	// Wait for services to be reachable
-	if err := im.waitForServicesReachable(ctx); err != nil {
-		return fmt.Errorf("service reachability check failed: %w", err)
-	}
-
-	im.log("✅ All services are ready")
-
-	return nil
-}
-
-// waitForDockerServicesHealthy waits for Docker services to report healthy status.
-func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Context) error {
+// WaitForDockerServicesHealthy waits for Docker services to report healthy status.
+func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Context) error {
 	services := []string{
 		"cryptoutil_sqlite",
 		"cryptoutil_postgres_1",
@@ -258,8 +208,8 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 	return healthStatus
 }
 
-// waitForServicesReachable waits for services to be reachable via HTTP.
-func (im *InfrastructureManager) waitForServicesReachable(ctx context.Context) error {
+// WaitForServicesReachable waits for services to be reachable via HTTP.
+func (im *InfrastructureManager) WaitForServicesReachable(ctx context.Context) error {
 	// Verify cryptoutil ports are accessible
 	if err := im.verifyCryptoutilPortsReachable(ctx); err != nil {
 		return err
@@ -380,4 +330,34 @@ func (im *InfrastructureManager) logCommand(description, command, output string)
 	if output != "" {
 		im.log("📋 [%s] Output: %s", description, strings.TrimSpace(output))
 	}
+}
+
+// getComposeFilePath returns the compose file path appropriate for the current OS.
+func (im *InfrastructureManager) getComposeFilePath() string {
+	if runtime.GOOS == "windows" {
+		return cryptoutilMagic.DockerComposeRelativeFilePathWindows
+	}
+
+	return cryptoutilMagic.DockerComposeRelativeFilePathLinux
+}
+
+// runDockerComposeCommand executes a docker compose command with the given arguments.
+//
+//	Windows: docker compose -f .\deployments\compose\compose.yml <command> <args>
+//	Linux:   docker compose -f ./deployments/compose/compose.yml <command> <args>
+//
+// Always use relative path for cross-platform compatibility in
+// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
+func (im *InfrastructureManager) runDockerComposeCommand(ctx context.Context, description string, args []string) ([]byte, error) {
+	composeFile := im.getComposeFilePath()
+	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
+	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
+	output, err := cmd.CombinedOutput()
+	im.logCommand(description, cmd.String(), string(output))
+
+	if err != nil {
+		return output, fmt.Errorf("docker compose command failed: %w", err)
+	}
+
+	return output, nil
 }

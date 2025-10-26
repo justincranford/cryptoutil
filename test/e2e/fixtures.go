@@ -142,7 +142,11 @@ func (f *TestFixture) setupInfrastructure() {
 	require.NoError(f.t, f.infraMgr.StartServices(f.ctx), "Failed to start services")
 
 	// Wait for services to be ready
-	require.NoError(f.t, f.infraMgr.WaitForServicesReady(f.ctx), "Failed to wait for services ready")
+	f.log("⏳ Waiting for Docker Compose services to initialize...")
+	time.Sleep(cryptoutilMagic.TestTimeoutDockerComposeInit)
+	require.NoError(f.t, f.infraMgr.WaitForDockerServicesHealthy(f.ctx), "Failed to wait for docker services healthy")
+	require.NoError(f.t, f.infraMgr.WaitForServicesReachable(f.ctx), "Failed to wait for services reachable")
+	f.log("✅ All services are ready")
 }
 
 // InitializeAPIClients creates API clients for all services.
