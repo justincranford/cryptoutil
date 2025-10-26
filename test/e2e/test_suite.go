@@ -203,7 +203,7 @@ func (suite *E2ETestSuite) testCryptoutilInstance(instanceName string) {
 	baseURL := suite.fixture.GetServiceURL(instanceName)
 
 	// Test health check
-	suite.assertions.AssertCryptoutilHealth(baseURL, suite.fixture.rootCAsPool)
+	suite.assertions.AssertCryptoutilReady(suite.fixture.ctx, baseURL, suite.fixture.rootCAsPool)
 
 	// Test core functionality
 	elasticKey := suite.testCreateElasticKey(client)
@@ -424,8 +424,8 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 var (
 	testElasticKeyName        = "e2e-test-key"
 	testElasticKeyDescription = "E2E integration test key"
-	testAlgorithm             = "RSA"
-	testProvider              = "GO"
-	importAllowed             = false
-	versioningAllowed         = true
+	testAlgorithm             = "A256GCM/A256KW" // Use EncA256GCM from jwk_util.go
+	testProvider              = "Internal"       // Use StringProviderInternal from magic_api.go
+	importAllowed             = false            // Search for magic value to use
+	versioningAllowed         = true             // Search for magic value to use
 )

@@ -47,30 +47,21 @@ func (m *oamOacMapper) toOamElasticKey(openapiCreateElasticKeyResponse *cryptout
 		if openapiCreateElasticKeyResponse.Body == nil {
 			return nil, fmt.Errorf("failed to create Elastic Key, body is nil")
 		} else if openapiCreateElasticKeyResponse.JSON200 == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, JSON200 is nil")
+			// Return error with body content for debugging
+			bodyStr := "nil"
+			if openapiCreateElasticKeyResponse.Body != nil {
+				bodyStr = string(openapiCreateElasticKeyResponse.Body)
+			}
+
+			return nil, fmt.Errorf("failed to create Elastic Key, JSON200 is nil but body exists: %s", bodyStr)
 		}
 
 		elasticKey := openapiCreateElasticKeyResponse.JSON200
 
-		if elasticKey.ElasticKeyID == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.ElasticKeyID is nil")
-		} else if elasticKey.Description == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.Description is nil")
-		} else if elasticKey.Algorithm == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.Algorithm is nil")
-		} else if elasticKey.Provider == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.Provider is nil")
-		} else if elasticKey.ImportAllowed == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.ImportAllowed is nil")
-		} else if elasticKey.VersioningAllowed == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.VersioningAllowed is nil")
-		} else if elasticKey.Status == nil {
-			return nil, fmt.Errorf("failed to create Elastic Key, elasticKey.Status is nil")
-		}
-
+		// According to OpenAPI spec, all ElasticKey fields are optional, so don't validate they are non-nil
 		return elasticKey, nil
 	default:
-		return nil, fmt.Errorf("failed to create Elastic Key, nextElasticKeyName(), Status: %d, Message: %s, Body: %s", openapiCreateElasticKeyResponse.HTTPResponse.StatusCode, openapiCreateElasticKeyResponse.HTTPResponse.Status, openapiCreateElasticKeyResponse.Body)
+		return nil, fmt.Errorf("failed to create Elastic Key, Status: %d, Message: %s, Body: %s", openapiCreateElasticKeyResponse.HTTPResponse.StatusCode, openapiCreateElasticKeyResponse.HTTPResponse.Status, openapiCreateElasticKeyResponse.Body)
 	}
 }
 

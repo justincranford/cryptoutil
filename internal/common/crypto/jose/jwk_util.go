@@ -169,6 +169,62 @@ func CreateJWKFromKey(kid *googleUuid.UUID, alg *cryptoutilOpenapiModel.Generate
 		if err = nonPublicJWK.Set(joseJwk.KeyTypeKey, KtyOCT); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'kty' header to 'oct' in JWK: %w", err)
 		}
+
+		// Set algorithm and use based on the generate algorithm
+		switch *alg {
+		case cryptoutilOpenapiModel.Oct256:
+			if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, AlgHS256); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'HS256' in JWK: %w", err)
+			}
+
+			if err = nonPublicJWK.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'use' header to 'sig' in JWK: %w", err)
+			}
+
+			if err = nonPublicJWK.Set(joseJwk.KeyOpsKey, OpsSigVer); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'key_ops' header in JWK: %w", err)
+			}
+		case cryptoutilOpenapiModel.Oct384:
+			if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, AlgHS384); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'HS384' in JWK: %w", err)
+			}
+
+			if err = nonPublicJWK.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'use' header to 'sig' in JWK: %w", err)
+			}
+
+			if err = nonPublicJWK.Set(joseJwk.KeyOpsKey, OpsSigVer); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'key_ops' header in JWK: %w", err)
+			}
+		case cryptoutilOpenapiModel.Oct512:
+			if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, AlgHS512); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'HS512' in JWK: %w", err)
+			}
+
+			if err = nonPublicJWK.Set(joseJwk.KeyUsageKey, joseJwk.ForSignature); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'use' header to 'sig' in JWK: %w", err)
+			}
+
+			if err = nonPublicJWK.Set(joseJwk.KeyOpsKey, OpsSigVer); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'key_ops' header in JWK: %w", err)
+			}
+		case cryptoutilOpenapiModel.Oct128, cryptoutilOpenapiModel.Oct192:
+			// AES keys, set encryption algorithm
+			switch *alg {
+			case cryptoutilOpenapiModel.Oct128:
+				if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, "A128GCM"); err != nil {
+					return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'A128GCM' in JWK: %w", err)
+				}
+			case cryptoutilOpenapiModel.Oct192:
+				if err = nonPublicJWK.Set(joseJwk.AlgorithmKey, "A192GCM"); err != nil {
+					return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'alg' header to 'A192GCM' in JWK: %w", err)
+				}
+			}
+
+			if err = nonPublicJWK.Set(joseJwk.KeyUsageKey, "enc"); err != nil {
+				return nil, nil, nil, nil, nil, fmt.Errorf("failed to set 'use' header to 'enc' in JWK: %w", err)
+			}
+		}
 	case *cryptoutilKeyGen.KeyPair: // RSA, ECDSA, EdDSA
 		if nonPublicJWK, err = joseJwk.Import(typedKey.Private); err != nil {
 			return nil, nil, nil, nil, nil, fmt.Errorf("failed to import key pair into JWK: %w", err)
@@ -581,4 +637,62 @@ func IsVerifyJWK(jwk joseJwk.Key) (bool, error) {
 	default:
 		return false, fmt.Errorf("unsupported JWK type %T", jwk)
 	}
+}
+
+// EnsureSignatureAlgorithmType ensures that the JWK's algorithm field is properly typed as joseJwa.SignatureAlgorithm
+// instead of a string. This is necessary after JSON parsing which converts types to strings.
+func EnsureSignatureAlgorithmType(jwk joseJwk.Key) error {
+	if jwk == nil {
+		return fmt.Errorf("JWK invalid: %w", cryptoutilAppErr.ErrCantBeNil)
+	}
+
+	// Get the algorithm as a string first
+	var algString string
+
+	err := jwk.Get(joseJwk.AlgorithmKey, &algString)
+	if err != nil {
+		return fmt.Errorf("failed to get algorithm from JWK: %w", err)
+	}
+
+	// Convert string to proper SignatureAlgorithm type
+	var alg joseJwa.SignatureAlgorithm
+
+	switch algString {
+	case "HS256":
+		alg = AlgHS256
+	case "HS384":
+		alg = AlgHS384
+	case "HS512":
+		alg = AlgHS512
+	case "RS256":
+		alg = AlgRS256
+	case "RS384":
+		alg = AlgRS384
+	case "RS512":
+		alg = AlgRS512
+	case "PS256":
+		alg = AlgPS256
+	case "PS384":
+		alg = AlgPS384
+	case "PS512":
+		alg = AlgPS512
+	case "ES256":
+		alg = AlgES256
+	case "ES384":
+		alg = AlgES384
+	case "ES512":
+		alg = AlgES512
+	case "EdDSA":
+		alg = AlgEdDSA
+	default:
+		return fmt.Errorf("unsupported signature algorithm: %s", algString)
+	}
+
+	// Set the properly typed algorithm back on the JWK
+	err = jwk.Set(joseJwk.AlgorithmKey, alg)
+	if err != nil {
+		return fmt.Errorf("failed to set typed algorithm on JWK: %w", err)
+	}
+
+	return nil
 }

@@ -529,11 +529,21 @@ func (s *BusinessLogicService) getAndDecryptMaterialKeyInElasticKey(ctx context.
 		return nil, nil, nil, nil, fmt.Errorf("failed to parse decrypted MaterialKeyEncryptedNonPublic: %w", err)
 	}
 
+	// Ensure algorithm field is properly typed after JSON parsing
+	if err := cryptoutilJose.EnsureSignatureAlgorithmType(decryptedMaterialKeyNonPublicJWK); err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("failed to ensure signature algorithm type for decrypted JWK: %w", err)
+	}
+
 	var clearMaterialKeyPublicJWK joseJwk.Key
-	if ormMaterialKey.MaterialKeyClearPublic != nil {
+	if len(ormMaterialKey.MaterialKeyClearPublic) > 0 {
 		clearMaterialKeyPublicJWK, err = joseJwk.ParseKey(ormMaterialKey.MaterialKeyClearPublic)
 		if err != nil {
 			return nil, nil, nil, nil, fmt.Errorf("failed to parse MaterialKeyClearPublic: %w", err)
+		}
+
+		// Ensure algorithm field is properly typed after JSON parsing
+		if err := cryptoutilJose.EnsureSignatureAlgorithmType(clearMaterialKeyPublicJWK); err != nil {
+			return nil, nil, nil, nil, fmt.Errorf("failed to ensure signature algorithm type for public JWK: %w", err)
 		}
 	}
 

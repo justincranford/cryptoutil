@@ -22,7 +22,7 @@ type ElasticKey struct {
 type MaterialKey struct {
 	ElasticKeyID                  googleUuid.UUID `gorm:"type:uuid;primaryKey"`
 	MaterialKeyID                 googleUuid.UUID `gorm:"type:uuid;primaryKey"`
-	MaterialKeyClearPublic        []byte          `gorm:"check(length(material_key_clear_public) >= 1)"`
+	MaterialKeyClearPublic        []byte          `gorm:""`
 	MaterialKeyEncryptedNonPublic []byte          `gorm:"not null;check(length(material_key_encrypted_non_public) >= 1)"`
 	MaterialKeyGenerateDate       *time.Time
 	MaterialKeyImportDate         *time.Time

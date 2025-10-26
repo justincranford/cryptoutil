@@ -59,13 +59,21 @@ func httpGet(url *string, timeout time.Duration, rootCAsPool *x509.CertPool) err
 	client := &http.Client{}
 
 	if strings.HasPrefix(*url, "https://") {
-		if rootCAsPool == nil {
-			return fmt.Errorf("https request requires rootCAsPool but it is nil")
-		}
-		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{ //nolint:wsl // gofumpt removes blank line required by wsl linter
-			RootCAs:    rootCAsPool,
+		tlsConfig := &tls.Config{
 			MinVersion: tls.VersionTLS12,
-		}}
+		}
+
+		if rootCAsPool != nil {
+			// Use provided root CAs for certificate validation
+			tlsConfig.RootCAs = rootCAsPool
+		} else {
+			// No root CAs provided - skip verification for self-signed certificates
+			tlsConfig.InsecureSkipVerify = true //nolint:gosec // G402: TLS InsecureSkipVerify set true for testing with self-signed certs
+		}
+
+		client.Transport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+		}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, *url, nil)

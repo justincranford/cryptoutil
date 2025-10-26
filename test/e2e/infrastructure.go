@@ -21,7 +21,7 @@ import (
 // Docker compose command arguments constants.
 var (
 	dockerComposeArgsStopServices  = []string{"down", "-v", "--remove-orphans"}
-	dockerComposeArgsStartServices = []string{"up", "-d", "--force-recreate"}
+	dockerComposeArgsStartServices = []string{"up", "-d", "--force-recreate", "--build"}
 	dockerComposeArgsPsServices    = []string{"ps", "-a", "--format", "json"}
 )
 
@@ -147,35 +147,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 		return healthStatus
 	}
 
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	serviceList := make([]map[string]any, 0, len(lines))
-
-	for _, line := range lines {
-		if strings.TrimSpace(line) == "" {
-			continue
-		}
-
-		var service map[string]any
-		if err := json.Unmarshal([]byte(line), &service); err != nil {
-			continue
-		}
-
-		serviceList = append(serviceList, service)
-	}
-
-	serviceMap := make(map[string]map[string]any)
-
-	for _, service := range serviceList {
-		if name, ok := service["Name"].(string); ok {
-			if strings.Contains(name, "compose-") {
-				parts := strings.Split(name, "-")
-				if len(parts) >= cryptoutilMagic.DockerServiceNamePartsMin {
-					serviceName := strings.Join(parts[1:len(parts)-1], "-")
-					serviceMap[serviceName] = service
-				}
-			}
-		}
-	}
+	serviceMap := im.parseDockerComposePsOutput(output)
 
 	for _, serviceName := range services {
 		service, exists := serviceMap[serviceName]
@@ -257,7 +229,7 @@ func (im *InfrastructureManager) WaitForServicesReachable(ctx context.Context) e
 
 	// Wait for OTEL collector
 	if err := im.waitForHTTPReady(ctx, cryptoutilMagic.URLPrefixLocalhostHTTP+
-		fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortInternalMetrics)+"/metrics",
+		fmt.Sprintf("%d", cryptoutilMagic.DefaultPublicPortOtelCollectorHealth)+"/",
 		cryptoutilMagic.TestTimeoutCryptoutilReady); err != nil {
 		return fmt.Errorf("otel collector not ready: %w", err)
 	}
@@ -385,6 +357,41 @@ func (im *InfrastructureManager) getComposeFilePath() string {
 	}
 
 	return absPath
+}
+
+// parseDockerComposePsOutput parses docker compose ps --format json output into a service name to service data map.
+func (im *InfrastructureManager) parseDockerComposePsOutput(output []byte) map[string]map[string]any {
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	serviceList := make([]map[string]any, 0, len(lines))
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		var service map[string]any
+		if err := json.Unmarshal([]byte(line), &service); err != nil {
+			continue
+		}
+
+		serviceList = append(serviceList, service)
+	}
+
+	serviceMap := make(map[string]map[string]any)
+
+	for _, service := range serviceList {
+		if name, ok := service["Name"].(string); ok {
+			if strings.Contains(name, "compose-") {
+				parts := strings.Split(name, "-")
+				if len(parts) >= cryptoutilMagic.DockerServiceNamePartsMin {
+					serviceName := strings.Join(parts[1:len(parts)-1], "-")
+					serviceMap[serviceName] = service
+				}
+			}
+		}
+	}
+
+	return serviceMap
 }
 
 // runDockerComposeCommand executes a docker compose command with the given arguments.

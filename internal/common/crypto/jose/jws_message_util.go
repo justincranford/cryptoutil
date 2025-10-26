@@ -29,7 +29,7 @@ func SignBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJws.Message, []byte,
 		if err != nil {
 			return nil, nil, fmt.Errorf("invalid JWK: %w", err)
 		} else if !isSignJWK {
-			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeDecryptJWK)
+			return nil, nil, fmt.Errorf("invalid JWK: %w", cryptoutilAppErr.ErrJWKMustBeSignJWK)
 		}
 	}
 
