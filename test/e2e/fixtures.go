@@ -59,11 +59,11 @@ func NewTestFixture(t *testing.T) *TestFixture {
 
 	// Ensure the directory exists
 	logDir := filepath.Dir(logFileName)
-	if err := os.MkdirAll(logDir, 0o755); err != nil {
+	if err := os.MkdirAll(logDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
 		t.Fatalf("Failed to create log directory %s: %v", logDir, err)
 	}
 
-	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilMagic.FilePermOwnerReadWriteGroupRead)
 	if err != nil {
 		t.Fatalf("Failed to create log file %s: %v", logFileName, err)
 	}

@@ -373,9 +373,9 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 
 	// Generate summary report
 	report := strings.Builder{}
-	report.WriteString("\n" + strings.Repeat("=", 80) + "\n")
+	report.WriteString("\n" + strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
 	report.WriteString("🎯 E2E TEST EXECUTION SUMMARY REPORT\n")
-	report.WriteString(strings.Repeat("=", 80) + "\n\n")
+	report.WriteString(strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n\n")
 
 	report.WriteString(fmt.Sprintf("📅 Execution Date: %s\n", suite.summary.StartTime.Format("2006-01-02 15:04:05")))
 	report.WriteString(fmt.Sprintf("⏱️  Total Duration: %v\n", totalDuration.Round(time.Millisecond)))
@@ -385,14 +385,14 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 	report.WriteString(fmt.Sprintf("⏭️  Skipped: %d\n", suite.summary.SkippedSteps))
 
 	if suite.summary.FailedSteps > 0 {
-		report.WriteString(fmt.Sprintf("📈 Success Rate: %.1f%%\n", float64(suite.summary.PassedSteps)/float64(suite.summary.TotalSteps)*100))
+		report.WriteString(fmt.Sprintf("📈 Success Rate: %.1f%%\n", float64(suite.summary.PassedSteps)/float64(suite.summary.TotalSteps)*cryptoutilMagic.PercentageBasis100))
 	} else {
 		report.WriteString("📈 Success Rate: 100.0%\n")
 	}
 
-	report.WriteString("\n" + strings.Repeat("-", 80) + "\n")
+	report.WriteString("\n" + strings.Repeat("-", cryptoutilMagic.TestReportWidth) + "\n")
 	report.WriteString("📋 DETAILED STEP BREAKDOWN\n")
-	report.WriteString(strings.Repeat("-", 80) + "\n")
+	report.WriteString(strings.Repeat("-", cryptoutilMagic.TestReportWidth) + "\n")
 
 	for i, step := range suite.summary.Steps {
 		statusEmoji := "✅"
@@ -406,7 +406,7 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 			i+1, statusEmoji, step.Name, step.Duration.Round(time.Millisecond), step.Description))
 	}
 
-	report.WriteString("\n" + strings.Repeat("=", 80) + "\n")
+	report.WriteString("\n" + strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
 
 	if suite.summary.FailedSteps > 0 {
 		report.WriteString("⚠️  EXECUTION STATUS: PARTIAL SUCCESS\n")
@@ -414,7 +414,7 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 		report.WriteString("🎉 EXECUTION STATUS: FULL SUCCESS\n")
 	}
 
-	report.WriteString(strings.Repeat("=", 80) + "\n")
+	report.WriteString(strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
 
 	// Log the report to both console and file
 	suite.fixture.log("%s", report.String())

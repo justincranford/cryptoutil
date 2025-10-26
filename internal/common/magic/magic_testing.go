@@ -107,6 +107,9 @@ const (
 	TestDefaultServerReadHeaderTimeout = 10 * time.Second
 	// TestDefaultServerMaxHeaderBytes - Maximum header bytes for test server (1MB).
 	TestDefaultServerMaxHeaderBytes = 1 << 20
+
+	// TestReportWidth - Standard width for test summary reports.
+	TestReportWidth = 80
 )
 
 // Test data for mock system information.
