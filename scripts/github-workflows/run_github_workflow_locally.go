@@ -76,6 +76,9 @@ const (
 	taskSuccess   = "SUCCESS"
 	taskFailed    = "FAILED"
 
+	// Workflow names.
+	workflowNameDAST = "dast"
+
 	// File permissions.
 	filePermissions = 0o644
 	dirPermissions  = 0o755
@@ -99,8 +102,8 @@ var (
 			Description:  "End-to-End Testing - Full system integration with Docker Compose",
 			DefaultArgs:  []string{},
 		},
-		"dast": {
-			Name:         "dast",
+		workflowNameDAST: {
+			Name:         workflowNameDAST,
 			WorkflowFile: ".github/workflows/ci-dast.yml",
 			Description:  "Dynamic Application Security Testing - OWASP ZAP and Nuclei scans",
 			DefaultArgs:  []string{"--input", "scan_profile=quick"},
@@ -407,7 +410,13 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 	}
 
 	// Build act command.
-	args := []string{"workflow_dispatch", "-W", wf.WorkflowFile}
+	// Use workflow_dispatch for DAST (supports inputs), push for others
+	event := "push"
+	if wf.Name == workflowNameDAST {
+		event = "workflow_dispatch"
+	}
+
+	args := []string{event, "-W", wf.WorkflowFile}
 	args = append(args, wf.DefaultArgs...)
 
 	if *actArgs != "" {
