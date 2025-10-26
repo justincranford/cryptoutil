@@ -19,10 +19,9 @@ import (
 
 // Docker compose command arguments constants.
 var (
-	dockerComposeArgsStopServices     = []string{"down", "-v", "--remove-orphans"}
-	dockerComposeArgsStartServices    = []string{"up", "-d", "--force-recreate"}
-	dockerComposeArgsTeardownServices = []string{"down", "-v"}
-	dockerComposeArgsPsServices       = []string{"ps", "-a", "--format", "json"}
+	dockerComposeArgsStopServices  = []string{"down", "-v", "--remove-orphans"}
+	dockerComposeArgsStartServices = []string{"up", "-d", "--force-recreate"}
+	dockerComposeArgsPsServices    = []string{"ps", "-a", "--format", "json"}
 )
 
 // InfrastructureManager handles Docker Compose operations and service management.
@@ -115,7 +114,7 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 func (im *InfrastructureManager) TeardownServices(ctx context.Context) error {
 	im.log("🛑 Stopping Docker Compose services")
 
-	_, err := im.runDockerComposeCommand(ctx, "Stop services", dockerComposeArgsTeardownServices)
+	_, err := im.runDockerComposeCommand(ctx, "Stop services", dockerComposeArgsStopServices)
 	if err != nil {
 		return fmt.Errorf("docker compose down failed: %w", err)
 	}
