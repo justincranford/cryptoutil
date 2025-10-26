@@ -17,6 +17,14 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+// Docker compose command arguments constants.
+var (
+	dockerComposeArgsStopServices     = []string{"down", "-v", "--remove-orphans"}
+	dockerComposeArgsStartServices    = []string{"up", "-d", "--force-recreate"}
+	dockerComposeArgsTeardownServices = []string{"down", "-v"}
+	dockerComposeArgsPsServices       = []string{"ps", "-a", "--format", "json"}
+)
+
 // InfrastructureManager handles Docker Compose operations and service management.
 type InfrastructureManager struct {
 	startTime time.Time
@@ -40,6 +48,21 @@ func (im *InfrastructureManager) getComposeFilePath() string {
 	return cryptoutilMagic.DockerComposeRelativeFilePathLinux
 }
 
+// runDockerComposeCommand executes a docker compose command with the given arguments.
+func (im *InfrastructureManager) runDockerComposeCommand(ctx context.Context, description string, args []string) ([]byte, error) {
+	composeFile := im.getComposeFilePath()
+	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
+	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
+	output, err := cmd.CombinedOutput()
+	im.logCommand(description, cmd.String(), string(output))
+
+	if err != nil {
+		return output, fmt.Errorf("docker compose command failed: %w", err)
+	}
+
+	return output, nil
+}
+
 // StopServices stops any existing Docker Compose services.
 //
 //	Windows: docker compose -f .\deployments\compose\compose.yml down -v
@@ -50,11 +73,7 @@ func (im *InfrastructureManager) getComposeFilePath() string {
 func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 	im.log("🧹 Ensuring clean test environment")
 
-	composeFile := im.getComposeFilePath()
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "down", "-v", "--remove-orphans")
-	output, err := cmd.CombinedOutput()
-	im.logCommand("Stop existing services", cmd.String(), string(output))
-
+	_, err := im.runDockerComposeCommand(ctx, "Stop existing services", dockerComposeArgsStopServices)
 	if err != nil {
 		return fmt.Errorf("failed to stop existing services: %w", err)
 	}
@@ -75,11 +94,7 @@ func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	im.log("🚀 Starting Docker Compose services")
 
-	composeFile := im.getComposeFilePath()
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "up", "-d", "--force-recreate")
-	output, err := cmd.CombinedOutput()
-	im.logCommand("Start services", cmd.String(), string(output))
-
+	output, err := im.runDockerComposeCommand(ctx, "Start services", dockerComposeArgsStartServices)
 	if err != nil {
 		return fmt.Errorf("docker compose up failed: %w, output: %s", err, string(output))
 	}
@@ -100,13 +115,9 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 func (im *InfrastructureManager) TeardownServices(ctx context.Context) error {
 	im.log("🛑 Stopping Docker Compose services")
 
-	composeFile := im.getComposeFilePath()
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "down", "-v")
-	output, err := cmd.CombinedOutput()
-	im.logCommand("Stop services", cmd.String(), string(output))
-
+	_, err := im.runDockerComposeCommand(ctx, "Stop services", dockerComposeArgsTeardownServices)
 	if err != nil {
-		return fmt.Errorf("docker compose down failed: %w, output: %s", err, string(output))
+		return fmt.Errorf("docker compose down failed: %w", err)
 	}
 
 	im.log("✅ Docker Compose services stopped successfully")
@@ -162,7 +173,7 @@ func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Contex
 		checkCount++
 		im.log("🔍 Health check #%d: Checking %d services...", checkCount, len(services))
 
-		healthStatus := im.areDockerServicesHealthy(services)
+		healthStatus := im.areDockerServicesHealthy(ctx, services)
 
 		unhealthyServices := []string{}
 
@@ -196,14 +207,10 @@ func (im *InfrastructureManager) waitForDockerServicesHealthy(ctx context.Contex
 }
 
 // areDockerServicesHealthy checks all Docker services health status.
-func (im *InfrastructureManager) areDockerServicesHealthy(services []string) map[string]bool {
+func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, services []string) map[string]bool {
 	healthStatus := make(map[string]bool)
 
-	composeFile := im.getComposeFilePath()
-	cmd := exec.Command("docker", "compose", "-f", composeFile, "ps", "-a", "--format", "json") //nolint:gosec G204 -- composeFile comes from controlled getComposeFilePath method
-	im.logCommand("Batch health check", cmd.String(), "")
-
-	output, err := cmd.Output()
+	output, err := im.runDockerComposeCommand(ctx, "Batch health check", dockerComposeArgsPsServices)
 	if err != nil {
 		im.log("❌ Failed to check services health: %v", err)
 
