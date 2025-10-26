@@ -55,18 +55,20 @@ func getComposeFilePath() string {
 // in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func runDockerComposeCommand(ctx context.Context, logger *Logger, description string, args []string) ([]byte, error) {
 	// Log start message based on description
-	switch description {
-	case dockerComposeDescStopServices:
-		logger.Log("🧹 Stopping Docker Compose services")
-	case dockerComposeDescStartServices:
-		logger.Log("🚀 Starting Docker Compose services")
+	if logger != nil {
+		switch description {
+		case dockerComposeDescStopServices:
+			Log(logger, "🧹 Stopping Docker Compose services")
+		case dockerComposeDescStartServices:
+			Log(logger, "🚀 Starting Docker Compose services")
+		}
 	}
 
 	composeFile := getComposeFilePath()
 	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
 	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
 	output, err := cmd.CombinedOutput()
-	logger.LogCommand(description, cmd.String(), string(output))
+	LogCommand(logger, description, cmd.String(), string(output))
 
 	if err != nil {
 		return output, err
@@ -75,9 +77,9 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 	// Log success message based on description
 	switch description {
 	case dockerComposeDescStopServices:
-		logger.Log("✅ Existing services stopped successfully")
+		Log(logger, "✅ Existing services stopped successfully")
 	case dockerComposeDescStartServices:
-		logger.Log("✅ Docker Compose services started successfully")
+		Log(logger, "✅ Docker Compose services started successfully")
 	}
 
 	return output, nil

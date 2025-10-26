@@ -80,7 +80,7 @@ func NewTestFixture(t *testing.T) *TestFixture {
 
 // Setup initializes the test infrastructure.
 func (f *TestFixture) Setup() {
-	f.logger.Log("🚀 Setting up test fixture")
+	Log(f.logger, "🚀 Setting up test fixture")
 
 	// Initialize service URLs
 	f.initializeServiceURLs()
@@ -91,13 +91,13 @@ func (f *TestFixture) Setup() {
 	// Setup infrastructure
 	f.setupInfrastructure()
 
-	f.logger.Log("✅ Test fixture setup complete")
+	Log(f.logger, "✅ Test fixture setup complete")
 }
 
 // Teardown cleans up the test infrastructure.
 func (f *TestFixture) Teardown() {
 	f.cancel()
-	f.logger.Log("Teardown: Closing log file")
+	Log(f.logger, "Teardown: Closing log file")
 	if f.logger.logFile != nil {
 		f.logger.logFile.Close()
 	}
@@ -116,7 +116,7 @@ func (f *TestFixture) initializeServiceURLs() {
 func (f *TestFixture) loadTestCertificates() {
 	// Using InsecureSkipVerify for e2e tests
 	f.rootCAsPool = nil
-	f.logger.Log("✅ Test certificates configured (InsecureSkipVerify)")
+	Log(f.logger, "✅ Test certificates configured (InsecureSkipVerify)")
 }
 
 // setupInfrastructure initializes Docker and services.
@@ -128,11 +128,11 @@ func (f *TestFixture) setupInfrastructure() {
 	require.NoError(f.t, f.infraMgr.StartServices(f.ctx), "Failed to start services")
 
 	// Wait for services to be ready
-	f.logger.Log("⏳ Waiting for Docker Compose services to initialize...")
+	Log(f.logger, "⏳ Waiting for Docker Compose services to initialize...")
 	time.Sleep(cryptoutilMagic.TestTimeoutDockerComposeInit)
 	require.NoError(f.t, f.infraMgr.WaitForDockerServicesHealthy(f.ctx), "Failed to wait for docker services healthy")
 	require.NoError(f.t, f.infraMgr.WaitForServicesReachable(f.ctx), "Failed to wait for services reachable")
-	f.logger.Log("✅ All services are ready")
+	Log(f.logger, "✅ All services are ready")
 }
 
 // InitializeAPIClients creates API clients for all services.
@@ -140,7 +140,7 @@ func (f *TestFixture) InitializeAPIClients() {
 	f.sqliteClient = cryptoutilClient.RequireClientWithResponses(f.t, &f.sqliteURL, f.rootCAsPool)
 	f.postgres1Client = cryptoutilClient.RequireClientWithResponses(f.t, &f.postgres1URL, f.rootCAsPool)
 	f.postgres2Client = cryptoutilClient.RequireClientWithResponses(f.t, &f.postgres2URL, f.rootCAsPool)
-	f.logger.Log("✅ API clients initialized")
+	Log(f.logger, "✅ API clients initialized")
 }
 
 // GetClient returns the API client for the specified instance.

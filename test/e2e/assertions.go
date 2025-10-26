@@ -34,15 +34,15 @@ func NewServiceAssertions(t *testing.T, logger *Logger) *ServiceAssertions {
 
 // AssertCryptoutilHealth checks that a cryptoutil instance is healthy.
 func (a *ServiceAssertions) AssertCryptoutilHealth(baseURL string, rootCAsPool *x509.CertPool) {
-	a.logger.Log("💚 Testing health check for %s", baseURL)
+	Log(a.logger, "💚 Testing health check for %s", baseURL)
 	err := cryptoutilClient.CheckHealthz(&baseURL, rootCAsPool)
 	require.NoError(a.t, err, "Health check failed for %s", baseURL)
-	a.logger.Log("✅ Health check passed for %s", baseURL)
+	Log(a.logger, "✅ Health check passed for %s", baseURL)
 }
 
 // AssertCryptoutilReady waits for a cryptoutil instance to be ready.
 func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL string, rootCAsPool *x509.CertPool) {
-	a.logger.Log("⏳ Waiting for cryptoutil ready at %s", baseURL)
+	Log(a.logger, "⏳ Waiting for cryptoutil ready at %s", baseURL)
 
 	giveUpTime := time.Now().Add(cryptoutilMagic.TestTimeoutCryptoutilReady)
 	checkCount := 0
@@ -51,18 +51,18 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 		require.False(a.t, time.Now().After(giveUpTime), "Cryptoutil service not ready after %v: %s", cryptoutilMagic.TestTimeoutCryptoutilReady, baseURL)
 
 		checkCount++
-		a.logger.Log("🔍 Cryptoutil readiness check #%d for %s", checkCount, baseURL)
+		Log(a.logger, "🔍 Cryptoutil readiness check #%d for %s", checkCount, baseURL)
 
 		client := cryptoutilClient.RequireClientWithResponses(a.t, &baseURL, rootCAsPool)
 		_, err := client.GetElastickeysWithResponse(ctx, nil)
 
 		if err == nil {
-			a.logger.Log("✅ Cryptoutil service ready at %s after %d checks", baseURL, checkCount)
+			Log(a.logger, "✅ Cryptoutil service ready at %s after %d checks", baseURL, checkCount)
 
 			return
 		}
 
-		a.logger.Log("⏳ Cryptoutil at %s not ready yet (attempt %d), waiting %v...",
+		Log(a.logger, "⏳ Cryptoutil at %s not ready yet (attempt %d), waiting %v...",
 			baseURL, checkCount, cryptoutilMagic.TestTimeoutServiceRetry)
 		time.Sleep(cryptoutilMagic.TestTimeoutServiceRetry)
 	}
@@ -70,7 +70,7 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 
 // AssertHTTPReady waits for an HTTP endpoint to return 200.
 func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, timeout time.Duration) {
-	a.logger.Log("⏳ Waiting for HTTP endpoint ready: %s", url)
+	Log(a.logger, "⏳ Waiting for HTTP endpoint ready: %s", url)
 
 	giveUpTime := time.Now().Add(timeout)
 	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
@@ -88,7 +88,7 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
-			a.logger.Log("✅ HTTP service ready at %s", url)
+			Log(a.logger, "✅ HTTP service ready at %s", url)
 
 			return
 		}
@@ -103,7 +103,7 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 
 // AssertTelemetryFlow verifies that telemetry is flowing to Grafana and OTEL collector.
 func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL, otelURL string) {
-	a.logger.Log("📊 Verifying telemetry flow")
+	Log(a.logger, "📊 Verifying telemetry flow")
 
 	// Check Grafana health
 	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
@@ -116,7 +116,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 	defer resp.Body.Close()
 	require.Equal(a.t, http.StatusOK, resp.StatusCode, "Grafana health check failed")
 
-	a.logger.Log("✅ Grafana health check passed")
+	Log(a.logger, "✅ Grafana health check passed")
 
 	// Check OTEL collector metrics
 	req, err = http.NewRequestWithContext(ctx, http.MethodGet, otelURL+"/metrics", nil)
@@ -143,12 +143,12 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 
 	require.True(a.t, hasTraces || hasLogs || hasMetrics, "No telemetry data found in OTEL collector")
 
-	a.logger.Log("✅ Telemetry flow verification passed")
+	Log(a.logger, "✅ Telemetry flow verification passed")
 }
 
 // AssertDockerServicesHealthy verifies all Docker services are healthy.
 func (a *ServiceAssertions) AssertDockerServicesHealthy() {
-	a.logger.Log("🔍 Verifying Docker services health")
+	Log(a.logger, "🔍 Verifying Docker services health")
 
 	output, err := runDockerComposeCommand(context.Background(), a.logger, "Batch health check", dockerComposeArgsPsServices)
 	require.NoError(a.t, err, "Failed to check Docker services health")
@@ -168,5 +168,5 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 
 	require.Empty(a.t, unhealthyServices, "The following services are not healthy: %v", unhealthyServices)
 
-	a.logger.Log("✅ All Docker services are healthy")
+	Log(a.logger, "✅ All Docker services are healthy")
 }

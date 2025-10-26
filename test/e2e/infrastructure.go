@@ -63,7 +63,7 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 		}
 
 		checkCount++
-		im.logger.Log("🔍 Health check #%d: Checking %d services...", checkCount, len(dockerComposeServicesForHealthCheck))
+		Log(im.logger, "🔍 Health check #%d: Checking %d services...", checkCount, len(dockerComposeServicesForHealthCheck))
 
 		healthStatus := im.areDockerServicesHealthy(ctx, dockerComposeServicesForHealthCheck)
 
@@ -71,12 +71,12 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 
 		allHealthy := len(unhealthyServices) == 0
 		if allHealthy {
-			im.logger.Log("✅ All %d Docker services are healthy after %d checks", len(dockerComposeServicesForHealthCheck), checkCount)
+			Log(im.logger, "✅ All %d Docker services are healthy after %d checks", len(dockerComposeServicesForHealthCheck), checkCount)
 
 			return nil
 		}
 
-		im.logger.Log("⏳ Waiting %v before next health check... (%d unhealthy: %v)",
+		Log(im.logger, "⏳ Waiting %v before next health check... (%d unhealthy: %v)",
 			cryptoutilMagic.TestTimeoutServiceRetry, len(unhealthyServices), unhealthyServices)
 		time.Sleep(cryptoutilMagic.TestTimeoutServiceRetry)
 	}
@@ -86,7 +86,7 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, services []ServiceNameAndJob) map[string]bool {
 	output, err := runDockerComposeCommand(ctx, im.logger, dockerComposeDescBatchHealth, dockerComposeArgsPsServices)
 	if err != nil {
-		im.logger.Log("❌ Failed to check services health: %v", err)
+		Log(im.logger, "❌ Failed to check services health: %v", err)
 
 		healthStatus := make(map[string]bool)
 		for _, service := range services {
@@ -98,7 +98,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 	serviceMap, err := parseDockerComposePsOutput(output)
 	if err != nil {
-		im.logger.Log("❌ Failed to parse Docker compose output: %v", err)
+		Log(im.logger, "❌ Failed to parse Docker compose output: %v", err)
 
 		healthStatus := make(map[string]bool)
 		for _, service := range services {
@@ -119,41 +119,41 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 			if exists {
 				if state, ok := jobData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
-					im.logger.Log("✅ Healthcheck job %s is in exited state", jobName)
+					Log(im.logger, "✅ Healthcheck job %s is in exited state", jobName)
 
 					// Handle both int and float64 types for ExitCode
 					var exitCode int
 					if exitCodeFloat, ok := jobData["ExitCode"].(float64); ok {
 						exitCode = int(exitCodeFloat)
-						im.logger.Log("✅ Healthcheck job %s ExitCode (float64): %d", jobName, exitCode)
+						Log(im.logger, "✅ Healthcheck job %s ExitCode (float64): %d", jobName, exitCode)
 					} else if exitCodeInt, ok := jobData["ExitCode"].(int); ok {
 						exitCode = exitCodeInt
-						im.logger.Log("✅ Healthcheck job %s ExitCode (int): %d", jobName, exitCode)
+						Log(im.logger, "✅ Healthcheck job %s ExitCode (int): %d", jobName, exitCode)
 					} else {
-						im.logger.Log("❌ Healthcheck job %s ExitCode field not found or wrong type", jobName)
+						Log(im.logger, "❌ Healthcheck job %s ExitCode field not found or wrong type", jobName)
 
 						continue
 					}
 
 					if exitCode == 0 {
-						im.logger.Log("✅ Healthcheck job %s exited successfully with code 0", jobName)
+						Log(im.logger, "✅ Healthcheck job %s exited successfully with code 0", jobName)
 					} else {
-						im.logger.Log("❌ Healthcheck job %s exited with non-zero code: %d", jobName, exitCode)
+						Log(im.logger, "❌ Healthcheck job %s exited with non-zero code: %d", jobName, exitCode)
 					}
 				} else {
 					if state == cryptoutilMagic.DockerServiceStateRunning {
-						im.logger.Log("❌ Healthcheck job %s should not be running continuously", jobName)
+						Log(im.logger, "❌ Healthcheck job %s should not be running continuously", jobName)
 					} else {
-						im.logger.Log("❌ Healthcheck job %s in unexpected state: %s", jobName, state)
+						Log(im.logger, "❌ Healthcheck job %s in unexpected state: %s", jobName, state)
 					}
 				}
 			} else {
-				im.logger.Log("🔍 Healthcheck job %s not found (completed successfully)", jobName)
+				Log(im.logger, "🔍 Healthcheck job %s not found (completed successfully)", jobName)
 			}
 		} else if !healthStatus[service.Name] {
 			// Log when regular services are not found
 			if _, exists := serviceMap[service.Name]; !exists {
-				im.logger.Log("❌ Service %s not found in docker compose output", service.Name)
+				Log(im.logger, "❌ Service %s not found in docker compose output", service.Name)
 			}
 		}
 	}
@@ -191,7 +191,7 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 	publicPorts := []int{8080, 8081, 8082}
 	for _, port := range publicPorts {
 		url := fmt.Sprintf("https://localhost:%d/ui/swagger", port)
-		im.logger.Log("🔍 Checking public port %d at %s...", port, url)
+		Log(im.logger, "🔍 Checking public port %d at %s...", port, url)
 
 		client := CreateInsecureHTTPClient()
 
@@ -211,7 +211,7 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 			return fmt.Errorf("public port %d returned status %d", port, resp.StatusCode)
 		}
 
-		im.logger.Log("✅ Public port %d is reachable", port)
+		Log(im.logger, "✅ Public port %d is reachable", port)
 	}
 
 	return nil
@@ -241,7 +241,7 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 		resp, err := client.Do(req)
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
-			im.logger.Log("✅ Service ready at %s", url)
+			Log(im.logger, "✅ Service ready at %s", url)
 
 			return nil
 		}

@@ -24,18 +24,21 @@ func NewLogger(startTime time.Time, logFile *os.File) *Logger {
 }
 
 // Log provides structured logging with timestamp and elapsed time.
-func (l *Logger) Log(format string, args ...any) {
+func Log(logger *Logger, format string, args ...any) {
+	if logger == nil {
+		return
+	}
 	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
-		time.Since(l.startTime).Round(time.Second),
+		time.Since(logger.startTime).Round(time.Second),
 		fmt.Sprintf(format, args...))
 
 	// Write to console
 	fmt.Print(message)
 
 	// Write to log file if available
-	if l.logFile != nil {
-		if _, err := l.logFile.WriteString(message); err != nil {
+	if logger.logFile != nil {
+		if _, err := logger.logFile.WriteString(message); err != nil {
 			// If we can't write to the log file, at least write to console
 			fmt.Printf("⚠️ Failed to write to log file: %v\n", err)
 		}
@@ -43,30 +46,45 @@ func (l *Logger) Log(format string, args ...any) {
 }
 
 // LogCommand provides structured logging for commands with their output.
-func (l *Logger) LogCommand(description, command, output string) {
-	l.Log("📋 [%s] %s", description, command)
+func LogCommand(logger *Logger, description, command, output string) {
+	if logger == nil {
+		return
+	}
+	Log(logger, "📋 [%s] %s", description, command)
 
 	if output != "" {
-		l.Log("📋 [%s] Output: %s", description, strings.TrimSpace(output))
+		Log(logger, "📋 [%s] Output: %s", description, strings.TrimSpace(output))
 	}
 }
 
 // LogTestStep provides structured logging for test steps with timestamp and elapsed time.
-func (l *Logger) LogTestStep(name, description string) {
-	l.Log("📋 %s: %s", name, description)
+func LogTestStep(logger *Logger, name, description string) {
+	if logger == nil {
+		return
+	}
+	Log(logger, "📋 %s: %s", name, description)
 }
 
 // LogTestStepCompletion provides structured logging for test step completion with status and timing.
-func (l *Logger) LogTestStepCompletion(statusEmoji, name, result string, duration time.Duration) {
-	l.Log("%s %s: %s (took %v)", statusEmoji, name, result, duration.Round(time.Millisecond))
+func LogTestStepCompletion(logger *Logger, statusEmoji, name, result string, duration time.Duration) {
+	if logger == nil {
+		return
+	}
+	Log(logger, "%s %s: %s (took %v)", statusEmoji, name, result, duration.Round(time.Millisecond))
 }
 
 // LogTestSetup provides structured logging for test setup with timestamp and elapsed time.
-func (l *Logger) LogTestSetup(testName string) {
-	l.Log("📋 Setting up test: %s", testName)
+func LogTestSetup(logger *Logger, testName string) {
+	if logger == nil {
+		return
+	}
+	Log(logger, "📋 Setting up test: %s", testName)
 }
 
 // LogTestCleanup provides structured logging for test cleanup with timestamp and elapsed time.
-func (l *Logger) LogTestCleanup(testName string) {
-	l.Log("🧹 Cleaning up test: %s", testName)
+func LogTestCleanup(logger *Logger, testName string) {
+	if logger == nil {
+		return
+	}
+	Log(logger, "🧹 Cleaning up test: %s", testName)
 }

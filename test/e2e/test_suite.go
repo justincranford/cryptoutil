@@ -88,7 +88,7 @@ func (suite *E2ETestSuite) SetupTest() {
 
 	// Log test setup
 	if suite.fixture != nil {
-		suite.fixture.logger.LogTestSetup(suite.T().Name())
+		LogTestSetup(suite.fixture.logger, suite.T().Name())
 	}
 }
 
@@ -96,7 +96,7 @@ func (suite *E2ETestSuite) SetupTest() {
 func (suite *E2ETestSuite) TearDownTest() {
 	// Log test cleanup
 	if suite.fixture != nil {
-		suite.fixture.logger.LogTestCleanup(suite.T().Name())
+		LogTestCleanup(suite.fixture.logger, suite.T().Name())
 	}
 
 	// Clean up any test data created during the test
@@ -363,7 +363,7 @@ func (suite *E2ETestSuite) logStep(name, description string) {
 
 	// Only log to fixture if it exists (it won't exist during very early setup)
 	if suite.fixture != nil {
-		suite.fixture.logger.LogTestStep(name, description)
+		LogTestStep(suite.fixture.logger, name, description)
 	}
 }
 
@@ -399,7 +399,7 @@ func (suite *E2ETestSuite) completeStep(status, result string) {
 
 	// Only log to fixture if it exists
 	if suite.fixture != nil {
-		suite.fixture.logger.LogTestStepCompletion(statusEmoji, step.Name, result, step.Duration)
+		LogTestStepCompletion(suite.fixture.logger, statusEmoji, step.Name, result, step.Duration)
 	}
 }
 
@@ -455,5 +455,5 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
 
 	// Log the report to both console and file
-	suite.fixture.logger.Log("%s", report.String())
+	Log(suite.fixture.logger, "%s", report.String())
 }
