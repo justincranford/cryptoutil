@@ -31,5 +31,6 @@ output-options:
     - PEM
     - DER
     - DSA
+    - IKM
 import-mapping:
   "./openapi_spec_components.yaml": cryptoutil/api/model

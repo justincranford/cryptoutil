@@ -47,4 +47,13 @@
 - **Expected Outcome**: Enhanced code quality and consistency checks
 - **Priority**: Medium - Code quality improvement
 
----
+### Task CQ4: Add Initialism Comments in Configuration Files
+- **Description**: Add clarifying comments for initialisms/acronyms in .golangci.yml and OpenAPI configuration files
+- **Action Items**:
+  - Review .golangci.yml for initialisms that need long-form explanations
+  - Add comments to OpenAPI spec files (openapi_spec_*.yaml) explaining initialisms
+  - Append comment to relevant lines specifying the long form of the initialism
+  - Focus on crypto/security initialisms (JWE, JWK, JWS, AES, RSA, etc.)
+- **Files**: `.golangci.yml`, `api/openapi_spec_*.yaml`
+- **Expected Outcome**: Improved code readability and maintainability for future developers
+- **Priority**: LOW - Documentation enhancement

@@ -29,37 +29,57 @@ func deriveJWKsFromMChooseNCombinations(m [][]byte, chooseN int) ([]joseJwk.Key,
 		return nil, fmt.Errorf("no combinations")
 	}
 
-	fixedContextBytes := []byte("derive unseal JWKs v1")
-	unsealJWKs := make([]joseJwk.Key, 0, len(combinations))
+	derivedUnsealJWKs := make([]joseJwk.Key, 0, len(combinations))
 
+	// CRITICAL: All cryptoutil instances using the same set of shared, unseal secrets MUST derive the same unseal JWKs,
+	// including the KIDs and key materials, for cryptographic interoperability between instances.
+	// CRITICAL: If only key materials were derived deterministically, using different KIDs would break interoperability.
 	for _, combination := range combinations {
-		var concatenatedCombinationBytes []byte
+		var currentCombinationBytesConcat []byte
 		for _, combinationElement := range combination {
-			concatenatedCombinationBytes = append(concatenatedCombinationBytes, combinationElement...)
+			currentCombinationBytesConcat = append(currentCombinationBytesConcat, combinationElement...)
 		}
 
-		derivedSecretKeyBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("secret")...))
-		derivedSaltBytes := cryptoutilDigests.SHA512(append(concatenatedCombinationBytes, []byte("salt")...))
+		// Derive deterministic KID UUID from current combination of shared secrets
 
-		derivedKeyBytes, err := cryptoutilDigests.HKDFwithSHA256(derivedSecretKeyBytes, derivedSaltBytes, fixedContextBytes, cryptoutilMagic.DerivedKeySizeBytes)
+		ikmForDerivedKid := append(append([]byte{}, cryptoutilMagic.FixedIKMForDerivedKid...), currentCombinationBytesConcat...)
+		saltForDerivedKid := append(append([]byte{}, cryptoutilMagic.FixedSaltForDerivedKid...), currentCombinationBytesConcat...)
+
+		derivedKidBytes, err := cryptoutilDigests.HKDFwithSHA256(ikmForDerivedKid, saltForDerivedKid, cryptoutilMagic.FixedContextForDerivedKid, cryptoutilMagic.DerivedKeySizeBytes)
 		if err != nil {
-			return nil, fmt.Errorf("failed to derive key: %w", err)
+			return nil, fmt.Errorf("failed to derive unseal JWK kid bytes: %w", err)
 		}
 
-		kekKidUUID, err := googleUuid.NewV7()
+		derivedKidUUID, err := googleUuid.FromBytes(derivedKidBytes[:cryptoutilMagic.UUIDBytesLength])
 		if err != nil {
-			return nil, fmt.Errorf("failed to create UUIDv7: %w", err)
+			return nil, fmt.Errorf("failed to create unseal JWK kid UUID from derived kid bytes: %w", err)
 		}
 
-		_, jwk, _, _, _, err := cryptoutilJose.CreateJWEJWKFromKey(&kekKidUUID, &cryptoutilJose.EncA256GCM, &cryptoutilJose.AlgA256KW, cryptoutilKeyGen.SecretKey(derivedKeyBytes)) // use derived JWK for envelope encryption (i.e. A256GCM Key Wrap), not DIRECT encryption
+		// Derive deterministic key material from current combination of shared secrets
+
+		ikmForDerivedSecret := append(append([]byte{}, cryptoutilMagic.FixedIKMForDerivedSecret...), currentCombinationBytesConcat...)
+		saltForDerivedSecret := append(append([]byte{}, cryptoutilMagic.FixedSaltForDerivedSecret...), currentCombinationBytesConcat...)
+
+		derivedSecretBytes, err := cryptoutilDigests.HKDFwithSHA256(ikmForDerivedSecret, saltForDerivedSecret, cryptoutilMagic.FixedContextForDerivedSecret, cryptoutilMagic.DerivedKeySizeBytes)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create JWK: %w", err)
+			return nil, fmt.Errorf("failed to derive unseal JWK secret bytes: %w", err)
 		}
 
-		unsealJWKs = append(unsealJWKs, jwk)
+		// Create JWK from derived KID and derived key material
+
+		// CRITICAL: Use JWK for envelope encryption (i.e. alg=A256GCMKW), not DIRECT encryption (i.e. alg=dir)
+		unsealJWKEncHeader := cryptoutilJose.EncA256GCM
+		unsealJWKAlgHeader := cryptoutilJose.AlgA256KW
+
+		_, derivedJWK, _, _, _, err := cryptoutilJose.CreateJWEJWKFromKey(&derivedKidUUID, &unsealJWKEncHeader, &unsealJWKAlgHeader, cryptoutilKeyGen.SecretKey(derivedSecretBytes))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create unseal JWK from derived kid bytes and secret bytes: %w", err)
+		}
+
+		derivedUnsealJWKs = append(derivedUnsealJWKs, derivedJWK)
 	}
 
-	return unsealJWKs, nil
+	return derivedUnsealJWKs, nil
 }
 
 func encryptKey(unsealJWKs []joseJwk.Key, clearRootKey joseJwk.Key) ([]byte, error) {

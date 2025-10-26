@@ -32,9 +32,31 @@ const (
 	// DerivedKeySizeBytes - Derived key size in bytes.
 	DerivedKeySizeBytes = 32
 
+	// UUIDBytesLength - UUID byte length (16 bytes for standard UUID).
+	UUIDBytesLength = 16
+
 	// RandomKeySizeBytes - Random bytes length for dev mode.
 	RandomKeySizeBytes = 32
 )
 
 // DefaultUnsealFiles - Default unseal files slice.
 var DefaultUnsealFiles = []string{}
+
+// Unseal JWK derivation constants for deterministic key ID generation.
+var (
+	// FixedContextForDerivedKid - Derive context for key identifier JWKs.
+	FixedContextForDerivedKid = []byte("fixed context for derive unseal JWKs key identifier v1")
+
+	// FixedIKMForDerivedKid - Fixed derive bytes for key identifier secret.
+	FixedIKMForDerivedKid = []byte("fixed IKM for derive bytes for key identifier secret v1")
+	// FixedSaltForDerivedKid - Fixed derive bytes for key identifier salt.
+	FixedSaltForDerivedKid = []byte("fixed IKM for derive bytes for key identifier salt v1")
+
+	// FixedContextForDerivedSecret - Derive context for key material JWKs.
+	FixedContextForDerivedSecret = []byte("fixed context for derive unseal JWKs key material v1")
+
+	// FixedIKMForDerivedSecret - Fixed derive bytes for key material secret.
+	FixedIKMForDerivedSecret = []byte("fixed IKM for derive bytes for key material secret v1")
+	// FixedSaltForDerivedSecret - Fixed derive bytes for key material salt.
+	FixedSaltForDerivedSecret = []byte("fixed IKM for derive bytes for key material salt v1")
+)
