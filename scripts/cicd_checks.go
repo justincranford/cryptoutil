@@ -931,13 +931,14 @@ func checkTestFile(filePath string) []string {
 
 	// Pattern 3: Check for testify usage patterns
 	// Look for t.Errorf/t.Fatalf that should use require/assert
-	errorfPattern := regexp.MustCompile(`t\.Errorf\([^)]+\)`)
+	// Use a more sophisticated pattern to avoid matching string literals
+	errorfPattern := regexp.MustCompile(`(?m)^[\t ]*t\.Errorf\(`)
 	if errorfPattern.MatchString(contentStr) {
 		matches := errorfPattern.FindAllString(contentStr, -1)
 		issues = append(issues, fmt.Sprintf("Found %d instances of t.Errorf() - should use require.Errorf() or assert.Errorf()", len(matches)))
 	}
 
-	fatalfPattern := regexp.MustCompile(`t\.Fatalf\([^)]+\)`)
+	fatalfPattern := regexp.MustCompile(`(?m)^[\t ]*t\.Fatalf\(`)
 	if fatalfPattern.MatchString(contentStr) {
 		matches := fatalfPattern.FindAllString(contentStr, -1)
 		issues = append(issues, fmt.Sprintf("Found %d instances of t.Fatalf() - should use require.Fatalf() or assert.Fatalf()", len(matches)))

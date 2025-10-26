@@ -477,11 +477,8 @@ func TestCleanupTestCertificates(t *testing.T) {
 		// Delete the PEM files
 		for _, pemFile := range pemFiles {
 			err := os.Remove(pemFile)
-			if err != nil {
-				t.Errorf("Failed to delete PEM file %s: %v", pemFile, err)
-			} else {
-				t.Logf("Successfully deleted PEM file: %s", pemFile)
-			}
+			require.NoError(t, err, "Failed to delete PEM file %s", pemFile)
+			t.Logf("Successfully deleted PEM file: %s", pemFile)
 		}
 	} else {
 		t.Logf("No PEM files found in %s directory", "internal/client")
