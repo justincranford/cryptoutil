@@ -5,6 +5,7 @@ package test
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -28,5 +29,10 @@ func CreateInsecureHTTPClient() *http.Client {
 
 // CreateHTTPGetRequest creates an HTTP GET request with context.
 func CreateHTTPGetRequest(ctx context.Context, url string) (*http.Request, error) {
-	return http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP GET request: %w", err)
+	}
+
+	return req, nil
 }

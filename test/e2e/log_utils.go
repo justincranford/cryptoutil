@@ -28,6 +28,7 @@ func Log(logger *Logger, format string, args ...any) {
 	if logger == nil {
 		return
 	}
+
 	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
 		time.Since(logger.startTime).Round(time.Second),
@@ -50,6 +51,7 @@ func LogCommand(logger *Logger, description, command, output string) {
 	if logger == nil {
 		return
 	}
+
 	Log(logger, "📋 [%s] %s", description, command)
 
 	if output != "" {
@@ -62,6 +64,7 @@ func LogTestStep(logger *Logger, name, description string) {
 	if logger == nil {
 		return
 	}
+
 	Log(logger, "📋 %s: %s", name, description)
 }
 
@@ -70,6 +73,7 @@ func LogTestStepCompletion(logger *Logger, statusEmoji, name, result string, dur
 	if logger == nil {
 		return
 	}
+
 	Log(logger, "%s %s: %s (took %v)", statusEmoji, name, result, duration.Round(time.Millisecond))
 }
 
@@ -78,6 +82,7 @@ func LogTestSetup(logger *Logger, testName string) {
 	if logger == nil {
 		return
 	}
+
 	Log(logger, "📋 Setting up test: %s", testName)
 }
 
@@ -86,5 +91,6 @@ func LogTestCleanup(logger *Logger, testName string) {
 	if logger == nil {
 		return
 	}
+
 	Log(logger, "🧹 Cleaning up test: %s", testName)
 }

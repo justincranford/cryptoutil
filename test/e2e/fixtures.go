@@ -98,6 +98,7 @@ func (f *TestFixture) Setup() {
 func (f *TestFixture) Teardown() {
 	f.cancel()
 	Log(f.logger, "Teardown: Closing log file")
+
 	if f.logger.logFile != nil {
 		f.logger.logFile.Close()
 	}

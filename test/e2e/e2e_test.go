@@ -92,10 +92,7 @@ func (suite *SummaryTestSuite) logStep(name, description string) {
 	suite.summary.Steps = append(suite.summary.Steps, step)
 
 	if suite.fixture != nil {
-		suite.fixture.logger.Log("[%s] [%v] 📋 %s: %s",
-			step.StartTime.Format("15:04:05"),
-			time.Since(suite.fixture.startTime).Round(time.Second),
-			name, description)
+		LogTestStep(suite.fixture.logger, name, description)
 	}
 }
 
@@ -128,10 +125,7 @@ func (suite *SummaryTestSuite) completeStep(status, result string) {
 	}
 
 	if suite.fixture != nil {
-		suite.fixture.logger.Log("[%s] [%v] %s %s: %s (took %v)",
-			step.EndTime.Format("15:04:05"),
-			time.Since(suite.fixture.startTime).Round(time.Second),
-			statusEmoji, step.Name, result, step.Duration.Round(time.Millisecond))
+		LogTestStepCompletion(suite.fixture.logger, statusEmoji, step.Name, result, step.Duration)
 	}
 }
 
@@ -184,6 +178,6 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("=", 80) + "\n")
 
 	if suite.fixture != nil {
-		suite.fixture.logger.Log("%s", report.String())
+		Log(suite.fixture.logger, "%s", report.String())
 	}
 }

@@ -4,6 +4,7 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -71,7 +72,7 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 	LogCommand(logger, description, cmd.String(), string(output))
 
 	if err != nil {
-		return output, err
+		return output, fmt.Errorf("docker command failed: %w", err)
 	}
 
 	// Log success message based on description

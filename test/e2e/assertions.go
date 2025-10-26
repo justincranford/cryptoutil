@@ -160,6 +160,7 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 
 	// Assert all services are healthy
 	unhealthyServices := make([]string, 0)
+
 	for serviceName, healthy := range healthStatus {
 		if !healthy {
 			unhealthyServices = append(unhealthyServices, serviceName)
