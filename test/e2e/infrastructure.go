@@ -191,8 +191,10 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 			healthStatus[serviceName] = health == "healthy"
 		} else if serviceName == cryptoutilMagic.DockerServiceOtelCollectorHealthcheck {
 			im.log("🔍 Checking healthcheck service: %s", serviceName)
+
 			if state, ok := service["State"].(string); ok && state == "exited" {
 				im.log("✅ Healthcheck service is in exited state")
+
 				// Handle both int and float64 types for ExitCode
 				var exitCode int
 				if exitCodeFloat, ok := service["ExitCode"].(float64); ok {
@@ -203,14 +205,17 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 					im.log("✅ Healthcheck service ExitCode (int): %d", exitCode)
 				} else {
 					im.log("❌ Healthcheck service ExitCode field not found or wrong type")
+
 					healthStatus[serviceName] = false
 
 					continue
 				}
 
 				healthStatus[serviceName] = false
+
 				if exitCode == 0 {
 					im.log("✅ Healthcheck service exited successfully with code 0")
+
 					healthStatus[serviceName] = true
 				} else {
 					im.log("❌ Healthcheck service exited with non-zero code: %d", exitCode)
