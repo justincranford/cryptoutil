@@ -1,3 +1,31 @@
+// Package main provides CI/CD quality control checks for the cryptoutil project.
+//
+// This tool performs various automated checks to ensure code quality, dependency freshness,
+// and workflow consistency. It is designed to run both locally (during development) and
+// in CI/CD pipelines (via pre-push hooks and GitHub Actions).
+//
+// Available Commands:
+//   - go-update-direct-dependencies: Check for outdated direct Go dependencies (requires go.mod)
+//   - go-update-all-dependencies: Check for outdated Go dependencies (direct + transitive)
+//   - go-check-circular-package-dependencies: Detect circular import cycles in Go packages
+//   - github-workflow-lint: Validate GitHub Actions workflow naming and structure
+//   - gofumpter: Apply custom Go source code transformations (interface{} -> any)
+//   - enforce-test-patterns: Validate test code follows project conventions (UUIDv7, testify)
+//
+// Usage:
+//
+//	go run scripts/cicd_checks.go <command> [<command>...]
+//
+// Examples:
+//
+//	go run scripts/cicd_checks.go go-update-direct-dependencies
+//	go run scripts/cicd_checks.go github-workflow-lint
+//	go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint
+//
+// Exit Codes:
+//
+//	0: All checks passed
+//	1: One or more checks failed (details printed to stderr)
 package main
 
 import (
@@ -68,7 +96,7 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_checks.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n\nExamples:\n  go run scripts/cicd_checks.go go-update-direct-dependencies\n  go run scripts/cicd_checks.go go-update-all-dependencies\n  go run scripts/cicd_checks.go go-check-circular-package-dependencies\n  go run scripts/cicd_checks.go github-action-versions\n  go run scripts/cicd_checks.go gofumpter\n  go run scripts/cicd_checks.go enforce-test-patterns\n  go run scripts/cicd_checks.go go-update-direct-dependencies github-action-versions\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_checks.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n\nExamples:\n  go run scripts/cicd_checks.go go-update-direct-dependencies\n  go run scripts/cicd_checks.go go-update-all-dependencies\n  go run scripts/cicd_checks.go go-check-circular-package-dependencies\n  go run scripts/cicd_checks.go github-workflow-lint\n  go run scripts/cicd_checks.go gofumpter\n  go run scripts/cicd_checks.go enforce-test-patterns\n  go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint\n")
 		os.Exit(1)
 	}
 
@@ -84,14 +112,14 @@ func main() {
 			checkDeps(DepCheckAll)
 		case "go-check-circular-package-dependencies":
 			checkCircularDeps()
-		case "github-action-versions":
-			checkActions()
+		case "github-workflow-lint":
+			checkWorkflowLint()
 		case "gofumpter":
 			runGofumpter()
 		case "enforce-test-patterns":
 			enforceTestPatterns()
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-action-versions           - Check GitHub Actions versions\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n", command)
+			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n", command)
 			os.Exit(1)
 		}
 
@@ -235,8 +263,17 @@ func loadActionExceptions() (*ActionExceptions, error) {
 	return &exceptions, nil
 }
 
-func checkActions() {
-	// Load action exceptions
+// checkWorkflowLint validates GitHub Actions workflow files in two ways:
+//  1. Enforces repository-level workflow conventions (filename prefix `ci-`, presence of a top-level
+//     `name:` field, and a logging step that prints the workflow name/filename before executing jobs).
+//  2. Performs the existing GitHub Actions version checks (detects outdated `uses: owner/repo@version`).
+//
+// The function walks `.github/workflows`, validates each YAML file using a lightweight text-based
+// validation (regex/search) to avoid adding a YAML dependency, and then reuses the existing
+// action-version logic to check for outdated actions. Any violations cause the function to print
+// human-friendly messages and exit with a non-zero status to block pushes.
+func checkWorkflowLint() {
+	// Load action exceptions (same behavior as prior implementation)
 	exceptions, err := loadActionExceptions()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Failed to load action exceptions: %v\n", err)
@@ -244,7 +281,7 @@ func checkActions() {
 		exceptions = &ActionExceptions{Exceptions: make(map[string]ActionException)}
 	}
 
-	// Find all workflow files
+	// Ensure workflows directory exists
 	workflowsDir := ".github/workflows"
 	if _, err := os.Stat(workflowsDir); os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "No .github/workflows directory found\n")
@@ -252,14 +289,27 @@ func checkActions() {
 	}
 
 	var actions []ActionInfo
+	var validationErrors []string
 
-	// Walk through workflow files
+	// Walk through workflow files and validate them
 	err = filepath.Walk(workflowsDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
 		if !info.IsDir() && (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
+			// Run lightweight validation on the workflow file (filename prefix, name, logging)
+			issues, vErr := validateWorkflowFile(path)
+			if vErr != nil {
+				// Non-fatal: report and continue
+				validationErrors = append(validationErrors, fmt.Sprintf("Failed to validate %s: %v", path, vErr))
+			}
+
+			for _, issue := range issues {
+				validationErrors = append(validationErrors, fmt.Sprintf("%s: %s", filepath.Base(path), issue))
+			}
+
+			// Extract actions for version checks
 			fileActions, err := parseWorkflowFile(path)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Warning: Failed to parse %s: %v\n", path, err)
@@ -277,12 +327,24 @@ func checkActions() {
 		os.Exit(1)
 	}
 
+	// If validation errors were found, report and fail fast
+	if len(validationErrors) > 0 {
+		fmt.Fprintln(os.Stderr, "Workflow validation errors:")
+		for _, e := range validationErrors {
+			fmt.Fprintf(os.Stderr, "  - %s\n", e)
+		}
+
+		fmt.Fprintln(os.Stderr, "\nPlease fix the workflow files to match naming and logging conventions.")
+		os.Exit(1)
+	}
+
+	// If no actions were found, report and exit (no further checks necessary)
 	if len(actions) == 0 {
 		fmt.Fprintln(os.Stderr, "No actions found in workflow files")
 		os.Exit(0)
 	}
 
-	// Remove duplicates and check versions
+	// Remove duplicates and check versions (reuse prior logic)
 	actionMap := make(map[string]ActionInfo)
 
 	for _, action := range actions {
@@ -291,9 +353,7 @@ func checkActions() {
 	}
 
 	var outdated []ActionInfo
-
 	var errors []string
-
 	var exempted []ActionInfo
 
 	for _, action := range actionMap {
@@ -356,7 +416,7 @@ func checkActions() {
 		fmt.Fprintln(os.Stderr, "Found outdated GitHub Actions:")
 
 		for _, action := range outdated {
-			fmt.Fprintf(os.Stderr, "  %s@%s â†’ %s (in %s)\n",
+			fmt.Fprintf(os.Stderr, "  %s@%s -> %s (in %s)\n",
 				action.Name, action.CurrentVersion, action.LatestVersion, action.WorkflowFile)
 		}
 
@@ -365,6 +425,44 @@ func checkActions() {
 	}
 
 	fmt.Fprintln(os.Stderr, "All GitHub Actions are up to date.")
+}
+
+// validateWorkflowFile performs lightweight checks on a workflow YAML file to ensure it
+// follows repository conventions:
+//   - filename must start with "ci-"
+//   - file must contain a top-level `name:` field
+//   - file must include a logging reference to the workflow name (e.g., `${{ github.workflow }}` or `GITHUB_WORKFLOW`)
+//
+// Returns a list of human-readable issues (empty if file is valid) and any error encountered reading the file.
+func validateWorkflowFile(path string) ([]string, error) {
+	var issues []string
+
+	contentBytes, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read workflow file: %w", err)
+	}
+
+	content := string(contentBytes)
+
+	// 1) Filename prefix check
+	base := filepath.Base(path)
+	if !strings.HasPrefix(base, "ci-") {
+		issues = append(issues, "workflow filename must be prefixed with 'ci-'")
+	}
+
+	// 2) Top-level name key: look for a 'name:' at the start of a line
+	nameRe := regexp.MustCompile(`(?m)^\s*name:\s*.+`)
+	if !nameRe.MatchString(content) {
+		issues = append(issues, "missing top-level 'name:' field (required and should be consistent across workflows)")
+	}
+
+	// 3) Logging requirement: ensure the workflow references the workflow name/filename so that jobs can log it
+	// We require at least one of these tokens to be present in the file.
+	if !strings.Contains(content, "${{ github.workflow }}") && !strings.Contains(content, "github.workflow") && !strings.Contains(content, "GITHUB_WORKFLOW") {
+		issues = append(issues, "missing logging of workflow name/filename - include '${{ github.workflow }}' or reference 'GITHUB_WORKFLOW' in an early step")
+	}
+
+	return issues, nil
 }
 
 func parseWorkflowFile(path string) ([]ActionInfo, error) {

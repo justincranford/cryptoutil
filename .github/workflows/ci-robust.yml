@@ -67,7 +67,7 @@ jobs:
       - name: Workflow Start - CI - Robustness Testing / concurrency (ci-robust.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Robustness Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-robust.yml"
           echo "Job: concurrency"
           echo "Triggered by: ${{ github.event_name }}"
@@ -142,7 +142,7 @@ jobs:
       - name: Workflow Start - CI - Robustness Testing / fuzz-keygen (ci-robust.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Robustness Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-robust.yml"
           echo "Job: fuzz-keygen"
           echo "Triggered by: ${{ github.event_name }}"
@@ -221,7 +221,7 @@ jobs:
       - name: Workflow Start - CI - Robustness Testing / fuzz-digests (ci-robust.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Robustness Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-robust.yml"
           echo "Job: fuzz-digests"
           echo "Triggered by: ${{ github.event_name }}"
@@ -310,7 +310,7 @@ jobs:
       - name: Workflow Start - CI - Robustness Testing / benchmark (ci-robust.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Robustness Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-robust.yml"
           echo "Job: benchmark"
           echo "Triggered by: ${{ github.event_name }}"

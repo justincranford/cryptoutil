@@ -52,7 +52,7 @@ jobs:
       - name: Workflow Start - CI - Quality Testing / code-quality (ci-quality.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Quality Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: code-quality"
           echo "Triggered by: ${{ github.event_name }}"
@@ -108,7 +108,7 @@ jobs:
       - name: Workflow Start - CI - Quality Testing / build (ci-quality.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Quality Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: build"
           echo "Triggered by: ${{ github.event_name }}"
@@ -269,7 +269,7 @@ jobs:
       - name: Workflow Start - CI - Quality Testing / sbom (ci-quality.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Quality Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: sbom"
           echo "Triggered by: ${{ github.event_name }}"
@@ -315,7 +315,7 @@ jobs:
       - name: Workflow Start - CI - Quality Testing / mutation-testing (ci-quality.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - Quality Testing"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: mutation-testing"
           echo "Triggered by: ${{ github.event_name }}"

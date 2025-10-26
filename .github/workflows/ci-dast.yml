@@ -130,7 +130,7 @@ jobs:
     - name: Workflow Start - CI - DAST Security Testing (ci-dast.yml)
       run: |
         echo "=========================================="
-        echo "Workflow: CI - DAST Security Testing"
+        echo "Workflow: ${{ github.workflow }}"
         echo "File: .github/workflows/ci-dast.yml"
         echo "Job: dast-security-scan"
         echo "Triggered by: ${{ github.event_name }}"

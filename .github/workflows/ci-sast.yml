@@ -60,7 +60,7 @@ jobs:
       - name: Workflow Start - CI - SAST Pipeline / security (ci-sast.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - SAST Pipeline"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-sast.yml"
           echo "Job: security"
           echo "Triggered by: ${{ github.event_name }}"
@@ -163,7 +163,7 @@ jobs:
       - name: Workflow Start - CI - SAST Pipeline / codeql (${{ matrix.language }}) (ci-sast.yml)
         run: |
           echo "=========================================="
-          echo "Workflow: CI - SAST Pipeline"
+          echo "Workflow: ${{ github.workflow }}"
           echo "File: .github/workflows/ci-sast.yml"
           echo "Job: codeql"
           echo "Language: ${{ matrix.language }}"

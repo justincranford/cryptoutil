@@ -50,18 +50,329 @@ func TestMainMultipleCommands(t *testing.T) {
 	defer func() { os.Args = oldArgs }()
 
 	// Test with multiple valid commands
-	os.Args = []string{"cicd_checks", "go-update-direct-dependencies", "github-action-versions"}
+	os.Args = []string{"cicd_checks", "go-update-direct-dependencies", "github-workflow-lint"}
 
 	// Verify we can parse multiple commands
 	require.GreaterOrEqual(t, len(os.Args), 3, "Expected at least 3 arguments")
 
 	commands := os.Args[1:]
-	expectedCommands := []string{"go-update-direct-dependencies", "github-action-versions"}
+	expectedCommands := []string{"go-update-direct-dependencies", "github-workflow-lint"}
 
 	require.Len(t, commands, len(expectedCommands))
 
 	for i, cmd := range commands {
 		require.Equal(t, expectedCommands[i], cmd, "Expected command %d to be '%s'", i, expectedCommands[i])
+	}
+}
+
+func TestValidateWorkflowFile_NameAndPrefix(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Valid workflow file (filename prefixed with ci-, has name and logging token)
+	validPath := filepath.Join(tempDir, "ci-valid.yml")
+	validContent := `name: CI Valid Workflow
+on: [push]
+jobs:
+	test:
+		runs-on: ubuntu-latest
+		steps:
+			- name: Log workflow
+				run: echo "workflow=${{ github.workflow }} file=$GITHUB_WORKFLOW"
+`
+	require.NoError(t, os.WriteFile(validPath, []byte(validContent), 0o600))
+
+	issues, err := validateWorkflowFile(validPath)
+	require.NoError(t, err)
+	require.Len(t, issues, 0, "Expected no issues for valid workflow file: %v", issues)
+
+	// Invalid workflow file (missing prefix, missing name, missing logging)
+	invalidPath := filepath.Join(tempDir, "dast.yml")
+	invalidContent := `on: push
+jobs:
+	build:
+		runs-on: ubuntu-latest
+		steps:
+			- name: Do nothing
+				run: echo "hello"
+`
+	require.NoError(t, os.WriteFile(invalidPath, []byte(invalidContent), 0o600))
+
+	issues2, err := validateWorkflowFile(invalidPath)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(issues2), 1, "Expected at least one issue for invalid workflow file")
+}
+
+func TestValidateWorkflowFile_LoggingRequirement(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// File that has prefix and name but lacks logging tokens
+	p := filepath.Join(tempDir, "ci-nolog.yml")
+	content := `name: Needs Logging
+on: push
+jobs:
+	test:
+		runs-on: ubuntu-latest
+		steps:
+			- name: No log here
+				run: echo "just a message"
+`
+	require.NoError(t, os.WriteFile(p, []byte(content), 0o600))
+
+	issues, err := validateWorkflowFile(p)
+	require.NoError(t, err)
+	require.GreaterOrEqual(t, len(issues), 1)
+	found := false
+	for _, it := range issues {
+		if strings.Contains(it, "logging") {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "Expected logging-related issue")
+}
+
+// TestValidateWorkflowFile_HappyPath tests all valid workflow configurations.
+func TestValidateWorkflowFile_HappyPath(t *testing.T) {
+	tempDir := t.TempDir()
+
+	tests := []struct {
+		name     string
+		filename string
+		content  string
+	}{
+		{
+			name:     "workflow with github.workflow variable",
+			filename: "ci-test1.yml",
+			content: `name: CI Test Workflow
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        run: echo "Workflow: ${{ github.workflow }}"
+`,
+		},
+		{
+			name:     "workflow with GITHUB_WORKFLOW env var",
+			filename: "ci-test2.yml",
+			content: `name: CI Test Workflow 2
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        run: echo "Workflow: $GITHUB_WORKFLOW"
+`,
+		},
+		{
+			name:     "workflow with github.workflow reference in env",
+			filename: "ci-test3.yml",
+			content: `name: CI Test Workflow 3
+on: push
+env:
+  WORKFLOW_NAME: ${{ github.workflow }}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        run: echo "Workflow: $WORKFLOW_NAME"
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := filepath.Join(tempDir, tt.filename)
+			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
+
+			issues, err := validateWorkflowFile(path)
+			require.NoError(t, err, "Should not error reading file")
+			require.Empty(t, issues, "Expected no validation issues for valid workflow: %v", issues)
+		})
+	}
+}
+
+// TestValidateWorkflowFile_SadPath tests all invalid workflow configurations.
+func TestValidateWorkflowFile_SadPath(t *testing.T) {
+	tempDir := t.TempDir()
+
+	tests := []struct {
+		name            string
+		filename        string
+		content         string
+		expectedIssues  []string
+		minIssueCount   int
+	}{
+		{
+			name:     "missing ci- prefix",
+			filename: "invalid.yml",
+			content: `name: Invalid Workflow
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        run: echo "Workflow: ${{ github.workflow }}"
+`,
+			expectedIssues: []string{"must be prefixed with 'ci-'"},
+			minIssueCount:  1,
+		},
+		{
+			name:     "missing name field",
+			filename: "ci-noname.yml",
+			content: `on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        run: echo "Workflow: ${{ github.workflow }}"
+`,
+			expectedIssues: []string{"missing top-level 'name:' field"},
+			minIssueCount:  1,
+		},
+		{
+			name:     "missing logging reference",
+			filename: "ci-nologging.yml",
+			content: `name: No Logging Workflow
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: No logging
+        run: echo "hello world"
+`,
+			expectedIssues: []string{"missing logging of workflow name/filename"},
+			minIssueCount:  1,
+		},
+		{
+			name:     "all validations fail",
+			filename: "bad.yml",
+			content: `on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Nothing
+        run: echo "test"
+`,
+			expectedIssues: []string{
+				"must be prefixed with 'ci-'",
+				"missing top-level 'name:' field",
+				"missing logging of workflow name/filename",
+			},
+			minIssueCount: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := filepath.Join(tempDir, tt.filename)
+			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
+
+			issues, err := validateWorkflowFile(path)
+			require.NoError(t, err, "Should not error reading file")
+			require.GreaterOrEqual(t, len(issues), tt.minIssueCount, "Expected at least %d issues, got %d: %v", tt.minIssueCount, len(issues), issues)
+
+			// Check that all expected issue strings are present
+			issuesText := strings.Join(issues, " ")
+			for _, expectedIssue := range tt.expectedIssues {
+				require.Contains(t, issuesText, expectedIssue, "Expected issue message not found: %s", expectedIssue)
+			}
+		})
+	}
+}
+
+// TestValidateWorkflowFile_EdgeCases tests edge cases and boundary conditions.
+func TestValidateWorkflowFile_EdgeCases(t *testing.T) {
+	tempDir := t.TempDir()
+
+	tests := []struct {
+		name          string
+		filename      string
+		content       string
+		expectError   bool
+		expectIssues  bool
+	}{
+		{
+			name:     "empty file",
+			filename: "ci-empty.yml",
+			content:  "",
+			expectError: false,
+			expectIssues: true, // Missing name and logging
+		},
+		{
+			name:     "name field in comment should not count",
+			filename: "ci-commented.yml",
+			content: `# name: This is a comment
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        run: echo "Workflow: ${{ github.workflow }}"
+`,
+			expectError: false,
+			expectIssues: true, // Missing actual name field
+		},
+		{
+			name:     "workflow variable in comment should not count",
+			filename: "ci-logcomment.yml",
+			content: `name: Valid Name
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        # run: echo "Workflow: ${{ github.workflow }}"
+        run: echo "hello"
+`,
+			expectError: false,
+			expectIssues: false, // github.workflow is present even though commented
+		},
+		{
+			name:     "ci- prefix with extra characters",
+			filename: "ci-test-feature.yml",
+			content: `name: Valid CI Workflow
+on: push
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log workflow
+        run: echo "Workflow: ${{ github.workflow }}"
+`,
+			expectError: false,
+			expectIssues: false, // This is valid
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := filepath.Join(tempDir, tt.filename)
+			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
+
+			issues, err := validateWorkflowFile(path)
+
+			if tt.expectError {
+				require.Error(t, err, "Expected error for test case")
+			} else {
+				require.NoError(t, err, "Should not error reading file")
+			}
+
+			if tt.expectIssues {
+				require.NotEmpty(t, issues, "Expected validation issues but got none")
+			} else {
+				require.Empty(t, issues, "Expected no validation issues but got: %v", issues)
+			}
+		})
 	}
 }
 
