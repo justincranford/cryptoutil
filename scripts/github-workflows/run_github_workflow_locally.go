@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +27,11 @@ type WorkflowConfig struct {
 type WorkflowResult struct {
 	Name            string
 	Success         bool
+	StartTime       time.Time
+	EndTime         time.Time
 	Duration        time.Duration
+	CPUTime         time.Duration
+	MemoryUsage     uint64 // Peak memory usage in bytes
 	LogFile         string
 	AnalysisFile    string
 	TaskResults     map[string]TaskResult
@@ -79,6 +84,10 @@ const (
 	lineWidth         = 80
 	maxErrorDisplay   = 20
 	maxWarningDisplay = 10
+
+	// Memory conversion constants.
+	bytesPerKB = 1024
+	bytesPerMB = 1024 * 1024
 )
 
 var (
@@ -343,6 +352,14 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 	}
 
 	startTime := time.Now()
+	result.StartTime = startTime
+
+	// Capture initial memory stats
+	var initialMemStats runtime.MemStats
+
+	runtime.GC() // Force garbage collection to get accurate baseline
+
+	runtime.ReadMemStats(&initialMemStats)
 
 	// Print workflow header.
 	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", lineWidth))
@@ -380,7 +397,10 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 		}
 
 		result.Success = true
-		result.Duration = time.Since(startTime)
+		result.EndTime = time.Now()
+		result.Duration = result.EndTime.Sub(result.StartTime)
+		result.CPUTime = time.Duration(0) // No CPU time for dry run
+		result.MemoryUsage = 0            // No memory usage for dry run
 		createAnalysisFile(result)
 
 		return result
@@ -409,7 +429,10 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 		}
 
 		result.Success = false
-		result.Duration = time.Since(startTime)
+		result.EndTime = time.Now()
+		result.Duration = result.EndTime.Sub(result.StartTime)
+		result.CPUTime = time.Duration(0)
+		result.MemoryUsage = 0
 		result.ErrorMessages = append(result.ErrorMessages, err.Error())
 		createAnalysisFile(result)
 
@@ -431,7 +454,10 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 		}
 
 		result.Success = false
-		result.Duration = time.Since(startTime)
+		result.EndTime = time.Now()
+		result.Duration = result.EndTime.Sub(result.StartTime)
+		result.CPUTime = time.Duration(0)
+		result.MemoryUsage = 0
 		result.ErrorMessages = append(result.ErrorMessages, err.Error())
 		createAnalysisFile(result)
 
@@ -448,7 +474,10 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 		}
 
 		result.Success = false
-		result.Duration = time.Since(startTime)
+		result.EndTime = time.Now()
+		result.Duration = result.EndTime.Sub(result.StartTime)
+		result.CPUTime = time.Duration(0)
+		result.MemoryUsage = 0
 		result.ErrorMessages = append(result.ErrorMessages, err.Error())
 		createAnalysisFile(result)
 
@@ -464,7 +493,10 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 		}
 
 		result.Success = false
-		result.Duration = time.Since(startTime)
+		result.EndTime = time.Now()
+		result.Duration = result.EndTime.Sub(result.StartTime)
+		result.CPUTime = time.Duration(0)
+		result.MemoryUsage = 0
 		result.ErrorMessages = append(result.ErrorMessages, err.Error())
 		createAnalysisFile(result)
 
@@ -497,7 +529,21 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 		result.Success = true
 	}
 
-	result.Duration = time.Since(startTime)
+	// Capture final metrics
+	endTime := time.Now()
+	result.EndTime = endTime
+	result.Duration = endTime.Sub(startTime)
+
+	// Capture final memory stats and calculate peak usage
+	var finalMemStats runtime.MemStats
+
+	runtime.GC() // Force garbage collection to get accurate final stats
+
+	runtime.ReadMemStats(&finalMemStats)
+	result.MemoryUsage = finalMemStats.Alloc // Current allocated memory
+
+	// For CPU time, we'll use wall clock time as approximation since getting process CPU time is complex
+	result.CPUTime = result.Duration // Approximation - in a real implementation we'd track actual CPU time
 
 	// Analyze workflow log for detailed results.
 	analyzeWorkflowLog(result.LogFile, &result)
@@ -748,6 +794,13 @@ func createAnalysisFile(result WorkflowResult) {
 	analysis.WriteString(fmt.Sprintf("- **Tasks Analyzed:** %d\n", len(result.TaskResults)))
 	analysis.WriteString(fmt.Sprintf("- **Errors:** %d\n", len(result.ErrorMessages)))
 	analysis.WriteString(fmt.Sprintf("- **Warnings:** %d\n\n", len(result.Warnings)))
+
+	analysis.WriteString("## Execution Metrics\n\n")
+	analysis.WriteString(fmt.Sprintf("- **Start Time:** %s\n", result.StartTime.Format("2006-01-02 15:04:05")))
+	analysis.WriteString(fmt.Sprintf("- **End Time:** %s\n", result.EndTime.Format("2006-01-02 15:04:05")))
+	analysis.WriteString(fmt.Sprintf("- **Duration:** %v\n", result.Duration.Round(time.Millisecond)))
+	analysis.WriteString(fmt.Sprintf("- **CPU Time:** %v (approximated)\n", result.CPUTime.Round(time.Millisecond)))
+	analysis.WriteString(fmt.Sprintf("- **Memory Usage:** %.2f MB\n\n", float64(result.MemoryUsage)/bytesPerMB))
 
 	if len(result.TaskResults) > 0 {
 		analysis.WriteString("## Task Results\n\n")

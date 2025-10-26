@@ -20,6 +20,9 @@ coverage.html
 # Output of dast workflow
 dast-reports/
 
+# Workflow execution reports
+workflow-reports/
+
 # E2E test reports
 test/e2e/e2e-reports/
 
