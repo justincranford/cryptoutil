@@ -75,10 +75,11 @@ func (suite *E2ETestSuite) TearDownSuite() {
 	// Generate final summary report before tearing down infrastructure
 	suite.generateSummaryReport()
 
-	// Teardown infrastructure
-	suite.fixture.Teardown()
-
+	// Mark cleanup step as completed before closing log file
 	CompleteStep(suite.summary, suite.fixture.logger, "PASS", "Test suite cleanup completed")
+
+	// Teardown infrastructure (closes log file)
+	suite.fixture.Teardown()
 }
 
 // SetupTest runs before each test method.
