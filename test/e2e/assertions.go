@@ -5,12 +5,8 @@ package test
 import (
 	"context"
 	"crypto/x509"
-	"fmt"
 	"net/http"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -23,9 +19,8 @@ import (
 
 // ServiceAssertions provides common assertions for service testing.
 type ServiceAssertions struct {
-	t         *testing.T
-	startTime time.Time
-	logFile   *os.File
+	t      *testing.T
+	logger *Logger
 }
 
 // NewServiceAssertions creates a new service assertions helper.
@@ -33,23 +28,22 @@ func NewServiceAssertions(t *testing.T, startTime time.Time, logFile *os.File) *
 	t.Helper()
 
 	return &ServiceAssertions{
-		t:         t,
-		startTime: startTime,
-		logFile:   logFile,
+		t:      t,
+		logger: NewLogger(startTime, logFile),
 	}
 }
 
 // AssertCryptoutilHealth checks that a cryptoutil instance is healthy.
 func (a *ServiceAssertions) AssertCryptoutilHealth(baseURL string, rootCAsPool *x509.CertPool) {
-	a.log("💚 Testing health check for %s", baseURL)
+	a.logger.Log("💚 Testing health check for %s", baseURL)
 	err := cryptoutilClient.CheckHealthz(&baseURL, rootCAsPool)
 	require.NoError(a.t, err, "Health check failed for %s", baseURL)
-	a.log("✅ Health check passed for %s", baseURL)
+	a.logger.Log("✅ Health check passed for %s", baseURL)
 }
 
 // AssertCryptoutilReady waits for a cryptoutil instance to be ready.
 func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL string, rootCAsPool *x509.CertPool) {
-	a.log("⏳ Waiting for cryptoutil ready at %s", baseURL)
+	a.logger.Log("⏳ Waiting for cryptoutil ready at %s", baseURL)
 
 	giveUpTime := time.Now().Add(cryptoutilMagic.TestTimeoutCryptoutilReady)
 	checkCount := 0
@@ -58,18 +52,18 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 		require.False(a.t, time.Now().After(giveUpTime), "Cryptoutil service not ready after %v: %s", cryptoutilMagic.TestTimeoutCryptoutilReady, baseURL)
 
 		checkCount++
-		a.log("🔍 Cryptoutil readiness check #%d for %s", checkCount, baseURL)
+		a.logger.Log("🔍 Cryptoutil readiness check #%d for %s", checkCount, baseURL)
 
 		client := cryptoutilClient.RequireClientWithResponses(a.t, &baseURL, rootCAsPool)
 		_, err := client.GetElastickeysWithResponse(ctx, nil)
 
 		if err == nil {
-			a.log("✅ Cryptoutil service ready at %s after %d checks", baseURL, checkCount)
+			a.logger.Log("✅ Cryptoutil service ready at %s after %d checks", baseURL, checkCount)
 
 			return
 		}
 
-		a.log("⏳ Cryptoutil at %s not ready yet (attempt %d), waiting %v...",
+		a.logger.Log("⏳ Cryptoutil at %s not ready yet (attempt %d), waiting %v...",
 			baseURL, checkCount, cryptoutilMagic.TestTimeoutServiceRetry)
 		time.Sleep(cryptoutilMagic.TestTimeoutServiceRetry)
 	}
@@ -77,7 +71,7 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 
 // AssertHTTPReady waits for an HTTP endpoint to return 200.
 func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, timeout time.Duration) {
-	a.log("⏳ Waiting for HTTP endpoint ready: %s", url)
+	a.logger.Log("⏳ Waiting for HTTP endpoint ready: %s", url)
 
 	giveUpTime := time.Now().Add(timeout)
 	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
@@ -95,7 +89,7 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
-			a.log("✅ HTTP service ready at %s", url)
+			a.logger.Log("✅ HTTP service ready at %s", url)
 
 			return
 		}
@@ -110,7 +104,7 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 
 // AssertTelemetryFlow verifies that telemetry is flowing to Grafana and OTEL collector.
 func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL, otelURL string) {
-	a.log("📊 Verifying telemetry flow")
+	a.logger.Log("📊 Verifying telemetry flow")
 
 	// Check Grafana health
 	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
@@ -123,7 +117,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 	defer resp.Body.Close()
 	require.Equal(a.t, http.StatusOK, resp.StatusCode, "Grafana health check failed")
 
-	a.log("✅ Grafana health check passed")
+	a.logger.Log("✅ Grafana health check passed")
 
 	// Check OTEL collector metrics
 	req, err = http.NewRequestWithContext(ctx, http.MethodGet, otelURL+"/metrics", nil)
@@ -150,14 +144,14 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 
 	require.True(a.t, hasTraces || hasLogs || hasMetrics, "No telemetry data found in OTEL collector")
 
-	a.log("✅ Telemetry flow verification passed")
+	a.logger.Log("✅ Telemetry flow verification passed")
 }
 
 // AssertDockerServicesHealthy verifies all Docker services are healthy.
 func (a *ServiceAssertions) AssertDockerServicesHealthy() {
-	a.log("🔍 Verifying Docker services health")
+	a.logger.Log("🔍 Verifying Docker services health")
 
-	output, err := a.runDockerComposeCommand(context.Background(), "Batch health check", dockerComposeArgsPsServices)
+	output, err := runDockerComposeCommand(context.Background(), a.logger, "Batch health check", dockerComposeArgsPsServices)
 	require.NoError(a.t, err, "Failed to check Docker services health")
 
 	serviceMap, err := parseDockerComposePsOutput(output)
@@ -175,69 +169,5 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 
 	require.Empty(a.t, unhealthyServices, "The following services are not healthy: %v", unhealthyServices)
 
-	a.log("✅ All Docker services are healthy")
-}
-
-// log provides structured logging for assertions.
-func (a *ServiceAssertions) log(format string, args ...any) {
-	message := fmt.Sprintf("[%s] [%v] %s\n",
-		time.Now().Format("15:04:05"),
-		time.Since(a.startTime).Round(time.Second),
-		fmt.Sprintf(format, args...))
-
-	// Write to console
-	fmt.Print(message)
-
-	// Write to log file if available
-	if a.logFile != nil {
-		if _, err := a.logFile.WriteString(message); err != nil {
-			// If we can't write to the log file, at least write to console
-			fmt.Printf("⚠️ Failed to write to log file: %v\n", err)
-		}
-	}
-}
-
-// runDockerComposeCommand executes a docker compose command with the given arguments.
-func (a *ServiceAssertions) runDockerComposeCommand(ctx context.Context, description string, args []string) ([]byte, error) {
-	composeFile := a.getComposeFilePath()
-	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
-	cmd := exec.CommandContext(ctx, allArgs[0], allArgs[1:]...)
-	output, err := cmd.CombinedOutput()
-	a.logCommand(description, cmd.String(), string(output))
-
-	if err != nil {
-		return output, fmt.Errorf("docker compose command failed: %w", err)
-	}
-
-	return output, nil
-}
-
-// getComposeFilePath returns the compose file path appropriate for the current OS.
-// Since E2E tests run from test/e2e/ directory, we need to navigate up to project root.
-func (a *ServiceAssertions) getComposeFilePath() string {
-	// Navigate up from test/e2e/ to project root, then to deployments/compose/compose.yml
-	projectRoot := filepath.Join("..", "..")
-	composePath := filepath.Join(projectRoot, "deployments", "compose", "compose.yml")
-
-	// Convert to absolute path to ensure it works regardless of working directory
-	absPath, err := filepath.Abs(composePath)
-	if err != nil {
-		// Fallback to relative path if absolute path fails
-		if runtime.GOOS == "windows" {
-			return cryptoutilMagic.DockerComposeRelativeFilePathWindows
-		}
-
-		return cryptoutilMagic.DockerComposeRelativeFilePathLinux
-	}
-
-	return absPath
-}
-
-// logCommand provides structured logging for commands.
-func (a *ServiceAssertions) logCommand(description, command, output string) {
-	a.log("📋 [%s] %s", description, command)
-
-	if output != "" {
-		a.log("📋 [%s] Output: %s", description, strings.TrimSpace(output))
-	}
+	a.logger.Log("✅ All Docker services are healthy")
 }
