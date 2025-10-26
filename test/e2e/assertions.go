@@ -157,22 +157,13 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 	a.log("🔍 Verifying Docker services health")
 
-	services := []ServiceNameAndJob{
-		{Name: cryptoutilMagic.DockerServiceCryptoutilSqlite},
-		{Name: cryptoutilMagic.DockerServiceCryptoutilPostgres1},
-		{Name: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
-		{Name: cryptoutilMagic.DockerServicePostgres},
-		{Name: cryptoutilMagic.DockerServiceGrafanaOtelLgtm},
-		{Name: cryptoutilMagic.DockerServiceOtelCollector, HealthcheckJob: cryptoutilMagic.DockerJobOtelCollectorHealthcheck},
-	}
-
 	output, err := a.runDockerComposeCommand(context.Background(), "Batch health check", dockerComposeArgsPsServices)
 	require.NoError(a.t, err, "Failed to check Docker services health")
 
 	serviceMap, err := parseDockerComposePsOutput(output)
 	require.NoError(a.t, err, "Failed to parse Docker compose output")
 
-	healthStatus := determineServiceHealthStatus(serviceMap, services)
+	healthStatus := determineServiceHealthStatus(serviceMap, dockerComposeServicesForHealthCheck)
 
 	// Assert all services are healthy
 	unhealthyServices := make([]string, 0)
