@@ -18,6 +18,7 @@ applyTo: "**"
 - **ALWAYS run Go fuzz tests from project root** - never use `cd` commands before `go test -fuzz` (causes module detection failures)
 - **ALWAYS use PowerShell `;` for command chaining** - never use bash `&&` syntax (PowerShell 5.1 doesn't support it)
 - **STOP MODIFYING THE DOCKER COMPOSE SECRETS** - Docker Compose secrets in `deployments/compose/` are carefully configured for cryptographic interoperability; NEVER create, modify, or delete secret files as this breaks the cryptographic key hierarchy and causes test failures
+- **USE TAGGED SWITCH STATEMENTS** - Prefer `switch variable { case value: ... }` over `if/else if` chains for cleaner, more maintainable code
 - **ALWAYS declare values as constants near the top of the file** to proactively mitigate "mnd" (magic number detector) linter errors in .golangci-lint.yml:
   - **HTTP status codes**: `http.StatusOK`, `http.StatusNotFound`, `http.StatusForbidden` instead of `200`, `404`, `403`
   - **Durations**: `timeout = 30 * time.Second`, `delay = 100 * time.Millisecond` instead of inline `30000`, `100`

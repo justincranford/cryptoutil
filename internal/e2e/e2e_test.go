@@ -117,12 +117,7 @@ func (suite *SummaryTestSuite) completeStep(status, result string) {
 		suite.summary.SkippedSteps++
 	}
 
-	statusEmoji := cryptoutilMagic.TestStatusEmojiPass
-	if status == cryptoutilMagic.TestStatusFail {
-		statusEmoji = cryptoutilMagic.TestStatusEmojiFail
-	} else if status == cryptoutilMagic.TestStatusSkip {
-		statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
-	}
+	statusEmoji := GetStatusEmoji(status)
 
 	if suite.fixture != nil {
 		LogTestStepCompletion(suite.fixture.logger, statusEmoji, step.Name, result, step.Duration)
@@ -156,12 +151,7 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("-", 80) + "\n")
 
 	for i, step := range suite.summary.Steps {
-		statusEmoji := cryptoutilMagic.TestStatusEmojiPass
-		if step.Status == cryptoutilMagic.TestStatusFail {
-			statusEmoji = cryptoutilMagic.TestStatusEmojiFail
-		} else if step.Status == cryptoutilMagic.TestStatusSkip {
-			statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
-		}
+		statusEmoji := GetStatusEmoji(step.Status)
 
 		report.WriteString(fmt.Sprintf("%2d. %s %-25s %8v  %s\n",
 			i+1, statusEmoji, step.Name, step.Duration.Round(time.Millisecond), step.Description))
