@@ -12,6 +12,7 @@ services:
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8080:8080"    # HTTPS public
+      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
     volumes:
       - ./cryptoutil/cryptoutil-sqlite.yml:/app/config/cryptoutil-sqlite.yml:ro
       - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
@@ -102,6 +103,7 @@ services:
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
       - "8082:8080"    # HTTPS public
+      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
     volumes:
       - ./cryptoutil/cryptoutil-postgresql-2.yml:/app/config/cryptoutil-postgresql-2.yml:ro
       - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro

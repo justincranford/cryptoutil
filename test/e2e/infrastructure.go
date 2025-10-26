@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -186,19 +187,42 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 			continue
 		}
 
-		if health, ok := service["Health"].(string); ok {
+		if health, ok := service["Health"].(string); ok && health != "" {
 			healthStatus[serviceName] = health == "healthy"
 		} else if serviceName == cryptoutilMagic.DockerServiceOtelCollectorHealthcheck {
+			im.log("🔍 Checking healthcheck service: %s", serviceName)
 			if state, ok := service["State"].(string); ok && state == "exited" {
-				if exitCode, ok := service["ExitCode"].(float64); ok && exitCode == 0 {
+				im.log("✅ Healthcheck service is in exited state")
+				// Handle both int and float64 types for ExitCode
+				var exitCode int
+				if exitCodeFloat, ok := service["ExitCode"].(float64); ok {
+					exitCode = int(exitCodeFloat)
+					im.log("✅ Healthcheck service ExitCode (float64): %d", exitCode)
+				} else if exitCodeInt, ok := service["ExitCode"].(int); ok {
+					exitCode = exitCodeInt
+					im.log("✅ Healthcheck service ExitCode (int): %d", exitCode)
+				} else {
+					im.log("❌ Healthcheck service ExitCode field not found or wrong type")
+					healthStatus[serviceName] = false
+
+					continue
+				}
+
+				healthStatus[serviceName] = false
+				if exitCode == 0 {
+					im.log("✅ Healthcheck service exited successfully with code 0")
 					healthStatus[serviceName] = true
 				} else {
-					healthStatus[serviceName] = false
+					im.log("❌ Healthcheck service exited with non-zero code: %d", exitCode)
 				}
-			} else if state == "running" {
-				healthStatus[serviceName] = false
 			} else {
 				healthStatus[serviceName] = false
+
+				if state == "running" {
+					im.log("❌ Healthcheck service should not be running continuously")
+				} else {
+					im.log("❌ Healthcheck service in unexpected state: %s", state)
+				}
 			}
 		} else {
 			if state, ok := service["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
@@ -238,10 +262,11 @@ func (im *InfrastructureManager) WaitForServicesReachable(ctx context.Context) e
 
 // verifyCryptoutilPortsReachable verifies HTTPS ports 8080, 8081, 8082 are accessible.
 func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Context) error {
-	ports := []int{8080, 8081, 8082}
-	for _, port := range ports {
-		url := fmt.Sprintf("https://localhost:%d/health", port)
-		im.log("🔍 Checking port %d at %s...", port, url)
+	// Check public API ports for basic connectivity (not health endpoints)
+	publicPorts := []int{8080, 8081, 8082}
+	for _, port := range publicPorts {
+		url := fmt.Sprintf("https://localhost:%d/ui/swagger", port)
+		im.log("🔍 Checking public port %d at %s...", port, url)
 
 		client := &http.Client{
 			Timeout: cryptoutilMagic.DockerHTTPClientTimeoutSeconds * time.Second,
@@ -252,21 +277,21 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 
 		req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 		if err != nil {
-			return fmt.Errorf("failed to create request for port %d: %w", port, err)
+			return fmt.Errorf("failed to create request for public port %d: %w", port, err)
 		}
 
 		resp, err := client.Do(req)
 		if err != nil {
-			return fmt.Errorf("port %d not reachable: %w", port, err)
+			return fmt.Errorf("public port %d not reachable: %w", port, err)
 		}
 
 		resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return fmt.Errorf("port %d returned status %d", port, resp.StatusCode)
+			return fmt.Errorf("public port %d returned status %d", port, resp.StatusCode)
 		}
 
-		im.log("✅ Port %d is reachable", port)
+		im.log("✅ Public port %d is reachable", port)
 	}
 
 	return nil
@@ -337,12 +362,24 @@ func (im *InfrastructureManager) logCommand(description, command, output string)
 }
 
 // getComposeFilePath returns the compose file path appropriate for the current OS.
+// Since E2E tests run from test/e2e/ directory, we need to navigate up to project root.
 func (im *InfrastructureManager) getComposeFilePath() string {
-	if runtime.GOOS == "windows" {
-		return cryptoutilMagic.DockerComposeRelativeFilePathWindows
+	// Navigate up from test/e2e/ to project root, then to deployments/compose/compose.yml
+	projectRoot := filepath.Join("..", "..")
+	composePath := filepath.Join(projectRoot, "deployments", "compose", "compose.yml")
+
+	// Convert to absolute path to ensure it works regardless of working directory
+	absPath, err := filepath.Abs(composePath)
+	if err != nil {
+		// Fallback to relative path if absolute path fails
+		if runtime.GOOS == "windows" {
+			return cryptoutilMagic.DockerComposeRelativeFilePathWindows
+		}
+
+		return cryptoutilMagic.DockerComposeRelativeFilePathLinux
 	}
 
-	return cryptoutilMagic.DockerComposeRelativeFilePathLinux
+	return absPath
 }
 
 // runDockerComposeCommand executes a docker compose command with the given arguments.
