@@ -48,6 +48,12 @@ func (im *InfrastructureManager) getComposeFilePath() string {
 }
 
 // runDockerComposeCommand executes a docker compose command with the given arguments.
+//
+//	Windows: docker compose -f .\deployments\compose\compose.yml <command> <args>
+//	Linux:   docker compose -f ./deployments/compose/compose.yml <command> <args>
+//
+// Always use relative path for cross-platform compatibility in
+// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func (im *InfrastructureManager) runDockerComposeCommand(ctx context.Context, description string, args []string) ([]byte, error) {
 	composeFile := im.getComposeFilePath()
 	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
@@ -62,19 +68,13 @@ func (im *InfrastructureManager) runDockerComposeCommand(ctx context.Context, de
 	return output, nil
 }
 
-// StopServices stops any existing Docker Compose services.
-//
-//	Windows: docker compose -f .\deployments\compose\compose.yml down -v
-//	Linux:   docker compose -f ./deployments/compose/compose.yml down -v
-//
-// Always use relative path for cross-platform compatibility in
-// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
+// StopServices stops Docker Compose services.
 func (im *InfrastructureManager) StopServices(ctx context.Context) error {
-	im.log("🧹 Ensuring clean test environment")
+	im.log("🧹 Stopping Docker Compose services")
 
-	_, err := im.runDockerComposeCommand(ctx, "Stop existing services", dockerComposeArgsStopServices)
+	output, err := im.runDockerComposeCommand(ctx, "Stop services", dockerComposeArgsStopServices)
 	if err != nil {
-		return fmt.Errorf("failed to stop existing services: %w", err)
+		return fmt.Errorf("failed to stop services: %w, output: %s", err, string(output))
 	}
 
 	im.log("✅ Existing services stopped successfully")
@@ -83,13 +83,6 @@ func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 }
 
 // StartServices starts Docker Compose services.
-// NOTE: These docker compose commands work when run manually from command line:
-//
-//	Windows: docker compose -f .\deployments\compose\compose.yml up -d
-//	Linux:   docker compose -f ./deployments/compose/compose.yml up -d
-//
-// Always use relative path for cross-platform compatibility in
-// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	im.log("🚀 Starting Docker Compose services")
 
@@ -99,27 +92,6 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	}
 
 	im.log("✅ Docker Compose services started successfully")
-
-	return nil
-}
-
-// TeardownServices stops Docker Compose services.
-// NOTE: These docker compose commands work when run manually from command line:
-//
-//	docker compose -f .\deployments\compose\compose.yml down -v
-//	docker compose -f .\deployments\compose\compose.yml up -d
-//
-// The relative path from project root is used for cross-platform compatibility
-// in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
-func (im *InfrastructureManager) TeardownServices(ctx context.Context) error {
-	im.log("🛑 Stopping Docker Compose services")
-
-	_, err := im.runDockerComposeCommand(ctx, "Stop services", dockerComposeArgsStopServices)
-	if err != nil {
-		return fmt.Errorf("docker compose down failed: %w", err)
-	}
-
-	im.log("✅ Docker Compose services stopped successfully")
 
 	return nil
 }
