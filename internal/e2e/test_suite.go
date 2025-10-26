@@ -54,10 +54,10 @@ func (suite *E2ETestSuite) SetupSuite() {
 		Steps:     make([]TestStep, 0),
 	}
 
-	LogStep(suite.summary, suite.fixture.logger, "E2E Test Suite Setup", "Starting E2E test suite initialization")
-
-	// Create test fixture
+	// Create test fixture first
 	suite.fixture = NewTestFixture(suite.T())
+
+	LogStep(suite.summary, suite.fixture.logger, "E2E Test Suite Setup", "Starting E2E test suite initialization")
 
 	// Create assertions helper
 	suite.assertions = NewServiceAssertions(suite.T(), suite.fixture.logger)
