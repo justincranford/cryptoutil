@@ -30,6 +30,7 @@ type ServiceAssertions struct {
 // NewServiceAssertions creates a new service assertions helper.
 func NewServiceAssertions(t *testing.T, startTime time.Time, logFile *os.File) *ServiceAssertions {
 	t.Helper()
+
 	return &ServiceAssertions{
 		t:         t,
 		startTime: startTime,
@@ -63,6 +64,7 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 
 		if err == nil {
 			a.log("✅ Cryptoutil service ready at %s after %d checks", baseURL, checkCount)
+
 			return
 		}
 
@@ -87,10 +89,13 @@ func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, tim
 		require.NoError(a.t, err, "Failed to create request to %s", url)
 
 		resp, err := client.Do(httpReq)
+
 		cancel()
+
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
 			a.log("✅ HTTP service ready at %s", url)
+
 			return
 		}
 
@@ -113,6 +118,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 
 	resp, err := client.Do(req)
 	require.NoError(a.t, err, "Failed to connect to Grafana")
+
 	defer resp.Body.Close()
 	require.Equal(a.t, http.StatusOK, resp.StatusCode, "Grafana health check failed")
 
@@ -124,6 +130,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 
 	resp, err = client.Do(req)
 	require.NoError(a.t, err, "Failed to connect to OTEL collector")
+
 	defer resp.Body.Close()
 	require.Equal(a.t, http.StatusOK, resp.StatusCode, "OTEL collector metrics check failed")
 
@@ -163,6 +170,7 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 	require.NoError(a.t, err, "Failed to check Docker services health")
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+
 	var serviceList []map[string]interface{}
 
 	for _, line := range lines {
@@ -180,6 +188,7 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 	require.NotEmpty(a.t, serviceList, "No services found in Docker compose output")
 
 	serviceMap := make(map[string]map[string]interface{})
+
 	for _, service := range serviceList {
 		if name, ok := service["Name"].(string); ok {
 			if strings.Contains(name, "compose-") {

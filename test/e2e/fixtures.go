@@ -50,6 +50,7 @@ type TestFixture struct {
 // NewTestFixture creates a new test fixture.
 func NewTestFixture(t *testing.T) *TestFixture {
 	t.Helper()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	startTime := time.Now()
 

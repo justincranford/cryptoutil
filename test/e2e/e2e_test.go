@@ -11,17 +11,17 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-// TestE2E runs the complete end-to-end test suite
+// TestE2E runs the complete end-to-end test suite.
 func TestE2E(t *testing.T) {
 	suite.Run(t, new(E2ETestSuite))
 }
 
-// TestSummaryReportOnly runs a quick test to demonstrate summary report functionality
+// TestSummaryReportOnly runs a quick test to demonstrate summary report functionality.
 func TestSummaryReportOnly(t *testing.T) {
 	suite.Run(t, new(SummaryTestSuite))
 }
 
-// SummaryTestSuite provides a quick test suite to demonstrate summary reporting
+// SummaryTestSuite provides a quick test suite to demonstrate summary reporting.
 type SummaryTestSuite struct {
 	suite.Suite
 	fixture    *TestFixture
@@ -29,7 +29,7 @@ type SummaryTestSuite struct {
 	summary    *TestSummary
 }
 
-// SetupSuite runs once before all tests in the suite
+// SetupSuite runs once before all tests in the suite.
 func (suite *SummaryTestSuite) SetupSuite() {
 	suite.summary = &TestSummary{
 		StartTime: time.Now(),
@@ -47,7 +47,7 @@ func (suite *SummaryTestSuite) SetupSuite() {
 	suite.completeStep("PASS", "Summary test setup completed successfully")
 }
 
-// TearDownSuite runs once after all tests in the suite
+// TearDownSuite runs once after all tests in the suite.
 func (suite *SummaryTestSuite) TearDownSuite() {
 	suite.logStep("Summary Test Cleanup", "Cleaning up summary test suite")
 
@@ -57,7 +57,7 @@ func (suite *SummaryTestSuite) TearDownSuite() {
 	suite.generateSummaryReport()
 }
 
-// TestQuickDemo demonstrates summary tracking
+// TestQuickDemo demonstrates summary tracking.
 func (suite *SummaryTestSuite) TestQuickDemo() {
 	suite.logStep("Quick Demo Test", "Demonstrating summary tracking functionality")
 
@@ -66,6 +66,7 @@ func (suite *SummaryTestSuite) TestQuickDemo() {
 			suite.completeStep("FAIL", fmt.Sprintf("Quick demo test failed: %v", r))
 			panic(r)
 		}
+
 		suite.completeStep("PASS", "Quick demo test completed successfully")
 	}()
 
@@ -79,7 +80,7 @@ func (suite *SummaryTestSuite) TestQuickDemo() {
 	suite.completeStep("PASS", "Sub-operation 2 completed")
 }
 
-// Helper methods (same as E2ETestSuite)
+// Helper methods (same as E2ETestSuite).
 func (suite *SummaryTestSuite) logStep(name, description string) {
 	step := TestStep{
 		Name:        name,
@@ -177,6 +178,7 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 	} else {
 		report.WriteString("🎉 EXECUTION STATUS: FULL SUCCESS\n")
 	}
+
 	report.WriteString(strings.Repeat("=", 80) + "\n")
 
 	if suite.fixture != nil {
