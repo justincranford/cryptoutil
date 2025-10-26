@@ -40,14 +40,14 @@ func (im *InfrastructureManager) getComposeFilePath() string {
 	return cryptoutilMagic.DockerComposeRelativeFilePathLinux
 }
 
-// EnsureCleanEnvironment stops any existing Docker Compose services.
+// StopServices stops any existing Docker Compose services.
 //
 //	Windows: docker compose -f .\deployments\compose\compose.yml down -v
 //	Linux:   docker compose -f ./deployments/compose/compose.yml down -v
 //
 // Always use relative path for cross-platform compatibility in
 // in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
-func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) error {
+func (im *InfrastructureManager) StopServices(ctx context.Context) error {
 	im.log("🧹 Ensuring clean test environment")
 
 	composeFile := im.getComposeFilePath()
@@ -56,9 +56,7 @@ func (im *InfrastructureManager) EnsureCleanEnvironment(ctx context.Context) err
 	im.logCommand("Stop existing services", cmd.String(), string(output))
 
 	if err != nil {
-		im.log("⚠️ Warning: failed to stop existing services: %v", err)
-
-		return nil // Don't fail on cleanup
+		return fmt.Errorf("failed to stop existing services: %w", err)
 	}
 
 	im.log("✅ Existing services stopped successfully")
@@ -91,7 +89,7 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 	return nil
 }
 
-// StopServices stops Docker Compose services.
+// TeardownServices stops Docker Compose services.
 // NOTE: These docker compose commands work when run manually from command line:
 //
 //	docker compose -f .\deployments\compose\compose.yml down -v
@@ -99,7 +97,7 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 //
 // The relative path from project root is used for cross-platform compatibility
 // in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
-func (im *InfrastructureManager) StopServices(ctx context.Context) error {
+func (im *InfrastructureManager) TeardownServices(ctx context.Context) error {
 	im.log("🛑 Stopping Docker Compose services")
 
 	composeFile := im.getComposeFilePath()

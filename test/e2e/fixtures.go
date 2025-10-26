@@ -103,7 +103,7 @@ func (f *TestFixture) Teardown() {
 	}
 
 	// Stop infrastructure
-	if err := f.infraMgr.StopServices(context.Background()); err != nil {
+	if err := f.infraMgr.TeardownServices(context.Background()); err != nil {
 		f.log("⚠️ Warning: failed to stop infrastructure: %v", err)
 	}
 
