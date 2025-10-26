@@ -234,7 +234,7 @@ func (suite *E2ETestSuite) testCreateEncryptionKey(client *cryptoutilOpenapiClie
 	instanceKeyName := fmt.Sprintf("e2e-test-encrypt-key-%s", instanceName)
 	instanceKeyDescription := fmt.Sprintf("E2E integration test encryption key for %s", instanceName)
 
-	encryptionAlgorithm := "A256GCM/A256KW" // JWE algorithm for encryption
+	encryptionAlgorithm := testJwkJweAlgorithm // JWE algorithm for encryption
 
 	elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
 		suite.T(), &instanceKeyName, &instanceKeyDescription,
@@ -264,7 +264,7 @@ func (suite *E2ETestSuite) testCreateSigningKey(client *cryptoutilOpenapiClient.
 	instanceKeyName := fmt.Sprintf("e2e-test-sign-key-%s", instanceName)
 	instanceKeyDescription := fmt.Sprintf("E2E integration test signing key for %s", instanceName)
 
-	signingAlgorithm := "RS256" // RSA signature algorithm for signing
+	signingAlgorithm := testJwkJwsAlgorithm // JWS algorithm for signing
 
 	elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
 		suite.T(), &instanceKeyName, &instanceKeyDescription,
@@ -296,7 +296,7 @@ func (suite *E2ETestSuite) testCreateElasticKey(client *cryptoutilOpenapiClient.
 
 	elasticKeyCreate := cryptoutilClient.RequireCreateElasticKeyRequest(
 		suite.T(), &instanceKeyName, &instanceKeyDescription,
-		&testAlgorithm, &testProvider, &importAllowed, &versioningAllowed,
+		&testJwkJweAlgorithm, &testProvider, &importAllowed, &versioningAllowed,
 	)
 
 	elasticKey := cryptoutilClient.RequireCreateElasticKeyResponse(suite.T(), suite.fixture.ctx, client, elasticKeyCreate)
@@ -368,7 +368,8 @@ func (suite *E2ETestSuite) testSignVerifyCycle(client *cryptoutilOpenapiClient.C
 	// Verify
 	verifyRequest := cryptoutilClient.RequireVerifyRequest(suite.T(), signedText)
 	verifyResponse := cryptoutilClient.RequireVerifyResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, verifyRequest)
-	require.Equal(suite.T(), "true", *verifyResponse)
+	// For successful verification, API returns 204 No Content with empty body
+	require.Equal(suite.T(), "", *verifyResponse)
 
 	suite.completeStep("PASS", "Sign/verify cycle completed successfully")
 }
@@ -491,8 +492,9 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 
 // Test constants (moved from original file).
 var (
-	testAlgorithm     = "A256GCM/A256KW" // Use JWE algorithm for elastic key encryption (default from OpenAPI spec)
-	testProvider      = "Internal"       // Use StringProviderInternal from magic_api.go
-	importAllowed     = false            // Search for magic value to use
-	versioningAllowed = true             // Search for magic value to use
+	testJwkJweAlgorithm = "A256GCM/A256KW" // Use JWE algorithm for elastic key encryption (default from OpenAPI spec)
+	testJwkJwsAlgorithm = "RS256"          // Use JWS algorithm for elastic key signing (default from OpenAPI spec)
+	testProvider        = "Internal"       // Use StringProviderInternal from magic_api.go
+	importAllowed       = false            // Search for magic value to use
+	versioningAllowed   = true             // Search for magic value to use
 )
