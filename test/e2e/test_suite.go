@@ -54,7 +54,7 @@ func (suite *E2ETestSuite) SetupSuite() {
 		Steps:     make([]TestStep, 0),
 	}
 
-	suite.logStep("E2E Test Suite Setup", "Starting E2E test suite initialization")
+	LogStep(suite.summary, suite.fixture.logger, "E2E Test Suite Setup", "Starting E2E test suite initialization")
 
 	// Create test fixture
 	suite.fixture = NewTestFixture(suite.T())
@@ -65,12 +65,12 @@ func (suite *E2ETestSuite) SetupSuite() {
 	// Setup infrastructure
 	suite.fixture.Setup()
 
-	suite.completeStep("PASS", "E2E test suite setup completed successfully")
+	CompleteStep(suite.summary, suite.fixture.logger, "PASS", "E2E test suite setup completed successfully")
 }
 
 // TearDownSuite runs once after all tests in the suite.
 func (suite *E2ETestSuite) TearDownSuite() {
-	suite.logStep("E2E Test Suite Cleanup", "Starting test suite cleanup")
+	LogStep(suite.summary, suite.fixture.logger, "E2E Test Suite Cleanup", "Starting test suite cleanup")
 
 	// Generate final summary report before tearing down infrastructure
 	suite.generateSummaryReport()
@@ -78,7 +78,7 @@ func (suite *E2ETestSuite) TearDownSuite() {
 	// Teardown infrastructure
 	suite.fixture.Teardown()
 
-	suite.completeStep("PASS", "Test suite cleanup completed")
+	CompleteStep(suite.summary, suite.fixture.logger, "PASS", "Test suite cleanup completed")
 }
 
 // SetupTest runs before each test method.
@@ -105,7 +105,7 @@ func (suite *E2ETestSuite) TearDownTest() {
 
 // TestInfrastructureHealth verifies all services are healthy.
 func (suite *E2ETestSuite) TestInfrastructureHealth() {
-	suite.logStep("Infrastructure Health Check", "Verifying all Docker services are healthy")
+	LogStep(suite.summary, suite.fixture.logger, "Infrastructure Health Check", "Verifying all Docker services are healthy")
 
 	suite.withTestStepRecovery("Infrastructure health check failed: %v", func() string { return "All infrastructure services are healthy" }, func() {
 		suite.assertions.AssertDockerServicesHealthy()
@@ -116,7 +116,7 @@ func (suite *E2ETestSuite) TestInfrastructureHealth() {
 
 // TestCryptoutilSQLite tests SQLite-based cryptoutil instance.
 func (suite *E2ETestSuite) TestCryptoutilSQLite() {
-	suite.logStep("SQLite Cryptoutil Tests", "Testing SQLite-based cryptoutil instance")
+	LogStep(suite.summary, suite.fixture.logger, "SQLite Cryptoutil Tests", "Testing SQLite-based cryptoutil instance")
 
 	suite.withTestStepRecovery("SQLite cryptoutil tests failed: %v", func() string { return "SQLite cryptoutil instance tests completed successfully" }, func() {
 		suite.testCryptoutilInstance("sqlite")
@@ -125,7 +125,7 @@ func (suite *E2ETestSuite) TestCryptoutilSQLite() {
 
 // TestCryptoutilPostgres1 tests PostgreSQL-based cryptoutil instance #1.
 func (suite *E2ETestSuite) TestCryptoutilPostgres1() {
-	suite.logStep("PostgreSQL #1 Cryptoutil Tests", "Testing PostgreSQL instance #1 cryptoutil")
+	LogStep(suite.summary, suite.fixture.logger, "PostgreSQL #1 Cryptoutil Tests", "Testing PostgreSQL instance #1 cryptoutil")
 
 	suite.withTestStepRecovery("PostgreSQL #1 cryptoutil tests failed: %v", func() string { return "PostgreSQL #1 cryptoutil instance tests completed successfully" }, func() {
 		suite.testCryptoutilInstance("postgres1")
@@ -134,7 +134,7 @@ func (suite *E2ETestSuite) TestCryptoutilPostgres1() {
 
 // TestCryptoutilPostgres2 tests PostgreSQL-based cryptoutil instance #2.
 func (suite *E2ETestSuite) TestCryptoutilPostgres2() {
-	suite.logStep("PostgreSQL #2 Cryptoutil Tests", "Testing PostgreSQL instance #2 cryptoutil")
+	LogStep(suite.summary, suite.fixture.logger, "PostgreSQL #2 Cryptoutil Tests", "Testing PostgreSQL instance #2 cryptoutil")
 
 	suite.withTestStepRecovery("PostgreSQL #2 cryptoutil tests failed: %v", func() string { return "PostgreSQL #2 cryptoutil instance tests completed successfully" }, func() {
 		suite.testCryptoutilInstance("postgres2")
@@ -143,7 +143,7 @@ func (suite *E2ETestSuite) TestCryptoutilPostgres2() {
 
 // TestTelemetryFlow verifies telemetry is flowing correctly.
 func (suite *E2ETestSuite) TestTelemetryFlow() {
-	suite.logStep("Telemetry Flow Tests", "Verifying telemetry data flow between services")
+	LogStep(suite.summary, suite.fixture.logger, "Telemetry Flow Tests", "Verifying telemetry data flow between services")
 
 	suite.withTestStepRecovery("Telemetry flow tests failed: %v", func() string { return "Telemetry flow verification completed successfully" }, func() {
 		suite.assertions.AssertTelemetryFlow(
@@ -158,7 +158,7 @@ func (suite *E2ETestSuite) TestTelemetryFlow() {
 func (suite *E2ETestSuite) testCryptoutilInstance(instanceName string) {
 	caser := cases.Title(language.English)
 	stepName := fmt.Sprintf("%s Instance Tests", caser.String(instanceName))
-	suite.logStep(stepName, fmt.Sprintf("Testing %s cryptoutil instance functionality", instanceName))
+	LogStep(suite.summary, suite.fixture.logger, stepName, fmt.Sprintf("Testing %s cryptoutil instance functionality", instanceName))
 
 	suite.withTestStepRecovery("%s instance tests failed: %v", func() string {
 		return fmt.Sprintf("%s instance tests completed successfully", caser.String(instanceName))
@@ -181,7 +181,7 @@ func (suite *E2ETestSuite) testCryptoutilInstance(instanceName string) {
 
 // testCreateEncryptionKey creates a test elastic key for encryption operations.
 func (suite *E2ETestSuite) testCreateEncryptionKey(client *cryptoutilOpenapiClient.ClientWithResponses, instanceName string) *cryptoutilOpenapiModel.ElasticKey {
-	suite.logStep("Create Encryption Key", "Creating test elastic key for encryption operations")
+	LogStep(suite.summary, suite.fixture.logger, "Create Encryption Key", "Creating test elastic key for encryption operations")
 
 	var elasticKey *cryptoutilOpenapiModel.ElasticKey
 
@@ -206,7 +206,7 @@ func (suite *E2ETestSuite) testCreateEncryptionKey(client *cryptoutilOpenapiClie
 
 // testCreateSigningKey creates a test elastic key for signing operations.
 func (suite *E2ETestSuite) testCreateSigningKey(client *cryptoutilOpenapiClient.ClientWithResponses, instanceName string) *cryptoutilOpenapiModel.ElasticKey {
-	suite.logStep("Create Signing Key", "Creating test elastic key for signing operations")
+	LogStep(suite.summary, suite.fixture.logger, "Create Signing Key", "Creating test elastic key for signing operations")
 
 	var elasticKey *cryptoutilOpenapiModel.ElasticKey
 
@@ -231,23 +231,23 @@ func (suite *E2ETestSuite) testCreateSigningKey(client *cryptoutilOpenapiClient.
 
 // testGenerateMaterialKey generates a material key.
 func (suite *E2ETestSuite) testGenerateMaterialKey(client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey) {
-	suite.logStep("Generate Material Key", "Generating material key from elastic key")
+	LogStep(suite.summary, suite.fixture.logger, "Generate Material Key", "Generating material key from elastic key")
 
 	suite.withTestStepRecovery("Material key generation failed: %v", func() string {
 		return fmt.Sprintf("Material key generated with ID: %s", "placeholder") // Will be updated when we have the actual key
 	}, func() {
-		keyGenerate := cryptoutilClient.RequireMaterialKeyGenerateRequest(suite.T())
-		materialKey := cryptoutilClient.RequireMaterialKeyGenerateResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, keyGenerate)
-		require.NotNil(suite.T(), materialKey.MaterialKeyID)
 		// Update the success message with the actual key ID
 		// Note: This is a limitation of the current design - we can't dynamically update the success message
 		// For now, we'll use a generic message
+		keyGenerate := cryptoutilClient.RequireMaterialKeyGenerateRequest(suite.T())
+		materialKey := cryptoutilClient.RequireMaterialKeyGenerateResponse(suite.T(), suite.fixture.ctx, client, elasticKey.ElasticKeyID, keyGenerate)
+		require.NotNil(suite.T(), materialKey.MaterialKeyID)
 	})
 }
 
 // testEncryptDecryptCycle tests full encrypt/decrypt cycle.
 func (suite *E2ETestSuite) testEncryptDecryptCycle(client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey) {
-	suite.logStep("Encrypt/Decrypt Cycle", "Testing full encryption and decryption cycle")
+	LogStep(suite.summary, suite.fixture.logger, "Encrypt/Decrypt Cycle", "Testing full encryption and decryption cycle")
 
 	suite.withTestStepRecovery("Encrypt/decrypt cycle failed: %v", func() string { return "Encrypt/decrypt cycle completed successfully" }, func() {
 		// Encrypt
@@ -264,7 +264,7 @@ func (suite *E2ETestSuite) testEncryptDecryptCycle(client *cryptoutilOpenapiClie
 
 // testSignVerifyCycle tests full sign/verify cycle.
 func (suite *E2ETestSuite) testSignVerifyCycle(client *cryptoutilOpenapiClient.ClientWithResponses, elasticKey *cryptoutilOpenapiModel.ElasticKey) {
-	suite.logStep("Sign/Verify Cycle", "Testing full digital signature and verification cycle")
+	LogStep(suite.summary, suite.fixture.logger, "Sign/Verify Cycle", "Testing full digital signature and verification cycle")
 
 	suite.withTestStepRecovery("Sign/verify cycle failed: %v", func() string { return "Sign/verify cycle completed successfully" }, func() {
 		// Sign
@@ -284,11 +284,11 @@ func (suite *E2ETestSuite) testSignVerifyCycle(client *cryptoutilOpenapiClient.C
 func (suite *E2ETestSuite) withTestStepRecovery(failMessageFormat string, successMessageFunc func() string, testFunc func()) {
 	defer func() {
 		if r := recover(); r != nil {
-			suite.completeStep("FAIL", fmt.Sprintf(failMessageFormat, r))
+			CompleteStep(suite.summary, suite.fixture.logger, "FAIL", fmt.Sprintf(failMessageFormat, r))
 			panic(r)
 		}
 
-		suite.completeStep("PASS", successMessageFunc())
+		CompleteStep(suite.summary, suite.fixture.logger, "PASS", successMessageFunc())
 	}()
 	testFunc()
 }
@@ -297,58 +297,6 @@ func (suite *E2ETestSuite) withTestStepRecovery(failMessageFormat string, succes
 func (suite *E2ETestSuite) cleanupTestData() {
 	// This could include deleting test keys, clearing databases, etc.
 	// Implementation depends on what test data is created
-}
-
-// logStep starts tracking a new test step.
-func (suite *E2ETestSuite) logStep(name, description string) {
-	step := TestStep{
-		Name:        name,
-		StartTime:   time.Now(),
-		Description: description,
-	}
-	suite.summary.Steps = append(suite.summary.Steps, step)
-
-	// Only log to fixture if it exists (it won't exist during very early setup)
-	if suite.fixture != nil {
-		LogTestStep(suite.fixture.logger, name, description)
-	}
-}
-
-// completeStep marks the current step as completed with a status.
-func (suite *E2ETestSuite) completeStep(status, result string) {
-	if len(suite.summary.Steps) == 0 {
-		return
-	}
-
-	step := &suite.summary.Steps[len(suite.summary.Steps)-1]
-	step.EndTime = time.Now()
-	step.Duration = step.EndTime.Sub(step.StartTime)
-	step.Status = status
-
-	suite.summary.TotalSteps++
-
-	switch status {
-	case cryptoutilMagic.TestStatusPass:
-		suite.summary.PassedSteps++
-	case cryptoutilMagic.TestStatusFail:
-		suite.summary.FailedSteps++
-	case cryptoutilMagic.TestStatusSkip:
-		suite.summary.SkippedSteps++
-	}
-
-	statusEmoji := cryptoutilMagic.TestStatusEmojiPass
-
-	switch status {
-	case cryptoutilMagic.TestStatusFail:
-		statusEmoji = cryptoutilMagic.TestStatusEmojiFail
-	case cryptoutilMagic.TestStatusSkip:
-		statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
-	}
-
-	// Only log to fixture if it exists
-	if suite.fixture != nil {
-		LogTestStepCompletion(suite.fixture.logger, statusEmoji, step.Name, result, step.Duration)
-	}
 }
 
 // generateSummaryReport creates and displays a detailed summary report.
@@ -380,14 +328,7 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("-", cryptoutilMagic.TestReportWidth) + "\n")
 
 	for i, step := range suite.summary.Steps {
-		statusEmoji := cryptoutilMagic.TestStatusEmojiPass
-
-		switch step.Status {
-		case cryptoutilMagic.TestStatusFail:
-			statusEmoji = cryptoutilMagic.TestStatusEmojiFail
-		case cryptoutilMagic.TestStatusSkip:
-			statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
-		}
+		statusEmoji := GetStatusEmoji(step.Status)
 
 		report.WriteString(fmt.Sprintf("%2d. %s %-20s %8v  %s\n",
 			i+1, statusEmoji, step.Name, step.Duration.Round(time.Millisecond), step.Description))
@@ -404,5 +345,5 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("=", cryptoutilMagic.TestReportWidth) + "\n")
 
 	// Log the report to both console and file
-	Log(suite.fixture.logger, "%s", report.String())
+	LogSummaryReport(suite.fixture.logger, report.String())
 }

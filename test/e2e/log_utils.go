@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // Logger provides structured logging for E2E tests.
@@ -93,4 +95,66 @@ func LogTestCleanup(logger *Logger, testName string) {
 	}
 
 	Log(logger, "🧹 Cleaning up test: %s", testName)
+}
+
+// LogStep starts tracking a new test step and logs it.
+func LogStep(summary *TestSummary, logger *Logger, name, description string) {
+	step := TestStep{
+		Name:        name,
+		StartTime:   time.Now(),
+		Description: description,
+	}
+	summary.Steps = append(summary.Steps, step)
+
+	// Only log to fixture if logger exists (it won't exist during very early setup)
+	if logger != nil {
+		LogTestStep(logger, name, description)
+	}
+}
+
+// CompleteStep marks the current step as completed with a status and logs it.
+func CompleteStep(summary *TestSummary, logger *Logger, status, result string) {
+	if len(summary.Steps) == 0 {
+		return
+	}
+
+	step := &summary.Steps[len(summary.Steps)-1]
+	step.EndTime = time.Now()
+	step.Duration = step.EndTime.Sub(step.StartTime)
+	step.Status = status
+
+	summary.TotalSteps++
+
+	switch status {
+	case "PASS":
+		summary.PassedSteps++
+	case "FAIL":
+		summary.FailedSteps++
+	case "SKIP":
+		summary.SkippedSteps++
+	}
+
+	statusEmoji := GetStatusEmoji(status)
+
+	// Only log if logger exists
+	if logger != nil {
+		LogTestStepCompletion(logger, statusEmoji, step.Name, result, step.Duration)
+	}
+}
+
+// GetStatusEmoji returns the appropriate emoji for a test status.
+func GetStatusEmoji(status string) string {
+	switch status {
+	case cryptoutilMagic.TestStatusFail:
+		return cryptoutilMagic.TestStatusEmojiFail
+	case cryptoutilMagic.TestStatusSkip:
+		return cryptoutilMagic.TestStatusEmojiSkip
+	default:
+		return cryptoutilMagic.TestStatusEmojiPass
+	}
+}
+
+// LogSummaryReport logs a summary report.
+func LogSummaryReport(logger *Logger, report string) {
+	Log(logger, "%s", report)
 }
