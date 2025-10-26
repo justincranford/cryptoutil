@@ -58,27 +58,20 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 	// Validate required parameters
 	if ctx == nil {
 		return nil, fmt.Errorf("context cannot be nil")
-	}
-
-	if logger == nil {
+	} else if logger == nil {
 		return nil, fmt.Errorf("logger cannot be nil")
-	}
-
-	if description == "" {
+	} else if description == "" {
 		return nil, fmt.Errorf("description cannot be empty")
-	}
-
-	if len(args) == 0 {
+	} else if len(args) == 0 {
 		return nil, fmt.Errorf("args cannot be empty")
 	}
 
 	// Log start message based on description
-	switch description {
-	case dockerComposeDescStopServices:
+	if description == dockerComposeDescStopServices {
 		Log(logger, "🧹 Stopping Docker Compose services")
-	case dockerComposeDescStartServices:
+	} else if description == dockerComposeDescStartServices {
 		Log(logger, "🚀 Starting Docker Compose services")
-	case dockerComposeDescBatchHealth:
+	} else if description == dockerComposeDescBatchHealth {
 		Log(logger, "🔍 Checking Docker Compose services health")
 	}
 
@@ -93,12 +86,11 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 	}
 
 	// Log success message based on description
-	switch description {
-	case dockerComposeDescStopServices:
+	if description == dockerComposeDescStopServices {
 		Log(logger, "✅ Existing services stopped successfully")
-	case dockerComposeDescStartServices:
+	} else if description == dockerComposeDescStartServices {
 		Log(logger, "✅ Docker Compose services started successfully")
-	case dockerComposeDescBatchHealth:
+	} else if description == dockerComposeDescBatchHealth {
 		Log(logger, "✅ Docker Compose services health check completed")
 	}
 

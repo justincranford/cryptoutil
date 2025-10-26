@@ -108,9 +108,10 @@
 | ** | '.github/instructions/code-quality.instructions.md' | Instructions for code quality and maintenance standards |
 | ** | '.github/instructions/magic-values.instructions.md' | Instructions for defining magic numbers and values in dedicated constants package |
 | ** | '.github/instructions/git.instructions.md' | Instructions for git operations and workflow |
-| **/*.go | '.github/instructions/cabf.instructions.md' | Instructions for CA/Browser Forum Baseline Requirements compliance |
+| ** | '.github/instructions/cabf.instructions.md' | Instructions for CA/Browser Forum Baseline Requirements compliance |
 | ** | '.github/instructions/pull-requests.instructions.md' | Instructions for Pull Request description generation |
 | scripts/** | '.github/instructions/scripts.instructions.md' | Instructions for cross-platform script development |
+| **/*.go | '.github/instructions/conditional-chaining.instructions.md' | Instructions for chaining conditional statements |
 
 ## Instruction File Cross-Reference Guide
 
