@@ -5,7 +5,6 @@ package test
 import (
 	"context"
 	"crypto/x509"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -156,90 +155,23 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 	a.log("🔍 Verifying Docker services health")
 
-	services := []string{
-		cryptoutilMagic.DockerServiceCryptoutilSqlite,
-		cryptoutilMagic.DockerServiceCryptoutilPostgres1,
-		cryptoutilMagic.DockerServiceCryptoutilPostgres2,
-		cryptoutilMagic.DockerServicePostgres,
-		cryptoutilMagic.DockerServiceGrafanaOtelLgtm,
-		cryptoutilMagic.DockerServiceOtelCollectorHealthcheck,
-	}
-
-	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", "--format", "json")
+	cmd := exec.Command("docker", "compose", "-f", "../../deployments/compose/compose.yml", "ps", "-a", "--format", "json")
 	output, err := cmd.Output()
 	require.NoError(a.t, err, "Failed to check Docker services health")
 
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	serviceMap, err := parseDockerComposePsOutput(output)
+	require.NoError(a.t, err, "Failed to parse Docker compose output")
 
-	serviceList := make([]map[string]any, 0, len(lines))
-
-	for _, line := range lines {
-		if strings.TrimSpace(line) == "" {
-			continue
-		}
-
-		var service map[string]any
-		err := json.Unmarshal([]byte(line), &service)
-		require.NoError(a.t, err, "Failed to parse Docker service JSON")
-
-		serviceList = append(serviceList, service)
-	}
-
-	require.NotEmpty(a.t, serviceList, "No services found in Docker compose output")
-
-	serviceMap := make(map[string]map[string]any)
-
-	for _, service := range serviceList {
-		if name, ok := service["Name"].(string); ok {
-			if strings.Contains(name, "compose-") {
-				parts := strings.Split(name, "-")
-				if len(parts) >= cryptoutilMagic.DockerServiceNamePartsMin {
-					serviceName := strings.Join(parts[1:len(parts)-1], "-")
-					serviceMap[serviceName] = service
-				}
-			}
-		}
-	}
-
-	healthStatus := make(map[string]bool)
-
-	for _, serviceName := range services {
-		service, exists := serviceMap[serviceName]
-		require.True(a.t, exists, "Service %s not found in Docker compose output", serviceName)
-
-		healthy := false
-
-		if health, ok := service["Health"].(string); ok {
-			healthy = health == cryptoutilMagic.DockerServiceHealthHealthy
-		} else if serviceName == cryptoutilMagic.DockerServiceOtelCollectorHealthcheck {
-			if state, ok := service["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
-				// Handle both int and float64 types for ExitCode
-				var exitCode int
-				if exitCodeFloat, ok := service["ExitCode"].(float64); ok {
-					exitCode = int(exitCodeFloat)
-				} else if exitCodeInt, ok := service["ExitCode"].(int); ok {
-					exitCode = exitCodeInt
-				} else {
-					a.t.Errorf("Service %s health check ExitCode field not found or wrong type", serviceName)
-
-					continue
-				}
-
-				healthy = exitCode == 0
-			}
-		} else {
-			if state, ok := service["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
-				healthy = true
-			}
-		}
-
-		healthStatus[serviceName] = healthy
-	}
-
-	// Log service health status
-	unhealthyServices := logServiceHealthStatus(a.startTime, healthStatus)
+	healthStatus := determineServiceHealthStatus(serviceMap, dockerComposeServicesForHealthCheck)
 
 	// Assert all services are healthy
+	unhealthyServices := make([]string, 0)
+	for serviceName, healthy := range healthStatus {
+		if !healthy {
+			unhealthyServices = append(unhealthyServices, serviceName)
+		}
+	}
+
 	require.Empty(a.t, unhealthyServices, "The following services are not healthy: %v", unhealthyServices)
 
 	a.log("✅ All Docker services are healthy")

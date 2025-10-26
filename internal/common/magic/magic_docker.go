@@ -24,8 +24,10 @@ const (
 	DockerServicePostgres = "postgres"
 	// DockerServiceGrafanaOtelLgtm - Grafana OTEL LGTM service name.
 	DockerServiceGrafanaOtelLgtm = "grafana-otel-lgtm"
-	// DockerServiceOtelCollectorHealthcheck - OpenTelemetry collector healthcheck service name.
-	DockerServiceOtelCollectorHealthcheck = "opentelemetry-collector-contrib-healthcheck"
+	// DockerServiceOtelCollector - OpenTelemetry collector service name.
+	DockerServiceOtelCollector = "opentelemetry-collector-contrib"
+	// DockerJobOtelCollectorHealthcheck - OpenTelemetry collector healthcheck job name.
+	DockerJobOtelCollectorHealthcheck = "opentelemetry-collector-contrib-healthcheck"
 )
 
 // Docker-related magic numbers.
