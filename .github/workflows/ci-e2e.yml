@@ -134,8 +134,8 @@ jobs:
           timeout=300
           elapsed=0
           while [ $elapsed -lt $timeout ]; do
-            healthy=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format json | jq -r '.[] | select(.Service != "postgres") | .Health' | grep -c "healthy" || true)
-            total=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format json | jq -r '.[] | select(.Service != "postgres") | .Service' | wc -l)
+            healthy=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Health' | grep -c "healthy" || true)
+            total=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Service' | wc -l)
             if [ "$healthy" -eq "$total" ]; then
               echo "✅ All $total services are healthy"
               break
