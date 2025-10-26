@@ -88,7 +88,6 @@
 | ** | '.github/instructions/errors.instructions.md' | Instructions for error reporting |
 | ** | '.github/instructions/formatting.instructions.md' | Instructions for file formatting and encoding |
 | ** | '.github/instructions/linting-exclusions.instructions.md' | Instructions for consistent linting exclusions across pre-commit, CI/CD, and scripts |
-| ** | '.github/instructions/testing.instructions.md' | Instructions for testing |
 | ** | '.github/instructions/database.instructions.md' | Instructions for database operations and ORM patterns |
 | ** | '.github/instructions/openapi.instructions.md' | Instructions for OpenAPI and code generation patterns |
 | ** | '.github/instructions/security.instructions.md' | Instructions for security implementation patterns |
@@ -104,7 +103,7 @@
 | .github/workflows/*.yml | '.github/instructions/cicd.instructions.md' | Instructions for CI/CD workflow configuration and Go version consistency |
 | ** | '.github/instructions/testing.instructions.md' | Instructions for testing |
 | ** | '.github/instructions/terminal-auto-approve.instructions.md' | Instructions for terminal command auto-approval pattern management |
-| **/dast-todos.md | '.github/instructions/todo-maintenance.instructions.md' | Instructions for maintaining actionable TODO/task lists (delete completed tasks immediately) |
+| **/todos-*.md | '.github/instructions/todo-maintenance.instructions.md' | Instructions for maintaining actionable TODO/task lists (delete completed tasks immediately) |
 | ** | '.github/instructions/act-testing.instructions.md' | Instructions for testing GitHub Actions workflows locally with act (CRITICAL: proper timeouts) |
 | ** | '.github/instructions/code-quality.instructions.md' | Instructions for code quality and maintenance standards |
 | ** | '.github/instructions/magic-values.instructions.md' | Instructions for defining magic numbers and values in dedicated constants package |

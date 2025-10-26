@@ -52,27 +52,28 @@ golangci-lint run --fix path/to/file.go
 - Testing specific linter configurations
 - Debugging linting issues
 
-### CRITICAL: wsl and gofumpt Conflict Resolution
+### CRITICAL: wsl Linter Compliance - NO SUPPRESSIONS ALLOWED
 
-**RECOGNIZE IMMEDIATELY**: `wsl` linter may complain about "assignments should only be cuddled with other assignments" when `gofumpt` removes blank lines between statements.
+**NEVER use `//nolint:wsl` directives** - they are strictly prohibited in this codebase.
 
-**WHY THIS CONFLICT EXISTS**:
-- `wsl` enforces grouping related assignments without blank lines for readability
-- `gofumpt` removes all "unnecessary" blank lines as stricter formatting
+**WHY THIS RULE EXISTS**:
+- `wsl` enforces consistent whitespace usage that improves readability
+- Suppressions hide code style issues and create technical debt
+- Proper code structure satisfies wsl without suppressions
 
-**PREFERRED SOLUTIONS** (in order):
-1. **Restructure code** to avoid the conflict (preferred)
-2. **Accept gofumpt formatting** and suppress wsl with `//nolint:wsl`
-3. **Use alternative formatting** that satisfies both tools
+**REQUIRED APPROACH - ALWAYS FIX wsl lint errors properly**:
+1. **Restructure code** to satisfy wsl requirements (primary solution)
+2. **Group related statements** without blank lines (assignments with assignments, declarations with declarations)
+3. **Add blank lines** between different statement types for clarity
+4. **Never suppress** - if wsl complains, the code structure needs improvement
 
-**SUPPRESSION PATTERN**:
-```go
-variable := value //nolint:wsl // gofumpt removes blank line required by wsl linter
-```
+**COMMON wsl PATTERNS TO FOLLOW**:
+- Group variable declarations together without blank lines between them
+- Separate variable declarations from other statement types with blank lines
+- Keep error checks immediately after function calls without blank lines
+- Separate logical blocks of code with blank lines for readability
 
-**PLACEMENT**: Always inline with the statement (not on separate line, as gofumpt removes separate comments).
-
-**WHEN TO USE**: Only when code restructuring would harm readability or when the conflict is unavoidable. Avoid unnecessary nolint usage.
+**RATIONALE**: Code that satisfies wsl is more readable and maintainable. If restructuring seems difficult, it's often a sign the code needs refactoring anyway.
 
 ### CRITICAL: godot Comment Period Requirements
 
