@@ -157,11 +157,11 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 	a.log("🔍 Verifying Docker services health")
 
 	services := []string{
-		"cryptoutil_sqlite",
-		"cryptoutil_postgres_1",
-		"cryptoutil_postgres_2",
-		"postgres",
-		"grafana-otel-lgtm",
+		cryptoutilMagic.DockerServiceCryptoutilSqlite,
+		cryptoutilMagic.DockerServiceCryptoutilPostgres1,
+		cryptoutilMagic.DockerServiceCryptoutilPostgres2,
+		cryptoutilMagic.DockerServicePostgres,
+		cryptoutilMagic.DockerServiceGrafanaOtelLgtm,
 		cryptoutilMagic.DockerServiceOtelCollectorHealthcheck,
 	}
 
@@ -171,7 +171,7 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 
-	var serviceList []map[string]any
+	serviceList := make([]map[string]any, 0, len(lines))
 
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
@@ -201,34 +201,46 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 		}
 	}
 
+	healthStatus := make(map[string]bool)
+
 	for _, serviceName := range services {
 		service, exists := serviceMap[serviceName]
 		require.True(a.t, exists, "Service %s not found in Docker compose output", serviceName)
 
+		healthy := false
+
 		if health, ok := service["Health"].(string); ok {
-			require.Equal(a.t, "healthy", health, "Service %s is not healthy", serviceName)
+			healthy = health == cryptoutilMagic.DockerServiceHealthHealthy
 		} else if serviceName == cryptoutilMagic.DockerServiceOtelCollectorHealthcheck {
 			if state, ok := service["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
-				if exitCode, ok := service["ExitCode"].(float64); ok && exitCode == 0 {
-					// Health check passed
+				// Handle both int and float64 types for ExitCode
+				var exitCode int
+				if exitCodeFloat, ok := service["ExitCode"].(float64); ok {
+					exitCode = int(exitCodeFloat)
+				} else if exitCodeInt, ok := service["ExitCode"].(int); ok {
+					exitCode = exitCodeInt
 				} else {
-					a.t.Errorf("Service %s health check failed with exit code %v", serviceName, exitCode)
+					a.t.Errorf("Service %s health check ExitCode field not found or wrong type", serviceName)
+
+					continue
 				}
-			} else if state == cryptoutilMagic.DockerServiceStateRunning {
-				a.t.Errorf("Service %s health check still running", serviceName)
-			} else {
-				a.t.Errorf("Service %s health check failed", serviceName)
+
+				healthy = exitCode == 0
 			}
 		} else {
 			if state, ok := service["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
-				// Service is running
-			} else {
-				a.t.Errorf("Service %s is not running", serviceName)
+				healthy = true
 			}
 		}
 
-		a.log("✅ Service %s is healthy", serviceName)
+		healthStatus[serviceName] = healthy
 	}
+
+	// Log service health status
+	unhealthyServices := logServiceHealthStatus(a.startTime, healthStatus)
+
+	// Assert all services are healthy
+	require.Empty(a.t, unhealthyServices, "The following services are not healthy: %v", unhealthyServices)
 
 	a.log("✅ All Docker services are healthy")
 }

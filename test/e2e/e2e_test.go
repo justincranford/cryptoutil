@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	"github.com/stretchr/testify/suite"
 )
 
@@ -110,19 +112,19 @@ func (suite *SummaryTestSuite) completeStep(status, result string) {
 	suite.summary.TotalSteps++
 
 	switch status {
-	case "PASS":
+	case cryptoutilMagic.TestStatusPass:
 		suite.summary.PassedSteps++
-	case "FAIL":
+	case cryptoutilMagic.TestStatusFail:
 		suite.summary.FailedSteps++
-	case "SKIP":
+	case cryptoutilMagic.TestStatusSkip:
 		suite.summary.SkippedSteps++
 	}
 
-	statusEmoji := "✅"
-	if status == "FAIL" {
-		statusEmoji = "❌"
-	} else if status == "SKIP" {
-		statusEmoji = "⏭️"
+	statusEmoji := cryptoutilMagic.TestStatusEmojiPass
+	if status == cryptoutilMagic.TestStatusFail {
+		statusEmoji = cryptoutilMagic.TestStatusEmojiFail
+	} else if status == cryptoutilMagic.TestStatusSkip {
+		statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
 	}
 
 	if suite.fixture != nil {
@@ -160,11 +162,11 @@ func (suite *SummaryTestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("-", 80) + "\n")
 
 	for i, step := range suite.summary.Steps {
-		statusEmoji := "✅"
-		if step.Status == "FAIL" {
-			statusEmoji = "❌"
-		} else if step.Status == "SKIP" {
-			statusEmoji = "⏭️"
+		statusEmoji := cryptoutilMagic.TestStatusEmojiPass
+		if step.Status == cryptoutilMagic.TestStatusFail {
+			statusEmoji = cryptoutilMagic.TestStatusEmojiFail
+		} else if step.Status == cryptoutilMagic.TestStatusSkip {
+			statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
 		}
 
 		report.WriteString(fmt.Sprintf("%2d. %s %-25s %8v  %s\n",

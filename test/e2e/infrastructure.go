@@ -80,8 +80,6 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 
 // WaitForDockerServicesHealthy waits for Docker services to report healthy status.
 func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Context) error {
-	services := dockerComposeServicesForHealthCheck
-
 	giveUpTime := time.Now().Add(cryptoutilMagic.TestTimeoutDockerHealth)
 	checkCount := 0
 
@@ -97,31 +95,15 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 		}
 
 		checkCount++
-		im.log("🔍 Health check #%d: Checking %d services...", checkCount, len(services))
+		im.log("🔍 Health check #%d: Checking %d services...", checkCount, len(dockerComposeServicesForHealthCheck))
 
-		healthStatus := im.areDockerServicesHealthy(ctx, services)
+		healthStatus := im.areDockerServicesHealthy(ctx, dockerComposeServicesForHealthCheck)
 
-		unhealthyServices := []string{}
-
-		for service, healthy := range healthStatus {
-			status := "❌ UNHEALTHY"
-			if healthy {
-				status = "✅ HEALTHY"
-			}
-
-			fmt.Printf("[%s] [%v]    %s: %s\n",
-				time.Now().Format("15:04:05"),
-				time.Since(im.startTime).Round(time.Second),
-				service, status)
-
-			if !healthy {
-				unhealthyServices = append(unhealthyServices, service)
-			}
-		}
+		unhealthyServices := logServiceHealthStatus(im.startTime, healthStatus)
 
 		allHealthy := len(unhealthyServices) == 0
 		if allHealthy {
-			im.log("✅ All %d Docker services are healthy after %d checks", len(services), checkCount)
+			im.log("✅ All %d Docker services are healthy after %d checks", len(dockerComposeServicesForHealthCheck), checkCount)
 
 			return nil
 		}
@@ -309,6 +291,29 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 
 		time.Sleep(cryptoutilMagic.TestTimeoutHTTPRetryInterval)
 	}
+}
+
+// logServiceHealthStatus logs the health status of services and returns unhealthy services.
+func logServiceHealthStatus(startTime time.Time, healthStatus map[string]bool) []string {
+	var unhealthyServices []string
+
+	for service, healthy := range healthStatus {
+		status := "❌ UNHEALTHY"
+		if healthy {
+			status = "✅ HEALTHY"
+		}
+
+		fmt.Printf("[%s] [%v]    %s: %s\n",
+			time.Now().Format("15:04:05"),
+			time.Since(startTime).Round(time.Second),
+			service, status)
+
+		if !healthy {
+			unhealthyServices = append(unhealthyServices, service)
+		}
+	}
+
+	return unhealthyServices
 }
 
 // Helper methods.

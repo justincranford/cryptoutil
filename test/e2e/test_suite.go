@@ -14,6 +14,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // TestStep represents a single test step with timing and status information.
@@ -189,7 +191,8 @@ func (suite *E2ETestSuite) TestTelemetryFlow() {
 
 // testCryptoutilInstance tests a single cryptoutil instance.
 func (suite *E2ETestSuite) testCryptoutilInstance(instanceName string) {
-	stepName := fmt.Sprintf("%s Instance Tests", strings.Title(instanceName))
+	caser := cases.Title(language.English)
+	stepName := fmt.Sprintf("%s Instance Tests", caser.String(instanceName))
 	suite.logStep(stepName, fmt.Sprintf("Testing %s cryptoutil instance functionality", instanceName))
 
 	defer func() {
@@ -342,19 +345,19 @@ func (suite *E2ETestSuite) completeStep(status, result string) {
 	suite.summary.TotalSteps++
 
 	switch status {
-	case "PASS":
+	case cryptoutilMagic.TestStatusPass:
 		suite.summary.PassedSteps++
-	case "FAIL":
+	case cryptoutilMagic.TestStatusFail:
 		suite.summary.FailedSteps++
-	case "SKIP":
+	case cryptoutilMagic.TestStatusSkip:
 		suite.summary.SkippedSteps++
 	}
 
-	statusEmoji := "✅"
-	if status == "FAIL" {
-		statusEmoji = "❌"
-	} else if status == "SKIP" {
-		statusEmoji = "⏭️"
+	statusEmoji := cryptoutilMagic.TestStatusEmojiPass
+	if status == cryptoutilMagic.TestStatusFail {
+		statusEmoji = cryptoutilMagic.TestStatusEmojiFail
+	} else if status == cryptoutilMagic.TestStatusSkip {
+		statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
 	}
 
 	// Only log to fixture if it exists
@@ -395,11 +398,11 @@ func (suite *E2ETestSuite) generateSummaryReport() {
 	report.WriteString(strings.Repeat("-", cryptoutilMagic.TestReportWidth) + "\n")
 
 	for i, step := range suite.summary.Steps {
-		statusEmoji := "✅"
-		if step.Status == "FAIL" {
-			statusEmoji = "❌"
-		} else if step.Status == "SKIP" {
-			statusEmoji = "⏭️"
+		statusEmoji := cryptoutilMagic.TestStatusEmojiPass
+		if step.Status == cryptoutilMagic.TestStatusFail {
+			statusEmoji = cryptoutilMagic.TestStatusEmojiFail
+		} else if step.Status == cryptoutilMagic.TestStatusSkip {
+			statusEmoji = cryptoutilMagic.TestStatusEmojiSkip
 		}
 
 		report.WriteString(fmt.Sprintf("%2d. %s %-20s %8v  %s\n",

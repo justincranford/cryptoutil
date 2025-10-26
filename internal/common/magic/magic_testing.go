@@ -13,6 +13,18 @@ const (
 	StatusHealthy = "HEALTHY"
 	// StatusUnhealthy - Unhealthy status string.
 	StatusUnhealthy = "UNHEALTHY"
+	// TestStatusPass - Test status indicating success.
+	TestStatusPass = "PASS"
+	// TestStatusFail - Test status indicating failure.
+	TestStatusFail = "FAIL"
+	// TestStatusSkip - Test status indicating skipped.
+	TestStatusSkip = "SKIP"
+	// TestStatusEmojiPass - Emoji for passed test status.
+	TestStatusEmojiPass = "✅"
+	// TestStatusEmojiFail - Emoji for failed test status.
+	TestStatusEmojiFail = "❌"
+	// TestStatusEmojiSkip - Emoji for skipped test status.
+	TestStatusEmojiSkip = "⏭️"
 )
 
 const (

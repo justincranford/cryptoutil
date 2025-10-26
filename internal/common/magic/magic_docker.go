@@ -8,6 +8,8 @@ const (
 	DockerServiceStateRunning = "running"
 	// DockerServiceStateExited - Docker service exited state.
 	DockerServiceStateExited = "exited"
+	// DockerServiceHealthHealthy - Docker service healthy status.
+	DockerServiceHealthHealthy = "healthy"
 )
 
 // Docker service names.
