@@ -14,7 +14,8 @@ func BenchmarkHKDFwithSHA256(b *testing.B) {
 	outputLength := 32
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ { //nolint:wsl // gofumpt removes blank line required by wsl linter
+
+	for i := 0; i < b.N; i++ {
 		_, err := HKDFwithSHA256(secret, salt, info, outputLength)
 		require.NoError(b, err, "HKDFwithSHA256 should not fail")
 	}
@@ -28,7 +29,8 @@ func BenchmarkHKDFwithSHA384(b *testing.B) {
 	outputLength := 48
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ { //nolint:wsl // gofumpt removes blank line required by wsl linter
+
+	for i := 0; i < b.N; i++ {
 		_, err := HKDFwithSHA384(secret, salt, info, outputLength)
 		require.NoError(b, err, "HKDFwithSHA384 should not fail")
 	}
@@ -42,7 +44,8 @@ func BenchmarkHKDFwithSHA512(b *testing.B) {
 	outputLength := 64
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ { //nolint:wsl // gofumpt removes blank line required by wsl linter
+
+	for i := 0; i < b.N; i++ {
 		_, err := HKDFwithSHA512(secret, salt, info, outputLength)
 		require.NoError(b, err, "HKDFwithSHA512 should not fail")
 	}
@@ -56,7 +59,8 @@ func BenchmarkHKDFwithSHA224(b *testing.B) {
 	outputLength := 28
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ { //nolint:wsl // gofumpt removes blank line required by wsl linter
+
+	for i := 0; i < b.N; i++ {
 		_, err := HKDFwithSHA224(secret, salt, info, outputLength)
 		require.NoError(b, err, "HKDFwithSHA224 should not fail")
 	}

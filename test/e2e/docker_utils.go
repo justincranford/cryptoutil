@@ -55,14 +55,31 @@ func getComposeFilePath() string {
 // Always use relative path for cross-platform compatibility in
 // in GitHub Actions (Ubuntu runners) and Windows (`act` runner).
 func runDockerComposeCommand(ctx context.Context, logger *Logger, description string, args []string) ([]byte, error) {
+	// Validate required parameters
+	if ctx == nil {
+		return nil, fmt.Errorf("context cannot be nil")
+	}
+
+	if logger == nil {
+		return nil, fmt.Errorf("logger cannot be nil")
+	}
+
+	if description == "" {
+		return nil, fmt.Errorf("description cannot be empty")
+	}
+
+	if len(args) == 0 {
+		return nil, fmt.Errorf("args cannot be empty")
+	}
+
 	// Log start message based on description
-	if logger != nil {
-		switch description {
-		case dockerComposeDescStopServices:
-			Log(logger, "🧹 Stopping Docker Compose services")
-		case dockerComposeDescStartServices:
-			Log(logger, "🚀 Starting Docker Compose services")
-		}
+	switch description {
+	case dockerComposeDescStopServices:
+		Log(logger, "🧹 Stopping Docker Compose services")
+	case dockerComposeDescStartServices:
+		Log(logger, "🚀 Starting Docker Compose services")
+	case dockerComposeDescBatchHealth:
+		Log(logger, "🔍 Checking Docker Compose services health")
 	}
 
 	composeFile := getComposeFilePath()
@@ -81,6 +98,8 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 		Log(logger, "✅ Existing services stopped successfully")
 	case dockerComposeDescStartServices:
 		Log(logger, "✅ Docker Compose services started successfully")
+	case dockerComposeDescBatchHealth:
+		Log(logger, "✅ Docker Compose services health check completed")
 	}
 
 	return output, nil

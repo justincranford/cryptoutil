@@ -54,10 +54,10 @@ func parseDockerComposePsOutput(output []byte) (map[string]map[string]any, error
 
 	for _, service := range serviceList {
 		if name, ok := service["Name"].(string); ok {
-			if strings.Contains(name, "compose-") {
+			if strings.Contains(name, "compose-") { // Example: compose-cryptoutil-sqlite-1
 				parts := strings.Split(name, "-")
 				if len(parts) >= cryptoutilMagic.DockerServiceNamePartsMin {
-					serviceName := strings.Join(parts[1:len(parts)-1], "-")
+					serviceName := strings.Join(parts[1:len(parts)-1], "-") // Example: cryptoutil-sqlite
 					serviceMap[serviceName] = service
 				}
 			}
@@ -75,50 +75,24 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 
 	for _, service := range services {
 		var serviceNameToCheck string
-		if service.Job != "" {
-			// Use the healthcheck job to determine service health
-			serviceNameToCheck = service.Job
+		if service.Job == "" {
+			serviceNameToCheck = service.Service // Check the service directly
 		} else {
-			// Check the service directly
-			serviceNameToCheck = service.Service
+			serviceNameToCheck = service.Job // Use the healthcheck job to determine service health
 		}
 
 		serviceData, exists := serviceMap[serviceNameToCheck]
-		if !exists {
-			// Service/job not found
-			if service.Job != "" {
-				// For healthcheck jobs: not found means it completed successfully and was cleaned up
-				healthStatus[service.Service] = true
-			} else {
-				// For regular services: not found means unhealthy
+		if !exists { // Service/job not found
+			if service.Job == "" { // For regular services: not found means unhealthy
 				healthStatus[service.Service] = false
+			} else {
+				healthStatus[service.Service] = true // For healthcheck jobs: not found means it completed successfully and was cleaned up
 			}
 
 			continue
 		}
 
-		if service.Job != "" {
-			// This is a healthcheck job - check if it exited successfully
-			if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
-				// Handle both int and float64 types for ExitCode
-				var exitCode int
-				if exitCodeFloat, ok := serviceData["ExitCode"].(float64); ok {
-					exitCode = int(exitCodeFloat)
-				} else if exitCodeInt, ok := serviceData["ExitCode"].(int); ok {
-					exitCode = exitCodeInt
-				} else {
-					// ExitCode field not found or wrong type
-					healthStatus[service.Service] = false
-
-					continue
-				}
-
-				healthStatus[service.Service] = exitCode == 0
-			} else {
-				// Not in exited state
-				healthStatus[service.Service] = false
-			}
-		} else {
+		if service.Job == "" {
 			// Regular service - check health or running state
 			if health, ok := serviceData["Health"].(string); ok && health != "" {
 				// Services with health checks
@@ -130,6 +104,24 @@ func determineServiceHealthStatus(serviceMap map[string]map[string]any, services
 				} else {
 					healthStatus[service.Service] = false
 				}
+			}
+		} else {
+			// This is a healthcheck job - check if it exited successfully
+			if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
+				var exitCode int
+				if exitCodeFloat, ok := serviceData["ExitCode"].(float64); ok { // Handle float64 ExitCode
+					exitCode = int(exitCodeFloat)
+				} else if exitCodeInt, ok := serviceData["ExitCode"].(int); ok { // Handle int ExitCode
+					exitCode = exitCodeInt
+				} else {
+					healthStatus[service.Service] = false // ExitCode field not found or wrong type
+
+					continue
+				}
+
+				healthStatus[service.Service] = exitCode == 0
+			} else {
+				healthStatus[service.Service] = false // Not in exited state
 			}
 		}
 	}

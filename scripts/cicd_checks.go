@@ -288,8 +288,10 @@ func checkWorkflowLint() {
 		os.Exit(0)
 	}
 
-	var actions []ActionInfo
-	var validationErrors []string
+	var (
+		actions          []ActionInfo
+		validationErrors []string
+	)
 
 	// Walk through workflow files and validate them
 	err = filepath.Walk(workflowsDir, func(path string, info os.FileInfo, err error) error {
@@ -330,6 +332,7 @@ func checkWorkflowLint() {
 	// If validation errors were found, report and fail fast
 	if len(validationErrors) > 0 {
 		fmt.Fprintln(os.Stderr, "Workflow validation errors:")
+
 		for _, e := range validationErrors {
 			fmt.Fprintf(os.Stderr, "  - %s\n", e)
 		}
@@ -352,9 +355,11 @@ func checkWorkflowLint() {
 		actionMap[key] = action
 	}
 
-	var outdated []ActionInfo
-	var errors []string
-	var exempted []ActionInfo
+	var (
+		outdated []ActionInfo
+		errors   []string
+		exempted []ActionInfo
+	)
 
 	for _, action := range actionMap {
 		// Check if this action is exempted

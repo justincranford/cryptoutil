@@ -9,8 +9,8 @@ import (
 
 func GenerateString(length int) (string, error) {
 	bytesNeeded := (length + 1) / 2
+
 	randomBytes, err := GenerateBytes(bytesNeeded)
-	//nolint:wsl // gofumpt removes blank line required by wsl linter
 	if err != nil {
 		return "", fmt.Errorf("failed to generate %d random bytes for string of length %d: %w", bytesNeeded, length, err)
 	}

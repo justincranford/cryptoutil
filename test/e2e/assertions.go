@@ -150,7 +150,7 @@ func (a *ServiceAssertions) AssertTelemetryFlow(ctx context.Context, grafanaURL,
 func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 	Log(a.logger, "🔍 Verifying Docker services health")
 
-	output, err := runDockerComposeCommand(context.Background(), a.logger, "Batch health check", dockerComposeArgsPsServices)
+	output, err := runDockerComposeCommand(context.Background(), a.logger, dockerComposeDescBatchHealth, dockerComposeArgsPsServices)
 	require.NoError(a.t, err, "Failed to check Docker services health")
 
 	serviceMap, err := parseDockerComposePsOutput(output)

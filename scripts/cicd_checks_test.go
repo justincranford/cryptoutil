@@ -121,13 +121,17 @@ jobs:
 	issues, err := validateWorkflowFile(p)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(issues), 1)
+
 	found := false
+
 	for _, it := range issues {
 		if strings.Contains(it, "logging") {
 			found = true
+
 			break
 		}
 	}
+
 	require.True(t, found, "Expected logging-related issue")
 }
 
@@ -581,7 +585,8 @@ func process(data interface{}) interface{} {
 	return data
 }
 `
-	if err := os.WriteFile(testFile1, []byte(content1), 0o600); err != nil { //nolint:wsl // gofumpt removes blank line required by wsl linter
+
+	if err := os.WriteFile(testFile1, []byte(content1), 0o600); err != nil {
 		require.NoError(t, err, "Failed to create test file")
 	}
 
@@ -758,13 +763,13 @@ type MyStruct struct {
 	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly. Content: %s", string(modifiedContent2))
 }
 
-func TestEnforceTestPatterns_RegexValidation(t *testing.T) { //nolint:wsl // gofumpt removes blank line required by wsl linter
+func TestEnforceTestPatterns_RegexValidation(t *testing.T) {
 	// Test the regex patterns used in checkTestFile to ensure they work correctly
 	// This was originally created as a one-off test during chat session
-
 	// Test t.Errorf pattern
 	errorfPattern := regexp.MustCompile(`^t\.Errorf\([^)]+\)$`)
-	t.Logf("Compiled regex pattern: %s", `t\.Errorf\([^)]+\)`) //nolint:wsl // gofumpt removes blank line required by wsl linter
+
+	t.Logf("Compiled regex pattern: %s", `t\.Errorf\([^)]+\)`)
 
 	// Debug: test with f.Errorf pattern
 	fErrorfPattern := regexp.MustCompile(`^f\.Errorf\([^)]+\)$`)
