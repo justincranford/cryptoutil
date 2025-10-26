@@ -171,14 +171,14 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 
-	var serviceList []map[string]interface{}
+	var serviceList []map[string]any
 
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
 
-		var service map[string]interface{}
+		var service map[string]any
 		err := json.Unmarshal([]byte(line), &service)
 		require.NoError(a.t, err, "Failed to parse Docker service JSON")
 
@@ -187,7 +187,7 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 
 	require.NotEmpty(a.t, serviceList, "No services found in Docker compose output")
 
-	serviceMap := make(map[string]map[string]interface{})
+	serviceMap := make(map[string]map[string]any)
 
 	for _, service := range serviceList {
 		if name, ok := service["Name"].(string); ok {
@@ -234,7 +234,7 @@ func (a *ServiceAssertions) AssertDockerServicesHealthy() {
 }
 
 // log provides structured logging for assertions.
-func (a *ServiceAssertions) log(format string, args ...interface{}) {
+func (a *ServiceAssertions) log(format string, args ...any) {
 	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
 		time.Since(a.startTime).Round(time.Second),

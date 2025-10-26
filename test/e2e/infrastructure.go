@@ -143,14 +143,14 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 	}
 
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	serviceList := make([]map[string]interface{}, 0, len(lines))
+	serviceList := make([]map[string]any, 0, len(lines))
 
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
 
-		var service map[string]interface{}
+		var service map[string]any
 		if err := json.Unmarshal([]byte(line), &service); err != nil {
 			continue
 		}
@@ -158,7 +158,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 		serviceList = append(serviceList, service)
 	}
 
-	serviceMap := make(map[string]map[string]interface{})
+	serviceMap := make(map[string]map[string]any)
 
 	for _, service := range serviceList {
 		if name, ok := service["Name"].(string); ok {
@@ -306,7 +306,7 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 }
 
 // Helper methods.
-func (im *InfrastructureManager) log(format string, args ...interface{}) {
+func (im *InfrastructureManager) log(format string, args ...any) {
 	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
 		time.Since(im.startTime).Round(time.Second),

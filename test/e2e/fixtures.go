@@ -194,7 +194,7 @@ func (f *TestFixture) GetServiceURL(instanceName string) string {
 }
 
 // log provides structured logging for the fixture.
-func (f *TestFixture) log(format string, args ...interface{}) {
+func (f *TestFixture) log(format string, args ...any) {
 	message := fmt.Sprintf("[%s] [%v] %s\n",
 		time.Now().Format("15:04:05"),
 		time.Since(f.startTime).Round(time.Second),
