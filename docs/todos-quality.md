@@ -2,7 +2,7 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: October 16, 2025
+**Last Updated**: October 26, 2025
 **Status**: Active code quality enhancements in progress - Pre-commit hook automation analysis added
 
 ---
@@ -57,3 +57,17 @@
 - **Files**: `.golangci.yml`, `api/openapi_spec_*.yaml`
 - **Expected Outcome**: Improved code readability and maintainability for future developers
 - **Priority**: LOW - Documentation enhancement
+
+### Task CQ5: Review cicd_checks.go and cicd_checks_test.go Linter Exemptions
+- **Description**: Review the comprehensive golangci-lint exemptions for scripts/cicd_checks.go and scripts/cicd_checks_test.go to identify which ones can be safely removed
+- **Current State**: Both files are excluded from all 25+ enabled linters due to containing deliberate violations for testing purposes
+- **Action Items**:
+  - Analyze each linter exemption to determine if it's actually needed
+  - Test removing individual linter exemptions one by one
+  - Verify that cicd_checks.go functionality still works after exemption removal
+  - Update .golangci.yml exclude-rules to remove unnecessary exemptions
+  - Document rationale for remaining exemptions
+- **Files**: `.golangci.yml` (exclude-rules section), `scripts/cicd_checks.go`, `scripts/cicd_checks_test.go`
+- **Expected Outcome**: Minimal but sufficient linter exemptions for cicd_checks files
+- **Priority**: LOW - Optimization opportunity
+- **Note**: cicd_checks.go contains deliberate interface{} patterns for testing gofumpter, and other violations for testing linting functionality

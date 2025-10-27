@@ -33,6 +33,9 @@ applyTo: "**"
 - **ALWAYS use `golangci-lint run --fix` for auto-fixing** - this single command handles formatting (gofumpt), imports (goimports), and all other auto-fixable linters in one pass
 - **Pre-commit hooks automatically run `golangci-lint run --fix`** - no need to run standalone gofumpt or goimports commands separately
 - **CRITICAL: gofumpt is ALWAYS preferred over gofmt in ALL SITUATIONS** - gofumpt is a stricter superset of gofmt with additional formatting rules; NEVER use `gofmt` directly, even if you see a "gofmt" lint error from any tool including golangci-lint; always use `golangci-lint run --fix` which applies gofumpt formatting
+- **CRITICAL: cicd_checks.go and cicd_checks_test.go contain deliberate lint violations for testing purposes** - these files MUST be comprehensively excluded from all linting operations to prevent self-referencing errors; they contain interface{} patterns for testing gofumpter functionality and other deliberate violations to validate cicd_checks.go commands work correctly
+- **ALWAYS exclude scripts/cicd_checks.go and scripts/cicd_checks_test.go from directory walks** in cicd_checks.go commands (gofumpter, enforce-test-patterns) to prevent the tool from modifying its own test patterns or checking itself
+- **NEVER run golangci-lint directly on cicd_checks.go or cicd_checks_test.go** - rely on .golangci.yml exclude-rules which comprehensively exclude both files from all 25+ enabled linters
 
 ## Authorized Commands Reference
 
