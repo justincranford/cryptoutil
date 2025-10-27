@@ -11,6 +11,7 @@ applyTo: "**"
 - Don't reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
 - When completing a task in a docs/todos-*.md file, delete the completed task; don't keep it and mark it as completed, delete it to keep the file focused on remaining TODOs only
+- **NEVER USE GitKraken in GitHub Copilot chat** - GitKraken is a GUI tool for Git operations; use terminal git commands instead for all version control operations
 - **NEVER use curl in chat sessions** - curl is not installed in Windows PowerShell or Alpine container images; use PowerShell Invoke-WebRequest or docker compose exec instead
 - **NEVER use -SkipCertificateCheck in PowerShell commands** - this parameter only exists in PowerShell 6+; use `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}` for PowerShell 5.1
 - **ALWAYS use HTTPS 127.0.0.1:9090 for admin APIs** (/shutdown, /livez, /readyz) - these are private server endpoints, not public server endpoints
