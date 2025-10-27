@@ -367,9 +367,6 @@ issues:
     - path: magic_.*\.go
       linters:
         - goconst   # Magic constants are intentionally defined as variables (byte slices can't be const)
-    - path: scripts/cicd_checks_test\.go
-      linters:
-        - goimports # cicd_checks_test.go contains deliberate import violations for testing cicd_checks.go functionality
 
 severity:
   default-severity: error  # Most issues should block builds (security, logic bugs, crashes)
