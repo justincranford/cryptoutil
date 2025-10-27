@@ -5,13 +5,13 @@
 // in CI/CD pipelines (via pre-push hooks and GitHub Actions).
 //
 // Available Commands:
+//   - enforce-file-encoding: Validate text files use UTF-8 encoding without BOM
+//   - go-check-circular-package-dependencies: Detect circular import cycles in Go packages
+//   - enforce-test-patterns: Validate test code follows project conventions (UUIDv7, testify)
+//   - gofumpter: Apply custom Go source code transformations (interface{} -> any)
 //   - go-update-direct-dependencies: Check for outdated direct Go dependencies (requires go.mod)
 //   - go-update-all-dependencies: Check for outdated Go dependencies (direct + transitive)
-//   - go-check-circular-package-dependencies: Detect circular import cycles in Go packages
 //   - github-workflow-lint: Validate GitHub Actions workflow naming and structure
-//   - gofumpter: Apply custom Go source code transformations (interface{} -> any)
-//   - enforce-test-patterns: Validate test code follows project conventions (UUIDv7, testify)
-//   - enforce-file-encoding: Validate text files use UTF-8 encoding without BOM
 //
 // Usage:
 //
