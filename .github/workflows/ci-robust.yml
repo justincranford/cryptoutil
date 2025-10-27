@@ -225,7 +225,7 @@ jobs:
         run: |
           echo "## 🔐 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: RSA=30s (10min timeout per case), Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: RSA=30s, Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for secure key generation" >> $GITHUB_STEP_SUMMARY
 
