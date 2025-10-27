@@ -690,15 +690,20 @@ func isOutdated(current, latest string) bool {
 	return current != latest
 }
 
+type PackageInfo struct {
+	ImportPath string   `json:"ImportPath"`
+	Imports    []string `json:"Imports"`
+}
+
 func checkCircularDeps() {
 	startTime := time.Now()
 
 	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
 
-	// Get all packages in the project
-	fmt.Fprintln(os.Stderr, "Running: go list ./...")
+	// Get all packages with their imports in one command
+	fmt.Fprintln(os.Stderr, "Running: go list -json ./...")
 
-	cmd := exec.Command("go", "list", "./...")
+	cmd := exec.Command("go", "list", "-json", "./...")
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -706,27 +711,32 @@ func checkCircularDeps() {
 		os.Exit(1)
 	}
 
-	packages := strings.Split(strings.TrimSpace(string(output)), "\n")
+	// Parse JSON output (multiple JSON objects in stream)
+	decoder := json.NewDecoder(strings.NewReader(string(output)))
+	packages := make([]PackageInfo, 0)
+
+	for {
+		var pkg PackageInfo
+		if err := decoder.Decode(&pkg); err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			fmt.Fprintf(os.Stderr, "Warning: Failed to parse package info: %v\n", err)
+
+			continue
+		}
+
+		packages = append(packages, pkg)
+	}
+
 	fmt.Fprintf(os.Stderr, "Found %d packages:\n", len(packages))
 
 	for i, pkg := range packages {
-		if strings.TrimSpace(pkg) != "" {
-			fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, pkg)
-		}
+		fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, pkg.ImportPath)
 	}
 
 	fmt.Fprintln(os.Stderr, "")
-
-	// Filter out empty packages
-	var validPackages []string
-
-	for _, pkg := range packages {
-		if strings.TrimSpace(pkg) != "" {
-			validPackages = append(validPackages, pkg)
-		}
-	}
-
-	packages = validPackages
 
 	if len(packages) == 0 {
 		fmt.Fprintln(os.Stderr, "No packages found")
@@ -738,54 +748,15 @@ func checkCircularDeps() {
 	fmt.Fprintln(os.Stderr, "Building dependency graph...")
 
 	graphStart := time.Now()
-	processed := 0
+
 	dependencyGraph := make(map[string][]string)
 
 	for _, pkg := range packages {
-		// Get imports for this package
-		importCmd := exec.Command("go", "list", "-f", "{{.Imports}}", pkg)
-
-		importOutput, err := importCmd.Output()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Could not get imports for %s: %v\n", pkg, err)
-
-			continue
-		}
-
-		importStr := strings.TrimSpace(string(importOutput))
-		if len(importStr) <= 2 { // Empty array "[]"
-			dependencyGraph[pkg] = []string{} // Empty slice instead of nil
-			processed++
-
-			continue
-		}
-
-		// Parse imports (remove [ and ] and split by space)
-		importStr = strings.Trim(importStr, "[]")
-		if importStr == "" {
-			dependencyGraph[pkg] = []string{}
-			processed++
-
-			continue
-		}
-
-		imports := strings.Split(importStr, " ")
-		dependencyGraph[pkg] = imports
-
-		processed++
-		if processed%progressInterval == 0 {
-			elapsed := time.Since(graphStart)
-			fmt.Fprintf(os.Stderr, "Processed %d/%d packages... (%.2fs)\n", processed, len(packages), elapsed.Seconds())
-		}
+		dependencyGraph[pkg.ImportPath] = pkg.Imports
 	}
 
 	graphElapsed := time.Since(graphStart)
 	fmt.Fprintf(os.Stderr, "Built dependency graph with %d packages (%.2fs)\n", len(dependencyGraph), graphElapsed.Seconds())
-
-	// Show why we have fewer packages in graph
-	if len(dependencyGraph) < len(packages) {
-		fmt.Fprintf(os.Stderr, "Note: %d packages were excluded from graph (failed to get imports)\n", len(packages)-len(dependencyGraph))
-	}
 
 	fmt.Fprintln(os.Stderr, "")
 
