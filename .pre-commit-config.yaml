@@ -119,31 +119,10 @@ repos:
   # Custom project checks
   - repo: local
     hooks:
-      - id: test-patterns
-        name: Enforce test patterns (UUIDv7, testify assertions)
+      - id: cicd-checks
+        name: Run all CI/CD quality checks (test patterns, gofumpter, workflow lint, circular deps)
         entry: go
-        args: [run, scripts/cicd_checks.go, enforce-test-patterns]
-        language: system
-        pass_filenames: false
-
-      - id: gofumpter
-        name: Custom Go source code fixes (interface{} -> any)
-        entry: go
-        args: [run, scripts/cicd_checks.go, gofumpter]
-        language: system
-        pass_filenames: false
-
-      - id: github-workflow-lint
-        name: Validate GitHub Actions workflow naming and structure
-        entry: go
-        args: [run, scripts/cicd_checks.go, github-workflow-lint]
-        language: system
-        pass_filenames: false
-
-      - id: go-check-circular-deps
-        name: Check for circular Go package dependencies
-        entry: go
-        args: [run, scripts/cicd_checks.go, go-check-circular-package-dependencies]
+        args: [run, scripts/cicd_checks.go, enforce-test-patterns, gofumpter, github-workflow-lint, go-check-circular-package-dependencies]
         language: system
         pass_filenames: false
 
