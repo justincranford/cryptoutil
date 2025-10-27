@@ -236,23 +236,23 @@ linters-settings:
   misspell:
     locale: US
     ignore-words:
-      - cryptoutil
-      - keygen
-      - jwa
-      - jwk
-      - jwe
-      - jws
-      - ecdsa
-      - ecdh
-      - rsa
-      - hmac
-      - aes
-      - pkcs
-      - pkix
-      - x509
-      - pem
-      - der
-      - ikm
+      - cryptoutil  # Project name
+      - keygen      # Key generation
+      - jwa         # JSON Web Algorithms (JOSE)
+      - jwk         # JSON Web Key (JOSE)
+      - jwe         # JSON Web Encryption (JOSE)
+      - jws         # JSON Web Signature (JOSE)
+      - ecdsa       # Elliptic Curve Digital Signature Algorithm
+      - ecdh        # Elliptic Curve Diffie-Hellman
+      - rsa         # Rivest-Shamir-Adleman
+      - hmac        # Hash-based Message Authentication Code
+      - aes         # Advanced Encryption Standard
+      - pkcs        # Public-Key Cryptography Standards
+      - pkix        # Public Key Infrastructure X.509
+      - x509        # X.509 certificate standard
+      - pem         # Privacy Enhanced Mail (base64 encoded certificates)
+      - der         # Distinguished Encoding Rules (binary certificate format)
+      - ikm         # Input Keying Material
 
   revive:
     severity: warning  # Overridden by global severity rules - style issues shouldn't block builds
