@@ -364,9 +364,6 @@ issues:
     - path: scripts/.*
       linters:
         - mnd       # Magic number detection (performance scripts use appropriate literals)
-    - path: magic_.*\.go
-      linters:
-        - goconst   # Magic constants are intentionally defined as variables (byte slices can't be const)
 
 severity:
   default-severity: error  # Most issues should block builds (security, logic bugs, crashes)
