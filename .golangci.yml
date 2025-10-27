@@ -369,7 +369,6 @@ issues:
         - goconst   # Magic constants are intentionally defined as variables (byte slices can't be const)
     - path: scripts/cicd_checks_test\.go
       linters:
-        - gofumpt   # cicd_checks_test.go contains deliberate formatting violations for testing cicd_checks.go functionality
         - goimports # cicd_checks_test.go contains deliberate import violations for testing cicd_checks.go functionality
 
 severity:
