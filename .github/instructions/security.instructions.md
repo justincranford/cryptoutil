@@ -16,4 +16,3 @@ applyTo: "**"
 - **NEVER use environment variables for secrets in production deployments**
 - Use Docker secrets mounted to `/run/secrets/` with file:// URLs in command arguments
 - Use Kubernetes secrets mounted as files or referenced directly, not via environment variables
-- Scanning: run scripts/security-scan.{ps1,sh} before commits/high-risk changes; see README for scan options and workflow

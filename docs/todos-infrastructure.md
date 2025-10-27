@@ -171,9 +171,8 @@
      - Update `ci-quality.yml` to use `.build/{coverage,sarif,sbom}/`
 
   4. **Phase 4 - Update Scripts**:
-     - Update `dast.ps1` / `dast.sh` to use `.build/dast/`
-     - Update `security-scan.ps1` / `security-scan.sh` to use `.build/sarif/`
-     - Update `mutation-test.ps1` / `mutation-test.sh` to use `.build/mutation/`
+     - Update `run-act-dast.ps1` to use `.build/dast/`
+     - Update `scripts/github-workflows/run_github_workflow_locally.go` to use `.build/workflow/`
 
   5. **Phase 5 - Update Build Configuration**:
      - Update Makefile (if exists) to use `.build/bin/`
@@ -190,9 +189,7 @@
   - `scripts/github-workflows/run_github_workflow_locally.go`
   - `internal/e2e/*.go` (E2E test utilities)
   - `.github/workflows/*.yml` (all 5 workflows)
-  - `scripts/dast.{ps1,sh}`
-  - `scripts/security-scan.{ps1,sh}`
-  - `scripts/mutation-test.{ps1,sh}`
+  - `scripts/run-act-dast.ps1`
   - `test/load/pom.xml` (Gatling output directory)
   - `README.md` and `docs/DEEP-ANALYSIS.md`
 - **Expected Outcome**:

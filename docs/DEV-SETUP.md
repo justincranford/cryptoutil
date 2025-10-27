@@ -463,9 +463,8 @@ go tool cover -html=coverage.out -o coverage.html
 # Run linting
 golangci-lint run --timeout=10m
 
-# Run security scans
-./scripts/security-scan.sh  # Linux/macOS
-.\scripts\security-scan.ps1 # Windows
+# Run security scans (via GitHub Actions workflows)
+# Use: go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast
 ```
 
 ### Test Key Features

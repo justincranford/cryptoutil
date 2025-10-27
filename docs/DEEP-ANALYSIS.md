@@ -209,9 +209,6 @@ cryptoutil/
 │   └── todos-*.md                # Task tracking
 ├── scripts/                      # Build and utility scripts
 │   ├── cicd_checks.go            # CI/CD validation tool
-│   ├── dast.ps1 / dast.sh        # DAST scan runners
-│   ├── security-scan.ps1 / .sh   # Security scan orchestration
-│   ├── mutation-test.ps1 / .sh   # Mutation testing runner
 │   └── github-workflows/         # Workflow utilities
 │       └── run_github_workflow_locally.go
 ├── test/                         # Test resources
@@ -816,16 +813,13 @@ golangci-lint run --fix
 gofumpt -extra -w .
 
 # Security Scan
-./scripts/security-scan.ps1  # Windows
-./scripts/security-scan.sh   # Linux/macOS
+# (Now handled by run_github_workflow_locally.go)
 
 # DAST Scan
-./scripts/dast.ps1           # Windows
-./scripts/dast.sh            # Linux/macOS
+# (Now handled by run_github_workflow_locally.go)
 
 # Mutation Testing
-./scripts/mutation-test.ps1  # Windows
-./scripts/mutation-test.sh   # Linux/macOS
+# (Now handled by run_github_workflow_locally.go)
 
 # Workflow Testing
 go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=quality,e2e

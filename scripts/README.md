@@ -40,50 +40,6 @@ See `scripts/perf/README.doc` for detailed performance testing documentation and
 
 ## Security Scripts
 
-### security-scan.ps1 / security-scan.sh
-
-Runs comprehensive security scans locally (same as CI/CD pipeline).
-
-```powershell
-# PowerShell - All scans
-.\scripts\security-scan.ps1
-
-# PowerShell - Static analysis only
-.\scripts\security-scan.ps1 -StaticOnly
-
-# PowerShell - Skip Docker scans
-.\scripts\security-scan.ps1 -SkipDocker
-
-# Bash
-./scripts/security-scan.sh --skip-docker
-```
-
-**Scans included:**
-- **Static Analysis**: staticcheck, golangci-lint
-- **Vulnerability Scanning**: govulncheck, Trivy filesystem
-- **Container Security**: Trivy image scan, Docker Scout
-
-### dast.ps1 / dast.sh
-
-Runs Dynamic Application Security Testing (DAST) with OWASP ZAP and Nuclei.
-
-```powershell
-# PowerShell - Default settings
-.\scripts\dast.ps1
-
-# PowerShell - Custom config and port
-.\scripts\dast.ps1 -Config "configs/test/config.yml" -Port 9090
-
-# Bash
-./scripts/dast.sh -c configs/test/config.yml -p 9090
-```
-
-**Features:**
-- Starts cryptoutil application automatically
-- Runs OWASP ZAP full scan and API scan
-- Runs Nuclei security scans
-- Generates comprehensive reports
-
 ### run-act-dast.ps1
 
 Advanced script for running GitHub Actions DAST workflows locally with `act`.
@@ -141,29 +97,6 @@ python .\scripts\count_tokens.py --model gpt-4o --glob ".github/instructions/*.m
 python .\scripts\count_tokens.py --file .github/copilot-instructions.md --as-message none --model gpt-4o
 ```
 
-## Mutation Testing Scripts
-
-### mutation-test.ps1 / mutation-test.sh
-
-Runs mutation testing using Gremlins to ensure test quality.
-
-```powershell
-# PowerShell - Default settings
-.\scripts\mutation-test.ps1
-
-# PowerShell - Custom timeout and workers
-.\scripts\mutation-test.ps1 -Timeout 10m -Workers 4
-
-# Bash
-./scripts/mutation-test.sh -t 10m -w 4
-```
-
-**Features:**
-- Automated mutation testing with Gremlins
-- Configurable timeout and worker count
-- Test quality validation
-- Cross-platform support
-
 ## Configuration Files
 
 ### errcheck_excludes.txt
@@ -200,16 +133,11 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\scripts\script.ps1
 ## Prerequisites
 
 Most scripts will install required tools automatically if missing:
-- `gremlins` (mutation testing)
-- `staticcheck`, `golangci-lint`, `govulncheck` (security scanning)
-- `trivy`, `docker-scout` (container scanning)
 - `act` (GitHub Actions local testing)
 - `k6` (performance testing)
 
 ## Integration with CI/CD
 
 These scripts mirror the functionality available in GitHub Actions workflows:
-- Security scanning matches `.github/workflows/security-scan.yml`
-- DAST testing matches `.github/workflows/dast.yml`
-- Mutation testing can be run locally for development validation
+- Security scanning and DAST testing are handled by `run-act-dast.ps1` for local testing and GitHub Actions workflows for CI/CD
 - Performance testing can be integrated into CI/CD pipelines
