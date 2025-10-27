@@ -324,7 +324,6 @@ issues:
 
     # Build artifacts and reports - DO NOT LINT
     - dast-reports # Skip generated DAST security scan reports
-    - scripts      # Skip scripts directory (performance testing scripts with appropriate magic numbers)
 
     # IDE and tool configurations - DO NOT LINT
     - .idea       # Skip IntelliJ IDEA/GoLand IDE files, no Go files
