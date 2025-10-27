@@ -20,7 +20,7 @@ repos:
       # Check for UTF-8 encoding without BOM
       - id: fix-byte-order-marker
         name: Fix UTF-8 without BOM
-        exclude: '\.(exe|dll|so|dylib|key|crt|pem)$'  # Skip binary files
+        exclude: '\.(exe|dll|so|dylib|key|crt)$'  # Skip binary files
 
       # Check YAML syntax
       - id: check-yaml
