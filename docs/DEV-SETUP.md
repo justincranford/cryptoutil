@@ -72,9 +72,6 @@ go install mvdan.cc/gofumpt@latest
 # Install goimports (import organization)
 go install golang.org/x/tools/cmd/goimports@latest
 
-# Install errcheck (error checking)
-go install github.com/kisielk/errcheck@latest
-
 # Install staticcheck (advanced static analysis)
 go install honnef.co/go/tools/cmd/staticcheck@latest
 
@@ -174,9 +171,6 @@ go install mvdan.cc/gofumpt@latest
 # Install goimports
 go install golang.org/x/tools/cmd/goimports@latest
 
-# Install errcheck
-go install github.com/kisielk/errcheck@latest
-
 # Install staticcheck
 go install honnef.co/go/tools/cmd/staticcheck@latest
 
@@ -243,9 +237,6 @@ go install mvdan.cc/gofumpt@latest
 
 # Install goimports
 go install golang.org/x/tools/cmd/goimports@latest
-
-# Install errcheck
-go install github.com/kisielk/errcheck@latest
 
 # Install staticcheck
 go install honnef.co/go/tools/cmd/staticcheck@latest

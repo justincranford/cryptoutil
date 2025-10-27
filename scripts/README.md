@@ -18,22 +18,6 @@ This directory contains utility scripts for development, testing, building, and 
 
 These scripts install pre-commit hooks that run automated code quality checks on every commit.
 
-## Build Scripts
-
-### build.ps1
-
-Docker build script with mandatory version tagging and proper build arguments.
-
-```powershell
-.\scripts\build.ps1 -AppVersion v1.0.0
-```
-
-**Features:**
-- Validates mandatory app version parameter
-- Sets VCS_REF to current git commit hash
-- Sets BUILD_DATE to current timestamp
-- Builds cryptoutil Docker image with proper tagging
-
 ## Performance Testing
 
 See `scripts/perf/README.doc` for detailed performance testing documentation and usage.
@@ -75,12 +59,6 @@ python .\scripts\count_tokens.py --model gpt-4o --glob ".github/instructions/*.m
 python .\scripts\count_tokens.py --file .github/copilot-instructions.md --as-message none --model gpt-4o
 ```
 
-## Configuration Files
-
-### errcheck_excludes.txt
-
-Configuration file for errcheck tool exclusions used in pre-commit hooks.
-
 ## Cross-Platform Support
 
 - **Windows**: PowerShell scripts (`.ps1`) with batch file alternatives (`.bat`)
@@ -106,7 +84,6 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\scripts\script.ps1
 
 Most scripts will install required tools automatically if missing:
 - `act` (GitHub Actions local testing)
-- `k6` (performance testing)
 
 ## Integration with CI/CD
 
