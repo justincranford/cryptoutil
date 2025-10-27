@@ -129,7 +129,13 @@ func commonOtelFiberRequestLoggerMiddleware(telemetryService *cryptoutilTelemetr
 		}
 
 		// Log the complete request/response details
-		telemetryService.Slogger.Info("http_request", args...)
+		if telemetryService.VerboseMode {
+			telemetryService.Slogger.Info("http_request", args...)
+		} else {
+			telemetryService.Slogger.Debug("http_request", args...)
+		}
+
+		// Return any error from request processing to maintain normal flow
 
 		return err //nolint:wrapcheck
 	}
