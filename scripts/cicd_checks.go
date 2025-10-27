@@ -111,9 +111,9 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
 
 		switch command {
-		case "go-update-direct-dependencies":
+		case "go-update-direct-dependencies": // Golang best practice is to only update direct dependencies
 			checkDeps(DepCheckDirect)
-		case "go-update-all-dependencies":
+		case "go-update-all-dependencies": // Less common, but sometimes useful to update all dependencies
 			checkDeps(DepCheckAll)
 		case "go-check-circular-package-dependencies":
 			checkCircularDeps()
@@ -955,6 +955,7 @@ func enforceFileEncoding() {
 		matches, err := filepath.Glob(pattern)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error globbing pattern %s: %v\n", pattern, err)
+
 			continue
 		}
 
@@ -976,6 +977,7 @@ func enforceFileEncoding() {
 			// Convert glob pattern to regex for matching
 			regexPattern := strings.ReplaceAll(pattern, "*", ".*")
 			regexPattern = "^" + regexPattern + "$"
+
 			matched, err := regexp.MatchString(regexPattern, filepath.Base(path))
 			if err != nil {
 				continue
@@ -983,6 +985,7 @@ func enforceFileEncoding() {
 
 			if matched {
 				filesToCheck = append(filesToCheck, path)
+
 				break
 			}
 		}
@@ -996,21 +999,26 @@ func enforceFileEncoding() {
 
 	if len(filesToCheck) == 0 {
 		fmt.Fprintln(os.Stderr, "No files found to check")
+
 		return
 	}
 
 	// Remove duplicates
 	fileMap := make(map[string]bool)
+
 	var uniqueFiles []string
+
 	for _, file := range filesToCheck {
 		if !fileMap[file] {
 			fileMap[file] = true
+
 			uniqueFiles = append(uniqueFiles, file)
 		}
 	}
 
 	// Filter out excluded files
 	var finalFiles []string
+
 	for _, filePath := range uniqueFiles {
 		excluded := false
 
@@ -1022,6 +1030,7 @@ func enforceFileEncoding() {
 
 			if matched {
 				excluded = true
+
 				break
 			}
 		}
