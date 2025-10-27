@@ -22,6 +22,10 @@
 //	go run scripts/cicd_checks.go github-workflow-lint
 //	go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint
 //
+// IMPORTANT: This file contains deliberate linter error patterns for testing cicd_checks functionality.
+// It MUST be excluded from all linting operations to prevent self-referencing errors.
+// See .golangci.yml exclude-rules and cicd_checks.go exclusion patterns for details.
+//
 // Exit Codes:
 //
 //	0: All checks passed
@@ -867,6 +871,7 @@ func enforceTestPatterns() {
 			if strings.HasSuffix(path, "cicd_checks_test.go") {
 				return nil
 			}
+
 			testFiles = append(testFiles, path)
 		}
 

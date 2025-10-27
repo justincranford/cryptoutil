@@ -1,3 +1,9 @@
+// IMPORTANT: This file contains deliberate linter error patterns for testing cicd_checks.go functionality.
+// It MUST be excluded from all linting operations to prevent self-referencing errors.
+// See .golangci.yml exclude-rules and cicd_checks.go exclusion patterns for details.
+//
+// This file intentionally uses interface{} patterns and other lint violations to test
+// that cicd_checks.go correctly identifies and reports such patterns in other files.
 package main
 
 import (
