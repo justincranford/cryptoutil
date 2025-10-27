@@ -154,6 +154,7 @@ services:
         reservations:
           memory: 128M
 
+  # See https://hub.docker.com/_/postgres#how-to-use-this-image
   postgres:
     image: postgres:18
     environment:
