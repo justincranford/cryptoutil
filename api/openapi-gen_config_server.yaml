@@ -10,28 +10,28 @@ output-options:
   skip-prune: true
   name-normalizer: ToCamelCaseWithInitialisms
   additional-initialisms:
-    - IDS
-    - JWT
-    - JWK
-    - JWE
-    - JWS
-    - OIDC
-    - SAML
-    - AES
-    - GCM
-    - CBC
-    - RSA
-    - EC
-    - HMAC
-    - SHA
-    - TLS
-    - IP
-    - AI
-    - ML
-    - KEM
-    - PEM
-    - DER
-    - DSA
-    - IKM
+    - IDS    # Intrusion Detection System
+    - JWT    # JSON Web Token
+    - JWK    # JSON Web Key
+    - JWE    # JSON Web Encryption
+    - JWS    # JSON Web Signature
+    - OIDC   # OpenID Connect
+    - SAML   # Security Assertion Markup Language
+    - AES    # Advanced Encryption Standard
+    - GCM    # Galois/Counter Mode
+    - CBC    # Cipher Block Chaining
+    - RSA    # Rivest-Shamir-Adleman
+    - EC     # Elliptic Curve
+    - HMAC   # Hash-based Message Authentication Code
+    - SHA    # Secure Hash Algorithm
+    - TLS    # Transport Layer Security
+    - IP     # Internet Protocol
+    - AI     # Artificial Intelligence
+    - ML     # Machine Learning
+    - KEM    # Key Encapsulation Mechanism
+    - PEM    # Privacy Enhanced Mail
+    - DER    # Distinguished Encoding Rules
+    - DSA    # Digital Signature Algorithm
+    - IKM    # Input Keying Material
 import-mapping:
   "./openapi_spec_components.yaml": cryptoutil/api/model
