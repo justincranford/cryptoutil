@@ -36,6 +36,9 @@ applyTo: "**"
 - **CRITICAL: cicd_checks.go and cicd_checks_test.go contain deliberate lint violations for testing purposes** - these files MUST be comprehensively excluded from all linting operations to prevent self-referencing errors; they contain interface{} patterns for testing gofumpter functionality and other deliberate violations to validate cicd_checks.go commands work correctly
 - **ALWAYS exclude scripts/cicd_checks.go and scripts/cicd_checks_test.go from directory walks** in cicd_checks.go commands (gofumpter, enforce-test-patterns) to prevent the tool from modifying its own test patterns or checking itself
 - **NEVER run golangci-lint directly on cicd_checks.go or cicd_checks_test.go** - rely on .golangci.yml exclude-rules which comprehensively exclude both files from all 25+ enabled linters
+- **ALWAYS use UTF-8 without BOM for ALL text files** - this is enforced by cicd_checks.go enforce-file-encoding command; PowerShell's default UTF-16 LE encoding breaks Docker secrets and PostgreSQL initialization
+- **PowerShell file creation**: `$utf8NoBom = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText("file.txt", "content", $utf8NoBom)` (creates UTF-8 without BOM)
+- **NEVER use `Out-File`, `Set-Content`, or `>` redirection** for text files - they default to UTF-16 LE with BOM; use `[System.IO.File]::WriteAllText()` with UTF8Encoding(false) instead
 
 ## Authorized Commands Reference
 

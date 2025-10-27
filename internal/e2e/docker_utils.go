@@ -26,6 +26,30 @@ const (
 	dockerComposeDescBatchHealth   = "Batch health check"
 )
 
+// could use tagged switch on description instead of if/elseif/else.
+func logComposeMessage(logger *Logger, description string, isStart bool) {
+	switch description {
+	case dockerComposeDescStopServices:
+		if isStart {
+			Log(logger, "🧹 Stopping Docker Compose services")
+		} else {
+			Log(logger, "✅ Existing services stopped successfully")
+		}
+	case dockerComposeDescStartServices:
+		if isStart {
+			Log(logger, "🚀 Starting Docker Compose services")
+		} else {
+			Log(logger, "✅ Docker Compose services started successfully")
+		}
+	case dockerComposeDescBatchHealth:
+		if isStart {
+			Log(logger, "🔍 Checking Docker Compose services health")
+		} else {
+			Log(logger, "✅ Docker Compose services health check completed")
+		}
+	}
+}
+
 // getComposeFilePath returns the compose file path appropriate for the current OS.
 // Since E2E tests run from internal/e2e/ directory, we need to navigate up to project root.
 func getComposeFilePath() string {
@@ -67,13 +91,8 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 	}
 
 	// Log start message based on description
-	if description == dockerComposeDescStopServices {
-		Log(logger, "🧹 Stopping Docker Compose services")
-	} else if description == dockerComposeDescStartServices {
-		Log(logger, "🚀 Starting Docker Compose services")
-	} else if description == dockerComposeDescBatchHealth {
-		Log(logger, "🔍 Checking Docker Compose services health")
-	}
+	// could use tagged switch on description instead of if/elseif/else
+	logComposeMessage(logger, description, true)
 
 	composeFile := getComposeFilePath()
 	allArgs := append([]string{"docker", "compose", "-f", composeFile}, args...)
@@ -86,13 +105,8 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 	}
 
 	// Log success message based on description
-	if description == dockerComposeDescStopServices {
-		Log(logger, "✅ Existing services stopped successfully")
-	} else if description == dockerComposeDescStartServices {
-		Log(logger, "✅ Docker Compose services started successfully")
-	} else if description == dockerComposeDescBatchHealth {
-		Log(logger, "✅ Docker Compose services health check completed")
-	}
+	// could use tagged switch on description instead of if/elseif/else
+	logComposeMessage(logger, description, false)
 
 	return output, nil
 }

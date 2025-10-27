@@ -11,6 +11,7 @@
 //   - github-workflow-lint: Validate GitHub Actions workflow naming and structure
 //   - gofumpter: Apply custom Go source code transformations (interface{} -> any)
 //   - enforce-test-patterns: Validate test code follows project conventions (UUIDv7, testify)
+//   - enforce-file-encoding: Validate files use UTF-8 encoding without BOM
 //
 // Usage:
 //
@@ -100,7 +101,7 @@ type ActionInfo struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_checks.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n\nExamples:\n  go run scripts/cicd_checks.go go-update-direct-dependencies\n  go run scripts/cicd_checks.go go-update-all-dependencies\n  go run scripts/cicd_checks.go go-check-circular-package-dependencies\n  go run scripts/cicd_checks.go github-workflow-lint\n  go run scripts/cicd_checks.go gofumpter\n  go run scripts/cicd_checks.go enforce-test-patterns\n  go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint\n")
+		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_checks.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n\nExamples:\n  go run scripts/cicd_checks.go go-update-direct-dependencies\n  go run scripts/cicd_checks.go go-update-all-dependencies\n  go run scripts/cicd_checks.go go-check-circular-package-dependencies\n  go run scripts/cicd_checks.go github-workflow-lint\n  go run scripts/cicd_checks.go gofumpter\n  go run scripts/cicd_checks.go enforce-test-patterns\n  go run scripts/cicd_checks.go enforce-file-encoding\n  go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint\n")
 		os.Exit(1)
 	}
 
@@ -122,8 +123,10 @@ func main() {
 			runGofumpter()
 		case "enforce-test-patterns":
 			enforceTestPatterns()
+		case "enforce-file-encoding":
+			enforceFileEncoding()
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n", command)
+			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n", command)
 			os.Exit(1)
 		}
 
@@ -914,6 +917,182 @@ func enforceTestPatterns() {
 	} else {
 		fmt.Fprintln(os.Stderr, "\n✅ All test files follow established patterns")
 	}
+}
+
+func enforceFileEncoding() {
+	fmt.Fprintln(os.Stderr, "Enforcing file encoding (UTF-8 without BOM)...")
+
+	// Define file patterns to check (text files that should be UTF-8)
+	filePatterns := []string{
+		"*.go",     // Go source files
+		"*.yml",    // YAML files
+		"*.yaml",   // YAML files
+		"*.json",   // JSON files
+		"*.md",     // Markdown files
+		"*.txt",    // Text files
+		"*.secret", // Secret files
+	}
+
+	// Define exclusion patterns (same as pre-commit-config.yaml)
+	excludedPatterns := []string{
+		`_gen\.go$`,                         // Generated files
+		`\.pb\.go$`,                         // Protocol buffer files
+		`vendor/`,                           // Vendored dependencies
+		`api/client`,                        // Generated API client
+		`api/model`,                         // Generated API models
+		`api/server`,                        // Generated API server
+		`scripts[/\\]cicd_checks\.go$`,      // Exclude this file itself
+		`scripts[/\\]cicd_checks_test\.go$`, // Exclude test file
+		`test/`,                             // Test directory (contains Java Gatling files)
+		`\.git/`,                            // Git directory
+		`node_modules/`,                     // Node.js dependencies
+	}
+
+	var filesToCheck []string
+
+	// Find files matching the patterns
+	for _, pattern := range filePatterns {
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error globbing pattern %s: %v\n", pattern, err)
+			continue
+		}
+
+		filesToCheck = append(filesToCheck, matches...)
+	}
+
+	// Also walk directories to find files recursively
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		// Check if file matches any pattern
+		for _, pattern := range filePatterns {
+			// Convert glob pattern to regex for matching
+			regexPattern := strings.ReplaceAll(pattern, "*", ".*")
+			regexPattern = "^" + regexPattern + "$"
+			matched, err := regexp.MatchString(regexPattern, filepath.Base(path))
+			if err != nil {
+				continue
+			}
+
+			if matched {
+				filesToCheck = append(filesToCheck, path)
+				break
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error walking directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	if len(filesToCheck) == 0 {
+		fmt.Fprintln(os.Stderr, "No files found to check")
+		return
+	}
+
+	// Remove duplicates
+	fileMap := make(map[string]bool)
+	var uniqueFiles []string
+	for _, file := range filesToCheck {
+		if !fileMap[file] {
+			fileMap[file] = true
+			uniqueFiles = append(uniqueFiles, file)
+		}
+	}
+
+	// Filter out excluded files
+	var finalFiles []string
+	for _, filePath := range uniqueFiles {
+		excluded := false
+
+		for _, pattern := range excludedPatterns {
+			matched, err := regexp.MatchString(pattern, filePath)
+			if err != nil {
+				continue
+			}
+
+			if matched {
+				excluded = true
+				break
+			}
+		}
+
+		if !excluded {
+			finalFiles = append(finalFiles, filePath)
+		}
+	}
+
+	fmt.Fprintf(os.Stderr, "Found %d files to check for UTF-8 encoding\n", len(finalFiles))
+
+	// Check each file
+	var encodingViolations []string
+
+	for _, filePath := range finalFiles {
+		if issues := checkFileEncoding(filePath); len(issues) > 0 {
+			for _, issue := range issues {
+				encodingViolations = append(encodingViolations, fmt.Sprintf("%s: %s", filePath, issue))
+			}
+		}
+	}
+
+	if len(encodingViolations) > 0 {
+		fmt.Fprintln(os.Stderr, "\n❌ Found file encoding violations:")
+
+		for _, violation := range encodingViolations {
+			fmt.Fprintf(os.Stderr, "  - %s\n", violation)
+		}
+
+		fmt.Fprintln(os.Stderr, "\nPlease fix the encoding issues above. Use UTF-8 without BOM for all text files.")
+		fmt.Fprintln(os.Stderr, "PowerShell example: $utf8NoBom = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText('file.txt', 'content', $utf8NoBom)")
+		os.Exit(1) // Fail the build
+	} else {
+		fmt.Fprintln(os.Stderr, "\n✅ All files have correct UTF-8 encoding without BOM")
+	}
+}
+
+func checkFileEncoding(filePath string) []string {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return []string{fmt.Sprintf("Error reading file: %v", err)}
+	}
+
+	var issues []string
+
+	// Check for UTF-8 BOM (EF BB BF)
+	if len(content) >= 3 && content[0] == 0xEF && content[1] == 0xBB && content[2] == 0xBF {
+		issues = append(issues, "contains UTF-8 BOM (should be UTF-8 without BOM)")
+	}
+
+	// Check for UTF-16 LE BOM (FF FE)
+	if len(content) >= 2 && content[0] == 0xFF && content[1] == 0xFE {
+		issues = append(issues, "contains UTF-16 LE BOM (should be UTF-8 without BOM)")
+	}
+
+	// Check for UTF-16 BE BOM (FE FF)
+	if len(content) >= 2 && content[0] == 0xFE && content[1] == 0xFF {
+		issues = append(issues, "contains UTF-16 BE BOM (should be UTF-8 without BOM)")
+	}
+
+	// Check for UTF-32 LE BOM (FF FE 00 00)
+	if len(content) >= 4 && content[0] == 0xFF && content[1] == 0xFE && content[2] == 0x00 && content[3] == 0x00 {
+		issues = append(issues, "contains UTF-32 LE BOM (should be UTF-8 without BOM)")
+	}
+
+	// Check for UTF-32 BE BOM (00 00 FE FF)
+	if len(content) >= 4 && content[0] == 0x00 && content[1] == 0x00 && content[2] == 0xFE && content[3] == 0xFF {
+		issues = append(issues, "contains UTF-32 BE BOM (should be UTF-8 without BOM)")
+	}
+
+	return issues
 }
 
 func checkTestFile(filePath string) []string {

@@ -156,19 +156,21 @@ services:
 
   postgres:
     image: postgres:18
-    # TODO: Switch postgres service to use mounted secrets files instead of hard-coded environment variables
-    # TODO: Update cryptoutil-postgres services to use individual postgres secrets (username, password, database) instead of postgres_url.secret
     environment:
-      POSTGRES_USER: USR # pragma: allowlist secret
-      POSTGRES_PASSWORD: PWD # pragma: allowlist secret
-      POSTGRES_DB: DB # pragma: allowlist secret
+      POSTGRES_USER_FILE: /run/secrets/postgres_username.secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password.secret
+      POSTGRES_DB_FILE: /run/secrets/postgres_database.secret
     shm_size: 256mb
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+    secrets:
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U USR -d DB"] # pragma: allowlist secret
+      test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
       start_period: 5s
       interval: 5s
       timeout: 3s
