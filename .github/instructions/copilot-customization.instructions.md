@@ -190,21 +190,29 @@ The workspace includes optimized VS Code settings in `.vscode/settings.json` tha
 
 ## Fuzz Testing Guidelines
 
+### CRITICAL: Unique Fuzz Test Naming Convention
+- **ALL Fuzz* test function names MUST be unique and MUST NOT be substrings of any other fuzz test names**
+- This ensures cross-platform compatibility without quotes or regex in `-fuzz` parameters
+- **Example Problem**: `FuzzHKDF` conflicts with `FuzzHKDFwithSHA256` (substring match)
+- **Solution**: Use `FuzzHKDFAllVariants` instead of `FuzzHKDF`
+- **Why**: Go's `-fuzz` parameter does partial matching; unique names eliminate ambiguity
+- **Cross-Platform**: Unquoted parameters work identically on Windows and Linux: `go test -fuzz=FuzzXXX`
+
 ### Common Mistakes to Avoid
 - **NEVER do this**: `cd internal/common/crypto/keygen; go test -fuzz=.` (causes "go.mod file not found" errors)
 - **NEVER do this**: `go test -fuzz=. && other-command` (PowerShell 5.1 doesn't support `&&`)
 - **NEVER do this**: Running fuzz tests from subdirectories (breaks Go module detection)
-- **NEVER do this**: `go test -fuzz=.` on packages with multiple fuzz tests (Go fails with "matches more than one fuzz test")
+- **NEVER do this**: Using quotes or regex when test names are unique: `-fuzz="^FuzzXXX$"` (causes cross-platform issues)
+- **NEVER do this**: Creating fuzz test names that are substrings of other fuzz test names
 
 ### Correct Fuzz Test Execution
-- **ALWAYS do this**: Run from project root: `go test -fuzz=. -fuzztime=5s ./internal/common/crypto/keygen`
-- **ALWAYS do this**: Use PowerShell `;` for chaining: `go test -fuzz=. -fuzztime=5s ./path; echo "Done"`
+- **ALWAYS do this**: Run from project root: `go test -fuzz=FuzzSpecificTest -fuzztime=5s ./internal/common/crypto/keygen`
+- **ALWAYS do this**: Use PowerShell `;` for chaining: `go test -fuzz=FuzzXXX -fuzztime=5s ./path; echo "Done"`
 - **ALWAYS do this**: Specify full package paths: `./internal/common/crypto/digests`
+- **ALWAYS do this**: Use unquoted, unique test names: `-fuzz=FuzzGenerateRSAKeyPair` (no quotes needed)
 
 ### Fuzz Test Patterns
-- **All fuzz tests**: `go test -fuzz=. -fuzztime=5s ./<package>`
-- **Specific fuzz test**: `go test -run=FuzzXXX -fuzz=FuzzXXX -fuzztime=5s ./<package>`
-- **Exact fuzz test match**: `go test -fuzz=^FuzzXXX$ -fuzztime=5s ./<package>` (use regex anchors when function names have common prefixes)
+- **Specific fuzz test**: `go test -fuzz=FuzzXXX -fuzztime=5s ./<package>` (most common, no quotes)
+- **All fuzz tests in package**: `go test -fuzz=. -fuzztime=5s ./<package>` (only if package has 1 fuzz test)
 - **Quick verification**: Use `-fuzztime=5s` for fast feedback during development
-- **Multiple fuzz tests in package**: When `-fuzz=.` matches multiple tests, Go fails with "matches more than one fuzz test" - use specific test names instead
-- **CRITICAL**: When `-fuzz` pattern matches multiple fuzz tests (even with specific names), Go fails with "matches more than one fuzz test" - **ALWAYS use `^FuzzXXX$` (with regex anchors) for exact matches to avoid this error**
+- **Cross-platform compatibility**: Avoid quotes and regex; ensure unique test names instead

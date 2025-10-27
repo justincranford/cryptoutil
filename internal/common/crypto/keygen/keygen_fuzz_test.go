@@ -10,6 +10,9 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+// IMPORTANT: All Fuzz* test function names MUST be unique and MUST NOT be substrings of any other fuzz test names.
+// This ensures cross-platform compatibility with the `-fuzz` parameter (no quotes or regex needed).
+
 // FuzzGenerateRSAKeyPair tests RSA key pair generation with various bit sizes.
 func FuzzGenerateRSAKeyPair(f *testing.F) {
 	// Add seed corpus with valid RSA key sizes

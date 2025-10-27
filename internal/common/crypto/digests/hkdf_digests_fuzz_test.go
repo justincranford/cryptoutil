@@ -9,8 +9,12 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// FuzzHKDF tests HKDF function with various inputs to ensure it doesn't crash.
-func FuzzHKDF(f *testing.F) {
+// IMPORTANT: All Fuzz* test function names MUST be unique and MUST NOT be substrings of any other fuzz test names.
+// This ensures cross-platform compatibility with the `-fuzz` parameter (no quotes or regex needed).
+// Example: "FuzzHKDF" conflicts with "FuzzHKDFwithSHA256", so we use "FuzzHKDFAllVariants" instead.
+
+// FuzzHKDFAllVariants tests HKDF function with various inputs to ensure it doesn't crash.
+func FuzzHKDFAllVariants(f *testing.F) {
 	// Add seed corpus with valid inputs
 	f.Add("SHA256", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA256OutputLength)
 	f.Add("SHA384", []byte("secret"), []byte("salt"), []byte("info"), cryptoutilMagic.HKDFSHA384OutputLength)

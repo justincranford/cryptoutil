@@ -178,42 +178,42 @@ jobs:
 
       - name: Run RSA keygen fuzz test
         run: |
-          echo "� Running RSA keygen fuzz test..."
-          go test -fuzz="FuzzGenerateRSAKeyPair" -fuzztime=1m -fuzztimeout=10m ./internal/common/crypto/keygen
+          echo "🔑 Running RSA keygen fuzz test..."
+          go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=1m -fuzztimeout=10m ./internal/common/crypto/keygen
 
       - name: Run ECDSA keygen fuzz test
         run: |
-          echo "🔑 Running ECDSA keygen fuzz test..."
-          go test -fuzz="FuzzGenerateECDSAKeyPair" -fuzztime=15s ./internal/common/crypto/keygen
+          echo "🔐 Running ECDSA keygen fuzz test..."
+          go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=15s ./internal/common/crypto/keygen
 
       - name: Run ECDH keygen fuzz test
         run: |
-          echo "🔑 Running ECDH keygen fuzz test..."
-          go test -fuzz="FuzzGenerateECDHKeyPair" -fuzztime=15s ./internal/common/crypto/keygen
+          echo "🔐 Running ECDH keygen fuzz test..."
+          go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=15s ./internal/common/crypto/keygen
 
       - name: Run EdDSA keygen fuzz test
         run: |
-          echo "🔑 Running EdDSA keygen fuzz test..."
-          go test -fuzz="FuzzGenerateEDDSAKeyPair" -fuzztime=15s ./internal/common/crypto/keygen
+          echo "🔐 Running EdDSA keygen fuzz test..."
+          go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=15s ./internal/common/crypto/keygen
 
       - name: Run AES keygen fuzz test
         run: |
-          echo "🔑 Running AES keygen fuzz test..."
-          go test -fuzz="FuzzGenerateAESKey" -fuzztime=15s ./internal/common/crypto/keygen
+          echo "🔐 Running AES keygen fuzz test..."
+          go test -fuzz=FuzzGenerateAESKey -fuzztime=15s ./internal/common/crypto/keygen
 
       - name: Run AES-HS keygen fuzz test
         run: |
-          echo "🔑 Running AES-HS keygen fuzz test..."
-          go test -fuzz="FuzzGenerateAESHSKey" -fuzztime=15s ./internal/common/crypto/keygen
+          echo "🔐 Running AES-HS keygen fuzz test..."
+          go test -fuzz=FuzzGenerateAESHSKey -fuzztime=15s ./internal/common/crypto/keygen
 
       - name: Run HMAC keygen fuzz test
         run: |
-          echo "🔑 Running HMAC keygen fuzz test..."
-          go test -fuzz="FuzzGenerateHMACKey" -fuzztime=15s ./internal/common/crypto/keygen
+          echo "🔐 Running HMAC keygen fuzz test..."
+          go test -fuzz=FuzzGenerateHMACKey -fuzztime=15s ./internal/common/crypto/keygen
 
       - name: Keygen fuzz test summary
         run: |
-          echo "## 🔑 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔐 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Duration: RSA=1min (10min timeout per case), Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
@@ -257,54 +257,54 @@ jobs:
           go mod tidy
           git diff --exit-code go.mod go.sum
 
-      - name: Run HKDF fuzz test
+      - name: Run HKDF All Variants fuzz test
         run: |
-          echo "� Running HKDF fuzz test..."
-          go test -fuzz="^FuzzHKDF$" -fuzztime=15s ./internal/common/crypto/digests
+          echo "🔐 Running HKDF All Variants fuzz test..."
+          go test -fuzz=FuzzHKDFAllVariants -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA256 fuzz test
         run: |
           echo "🔐 Running HKDF-SHA256 fuzz test..."
-          go test -fuzz="FuzzHKDFwithSHA256" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA384 fuzz test
         run: |
           echo "🔐 Running HKDF-SHA384 fuzz test..."
-          go test -fuzz="FuzzHKDFwithSHA384" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA512 fuzz test
         run: |
           echo "🔐 Running HKDF-SHA512 fuzz test..."
-          go test -fuzz="FuzzHKDFwithSHA512" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA224 fuzz test
         run: |
           echo "🔐 Running HKDF-SHA224 fuzz test..."
-          go test -fuzz="FuzzHKDFwithSHA224" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run SHA512 fuzz test
         run: |
           echo "🔐 Running SHA512 fuzz test..."
-          go test -fuzz="FuzzSHA512" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA512 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run SHA384 fuzz test
         run: |
           echo "🔐 Running SHA384 fuzz test..."
-          go test -fuzz="FuzzSHA384" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA384 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run SHA256 fuzz test
         run: |
           echo "🔐 Running SHA256 fuzz test..."
-          go test -fuzz="FuzzSHA256" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA256 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run SHA224 fuzz test
         run: |
           echo "🔐 Running SHA224 fuzz test..."
-          go test -fuzz="FuzzSHA224" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA224 -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Digests fuzz test summary
         run: |
-          echo "## � Digests Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔐 Digests Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic digest functions completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Duration: 15s each (sequential)" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 9 digest functions (HKDF variants + SHA-2 family)" >> $GITHUB_STEP_SUMMARY

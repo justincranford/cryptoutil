@@ -6,6 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// IMPORTANT: All Fuzz* test function names MUST be unique and MUST NOT be substrings of any other fuzz test names.
+// This ensures cross-platform compatibility with the `-fuzz` parameter (no quotes or regex needed).
+
 // FuzzSHA512 tests SHA512 digest with various inputs.
 func FuzzSHA512(f *testing.F) {
 	// Add seed corpus

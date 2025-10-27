@@ -380,8 +380,15 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 	}
 
 	if *dryRun {
+		// Build act command for dry-run display.
+		// Use workflow_dispatch for DAST (supports inputs), push for others
+		event := "push"
+		if wf.Name == workflowNameDAST {
+			event = "workflow_dispatch"
+		}
+
 		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", colorYellow, wf.WorkflowFile, colorReset)
-		dryRunMsg += fmt.Sprintf("   Command: %s workflow_dispatch -W %s\n", *actPath, wf.WorkflowFile)
+		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", *actPath, event, wf.WorkflowFile)
 
 		if len(wf.DefaultArgs) > 0 {
 			dryRunMsg += fmt.Sprintf("   Args: %s\n", strings.Join(wf.DefaultArgs, " "))
