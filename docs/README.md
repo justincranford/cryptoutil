@@ -221,6 +221,188 @@ Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' '
 - **Risk-Based Scanning**: Execute security scans before commits for high-risk changes (crypto code, API endpoints, dependencies)
 - **Compliance Reporting**: Generate security summary reports for review meetings and compliance documentation
 
+### Manual Nuclei Vulnerability Scanning
+
+[Nuclei](https://github.com/projectdiscovery/nuclei) is a fast, template-based vulnerability scanner that uses YAML templates to detect vulnerabilities, misconfigurations, and security issues.
+
+#### Prerequisites: Start cryptoutil Services
+
+Before running nuclei scans, ensure the cryptoutil services are running:
+
+```sh
+# Navigate to compose directory
+cd deployments/compose
+
+# Clean shutdown with volume removal
+docker compose down -v
+
+# Start all services
+docker compose up -d
+
+# Verify services are ready
+curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance (port 8080)
+curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1 (port 8081)
+curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2 (port 8082)
+```
+
+#### Manual Nuclei Scan Commands
+
+**Service Configuration:**
+- **cryptoutil_sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
+- **cryptoutil_postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
+- **cryptoutil_postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
+
+**Basic Security Scans:**
+```sh
+# Quick scan - Info and Low severity issues only (fast, ~5-10 seconds)
+nuclei -target https://localhost:8080/ -severity info,low
+nuclei -target https://localhost:8081/ -severity info,low
+nuclei -target https://localhost:8082/ -severity info,low
+
+# Standard scan - Medium, High, and Critical severity (comprehensive, ~10-30 seconds)
+nuclei -target https://localhost:8080/ -severity medium,high,critical
+nuclei -target https://localhost:8081/ -severity medium,high,critical
+nuclei -target https://localhost:8082/ -severity medium,high,critical
+
+# Full scan - All severity levels (thorough, ~20-60 seconds)
+nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8081/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8082/ -severity info,low,medium,high,critical
+```
+
+**Targeted Vulnerability Scans:**
+```sh
+# CVE scanning (recent and historical vulnerabilities)
+nuclei -target https://localhost:8080/ -tags cves -severity high,critical
+
+# Security misconfigurations
+nuclei -target https://localhost:8080/ -tags security-misconfiguration
+
+# Information disclosure and exposure
+nuclei -target https://localhost:8080/ -tags exposure,misc
+
+# Technology detection and fingerprinting
+nuclei -target https://localhost:8080/ -tags tech-detect
+
+# Default credentials and weak authentication
+nuclei -target https://localhost:8080/ -tags default-logins
+```
+
+**Performance-Optimized Scans:**
+```sh
+# High-performance scanning (adjust concurrency and rate limiting as needed)
+nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
+
+# Conservative scanning (lower resource usage)
+nuclei -target https://localhost:8080/ -c 10 -rl 25 -severity medium,high,critical
+```
+
+**Batch Scanning Script (PowerShell):**
+```powershell
+# Scan all three cryptoutil instances
+$targets = @(
+    "https://localhost:8080/",  # SQLite instance
+    "https://localhost:8081/",  # PostgreSQL instance 1
+    "https://localhost:8082/"   # PostgreSQL instance 2
+)
+
+foreach ($target in $targets) {
+    Write-Host "🔍 Scanning $target" -ForegroundColor Green
+    nuclei -target $target -severity medium,high,critical
+    Write-Host "✅ Completed scanning $target" -ForegroundColor Green
+    Write-Host ""
+}
+```
+
+**Batch Scanning Script (Bash):**
+```bash
+# Scan all three cryptoutil instances
+targets=(
+    "https://localhost:8080/"  # SQLite instance
+    "https://localhost:8081/"  # PostgreSQL instance 1
+    "https://localhost:8082/"  # PostgreSQL instance 2
+)
+
+for target in "${targets[@]}"; do
+    echo "🔍 Scanning $target"
+    nuclei -target "$target" -severity medium,high,critical
+    echo "✅ Completed scanning $target"
+    echo ""
+done
+```
+
+#### Nuclei Configuration and Troubleshooting
+
+**Template Management:**
+```sh
+# Update nuclei templates to latest version
+nuclei -update-templates
+
+# Check current template version
+nuclei -templates-version
+
+# List available templates (shows first 20)
+nuclei -tl | head -20
+
+# Search for specific template types
+nuclei -tl | grep -i "http"
+nuclei -tl | findstr http  # Windows PowerShell
+```
+
+**Common Issues and Solutions:**
+
+**Templates not found:**
+```sh
+# Force template update
+nuclei -update-templates
+
+# Check template directory
+dir C:\Users\%USERNAME%\nuclei-templates  # Windows
+ls ~/nuclei-templates                     # Linux/macOS
+```
+
+**Services not responding:**
+```sh
+# Check service health
+curl -k https://localhost:8080/ui/swagger/doc.json
+curl -k https://localhost:9090/livez  # Admin health endpoint
+
+# Check Docker containers
+docker compose -f ./deployments/compose/compose.yml ps
+
+# View service logs
+docker compose -f ./deployments/compose/compose.yml logs cryptoutil_sqlite
+```
+
+**Clean restart:**
+```sh
+# Complete cleanup and restart
+cd deployments/compose
+docker compose down -v
+docker compose up -d
+
+# Wait for services to be ready
+sleep 30
+curl -k https://localhost:8080/ui/swagger/doc.json
+```
+
+#### Interpreting Scan Results
+
+**Expected Results:**
+- **✅ "No results found"**: Indicates no vulnerabilities detected - good security posture
+- **⚠️ Vulnerabilities found**: Review findings and address security issues
+- **🔄 Scan performance**: Typically 5-60 seconds per service depending on scan profile
+
+**Common False Positives to Ignore:**
+- Some generic web server detections that don't apply to cryptoutil's security model
+- Default credential checks (cryptoutil uses proper authentication)
+- Generic misconfiguration checks that don't apply to the custom security implementation
+
+**Security Validation:**
+- Regular nuclei scanning helps validate the effectiveness of security controls
+- Compare scan results across different instances (SQLite vs PostgreSQL)
+- Use findings to improve security configurations and threat models
+
 **Build & Deployment**:
 - Multi-stage Docker builds
 - Docker Compose for local development

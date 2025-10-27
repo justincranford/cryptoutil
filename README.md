@@ -359,6 +359,102 @@ docker compose down --volumes --rmi all
 - Fresh database state for each test execution
 - Proper resource management in CI/CD environments
 
+## Security Testing
+
+### Manual Nuclei Vulnerability Scanning
+
+The project includes comprehensive vulnerability scanning using [Nuclei](https://github.com/projectdiscovery/nuclei), a fast, template-based vulnerability scanner.
+
+#### Prerequisites: Start cryptoutil Services
+
+Before running nuclei scans, start the cryptoutil services using Docker Compose:
+
+```sh
+# Clean up any existing containers and volumes
+docker compose -f ./deployments/compose/compose.yml down -v
+
+# Start all services (PostgreSQL, cryptoutil instances, observability stack)
+docker compose -f ./deployments/compose/compose.yml up -d
+
+# Wait for services to be ready (check health endpoints)
+curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance
+curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1
+curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
+```
+
+#### Manual Nuclei Scan Examples
+
+**Quick Security Scan (Info/Low severity, fast):**
+```sh
+# Scan all three cryptoutil instances
+nuclei -target https://localhost:8080/ -severity info,low
+nuclei -target https://localhost:8081/ -severity info,low
+nuclei -target https://localhost:8082/ -severity info,low
+```
+
+**Comprehensive Security Scan (All severities):**
+```sh
+# Full vulnerability assessment
+nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8081/ -severity info,low,medium,high,critical
+nuclei -target https://localhost:8082/ -severity info,low,medium,high,critical
+```
+
+**Targeted Scan Examples:**
+```sh
+# Scan for specific vulnerability types
+nuclei -target https://localhost:8080/ -tags cves,vulnerabilities
+nuclei -target https://localhost:8081/ -tags security-misconfiguration,exposure
+nuclei -target https://localhost:8082/ -tags tech-detect,misc
+
+# Scan with custom concurrency and rate limiting
+nuclei -target https://localhost:8080/ -c 10 -rl 50 -severity high,critical
+```
+
+**Batch Scan All Services:**
+```sh
+# PowerShell: Scan all three services sequentially
+foreach ($port in @(8080, 8081, 8082)) {
+    Write-Host "Scanning https://localhost:$port/" -ForegroundColor Green
+    nuclei -target "https://localhost:$port/" -severity medium,high,critical
+}
+```
+
+#### Service Endpoints
+
+| Service | Port | Backend | Purpose |
+|---------|------|---------|---------|
+| cryptoutil_sqlite | 8080 | SQLite | Development/testing instance |
+| cryptoutil_postgres_1 | 8081 | PostgreSQL | Production-like instance #1 |
+| cryptoutil_postgres_2 | 8082 | PostgreSQL | Production-like instance #2 |
+
+#### Expected Results
+
+- **✅ No vulnerabilities found**: Indicates proper security implementation
+- **⚠️ Findings detected**: Review and address security issues
+- **🔄 Scan duration**: 5-30 seconds per service depending on scan profile
+
+#### Troubleshooting
+
+**Nuclei templates not found:**
+```sh
+# Install/update nuclei templates
+nuclei -update-templates
+```
+
+**Services not responding:**
+```sh
+# Check service health
+curl -k https://localhost:8080/ui/swagger/doc.json
+curl -k https://localhost:9090/livez  # Admin health endpoint
+```
+
+**Clean restart:**
+```sh
+docker compose -f ./deployments/compose/compose.yml down -v
+docker compose -f ./deployments/compose/compose.yml up -d
+```
+
 ## Development
 
 ### Automated Code Formatting

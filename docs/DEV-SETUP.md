@@ -458,6 +458,140 @@ golangci-lint run --timeout=10m
 # Use: go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast
 ```
 
+### Manual Security Testing with Nuclei
+
+[Nuclei](https://github.com/projectdiscovery/nuclei) is a fast, template-based vulnerability scanner included in the development environment for manual security testing.
+
+#### Prerequisites: Start cryptoutil Services
+
+Before running nuclei scans, start the cryptoutil services:
+
+```bash
+# Navigate to compose directory
+cd deployments/compose
+
+# Clean shutdown with volume removal
+docker compose down -v
+
+# Start all services
+docker compose up -d
+
+# Verify services are ready (may take 30-60 seconds)
+curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance
+curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1
+curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
+```
+
+#### Manual Nuclei Scan Examples
+
+**Service Endpoints:**
+- **cryptoutil_sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
+- **cryptoutil_postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
+- **cryptoutil_postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
+
+**Basic Security Scans:**
+```bash
+# Quick scan - Info and Low severity (fast, ~5-10 seconds)
+nuclei -target https://localhost:8080/ -severity info,low
+nuclei -target https://localhost:8081/ -severity info,low
+nuclei -target https://localhost:8082/ -severity info,low
+
+# Standard scan - Medium, High, and Critical severity (~10-30 seconds)
+nuclei -target https://localhost:8080/ -severity medium,high,critical
+nuclei -target https://localhost:8081/ -severity medium,high,critical
+nuclei -target https://localhost:8082/ -severity medium,high,critical
+
+# Full scan - All severity levels (~20-60 seconds)
+nuclei -target https://localhost:8080/ -severity info,low,medium,high,critical
+```
+
+**Targeted Vulnerability Scans:**
+```bash
+# CVE scanning (recent and historical vulnerabilities)
+nuclei -target https://localhost:8080/ -tags cves -severity high,critical
+
+# Security misconfigurations
+nuclei -target https://localhost:8080/ -tags security-misconfiguration
+
+# Information disclosure and exposure
+nuclei -target https://localhost:8080/ -tags exposure,misc
+
+# Technology detection and fingerprinting
+nuclei -target https://localhost:8080/ -tags tech-detect
+```
+
+**Performance-Optimized Scans:**
+```bash
+# High-performance scanning (adjust concurrency and rate limiting as needed)
+nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
+
+# Conservative scanning (lower resource usage)
+nuclei -target https://localhost:8080/ -c 10 -rl 25 -severity medium,high,critical
+```
+
+**Batch Scanning Script (PowerShell - Windows):**
+```powershell
+# Scan all three cryptoutil instances
+$targets = @(
+    "https://localhost:8080/",  # SQLite instance
+    "https://localhost:8081/",  # PostgreSQL instance 1
+    "https://localhost:8082/"   # PostgreSQL instance 2
+)
+
+foreach ($target in $targets) {
+    Write-Host "🔍 Scanning $target" -ForegroundColor Green
+    nuclei -target $target -severity medium,high,critical
+    Write-Host "✅ Completed scanning $target" -ForegroundColor Green
+    Write-Host ""
+}
+```
+
+**Batch Scanning Script (Bash - Linux/macOS):**
+```bash
+# Scan all three cryptoutil instances
+targets=(
+    "https://localhost:8080/"  # SQLite instance
+    "https://localhost:8081/"  # PostgreSQL instance 1
+    "https://localhost:8082/"  # PostgreSQL instance 2
+)
+
+for target in "${targets[@]}"; do
+    echo "🔍 Scanning $target"
+    nuclei -target "$target" -severity medium,high,critical
+    echo "✅ Completed scanning $target"
+    echo ""
+done
+```
+
+#### Nuclei Template Management
+
+```bash
+# Update nuclei templates to latest version
+nuclei -update-templates
+
+# Check current template version
+nuclei -templates-version
+
+# List available templates (shows first 20)
+nuclei -tl | head -20
+
+# Search for specific template types
+nuclei -tl | grep -i "http"     # Linux/macOS
+nuclei -tl | findstr http       # Windows PowerShell
+```
+
+#### Interpreting Scan Results
+
+**Expected Results:**
+- **✅ "No results found"**: Indicates no vulnerabilities detected - good security posture
+- **⚠️ Vulnerabilities found**: Review findings and address security issues
+- **🔄 Scan performance**: Typically 5-60 seconds per service depending on scan profile
+
+**Common False Positives to Ignore:**
+- Some generic web server detections that don't apply to cryptoutil's security model
+- Default credential checks (cryptoutil uses proper authentication)
+- Generic misconfiguration checks that don't apply to the custom security implementation
+
 ### Test Key Features
 
 ```bash

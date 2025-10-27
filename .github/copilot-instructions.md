@@ -48,6 +48,58 @@
 - Use command chaining (`;` in PowerShell) for related operations
 - Prefer existing files over temporary demos when possible
 
+## Nuclei Vulnerability Scanning
+
+**ALWAYS start cryptoutil services before running nuclei scans:**
+```sh
+# Prerequisites - start services first
+docker compose -f ./deployments/compose/compose.yml down -v
+docker compose -f ./deployments/compose/compose.yml up -d
+
+# Verify services are ready
+curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance
+curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1
+curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
+```
+
+**Manual Nuclei Scan Commands:**
+```sh
+# Quick security scan (info/low severity, fast)
+nuclei -target https://localhost:8080/ -severity info,low
+nuclei -target https://localhost:8081/ -severity info,low
+nuclei -target https://localhost:8082/ -severity info,low
+
+# Comprehensive security scan (medium/high/critical severity)
+nuclei -target https://localhost:8080/ -severity medium,high,critical
+nuclei -target https://localhost:8081/ -severity medium,high,critical
+nuclei -target https://localhost:8082/ -severity medium,high,critical
+
+# Targeted scans by vulnerability type
+nuclei -target https://localhost:8080/ -tags cves,vulnerabilities
+nuclei -target https://localhost:8080/ -tags security-misconfiguration
+nuclei -target https://localhost:8080/ -tags exposure,misc
+
+# Performance-optimized scans
+nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
+```
+
+**Service Endpoints:**
+- **cryptoutil_sqlite**: `https://localhost:8080/` (SQLite backend)
+- **cryptoutil_postgres_1**: `https://localhost:8081/` (PostgreSQL backend)
+- **cryptoutil_postgres_2**: `https://localhost:8082/` (PostgreSQL backend)
+
+**Template Management:**
+```sh
+# Update nuclei templates
+nuclei -update-templates
+
+# List available templates
+nuclei -tl
+
+# Check template version
+nuclei -templates-version
+```
+
 ## Docker Compose Cross-Platform Path Requirements
 
 - **CRITICAL: NEVER use absolute paths in `deployments/compose/compose.yml`**
