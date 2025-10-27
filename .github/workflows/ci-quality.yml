@@ -99,6 +99,9 @@ jobs:
       - name: Run golangci-lint
         run: golangci-lint run --timeout=10m --config=.golangci.yml
 
+      - name: Enforce file encoding (UTF-8 without BOM)
+        run: go run scripts/cicd_checks.go enforce-file-encoding
+
       - name: Enforce test patterns
         run: go run scripts/cicd_checks.go enforce-test-patterns
 
@@ -110,9 +113,6 @@ jobs:
 
       - name: Check for circular Go package dependencies
         run: go run scripts/cicd_checks.go go-check-circular-package-dependencies
-
-      - name: Enforce file encoding (UTF-8 without BOM)
-        run: go run scripts/cicd_checks.go enforce-file-encoding
 
       - name: Check GitHub Actions versions
         run: go run scripts/cicd_checks.go github-action-versions

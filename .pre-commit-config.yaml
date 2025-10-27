@@ -122,7 +122,7 @@ repos:
       - id: cicd-checks
         name: Run all CI/CD quality checks (test patterns, gofumpter, workflow lint, circular deps, file encoding)
         entry: go
-        args: [run, scripts/cicd_checks.go, enforce-test-patterns, gofumpter, github-workflow-lint, go-check-circular-package-dependencies, enforce-file-encoding]
+        args: [run, scripts/cicd_checks.go, enforce-file-encoding, enforce-test-patterns, gofumpter, github-workflow-lint, go-check-circular-package-dependencies]
         language: system
         pass_filenames: false
 
