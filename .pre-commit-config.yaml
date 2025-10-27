@@ -126,10 +126,10 @@ repos:
         language: system
         pass_filenames: false
 
-      - id: go-check-circular-deps
-        name: Check for circular Go package dependencies
+      - id: gofumpter
+        name: Custom Go source code fixes (interface{} -> any)
         entry: go
-        args: [run, scripts/cicd_checks.go, go-check-circular-package-dependencies]
+        args: [run, scripts/cicd_checks.go, gofumpter]
         language: system
         pass_filenames: false
 
@@ -140,10 +140,10 @@ repos:
         language: system
         pass_filenames: false
 
-      - id: gofumpter
-        name: Custom Go source code fixes (interface{} -> any)
+      - id: go-check-circular-deps
+        name: Check for circular Go package dependencies
         entry: go
-        args: [run, scripts/cicd_checks.go, gofumpter]
+        args: [run, scripts/cicd_checks.go, go-check-circular-package-dependencies]
         language: system
         pass_filenames: false
 
