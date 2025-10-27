@@ -931,6 +931,15 @@ func enforceFileEncoding() {
 		"*.md",     // Markdown files
 		"*.txt",    // Text files
 		"*.secret", // Secret files
+		"*.py",     // Python scripts and utilities
+		"*.xml",    // XML configuration and data files
+		"*.js",     // JavaScript files
+		"*.sh",     // Shell scripts
+		"*.ps1",    // PowerShell scripts
+		"*.toml",   // TOML configuration files
+		"*.tmpl",   // Template files
+		"*.cfg",    // Configuration files
+		"*.sql",    // SQL files
 	}
 
 	// Define exclusion patterns (same as pre-commit-config.yaml)
@@ -943,7 +952,6 @@ func enforceFileEncoding() {
 		`api/server`,                        // Generated API server
 		`scripts[/\\]cicd_checks\.go$`,      // Exclude this file itself
 		`scripts[/\\]cicd_checks_test\.go$`, // Exclude test file
-		`test/`,                             // Test directory (contains Java Gatling files)
 		`\.git/`,                            // Git directory
 		`node_modules/`,                     // Node.js dependencies
 	}
