@@ -111,6 +111,9 @@ jobs:
       - name: Check for circular Go package dependencies
         run: go run scripts/cicd_checks.go go-check-circular-package-dependencies
 
+      - name: Enforce file encoding (UTF-8 without BOM)
+        run: go run scripts/cicd_checks.go enforce-file-encoding
+
       - name: Check GitHub Actions versions
         run: go run scripts/cicd_checks.go github-action-versions
 
