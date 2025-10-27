@@ -20,31 +20,6 @@
 - **Priority**: Medium - CI performance optimization
 - **Dependencies**: Task T1/T2 completion
 
-### Task T4: Local Docker Compose Testing and Workflow Re-enablement
-- **Description**: Perform local testing and fixes of Docker Compose functionality before re-enabling disabled workflow steps
-- **Current State**: Key DAST workflow steps disabled with `if: false` conditions due to Docker Compose issues
-- **Action Items**:
-  - Test Docker Compose locally using `.\scripts\run-act-dast.ps1` with different scan profiles
-  - Verify all services start correctly (PostgreSQL, cryptoutil instances, OpenTelemetry, Grafana)
-  - Fix any connectivity or configuration issues discovered during local testing
-  - Ensure health checks pass for all services
-  - Re-enable workflow steps by removing `if: false` conditions once local testing confirms functionality
-  - Test workflow re-enablement with act before pushing changes
-- **Files**: `.github/workflows/dockercompose.yml`, `deployments/compose/compose.yml`, `scripts/run-act-dast.ps1`
-- **Expected Outcome**: Reliable Docker Compose deployment with all services functional
-- **Priority**: High - CI/CD pipeline restoration
-- **Testing Commands**:
-  ```powershell
-  # Test quick scan locally
-  .\scripts\run-act-dast.ps1 -ScanProfile quick -Timeout 600
-
-  # Test full scan locally  
-  .\scripts\run-act-dast.ps1 -ScanProfile full -Timeout 900
-
-  # Verify reports are generated
-  ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md
-  ```
-
 ---
 
 ## Quick Reference
