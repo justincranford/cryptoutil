@@ -110,6 +110,32 @@ Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy AllSigned -Force
 
 **Security Note:** `RemoteSigned` allows locally created scripts while blocking unsigned downloads. This is the industry standard for development environments. The VS Code integrated terminal is configured with the same `RemoteSigned` policy for consistency.
 
+#### 5. Configure Go Environment Variables
+
+**Performance Optimization:** Go stores compiled executables and build cache in user directories that may trigger antivirus scanning. Configure Go to use your custom temp directory for faster development workflows.
+
+```powershell
+# Set Go temp directory for compilation artifacts
+setx GOTMPDIR "F:\go-tmp"
+
+# Set Go cache directory for build artifacts and executables
+setx GOCACHE "F:\go-tmp"
+
+# Verify settings (restart terminal or new session required)
+go env GOTMPDIR
+go env GOCACHE
+```
+
+**Why This Matters:**
+- `GOTMPDIR`: Controls where Go stores temporary compilation files
+- `GOCACHE`: Controls where Go stores build cache and compiled executables
+- Setting both to your excluded temp directory prevents antivirus scanning delays
+- First run after changing may be slower (cache rebuild), subsequent runs are fast
+
+**Expected Performance:**
+- **Before**: `cicd_checks.go` commands take 30-60+ seconds (antivirus scanning)
+- **After**: Same commands complete in 2-5 seconds (excluded directory)
+
 ### Linux
 
 #### 1. Install Core Prerequisites
