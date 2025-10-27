@@ -11,7 +11,7 @@
 //   - github-workflow-lint: Validate GitHub Actions workflow naming and structure
 //   - gofumpter: Apply custom Go source code transformations (interface{} -> any)
 //   - enforce-test-patterns: Validate test code follows project conventions (UUIDv7, testify)
-//   - enforce-file-encoding: Validate files use UTF-8 encoding without BOM
+//   - enforce-file-encoding: Validate text files use UTF-8 encoding without BOM
 //
 // Usage:
 //
@@ -69,6 +69,54 @@ const (
 	// Minimum number of regex match groups for action parsing.
 	minActionMatchGroups = 3
 )
+
+// File patterns for encoding checks (include patterns).
+var enforceFileEncodingFileIncludePatterns = []string{
+	"*.go",     // Go source files
+	"*.yml",    // YAML files
+	"*.yaml",   // YAML files
+	"*.json",   // JSON files
+	"*.md",     // Markdown files
+	"*.txt",    // Text files
+	"*.secret", // Secret files
+	"*.py",     // Python scripts and utilities
+	"*.xml",    // XML configuration and data files
+	"*.js",     // JavaScript files
+	"*.sh",     // Shell scripts
+	"*.ps1",    // PowerShell scripts
+	"*.toml",   // TOML configuration files
+	"*.tmpl",   // Template files
+	"*.cfg",    // Configuration files
+	"*.sql",    // SQL files
+}
+
+// Exclusion patterns for file processing (exclude patterns).
+var enforceFileEncodingFileExcludePatterns = []string{
+	`_gen\.go$`,     // Generated files
+	`\.pb\.go$`,     // Protocol buffer files
+	`vendor/`,       // Vendored dependencies
+	`api/client`,    // Generated API client
+	`api/model`,     // Generated API models
+	`api/server`,    // Generated API server
+	`.git/`,         // Git directory
+	`node_modules/`, // Node.js dependencies
+	// NOTE: cicd_checks.go and cicd_checks_test.go are intentionally NOT excluded from enforce-file-encoding
+	// as these files should validate their own UTF-8 encoding compliance
+}
+
+// to prevent self-modification and preserve deliberate test patterns.
+var gofumpterFileExcludePatterns = []string{
+	`_gen\.go$`,                         // Generated files
+	`\.pb\.go$`,                         // Protocol buffer files
+	`vendor/`,                           // Vendored dependencies
+	`api/client`,                        // Generated API client
+	`api/model`,                         // Generated API models
+	`api/server`,                        // Generated API server
+	`scripts[/\\]cicd_checks\.go$`,      // Exclude this file itself to avoid replacing the regex pattern
+	`scripts[/\\]cicd_checks_test\.go$`, // Exclude test file to preserve deliberate bad patterns for testing
+	`.git/`,                             // Git directory
+	`node_modules/`,                     // Node.js dependencies
+}
 
 type GitHubRelease struct {
 	TagName string `json:"tag_name"`
@@ -870,8 +918,8 @@ func enforceTestPatterns() {
 		}
 
 		if !info.IsDir() && strings.HasSuffix(path, "_test.go") {
-			// Exclude cicd_checks_test.go as it contains deliberate patterns for testing cicd_checks functionality
-			if strings.HasSuffix(path, "cicd_checks_test.go") {
+			// Exclude cicd_checks_test.go and cicd_checks.go as they contain deliberate patterns for testing cicd_checks functionality
+			if strings.HasSuffix(path, "cicd_checks_test.go") || strings.HasSuffix(path, "cicd_checks.go") {
 				return nil
 			}
 
@@ -923,43 +971,12 @@ func enforceFileEncoding() {
 	fmt.Fprintln(os.Stderr, "Enforcing file encoding (UTF-8 without BOM)...")
 
 	// Define file patterns to check (text files that should be UTF-8)
-	filePatterns := []string{
-		"*.go",     // Go source files
-		"*.yml",    // YAML files
-		"*.yaml",   // YAML files
-		"*.json",   // JSON files
-		"*.md",     // Markdown files
-		"*.txt",    // Text files
-		"*.secret", // Secret files
-		"*.py",     // Python scripts and utilities
-		"*.xml",    // XML configuration and data files
-		"*.js",     // JavaScript files
-		"*.sh",     // Shell scripts
-		"*.ps1",    // PowerShell scripts
-		"*.toml",   // TOML configuration files
-		"*.tmpl",   // Template files
-		"*.cfg",    // Configuration files
-		"*.sql",    // SQL files
-	}
-
-	// Define exclusion patterns (same as pre-commit-config.yaml)
-	excludedPatterns := []string{
-		`_gen\.go$`,                         // Generated files
-		`\.pb\.go$`,                         // Protocol buffer files
-		`vendor/`,                           // Vendored dependencies
-		`api/client`,                        // Generated API client
-		`api/model`,                         // Generated API models
-		`api/server`,                        // Generated API server
-		`scripts[/\\]cicd_checks\.go$`,      // Exclude this file itself
-		`scripts[/\\]cicd_checks_test\.go$`, // Exclude test file
-		`\.git/`,                            // Git directory
-		`node_modules/`,                     // Node.js dependencies
-	}
+	// Note: enforceFileEncodingFilePatterns and excludedPatterns are defined as global variables at the top of the file
 
 	var filesToCheck []string
 
 	// Find files matching the patterns
-	for _, pattern := range filePatterns {
+	for _, pattern := range enforceFileEncodingFileIncludePatterns {
 		matches, err := filepath.Glob(pattern)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error globbing pattern %s: %v\n", pattern, err)
@@ -981,7 +998,7 @@ func enforceFileEncoding() {
 		}
 
 		// Check if file matches any pattern
-		for _, pattern := range filePatterns {
+		for _, pattern := range enforceFileEncodingFileIncludePatterns {
 			// Convert glob pattern to regex for matching
 			regexPattern := strings.ReplaceAll(pattern, "*", ".*")
 			regexPattern = "^" + regexPattern + "$"
@@ -1030,7 +1047,7 @@ func enforceFileEncoding() {
 	for _, filePath := range uniqueFiles {
 		excluded := false
 
-		for _, pattern := range excludedPatterns {
+		for _, pattern := range enforceFileEncodingFileExcludePatterns {
 			matched, err := regexp.MatchString(pattern, filePath)
 			if err != nil {
 				continue
@@ -1164,16 +1181,7 @@ func runGofumpter() {
 	fmt.Fprintln(os.Stderr, "Running gofumpter - Custom Go source code fixes...")
 
 	// Define exclusion patterns (same as pre-commit-config.yaml)
-	excludedPatterns := []string{
-		`_gen\.go$`,                         // Generated files
-		`\.pb\.go$`,                         // Protocol buffer files
-		`vendor/`,                           // Vendored dependencies
-		`api/client`,                        // Generated API client
-		`api/model`,                         // Generated API models
-		`api/server`,                        // Generated API server
-		`scripts[/\\]cicd_checks\.go$`,      // Exclude this file itself to avoid replacing the regex pattern
-		`scripts[/\\]cicd_checks_test\.go$`, // Exclude test file to preserve deliberate bad patterns for testing
-	}
+	// Note: excludedPatterns is defined as a global variable at the top of the file
 
 	// Find all .go files
 	var goFiles []string
@@ -1187,7 +1195,7 @@ func runGofumpter() {
 			// Check if file should be excluded
 			excluded := false
 
-			for _, pattern := range excludedPatterns {
+			for _, pattern := range gofumpterFileExcludePatterns {
 				matched, err := regexp.MatchString(pattern, path)
 				if err != nil {
 					return fmt.Errorf("invalid regex pattern %s: %w", pattern, err)
