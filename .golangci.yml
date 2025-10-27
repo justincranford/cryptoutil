@@ -361,9 +361,6 @@ issues:
       linters:
         - dupl      # Code duplication detection
         - gocyclo   # Cyclomatic complexity
-    - path: scripts/.*
-      linters:
-        - mnd       # Magic number detection (performance scripts use appropriate literals)
 
 severity:
   default-severity: error  # Most issues should block builds (security, logic bugs, crashes)
