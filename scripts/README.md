@@ -38,13 +38,13 @@ go run scripts/cicd_checks.go go-update-direct-dependencies
 go run scripts/cicd_checks.go go-update-all-dependencies
 
 # Check GitHub Actions versions
-go run scripts/cicd_checks.go github-action-versions
+go run scripts/cicd_checks.go github-workflow-lint
 
 # Check for circular dependencies in Go packages
 go run scripts/cicd_checks.go go-check-circular-package-dependencies
 
 # Check all Go dependencies, GitHub Actions versions, and circular dependencies in a single invocation
-go run scripts/cicd_checks.go go-update-direct-dependencies github-action-versions go-check-circular-package-dependencies
+go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint go-check-circular-package-dependencies
 ```
 
 ### count_tokens.py

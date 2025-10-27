@@ -115,7 +115,7 @@ jobs:
         run: go run scripts/cicd_checks.go go-check-circular-package-dependencies
 
       - name: Check GitHub Actions versions
-        run: go run scripts/cicd_checks.go github-action-versions
+        run: go run scripts/cicd_checks.go github-workflow-lint
 
       - name: Check Go direct dependencies
         run: go run scripts/cicd_checks.go go-update-direct-dependencies

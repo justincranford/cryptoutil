@@ -137,7 +137,7 @@ exporters:
   # Logs all exported telemetry to stdout (useful for debugging)
   ###################################################################
   debug:
-    verbosity: detailed
+    # verbosity: detailed
 
 service:
   extensions: [health_check, pprof, zpages]
