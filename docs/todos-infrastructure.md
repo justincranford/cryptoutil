@@ -171,7 +171,6 @@
      - Update `ci-quality.yml` to use `.build/{coverage,sarif,sbom}/`
 
   4. **Phase 4 - Update Scripts**:
-     - Update `run-act-dast.ps1` to use `.build/dast/`
      - Update `scripts/github-workflows/run_github_workflow_locally.go` to use `.build/workflow/`
 
   5. **Phase 5 - Update Build Configuration**:
@@ -189,7 +188,6 @@
   - `scripts/github-workflows/run_github_workflow_locally.go`
   - `internal/e2e/*.go` (E2E test utilities)
   - `.github/workflows/*.yml` (all 5 workflows)
-  - `scripts/run-act-dast.ps1`
   - `test/load/pom.xml` (Gatling output directory)
   - `README.md` and `docs/DEEP-ANALYSIS.md`
 - **Expected Outcome**:

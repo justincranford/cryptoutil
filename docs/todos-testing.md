@@ -27,7 +27,7 @@
 ### Testing Commands
 ```powershell
 # Test ZAP fix with quick scan
-.\scripts\run-act-dast.ps1 -ScanProfile quick -Timeout 600
+go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=quick"
 
 # Verify report generation
 ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md

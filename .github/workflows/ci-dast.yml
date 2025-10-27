@@ -5,17 +5,16 @@ name: CI - DAST Security Testing
 # Example: Use './deployments/compose/compose.yml'
 #
 # IMPORTANT: Test locally with act (NO TIMEOUT - workflows take 3-25 minutes):
-#   RECOMMENDED: Use the automated PowerShell script (handles timeouts, monitoring, and analysis):
-#     powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-act-dast.ps1 -ScanProfile quick -Timeout 900
-#     powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-act-dast.ps1 -ScanProfile full -Timeout 900
-#     powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-act-dast.ps1 -ScanProfile deep -Timeout 1500
+#   RECOMMENDED: Use the automated Go utility (handles timeouts, monitoring, and analysis):
+#     go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=quick"
+#     go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=full"
+#     go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=deep"
 #
 #   ALTERNATIVE: Direct act commands (manual monitoring required):
 #     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 #     act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=quick --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
 #     act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=full --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
 #     act workflow_dispatch -W .github/workflows/dast.yml --input scan_profile=deep --artifact-server-path ./dast-reports 2>&1 | Out-File -FilePath .\dast-reports\act-dast.log -Encoding utf8
-# MONITORING: Auto-monitor progress in separate terminal: .\scripts\monitor-act-dast.ps1
 # MANUAL CHECK: Get-Content .\dast-reports\act-dast.log -Tail 100
 # TIMING: Quick=3-5min, Full=10-15min, Deep=20-25min
 # OUTPUT CONVENTION: All scan outputs and reports must be written to ./dast-reports/ directory

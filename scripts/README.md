@@ -40,28 +40,6 @@ See `scripts/perf/README.doc` for detailed performance testing documentation and
 
 ## Security Scripts
 
-### run-act-dast.ps1
-
-Advanced script for running GitHub Actions DAST workflows locally with `act`.
-
-```powershell
-# Quick scan (3-5 minutes)
-.\scripts\run-act-dast.ps1
-
-# Full scan (10-15 minutes)
-.\scripts\run-act-dast.ps1 -ScanProfile full -Timeout 900
-
-# Deep scan (20-25 minutes)
-.\scripts\run-act-dast.ps1 -ScanProfile deep -Timeout 1500
-```
-
-**Features:**
-- Automated background execution
-- Real-time progress monitoring
-- Automatic completion detection
-- Comprehensive result analysis
-- Artifact verification
-
 ## Utility Scripts
 
 ### cicd_checks.go
@@ -103,12 +81,6 @@ python .\scripts\count_tokens.py --file .github/copilot-instructions.md --as-mes
 
 Configuration file for errcheck tool exclusions used in pre-commit hooks.
 
-## Documentation
-
-### README-run-act-dast.md
-
-Detailed documentation for the `run-act-dast.ps1` script with usage examples and troubleshooting.
-
 ## Cross-Platform Support
 
 - **Windows**: PowerShell scripts (`.ps1`) with batch file alternatives (`.bat`)
@@ -139,5 +111,5 @@ Most scripts will install required tools automatically if missing:
 ## Integration with CI/CD
 
 These scripts mirror the functionality available in GitHub Actions workflows:
-- Security scanning and DAST testing are handled by `run-act-dast.ps1` for local testing and GitHub Actions workflows for CI/CD
+- Security scanning and DAST testing are handled by `run_github_workflow_locally.go` for local testing and GitHub Actions workflows for CI/CD
 - Performance testing can be integrated into CI/CD pipelines

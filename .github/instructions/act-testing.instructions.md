@@ -8,28 +8,29 @@ applyTo: "**"
 
 **NEVER use short timeouts when running DAST workflows with act**
 
-### Recommended Approach: Use run-act-dast.ps1 Script
+### Recommended Approach: Use run_github_workflow_locally.go
 
-**ALWAYS use the provided script for running act DAST workflows**
+**ALWAYS use the provided Go utility for running act workflows**
 
-```powershell
-# Quick scan (3-5 minutes) with 10 minute timeout
-.\scripts\run-act-dast.ps1
+```bash
+# Quick DAST scan (3-5 minutes)
+go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=quick"
 
-# Full scan (10-15 minutes) with 15 minute timeout
-.\scripts\run-act-dast.ps1 -ScanProfile full -Timeout 900
+# Full DAST scan (10-15 minutes)
+go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=full"
 
-# Deep scan (20-25 minutes) with 25 minute timeout
-.\scripts\run-act-dast.ps1 -ScanProfile deep -Timeout 1500
+# Deep DAST scan (20-25 minutes)
+go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=deep"
 ```
 
-**Script features:**
-- Runs act workflow directly (no background jobs)
-- Streams output to both console and log file
+**Features:**
+- Runs act workflow directly with comprehensive monitoring
+- Streams output to both console and log files
 - Automatic workflow completion detection
 - Comprehensive result analysis (workflow + task status)
-- Artifact verification and summary report
+- Artifact verification and summary reports
 - Single command execution - no prompts
+- Supports all workflow types (quality, e2e, dast, sast, robust)
 
 ### Manual Usage (Advanced Only)
 
@@ -63,7 +64,7 @@ Get-Content .\dast-reports\act-dast.log -Tail 100
 
 ### Automatic Result Analysis
 
-The `run-act-dast.ps1` script automatically analyzes:
+The `run_github_workflow_locally.go` utility automatically analyzes:
 
 1. **Workflow Status**: Job succeeded/failed detection
 2. **Task Status**: Individual scan completion verification
@@ -72,7 +73,7 @@ The `run-act-dast.ps1` script automatically analyzes:
    - ZAP API Scan (report generation)
    - Header Capture (security headers file)
 3. **Artifact Generation**: Verification of output files
-4. **Summary Report**: Saved to `dast-reports/act-status.txt`
+4. **Summary Report**: Saved to workflow analysis markdown files
 
 ### Success Criteria
 
@@ -90,9 +91,9 @@ The `run-act-dast.ps1` script automatically analyzes:
 ❌ **CRITICAL - NEVER do this**: Any interactive monitoring commands that lock files or interfere with running processes
 ❌ **CRITICAL - NEVER do this**: Opening/tailing log files in another terminal while scan is running
 
-✅ **ALWAYS do this**: Use `run-act-dast.ps1` script for automated monitoring
+✅ **ALWAYS do this**: Use `run_github_workflow_locally.go` for automated monitoring
 ✅ **ALWAYS do this**: Allow sufficient timeout for scan profile
-✅ **ALWAYS do this**: Review generated `act-status.txt` summary
+✅ **ALWAYS do this**: Review generated workflow analysis markdown files
 ✅ **ALWAYS do this**: Check log file for detailed error messages AFTER tasks complete
-✅ **ALWAYS do this**: Let the script complete fully before checking any outputs
-✅ **ALWAYS do this**: If monitoring is needed, open a SEPARATE PowerShell window and use: `Get-Content .\dast-reports\act-dast.log -Tail 20` (without -Wait flag, run periodically)
+✅ **ALWAYS do this**: Let the utility complete fully before checking any outputs
+✅ **ALWAYS do this**: If monitoring is needed, open a SEPARATE PowerShell window and use: `Get-Content .\workflow-reports\*.log -Tail 20` (without -Wait flag, run periodically)
