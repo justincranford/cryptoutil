@@ -51,17 +51,6 @@ jobs:
   e2e:
     name: End-to-End Tests
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:18
-        env:
-          POSTGRES_PASSWORD: cryptoutil_test
-          POSTGRES_DB: cryptoutil_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
       - name: Workflow Start - CI - End-to-End Testing (ci-e2e.yml)
@@ -94,12 +83,14 @@ jobs:
         run: |
           echo "🐳 Pre-pulling Docker images in parallel..."
 
-          # Array of all images used in this workflow
+          # Array of all images used in this workflow (both runtime and build-time)
           IMAGES=(
             "postgres:18"
             "otel/opentelemetry-collector-contrib:latest"
             "grafana/otel-lgtm:latest"
             "alpine:latest"
+            "golang:1.25.1"
+            "alpine:3.19"
           )
 
           # Pull all images concurrently
@@ -126,93 +117,10 @@ jobs:
           echo "🏗️ Building Docker images for end-to-end testing..."
           docker compose -f ./deployments/compose/compose.yml build
 
-      - name: Start services
-        run: |
-          echo "🚀 Starting services for end-to-end testing..."
-          docker compose -f ./deployments/compose/compose.yml up -d
-
-      - name: Wait for services to be healthy
-        run: |
-          echo "⏳ Waiting for all services to be healthy..."
-          timeout=300
-          elapsed=0
-          while [ $elapsed -lt $timeout ]; do
-            healthy=$(docker compose -f ./deployments/compose/compose.yml ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Health' | grep -c "healthy" || true)
-            total=$(docker compose -f ./deployments/compose/compose.yml ps --format json | jq -s -r '.[] | select(.Service != "postgres") | .Service' | wc -l)
-            if [ "$healthy" -eq "$total" ]; then
-              echo "✅ All $total services are healthy"
-              break
-            fi
-            echo "⏳ $elapsed/$timeout seconds: $healthy/$total services healthy"
-            sleep 10
-            elapsed=$((elapsed + 10))
-          done
-          if [ $elapsed -ge $timeout ]; then
-            echo "❌ Timeout waiting for services to be healthy"
-            docker compose -f ./deployments/compose/compose.yml ps
-            docker compose -f ./deployments/compose/compose.yml logs
-            exit 1
-          fi
-
-      - name: Verify service ports are accessible
-        run: |
-          echo "🔍 Verifying service ports are accessible..."
-          # Test HTTPS ports for cryptoutil services
-          for port in 8080 8081 8082; do
-            echo "Testing https://localhost:$port..."
-            if curl -k --max-time 10 --fail "https://localhost:$port/health" >/dev/null 2>&1; then
-              echo "✅ Port $port is accessible"
-            else
-              echo "❌ Port $port is not accessible"
-              exit 1
-            fi
-          done
-
       - name: Run E2E tests
         run: |
           echo "🧪 Running end-to-end tests..."
           go test -tags=e2e -v -timeout=30m ./internal/e2e/
-
-      - name: Collect service logs
-        if: always()
-        run: |
-          echo "📋 Collecting service logs..."
-
-          # Create directory for individual container logs
-          mkdir -p e2e-container-logs
-
-          # Get list of running containers from compose
-          containers=$(docker compose -f ./deployments/compose/compose.yml ps --format "{{.Name}}" | tr '\n' ' ')
-
-          # Collect individual container logs
-          for container in $containers; do
-            echo "📄 Collecting logs for container: $container"
-            docker compose -f ./deployments/compose/compose.yml logs "$container" > "e2e-container-logs/${container}.log" 2>&1 || echo "Failed to collect logs for $container" >> e2e-container-logs/errors.txt
-          done
-
-          # Collect combined logs with service prefixes (existing behavior)
-          echo "📋 Collecting combined service logs with prefixes..."
-          docker compose -f ./deployments/compose/compose.yml logs > e2e-service-logs.txt
-
-          # Create a summary of log collection
-          echo "=== E2E Log Collection Summary ===" > e2e-container-logs/collection-summary.txt
-          echo "Date: $(date -u)" >> e2e-container-logs/collection-summary.txt
-          echo "Containers found: $containers" >> e2e-container-logs/collection-summary.txt
-          echo "" >> e2e-container-logs/collection-summary.txt
-          echo "Individual log files:" >> e2e-container-logs/collection-summary.txt
-          ls -la e2e-container-logs/*.log >> e2e-container-logs/collection-summary.txt 2>/dev/null || echo "No individual log files found" >> e2e-container-logs/collection-summary.txt
-          echo "" >> e2e-container-logs/collection-summary.txt
-          echo "Combined log file: e2e-service-logs.txt ($(wc -l < e2e-service-logs.txt 2>/dev/null || echo 0) lines)" >> e2e-container-logs/collection-summary.txt
-
-      - name: Upload service logs
-        uses: actions/upload-artifact@v5.0.0
-        if: always()
-        with:
-          name: e2e-service-logs
-          path: |
-            e2e-service-logs.txt
-            e2e-container-logs/
-          retention-days: 1
 
       - name: E2E test summary
         if: always()
@@ -223,10 +131,6 @@ jobs:
           else
             echo "❌ End-to-end tests failed." >> $GITHUB_STEP_SUMMARY
           fi
-          echo "- Services: Docker Compose with 3 cryptoutil instances + PostgreSQL + Grafana + OTEL Collector" >> $GITHUB_STEP_SUMMARY
-          echo "- Tests: Full system integration with API calls and telemetry verification" >> $GITHUB_STEP_SUMMARY
-          echo "- Ports verified: 8080, 8081, 8082 (HTTPS)" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: ~10-15 minutes" >> $GITHUB_STEP_SUMMARY
 
       - name: Stop services
         if: always()
