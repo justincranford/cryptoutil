@@ -260,7 +260,7 @@ jobs:
       - name: Run HKDF fuzz test
         run: |
           echo "� Running HKDF fuzz test..."
-          go test -fuzz="FuzzHKDF" -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz="^FuzzHKDF$" -fuzztime=15s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA256 fuzz test
         run: |

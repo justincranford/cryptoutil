@@ -207,3 +207,4 @@ The workspace includes optimized VS Code settings in `.vscode/settings.json` tha
 - **Exact fuzz test match**: `go test -fuzz=^FuzzXXX$ -fuzztime=5s ./<package>` (use regex anchors when function names have common prefixes)
 - **Quick verification**: Use `-fuzztime=5s` for fast feedback during development
 - **Multiple fuzz tests in package**: When `-fuzz=.` matches multiple tests, Go fails with "matches more than one fuzz test" - use specific test names instead
+- **CRITICAL**: When `-fuzz` pattern matches multiple fuzz tests (even with specific names), Go fails with "matches more than one fuzz test" - **ALWAYS use `^FuzzXXX$` (with regex anchors) for exact matches to avoid this error**
