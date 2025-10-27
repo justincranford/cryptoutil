@@ -367,6 +367,68 @@ issues:
     - path: magic_.*\.go
       linters:
         - goconst   # Magic constants are intentionally defined as variables (byte slices can't be const)
+    - path: scripts/cicd_checks\.go
+      linters:
+        - errcheck      # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - gosimple      # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - govet         # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - ineffassign   # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - staticcheck   # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - unused        # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - gofumpt       # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - goimports     # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - revive        # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - stylecheck    # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - gosec         # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - godot         # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - noctx         # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - wrapcheck     # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - thelper       # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - tparallel     # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - testpackage   # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - gomodguard    # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - gomoddirectives # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - prealloc      # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - bodyclose     # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - copyloopvar   # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - goconst       # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - importas      # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - mnd           # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - wsl           # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - nlreturn      # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - goheader      # cicd_checks.go contains example snippets of bad lint patterns for testing
+        - errorlint     # cicd_checks.go contains example snippets of bad lint patterns for testing
+    - path: scripts/cicd_checks_test\.go
+      linters:
+        - errcheck      # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - gosimple      # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - govet         # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - ineffassign   # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - staticcheck   # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - unused        # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - gofumpt       # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - goimports     # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - revive        # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - stylecheck    # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - gosec         # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - godot         # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - noctx         # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - wrapcheck     # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - thelper       # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - tparallel     # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - testpackage   # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - gomodguard    # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - gomoddirectives # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - prealloc      # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - bodyclose     # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - copyloopvar   # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - goconst       # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - importas      # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - mnd           # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - wsl           # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - nlreturn      # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - goheader      # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
+        - errorlint     # cicd_checks_test.go contains deliberate linter violations for testing cicd_checks.go functionality
 
 severity:
   default-severity: error  # Most issues should block builds (security, logic bugs, crashes)

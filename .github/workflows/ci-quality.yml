@@ -102,6 +102,21 @@ jobs:
       - name: Check GitHub Actions versions
         run: go run scripts/cicd_checks.go github-action-versions
 
+      - name: Check Go direct dependencies
+        run: go run scripts/cicd_checks.go go-update-direct-dependencies
+
+      - name: Check for circular Go package dependencies
+        run: go run scripts/cicd_checks.go go-check-circular-package-dependencies
+
+      - name: Validate GitHub Actions workflow naming and structure
+        run: go run scripts/cicd_checks.go github-workflow-lint
+
+      - name: Run custom Go source code fixes
+        run: go run scripts/cicd_checks.go gofumpter
+
+      - name: Enforce test patterns
+        run: go run scripts/cicd_checks.go enforce-test-patterns
+
   # Build and Container Security
   build:
     name: Build & Container Scan

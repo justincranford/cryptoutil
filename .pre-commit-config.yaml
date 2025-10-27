@@ -125,7 +125,27 @@ repos:
         args: [run, scripts/cicd_checks.go, enforce-test-patterns]
         language: system
         pass_filenames: false
-        files: go\.mod$  # Only run when go.mod changes (not per test file)
+
+      - id: go-check-circular-deps
+        name: Check for circular Go package dependencies
+        entry: go
+        args: [run, scripts/cicd_checks.go, go-check-circular-package-dependencies]
+        language: system
+        pass_filenames: false
+
+      - id: github-workflow-lint
+        name: Validate GitHub Actions workflow naming and structure
+        entry: go
+        args: [run, scripts/cicd_checks.go, github-workflow-lint]
+        language: system
+        pass_filenames: false
+
+      - id: gofumpter
+        name: Custom Go source code fixes (interface{} -> any)
+        entry: go
+        args: [run, scripts/cicd_checks.go, gofumpter]
+        language: system
+        pass_filenames: false
 
   # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint

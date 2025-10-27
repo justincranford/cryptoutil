@@ -40,7 +40,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 | **2. Dependency Management** | Module cleanup | go mod tidy | Clean state before expensive linting |
 | **3. Go Auto-Fix & Validation** | Formatting, imports, and comprehensive linting | golangci-lint --fix | Single tool handles all auto-fixable issues + validation |
 | **4. Build Validation** | Compilation verification | go build | Ensure code compiles after linting |
-| **5. Custom Rules** | Project-specific checks | test-patterns | Business logic validation |
+| **5. Custom Rules** | Project-specific checks | cicd_checks.go commands | Business logic and project-specific validations |
 | **6. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit | Targeted validation by file type |
 | **7. Commit Validation** | Message format checking | commitizen | Final gate before push |
 
@@ -162,29 +162,50 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [Go Build](https://go.dev/cmd/go/#hdr-Compile_packages_and_dependencies)
 
-### 5. Test Pattern Enforcement
+### 5. Custom Rules (Project-Specific Checks)
 
-**Purpose**: Enforces project-specific testing patterns and conventions.
+**Purpose**: Enforce project-specific patterns and validations across multiple domains.
 
 **Configuration**:
 ```yaml
-- id: test-patterns
+- id: go-check-circular-package-dependencies
+  name: Check for circular package dependencies
+  entry: go
+  args: [run, scripts/cicd_checks.go, go-check-circular-package-dependencies]
+  language: system
+  pass_filenames: false
+
+- id: github-workflow-lint
+  name: Lint GitHub Actions workflows
+  entry: go
+  args: [run, scripts/cicd_checks.go, github-workflow-lint]
+  language: system
+  pass_filenames: false
+
+- id: gofumpter
+  name: Format Go code with gofumpt
+  entry: go
+  args: [run, scripts/cicd_checks.go, gofumpter]
+  language: system
+  pass_filenames: false
+
+- id: enforce-test-patterns
   name: Enforce test patterns (UUIDv7, testify assertions)
   entry: go
   args: [run, scripts/cicd_checks.go, enforce-test-patterns]
   language: system
   pass_filenames: false
-  files: go\.mod$
 ```
 
 **Key Parameters**:
-- `files: go\.mod$`: Only runs when go.mod changes (not per test file)
-- Custom script: [../scripts/cicd_checks.go](../scripts/cicd_checks.go)
+- All commands run on every commit (no file restrictions)
+- Custom scripts: [../scripts/cicd_checks.go](../scripts/cicd_checks.go)
 
-**Enforced Patterns**:
-- UUIDv7 usage for test uniqueness
-- testify assertion patterns
-- Test file organization conventions
+**Enforced Validations**:
+- **go-check-circular-package-dependencies**: Prevents circular import dependencies
+- **github-workflow-lint**: Validates GitHub Actions workflow naming and version conventions
+- **gofumpter**: Applies strict Go code formatting (superset of gofmt)
+- **enforce-test-patterns**: Enforces UUIDv7 usage, testify assertion patterns, and test file organization conventions
 
 **Documentation**: See [../scripts/cicd_checks.go](../scripts/cicd_checks.go) for implementation details.
 

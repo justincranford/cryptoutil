@@ -14,6 +14,12 @@ applyTo: "**"
 - Use constants for repeated test values if it improves clarity; prefer meaningful test data
 - When updating dependencies: run `go test ./...` first to confirm code and tests work before attempting updates; only after tests pass, update one dependency at a time and repeat `go test ./...` to iterate on fixing any issues caused by the update
 
+## Dependency Management Best Practices
+
+- **Automated Checks**: Use `go-update-direct-dependencies` in pre-commit hooks and CI/CD workflows for efficient, focused dependency updates
+- **Avoid**: `go-update-all-dependencies` in automated contexts as it can cause unnecessary updates and potential compatibility issues
+- **Manual Updates**: Use `go-update-all-dependencies` only for intentional comprehensive dependency refreshes during major version updates or maintenance windows
+
 ## Test File Organization
 
 Follow Go testing file naming conventions for proper organization:
@@ -42,5 +48,5 @@ When testing linting of code samples or validating regex patterns during chat se
 - **Create permanent tests in `scripts/cicd_checks_test.go`** instead of one-off temporary test files
 - This ensures test coverage persists across chat sessions and serves as regression testing
 - Examples: regex validation tests, linting pattern tests, code transformation tests
-- All tests in `cicd_utils_test.go` execute automatically during Go test runs
+- All tests in `cicd_checks_test.go` execute automatically during Go test runs
 - Use descriptive test names that indicate the validation purpose (e.g., `TestEnforceTestPatterns_RegexValidation`)

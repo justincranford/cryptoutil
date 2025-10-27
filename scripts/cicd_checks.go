@@ -863,6 +863,10 @@ func enforceTestPatterns() {
 		}
 
 		if !info.IsDir() && strings.HasSuffix(path, "_test.go") {
+			// Exclude cicd_checks_test.go as it contains deliberate patterns for testing cicd_checks functionality
+			if strings.HasSuffix(path, "cicd_checks_test.go") {
+				return nil
+			}
 			testFiles = append(testFiles, path)
 		}
 
@@ -960,13 +964,14 @@ func runGofumpter() {
 
 	// Define exclusion patterns (same as pre-commit-config.yaml)
 	excludedPatterns := []string{
-		`_gen\.go$`,                // Generated files
-		`\.pb\.go$`,                // Protocol buffer files
-		`vendor/`,                  // Vendored dependencies
-		`api/client`,               // Generated API client
-		`api/model`,                // Generated API models
-		`api/server`,               // Generated API server
-		`scripts/cicd_checks\.go$`, // Exclude this file itself to avoid replacing the regex pattern
+		`_gen\.go$`,                         // Generated files
+		`\.pb\.go$`,                         // Protocol buffer files
+		`vendor/`,                           // Vendored dependencies
+		`api/client`,                        // Generated API client
+		`api/model`,                         // Generated API models
+		`api/server`,                        // Generated API server
+		`scripts[/\\]cicd_checks\.go$`,      // Exclude this file itself to avoid replacing the regex pattern
+		`scripts[/\\]cicd_checks_test\.go$`, // Exclude test file to preserve deliberate bad patterns for testing
 	}
 
 	// Find all .go files
