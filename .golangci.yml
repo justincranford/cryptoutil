@@ -133,6 +133,9 @@ linters-settings:
         alias: joseJws
       - pkg: github.com/lestrrat-go/jwx/v3/jwa
         alias: joseJwa
+      # Google UUID library
+      - pkg: github.com/google/uuid
+        alias: googleUuid
       # Standard library aliases
       - pkg: encoding/json
         alias: json
