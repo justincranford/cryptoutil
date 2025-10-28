@@ -1184,7 +1184,7 @@ func processGoFile(filePath string) (int, error) {
 
 	originalContent := string(content)
 
-	// Replace any with any
+	// IMPORTANT: DO NOT CHANGE: Replace interface{} with any
 	// Use a regex to match any as a whole word, not part of other identifiers
 	// Construct the pattern to avoid self-replacement in this source file
 	interfacePattern := `interface\{\}`

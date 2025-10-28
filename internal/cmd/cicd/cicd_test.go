@@ -560,21 +560,21 @@ func TestGoEnforceAny_ProcessGoFile(t *testing.T) {
 	// Create a temporary directory for test files
 	tempDir := t.TempDir()
 
-	// Test case 1: File with any that should be replaced
+	// Test case 1: File with interface{} that should be replaced
 	testFile1 := filepath.Join(tempDir, "test1.go")
 	content1 := testPackageMain + `
 
 ` + testImportFmt + `
 
 func main() {
-	var x any
+	var x interface{}
 	fmt.Println(x)
 }` + `
 type MyStruct struct {
-	Data any
+	Data interface{}
 }
 ` + `
-func process(data any) any {
+func process(data interface{}) interface{} {
 	return data
 }
 `
@@ -611,7 +611,7 @@ func process(data any) any {
 `
 	require.Equal(t, expectedContent1, string(modifiedContent1), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent1), expectedContent1)
 
-	// Test case 2: File with no any (should not be modified)
+	// Test case 2: File with no interface{} (should not be modified)
 	testFile2 := filepath.Join(tempDir, "test2.go")
 	content2 := testPackageMain + `
 
@@ -628,9 +628,9 @@ func process(data any) any {
 	replacements2, err := processGoFile(testFile2)
 	require.NoError(t, err, "processGoFile failed")
 
-	require.Equal(t, 1, replacements2, "Expected 1 replacement")
+	require.Equal(t, 0, replacements2, "Expected 0 replacements")
 
-	// Verify the content was modified
+	// Verify the content was not modified
 	modifiedContent2, err := os.ReadFile(testFile2)
 	require.NoError(t, err, "Failed to read modified file")
 
@@ -642,12 +642,12 @@ func process(data any) any {
 ` + testFuncMainEnd
 	require.Equal(t, expectedContent2, string(modifiedContent2), "File content was not modified as expected.\nGot:\n%s\nExpected:\n%s", string(modifiedContent2), expectedContent2)
 
-	// Test case 3: File with any in comments and strings (currently replaced - limitation of simple regex)
+	// Test case 3: File with interface{} in comments and strings (currently replaced - limitation of simple regex)
 	testFile3 := filepath.Join(tempDir, "test3.go")
 	content3 := testPackageMain + `
-// This is a comment with any that should not be replaced` + testFuncMainStart + `
-	var x any` + `
-	str := "any in string should not be replaced"` + `
+// This is a comment with interface{} that should not be replaced` + testFuncMainStart + `
+	var x interface{}` + `
+	str := "interface{} in string should not be replaced"` + `
 	fmt.Println(x, str)
 ` + testFuncMainEnd
 
@@ -679,11 +679,11 @@ func TestGoEnforceAny_RunGoEnforceAny(t *testing.T) {
 	// when files are modified. Instead, we test the core logic by simulating what it does.
 	tempDir := t.TempDir()
 
-	// Create test Go files with any
+	// Create test Go files with interface{}
 	testFile1 := filepath.Join(tempDir, "test1.go")
 	content1 := testPackageMain + `
 func main() {
-	var x any
+	var x interface{}
 }
 `
 
@@ -694,7 +694,7 @@ func main() {
 	testFile2 := filepath.Join(tempDir, "test2.go")
 	content2 := testPackageMain + `
 type MyStruct struct {
-	Data any
+	Data interface{}
 }
 `
 
