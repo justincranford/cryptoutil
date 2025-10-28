@@ -68,22 +68,61 @@ const (
 
 // File patterns for encoding checks (include patterns).
 var enforceFileEncodingFileIncludePatterns = []string{
-	"*.go",     // Go source files
-	"*.yml",    // YAML files
-	"*.yaml",   // YAML files
-	"*.json",   // JSON files
-	"*.md",     // Markdown files
-	"*.txt",    // Text files
+	// Source code files
+	"*.go",    // Go source files
+	"*.java",  // Java source files
+	"*.sh",    // Shell scripts
+	"*.py",    // Python scripts and utilities
+	"*.ps1",   // PowerShell scripts
+	"*.psm1",  // PowerShell module files
+	"*.psd1",  // PowerShell data files
+	"*.bat",   // Windows batch files
+	"*.cmd",   // Windows command files
+	"*.c",     // C source files
+	"*.cpp",   // C++ source files
+	"*.h",     // C/C++ header files
+	"*.php",   // PHP files
+	"*.rb",    // Ruby files
+	"*.rs",    // Rust source files
+	"*.js",    // JavaScript files
+	"*.ts",    // TypeScript files
+	"*.tsx",   // TypeScript React files
+	"*.vue",   // Vue.js files
+	"*.kt",    // Kotlin source files
+	"*.kts",   // Kotlin script files
+	"*.swift", // Swift source files
+	// Database and configuration files
+	"*.sql",        // SQL files
+	"*.xml",        // XML configuration and data files
+	"*.yml",        // YAML files
+	"*.yaml",       // YAML files
+	"*.json",       // JSON files
+	"*.toml",       // TOML configuration files
+	"*.tmpl",       // Template files
+	"*.properties", // Properties files
+	"*.ini",        // INI files
+	"*.cfg",        // Configuration files
+	"*.conf",       // Configuration files
+	"*.config",     // Configuration files
+	"config",       // Generic config files
+	".env",         // Environment variable files
+	// Build files
+	"Dockerfile", // Dockerfiles
+	"Makefile",   // Makefiles
+	"*.mk",       // Makefiles
+	"*.cmake",    // CMake files
+	"*.gradle",   // Gradle build files
+	// Data files
+	"*.csv",    // CSV data files
+	"*.pem",    // PEM files
 	"*.secret", // Secret files
-	"*.py",     // Python scripts and utilities
-	"*.xml",    // XML configuration and data files
-	"*.js",     // JavaScript files
-	"*.sh",     // Shell scripts
-	"*.ps1",    // PowerShell scripts
-	"*.toml",   // TOML configuration files
-	"*.tmpl",   // Template files
-	"*.cfg",    // Configuration files
-	"*.sql",    // SQL files
+	// Documentation and markup files
+	"*.html",     // HTML files
+	"*.css",      // CSS files
+	"*.md",       // Markdown files
+	"*.txt",      // Text files
+	"*.asciidoc", // AsciiDoc files
+	"*.adoc",     // AsciiDoc files
 }
 
 // Exclusion patterns for file processing (exclude patterns).
@@ -148,7 +187,7 @@ type ActionInfo struct {
 // Returns an error if any command is unknown or if execution fails.
 func Run(commands []string) error {
 	if len(commands) == 0 {
-		return fmt.Errorf("usage: cicd <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n\nExamples:\n  Run([]string{\"go-update-direct-dependencies\"})\n  Run([]string{\"go-update-all-dependencies\"})\n  Run([]string{\"go-check-circular-package-dependencies\"})\n  Run([]string{\"github-workflow-lint\"})\n  Run([]string{\"gofumpter\"})\n  Run([]string{\"enforce-test-patterns\"})\n  Run([]string{\"enforce-file-encoding\"})\n  Run([]string{\"go-update-direct-dependencies\", \"github-workflow-lint\"})")
+		return fmt.Errorf("Usage: cicd <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n\nExamples:\n  Run([]string{\"go-update-direct-dependencies\"})\n  Run([]string{\"go-update-all-dependencies\"})\n  Run([]string{\"go-check-circular-package-dependencies\"})\n  Run([]string{\"github-workflow-lint\"})\n  Run([]string{\"gofumpter\"})\n  Run([]string{\"enforce-test-patterns\"})\n  Run([]string{\"enforce-file-encoding\"})\n  Run([]string{\"go-update-direct-dependencies\", \"github-workflow-lint\"})") //nolint:stylecheck // Capitalized for user-facing error message
 	}
 
 	// Process all commands provided as arguments
@@ -172,7 +211,7 @@ func Run(commands []string) error {
 		case "enforce-file-encoding":
 			enforceFileEncoding()
 		default:
-			return fmt.Errorf("unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM", command)
+			return fmt.Errorf("Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM", command) //nolint:stylecheck // Capitalized for user-facing error message
 		}
 
 		// Add a separator between multiple commands
