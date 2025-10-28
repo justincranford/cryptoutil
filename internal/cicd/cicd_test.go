@@ -54,7 +54,7 @@ func TestRunInvalidCommand(t *testing.T) {
 	// Test with invalid command
 	err := Run([]string{"invalid-command"})
 	require.Error(t, err, "Expected error for invalid command")
-	require.Contains(t, err.Error(), "Unknown command: invalid-command", "Error message should indicate unknown command")
+	require.Contains(t, err.Error(), "unknown command: invalid-command", "Error message should indicate unknown command")
 }
 
 func TestRunMultipleCommands(t *testing.T) {
