@@ -278,6 +278,26 @@ Gatling generates HTML reports in `target/gatling/results/` after each test run.
 
 ## Integration with CI/CD
 
+### GitHub Actions Workflow
+
+The project includes a dedicated `ci-load.yml` workflow for automated load testing:
+
+```bash
+# Run locally using the workflow runner
+go run ./cmd/workflow -workflows=load -inputs="load_profile=quick"
+go run ./cmd/workflow -workflows=load -inputs="load_profile=standard"
+go run ./cmd/workflow -workflows=load -inputs="load_profile=stress"
+```
+
+**Workflow Features:**
+- Automatic Docker Compose service orchestration
+- Real-time infrastructure monitoring (CPU, memory, network, disk)
+- Service health verification before tests
+- Comprehensive artifact collection (Gatling reports, metrics, logs)
+- Three load profiles: quick (10 clients/30s), standard (50 clients/120s), stress (200 clients/300s)
+
+**GitHub Actions Integration:**
+
 Add to your CI/CD pipeline:
 
 #### Service API Testing
