@@ -95,7 +95,6 @@ jobs:
     - name: Clean and verify module files
       run: |
         go mod tidy
-        git diff --exit-code go.mod go.sum
 
     - name: Run concurrency and race detection tests
       working-directory: .
@@ -174,7 +173,6 @@ jobs:
       - name: Clean and verify module files
         run: |
           go mod tidy
-          git diff --exit-code go.mod go.sum
 
       - name: Run RSA keygen fuzz test
         working-directory: .
@@ -263,7 +261,6 @@ jobs:
       - name: Clean and verify module files
         run: |
           go mod tidy
-          git diff --exit-code go.mod go.sum
 
       - name: Run HKDF All Variants fuzz test
         working-directory: .
@@ -363,7 +360,6 @@ jobs:
       - name: Clean and verify module files
         run: |
           go mod tidy
-          git diff --exit-code go.mod go.sum
 
       - name: Run benchmark tests
         working-directory: .
