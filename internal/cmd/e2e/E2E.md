@@ -191,17 +191,17 @@ Teardown() ← StopServices() ← Context Cancellation
 
 ### **Full E2E Test Run**
 ```bash
-go test -tags e2e ./internal/e2e -run TestE2E -v -timeout 30s
+go test -tags e2e ./internal/cmd/e2e -run TestE2E -v -timeout 30s
 ```
 
 ### **Quick Summary Demo**
 ```bash
-go test -tags e2e ./internal/e2e -run TestSummaryReportOnly -v
+go test -tags e2e ./internal/cmd/e2e -run TestSummaryReportOnly -v
 ```
 
 ### **Log File Location**
 ```
-internal/e2e/e2e-reports/e2e-test-YYYY-MM-DD_HH-MM-SS.log
+internal/cmd/e2e/e2e-reports/e2e-test-YYYY-MM-DD_HH-MM-SS.log
 ```
 
 ## 📋 **Sample Summary Report Output**

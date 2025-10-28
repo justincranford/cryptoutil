@@ -120,7 +120,7 @@ jobs:
       - name: Run E2E tests
         run: |
           echo "🧪 Running end-to-end tests..."
-          go test -tags=e2e -v -timeout=30m ./internal/e2e/
+          go test -tags=e2e -v -timeout=30m ./internal/cmd/e2e/
 
       - name: E2E test summary
         if: always()

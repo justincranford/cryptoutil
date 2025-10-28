@@ -127,7 +127,7 @@ nuclei -templates-version
 ## Workflow Testing with cmd/workflow
 
 - Use `go run ./cmd/workflow` to execute GitHub Actions workflows locally with act
-- The workflow runner is implemented in `internal/workflow/workflow.go` with cmd entry point at `cmd/workflow/main.go`
+- The workflow runner is implemented in `internal/cmd/workflow/workflow.go` with cmd entry point at `cmd/workflow/main.go`
 - Common usage patterns:
   ```bash
   go run ./cmd/workflow -workflows=e2e,dast

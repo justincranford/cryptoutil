@@ -1,7 +1,7 @@
 package main
 
 import (
-	"cryptoutil/internal/workflow"
+	"cryptoutil/internal/cmd/workflow"
 	"os"
 )
 

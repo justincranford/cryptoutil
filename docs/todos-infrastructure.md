@@ -85,7 +85,7 @@
   - Update documentation to show correct admin API endpoints
   - Ensure health checks use private server endpoints
   - Remove admin API routes from public server if accidentally added
-- **Files**: `internal/e2e/e2e_test.go`, documentation, health check scripts
+- **Files**: `internal/cmd/e2e/e2e_test.go`, documentation, health check scripts
 - **Expected Outcome**: Admin APIs properly isolated to private server
 - **Priority**: High - API security and correct architecture
 
@@ -98,7 +98,7 @@
   - Update health check functions to use prefixed endpoints
   - Update e2e tests to use prefixed admin API endpoints
   - Update documentation with new admin API paths
-- **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `internal/e2e/e2e_test.go`, documentation
+- **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `internal/cmd/e2e/e2e_test.go`, documentation
 - **Expected Outcome**: Properly prefixed admin APIs with configurable context path
 - **Priority**: Medium - API organization and consistency
 
@@ -162,7 +162,7 @@
 
   2. **Phase 2 - Update Go Code**:
      - Update `cmd/workflow` to use `.build/workflows/`
-     - Update E2E test code in `internal/e2e/` to output to `.build/e2e/`
+     - Update E2E test code in `internal/cmd/e2e/` to output to `.build/e2e/`
      - Update test helpers to write coverage to `.build/coverage/`
 
   3. **Phase 3 - Update Workflow Files**:
@@ -186,7 +186,7 @@
 - **Files Modified**:
   - `.gitignore` (simplified to single `.build/` exclusion)
   - `cmd/workflow`
-  - `internal/e2e/*.go` (E2E test utilities)
+  - `internal/cmd/e2e/*.go` (E2E test utilities)
   - `.github/workflows/*.yml` (all 5 workflows)
   - `test/load/pom.xml` (Gatling output directory)
   - `README.md` and `docs/DEEP-ANALYSIS.md`

@@ -302,7 +302,7 @@ This section maps ALL temporary files/directories created by various project com
   - `collection-summary.txt` - Log collection summary
   - `errors.txt` - Collection errors
 - `test/e2e/e2e-reports/` - E2E test reports (in test directory)
-- `internal/e2e/e2e-reports/` - E2E reports (in internal directory)
+- `internal/cmd/e2e/e2e-reports/` - E2E reports (in internal directory)
 
 #### 6. Load Test Artifacts (Gatling)
 
@@ -390,7 +390,7 @@ output/
 - `e2e-artifacts/` (root level)
 - `e2e-service-logs.txt` (root level)
 - `e2e-container-logs/` (root level)
-- `internal/e2e/e2e-reports/` (internal directory)
+- `internal/cmd/e2e/e2e-reports/` (internal directory)
 - `test-results/` (root level)
 - `mutation-*.json` files (root level)
 - `nohup.out` (root level)
@@ -498,7 +498,7 @@ output/
 
 ### Workflow Testing Tool: cmd/workflow
 
-**Location:** `cmd/workflow/main.go` (calls `internal/workflow/workflow.go`)
+**Location:** `cmd/workflow/main.go` (calls `internal/cmd/workflow/workflow.go`)
 
 **Purpose:** Execute GitHub Actions workflows locally using `act` with comprehensive monitoring and reporting
 
@@ -553,9 +553,9 @@ go run ./cmd/workflow -list
 #### Layer 3: End-to-End Tests
 - **Tool:** Go testing + Docker Compose + testify suites
 - **Coverage:** Full system with 3 instances + dependencies
-- **Location:** `internal/e2e/` directory
+- **Location:** `internal/cmd/e2e/` directory
 - **Pattern:** HTTP API calls with full request/response validation
-- **Execution:** `go test -tags=e2e -v ./internal/e2e/`
+- **Execution:** `go test -tags=e2e -v ./internal/cmd/e2e/`
 - **Duration:** ~10-15 minutes with full stack startup
 
 #### Layer 4: Fuzz Testing
@@ -804,7 +804,7 @@ go build -o cryptoutil ./cmd/cryptoutil
 
 # Test
 go test ./... -cover
-go test -tags=e2e -v ./internal/e2e/
+go test -tags=e2e -v ./internal/cmd/e2e/
 go test -fuzz=^FuzzXXX$ -fuzztime=5s ./path
 
 # Lint
