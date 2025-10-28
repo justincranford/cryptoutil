@@ -123,6 +123,14 @@ repos:
         pass_filenames: false
         stages: [pre-commit]  # Run full linting on commit, not just on push
 
+      - id: gofumpt-extra
+        name: gofumpt extra rules (additional formatting beyond golangci-lint)
+        entry: gofumpt
+        args: [-extra, -w, .]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
   # Go build validation
   - repo: local
     hooks:

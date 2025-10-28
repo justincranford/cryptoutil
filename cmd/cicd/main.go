@@ -16,9 +16,10 @@
 package main
 
 import (
-	"cryptoutil/internal/cicd"
 	"fmt"
 	"os"
+
+	"cryptoutil/internal/cicd"
 )
 
 func main() {

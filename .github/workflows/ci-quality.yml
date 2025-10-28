@@ -77,26 +77,18 @@ jobs:
           go install mvdan.cc/gofumpt@latest
           go install golang.org/x/tools/cmd/goimports@latest
 
-      - name: Check gofumpt formatting
-        run: |
-          # Check if any files need gofumpt formatting
-          UNFORMATTED=$(gofumpt -extra -l .)
-          if [ -n "$UNFORMATTED" ]; then
-            echo "❌ The following files need gofumpt formatting:"
-            echo "$UNFORMATTED"
-            echo ""
-            echo "Please run: gofumpt -extra -w ."
-            echo "Or install pre-commit hooks: pip install pre-commit && pre-commit install"
-            exit 1
-          else
-            echo "✅ All Go files are properly formatted with gofumpt"
-          fi
-
       - name: Install golangci-lint
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
-      # Note: Uses exclusions from .golangci.yml config file, not command parameters
-      - name: Run golangci-lint
+      - name: Run golangci-lint with auto-fix
+        run: golangci-lint run --fix --timeout=10m --config=.golangci.yml
+
+      - name: Apply gofumpt extra rules (integrated with golangci-lint workflow)
+        run: |
+          # Apply additional gofumpt -extra formatting that golangci-lint's gofumpt doesn't handle
+          gofumpt -extra -w .
+
+      - name: Run golangci-lint final check
         run: golangci-lint run --timeout=10m --config=.golangci.yml
 
       - name: Enforce file encoding (UTF-8 without BOM)
