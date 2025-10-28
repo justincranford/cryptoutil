@@ -99,14 +99,20 @@ const (
 
 // Available workflows.
 var workflows = map[string]WorkflowConfig{
+	"quality": {
+		Name:         "quality",
+		WorkflowFile: ".github/workflows/ci-quality.yml",
+		Description:  "Code Quality - Unit tests, coverage, linting, formatting checks",
+		DefaultArgs:  []string{},
+	},
 	"e2e": {
 		Name:         "e2e",
 		WorkflowFile: ".github/workflows/ci-e2e.yml",
 		Description:  "End-to-End Testing - Full system integration with Docker Compose",
 		DefaultArgs:  []string{},
 	},
-	workflowNameDAST: {
-		Name:         workflowNameDAST,
+	"dast": {
+		Name:         "dast",
 		WorkflowFile: ".github/workflows/ci-dast.yml",
 		Description:  "Dynamic Application Security Testing - OWASP ZAP and Nuclei scans",
 		DefaultArgs:  []string{"--input", "scan_profile=quick"},
@@ -123,11 +129,11 @@ var workflows = map[string]WorkflowConfig{
 		Description:  "Robustness Testing - Concurrency, race detection, fuzz tests, benchmarks",
 		DefaultArgs:  []string{},
 	},
-	"quality": {
-		Name:         "quality",
-		WorkflowFile: ".github/workflows/ci-quality.yml",
-		Description:  "Code Quality - Unit tests, coverage, linting, formatting checks",
-		DefaultArgs:  []string{},
+	"load": {
+		Name:         "load",
+		WorkflowFile: ".github/workflows/ci-load.yml",
+		Description:  "Load Testing - Gatling performance tests with infrastructure monitoring",
+		DefaultArgs:  []string{"--input", "load_profile=quick"},
 	},
 }
 
@@ -136,7 +142,7 @@ func Run(args []string) int {
 	// Create flag set for parsing.
 	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
 
-	workflowNames := fs.String("workflows", "", "Comma-separated list of workflows to run (e2e,dast,sast,robust,quality)")
+	workflowNames := fs.String("workflows", "", "Comma-separated list of workflows to run (e2e,dast,sast,robust,quality,load)")
 	outputDir := fs.String("output", "workflow-reports", "Output directory for logs and reports")
 	dryRun := fs.Bool("dry-run", false, "Show what would be executed without running workflows")
 	actPath := fs.String("act-path", "act", "Path to act executable")
@@ -230,7 +236,7 @@ func listWorkflows() {
 	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", colorCyan, colorReset)
 	fmt.Println(strings.Repeat("=", lineWidth))
 
-	for _, name := range []string{"e2e", "dast", "sast", "robust", "quality"} {
+	for _, name := range []string{"e2e", "dast", "sast", "robust", "quality", "load"} {
 		wf := workflows[name]
 		fmt.Printf("\n%s%-10s%s %s\n", colorGreen, wf.Name, colorReset, wf.Description)
 		fmt.Printf("           File: %s\n", wf.WorkflowFile)

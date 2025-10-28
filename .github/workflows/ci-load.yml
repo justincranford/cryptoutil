@@ -1,0 +1,392 @@
+name: CI - Load Testing
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+# Example: Use './deployments/compose/compose.yml'
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'dast-reports/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'dast-reports/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  schedule:
+    # Run load tests weekly on Saturdays at 3 AM UTC
+    - cron: '0 3 * * 6'
+  workflow_dispatch:
+    inputs:
+      load_profile:
+        description: 'Load test profile'
+        required: false
+        default: 'standard'
+        type: choice
+        options:
+          - quick
+          - standard
+          - stress
+      virtual_clients:
+        description: 'Number of virtual clients (overrides profile defaults)'
+        required: false
+        default: '0'
+        type: string
+      duration_seconds:
+        description: 'Test duration in seconds (overrides profile defaults)'
+        required: false
+        default: '0'
+        type: string
+
+env:
+  GO_VERSION: '1.25.1'
+  JAVA_VERSION: '21'
+  LOAD_PROFILE: ${{ github.event.inputs.load_profile || 'standard' }}
+  VIRTUAL_CLIENTS_OVERRIDE: ${{ github.event.inputs.virtual_clients || '0' }}
+  DURATION_OVERRIDE: ${{ github.event.inputs.duration_seconds || '0' }}
+
+jobs:
+  load-testing:
+    name: Load Testing with Gatling
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Workflow Start - CI - Load Testing (ci-load.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: ${{ github.workflow }}"
+          echo "File: .github/workflows/ci-load.yml"
+          echo "Job: load-testing"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Load Profile: ${{ env.LOAD_PROFILE }}"
+          echo "=========================================="
+
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+        with:
+          sparse-checkout-cone-mode: false
+
+      - name: Set up Go
+        uses: actions/setup-go@v6.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Download Go dependencies
+        run: go mod download
+
+      - name: Verify Go dependencies
+        run: go mod verify
+
+      - name: Pre-pull Docker images (parallel)
+        run: |
+          echo "🐳 Pre-pulling Docker images in parallel..."
+
+          # Array of all images used in this workflow
+          IMAGES=(
+            "postgres:18"
+            "otel/opentelemetry-collector-contrib:latest"
+            "grafana/otel-lgtm:latest"
+            "alpine:latest"
+            "golang:1.25.1"
+            "alpine:3.19"
+          )
+
+          # Pull all images concurrently
+          for image in "${IMAGES[@]}"; do
+            echo "Pulling $image..."
+            docker pull "$image" &
+          done
+
+          # Wait for all pulls to complete
+          wait
+
+          echo "✅ All images pre-pulled successfully"
+
+      - name: Build Docker images
+        run: |
+          echo "🏗️ Building Docker images for load testing..."
+          docker compose -f ./deployments/compose/compose.yml build
+
+      - name: Start Docker Compose services
+        run: |
+          echo "🚀 Starting Docker Compose services..."
+          docker compose -f ./deployments/compose/compose.yml up -d
+
+          echo "⏳ Waiting for services to be healthy..."
+          timeout 60s bash -c 'until docker compose -f ./deployments/compose/compose.yml ps | grep -q "healthy"; do echo "Waiting..."; sleep 5; done' || echo "⚠️ Health check timeout - continuing anyway"
+
+          echo "📋 Service status:"
+          docker compose -f ./deployments/compose/compose.yml ps
+
+      - name: Verify services are ready
+        run: |
+          echo "🔍 Verifying cryptoutil services are accessible..."
+
+          # Function to check endpoint with retries
+          check_endpoint() {
+            local url=$1
+            local name=$2
+            local max_attempts=30
+            local attempt=1
+
+            while [ $attempt -le $max_attempts ]; do
+              echo "Attempt $attempt/$max_attempts: Checking $name..."
+              if wget --no-check-certificate --spider --timeout=5 --tries=1 "$url" 2>&1 | grep -q "200 OK\|404 Not Found"; then
+                echo "✅ $name is ready"
+                return 0
+              fi
+              sleep 2
+              attempt=$((attempt + 1))
+            done
+
+            echo "❌ $name failed to respond after $max_attempts attempts"
+            return 1
+          }
+
+          # Check all three cryptoutil instances
+          check_endpoint "https://127.0.0.1:8080/ui/swagger/doc.json" "cryptoutil_sqlite"
+          check_endpoint "https://127.0.0.1:8081/ui/swagger/doc.json" "cryptoutil_postgres_1"
+          check_endpoint "https://127.0.0.1:8082/ui/swagger/doc.json" "cryptoutil_postgres_2"
+
+          echo "✅ All services are ready for load testing"
+
+      - name: Set load test parameters
+        id: load-params
+        run: |
+          # Define profile-based defaults
+          case "${{ env.LOAD_PROFILE }}" in
+            quick)
+              CLIENTS=10
+              DURATION=30
+              ;;
+            standard)
+              CLIENTS=50
+              DURATION=120
+              ;;
+            stress)
+              CLIENTS=200
+              DURATION=300
+              ;;
+            *)
+              CLIENTS=50
+              DURATION=120
+              ;;
+          esac
+
+          # Override with manual inputs if provided
+          if [ "${{ env.VIRTUAL_CLIENTS_OVERRIDE }}" != "0" ]; then
+            CLIENTS="${{ env.VIRTUAL_CLIENTS_OVERRIDE }}"
+          fi
+          if [ "${{ env.DURATION_OVERRIDE }}" != "0" ]; then
+            DURATION="${{ env.DURATION_OVERRIDE }}"
+          fi
+
+          echo "virtual_clients=$CLIENTS" >> $GITHUB_OUTPUT
+          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+
+          echo "📊 Load test configuration:"
+          echo "  Profile: ${{ env.LOAD_PROFILE }}"
+          echo "  Virtual Clients: $CLIENTS"
+          echo "  Duration: ${DURATION}s"
+
+      - name: Start infrastructure monitoring
+        run: |
+          echo "📊 Starting infrastructure monitoring..."
+
+          # Create monitoring directory
+          mkdir -p ./load-reports/infrastructure
+
+          # Start background monitoring process
+          {
+            while true; do
+              TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+              # Collect Docker stats
+              docker stats --no-stream --format "table {{.Container}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}},{{.NetIO}},{{.BlockIO}}" > "./load-reports/infrastructure/docker-stats-$TIMESTAMP.csv"
+
+              # Collect system metrics
+              {
+                echo "timestamp,metric,value"
+                echo "$TIMESTAMP,cpu_percent,$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')"
+                echo "$TIMESTAMP,mem_used_mb,$(free -m | awk 'NR==2{print $3}')"
+                echo "$TIMESTAMP,mem_total_mb,$(free -m | awk 'NR==2{print $2}')"
+                echo "$TIMESTAMP,disk_used_percent,$(df -h / | awk 'NR==2{print $5}' | sed 's/%//')"
+              } >> "./load-reports/infrastructure/system-metrics.csv"
+
+              sleep 5
+            done
+          } &
+
+          MONITOR_PID=$!
+          echo "MONITOR_PID=$MONITOR_PID" >> $GITHUB_ENV
+          echo "✅ Infrastructure monitoring started (PID: $MONITOR_PID)"
+
+      - name: Run Gatling load tests
+        working-directory: ./test/load
+        run: |
+          echo "🚀 Running Gatling load tests..."
+
+          # Configure JVM options for Gatling
+          export MAVEN_OPTS="-Xmx2g -Xms1g"
+
+          # Run all simulations with configured parameters
+          ./mvnw gatling:test \
+            -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
+            -DserviceApiBaseUrl=https://127.0.0.1:8080/service/api/v1 \
+            -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
+            -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"
+
+          echo "✅ Gatling load tests completed"
+
+      - name: Stop infrastructure monitoring
+        if: always()
+        run: |
+          if [ ! -z "$MONITOR_PID" ]; then
+            echo "🛑 Stopping infrastructure monitoring (PID: $MONITOR_PID)..."
+            kill $MONITOR_PID 2>/dev/null || true
+            wait $MONITOR_PID 2>/dev/null || true
+            echo "✅ Infrastructure monitoring stopped"
+          fi
+
+      - name: Collect service logs
+        if: always()
+        run: |
+          echo "📋 Collecting service logs..."
+          mkdir -p ./load-reports/service-logs
+
+          # Collect logs from all cryptoutil services
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil_sqlite > ./load-reports/service-logs/cryptoutil_sqlite.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil_postgres_1 > ./load-reports/service-logs/cryptoutil_postgres_1.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil_postgres_2 > ./load-reports/service-logs/cryptoutil_postgres_2.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
+
+          echo "✅ Service logs collected"
+
+      - name: Generate load test summary
+        if: always()
+        run: |
+          echo "📊 Generating load test summary..."
+
+          cat > ./load-reports/load-test-summary.md << 'EOF'
+          # Load Test Summary
+
+          **Profile:** ${{ env.LOAD_PROFILE }}
+          **Virtual Clients:** ${{ steps.load-params.outputs.virtual_clients }}
+          **Duration:** ${{ steps.load-params.outputs.duration }}s
+          **Triggered by:** ${{ github.event_name }}
+          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          ## Test Configuration
+
+          | Parameter | Value |
+          |-----------|-------|
+          | Load Profile | ${{ env.LOAD_PROFILE }} |
+          | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
+          | Test Duration | ${{ steps.load-params.outputs.duration }}s |
+          | Target Services | cryptoutil_sqlite, cryptoutil_postgres_1, cryptoutil_postgres_2 |
+
+          ## Services Tested
+
+          - **cryptoutil_sqlite** - https://127.0.0.1:8080/service/api/v1
+          - **cryptoutil_postgres_1** - https://127.0.0.1:8081/service/api/v1
+          - **cryptoutil_postgres_2** - https://127.0.0.1:8082/service/api/v1
+
+          ## Artifacts Generated
+
+          - Gatling HTML reports: `test/load/target/gatling/`
+          - Infrastructure metrics: `load-reports/infrastructure/`
+          - Service logs: `load-reports/service-logs/`
+
+          ## Results
+
+          See Gatling HTML reports in artifacts for detailed performance analysis.
+
+          EOF
+
+          echo "✅ Load test summary generated"
+
+      - name: Stop services
+        if: always()
+        run: |
+          echo "🧹 Stopping services..."
+          docker compose -f ./deployments/compose/compose.yml down -v
+
+      - name: Upload Gatling reports
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: gatling-reports-${{ env.LOAD_PROFILE }}
+          path: test/load/target/gatling/
+          retention-days: 7
+
+      - name: Upload infrastructure metrics
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: infrastructure-metrics-${{ env.LOAD_PROFILE }}
+          path: load-reports/infrastructure/
+          retention-days: 3
+
+      - name: Upload service logs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: service-logs-${{ env.LOAD_PROFILE }}
+          path: load-reports/service-logs/
+          retention-days: 3
+
+      - name: Upload load test summary
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: load-test-summary-${{ env.LOAD_PROFILE }}
+          path: load-reports/load-test-summary.md
+          retention-days: 7
+
+      - name: Load test summary
+        if: always()
+        run: |
+          echo "## 🚀 Load Testing Results" >> $GITHUB_STEP_SUMMARY
+          cat ./load-reports/load-test-summary.md >> $GITHUB_STEP_SUMMARY

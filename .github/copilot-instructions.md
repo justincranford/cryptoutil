@@ -132,8 +132,10 @@ nuclei -templates-version
   ```bash
   go run ./cmd/workflow -workflows=e2e,dast
   go run ./cmd/workflow -workflows=quality -dry-run
+  go run ./cmd/workflow -workflows=load -inputs="load_profile=quick"
   go run ./cmd/workflow -list
   ```
+- Available workflows: e2e, dast, sast, robust, quality, load
 
 ## Pre-commit Hook Guidelines
 
