@@ -102,17 +102,14 @@ jobs:
       - name: Run custom Go source code fixes
         run: go run cmd/cicd/main.go go-enforce-any
 
-      - name: Validate GitHub Actions workflow naming and structure
-        run: go run cmd/cicd/main.go github-workflow-lint
-
       - name: Check for circular Go package dependencies
         run: go run cmd/cicd/main.go go-check-circular-package-dependencies
 
-      - name: Check GitHub Actions versions
-        run: go run cmd/cicd/main.go github-workflow-lint
-
       - name: Check Go direct dependencies
         run: go run cmd/cicd/main.go go-update-direct-dependencies
+
+      - name: Check GitHub Actions versions
+        run: go run cmd/cicd/main.go github-workflow-lint
 
   # Build and Container Security
   build:
