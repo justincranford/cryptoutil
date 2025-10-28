@@ -768,29 +768,58 @@ func analyzeSastWorkflow(logContent string, result *WorkflowResult) {
 }
 
 func analyzeRobustWorkflow(logContent string, result *WorkflowResult) {
-	// Check for race detection.
+	// Check for concurrency/race detection tests.
 	if strings.Contains(logContent, "-race") {
 		status := taskSuccess
 		if strings.Contains(logContent, "DATA RACE") {
 			status = taskFailed
 		}
 
-		result.TaskResults["Race Detection"] = TaskResult{Name: "Race Detection", Status: status}
+		result.TaskResults["Concurrency & Race Detection"] = TaskResult{Name: "Concurrency & Race Detection", Status: status}
 	}
 
-	// Check for fuzz tests.
-	if strings.Contains(logContent, "-fuzz") {
+	// Check for fuzz tests - keygen package.
+	if strings.Contains(logContent, "FuzzGenerateRSAKeyPair") ||
+		strings.Contains(logContent, "FuzzGenerateECDSAKeyPair") ||
+		strings.Contains(logContent, "FuzzGenerateECDHKeyPair") ||
+		strings.Contains(logContent, "FuzzGenerateEDDSAKeyPair") ||
+		strings.Contains(logContent, "FuzzGenerateAESKey") ||
+		strings.Contains(logContent, "FuzzGenerateAESHSKey") ||
+		strings.Contains(logContent, "FuzzGenerateHMACKey") {
 		status := taskSuccess
 		if strings.Contains(logContent, "fuzz: elapsed") && strings.Contains(logContent, "FAIL") {
 			status = taskFailed
 		}
 
-		result.TaskResults["Fuzz Tests"] = TaskResult{Name: "Fuzz Tests", Status: status}
+		result.TaskResults["Fuzz Tests - Keygen"] = TaskResult{Name: "Fuzz Tests - Keygen", Status: status}
+	}
+
+	// Check for fuzz tests - digests package.
+	if strings.Contains(logContent, "FuzzHKDFAllVariants") ||
+		strings.Contains(logContent, "FuzzHKDFwithSHA256") ||
+		strings.Contains(logContent, "FuzzHKDFwithSHA384") ||
+		strings.Contains(logContent, "FuzzHKDFwithSHA512") ||
+		strings.Contains(logContent, "FuzzHKDFwithSHA224") ||
+		strings.Contains(logContent, "FuzzSHA512") ||
+		strings.Contains(logContent, "FuzzSHA384") ||
+		strings.Contains(logContent, "FuzzSHA256") ||
+		strings.Contains(logContent, "FuzzSHA224") {
+		status := taskSuccess
+		if strings.Contains(logContent, "fuzz: elapsed") && strings.Contains(logContent, "FAIL") {
+			status = taskFailed
+		}
+
+		result.TaskResults["Fuzz Tests - Digests"] = TaskResult{Name: "Fuzz Tests - Digests", Status: status}
 	}
 
 	// Check for benchmarks.
 	if strings.Contains(logContent, "-bench") {
-		result.TaskResults["Benchmarks"] = TaskResult{Name: "Benchmarks", Status: taskSuccess}
+		status := taskSuccess
+		if strings.Contains(logContent, "FAIL") {
+			status = taskFailed
+		}
+
+		result.TaskResults["Benchmark Tests"] = TaskResult{Name: "Benchmark Tests", Status: status}
 	}
 }
 

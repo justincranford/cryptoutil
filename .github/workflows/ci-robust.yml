@@ -61,84 +61,82 @@ env:
   GO_VERSION: '1.25.1'
 
 jobs:
-# Concurrency & Race Detection Testing - Comprehensive concurrent safety validation
-# Note: Tests automatically use SQLite in-memory databases for isolation and speed
-# concurrency:
-#   name: Concurrency & Race Detection Tests
-#   runs-on: ubuntu-latest
+  concurrency:
+    name: Concurrency & Race Detection Tests
+    runs-on: ubuntu-latest
 
-#   steps:
-#     - name: Workflow Start - CI - Robustness Testing / concurrency (ci-robust.yml)
-#       run: |
-#         echo "=========================================="
-#         echo "Workflow: ${{ github.workflow }}"
-#         echo "File: .github/workflows/ci-robust.yml"
-#         echo "Job: concurrency"
-#         echo "Triggered by: ${{ github.event_name }}"
-#         echo "=========================================="
+    steps:
+    - name: Workflow Start - CI - Robustness Testing / concurrency (ci-robust.yml)
+      run: |
+        echo "=========================================="
+        echo "Workflow: ${{ github.workflow }}"
+        echo "File: .github/workflows/ci-robust.yml"
+        echo "Job: concurrency"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "=========================================="
 
-#     - name: Checkout code
-#       uses: actions/checkout@v5.0.0
-#       with:
-#         sparse-checkout-cone-mode: false
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false
 
-#     - name: Set up Go
-#       uses: actions/setup-go@v6.0.0
-#       with:
-#         go-version: ${{ env.GO_VERSION }}
-#         cache: true
+    - name: Set up Go
+      uses: actions/setup-go@v6.0.0
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        cache: true
 
-#     - name: Download dependencies
-#       run: go mod download
+    - name: Download dependencies
+      run: go mod download
 
-#     - name: Verify dependencies
-#       run: go mod verify
+    - name: Verify dependencies
+      run: go mod verify
 
-#     - name: Clean and verify module files
-#       run: |
-#         go mod tidy
-#         git diff --exit-code go.mod go.sum
+    - name: Clean and verify module files
+      run: |
+        go mod tidy
+        git diff --exit-code go.mod go.sum
 
-#     - name: Run concurrency and race detection tests
-#       working-directory: .
-#       run: |
-#         echo "🔄 Running comprehensive concurrency and race detection tests..."
-#         SECONDS=0
-#         go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
-#         TEST_DURATION=$SECONDS
-#         echo "⏱️ Race detection tests completed in: ${TEST_DURATION}s"
+    - name: Run concurrency and race detection tests
+      working-directory: .
+      run: |
+        echo "🔄 Running comprehensive concurrency and race detection tests..."
+        SECONDS=0
+        go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
+        TEST_DURATION=$SECONDS
+        echo "⏱️ Race detection tests completed in: ${TEST_DURATION}s"
 
-#     - name: Run coverage on concurrency tests
-#       working-directory: .
-#       run: |
-#         echo "📊 Generating coverage report for concurrency tests..."
-#         SECONDS=0
-#         go test -count=1 -p=2 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/... ./scripts/...
-#         COVERAGE_DURATION=$SECONDS
-#         echo "⏱️ Coverage tests completed in: ${COVERAGE_DURATION}s"
+    - name: Run coverage on concurrency tests
+      working-directory: .
+      run: |
+        echo "📊 Generating coverage report for concurrency tests..."
+        SECONDS=0
+        go test -count=1 -p=2 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/... ./scripts/...
+        COVERAGE_DURATION=$SECONDS
+        echo "⏱️ Coverage tests completed in: ${COVERAGE_DURATION}s"
 
-#     - name: Generate concurrency coverage report
-#       run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
+    - name: Generate concurrency coverage report
+      run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
 
-#     - name: Upload concurrency coverage
-#       uses: codecov/codecov-action@v5.5.1
-#       with:
-#         files: ./concurrency-coverage.out
-#         flags: concurrency-tests
-#         name: codecov-concurrency
-#         fail_ci_if_error: false
+    - name: Upload concurrency coverage
+      uses: codecov/codecov-action@v5.5.1
+      with:
+        files: ./concurrency-coverage.out
+        flags: concurrency-tests
+        name: codecov-concurrency
+        fail_ci_if_error: false
 
-#     - name: Concurrency test summary
-#       run: |
-#         echo "## 🔄 Concurrency & Race Detection Results" >> $GITHUB_STEP_SUMMARY
-#         echo "Comprehensive concurrency and race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
-#         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
-#         echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
-#         echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
-#         echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
-#         echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
-#         echo "- Race detection duration: \${TEST_DURATION}s" >> $GITHUB_STEP_SUMMARY
-#         echo "- Coverage collection duration: \${COVERAGE_DURATION}s" >> $GITHUB_STEP_SUMMARY
+    - name: Concurrency test summary
+      run: |
+        echo "## 🔄 Concurrency & Race Detection Results" >> $GITHUB_STEP_SUMMARY
+        echo "Comprehensive concurrency and race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
+        echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
+        echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
+        echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+        echo "- Race detection duration: \${TEST_DURATION}s" >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage collection duration: \${COVERAGE_DURATION}s" >> $GITHUB_STEP_SUMMARY
 
   # Fuzz Testing - Keygen Package - Property-based testing for cryptographic key generation
   fuzz-keygen:
@@ -330,67 +328,67 @@ jobs:
           echo "- Purpose: Property-based testing for secure hash operations" >> $GITHUB_STEP_SUMMARY
 
   # Benchmark Testing - Performance validation and regression detection
-  # benchmark:
-  #   name: Benchmark Tests
-  #   runs-on: ubuntu-latest
-  #   if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
+  benchmark:
+    name: Benchmark Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
 
-  #   steps:
-  #     - name: Workflow Start - CI - Robustness Testing / benchmark (ci-robust.yml)
-  #       run: |
-  #         echo "=========================================="
-  #         echo "Workflow: ${{ github.workflow }}"
-  #         echo "File: .github/workflows/ci-robust.yml"
-  #         echo "Job: benchmark"
-  #         echo "Triggered by: ${{ github.event_name }}"
-  #         echo "=========================================="
+    steps:
+      - name: Workflow Start - CI - Robustness Testing / benchmark (ci-robust.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: ${{ github.workflow }}"
+          echo "File: .github/workflows/ci-robust.yml"
+          echo "Job: benchmark"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "=========================================="
 
-  #     - name: Checkout code
-  #       uses: actions/checkout@v5.0.0
-  #       with:
-  #         sparse-checkout-cone-mode: false
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+        with:
+          sparse-checkout-cone-mode: false
 
-  #     - name: Set up Go
-  #       uses: actions/setup-go@v6.0.0
-  #       with:
-  #         go-version: ${{ env.GO_VERSION }}
-  #         cache: true
+      - name: Set up Go
+        uses: actions/setup-go@v6.0.0
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
 
-  #     - name: Download dependencies
-  #       run: go mod download
+      - name: Download dependencies
+        run: go mod download
 
-  #     - name: Verify dependencies
-  #       run: go mod verify
+      - name: Verify dependencies
+        run: go mod verify
 
-  #     - name: Clean and verify module files
-  #       run: |
-  #         go mod tidy
-  #         git diff --exit-code go.mod go.sum
+      - name: Clean and verify module files
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
 
-  #     - name: Run benchmark tests
-  #       working-directory: .
-  #       run: |
-  #         echo "📊 Running benchmark tests for performance validation..."
-  #         go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
+      - name: Run benchmark tests
+        working-directory: .
+        run: |
+          echo "📊 Running benchmark tests for performance validation..."
+          go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
 
-  #     - name: Display benchmark results
-  #       run: |
-  #         echo "## 📊 Benchmark Results" >> $GITHUB_STEP_SUMMARY
-  #         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-  #         cat benchmark-results.txt >> $GITHUB_STEP_SUMMARY
-  #         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+      - name: Display benchmark results
+        run: |
+          echo "## 📊 Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat benchmark-results.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-  #     - name: Upload benchmark results
-  #       uses: actions/upload-artifact@v5.0.0
-  #       with:
-  #         name: benchmark-results
-  #         path: benchmark-results.txt
-  #         retention-days: 2
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: benchmark-results
+          path: benchmark-results.txt
+          retention-days: 2
 
-  #     - name: Benchmark test summary
-  #       run: |
-  #         echo "## 📊 Benchmark Testing Results" >> $GITHUB_STEP_SUMMARY
-  #         echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
-  #         echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
-  #         echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
-  #         echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY
+      - name: Benchmark test summary
+        run: |
+          echo "## 📊 Benchmark Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
+          echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY
