@@ -1,7 +1,3 @@
-// Package cicd provides CI/CD quality control checks for the cryptoutil project.
-//
-// This file contains file pattern definitions used by the CI/CD checks.
-// These patterns define which files should be included or excluded from various checks.
 package cicd
 
 // File patterns for encoding checks (include patterns).

@@ -13,12 +13,6 @@
 //   - go-update-all-dependencies: Check for outdated Go dependencies (direct + transitive)
 //   - github-workflow-lint: Validate GitHub Actions workflow naming and structure
 //
-// Usage:
-//
-//	cicd.Run([]string{"go-update-direct-dependencies"})
-//	cicd.Run([]string{"github-workflow-lint"})
-//	cicd.Run([]string{"go-update-direct-dependencies", "github-workflow-lint"})
-//
 // IMPORTANT: This file contains deliberate linter error patterns for testing cicd functionality.
 // It MUST be excluded from all linting operations to prevent self-referencing errors.
 // See .golangci.yml exclude-rules and cicd.go exclusion patterns for details.
@@ -49,36 +43,9 @@ const (
 	// UI constants.
 	separatorLength = 50
 
-	// GitHub API constants.
-	githubAPIDelay   = cryptoutilMagic.TimeoutGitHubAPIDelay
-	githubAPITimeout = cryptoutilMagic.TimeoutGitHubAPITimeout
-
-	// Progress reporting.
-	// progressInterval = 10 // Removed: unused after graph building optimization.
-
-	// File permissions.
-	filePermissions = cryptoutilMagic.FilePermissionsDefault // Permissions for created files.
-
-	// UUID regex pattern for validation.
-	uuidRegexPattern = cryptoutilMagic.StringUUIDRegexPattern
-
 	// Minimum number of regex match groups for action parsing.
 	minActionMatchGroups = 3
 )
-
-// to prevent self-modification and preserve deliberate test patterns.
-var gofumpterFileExcludePatterns = []string{
-	`_gen\.go$`,                            // Generated files
-	`\.pb\.go$`,                            // Protocol buffer files
-	`vendor/`,                              // Vendored dependencies
-	`api/client`,                           // Generated API client
-	`api/model`,                            // Generated API models
-	`api/server`,                           // Generated API server
-	`internal[/\\]cicd[/\\]cicd\.go$`,      // Exclude this file itself to avoid replacing the regex pattern
-	`internal[/\\]cicd[/\\]cicd_test\.go$`, // Exclude test file to preserve deliberate bad patterns for testing
-	`.git/`,                                // Git directory
-	`node_modules/`,                        // Node.js dependencies
-}
 
 type GitHubRelease struct {
 	TagName string `json:"tag_name"`
@@ -518,11 +485,11 @@ func parseWorkflowFile(path string) ([]ActionInfo, error) {
 
 func getLatestVersion(actionName string) (string, error) {
 	// GitHub API has rate limits, so add a delay
-	time.Sleep(githubAPIDelay)
+	time.Sleep(cryptoutilMagic.TimeoutGitHubAPIDelay)
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", actionName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), githubAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutGitHubAPITimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -576,7 +543,7 @@ func getLatestVersion(actionName string) (string, error) {
 func getLatestTag(actionName string) (string, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
 
-	ctx, cancel := context.WithTimeout(context.Background(), githubAPITimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutGitHubAPITimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
@@ -1087,7 +1054,7 @@ func checkTestFile(filePath string) []string {
 	}
 
 	// Pattern 2: Check for hardcoded UUIDs (basic pattern)
-	uuidPattern := regexp.MustCompile(uuidRegexPattern)
+	uuidPattern := regexp.MustCompile(cryptoutilMagic.StringUUIDRegexPattern)
 	if uuidPattern.MatchString(contentStr) {
 		issues = append(issues, "Found hardcoded UUID - consider using uuid.NewV7() for test data")
 	}
@@ -1226,7 +1193,7 @@ func processGoFile(filePath string) (int, error) {
 
 	// Only write if there were changes
 	if replacements > 0 {
-		err = os.WriteFile(filePath, []byte(modifiedContent), filePermissions)
+		err = os.WriteFile(filePath, []byte(modifiedContent), cryptoutilMagic.FilePermissionsDefault)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}
