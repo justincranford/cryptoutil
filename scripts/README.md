@@ -18,10 +18,6 @@ This directory contains utility scripts for development, testing, building, and 
 
 These scripts install pre-commit hooks that run automated code quality checks on every commit.
 
-## Performance Testing
-
-See `scripts/perf/README.doc` for detailed performance testing documentation and usage.
-
 ## Security Scripts
 
 ## Utility Scripts
