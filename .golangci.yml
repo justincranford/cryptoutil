@@ -340,7 +340,7 @@ issues:
     - static      # Skip static web assets (CSS, images, etc.), no Go files
 
     # RECOMMENDED: DO NOT exclude these directories (they contain Go code to lint):
-    # - cmd/        # Application entry points - SHOULD BE LINTED
+    # - cmd/        # Application entry points (Nx main.go) - SHOULD BE LINTED
     # - internal/   # Internal packages - SHOULD BE LINTED
     # - pkg/        # Public packages - SHOULD BE LINTED
     # - scripts/    # Build scripts with Go code - SHOULD BE LINTED
@@ -348,8 +348,6 @@ issues:
   exclude-files:
     - ".*\\.pb\\.go$"
     - ".*_gen\\.go$"
-    - ".*internal/cicd/cicd\\.go$"      # Exclude cicd.go - contains deliberate test patterns
-    - ".*internal/cicd/cicd_test\\.go$" # Exclude cicd_test.go - contains deliberate test patterns
   uniq-by-line: true
   max-issues-per-linter: 50
   max-same-issues: 10
