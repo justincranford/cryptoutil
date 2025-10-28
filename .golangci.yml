@@ -157,6 +157,8 @@ linters-settings:
         alias: cryptoutilClient
       - pkg: cryptoutil/internal/cmd
         alias: cryptoutilCmd
+      - pkg: cryptoutil/internal/cmd/cryptoutil
+        alias: cryptoutilCmdCryptoutil
       - pkg: cryptoutil/internal/cicd
         alias: cryptoutilCICD
       - pkg: cryptoutil/internal/workflow

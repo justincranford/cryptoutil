@@ -1,9 +1,9 @@
 package main
 
 import (
-	cryptoutilCmd "cryptoutil/internal/cmd"
+	cryptoutilCmdCryptoutil "cryptoutil/internal/cmd/cryptoutil"
 )
 
 func main() {
-	cryptoutilCmd.Execute()
+	cryptoutilCmdCryptoutil.Execute()
 }
