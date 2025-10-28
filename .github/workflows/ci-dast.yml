@@ -6,7 +6,7 @@ name: CI - DAST Security Testing
 #
 # IMPORTANT: Test locally with act (NO TIMEOUT - workflows take 3-25 minutes):
 #   RECOMMENDED: Use the automated Go utility (handles timeouts, monitoring, and analysis):
-#     go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=quick"
+#     go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
 #     go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=full"
 #     go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=deep"
 #

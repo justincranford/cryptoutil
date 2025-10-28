@@ -112,7 +112,9 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Go linting with auto-fix (includes formatting, imports, and all enabled linters)
+  # Go linting with auto-fix (includes gofumpt with extra-rules, imports, and all enabled linters)
+  # NOTE: golangci-lint includes gofumpt with extra-rules: true in .golangci.yml
+  #       No separate gofumpt hook needed to avoid conflicting formatting passes
   - repo: local
     hooks:
       - id: golangci-lint
@@ -122,14 +124,6 @@ repos:
         language: system
         pass_filenames: false
         stages: [pre-commit]  # Run full linting on commit, not just on push
-
-      - id: gofumpt-extra
-        name: gofumpt extra rules (additional formatting beyond golangci-lint)
-        entry: gofumpt
-        args: [-extra, -w, .]
-        language: system
-        pass_filenames: false
-        stages: [pre-commit]
 
   # Go build validation
   - repo: local

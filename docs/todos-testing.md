@@ -27,7 +27,7 @@
 ### Testing Commands
 ```powershell
 # Test ZAP fix with quick scan
-go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=quick"
+go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
 
 # Verify report generation
 ls .\dast-reports\*.html, .\dast-reports\*.json, .\dast-reports\*.md

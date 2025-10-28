@@ -124,6 +124,17 @@ nuclei -templates-version
 
 - Avoid asking Copilot to output or run ephemeral shell commands that create/update repository files via chat (for example: piping PowerShell Get-Content replace commands into Set-Content). Those patterns often trigger unwanted prompts and premium LLM watch requests. Instead, prefer programmatic edits via tests or using the repository's scripted tools.
 
+## Workflow Testing with cmd/workflow
+
+- Use `go run ./cmd/workflow` to execute GitHub Actions workflows locally with act
+- The workflow runner is implemented in `internal/workflow/workflow.go` with cmd entry point at `cmd/workflow/main.go`
+- Common usage patterns:
+  ```bash
+  go run ./cmd/workflow -workflows=e2e,dast
+  go run ./cmd/workflow -workflows=quality -dry-run
+  go run ./cmd/workflow -list
+  ```
+
 ## Pre-commit Hook Guidelines
 
 - **NEVER use shell commands** (`sh`, `bash`, `powershell`) in pre-commit configurations

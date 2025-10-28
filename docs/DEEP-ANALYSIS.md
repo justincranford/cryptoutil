@@ -210,7 +210,8 @@ cryptoutil/
 ├── scripts/                      # Build and utility scripts
 │   ├── cicd/                     # CI/CD validation library
 │   └── github-workflows/         # Workflow utilities
-│       └── run_github_workflow_locally.go
+│       └── workflow/
+│           └── workflow.go
 ├── test/                         # Test resources
 │   ├── e2e/                      # E2E test artifacts
 │   └── load/                     # Gatling load tests
@@ -283,7 +284,7 @@ This section maps ALL temporary files/directories created by various project com
 
 #### 4. GitHub Workflow Execution Artifacts
 
-**Location:** `workflow-reports/` (consolidated by run_github_workflow_locally.go)
+**Location:** `workflow-reports/` (consolidated by cmd/workflow)
 
 **Files Created:**
 - `{workflow-name}-{timestamp}.log` - Individual workflow logs
@@ -495,9 +496,9 @@ output/
 
 ---
 
-### Workflow Testing Tool: run_github_workflow_locally.go
+### Workflow Testing Tool: cmd/workflow
 
-**Location:** `scripts/github-workflows/run_github_workflow_locally.go`
+**Location:** `cmd/workflow/main.go` (calls `internal/workflow/workflow.go`)
 
 **Purpose:** Execute GitHub Actions workflows locally using `act` with comprehensive monitoring and reporting
 
@@ -519,9 +520,9 @@ output/
 
 **Usage:**
 ```bash
-go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=quality,e2e
-go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -dry-run
-go run ./scripts/github-workflows/run_github_workflow_locally.go -list
+go run ./cmd/workflow -workflows=quality,e2e
+go run ./cmd/workflow -workflows=dast -dry-run
+go run ./cmd/workflow -list
 ```
 
 **Output Files:**
@@ -822,7 +823,16 @@ gofumpt -extra -w .
 # (Now handled by run_github_workflow_locally.go)
 
 # Workflow Testing
-go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=quality,e2e
+# (Now handled by cmd/workflow)
+act workflow_dispatch -W .github/workflows/ci-sast.yml
+
+# (Now handled by cmd/workflow)
+act push -W .github/workflows/ci-robust.yml
+
+# (Now handled by cmd/workflow)
+act push -W .github/workflows/ci-quality.yml
+
+go run ./cmd/workflow -workflows=quality,e2e
 
 # Docker Compose
 cd deployments/compose

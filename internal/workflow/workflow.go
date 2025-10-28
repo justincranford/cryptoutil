@@ -1,4 +1,4 @@
-package main
+package workflow
 
 import (
 	"bufio"
@@ -79,6 +79,10 @@ const (
 	// Workflow names.
 	workflowNameDAST = "dast"
 
+	// Event types.
+	eventTypePush             = "push"
+	eventTypeWorkflowDispatch = "workflow_dispatch"
+
 	// File permissions.
 	filePermissions = 0o644
 	dirPermissions  = 0o755
@@ -93,70 +97,78 @@ const (
 	bytesPerMB = 1024 * 1024
 )
 
-var (
-	// Available workflows.
-	workflows = map[string]WorkflowConfig{
-		"e2e": {
-			Name:         "e2e",
-			WorkflowFile: ".github/workflows/ci-e2e.yml",
-			Description:  "End-to-End Testing - Full system integration with Docker Compose",
-			DefaultArgs:  []string{},
-		},
-		workflowNameDAST: {
-			Name:         workflowNameDAST,
-			WorkflowFile: ".github/workflows/ci-dast.yml",
-			Description:  "Dynamic Application Security Testing - OWASP ZAP and Nuclei scans",
-			DefaultArgs:  []string{"--input", "scan_profile=quick"},
-		},
-		"sast": {
-			Name:         "sast",
-			WorkflowFile: ".github/workflows/ci-sast.yml",
-			Description:  "Static Application Security Testing - gosec and golangci-lint security checks",
-			DefaultArgs:  []string{},
-		},
-		"robust": {
-			Name:         "robust",
-			WorkflowFile: ".github/workflows/ci-robust.yml",
-			Description:  "Robustness Testing - Concurrency, race detection, fuzz tests, benchmarks",
-			DefaultArgs:  []string{},
-		},
-		"quality": {
-			Name:         "quality",
-			WorkflowFile: ".github/workflows/ci-quality.yml",
-			Description:  "Code Quality - Unit tests, coverage, linting, formatting checks",
-			DefaultArgs:  []string{},
-		},
+// Available workflows.
+var workflows = map[string]WorkflowConfig{
+	"e2e": {
+		Name:         "e2e",
+		WorkflowFile: ".github/workflows/ci-e2e.yml",
+		Description:  "End-to-End Testing - Full system integration with Docker Compose",
+		DefaultArgs:  []string{},
+	},
+	workflowNameDAST: {
+		Name:         workflowNameDAST,
+		WorkflowFile: ".github/workflows/ci-dast.yml",
+		Description:  "Dynamic Application Security Testing - OWASP ZAP and Nuclei scans",
+		DefaultArgs:  []string{"--input", "scan_profile=quick"},
+	},
+	"sast": {
+		Name:         "sast",
+		WorkflowFile: ".github/workflows/ci-sast.yml",
+		Description:  "Static Application Security Testing - gosec and golangci-lint security checks",
+		DefaultArgs:  []string{},
+	},
+	"robust": {
+		Name:         "robust",
+		WorkflowFile: ".github/workflows/ci-robust.yml",
+		Description:  "Robustness Testing - Concurrency, race detection, fuzz tests, benchmarks",
+		DefaultArgs:  []string{},
+	},
+	"quality": {
+		Name:         "quality",
+		WorkflowFile: ".github/workflows/ci-quality.yml",
+		Description:  "Code Quality - Unit tests, coverage, linting, formatting checks",
+		DefaultArgs:  []string{},
+	},
+}
+
+// Run executes the workflow runner with the provided command line arguments.
+func Run(args []string) int {
+	// Create flag set for parsing.
+	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
+
+	workflowNames := fs.String("workflows", "", "Comma-separated list of workflows to run (e2e,dast,sast,robust,quality)")
+	outputDir := fs.String("output", "workflow-reports", "Output directory for logs and reports")
+	dryRun := fs.Bool("dry-run", false, "Show what would be executed without running workflows")
+	actPath := fs.String("act-path", "act", "Path to act executable")
+	actArgs := fs.String("act-args", "", "Additional arguments to pass to act")
+	showList := fs.Bool("list", false, "List available workflows and exit")
+
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(os.Stderr, "%sError parsing flags: %v%s\n", colorRed, err, colorReset)
+
+		return 1
 	}
-
-	// Command line flags.
-	workflowNames = flag.String("workflows", "", "Comma-separated list of workflows to run (e2e,dast,sast,robust,quality)")
-	outputDir     = flag.String("output", "workflow-reports", "Output directory for logs and reports")
-	dryRun        = flag.Bool("dry-run", false, "Show what would be executed without running workflows")
-	actPath       = flag.String("act-path", "act", "Path to act executable")
-	actArgs       = flag.String("act-args", "", "Additional arguments to pass to act")
-	showList      = flag.Bool("list", false, "List available workflows and exit")
-)
-
-func main() {
-	flag.Parse()
 
 	// Show available workflows if requested.
 	if *showList {
 		listWorkflows()
-		os.Exit(0)
+
+		return 0
 	}
 
 	// Validate workflow names.
 	if *workflowNames == "" {
 		fmt.Fprintf(os.Stderr, "%sError: No workflows specified. Use -workflows flag.%s\n", colorRed, colorReset)
 		fmt.Fprintf(os.Stderr, "Use -list to see available workflows.\n")
-		os.Exit(1)
+
+		return 1
 	}
 
 	selectedWorkflows := parseWorkflowNames(*workflowNames)
 	if len(selectedWorkflows) == 0 {
 		fmt.Fprintf(os.Stderr, "%sError: No valid workflows specified.%s\n", colorRed, colorReset)
-		os.Exit(1)
+
+		return 1
 	}
 
 	// Create execution summary.
@@ -170,23 +182,25 @@ func main() {
 	// Setup output directory.
 	if err := os.MkdirAll(*outputDir, dirPermissions); err != nil {
 		fmt.Fprintf(os.Stderr, "%sError creating output directory: %v%s\n", colorRed, err, colorReset)
-		os.Exit(1)
+
+		return 1
 	}
 
 	// Open combined log file.
 	combinedLog, err := os.OpenFile(summary.CombinedLog, os.O_CREATE|os.O_WRONLY|os.O_APPEND, filePermissions)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sError creating combined log file: %v%s\n", colorRed, err, colorReset)
-		os.Exit(1)
+
+		return 1
 	}
 	defer combinedLog.Close()
 
 	// Print executive summary header.
-	printExecutiveSummaryHeader(selectedWorkflows, combinedLog)
+	printExecutiveSummaryHeader(selectedWorkflows, combinedLog, *dryRun)
 
 	// Execute workflows sequentially.
 	for _, wf := range selectedWorkflows {
-		result := executeWorkflow(wf, combinedLog)
+		result := executeWorkflow(wf, combinedLog, *outputDir, *dryRun, *actPath, *actArgs)
 		summary.Workflows = append(summary.Workflows, result)
 
 		if result.Success {
@@ -205,10 +219,10 @@ func main() {
 
 	// Exit with appropriate code.
 	if summary.TotalFailed > 0 {
-		os.Exit(1)
+		return 1
 	}
 
-	os.Exit(0)
+	return 0
 }
 
 func listWorkflows() {
@@ -228,9 +242,9 @@ func listWorkflows() {
 
 	fmt.Println("\n" + strings.Repeat("=", lineWidth))
 	fmt.Println("\nUsage:")
-	fmt.Println("  go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=e2e,dast")
-	fmt.Println("  go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=quality -dry-run")
-	fmt.Println("  go run ./scripts/github-workflows/run_github_workflow_locally.go -list")
+	fmt.Println("  go run ./cmd/workflow -workflows=e2e,dast")
+	fmt.Println("  go run ./cmd/workflow -workflows=quality -dry-run")
+	fmt.Println("  go run ./cmd/workflow -list")
 	fmt.Println()
 }
 
@@ -250,14 +264,14 @@ func parseWorkflowNames(names string) []WorkflowConfig {
 	return result
 }
 
-func printExecutiveSummaryHeader(selectedWorkflows []WorkflowConfig, logFile *os.File) {
+func printExecutiveSummaryHeader(selectedWorkflows []WorkflowConfig, logFile *os.File, dryRun bool) {
 	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", lineWidth))
 	header += fmt.Sprintf("%s🚀 GITHUB ACTIONS LOCAL WORKFLOW EXECUTION%s\n", colorCyan, colorReset)
 	header += fmt.Sprintf("%s\n", strings.Repeat("=", lineWidth))
 	header += fmt.Sprintf("\n📅 Execution Started: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 	header += fmt.Sprintf("📊 Workflows Selected: %d\n", len(selectedWorkflows))
 
-	if *dryRun {
+	if dryRun {
 		header += fmt.Sprintf("%s🔍 DRY RUN MODE - No workflows will be executed%s\n", colorYellow, colorReset)
 	}
 
@@ -346,12 +360,12 @@ func printExecutiveSummaryFooter(summary *ExecutionSummary, logFile *os.File) {
 	}
 }
 
-func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
+func executeWorkflow(wf WorkflowConfig, combinedLog *os.File, outputDir string, dryRun bool, actPath, actArgs string) WorkflowResult {
 	result := WorkflowResult{
 		Name:         wf.Name,
 		TaskResults:  make(map[string]TaskResult),
-		LogFile:      filepath.Join(*outputDir, fmt.Sprintf("%s-%s.log", wf.Name, time.Now().Format("2006-01-02_15-04-05"))),
-		AnalysisFile: filepath.Join(*outputDir, fmt.Sprintf("%s-analysis-%s.md", wf.Name, time.Now().Format("2006-01-02_15-04-05"))),
+		LogFile:      filepath.Join(outputDir, fmt.Sprintf("%s-%s.log", wf.Name, time.Now().Format("2006-01-02_15-04-05"))),
+		AnalysisFile: filepath.Join(outputDir, fmt.Sprintf("%s-analysis-%s.md", wf.Name, time.Now().Format("2006-01-02_15-04-05"))),
 	}
 
 	startTime := time.Now()
@@ -379,23 +393,23 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 		_, _ = combinedLog.WriteString(header) //nolint:errcheck // Logging errors are non-fatal
 	}
 
-	if *dryRun {
+	if dryRun {
 		// Build act command for dry-run display.
 		// Use workflow_dispatch for DAST (supports inputs), push for others
-		event := "push"
+		event := eventTypePush
 		if wf.Name == workflowNameDAST {
-			event = "workflow_dispatch"
+			event = eventTypeWorkflowDispatch
 		}
 
 		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", colorYellow, wf.WorkflowFile, colorReset)
-		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", *actPath, event, wf.WorkflowFile)
+		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", actPath, event, wf.WorkflowFile)
 
 		if len(wf.DefaultArgs) > 0 {
 			dryRunMsg += fmt.Sprintf("   Args: %s\n", strings.Join(wf.DefaultArgs, " "))
 		}
 
-		if *actArgs != "" {
-			dryRunMsg += fmt.Sprintf("   Extra Args: %s\n", *actArgs)
+		if actArgs != "" {
+			dryRunMsg += fmt.Sprintf("   Extra Args: %s\n", actArgs)
 		}
 
 		dryRunMsg += strings.Repeat("=", lineWidth) + "\n"
@@ -418,21 +432,21 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 
 	// Build act command.
 	// Use workflow_dispatch for DAST (supports inputs), push for others
-	event := "push"
+	event := eventTypePush
 	if wf.Name == workflowNameDAST {
-		event = "workflow_dispatch"
+		event = eventTypeWorkflowDispatch
 	}
 
 	args := []string{event, "-W", wf.WorkflowFile}
 	args = append(args, wf.DefaultArgs...)
 
-	if *actArgs != "" {
-		args = append(args, strings.Fields(*actArgs)...)
+	if actArgs != "" {
+		args = append(args, strings.Fields(actArgs)...)
 	}
 
-	args = append(args, "--artifact-server-path", *outputDir)
+	args = append(args, "--artifact-server-path", outputDir)
 
-	fmt.Printf("🚀 Executing: %s %s\n", *actPath, strings.Join(args, " "))
+	fmt.Printf("🚀 Executing: %s %s\n", actPath, strings.Join(args, " "))
 
 	// Create workflow log file.
 	workflowLog, err := os.OpenFile(result.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, filePermissions)
@@ -457,7 +471,7 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File) WorkflowResult {
 	defer workflowLog.Close()
 
 	// Execute act command.
-	cmd := exec.Command(*actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
+	cmd := exec.Command(actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
 
 	// Setup stdout and stderr pipes for dual logging.
 	stdoutPipe, err := cmd.StdoutPipe()

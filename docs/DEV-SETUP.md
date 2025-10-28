@@ -481,7 +481,7 @@ go tool cover -html=coverage.out -o coverage.html
 golangci-lint run --timeout=10m
 
 # Run security scans (via GitHub Actions workflows)
-# Use: go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast
+# Use: go run ./cmd/workflow -workflows=dast
 ```
 
 ### Manual Security Testing with Nuclei

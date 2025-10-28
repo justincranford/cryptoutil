@@ -161,7 +161,7 @@
      - Remove existing scattered artifact patterns from `.gitignore`
 
   2. **Phase 2 - Update Go Code**:
-     - Update `scripts/github-workflows/run_github_workflow_locally.go` to use `.build/workflows/`
+     - Update `cmd/workflow` to use `.build/workflows/`
      - Update E2E test code in `internal/e2e/` to output to `.build/e2e/`
      - Update test helpers to write coverage to `.build/coverage/`
 
@@ -171,7 +171,7 @@
      - Update `ci-quality.yml` to use `.build/{coverage,sarif,sbom}/`
 
   4. **Phase 4 - Update Scripts**:
-     - Update `scripts/github-workflows/run_github_workflow_locally.go` to use `.build/workflow/`
+     - Update `cmd/workflow` to use `.build/workflow/`
 
   5. **Phase 5 - Update Build Configuration**:
      - Update Makefile (if exists) to use `.build/bin/`
@@ -185,7 +185,7 @@
      - Remove old scattered artifact directories from repository
 - **Files Modified**:
   - `.gitignore` (simplified to single `.build/` exclusion)
-  - `scripts/github-workflows/run_github_workflow_locally.go`
+  - `cmd/workflow`
   - `internal/e2e/*.go` (E2E test utilities)
   - `.github/workflows/*.yml` (all 5 workflows)
   - `test/load/pom.xml` (Gatling output directory)

@@ -8,19 +8,19 @@ applyTo: "**"
 
 **NEVER use short timeouts when running DAST workflows with act**
 
-### Recommended Approach: Use run_github_workflow_locally.go
+### Recommended Approach: Use cmd/workflow
 
 **ALWAYS use the provided Go utility for running act workflows**
 
 ```bash
 # Quick DAST scan (3-5 minutes)
-go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=quick"
+go run ./cmd/workflow -workflows=dast -inputs="scan_profile=quick"
 
 # Full DAST scan (10-15 minutes)
-go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=full"
+go run ./cmd/workflow -workflows=dast -inputs="scan_profile=full"
 
 # Deep DAST scan (20-25 minutes)
-go run ./scripts/github-workflows/run_github_workflow_locally.go -workflows=dast -inputs="scan_profile=deep"
+go run ./cmd/workflow -workflows=dast -inputs="scan_profile=deep"
 ```
 
 **Features:**
@@ -64,7 +64,7 @@ Get-Content .\dast-reports\act-dast.log -Tail 100
 
 ### Automatic Result Analysis
 
-The `run_github_workflow_locally.go` utility automatically analyzes:
+The `cmd/workflow` utility automatically analyzes:
 
 1. **Workflow Status**: Job succeeded/failed detection
 2. **Task Status**: Individual scan completion verification
@@ -91,7 +91,7 @@ The `run_github_workflow_locally.go` utility automatically analyzes:
 ❌ **CRITICAL - NEVER do this**: Any interactive monitoring commands that lock files or interfere with running processes
 ❌ **CRITICAL - NEVER do this**: Opening/tailing log files in another terminal while scan is running
 
-✅ **ALWAYS do this**: Use `run_github_workflow_locally.go` for automated monitoring
+✅ **ALWAYS do this**: Use `cmd/workflow` for automated monitoring
 ✅ **ALWAYS do this**: Allow sufficient timeout for scan profile
 ✅ **ALWAYS do this**: Review generated workflow analysis markdown files
 ✅ **ALWAYS do this**: Check log file for detailed error messages AFTER tasks complete

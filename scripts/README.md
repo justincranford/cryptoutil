@@ -88,5 +88,7 @@ Most scripts will install required tools automatically if missing:
 ## Integration with CI/CD
 
 These scripts mirror the functionality available in GitHub Actions workflows:
-- Security scanning and DAST testing are handled by `run_github_workflow_locally.go` for local testing and GitHub Actions workflows for CI/CD
+### Testing with Act
+
+- Security scanning and DAST testing are handled by `cmd/workflow` for local testing and GitHub Actions workflows for CI/CD
 - Performance testing can be integrated into CI/CD pipelines
