@@ -1191,10 +1191,8 @@ func processGoFile(filePath string) (int, error) {
 	re := regexp.MustCompile(interfacePattern)
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
-	// Count actual replacements by comparing any counts
-	originalInterfaceCount := strings.Count(originalContent, "any")
-	modifiedInterfaceCount := strings.Count(modifiedContent, "any")
-	replacements := originalInterfaceCount - modifiedInterfaceCount
+	// Count actual replacements by counting interface{} in original content
+	replacements := strings.Count(originalContent, "interface{}")
 
 	// Only write if there were changes
 	if replacements > 0 {

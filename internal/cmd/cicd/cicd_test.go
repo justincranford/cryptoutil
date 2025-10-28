@@ -32,13 +32,6 @@ type MyStruct struct {
 	Data any
 }
 `
-	testFuncProcess = `
-func process(data any) any {
-	return data
-}
-`
-	testCommentWithAny = `
-// This is a comment with any that should not be replaced`
 	testStrAssignment = `
 	str := "any in string should not be replaced"`
 )
