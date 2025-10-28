@@ -814,13 +814,13 @@ golangci-lint run --fix
 gofumpt -extra -w .
 
 # Security Scan
-# (Now handled by run_github_workflow_locally.go)
+# (Now handled by cmd/workflow)
 
 # DAST Scan
-# (Now handled by run_github_workflow_locally.go)
+# (Now handled by cmd/workflow)
 
 # Mutation Testing
-# (Now handled by run_github_workflow_locally.go)
+# (Now handled by cmd/workflow)
 
 # Workflow Testing
 # (Now handled by cmd/workflow)
