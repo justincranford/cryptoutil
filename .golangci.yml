@@ -159,10 +159,11 @@ linters-settings:
         alias: cryptoutilCmd
       - pkg: cryptoutil/internal/cmd/cryptoutil
         alias: cryptoutilCmdCryptoutil
-      - pkg: cryptoutil/internal/cmd/e2e
-        alias: cryptoutilE2E
       - pkg: cryptoutil/internal/cmd/workflow
         alias: cryptoutilWorkflow
+      # Cryptoutil internal packages - test utilities
+      - pkg: cryptoutil/internal/test/e2e
+        alias: cryptoutilE2E
       # Cryptoutil internal packages - common utilities
       - pkg: cryptoutil/internal/common/apperr
         alias: cryptoutilAppErr

@@ -199,7 +199,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Key Parameters**:
 - All commands run on every commit (no file restrictions)
-- Custom scripts: [../cmd/cicd/main.go](../cmd/cicd/main.go) (wrapper), [../internal/cicd/cicd.go](../internal/cicd/cicd.go) (implementation)
+- Custom scripts: [../cmd/cicd/main.go](../cmd/cicd/main.go) (wrapper), [../internal/cmd/cicd/cicd.go](../internal/cmd/cicd/cicd.go) (implementation)
 
 **Enforced Validations**:
 - **go-check-circular-package-dependencies**: Prevents circular import dependencies
@@ -207,7 +207,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - **go-enforce-any**: Applies strict Go code formatting (superset of gofmt)
 - **go-enforce-test-patterns**: Enforces UUIDv7 usage, testify assertion patterns, and test file organization conventions
 
-**Documentation**: See [../internal/cicd/cicd.go](../internal/cicd/cicd.go) for implementation details.
+**Documentation**: See [../internal/cmd/cicd/cicd.go](../internal/cmd/cicd/cicd.go) for implementation details.
 
 ### 6. GitHub Actions Linting (actionlint)
 

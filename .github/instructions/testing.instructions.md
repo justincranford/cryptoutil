@@ -45,7 +45,7 @@ Follow Go testing file naming conventions for proper organization:
 
 When testing linting of code samples or validating regex patterns during chat sessions:
 
-- **Create permanent tests in `internal/cicd/cicd_test.go`** instead of one-off temporary test files
+- **Create permanent tests in `internal/cmd/cicd/cicd_test.go`** instead of one-off temporary test files
 - This ensures test coverage persists across chat sessions and serves as regression testing
 - Examples: regex validation tests, linting pattern tests, code transformation tests
 - All tests in `cicd_test.go` execute automatically during Go test runs

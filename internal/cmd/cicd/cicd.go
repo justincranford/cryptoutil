@@ -74,7 +74,7 @@ func getUsageMessage() string {
 Commands:
   all-enforce-utf8                       - Enforce UTF-8 encoding without BOM
   go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
-  go-enforce-any                         - Custom Go source code fixes (interface{} -> any, etc.)
+  go-enforce-any                         - Custom Go source code fixes (any -> any, etc.)
   go-check-circular-package-dependencies - Check for circular dependencies in Go packages
   go-update-direct-dependencies          - Check direct Go dependencies only
   go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
@@ -1184,16 +1184,16 @@ func processGoFile(filePath string) (int, error) {
 
 	originalContent := string(content)
 
-	// Replace interface{} with any
-	// Use a regex to match interface{} as a whole word, not part of other identifiers
+	// Replace any with any
+	// Use a regex to match any as a whole word, not part of other identifiers
 	// Construct the pattern to avoid self-replacement in this source file
 	interfacePattern := `interface\{\}`
 	re := regexp.MustCompile(interfacePattern)
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
-	// Count actual replacements by comparing interface{} counts
-	originalInterfaceCount := strings.Count(originalContent, "interface{}")
-	modifiedInterfaceCount := strings.Count(modifiedContent, "interface{}")
+	// Count actual replacements by comparing any counts
+	originalInterfaceCount := strings.Count(originalContent, "any")
+	modifiedInterfaceCount := strings.Count(modifiedContent, "any")
 	replacements := originalInterfaceCount - modifiedInterfaceCount
 
 	// Only write if there were changes

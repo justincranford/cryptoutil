@@ -24,7 +24,10 @@ These scripts install pre-commit hooks that run automated code quality checks on
 
 ### cicd utility (cmd/cicd)
 
-Go utility for CI/CD dependency and version checking. The source code is located in `internal/cicd/` with the CLI wrapper in `cmd/cicd/main.go`.
+#### `go run ./cmd/cicd`
+
+Go utility for CI/CD dependency and version checking. The source code is located in `internal/cmd/cicd/` with the CLI wrapper in `cmd/cicd/main.go`.
+
 
 ```bash
 # Check Go dependency versions (direct dependencies only)

@@ -16,7 +16,7 @@
 package main
 
 import (
-	"cryptoutil/internal/cicd"
+	"cryptoutil/internal/cmd/cicd"
 	"fmt"
 	"os"
 )
