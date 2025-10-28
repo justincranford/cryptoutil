@@ -4,15 +4,6 @@
 // and workflow consistency. It is designed to run both locally (during development) and
 // in CI/CD pipelines (via pre-push hooks and GitHub Actions).
 //
-// Available Commands:
-//   - enforce-file-encoding: Validate text files use UTF-8 encoding without BOM
-//   - go-check-circular-package-dependencies: Detect circular import cycles in Go packages
-//   - enforce-test-patterns: Validate test code follows project conventions (UUIDv7, testify)
-//   - gofumpter: Apply custom Go source code transformations (interface{} -> any)
-//   - go-update-direct-dependencies: Check for outdated direct Go dependencies (requires go.mod)
-//   - go-update-all-dependencies: Check for outdated Go dependencies (direct + transitive)
-//   - github-workflow-lint: Validate GitHub Actions workflow naming and structure
-//
 // IMPORTANT: This file contains deliberate linter error patterns for testing cicd functionality.
 // It MUST be excluded from all linting operations to prevent self-referencing errors.
 // See .golangci.yml exclude-rules and cicd.go exclusion patterns for details.
@@ -76,36 +67,50 @@ type ActionInfo struct {
 	WorkflowFile   string
 }
 
+// getUsageMessage returns the usage message for the cicd command.
+func getUsageMessage() string {
+	return `Usage: cicd <command> [command...]
+
+Commands:
+  all-enforce-utf8                       - Enforce UTF-8 encoding without BOM
+  go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
+  go-enforce-any                         - Custom Go source code fixes (interface{} -> any, etc.)
+  go-check-circular-package-dependencies - Check for circular dependencies in Go packages
+  go-update-direct-dependencies          - Check direct Go dependencies only
+  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
+  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions`
+}
+
 // Run executes the specified CI/CD check commands.
 // It takes a slice of command names and executes them sequentially.
 // Returns an error if any command is unknown or if execution fails.
 func Run(commands []string) error {
 	if len(commands) == 0 {
-		return fmt.Errorf("Usage: cicd <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n\nExamples:\n  Run([]string{\"go-update-direct-dependencies\"})\n  Run([]string{\"go-update-all-dependencies\"})\n  Run([]string{\"go-check-circular-package-dependencies\"})\n  Run([]string{\"github-workflow-lint\"})\n  Run([]string{\"gofumpter\"})\n  Run([]string{\"enforce-test-patterns\"})\n  Run([]string{\"enforce-file-encoding\"})\n  Run([]string{\"go-update-direct-dependencies\", \"github-workflow-lint\"})") //nolint:stylecheck // Capitalized for user-facing error message
+		return fmt.Errorf("%s", getUsageMessage())
 	}
 
 	// Process all commands provided as arguments
-	for i := 0; i < len(commands); i++ {
+	for i := range commands {
 		command := commands[i]
 		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
 
 		switch command {
-		case "go-update-direct-dependencies": // Golang best practice is to only update direct dependencies
-			checkDeps(DepCheckDirect)
-		case "go-update-all-dependencies": // Less common, but sometimes useful to update all dependencies
-			checkDeps(DepCheckAll)
+		case "all-enforce-utf8":
+			allEnforceUtf8()
+		case "go-enforce-test-patterns":
+			goEnforceTestPatterns()
+		case "go-enforce-any":
+			goEnforceAny()
 		case "go-check-circular-package-dependencies":
-			checkCircularDeps()
+			goCheckCircularPackageDeps()
+		case "go-update-direct-dependencies": // Best practice, only direct dependencies
+			goUpdateDeps(DepCheckDirect)
+		case "go-update-all-dependencies": // Less practiced, direct & transient dependencies
+			goUpdateDeps(DepCheckAll)
 		case "github-workflow-lint":
 			checkWorkflowLint()
-		case "gofumpter":
-			runGofumpter()
-		case "enforce-test-patterns":
-			enforceTestPatterns()
-		case "enforce-file-encoding":
-			enforceFileEncoding()
 		default:
-			return fmt.Errorf("Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM", command) //nolint:stylecheck // Capitalized for user-facing error message
+			return fmt.Errorf("unknown command: %s\n\n%s", command, getUsageMessage())
 		}
 
 		// Add a separator between multiple commands
@@ -117,7 +122,7 @@ func Run(commands []string) error {
 	return nil
 }
 
-func checkDeps(mode DepCheckMode) {
+func goUpdateDeps(mode DepCheckMode) {
 	// Run go list -u -m all to check for outdated dependencies
 	cmd := exec.Command("go", "list", "-u", "-m", "all")
 
@@ -251,11 +256,11 @@ func loadActionExceptions() (*ActionExceptions, error) {
 }
 
 // checkWorkflowLint validates GitHub Actions workflow files in two ways:
-//  1. Enforces repository-level workflow conventions (filename prefix `ci-`, presence of a top-level
-//     `name:` field, and a logging step that prints the workflow name/filename before executing jobs).
-//  2. Performs the existing GitHub Actions version checks (detects outdated `uses: owner/repo@version`).
+//  1. Enforces repository-level workflow conventions (filename prefix "ci-", presence of a top-level
+//     "name:" field, and a logging step that prints the workflow name/filename before executing jobs).
+//  2. Performs the existing GitHub Actions version checks (detects outdated "uses: owner/repo@version").
 //
-// The function walks `.github/workflows`, validates each YAML file using a lightweight text-based
+// The function walks ".github/workflows", validates each YAML file using a lightweight text-based
 // validation (regex/search) to avoid adding a YAML dependency, and then reuses the existing
 // action-version logic to check for outdated actions. Any violations cause the function to print
 // human-friendly messages and exit with a non-zero status to block pushes.
@@ -422,8 +427,8 @@ func checkWorkflowLint() {
 // validateWorkflowFile performs lightweight checks on a workflow YAML file to ensure it
 // follows repository conventions:
 //   - filename must start with "ci-"
-//   - file must contain a top-level `name:` field
-//   - file must include a logging reference to the workflow name (e.g., `${{ github.workflow }}` or `GITHUB_WORKFLOW`)
+//   - file must contain a top-level "name:" field
+//   - file must include a logging reference to the workflow name (e.g., "${{ github.workflow }}" or "GITHUB_WORKFLOW")
 //
 // Returns a list of human-readable issues (empty if file is valid) and any error encountered reading the file.
 func validateWorkflowFile(path string) ([]string, error) {
@@ -627,7 +632,7 @@ type PackageInfo struct {
 	Imports    []string `json:"Imports"`
 }
 
-func checkCircularDeps() {
+func goCheckCircularPackageDeps() {
 	startTime := time.Now()
 
 	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
@@ -814,7 +819,7 @@ func checkCircularDeps() {
 	os.Exit(1) // Fail the build
 }
 
-func enforceTestPatterns() {
+func goEnforceTestPatterns() {
 	fmt.Fprintln(os.Stderr, "Enforcing test patterns (UUIDv7 usage, testify assertions)...")
 
 	// Find all test files
@@ -875,7 +880,7 @@ func enforceTestPatterns() {
 	}
 }
 
-func enforceFileEncoding() {
+func allEnforceUtf8() {
 	fmt.Fprintln(os.Stderr, "Enforcing file encoding (UTF-8 without BOM)...")
 
 	// Define file patterns to check (text files that should be UTF-8)
@@ -884,7 +889,7 @@ func enforceFileEncoding() {
 	var filesToCheck []string
 
 	// Find files matching the patterns
-	for _, pattern := range enforceFileEncodingFileIncludePatterns {
+	for _, pattern := range enforceUtf8FileIncludePatterns {
 		matches, err := filepath.Glob(pattern)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error globbing pattern %s: %v\n", pattern, err)
@@ -906,7 +911,7 @@ func enforceFileEncoding() {
 		}
 
 		// Check if file matches any pattern
-		for _, pattern := range enforceFileEncodingFileIncludePatterns {
+		for _, pattern := range enforceUtf8FileIncludePatterns {
 			// Convert glob pattern to regex for matching
 			regexPattern := strings.ReplaceAll(pattern, "*", ".*")
 			regexPattern = "^" + regexPattern + "$"
@@ -955,7 +960,7 @@ func enforceFileEncoding() {
 	for _, filePath := range uniqueFiles {
 		excluded := false
 
-		for _, pattern := range enforceFileEncodingFileExcludePatterns {
+		for _, pattern := range enforceUtf8FileExcludePatterns {
 			matched, err := regexp.MatchString(pattern, filePath)
 			if err != nil {
 				continue
@@ -1085,8 +1090,8 @@ func checkTestFile(filePath string) []string {
 	return issues
 }
 
-func runGofumpter() {
-	fmt.Fprintln(os.Stderr, "Running gofumpter - Custom Go source code fixes...")
+func goEnforceAny() {
+	fmt.Fprintln(os.Stderr, "Running go-enforce-any - Custom Go source code fixes...")
 
 	// Define exclusion patterns (same as pre-commit-config.yaml)
 	// Note: excludedPatterns is defined as a global variable at the top of the file
@@ -1103,7 +1108,7 @@ func runGofumpter() {
 			// Check if file should be excluded
 			excluded := false
 
-			for _, pattern := range gofumpterFileExcludePatterns {
+			for _, pattern := range goEnforceAnyFileExcludePatterns {
 				matched, err := regexp.MatchString(pattern, path)
 				if err != nil {
 					return fmt.Errorf("invalid regex pattern %s: %w", pattern, err)

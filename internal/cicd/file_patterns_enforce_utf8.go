@@ -1,7 +1,7 @@
 package cicd
 
 // File patterns for encoding checks (include patterns).
-var enforceFileEncodingFileIncludePatterns = []string{
+var enforceUtf8FileIncludePatterns = []string{ //nolint:unused
 	// Source code files
 	"*.go",    // Go source files
 	"*.java",  // Java source files
@@ -60,7 +60,7 @@ var enforceFileEncodingFileIncludePatterns = []string{
 }
 
 // Exclusion patterns for file processing (exclude patterns).
-var enforceFileEncodingFileExcludePatterns = []string{
+var enforceUtf8FileExcludePatterns = []string{ //nolint:unused
 	`_gen\.go$`,     // Generated files
 	`\.pb\.go$`,     // Protocol buffer files
 	`vendor/`,       // Vendored dependencies
@@ -69,6 +69,6 @@ var enforceFileEncodingFileExcludePatterns = []string{
 	`api/server`,    // Generated API server
 	`.git/`,         // Git directory
 	`node_modules/`, // Node.js dependencies
-	// NOTE: cicd_checks.go and cicd_checks_test.go are intentionally NOT excluded from enforce-file-encoding
+	// NOTE: cicd_checks.go and cicd_checks_test.go are intentionally NOT excluded from all-enforce-utf8
 	// as these files should validate their own UTF-8 encoding compliance
 }

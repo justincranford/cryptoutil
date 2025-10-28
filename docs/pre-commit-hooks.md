@@ -182,17 +182,17 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
   language: system
   pass_filenames: false
 
-- id: gofumpter
+- id: go-enforce-any
   name: Format Go code with gofumpt
   entry: go
-  args: [run, cmd/cicd/main.go, gofumpter]
+  args: [run, cmd/cicd/main.go, go-enforce-any]
   language: system
   pass_filenames: false
 
-- id: enforce-test-patterns
+- id: go-enforce-test-patterns
   name: Enforce test patterns (UUIDv7, testify assertions)
   entry: go
-  args: [run, cmd/cicd/main.go, enforce-test-patterns]
+  args: [run, cmd/cicd/main.go, go-enforce-test-patterns]
   language: system
   pass_filenames: false
 ```
@@ -204,8 +204,8 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 **Enforced Validations**:
 - **go-check-circular-package-dependencies**: Prevents circular import dependencies
 - **github-workflow-lint**: Validates GitHub Actions workflow naming and version conventions
-- **gofumpter**: Applies strict Go code formatting (superset of gofmt)
-- **enforce-test-patterns**: Enforces UUIDv7 usage, testify assertion patterns, and test file organization conventions
+- **go-enforce-any**: Applies strict Go code formatting (superset of gofmt)
+- **go-enforce-test-patterns**: Enforces UUIDv7 usage, testify assertion patterns, and test file organization conventions
 
 **Documentation**: See [../internal/cicd/cicd.go](../internal/cicd/cicd.go) for implementation details.
 

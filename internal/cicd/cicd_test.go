@@ -563,7 +563,7 @@ func TestCheckCircularDeps_CommandFailure(t *testing.T) {
 	t.Skip("Skipping checkCircularDeps test - requires complex exec.Command mocking")
 }
 
-func TestGofumpter_ProcessGoFile(t *testing.T) {
+func TestGoEnforceAny_ProcessGoFile(t *testing.T) {
 	// Create a temporary directory for test files
 	tempDir := t.TempDir()
 
@@ -681,8 +681,8 @@ func process(data any) any {
 	require.Equal(t, expectedContent3, string(modifiedContent3), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent3), expectedContent3)
 }
 
-func TestGofumpter_RunGofumpter(t *testing.T) {
-	// Note: This test cannot easily test runGofumpter() directly because it calls os.Exit(1)
+func TestGoEnforceAny_RunGoEnforceAny(t *testing.T) {
+	// Note: This test cannot easily test runGoEnforceAny() directly because it calls os.Exit(1)
 	// when files are modified. Instead, we test the core logic by simulating what it does.
 	tempDir := t.TempDir()
 
@@ -709,7 +709,7 @@ type MyStruct struct {
 		require.NoError(t, err, "Failed to create test file")
 	}
 
-	// Simulate the file discovery logic from runGofumpter
+	// Simulate the file discovery logic from runGoEnforceAny
 	var goFiles []string
 
 	err := filepath.Walk(tempDir, func(path string, info os.FileInfo, err error) error {
@@ -757,7 +757,7 @@ type MyStruct struct {
 	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly. Content: %s", string(modifiedContent2))
 }
 
-func TestEnforceTestPatterns_RegexValidation(t *testing.T) {
+func TestGoEnforceTestPatterns_RegexValidation(t *testing.T) {
 	// Test the regex patterns used in checkTestFile to ensure they work correctly
 	// This was originally created as a one-off test during chat session
 	// Test t.Errorf pattern
