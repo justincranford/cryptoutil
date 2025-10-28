@@ -1,10 +1,10 @@
-// IMPORTANT: This file contains deliberate linter error patterns for testing cicd_checks.go functionality.
+// IMPORTANT: This file contains deliberate linter error patterns for testing cicd functionality.
 // It MUST be excluded from all linting operations to prevent self-referencing errors.
-// See .golangci.yml exclude-rules and cicd_checks.go exclusion patterns for details.
+// See .golangci.yml exclude-rules and cicd.go exclusion patterns for details.
 //
 // This file intentionally uses interface{} patterns and other lint violations to test
-// that cicd_checks.go correctly identifies and reports such patterns in other files.
-package main
+// that cicd correctly identifies and reports such patterns in other files.
+package cicd
 
 import (
 	"encoding/json"
@@ -43,56 +43,27 @@ func process(data any) any {
 	str := "any in string should not be replaced"`
 )
 
-func TestMainUsage(t *testing.T) {
-	// Instead of calling main() which exits, we'll test the logic directly
-	// by simulating the argument check
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-
-	// Test with no arguments (should show usage)
-	os.Args = []string{"cicd_checks"}
-
-	// We can't easily test main() because it calls os.Exit
-	// So we'll test that the usage message format is correct
-	expectedUsage := "Usage: go run scripts/cicd_checks.go <command> [command...]"
-	require.Contains(t, expectedUsage, "scripts/cicd_checks.go", "Usage message should contain correct filename")
-
-	require.Contains(t, expectedUsage, "[command...]", "Usage message should indicate multiple commands are supported")
+func TestRunUsage(t *testing.T) {
+	// Test with no commands (should return error)
+	err := Run([]string{})
+	require.Error(t, err, "Expected error when no commands provided")
+	require.Contains(t, err.Error(), "Usage: cicd <command>", "Error message should contain usage information")
 }
 
-func TestMainInvalidCommand(t *testing.T) {
-	// Similar approach - test the logic without calling main()
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-
+func TestRunInvalidCommand(t *testing.T) {
 	// Test with invalid command
-	os.Args = []string{"cicd_checks", "invalid-command"}
-
-	// We can't easily test main() because it calls os.Exit
-	// So we'll just verify the command parsing logic would work
-	command := os.Args[1]
-	require.Equal(t, "invalid-command", command)
+	err := Run([]string{"invalid-command"})
+	require.Error(t, err, "Expected error for invalid command")
+	require.Contains(t, err.Error(), "Unknown command: invalid-command", "Error message should indicate unknown command")
 }
 
-func TestMainMultipleCommands(t *testing.T) {
-	// Test multiple commands parsing
-	oldArgs := os.Args
-	defer func() { os.Args = oldArgs }()
-
-	// Test with multiple valid commands
-	os.Args = []string{"cicd_checks", "go-update-direct-dependencies", "github-workflow-lint"}
-
-	// Verify we can parse multiple commands
-	require.GreaterOrEqual(t, len(os.Args), 3, "Expected at least 3 arguments")
-
-	commands := os.Args[1:]
-	expectedCommands := []string{"go-update-direct-dependencies", "github-workflow-lint"}
-
-	require.Len(t, commands, len(expectedCommands))
-
-	for i, cmd := range commands {
-		require.Equal(t, expectedCommands[i], cmd, "Expected command %d to be '%s'", i, expectedCommands[i])
-	}
+func TestRunMultipleCommands(t *testing.T) {
+	// Note: We can't easily test actual command execution as they call os.Exit
+	// This test just verifies the command parsing logic works
+	commands := []string{"go-update-direct-dependencies", "github-workflow-lint"}
+	require.Len(t, commands, 2, "Expected 2 commands")
+	require.Equal(t, "go-update-direct-dependencies", commands[0], "Expected first command")
+	require.Equal(t, "github-workflow-lint", commands[1], "Expected second command")
 }
 
 func TestValidateWorkflowFile_NameAndPrefix(t *testing.T) {

@@ -40,7 +40,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 | **2. Dependency Management** | Module cleanup | go mod tidy | Clean state before expensive linting |
 | **3. Go Auto-Fix & Validation** | Formatting, imports, and comprehensive linting | golangci-lint --fix | Single tool handles all auto-fixable issues + validation |
 | **4. Build Validation** | Compilation verification | go build | Ensure code compiles after linting |
-| **5. Custom Rules** | Project-specific checks | cicd_checks.go commands | Business logic and project-specific validations |
+| **5. Custom Rules** | Project-specific checks | cicd commands | Business logic and project-specific validations |
 | **6. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit | Targeted validation by file type |
 | **7. Commit Validation** | Message format checking | commitizen | Final gate before push |
 
@@ -171,35 +171,35 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - id: go-check-circular-package-dependencies
   name: Check for circular package dependencies
   entry: go
-  args: [run, scripts/cicd_checks.go, go-check-circular-package-dependencies]
+  args: [run, cmd/cicd/main.go, go-check-circular-package-dependencies]
   language: system
   pass_filenames: false
 
 - id: github-workflow-lint
   name: Lint GitHub Actions workflows
   entry: go
-  args: [run, scripts/cicd_checks.go, github-workflow-lint]
+  args: [run, cmd/cicd/main.go, github-workflow-lint]
   language: system
   pass_filenames: false
 
 - id: gofumpter
   name: Format Go code with gofumpt
   entry: go
-  args: [run, scripts/cicd_checks.go, gofumpter]
+  args: [run, cmd/cicd/main.go, gofumpter]
   language: system
   pass_filenames: false
 
 - id: enforce-test-patterns
   name: Enforce test patterns (UUIDv7, testify assertions)
   entry: go
-  args: [run, scripts/cicd_checks.go, enforce-test-patterns]
+  args: [run, cmd/cicd/main.go, enforce-test-patterns]
   language: system
   pass_filenames: false
 ```
 
 **Key Parameters**:
 - All commands run on every commit (no file restrictions)
-- Custom scripts: [../scripts/cicd_checks.go](../scripts/cicd_checks.go)
+- Custom scripts: [../cmd/cicd/main.go](../cmd/cicd/main.go) (wrapper), [../internal/cicd/cicd.go](../internal/cicd/cicd.go) (implementation)
 
 **Enforced Validations**:
 - **go-check-circular-package-dependencies**: Prevents circular import dependencies
@@ -207,7 +207,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - **gofumpter**: Applies strict Go code formatting (superset of gofmt)
 - **enforce-test-patterns**: Enforces UUIDv7 usage, testify assertion patterns, and test file organization conventions
 
-**Documentation**: See [../scripts/cicd_checks.go](../scripts/cicd_checks.go) for implementation details.
+**Documentation**: See [../internal/cicd/cicd.go](../internal/cicd/cicd.go) for implementation details.
 
 ### 6. GitHub Actions Linting (actionlint)
 

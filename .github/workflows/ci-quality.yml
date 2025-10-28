@@ -100,25 +100,25 @@ jobs:
         run: golangci-lint run --timeout=10m --config=.golangci.yml
 
       - name: Enforce file encoding (UTF-8 without BOM)
-        run: go run scripts/cicd_checks.go enforce-file-encoding
+        run: go run cmd/cicd/main.go enforce-file-encoding
 
       - name: Enforce test patterns
-        run: go run scripts/cicd_checks.go enforce-test-patterns
+        run: go run cmd/cicd/main.go enforce-test-patterns
 
       - name: Run custom Go source code fixes
-        run: go run scripts/cicd_checks.go gofumpter
+        run: go run cmd/cicd/main.go gofumpter
 
       - name: Validate GitHub Actions workflow naming and structure
-        run: go run scripts/cicd_checks.go github-workflow-lint
+        run: go run cmd/cicd/main.go github-workflow-lint
 
       - name: Check for circular Go package dependencies
-        run: go run scripts/cicd_checks.go go-check-circular-package-dependencies
+        run: go run cmd/cicd/main.go go-check-circular-package-dependencies
 
       - name: Check GitHub Actions versions
-        run: go run scripts/cicd_checks.go github-workflow-lint
+        run: go run cmd/cicd/main.go github-workflow-lint
 
       - name: Check Go direct dependencies
-        run: go run scripts/cicd_checks.go go-update-direct-dependencies
+        run: go run cmd/cicd/main.go go-update-direct-dependencies
 
   # Build and Container Security
   build:

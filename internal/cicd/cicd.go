@@ -1,6 +1,6 @@
-// Package main provides CI/CD quality control checks for the cryptoutil project.
+// Package cicd provides CI/CD quality control checks for the cryptoutil project.
 //
-// This tool performs various automated checks to ensure code quality, dependency freshness,
+// This package performs various automated checks to ensure code quality, dependency freshness,
 // and workflow consistency. It is designed to run both locally (during development) and
 // in CI/CD pipelines (via pre-push hooks and GitHub Actions).
 //
@@ -15,23 +15,19 @@
 //
 // Usage:
 //
-//	go run scripts/cicd_checks.go <command> [<command>...]
+//	cicd.Run([]string{"go-update-direct-dependencies"})
+//	cicd.Run([]string{"github-workflow-lint"})
+//	cicd.Run([]string{"go-update-direct-dependencies", "github-workflow-lint"})
 //
-// Examples:
-//
-//	go run scripts/cicd_checks.go go-update-direct-dependencies
-//	go run scripts/cicd_checks.go github-workflow-lint
-//	go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint
-//
-// IMPORTANT: This file contains deliberate linter error patterns for testing cicd_checks functionality.
+// IMPORTANT: This file contains deliberate linter error patterns for testing cicd functionality.
 // It MUST be excluded from all linting operations to prevent self-referencing errors.
-// See .golangci.yml exclude-rules and cicd_checks.go exclusion patterns for details.
+// See .golangci.yml exclude-rules and cicd.go exclusion patterns for details.
 //
 // Exit Codes:
 //
 //	0: All checks passed
 //	1: One or more checks failed (details printed to stderr)
-package main
+package cicd
 
 import (
 	"context"
@@ -106,16 +102,16 @@ var enforceFileEncodingFileExcludePatterns = []string{
 
 // to prevent self-modification and preserve deliberate test patterns.
 var gofumpterFileExcludePatterns = []string{
-	`_gen\.go$`,                         // Generated files
-	`\.pb\.go$`,                         // Protocol buffer files
-	`vendor/`,                           // Vendored dependencies
-	`api/client`,                        // Generated API client
-	`api/model`,                         // Generated API models
-	`api/server`,                        // Generated API server
-	`scripts[/\\]cicd_checks\.go$`,      // Exclude this file itself to avoid replacing the regex pattern
-	`scripts[/\\]cicd_checks_test\.go$`, // Exclude test file to preserve deliberate bad patterns for testing
-	`.git/`,                             // Git directory
-	`node_modules/`,                     // Node.js dependencies
+	`_gen\.go$`,                            // Generated files
+	`\.pb\.go$`,                            // Protocol buffer files
+	`vendor/`,                              // Vendored dependencies
+	`api/client`,                           // Generated API client
+	`api/model`,                            // Generated API models
+	`api/server`,                           // Generated API server
+	`internal[/\\]cicd[/\\]cicd\.go$`,      // Exclude this file itself to avoid replacing the regex pattern
+	`internal[/\\]cicd[/\\]cicd_test\.go$`, // Exclude test file to preserve deliberate bad patterns for testing
+	`.git/`,                                // Git directory
+	`node_modules/`,                        // Node.js dependencies
 }
 
 type GitHubRelease struct {
@@ -147,15 +143,17 @@ type ActionInfo struct {
 	WorkflowFile   string
 }
 
-func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: go run scripts/cicd_checks.go <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n\nExamples:\n  go run scripts/cicd_checks.go go-update-direct-dependencies\n  go run scripts/cicd_checks.go go-update-all-dependencies\n  go run scripts/cicd_checks.go go-check-circular-package-dependencies\n  go run scripts/cicd_checks.go github-workflow-lint\n  go run scripts/cicd_checks.go gofumpter\n  go run scripts/cicd_checks.go enforce-test-patterns\n  go run scripts/cicd_checks.go enforce-file-encoding\n  go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint\n")
-		os.Exit(1)
+// Run executes the specified CI/CD check commands.
+// It takes a slice of command names and executes them sequentially.
+// Returns an error if any command is unknown or if execution fails.
+func Run(commands []string) error {
+	if len(commands) == 0 {
+		return fmt.Errorf("Usage: cicd <command> [command...]\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n\nExamples:\n  Run([]string{\"go-update-direct-dependencies\"})\n  Run([]string{\"go-update-all-dependencies\"})\n  Run([]string{\"go-check-circular-package-dependencies\"})\n  Run([]string{\"github-workflow-lint\"})\n  Run([]string{\"gofumpter\"})\n  Run([]string{\"enforce-test-patterns\"})\n  Run([]string{\"enforce-file-encoding\"})\n  Run([]string{\"go-update-direct-dependencies\", \"github-workflow-lint\"})")
 	}
 
 	// Process all commands provided as arguments
-	for i := 1; i < len(os.Args); i++ {
-		command := os.Args[i]
+	for i := 0; i < len(commands); i++ {
+		command := commands[i]
 		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
 
 		switch command {
@@ -174,15 +172,16 @@ func main() {
 		case "enforce-file-encoding":
 			enforceFileEncoding()
 		default:
-			fmt.Fprintf(os.Stderr, "Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n", command)
-			os.Exit(1)
+			return fmt.Errorf("Unknown command: %s\n\nCommands:\n  go-update-direct-dependencies    - Check direct Go dependencies only\n  go-update-all-dependencies       - Check all Go dependencies (direct + transitive)\n  go-check-circular-package-dependencies          - Check for circular dependencies in Go packages\n  github-workflow-lint             - Validate GitHub Actions workflow naming and structure\n  gofumpter                        - Custom Go source code fixes (interface{} -> any, etc.)\n  enforce-test-patterns            - Enforce test patterns (UUIDv7 usage, testify assertions)\n  enforce-file-encoding            - Enforce UTF-8 encoding without BOM\n", command)
 		}
 
 		// Add a separator between multiple commands
-		if i < len(os.Args)-1 {
+		if i < len(commands)-1 {
 			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", separatorLength)+"\n")
 		}
 	}
+
+	return nil
 }
 
 func checkDeps(mode DepCheckMode) {
@@ -894,8 +893,8 @@ func enforceTestPatterns() {
 		}
 
 		if !info.IsDir() && strings.HasSuffix(path, "_test.go") {
-			// Exclude cicd_checks_test.go and cicd_checks.go as they contain deliberate patterns for testing cicd_checks functionality
-			if strings.HasSuffix(path, "cicd_checks_test.go") || strings.HasSuffix(path, "cicd_checks.go") {
+			// Exclude cicd_test.go and cicd.go as they contain deliberate patterns for testing cicd functionality
+			if strings.HasSuffix(path, "cicd_test.go") || strings.HasSuffix(path, "cicd.go") {
 				return nil
 			}
 

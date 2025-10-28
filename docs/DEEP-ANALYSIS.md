@@ -208,7 +208,7 @@ cryptoutil/
 │   ├── pre-commit-hooks.md       # Hook documentation
 │   └── todos-*.md                # Task tracking
 ├── scripts/                      # Build and utility scripts
-│   ├── cicd_checks.go            # CI/CD validation tool
+│   ├── cicd/                     # CI/CD validation library
 │   └── github-workflows/         # Workflow utilities
 │       └── run_github_workflow_locally.go
 ├── test/                         # Test resources

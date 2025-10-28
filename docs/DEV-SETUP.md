@@ -133,7 +133,7 @@ go env GOCACHE
 - First run after changing may be slower (cache rebuild), subsequent runs are fast
 
 **Expected Performance:**
-- **Before**: `cicd_checks.go` commands take 30-60+ seconds (antivirus scanning)
+- **Before**: `cicd` commands take 30-60+ seconds (antivirus scanning)
 - **After**: Same commands complete in 2-5 seconds (excluded directory)
 
 ### Linux

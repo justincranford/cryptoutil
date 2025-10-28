@@ -114,9 +114,9 @@ nuclei -templates-version
   - ✅ GOOD: `file: ./postgres/postgres_username.secret`
 - This applies to ALL path references in compose.yml: secrets, volumes, configs, dockerfiles
 
-## Copilot testing guidance for `scripts/cicd_checks.go`
+## Copilot testing guidance for cicd utility
 
-- When adding or updating `scripts/cicd_checks.go`, always implement programmatic tests in `scripts/cicd_checks_test.go` that:
+- When adding or updating the cicd utility (`internal/cicd/cicd.go`), always implement programmatic tests in `internal/cicd/cicd_test.go` that:
   - write any generated code to a temporary file (use the test's TempDir),
   - run the lint/check function against that temporary file, and
   - read and assert the temporary file contents/results programmatically.

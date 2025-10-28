@@ -19,7 +19,7 @@ applyTo: "**"
 - `.golangci.yml` - Linter configuration, enabled/disabled linters, severity settings
 - `.gofumpt.toml` - Go formatting rules and module path
 - `.gremlins.yaml` - Mutation testing configuration (if it affects pre-commit indirectly)
-- `scripts/cicd_checks.go` - Test pattern enforcement logic
+- `internal/cicd/cicd.go` - Test pattern enforcement logic
 - `scripts/setup-pre-commit.ps1` / `setup-pre-commit.bat` - Setup script changes
 - `.vscode/settings.json` - VS Code integration with pre-commit tools
 

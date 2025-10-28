@@ -26,25 +26,25 @@ See `scripts/perf/README.doc` for detailed performance testing documentation and
 
 ## Utility Scripts
 
-### cicd_checks.go
+### cicd utility (cmd/cicd)
 
-Go utility for CI/CD dependency and version checking.
+Go utility for CI/CD dependency and version checking. The source code is located in `internal/cicd/` with the CLI wrapper in `cmd/cicd/main.go`.
 
 ```bash
 # Check Go dependency versions (direct dependencies only)
-go run scripts/cicd_checks.go go-update-direct-dependencies
+go run cmd/cicd/main.go go-update-direct-dependencies
 
 # Check Go dependency versions (all dependencies) - not commonly done in Go, but util supports it
-go run scripts/cicd_checks.go go-update-all-dependencies
+go run cmd/cicd/main.go go-update-all-dependencies
 
 # Check GitHub Actions versions
-go run scripts/cicd_checks.go github-workflow-lint
+go run cmd/cicd/main.go github-workflow-lint
 
 # Check for circular dependencies in Go packages
-go run scripts/cicd_checks.go go-check-circular-package-dependencies
+go run cmd/cicd/main.go go-check-circular-package-dependencies
 
 # Check all Go dependencies, GitHub Actions versions, and circular dependencies in a single invocation
-go run scripts/cicd_checks.go go-update-direct-dependencies github-workflow-lint go-check-circular-package-dependencies
+go run cmd/cicd/main.go go-update-direct-dependencies github-workflow-lint go-check-circular-package-dependencies
 ```
 
 ### count_tokens.py
