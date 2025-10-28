@@ -93,6 +93,7 @@ jobs:
       - name: Run golangci-lint final check
         run: golangci-lint run --timeout=10m --config=.golangci.yml
 
+      # Compile cicd before running it to perform multiple quality checks
       - name: Build cicd binary for quality checks
         run: go build -o cicd ./cmd/cicd
 
