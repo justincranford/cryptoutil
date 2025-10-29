@@ -11,20 +11,35 @@ import (
 )
 
 // ServiceAndJob represents a service and its optional healthcheck job.
+//
+// Three use cases are supported:
+//  1. Job-only (Service="", Job="job-name"): Standalone job that must exit successfully (ExitCode=0)
+//  2. Service-only (Service="service-name", Job=""): Service that must be running/healthy
+//  3. Service with healthcheck job (Service="service-name", Job="job-name"): Service uses external job for health verification
 type ServiceAndJob struct {
-	Service string // The service name to check
-	Job     string // Optional healthcheck job name (empty if no healthcheck job)
+	Service string // The service name to check (empty for standalone jobs)
+	Job     string // Optional healthcheck job name (empty if service has native health checks)
 }
 
 // Docker compose service names for batch health checking.
+//
+// Three use cases are supported:
+//  1. Job-only (Service="", Job="job-name"): Standalone job that must exit successfully (ExitCode=0)
+//     Examples: healthcheck-secrets, builder-cryptoutil
+//  2. Service-only (Service="service-name", Job=""): Service that must be running/healthy with native health checks
+//     Examples: cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2, postgres, grafana-otel-lgtm
+//  3. Service with healthcheck job (Service="service-name", Job="job-name"): Service uses external job for health verification
+//     Example: opentelemetry-collector-contrib with healthcheck-opentelemetry-collector-contrib
 var (
 	dockerComposeServicesForHealthCheck = []ServiceAndJob{
+		{Job: cryptoutilMagic.DockerJobHealthcheckSecrets},
+		{Job: cryptoutilMagic.DockerJobBuilderCryptoutil},
+		{Service: cryptoutilMagic.DockerServiceOtelCollector, Job: cryptoutilMagic.DockerJobHealthcheckOtelCollectorContrib},
 		{Service: cryptoutilMagic.DockerServiceCryptoutilSqlite},
 		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres1},
 		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
 		{Service: cryptoutilMagic.DockerServicePostgres},
 		{Service: cryptoutilMagic.DockerServiceGrafanaOtelLgtm},
-		{Service: cryptoutilMagic.DockerServiceOtelCollector, Job: cryptoutilMagic.DockerJobHealthcheckOtelCollectorContrib},
 	}
 )
 
@@ -68,60 +83,84 @@ func parseDockerComposePsOutput(output []byte) (map[string]map[string]any, error
 }
 
 // determineServiceHealthStatus determines the health status of services from a service map.
-// This function contains the shared logic for determining if services are healthy.
-// It handles services with and without healthcheck jobs.
+// This function handles all three use cases:
+//  1. Job-only (Service="", Job="job-name"): Checks if standalone job exited successfully (ExitCode=0)
+//  2. Service-only (Service="service-name", Job=""): Checks if service is running/healthy
+//  3. Service with healthcheck job (Service="service-name", Job="job-name"): Uses job to verify service health
 func determineServiceHealthStatus(serviceMap map[string]map[string]any, services []ServiceAndJob) map[string]bool {
 	healthStatus := make(map[string]bool)
 
 	for _, service := range services {
+		// Determine which name to check (job takes precedence if present)
 		var serviceNameToCheck string
-		if service.Job == "" {
-			serviceNameToCheck = service.Service // Check the service directly
+
+		var healthKey string
+
+		if service.Service == "" && service.Job != "" {
+			// Use case 1: Job-only (standalone job)
+			serviceNameToCheck = service.Job
+			healthKey = service.Job
+		} else if service.Service != "" && service.Job == "" {
+			// Use case 2: Service-only (native health checks)
+			serviceNameToCheck = service.Service
+			healthKey = service.Service
+		} else if service.Service != "" && service.Job != "" {
+			// Use case 3: Service with healthcheck job
+			serviceNameToCheck = service.Job
+			healthKey = service.Service
 		} else {
-			serviceNameToCheck = service.Job // Use the healthcheck job to determine service health
+			// Invalid configuration: both Service and Job are empty
+			continue
 		}
 
 		serviceData, exists := serviceMap[serviceNameToCheck]
-		if !exists { // Service/job not found
-			if service.Job == "" { // For regular services: not found means unhealthy
-				healthStatus[service.Service] = false
+		if !exists {
+			// Service/job not found
+			if service.Job != "" && service.Service == "" {
+				// Use case 1: Job-only not found means it completed and was cleaned up (healthy)
+				healthStatus[healthKey] = true
+			} else if service.Job != "" && service.Service != "" {
+				// Use case 3: Healthcheck job not found means it completed successfully (healthy)
+				healthStatus[healthKey] = true
 			} else {
-				healthStatus[service.Service] = true // For healthcheck jobs: not found means it completed successfully and was cleaned up
+				// Use case 2: Service not found means unhealthy
+				healthStatus[healthKey] = false
 			}
 
 			continue
 		}
 
-		if service.Job == "" {
-			// Regular service - check health or running state
-			if health, ok := serviceData["Health"].(string); ok && health != "" {
-				// Services with health checks
-				healthStatus[service.Service] = health == cryptoutilMagic.DockerServiceHealthHealthy
-			} else {
-				// Services without health checks: check if running
-				if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
-					healthStatus[service.Service] = true
-				} else {
-					healthStatus[service.Service] = false
-				}
-			}
-		} else {
-			// This is a healthcheck job - check if it exited successfully
+		// Check health based on the use case
+		if service.Job != "" {
+			// Use case 1 or 3: Check if job exited successfully
 			if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
 				var exitCode int
-				if exitCodeFloat, ok := serviceData["ExitCode"].(float64); ok { // Handle float64 ExitCode
+				if exitCodeFloat, ok := serviceData["ExitCode"].(float64); ok {
 					exitCode = int(exitCodeFloat)
-				} else if exitCodeInt, ok := serviceData["ExitCode"].(int); ok { // Handle int ExitCode
+				} else if exitCodeInt, ok := serviceData["ExitCode"].(int); ok {
 					exitCode = exitCodeInt
 				} else {
-					healthStatus[service.Service] = false // ExitCode field not found or wrong type
+					healthStatus[healthKey] = false // ExitCode field not found or wrong type
 
 					continue
 				}
 
-				healthStatus[service.Service] = exitCode == 0
+				healthStatus[healthKey] = exitCode == 0
 			} else {
-				healthStatus[service.Service] = false // Not in exited state
+				healthStatus[healthKey] = false // Not in exited state
+			}
+		} else {
+			// Use case 2: Regular service - check health or running state
+			if health, ok := serviceData["Health"].(string); ok && health != "" {
+				// Services with native health checks
+				healthStatus[healthKey] = health == cryptoutilMagic.DockerServiceHealthHealthy
+			} else {
+				// Services without health checks: check if running
+				if state, ok := serviceData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateRunning {
+					healthStatus[healthKey] = true
+				} else {
+					healthStatus[healthKey] = false
+				}
 			}
 		}
 	}

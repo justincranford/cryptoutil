@@ -90,7 +90,12 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 		healthStatus := make(map[string]bool)
 		for _, service := range services {
-			healthStatus[service.Service] = false
+			// Determine the key to use for this service/job
+			if service.Service != "" {
+				healthStatus[service.Service] = false
+			} else {
+				healthStatus[service.Job] = false
+			}
 		}
 
 		return healthStatus
@@ -102,7 +107,12 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 		healthStatus := make(map[string]bool)
 		for _, service := range services {
-			healthStatus[service.Service] = false
+			// Determine the key to use for this service/job
+			if service.Service != "" {
+				healthStatus[service.Service] = false
+			} else {
+				healthStatus[service.Job] = false
+			}
 		}
 
 		return healthStatus
@@ -110,18 +120,54 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 
 	healthStatus := determineServiceHealthStatus(serviceMap, services)
 
-	// Add logging for healthcheck service special cases
+	// Add logging for all use cases
 	for _, service := range services {
-		if service.Job != "" {
-			// This service uses a healthcheck job
+		if service.Service == "" && service.Job != "" {
+			// Use case 1: Job-only (standalone job)
 			jobName := service.Job
 			jobData, exists := serviceMap[jobName]
 
 			if exists {
 				if state, ok := jobData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
-					Log(im.logger, "✅ Healthcheck job %s is in exited state", jobName)
+					Log(im.logger, "✅ Standalone job %s is in exited state", jobName)
 
-					// Handle both int and float64 types for ExitCode
+					var exitCode int
+					if exitCodeFloat, ok := jobData["ExitCode"].(float64); ok {
+						exitCode = int(exitCodeFloat)
+						Log(im.logger, "✅ Standalone job %s ExitCode (float64): %d", jobName, exitCode)
+					} else if exitCodeInt, ok := jobData["ExitCode"].(int); ok {
+						exitCode = exitCodeInt
+						Log(im.logger, "✅ Standalone job %s ExitCode (int): %d", jobName, exitCode)
+					} else {
+						Log(im.logger, "❌ Standalone job %s ExitCode field not found or wrong type", jobName)
+
+						continue
+					}
+
+					if exitCode == 0 {
+						Log(im.logger, "✅ Standalone job %s exited successfully with code 0", jobName)
+					} else {
+						Log(im.logger, "❌ Standalone job %s exited with non-zero code: %d", jobName, exitCode)
+					}
+				} else {
+					if state == cryptoutilMagic.DockerServiceStateRunning {
+						Log(im.logger, "❌ Standalone job %s should not be running continuously", jobName)
+					} else {
+						Log(im.logger, "❌ Standalone job %s in unexpected state: %s", jobName, state)
+					}
+				}
+			} else {
+				Log(im.logger, "🔍 Standalone job %s not found (completed successfully)", jobName)
+			}
+		} else if service.Service != "" && service.Job != "" {
+			// Use case 3: Service with healthcheck job
+			jobName := service.Job
+			jobData, exists := serviceMap[jobName]
+
+			if exists {
+				if state, ok := jobData["State"].(string); ok && state == cryptoutilMagic.DockerServiceStateExited {
+					Log(im.logger, "✅ Healthcheck job %s for service %s is in exited state", jobName, service.Service)
+
 					var exitCode int
 					if exitCodeFloat, ok := jobData["ExitCode"].(float64); ok {
 						exitCode = int(exitCodeFloat)
@@ -148,12 +194,14 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 					}
 				}
 			} else {
-				Log(im.logger, "🔍 Healthcheck job %s not found (completed successfully)", jobName)
+				Log(im.logger, "🔍 Healthcheck job %s for service %s not found (completed successfully)", jobName, service.Service)
 			}
-		} else if !healthStatus[service.Service] {
-			// Log when regular services are not found
-			if _, exists := serviceMap[service.Service]; !exists {
-				Log(im.logger, "❌ Service %s not found in docker compose output", service.Service)
+		} else if service.Service != "" && service.Job == "" {
+			// Use case 2: Service-only (native health checks)
+			if !healthStatus[service.Service] {
+				if _, exists := serviceMap[service.Service]; !exists {
+					Log(im.logger, "❌ Service %s not found in docker compose output", service.Service)
+				}
 			}
 		}
 	}
