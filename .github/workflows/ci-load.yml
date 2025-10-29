@@ -183,8 +183,8 @@ jobs:
 
           # Check all three cryptoutil instances
           check_endpoint "https://127.0.0.1:8080/ui/swagger/doc.json" "cryptoutil-sqlite"
-          check_endpoint "https://127.0.0.1:8081/ui/swagger/doc.json" "cryptoutil-postgres_1"
-          check_endpoint "https://127.0.0.1:8082/ui/swagger/doc.json" "cryptoutil-postgres_2"
+          check_endpoint "https://127.0.0.1:8081/ui/swagger/doc.json" "cryptoutil-postgres-1"
+          check_endpoint "https://127.0.0.1:8082/ui/swagger/doc.json" "cryptoutil-postgres-2"
 
           echo "✅ All services are ready for load testing"
 
@@ -294,8 +294,8 @@ jobs:
 
           # Collect logs from all cryptoutil services
           docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./load-reports/service-logs/cryptoutil-sqlite.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres_1 > ./load-reports/service-logs/cryptoutil-postgres_1.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres_2 > ./load-reports/service-logs/cryptoutil-postgres_2.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./load-reports/service-logs/cryptoutil-postgres-1.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./load-reports/service-logs/cryptoutil-postgres-2.log 2>&1 || true
           docker compose -f ./deployments/compose/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
           docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
 
@@ -322,13 +322,13 @@ jobs:
           | Load Profile | ${{ env.LOAD_PROFILE }} |
           | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
           | Test Duration | ${{ steps.load-params.outputs.duration }}s |
-          | Target Services | cryptoutil-sqlite, cryptoutil-postgres_1, cryptoutil-postgres_2 |
+          | Target Services | cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2 |
 
           ## Services Tested
 
           - **cryptoutil-sqlite** - https://127.0.0.1:8080/service/api/v1
-          - **cryptoutil-postgres_1** - https://127.0.0.1:8081/service/api/v1
-          - **cryptoutil-postgres_2** - https://127.0.0.1:8082/service/api/v1
+          - **cryptoutil-postgres-1** - https://127.0.0.1:8081/service/api/v1
+          - **cryptoutil-postgres-2** - https://127.0.0.1:8082/service/api/v1
 
           ## Artifacts Generated
 

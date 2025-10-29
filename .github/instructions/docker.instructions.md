@@ -102,7 +102,7 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
 
-  cryptoutil-postgres_1:
+  cryptoutil-postgres-1:
     secrets:
       # SAME secrets as other instances - CRITICAL for shared database access
       - cryptoutil_unseal_1of5.secret
@@ -111,7 +111,7 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
 
-  cryptoutil-postgres_2:
+  cryptoutil-postgres-2:
     secrets:
       # SAME secrets as other instances - NEVER use postgres2-specific secrets
       - cryptoutil_unseal_1of5.secret
@@ -237,7 +237,7 @@ services:
 - Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
 - Backend: SQLite in-memory database
 
-**cryptoutil-postgres_1** (Port 8081)
+**cryptoutil-postgres-1** (Port 8081)
 - Public API (HTTPS): `https://127.0.0.1:8081`
 - Browser API: `https://127.0.0.1:8081/browser/api/v1/*`
 - Service API: `https://127.0.0.1:8081/service/api/v1/*`
@@ -245,7 +245,7 @@ services:
 - Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
 - Backend: PostgreSQL database (shared with postgres_2)
 
-**cryptoutil-postgres_2** (Port 8082)
+**cryptoutil-postgres-2** (Port 8082)
 - Public API (HTTPS): `https://127.0.0.1:8082`
 - Browser API: `https://127.0.0.1:8082/browser/api/v1/*`
 - Service API: `https://127.0.0.1:8082/service/api/v1/*`
@@ -280,9 +280,9 @@ otlp-hostname: cryptoutil-sqlite
 dev: true
 ```
 
-#### cryptoutil-postgresql-1.yml (for cryptoutil-postgres_1 service)
+#### cryptoutil-postgresql-1.yml (for cryptoutil-postgres-1 service)
 ```yaml
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-postgres_1' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-postgres-1' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -296,9 +296,9 @@ otlp-service: cryptoutil-postgresql-1
 otlp-hostname: cryptoutil-postgresql-1
 ```
 
-#### cryptoutil-postgresql-2.yml (for cryptoutil-postgres_2 service)
+#### cryptoutil-postgresql-2.yml (for cryptoutil-postgres-2 service)
 ```yaml
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-postgres_2' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-postgres-2' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -324,7 +324,7 @@ otlp-hostname: cryptoutil-postgresql-2
 #### cryptoutil-common.yml (shared by ALL cryptoutil services)
 ```yaml
 # CRITICAL: This file contains COMMON settings used by ALL cryptoutil services in compose.yml
-# ALL cryptoutil instances (cryptoutil-sqlite, cryptoutil-postgres_1, cryptoutil-postgres_2)
+# ALL cryptoutil instances (cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2)
 # MUST use this file for shared configuration. Instance-specific settings belong in
 # their respective config files (cryptoutil-sqlite.yml, cryptoutil-postgresql-1.yml, cryptoutil-postgresql-2.yml)
 # Changing settings here affects ALL cryptoutil services.

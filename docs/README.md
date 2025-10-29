@@ -249,8 +249,8 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2 (por
 
 **Service Configuration:**
 - **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
-- **cryptoutil-postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
-- **cryptoutil-postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-postgres-1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-postgres-2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
 
 **Basic Security Scans:**
 ```sh
@@ -500,7 +500,7 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 └────────────────────────────────────────────────────────────────────────────────────────┘
 
 Dependencies Flow:
-1. postgres → cryptoutil-postgres_1 → cryptoutil-postgres_2
+1. postgres → cryptoutil-postgres-1 → cryptoutil-postgres-2
 2. opentelemetry-collector-contrib → opentelemetry-collector-contrib-healthcheck
 3. grafana-otel-lgtm → opentelemetry-collector-contrib
 4. cryptoutil-sqlite (independent of postgres)
@@ -521,8 +521,8 @@ Health Checks:
 | Service | Public Port(s) | Admin Port | Protocol | Purpose |
 |---------|---------------|------------|----------|---------|
 | cryptoutil-sqlite | 8080 | 9090 | HTTPS | SQLite backend instance |
-| cryptoutil-postgres_1 | 8081 | 9090 | HTTPS | PostgreSQL backend instance #1 |
-| cryptoutil-postgres_2 | 8082 | 9090 | HTTPS | PostgreSQL backend instance #2 |
+| cryptoutil-postgres-1 | 8081 | 9090 | HTTPS | PostgreSQL backend instance #1 |
+| cryptoutil-postgres-2 | 8082 | 9090 | HTTPS | PostgreSQL backend instance #2 |
 | postgres | 5432 | - | TCP | PostgreSQL database |
 | opentelemetry-collector | 4317 (GRPC), 4318 (HTTP) | 8888 (metrics), 13133 (health) | OTLP | Telemetry collection |
 | grafana-otel-lgtm | 3000 | 14317 (GRPC), 14318 (HTTP) | HTTP | Observability stack |

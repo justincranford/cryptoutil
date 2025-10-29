@@ -17,9 +17,9 @@ const (
 	// DockerServiceCryptoutilSqlite - Cryptoutil SQLite service name.
 	DockerServiceCryptoutilSqlite = "cryptoutil-sqlite"
 	// DockerServiceCryptoutilPostgres1 - Cryptoutil PostgreSQL 1 service name.
-	DockerServiceCryptoutilPostgres1 = "cryptoutil-postgres_1"
+	DockerServiceCryptoutilPostgres1 = "cryptoutil-postgres-1"
 	// DockerServiceCryptoutilPostgres2 - Cryptoutil PostgreSQL 2 service name.
-	DockerServiceCryptoutilPostgres2 = "cryptoutil-postgres_2"
+	DockerServiceCryptoutilPostgres2 = "cryptoutil-postgres-2"
 	// DockerServicePostgres - PostgreSQL service name.
 	DockerServicePostgres = "postgres"
 	// DockerServiceGrafanaOtelLgtm - Grafana OTEL LGTM service name.

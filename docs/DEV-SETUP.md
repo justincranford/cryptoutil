@@ -512,8 +512,8 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
 
 **Service Endpoints:**
 - **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
-- **cryptoutil-postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
-- **cryptoutil-postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-postgres-1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-postgres-2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
 
 **Basic Security Scans:**
 ```bash

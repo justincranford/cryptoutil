@@ -173,7 +173,7 @@ services:
         reservations:
           memory: 128M
 
-  cryptoutil-postgres_1:
+  cryptoutil-postgres-1:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
@@ -226,7 +226,7 @@ services:
         reservations:
           memory: 128M
 
-  cryptoutil-postgres_2:
+  cryptoutil-postgres-2:
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
@@ -264,7 +264,7 @@ services:
         condition: service_started
       opentelemetry-collector-contrib-healthcheck:
         condition: service_completed_successfully
-      cryptoutil-postgres_1:
+      cryptoutil-postgres-1:
         condition: service_healthy
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
@@ -288,11 +288,11 @@ networks:
 
 volumes:
   postgres_data:
-    name: cryptoutil-postgres_volume
+    name: cryptoutil-postgres-volume
   cryptoutil-sqlite_certs:
     name: cryptoutil-sqlite_certs_volume
-  cryptoutil-postgres_certs:
-    name: cryptoutil-postgres_certs_volume
+  cryptoutil-postgres-certs:
+    name: cryptoutil-postgres-certs_volume
   grafana_data:
     name: cryptoutil_grafana_volume
 

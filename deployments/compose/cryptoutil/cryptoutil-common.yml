@@ -1,5 +1,5 @@
 # CRITICAL: This file contains COMMON settings used by ALL cryptoutil services in compose.yml
-# ALL cryptoutil instances (cryptoutil-sqlite, cryptoutil-postgres_1, cryptoutil-postgres_2)
+# ALL cryptoutil instances (cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2)
 # MUST use this file for shared configuration. Instance-specific settings belong in
 # their respective config files (cryptoutil-sqlite.yml, cryptoutil-postgresql-1.yml, cryptoutil-postgresql-2.yml)
 # Changing settings here affects ALL cryptoutil services.
