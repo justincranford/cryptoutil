@@ -23,6 +23,9 @@ dast-reports/
 # Workflow execution reports
 workflow-reports/
 
+# Local test reports
+load-reports/
+
 # E2E test reports
 test/e2e/e2e-reports/
 

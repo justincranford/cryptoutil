@@ -1,5 +1,27 @@
 services:
 
+  secrets_healthcheck:
+    image: alpine:latest
+    secrets:
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
+      - postgres_url.secret
+      - postgres_username.secret
+      - postgres_password.secret
+      - postgres_database.secret
+    command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
+    healthcheck:
+      test: ["CMD-SHELL", "-c", "ls -l /run/secrets/*.secret"]
+    deploy:
+      resources:
+        limits:
+          memory: 128MB
+        reservations:
+          memory: 32MB
+
   cryptoutil_sqlite:
     build:
       context: ../..
@@ -29,6 +51,8 @@ services:
       # IMPORTANT: ALL cryptoutil-sqlite instances MUST NOT use url secret
       # for database connection, as they do not share data.
     depends_on:
+      secrets_healthcheck:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
       opentelemetry-collector-contrib-healthcheck:
@@ -78,6 +102,8 @@ services:
       # for database connection to enable shared data in the database.
       - postgres_url.secret
     depends_on:
+      secrets_healthcheck:
+        condition: service_completed_successfully
       postgres:
         condition: service_started
       opentelemetry-collector-contrib:
@@ -130,6 +156,8 @@ services:
       # for database connection to enable shared data in the database.
       - postgres_url.secret
     depends_on:
+      secrets_healthcheck:
+        condition: service_completed_successfully
       postgres:
         condition: service_started
       opentelemetry-collector-contrib:
@@ -199,6 +227,8 @@ services:
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     depends_on:
+      secrets_healthcheck:
+        condition: service_completed_successfully
       # grafana takes a long time to be healthy, so only wait for it to start
       grafana-otel-lgtm:
         # condition: service_healthy
@@ -219,6 +249,8 @@ services:
 #   command: ["sh", "-c", "ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib; }; for i in $(seq 1 10); do if ping_success; then for j in $(seq 1 20); do wget --quiet --spider http://opentelemetry-collector-contrib:13133/ && echo 'Health check successful' && exit 0; sleep 1; done; echo 'Wget failed after ping success'; exit 1; fi; sleep 1; done; echo 'Ping failed after 10 attempts'; exit 1"]
     command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib >/dev/null 2>&1; }; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 15); do echo \"Attempt $$i: Checking OTEL collector...\"; if ping_success; then echo 'Ping successful, checking health endpoint...'; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying...'; fi; else echo 'Ping failed, waiting...'; fi; sleep 2; done; echo 'Health check failed after 15 attempts'; exit 1"]
     depends_on:
+      secrets_healthcheck:
+        condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
     networks:
@@ -237,10 +269,13 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
       - ./grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      secrets_healthcheck:
+        condition: service_completed_successfully
     healthcheck:
       # curl is available in this container, but using wget would be consistent with other containers
       # however wget is not available here, so curl is used for this container only
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
       start_period: 15s
       interval: 30s
       timeout: 10s
