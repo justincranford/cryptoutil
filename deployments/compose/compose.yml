@@ -122,7 +122,7 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  cryptoutil-sqlite:
+  cryptoutil-builder:
     image: cryptoutil:dev
     build:
       context: ../..
@@ -131,6 +131,14 @@ services:
         APP_VERSION: "dev"
         VCS_REF: "local"
         BUILD_DATE: "2025-10-29T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'; exit 0"]
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+
+  cryptoutil-sqlite:
+    image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
@@ -153,6 +161,8 @@ services:
       # for database connection, as they do not share data.
     depends_on:
       healthcheck-secrets:
+        condition: service_completed_successfully
+      cryptoutil-builder:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
@@ -198,6 +208,8 @@ services:
       - postgres_url.secret
     depends_on:
       healthcheck-secrets:
+        condition: service_completed_successfully
+      cryptoutil-builder:
         condition: service_completed_successfully
       postgres:
         condition: service_started
@@ -246,6 +258,8 @@ services:
       - postgres_url.secret
     depends_on:
       healthcheck-secrets:
+        condition: service_completed_successfully
+      cryptoutil-builder:
         condition: service_completed_successfully
       postgres:
         condition: service_started
