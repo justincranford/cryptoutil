@@ -248,9 +248,9 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2 (por
 #### Manual Nuclei Scan Commands
 
 **Service Configuration:**
-- **cryptoutil_sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
-- **cryptoutil_postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
-- **cryptoutil_postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
+- **cryptoutil-postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
 
 **Basic Security Scans:**
 ```sh
@@ -371,7 +371,7 @@ curl -k https://localhost:9090/livez  # Admin health endpoint
 docker compose -f ./deployments/compose/compose.yml ps
 
 # View service logs
-docker compose -f ./deployments/compose/compose.yml logs cryptoutil_sqlite
+docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite
 ```
 
 **Clean restart:**
@@ -469,7 +469,7 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 │                        Docker Compose Network (cryptoutil-network)                     │
 │                                                                                        │
 │  ┌─────────────────────────┐   ┌─────────────────────────┐   ┌───────────────────────┐ │
-│  │    cryptoutil_sqlite    │   │   cryptoutil_postgres1  │   │  cryptoutil_postgres2 │ │
+│  │    cryptoutil-sqlite    │   │   cryptoutil-postgres1  │   │  cryptoutil-postgres2 │ │
 │  │ Port:      0.0.0.0:8080 │   │ Port:      0.0.0.0:8081 │   │ Port:    0.0.0.0:8082 │ │
 │  │ Admin:   127.0.0.1:9090 │   │ Admin:   127.0.0.1:9090 │   │ Admin: 127.0.0.1:9090 │ │
 │  │ Backend: SQLite         │   │ Backend: PostgreSQL     │   │ Backend: PostgreSQL   │ │
@@ -500,10 +500,10 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 └────────────────────────────────────────────────────────────────────────────────────────┘
 
 Dependencies Flow:
-1. postgres → cryptoutil_postgres_1 → cryptoutil_postgres_2
+1. postgres → cryptoutil-postgres_1 → cryptoutil-postgres_2
 2. opentelemetry-collector-contrib → opentelemetry-collector-contrib-healthcheck
 3. grafana-otel-lgtm → opentelemetry-collector-contrib
-4. cryptoutil_sqlite (independent of postgres)
+4. cryptoutil-sqlite (independent of postgres)
 
 Telemetry Flow:
 cryptoutil services → OTEL Collector (4317/4318) → Grafana LGTM (14317/14318)
@@ -520,9 +520,9 @@ Health Checks:
 
 | Service | Public Port(s) | Admin Port | Protocol | Purpose |
 |---------|---------------|------------|----------|---------|
-| cryptoutil_sqlite | 8080 | 9090 | HTTPS | SQLite backend instance |
-| cryptoutil_postgres_1 | 8081 | 9090 | HTTPS | PostgreSQL backend instance #1 |
-| cryptoutil_postgres_2 | 8082 | 9090 | HTTPS | PostgreSQL backend instance #2 |
+| cryptoutil-sqlite | 8080 | 9090 | HTTPS | SQLite backend instance |
+| cryptoutil-postgres_1 | 8081 | 9090 | HTTPS | PostgreSQL backend instance #1 |
+| cryptoutil-postgres_2 | 8082 | 9090 | HTTPS | PostgreSQL backend instance #2 |
 | postgres | 5432 | - | TCP | PostgreSQL database |
 | opentelemetry-collector | 4317 (GRPC), 4318 (HTTP) | 8888 (metrics), 13133 (health) | OTLP | Telemetry collection |
 | grafana-otel-lgtm | 3000 | 14317 (GRPC), 14318 (HTTP) | HTTP | Observability stack |

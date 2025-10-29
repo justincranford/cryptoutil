@@ -84,9 +84,9 @@ nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
 ```
 
 **Service Endpoints:**
-- **cryptoutil_sqlite**: `https://localhost:8080/` (SQLite backend)
-- **cryptoutil_postgres_1**: `https://localhost:8081/` (PostgreSQL backend)
-- **cryptoutil_postgres_2**: `https://localhost:8082/` (PostgreSQL backend)
+- **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend)
+- **cryptoutil-postgres_1**: `https://localhost:8081/` (PostgreSQL backend)
+- **cryptoutil-postgres_2**: `https://localhost:8082/` (PostgreSQL backend)
 
 **Template Management:**
 ```sh

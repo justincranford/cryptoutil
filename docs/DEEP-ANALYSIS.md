@@ -695,9 +695,9 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 **File:** `deployments/compose/compose.yml`
 
 **Services:**
-- `cryptoutil_sqlite` - SQLite instance (port 8080)
-- `cryptoutil_postgres_1` - PostgreSQL instance 1 (port 8081)
-- `cryptoutil_postgres_2` - PostgreSQL instance 2 (port 8082)
+- `cryptoutil-sqlite` - SQLite instance (port 8080)
+- `cryptoutil-postgres_1` - PostgreSQL instance 1 (port 8081)
+- `cryptoutil-postgres_2` - PostgreSQL instance 2 (port 8082)
 - `postgres` - PostgreSQL database (port 5432)
 - `opentelemetry-collector` - OTEL collector sidecar (ports 4317, 4318, 8888, etc.)
 - `grafana-otel-lgtm` - Observability stack (port 3000)
@@ -837,7 +837,7 @@ go run ./cmd/workflow -workflows=quality,e2e
 # Docker Compose
 cd deployments/compose
 docker compose up -d
-docker compose logs -f cryptoutil_postgres_1
+docker compose logs -f cryptoutil-postgres_1
 docker compose down -v
 ```
 

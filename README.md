@@ -159,7 +159,7 @@ cd deployments/compose
 docker compose up -d
 
 # View logs
-docker compose logs -f cryptoutil_postgres_1
+docker compose logs -f cryptoutil-postgres_1
 
 # Access services
 # Grafana UI: http://localhost:3000 (admin/admin)
@@ -424,9 +424,9 @@ foreach ($port in @(8080, 8081, 8082)) {
 
 | Service | Port | Backend | Purpose |
 |---------|------|---------|---------|
-| cryptoutil_sqlite | 8080 | SQLite | Development/testing instance |
-| cryptoutil_postgres_1 | 8081 | PostgreSQL | Production-like instance #1 |
-| cryptoutil_postgres_2 | 8082 | PostgreSQL | Production-like instance #2 |
+| cryptoutil-sqlite | 8080 | SQLite | Development/testing instance |
+| cryptoutil-postgres_1 | 8081 | PostgreSQL | Production-like instance #1 |
+| cryptoutil-postgres_2 | 8082 | PostgreSQL | Production-like instance #2 |
 
 #### Expected Results
 

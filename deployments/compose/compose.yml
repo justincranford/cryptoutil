@@ -1,6 +1,6 @@
 services:
 
-  secrets_healthcheck:
+  healthcheck-secrets:
     image: alpine:latest
     secrets:
       - cryptoutil_unseal_1of5.secret
@@ -13,174 +13,17 @@ services:
       - postgres_password.secret
       - postgres_database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
-    healthcheck:
-      test: ["CMD-SHELL", "-c", "ls -l /run/secrets/*.secret"]
-    deploy:
-      resources:
-        limits:
-          memory: 128MB
-        reservations:
-          memory: 32MB
 
-  cryptoutil_sqlite:
-    build:
-      context: ../..
-      dockerfile: deployments/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
-    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
-    ports:
-      - "8080:8080"    # HTTPS public
-      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
-    volumes:
-      - ./cryptoutil/cryptoutil-sqlite.yml:/app/config/cryptoutil-sqlite.yml:ro
-      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
-      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
-    secrets:
-      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
-      # to enable shared encryption/decryption of data in the database. NEVER use
-      # instance-specific secrets as this breaks cryptographic interoperability.
-      - cryptoutil_unseal_1of5.secret
-      - cryptoutil_unseal_2of5.secret
-      - cryptoutil_unseal_3of5.secret
-      - cryptoutil_unseal_4of5.secret
-      - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL cryptoutil-sqlite instances MUST NOT use url secret
-      # for database connection, as they do not share data.
+  opentelemetry-collector-contrib-healthcheck:
+    image: alpine:latest
+    command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib >/dev/null 2>&1; }; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 15); do echo \"Attempt $$i: Checking OTEL collector...\"; if ping_success; then echo 'Ping successful, checking health endpoint...'; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying...'; fi; else echo 'Ping failed, waiting...'; fi; sleep 2; done; echo 'Health check failed after 15 attempts'; exit 1"]
     depends_on:
-      secrets_healthcheck:
+      healthcheck-secrets:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
-      opentelemetry-collector-contrib-healthcheck:
-        condition: service_completed_successfully
-    healthcheck:
-      # curl is not available in Alpine-based containers, use wget instead
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
-      start_period: 10s
-      interval: 5s
-      timeout: 5s
-      retries: 5
     networks:
       - cryptoutil-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-  cryptoutil_postgres_1:
-    build:
-      context: ../..
-      dockerfile: deployments/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
-    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
-    ports:
-      - "8081:8080"    # HTTPS public
-    volumes:
-      - ./cryptoutil/cryptoutil-postgresql-1.yml:/app/config/cryptoutil-postgresql-1.yml:ro
-      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
-      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
-    secrets:
-      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
-      # to enable shared encryption/decryption of data in the database. NEVER use
-      # instance-specific secrets as this breaks cryptographic interoperability.
-      - cryptoutil_unseal_1of5.secret
-      - cryptoutil_unseal_2of5.secret
-      - cryptoutil_unseal_3of5.secret
-      - cryptoutil_unseal_4of5.secret
-      - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
-      # for database connection to enable shared data in the database.
-      - postgres_url.secret
-    depends_on:
-      secrets_healthcheck:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_started
-      opentelemetry-collector-contrib:
-        condition: service_started
-      opentelemetry-collector-contrib-healthcheck:
-        condition: service_completed_successfully
-    healthcheck:
-      # curl is not available in Alpine-based containers, use wget instead
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
-      start_period: 10s
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - cryptoutil-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
-
-  cryptoutil_postgres_2:
-    build:
-      context: ../..
-      dockerfile: deployments/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2025-10-13T00:00:00Z"
-    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
-    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
-    ports:
-      - "8082:8080"    # HTTPS public
-      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
-    volumes:
-      - ./cryptoutil/cryptoutil-postgresql-2.yml:/app/config/cryptoutil-postgresql-2.yml:ro
-      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
-      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
-    secrets:
-      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
-      # to enable shared encryption/decryption of data in the database. NEVER use
-      # instance-specific secrets as this breaks cryptographic interoperability.
-      - cryptoutil_unseal_1of5.secret
-      - cryptoutil_unseal_2of5.secret
-      - cryptoutil_unseal_3of5.secret
-      - cryptoutil_unseal_4of5.secret
-      - cryptoutil_unseal_5of5.secret
-      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
-      # for database connection to enable shared data in the database.
-      - postgres_url.secret
-    depends_on:
-      secrets_healthcheck:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_started
-      opentelemetry-collector-contrib:
-        condition: service_started
-      opentelemetry-collector-contrib-healthcheck:
-        condition: service_completed_successfully
-      cryptoutil_postgres_1:
-        condition: service_healthy
-    healthcheck:
-      # curl is not available in Alpine-based containers, use wget instead
-      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
-      start_period: 10s
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - cryptoutil-network
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-        reservations:
-          memory: 128M
 
   # See https://hub.docker.com/_/postgres#how-to-use-this-image
   postgres:
@@ -227,7 +70,7 @@ services:
     volumes:
       - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     depends_on:
-      secrets_healthcheck:
+      healthcheck-secrets:
         condition: service_completed_successfully
       # grafana takes a long time to be healthy, so only wait for it to start
       grafana-otel-lgtm:
@@ -244,18 +87,6 @@ services:
           memory: 128M
           cpus: '0.1'
 
-  opentelemetry-collector-contrib-healthcheck:
-    image: alpine:latest
-#   command: ["sh", "-c", "ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib; }; for i in $(seq 1 10); do if ping_success; then for j in $(seq 1 20); do wget --quiet --spider http://opentelemetry-collector-contrib:13133/ && echo 'Health check successful' && exit 0; sleep 1; done; echo 'Wget failed after ping success'; exit 1; fi; sleep 1; done; echo 'Ping failed after 10 attempts'; exit 1"]
-    command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib >/dev/null 2>&1; }; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 15); do echo \"Attempt $$i: Checking OTEL collector...\"; if ping_success; then echo 'Ping successful, checking health endpoint...'; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying...'; fi; else echo 'Ping failed, waiting...'; fi; sleep 2; done; echo 'Health check failed after 15 attempts'; exit 1"]
-    depends_on:
-      secrets_healthcheck:
-        condition: service_completed_successfully
-      opentelemetry-collector-contrib:
-        condition: service_started
-    networks:
-      - cryptoutil-network
-
   grafana-otel-lgtm:
     image: grafana/otel-lgtm:latest
     environment:
@@ -263,14 +94,14 @@ services:
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
       - "3000:3000"    # Grafana UI
-      - "14317:4317"    # OTLP gRPC
-      - "14318:4318"    # OTLP HTTP
+      - "14317:4317"   # OTLP gRPC
+      - "14318:4318"   # OTLP HTTP
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana-otel-lgtm/provisioning:/etc/grafana/provisioning:ro
       - ./grafana-otel-lgtm/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
-      secrets_healthcheck:
+      healthcheck-secrets:
         condition: service_completed_successfully
     healthcheck:
       # curl is available in this container, but using wget would be consistent with other containers
@@ -291,17 +122,177 @@ services:
           memory: 256M
           cpus: '0.25'
 
+  cryptoutil-sqlite:
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-10-13T00:00:00Z"
+    command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
+    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
+    ports:
+      - "8080:8080"    # HTTPS public
+      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
+    volumes:
+      - ./cryptoutil/cryptoutil-sqlite.yml:/app/config/cryptoutil-sqlite.yml:ro
+      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
+      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
+    secrets:
+      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
+      # to enable shared encryption/decryption of data in the database. NEVER use
+      # instance-specific secrets as this breaks cryptographic interoperability.
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
+      # IMPORTANT: ALL cryptoutil-sqlite instances MUST NOT use url secret
+      # for database connection, as they do not share data.
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      opentelemetry-collector-contrib:
+        condition: service_started
+      opentelemetry-collector-contrib-healthcheck:
+        condition: service_completed_successfully
+    healthcheck:
+      # curl is not available in Alpine-based containers, use wget instead
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cryptoutil-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  cryptoutil-postgres_1:
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-10-29T00:00:00Z"
+    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
+    ports:
+      - "8081:8080"    # HTTPS public
+    volumes:
+      - ./cryptoutil/cryptoutil-postgresql-1.yml:/app/config/cryptoutil-postgresql-1.yml:ro
+      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
+      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
+    secrets:
+      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
+      # to enable shared encryption/decryption of data in the database. NEVER use
+      # instance-specific secrets as this breaks cryptographic interoperability.
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
+      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
+      # for database connection to enable shared data in the database.
+      - postgres_url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      opentelemetry-collector-contrib:
+        condition: service_started
+      opentelemetry-collector-contrib-healthcheck:
+        condition: service_completed_successfully
+    healthcheck:
+      # curl is not available in Alpine-based containers, use wget instead
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cryptoutil-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
+  cryptoutil-postgres_2:
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-10-29T00:00:00Z"
+    command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
+    working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
+    ports:
+      - "8082:8080"    # HTTPS public
+      # - "9090:9090"    # HTTPS admin (health endpoints) - NOT EXPOSED: bound to 127.0.0.1, not externally reachable
+    volumes:
+      - ./cryptoutil/cryptoutil-postgresql-2.yml:/app/config/cryptoutil-postgresql-2.yml:ro
+      - ./cryptoutil/cryptoutil-common.yml:/app/config/cryptoutil-common.yml:ro
+      - ./otel/cryptoutil-otel.yml:/app/otel/cryptoutil-otel.yml:ro
+    secrets:
+      # IMPORTANT: ALL cryptoutil instances MUST use the SAME secrets for unseal keys
+      # to enable shared encryption/decryption of data in the database. NEVER use
+      # instance-specific secrets as this breaks cryptographic interoperability.
+      - cryptoutil_unseal_1of5.secret
+      - cryptoutil_unseal_2of5.secret
+      - cryptoutil_unseal_3of5.secret
+      - cryptoutil_unseal_4of5.secret
+      - cryptoutil_unseal_5of5.secret
+      # IMPORTANT: ALL cryptoutil-postgres instances MUST use the SAME url secret
+      # for database connection to enable shared data in the database.
+      - postgres_url.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+      opentelemetry-collector-contrib:
+        condition: service_started
+      opentelemetry-collector-contrib-healthcheck:
+        condition: service_completed_successfully
+      cryptoutil-postgres_1:
+        condition: service_healthy
+    healthcheck:
+      # curl is not available in Alpine-based containers, use wget instead
+      test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cryptoutil-network
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M
+
 networks:
   cryptoutil-network:
     driver: bridge
 
 volumes:
   postgres_data:
-    name: cryptoutil_postgres_volume
-  cryptoutil_sqlite_certs:
-    name: cryptoutil_sqlite_certs_volume
-  cryptoutil_postgres_certs:
-    name: cryptoutil_postgres_certs_volume
+    name: cryptoutil-postgres_volume
+  cryptoutil-sqlite_certs:
+    name: cryptoutil-sqlite_certs_volume
+  cryptoutil-postgres_certs:
+    name: cryptoutil-postgres_certs_volume
   grafana_data:
     name: cryptoutil_grafana_volume
 

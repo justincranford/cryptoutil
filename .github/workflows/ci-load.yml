@@ -182,9 +182,9 @@ jobs:
           }
 
           # Check all three cryptoutil instances
-          check_endpoint "https://127.0.0.1:8080/ui/swagger/doc.json" "cryptoutil_sqlite"
-          check_endpoint "https://127.0.0.1:8081/ui/swagger/doc.json" "cryptoutil_postgres_1"
-          check_endpoint "https://127.0.0.1:8082/ui/swagger/doc.json" "cryptoutil_postgres_2"
+          check_endpoint "https://127.0.0.1:8080/ui/swagger/doc.json" "cryptoutil-sqlite"
+          check_endpoint "https://127.0.0.1:8081/ui/swagger/doc.json" "cryptoutil-postgres_1"
+          check_endpoint "https://127.0.0.1:8082/ui/swagger/doc.json" "cryptoutil-postgres_2"
 
           echo "✅ All services are ready for load testing"
 
@@ -293,9 +293,9 @@ jobs:
           mkdir -p ./load-reports/service-logs
 
           # Collect logs from all cryptoutil services
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil_sqlite > ./load-reports/service-logs/cryptoutil_sqlite.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil_postgres_1 > ./load-reports/service-logs/cryptoutil_postgres_1.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil_postgres_2 > ./load-reports/service-logs/cryptoutil_postgres_2.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./load-reports/service-logs/cryptoutil-sqlite.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres_1 > ./load-reports/service-logs/cryptoutil-postgres_1.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres_2 > ./load-reports/service-logs/cryptoutil-postgres_2.log 2>&1 || true
           docker compose -f ./deployments/compose/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
           docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
 
@@ -322,13 +322,13 @@ jobs:
           | Load Profile | ${{ env.LOAD_PROFILE }} |
           | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
           | Test Duration | ${{ steps.load-params.outputs.duration }}s |
-          | Target Services | cryptoutil_sqlite, cryptoutil_postgres_1, cryptoutil_postgres_2 |
+          | Target Services | cryptoutil-sqlite, cryptoutil-postgres_1, cryptoutil-postgres_2 |
 
           ## Services Tested
 
-          - **cryptoutil_sqlite** - https://127.0.0.1:8080/service/api/v1
-          - **cryptoutil_postgres_1** - https://127.0.0.1:8081/service/api/v1
-          - **cryptoutil_postgres_2** - https://127.0.0.1:8082/service/api/v1
+          - **cryptoutil-sqlite** - https://127.0.0.1:8080/service/api/v1
+          - **cryptoutil-postgres_1** - https://127.0.0.1:8081/service/api/v1
+          - **cryptoutil-postgres_2** - https://127.0.0.1:8082/service/api/v1
 
           ## Artifacts Generated
 

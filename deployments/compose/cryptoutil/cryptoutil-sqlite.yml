@@ -1,4 +1,4 @@
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil_sqlite' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-sqlite' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)

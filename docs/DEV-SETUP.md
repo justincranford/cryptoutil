@@ -511,9 +511,9 @@ curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
 #### Manual Nuclei Scan Examples
 
 **Service Endpoints:**
-- **cryptoutil_sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
-- **cryptoutil_postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
-- **cryptoutil_postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend, development instance)
+- **cryptoutil-postgres_1**: `https://localhost:8081/` (PostgreSQL backend, production-like instance)
+- **cryptoutil-postgres_2**: `https://localhost:8082/` (PostgreSQL backend, production-like instance)
 
 **Basic Security Scans:**
 ```bash

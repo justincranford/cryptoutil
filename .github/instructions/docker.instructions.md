@@ -93,7 +93,7 @@ LABEL org.opencontainers.image.authors="Justin Cranford <justin@example.com>"
 ### Secret Mounting Patterns
 ```yaml
 services:
-  cryptoutil_sqlite:
+  cryptoutil-sqlite:
     secrets:
       # ALL instances use the SAME secrets for cryptographic compatibility
       - cryptoutil_unseal_1of5.secret
@@ -102,7 +102,7 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
 
-  cryptoutil_postgres_1:
+  cryptoutil-postgres_1:
     secrets:
       # SAME secrets as other instances - CRITICAL for shared database access
       - cryptoutil_unseal_1of5.secret
@@ -111,7 +111,7 @@ services:
       - cryptoutil_unseal_4of5.secret
       - cryptoutil_unseal_5of5.secret
 
-  cryptoutil_postgres_2:
+  cryptoutil-postgres_2:
     secrets:
       # SAME secrets as other instances - NEVER use postgres2-specific secrets
       - cryptoutil_unseal_1of5.secret
@@ -229,7 +229,7 @@ services:
 
 ### cryptoutil Services (3 instances)
 
-**cryptoutil_sqlite** (Port 8080)
+**cryptoutil-sqlite** (Port 8080)
 - Public API (HTTPS): `https://127.0.0.1:8080`
 - Browser API: `https://127.0.0.1:8080/browser/api/v1/*`
 - Service API: `https://127.0.0.1:8080/service/api/v1/*`
@@ -237,7 +237,7 @@ services:
 - Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
 - Backend: SQLite in-memory database
 
-**cryptoutil_postgres_1** (Port 8081)
+**cryptoutil-postgres_1** (Port 8081)
 - Public API (HTTPS): `https://127.0.0.1:8081`
 - Browser API: `https://127.0.0.1:8081/browser/api/v1/*`
 - Service API: `https://127.0.0.1:8081/service/api/v1/*`
@@ -245,7 +245,7 @@ services:
 - Admin API (HTTPS): `https://127.0.0.1:9090` (livez, readyz, shutdown)
 - Backend: PostgreSQL database (shared with postgres_2)
 
-**cryptoutil_postgres_2** (Port 8082)
+**cryptoutil-postgres_2** (Port 8082)
 - Public API (HTTPS): `https://127.0.0.1:8082`
 - Browser API: `https://127.0.0.1:8082/browser/api/v1/*`
 - Service API: `https://127.0.0.1:8082/service/api/v1/*`
@@ -261,9 +261,9 @@ services:
 
 Each cryptoutil service has its own configuration file with settings that must be unique to that specific service instance:
 
-#### cryptoutil-sqlite.yml (for cryptoutil_sqlite service)
+#### cryptoutil-sqlite.yml (for cryptoutil-sqlite service)
 ```yaml
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil_sqlite' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-sqlite' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -280,9 +280,9 @@ otlp-hostname: cryptoutil-sqlite
 dev: true
 ```
 
-#### cryptoutil-postgresql-1.yml (for cryptoutil_postgres_1 service)
+#### cryptoutil-postgresql-1.yml (for cryptoutil-postgres_1 service)
 ```yaml
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil_postgres_1' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-postgres_1' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -296,9 +296,9 @@ otlp-service: cryptoutil-postgresql-1
 otlp-hostname: cryptoutil-postgresql-1
 ```
 
-#### cryptoutil-postgresql-2.yml (for cryptoutil_postgres_2 service)
+#### cryptoutil-postgresql-2.yml (for cryptoutil-postgres_2 service)
 ```yaml
-# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil_postgres_2' service name in compose.yml
+# CRITICAL: ALL settings in this file MUST BE UNIQUE and CORRESPOND TO the 'cryptoutil-postgres_2' service name in compose.yml
 # Changing any values here will break cryptographic interoperability and service identification
 
 # CORS configuration - HTTPS origins only (from default config)
@@ -324,7 +324,7 @@ otlp-hostname: cryptoutil-postgresql-2
 #### cryptoutil-common.yml (shared by ALL cryptoutil services)
 ```yaml
 # CRITICAL: This file contains COMMON settings used by ALL cryptoutil services in compose.yml
-# ALL cryptoutil instances (cryptoutil_sqlite, cryptoutil_postgres_1, cryptoutil_postgres_2)
+# ALL cryptoutil instances (cryptoutil-sqlite, cryptoutil-postgres_1, cryptoutil-postgres_2)
 # MUST use this file for shared configuration. Instance-specific settings belong in
 # their respective config files (cryptoutil-sqlite.yml, cryptoutil-postgresql-1.yml, cryptoutil-postgresql-2.yml)
 # Changing settings here affects ALL cryptoutil services.
@@ -419,11 +419,11 @@ cryptoutil services → OTEL Collector (4317/4318 OTLP) → Grafana LGTM (14317/
 - Grafana UI: `http://127.0.0.1:3000`
 
 **From Containers (Docker Network):**
-- cryptoutil APIs: `https://cryptoutil_sqlite:8080` (or postgres_1:8081, postgres_2:8082)
+- cryptoutil APIs: `https://cryptoutil-sqlite:8080` (or postgres_1:8081, postgres_2:8082)
 - PostgreSQL: `postgres:5432`
 - OTEL Collector: `http://opentelemetry-collector-contrib:4317-4318`
 - Grafana: `http://grafana-otel-lgtm:3000`
 
 **Admin APIs (Internal Only):**
 - All cryptoutil instances expose admin endpoints on HTTPS port 9090 (not mapped to host)
-- Access via: `docker compose exec cryptoutil_sqlite wget --no-check-certificate -q -O - https://127.0.0.1:9090/livez`
+- Access via: `docker compose exec cryptoutil-sqlite wget --no-check-certificate -q -O - https://127.0.0.1:9090/livez`
