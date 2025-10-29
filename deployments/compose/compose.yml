@@ -123,13 +123,14 @@ services:
           cpus: '0.25'
 
   cryptoutil-sqlite:
+    image: cryptoutil:dev
     build:
       context: ../..
       dockerfile: deployments/Dockerfile
       args:
         APP_VERSION: "dev"
         VCS_REF: "local"
-        BUILD_DATE: "2025-10-13T00:00:00Z"
+        BUILD_DATE: "2025-10-29T00:00:00Z"
     command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
@@ -174,13 +175,7 @@ services:
           memory: 128M
 
   cryptoutil-postgres-1:
-    build:
-      context: ../..
-      dockerfile: deployments/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2025-10-29T00:00:00Z"
+    image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-1.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
@@ -227,13 +222,7 @@ services:
           memory: 128M
 
   cryptoutil-postgres-2:
-    build:
-      context: ../..
-      dockerfile: deployments/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2025-10-29T00:00:00Z"
+    image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/cryptoutil-postgresql-2.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml", "-u", "file:///run/secrets/postgres_url.secret"]
     working_dir: /tmp # TODO Verify it works with /app/run instead of /tmp
     ports:
