@@ -14,7 +14,7 @@ services:
       - postgres_database.secret
     command: ["sh", "-c", "ls -l /run/secrets/*.secret"]
 
-  opentelemetry-collector-contrib-healthcheck:
+  healthcheck-opentelemetry-collector-contrib:
     image: alpine:latest
     command: ["sh", "-c", "echo 'Waiting for OTEL collector to be ready...'; sleep 10; ping_success() { ping -c 1 -W 1 opentelemetry-collector-contrib >/dev/null 2>&1; }; wget_success() { wget --quiet --spider --timeout=5 http://opentelemetry-collector-contrib:13133/ >/dev/null 2>&1; }; for i in $$(seq 1 15); do echo \"Attempt $$i: Checking OTEL collector...\"; if ping_success; then echo 'Ping successful, checking health endpoint...'; if wget_success; then echo 'Health check successful - OTEL collector is ready'; exit 0; else echo 'Health endpoint not ready yet, retrying...'; fi; else echo 'Ping failed, waiting...'; fi; sleep 2; done; echo 'Health check failed after 15 attempts'; exit 1"]
     depends_on:
@@ -24,6 +24,21 @@ services:
         condition: service_started
     networks:
       - cryptoutil-network
+
+  builder-cryptoutil:
+    image: cryptoutil:dev
+    build:
+      context: ../..
+      dockerfile: deployments/Dockerfile
+      args:
+        APP_VERSION: "dev"
+        VCS_REF: "local"
+        BUILD_DATE: "2025-10-29T00:00:00Z"
+    entrypoint: ["sh", "-c"]
+    command: ["echo 'Build completed successfully'"]
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
 
   # See https://hub.docker.com/_/postgres#how-to-use-this-image
   postgres:
@@ -122,21 +137,6 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  cryptoutil-builder:
-    image: cryptoutil:dev
-    build:
-      context: ../..
-      dockerfile: deployments/Dockerfile
-      args:
-        APP_VERSION: "dev"
-        VCS_REF: "local"
-        BUILD_DATE: "2025-10-29T00:00:00Z"
-    entrypoint: ["sh", "-c"]
-    command: ["echo 'Build completed successfully'; exit 0"]
-    depends_on:
-      healthcheck-secrets:
-        condition: service_completed_successfully
-
   cryptoutil-sqlite:
     image: cryptoutil:dev
     command: ["server", "start", "--config=/app/config/cryptoutil-sqlite.yml", "--config=/app/config/cryptoutil-common.yml", "--config=/app/otel/cryptoutil-otel.yml"]
@@ -162,11 +162,11 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      cryptoutil-builder:
+      builder-cryptoutil:
         condition: service_completed_successfully
       opentelemetry-collector-contrib:
         condition: service_started
-      opentelemetry-collector-contrib-healthcheck:
+      healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
@@ -209,13 +209,13 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      cryptoutil-builder:
+      builder-cryptoutil:
         condition: service_completed_successfully
       postgres:
         condition: service_started
       opentelemetry-collector-contrib:
         condition: service_started
-      opentelemetry-collector-contrib-healthcheck:
+      healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
@@ -259,13 +259,13 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      cryptoutil-builder:
+      builder-cryptoutil:
         condition: service_completed_successfully
       postgres:
         condition: service_started
       opentelemetry-collector-contrib:
         condition: service_started
-      opentelemetry-collector-contrib-healthcheck:
+      healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
       cryptoutil-postgres-1:
         condition: service_healthy

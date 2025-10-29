@@ -501,7 +501,7 @@ The project includes a comprehensive multi-service Docker Compose setup for loca
 
 Dependencies Flow:
 1. postgres → cryptoutil-postgres-1 → cryptoutil-postgres-2
-2. opentelemetry-collector-contrib → opentelemetry-collector-contrib-healthcheck
+2. opentelemetry-collector-contrib → healthcheck-opentelemetry-collector-contrib
 3. grafana-otel-lgtm → opentelemetry-collector-contrib
 4. cryptoutil-sqlite (independent of postgres)
 

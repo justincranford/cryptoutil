@@ -24,7 +24,7 @@ var (
 		{Service: cryptoutilMagic.DockerServiceCryptoutilPostgres2},
 		{Service: cryptoutilMagic.DockerServicePostgres},
 		{Service: cryptoutilMagic.DockerServiceGrafanaOtelLgtm},
-		{Service: cryptoutilMagic.DockerServiceOtelCollector, Job: cryptoutilMagic.DockerJobOtelCollectorHealthcheck},
+		{Service: cryptoutilMagic.DockerServiceOtelCollector, Job: cryptoutilMagic.DockerJobHealthcheckOtelCollectorContrib},
 	}
 )
 

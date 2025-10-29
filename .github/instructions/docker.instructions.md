@@ -386,9 +386,9 @@ csrf-token-single-use-token: false
 - Health Check: `http://127.0.0.1:13133/` (external health monitoring)
 - pprof: `http://127.0.0.1:1777` (performance profiling)
 - zPages: `http://127.0.0.1:55679` (debugging UI)
-- Health Monitoring: Via `opentelemetry-collector-contrib-healthcheck` sidecar (Alpine with wget)
+- Health Monitoring: Via `healthcheck-opentelemetry-collector-contrib` sidecar (Alpine with wget)
 
-**opentelemetry-collector-contrib-healthcheck** (Sidecar)
+**healthcheck-opentelemetry-collector-contrib** (Sidecar)
 - Purpose: External health validation for OTEL collector
 - Implementation: Alpine container with ping + wget validation
 - Exit Code: 0 = healthy, non-zero = unhealthy

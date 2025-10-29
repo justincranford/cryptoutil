@@ -14,20 +14,28 @@ const (
 
 // Docker service names.
 const (
+	// DockerJobHealthcheckOtelCollectorContrib - Healthcheck for OpenTelemetry Collector Contrib job name.
+	DockerJobHealthcheckOtelCollectorContrib = "healthcheck-opentelemetry-collector-contrib"
+	// DockerJobHealthcheckSecrets - Healthcheck for secrets job name.
+	DockerJobHealthcheckSecrets = "healthcheck-secrets"
+
+	// DockerServiceBuilderCryptoutil - Builder for Cryptoutil job name.
+	DockerServiceBuilderCryptoutil = "builder-cryptoutil"
+
+	// DockerServicePostgres - PostgreSQL service name.
+	DockerServicePostgres = "postgres"
+
+	// DockerServiceGrafanaOtelLgtm - Grafana OTEL LGTM service name.
+	DockerServiceGrafanaOtelLgtm = "grafana-otel-lgtm"
+	// DockerServiceOtelCollector - OpenTelemetry collector service name.
+	DockerServiceOtelCollector = "opentelemetry-collector-contrib"
+
 	// DockerServiceCryptoutilSqlite - Cryptoutil SQLite service name.
 	DockerServiceCryptoutilSqlite = "cryptoutil-sqlite"
 	// DockerServiceCryptoutilPostgres1 - Cryptoutil PostgreSQL 1 service name.
 	DockerServiceCryptoutilPostgres1 = "cryptoutil-postgres-1"
 	// DockerServiceCryptoutilPostgres2 - Cryptoutil PostgreSQL 2 service name.
 	DockerServiceCryptoutilPostgres2 = "cryptoutil-postgres-2"
-	// DockerServicePostgres - PostgreSQL service name.
-	DockerServicePostgres = "postgres"
-	// DockerServiceGrafanaOtelLgtm - Grafana OTEL LGTM service name.
-	DockerServiceGrafanaOtelLgtm = "grafana-otel-lgtm"
-	// DockerServiceOtelCollector - OpenTelemetry collector service name.
-	DockerServiceOtelCollector = "opentelemetry-collector-contrib"
-	// DockerJobOtelCollectorHealthcheck - OpenTelemetry collector healthcheck job name.
-	DockerJobOtelCollectorHealthcheck = "opentelemetry-collector-contrib-healthcheck"
 )
 
 // Docker-related magic numbers.
