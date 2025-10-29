@@ -14,6 +14,46 @@ repos:
         pass_filenames: false
         stages: [pre-commit]
 
+      - id: autoupdate-actionlint
+        name: Auto-update actionlint to latest version
+        entry: pre-commit
+        args: [autoupdate, --repo, "https://github.com/rhysd/actionlint"]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: autoupdate-hadolint
+        name: Auto-update hadolint to latest version
+        entry: pre-commit
+        args: [autoupdate, --repo, "https://github.com/hadolint/hadolint"]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: autoupdate-shellcheck
+        name: Auto-update shellcheck to latest version
+        entry: pre-commit
+        args: [autoupdate, --repo, "https://github.com/koalaman/shellcheck-precommit"]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: autoupdate-bandit
+        name: Auto-update bandit to latest version
+        entry: pre-commit
+        args: [autoupdate, --repo, "https://github.com/PyCQA/bandit"]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: autoupdate-commitizen
+        name: Auto-update commitizen to latest version
+        entry: pre-commit
+        args: [autoupdate, --repo, "https://github.com/commitizen-tools/commitizen"]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
   # Generic file checks (lightweight and reliable)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
