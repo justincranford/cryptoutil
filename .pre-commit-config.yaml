@@ -3,6 +3,17 @@
 # Run manually: pre-commit run --all-files
 
 repos:
+  # Auto-update pre-commit-hooks to latest version
+  - repo: local
+    hooks:
+      - id: autoupdate-pre-commit-hooks
+        name: Auto-update pre-commit-hooks to latest version
+        entry: pre-commit
+        args: [autoupdate, --repo, "https://github.com/pre-commit/pre-commit-hooks"]
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
   # Generic file checks (lightweight and reliable)
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
