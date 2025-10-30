@@ -152,7 +152,7 @@ mvnw.cmd gatling:test
 ### System Properties
 
 #### Service API Configuration
-- `serviceApiBaseUrl`: Base URL for service API (default: `https://localhost:8080/service/api/v1/`)
+- `baseurl`: Base URL for service API (default: `https://localhost:8080/service/api/v1/`)
 - `virtualclients`: Number of virtual clients for service API tests (default: `1`)
 
 #### Browser API Configuration
@@ -182,7 +182,7 @@ mvnw.cmd gatling:test
 # Test service API against staging environment
 ./mvnw gatling:test \
   -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
-  -DserviceApiBaseUrl=https://staging-api.cryptoutil.com/service/api/v1/ \
+  -Dbaseurl=https://staging-api.cryptoutil.com/service/api/v1/ \
   -Dvirtualclients=20
 ```
 
@@ -219,7 +219,7 @@ mvnw.cmd gatling:test
 ./mvnw gatling:test \
   -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
   -Dgatling.runDescription="Production Load Test" \
-  -DserviceApiBaseUrl=https://api.cryptoutil.com/service/api/v1/ \
+  -Dbaseurl=https://api.cryptoutil.com/service/api/v1/ \
   -Dvirtualclients=50
 
 # Generate reports only (no new test execution)
@@ -251,7 +251,7 @@ Example for a custom service API simulation:
 
 ```java
 public class CustomServiceSimulation extends Simulation {
-  private static final String baseUrl = System.getProperty("serviceApiBaseUrl", "https://localhost:8080/service/api/v1");
+  private static final String baseUrl = System.getProperty("baseurl", "https://localhost:8080/service/api/v1");
   private static final int virtualclients = Integer.getInteger("virtualclients", 1);
 
   private static final HttpProtocolBuilder httpProtocol = http
@@ -307,7 +307,7 @@ Add to your CI/CD pipeline:
     cd test/load
     ./mvnw gatling:test \
       -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
-      -DserviceApiBaseUrl=${{ secrets.SERVICE_API_BASE_URL }} \
+      -Dbaseurl=${{ secrets.SERVICE_API_BASE_URL }} \
       -Dvirtualclients=${{ vars.SERVICE_API_LOAD_TEST_USERS || 10 }}
 ```
 

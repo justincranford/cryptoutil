@@ -269,9 +269,10 @@ jobs:
 
           # Run all simulations with configured parameters
           ./mvnw gatling:test \
-            -Dgatling.simulationClass=cryptoutil.ServiceApiSimulation \
-            -DserviceApiBaseUrl=https://127.0.0.1:8080/service/api/v1 \
+            -Dprofile=${{ env.LOAD_PROFILE }} \
+            -Dport=8080 \
             -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
+            -DdurationSeconds=${{ steps.load-params.outputs.duration }} \
             -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"
 
           echo "✅ Gatling load tests completed"

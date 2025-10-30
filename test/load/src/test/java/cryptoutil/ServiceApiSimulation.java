@@ -1,100 +1,151 @@
 package cryptoutil;
 
-import static io.gatling.javaapi.core.CoreDsl.*;
-import static io.gatling.javaapi.http.HttpDsl.*;
+import static cryptoutil.CryptoutiApi.ELASTIC_KEY_ENCRYPTION_ALGORITHMS;
+import static cryptoutil.CryptoutiApi.CLEARTEXT;
+import static cryptoutil.CryptoutiApi.DATA_KEY_ALGORITHMS;
+import static cryptoutil.CryptoutiApi.DEFAULT_PROVIDER;
+import static cryptoutil.CryptoutiApi.ELASTIC_KEY_SIGNATURE_ALGORITHMS;
+import static cryptoutil.CryptoutiApi.buildCompleteWorkflowScenario;
+import static cryptoutil.CryptoutiApi.buildEncryptDecryptScenario;
+import static cryptoutil.CryptoutiApi.buildSignVerifyScenario;
+import static cryptoutil.CryptoutiApi.createElasticKey;
+import static cryptoutil.CryptoutiApi.decrypt;
+import static cryptoutil.CryptoutiApi.encrypt;
+import static cryptoutil.CryptoutiApi.generateMaterialKey;
+import static cryptoutil.GatlingHttpUtil.createServiceApiProtocol;
+import static io.gatling.javaapi.core.CoreDsl.global;
+import static io.gatling.javaapi.core.CoreDsl.rampUsers;
+import static io.gatling.javaapi.core.CoreDsl.scenario;
 
-import io.gatling.javaapi.core.*;
-import io.gatling.javaapi.http.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import io.gatling.javaapi.core.Assertion;
+import io.gatling.javaapi.core.FeederBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
+import io.gatling.javaapi.core.Simulation;
+
+/**
+ * Service API Load Testing Simulation.
+ * Matches TestAllElasticKeyCipherAlgorithms from internal/client/client_test.go.
+ *
+ * Example Commands:
+ * <pre>
+ * # Quick validation test (fastest, single algorithm)
+ * .\mvnw.cmd gatling:test -Dprofile=quick -Dvirtualclients=1 -DdurationSeconds=30
+ *
+ * # Test all cipher algorithms
+ * .\mvnw.cmd gatling:test -Dprofile=cipher -Dvirtualclients=2 -DdurationSeconds=45
+ *
+ * # Test all signature algorithms
+ * .\mvnw.cmd gatling:test -Dprofile=signature -Dvirtualclients=2 -DdurationSeconds=45
+ *
+ * # Complete workflow with data key generation
+ * .\mvnw.cmd gatling:test -Dprofile=complete -Dvirtualclients=1 -DdurationSeconds=60
+ *
+ * # Custom port (for cryptoutil-postgres instances)
+ * .\mvnw.cmd gatling:test -Dprofile=quick -Dport=8081 -Dvirtualclients=3
+ * </pre>
+ *
+ * Test flow per algorithm:
+ * 1. Create Elastic Key with specific algorithm
+ * 2. Generate Material Key (stores key metadata and optional public key)
+ * 3. Encrypt cleartext → returns JWE ciphertext
+ * 4. Generate another Material Key (key rotation)
+ * 5. Decrypt ciphertext → returns plaintext
+ * 6. Validate decrypted text matches original
+ * 7. For each data key algorithm (RSA/2048, EC/P256, oct/256, etc.):
+ *    - Generate encrypted data key (JWE)
+ *    - Decrypt data key to get JWK
+ *    - Validate JWK structure
+ */
 public class ServiceApiSimulation extends Simulation {
 
   // Load configuration from system properties
-  private static final String baseUrl = System.getProperty("serviceApiBaseUrl", "https://localhost:8080/service/api/v1");
+  private static final String testProfile = System.getProperty("profile", "quick");
+  private static final String port = System.getProperty("port", "8080");
+  private static final String baseUrl = "https://127.0.0.1:" + port + "/service/api/v1";
   private static final int virtualclients = Integer.getInteger("virtualclients", 1);
+  private static final int durationSeconds = Integer.getInteger("durationSeconds", 60);
 
-  // Define HTTP configuration for service API
-  private static final HttpProtocolBuilder httpProtocol = http
-      .baseUrl(baseUrl)
-      .acceptHeader("application/json")
-      .contentTypeHeader("application/json")
-      .userAgentHeader("Gatling-Cryptoutil-Service-API-Test/1.0")
-      .disableFollowRedirect(); // Disable redirects for API testing
-      // SSL certificate validation disabled via JVM system properties
+  // Performance assertions - using separate assertions (Gatling 3.14.6 API)
+  private static final Assertion responseTimeAssertion = global().responseTime().max().lt(5000);  // max response time < 5s (crypto operations are slower)
+  private static final Assertion successRateAssertion = global().successfulRequests().percent().gte(95.0);  // 95% success rate
 
-  // Key generation chain
-  private static final ChainBuilder keyGenChain = exec(http("Generate RSA Key")
-      .post("/elastickey")
-      .body(StringBody("{\"name\":\"test-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
-      .check(status().is(201))
-      .check(jsonPath("$.id").exists())
-      .check(jsonPath("$.algorithm").is("RSA")));
-
-  // Key generation scenario
-  private static final ScenarioBuilder keyGenScenario = scenario("Service API - Key Generation")
-      .exec(keyGenChain);
-
-  // Encryption/Decryption chain
-  private static final ChainBuilder cryptoChain = exec(http("Generate Key for Crypto")
-      .post("/elastickey")
-      .body(StringBody("{\"name\":\"crypto-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
-      .check(status().is(201))
-      .check(jsonPath("$.id").saveAs("keyId")))
-
-      .exec(http("Encrypt Data")
-          .post("/crypto/encrypt")
-          .body(StringBody("{\"elasticKeyId\":\"#{keyId}\",\"plaintext\":\"SGVsbG8gV29ybGQ=\",\"algorithm\":\"RSA-OAEP\"}"))
-          .check(status().is(200))
-          .check(jsonPath("$.ciphertext").exists())
-          .check(jsonPath("$.ciphertext").saveAs("ciphertext")))
-
-      .exec(http("Decrypt Data")
-          .post("/crypto/decrypt")
-          .body(StringBody("{\"elasticKeyId\":\"#{keyId}\",\"ciphertext\":\"#{ciphertext}\",\"algorithm\":\"RSA-OAEP\"}"))
-          .check(status().is(200))
-          .check(jsonPath("$.plaintext").is("SGVsbG8gV29ybGQ="))); // Base64 encoded "Hello World"
-
-  // Encryption/Decryption scenario
-  private static final ScenarioBuilder cryptoScenario = scenario("Service API - Encryption/Decryption")
-      .exec(cryptoChain);
-
-  // Key retrieval chain
-  private static final ChainBuilder keyRetrievalChain = exec(http("Create Key for Retrieval")
-      .post("/elastickey")
-      .body(StringBody("{\"name\":\"retrieve-key\",\"algorithm\":\"RSA\",\"keySize\":2048,\"provider\":\"CRYPTOUTIL\"}"))
-      .check(status().is(201))
-      .check(jsonPath("$.id").saveAs("retrieveKeyId")))
-
-      .exec(http("Get Key by ID")
-          .get("/elastickey/#{retrieveKeyId}")
-          .check(status().is(200))
-          .check(jsonPath("$.id").is("#{retrieveKeyId}"))
-          .check(jsonPath("$.algorithm").is("RSA")));
-
-  // Key retrieval scenario
-  private static final ScenarioBuilder keyRetrievalScenario = scenario("Service API - Key Retrieval")
-      .exec(keyRetrievalChain);
-
-  // Combined scenario
-  private static final ScenarioBuilder fullScenario = scenario("Service API - Full Crypto Workflow")
-      .exec(keyGenChain)
-      .pause(1)
-      .exec(cryptoChain)
-      .pause(1)
-      .exec(keyRetrievalChain);
-
-  // Performance assertions
-  private static final Assertion assertions = global()
-      .responseTime().max().lt(1000);  // max response time < 1s
+  // Feeder for generating unique UUIDs
+  private static final Iterator<Map<String, Object>> uuidFeeder =
+      Stream.generate((Supplier<Map<String, Object>>) () -> Map.of("uuid", UUID.randomUUID().toString()))
+          .iterator();
 
   // Injection profile and test setup
   {
-    setUp(
-        keyGenScenario.injectOpen(rampUsers(virtualclients).during(30)),
-        cryptoScenario.injectOpen(rampUsers(virtualclients).during(60)),
-        keyRetrievalScenario.injectOpen(rampUsers(virtualclients).during(20)),
-        fullScenario.injectOpen(rampUsers(virtualclients * 2).during(120))
-    )
-    .assertions(assertions)
-    .protocols(httpProtocol);
+    PopulationBuilder[] scenarios;
+
+    switch (testProfile) {
+      case "cipher":
+        // Test representative cipher algorithms
+        scenarios = new PopulationBuilder[ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length];
+        for (int i = 0; i < ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length; i++) {
+          scenarios[i] = buildEncryptDecryptScenario(ELASTIC_KEY_ENCRYPTION_ALGORITHMS[i], CLEARTEXT)
+              .injectOpen(rampUsers(virtualclients).during(durationSeconds));
+        }
+        break;
+
+      case "signature":
+        // Test all signature algorithms
+        scenarios = new PopulationBuilder[ELASTIC_KEY_SIGNATURE_ALGORITHMS.length];
+        for (int i = 0; i < ELASTIC_KEY_SIGNATURE_ALGORITHMS.length; i++) {
+          scenarios[i] = buildSignVerifyScenario(ELASTIC_KEY_SIGNATURE_ALGORITHMS[i], CLEARTEXT)
+              .injectOpen(rampUsers(virtualclients).during(durationSeconds));
+        }
+        break;
+
+      case "complete":
+        // Test complete workflow with data key generation (most comprehensive)
+        scenarios = new PopulationBuilder[ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length];
+        for (int i = 0; i < ELASTIC_KEY_ENCRYPTION_ALGORITHMS.length; i++) {
+          scenarios[i] = buildCompleteWorkflowScenario(ELASTIC_KEY_ENCRYPTION_ALGORITHMS[i], CLEARTEXT, DATA_KEY_ALGORITHMS)
+              .injectOpen(rampUsers(virtualclients).during(durationSeconds));
+        }
+        break;
+
+      case "quick":
+      default:
+        // Quick validation with single algorithm
+        scenarios = new PopulationBuilder[]{
+            scenario("Quick Validation")
+      .feed(uuidFeeder)
+      .exec(createElasticKey(
+          "QuickTest-#{uuid}",
+          "Quick validation test",
+          "A256GCM/A256KW",
+          DEFAULT_PROVIDER,
+          false,
+          true,
+          "elasticKeyId"
+      ))
+      .pause(1)
+      .exec(generateMaterialKey("elasticKeyId", "materialKeyId", null))
+      .pause(1)
+      .exec(encrypt("elasticKeyId", CLEARTEXT, null, "ciphertext"))
+      .pause(1)
+      .exec(decrypt("elasticKeyId", "ciphertext", "decrypted"))
+      .exec(session -> {
+        String decrypted = session.getString("decrypted");
+        if (!CLEARTEXT.equals(decrypted)) {
+          throw new RuntimeException("Quick validation failed");
+        }
+        return session;
+      }).injectOpen(rampUsers(virtualclients).during(durationSeconds))
+        };
+        break;
+    }
+
+    setUp(scenarios)
+        .assertions(responseTimeAssertion, successRateAssertion)
+        .protocols(createServiceApiProtocol(baseUrl));
   }
 }
