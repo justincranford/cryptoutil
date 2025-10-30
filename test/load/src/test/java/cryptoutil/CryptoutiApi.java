@@ -29,28 +29,38 @@ public class CryptoutiApi {
             .iterator();
 
     public static final String[] ELASTIC_KEY_ENCRYPTION_ALGORITHMS = {
+        // GCM with A256KW
         "A256GCM/A256KW",
-        // "A192GCM/A256KW",
-        // "A128GCM/A256KW",
-        // "A256GCM/A256GCMKW",
-        // "A192GCM/A256GCMKW",
-        // "A128GCM/A256GCMKW",
-        // "A256GCM/dir",
-        // "A192GCM/dir",
-        // "A128GCM/dir",
-        // "A256GCM/RSA-OAEP-256",
-        // "A192GCM/RSA-OAEP-256",
-        // "A128GCM/RSA-OAEP-256",
-        // "A256GCM/ECDH-ES+A256KW",
-        // "A192GCM/ECDH-ES+A256KW",
-        // "A128GCM/ECDH-ES+A256KW",
-        // "A256GCM/ECDH-ES",
-        // "A256CBC-HS512/A256KW",
-        // "A192CBC-HS384/A256KW",
-        // "A128CBC-HS256/A256KW",
-        // "A256CBC-HS512/dir",
-        // "A192CBC-HS384/dir",
-        // "A128CBC-HS256/dir",
+        "A192GCM/A256KW",
+        "A128GCM/A256KW",
+        // GCM with A256GCMKW
+        "A256GCM/A256GCMKW",
+        "A192GCM/A256GCMKW",
+        "A128GCM/A256GCMKW",
+        // GCM with dir
+        "A256GCM/dir",
+        "A192GCM/dir",
+        "A128GCM/dir",
+        // GCM with RSA-OAEP-512
+        "A256GCM/RSA-OAEP-512",
+        "A192GCM/RSA-OAEP-512",
+        "A128GCM/RSA-OAEP-512",
+        // GCM with ECDH-ES+A256KW
+        "A256GCM/ECDH-ES+A256KW",
+        "A192GCM/ECDH-ES+A256KW",
+        "A128GCM/ECDH-ES+A256KW",
+        // GCM with ECDH-ES
+        "A256GCM/ECDH-ES",
+        "A192GCM/ECDH-ES",
+        "A128GCM/ECDH-ES",
+        // CBC with A256KW
+        "A256CBC-HS512/A256KW",
+        "A192CBC-HS384/A256KW",
+        "A128CBC-HS256/A256KW",
+        // CBC with dir
+        "A256CBC-HS512/dir",
+        "A192CBC-HS384/dir",
+        "A128CBC-HS256/dir",
     };
 
     // Signature algorithms from happyPathElasticKeyTestCasesSign in client_test.go

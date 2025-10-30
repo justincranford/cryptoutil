@@ -18,7 +18,7 @@ import (
 
 const (
 	gormLoggerSlowThreshold             = cryptoutilMagic.DBLoggerSlowThreshold
-	gormLoggerLogLevel                  = logger.Info
+	gormLoggerLogLevel                  = logger.Warn // Changed from logger.Info to reduce verbosity.
 	gormLoggerIgnoreRecordNotFoundError = false
 	gormLoggerColorful                  = true
 )
@@ -55,7 +55,8 @@ func CreateGormDB(sqlRepository *SQLRepository) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to create gormDB: %w", err)
 	}
 
-	gormDB = gormDB.Debug()
+	// TODO : Enable gorm debug mode if needed.
+	// gormDB = gormDB.Debug() // Disabled to reduce log verbosity.
 
 	return gormDB, nil
 }
