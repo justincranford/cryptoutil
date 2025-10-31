@@ -8,45 +8,10 @@
 
 
 ## Core Principles
-- Follow README and instructions files.
-- **ALWAYS check go.mod for the correct Go version** before using any Go version in Docker images, CI/CD configs, or tool installations
-- Refer to architecture and usage examples in README.
-- **Optimize for fastest and most efficient context injection**: Keep instructions clear, concise, and non-duplicate
- - Keep explanations short and actionable; avoid overwhelming users with unnecessary detail.
-- Each instruction file should focus on its specific domain to minimize context overlap
-- Avoid duplication of guidance across instruction files - each file should cover its unique area
-- **Instruction files MUST be as short and efficient as possible.**
-  - Remove unnecessary words, boilerplate, and repetition.
-  - Use bullet points and lists instead of paragraphs where possible.
-  - Avoid restating project-wide rules in every file—link or reference instead.
-  - Regularly review and refactor instructions to minimize token usage and keep Copilot context efficient.
-- **NEVER create documentation files unless explicitly requested**
-  - Comments in code/config files are sufficient
-  - README and existing docs should be updated, not supplemented with new docs
-  - User asked for technical solution, not documentation library
-  - Focus on solving the problem, not creating supporting materials
-- When adding new instruction files:
-  1. Create the instruction file in `.github/instructions/` with the appropriate frontmatter and content
-  2. Use `.instructions.md` extension and proper YAML frontmatter with `applyTo` and `description` properties
-  3. Files are automatically discovered by VS Code - no manual registration required
-  4. Commit and push changes to ensure Copilot uses the new instructions
-
-## Continuous Learning and Improvement
-
-- **Learn from mistakes**: When errors occur during task execution, immediately analyze the root cause and add specific instructions to prevent recurrence
-- **Validate assumptions**: Never assume code, scripts, or configurations work without testing - always verify functionality before declaring completion
-- **Update instructions proactively**: After encountering new classes of errors or edge cases, enhance relevant instruction files with specific prevention guidelines
-- **Think systematically about completeness**: Consider what validation steps, edge cases, or common mistakes might be missing from current workflow
-- **Evolve instruction quality**: Regularly refine instructions to be more specific, actionable, and comprehensive based on real-world usage patterns
-- **Document failure patterns**: When the same mistake occurs multiple times, create explicit instructions with examples of what NOT to do
-- **Test-driven instruction creation**: For any new functionality (especially scripts), include testing requirements in the instructions before implementation
-- **Pre-commit hook awareness**: Always review file content for trailing whitespace and line ending issues BEFORE using create_file tool
-
-## Terminal and File Management
-
-- Minimize temporary file creation/removal to reduce interaction prompts
-- Use command chaining (`;` in PowerShell) for related operations
-- Prefer existing files over temporary demos when possible
+- Follow README and instructions files
+- **ALWAYS check go.mod for correct Go version** before using Go in Docker, CI/CD, or tools
+- Refer to architecture and usage examples in README
+- **Instruction files auto-discovered from `.github/instructions/`** - use `.instructions.md` extension with YAML frontmatter
 
 ## Nuclei Vulnerability Scanning
 
@@ -144,83 +109,48 @@ nuclei -templates-version
 - Use cross-platform tools directly (e.g., `go`, `python`) or pre-commit's built-in hooks
 - Ensure all hooks work on Windows, Linux, and macOS without shell dependencies
 
-## Current Instruction Files
+## Instruction File Structure
 
-| Pattern | File Path | Description |
-| ------- | --------- | ----------- |
-| **/*.yml | '.github/instructions/docker.instructions.md' | Instructions for Docker and Docker Compose configuration |
-| .github/workflows/*.yml | '.github/instructions/docker-prepull.instructions.md' | Instructions for optimizing Docker image pulls in CI/CD workflows |
-| ** | '.github/instructions/crypto.instructions.md' | Instructions for cryptographic operations |
-| ** | '.github/instructions/errors.instructions.md' | Instructions for error reporting |
-| ** | '.github/instructions/formatting.instructions.md' | Instructions for file formatting and encoding |
-| ** | '.github/instructions/linting-exclusions.instructions.md' | Instructions for consistent linting exclusions across pre-commit, CI/CD, and scripts |
-| ** | '.github/instructions/database.instructions.md' | Instructions for database operations and ORM patterns |
-| ** | '.github/instructions/openapi.instructions.md' | Instructions for OpenAPI and code generation patterns |
-| ** | '.github/instructions/security.instructions.md' | Instructions for security implementation patterns |
-| ** | '.github/instructions/observability.instructions.md' | Instructions for observability and monitoring implementation |
-| ** | '.github/instructions/architecture.instructions.md' | Instructions for configuration and application architecture |
-| ** | '.github/instructions/project-layout.instructions.md' | Instructions for Go project layout structure |
-| ** | '.github/instructions/copilot-customization.instructions.md' | Instructions for VS Code Copilot customization best practices |
-| ** | '.github/instructions/documentation.instructions.md' | Instructions for documentation organization and structure |
-| ** | '.github/instructions/powershell.instructions.md' | Instructions for PowerShell usage on Windows |
-| ** | '.github/instructions/commits.instructions.md' | Instructions for conventional commit message formatting |
-| **/*.go | '.github/instructions/go-dependencies.instructions.md' | Instructions for Go dependency management |
-| **/*.go | '.github/instructions/imports.instructions.md' | Instructions for Go import alias naming conventions |
-| .github/workflows/*.yml | '.github/instructions/cicd.instructions.md' | Instructions for CI/CD workflow configuration and Go version consistency |
-| ** | '.github/instructions/testing.instructions.md' | Instructions for testing |
-| ** | '.github/instructions/terminal-auto-approve.instructions.md' | Instructions for terminal command auto-approval pattern management |
-| **/todos-*.md | '.github/instructions/todo-maintenance.instructions.md' | Instructions for maintaining actionable TODO/task lists (delete completed tasks immediately) |
-| ** | '.github/instructions/act-testing.instructions.md' | Instructions for testing GitHub Actions workflows locally with act (CRITICAL: proper timeouts) |
-| ** | '.github/instructions/code-quality.instructions.md' | Instructions for code quality and maintenance standards |
-| ** | '.github/instructions/magic-values.instructions.md' | Instructions for defining magic numbers and values in dedicated constants package |
-| ** | '.github/instructions/git.instructions.md' | Instructions for git operations and workflow |
-| ** | '.github/instructions/cabf.instructions.md' | Instructions for CA/Browser Forum Baseline Requirements compliance |
-| ** | '.github/instructions/pull-requests.instructions.md' | Instructions for Pull Request description generation |
-| scripts/** | '.github/instructions/scripts.instructions.md' | Instructions for cross-platform script development |
-| ** | '.github/instructions/conditional-chaining.instructions.md' | Instructions for chaining conditional statements |
-| ** | '.github/instructions/localhost-vs-ip.instructions.md' | Instructions for localhost vs 127.0.0.1 usage across runtime environments |
+**T#-P# Naming Convention**: Tier-Priority format for explicit load order
+- **T#** = Tier number (priority level)
+- **P#** = Priority within tier (alphabetical load order)
 
-## Instruction File Cross-Reference Guide
+### Tier 1: Foundation (Always Loads First)
+| File | Pattern | Description |
+|------|---------|-------------|
+| T1-P1-copilot-customization | ** | Git ops, terminal patterns, curl/wget rules, fuzz testing, conventional commits, TODO maintenance |
 
-**When working with Docker Compose:**
-- Primary: `docker.instructions.md` - Docker/Compose configuration, health checks, secrets
-- Related: `architecture.instructions.md` - Service architecture patterns
-- Related: `observability.instructions.md` - Telemetry forwarding architecture
-- Related: `security.instructions.md` - Docker secrets vs environment variables
-- Related: `testing.instructions.md` - E2E integration testing with compose
+### Tier 2: Core Development (Slots 2-6)
+| File | Pattern | Description |
+|------|---------|-------------|
+| T2-P1-code-quality | ** | Linter compliance, wsl/godot rules, resource cleanup, pre-commit docs |
+| T2-P2-testing | ** | Test patterns, dependency mgmt, file organization, UUIDv7 concurrency |
+| T2-P3-architecture | ** | Layered arch, config patterns, lifecycle, factory patterns, atomic ops |
+| T2-P4-security | ** | Key hierarchy, IP allowlisting, rate limiting, TLS, secrets management |
+| T2-P5-docker | **/*.yml | Compose config, healthchecks, Docker secrets, OTEL forwarding |
 
-**When working with compose.yml specifically:**
-- Primary: `docker.instructions.md` - Compose service definitions, port mappings, dependencies
-- Secondary: `magic-values.instructions.md` - Port constants in magic_network.go
-- Related: `testing.instructions.md` - E2E tests that verify compose services
+### Tier 3: High Priority (Slots 7-11)
+| File | Pattern | Description |
+|------|---------|-------------|
+| T3-P1-crypto | ** | NIST FIPS 140-3 algorithms, keygen patterns, cryptographic operations |
+| T3-P2-cicd | .github/workflows/*.yml | Workflow configuration, Go version consistency, service connectivity |
+| T3-P3-observability | ** | OpenTelemetry integration, OTLP protocols, telemetry forwarding |
+| T3-P4-database | ** | GORM ORM patterns, migrations, PostgreSQL/SQLite support |
+| T3-P5-go-standards | **/*.go | Import aliases, dependencies, formatting (gofumpt), conditionals |
 
-**When working with CI/CD workflows:**
-- Primary: `cicd.instructions.md` - Workflow configuration, Go version consistency
-- Primary: `docker-prepull.instructions.md` - Docker image pre-pull optimization
-- Related: `docker.instructions.md` - Docker-based testing in workflows
-- Related: `act-testing.instructions.md` - Local workflow testing with act
-- Related: `testing.instructions.md` - Test execution in CI/CD
+### Tier 4: Medium Priority (Slots 12-15)
+| File | Pattern | Description |
+|------|---------|-------------|
+| T4-P1-specialized-testing | ** | Act workflow testing, localhost vs 127.0.0.1 patterns |
+| T4-P2-project-config | ** | OpenAPI specs, magic values, linting exclusions |
+| T4-P3-platform-specific | scripts/** | PowerShell/Bash scripts, Docker image pre-pull |
+| T4-P4-specialized-domains | ** | CA/Browser Forum compliance, project layout, PR descriptions |
 
-**When working with security:**
-- Primary: `security.instructions.md` - Security implementation patterns
-- Related: `docker.instructions.md` - Docker secrets management
-- Related: `crypto.instructions.md` - Cryptographic operations
-- Related: `cabf.instructions.md` - Certificate authority compliance
+## Cross-Reference Guide
 
-**When working with observability:**
-- Primary: `observability.instructions.md` - OpenTelemetry integration
-- Related: `docker.instructions.md` - OTEL collector compose configuration
-- Related: `architecture.instructions.md` - Telemetry architecture patterns
-
-**When working with testing:**
-- Primary: `testing.instructions.md` - Test organization and execution
-- Related: `docker.instructions.md` - E2E testing with Docker Compose
-- Related: `act-testing.instructions.md` - Local workflow testing
-- Related: `code-quality.instructions.md` - Test coverage and quality
-
-**When working with Go code:**
-- Primary: `imports.instructions.md` - Import alias conventions
-- Primary: `go-dependencies.instructions.md` - Dependency management
-- Related: `magic-values.instructions.md` - Magic number constants
-- Related: `code-quality.instructions.md` - Linting and code standards
-- Related: `cabf.instructions.md` - Certificate/crypto code compliance
+**Docker Compose**: T2-P5-docker (primary) → T2-P3-architecture, T3-P3-observability, T2-P4-security, T2-P2-testing  
+**CI/CD Workflows**: T3-P2-cicd (primary) → T2-P5-docker, T4-P1-specialized-testing, T2-P2-testing  
+**Security**: T2-P4-security (primary) → T2-P5-docker, T3-P1-crypto, T4-P4-specialized-domains  
+**Observability**: T3-P3-observability (primary) → T2-P5-docker, T2-P3-architecture  
+**Testing**: T2-P2-testing (primary) → T2-P5-docker, T4-P1-specialized-testing, T2-P1-code-quality  
+**Go Code**: T3-P5-go-standards (primary) → T4-P2-project-config, T2-P1-code-quality, T4-P4-specialized-domains
