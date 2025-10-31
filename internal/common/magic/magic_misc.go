@@ -40,6 +40,9 @@ const (
 	DefaultDevMode = false
 	// DefaultDryRun - Default dry run flag value.
 	DefaultDryRun = false
+
+	// ServiceVersion - Current service version.
+	ServiceVersion = "1.0.0"
 )
 
 // DefaultConfigFiles - Default config files slice.

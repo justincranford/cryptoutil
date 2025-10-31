@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -157,7 +158,7 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 		commonIPFilterMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonOtelFiberTelemetryMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService, settings),
 		commonOtelFiberRequestLoggerMiddleware(serverApplicationCore.ServerApplicationBasic.TelemetryService),
-		commonHTTPGETCacheControlMiddleware(), // TODO Limit this to Swagger GET APIs, not Swagger UI static content
+		commonHTTPGETCacheControlMiddleware(),
 		commonUnsupportedHTTPMethodsMiddleware(settings),
 	} // Fiber app for Service-to-Service API calls
 
@@ -208,7 +209,6 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	})
 
 	// Public Swagger UI
-	// TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)
 	// TODO Add authentication middleware for Swagger UI access
 	swaggerAPI, err := cryptoutilOpenapiServer.GetSwagger()
 	if err != nil {
@@ -554,7 +554,7 @@ func commonIPRateLimiterMiddleware(telemetryService *cryptoutilTelemetry.Telemet
 }
 
 func commonHTTPGETCacheControlMiddleware() func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error { // Disable caching of HTTP GET responses
+	return func(c *fiber.Ctx) error {
 		c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
 		c.Set("Pragma", "no-cache")
 		c.Set("Expires", "0")
@@ -701,18 +701,21 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 			cryptoutilMagic.StringStatus: "ok",
 			"timestamp":                  time.Now().UTC().Format(time.RFC3339),
 			"service":                    "cryptoutil",
-			"version":                    "1.0.0", // TODO: Get from build info
+			"version":                    cryptoutilMagic.ServiceVersion,
 			"probe":                      "liveness",
 		}
 
 		if isReadiness {
 			// TODO Add more readiness checks as needed
-			// TODO Do readiness checks concurrently for better performance
 			healthStatus["probe"] = "readiness"
-			healthStatus["database"] = checkDatabaseHealth(serverApplicationCore)
-			healthStatus["memory"] = checkMemoryHealth()
-			healthStatus["dependencies"] = checkDependenciesHealth(serverApplicationCore)
-			healthStatus["sidecar"] = checkSidecarHealth(serverApplicationCore)
+
+			// Perform readiness checks concurrently for better performance
+			readinessResults := performConcurrentReadinessChecks(serverApplicationCore)
+
+			// Add results to health status
+			for checkName, result := range readinessResults {
+				healthStatus[checkName] = result
+			}
 
 			// Check if any component is unhealthy for readiness
 			if dbStatus, ok := healthStatus["database"].(map[string]any); ok {
@@ -741,6 +744,56 @@ func privateHealthCheckMiddlewareFunction(serverApplicationCore *ServerApplicati
 
 		return c.Status(statusCode).JSON(healthStatus)
 	}
+}
+
+func performConcurrentReadinessChecks(serverApplicationCore *ServerApplicationCore) map[string]any {
+	results := make(map[string]any)
+
+	// Channel to collect results
+	resultsChan := make(chan struct {
+		name   string
+		result any
+	})
+
+	// WaitGroup to wait for all checks to complete
+	var wg sync.WaitGroup
+
+	// Helper function to perform a check and send the result to the channel
+	doCheck := func(name string, checkFunc func() any) {
+		defer wg.Done()
+
+		result := checkFunc()
+		resultsChan <- struct {
+			name   string
+			result any
+		}{name, result}
+	}
+
+	// Add readiness checks here
+	wg.Add(3)
+
+	go doCheck("database", func() any {
+		return checkDatabaseHealth(serverApplicationCore)
+	})
+	go doCheck("memory", func() any {
+		return checkMemoryHealth()
+	})
+	go doCheck("sidecar", func() any {
+		return checkSidecarHealth(serverApplicationCore)
+	})
+
+	// Close the results channel once all checks are done
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+	}()
+
+	// Collect results from the channel
+	for result := range resultsChan {
+		results[result.name] = result.result
+	}
+
+	return results
 }
 
 func commonSetFiberRequestAttribute(fiberAppIDValue fiberAppID) func(c *fiber.Ctx) error {
@@ -840,27 +893,27 @@ func buildContentSecurityPolicy(settings *cryptoutilConfig.Settings) string {
 
 // Security header policy constants - Last reviewed: 2025-10-01.
 const (
-	hstsMaxAge                    = "max-age=31536000; includeSubDomains; preload"
-	hstsMaxAgeDev                 = "max-age=86400; includeSubDomains"
-	referrerPolicy                = "strict-origin-when-cross-origin"
-	permissionsPolicy             = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()"
-	crossOriginOpenerPolicy       = "same-origin"
-	crossOriginEmbedderPolicy     = "require-corp"
-	crossOriginResourcePolicy     = "same-origin"
-	xPermittedCrossDomainPolicies = "none"
-	contentTypeOptions            = "nosniff"
-	clearSiteDataLogout           = "\"cache\", \"cookies\", \"storage\""
+	hstsMaxAge                    = cryptoutilMagic.HSTSMaxAge
+	hstsMaxAgeDev                 = cryptoutilMagic.HSTSMaxAgeDev
+	referrerPolicy                = cryptoutilMagic.ReferrerPolicy
+	permissionsPolicy             = cryptoutilMagic.PermissionsPolicy
+	crossOriginOpenerPolicy       = cryptoutilMagic.CrossOriginOpenerPolicy
+	crossOriginEmbedderPolicy     = cryptoutilMagic.CrossOriginEmbedderPolicy
+	crossOriginResourcePolicy     = cryptoutilMagic.CrossOriginResourcePolicy
+	xPermittedCrossDomainPolicies = cryptoutilMagic.XPermittedCrossDomainPolicies
+	contentTypeOptions            = cryptoutilMagic.ContentTypeOptions
+	clearSiteDataLogout           = cryptoutilMagic.ClearSiteDataLogout
 )
 
 // Expected browser security headers for runtime validation.
 var expectedBrowserHeaders = map[string]string{
-	"X-Content-Type-Options":            contentTypeOptions,
-	"Referrer-Policy":                   referrerPolicy,
-	"Permissions-Policy":                permissionsPolicy,
-	"Cross-Origin-Opener-Policy":        crossOriginOpenerPolicy,
-	"Cross-Origin-Embedder-Policy":      crossOriginEmbedderPolicy,
-	"Cross-Origin-Resource-Policy":      crossOriginResourcePolicy,
-	"X-Permitted-Cross-Domain-Policies": xPermittedCrossDomainPolicies,
+	"X-Content-Type-Options":            cryptoutilMagic.ContentTypeOptions,
+	"Referrer-Policy":                   cryptoutilMagic.ReferrerPolicy,
+	"Permissions-Policy":                cryptoutilMagic.PermissionsPolicy,
+	"Cross-Origin-Opener-Policy":        cryptoutilMagic.CrossOriginOpenerPolicy,
+	"Cross-Origin-Embedder-Policy":      cryptoutilMagic.CrossOriginEmbedderPolicy,
+	"Cross-Origin-Resource-Policy":      cryptoutilMagic.CrossOriginResourcePolicy,
+	"X-Permitted-Cross-Domain-Policies": cryptoutilMagic.XPermittedCrossDomainPolicies,
 }
 
 // publicBrowserAdditionalSecurityHeadersMiddleware adds security headers not covered by Helmet.
