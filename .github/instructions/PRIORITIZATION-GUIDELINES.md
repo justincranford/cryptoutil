@@ -45,11 +45,11 @@ According to [VS Code documentation](https://code.visualstudio.com/docs/copilot/
 
 | File | Frequency | Impact | Content |
 |------|-----------|--------|---------|
-| `02-01.code-quality` | Every Go Edit | Critical | Linter compliance, wsl rules, godot rules, resource cleanup, pre-commit docs |
+| `02-01.golang` | Every Go Edit | Critical | Go project structure, architecture, and coding standards |
 | `02-02.testing` | Every Test | Critical | Test patterns, dependency mgmt, file organization, UUIDv7 concurrency |
-| `02-03.architecture` | Every Feature | Critical | Layered arch, config patterns, lifecycle, factory patterns |
-| `02-04.security` | Crypto Project | Critical | Key hierarchy, IP allowlisting, rate limiting, TLS, secrets |
-| `02-05.docker` | Infrastructure | Critical | Compose config, healthchecks, secrets, OTEL forwarding |
+| `02-03.security` | Crypto Project | Critical | Key hierarchy, IP allowlisting, rate limiting, TLS, secrets |
+| `02-04.code-quality` | Every Go Edit | Critical | Linter compliance, wsl rules, godot rules, resource cleanup, pre-commit docs |
+| `02-05.crypto` | Crypto Code | High | Cryptographic operations and CA/Browser Forum requirements |
 
 **Combined Token Estimate**: ~6500 tokens
 
@@ -57,7 +57,7 @@ According to [VS Code documentation](https://code.visualstudio.com/docs/copilot/
 
 | File | Frequency | Impact | Source Files |
 |------|-----------|--------|--------------|
-| `03-01.crypto` | Crypto Code | High | Standalone |
+| `03-01.docker` | Infrastructure | High | Compose config, healthchecks, secrets, OTEL forwarding |
 | `03-02.cicd` | Workflows | High | Standalone |
 | `03-03.observability` | Telemetry | High | Standalone |
 | `03-04.database` | DB Code | High | Standalone |
@@ -72,21 +72,21 @@ According to [VS Code documentation](https://code.visualstudio.com/docs/copilot/
 | `04-03.platform-specific` | powershell + scripts + docker-prepull |
 | `04-04.specialized-domains` | cabf + project-layout + pull-requests + documentation |
 
-**Note**: `errors.instructions.md` removed (content in `02-01.code-quality`)
+**Note**: `errors.instructions.md` removed (content in `02-04.code-quality`)
 
 ## Reordering Instructions
 
 ### To Change Priority Within Tier
 Rename file with new second ## value:
 ```bash
-git mv .github/instructions/02-03.architecture.instructions.md .github/instructions/02-01.architecture.instructions.md
-git mv .github/instructions/02-01.code-quality.instructions.md .github/instructions/02-03.code-quality.instructions.md
+git mv .github/instructions/02-01.golang.instructions.md .github/instructions/02-03.golang.instructions.md
+git mv .github/instructions/02-04.code-quality.instructions.md .github/instructions/02-01.code-quality.instructions.md
 ```
 
 ### To Move File Between Tiers
 Change first ## prefix:
 ```bash
-git mv .github/instructions/03-01.crypto.instructions.md .github/instructions/02-06.crypto.instructions.md
+git mv .github/instructions/02-05.crypto.instructions.md .github/instructions/03-05.crypto.instructions.md
 ```
 
 ### To Add New Instruction File
@@ -109,11 +109,11 @@ Once consolidation is validated, consider further optimization:
 | File | Current Est. | Target | Method |
 |------|-------------|--------|--------|
 | `01-01.copilot-customization` | ~2500 | ~2000 | Remove verbose decision trees, consolidate command examples |
-| `02-01.code-quality` | ~1800 | ~1400 | Consolidate linter sections, remove redundant examples |
+| `02-04.code-quality` | ~1800 | ~1400 | Consolidate linter sections, remove redundant examples |
 | `02-02.testing` | ~800 | ~650 | Simplify dependency management section |
-| `02-05.docker` | ~1500 | ~1200 | Consolidate healthcheck patterns |
-| `02-04.security` | ~700 | ~550 | Bullet-point only, remove verbose explanations |
-| `02-03.architecture` | ~400 | ~300 | Already concise, minimal reduction |
+| `03-01.docker` | ~1500 | ~1200 | Consolidate healthcheck patterns |
+| `02-03.security` | ~700 | ~550 | Bullet-point only, remove verbose explanations |
+| `02-01.golang` | ~400 | ~300 | Already concise, minimal reduction |
 
 **Potential Token Reduction**: ~1800 tokens (~22% additional reduction)
 
