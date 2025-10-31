@@ -4,6 +4,59 @@ applyTo: "**"
 ---
 # Specialized Testing Instructions
 
+## Nuclei Vulnerability Scanning
+
+**ALWAYS start cryptoutil services before running nuclei scans:**
+```sh
+# Prerequisites - start services first
+docker compose -f ./deployments/compose/compose.yml down -v
+docker compose -f ./deployments/compose/compose.yml up -d
+
+# Verify services are ready (CI/CD workflow context only - NOT for local chat commands)
+# Local alternative: docker compose exec cryptoutil-sqlite wget --no-check-certificate -q -O - https://127.0.0.1:8080/ui/swagger/doc.json
+curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance (CI/CD only)
+curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1 (CI/CD only)
+curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2 (CI/CD only)
+```
+
+**Manual Nuclei Scan Commands:**
+```sh
+# Quick security scan (info/low severity, fast)
+nuclei -target https://localhost:8080/ -severity info,low
+nuclei -target https://localhost:8081/ -severity info,low
+nuclei -target https://localhost:8082/ -severity info,low
+
+# Comprehensive security scan (medium/high/critical severity)
+nuclei -target https://localhost:8080/ -severity medium,high,critical
+nuclei -target https://localhost:8081/ -severity medium,high,critical
+nuclei -target https://localhost:8082/ -severity medium,high,critical
+
+# Targeted scans by vulnerability type
+nuclei -target https://localhost:8080/ -tags cves,vulnerabilities
+nuclei -target https://localhost:8080/ -tags security-misconfiguration
+nuclei -target https://localhost:8080/ -tags exposure,misc
+
+# Performance-optimized scans
+nuclei -target https://localhost:8080/ -c 25 -rl 100 -severity high,critical
+```
+
+**Service Endpoints:**
+- **cryptoutil-sqlite**: `https://localhost:8080/` (SQLite backend)
+- **cryptoutil-postgres-1**: `https://localhost:8081/` (PostgreSQL backend)
+- **cryptoutil-postgres-2**: `https://localhost:8082/` (PostgreSQL backend)
+
+**Template Management:**
+```sh
+# Update nuclei templates
+nuclei -update-templates
+
+# List available templates
+nuclei -tl
+
+# Check template version
+nuclei -templates-version
+```
+
 ## Act Workflow Testing
 
 ### CRITICAL: Use cmd/workflow Utility

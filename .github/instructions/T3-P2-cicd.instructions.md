@@ -4,6 +4,30 @@ applyTo: ".github/workflows/*.yml"
 ---
 # CI/CD Workflow Instructions
 
+## CI/CD Cost Efficiency
+
+**Optimize workflow execution to minimize GitHub Actions billed minutes:**
+
+- **Trigger optimization**: Only run workflows on relevant file changes (use path filters)
+- **Matrix builds**: Keep job matrices minimal, avoid unnecessary combinations
+- **Dependency caching**: Use Go module caching to reduce build times
+- **Skip trivial changes**: Use conditionals to skip jobs for docs-only or trivial changes
+- **Job filters**: Apply conditionals to avoid wasteful runs (e.g., skip deployment on forks)
+
+**Example patterns:**
+```yaml
+on:
+  push:
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - '.github/workflows/**'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+```
+
 ## Workflow Architecture Overview
 
 The CI/CD pipeline consists of 6 specialized workflows with different service orchestration approaches:

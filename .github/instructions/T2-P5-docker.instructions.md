@@ -8,6 +8,28 @@ applyTo: "**/*.yml"
 - Prefer command directives over scripts; use container networking, secrets, and explicit port mappings as needed
 - Use `docker compose` (not `docker-compose`)
 
+## Docker Compose Cross-Platform Path Requirements
+
+**CRITICAL: Path configuration for cross-platform compatibility**
+
+- **NEVER use absolute paths** in `deployments/compose/compose.yml`
+- **ALWAYS use relative paths** for all file references (volumes, secrets, configs, dockerfiles)
+- Absolute Windows paths (`C:\...`) break cross-platform compatibility with:
+  - GitHub Actions Ubuntu runners
+  - `act` local workflow testing on Windows/WSL
+  - Docker Compose path resolution in Linux containers
+- Relative paths resolve correctly from the compose file's directory on all platforms
+
+**Example corrections:**
+- ❌ BAD: `file: C:\Dev\Projects\cryptoutil\deployments\compose\postgres\postgres_username.secret`
+- ✅ GOOD: `file: ./postgres/postgres_username.secret`
+
+**Applies to ALL path references in compose.yml:**
+- Secret file references
+- Volume mount paths
+- Config file references
+- Dockerfile paths
+
 ## Multi-Stage Build Best Practices
 
 ### ARG Scoping Rules

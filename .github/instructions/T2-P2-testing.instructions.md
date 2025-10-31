@@ -50,3 +50,13 @@ When testing linting of code samples or validating regex patterns during chat se
 - Examples: regex validation tests, linting pattern tests, code transformation tests
 - All tests in `cicd_test.go` execute automatically during Go test runs
 - Use descriptive test names that indicate the validation purpose (e.g., `TestEnforceTestPatterns_RegexValidation`)
+
+### cicd Utility Testing Patterns
+
+When adding or updating the cicd utility (`internal/cmd/cicd/cicd.go`):
+
+- **Always implement programmatic tests** in `internal/cmd/cicd/cicd_test.go`
+- **Test pattern**: Write generated code to temporary file (use `t.TempDir()`), run lint/check function against it, assert results programmatically
+- **Avoid interactive prompts**: This prevents unwanted prompts during Copilot-assisted sessions
+- **Avoid ephemeral shell commands**: Don't use piping PowerShell Get-Content replace commands - prefer programmatic edits via tests or scripted tools
+- **Rationale**: Ephemeral shell patterns trigger unwanted prompts and premium LLM watch requests

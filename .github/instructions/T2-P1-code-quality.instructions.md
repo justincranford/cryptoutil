@@ -30,6 +30,12 @@ applyTo: "**"
 - Integration changes (VS Code settings, golangci-lint config references)
 - New troubleshooting guidance for common issues
 
+**Pre-commit Configuration Guidelines:**
+- **NEVER use shell commands** (`sh`, `bash`, `powershell`) in pre-commit configurations
+- Use cross-platform tools directly (e.g., `go`, `python`) or pre-commit's built-in hooks
+- Ensure all hooks work on Windows, Linux, and macOS without shell dependencies
+- New troubleshooting guidance for common issues
+
 ## Linter Compliance
 
 ### Automatic Fixing with --fix
