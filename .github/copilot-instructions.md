@@ -56,10 +56,11 @@
 docker compose -f ./deployments/compose/compose.yml down -v
 docker compose -f ./deployments/compose/compose.yml up -d
 
-# Verify services are ready
-curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance
-curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1
-curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2
+# Verify services are ready (CI/CD workflow context only - NOT for local chat commands)
+# Local alternative: docker compose exec cryptoutil-sqlite wget --no-check-certificate -q -O - https://127.0.0.1:8080/ui/swagger/doc.json
+curl -k https://localhost:8080/ui/swagger/doc.json  # SQLite instance (CI/CD only)
+curl -k https://localhost:8081/ui/swagger/doc.json  # PostgreSQL instance 1 (CI/CD only)
+curl -k https://localhost:8082/ui/swagger/doc.json  # PostgreSQL instance 2 (CI/CD only)
 ```
 
 **Manual Nuclei Scan Commands:**
@@ -176,7 +177,8 @@ nuclei -templates-version
 | ** | '.github/instructions/cabf.instructions.md' | Instructions for CA/Browser Forum Baseline Requirements compliance |
 | ** | '.github/instructions/pull-requests.instructions.md' | Instructions for Pull Request description generation |
 | scripts/** | '.github/instructions/scripts.instructions.md' | Instructions for cross-platform script development |
-| **/*.go | '.github/instructions/conditional-chaining.instructions.md' | Instructions for chaining conditional statements |
+| ** | '.github/instructions/conditional-chaining.instructions.md' | Instructions for chaining conditional statements |
+| ** | '.github/instructions/localhost-vs-ip.instructions.md' | Instructions for localhost vs 127.0.0.1 usage across runtime environments |
 
 ## Instruction File Cross-Reference Guide
 

@@ -1,8 +1,185 @@
 ---
-description: "Instructions for CI/CD workflow configuration"
+description: "Instructions for CI/CD workflow configuration and service connectivity verification"
 applyTo: ".github/workflows/*.yml"
 ---
 # CI/CD Workflow Instructions
+
+## Workflow Architecture Overview
+
+The CI/CD pipeline consists of 6 specialized workflows with different service orchestration approaches:
+
+| Workflow | File | Services | Connectivity Verification | Primary Purpose |
+|----------|------|----------|---------------------------|-----------------|
+| Quality | `ci-quality.yml` | None | N/A | Code quality, linting, formatting, builds |
+| SAST | `ci-sast.yml` | None | N/A | Static security analysis |
+| Robustness | `ci-robust.yml` | None | N/A | Concurrency, fuzz, benchmarks |
+| DAST | `ci-dast.yml` | Standalone app | Bash/curl | Dynamic security scanning |
+| E2E | `ci-e2e.yml` | Full Docker stack | Go test infra | Integration testing |
+| Load | `ci-load.yml` | Full Docker stack | Bash/curl | Performance testing |
+
+## Service Connectivity Verification Patterns
+
+### Pattern 1: No Service Verification (Quality, SAST, Robustness)
+
+**When to Use**: Workflows that perform static analysis, unit tests, or builds without starting services
+
+**Workflows**: `ci-quality.yml`, `ci-sast.yml`, `ci-robust.yml`
+
+**Rationale**:
+- Static analysis tools don't need running services
+- Unit tests and fuzz tests run in isolation
+- Container builds verify build process, not runtime behavior
+
+**Implementation**: No connectivity verification steps needed
+
+---
+
+### Pattern 2: Go-Based E2E Infrastructure (E2E)
+
+**When to Use**: Comprehensive integration testing with full Docker Compose orchestration
+
+**Workflow**: `ci-e2e.yml`
+
+**Key Components**:
+```go
+// internal/test/e2e/infrastructure.go
+- Docker Compose orchestration (start/stop services)
+- Multi-stage health checking (Docker health + HTTP connectivity)
+- Exponential backoff retry logic
+
+// internal/test/e2e/docker_health.go  
+- Parse docker compose ps JSON output
+- Handle 3 service types: jobs, services with native health, services with healthcheck jobs
+- Comprehensive health status determination
+
+// internal/test/e2e/http_utils.go
+- CreateInsecureHTTPClient() with InsecureSkipVerify for self-signed certs
+- HTTP GET requests with context for timeouts
+```
+
+**Verification Flow**:
+1. **Docker Health Check**: `docker compose ps --format json` → parse service health status
+2. **HTTP Connectivity**: Go HTTP client verifies reachability of all endpoints
+3. **Multi-Endpoint Verification**: Public APIs, private health endpoints, observability services
+
+**Why Go Infrastructure**:
+- Type-safe service orchestration
+- Comprehensive error handling
+- Reusable across different test suites
+- Integration with Go testing framework
+- Better debugging with stack traces
+
+---
+
+### Pattern 3: Bash/Curl Verification (DAST, Load)
+
+**When to Use**: Workflows that need quick service readiness checks before external tools (ZAP, Nuclei, Gatling)
+
+**Workflows**: `ci-dast.yml`, `ci-load.yml`
+
+**CRITICAL: Correct Curl Pattern for HTTPS with Self-Signed Certificates**
+
+```bash
+# ✅ CORRECT: curl with proper flags for HTTPS + self-signed certs
+check_endpoint() {
+  local url=$1
+  local name=$2
+  local max_attempts=30
+  local attempt=1
+  local backoff=1
+
+  while [ $attempt -le $max_attempts ]; do
+    echo "Attempt $attempt/$max_attempts: Checking $name... (backoff: ${backoff}s)"
+
+    # -s: silent (no progress bar)
+    # -k: insecure (skip TLS certificate verification for self-signed certs)
+    # -f: fail on HTTP errors (4xx, 5xx)
+    # --connect-timeout 10: connection timeout
+    # --max-time 15: total request timeout
+    if curl -skf --connect-timeout 10 --max-time 15 "$url" -o /tmp/${name}_response.json 2>/dev/null; then
+      if [ -s /tmp/${name}_response.json ]; then
+        echo "✅ $name is ready (response size: $(wc -c < /tmp/${name}_response.json) bytes)"
+        rm -f /tmp/${name}_response.json
+        return 0
+      fi
+    fi
+
+    sleep $backoff
+    # Exponential backoff with max 5 seconds
+    backoff=$((backoff < 5 ? backoff + 1 : 5))
+    attempt=$((attempt + 1))
+  done
+
+  echo "❌ $name failed to respond after $max_attempts attempts"
+  return 1
+}
+
+# Check HTTPS endpoints (cryptoutil uses self-signed certs in CI)
+check_endpoint "https://127.0.0.1:8080/ui/swagger/doc.json" "cryptoutil-sqlite"
+check_endpoint "https://127.0.0.1:8081/ui/swagger/doc.json" "cryptoutil-postgres-1"
+check_endpoint "https://127.0.0.1:8082/ui/swagger/doc.json" "cryptoutil-postgres-2"
+```
+
+**Common Mistakes to AVOID**:
+
+```bash
+# ❌ WRONG: wget does not reliably verify HTTPS with self-signed certs
+wget --no-check-certificate --spider "$url"
+
+# ❌ WRONG: Missing exponential backoff (hammers service during startup)
+while [ $attempt -le 30 ]; do
+  curl -skf "$url" && break
+  sleep 2  # Fixed delay doesn't adapt to service startup time
+done
+
+# ❌ WRONG: Not verifying response body (connection might succeed but return empty)
+if curl -skf "$url" >/dev/null 2>&1; then
+  echo "Ready"  # Could be ready but returning no data
+fi
+
+# ❌ WRONG: Using localhost instead of 127.0.0.1 (IPv6 vs IPv4 ambiguity)
+curl -skf "https://localhost:8080/..."  # May resolve to ::1 (IPv6)
+
+# ❌ WRONG: Insufficient timeouts for containerized environments
+curl -skf --connect-timeout 2 --max-time 5 "$url"  # Too short for Docker
+```
+
+**Why This Pattern Works**:
+- `-k` flag handles self-signed TLS certificates (common in CI environments)
+- Verifies actual response data (not just connection success)
+- Exponential backoff prevents overwhelming services during slow startup
+- Generous timeouts (10s connect, 15s total) accommodate containerized environments
+- `127.0.0.1` ensures predictable IPv4 resolution (see localhost-vs-ip.instructions.md)
+
+**When Bash/Curl is Preferred Over Go**:
+- Simple readiness checks before external tools run
+- Workflow already uses bash for service orchestration
+- No need for complex retry logic or error handling
+- External scanning tools (ZAP, Nuclei) need quick "is it up?" check
+
+---
+
+### Choosing the Right Pattern
+
+**Use Go-Based Infrastructure When**:
+- Running comprehensive integration tests
+- Need detailed health status reporting
+- Multiple service types with different health check mechanisms
+- Require type-safe service orchestration
+- Tests need to interact with services programmatically
+
+**Use Bash/Curl Verification When**:
+- Simple "is it ready?" check before external tools
+- Workflow already orchestrates services via bash/docker commands
+- External tools (ZAP, Nuclei, Gatling) are the primary test executors
+- Minimal infrastructure needed (just readiness verification)
+
+**Use No Verification When**:
+- Static analysis or compilation only
+- Unit tests run in complete isolation
+- No services need to be started
+
+---
 
 ## Go Version Consistency
 - **ALWAYS use the same Go version as specified in go.mod** for all CI/CD workflows

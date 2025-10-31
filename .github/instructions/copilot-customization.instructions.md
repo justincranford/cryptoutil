@@ -11,12 +11,71 @@ applyTo: "**"
 - Don't reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
 - When completing a task in a docs/todos-*.md file, delete the completed task; don't keep it and mark it as completed, delete it to keep the file focused on remaining TODOs only
-- **NEVER USE GitKraken in GitHub Copilot chat** - GitKraken is a GUI tool for Git operations; use terminal git commands instead for all version control operations
-- **NEVER use curl in chat sessions** - curl is not installed in Windows PowerShell or Alpine container images; use PowerShell Invoke-WebRequest or docker compose exec instead
+
+## CRITICAL: Git Operations
+
+- **NEVER USE GitKraken MCP Server tools (mcp_gitkraken_*) in GitHub Copilot chat sessions**
+- **ALWAYS use terminal git commands** (git status, git add, git commit, git push)
+- **GitKraken is ONLY for manual GUI operations** - never automated in chat
+- **All version control operations MUST use PowerShell git commands**
 - **NEVER use python in chat sessions** - python is not installed in Windows PowerShell or Alpine container images; use PowerShell-native commands instead
 - **NEVER use bash in chat sessions** - bash is not available in Windows PowerShell; use PowerShell syntax and commands instead
 - **NEVER use powershell.exe in chat sessions** - powershell.exe is not needed when already in PowerShell; use native PowerShell commands instead
 - **NEVER use -SkipCertificateCheck in PowerShell commands** - this parameter only exists in PowerShell 6+; use `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}` for PowerShell 5.1
+
+## Curl/Wget Command Usage Rules
+
+**CRITICAL: Context-specific curl/wget restrictions**
+
+### ❌ BANNED in Copilot Chat Sessions (Local Windows PowerShell)
+- **NEVER use curl or wget in chat sessions** - not installed in Windows PowerShell
+- **Alternative**: Use PowerShell `Invoke-WebRequest` or `docker compose exec <service> wget ...`
+- **Why**: Local Windows dev environment doesn't have curl/wget in PATH
+- **Exception**: Examples in documentation showing CI/CD usage are acceptable if clearly marked as workflow-only
+
+### ✅ ALLOWED in GitHub Actions Workflows (.github/workflows/*.yml)
+- **curl and wget are both available** in GitHub Actions Ubuntu runners and act containers
+- **Preferred**: Use `curl -skf` for HTTPS with self-signed certificates (more reliable than wget)
+- **Pattern**: `curl -skf --connect-timeout 10 --max-time 15 "$url" -o /tmp/response.json`
+- **Why**: GitHub runners and act containers have both tools preinstalled
+
+### ✅ ALLOWED in Docker Compose Healthchecks (compose.yml)
+- **Preferred**: Use `wget` (available in Alpine/busybox containers)
+- **Fallback**: Use `curl` if container includes it (e.g., grafana-otel-lgtm)
+- **Pattern**: `test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]`
+- **Why**: Most containers use Alpine base which includes wget via busybox
+- **Exception**: Grafana-based containers may only have curl available
+
+### Decision Tree for curl/wget Usage
+
+```
+Is this a Copilot chat command for local execution?
+├─ YES → ❌ NEVER use curl/wget
+│         ✅ Use: Invoke-WebRequest or docker compose exec
+│
+└─ NO → Is this a GitHub Actions workflow (.github/workflows/*.yml)?
+         ├─ YES → ✅ Use curl or wget (curl preferred for HTTPS)
+         │
+         └─ NO → Is this a Docker Compose healthcheck?
+                  ├─ YES → ✅ Use wget (preferred) or curl (fallback)
+                  │         Check container base image:
+                  │         - Alpine/busybox → wget available
+                  │         - Grafana → curl available
+                  │
+                  └─ NO → Is this Dockerfile or container build context?
+                           └─ YES → ✅ Use wget (Alpine base images have busybox wget)
+```
+
+### Summary Table
+
+| Environment | curl | wget | Preferred | Alternative |
+|-------------|------|------|-----------|-------------|
+| Copilot Chat (Local PowerShell) | ❌ | ❌ | Invoke-WebRequest | docker compose exec |
+| GitHub Workflows (ci-*.yml) | ✅ | ✅ | curl -skf | wget |
+| Act Local Testing | ✅ | ✅ | curl -skf | wget |
+| Compose Healthchecks (Alpine) | ❌ | ✅ | wget | External healthcheck |
+| Compose Healthchecks (Grafana) | ✅ | ❌ | curl -f | External healthcheck |
+| Dockerfile (Alpine base) | ❌ | ✅ | wget | apk add curl |
 - **ALWAYS use HTTPS 127.0.0.1:9090 for admin APIs** (/shutdown, /livez, /readyz) - these are private server endpoints, not public server endpoints
 - **ALWAYS rely on golangci-lint exclusions defined in .golangci-lint.yml** - never use --skip-files or --skip-dirs command line flags
 - **ALWAYS run Go fuzz tests from project root** - never use `cd` commands before `go test -fuzz` (causes module detection failures)

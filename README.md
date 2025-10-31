@@ -385,6 +385,68 @@ docker compose down --volumes --rmi all
 
 This project implements a comprehensive automated testing pipeline with 6 specialized workflows covering quality assurance, security testing, robustness validation, and integration testing.
 
+### CI/CD Workflow Overview
+
+The CI/CD pipeline is organized into 6 specialized workflows, each with different service orchestration and connectivity verification approaches:
+
+| Workflow | File | Services Started | Connectivity Verification | Purpose |
+|----------|------|------------------|---------------------------|---------|
+| **Quality** | `ci-quality.yml` | None | N/A | Code quality, linting, formatting, container builds |
+| **SAST** | `ci-sast.yml` | None | N/A | Static security analysis (Staticcheck, Govulncheck, Trivy, CodeQL) |
+| **Robustness** | `ci-robust.yml` | None | N/A | Concurrency tests, race detection, fuzz tests, benchmarks |
+| **DAST** | `ci-dast.yml` | Standalone app + PostgreSQL | Bash/curl verification | Dynamic security scanning (ZAP, Nuclei) |
+| **E2E** | `ci-e2e.yml` | Full Docker Compose stack | Go test infrastructure | Complete system integration testing |
+| **Load** | `ci-load.yml` | Full Docker Compose stack | Bash/curl verification | Performance testing with Gatling |
+
+#### Service Connectivity Verification Techniques
+
+Three distinct techniques are used across the workflows for service readiness verification:
+
+**1. No Verification Required** (ci-quality.yml, ci-sast.yml, ci-robust.yml)
+- **Approach**: Static analysis and unit tests don't start services
+- **Rationale**: No runtime connectivity needed for code analysis or isolated tests
+
+**2. Go-Based E2E Infrastructure** (ci-e2e.yml)
+- **Approach**: Go test suite orchestrates Docker Compose with comprehensive health checks
+- **Components**:
+  - `infrastructure.go`: Docker Compose orchestration and health monitoring
+  - `docker_health.go`: Service health status parsing and validation
+  - `http_utils.go`: HTTP client creation with TLS configuration
+- **Health Verification Flow**:
+  1. Docker health checks: `docker compose ps --format json` → parse service health status
+  2. HTTP connectivity: Go HTTP client with `InsecureSkipVerify` for self-signed certs
+  3. Multi-endpoint verification: Public APIs, health endpoints, Swagger UI, OTEL collector, Grafana
+- **Key Features**:
+  - Handles 3 service types: standalone jobs, services with native health checks, services with healthcheck jobs
+  - Exponential backoff with configurable timeouts
+  - Comprehensive error reporting with detailed health status
+
+**3. Bash/Curl Verification** (ci-dast.yml, ci-load.yml)
+- **Approach**: Shell scripts with curl for HTTPS endpoints with self-signed certificates
+- **Pattern**:
+  ```bash
+  # CORRECT: curl with -s (silent), -k (insecure/skip cert verification), -f (fail on HTTP errors)
+  curl -skf --connect-timeout 10 --max-time 15 "$url" -o /tmp/response.json
+
+  # INCORRECT: wget does not reliably verify HTTPS with self-signed certs
+  wget --no-check-certificate --spider "$url"  # ❌ FAILS
+  ```
+- **Health Verification Flow**:
+  1. Retry loop with exponential backoff (max 30 attempts, 5s max backoff)
+  2. Verify response body is non-empty (successful connection indicator)
+  3. Check all cryptoutil instances: `https://127.0.0.1:8080`, `8081`, `8082`
+- **Key Features**:
+  - Works with self-signed TLS certificates (`-k` flag)
+  - Verifies actual response data (not just HTTP status codes)
+  - Exponential backoff prevents overwhelming services during startup
+
+**Common Mistakes to Avoid**:
+- ❌ Using `wget` for HTTPS with self-signed certs (unreliable)
+- ❌ Using `localhost` in workflows (use `127.0.0.1` for explicit IPv4, see localhost-vs-ip.instructions.md)
+- ❌ Checking only HTTP status codes without verifying response body
+- ❌ Missing exponential backoff (hammers services during startup)
+- ❌ Insufficient timeouts for containerized environments (use 10-15s)
+
 ### Quality Assurance (ci-quality.yml)
 
 Automated code quality and container security validation:

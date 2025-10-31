@@ -121,6 +121,7 @@ services:
     healthcheck:
       # curl is available in this container, but using wget would be consistent with other containers
       # however wget is not available here, so curl is used for this container only
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
       test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health"]
       start_period: 15s
       interval: 30s
@@ -170,6 +171,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
       start_period: 10s
       interval: 5s
@@ -219,6 +221,7 @@ services:
         condition: service_completed_successfully
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
       start_period: 10s
       interval: 5s
@@ -271,6 +274,7 @@ services:
         condition: service_healthy
     healthcheck:
       # curl is not available in Alpine-based containers, use wget instead
+      # Use 127.0.0.1 (not localhost) - localhost may resolve to ::1 (IPv6) in containers, causing connection failures
       test: ["CMD", "wget", "--no-check-certificate", "-q", "-O", "/dev/null", "https://127.0.0.1:9090/livez"]
       start_period: 10s
       interval: 5s
