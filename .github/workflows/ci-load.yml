@@ -247,18 +247,20 @@ jobs:
           # Start background monitoring process
           {
             while true; do
-              TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              # Use filesystem-safe timestamp format (no colons for GitHub Actions artifact compatibility)
+              TIMESTAMP=$(date -u +"%Y-%m-%d_%H-%M-%S")
 
               # Collect Docker stats
               docker stats --no-stream --format "table {{.Container}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}},{{.NetIO}},{{.BlockIO}}" > "./load-reports/infrastructure/docker-stats-$TIMESTAMP.csv"
 
-              # Collect system metrics
+              # Collect system metrics (use ISO 8601 timestamp in CSV content, not filename)
               {
                 echo "timestamp,metric,value"
-                echo "$TIMESTAMP,cpu_percent,$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')"
-                echo "$TIMESTAMP,mem_used_mb,$(free -m | awk 'NR==2{print $3}')"
-                echo "$TIMESTAMP,mem_total_mb,$(free -m | awk 'NR==2{print $2}')"
-                echo "$TIMESTAMP,disk_used_percent,$(df -h / | awk 'NR==2{print $5}' | sed 's/%//')"
+                TIMESTAMP_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                echo "$TIMESTAMP_ISO,cpu_percent,$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')"
+                echo "$TIMESTAMP_ISO,mem_used_mb,$(free -m | awk 'NR==2{print $3}')"
+                echo "$TIMESTAMP_ISO,mem_total_mb,$(free -m | awk 'NR==2{print $2}')"
+                echo "$TIMESTAMP_ISO,disk_used_percent,$(df -h / | awk 'NR==2{print $5}' | sed 's/%//')"
               } >> "./load-reports/infrastructure/system-metrics.csv"
 
               sleep 5
