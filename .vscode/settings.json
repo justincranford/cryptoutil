@@ -52,6 +52,9 @@
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
   "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
 
+  // Disable GitKraken MCP Server for Copilot Chat - use terminal git commands instead
+  "github.copilot.chat.mcp.enabled": false, // Disable all MCP servers to prevent GitKraken usage in chat
+
   // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
   "terminal.integrated.defaultProfile.windows": "PowerShell", // Set PowerShell as default terminal profile
   "terminal.integrated.profiles.windows": {
