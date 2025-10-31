@@ -318,11 +318,33 @@ Fuzz tests run automatically in GitHub Actions on:
 - Push to `main` branch
 - Pull requests
 
+#### Fuzz Test Coverage
+
+**Key Generation Functions (7 fuzz tests):**
+- `FuzzGenerateRSAKeyPair` - RSA key pair generation
+- `FuzzGenerateECDSAKeyPair` - ECDSA key pair generation  
+- `FuzzGenerateECDHKeyPair` - ECDH key pair generation
+- `FuzzGenerateEdDSAKeyPair` - EdDSA key pair generation
+- `FuzzGenerateAESKey` - AES key generation
+- `FuzzGenerateAESHSKey` - AES-HS key generation
+- `FuzzGenerateHMACKey` - HMAC key generation
+
+**Digest Functions (9 fuzz tests):**
+- `FuzzHKDF` - HMAC-based Key Derivation Function
+- `FuzzHKDFWithSHA256` - HKDF with SHA-256
+- `FuzzHKDFWithSHA384` - HKDF with SHA-384  
+- `FuzzHKDFWithSHA512` - HKDF with SHA-512
+- `FuzzSHA256` - SHA-256 hashing
+- `FuzzSHA384` - SHA-384 hashing
+- `FuzzSHA512` - SHA-512 hashing
+- `FuzzSHA3_256` - SHA3-256 hashing
+- `FuzzSHA3_512` - SHA3-512 hashing
+
 #### Manual Execution
 ```sh
-# Run all fuzz tests in a package (use regex anchors for exact matching)
+# Run specific fuzz tests (use regex anchors for exact matching)
 go test -fuzz=^FuzzHKDF$ -fuzztime=5s ./internal/common/crypto/digests/
-go test -fuzz=^FuzzSHA256$ -fuzztime=5s ./internal/common/crypto/digests/
+go test -fuzz=^FuzzGenerateRSAKeyPair$ -fuzztime=5s ./internal/common/crypto/keygen/
 
 # Run fuzz tests for 1 minute (CI/CD duration)
 go test -fuzz=^FuzzHKDF$ -fuzztime=1m ./internal/common/crypto/digests/
@@ -358,6 +380,120 @@ docker compose down --volumes --rmi all
 - No state interference from previous tests
 - Fresh database state for each test execution
 - Proper resource management in CI/CD environments
+
+## CI/CD Testing Pipeline
+
+This project implements a comprehensive automated testing pipeline with 6 specialized workflows covering quality assurance, security testing, robustness validation, and integration testing.
+
+### Quality Assurance (ci-quality.yml)
+
+Automated code quality and container security validation:
+
+#### Mutation Testing
+This project uses **Gremlins mutation testing** to assess test suite quality by introducing artificial faults and measuring test detection rates.
+
+**Automated Execution (CI/CD):**
+- Runs automatically on push to `main` branch and pull requests
+- Targets high-coverage packages with mutation operators
+- Generates mutation testing reports and coverage metrics
+
+**Manual Execution:**
+```sh
+# Run mutation tests on specific packages
+gremlins unleash --paths=./internal/common/crypto/keygen/
+gremlins unleash --paths=./internal/common/crypto/digests/
+```
+
+#### Container Security & SBOM
+Container vulnerability scanning and software bill of materials generation:
+
+**Automated Analysis (CI/CD):**
+- **Docker Scout**: Container image vulnerability scanning
+- **SBOM Generation**: Software Bill of Materials creation using Syft
+- **Security Policy**: Automated security gate for container deployments
+
+### Security Testing
+
+#### Static Application Security Testing (SAST) (ci-sast.yml)
+
+Comprehensive static analysis using multiple security-focused tools:
+
+**Automated SAST Pipeline (CI/CD):**
+- **Staticcheck**: Advanced static analysis for Go code quality and security
+- **Govulncheck**: Official Go vulnerability database scanning
+- **Trivy**: Container and filesystem vulnerability scanning
+- **CodeQL**: Semantic code analysis (Go, JavaScript, Python)
+
+**Manual SAST Execution:**
+```sh
+# Run individual SAST tools
+staticcheck ./...
+govulncheck ./...
+trivy filesystem .
+```
+
+#### Dynamic Application Security Testing (DAST) (ci-dast.yml)
+
+Runtime security testing with active vulnerability scanning:
+
+**Automated DAST Pipeline (CI/CD):**
+- **OWASP ZAP**: Comprehensive web application security scanning
+- **Nuclei**: Fast template-based vulnerability detection
+- Scans all cryptoutil service instances (SQLite, PostgreSQL instances)
+
+**DAST Scan Profiles:**
+- **Quick**: Basic security checks (3-5 minutes)
+- **Full**: Comprehensive scanning (10-15 minutes)  
+- **Deep**: Exhaustive security assessment (20-25 minutes)
+
+### Robustness Testing (ci-robust.yml)
+
+Thread safety and performance validation:
+
+#### Concurrency & Race Detection
+Thread safety validation with Go's race detector:
+
+**Automated Testing (CI/CD):**
+- Runs all tests with race detection enabled (`-race` flag)
+- Identifies potential race conditions and data races
+- Validates thread-safe cryptographic operations
+
+#### Benchmark Testing
+Performance regression detection and optimization validation:
+
+**Automated Testing (CI/CD):**
+- Executes performance benchmarks across all packages
+- Measures cryptographic operation throughput and latency
+- Detects performance regressions between commits
+
+### Integration Testing
+
+#### Load Testing (ci-load.yml)
+
+Performance validation using **Gatling** load testing framework:
+
+**Automated Load Testing (CI/CD):**
+- Runs comprehensive load tests against cryptoutil APIs
+- Measures response times, throughput, and error rates
+- Generates detailed performance reports and metrics
+
+**Manual Load Testing:**
+```sh
+# Run load tests from project root
+cd test/load
+mvnw gatling:test
+# Results available in target/gatling/
+```
+
+#### End-to-End Testing (ci-e2e.yml)
+
+Full system validation using Docker Compose orchestration:
+
+**Automated E2E Pipeline (CI/CD):**
+- Deploys complete cryptoutil stack (PostgreSQL, services, observability)
+- Executes comprehensive API test suites
+- Validates service-to-service communication and data flow
+- Generates E2E test reports and failure analysis
 
 ## Security Testing
 
