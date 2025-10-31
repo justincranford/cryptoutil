@@ -205,15 +205,14 @@ var (
 		"_csrf",
 	}
 	// DefaultCORSAllowedOrigins - Default CORS allowed origins.
+	// Note: IPv4-mapped IPv6 addresses (::ffff:127.0.0.1) removed due to Fiber CORS middleware validation issues.
 	DefaultCORSAllowedOrigins = []string{
 		"http://" + HostnameLocalhost + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
 		"http://" + IPv4Loopback + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
 		"http://" + IPv6LoopbackURL + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
-		"http://" + IPv4MappedIPv6LoopbackURL + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
 		"https://" + HostnameLocalhost + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
 		"https://" + IPv4Loopback + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
 		"https://" + IPv6LoopbackURL + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
-		"https://" + IPv4MappedIPv6LoopbackURL + ":" + strconv.Itoa(int(DefaultPublicPortCryptoutil)),
 	}
 )
 
