@@ -163,8 +163,8 @@ docker compose logs -f cryptoutil-postgres-1
 
 # Access services
 # Grafana UI: http://localhost:3000 (admin/admin)
-# cryptoutil API: http://localhost:8081 (PostgreSQL instance 1), http://localhost:8082 (PostgreSQL instance 2), or http://localhost:8080 (SQLite)
-# Swagger UI: http://localhost:8081/ui/swagger, http://localhost:8082/ui/swagger, or http://localhost:8080/ui/swagger
+# cryptoutil API: https://localhost:8081 (PostgreSQL instance 1), https://localhost:8082 (PostgreSQL instance 2), or https://localhost:8080 (SQLite)
+# Swagger UI: https://localhost:8081/ui/swagger, https://localhost:8082/ui/swagger, or https://localhost:8080/ui/swagger
 ```
 
 ### Running with Go (Development)
@@ -186,10 +186,10 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 ```
 
 ### API Access
-- **Swagger UI**: http://localhost:8081/ui/swagger (PostgreSQL instance 1), http://localhost:8082/ui/swagger (PostgreSQL instance 2), or http://localhost:8080/ui/swagger (SQLite)
-- **Browser API**: http://localhost:8081/browser/api/v1/*, http://localhost:8082/browser/api/v1/*, or http://localhost:8080/browser/api/v1/*
-- **Service API**: http://localhost:8081/service/api/v1/*, http://localhost:8082/service/api/v1/*, or http://localhost:8080/service/api/v1/*
-- **Health Checks**: http://localhost:9090/livez, http://localhost:9090/readyz
+- **Swagger UI**: https://localhost:8081/ui/swagger (PostgreSQL instance 1), https://localhost:8082/ui/swagger (PostgreSQL instance 2), or https://localhost:8080/ui/swagger (SQLite)
+- **Browser API**: https://localhost:8081/browser/api/v1/*, https://localhost:8082/browser/api/v1/*, or https://localhost:8080/browser/api/v1/*
+- **Service API**: https://localhost:8081/service/api/v1/*, https://localhost:8082/service/api/v1/*, or https://localhost:8080/service/api/v1/*
+- **Health Checks**: https://localhost:9090/livez, https://localhost:9090/readyz
 - **Grafana UI**: http://localhost:3000 (admin/admin)
 - **OpenTelemetry Collector**:
   - **OTLP gRPC**: http://localhost:4317 (receive telemetry from applications)
@@ -203,17 +203,17 @@ go run main.go --dev --config=./deployments/compose/cryptoutil/sqlite.yml
 ### Example API Usage
 ```sh
 # Get CSRF token (for browser API)
-curl http://localhost:8080/browser/api/v1/csrf-token
+curl -k https://localhost:8080/browser/api/v1/csrf-token
 
 # Create an elastic key (service API)
-curl -X POST http://localhost:8080/service/api/v1/elastickey \
+curl -k -X POST https://localhost:8080/service/api/v1/elastickey \
   -H "Content-Type: application/json" \
-  -d '{"name": "test-key", "algorithm": "RSA", "provider": "CRYPTOUTIL"}'
+  -d '{"name": "test-key", "algorithm": "A256GCM/A256KW", "provider": "Internal", "description": "Test key"}'
 
 # Encrypt data
-curl -X POST http://localhost:8080/service/api/v1/crypto/encrypt \
-  -H "Content-Type: application/json" \
-  -d '{"elasticKeyId": "key-id", "plaintext": "SGVsbG8gV29ybGQ="}'
+curl -k -X POST https://localhost:8080/elastickey/{elasticKeyID}/encrypt \
+  -H "Content-Type: text/plain" \
+  -d 'Hello World'
 ```
 
 ## Configuration
@@ -291,16 +291,16 @@ go run main.go --dev --verbose
 
 # Test with Swagger UI (includes CSRF handling)
 # Open in browser:
-start http://localhost:8080/ui/swagger      # Windows
-open http://localhost:8080/ui/swagger       # macOS
-xdg-open http://localhost:8080/ui/swagger   # Linux
+start https://localhost:8080/ui/swagger      # Windows
+open https://localhost:8080/ui/swagger       # macOS
+xdg-open https://localhost:8080/ui/swagger   # Linux
 
 # Test with curl (service API - no CSRF needed)
-curl -X GET http://localhost:8080/service/api/v1/elastickeys
+curl -k -X GET https://localhost:8080/service/api/v1/elastickeys
 
 # Test health endpoints
-curl http://localhost:9090/livez
-curl http://localhost:9090/readyz
+curl -k https://localhost:9090/livez
+curl -k https://localhost:9090/readyz
 ```
 
 ### Integration Testing
