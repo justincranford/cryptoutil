@@ -8,8 +8,8 @@ repos:
     hooks:
       - id: autoupdate-all-hooks
         name: Auto-update all external hook repositories to latest versions
-        entry: pre-commit
-        args: [autoupdate]
+        entry: python
+        args: [-m, pre_commit, autoupdate]
         language: system
         pass_filenames: false
         stages: [pre-commit]
@@ -149,7 +149,7 @@ repos:
       - id: golangci-lint
         name: golangci-lint (auto-fix + validation)
         entry: golangci-lint
-        args: [run, --fix, --timeout=10m]
+        args: [run, --fix, --timeout=30m]
         language: system
         pass_filenames: false
         stages: [pre-commit]  # Run full linting on commit, not just on push
