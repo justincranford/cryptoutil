@@ -621,6 +621,16 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 	}
 }
 
+func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
+	// TODO: Add actual dependency health checks here (e.g., external APIs, message queues, etc.)
+	services := map[string]any{}
+
+	return map[string]any{
+		"status":   "ok",
+		"services": services,
+	}
+}
+
 func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		method := c.Method()
@@ -713,7 +723,7 @@ func performConcurrentReadinessChecks(serverApplicationCore *ServerApplicationCo
 	}
 
 	// Number of concurrent readiness checks to perform.
-	const numReadinessChecks = 3
+	const numReadinessChecks = 4
 
 	// Add readiness checks here
 	wg.Add(numReadinessChecks)
@@ -726,6 +736,9 @@ func performConcurrentReadinessChecks(serverApplicationCore *ServerApplicationCo
 	})
 	go doCheck("sidecar", func() any {
 		return checkSidecarHealth(serverApplicationCore)
+	})
+	go doCheck("dependencies", func() any {
+		return checkDependenciesHealth(serverApplicationCore)
 	})
 
 	// Close the results channel once all checks are done
@@ -887,7 +900,7 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 	)
 
 	return func(c *fiber.Ctx) error {
-		// Apply common security headers
+		// Apply common security headers to all requests
 		c.Set("X-Content-Type-Options", contentTypeOptions)
 		c.Set("Referrer-Policy", referrerPolicy)
 
@@ -899,37 +912,37 @@ func publicBrowserAdditionalSecurityHeadersMiddleware(telemetryService *cryptout
 			}
 		}
 
-		// Skip for non-browser API requests
-		if isNonBrowserUserAPIRequestFunc(settings)(c) {
-			return c.Next()
-		}
+		// Skip browser-specific headers for non-browser API requests
+		if !isNonBrowserUserAPIRequestFunc(settings)(c) {
+			// Apply browser-specific security headers
+			c.Set("Permissions-Policy", permissionsPolicy)
+			c.Set("Cross-Origin-Opener-Policy", crossOriginOpenerPolicy)
+			c.Set("Cross-Origin-Embedder-Policy", crossOriginEmbedderPolicy)
+			c.Set("Cross-Origin-Resource-Policy", crossOriginResourcePolicy)
+			c.Set("X-Permitted-Cross-Domain-Policies", xPermittedCrossDomainPolicies)
 
-		// Apply common browser-only security headers
-		c.Set("Permissions-Policy", permissionsPolicy)
-		c.Set("Cross-Origin-Opener-Policy", crossOriginOpenerPolicy)
-		c.Set("Cross-Origin-Embedder-Policy", crossOriginEmbedderPolicy)
-		c.Set("Cross-Origin-Resource-Policy", crossOriginResourcePolicy)
-		c.Set("X-Permitted-Cross-Domain-Policies", xPermittedCrossDomainPolicies)
-
-		// Clear-Site-Data for logout endpoints only
-		if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), "/logout") {
-			c.Set("Clear-Site-Data", clearSiteDataLogout)
+			// Clear-Site-Data for logout endpoints only
+			if c.Method() == fiber.MethodPost && strings.HasSuffix(c.OriginalURL(), "/logout") {
+				c.Set("Clear-Site-Data", clearSiteDataLogout)
+			}
 		}
 
 		// Process the request
 		err := c.Next()
 
-		// Runtime self-check: validate expected headers are present in response
-		missingHeaders := validateSecurityHeaders(c)
-		if len(missingHeaders) > 0 {
-			logger.Warn("Security headers missing in response",
-				"missing_headers", missingHeaders,
-				"request_path", c.OriginalURL(),
-				"request_id", c.Locals("requestid"),
-			)
-			// Increment metric for missing headers
-			if missingHeaderCounter != nil {
-				missingHeaderCounter.Add(c.UserContext(), int64(len(missingHeaders)))
+		// Runtime self-check: validate expected headers are present in response (only for browser requests)
+		if !isNonBrowserUserAPIRequestFunc(settings)(c) {
+			missingHeaders := validateSecurityHeaders(c)
+			if len(missingHeaders) > 0 {
+				logger.Warn("Security headers missing in response",
+					"missing_headers", missingHeaders,
+					"request_path", c.OriginalURL(),
+					"request_id", c.Locals("requestid"),
+				)
+				// Increment metric for missing headers
+				if missingHeaderCounter != nil {
+					missingHeaderCounter.Add(c.UserContext(), int64(len(missingHeaders)))
+				}
 			}
 		}
 
