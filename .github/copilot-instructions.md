@@ -2,7 +2,6 @@
 
 ## Core Principles
 - Follow README and instructions files
-- **ALWAYS check go.mod for correct Go version** before using Go in Docker, CI/CD, or tools
 - Refer to architecture and usage examples in README
 - **Instruction files auto-discovered from `.github/instructions/`** - use `.instructions.md` extension with YAML frontmatter
 
