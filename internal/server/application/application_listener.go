@@ -357,6 +357,9 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 	return func() {
 		telemetryService.Slogger.Debug("starting fiber listeners with pre-created listeners")
 
+		// Mark server as ready immediately since listeners are already bound and accepting connections.
+		ready.Store(true)
+
 		go func() {
 			telemetryService.Slogger.Debug("starting private fiber listener", "addr", privateListener.Addr().String(), "protocol", privateProtocol)
 
@@ -394,8 +397,6 @@ func startServerFuncWithListeners(publicListener, privateListener net.Listener, 
 		}
 
 		telemetryService.Slogger.Debug("public fiber listener stopped")
-
-		ready.Store(true)
 	}
 }
 
