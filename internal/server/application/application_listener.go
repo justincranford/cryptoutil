@@ -621,63 +621,6 @@ func checkSidecarHealth(serverApplicationCore *ServerApplicationCore) map[string
 	}
 }
 
-func checkDependenciesHealth(serverApplicationCore *ServerApplicationCore) map[string]any {
-	deps := map[string]any{
-		cryptoutilMagic.StringStatus: "ok",
-		"services":                   map[string]any{},
-	}
-
-	services, ok := deps["services"].(map[string]any)
-	if !ok {
-		return map[string]any{
-			cryptoutilMagic.StringStatus: cryptoutilMagic.StringError,
-			cryptoutilMagic.StringError:  "internal error: failed to create dependencies status map",
-		}
-	}
-
-	// Check telemetry service
-	if serverApplicationCore.ServerApplicationBasic.TelemetryService == nil {
-		services["telemetry"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
-		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
-	} else {
-		services["telemetry"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
-	}
-
-	// Check JWK gen service
-	if serverApplicationCore.ServerApplicationBasic.JWKGenService == nil {
-		services["jwk_generator"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
-		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
-	} else {
-		services["jwk_generator"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
-	}
-
-	// Check barrier service
-	if serverApplicationCore.BarrierService == nil {
-		services["barrier"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
-		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
-	} else {
-		services["barrier"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
-	}
-
-	// Check business logic service
-	if serverApplicationCore.BusinessLogicService == nil {
-		services["business_logic"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
-		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
-	} else {
-		services["business_logic"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
-	}
-
-	// Check ORM repository
-	if serverApplicationCore.OrmRepository == nil {
-		services["orm_repository"] = map[string]any{cryptoutilMagic.StringStatus: cryptoutilMagic.StringError, cryptoutilMagic.StringError: "not initialized"}
-		deps[cryptoutilMagic.StringStatus] = cryptoutilMagic.StringError
-	} else {
-		services["orm_repository"] = map[string]any{cryptoutilMagic.StringStatus: "ok"}
-	}
-
-	return deps
-}
-
 func commonUnsupportedHTTPMethodsMiddleware(settings *cryptoutilConfig.Settings) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		method := c.Method()
@@ -769,8 +712,11 @@ func performConcurrentReadinessChecks(serverApplicationCore *ServerApplicationCo
 		}{name, result}
 	}
 
+	// Number of concurrent readiness checks to perform.
+	const numReadinessChecks = 3
+
 	// Add readiness checks here
-	wg.Add(3)
+	wg.Add(numReadinessChecks)
 
 	go doCheck("database", func() any {
 		return checkDatabaseHealth(serverApplicationCore)
