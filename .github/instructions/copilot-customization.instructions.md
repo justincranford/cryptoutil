@@ -277,3 +277,65 @@ The workspace includes optimized VS Code settings in `.vscode/settings.json` tha
 - **All fuzz tests in package**: `go test -fuzz=. -fuzztime=5s ./<package>` (only if package has 1 fuzz test)
 - **Quick verification**: Use `-fuzztime=5s` for fast feedback during development
 - **Cross-platform compatibility**: Avoid quotes and regex; ensure unique test names instead
+
+## Git Workflow
+
+### Commit and Push Strategy
+- **Commit vs Push**: Commit frequently for logical units of work; push only when ready for CI/CD and peer review
+- **Pre-push hooks**: Run automatically before push to enforce quality gates (dependency checks, linting)
+- **Dependency management**: Update dependencies incrementally with test validation between updates
+- **Branch strategy**: Use feature branches for development; merge to main only after CI passes
+- **Commit hygiene**: Keep commits atomic and focused; use conventional commit messages
+- **Push readiness**: Ensure all pre-commit checks pass before pushing; resolve any hook failures
+
+### Conventional Commits
+- Follow [Conventional Commits](https://www.conventionalcommits.org/) spec
+- Format: `<type>[optional scope]: <description>`
+- Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+- Use imperative mood, lowercase, no period at end
+- For breaking changes: add `!` after type or use `BREAKING CHANGE:`
+- Keep subject ≤72 chars; explain what/why in body if needed
+
+## Terminal Command Auto-Approval
+
+### Pattern Checking Workflow
+When executing terminal commands through Copilot:
+1. **Check Pattern Match**: Verify if command matches `chat.tools.terminal.autoApprove` patterns in `.vscode/settings.json`
+2. **Track Unmatched**: Maintain list of unmatched commands during session
+3. **End-of-Session Review**: Ask user if they'd like to add new auto-approve patterns
+4. **Pattern Recommendations**:
+   - **Auto-Enable (true)**: Safe, informational, build commands
+   - **Auto-Disable (false)**: Destructive, dangerous, system-altering commands
+
+### Auto-Enable Candidates
+- Read-only operations (status, list, inspect, logs, history)
+- Build and test commands (build, test, format, lint)
+- Safe informational commands (version, info, df)
+- Development workflow commands (fetch, status, diff)
+
+### Auto-Disable Candidates
+- Destructive operations (rm, delete, prune, reset, kill)
+- Network operations (push, pull from remotes)
+- System modifications (install, update, edit configurations)
+- File system changes (create, update, delete files/directories)
+- Container execution (exec, run interactive containers)
+
+### Pattern Format
+- Use established regex: `"/^command (sub1|sub2)/": true|false`
+- Group related subcommands with alternation `(cmd1|cmd2|cmd3)`
+- Use `^` for start anchor and appropriate word boundaries
+- Include comments explaining security rationale
+
+## TODO List Maintenance
+
+### Critical Requirements
+- **Delete completed tasks immediately** - don't mark as done, remove from file
+- Review files for completed items before ending sessions
+- Historical context belongs in commit messages, not TODO lists
+- Always ensure files contain ONLY active, actionable tasks
+
+### Implementation Guidelines
+- **Large cleanups**: Use create_file to rewrite entire file with only active tasks
+- **Failed replacements**: Create clean version in new file, then replace original
+- **Avoid complex replace_string_in_file**: Large text blocks often fail due to whitespace mismatches
+- **Validate compliance**: Check file contains only active tasks
