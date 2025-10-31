@@ -179,43 +179,43 @@ jobs:
         run: |
           echo "🔑 Running RSA keygen fuzz test..."
           # NOTE: -fuzztimeout causes invoking fuzz test to break - avoid using it
-          go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=30s ./internal/common/crypto/keygen
+          go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=30s -timeout=60s ./internal/common/crypto/keygen
 
       - name: Run ECDSA keygen fuzz test
         working-directory: .
         run: |
           echo "🔐 Running ECDSA keygen fuzz test..."
-          go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=15s ./internal/common/crypto/keygen
+          go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
 
       - name: Run ECDH keygen fuzz test
         working-directory: .
         run: |
           echo "🔐 Running ECDH keygen fuzz test..."
-          go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=15s ./internal/common/crypto/keygen
+          go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
 
       - name: Run EdDSA keygen fuzz test
         working-directory: .
         run: |
           echo "🔐 Running EdDSA keygen fuzz test..."
-          go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=15s ./internal/common/crypto/keygen
+          go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
 
       - name: Run AES keygen fuzz test
         working-directory: .
         run: |
           echo "🔐 Running AES keygen fuzz test..."
-          go test -fuzz=FuzzGenerateAESKey -fuzztime=15s ./internal/common/crypto/keygen
+          go test -fuzz=FuzzGenerateAESKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
 
       - name: Run AES-HS keygen fuzz test
         working-directory: .
         run: |
           echo "🔐 Running AES-HS keygen fuzz test..."
-          go test -fuzz=FuzzGenerateAESHSKey -fuzztime=15s ./internal/common/crypto/keygen
+          go test -fuzz=FuzzGenerateAESHSKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
 
       - name: Run HMAC keygen fuzz test
         working-directory: .
         run: |
           echo "🔐 Running HMAC keygen fuzz test..."
-          go test -fuzz=FuzzGenerateHMACKey -fuzztime=15s ./internal/common/crypto/keygen
+          go test -fuzz=FuzzGenerateHMACKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
 
       - name: Keygen fuzz test summary
         run: |
@@ -266,55 +266,55 @@ jobs:
         working-directory: .
         run: |
           echo "🔐 Running HKDF All Variants fuzz test..."
-          go test -fuzz=FuzzHKDFAllVariants -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFAllVariants -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA256 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running HKDF-SHA256 fuzz test..."
-          go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA384 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running HKDF-SHA384 fuzz test..."
-          go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA512 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running HKDF-SHA512 fuzz test..."
-          go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run HKDF-SHA224 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running HKDF-SHA224 fuzz test..."
-          go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run SHA512 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running SHA512 fuzz test..."
-          go test -fuzz=FuzzSHA512 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run SHA384 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running SHA384 fuzz test..."
-          go test -fuzz=FuzzSHA384 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run SHA256 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running SHA256 fuzz test..."
-          go test -fuzz=FuzzSHA256 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Run SHA224 fuzz test
         working-directory: .
         run: |
           echo "🔐 Running SHA224 fuzz test..."
-          go test -fuzz=FuzzSHA224 -fuzztime=15s ./internal/common/crypto/digests
+          go test -fuzz=FuzzSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
 
       - name: Digests fuzz test summary
         run: |
