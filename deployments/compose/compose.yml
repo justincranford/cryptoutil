@@ -214,7 +214,7 @@ services:
       builder-cryptoutil:
         condition: service_completed_successfully
       postgres:
-        condition: service_started
+        condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
@@ -265,7 +265,7 @@ services:
       builder-cryptoutil:
         condition: service_completed_successfully
       postgres:
-        condition: service_started
+        condition: service_healthy
       opentelemetry-collector-contrib:
         condition: service_started
       healthcheck-opentelemetry-collector-contrib:
