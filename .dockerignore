@@ -18,6 +18,11 @@
 Thumbs.db
 
 # Test and coverage artifacts
+**/dast-reports/
+**/workflow-reports/
+**/load-reports/
+**/e2e-reports/
+**/test-results/
 **/*_test.go
 **/*_test_util.go
 coverage.*

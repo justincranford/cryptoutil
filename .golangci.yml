@@ -322,28 +322,41 @@ linters-settings:
 
 issues:
   exclude-dirs:
-    # Generated/dependency directories - DO NOT LINT
-    - vendor      # Skip vendored Go dependencies, third-party Go code
-    - api/client  # Skip OpenAPI client code, generated Go code by oapi-codegen
-    - api/model   # Skip OpenAPI model code, generated Go code by oapi-codegen
-    - api/server  # Skip OpenAPI server code, generated Go code by oapi-codegen
-    - test/load   # Skip test/load directory (Java Gatling performance tests, no Go code)
-
-    # Build artifacts and reports - DO NOT LINT
-    - dast-reports # Skip generated DAST security scan reports
-
     # IDE and tool configurations - DO NOT LINT
     - .idea       # Skip IntelliJ IDEA/GoLand IDE files, no Go files
     - .vscode     # Skip VS Code IDE files, no Go files
-    - .zap        # Skip ZAP security scanner configuration, no Go files
+    - .project    # Skip Eclipse IDE files, no Go files
+    - .settings   # Skip Eclipse IDE settings files, no Go files
+    - .classpath  # Skip Eclipse IDE classpath files, no Go files
+    - .buildpath  # Skip Eclipse IDE build path files, no Go files
 
     # Version control and CI/CD - DO NOT LINT
     - .git        # Skip Git repository metadata, no Go files
     - .github     # Skip GitHub workflows and configurations, no Go files
 
+    # Non-Go code directories - DO NOT LINT
+    - test/load   # Skip test/load directory (Java Gatling performance tests, no Go code)
+
+    # Build artifacts and reports - DO NOT LINT
+    - dast-reports     # Skip generated DAST security scan reports
+    - e2e-reports      # Skip generated E2E security scan reports
+    - load-reports     # Skip generated LOAD security scan reports
+    - test-reports     # Skip generated TEST security scan reports
+    - test-results     # Skip generated test result artifacts
+    - workflow-reports # Skip generated WORKFLOW security scan reports
+
+    # Generated/dependency directories - DO NOT LINT
+    - vendor      # Skip vendored Go dependencies, third-party Go code
+    - api/client  # Skip OpenAPI client code, generated Go code by oapi-codegen
+    - api/model   # Skip OpenAPI model code, generated Go code by oapi-codegen
+    - api/server  # Skip OpenAPI server code, generated Go code by oapi-codegen
+
     # Configuration and deployment files - DO NOT LINT
     - configs     # Skip YAML/JSON configuration files, no Go files
     - deployments # Skip Docker/K8s deployment configurations, no Go files
+
+    # Security scanner configurations - DO NOT LINT
+    - .zap        # Skip ZAP security scanner configuration, no Go files
 
     # Documentation and assets - DO NOT LINT
     - docs        # Skip Markdown documentation files, no Go files
@@ -359,8 +372,8 @@ issues:
     - ".*\\.pb\\.go$"
     - ".*_gen\\.go$"
   uniq-by-line: true
-  max-issues-per-linter: 50
-  max-same-issues: 10
+  max-issues-per-linter: 100
+  max-same-issues: 20
 
   exclude-rules:
     - path: _test\.go

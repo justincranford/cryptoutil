@@ -19,9 +19,11 @@ coverage.html
 
 # Output of test or workflow reports
 **/dast-reports/
-**/workflow-reports/
-**/load-reports/
 **/e2e-reports/
+**/load-reports/
+**/test-results/
+**/test-results/
+**/workflow-reports/
 
 # Go workspace file
 go.work
