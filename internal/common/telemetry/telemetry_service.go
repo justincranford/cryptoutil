@@ -78,8 +78,11 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 
 	// Check sidecar connectivity during startup if OTLP is enabled
 	if settings.OTLPEnabled {
+		// Perform sidecar health check but don't fail startup if it's unavailable
 		if err := checkSidecarHealth(ctx, settings); err != nil {
-			return nil, fmt.Errorf("sidecar health check failed: %w", err)
+			// Create a temporary logger for the warning since the main logger isn't initialized yet
+			tempLogger := stdoutLogExporter.New(stdoutLogExporter.NewTextHandler(os.Stdout, &stdoutLogExporter.HandlerOptions{}))
+			tempLogger.Warn("sidecar health check failed, telemetry will operate in degraded mode", "error", err)
 		}
 	}
 
