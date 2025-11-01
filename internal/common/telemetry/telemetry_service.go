@@ -566,6 +566,7 @@ func checkSidecarHealthWithRetry(ctx context.Context, settings *cryptoutilConfig
 
 	var intermediateErrs []error
 
+	//nolint:wsl // wsl requires blocks not to end with blank lines, but this structure improves readability
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		if attempt > 0 {
 			select {
@@ -589,6 +590,7 @@ func checkSidecarHealthWithRetry(ctx context.Context, settings *cryptoutilConfig
 
 // CheckSidecarHealth performs a connectivity check to the OTLP sidecar.
 func (s *TelemetryService) CheckSidecarHealth(ctx context.Context) error {
+	//nolint:wsl // wsl requires blocks not to end with blank lines, but this structure improves readability
 	if s.settings.OTLPEnabled {
 		err := checkSidecarHealth(ctx, s.settings)
 		if err != nil {
