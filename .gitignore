@@ -17,20 +17,11 @@ cryptoutil$
 coverage.out
 coverage.html
 
-# Output of dast workflow
-dast-reports/
-
-# Workflow execution reports
-workflow-reports/
-
-# Local test reports
-load-reports/
-
-# E2E test reports
-test/e2e/e2e-reports/
-
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Output of test or workflow reports
+**/dast-reports/
+**/workflow-reports/
+**/load-reports/
+**/e2e-reports/
 
 # Go workspace file
 go.work
@@ -44,3 +35,8 @@ output/
 # ASN.1/DER/PEM encoded files
 *.pem
 *.der
+*.crt
+*.key
+*.csr
+*.pfx
+*.p12
