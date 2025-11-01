@@ -24,12 +24,12 @@
 
 ## Executive Summary
 
-**CryptoUtil** is an enterprise-grade, production-ready Key Management System (KMS) and cryptographic service implemented in Go 1.25.1. The project demonstrates mature software engineering practices with comprehensive testing, security scanning, observability, and automated quality gates.
+**CryptoUtil** is an enterprise-grade, production-ready Key Management System (KMS) and cryptographic service implemented in Go 1.25.3. The project demonstrates mature software engineering practices with comprehensive testing, security scanning, observability, and automated quality gates.
 
 ### Key Characteristics
 
 - **Domain:** Cryptographic Key Management & Operations
-- **Language:** Go 1.25.1 (strict version pinning across all configs)
+- **Language:** Go 1.25.3 (strict version pinning across all configs)
 - **Architecture:** Layered hexagonal architecture with clear separation of concerns
 - **Database:** Dual-backend support (PostgreSQL production, SQLite development)
 - **API:** OpenAPI 3.0.3 driven with auto-generated handlers
@@ -109,7 +109,7 @@ Both contexts share the same business logic but apply different middleware stack
 
 ### Core Technologies
 
-- **Language:** Go 1.25.1 (module: `cryptoutil`)
+- **Language:** Go 1.25.3 (module: `cryptoutil`)
 - **Web Framework:** Fiber v2.52.9 (high-performance HTTP framework)
 - **Database ORM:** GORM v1.31.0 with drivers for PostgreSQL and SQLite
 - **OpenAPI:** oapi-codegen v2.5.0 for code generation from OpenAPI 3.0.3 specs
@@ -843,7 +843,7 @@ docker compose down -v
 
 ### Key Files
 
-- `go.mod` - Go module definition (Go 1.25.1)
+- `go.mod` - Go module definition (Go 1.25.3)
 - `.golangci.yml` - Linter configuration (40+ linters)
 - `.pre-commit-config.yaml` - Pre-commit hook configuration
 - `.gofumpt.toml` - Formatter configuration

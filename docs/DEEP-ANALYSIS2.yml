@@ -11,7 +11,7 @@ analysis:
     [Intent Mapping: User requested deep project analysis, copilot instruction fixes, new ci-load.yml workflow with Gatling load testing against 3 cryptoutil services, infrastructure telemetry collection, workflow testing and fixes, documentation review, TODO cleanup, pkg exposure evaluation, and cmd/internal structure assessment.]
 
   technical_inventory: |
-    [Technical Inventory: Go 1.25.1, Fiber web framework, GORM ORM, OpenAPI codegen, OpenTelemetry observability, Docker Compose, Gatling load testing, golangci-lint, GitHub Actions workflows, PostgreSQL/SQLite databases, cryptographic libraries (circl, lestrrat-go/jwx), testing tools (testcontainers, gremlins), security scanning (ZAP, Nuclei, gosec).]
+    [Technical Inventory: Go 1.25.3, Fiber web framework, GORM ORM, OpenAPI codegen, OpenTelemetry observability, Docker Compose, Gatling load testing, golangci-lint, GitHub Actions workflows, PostgreSQL/SQLite databases, cryptographic libraries (circl, lestrrat-go/jwx), testing tools (testcontainers, gremlins), security scanning (ZAP, Nuclei, gosec).]
 
   code_archaeology: |
     [Code Archaeology: Key files analyzed/modified: .github/copilot-instructions.md (updated workflow examples), .github/workflows/ci-load.yml (new load testing workflow), internal/cmd/workflow/workflow.go (added load workflow support), test/load/README.md (added CI/CD integration docs). Project structure follows Standard Go Layout with cmd/, internal/, pkg/, api/, configs/, deployments/, docs/, test/.]
@@ -34,7 +34,7 @@ summary:
 
   technical_foundation: |
     2. Technical Foundation:
-    - Core Technology 1: Go 1.25.1 - Primary language with strict version pinning across all CI/CD configs
+    - Core Technology 1: Go 1.25.3 - Primary language with strict version pinning across all CI/CD configs
     - Framework/Library 2: Fiber v2.52.9 - High-performance HTTP web framework for API endpoints
     - Architectural Pattern 3: Layered hexagonal architecture - Clear separation of handler → business logic → repository layers
     - Environment Detail 4: Docker Compose with PostgreSQL/SQLite - Multi-service setup with database backends, OpenTelemetry observability stack (Grafana-OTEL-LGTM), and comprehensive testing infrastructure

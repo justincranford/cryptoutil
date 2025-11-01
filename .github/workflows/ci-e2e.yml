@@ -89,7 +89,7 @@ jobs:
             "otel/opentelemetry-collector-contrib:latest"
             "grafana/otel-lgtm:latest"
             "alpine:latest"
-            "golang:1.25.1"
+            "golang:1.25.3"
             "alpine:3.19"
           )
 

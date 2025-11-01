@@ -1,6 +1,6 @@
 # golangci-lint configuration for cryptoutil project
 #
-# This project uses Go 1.25.1 with golangci-lint v1.25.1
+# This project uses Go 1.25.3 with golangci-lint v1.25.3
 # All linters are compatible with the current Go version
 #
 # Usage: golangci-lint run --timeout=10m
