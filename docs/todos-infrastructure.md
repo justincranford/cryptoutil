@@ -65,26 +65,26 @@
 
 ### Task INF6: IPv6 vs IPv4 Loopback Networking Investigation
 - **Description**: Investigate and resolve IPv6/IPv4 loopback address inconsistencies in containerized deployments
-- **Current State**: Health checks failing due to localhost resolving to IPv6 (::1) while servers only listen on IPv4 (127.0.0.1)
+w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 but application listener only binds to IPv4
 - **Action Items**:
-  - Audit entire project for use of "localhost" hostname vs explicit IP addresses
-  - Improve `application_listener.go` to listen on both IPv6 and IPv4 loopback addresses
-  - Update Docker health checks to use explicit IP addresses instead of localhost
-  - Review container networking configuration for proper IPv4/IPv6 support
-  - Test health checks and connectivity in various container environments
-  - Update Docker instructions with IPv6/IPv4 loopback best practices
+  - ✅ Audit entire project for use of "localhost" hostname vs explicit IP addresses (DONE - compose.yml uses 127.0.0.1)
+  - ❌ Improve `application_listener.go` to listen on both IPv6 and IPv4 loopback addresses (NEEDS WORK)
+  - ✅ Update Docker health checks to use explicit IP addresses instead of localhost (DONE - compose.yml uses 127.0.0.1)
+  - ❌ Review container networking configuration for proper IPv4/IPv6 support (NEEDS WORK)
+  - ❌ Test health checks and connectivity in various container environments (NEEDS WORK)
+  - ❌ Update Docker instructions with IPv6/IPv4 loopback best practices (NEEDS WORK)
 - **Files**: `internal/server/application/application_listener.go`, `deployments/compose/compose.yml`, Docker health checks, networking code
 - **Expected Outcome**: Reliable networking in containerized environments with proper IPv4/IPv6 loopback support
 - **Priority**: Medium - Container networking reliability
 
 ### Task INF8: Use HTTPS 127.0.0.1:9090 for Admin APIs
 - **Description**: Ensure admin APIs (shutdown, livez, readyz) are accessed via private server HTTPS 127.0.0.1:9090, not public server
-- **Current State**: Admin APIs incorrectly accessed on public ports (8080)
+- **Current State**: INCOMPLETE - E2E tests check public service endpoints instead of private admin endpoints
 - **Action Items**:
-  - Update e2e tests to check readiness on private server URLs (9090)
-  - Update documentation to show correct admin API endpoints
-  - Ensure health checks use private server endpoints
-  - Remove admin API routes from public server if accidentally added
+  - ❌ Update e2e tests to check readiness on private server URLs (9090) (NEEDS WORK)
+  - ✅ Update documentation to show correct admin API endpoints (DONE - README shows https://localhost:9090)
+  - ✅ Ensure health checks use private server endpoints (DONE - compose.yml uses 127.0.0.1:9090)
+  - ✅ Remove admin API routes from public server if accidentally added (DONE - admin routes only on private server)
 - **Files**: `internal/test/e2e/e2e_test.go`, documentation, health check scripts
 - **Expected Outcome**: Admin APIs properly isolated to private server
 - **Priority**: High - API security and correct architecture
