@@ -168,7 +168,7 @@ repos:
   - repo: local
     hooks:
       - id: cicd-checks
-        name: Run all CI/CD quality checks (test patterns, go-enforce-any, workflow lint, circular deps, file encoding)
+        name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep, github-lint)
         entry: go
         args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, github-workflow-lint, go-check-circular-package-dependencies]
         language: system
