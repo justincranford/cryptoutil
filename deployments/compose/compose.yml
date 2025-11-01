@@ -87,7 +87,7 @@ services:
     depends_on:
       healthcheck-secrets:
         condition: service_completed_successfully
-      # grafana takes a long time to be healthy, so only wait for it to start
+      # IMPORTANT: Grafana OTEL LGTM takes long time to be healthy; only wait for started, don't wait for healthy
       grafana-otel-lgtm:
         # condition: service_healthy
         condition: service_started
@@ -165,8 +165,10 @@ services:
         condition: service_completed_successfully
       builder-cryptoutil:
         condition: service_completed_successfully
+      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       opentelemetry-collector-contrib:
         condition: service_started
+      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
@@ -215,8 +217,10 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
+      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       opentelemetry-collector-contrib:
         condition: service_started
+      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
     healthcheck:
@@ -266,10 +270,13 @@ services:
         condition: service_completed_successfully
       postgres:
         condition: service_healthy
+      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       opentelemetry-collector-contrib:
         condition: service_started
+      # Waiting for OTEL Collector contrib (and Grafana OTEL LGTM) to be healthy would take too long; only wait for started
       healthcheck-opentelemetry-collector-contrib:
         condition: service_completed_successfully
+      # Wait for cryptoutil-postgres-1 to be healthy, so shared database is initialized
       cryptoutil-postgres-1:
         condition: service_healthy
     healthcheck:

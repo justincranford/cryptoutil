@@ -56,4 +56,9 @@ const (
 	DefaultOTLPHostnameDefault = "localhost"
 	// DefaultOTLPEndpointDefault - Default OTLP endpoint. GRPC preferred over HTTP for performance.
 	DefaultOTLPEndpointDefault = "grpc://127.0.0.1:4317"
+
+	// DefaultSidecarHealthCheckMaxRetries - Maximum number of retries for sidecar health check.
+	DefaultSidecarHealthCheckMaxRetries = 5
+	// DefaultSidecarHealthCheckRetryDelay - Delay between sidecar health check retries.
+	DefaultSidecarHealthCheckRetryDelay = 2 * time.Second
 )

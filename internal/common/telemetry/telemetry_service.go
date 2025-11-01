@@ -2,6 +2,7 @@ package telemetry
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -77,18 +78,34 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	}
 
 	// Check sidecar connectivity during startup if OTLP is enabled
+	var retryErrors []error
+
+	var overallErr error
+
 	if settings.OTLPEnabled {
-		// Perform sidecar health check but don't fail startup if it's unavailable
-		if err := checkSidecarHealth(ctx, settings); err != nil {
-			// Create a temporary logger for the warning since the main logger isn't initialized yet
-			tempLogger := stdoutLogExporter.New(stdoutLogExporter.NewTextHandler(os.Stdout, &stdoutLogExporter.HandlerOptions{}))
-			tempLogger.Warn("sidecar health check failed, telemetry will operate in degraded mode", "error", err)
-		}
+		retryErrors, overallErr = checkSidecarHealthWithRetry(ctx, settings)
 	}
 
 	slogger, logsProvider, err := initLogger(ctx, settings)
 	if err != nil {
 		return nil, fmt.Errorf("failed to init logger: %w", err)
+	}
+
+	// logsProvider is initialized, now we can log the sidecar health checks done just before logsProvider initialization
+	// TODO Change DEBUG to INFO after confirming what works in GitHub Actions
+	if overallErr == nil {
+		if settings.VerboseMode {
+			slogger.Info("sidecar health check succeeded", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
+		} else {
+			slogger.Info("DEBUG sidecar health check succeeded", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
+		}
+	} else {
+		// log the sidecar health check errors, and proceed anyway; if sidecar becomes healthy later, buffered telemetry exports can still go through later
+		if settings.VerboseMode {
+			slogger.Info("sidecar health check failed", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
+		} else {
+			slogger.Info("DEBUG health check failed", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
+		}
 	}
 
 	metricsProvider, err := initMetrics(ctx, slogger, settings)
@@ -540,6 +557,34 @@ func checkSidecarHealth(ctx context.Context, settings *cryptoutilConfig.Settings
 	}
 
 	return nil
+}
+
+// checkSidecarHealthWithRetry performs connectivity check to OTLP sidecar with retry logic, before init logsProvider; caller must log results.
+func checkSidecarHealthWithRetry(ctx context.Context, settings *cryptoutilConfig.Settings) ([]error, error) {
+	maxRetries := cryptoutilMagic.DefaultSidecarHealthCheckMaxRetries
+	retryDelay := cryptoutilMagic.DefaultSidecarHealthCheckRetryDelay
+
+	var intermediateErrs []error
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return intermediateErrs, fmt.Errorf("context cancelled during sidecar health check retry: %w", ctx.Err())
+			case <-time.After(retryDelay):
+				// Continue with retry
+			}
+		}
+
+		err := checkSidecarHealth(ctx, settings)
+		if err == nil {
+			return intermediateErrs, nil
+		}
+
+		intermediateErrs = append(intermediateErrs, err)
+	}
+
+	return intermediateErrs, fmt.Errorf("sidecar health check failed after %d attempts (%d failures): %w", maxRetries+1, len(intermediateErrs), errors.Join(intermediateErrs...))
 }
 
 // CheckSidecarHealth performs a connectivity check to the OTLP sidecar.
