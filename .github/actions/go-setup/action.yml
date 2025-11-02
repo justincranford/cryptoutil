@@ -1,0 +1,66 @@
+name: 'Go Setup and Validation'
+description: 'Set up Go environment, download dependencies, and validate module integrity'
+inputs:
+  go-version:
+    description: 'Go version to set up'
+    required: true
+  download-dependencies:
+    description: 'Whether to download Go dependencies'
+    required: false
+    default: 'true'
+  verify-dependencies:
+    description: 'Whether to verify Go dependencies'
+    required: false
+    default: 'true'
+  clean-module-files:
+    description: 'Whether to clean and verify module files'
+    required: false
+    default: 'true'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v6.0.0
+      with:
+        go-version: ${{ inputs.go-version }}
+        cache: true
+
+    - name: Download Go dependencies
+      if: inputs.download-dependencies == 'true'
+      shell: bash
+      run: |
+        echo "⬇️ Downloading Go dependencies..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go mod download
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Go dependencies download completed in: ${DURATION}s"
+
+    - name: Verify Go dependencies
+      if: inputs.verify-dependencies == 'true'
+      shell: bash
+      run: |
+        echo "🔍 Verifying Go dependencies..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go mod verify
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Go dependencies verification completed in: ${DURATION}s"
+
+    - name: Clean and verify module files
+      if: inputs.clean-module-files == 'true'
+      shell: bash
+      run: |
+        echo "🧹 Cleaning and verifying Go module files..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go mod tidy
+        git diff --exit-code go.mod go.sum
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Go module file verification completed in: ${DURATION}s"
