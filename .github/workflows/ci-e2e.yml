@@ -122,6 +122,57 @@ jobs:
           echo "🧪 Running end-to-end tests..."
           go test -tags=e2e -v -timeout=30m ./internal/test/e2e/
 
+      - name: Display container logs
+        if: always()
+        run: |
+          echo "📋 Displaying captured container logs..."
+          LOG_DIR="./test/e2e/e2e-reports"
+          if [ -d "$LOG_DIR" ]; then
+            echo "Found log directory: $LOG_DIR"
+            # List all zip files
+            if ls ${LOG_DIR}/*.zip 1> /dev/null 2>&1; then
+              echo "Container log archives found:"
+              ls -la ${LOG_DIR}/*.zip
+
+              # Extract and display logs from the most recent zip file
+              LATEST_ZIP=$(ls -t ${LOG_DIR}/*.zip | head -1)
+              echo "📦 Extracting and displaying logs from: $LATEST_ZIP"
+              echo "=========================================="
+
+              # Create temp directory for extraction
+              TEMP_DIR=$(mktemp -d)
+              unzip -q "$LATEST_ZIP" -d "$TEMP_DIR"
+
+              # Display logs for each service
+              for log_file in "$TEMP_DIR"/*.log; do
+                if [ -f "$log_file" ]; then
+                  SERVICE_NAME=$(basename "$log_file" .log)
+                  echo "🔍 Logs for service: $SERVICE_NAME"
+                  echo "----------------------------------------"
+                  cat "$log_file"
+                  echo ""
+                  echo "=========================================="
+                fi
+              done
+
+              # Clean up temp directory
+              rm -rf "$TEMP_DIR"
+            else
+              echo "No container log archives found in $LOG_DIR"
+            fi
+          else
+            echo "Log directory $LOG_DIR does not exist"
+          fi
+
+      - name: Upload container logs
+        if: always()
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: e2e-container-logs-${{ github.run_id }}
+          path: ./test/e2e/e2e-reports/
+          if-no-files-found: ignore
+          retention-days: 30
+
       - name: E2E test summary
         if: always()
         run: |
