@@ -130,17 +130,6 @@ repos:
       #   args: [--branch, main]
       #   stages: [pre-push]  # Only run on push, not on commit
 
-  # Go dependency management (clean state before linting)
-  - repo: local
-    hooks:
-      - id: go-mod-tidy
-        name: go mod tidy
-        entry: go
-        args: [mod, tidy]
-        language: system
-        pass_filenames: false
-        files: go\.mod$
-
   # Go linting with auto-fix (includes gofumpt with extra-rules, imports, and all enabled linters)
   # NOTE: golangci-lint includes gofumpt with extra-rules: true in .golangci.yml
   #       No separate gofumpt hook needed to avoid conflicting formatting passes
@@ -154,16 +143,6 @@ repos:
         pass_filenames: false
         stages: [pre-commit]  # Run full linting on commit, not just on push
 
-  # Go build validation
-  - repo: local
-    hooks:
-      - id: go-build
-        name: go build
-        entry: go
-        args: [build, ./...]
-        language: system
-        pass_filenames: false
-
   # Custom project checks
   - repo: local
     hooks:
@@ -171,6 +150,27 @@ repos:
         name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep, github-lint)
         entry: go
         args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, github-workflow-lint, go-check-circular-package-dependencies]
+        language: system
+        pass_filenames: false
+
+  # Go dependency management (clean state before linting)
+  - repo: local
+    hooks:
+      - id: go-mod-tidy
+        name: go mod tidy
+        entry: go
+        args: [mod, tidy]
+        language: system
+        pass_filenames: false
+        files: go\.mod$
+
+  # Go build validation
+  - repo: local
+    hooks:
+      - id: go-build
+        name: go build
+        entry: go
+        args: [build, ./...]
         language: system
         pass_filenames: false
 
