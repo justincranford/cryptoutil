@@ -80,9 +80,9 @@ jobs:
         uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          download-dependencies: false
-          verify-dependencies: false
-          clean-module-files: false
+          skip-go-mod-download: true
+          skip-go-mod-verify: true
+          skip-go-mod-tidy: true
 
       # Security Static Analysis with Staticcheck
       - name: Install Staticcheck

@@ -2,20 +2,32 @@ name: 'Go Setup and Validation'
 description: 'Set up Go environment, download dependencies, and validate module integrity'
 inputs:
   go-version:
-    description: 'Go version to set up'
+    description: 'Go version to set up (e.g., 1.25.3)'
     required: true
-  download-dependencies:
-    description: 'Whether to download Go dependencies'
+  go-mod-download:
+    description: 'Whether to run "go mod download"'
     required: false
     default: 'true'
-  verify-dependencies:
-    description: 'Whether to verify Go dependencies'
+  go-mod-verify:
+    description: 'Whether to run "go mod verify"'
     required: false
     default: 'true'
-  clean-module-files:
-    description: 'Whether to clean and verify module files'
+  go-mod-tidy:
+    description: 'Whether to run "go mod tidy"'
     required: false
     default: 'true'
+  skip-go-mod-download:
+    description: 'Whether to skip "go mod download"'
+    required: false
+    default: 'false'
+  skip-go-mod-verify:
+    description: 'Whether to skip "go mod verify"'
+    required: false
+    default: 'false'
+  skip-go-mod-tidy:
+    description: 'Whether to skip "go mod tidy"'
+    required: false
+    default: 'false'
 runs:
   using: 'composite'
   steps:
@@ -25,37 +37,37 @@ runs:
         go-version: ${{ inputs.go-version }}
         cache: true
 
-    - name: Download Go dependencies
-      if: inputs.download-dependencies == 'true'
+    - name: Run "go mod download"
+      if: inputs.skip-go-mod-download != 'true'
       shell: bash
       run: |
-        echo "⬇️ Downloading Go dependencies..."
+        echo "⬇️ Running 'go mod download'..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         go mod download
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Go dependencies download completed in: ${DURATION}s"
+        echo "⏱️ Run 'go mod download' completed in: ${DURATION}s"
 
-    - name: Verify Go dependencies
-      if: inputs.verify-dependencies == 'true'
+    - name: Run "go mod verify"
+      if: inputs.skip-go-mod-verify != 'true'
       shell: bash
       run: |
-        echo "🔍 Verifying Go dependencies..."
+        echo "🔍 Running 'go mod verify'..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         go mod verify
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Go dependencies verification completed in: ${DURATION}s"
+        echo "⏱️ Run 'go mod verify' completed in: ${DURATION}s"
 
-    - name: Clean and verify module files
-      if: inputs.clean-module-files == 'true'
+    - name: Run "go mod tidy"
+      if: inputs.skip-go-mod-tidy != 'true'
       shell: bash
       run: |
-        echo "🧹 Cleaning and verifying Go module files..."
+        echo "🧹 Running 'go mod tidy'..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         go mod tidy
@@ -63,4 +75,4 @@ runs:
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Go module file verification completed in: ${DURATION}s"
+        echo "⏱️ Run 'go mod tidy' completed in: ${DURATION}s"

@@ -85,9 +85,6 @@ jobs:
       uses: ./.github/actions/go-setup
       with:
         go-version: ${{ env.GO_VERSION }}
-        download-dependencies: true
-        verify-dependencies: true
-        clean-module-files: true
 
     - name: Run concurrency and race detection tests
       working-directory: .
@@ -135,9 +132,6 @@ jobs:
       uses: ./.github/actions/go-setup
       with:
         go-version: ${{ env.GO_VERSION }}
-        download-dependencies: true
-        verify-dependencies: true
-        clean-module-files: true
 
     - name: Run coverage on concurrency tests
       working-directory: .
@@ -197,9 +191,6 @@ jobs:
         uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          download-dependencies: true
-          verify-dependencies: true
-          clean-module-files: true
 
       - name: Run keygen fuzz tests
         working-directory: .
@@ -304,9 +295,6 @@ jobs:
         uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          download-dependencies: true
-          verify-dependencies: true
-          clean-module-files: true
 
       - name: Run digests fuzz tests
         working-directory: .
@@ -420,9 +408,6 @@ jobs:
         uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          download-dependencies: true
-          verify-dependencies: true
-          clean-module-files: true
 
       - name: Run benchmark tests
         working-directory: .

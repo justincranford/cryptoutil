@@ -207,8 +207,7 @@ jobs:
       uses: ./.github/actions/go-setup
       with:
         go-version: ${{ env.GO_VERSION }}
-        verify-dependencies: false
-        clean-module-files: false
+        skip-go-mod-tidy: true
 
     - name: Pre-pull Docker images (parallel)
       run: |
