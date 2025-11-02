@@ -66,12 +66,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Workflow Start - CI - Robustness Testing / concurrency-race (ci-robust.yml)
+    - name: Workflow Start - CI - Robustness Testing / concurrency (ci-robust.yml)
       run: |
         echo "=========================================="
         echo "Workflow: ${{ github.workflow }}"
         echo "File: .github/workflows/ci-robust.yml"
-        echo "Job: concurrency-race"
+        echo "Job: concurrency"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "=========================================="
@@ -79,7 +79,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5.0.0
       with:
-        sparse-checkout-cone-mode: false
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
     - name: Set up Go and validate dependencies
       uses: ./.github/actions/go-setup
@@ -129,7 +129,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5.0.0
       with:
-        sparse-checkout-cone-mode: false
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
     - name: Set up Go and validate dependencies
       uses: ./.github/actions/go-setup
@@ -178,32 +178,32 @@ jobs:
     if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
 
     steps:
-      - name: Workflow Start - CI - Robustness Testing / fuzz-keygen (ci-robust.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-robust.yml"
-          echo "Job: fuzz-keygen"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+    - name: Workflow Start - CI - Robustness Testing / fuzz-keygen (ci-robust.yml)
+      run: |
+        echo "=========================================="
+        echo "Workflow: ${{ github.workflow }}"
+        echo "File: .github/workflows/ci-robust.yml"
+        echo "Job: fuzz-keygen"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "=========================================="
 
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-        with:
-          sparse-checkout-cone-mode: false
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
-      - name: Set up Go and validate dependencies
-        uses: ./.github/actions/go-setup
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          go-mod-download: true
-          go-mod-verify: true
-          go-mod-tidy: true
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        go-mod-download: true
+        go-mod-verify: true
+        go-mod-tidy: true
 
-      - name: Run keygen fuzz tests
-        working-directory: .
-        run: |
+    - name: Run keygen fuzz tests
+      working-directory: .
+      run: |
           echo "� Running keygen fuzz tests..."
           OVERALL_START=$(date +%s)
           echo "📅 Keygen fuzz tests start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -269,8 +269,8 @@ jobs:
           echo "📅 Keygen fuzz tests end: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "⏱️ All keygen fuzz tests completed in: ${TOTAL_DURATION}s"
 
-      - name: Keygen fuzz test summary
-        run: |
+    - name: Keygen fuzz test summary
+      run: |
           echo "## 🔐 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
@@ -298,7 +298,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5.0.0
         with:
-          sparse-checkout-cone-mode: false
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
       - name: Set up Go and validate dependencies
         uses: ./.github/actions/go-setup
@@ -414,7 +414,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5.0.0
         with:
-          sparse-checkout-cone-mode: false
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
       - name: Set up Go and validate dependencies
         uses: ./.github/actions/go-setup

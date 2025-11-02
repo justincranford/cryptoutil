@@ -89,7 +89,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5.0.0
         with:
-          sparse-checkout-cone-mode: false
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
       - name: Set up Go and validate dependencies
         uses: ./.github/actions/go-setup

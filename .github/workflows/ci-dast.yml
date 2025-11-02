@@ -144,7 +144,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v5.0.0
       with:
-        sparse-checkout-cone-mode: false
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
     - name: Setup directories and Nuclei templates version
       id: nuclei-version
@@ -209,7 +209,7 @@ jobs:
         go-version: ${{ env.GO_VERSION }}
         go-mod-download: true
         go-mod-verify: true
-        go-mod-tidy: false
+        go-mod-tidy: false  # DAST builds/tests but skips tidy to avoid modifying go.mod/go.sum during scans
 
     - name: Pre-pull Docker images (parallel)
       run: |
