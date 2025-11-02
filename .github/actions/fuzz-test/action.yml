@@ -1,0 +1,36 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: 'fuzz-test'
+description: 'Run a single Go fuzz test with timing and logging'
+inputs:
+  fuzz_function_name:
+    description: 'Name of the fuzz function to run (e.g., FuzzGenerateRSAKeyPair)'
+    required: true
+  package_path:
+    description: 'Package path containing the fuzz test (e.g., ./internal/common/crypto/keygen)'
+    required: true
+  fuzztime_seconds:
+    description: 'Fuzz test duration in seconds'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: ${{ inputs.fuzz_function_name }} Fuzz Test
+      shell: bash
+      run: |
+        # Derive human-readable description from function name
+        FUZZ_FUNC="${{ inputs.fuzz_function_name }}"
+        TEST_DESC=$(echo "$FUZZ_FUNC" | sed 's/^Fuzz//' | sed 's/\([A-Z]\)/ \1/g' | sed 's/^ //')
+
+        echo "🔐 Running $TEST_DESC fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        FUZZTIME="${{ inputs.fuzztime_seconds }}s"
+        TIMEOUT="$(( ${{ inputs.fuzztime_seconds }} * 2 ))s"
+        echo "⏱️ Configured: fuzztime=${FUZZTIME}, timeout=${TIMEOUT}"
+        go test -fuzz=${{ inputs.fuzz_function_name }} -fuzztime=${FUZZTIME} -timeout=${TIMEOUT} ${{ inputs.package_path }}
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ $TEST_DESC fuzz test completed in: ${DURATION}s"
