@@ -55,7 +55,6 @@ on:
         type: choice
         options:
           - all
-          - fuzz
           - fuzz-keygen
           - fuzz-digests
 
@@ -67,7 +66,7 @@ jobs:
   fuzz-keygen:
     name: Fuzz Tests - Keygen
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
 
     steps:
     - name: Workflow Start - CI - Fuzz Testing / fuzz-keygen (ci-fuzz.yml)
@@ -182,7 +181,7 @@ jobs:
   fuzz-digests:
     name: Fuzz Tests - Digests
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
 
     steps:
       - name: Workflow Start - CI - Fuzz Testing / fuzz-digests (ci-fuzz.yml)
