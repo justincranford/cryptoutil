@@ -275,19 +275,24 @@ jobs:
           echo "🚀 Running Gatling load tests..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          # Set environment variable to help with debugging
+          export LOAD_DEBUG=1
 
           # Configure JVM options for Gatling
           export MAVEN_OPTS="-Xmx2g -Xms1g"
 
           # Run all simulations with configured parameters
-          ./mvnw gatling:test \
+          if ./mvnw gatling:test \
             -Dprofile=${{ env.LOAD_PROFILE }} \
             -Dport=8080 \
             -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
             -DdurationSeconds=${{ steps.load-params.outputs.duration }} \
-            -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"
-
-          echo "✅ Gatling load tests completed"
+            -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"; then
+            echo "✅ Gatling load tests completed successfully"
+          else
+            echo "❌ Gatling load tests failed"
+            exit 1
+          fi
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
