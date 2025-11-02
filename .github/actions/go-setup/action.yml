@@ -4,18 +4,15 @@ inputs:
   go-version:
     description: 'Go version to set up (e.g., 1.25.3)'
     required: true
-  skip-go-mod-download:
-    description: 'Whether to skip "go mod download"'
-    required: false
-    default: 'false'
-  skip-go-mod-verify:
-    description: 'Whether to skip "go mod verify"'
-    required: false
-    default: 'false'
-  skip-go-mod-tidy:
-    description: 'Whether to skip "go mod tidy"'
-    required: false
-    default: 'false'
+  go-mod-download:
+    description: 'Whether to run "go mod download"'
+    required: true
+  go-mod-verify:
+    description: 'Whether to run "go mod verify"'
+    required: true
+  go-mod-tidy:
+    description: 'Whether to run "go mod tidy"'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -26,7 +23,7 @@ runs:
         cache: true
 
     - name: Run "go mod download"
-      if: inputs.skip-go-mod-download != 'true'
+      if: inputs.go-mod-download == 'true'
       shell: bash
       run: |
         echo "⬇️ Running 'go mod download'..."
@@ -39,7 +36,7 @@ runs:
         echo "⏱️ Run 'go mod download' completed in: ${DURATION}s"
 
     - name: Run "go mod verify"
-      if: inputs.skip-go-mod-verify != 'true'
+      if: inputs.go-mod-verify == 'true'
       shell: bash
       run: |
         echo "🔍 Running 'go mod verify'..."
@@ -52,7 +49,7 @@ runs:
         echo "⏱️ Run 'go mod verify' completed in: ${DURATION}s"
 
     - name: Run "go mod tidy"
-      if: inputs.skip-go-mod-tidy != 'true'
+      if: inputs.go-mod-tidy == 'true'
       shell: bash
       run: |
         echo "🧹 Running 'go mod tidy'..."
