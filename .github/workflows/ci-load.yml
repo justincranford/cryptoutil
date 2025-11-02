@@ -130,35 +130,17 @@ jobs:
           echo "⏱️ Go dependencies verification completed in: ${DURATION}s"
 
       - name: Pre-pull Docker images (parallel)
-        run: |
-          echo "🐳 Starting Docker image pre-pull..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-          # Array of all images used in this workflow
-          IMAGES=(
-            "postgres:18"
-            "otel/opentelemetry-collector-contrib:latest"
-            "grafana/otel-lgtm:latest"
-            "alpine:latest"
-            "golang:1.25.3"
-            "alpine:3.19"
-          )
-
-          # Pull all images concurrently
-          for image in "${IMAGES[@]}"; do
-            echo "Pulling $image..."
-            docker pull "$image" &
-          done
-
-          # Wait for all pulls to complete
-          wait
-
-          echo "✅ All images pre-pulled successfully"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Docker image pre-pull completed in: ${DURATION}s"
+        uses: ./.github/actions/docker-image-prepull
+        with:
+          images: |
+            [
+              "postgres:18",
+              "otel/opentelemetry-collector-contrib:latest",
+              "grafana/otel-lgtm:latest",
+              "alpine:latest",
+              "golang:1.25.3",
+              "alpine:3.19"
+            ]
 
       - name: Build Docker images
         run: |

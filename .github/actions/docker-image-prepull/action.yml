@@ -1,0 +1,34 @@
+name: 'Docker Image Pre-pull (Parallel)'
+description: 'Pre-pull Docker images in parallel to speed up workflow execution'
+inputs:
+  images:
+    description: 'JSON array of Docker images to pull'
+    required: true
+    default: '["alpine:latest"]'
+runs:
+  using: 'composite'
+  steps:
+    - name: Pre-pull Docker images (parallel)
+      shell: bash
+      run: |
+        echo "🐳 Starting Docker image pre-pull..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Parse JSON array input
+        IMAGES=$(echo '${{ inputs.images }}' | jq -r '.[]')
+
+        # Pull all images concurrently
+        for image in $IMAGES; do
+          echo "Pulling $image..."
+          docker pull "$image" &
+        done
+
+        # Wait for all pulls to complete
+        wait
+
+        echo "✅ All images pre-pulled successfully"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Docker image pre-pull completed in: ${DURATION}s"
