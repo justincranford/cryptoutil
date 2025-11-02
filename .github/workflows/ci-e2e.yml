@@ -126,7 +126,7 @@ jobs:
         if: always()
         run: |
           echo "📋 Displaying captured container logs..."
-          LOG_DIR="./test/e2e/e2e-reports"
+          LOG_DIR="./workflow-reports/e2e"
           if [ -d "$LOG_DIR" ]; then
             echo "Found log directory: $LOG_DIR"
             # List all zip files
@@ -169,7 +169,7 @@ jobs:
         uses: actions/upload-artifact@v5.0.0
         with:
           name: e2e-container-logs-${{ github.run_id }}
-          path: ./test/e2e/e2e-reports/
+          path: ./workflow-reports/e2e/
           if-no-files-found: ignore
           retention-days: 30
 
