@@ -2,7 +2,7 @@
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
 name: 'docker-images-pull'
-description: 'Pre-pull Docker images (parallel) in parallel for faster workflow execution'
+description: 'Pre-pull Docker images in parallel for faster workflow execution'
 inputs:
   images:
     description: 'Newline-separated list of Docker images to pre-pull'
@@ -10,7 +10,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Pre-pull Docker images (parallel) (parallel)
+    - name: Pre-pull Docker images (parallel)
       shell: bash
       run: |
         echo "🐳 Pre-pulling Docker images in parallel..."
@@ -18,7 +18,7 @@ runs:
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
         # Convert newline-separated input to array
-        IFS=$'\n' read -r -d '' -a IMAGES <<< "${{ inputs.images }}"
+        readarray -t IMAGES <<< "${{ inputs.images }}"
 
         # Pull all images concurrently
         for image in "${IMAGES[@]}"; do
