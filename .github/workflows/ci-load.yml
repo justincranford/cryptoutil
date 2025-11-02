@@ -387,15 +387,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        run: |
-          echo "🧹 Stopping services..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          docker compose -f ./deployments/compose/compose.yml down -v
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Service cleanup completed in: ${DURATION}s"
+        uses: ./.github/actions/stop-services
 
       - name: Upload Gatling reports
         if: always()
