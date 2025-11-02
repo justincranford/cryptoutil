@@ -81,21 +81,13 @@ jobs:
       with:
         sparse-checkout-cone-mode: false
 
-    - name: Set up Go
-      uses: actions/setup-go@v6.0.0
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-
-    - name: Download dependencies
-      run: go mod download
-
-    - name: Verify dependencies
-      run: go mod verify
-
-    - name: Clean and verify module files
-      run: |
-        go mod tidy
+        download-dependencies: true
+        verify-dependencies: true
+        clean-module-files: true
 
     - name: Run concurrency and race detection tests
       working-directory: .
@@ -139,21 +131,13 @@ jobs:
       with:
         sparse-checkout-cone-mode: false
 
-    - name: Set up Go
-      uses: actions/setup-go@v6.0.0
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
       with:
         go-version: ${{ env.GO_VERSION }}
-        cache: true
-
-    - name: Download dependencies
-      run: go mod download
-
-    - name: Verify dependencies
-      run: go mod verify
-
-    - name: Clean and verify module files
-      run: |
-        go mod tidy
+        download-dependencies: true
+        verify-dependencies: true
+        clean-module-files: true
 
     - name: Run coverage on concurrency tests
       working-directory: .
@@ -209,21 +193,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Verify dependencies
-        run: go mod verify
-
-      - name: Clean and verify module files
-        run: |
-          go mod tidy
+          download-dependencies: true
+          verify-dependencies: true
+          clean-module-files: true
 
       - name: Run keygen fuzz tests
         working-directory: .
@@ -324,21 +300,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Verify dependencies
-        run: go mod verify
-
-      - name: Clean and verify module files
-        run: |
-          go mod tidy
+          download-dependencies: true
+          verify-dependencies: true
+          clean-module-files: true
 
       - name: Run digests fuzz tests
         working-directory: .
@@ -448,21 +416,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
-
-      - name: Download dependencies
-        run: go mod download
-
-      - name: Verify dependencies
-        run: go mod verify
-
-      - name: Clean and verify module files
-        run: |
-          go mod tidy
+          download-dependencies: true
+          verify-dependencies: true
+          clean-module-files: true
 
       - name: Run benchmark tests
         working-directory: .

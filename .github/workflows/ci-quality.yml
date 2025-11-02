@@ -68,10 +68,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
+          download-dependencies: true
+          verify-dependencies: true
+          clean-module-files: true
 
       - name: Install formatting tools
         run: |
@@ -227,10 +230,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
+          download-dependencies: true
+          verify-dependencies: true
+          clean-module-files: true
 
       - name: Build binary
         run: |
@@ -441,10 +447,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
+          download-dependencies: true
+          verify-dependencies: true
+          clean-module-files: true
 
       - name: Generate SBOM with syft
         run: |
@@ -495,10 +504,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
+          download-dependencies: true
+          verify-dependencies: true
+          clean-module-files: true
 
       - name: Install Gremlins
         run: |

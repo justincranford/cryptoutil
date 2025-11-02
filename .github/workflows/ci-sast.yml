@@ -76,11 +76,13 @@ jobs:
         with:
           sparse-checkout-cone-mode: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.0.0
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
         with:
           go-version: ${{ env.GO_VERSION }}
-          cache: true
+          download-dependencies: false
+          verify-dependencies: false
+          clean-module-files: false
 
       # Security Static Analysis with Staticcheck
       - name: Install Staticcheck
