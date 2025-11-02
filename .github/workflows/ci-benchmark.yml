@@ -113,5 +113,5 @@ jobs:
           echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
           echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Upload: Results artifact with 1-day retention" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY

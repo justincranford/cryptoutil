@@ -110,4 +110,4 @@ jobs:
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
         echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
         echo "- Output: HTML report and coverage profile" >> $GITHUB_STEP_SUMMARY
-        echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+        echo "- Upload: Codecov with fail-safe configuration" >> $GITHUB_STEP_SUMMARY
