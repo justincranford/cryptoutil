@@ -79,9 +79,11 @@ jobs:
         uses: ./.github/actions/docker-prepull
         with:
           images: |
-            postgres:18
-            alpine:3.19
             golang:1.25.3
+            postgres:18
+            alpine:latest
+            otel/opentelemetry-collector-contrib:latest
+            grafana/otel-lgtm:latest
 
       - name: Run E2E tests
         run: |

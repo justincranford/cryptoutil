@@ -1,0 +1,25 @@
+name: 'docker-build'
+description: 'Build Docker images using docker compose'
+inputs:
+  compose-file:
+    description: 'Path to the docker-compose file'
+    required: false
+    default: './deployments/compose/compose.yml'
+  context:
+    description: 'Build context description for logging'
+    required: false
+    default: 'application'
+runs:
+  using: 'composite'
+  steps:
+    - name: Build Docker images
+      shell: bash
+      run: |
+        echo "🏗️ Building Docker images for ${{ inputs.context }}..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        docker compose -f ${{ inputs.compose-file }} build
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Docker image build completed in: ${DURATION}s"
