@@ -1,0 +1,87 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: 'security-scan-all'
+description: 'Comprehensive security scanning using Trivy for repositories, containers, and dependencies'
+
+inputs:
+  scan-name:
+    description: 'Name for the security scan (used in SARIF metadata and reporting)'
+    required: true
+  scan-type:
+    description: 'Trivy scan type: fs (filesystem), image (container), repo (repository), config (config files)'
+    required: true
+  scan-ref:
+    description: 'Reference to scan (path, image name, etc.)'
+    required: true
+  trivy-sarif-output:
+    description: 'Output filename for Trivy SARIF results'
+    required: true
+  severity:
+    description: 'Minimum severity level to report (UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL)'
+    required: true
+  format:
+    description: 'Output format (sarif, json, table, etc.)'
+    required: false
+    default: 'sarif'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Trivy comprehensive security scan
+      shell: bash
+      run: |
+        echo "🔍 Running Trivy ${{ inputs.scan-type }} security scan..."
+        echo "📋 Scan Type: ${{ inputs.scan-type }}"
+        echo "📋 Scan Reference: ${{ inputs.scan-ref }}"
+        echo "📋 Output: ${{ inputs.trivy-sarif-output }}"
+        echo "📋 Severity: ${{ inputs.severity }}"
+
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Run Trivy scan with specified parameters
+        trivy ${{ inputs.scan-type }} \
+          --format ${{ inputs.format }} \
+          --output ${{ inputs.trivy-sarif-output }} \
+          --severity ${{ inputs.severity }} \
+          ${{ inputs.scan-ref }}
+
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Trivy scan completed in: ${DURATION}s"
+
+    - name: Upload Trivy results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.trivy-sarif-output }}
+        category: "${{ inputs.scan-name }}-trivy"
+      if: always() && hashFiles('${{ inputs.trivy-sarif-output }}') != ''
+
+    - name: Security scan summary
+      shell: bash
+      run: |
+        echo "## 🔒 ${{ inputs.scan-name }} Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Scan Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- **Type**: ${{ inputs.scan-type }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Reference**: \`${{ inputs.scan-ref }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Severity**: ${{ inputs.severity }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Format**: ${{ inputs.format }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Check if SARIF file was generated and has content
+        if [ -f "${{ inputs.trivy-sarif-output }}" ]; then
+          RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.trivy-sarif-output }} 2>/dev/null || echo "0")
+          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- SARIF file: \`${{ inputs.trivy-sarif-output }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Findings: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ❌ No SARIF file generated" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Note**: Results are available in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) for detailed analysis." >> $GITHUB_STEP_SUMMARY

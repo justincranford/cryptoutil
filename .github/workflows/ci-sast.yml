@@ -174,31 +174,13 @@ jobs:
 
       # Trivy - Vulnerability scanner for dependencies
       - name: Run Trivy vulnerability scanner in repo mode
-        run: |
-          echo "🔍 Running Trivy vulnerability scanner..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Trivy scan starting..."
-      - name: Execute Trivy scan
-        uses: aquasecurity/trivy-action@master
+        uses: ./.github/actions/security-scan-all
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Complete Trivy scan timing
-        run: |
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Trivy vulnerability scan completed in: ${DURATION}s"
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-results.sarif'
-        if: always() && hashFiles('trivy-results.sarif') != ''
+          trivy-sarif-output: 'trivy-results.sarif'
+          scan-name: 'Repository Security Scan'
+          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
 
   # CodeQL Analysis
   # Multi-language security analysis using CodeQL
