@@ -4,18 +4,6 @@ inputs:
   go-version:
     description: 'Go version to set up (e.g., 1.25.3)'
     required: true
-  go-mod-download:
-    description: 'Whether to run "go mod download"'
-    required: false
-    default: 'true'
-  go-mod-verify:
-    description: 'Whether to run "go mod verify"'
-    required: false
-    default: 'true'
-  go-mod-tidy:
-    description: 'Whether to run "go mod tidy"'
-    required: false
-    default: 'true'
   skip-go-mod-download:
     description: 'Whether to skip "go mod download"'
     required: false
