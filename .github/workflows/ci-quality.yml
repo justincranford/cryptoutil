@@ -352,6 +352,20 @@ jobs:
           go-mod-verify: true
           go-mod-tidy: true
 
+      - name: Install syft
+        run: |
+          echo "📦 Installing syft for SBOM generation..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+          # Download and install syft
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Syft installation completed in: ${DURATION}s"
+
       - name: Generate SBOM with syft
         run: |
           echo "📦 Generating SBOM with syft..."
