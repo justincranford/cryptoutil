@@ -453,7 +453,7 @@ jobs:
         with:
           name: benchmark-results
           path: benchmark-results.txt
-          retention-days: 2
+          retention-days: 1
 
       - name: Benchmark test summary
         run: |

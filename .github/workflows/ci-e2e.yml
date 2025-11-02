@@ -126,7 +126,7 @@ jobs:
           name: e2e-container-logs-${{ github.run_id }}
           path: ./workflow-reports/e2e/
           if-no-files-found: ignore
-          retention-days: 30
+          retention-days: 1
 
       - name: E2E test summary
         if: always()

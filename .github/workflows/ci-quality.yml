@@ -352,7 +352,7 @@ jobs:
         with:
           name: sbom
           path: sbom.spdx.json
-          retention-days: 2
+          retention-days: 1
 
       - name: Upload SBOM to dependency graph
         uses: anchore/sbom-action@v0
@@ -497,4 +497,4 @@ jobs:
         with:
           name: mutation-testing-reports
           path: mutation-*.json
-          retention-days: 2
+          retention-days: 1

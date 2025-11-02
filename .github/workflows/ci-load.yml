@@ -343,7 +343,7 @@ jobs:
         with:
           name: gatling-reports-${{ env.LOAD_PROFILE }}
           path: test/load/target/gatling/
-          retention-days: 7
+          retention-days: 1
 
       - name: Upload infrastructure metrics
         if: always()
@@ -351,7 +351,7 @@ jobs:
         with:
           name: infrastructure-metrics-${{ env.LOAD_PROFILE }}
           path: load-reports/infrastructure/
-          retention-days: 3
+          retention-days: 1
 
       - name: Upload service logs
         if: always()
@@ -359,7 +359,7 @@ jobs:
         with:
           name: service-logs-${{ env.LOAD_PROFILE }}
           path: load-reports/service-logs/
-          retention-days: 3
+          retention-days: 1
 
       - name: Upload load test summary
         if: always()
@@ -367,7 +367,7 @@ jobs:
         with:
           name: load-test-summary-${{ env.LOAD_PROFILE }}
           path: load-reports/load-test-summary.md
-          retention-days: 7
+          retention-days: 1
 
       - name: Load test summary
         if: always()
