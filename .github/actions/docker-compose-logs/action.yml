@@ -4,7 +4,6 @@ inputs:
   log-directory:
     description: 'Directory containing the log archives'
     required: true
-    default: './workflow-reports/e2e'
 runs:
   using: 'composite'
   steps:
