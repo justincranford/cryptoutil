@@ -1,0 +1,135 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: 'security-scan-files'
+description: 'Scan files/directories for security issues using Trivy and GitLeaks'
+
+inputs:
+  files:
+    description: 'Comma-separated list of files or directories to scan (e.g., "coverage.out,coverage.html,./artifacts/")'
+    required: true
+  trivy-sarif-output:
+    description: 'Output filename for Trivy SARIF results'
+    required: false
+    default: 'trivy-files.sarif'
+  gitleaks-sarif-output:
+    description: 'Output filename for GitLeaks SARIF results'
+    required: false
+    default: 'gitleaks-files.sarif'
+  scan-name:
+    description: 'Name for the security scan (used in SARIF metadata)'
+    required: false
+    default: 'File Security Scan'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Parse file list
+      shell: bash
+      run: |
+        echo "🔍 Parsing file list for security scanning..."
+        # Convert comma-separated string to array
+        IFS=',' read -ra FILE_ARRAY <<< "${{ inputs.files }}"
+
+        # Validate files exist and create scan list
+        SCAN_LIST=""
+        for file in "${FILE_ARRAY[@]}"; do
+          file=$(echo "$file" | xargs)  # Trim whitespace
+          if [ -e "$file" ]; then
+            echo "✅ Found: $file"
+            SCAN_LIST="$SCAN_LIST $file"
+          else
+            echo "⚠️ Not found: $file"
+          fi
+        done
+
+        if [ -z "$SCAN_LIST" ]; then
+          echo "❌ No valid files found to scan"
+          exit 1
+        fi
+
+        # Export for use in subsequent steps
+        echo "SCAN_FILES=$SCAN_LIST" >> $GITHUB_ENV
+        echo "📋 Files to scan: $SCAN_LIST"
+
+    - name: Run Trivy file security scan
+      shell: bash
+      run: |
+        echo "🔍 Running Trivy security scan on files..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Run Trivy scan on specified files
+        trivy fs --format sarif --output ${{ inputs.trivy-sarif-output }} $SCAN_FILES
+
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Trivy scan completed in: ${DURATION}s"
+
+    - name: Upload Trivy results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.trivy-sarif-output }}
+        category: "${{ inputs.scan-name }}-trivy"
+      if: always() && hashFiles('${{ inputs.trivy-sarif-output }}') != ''
+
+    - name: Run GitLeaks secrets detection
+      shell: bash
+      run: |
+        echo "🔐 Running GitLeaks secrets detection..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Run GitLeaks on specified files
+        # Use --no-git to scan files directly without git history
+        gitleaks detect --no-git --verbose --redact --format sarif --output ${{ inputs.gitleaks-sarif-output }} --path .
+
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ GitLeaks scan completed in: ${DURATION}s"
+
+    - name: Upload GitLeaks results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ${{ inputs.gitleaks-sarif-output }}
+        category: "${{ inputs.scan-name }}-gitleaks"
+      if: always() && hashFiles('${{ inputs.gitleaks-sarif-output }}') != ''
+
+    - name: Security scan summary
+      shell: bash
+      run: |
+        echo "## 🔒 ${{ inputs.scan-name }} Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Files Scanned" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "$SCAN_FILES" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Check if SARIF files were generated and have content
+        if [ -f "${{ inputs.trivy-sarif-output }}" ]; then
+          RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.trivy-sarif-output }} 2>/dev/null || echo "0")
+          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- SARIF file: \`${{ inputs.trivy-sarif-output }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Findings: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ❌ No SARIF file generated" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -f "${{ inputs.gitleaks-sarif-output }}" ]; then
+          RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.gitleaks-sarif-output }} 2>/dev/null || echo "0")
+          echo "### GitLeaks Results" >> $GITHUB_STEP_SUMMARY
+          echo "- SARIF file: \`${{ inputs.gitleaks-sarif-output }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Secrets found: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### GitLeaks Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ❌ No SARIF file generated" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Note**: Results are available in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) for detailed analysis." >> $GITHUB_STEP_SUMMARY

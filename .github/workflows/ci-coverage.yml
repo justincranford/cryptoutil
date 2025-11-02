@@ -55,6 +55,10 @@ jobs:
   coverage:
     name: Coverage Collection
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
 
     steps:
     - name: Workflow Start - CI - Coverage Collection (ci-coverage.yml)
@@ -98,6 +102,12 @@ jobs:
     - name: Generate function-level coverage report
       run: go tool cover -func=coverage.out > coverage-func.txt
 
+    - name: Scan coverage artifacts for security issues
+      uses: ./.github/actions/security-scan-files
+      with:
+        files: 'coverage.out,coverage.html,coverage-func.txt'
+        scan-name: 'Security Scan of Coverage Artifacts'
+
     - name: Display function-level coverage
       run: |
         echo "## 📊 Function-Level Coverage Report" >> $GITHUB_STEP_SUMMARY
@@ -129,5 +139,6 @@ jobs:
         echo "Coverage collection completed successfully." >> $GITHUB_STEP_SUMMARY
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
         echo "- Output: HTML report, coverage profile, and function-level report" >> $GITHUB_STEP_SUMMARY
+        echo "- Security: Coverage artifacts scanned with Trivy and GitLeaks" >> $GITHUB_STEP_SUMMARY
         echo "- Upload: Codecov with fail-safe configuration" >> $GITHUB_STEP_SUMMARY
         echo "- Artifacts: coverage-reports (HTML + profile + function report) available for download" >> $GITHUB_STEP_SUMMARY
