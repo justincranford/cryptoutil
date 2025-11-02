@@ -1,0 +1,75 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: 'docker-compose-verify'
+description: 'Verify Docker Compose services are accessible and ready'
+inputs:
+  endpoints:
+    description: 'JSON array of endpoint objects with url and name properties'
+    required: true
+    default: '[{"url": "https://127.0.0.1:8080/ui/swagger/doc.json", "name": "cryptoutil-sqlite"}, {"url": "https://127.0.0.1:8081/ui/swagger/doc.json", "name": "cryptoutil-postgres-1"}, {"url": "https://127.0.0.1:8082/ui/swagger/doc.json", "name": "cryptoutil-postgres-2"}]'
+  max-attempts:
+    description: 'Maximum number of attempts to check each endpoint'
+    required: false
+    default: '30'
+  connect-timeout:
+    description: 'Connection timeout in seconds for each attempt'
+    required: false
+    default: '10'
+  max-time:
+    description: 'Maximum time in seconds for each request'
+    required: false
+    default: '15'
+runs:
+  using: 'composite'
+  steps:
+    - name: Verify services are ready
+      shell: bash
+      run: |
+        echo "🔍 Verifying cryptoutil services are accessible..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Function to check HTTPS endpoint with retries (using curl for reliable HTTPS with self-signed certs)
+        check_endpoint() {
+          local url=$1
+          local name=$2
+          local max_attempts=${{ inputs.max-attempts }}
+          local attempt=1
+          local backoff=1
+
+          while [ $attempt -le $max_attempts ]; do
+            echo "Attempt $attempt/$max_attempts: Checking $name... (backoff: ${backoff}s)"
+
+            # Use curl with -s (silent), -k (insecure/skip cert verification), -f (fail on HTTP errors)
+            # Save response to verify non-empty body (indicates successful connection)
+            if curl -skf --connect-timeout ${{ inputs.connect-timeout }} --max-time ${{ inputs.max-time }} "$url" -o /tmp/${name}_response.json 2>/dev/null; then
+              if [ -s /tmp/${name}_response.json ]; then
+                echo "✅ $name is ready (response size: $(wc -c < /tmp/${name}_response.json) bytes)"
+                rm -f /tmp/${name}_response.json
+                return 0
+              fi
+            fi
+
+            sleep $backoff
+            # Exponential backoff with max 5 seconds
+            backoff=$((backoff < 5 ? backoff + 1 : 5))
+            attempt=$((attempt + 1))
+          done
+
+          echo "❌ $name failed to respond after $max_attempts attempts"
+          return 1
+        }
+
+        # Parse endpoints JSON and check each one
+        echo "${{ inputs.endpoints }}" | jq -c '.[]' | while read -r endpoint; do
+          url=$(echo "$endpoint" | jq -r '.url')
+          name=$(echo "$endpoint" | jq -r '.name')
+          check_endpoint "$url" "$name"
+        done
+
+        echo "✅ All services are ready"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Service readiness verification completed in: ${DURATION}s"

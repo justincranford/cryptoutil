@@ -1,3 +1,6 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
 name: 'custom-cicd-lint'
 description: 'Build cicd binary and run custom linting and validation checks'
 runs:

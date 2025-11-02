@@ -1,3 +1,6 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
 name: 'docker-compose-up'
 description: 'Start Docker Compose services and wait for health checks'
 inputs:

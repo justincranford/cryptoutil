@@ -1,4 +1,7 @@
-name: CI - SAST Pipeline
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
+name: CI - SAST Security Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
@@ -10,6 +13,7 @@ name: CI - SAST Pipeline
 on:
   push:
     branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -28,6 +32,7 @@ on:
       - '**/*.sarif'
   pull_request:
     branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
     paths-ignore:
       - 'docs/**'
       - '**/*.md'

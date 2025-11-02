@@ -1,3 +1,6 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
 name: CI - Load Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
@@ -7,6 +10,7 @@ name: CI - Load Testing
 on:
   push:
     branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -25,6 +29,7 @@ on:
       - '**/*.sarif'
   pull_request:
     branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
     paths-ignore:
       - 'docs/**'
       - '**/*.md'
@@ -107,7 +112,7 @@ jobs:
           cache: 'maven'
 
       - name: Pre-pull Docker images
-        uses: ./.github/actions/docker-prepull
+        uses: ./.github/actions/docker-image-prepull
         with:
           images: |
             golang:1.25.3
@@ -123,52 +128,9 @@ jobs:
         uses: ./.github/actions/docker-compose-up
 
       - name: Verify services are ready
-        run: |
-          echo "🔍 Verifying cryptoutil services are accessible..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-          # Function to check HTTPS endpoint with retries (using curl for reliable HTTPS with self-signed certs)
-          check_endpoint() {
-            local url=$1
-            local name=$2
-            local max_attempts=30
-            local attempt=1
-            local backoff=1
-
-            while [ $attempt -le $max_attempts ]; do
-              echo "Attempt $attempt/$max_attempts: Checking $name... (backoff: ${backoff}s)"
-
-              # Use curl with -s (silent), -k (insecure/skip cert verification), -f (fail on HTTP errors)
-              # Save response to verify non-empty body (indicates successful connection)
-              if curl -skf --connect-timeout 10 --max-time 15 "$url" -o /tmp/${name}_response.json 2>/dev/null; then
-                if [ -s /tmp/${name}_response.json ]; then
-                  echo "✅ $name is ready (response size: $(wc -c < /tmp/${name}_response.json) bytes)"
-                  rm -f /tmp/${name}_response.json
-                  return 0
-                fi
-              fi
-
-              sleep $backoff
-              # Exponential backoff with max 5 seconds
-              backoff=$((backoff < 5 ? backoff + 1 : 5))
-              attempt=$((attempt + 1))
-            done
-
-            echo "❌ $name failed to respond after $max_attempts attempts"
-            return 1
-          }
-
-          # Check all three cryptoutil instances (HTTPS endpoints with self-signed certs)
-          check_endpoint "https://127.0.0.1:8080/ui/swagger/doc.json" "cryptoutil-sqlite"
-          check_endpoint "https://127.0.0.1:8081/ui/swagger/doc.json" "cryptoutil-postgres-1"
-          check_endpoint "https://127.0.0.1:8082/ui/swagger/doc.json" "cryptoutil-postgres-2"
-
-          echo "✅ All services are ready for load testing"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Service readiness verification completed in: ${DURATION}s"
+        uses: ./.github/actions/docker-compose-verify
+        with:
+          endpoints: '[{"url": "https://127.0.0.1:8080/ui/swagger/doc.json", "name": "cryptoutil-sqlite"}, {"url": "https://127.0.0.1:8081/ui/swagger/doc.json", "name": "cryptoutil-postgres-1"}, {"url": "https://127.0.0.1:8082/ui/swagger/doc.json", "name": "cryptoutil-postgres-2"}]'
 
       - name: Set load test parameters
         id: load-params

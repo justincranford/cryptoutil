@@ -1,3 +1,6 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
 name: CI - DAST Security Testing
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
@@ -22,9 +25,10 @@ name: CI - DAST Security Testing
 on:
   push:
     branches: [ main ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
     paths-ignore:
       - 'docs/**'
-      - '*.md'
+      - '**/*.md'
       - '.github/copilot-instructions.md'
       - '.github/instructions/**'
       - 'workflow-reports/**'
@@ -40,9 +44,10 @@ on:
       - '**/*.sarif'
   pull_request:
     branches: [ main ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
     paths-ignore:
       - 'docs/**'
-      - '*.md'
+      - '**/*.md'
       - '.github/copilot-instructions.md'
       - '.github/instructions/**'
       - 'workflow-reports/**'
@@ -212,7 +217,7 @@ jobs:
         go-mod-tidy: false  # DAST builds/tests but skips tidy to avoid modifying go.mod/go.sum during scans
 
     - name: Pre-pull Docker images
-      uses: ./.github/actions/docker-prepull
+      uses: ./.github/actions/docker-image-prepull
       with:
         images: |
           postgres:18
