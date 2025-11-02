@@ -5,17 +5,13 @@ inputs:
     description: 'Path to the docker-compose file'
     required: false
     default: './deployments/compose/compose.yml'
-  context:
-    description: 'Build context description for logging'
-    required: false
-    default: 'application'
 runs:
   using: 'composite'
   steps:
     - name: Build Docker images
       shell: bash
       run: |
-        echo "🏗️ Building Docker images for ${{ inputs.context }}..."
+        echo "🏗️ Building Docker images..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         docker compose -f ${{ inputs.compose-file }} build

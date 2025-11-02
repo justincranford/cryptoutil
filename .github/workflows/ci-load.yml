@@ -118,8 +118,6 @@ jobs:
 
       - name: Build Docker images
         uses: ./.github/actions/docker-build
-        with:
-          context: 'load testing'
 
       - name: Start Docker Compose services
         run: |
