@@ -128,7 +128,7 @@ func (f *TestFixture) setupInfrastructure() {
 	// Start services
 	if err := f.infraMgr.StartServices(f.ctx); err != nil {
 		// Capture container logs before failing
-		logOutputDir := filepath.Join("..", "..", "..", "workflow-reports", "e2e")
+		logOutputDir := getContainerLogsOutputDir()
 		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
 			Log(f.logger, "⚠️ Failed to capture container logs after startup failure: %v", logErr)
 		}
@@ -142,7 +142,7 @@ func (f *TestFixture) setupInfrastructure() {
 
 	if err := f.infraMgr.WaitForDockerServicesHealthy(f.ctx); err != nil {
 		// Capture container logs before failing
-		logOutputDir := filepath.Join("..", "..", "..", "workflow-reports", "e2e")
+		logOutputDir := getContainerLogsOutputDir()
 		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
 			Log(f.logger, "⚠️ Failed to capture container logs after health check failure: %v", logErr)
 		}
@@ -152,7 +152,7 @@ func (f *TestFixture) setupInfrastructure() {
 
 	if err := f.infraMgr.WaitForServicesReachable(f.ctx); err != nil {
 		// Capture container logs before failing
-		logOutputDir := filepath.Join("..", "..", "..", "workflow-reports", "e2e")
+		logOutputDir := getContainerLogsOutputDir()
 		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
 			Log(f.logger, "⚠️ Failed to capture container logs after reachability check failure: %v", logErr)
 		}

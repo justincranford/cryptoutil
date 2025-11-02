@@ -4,7 +4,6 @@ package test
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -74,7 +73,7 @@ func (suite *E2ETestSuite) TearDownSuite() {
 	LogStep(suite.summary, suite.fixture.logger, "E2E Test Suite Cleanup", "Starting test suite cleanup")
 
 	// Capture container logs before tearing down infrastructure
-	logOutputDir := filepath.Join("..", "..", "..", "workflow-reports", "e2e")
+	logOutputDir := getContainerLogsOutputDir()
 	if err := CaptureAndZipContainerLogs(suite.fixture.ctx, suite.fixture.logger, logOutputDir); err != nil {
 		Log(suite.fixture.logger, "⚠️ Failed to capture container logs: %v", err)
 	}

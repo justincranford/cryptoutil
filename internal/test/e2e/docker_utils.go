@@ -77,7 +77,7 @@ func runDockerComposeCommand(ctx context.Context, logger *Logger, description st
 }
 
 // getComposeFilePath returns the compose file path appropriate for the current OS.
-// Since E2E tests run from internal/cmd/e2e/ directory, we need to navigate up to project root.
+// getComposeFilePath returns the absolute path to the docker-compose file.
 func getComposeFilePath() string {
 	// Navigate up from internal/cmd/e2e/ to project root, then to deployments/compose/compose.yml
 	projectRoot := filepath.Join("..", "..", "..")
@@ -92,6 +92,22 @@ func getComposeFilePath() string {
 		}
 
 		return cryptoutilMagic.DockerComposeRelativeFilePathLinux
+	}
+
+	return absPath
+}
+
+// getContainerLogsOutputDir returns the absolute path to the container logs output directory.
+func getContainerLogsOutputDir() string {
+	// Navigate up from internal/test/e2e/ to project root, then to workflow-reports/e2e/
+	projectRoot := filepath.Join("..", "..", "..")
+	outputPath := filepath.Join(projectRoot, "workflow-reports", "e2e")
+
+	// Convert to absolute path to ensure it works regardless of working directory
+	absPath, err := filepath.Abs(outputPath)
+	if err != nil {
+		// Fallback to relative path if absolute path fails
+		return outputPath
 	}
 
 	return absPath
