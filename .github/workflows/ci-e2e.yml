@@ -81,8 +81,9 @@ jobs:
 
       - name: Pre-pull Docker images (parallel)
         run: |
-          echo "🐳 Pre-pulling Docker images in parallel..."
-
+          echo "🐳 Starting Docker image pre-pull..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           # Array of all images used in this workflow (both runtime and build-time)
           IMAGES=(
             "postgres:18"
@@ -103,18 +104,39 @@ jobs:
           wait
 
           echo "✅ All images pre-pulled successfully"
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Docker image pre-pull completed in: ${DURATION}s"
 
       - name: Verify dependencies
-        run: go mod verify
+        run: |
+          echo "🔍 Verifying Go dependencies..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go mod verify
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Dependency verification completed in: ${DURATION}s"
 
       - name: Clean and verify module files
         run: |
+          echo "🧹 Cleaning and verifying Go module files..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go mod tidy
           git diff --exit-code go.mod go.sum
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Module file verification completed in: ${DURATION}s"
 
       - name: Verify Docker environment
         run: |
           echo "🔍 Verifying Docker environment..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
           # Check if Docker is available
           if ! command -v docker &> /dev/null; then
@@ -141,11 +163,16 @@ jobs:
           # List services in compose file
           echo "📋 Services in compose file:"
           docker compose -f "$COMPOSE_FILE" config --services
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Docker environment verification completed in: ${DURATION}s"
 
       - name: Run E2E tests
         run: |
           echo "🧪 Running end-to-end tests..."
-
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           # Set environment variable to help with debugging
           export E2E_DEBUG=1
 
@@ -156,11 +183,17 @@ jobs:
             echo "❌ E2E tests failed"
             exit 1
           fi
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ E2E tests completed in: ${DURATION}s"
 
       - name: Display container logs
         if: always()
         run: |
           echo "📋 Displaying captured container logs..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           LOG_DIR="./workflow-reports/e2e"
 
           # Check if directory exists
@@ -360,6 +393,10 @@ jobs:
             # Clean up temp directory
             rm -rf "$TEMP_DIR"
           fi
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Container log display completed in: ${DURATION}s"
 
       - name: Upload container logs
         if: always()
@@ -374,14 +411,26 @@ jobs:
         if: always()
         run: |
           echo "## 🧪 End-to-End Testing Results" >> $GITHUB_STEP_SUMMARY
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           if [ ${{ job.status }} == 'success' ]; then
             echo "✅ End-to-end tests completed successfully." >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ End-to-end tests failed." >> $GITHUB_STEP_SUMMARY
           fi
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ E2E test summary completed in: ${DURATION}s"
 
       - name: Stop services
         if: always()
         run: |
           echo "🧹 Stopping services..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           docker compose -f ./deployments/compose/compose.yml down -v
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Service cleanup completed in: ${DURATION}s"
