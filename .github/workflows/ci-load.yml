@@ -107,6 +107,11 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Pre-pull Docker images (parallel)
+        uses: ./.github/actions/docker-image-prepull
+        with:
+          verify-docker-environment: true
+
       - name: Download Go dependencies
         run: |
           echo "⬇️ Downloading Go dependencies..."
@@ -128,9 +133,6 @@ jobs:
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "⏱️ Go dependencies verification completed in: ${DURATION}s"
-
-      - name: Pre-pull Docker images (parallel)
-        uses: ./.github/actions/docker-image-prepull
 
       - name: Build Docker images
         run: |
