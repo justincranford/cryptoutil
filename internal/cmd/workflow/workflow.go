@@ -370,7 +370,7 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File, outputDir string, 
 	result := WorkflowResult{
 		Name:         wf.Name,
 		TaskResults:  make(map[string]TaskResult),
-		LogFile:      filepath.Join(outputDir, fmt.Sprintf("%s-%s.log", wf.Name, time.Now().Format("2006-01-02_15-04-05"))),
+		LogFile:      getWorkflowLogFile(outputDir, wf.Name),
 		AnalysisFile: filepath.Join(outputDir, fmt.Sprintf("%s-analysis-%s.md", wf.Name, time.Now().Format("2006-01-02_15-04-05"))),
 	}
 
@@ -607,6 +607,11 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File, outputDir string, 
 	}
 
 	return result
+}
+
+func getWorkflowLogFile(outputDir, workflowName string) string {
+	// All workflows use the same timestamped naming pattern
+	return filepath.Join(outputDir, fmt.Sprintf("%s-%s.log", workflowName, time.Now().Format("2006-01-02_15-04-05")))
 }
 
 func teeReader(reader io.Reader, writers ...io.Writer) {

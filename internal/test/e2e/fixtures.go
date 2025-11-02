@@ -55,7 +55,7 @@ func NewTestFixture(t *testing.T) *TestFixture {
 	startTime := time.Now()
 
 	// Create log file
-	logFileName := filepath.Join("..", "..", "test", "e2e", "e2e-reports", fmt.Sprintf("e2e-test-%s.log", startTime.Format("2006-01-02_15-04-05")))
+	logFileName := filepath.Join("..", "..", "..", "workflow-reports", "e2e", fmt.Sprintf("e2e-test-%s.log", startTime.Format("2006-01-02_15-04-05")))
 
 	// Ensure the directory exists
 	logDir := filepath.Dir(logFileName)
@@ -128,7 +128,7 @@ func (f *TestFixture) setupInfrastructure() {
 	// Start services
 	if err := f.infraMgr.StartServices(f.ctx); err != nil {
 		// Capture container logs before failing
-		logOutputDir := filepath.Join("..", "..", "test", "e2e", "e2e-reports")
+		logOutputDir := filepath.Join("..", "..", "..", "workflow-reports", "e2e")
 		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
 			Log(f.logger, "⚠️ Failed to capture container logs after startup failure: %v", logErr)
 		}
@@ -142,7 +142,7 @@ func (f *TestFixture) setupInfrastructure() {
 
 	if err := f.infraMgr.WaitForDockerServicesHealthy(f.ctx); err != nil {
 		// Capture container logs before failing
-		logOutputDir := filepath.Join("..", "..", "test", "e2e", "e2e-reports")
+		logOutputDir := filepath.Join("..", "..", "..", "workflow-reports", "e2e")
 		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
 			Log(f.logger, "⚠️ Failed to capture container logs after health check failure: %v", logErr)
 		}
@@ -152,7 +152,7 @@ func (f *TestFixture) setupInfrastructure() {
 
 	if err := f.infraMgr.WaitForServicesReachable(f.ctx); err != nil {
 		// Capture container logs before failing
-		logOutputDir := filepath.Join("..", "..", "test", "e2e", "e2e-reports")
+		logOutputDir := filepath.Join("..", "..", "..", "workflow-reports", "e2e")
 		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
 			Log(f.logger, "⚠️ Failed to capture container logs after reachability check failure: %v", logErr)
 		}
