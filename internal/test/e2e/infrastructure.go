@@ -89,6 +89,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 		Log(im.logger, "❌ Failed to check services health: %v", err)
 
 		healthStatus := make(map[string]bool)
+
 		for _, service := range services {
 			// Determine the key to use for this service/job
 			if service.Service != "" {
@@ -106,6 +107,7 @@ func (im *InfrastructureManager) areDockerServicesHealthy(ctx context.Context, s
 		Log(im.logger, "❌ Failed to parse Docker compose output: %v", err)
 
 		healthStatus := make(map[string]bool)
+
 		for _, service := range services {
 			// Determine the key to use for this service/job
 			if service.Service != "" {

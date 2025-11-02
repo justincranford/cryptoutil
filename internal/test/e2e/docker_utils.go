@@ -3,11 +3,16 @@
 package test
 
 import (
+	"archive/zip"
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
+	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
@@ -109,4 +114,126 @@ func logComposeMessage(logger *Logger, description string, isStart bool) {
 			Log(logger, "✅ Docker Compose services health check completed")
 		}
 	}
+}
+
+// CaptureAndZipContainerLogs captures logs from all Docker containers and creates a zip archive.
+func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir string) error {
+	// Validate required parameters
+	if ctx == nil {
+		return fmt.Errorf("context cannot be nil")
+	} else if logger == nil {
+		return fmt.Errorf("logger cannot be nil")
+	} else if outputDir == "" {
+		return fmt.Errorf("outputDir cannot be empty")
+	}
+
+	Log(logger, "📦 Capturing container logs...")
+
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(outputDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Get list of all services
+	services, err := getDockerComposeServices(ctx, logger)
+	if err != nil {
+		return fmt.Errorf("failed to get Docker Compose services: %w", err)
+	}
+
+	if len(services) == 0 {
+		Log(logger, "⚠️ No Docker Compose services found, skipping log capture")
+
+		return nil
+	}
+
+	// Create zip file with timestamp
+	timestamp := time.Now().Format("2006-01-02_15-04-05")
+	zipFileName := filepath.Join(outputDir, fmt.Sprintf("container-logs_%s.zip", timestamp))
+
+	zipFile, err := os.Create(zipFileName)
+	if err != nil {
+		return fmt.Errorf("failed to create zip file: %w", err)
+	}
+
+	defer zipFile.Close()
+
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+	// Capture logs for each service
+	for _, service := range services {
+		if err := captureServiceLogs(ctx, logger, zipWriter, service); err != nil {
+			Log(logger, "⚠️ Failed to capture logs for service %s: %v", service, err)
+			// Continue with other services even if one fails
+			continue
+		}
+	}
+
+	Log(logger, "✅ Container logs captured and zipped to: %s", zipFileName)
+
+	return nil
+}
+
+// getDockerComposeServices returns a list of all Docker Compose services.
+func getDockerComposeServices(ctx context.Context, logger *Logger) ([]string, error) {
+	composeFile := getComposeFilePath()
+	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "ps", "-a", "--services")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		LogCommand(logger, "List services", cmd.String(), string(output))
+
+		return nil, fmt.Errorf("failed to list services: %w", err)
+	}
+
+	// Parse service names from output
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	services := make([]string, 0, len(lines))
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			services = append(services, line)
+		}
+	}
+
+	return services, nil
+}
+
+// captureServiceLogs captures logs for a single service and adds them to the zip archive.
+func captureServiceLogs(ctx context.Context, logger *Logger, zipWriter *zip.Writer, service string) error {
+	Log(logger, "  📋 Capturing logs for service: %s", service)
+
+	composeFile := getComposeFilePath()
+	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "logs", "--no-color", "--timestamps", service)
+	output, err := cmd.CombinedOutput()
+
+	// Create entry in zip file
+	logFileName := fmt.Sprintf("%s.log", service)
+
+	zipEntry, zipErr := zipWriter.Create(logFileName)
+	if zipErr != nil {
+		return fmt.Errorf("failed to create zip entry for %s: %w", service, zipErr)
+	}
+
+	// Write logs to zip entry (even if command failed, write what we have)
+	if len(output) > 0 {
+		if _, writeErr := zipEntry.Write(output); writeErr != nil {
+			return fmt.Errorf("failed to write logs to zip for %s: %w", service, writeErr)
+		}
+	} else {
+		// Write a message if no logs available
+		noLogsMsg := fmt.Sprintf("[No logs available for service %s]\n", service)
+		if _, writeErr := io.WriteString(zipEntry, noLogsMsg); writeErr != nil {
+			return fmt.Errorf("failed to write no-logs message for %s: %w", service, writeErr)
+		}
+	}
+
+	if err != nil {
+		// Log the error but don't fail - we've already captured what we could
+		Log(logger, "  ⚠️ Error capturing logs for %s (captured partial logs): %v", service, err)
+	} else {
+		Log(logger, "  ✅ Captured logs for service: %s (%d bytes)", service, len(output))
+	}
+
+	return nil
 }

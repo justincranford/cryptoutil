@@ -126,13 +126,40 @@ func (f *TestFixture) setupInfrastructure() {
 	require.NoError(f.t, f.infraMgr.StopServices(f.ctx), "Failed to ensure clean environment")
 
 	// Start services
-	require.NoError(f.t, f.infraMgr.StartServices(f.ctx), "Failed to start services")
+	if err := f.infraMgr.StartServices(f.ctx); err != nil {
+		// Capture container logs before failing
+		logOutputDir := filepath.Join("..", "..", "test", "e2e", "e2e-reports")
+		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
+			Log(f.logger, "⚠️ Failed to capture container logs after startup failure: %v", logErr)
+		}
+
+		require.NoError(f.t, err, "Failed to start services")
+	}
 
 	// Wait for services to be ready
 	Log(f.logger, "⏳ Waiting for Docker Compose services to initialize...")
 	time.Sleep(cryptoutilMagic.TestTimeoutDockerComposeInit)
-	require.NoError(f.t, f.infraMgr.WaitForDockerServicesHealthy(f.ctx), "Failed to wait for docker services healthy")
-	require.NoError(f.t, f.infraMgr.WaitForServicesReachable(f.ctx), "Failed to wait for services reachable")
+
+	if err := f.infraMgr.WaitForDockerServicesHealthy(f.ctx); err != nil {
+		// Capture container logs before failing
+		logOutputDir := filepath.Join("..", "..", "test", "e2e", "e2e-reports")
+		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
+			Log(f.logger, "⚠️ Failed to capture container logs after health check failure: %v", logErr)
+		}
+
+		require.NoError(f.t, err, "Failed to wait for docker services healthy")
+	}
+
+	if err := f.infraMgr.WaitForServicesReachable(f.ctx); err != nil {
+		// Capture container logs before failing
+		logOutputDir := filepath.Join("..", "..", "test", "e2e", "e2e-reports")
+		if logErr := CaptureAndZipContainerLogs(f.ctx, f.logger, logOutputDir); logErr != nil {
+			Log(f.logger, "⚠️ Failed to capture container logs after reachability check failure: %v", logErr)
+		}
+
+		require.NoError(f.t, err, "Failed to wait for services reachable")
+	}
+
 	Log(f.logger, "✅ All services are ready")
 }
 
