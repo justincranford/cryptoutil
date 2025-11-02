@@ -1,7 +1,7 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
-name: CI - Race Detection
+name: CI - Race Condition Detection
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
@@ -63,16 +63,16 @@ env:
 
 jobs:
   coverage-and-race:
-    name: Race Detection Tests
+    name: Race Condition Detection
     runs-on: ubuntu-latest
 
     steps:
-    - name: Workflow Start - CI - Race Detection / concurrency (ci-race.yml)
+    - name: Workflow Start - CI - Race Condition Detection (ci-race.yml)
       run: |
         echo "=========================================="
         echo "Workflow: ${{ github.workflow }}"
         echo "File: .github/workflows/ci-race.yml"
-        echo "Job: concurrency"
+        echo "Job: race-condition-detection"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "=========================================="
@@ -90,10 +90,10 @@ jobs:
         go-mod-verify: true
         go-mod-tidy: true
 
-    - name: Run concurrency and race detection tests
+    - name: Run race condition detection tests
       working-directory: .
       run: |
-        echo "🔄 Running comprehensive concurrency and race detection tests..."
+        echo "🔄 Running race condition detection tests..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
@@ -102,10 +102,10 @@ jobs:
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ Race detection tests completed in: ${DURATION}s"
 
-    - name: Race detection test summary
+    - name: Race condition detection test summary
       run: |
-        echo "## 🔄 Race Detection Results" >> $GITHUB_STEP_SUMMARY
-        echo "Comprehensive race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "## 🔄 Race Condition Detection Results" >> $GITHUB_STEP_SUMMARY
+        echo "Race condition detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
         echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
         echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
