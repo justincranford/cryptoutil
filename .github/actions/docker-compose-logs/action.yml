@@ -57,6 +57,12 @@ runs:
               echo "----------------------------------------"
               echo ""
             done
+            echo "✅ Displayed log files directly"
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+            echo "⏱️ Container log display completed in: ${DURATION}s"
+            exit 0
           else
             echo "❌ No log files found either"
             echo "🔍 Checking for any files at all..."

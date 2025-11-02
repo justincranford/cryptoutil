@@ -113,6 +113,27 @@ jobs:
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "⏱️ E2E tests completed in: ${DURATION}s"
 
+      - name: Collect service logs
+        if: always()
+        run: |
+          echo "📋 Collecting service logs..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          mkdir -p ./workflow-reports/e2e
+
+          # Collect logs from all cryptoutil services
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./workflow-reports/e2e/cryptoutil-sqlite.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./workflow-reports/e2e/cryptoutil-postgres-1.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./workflow-reports/e2e/cryptoutil-postgres-2.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs postgres > ./workflow-reports/e2e/postgres.log 2>&1 || true
+          docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
+
+          echo "✅ Service logs collected"
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Service log collection completed in: ${DURATION}s"
+
       - name: Display container logs
         if: always()
         uses: ./.github/actions/docker-compose-logs
