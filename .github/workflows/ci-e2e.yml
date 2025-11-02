@@ -80,7 +80,7 @@ jobs:
           go-mod-verify: true
           go-mod-tidy: true
 
-      - name: Pre-pull Docker images
+      - name: Pre-pull Docker images (parallel)
         uses: ./.github/actions/docker-images-pull
         with:
           images: |

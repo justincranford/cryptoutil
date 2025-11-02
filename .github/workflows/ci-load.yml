@@ -111,7 +111,7 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: 'maven'
 
-      - name: Pre-pull Docker images
+      - name: Pre-pull Docker images (parallel)
         uses: ./.github/actions/docker-images-pull
         with:
           images: |

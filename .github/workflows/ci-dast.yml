@@ -216,7 +216,7 @@ jobs:
         go-mod-verify: true
         go-mod-tidy: false  # DAST builds/tests but skips tidy to avoid modifying go.mod/go.sum during scans
 
-    - name: Pre-pull Docker images
+    - name: Pre-pull Docker images (parallel)
       uses: ./.github/actions/docker-images-pull
       with:
         images: |
