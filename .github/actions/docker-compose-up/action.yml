@@ -1,0 +1,27 @@
+name: 'docker-compose-up'
+description: 'Start Docker Compose services and wait for health checks'
+inputs:
+  compose-file:
+    description: 'Path to the docker-compose file'
+    required: false
+    default: './deployments/compose/compose.yml'
+runs:
+  using: 'composite'
+  steps:
+    - name: Start Docker Compose services
+      shell: bash
+      run: |
+        echo "🚀 Starting Docker Compose services..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        docker compose -f ${{ inputs.compose-file }} up -d
+
+        echo "⏳ Waiting for services to be healthy..."
+        timeout 60s bash -c 'until docker compose -f ${{ inputs.compose-file }} ps | grep -q "healthy"; do echo "Waiting..."; sleep 5; done' || echo "⚠️ Health check timeout - continuing anyway"
+
+        echo "📋 Service status:"
+        docker compose -f ${{ inputs.compose-file }} ps
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Docker Compose services startup completed in: ${DURATION}s"

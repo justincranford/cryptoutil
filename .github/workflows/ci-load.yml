@@ -120,21 +120,7 @@ jobs:
         uses: ./.github/actions/docker-compose-build
 
       - name: Start Docker Compose services
-        run: |
-          echo "🚀 Starting Docker Compose services..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          docker compose -f ./deployments/compose/compose.yml up -d
-
-          echo "⏳ Waiting for services to be healthy..."
-          timeout 60s bash -c 'until docker compose -f ./deployments/compose/compose.yml ps | grep -q "healthy"; do echo "Waiting..."; sleep 5; done' || echo "⚠️ Health check timeout - continuing anyway"
-
-          echo "📋 Service status:"
-          docker compose -f ./deployments/compose/compose.yml ps
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Docker Compose services startup completed in: ${DURATION}s"
+        uses: ./.github/actions/docker-compose-up
 
       - name: Verify services are ready
         run: |
