@@ -110,11 +110,20 @@ jobs:
         name: codecov-coverage
         fail_ci_if_error: false
 
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: coverage-reports
+        path: |
+          coverage.out
+          coverage.html
+        retention-days: 30
+
     - name: Coverage test summary
       run: |
         echo "## 📊 Coverage Collection Results" >> $GITHUB_STEP_SUMMARY
         echo "Coverage collection completed successfully." >> $GITHUB_STEP_SUMMARY
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
-        echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
         echo "- Output: HTML report, coverage profile, and function-level report" >> $GITHUB_STEP_SUMMARY
         echo "- Upload: Codecov with fail-safe configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- Artifacts: coverage-reports (HTML + profile) available for download" >> $GITHUB_STEP_SUMMARY
