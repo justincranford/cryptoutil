@@ -17,6 +17,7 @@ package cicd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -85,8 +86,30 @@ Commands:
 // It takes a slice of command names and executes them sequentially.
 // Returns an error if any command is unknown or if execution fails.
 func Run(commands []string) error {
-	if len(commands) == 0 {
-		return fmt.Errorf("%s", getUsageMessage())
+	// Validate commands and determine if file walk is needed
+	doFindAllFiles, err := validateCommands(commands)
+	if err != nil {
+		return err
+	}
+
+	var allFiles []string
+
+	if doFindAllFiles {
+		// Collect all files once for efficiency
+		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !info.IsDir() {
+				allFiles = append(allFiles, path)
+			}
+
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("failed to collect files: %w", err)
+		}
 	}
 
 	// Process all commands provided as arguments
@@ -96,11 +119,11 @@ func Run(commands []string) error {
 
 		switch command {
 		case "all-enforce-utf8":
-			allEnforceUtf8()
+			allEnforceUtf8(allFiles)
 		case "go-enforce-test-patterns":
-			goEnforceTestPatterns()
+			goEnforceTestPatterns(allFiles)
 		case "go-enforce-any":
-			goEnforceAny()
+			goEnforceAny(allFiles)
 		case "go-check-circular-package-dependencies":
 			goCheckCircularPackageDeps()
 		case "go-update-direct-dependencies": // Best practice, only direct dependencies
@@ -108,9 +131,7 @@ func Run(commands []string) error {
 		case "go-update-all-dependencies": // Less practiced, direct & transient dependencies
 			goUpdateDeps(DepCheckAll)
 		case "github-workflow-lint":
-			checkWorkflowLint()
-		default:
-			return fmt.Errorf("unknown command: %s\n\n%s", command, getUsageMessage())
+			checkWorkflowLint(allFiles)
 		}
 
 		// Add a separator between multiple commands
@@ -120,6 +141,65 @@ func Run(commands []string) error {
 	}
 
 	return nil
+}
+
+// validateCommands validates the provided commands for duplicates, mutually exclusive combinations,
+// and empty command lists. Returns doFindAllFiles flag and any validation error.
+func validateCommands(commands []string) (bool, error) {
+	// Check for empty commands first (also handles nil slices since len(nil) == 0)
+	if len(commands) == 0 {
+		return false, fmt.Errorf("%s", getUsageMessage())
+	}
+
+	doFindAllFiles := false
+
+	var errs []error
+
+	commandCounts := make(map[string]int)
+
+	// Count command occurrences and determine if file walk is needed
+	for _, command := range commands {
+		switch command {
+		case "all-enforce-utf8":
+			commandCounts[command]++
+			doFindAllFiles = true
+		case "go-enforce-test-patterns":
+			commandCounts[command]++
+			doFindAllFiles = true
+		case "go-enforce-any":
+			commandCounts[command]++
+			doFindAllFiles = true
+		case "go-check-circular-package-dependencies":
+			commandCounts[command]++
+		case "go-update-direct-dependencies":
+			commandCounts[command]++
+		case "go-update-all-dependencies":
+			commandCounts[command]++
+		case "github-workflow-lint":
+			commandCounts[command]++
+			doFindAllFiles = true
+		default:
+			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, getUsageMessage()))
+		}
+	}
+
+	// Check for duplicate commands
+	for command, count := range commandCounts {
+		if count > 1 {
+			errs = append(errs, fmt.Errorf("command '%s' specified %d times - each command can only be used once", command, count))
+		}
+	}
+
+	// Check for mutually exclusive commands
+	if commandCounts["go-update-direct-dependencies"] > 0 && commandCounts["go-update-all-dependencies"] > 0 {
+		errs = append(errs, fmt.Errorf("commands 'go-update-direct-dependencies' and 'go-update-all-dependencies' cannot be used together - choose one dependency update mode"))
+	}
+
+	if len(errs) > 0 {
+		return false, errors.Join(errs...)
+	}
+
+	return doFindAllFiles, nil
 }
 
 func goUpdateDeps(mode DepCheckMode) {
@@ -264,7 +344,7 @@ func loadActionExceptions() (*ActionExceptions, error) {
 // validation (regex/search) to avoid adding a YAML dependency, and then reuses the existing
 // action-version logic to check for outdated actions. Any violations cause the function to print
 // human-friendly messages and exit with a non-zero status to block pushes.
-func checkWorkflowLint() {
+func checkWorkflowLint(allFiles []string) {
 	// Load action exceptions (same behavior as prior implementation)
 	exceptions, err := loadActionExceptions()
 	if err != nil {
@@ -273,52 +353,44 @@ func checkWorkflowLint() {
 		exceptions = &ActionExceptions{Exceptions: make(map[string]ActionException)}
 	}
 
-	// Ensure workflows directory exists
-	workflowsDir := ".github/workflows"
-	if _, err := os.Stat(workflowsDir); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "No .github/workflows directory found\n")
-		os.Exit(0)
-	}
-
 	var (
 		actions          []ActionInfo
 		validationErrors []string
 	)
 
-	// Walk through workflow files and validate them
-	err = filepath.Walk(workflowsDir, func(path string, info os.FileInfo, err error) error {
+	// Filter workflow files from allFiles
+	workflowsDir := ".github/workflows"
+
+	var workflowFiles []string
+
+	for _, path := range allFiles {
+		if strings.HasPrefix(path, workflowsDir) && (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
+			workflowFiles = append(workflowFiles, path)
+		}
+	}
+
+	// Process workflow files
+	for _, path := range workflowFiles {
+		// Run lightweight validation on the workflow file (filename prefix, name, logging)
+		issues, vErr := validateWorkflowFile(path)
+		if vErr != nil {
+			// Non-fatal: report and continue
+			validationErrors = append(validationErrors, fmt.Sprintf("Failed to validate %s: %v", path, vErr))
+		}
+
+		for _, issue := range issues {
+			validationErrors = append(validationErrors, fmt.Sprintf("%s: %s", filepath.Base(path), issue))
+		}
+
+		// Extract actions for version checks
+		fileActions, err := parseWorkflowFile(path)
 		if err != nil {
-			return err
+			fmt.Fprintf(os.Stderr, "Warning: Failed to parse %s: %v\n", path, err)
+
+			continue
 		}
 
-		if !info.IsDir() && (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
-			// Run lightweight validation on the workflow file (filename prefix, name, logging)
-			issues, vErr := validateWorkflowFile(path)
-			if vErr != nil {
-				// Non-fatal: report and continue
-				validationErrors = append(validationErrors, fmt.Sprintf("Failed to validate %s: %v", path, vErr))
-			}
-
-			for _, issue := range issues {
-				validationErrors = append(validationErrors, fmt.Sprintf("%s: %s", filepath.Base(path), issue))
-			}
-
-			// Extract actions for version checks
-			fileActions, err := parseWorkflowFile(path)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Warning: Failed to parse %s: %v\n", path, err)
-
-				return nil
-			}
-
-			actions = append(actions, fileActions...)
-		}
-
-		return nil
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error walking workflows directory: %v\n", err)
-		os.Exit(1)
+		actions = append(actions, fileActions...)
 	}
 
 	// If validation errors were found, report and fail fast
@@ -819,31 +891,21 @@ func goCheckCircularPackageDeps() {
 	os.Exit(1) // Fail the build
 }
 
-func goEnforceTestPatterns() {
+func goEnforceTestPatterns(allFiles []string) {
 	fmt.Fprintln(os.Stderr, "Enforcing test patterns (UUIDv7 usage, testify assertions)...")
 
 	// Find all test files
 	var testFiles []string
 
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && strings.HasSuffix(path, "_test.go") {
+	for _, path := range allFiles {
+		if strings.HasSuffix(path, "_test.go") {
 			// Exclude cicd_test.go and cicd.go as they contain deliberate patterns for testing cicd functionality
 			if strings.HasSuffix(path, "cicd_test.go") || strings.HasSuffix(path, "cicd.go") {
-				return nil
+				continue
 			}
 
 			testFiles = append(testFiles, path)
 		}
-
-		return nil
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error walking directory: %v\n", err)
-		os.Exit(1)
 	}
 
 	if len(testFiles) == 0 {
@@ -880,84 +942,30 @@ func goEnforceTestPatterns() {
 	}
 }
 
-func allEnforceUtf8() {
+func allEnforceUtf8(allFiles []string) {
 	fmt.Fprintln(os.Stderr, "Enforcing file encoding (UTF-8 without BOM)...")
 
-	// Define file patterns to check (text files that should be UTF-8)
-	// Note: enforceFileEncodingFilePatterns and excludedPatterns are defined as global variables at the top of the file
+	// Filter files from allFiles based on include/exclude patterns
+	var finalFiles []string
 
-	var filesToCheck []string
+	for _, filePath := range allFiles {
+		// Check if matches any include pattern
+		included := false
 
-	// Find files matching the patterns
-	for _, pattern := range enforceUtf8FileIncludePatterns {
-		matches, err := filepath.Glob(pattern)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error globbing pattern %s: %v\n", pattern, err)
-
-			continue
-		}
-
-		filesToCheck = append(filesToCheck, matches...)
-	}
-
-	// Also walk directories to find files recursively
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		// Check if file matches any pattern
 		for _, pattern := range enforceUtf8FileIncludePatterns {
-			// Convert glob pattern to regex for matching
-			regexPattern := strings.ReplaceAll(pattern, "*", ".*")
-			regexPattern = "^" + regexPattern + "$"
-
-			matched, err := regexp.MatchString(regexPattern, filepath.Base(path))
-			if err != nil {
-				continue
-			}
-
-			if matched {
-				filesToCheck = append(filesToCheck, path)
+			suffix := strings.TrimPrefix(pattern, "**/*")
+			if strings.HasSuffix(filePath, suffix) {
+				included = true
 
 				break
 			}
 		}
 
-		return nil
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error walking directory: %v\n", err)
-		os.Exit(1)
-	}
-
-	if len(filesToCheck) == 0 {
-		fmt.Fprintln(os.Stderr, "No files found to check")
-
-		return
-	}
-
-	// Remove duplicates
-	fileMap := make(map[string]bool)
-
-	var uniqueFiles []string
-
-	for _, file := range filesToCheck {
-		if !fileMap[file] {
-			fileMap[file] = true
-
-			uniqueFiles = append(uniqueFiles, file)
+		if !included {
+			continue
 		}
-	}
 
-	// Filter out excluded files
-	var finalFiles []string
-
-	for _, filePath := range uniqueFiles {
+		// Check exclude
 		excluded := false
 
 		for _, pattern := range enforceUtf8FileExcludePatterns {
@@ -976,6 +984,12 @@ func allEnforceUtf8() {
 		if !excluded {
 			finalFiles = append(finalFiles, filePath)
 		}
+	}
+
+	if len(finalFiles) == 0 {
+		fmt.Fprintln(os.Stderr, "No files found to check")
+
+		return
 	}
 
 	fmt.Fprintf(os.Stderr, "Found %d files to check for UTF-8 encoding\n", len(finalFiles))
@@ -1090,7 +1104,7 @@ func checkTestFile(filePath string) []string {
 	return issues
 }
 
-func goEnforceAny() {
+func goEnforceAny(allFiles []string) {
 	fmt.Fprintln(os.Stderr, "Running go-enforce-any - Custom Go source code fixes...")
 
 	// Define exclusion patterns (same as pre-commit-config.yaml)
@@ -1099,19 +1113,17 @@ func goEnforceAny() {
 	// Find all .go files
 	var goFiles []string
 
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() && strings.HasSuffix(path, ".go") {
+	for _, path := range allFiles {
+		if strings.HasSuffix(path, ".go") {
 			// Check if file should be excluded
 			excluded := false
 
 			for _, pattern := range goEnforceAnyFileExcludePatterns {
 				matched, err := regexp.MatchString(pattern, path)
 				if err != nil {
-					return fmt.Errorf("invalid regex pattern %s: %w", pattern, err)
+					fmt.Fprintf(os.Stderr, "Error matching pattern %s: %v\n", pattern, err)
+
+					continue
 				}
 
 				if matched {
@@ -1125,12 +1137,6 @@ func goEnforceAny() {
 				goFiles = append(goFiles, path)
 			}
 		}
-
-		return nil
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error walking directory: %v\n", err)
-		os.Exit(1)
 	}
 
 	if len(goFiles) == 0 {

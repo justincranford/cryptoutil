@@ -380,6 +380,14 @@ issues:
       linters:
         - dupl      # Code duplication detection
         - gocyclo   # Cyclomatic complexity
+    # Exclude cicd.go and cicd_test.go from linting as they contain deliberate patterns for testing cicd functionality
+    - path: internal/cmd/cicd/cicd\.go
+      linters:
+        - goconst   # Command strings used in switch and tests (deliberate for testing)
+        - wrapcheck # errors.Join from stdlib (acceptable for error aggregation)
+    - path: internal/cmd/cicd/cicd_test\.go
+      linters:
+        - goconst   # Command strings used in tests (deliberate for testing)
 
 severity:
   default-severity: error  # Most issues should block builds (security, logic bugs, crashes)
