@@ -1,4 +1,4 @@
-name: 'docker-build'
+name: 'docker-compose-build'
 description: 'Build Docker images using docker compose'
 inputs:
   compose-file:

@@ -86,7 +86,7 @@ jobs:
             grafana/otel-lgtm:latest
 
       - name: Build Docker images
-        uses: ./.github/actions/docker-build
+        uses: ./.github/actions/docker-compose-build
 
       - name: Run E2E tests
         run: |
