@@ -1,0 +1,88 @@
+name: 'custom-cicd-lint'
+description: 'Build cicd binary and run custom linting and validation checks'
+runs:
+  using: 'composite'
+  steps:
+    - name: Build cicd binary for quality checks
+      shell: bash
+      run: |
+        echo "🔨 Building cicd binary..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go build -o cicd ./cmd/cicd
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ cicd binary built in: ${DURATION}s"
+
+    - name: Enforce file encoding (UTF-8 without BOM)
+      shell: bash
+      run: |
+        echo "🔤 Enforcing UTF-8 file encoding..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd all-enforce-utf8
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ UTF-8 enforcement completed in: ${DURATION}s"
+
+    - name: Enforce test patterns
+      shell: bash
+      run: |
+        echo "🧪 Enforcing test patterns..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd go-enforce-test-patterns
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Test pattern enforcement completed in: ${DURATION}s"
+
+    - name: Run custom Go source code fixes
+      shell: bash
+      run: |
+        echo "🔧 Running custom Go source code fixes..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd go-enforce-any
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Custom Go fixes completed in: ${DURATION}s"
+
+    - name: Check for circular Go package dependencies
+      shell: bash
+      run: |
+        echo "🔄 Checking for circular Go package dependencies..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd go-check-circular-package-dependencies
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Circular dependency check completed in: ${DURATION}s"
+
+    - name: Check Go direct dependencies
+      shell: bash
+      run: |
+        echo "📦 Checking Go direct dependencies..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd go-update-direct-dependencies
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Direct dependencies check completed in: ${DURATION}s"
+
+    - name: Check GitHub Actions versions
+      shell: bash
+      run: |
+        echo "🔄 Checking GitHub Actions versions..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        ./cicd github-workflow-lint
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ GitHub Actions version check completed in: ${DURATION}s"
