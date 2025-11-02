@@ -1,7 +1,7 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
-name: 'docker-image-prepull'
+name: 'docker-images-pull'
 description: 'Pre-pull Docker images in parallel for faster workflow execution'
 inputs:
   images:
