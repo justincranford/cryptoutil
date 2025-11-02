@@ -1,0 +1,127 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
+name: CI - Benchmark Testing
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+# Example: Use './deployments/compose/compose.yml'
+
+on:
+  push:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  workflow_dispatch:
+    inputs:
+      test_profile:
+        description: 'Test profile to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - benchmark
+
+env:
+  GO_VERSION: '1.25.3'
+
+jobs:
+  # Benchmark Testing - Performance validation and regression detection
+  benchmark:
+    name: Benchmark Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
+
+    steps:
+      - name: Workflow Start - CI - Benchmark Testing / benchmark (ci-benchmark.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: ${{ github.workflow }}"
+          echo "File: .github/workflows/ci-benchmark.yml"
+          echo "Job: benchmark"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+        with:
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          go-mod-download: true
+          go-mod-verify: true
+          go-mod-tidy: true
+
+      - name: Run benchmark tests
+        working-directory: .
+        run: |
+          echo "📊 Running benchmark tests for performance validation..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Benchmark tests completed in: ${DURATION}s"
+
+      - name: Display benchmark results
+        run: |
+          echo "## 📊 Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          cat benchmark-results.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: benchmark-results
+          path: benchmark-results.txt
+          retention-days: 1
+
+      - name: Benchmark test summary
+        run: |
+          echo "## 📊 Benchmark Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
+          echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY

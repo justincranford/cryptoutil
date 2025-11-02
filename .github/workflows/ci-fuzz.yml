@@ -1,0 +1,287 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
+name: CI - Fuzz Testing
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+# Example: Use './deployments/compose/compose.yml'
+
+on:
+  push:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  workflow_dispatch:
+    inputs:
+      test_profile:
+        description: 'Test profile to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - fuzz
+          - fuzz-keygen
+          - fuzz-digests
+
+env:
+  GO_VERSION: '1.25.3'
+
+jobs:
+  # Fuzz Testing - Keygen Package - Property-based testing for cryptographic key generation
+  fuzz-keygen:
+    name: Fuzz Tests - Keygen
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
+
+    steps:
+    - name: Workflow Start - CI - Fuzz Testing / fuzz-keygen (ci-fuzz.yml)
+      run: |
+        echo "=========================================="
+        echo "Workflow: ${{ github.workflow }}"
+        echo "File: .github/workflows/ci-fuzz.yml"
+        echo "Job: fuzz-keygen"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "=========================================="
+
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        go-mod-download: true
+        go-mod-verify: true
+        go-mod-tidy: true
+
+    - name: Run keygen fuzz tests
+      working-directory: .
+      run: |
+          echo "🔐 Running keygen fuzz tests..."
+          OVERALL_START=$(date +%s)
+          echo "📅 Keygen fuzz tests start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+          # RSA keygen fuzz test (longer duration)
+          echo "🔑 Running RSA keygen fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=30s -timeout=60s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ RSA fuzz test completed in: ${DURATION}s"
+
+          # ECDSA keygen fuzz test
+          echo "🔐 Running ECDSA keygen fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ ECDSA fuzz test completed in: ${DURATION}s"
+
+          # ECDH keygen fuzz test
+          echo "🔐 Running ECDH keygen fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ ECDH fuzz test completed in: ${DURATION}s"
+
+          # EdDSA keygen fuzz test
+          echo "🔐 Running EdDSA keygen fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ EdDSA fuzz test completed in: ${DURATION}s"
+
+          # AES keygen fuzz test
+          echo "🔐 Running AES keygen fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzGenerateAESKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ AES fuzz test completed in: ${DURATION}s"
+
+          # AES-HS keygen fuzz test
+          echo "🔐 Running AES-HS keygen fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzGenerateAESHSKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ AES-HS fuzz test completed in: ${DURATION}s"
+
+          # HMAC keygen fuzz test
+          echo "🔐 Running HMAC keygen fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzGenerateHMACKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HMAC fuzz test completed in: ${DURATION}s"
+
+          OVERALL_END=$(date +%s)
+          TOTAL_DURATION=$((OVERALL_END - OVERALL_START))
+          echo "📅 Keygen fuzz tests end: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ All keygen fuzz tests completed in: ${TOTAL_DURATION}s"
+
+    - name: Keygen fuzz test summary
+      run: |
+          echo "## 🔐 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: RSA=30s, Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
+          echo "- Total Duration: \${TOTAL_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Property-based testing for secure key generation" >> $GITHUB_STEP_SUMMARY
+
+  # Fuzz Testing - Digests Package - Property-based testing for cryptographic hash functions
+  fuzz-digests:
+    name: Fuzz Tests - Digests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.test_profile == 'all' || github.event.inputs.test_profile == 'fuzz' || github.event_name != 'workflow_dispatch' }}
+
+    steps:
+      - name: Workflow Start - CI - Fuzz Testing / fuzz-digests (ci-fuzz.yml)
+        run: |
+          echo "=========================================="
+          echo "Workflow: ${{ github.workflow }}"
+          echo "File: .github/workflows/ci-fuzz.yml"
+          echo "Job: fuzz-digests"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+        with:
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+      - name: Set up Go and validate dependencies
+        uses: ./.github/actions/go-setup
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          go-mod-download: true
+          go-mod-verify: true
+          go-mod-tidy: true
+
+      - name: Run digests fuzz tests
+        working-directory: .
+        run: |
+          echo "🔐 Running digests fuzz tests..."
+          OVERALL_START=$(date +%s)
+          echo "📅 Digests fuzz tests start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+          # HKDF fuzz tests
+          echo "🔐 Running HKDF All Variants fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzHKDFAllVariants -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF All Variants fuzz test completed in: ${DURATION}s"
+
+          echo "🔐 Running HKDF-SHA256 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA256 fuzz test completed in: ${DURATION}s"
+
+          echo "🔐 Running HKDF-SHA384 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA384 fuzz test completed in: ${DURATION}s"
+
+          echo "🔐 Running HKDF-SHA512 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA512 fuzz test completed in: ${DURATION}s"
+
+          echo "🔐 Running HKDF-SHA224 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA224 fuzz test completed in: ${DURATION}s"
+
+          # SHA-2 fuzz tests
+          echo "🔐 Running SHA512 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA512 fuzz test completed in: ${DURATION}s"
+
+          echo "🔐 Running SHA384 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA384 fuzz test completed in: ${DURATION}s"
+
+          echo "🔐 Running SHA256 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA256 fuzz test completed in: ${DURATION}s"
+
+          echo "🔐 Running SHA224 fuzz test..."
+          START_TIME=$(date +%s)
+          go test -fuzz=FuzzSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA224 fuzz test completed in: ${DURATION}s"
+
+          OVERALL_END=$(date +%s)
+          TOTAL_DURATION=$((OVERALL_END - OVERALL_START))
+          echo "📅 Digests fuzz tests end: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ All digests fuzz tests completed in: ${TOTAL_DURATION}s"
+
+      - name: Digests fuzz test summary
+        run: |
+          echo "## 🔐 Digests Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "Fuzz tests for cryptographic digest functions completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage: 9 digest functions (HKDF variants + SHA-2 family)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: 15s each (sequential)" >> $GITHUB_STEP_SUMMARY
+          echo "- Total Duration: \${TOTAL_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Purpose: Property-based testing for secure hash operations" >> $GITHUB_STEP_SUMMARY

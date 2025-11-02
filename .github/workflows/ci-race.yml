@@ -1,0 +1,173 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
+name: CI - Race Detection
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+# Example: Use './deployments/compose/compose.yml'
+
+on:
+  push:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  workflow_dispatch:
+    inputs:
+      test_profile:
+        description: 'Test profile to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - concurrency
+          - race
+
+env:
+  GO_VERSION: '1.25.3'
+
+jobs:
+  concurrency-race:
+    name: Concurrency & Race Detection Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Workflow Start - CI - Race Detection / concurrency (ci-race.yml)
+      run: |
+        echo "=========================================="
+        echo "Workflow: ${{ github.workflow }}"
+        echo "File: .github/workflows/ci-race.yml"
+        echo "Job: concurrency"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "=========================================="
+
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        go-mod-download: true
+        go-mod-verify: true
+        go-mod-tidy: true
+
+    - name: Run concurrency and race detection tests
+      working-directory: .
+      run: |
+        echo "🔄 Running comprehensive concurrency and race detection tests..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Race detection tests completed in: ${DURATION}s"
+
+    - name: Race detection test summary
+      run: |
+        echo "## 🔄 Concurrency & Race Detection Results" >> $GITHUB_STEP_SUMMARY
+        echo "Comprehensive concurrency and race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
+        echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
+        echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
+        echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+        echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+
+  concurrency-coverage:
+    name: Concurrency Coverage Collection
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Workflow Start - CI - Race Detection / concurrency-coverage (ci-race.yml)
+      run: |
+        echo "=========================================="
+        echo "Workflow: ${{ github.workflow }}"
+        echo "File: .github/workflows/ci-race.yml"
+        echo "Job: concurrency-coverage"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "=========================================="
+
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        go-mod-download: true
+        go-mod-verify: true
+        go-mod-tidy: true
+
+    - name: Run coverage on concurrency tests
+      working-directory: .
+      run: |
+        echo "📊 Generating coverage report for concurrency tests..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -count=1 -p=2 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/... ./scripts/...
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Coverage tests completed in: ${DURATION}s"
+
+    - name: Generate concurrency coverage report
+      run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
+
+    - name: Upload concurrency coverage
+      uses: codecov/codecov-action@v5.5.1
+      with:
+        files: ./concurrency-coverage.out
+        flags: concurrency-tests
+        name: codecov-concurrency
+        fail_ci_if_error: false
+
+    - name: Concurrency coverage test summary
+      run: |
+        echo "## 📊 Concurrency Coverage Collection Results" >> $GITHUB_STEP_SUMMARY
+        echo "Concurrency coverage collection completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
+        echo "- Output: HTML report and coverage profile" >> $GITHUB_STEP_SUMMARY
+        echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
