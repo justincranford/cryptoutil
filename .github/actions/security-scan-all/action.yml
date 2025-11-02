@@ -18,7 +18,7 @@ inputs:
     description: 'Output filename for Trivy SARIF results'
     required: true
   severity:
-    description: 'Minimum severity level to report (UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL)'
+    description: 'Minimum severity level to report (CRITICAL, HIGH, MEDIUM, LOW, UNKNOWN)'
     required: true
   format:
     description: 'Output format (sarif, json, table, etc.)'
