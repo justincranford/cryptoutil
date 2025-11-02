@@ -56,6 +56,9 @@ services:
       - postgres_username.secret
       - postgres_password.secret
       - postgres_database.secret
+    depends_on:
+      healthcheck-secrets:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $(cat /run/secrets/postgres_username.secret) -d $(cat /run/secrets/postgres_database.secret)"]
       start_period: 5s

@@ -6,7 +6,6 @@ cors-origins:
   - "https://localhost:8082"
   - "https://127.0.0.1:8082"
   - "https://[::1]:8082"
-  - "https://[::ffff:127.0.0.1]:8082"
 
 otlp-service: cryptoutil-postgresql-2
 otlp-hostname: cryptoutil-postgresql-2
