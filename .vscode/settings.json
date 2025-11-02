@@ -34,6 +34,8 @@
     "/^act .*/": true,
     "/^(mkdir|rmdir)\\b.*/": true,
     "/^(ls|dir)\\b.*/": true,
+    "/^(find)\\b.*/": true,
+    "/^(Get-ChildItem)\\b.*/": true,
     "/^(Remove-Item|del)\\b/i.*/": false, // Windows file deletion
     "/^rm\\b.*/": false,                 // Unix file deletion (complement to Remove-Item)
     "/^python.*/": false,                // Used for count_tokens.py but you didn't enable
