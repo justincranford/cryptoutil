@@ -50,6 +50,7 @@
   "chat.checkpoints.enabled": true, // Enable chat checkpoints - Default: true
   "chat.checkpoints.showFileChanges": true, // Show file changes in checkpoints - Default: true
   "chat.editRequests": "inline", // How to handle edit requests - Default: "inline"
+  "chat.editor.fontSize": 15, // Increase GitHub Copilot Chat font size by +3 (from default 12)
   "workbench.secondarySideBar.defaultVisibility": "visible", // Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
 
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
@@ -60,7 +61,7 @@
 
   // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
   "terminal.integrated.defaultProfile.windows": "PowerShell", // Set PowerShell as default terminal profile
-  "terminal.integrated.fontSize": 15, // Increase terminal font size by +1 (from default 12)
+  "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
       "source": "PowerShell",
