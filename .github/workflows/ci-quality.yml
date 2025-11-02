@@ -76,56 +76,11 @@ jobs:
           go-mod-verify: true
           go-mod-tidy: true
 
-      - name: Install formatting tools
-        run: |
-          echo "📦 Installing formatting tools..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          # gofumpt install commented out - golangci-lint includes gofumpt with extra-rules
-          # go install mvdan.cc/gofumpt@latest
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Formatting tools installed in: ${DURATION}s"
-
-      - name: Install golangci-lint
-        run: |
-          echo "🔧 Installing golangci-lint..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ golangci-lint installed in: ${DURATION}s"
-
-      - name: Run golangci-lint with auto-fix
-        run: |
-          echo "🔍 Running golangci-lint with auto-fix..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          golangci-lint run --fix --timeout=10m --config=.golangci.yml
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ golangci-lint auto-fix completed in: ${DURATION}s"
-
-      # Commented out - golangci-lint already applies gofumpt with extra-rules: true
-      # - name: Apply gofumpt extra rules (integrated with golangci-lint workflow)
-      #   run: |
-      #     # Apply additional gofumpt -extra formatting that golangci-lint's gofumpt doesn't handle
-      #     gofumpt -extra -w .
-
-      - name: Run golangci-lint final check
-        run: |
-          echo "✅ Running golangci-lint final check..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          golangci-lint run --timeout=10m --config=.golangci.yml
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ golangci-lint final check completed in: ${DURATION}s"
+      - name: Run golangci-lint
+        uses: ./.github/actions/golangci-lint
+        with:
+          config-file: '.golangci.yml'
+          timeout: '10m'
 
       # Compile cicd before running it to perform multiple quality checks
       - name: Build cicd binary for quality checks
