@@ -387,7 +387,7 @@ jobs:
 
       - name: Stop services
         if: always()
-        uses: ./.github/actions/stop-services
+        uses: ./.github/actions/docker-compose-down
 
       - name: Upload Gatling reports
         if: always()

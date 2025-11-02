@@ -1,4 +1,4 @@
-name: 'Stop Services'
+name: 'Docker Compose Down'
 description: 'Stop Docker Compose services and clean up volumes'
 inputs:
   compose-file:
