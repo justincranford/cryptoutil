@@ -183,9 +183,17 @@ jobs:
           echo "🏗️ Building Docker image..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+          # Build the tag arguments
+          TAG_ARGS=""
+          IFS=$'\n' read -r -d '' -a TAGS <<< "${{ steps.meta.outputs.tags }}"
+          for tag in "${TAGS[@]}"; do
+            TAG_ARGS="$TAG_ARGS --tag $tag"
+          done
+
           docker buildx build \
             --load \
-            --tag ${{ steps.meta.outputs.tags }} \
+            $TAG_ARGS \
             --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
             --label "org.opencontainers.image.revision=${{ github.sha }}" \
             --label "org.opencontainers.image.version=${{ github.sha }}" \
@@ -292,9 +300,17 @@ jobs:
           echo "📤 Pushing Docker image..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+          # Build the tag arguments
+          TAG_ARGS=""
+          IFS=$'\n' read -r -d '' -a TAGS <<< "${{ steps.meta.outputs.tags }}"
+          for tag in "${TAGS[@]}"; do
+            TAG_ARGS="$TAG_ARGS --tag $tag"
+          done
+
           docker buildx build \
             --push \
-            --tag ${{ steps.meta.outputs.tags }} \
+            $TAG_ARGS \
             --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
             --label "org.opencontainers.image.revision=${{ github.sha }}" \
             --label "org.opencontainers.image.version=${{ github.sha }}" \
