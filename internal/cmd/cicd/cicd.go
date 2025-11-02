@@ -86,16 +86,28 @@ Commands:
 // It takes a slice of command names and executes them sequentially.
 // Returns an error if any command is unknown or if execution fails.
 func Run(commands []string) error {
+	// Start overall performance timing
+	overallStart := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] Run started at %s\n", overallStart.Format(time.RFC3339Nano))
+
 	// Validate commands and determine if file walk is needed
+	validateStart := time.Now()
+
 	doFindAllFiles, err := validateCommands(commands)
 	if err != nil {
 		return err
 	}
 
+	validateEnd := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] validateCommands: duration=%v start=%s end=%s\n",
+		validateEnd.Sub(validateStart), validateStart.Format(time.RFC3339Nano), validateEnd.Format(time.RFC3339Nano))
+
 	var allFiles []string
 
 	if doFindAllFiles {
 		// Collect all files once for efficiency
+		fileWalkStart := time.Now()
+
 		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -110,12 +122,19 @@ func Run(commands []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}
+
+		fileWalkEnd := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] filepath.Walk: duration=%v start=%s end=%s files=%d\n",
+			fileWalkEnd.Sub(fileWalkStart), fileWalkStart.Format(time.RFC3339Nano), fileWalkEnd.Format(time.RFC3339Nano), len(allFiles))
 	}
 
 	// Process all commands provided as arguments
 	for i := range commands {
 		command := commands[i]
 		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
+
+		// Start command execution timing
+		commandStart := time.Now()
 
 		switch command {
 		case "all-enforce-utf8":
@@ -134,11 +153,21 @@ func Run(commands []string) error {
 			checkWorkflowLint(allFiles)
 		}
 
+		// End command execution timing
+		commandEnd := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] Command '%s': duration=%v start=%s end=%s\n",
+			command, commandEnd.Sub(commandStart), commandStart.Format(time.RFC3339Nano), commandEnd.Format(time.RFC3339Nano))
+
 		// Add a separator between multiple commands
 		if i < len(commands)-1 {
 			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", separatorLength)+"\n")
 		}
 	}
+
+	// End overall performance timing
+	overallEnd := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] Run completed: duration=%v start=%s end=%s commands=%d\n",
+		overallEnd.Sub(overallStart), overallStart.Format(time.RFC3339Nano), overallEnd.Format(time.RFC3339Nano), len(commands))
 
 	return nil
 }
@@ -146,8 +175,16 @@ func Run(commands []string) error {
 // validateCommands validates the provided commands for duplicates, mutually exclusive combinations,
 // and empty command lists. Returns doFindAllFiles flag and any validation error.
 func validateCommands(commands []string) (bool, error) {
+	// Start performance timing
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] validateCommands started at %s\n", start.Format(time.RFC3339Nano))
+
 	// Check for empty commands first (also handles nil slices since len(nil) == 0)
 	if len(commands) == 0 {
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] validateCommands: start=%s end=%s duration=%v (empty commands)\n",
+			start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), end.Sub(start))
+
 		return false, fmt.Errorf("%s", getUsageMessage())
 	}
 
@@ -196,13 +233,24 @@ func validateCommands(commands []string) (bool, error) {
 	}
 
 	if len(errs) > 0 {
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] validateCommands: duration=%v start=%s end=%s (validation errors)\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+
 		return false, errors.Join(errs...)
 	}
+
+	end := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] validateCommands: duration=%v start=%s end=%s (success)\n",
+		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
 
 	return doFindAllFiles, nil
 }
 
 func goUpdateDeps(mode DepCheckMode) {
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goUpdateDeps started at %s (mode=%v)\n", start.Format(time.RFC3339Nano), mode)
+
 	// Run go list -u -m all to check for outdated dependencies
 	cmd := exec.Command("go", "list", "-u", "-m", "all")
 
@@ -270,6 +318,10 @@ func goUpdateDeps(mode DepCheckMode) {
 	}
 
 	fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date.\n", modeName)
+
+	end := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goUpdateDeps: duration=%v start=%s end=%s mode=%s outdated=%d\n",
+		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), modeName, len(outdated))
 }
 
 func getDirectDependencies() (map[string]bool, error) {
@@ -345,6 +397,9 @@ func loadActionExceptions() (*ActionExceptions, error) {
 // action-version logic to check for outdated actions. Any violations cause the function to print
 // human-friendly messages and exit with a non-zero status to block pushes.
 func checkWorkflowLint(allFiles []string) {
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] checkWorkflowLint started at %s\n", start.Format(time.RFC3339Nano))
+
 	// Load action exceptions (same behavior as prior implementation)
 	exceptions, err := loadActionExceptions()
 	if err != nil {
@@ -408,6 +463,10 @@ func checkWorkflowLint(allFiles []string) {
 	// If no actions were found, report and exit (no further checks necessary)
 	if len(actions) == 0 {
 		fmt.Fprintln(os.Stderr, "No actions found in workflow files")
+
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] checkWorkflowLint: duration=%v start=%s end=%s workflows=%d actions=%d\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(workflowFiles), len(actions))
 		os.Exit(0)
 	}
 
@@ -494,6 +553,10 @@ func checkWorkflowLint(allFiles []string) {
 	}
 
 	fmt.Fprintln(os.Stderr, "All GitHub Actions are up to date.")
+
+	end := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] checkWorkflowLint: duration=%v start=%s end=%s workflows=%d actions=%d outdated=%d exempted=%d\n",
+		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(workflowFiles), len(actions), len(outdated), len(exempted))
 }
 
 // validateWorkflowFile performs lightweight checks on a workflow YAML file to ensure it
@@ -705,6 +768,9 @@ type PackageInfo struct {
 }
 
 func goCheckCircularPackageDeps() {
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps started at %s\n", start.Format(time.RFC3339Nano))
+
 	startTime := time.Now()
 
 	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
@@ -754,6 +820,10 @@ func goCheckCircularPackageDeps() {
 
 	if len(packages) == 0 {
 		fmt.Fprintln(os.Stderr, "No packages found")
+
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s (no packages)\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
 
 		return
 	}
@@ -866,6 +936,10 @@ func goCheckCircularPackageDeps() {
 		fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
 		fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
 
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s packages=%d circular_deps=%d\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(dependencyGraph), len(circularDeps))
+
 		return
 	}
 
@@ -892,6 +966,9 @@ func goCheckCircularPackageDeps() {
 }
 
 func goEnforceTestPatterns(allFiles []string) {
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goEnforceTestPatterns started at %s\n", start.Format(time.RFC3339Nano))
+
 	fmt.Fprintln(os.Stderr, "Enforcing test patterns (UUIDv7 usage, testify assertions)...")
 
 	// Find all test files
@@ -910,6 +987,10 @@ func goEnforceTestPatterns(allFiles []string) {
 
 	if len(testFiles) == 0 {
 		fmt.Fprintln(os.Stderr, "No test files found")
+
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] goEnforceTestPatterns: duration=%v start=%s end=%s (no test files)\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
 
 		return
 	}
@@ -940,9 +1021,16 @@ func goEnforceTestPatterns(allFiles []string) {
 	} else {
 		fmt.Fprintln(os.Stderr, "\n✅ All test files follow established patterns")
 	}
+
+	end := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goEnforceTestPatterns: duration=%v start=%s end=%s files=%d issues=%d\n",
+		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(testFiles), totalIssues)
 }
 
 func allEnforceUtf8(allFiles []string) {
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] allEnforceUtf8 started at %s\n", start.Format(time.RFC3339Nano))
+
 	fmt.Fprintln(os.Stderr, "Enforcing file encoding (UTF-8 without BOM)...")
 
 	// Filter files from allFiles based on include/exclude patterns
@@ -989,6 +1077,10 @@ func allEnforceUtf8(allFiles []string) {
 	if len(finalFiles) == 0 {
 		fmt.Fprintln(os.Stderr, "No files found to check")
 
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] allEnforceUtf8: duration=%v start=%s end=%s (no files)\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+
 		return
 	}
 
@@ -1018,6 +1110,10 @@ func allEnforceUtf8(allFiles []string) {
 	} else {
 		fmt.Fprintln(os.Stderr, "\n✅ All files have correct UTF-8 encoding without BOM")
 	}
+
+	end := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] allEnforceUtf8: duration=%v start=%s end=%s files=%d violations=%d\n",
+		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(finalFiles), len(encodingViolations))
 }
 
 func checkFileEncoding(filePath string) []string {
@@ -1105,6 +1201,9 @@ func checkTestFile(filePath string) []string {
 }
 
 func goEnforceAny(allFiles []string) {
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goEnforceAny started at %s\n", start.Format(time.RFC3339Nano))
+
 	fmt.Fprintln(os.Stderr, "Running go-enforce-any - Custom Go source code fixes...")
 
 	// Define exclusion patterns (same as pre-commit-config.yaml)
@@ -1141,6 +1240,10 @@ func goEnforceAny(allFiles []string) {
 
 	if len(goFiles) == 0 {
 		fmt.Fprintln(os.Stderr, "No Go files found to process")
+
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] goEnforceAny: duration=%v start=%s end=%s (no Go files)\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
 
 		return
 	}
@@ -1179,6 +1282,10 @@ func goEnforceAny(allFiles []string) {
 	} else {
 		fmt.Fprintln(os.Stderr, "\n✅ All Go files are already properly formatted")
 	}
+
+	end := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goEnforceAny: duration=%v start=%s end=%s files=%d modified=%d replacements=%d\n",
+		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(goFiles), filesModified, totalReplacements)
 }
 
 func processGoFile(filePath string) (int, error) {
