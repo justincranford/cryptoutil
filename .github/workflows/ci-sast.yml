@@ -180,7 +180,7 @@ jobs:
           scan-ref: '.'
           trivy-sarif-output: 'trivy-results.sarif'
           scan-name: 'Repository Security Scan'
-          severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
 
   # CodeQL Analysis
   # Multi-language security analysis using CodeQL
