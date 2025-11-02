@@ -2,9 +2,17 @@ name: 'Docker Image Pre-pull (Parallel)'
 description: 'Pre-pull Docker images in parallel to speed up workflow execution'
 inputs:
   images:
-    description: 'JSON array of Docker images to pull'
-    required: true
-    default: '["alpine:latest"]'
+    description: 'JSON array of Docker images to pull (optional - uses common set if not specified)'
+    required: false
+    default: ''
+  use-common-images:
+    description: 'Whether to include the common cryptoutil image set'
+    required: false
+    default: 'true'
+  additional-images:
+    description: 'JSON array of additional Docker images to pull'
+    required: false
+    default: '[]'
 runs:
   using: 'composite'
   steps:
@@ -15,11 +23,41 @@ runs:
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-        # Parse JSON array input
-        IMAGES=$(echo '${{ inputs.images }}' | jq -r '.[]')
+        # Define common cryptoutil images
+        COMMON_IMAGES='[
+          "postgres:18",
+          "otel/opentelemetry-collector-contrib:latest",
+          "grafana/otel-lgtm:latest",
+          "alpine:latest",
+          "golang:1.25.3",
+          "alpine:3.19"
+        ]'
 
-        # Pull all images concurrently
-        for image in $IMAGES; do
+        # Determine which images to pull
+        if [ -n "${{ inputs.images }}" ]; then
+          # Custom image list provided
+          IMAGES=$(echo '${{ inputs.images }}' | jq -r '.[]')
+          echo "📋 Using custom image list (${{ inputs.images }})"
+        elif [ "${{ inputs.use-common-images }}" = "false" ]; then
+          # Only additional images
+          IMAGES=$(echo '${{ inputs.additional-images }}' | jq -r '.[]')
+          echo "📋 Using only additional images"
+        else
+          # Use common images + additional images
+          if [ "${{ inputs.additional-images }}" != "[]" ] && [ -n "${{ inputs.additional-images }}" ]; then
+            IMAGES=$(echo "$COMMON_IMAGES" | jq -r '.[]' && echo '${{ inputs.additional-images }}' | jq -r '.[]')
+            echo "📋 Using common images + additional images"
+          else
+            IMAGES=$(echo "$COMMON_IMAGES" | jq -r '.[]')
+            echo "📋 Using common cryptoutil images"
+          fi
+        fi
+
+        # Remove duplicates and pull all images concurrently
+        UNIQUE_IMAGES=$(echo "$IMAGES" | sort | uniq)
+        echo "📦 Will pull $(echo "$UNIQUE_IMAGES" | wc -l) unique images"
+
+        for image in $UNIQUE_IMAGES; do
           echo "Pulling $image..."
           docker pull "$image" &
         done

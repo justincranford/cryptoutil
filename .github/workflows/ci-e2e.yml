@@ -81,16 +81,6 @@ jobs:
 
       - name: Pre-pull Docker images (parallel)
         uses: ./.github/actions/docker-image-prepull
-        with:
-          images: |
-            [
-              "postgres:18",
-              "otel/opentelemetry-collector-contrib:latest",
-              "grafana/otel-lgtm:latest",
-              "alpine:latest",
-              "golang:1.25.3",
-              "alpine:3.19"
-            ]
 
       - name: Verify dependencies
         run: |
