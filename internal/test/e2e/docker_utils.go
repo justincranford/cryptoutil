@@ -17,6 +17,11 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+// DockerContainer represents a Docker container.
+type DockerContainer struct {
+	Name string
+}
+
 // Docker compose command arguments constants.
 var (
 	dockerComposeArgsStopServices  = []string{"down", "-v", "--remove-orphans"}
@@ -134,14 +139,14 @@ func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir s
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	// Get list of all services
-	services, err := getDockerComposeServices(ctx, logger)
+	// Get list of all containers (including exited ones) that match our compose project
+	containers, err := getDockerContainers(ctx, logger)
 	if err != nil {
-		return fmt.Errorf("failed to get Docker Compose services: %w", err)
+		return fmt.Errorf("failed to get Docker containers: %w", err)
 	}
 
-	if len(services) == 0 {
-		Log(logger, "⚠️ No Docker Compose services found, skipping log capture")
+	if len(containers) == 0 {
+		Log(logger, "⚠️ No Docker containers found, skipping log capture")
 
 		return nil
 	}
@@ -160,11 +165,11 @@ func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir s
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 
-	// Capture logs for each service
-	for _, service := range services {
-		if err := captureServiceLogs(ctx, logger, zipWriter, service); err != nil {
-			Log(logger, "⚠️ Failed to capture logs for service %s: %v", service, err)
-			// Continue with other services even if one fails
+	// Capture logs for each container
+	for _, container := range containers {
+		if err := captureContainerLogs(ctx, logger, zipWriter, container); err != nil {
+			Log(logger, "⚠️ Failed to capture logs for container %s: %v", container.Name, err)
+			// Continue with other containers even if one fails
 			continue
 		}
 	}
@@ -174,65 +179,117 @@ func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir s
 	return nil
 }
 
-// getDockerComposeServices returns a list of all Docker Compose services.
-func getDockerComposeServices(ctx context.Context, logger *Logger) ([]string, error) {
+// getDockerContainers returns a list of all Docker containers that match our compose project.
+func getDockerContainers(ctx context.Context, logger *Logger) ([]DockerContainer, error) {
+	// Get the compose project name from the compose file
 	composeFile := getComposeFilePath()
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "ps", "-a", "--services")
-	output, err := cmd.CombinedOutput()
+	projectName, err := getComposeProjectName(ctx, logger, composeFile)
 	if err != nil {
-		LogCommand(logger, "List services", cmd.String(), string(output))
-
-		return nil, fmt.Errorf("failed to list services: %w", err)
+		Log(logger, "⚠️ Failed to get compose project name, falling back to listing all containers: %v", err)
+		// Fall back to getting all containers if we can't determine project name
+		return getAllDockerContainers(ctx, logger)
 	}
 
-	// Parse service names from output
+	// Use docker ps -a with label filter to find containers from our compose project
+	cmd := exec.CommandContext(ctx, "docker", "ps", "-a", "--filter", fmt.Sprintf("label=com.docker.compose.project=%s", projectName), "--format", "{{.Names}}")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		LogCommand(logger, "List containers by project", cmd.String(), string(output))
+		Log(logger, "⚠️ Failed to list containers by project, falling back to all containers: %v", err)
+		// Fall back to getting all containers
+		return getAllDockerContainers(ctx, logger)
+	}
+
+	// Parse container names from output
 	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	services := make([]string, 0, len(lines))
+	containers := make([]DockerContainer, 0, len(lines))
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line != "" {
-			services = append(services, line)
+			containers = append(containers, DockerContainer{Name: line})
 		}
 	}
 
-	return services, nil
+	Log(logger, "📋 Found %d containers for project %s", len(containers), projectName)
+	return containers, nil
 }
 
-// captureServiceLogs captures logs for a single service and adds them to the zip archive.
-func captureServiceLogs(ctx context.Context, logger *Logger, zipWriter *zip.Writer, service string) error {
-	Log(logger, "  📋 Capturing logs for service: %s", service)
+// getAllDockerContainers returns all Docker containers (fallback method).
+func getAllDockerContainers(ctx context.Context, logger *Logger) ([]DockerContainer, error) {
+	cmd := exec.CommandContext(ctx, "docker", "ps", "-a", "--format", "{{.Names}}")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		LogCommand(logger, "List all containers", cmd.String(), string(output))
+		return nil, fmt.Errorf("failed to list all containers: %w", err)
+	}
 
-	composeFile := getComposeFilePath()
-	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "logs", "--no-color", "--timestamps", service)
+	// Parse container names from output
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	containers := make([]DockerContainer, 0, len(lines))
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			containers = append(containers, DockerContainer{Name: line})
+		}
+	}
+
+	Log(logger, "📋 Found %d containers total (fallback method)", len(containers))
+	return containers, nil
+}
+
+// getComposeProjectName extracts the project name from docker-compose config.
+func getComposeProjectName(ctx context.Context, logger *Logger, composeFile string) (string, error) {
+	cmd := exec.CommandContext(ctx, "docker", "compose", "-f", composeFile, "config", "--format", "json")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		LogCommand(logger, "Get compose config", cmd.String(), string(output))
+		return "", fmt.Errorf("failed to get compose config: %w", err)
+	}
+
+	// Simple approach: look for the project name in the compose file path
+	// Docker Compose uses the directory name as the project name by default
+	composeDir := filepath.Dir(composeFile)
+	projectName := filepath.Base(composeDir)
+
+	Log(logger, "📋 Determined compose project name: %s", projectName)
+	return projectName, nil
+}
+
+// captureContainerLogs captures logs for a single container and adds them to the zip archive.
+func captureContainerLogs(ctx context.Context, logger *Logger, zipWriter *zip.Writer, container DockerContainer) error {
+	Log(logger, "  📋 Capturing logs for container: %s", container.Name)
+
+	cmd := exec.CommandContext(ctx, "docker", "logs", "--timestamps", container.Name)
 	output, err := cmd.CombinedOutput()
 
 	// Create entry in zip file
-	logFileName := fmt.Sprintf("%s.log", service)
+	logFileName := fmt.Sprintf("%s.log", container.Name)
 
 	zipEntry, zipErr := zipWriter.Create(logFileName)
 	if zipErr != nil {
-		return fmt.Errorf("failed to create zip entry for %s: %w", service, zipErr)
+		return fmt.Errorf("failed to create zip entry for %s: %w", container.Name, zipErr)
 	}
 
 	// Write logs to zip entry (even if command failed, write what we have)
 	if len(output) > 0 {
 		if _, writeErr := zipEntry.Write(output); writeErr != nil {
-			return fmt.Errorf("failed to write logs to zip for %s: %w", service, writeErr)
+			return fmt.Errorf("failed to write logs to zip for %s: %w", container.Name, writeErr)
 		}
 	} else {
 		// Write a message if no logs available
-		noLogsMsg := fmt.Sprintf("[No logs available for service %s]\n", service)
+		noLogsMsg := fmt.Sprintf("[No logs available for container %s]\n", container.Name)
 		if _, writeErr := io.WriteString(zipEntry, noLogsMsg); writeErr != nil {
-			return fmt.Errorf("failed to write no-logs message for %s: %w", service, writeErr)
+			return fmt.Errorf("failed to write no-logs message for %s: %w", container.Name, writeErr)
 		}
 	}
 
 	if err != nil {
 		// Log the error but don't fail - we've already captured what we could
-		Log(logger, "  ⚠️ Error capturing logs for %s (captured partial logs): %v", service, err)
+		Log(logger, "  ⚠️ Error capturing logs for %s (captured partial logs): %v", container.Name, err)
 	} else {
-		Log(logger, "  ✅ Captured logs for service: %s (%d bytes)", service, len(output))
+		Log(logger, "  ✅ Captured logs for container: %s (%d bytes)", container.Name, len(output))
 	}
 
 	return nil
