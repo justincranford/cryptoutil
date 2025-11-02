@@ -50,7 +50,8 @@
   "chat.checkpoints.enabled": true, // Enable chat checkpoints - Default: true
   "chat.checkpoints.showFileChanges": true, // Show file changes in checkpoints - Default: true
   "chat.editRequests": "inline", // How to handle edit requests - Default: "inline"
-  "chat.editor.fontSize": 15, // Increase GitHub Copilot Chat font size by +3 (from default 12)
+  "chat.fontSize": 13, // Increase GitHub Copilot Chat font size for non-code text (+1 from default 12)
+  "chat.editor.fontSize": 13, // Increase GitHub Copilot Chat font size for code text (+1 from default 12)
   "workbench.secondarySideBar.defaultVisibility": "visible", // Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
 
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
