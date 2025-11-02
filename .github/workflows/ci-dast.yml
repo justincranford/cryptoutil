@@ -652,7 +652,7 @@ jobs:
       if: ${{ github.actor != 'nektos/act' }}
       uses: actions/upload-artifact@v5.0.0
       with:
-        name: dast-reports
+        name: dast-workflow-reports
         path: |
           workflow-reports/dast/nuclei.log
           workflow-reports/dast/nuclei.sarif
