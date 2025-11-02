@@ -60,6 +60,7 @@ jobs:
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: code-quality"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -74,15 +75,38 @@ jobs:
 
       - name: Install formatting tools
         run: |
+          echo "📦 Installing formatting tools..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           # gofumpt install commented out - golangci-lint includes gofumpt with extra-rules
           # go install mvdan.cc/gofumpt@latest
           go install golang.org/x/tools/cmd/goimports@latest
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Formatting tools installed in: ${DURATION}s"
 
       - name: Install golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        run: |
+          echo "🔧 Installing golangci-lint..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ golangci-lint installed in: ${DURATION}s"
 
       - name: Run golangci-lint with auto-fix
-        run: golangci-lint run --fix --timeout=10m --config=.golangci.yml
+        run: |
+          echo "🔍 Running golangci-lint with auto-fix..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          golangci-lint run --fix --timeout=10m --config=.golangci.yml
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ golangci-lint auto-fix completed in: ${DURATION}s"
 
       # Commented out - golangci-lint already applies gofumpt with extra-rules: true
       # - name: Apply gofumpt extra rules (integrated with golangci-lint workflow)
@@ -91,29 +115,93 @@ jobs:
       #     gofumpt -extra -w .
 
       - name: Run golangci-lint final check
-        run: golangci-lint run --timeout=10m --config=.golangci.yml
+        run: |
+          echo "✅ Running golangci-lint final check..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          golangci-lint run --timeout=10m --config=.golangci.yml
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ golangci-lint final check completed in: ${DURATION}s"
 
       # Compile cicd before running it to perform multiple quality checks
       - name: Build cicd binary for quality checks
-        run: go build -o cicd ./cmd/cicd
+        run: |
+          echo "🔨 Building cicd binary..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go build -o cicd ./cmd/cicd
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ cicd binary built in: ${DURATION}s"
 
       - name: Enforce file encoding (UTF-8 without BOM)
-        run: ./cicd all-enforce-utf8
+        run: |
+          echo "🔤 Enforcing UTF-8 file encoding..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          ./cicd all-enforce-utf8
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ UTF-8 enforcement completed in: ${DURATION}s"
 
       - name: Enforce test patterns
-        run: ./cicd go-enforce-test-patterns
+        run: |
+          echo "🧪 Enforcing test patterns..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          ./cicd go-enforce-test-patterns
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Test pattern enforcement completed in: ${DURATION}s"
 
       - name: Run custom Go source code fixes
-        run: ./cicd go-enforce-any
+        run: |
+          echo "🔧 Running custom Go source code fixes..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          ./cicd go-enforce-any
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Custom Go fixes completed in: ${DURATION}s"
 
       - name: Check for circular Go package dependencies
-        run: ./cicd go-check-circular-package-dependencies
+        run: |
+          echo "🔄 Checking for circular Go package dependencies..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          ./cicd go-check-circular-package-dependencies
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Circular dependency check completed in: ${DURATION}s"
 
       - name: Check Go direct dependencies
-        run: ./cicd go-update-direct-dependencies
+        run: |
+          echo "📦 Checking Go direct dependencies..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          ./cicd go-update-direct-dependencies
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Direct dependencies check completed in: ${DURATION}s"
 
       - name: Check GitHub Actions versions
-        run: ./cicd github-workflow-lint
+        run: |
+          echo "🔄 Checking GitHub Actions versions..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          ./cicd github-workflow-lint
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ GitHub Actions version check completed in: ${DURATION}s"
 
   # Build and Container Security
   build:
@@ -131,6 +219,7 @@ jobs:
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: build"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -145,22 +234,44 @@ jobs:
 
       - name: Build binary
         run: |
+          echo "🔨 Building application binary..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           # Build with static linking and minimal symbol stripping for CI/testing
           # -s: Strip symbol table for smaller binary size (keeps debug symbols for diagnostics)
           # -extldflags '-static': Force static linking for maximum portability
           # Performance and diagnostics prioritized over size; debug symbols retained for troubleshooting
           go build -v -ldflags="-s -extldflags '-static'" -o cryptoutil ./cmd/cryptoutil
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Binary build completed in: ${DURATION}s"
 
       - name: Test binary
         run: |
+          echo "🧪 Testing binary execution..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           # Test that the binary was built successfully
           ls -la ./cryptoutil
           file ./cryptoutil
           # Test basic execution (expect it to show usage and exit with error since no valid command given)
           ./cryptoutil || echo "Binary executed successfully (expected error due to no command)"
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Binary test completed in: ${DURATION}s"
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        run: |
+          echo "🐳 Setting up Docker Buildx..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          docker buildx create --use
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Docker Buildx setup completed in: ${DURATION}s"
 
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
@@ -181,31 +292,51 @@ jobs:
             type=sha,prefix=sha-
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6.18.0
-        with:
-          context: .
-          file: ./deployments/Dockerfile
-          push: false
-          load: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            APP_VERSION=${{ github.sha }}
-            VCS_REF=${{ github.sha }}
-            BUILD_DATE=1970-01-01T00:00:00Z
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+        run: |
+          echo "🏗️ Building Docker image..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          docker buildx build \
+            --load \
+            --tag ${{ steps.meta.outputs.tags }} \
+            --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            --label "org.opencontainers.image.version=${{ github.sha }}" \
+            --build-arg APP_VERSION=${{ github.sha }} \
+            --build-arg VCS_REF=${{ github.sha }} \
+            --build-arg BUILD_DATE=1970-01-01T00:00:00Z \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            -f ./deployments/Dockerfile \
+            .
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Docker image build completed in: ${DURATION}s"
 
       - name: Get first Docker tag for Trivy scan
         id: first-tag
         run: echo "tag=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)" >> $GITHUB_OUTPUT
 
       - name: Run Trivy vulnerability scanner on image
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ steps.first-tag.outputs.tag }}
-          format: 'sarif'
-          output: 'trivy-image.sarif'
+        run: |
+          echo "🔍 Running Trivy vulnerability scan..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $HOME/.cache/trivy:/root/.cache/trivy \
+            aquasecurity/trivy:latest image \
+            --format sarif \
+            --output /tmp/trivy-results.sarif \
+            ${{ steps.first-tag.outputs.tag }}
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Trivy scan completed in: ${DURATION}s"
+
+      - name: Copy Trivy results
+        run: docker cp $(docker create --name trivy-temp aquasecurity/trivy:latest):/tmp/trivy-results.sarif ./trivy-image.sarif
 
       - name: Upload Trivy image scan results
         uses: github/codeql-action/upload-sarif@v3
@@ -217,7 +348,7 @@ jobs:
       - name: Check Docker Scout authentication
         id: scout-auth
         run: |
-          echo "Checking Docker Scout authentication..."
+          echo "🔍 Checking Docker Scout authentication..."
           if docker scout version >/dev/null 2>&1; then
             echo "authenticated=true" >> $GITHUB_OUTPUT
             echo "✅ Docker Scout is authenticated and available"
@@ -270,17 +401,25 @@ jobs:
 
       - name: Push Docker image
         if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v6.18.0
-        with:
-          context: .
-          file: ./deployments/Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            APP_VERSION=${{ github.sha }}
-            VCS_REF=${{ github.sha }}
-            BUILD_DATE=1970-01-01T00:00:00Z
+        run: |
+          echo "📤 Pushing Docker image..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          docker buildx build \
+            --push \
+            --tag ${{ steps.meta.outputs.tags }} \
+            --label "org.opencontainers.image.created=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            --label "org.opencontainers.image.version=${{ github.sha }}" \
+            --build-arg APP_VERSION=${{ github.sha }} \
+            --build-arg VCS_REF=${{ github.sha }} \
+            --build-arg BUILD_DATE=1970-01-01T00:00:00Z \
+            -f ./deployments/Dockerfile \
+            .
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Docker image push completed in: ${DURATION}s"
 
   # SBOM Generation
   sbom:
@@ -294,6 +433,7 @@ jobs:
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: sbom"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -307,11 +447,15 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Generate SBOM with syft
-        uses: anchore/sbom-action@v0
-        with:
-          path: ./
-          format: spdx-json
-          output-file: sbom.spdx.json
+        run: |
+          echo "📦 Generating SBOM with syft..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          syft packages . --output spdx-json=sbom.spdx.json
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ SBOM generation completed in: ${DURATION}s"
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v5.0.0
@@ -325,6 +469,7 @@ jobs:
         with:
           path: ./
           format: spdx-json
+          output-file: sbom.spdx.json
           upload-artifact: false
           upload-release-assets: false
           dependency-snapshot: true
@@ -342,6 +487,7 @@ jobs:
           echo "File: .github/workflows/ci-quality.yml"
           echo "Job: mutation-testing"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -355,11 +501,21 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
 
       - name: Install Gremlins
-        run: go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+        run: |
+          echo "🧬 Installing Gremlins mutation testing tool..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go install github.com/go-gremlins/gremlins/cmd/gremlins@latest
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Gremlins installation completed in: ${DURATION}s"
 
       - name: Run mutation testing on high-coverage packages
         run: |
           echo "🧪 Running mutation testing on packages with high test coverage..."
+          OVERALL_START=$(date +%s)
+          echo "📅 Mutation testing start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
           # Test packages with excellent coverage
           HIGH_COVERAGE_PACKAGES=(
@@ -375,6 +531,7 @@ jobs:
 
           for package in "${HIGH_COVERAGE_PACKAGES[@]}"; do
             echo "🎯 Testing package: $package"
+            START_TIME=$(date +%s)
 
             # Run mutation testing with reasonable settings
             OUTPUT=$(gremlins unleash "$package" \
@@ -383,6 +540,10 @@ jobs:
               --threshold-efficacy 70.0 \
               --threshold-mcover 60.0 \
               --output "mutation-$(basename "$package").json" 2>&1) || true
+
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - START_TIME))
+            echo "⏱️ Package $package completed in: ${DURATION}s"
 
             echo "$OUTPUT"
             MUTATION_REPORTS="$MUTATION_REPORTS mutation-$(basename "$package").json"
@@ -400,6 +561,9 @@ jobs:
             echo ""
           done
 
+          OVERALL_END=$(date +%s)
+          TOTAL_DURATION=$((OVERALL_END - OVERALL_START))
+
           # Calculate overall metrics
           TOTAL_TESTED=$((TOTAL_KILLED + TOTAL_LIVED))
           if [ $TOTAL_TESTED -gt 0 ]; then
@@ -414,6 +578,7 @@ jobs:
           echo "Total Lived: $TOTAL_LIVED"
           echo "Total Not Covered: $TOTAL_NOT_COVERED"
           echo "Test Efficacy: ${EFFICACY}%"
+          echo "Total Duration: ${TOTAL_DURATION}s"
 
           # Set up summary for GitHub
           echo "## 🧬 Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
@@ -423,6 +588,7 @@ jobs:
           echo "| 🧟 Lived | $TOTAL_LIVED |" >> $GITHUB_STEP_SUMMARY
           echo "| 🚫 Not Covered | $TOTAL_NOT_COVERED |" >> $GITHUB_STEP_SUMMARY
           echo "| 📈 Test Efficacy | ${EFFICACY}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⏱️ Total Duration | ${TOTAL_DURATION}s |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ $TOTAL_LIVED -gt 0 ]; then

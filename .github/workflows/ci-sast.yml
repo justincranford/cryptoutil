@@ -68,6 +68,7 @@ jobs:
           echo "File: .github/workflows/ci-sast.yml"
           echo "Job: security"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -83,11 +84,21 @@ jobs:
 
       # Security Static Analysis with Staticcheck
       - name: Install Staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+        run: |
+          echo "🔧 Installing Staticcheck security analysis tool..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Staticcheck installation completed in: ${DURATION}s"
 
       - name: Run Staticcheck Security Analysis
         run: |
           echo "🔍 Running Staticcheck security analysis..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           staticcheck -f sarif ./... > staticcheck.sarif 2>/dev/null || true
 
           if [ -f staticcheck.sarif ] && [ -s staticcheck.sarif ]; then
@@ -120,6 +131,10 @@ jobs:
           }
           EOF
           fi
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Staticcheck analysis completed in: ${DURATION}s"
 
       - name: Upload Staticcheck results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -129,19 +144,48 @@ jobs:
 
       # Govulncheck - Official Go vulnerability scanner
       - name: Install Govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+        run: |
+          echo "🔧 Installing Govulncheck vulnerability scanner..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Govulncheck installation completed in: ${DURATION}s"
 
       - name: Run Go Vulnerability Check
-        run: govulncheck ./...
+        run: |
+          echo "🔍 Running Go vulnerability check..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          govulncheck ./...
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Go vulnerability check completed in: ${DURATION}s"
 
       # Trivy - Vulnerability scanner for dependencies
       - name: Run Trivy vulnerability scanner in repo mode
+        run: |
+          echo "🔍 Running Trivy vulnerability scanner..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Trivy scan starting..."
+      - name: Execute Trivy scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
+
+      - name: Complete Trivy scan timing
+        run: |
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Trivy vulnerability scan completed in: ${DURATION}s"
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
@@ -174,6 +218,7 @@ jobs:
           echo "Job: codeql"
           echo "Language: ${{ matrix.language }}"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout repository
@@ -182,14 +227,50 @@ jobs:
           sparse-checkout-cone-mode: false
 
       - name: Initialize CodeQL
+        run: |
+          echo "🔧 Initializing CodeQL for language: ${{ matrix.language }}..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+      - name: Execute CodeQL initialization
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
 
+      - name: Complete CodeQL initialization timing
+        run: |
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ CodeQL initialization completed in: ${DURATION}s"
+
       - name: Autobuild
+        run: |
+          echo "🔨 Running CodeQL autobuild for ${{ matrix.language }}..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+      - name: Execute CodeQL autobuild
         uses: github/codeql-action/autobuild@v3
 
+      - name: Complete CodeQL autobuild timing
+        run: |
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ CodeQL autobuild completed in: ${DURATION}s"
+
       - name: Perform CodeQL Analysis
+        run: |
+          echo "🔍 Performing CodeQL analysis for ${{ matrix.language }}..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+      - name: Execute CodeQL analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
+
+      - name: Complete CodeQL analysis timing
+        run: |
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ CodeQL analysis completed in: ${DURATION}s"

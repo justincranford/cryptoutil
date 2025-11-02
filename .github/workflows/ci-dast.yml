@@ -138,6 +138,7 @@ jobs:
         echo "File: .github/workflows/ci-dast.yml"
         echo "Job: dast-security-scan"
         echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "=========================================="
 
     - name: Checkout code
@@ -148,14 +149,24 @@ jobs:
     - name: Setup directories and Nuclei templates version
       id: nuclei-version
       run: |
+        echo "🔧 Setting up directories and Nuclei templates..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Create required directories
         mkdir -p ./workflow-reports/dast configs/test
         # Ephemeral mode: always use latest nuclei templates
         echo "templates_version=LATEST" >> $GITHUB_OUTPUT
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Directory setup completed in: ${DURATION}s"
 
     - name: Diagnostic - System information
       if: always()
       run: |
+        echo "🔍 Collecting system diagnostic information..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         mkdir -p ./workflow-reports/dast
         SYSINFO=workflow-reports/dast/system-info.txt
         echo "Date: $(date -u)" > $SYSINFO
@@ -178,6 +189,10 @@ jobs:
           echo "$v=${!v}" >> $SYSINFO 2>&1 || true
         done
         echo "\nWrote system diagnostics to: $SYSINFO"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ System diagnostics completed in: ${DURATION}s"
 
     - name: Cache Nuclei Templates
       id: cache-nuclei-templates
@@ -197,7 +212,8 @@ jobs:
     - name: Pre-pull Docker images (parallel)
       run: |
         echo "🐳 Pre-pulling Docker images in parallel..."
-
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Array of all images used in this workflow
         IMAGES=(
           "postgres:18"
@@ -214,16 +230,39 @@ jobs:
         wait
 
         echo "✅ All images pre-pulled successfully"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Docker image pre-pull completed in: ${DURATION}s"
 
     - name: Install dependencies
-      run: go mod download
+      run: |
+        echo "📦 Installing Go dependencies..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go mod download
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Go dependencies installation completed in: ${DURATION}s"
 
     - name: Build application
-      run: go build -o cryptoutil ./cmd/cryptoutil
+      run: |
+        echo "🔨 Building cryptoutil application..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go build -o cryptoutil ./cmd/cryptoutil
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Application build completed in: ${DURATION}s"
 
     # See internal\common\config\config.go for configuration options
     - name: Start application for DAST testing
       run: |
+        echo "🚀 Starting cryptoutil application for DAST testing..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Create unseal secret and config files
         echo "dast-simple-unseal-secret-value-1" > ./configs/test/dast-simple-unseal-secret-value-1.secret
         cat > ./configs/test/config.yml <<EOF
@@ -295,11 +334,18 @@ jobs:
         fi
 
         echo "✅ Application is ready and responsive"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Application startup completed in: ${DURATION}s"
 
     - name: Diagnostic - Verify connectivity from runner and Docker contexts
       id: diagnostic_connectivity
       if: always()
       run: |
+        echo "🔍 Running connectivity diagnostics..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Diagnostic connectivity checks: quick reachability tests that return concise status codes.
         # Use consistent timeouts for all diagnostic curl calls.
         CURL_CONNECT_TIMEOUT=10
@@ -380,10 +426,17 @@ jobs:
         echo "- ACT private target URL should use: ${{ env.APP_PRIVATE_TARGET_URL }}"
         echo "- Nuclei public target URL should use: ${{ env.NUCLEI_PUBLIC_TARGET_URL }}"
         echo "- ZAP public target URL should use: ${{ env.ZAP_PUBLIC_TARGET_URL }}"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Connectivity diagnostics completed in: ${DURATION}s"
 
     - name: Capture baseline response headers (immediate)
       if: always()
       run: |
+        echo "📋 Capturing baseline response headers..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Capture headers from key API endpoints (app is ready per health check)
         # NOTE: -v flag enables verbose output showing request headers (add back if debugging needed)
         echo "Starting header capture from ${{ env.APP_PUBLIC_TARGET_URL }}..."
@@ -465,8 +518,20 @@ jobs:
           echo "\n===== APP STDERR (tail 200) =====" >> workflow-reports/dast/system-info.txt || true
           tail -n 200 workflow-reports/dast/cryptoutil.stderr >> workflow-reports/dast/system-info.txt || true
         fi
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Header capture completed in: ${DURATION}s"
 
     # Official ZAP actions for both GitHub-hosted runners and act-local
+    - name: Start ZAP DAST scan timing
+      if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
+      run: |
+        echo "🕷️ Starting OWASP ZAP DAST scan..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "START_TIME=$START_TIME" >> $GITHUB_ENV
+
     - name: Run OWASP ZAP DAST Scan
       if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
       continue-on-error: true  # ZAP exit code 3 (informational findings) treated as failure by action
@@ -482,10 +547,20 @@ jobs:
         artifact_name: 'zap-report'
         fail_action: 'false'  # Only controls exit code 1/2, not 3
 
+    - name: Complete ZAP DAST scan timing
+      if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
+      run: |
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ ZAP DAST scan completed in: ${DURATION}s"
+
     - name: Collect ZAP DAST Scan artifacts
       if: always()
       run: |
-        echo "Collecting ZAP Full Scan artifacts..."
+        echo "📦 Collecting ZAP DAST scan artifacts..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         for artifact in zap-report.{html,json,xml,md} report_json.json report_md.md report_html.html; do
           if [ -f "./workflow-reports/dast/$artifact" ]; then
             echo "  ✅ Already exists: workflow-reports/dast/$artifact"
@@ -501,6 +576,18 @@ jobs:
           fi
         done
         echo "ZAP DAST scan artifact collection completed"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ ZAP artifact collection completed in: ${DURATION}s"
+
+    - name: Start ZAP API scan timing
+      if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
+      run: |
+        echo "🕷️ Starting OWASP ZAP API scan..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "START_TIME=$START_TIME" >> $GITHUB_ENV
 
     - name: Run OWASP ZAP API Scan
       if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
@@ -515,10 +602,20 @@ jobs:
         allow_issue_writing: false
         artifact_name: 'zap-api-report'
 
+    - name: Complete ZAP API scan timing
+      if: ${{ steps.diagnostic_connectivity.outputs.ZAP_REACHABLE == 'true' }}
+      run: |
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ ZAP API scan completed in: ${DURATION}s"
+
     - name: Collect ZAP API Scan artifacts
       if: always()
       run: |
-        echo "Collecting ZAP API Scan artifacts..."
+        echo "📦 Collecting ZAP API scan artifacts..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Move ZAP API scan artifacts to workflow-reports/dast immediately after generation
         for artifact in zap-api-report.{html,json} report_json.json report_md.md report_html.html; do
           if [ -f "./workflow-reports/dast/$artifact" ]; then
@@ -534,6 +631,10 @@ jobs:
           fi
         done
         echo "ZAP API scan artifact collection completed"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ ZAP API artifact collection completed in: ${DURATION}s"
 
     # Doc: https://github.com/projectdiscovery/nuclei-action
     # NOTE: Nuclei runs via composite action inside the GitHub Actions runner/act container,
@@ -567,6 +668,14 @@ jobs:
         echo "Profile: $SCAN_PROFILE"
         echo "Configuration set for profile: $SCAN_PROFILE"
 
+    - name: Start Nuclei scan timing
+      if: ${{ steps.diagnostic_connectivity.outputs.NUCLEI_REACHABLE == 'true' }}
+      run: |
+        echo "🔍 Starting Nuclei vulnerability scan..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "START_TIME=$START_TIME" >> $GITHUB_ENV
+
     - name: Nuclei - Vulnerability Scan (${{ steps.nuclei_config.outputs.description }})
       if: ${{ steps.diagnostic_connectivity.outputs.NUCLEI_REACHABLE == 'true' }}
       id: nuclei_scan
@@ -579,6 +688,14 @@ jobs:
         # See: https://github.com/orgs/projectdiscovery/discussions/5159
         # Use .nuclei-ignore file to suppress known false positives
         flags: "-c ${{ steps.nuclei_config.outputs.concurrency }} -rl ${{ steps.nuclei_config.outputs.rate_limit }} -timeout ${{ steps.nuclei_config.outputs.timeout }} -stats -ept tcp,javascript -ei .nuclei-ignore${{ steps.nuclei_config.outputs.templates && format(' -t {0}', steps.nuclei_config.outputs.templates) || '' }}"
+
+    - name: Complete Nuclei scan timing
+      if: ${{ steps.diagnostic_connectivity.outputs.NUCLEI_REACHABLE == 'true' }}
+      run: |
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Nuclei vulnerability scan completed in: ${DURATION}s"
 
     - name: Set dummy token for local act runs
       if: ${{ github.actor == 'nektos/act' }}
@@ -593,6 +710,9 @@ jobs:
     - name: Collect Nuclei scan artifacts
       if: always()
       run: |
+        echo "📦 Collecting Nuclei scan artifacts..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Move Nuclei artifacts to workflow-reports/dast
         [ -f "nuclei.log" ] && mv nuclei.log ./workflow-reports/dast/ || true
         [ -f "nuclei.sarif" ] && mv nuclei.sarif ./workflow-reports/dast/ || true
@@ -603,20 +723,33 @@ jobs:
           cp ./workflow-reports/dast/nuclei.sarif nuclei.sarif
         fi
         echo "Nuclei scan artifacts collected"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Nuclei artifact collection completed in: ${DURATION}s"
 
     - name: Post-collect artifact listing
       if: always()
       run: |
+        echo "📋 Generating artifact listing..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "Artifact collection complete"
         # Produce a short diagnostic listing of artifacts for easier analysis
         echo "===== WORKFLOW-REPORTS/DAST DIR =====" > workflow-reports/dast/artifact-listing.txt
         ls -la workflow-reports/dast/ >> workflow-reports/dast/artifact-listing.txt 2>&1 || true
           echo "Wrote artifact listing to workflow-reports/dast/artifact-listing.txt"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Artifact listing completed in: ${DURATION}s"
 
     - name: Capture container logs
       if: always()
       run: |
-        echo "Capturing Docker container logs for debugging..."
+        echo "📋 Capturing Docker container logs..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         mkdir -p workflow-reports/dast/container-logs
 
         # List all containers for reference
@@ -639,6 +772,10 @@ jobs:
         docker system df > workflow-reports/dast/container-logs/docker-df.txt 2>&1 || echo "Docker system df not available" > workflow-reports/dast/container-logs/docker-df.txt
 
         echo "Container log capture completed"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Container log capture completed in: ${DURATION}s"
 
     - name: Upload container logs
       if: always()
@@ -672,6 +809,9 @@ jobs:
     - name: Generate Security Summary
       if: always()
       run: |
+        echo "📊 Generating DAST security summary..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         SUMMARY_FILE=workflow-reports/dast/act-status.txt
         {
           echo "# DAST Security Scan Results"
@@ -698,9 +838,31 @@ jobs:
           echo "System diagnostics file: workflow-reports/dast/system-info.txt"
         } | tee -a $GITHUB_STEP_SUMMARY > $SUMMARY_FILE
         echo "Wrote final analysis summary to: $SUMMARY_FILE"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Security summary generation completed in: ${DURATION}s"
 
     - name: Cleanup
       if: always()
       run: |
+        echo "🧹 Starting DAST cleanup..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         # Stop application
         [ -n "${APP_PID:-}" ] && { kill "$APP_PID" 2>/dev/null || true; sleep 1; kill -9 "$APP_PID" 2>/dev/null || true; }
+
+        # Stop and remove containers
+        docker compose -f ./deployments/compose/compose.yml down -v --remove-orphans || true
+
+        # Clean up any leftover containers/networks
+        docker system prune -f || true
+
+        # Remove any temporary files created during the scan
+        rm -f nuclei.log nuclei.sarif nuclei-templates.version || true
+
+        echo "DAST cleanup completed"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ DAST cleanup completed in: ${DURATION}s"

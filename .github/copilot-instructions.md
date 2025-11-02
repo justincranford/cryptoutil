@@ -33,7 +33,7 @@
 | '\cryptoutil\.github\instructions\01-05.security.instructions.md' | ** | security implementation, cryptographic operations, and network patterns |
 | '\cryptoutil\.github\instructions\01-06.linting.instructions.md' | ** | code quality, linting, and maintenance standards |
 | '\cryptoutil\.github\instructions\02-01.docker.instructions.md' | **/*.yml | Docker and Docker Compose configuration |
-| '\cryptoutil\.github\instructions\02-02.cicd.instructions.md' | .github/workflows/*.yml | CI/CD workflow configuration, service connectivity verification, and act testing |
+| '\cryptoutil\.github\instructions\02-02.cicd.instructions.md' | .github/workflows/*.yml | CI/CD workflow configuration, service connectivity verification, and diagnostic logging |
 | '\cryptoutil\.github\instructions\02-03.observability.instructions.md' | ** | observability and monitoring implementation |
 | '\cryptoutil\.github\instructions\03-01.openapi.instructions.md' | ** | OpenAPI specification and code generation |
 | '\cryptoutil\.github\instructions\03-02.cross-platform.instructions.md' | ** | platform-specific tooling: PowerShell, scripts, command restrictions, Docker pre-pull |
