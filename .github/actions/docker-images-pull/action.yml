@@ -1,0 +1,38 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: 'docker-image-prepull'
+description: 'Pre-pull Docker images in parallel for faster workflow execution'
+inputs:
+  images:
+    description: 'Newline-separated list of Docker images to pre-pull'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Pre-pull Docker images (parallel)
+      shell: bash
+      run: |
+        echo "🐳 Pre-pulling Docker images in parallel..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Convert newline-separated input to array
+        IFS=$'\n' read -r -d '' -a IMAGES <<< "${{ inputs.images }}"
+
+        # Pull all images concurrently
+        for image in "${IMAGES[@]}"; do
+          if [ -n "$image" ]; then
+            echo "Pulling $image..."
+            docker pull "$image" &
+          fi
+        done
+
+        # Wait for all pulls to complete
+        wait
+
+        echo "✅ All images pre-pulled successfully"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Docker image pre-pull completed in: ${DURATION}s"

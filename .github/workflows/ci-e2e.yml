@@ -81,7 +81,7 @@ jobs:
           go-mod-tidy: true
 
       - name: Pre-pull Docker images
-        uses: ./.github/actions/docker-image-prepull
+        uses: ./.github/actions/docker-images-pull
         with:
           images: |
             golang:1.25.3
