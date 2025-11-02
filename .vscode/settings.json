@@ -20,7 +20,7 @@
     "/^go (mod edit).*/": false,
     "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify).*/": true,
     "/^golangci-lint run.*/": true,
-    "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|fetch).*/": true,
+    "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|fetch|mv).*/": true,
     "/^git (push|pull|reset|rebase).*/": false,
     "/^docker system df.*/": true,
     "/^docker (run|exec|stop|kill|system|rm|rmi|swarm|prune).*/": false,
