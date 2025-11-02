@@ -8,18 +8,15 @@ inputs:
   files:
     description: 'Comma-separated list of files or directories to scan (e.g., "coverage.out,coverage.html,./artifacts/")'
     required: true
-  trivy-sarif-output:
-    description: 'Output filename for Trivy SARIF results'
-    required: false
-    default: 'trivy-files.sarif'
-  gitleaks-sarif-output:
-    description: 'Output filename for GitLeaks SARIF results'
-    required: false
-    default: 'gitleaks-files.sarif'
   scan-name:
-    description: 'Name for the security scan (used in SARIF metadata)'
-    required: false
-    default: 'File Security Scan'
+    description: 'Output security scan name in SARIF metadata (e.g. Security Scan of Coverage Artifacts)'
+    required: true
+  trivy-sarif-output:
+    description: 'Output filename for Trivy SARIF results (e.g. trivy-files.sarif)'
+    required: true
+  gitleaks-sarif-output:
+    description: 'Output filename for GitLeaks SARIF results (e.g. gitleaks-files.sarif)'
+    required: true
 
 runs:
   using: 'composite'

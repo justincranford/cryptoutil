@@ -107,6 +107,8 @@ jobs:
       with:
         files: 'coverage.out,coverage.html,coverage-func.txt'
         scan-name: 'Security Scan of Coverage Artifacts'
+        trivy-sarif-output: 'coverage-upload-artifacts-trivy.sarif'
+        gitleaks-sarif-output: 'coverage-upload-artifacts-gitleaks.sarif'
 
     - name: Display function-level coverage
       run: |
@@ -119,7 +121,7 @@ jobs:
       uses: codecov/codecov-action@v5.5.1
       with:
         files: ./coverage.out
-        flags: coverage-tests  # Groups upload under "coverage-tests"
+        flags: coverage-tests  # Group uploads under "coverage-tests"
         name: codecov-coverage
         fail_ci_if_error: false
 
