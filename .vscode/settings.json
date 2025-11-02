@@ -60,6 +60,7 @@
 
   // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
   "terminal.integrated.defaultProfile.windows": "PowerShell", // Set PowerShell as default terminal profile
+  "terminal.integrated.fontSize": 15, // Increase terminal font size by +1 (from default 12)
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
       "source": "PowerShell",
