@@ -186,9 +186,11 @@ jobs:
 
           # Build the tag arguments
           TAG_ARGS=""
-          IFS=$'\n' read -r -d '' -a TAGS <<< "${{ steps.meta.outputs.tags }}"
-          for tag in "${TAGS[@]}"; do
-            TAG_ARGS="$TAG_ARGS --tag $tag"
+          # Split tags by newline and build tag arguments
+          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r tag; do
+            if [ -n "$tag" ]; then
+              TAG_ARGS="$TAG_ARGS --tag $tag"
+            fi
           done
 
           docker buildx build \
@@ -303,9 +305,11 @@ jobs:
 
           # Build the tag arguments
           TAG_ARGS=""
-          IFS=$'\n' read -r -d '' -a TAGS <<< "${{ steps.meta.outputs.tags }}"
-          for tag in "${TAGS[@]}"; do
-            TAG_ARGS="$TAG_ARGS --tag $tag"
+          # Split tags by newline and build tag arguments
+          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r tag; do
+            if [ -n "$tag" ]; then
+              TAG_ARGS="$TAG_ARGS --tag $tag"
+            fi
           done
 
           docker buildx build \
