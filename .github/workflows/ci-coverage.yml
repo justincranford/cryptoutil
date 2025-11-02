@@ -95,6 +95,13 @@ jobs:
     - name: Generate coverage report
       run: go tool cover -html=coverage.out -o coverage.html
 
+    - name: Display function-level coverage
+      run: |
+        echo "## 📊 Function-Level Coverage Report" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
     - name: Upload coverage
       uses: codecov/codecov-action@v5.5.1
       with:
@@ -109,5 +116,5 @@ jobs:
         echo "Coverage collection completed successfully." >> $GITHUB_STEP_SUMMARY
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
         echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
-        echo "- Output: HTML report and coverage profile" >> $GITHUB_STEP_SUMMARY
+        echo "- Output: HTML report, coverage profile, and function-level report" >> $GITHUB_STEP_SUMMARY
         echo "- Upload: Codecov with fail-safe configuration" >> $GITHUB_STEP_SUMMARY
