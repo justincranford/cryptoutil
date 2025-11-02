@@ -83,6 +83,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
 
+    env:
+      RSA_FUZZTIME: ${{ github.event.inputs.rsa_fuzztime || '30' }}
+      KEYGEN_FUZZTIME: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+
     steps:
     - name: Workflow Start - CI - Fuzz Testing / fuzz-keygen (ci-fuzz.yml)
       run: |
@@ -112,56 +116,56 @@ jobs:
       with:
         fuzz_function_name: FuzzGenerateRSAKeyPair
         package_path: ./internal/common/crypto/keygen
-        fuzztime_seconds: ${{ github.event.inputs.rsa_fuzztime || '30' }}
+        fuzztime_seconds: ${{ env.RSA_FUZZTIME }}
 
     - name: ECDSA Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateECDSAKeyPair
         package_path: ./internal/common/crypto/keygen
-        fuzztime_seconds: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+        fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
 
     - name: ECDH Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateECDHKeyPair
         package_path: ./internal/common/crypto/keygen
-        fuzztime_seconds: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+        fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
 
     - name: EdDSA Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateEDDSAKeyPair
         package_path: ./internal/common/crypto/keygen
-        fuzztime_seconds: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+        fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
 
     - name: AES Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateAESKey
         package_path: ./internal/common/crypto/keygen
-        fuzztime_seconds: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+        fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
 
     - name: AES-HS Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateAESHSKey
         package_path: ./internal/common/crypto/keygen
-        fuzztime_seconds: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+        fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
 
     - name: HMAC Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateHMACKey
         package_path: ./internal/common/crypto/keygen
-        fuzztime_seconds: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+        fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
 
     - name: Keygen fuzz test summary
       run: |
           echo "## 🔐 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: RSA=${{ github.event.inputs.rsa_fuzztime || '30' }}s, Others=${{ github.event.inputs.keygen_fuzztime || '15' }}s each (parallel steps)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: RSA=${{ env.RSA_FUZZTIME }}s, Others=${{ env.KEYGEN_FUZZTIME }}s each (parallel steps)" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for secure key generation" >> $GITHUB_STEP_SUMMARY
 
   # Fuzz Testing - Digests Package - Property-based testing for cryptographic hash functions
@@ -169,6 +173,9 @@ jobs:
     name: Fuzz Tests - Digests
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_profile == 'all' || github.event_name != 'workflow_dispatch' }}
+
+    env:
+      DIGEST_FUZZTIME: ${{ github.event.inputs.digest_fuzztime || '15' }}
 
     steps:
       - name: Workflow Start - CI - Fuzz Testing / fuzz-digests (ci-fuzz.yml)
@@ -199,68 +206,68 @@ jobs:
         with:
           fuzz_function_name: FuzzHKDFAllVariants
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: HKDF SHA256 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA256
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: HKDF SHA384 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA384
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: HKDF SHA512 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA512
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: HKDF SHA224 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA224
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: SHA512 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA512
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: SHA384 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA384
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: SHA256 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA256
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: SHA224 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA224
           package_path: ./internal/common/crypto/digests
-          fuzztime_seconds: ${{ github.event.inputs.digest_fuzztime || '15' }}
+          fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
 
       - name: Digests fuzz test summary
         run: |
           echo "## 🔐 Digests Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic digest functions completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 9 digest functions (HKDF variants + SHA-2 family)" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: ${{ github.event.inputs.digest_fuzztime || '15' }}s each (parallel steps)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: ${{ env.DIGEST_FUZZTIME }}s each (parallel steps)" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for secure hash operations" >> $GITHUB_STEP_SUMMARY
