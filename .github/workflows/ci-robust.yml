@@ -61,18 +61,19 @@ env:
   GO_VERSION: '1.25.3'
 
 jobs:
-  concurrency:
+  concurrency-race:
     name: Concurrency & Race Detection Tests
     runs-on: ubuntu-latest
 
     steps:
-    - name: Workflow Start - CI - Robustness Testing / concurrency (ci-robust.yml)
+    - name: Workflow Start - CI - Robustness Testing / concurrency-race (ci-robust.yml)
       run: |
         echo "=========================================="
         echo "Workflow: ${{ github.workflow }}"
         echo "File: .github/workflows/ci-robust.yml"
-        echo "Job: concurrency"
+        echo "Job: concurrency-race"
         echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "=========================================="
 
     - name: Checkout code
@@ -100,19 +101,71 @@ jobs:
       working-directory: .
       run: |
         echo "🔄 Running comprehensive concurrency and race detection tests..."
-        SECONDS=0
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
-        TEST_DURATION=$SECONDS
-        echo "⏱️ Race detection tests completed in: ${TEST_DURATION}s"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Race detection tests completed in: ${DURATION}s"
+
+    - name: Race detection test summary
+      run: |
+        echo "## 🔄 Concurrency & Race Detection Results" >> $GITHUB_STEP_SUMMARY
+        echo "Comprehensive concurrency and race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
+        echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
+        echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
+        echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+        echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+
+  concurrency-coverage:
+    name: Concurrency Coverage Collection
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Workflow Start - CI - Robustness Testing / concurrency-coverage (ci-robust.yml)
+      run: |
+        echo "=========================================="
+        echo "Workflow: ${{ github.workflow }}"
+        echo "File: .github/workflows/ci-robust.yml"
+        echo "Job: concurrency-coverage"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "=========================================="
+
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false
+
+    - name: Set up Go
+      uses: actions/setup-go@v6.0.0
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        cache: true
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Clean and verify module files
+      run: |
+        go mod tidy
 
     - name: Run coverage on concurrency tests
       working-directory: .
       run: |
         echo "📊 Generating coverage report for concurrency tests..."
-        SECONDS=0
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         go test -count=1 -p=2 -coverprofile=concurrency-coverage.out -covermode=atomic ./internal/... ./scripts/...
-        COVERAGE_DURATION=$SECONDS
-        echo "⏱️ Coverage tests completed in: ${COVERAGE_DURATION}s"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Coverage tests completed in: ${DURATION}s"
 
     - name: Generate concurrency coverage report
       run: go tool cover -html=concurrency-coverage.out -o concurrency-coverage.html
@@ -125,17 +178,14 @@ jobs:
         name: codecov-concurrency
         fail_ci_if_error: false
 
-    - name: Concurrency test summary
+    - name: Concurrency coverage test summary
       run: |
-        echo "## 🔄 Concurrency & Race Detection Results" >> $GITHUB_STEP_SUMMARY
-        echo "Comprehensive concurrency and race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "## � Concurrency Coverage Collection Results" >> $GITHUB_STEP_SUMMARY
+        echo "Concurrency coverage collection completed successfully." >> $GITHUB_STEP_SUMMARY
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
-        echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
         echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
-        echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
-        echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
-        echo "- Race detection duration: \${TEST_DURATION}s" >> $GITHUB_STEP_SUMMARY
-        echo "- Coverage collection duration: \${COVERAGE_DURATION}s" >> $GITHUB_STEP_SUMMARY
+        echo "- Output: HTML report and coverage profile" >> $GITHUB_STEP_SUMMARY
+        echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
 
   # Fuzz Testing - Keygen Package - Property-based testing for cryptographic key generation
   fuzz-keygen:
@@ -151,6 +201,7 @@ jobs:
           echo "File: .github/workflows/ci-robust.yml"
           echo "Job: fuzz-keygen"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -174,55 +225,81 @@ jobs:
         run: |
           go mod tidy
 
-      - name: Run RSA keygen fuzz test
+      - name: Run keygen fuzz tests
         working-directory: .
         run: |
+          echo "� Running keygen fuzz tests..."
+          OVERALL_START=$(date +%s)
+          echo "📅 Keygen fuzz tests start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+          # RSA keygen fuzz test (longer duration)
           echo "🔑 Running RSA keygen fuzz test..."
-          # NOTE: -fuzztimeout causes invoking fuzz test to break - avoid using it
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=30s -timeout=60s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ RSA fuzz test completed in: ${DURATION}s"
 
-      - name: Run ECDSA keygen fuzz test
-        working-directory: .
-        run: |
+          # ECDSA keygen fuzz test
           echo "🔐 Running ECDSA keygen fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ ECDSA fuzz test completed in: ${DURATION}s"
 
-      - name: Run ECDH keygen fuzz test
-        working-directory: .
-        run: |
+          # ECDH keygen fuzz test
           echo "🔐 Running ECDH keygen fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ ECDH fuzz test completed in: ${DURATION}s"
 
-      - name: Run EdDSA keygen fuzz test
-        working-directory: .
-        run: |
+          # EdDSA keygen fuzz test
           echo "🔐 Running EdDSA keygen fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ EdDSA fuzz test completed in: ${DURATION}s"
 
-      - name: Run AES keygen fuzz test
-        working-directory: .
-        run: |
+          # AES keygen fuzz test
           echo "🔐 Running AES keygen fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzGenerateAESKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ AES fuzz test completed in: ${DURATION}s"
 
-      - name: Run AES-HS keygen fuzz test
-        working-directory: .
-        run: |
+          # AES-HS keygen fuzz test
           echo "🔐 Running AES-HS keygen fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzGenerateAESHSKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ AES-HS fuzz test completed in: ${DURATION}s"
 
-      - name: Run HMAC keygen fuzz test
-        working-directory: .
-        run: |
+          # HMAC keygen fuzz test
           echo "🔐 Running HMAC keygen fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzGenerateHMACKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HMAC fuzz test completed in: ${DURATION}s"
+
+          OVERALL_END=$(date +%s)
+          TOTAL_DURATION=$((OVERALL_END - OVERALL_START))
+          echo "📅 Keygen fuzz tests end: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ All keygen fuzz tests completed in: ${TOTAL_DURATION}s"
 
       - name: Keygen fuzz test summary
         run: |
           echo "## 🔐 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: RSA=30s, Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: RSA=30s, Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
+          echo "- Total Duration: \${TOTAL_DURATION}s" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for secure key generation" >> $GITHUB_STEP_SUMMARY
 
   # Fuzz Testing - Digests Package - Property-based testing for cryptographic hash functions
@@ -239,6 +316,7 @@ jobs:
           echo "File: .github/workflows/ci-robust.yml"
           echo "Job: fuzz-digests"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -262,66 +340,90 @@ jobs:
         run: |
           go mod tidy
 
-      - name: Run HKDF All Variants fuzz test
+      - name: Run digests fuzz tests
         working-directory: .
         run: |
+          echo "🔐 Running digests fuzz tests..."
+          OVERALL_START=$(date +%s)
+          echo "📅 Digests fuzz tests start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+          # HKDF fuzz tests
           echo "🔐 Running HKDF All Variants fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzHKDFAllVariants -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF All Variants fuzz test completed in: ${DURATION}s"
 
-      - name: Run HKDF-SHA256 fuzz test
-        working-directory: .
-        run: |
           echo "🔐 Running HKDF-SHA256 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA256 fuzz test completed in: ${DURATION}s"
 
-      - name: Run HKDF-SHA384 fuzz test
-        working-directory: .
-        run: |
           echo "🔐 Running HKDF-SHA384 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA384 fuzz test completed in: ${DURATION}s"
 
-      - name: Run HKDF-SHA512 fuzz test
-        working-directory: .
-        run: |
           echo "🔐 Running HKDF-SHA512 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA512 fuzz test completed in: ${DURATION}s"
 
-      - name: Run HKDF-SHA224 fuzz test
-        working-directory: .
-        run: |
           echo "🔐 Running HKDF-SHA224 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ HKDF-SHA224 fuzz test completed in: ${DURATION}s"
 
-      - name: Run SHA512 fuzz test
-        working-directory: .
-        run: |
+          # SHA-2 fuzz tests
           echo "🔐 Running SHA512 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA512 fuzz test completed in: ${DURATION}s"
 
-      - name: Run SHA384 fuzz test
-        working-directory: .
-        run: |
           echo "🔐 Running SHA384 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA384 fuzz test completed in: ${DURATION}s"
 
-      - name: Run SHA256 fuzz test
-        working-directory: .
-        run: |
           echo "🔐 Running SHA256 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA256 fuzz test completed in: ${DURATION}s"
 
-      - name: Run SHA224 fuzz test
-        working-directory: .
-        run: |
           echo "🔐 Running SHA224 fuzz test..."
+          START_TIME=$(date +%s)
           go test -fuzz=FuzzSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "✅ SHA224 fuzz test completed in: ${DURATION}s"
+
+          OVERALL_END=$(date +%s)
+          TOTAL_DURATION=$((OVERALL_END - OVERALL_START))
+          echo "📅 Digests fuzz tests end: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ All digests fuzz tests completed in: ${TOTAL_DURATION}s"
 
       - name: Digests fuzz test summary
         run: |
           echo "## 🔐 Digests Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic digest functions completed successfully." >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: 15s each (sequential)" >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 9 digest functions (HKDF variants + SHA-2 family)" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: 15s each (sequential)" >> $GITHUB_STEP_SUMMARY
+          echo "- Total Duration: \${TOTAL_DURATION}s" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for secure hash operations" >> $GITHUB_STEP_SUMMARY
 
   # Benchmark Testing - Performance validation and regression detection
@@ -338,6 +440,7 @@ jobs:
           echo "File: .github/workflows/ci-robust.yml"
           echo "Job: benchmark"
           echo "Triggered by: ${{ github.event_name }}"
+          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "=========================================="
 
       - name: Checkout code
@@ -365,7 +468,13 @@ jobs:
         working-directory: .
         run: |
           echo "📊 Running benchmark tests for performance validation..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Benchmark tests completed in: ${DURATION}s"
 
       - name: Display benchmark results
         run: |
@@ -387,4 +496,5 @@ jobs:
           echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
           echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY
