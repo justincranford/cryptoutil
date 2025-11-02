@@ -1,7 +1,7 @@
 # $schema: https://json.schemastore.org/github-workflow.json
 # https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 
-name: CI - Race Detection
+name: CI - Coverage Collection
 # CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
 # to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
@@ -56,23 +56,22 @@ on:
         options:
           - all
           - coverage
-          - race
 
 env:
   GO_VERSION: '1.25.3'
 
 jobs:
-  coverage-and-race:
-    name: Race Detection Tests
+  coverage:
+    name: Coverage Collection
     runs-on: ubuntu-latest
 
     steps:
-    - name: Workflow Start - CI - Race Detection / concurrency (ci-race.yml)
+    - name: Workflow Start - CI - Coverage Collection (ci-coverage.yml)
       run: |
         echo "=========================================="
         echo "Workflow: ${{ github.workflow }}"
-        echo "File: .github/workflows/ci-race.yml"
-        echo "Job: concurrency"
+        echo "File: .github/workflows/ci-coverage.yml"
+        echo "Job: coverage"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "=========================================="
@@ -90,24 +89,34 @@ jobs:
         go-mod-verify: true
         go-mod-tidy: true
 
-    - name: Run concurrency and race detection tests
+    - name: Run coverage on tests
       working-directory: .
       run: |
-        echo "🔄 Running comprehensive concurrency and race detection tests..."
+        echo "📊 Generating coverage report for tests..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go test -race -timeout=15m -count=2 ./internal/... ./scripts/...
+        go test -count=1 -p=2 -coverprofile=coverage.out -covermode=atomic ./internal/... ./scripts/...
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Race detection tests completed in: ${DURATION}s"
+        echo "⏱️ Coverage tests completed in: ${DURATION}s"
 
-    - name: Race detection test summary
+    - name: Generate coverage report
+      run: go tool cover -html=coverage.out -o coverage.html
+
+    - name: Upload coverage
+      uses: codecov/codecov-action@v5.5.1
+      with:
+        files: ./coverage.out
+        flags: coverage-tests
+        name: codecov-coverage
+        fail_ci_if_error: false
+
+    - name: Coverage test summary
       run: |
-        echo "## 🔄 Race Detection Results" >> $GITHUB_STEP_SUMMARY
-        echo "Comprehensive race detection tests completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "## 📊 Coverage Collection Results" >> $GITHUB_STEP_SUMMARY
+        echo "Coverage collection completed successfully." >> $GITHUB_STEP_SUMMARY
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
-        echo "- Race detector: Enabled (sequential for better detection)" >> $GITHUB_STEP_SUMMARY
-        echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
-        echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage collection: 2 parallel packages" >> $GITHUB_STEP_SUMMARY
+        echo "- Output: HTML report and coverage profile" >> $GITHUB_STEP_SUMMARY
         echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
