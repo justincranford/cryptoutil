@@ -83,8 +83,6 @@ jobs:
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           # gofumpt install commented out - golangci-lint includes gofumpt with extra-rules
           # go install mvdan.cc/gofumpt@latest
-          # goimports install commented out - golangci-lint includes goimports
-          # go install golang.org/x/tools/cmd/goimports@latest
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
