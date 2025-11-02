@@ -93,81 +93,89 @@ jobs:
         go-mod-verify: true
         go-mod-tidy: true
 
-    - name: Run keygen fuzz tests
-      working-directory: .
+    - name: RSA Keygen Fuzz Test
       run: |
-          echo "🔐 Running keygen fuzz tests..."
-          OVERALL_START=$(date +%s)
-          echo "📅 Keygen fuzz tests start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "� Running RSA keygen fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=30s -timeout=60s ./internal/common/crypto/keygen
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ RSA keygen fuzz test completed in: ${DURATION}s"
 
-          # RSA keygen fuzz test (longer duration)
-          echo "🔑 Running RSA keygen fuzz test..."
-          START_TIME=$(date +%s)
-          go test -fuzz=FuzzGenerateRSAKeyPair -fuzztime=30s -timeout=60s ./internal/common/crypto/keygen
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "✅ RSA fuzz test completed in: ${DURATION}s"
+    - name: ECDSA Keygen Fuzz Test
+      run: |
+        echo "🔐 Running ECDSA keygen fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ ECDSA keygen fuzz test completed in: ${DURATION}s"
 
-          # ECDSA keygen fuzz test
-          echo "🔐 Running ECDSA keygen fuzz test..."
-          START_TIME=$(date +%s)
-          go test -fuzz=FuzzGenerateECDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "✅ ECDSA fuzz test completed in: ${DURATION}s"
+    - name: ECDH Keygen Fuzz Test
+      run: |
+        echo "🔐 Running ECDH keygen fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ ECDH keygen fuzz test completed in: ${DURATION}s"
 
-          # ECDH keygen fuzz test
-          echo "🔐 Running ECDH keygen fuzz test..."
-          START_TIME=$(date +%s)
-          go test -fuzz=FuzzGenerateECDHKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "✅ ECDH fuzz test completed in: ${DURATION}s"
+    - name: EdDSA Keygen Fuzz Test
+      run: |
+        echo "🔐 Running EdDSA keygen fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ EdDSA keygen fuzz test completed in: ${DURATION}s"
 
-          # EdDSA keygen fuzz test
-          echo "🔐 Running EdDSA keygen fuzz test..."
-          START_TIME=$(date +%s)
-          go test -fuzz=FuzzGenerateEDDSAKeyPair -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "✅ EdDSA fuzz test completed in: ${DURATION}s"
+    - name: AES Keygen Fuzz Test
+      run: |
+        echo "🔐 Running AES keygen fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -fuzz=FuzzGenerateAESKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ AES keygen fuzz test completed in: ${DURATION}s"
 
-          # AES keygen fuzz test
-          echo "🔐 Running AES keygen fuzz test..."
-          START_TIME=$(date +%s)
-          go test -fuzz=FuzzGenerateAESKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "✅ AES fuzz test completed in: ${DURATION}s"
+    - name: AES-HS Keygen Fuzz Test
+      run: |
+        echo "🔐 Running AES-HS keygen fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -fuzz=FuzzGenerateAESHSKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ AES-HS keygen fuzz test completed in: ${DURATION}s"
 
-          # AES-HS keygen fuzz test
-          echo "🔐 Running AES-HS keygen fuzz test..."
-          START_TIME=$(date +%s)
-          go test -fuzz=FuzzGenerateAESHSKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "✅ AES-HS fuzz test completed in: ${DURATION}s"
-
-          # HMAC keygen fuzz test
-          echo "🔐 Running HMAC keygen fuzz test..."
-          START_TIME=$(date +%s)
-          go test -fuzz=FuzzGenerateHMACKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "✅ HMAC fuzz test completed in: ${DURATION}s"
-
-          OVERALL_END=$(date +%s)
-          TOTAL_DURATION=$((OVERALL_END - OVERALL_START))
-          echo "📅 Keygen fuzz tests end: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ All keygen fuzz tests completed in: ${TOTAL_DURATION}s"
+    - name: HMAC Keygen Fuzz Test
+      run: |
+        echo "🔐 Running HMAC keygen fuzz test..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -fuzz=FuzzGenerateHMACKey -fuzztime=15s -timeout=30s ./internal/common/crypto/keygen
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ HMAC keygen fuzz test completed in: ${DURATION}s"
 
     - name: Keygen fuzz test summary
       run: |
           echo "## 🔐 Keygen Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic key generation completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 7 key generation functions" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: RSA=30s, Others=15s each (sequential)" >> $GITHUB_STEP_SUMMARY
-          echo "- Total Duration: \${TOTAL_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: RSA=30s, Others=15s each (parallel steps)" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for secure key generation" >> $GITHUB_STEP_SUMMARY
 
   # Fuzz Testing - Digests Package - Property-based testing for cryptographic hash functions
@@ -200,88 +208,109 @@ jobs:
           go-mod-verify: true
           go-mod-tidy: true
 
-      - name: Run digests fuzz tests
-        working-directory: .
+      - name: HKDF All Variants Fuzz Test
         run: |
-          echo "🔐 Running digests fuzz tests..."
-          OVERALL_START=$(date +%s)
-          echo "📅 Digests fuzz tests start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-          # HKDF fuzz tests
           echo "🔐 Running HKDF All Variants fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzHKDFAllVariants -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ HKDF All Variants fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ HKDF All Variants fuzz test completed in: ${DURATION}s"
 
+      - name: HKDF SHA256 Fuzz Test
+        run: |
           echo "🔐 Running HKDF-SHA256 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzHKDFwithSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ HKDF-SHA256 fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ HKDF-SHA256 fuzz test completed in: ${DURATION}s"
 
+      - name: HKDF SHA384 Fuzz Test
+        run: |
           echo "🔐 Running HKDF-SHA384 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzHKDFwithSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ HKDF-SHA384 fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ HKDF-SHA384 fuzz test completed in: ${DURATION}s"
 
+      - name: HKDF SHA512 Fuzz Test
+        run: |
           echo "🔐 Running HKDF-SHA512 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzHKDFwithSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ HKDF-SHA512 fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ HKDF-SHA512 fuzz test completed in: ${DURATION}s"
 
+      - name: HKDF SHA224 Fuzz Test
+        run: |
           echo "🔐 Running HKDF-SHA224 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzHKDFwithSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ HKDF-SHA224 fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ HKDF-SHA224 fuzz test completed in: ${DURATION}s"
 
-          # SHA-2 fuzz tests
+      - name: SHA512 Fuzz Test
+        run: |
           echo "🔐 Running SHA512 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzSHA512 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ SHA512 fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ SHA512 fuzz test completed in: ${DURATION}s"
 
+      - name: SHA384 Fuzz Test
+        run: |
           echo "🔐 Running SHA384 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzSHA384 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ SHA384 fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ SHA384 fuzz test completed in: ${DURATION}s"
 
+      - name: SHA256 Fuzz Test
+        run: |
           echo "🔐 Running SHA256 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzSHA256 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ SHA256 fuzz test completed in: ${DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ SHA256 fuzz test completed in: ${DURATION}s"
 
+      - name: SHA224 Fuzz Test
+        run: |
           echo "🔐 Running SHA224 fuzz test..."
           START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           go test -fuzz=FuzzSHA224 -fuzztime=15s -timeout=30s ./internal/common/crypto/digests
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
-          echo "✅ SHA224 fuzz test completed in: ${DURATION}s"
-
-          OVERALL_END=$(date +%s)
-          TOTAL_DURATION=$((OVERALL_END - OVERALL_START))
-          echo "📅 Digests fuzz tests end: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ All digests fuzz tests completed in: ${TOTAL_DURATION}s"
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ SHA224 fuzz test completed in: ${DURATION}s"
 
       - name: Digests fuzz test summary
         run: |
           echo "## 🔐 Digests Fuzz Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "Fuzz tests for cryptographic digest functions completed successfully." >> $GITHUB_STEP_SUMMARY
           echo "- Coverage: 9 digest functions (HKDF variants + SHA-2 family)" >> $GITHUB_STEP_SUMMARY
-          echo "- Duration: 15s each (sequential)" >> $GITHUB_STEP_SUMMARY
-          echo "- Total Duration: \${TOTAL_DURATION}s" >> $GITHUB_STEP_SUMMARY
+          echo "- Duration: 15s each (parallel steps)" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Property-based testing for secure hash operations" >> $GITHUB_STEP_SUMMARY
