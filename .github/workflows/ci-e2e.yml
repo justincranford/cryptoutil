@@ -75,11 +75,13 @@ jobs:
           go-mod-verify: true
           go-mod-tidy: true
 
-      - name: Pre-pull Docker images (parallel)
-        uses: ./.github/actions/docker-image-prepull
+      - name: Pre-pull Docker images
+        uses: ./.github/actions/docker-prepull
         with:
-          verify-docker-environment: true
-          setup-docker-buildx: true
+          images: |
+            postgres:18
+            alpine:3.19
+            golang:1.25.3
 
       - name: Run E2E tests
         run: |
