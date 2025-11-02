@@ -1,4 +1,4 @@
-name: 'Display Container Logs'
+name: 'Display Docker Compose Logs'
 description: 'Display and extract container logs from workflow reports'
 inputs:
   log-directory:

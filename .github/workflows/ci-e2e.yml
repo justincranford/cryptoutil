@@ -110,7 +110,7 @@ jobs:
 
       - name: Display container logs
         if: always()
-        uses: ./.github/actions/display-container-logs
+        uses: ./.github/actions/docker-compose-logs
         with:
           log-directory: ./workflow-reports/e2e
 
