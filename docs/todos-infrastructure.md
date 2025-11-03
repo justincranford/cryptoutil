@@ -2,8 +2,8 @@
 
 **IMPORTANT**: Delete completed tasks immediately after completion to maintain a clean, actionable TODO list.
 
-**Last Updated**: October 15, 2025
-**Status**: Release automation, Kubernetes deployment planning, and configuration priority review underway
+**Last Updated**: November 2, 2025
+**Status**: Release automation, Kubernetes deployment planning, configuration priority review, and workflow-level summary actions underway
 
 ---
 
@@ -114,6 +114,20 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
 - **Expected Outcome**: Workflows use latest stable action versions
 - **Priority**: LOW - Maintenance and compatibility
 - **Timeline**: Ongoing maintenance
+
+### Task INF12: Create Workflow-Level Summary Actions
+- **Description**: Create workflow-begin and workflow-end actions for workflow-level summaries and env var management
+- **Current State**: Only job-level actions exist (workflow-job-begin/end)
+- **Action Items**:
+  - Create `.github/actions/workflow-begin/action.yml` with input: workflow-name only
+  - Create `.github/actions/workflow-end/action.yml` with input: workflow-name only
+  - Use WORKFLOW_SUMMARY_ prefix for all env vars (e.g., WORKFLOW_SUMMARY_START_TIME)
+  - Move common env vars (GO_VERSION, JAVA_VERSION, etc.) from individual jobs to workflow-begin action
+  - Deduplicate env vars across workflows and export via GITHUB_ENV
+  - Update all 10 CI workflows to use workflow-begin at workflow level and workflow-job-* at job level
+- **Files**: `.github/actions/workflow-begin/action.yml`, `.github/actions/workflow-end/action.yml`, all `.github/workflows/*.yml`
+- **Expected Outcome**: Clean separation between workflow-level and job-level summaries with proper env var management
+- **Priority**: Medium - Workflow organization and maintainability
 
 ---
 
