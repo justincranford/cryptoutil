@@ -133,18 +133,3 @@ func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
 	// Should return empty map
 	assert.Empty(t, workflows, "Expected empty workflows map")
 }
-
-func TestWorkflowsVariable(t *testing.T) {
-	// Test that the workflows variable is properly initialized
-	// This tests the package-level variable initialization
-	assert.NotNil(t, workflowNames, "workflows variable should not be nil")
-
-	// Note: workflowNames may be empty if .github/workflows/ directory cannot be read
-	// This is expected behavior - no fallback hardcoded list
-
-	// Verify all workflows have empty config structs (if any exist)
-	for name, config := range workflowNames {
-		// The config should be an empty struct
-		assert.Equal(t, WorkflowConfig{}, config, "Workflow '%s' should have empty config", name)
-	}
-}

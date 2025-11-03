@@ -97,17 +97,6 @@ func getAvailableWorkflows() (map[string]WorkflowConfig, error) {
 	return workflows, nil
 }
 
-// Available workflowNames. In alphabetical order.
-var workflowNames = func() map[string]WorkflowConfig {
-	workflows, err := getAvailableWorkflows()
-	if err != nil {
-		// Return empty map if directory read fails - no fallback list
-		return make(map[string]WorkflowConfig)
-	}
-
-	return workflows
-}()
-
 // Run executes the workflow runner with the provided command line arguments.
 func Run(args []string) int {
 	// Create flag set for parsing.
@@ -126,9 +115,25 @@ func Run(args []string) int {
 		return 1
 	}
 
+	// Get available workflows - inline the call here
+	availableWorkflows, err := getAvailableWorkflows()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%sError reading workflows directory: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
+		fmt.Fprintf(os.Stderr, "Make sure you're running from the project root with .github/workflows/ directory.\n")
+
+		return 1
+	}
+
+	if len(availableWorkflows) == 0 {
+		fmt.Fprintf(os.Stderr, "%sError: No workflows found in .github/workflows/ directory%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
+		fmt.Fprintf(os.Stderr, "Make sure ci-*.yml workflow files exist in .github/workflows/.\n")
+
+		return 1
+	}
+
 	// Show available workflows if requested.
 	if *showList {
-		listWorkflows()
+		listWorkflows(availableWorkflows)
 
 		return 0
 	}
@@ -141,7 +146,7 @@ func Run(args []string) int {
 		return 1
 	}
 
-	selectedWorkflows := parseWorkflowNames(*workflowNames)
+	selectedWorkflows := parseWorkflowNames(*workflowNames, availableWorkflows)
 	if len(selectedWorkflows) == 0 {
 		fmt.Fprintf(os.Stderr, "%sError: No valid workflows specified.%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
 
@@ -202,12 +207,12 @@ func Run(args []string) int {
 	return 0
 }
 
-func listWorkflows() {
+func listWorkflows(availableWorkflows map[string]WorkflowConfig) {
 	fmt.Println("\n" + strings.Repeat("=", cryptoutilMagic.LineWidth))
 	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", cryptoutilMagic.ColorCyan, cryptoutilMagic.ColorReset)
 	fmt.Println(strings.Repeat("=", cryptoutilMagic.LineWidth))
 
-	for workflowName := range workflowNames {
+	for workflowName := range availableWorkflows {
 		fmt.Printf("\n%s%-12s%s %s\n", cryptoutilMagic.ColorGreen, workflowName, cryptoutilMagic.ColorReset, getWorkflowDescription(workflowName))
 		fmt.Printf("           File: %s\n", getWorkflowFile(workflowName))
 
@@ -224,13 +229,13 @@ func listWorkflows() {
 	fmt.Println()
 }
 
-func parseWorkflowNames(names string) []WorkflowExecution {
+func parseWorkflowNames(names string, availableWorkflows map[string]WorkflowConfig) []WorkflowExecution {
 	parts := strings.Split(names, ",")
 	result := make([]WorkflowExecution, 0, len(parts))
 
 	for _, name := range parts {
 		name = strings.TrimSpace(name)
-		if wf, ok := workflowNames[name]; ok {
+		if wf, ok := availableWorkflows[name]; ok {
 			result = append(result, WorkflowExecution{Name: name, Config: wf})
 		} else {
 			fmt.Fprintf(os.Stderr, "%sWarning: Unknown workflow '%s' (skipping)%s\n", cryptoutilMagic.ColorYellow, name, cryptoutilMagic.ColorReset)
