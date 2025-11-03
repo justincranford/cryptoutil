@@ -59,6 +59,8 @@ const (
 	TimeoutGitHubAPIDelay = 200 * time.Millisecond
 	// TimeoutGitHubAPITimeout - Timeout for GitHub API requests.
 	TimeoutGitHubAPITimeout = 10 * time.Second
+	// TimeoutGitHubAPICacheTTL - TTL for GitHub API response cache (1 hour).
+	TimeoutGitHubAPICacheTTL = 1 * time.Hour
 
 	// TestSleepCancelChanContext - 5 milliseconds duration for test delays.
 	TestSleepCancelChanContext = 5 * time.Millisecond //nolint:stylecheck // established API name

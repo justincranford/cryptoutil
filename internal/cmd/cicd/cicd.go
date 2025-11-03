@@ -26,6 +26,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
@@ -67,6 +68,57 @@ type ActionInfo struct {
 	LatestVersion  string
 	WorkflowFile   string
 }
+
+// GitHubAPICacheEntry represents a cached GitHub API response.
+type GitHubAPICacheEntry struct {
+	Version   string
+	Timestamp time.Time
+}
+
+// GitHubAPICache provides thread-safe caching for GitHub API responses.
+type GitHubAPICache struct {
+	mu    sync.RWMutex
+	cache map[string]GitHubAPICacheEntry
+}
+
+// NewGitHubAPICache creates a new GitHub API cache.
+func NewGitHubAPICache() *GitHubAPICache {
+	return &GitHubAPICache{
+		cache: make(map[string]GitHubAPICacheEntry),
+	}
+}
+
+// Get retrieves a cached version if it exists and is not expired.
+func (c *GitHubAPICache) Get(key string) (string, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	entry, exists := c.cache[key]
+	if !exists {
+		return "", false
+	}
+
+	// Check if cache entry is expired
+	if time.Since(entry.Timestamp) > cryptoutilMagic.TimeoutGitHubAPICacheTTL {
+		return "", false
+	}
+
+	return entry.Version, true
+}
+
+// Set stores a version in the cache.
+func (c *GitHubAPICache) Set(key, version string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.cache[key] = GitHubAPICacheEntry{
+		Version:   version,
+		Timestamp: time.Now(),
+	}
+}
+
+// Global cache instance for GitHub API responses.
+var githubAPICache = NewGitHubAPICache()
 
 // getUsageMessage returns the usage message for the cicd command.
 func getUsageMessage() string {
@@ -531,6 +583,7 @@ func checkWorkflowLint(allFiles []string) {
 // Returns validation issues (empty if file is valid), extracted actions, and any error encountered reading the file.
 func validateAndParseWorkflowFile(path string) ([]string, []ActionInfo, error) {
 	var issues []string
+
 	var actions []ActionInfo
 
 	contentBytes, err := os.ReadFile(path)
@@ -600,10 +653,12 @@ func checkActionVersionsConcurrently(actionMap map[string]ActionInfo, exceptions
 		go func(act ActionInfo) {
 			// Check if this action is exempted
 			isExempted := false
+
 			if exception, exists := exceptions.Exceptions[act.Name]; exists {
 				for _, allowedVersion := range exception.AllowedVersions {
 					if act.CurrentVersion == allowedVersion {
 						results <- result{action: act, exempted: true}
+
 						return
 					}
 				}
@@ -616,7 +671,9 @@ func checkActionVersionsConcurrently(actionMap map[string]ActionInfo, exceptions
 
 	// Collect results
 	var outdated []ActionInfo
+
 	var exempted []ActionInfo
+
 	var errors []string
 
 	for i := 0; i < len(actionMap); i++ {
@@ -624,11 +681,13 @@ func checkActionVersionsConcurrently(actionMap map[string]ActionInfo, exceptions
 
 		if res.exempted {
 			exempted = append(exempted, res.action)
+
 			continue
 		}
 
 		if res.err != nil {
 			errors = append(errors, fmt.Sprintf("Failed to check %s: %v", res.action.Name, res.err))
+
 			continue
 		}
 
@@ -668,6 +727,16 @@ func parseWorkflowFile(path string) ([]ActionInfo, error) {
 }
 
 func getLatestVersion(actionName string) (string, error) {
+	// Check cache first
+	cacheKey := "release:" + actionName
+	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
+		fmt.Fprintf(os.Stderr, "[CACHE] Cache hit for %s: %s\n", actionName, cachedVersion)
+
+		return cachedVersion, nil
+	}
+
+	fmt.Fprintf(os.Stderr, "[CACHE] Cache miss for %s, making API call\n", actionName)
+
 	// GitHub API has rate limits, so add a delay
 	time.Sleep(cryptoutilMagic.TimeoutGitHubAPIDelay)
 
@@ -704,7 +773,14 @@ func getLatestVersion(actionName string) (string, error) {
 
 	if resp.StatusCode == http.StatusNotFound {
 		// Some actions might not have releases, try tags
-		return getLatestTag(actionName)
+		version, err := getLatestTag(actionName)
+		if err != nil {
+			return "", err
+		}
+		// Cache the result
+		githubAPICache.Set(cacheKey, version)
+
+		return version, nil
 	} else if resp.StatusCode == http.StatusForbidden {
 		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
 	} else if resp.StatusCode != http.StatusOK {
@@ -721,10 +797,23 @@ func getLatestVersion(actionName string) (string, error) {
 		return "", fmt.Errorf("failed to unmarshal GitHub release JSON: %w", err)
 	}
 
+	// Cache the result
+	githubAPICache.Set(cacheKey, release.TagName)
+
 	return release.TagName, nil
 }
 
 func getLatestTag(actionName string) (string, error) {
+	// Check cache first
+	cacheKey := "tags:" + actionName
+	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
+		fmt.Fprintf(os.Stderr, "[CACHE] Cache hit for %s tags: %s\n", actionName, cachedVersion)
+
+		return cachedVersion, nil
+	}
+
+	fmt.Fprintf(os.Stderr, "[CACHE] Cache miss for %s tags, making API call\n", actionName)
+
 	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutGitHubAPITimeout)
@@ -779,7 +868,12 @@ func getLatestTag(actionName string) (string, error) {
 	}
 
 	// Return the first tag (should be the latest)
-	return tags[0].Name, nil
+	latestTag := tags[0].Name
+
+	// Cache the result
+	githubAPICache.Set(cacheKey, latestTag)
+
+	return latestTag, nil
 }
 
 func isOutdated(current, latest string) bool {
