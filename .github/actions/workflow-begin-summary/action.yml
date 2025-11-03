@@ -1,0 +1,36 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: 'workflow-begin-summary'
+description: 'Add a standardized beginning summary to GitHub Actions workflow runs'
+
+inputs:
+  workflow-name:
+    description: 'Name of the workflow (e.g., "CI - End-to-End Testing")'
+    required: true
+  workflow-file:
+    description: 'Path to the workflow file (e.g., ".github/workflows/ci-e2e.yml")'
+    required: true
+  job-name:
+    description: 'Name of the job (e.g., "e2e", "coverage")'
+    required: true
+  operation-name:
+    description: 'Name of the operation being performed (e.g., "End-to-End Testing", "Coverage Collection")'
+    required: true
+  emoji:
+    description: 'Emoji to use in the header (e.g., "🧪", "📊")'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Workflow begin summary
+      shell: bash
+      run: |
+        echo "=========================================="
+        echo "${{ inputs.emoji }} ${{ inputs.workflow-name }} (${{ inputs.workflow-file }})"
+        echo "Job: ${{ inputs.job-name }}"
+        echo "Operation: ${{ inputs.operation-name }}"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "=========================================="

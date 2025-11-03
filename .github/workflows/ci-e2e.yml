@@ -58,14 +58,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Workflow Start - CI - End-to-End Testing (ci-e2e.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-e2e.yml"
-          echo "Job: e2e"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "=========================================="
+      - name: Workflow begin summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          workflow-name: ${{ github.workflow }}
+          workflow-file: '.github/workflows/ci-e2e.yml'
+          job-name: 'e2e'
+          operation-name: 'End-to-End Testing'
+          emoji: '🧪'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0

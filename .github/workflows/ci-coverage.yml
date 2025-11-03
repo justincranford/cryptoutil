@@ -61,15 +61,14 @@ jobs:
       actions: read
 
     steps:
-    - name: Workflow Start - CI - Coverage Collection (ci-coverage.yml)
-      run: |
-        echo "=========================================="
-        echo "Workflow: ${{ github.workflow }}"
-        echo "File: .github/workflows/ci-coverage.yml"
-        echo "Job: coverage"
-        echo "Triggered by: ${{ github.event_name }}"
-        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "=========================================="
+    - name: Workflow begin summary
+      uses: ./.github/actions/workflow-begin-summary
+      with:
+        workflow-name: ${{ github.workflow }}
+        workflow-file: '.github/workflows/ci-coverage.yml'
+        job-name: 'coverage'
+        operation-name: 'Coverage Collection'
+        emoji: '📊'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0

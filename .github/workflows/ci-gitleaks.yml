@@ -58,15 +58,14 @@ jobs:
       actions: read
 
     steps:
-    - name: Workflow Start - CI - GitLeaks Secrets Scan (ci-gitleaks.yml)
-      run: |
-        echo "=========================================="
-        echo "Workflow: ${{ github.workflow }}"
-        echo "File: .github/workflows/ci-gitleaks.yml"
-        echo "Job: gitleaks"
-        echo "Triggered by: ${{ github.event_name }}"
-        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "=========================================="
+    - name: Workflow begin summary
+      uses: ./.github/actions/workflow-begin-summary
+      with:
+        workflow-name: ${{ github.workflow }}
+        workflow-file: '.github/workflows/ci-gitleaks.yml'
+        job-name: 'gitleaks'
+        operation-name: 'GitLeaks Secrets Scan'
+        emoji: '🔍'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0
