@@ -51,15 +51,15 @@ runs:
       shell: bash
       run: |
         echo "=========================================="
-        echo "${{ inputs.workflow-name }} ($WORKFLOW_JOB_FILE_NAME)"
-        echo "Job: ${{ inputs.job-name }}"
+        echo "$INPUT_WORKFLOW_NAME ($WORKFLOW_JOB_FILE_NAME)"
+        echo "Job: $INPUT_JOB_NAME"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_START_TIME")"
         echo "End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$END_TIME")"
         echo "Duration: $FORMATTED_DURATION"
         echo "=========================================="
 
-        echo "## ${{ inputs.job-name }} Results" >> $GITHUB_STEP_SUMMARY
+        echo "## $INPUT_JOB_NAME Results" >> $GITHUB_STEP_SUMMARY
         echo "📅 Duration: $FORMATTED_DURATION" >> $GITHUB_STEP_SUMMARY
         if [ "${{ job.status }}" == "success" ]; then
           echo "📊 Status: ✅ Success" >> $GITHUB_STEP_SUMMARY

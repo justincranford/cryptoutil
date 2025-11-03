@@ -26,7 +26,8 @@ runs:
         echo "WORKFLOW_JOB_START_TIME=$(date +%s)" >> $GITHUB_ENV
 
         # Derive workflow file name from workflow name
-        WORKFLOW_JOB_FILE_NAME=".github/workflows/ci-$(echo '${{ inputs.workflow-name }}' | sed 's/^CI - //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]').yml"
+        # Input: "CI - Quality Testing" -> Output: "ci-quality.yml"
+        WORKFLOW_JOB_FILE_NAME=".github/workflows/ci-$(echo "$INPUT_WORKFLOW_NAME" | sed 's/^CI - //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]').yml"
 
         echo "WORKFLOW_JOB_FILE_NAME=$WORKFLOW_JOB_FILE_NAME" >> $GITHUB_ENV
 
