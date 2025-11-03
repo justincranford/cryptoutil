@@ -15,33 +15,12 @@ runs:
     - name: Workflow begin summary
       shell: bash
       run: |
-        # Derive workflow file from job name
-        case "${{ inputs.job-name }}" in
-          "e2e")
-            WORKFLOW_FILE=".github/workflows/ci-e2e.yml"
-            OPERATION_NAME="End-to-End Testing"
-            EMOJI="🧪"
-            ;;
-          "coverage")
-            WORKFLOW_FILE=".github/workflows/ci-coverage.yml"
-            OPERATION_NAME="Coverage Collection"
-            EMOJI="📊"
-            ;;
-          "gitleaks")
-            WORKFLOW_FILE=".github/workflows/ci-gitleaks.yml"
-            OPERATION_NAME="GitLeaks Secrets Scan"
-            EMOJI="🔍"
-            ;;
-          *)
-            echo "ERROR: Unknown job name '${{ inputs.job-name }}'. Supported job names: e2e, coverage, gitleaks"
-            exit 1
-            ;;
-        esac
+        # Derive workflow file from job name pattern
+        WORKFLOW_FILE=".github/workflows/ci-${{ inputs.job-name }}.yml"
 
         echo "=========================================="
-        echo "$EMOJI ${{ github.workflow }} ($WORKFLOW_FILE)"
+        echo "${{ github.workflow }} ($WORKFLOW_FILE)"
         echo "Job: ${{ inputs.job-name }}"
-        echo "Operation: $OPERATION_NAME"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "=========================================="
