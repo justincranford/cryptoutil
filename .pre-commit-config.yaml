@@ -141,6 +141,7 @@ repos:
         args: [run, --fix, --timeout=30m]
         language: system
         pass_filenames: false
+        files: '\.go$'
         stages: [pre-commit]  # Run full linting on commit, not just on push
 
   # Custom project checks
@@ -173,6 +174,7 @@ repos:
         args: [build, ./...]
         language: system
         pass_filenames: false
+        files: '\.go$|go\.mod$|go\.sum$'
 
   # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
