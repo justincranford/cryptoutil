@@ -12,11 +12,6 @@ description: 'Add a standardized beginning summary to GitHub Actions workflow ru
 runs:
   using: 'composite'
   steps:
-    - name: Print all ENV names (no values)
-      shell: bash
-      run: |
-        printenv | cut -d '=' -f1 | sort
-
     # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass variables to workflow-job-end action
     - name: Set workflow job begin environment variables
       shell: bash
@@ -39,3 +34,8 @@ runs:
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_START_TIME")"
         echo "=========================================="
+
+    - name: Print all ENV names (no values)
+      shell: bash
+      run: |
+        printenv | cut -d '=' -f1 | sort
