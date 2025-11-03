@@ -39,12 +39,14 @@ repos:
       # Check YAML syntax
       - id: check-yaml
         name: Check YAML syntax
+        require_serial: false
         stages: [pre-commit]
 
       # Check JSON syntax (excluding VS Code JSONC files with comments)
       - id: check-json
         name: Check JSON syntax
         exclude: '\.vscode/.*\.json$'  # Skip VS Code settings with comments
+        require_serial: false
         stages: [pre-commit]
 
       # Prevent large files from being committed
@@ -82,11 +84,13 @@ repos:
       # File validation
       - id: check-toml
         name: Check TOML syntax
+        require_serial: false
         stages: [pre-commit]
 
       # XML syntax check
       - id: check-xml
         name: Check XML syntax
+        require_serial: false
         stages: [pre-commit]
 
       # Symlink validation
@@ -193,6 +197,7 @@ repos:
     hooks:
       - id: actionlint
         files: '\.github/(workflows|actions)/.*\.(yml|yaml)$'
+        require_serial: false
 
   # Specialized file linting: Dockerfile linting
   - repo: https://github.com/hadolint/hadolint
@@ -200,6 +205,7 @@ repos:
     hooks:
       - id: hadolint-docker
         files: 'Dockerfile.*|Dockerfile$'
+        require_serial: false
 
   # Specialized file linting: POSIX shell script linting
   - repo: https://github.com/koalaman/shellcheck-precommit
@@ -209,6 +215,7 @@ repos:
         name: Shell script linting
         args: [--severity=warning, --exclude=SC1111]
         files: '\.(sh|bash|zsh)$|^(\.bashrc|\.zshrc|\.bash_profile|\.profile|\.zprofile|\.zshenv|\.bash_logout|\.zlogin|\.zlogout)$'
+        require_serial: false
 
   # Specialized file linting: Python security linting
   - repo: https://github.com/PyCQA/bandit
@@ -217,6 +224,7 @@ repos:
       - id: bandit
         name: Python security linting
         files: '\.py$'
+        require_serial: false
 
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
