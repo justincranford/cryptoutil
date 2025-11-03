@@ -64,11 +64,7 @@ jobs:
     - name: Workflow begin summary
       uses: ./.github/actions/workflow-begin-summary
       with:
-        workflow-name: ${{ github.workflow }}
-        workflow-file: '.github/workflows/ci-coverage.yml'
         job-name: 'coverage'
-        operation-name: 'Coverage Collection'
-        emoji: '📊'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0

@@ -5,20 +5,8 @@ name: 'workflow-begin-summary'
 description: 'Add a standardized beginning summary to GitHub Actions workflow runs'
 
 inputs:
-  workflow-name:
-    description: 'Name of the workflow (e.g., "CI - End-to-End Testing")'
-    required: true
-  workflow-file:
-    description: 'Path to the workflow file (e.g., ".github/workflows/ci-e2e.yml")'
-    required: true
   job-name:
-    description: 'Name of the job (e.g., "e2e", "coverage")'
-    required: true
-  operation-name:
-    description: 'Name of the operation being performed (e.g., "End-to-End Testing", "Coverage Collection")'
-    required: true
-  emoji:
-    description: 'Emoji to use in the header (e.g., "🧪", "📊")'
+    description: 'Name of the job (e.g., "e2e", "coverage", "gitleaks")'
     required: true
 
 runs:
@@ -27,10 +15,34 @@ runs:
     - name: Workflow begin summary
       shell: bash
       run: |
+        # Derive workflow file from job name
+        case "${{ inputs.job-name }}" in
+          "e2e")
+            WORKFLOW_FILE=".github/workflows/ci-e2e.yml"
+            OPERATION_NAME="End-to-End Testing"
+            EMOJI="🧪"
+            ;;
+          "coverage")
+            WORKFLOW_FILE=".github/workflows/ci-coverage.yml"
+            OPERATION_NAME="Coverage Collection"
+            EMOJI="📊"
+            ;;
+          "gitleaks")
+            WORKFLOW_FILE=".github/workflows/ci-gitleaks.yml"
+            OPERATION_NAME="GitLeaks Secrets Scan"
+            EMOJI="�"
+            ;;
+          *)
+            WORKFLOW_FILE="unknown"
+            OPERATION_NAME="Unknown Operation"
+            EMOJI="❓"
+            ;;
+        esac
+
         echo "=========================================="
-        echo "${{ inputs.emoji }} ${{ inputs.workflow-name }} (${{ inputs.workflow-file }})"
+        echo "$EMOJI ${{ github.workflow }} ($WORKFLOW_FILE)"
         echo "Job: ${{ inputs.job-name }}"
-        echo "Operation: ${{ inputs.operation-name }}"
+        echo "Operation: $OPERATION_NAME"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "=========================================="

@@ -61,11 +61,7 @@ jobs:
     - name: Workflow begin summary
       uses: ./.github/actions/workflow-begin-summary
       with:
-        workflow-name: ${{ github.workflow }}
-        workflow-file: '.github/workflows/ci-gitleaks.yml'
         job-name: 'gitleaks'
-        operation-name: 'GitLeaks Secrets Scan'
-        emoji: '🔍'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0
