@@ -58,7 +58,7 @@ jobs:
       actions: read
 
     steps:
-    - name: Workflow Job Begin
+    - name: Begin Workflow Job
       uses: ./.github/actions/workflow-job-begin
 
     - name: Checkout code

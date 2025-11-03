@@ -85,7 +85,7 @@ jobs:
       KEYGEN_FUZZTIME: ${{ github.event.inputs.keygen_fuzztime || '15' }}
 
     steps:
-    - name: Workflow Job Begin
+    - name: Begin Workflow Job
       uses: ./.github/actions/workflow-job-begin
 
     - name: Checkout code
@@ -172,7 +172,7 @@ jobs:
       DIGEST_FUZZTIME: ${{ github.event.inputs.digest_fuzztime || '15' }}
 
     steps:
-      - name: Workflow Job Begin
+      - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
 
       - name: Checkout code

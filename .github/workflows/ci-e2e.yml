@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Workflow begin summary
+      - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
 
       - name: Checkout code

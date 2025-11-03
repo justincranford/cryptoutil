@@ -63,7 +63,7 @@ jobs:
       contents: read
       actions: read
     steps:
-      - name: Workflow Begin Summary
+      - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
 
       - name: Checkout code
@@ -193,7 +193,7 @@ jobs:
       matrix:
         language: ['go', 'javascript', 'python']  # go: Go code, javascript: JS+shell scripts, python: Python scripts
     steps:
-      - name: Workflow Begin Summary
+      - name: Begin Workflow Job
         uses: ./.github/actions/workflow-job-begin
 
       - name: Checkout repository
