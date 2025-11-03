@@ -202,7 +202,7 @@ jobs:
     - name: Set up Go and validate dependencies
       uses: ./.github/actions/go-setup
       with:
-        go-version: '1.25.3'
+        go-version: ${{ env.GO_VERSION }}
         go-mod-download: true
         go-mod-verify: true
         go-mod-tidy: false  # DAST builds/tests but skips tidy to avoid modifying go.mod/go.sum during scans
