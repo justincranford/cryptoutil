@@ -1,5 +1,6 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+# Doc: https://github.com/gitleaks/gitleaks
 
 name: 'security-scan-gitleaks'
 description: 'Scan files/directories for secrets using GitLeaks'
@@ -105,9 +106,9 @@ runs:
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-        # Run GitLeaks on specified files
-        # Use --no-git to scan files directly without git history
-        gitleaks detect --no-git --verbose --redact --format sarif --output ${{ inputs.sarif-output-name }} --path .
+        # Run GitLeaks on specified files/directories
+        # Use dir command to scan directories/files for secrets
+        gitleaks dir --verbose --redact --report-format sarif --report-path ${{ inputs.sarif-output-name }} $SCAN_FILES
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
