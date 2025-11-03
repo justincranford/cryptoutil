@@ -7,7 +7,7 @@ name: CI - SAST Security Testing
 # Absolute paths (e.g., C:\...) break cross-platform compatibility.
 # Example: Use './deployments/compose/compose.yml'
 
-# Covers: Go, JavaScript (embedded + shell scripts), Python
+# Covers: Go, JavaScript (embedded + shell scripts), Java
 # Jobs: security (Staticcheck, Govulncheck, Trivy), codeql (multi-language analysis)
 
 on:
@@ -192,7 +192,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['go', 'javascript', 'python']  # go: Go code, javascript: JS+shell scripts, python: Python scripts
+        language: ['go', 'javascript', 'java']  # go: Go code, javascript: JS+shell scripts, Java: Java
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
