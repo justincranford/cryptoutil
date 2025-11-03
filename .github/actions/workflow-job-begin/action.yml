@@ -12,11 +12,15 @@ description: 'Add a standardized beginning summary to GitHub Actions workflow ru
 runs:
   using: 'composite'
   steps:
-    # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass variables to workflow-job-end action
     - name: Set workflow job begin environment variables
       shell: bash
       run: |
         echo "WORKFLOW_JOB_START_TIME=$(date +%s)" >> $GITHUB_ENV
+
+    - name: Set global environment variables
+      shell: bash
+      run: |
+        echo "GO_VERSION=1.25.3" >> $GITHUB_ENV
 
     - name: Print workflow job begin summary
       shell: bash
