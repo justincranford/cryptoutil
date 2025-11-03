@@ -44,3 +44,21 @@
 - **Files**: `.golangci.yml`
 - **Expected Outcome**: Enhanced code quality and consistency checks
 - **Priority**: Medium - Code quality improvement
+
+### Task CQ4: Investigate linters for EOL/maintenance mode dependencies
+- **Description**: Research and evaluate tools that can detect dependencies in end-of-life or maintenance mode
+- **Current State**: No automated detection of deprecated/unmaintained dependencies
+- **Potential Tools to Investigate**:
+  - `go-mod-outdated`: Shows outdated dependency versions (https://github.com/psampaz/go-mod-outdated)
+  - `govulncheck`: Official Go vulnerability scanner (already in use)
+  - Custom scripts to check GitHub repository status/README for maintenance warnings
+  - Integration with dependency health services or APIs
+- **Action Items**:
+  - Research available Go tools for dependency lifecycle detection
+  - Evaluate feasibility of integrating EOL detection into CI/CD pipeline
+  - Consider custom linter or cicd command for maintenance mode checking
+  - Document findings and recommend implementation approach
+- **Files**: `.golangci.yml`, `internal/cmd/cicd/cicd.go` (potential new command)
+- **Expected Outcome**: Automated detection of unmaintained dependencies to prevent security/technical debt
+- **Priority**: LOW - Proactive maintenance improvement
+- **Timeline**: Q2 2026

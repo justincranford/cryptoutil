@@ -52,6 +52,31 @@
 
 ---
 
+## 🟡 MEDIUM - Database & Dependencies
+
+### Task DB1: Migrate from lib/pq to pgx PostgreSQL driver
+- **Description**: The lib/pq PostgreSQL driver is in maintenance mode and recommends migrating to pgx
+- **Current State**: Using `github.com/lib/pq` in `gormdb.go` for GORM PostgreSQL driver
+- **Migration Details**:
+  - Replace `github.com/lib/pq` with `github.com/jackc/pgx/v5/stdlib` for GORM compatibility
+  - Update import in `internal/server/repository/sqlrepository/gormdb.go`
+  - Test database connectivity with both SQLite and PostgreSQL backends
+  - Verify all existing functionality works with new driver
+- **URLs**:
+  - lib/pq status: https://github.com/lib/pq/blob/master/README.md (maintenance mode)
+  - pgx replacement: https://github.com/jackc/pgx (actively maintained)
+- **Action Items**:
+  - Update go.mod to replace lib/pq with pgx/v5
+  - Update GORM dialector configuration for pgx
+  - Run full test suite with both database backends
+  - Update any pq-specific connection parameters if needed
+- **Files**: `go.mod`, `internal/server/repository/sqlrepository/gormdb.go`
+- **Expected Outcome**: Modern, actively maintained PostgreSQL driver with better performance and features
+- **Priority**: MEDIUM - Dependency modernization
+- **Timeline**: Q1 2026
+
+---
+
 ## 🟢 LOW - Documentation & API Management
 
 ### Task DOC1: API Versioning Strategy Documentation
