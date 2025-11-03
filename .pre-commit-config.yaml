@@ -213,7 +213,7 @@ repos:
     hooks:
       - id: shellcheck
         name: Shell script linting
-        args: [--severity=warning, --exclude=SC1111]
+        args: [--severity=warning]
         files: '\.(sh|bash|zsh)$|^(\.bashrc|\.zshrc|\.bash_profile|\.profile|\.zprofile|\.zshenv|\.bash_logout|\.zlogin|\.zlogout)$'
         require_serial: false
 
