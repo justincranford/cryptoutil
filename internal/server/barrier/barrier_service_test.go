@@ -12,8 +12,8 @@ import (
 	cryptoutilOrmRepository "cryptoutil/internal/server/repository/orm"
 	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	joseJwk "github.com/lestrrat-go/jwx/v3/jwk"
-	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite"
 )

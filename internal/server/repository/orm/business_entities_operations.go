@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 
 	googleUuid "github.com/google/uuid"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgconn"
 	"modernc.org/sqlite"
 )
 
@@ -229,7 +229,7 @@ func (tx *OrmTransaction) toAppErr(msg *string, err error) error {
 	}
 
 	// PostgreSQL errors
-	var pgErr *pq.Error
+	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		switch pgErr.Code {
 		case pgCodeUniqueViolation: // unique_violation

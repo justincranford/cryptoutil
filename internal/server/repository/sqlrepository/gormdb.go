@@ -12,7 +12,7 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "modernc.org/sqlite"
 )
 

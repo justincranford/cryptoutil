@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	"github.com/golang-migrate/migrate/v4/source"
 	"github.com/golang-migrate/migrate/v4/source/iofs"
@@ -50,7 +50,7 @@ func ApplyEmbeddedSQLMigrations(telemetryService *cryptoutilTelemetry.TelemetryS
 			return fmt.Errorf("failed to create migration source: %w", err)
 		}
 
-		databaseDriver, err = postgres.WithInstance(db, &postgres.Config{})
+		databaseDriver, err = pgx.WithInstance(db, &pgx.Config{})
 		if err != nil {
 			return fmt.Errorf("failed to create iofs source driver for PostgreSQL migration: %w", err)
 		}

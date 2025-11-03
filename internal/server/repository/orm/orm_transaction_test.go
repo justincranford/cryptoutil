@@ -15,7 +15,7 @@ import (
 	cryptoutilUtil "cryptoutil/internal/common/util"
 	cryptoutilSQLRepository "cryptoutil/internal/server/repository/sqlrepository"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite"
 )
