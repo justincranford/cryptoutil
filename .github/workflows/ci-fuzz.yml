@@ -89,9 +89,10 @@ jobs:
 
     steps:
     - name: Workflow begin summary
-      uses: ./.github/actions/workflow-begin-summary
+      uses: ./.github/actions/workflow-job-begin
       with:
-        job-name: 'fuzz'
+        workflow-name: 'CI - Fuzz Testing'
+        job-name: 'fuzz-keygen'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0
@@ -165,9 +166,10 @@ jobs:
 
     - name: Keygen fuzz summary
       if: always()
-      uses: ./.github/actions/workflow-end-summary
+      uses: ./.github/actions/workflow-job-end
       with:
-        job-name: 'fuzz'
+        workflow-name: 'CI - Fuzz Testing'
+        job-name: 'fuzz-keygen'
 
   # Fuzz Testing - Digests Package - Property-based testing for cryptographic hash functions
   fuzz-digests:
@@ -180,9 +182,10 @@ jobs:
 
     steps:
       - name: Workflow begin summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
-          job-name: 'fuzz'
+          workflow-name: 'CI - Fuzz Testing'
+          job-name: 'fuzz-digests'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -270,6 +273,7 @@ jobs:
 
       - name: Digests fuzz summary
         if: always()
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
-          job-name: 'fuzz'
+          workflow-name: 'CI - Fuzz Testing'
+          job-name: 'fuzz-digests'

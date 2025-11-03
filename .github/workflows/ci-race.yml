@@ -58,8 +58,9 @@ jobs:
 
     steps:
     - name: Workflow begin summary
-      uses: ./.github/actions/workflow-begin-summary
+      uses: ./.github/actions/workflow-job-begin
       with:
+        workflow-name: 'CI - Race Condition Detection'
         job-name: 'race'
 
     - name: Checkout code
@@ -99,6 +100,7 @@ jobs:
 
     - name: Race summary
       if: always()
-      uses: ./.github/actions/workflow-end-summary
+      uses: ./.github/actions/workflow-job-end
       with:
+        workflow-name: 'CI - Race Condition Detection'
         job-name: 'race'

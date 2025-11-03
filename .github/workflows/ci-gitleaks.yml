@@ -59,8 +59,9 @@ jobs:
 
     steps:
     - name: Workflow begin summary
-      uses: ./.github/actions/workflow-begin-summary
+      uses: ./.github/actions/workflow-job-begin
       with:
+        workflow-name: 'CI - GitLeaks Secrets Scan'
         job-name: 'gitleaks'
 
     - name: Checkout code
@@ -76,6 +77,7 @@ jobs:
         sarif-output-name: 'repository-gitleaks.sarif'
 
     - name: GitLeaks scan summary
-      uses: ./.github/actions/workflow-end-summary
+      uses: ./.github/actions/workflow-job-end
       with:
+        workflow-name: 'CI - GitLeaks Secrets Scan'
         job-name: 'gitleaks'

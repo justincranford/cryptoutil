@@ -59,8 +59,9 @@ jobs:
 
     steps:
       - name: Workflow begin summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
+          workflow-name: 'CI - Benchmark Testing'
           job-name: 'benchmark'
 
       - name: Checkout code
@@ -113,6 +114,7 @@ jobs:
 
       - name: Benchmark summary
         if: always()
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
+          workflow-name: 'CI - Benchmark Testing'
           job-name: 'benchmark'

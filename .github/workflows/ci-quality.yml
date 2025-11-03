@@ -59,9 +59,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Workflow begin summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'code-quality'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -84,9 +85,10 @@ jobs:
 
       - name: Code quality summary
         if: always()
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'code-quality'
 
   # Build and Container Security
   build:
@@ -98,9 +100,10 @@ jobs:
       security-events: write
     steps:
       - name: Workflow begin summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'build'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -326,9 +329,10 @@ jobs:
 
       - name: Build summary
         if: always()
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'build'
 
   # SBOM Generation
   sbom:
@@ -336,9 +340,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Workflow begin summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'sbom'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -397,9 +402,10 @@ jobs:
 
       - name: SBOM summary
         if: always()
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'sbom'
 
   # Mutation Testing - Quality Assessment
   mutation-testing:
@@ -408,9 +414,10 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
       - name: Workflow begin summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'mutation-testing'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -533,6 +540,7 @@ jobs:
 
       - name: Mutation testing summary
         if: always()
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
-          job-name: 'quality'
+          workflow-name: 'CI - Quality Testing'
+          job-name: 'mutation-testing'

@@ -67,9 +67,10 @@ jobs:
       actions: read
     steps:
       - name: Workflow Begin Summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
-          job-name: sast
+          workflow-name: 'CI - SAST Security Testing'
+          job-name: 'security'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -178,9 +179,10 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
 
       - name: Workflow End Summary
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
-          job-name: sast
+          workflow-name: 'CI - SAST Security Testing'
+          job-name: 'security'
         if: always()
 
   # CodeQL Analysis
@@ -201,9 +203,10 @@ jobs:
         language: ['go', 'javascript', 'python']  # go: Go code, javascript: JS+shell scripts, python: Python scripts
     steps:
       - name: Workflow Begin Summary
-        uses: ./.github/actions/workflow-begin-summary
+        uses: ./.github/actions/workflow-job-begin
         with:
-          job-name: sast
+          workflow-name: 'CI - SAST Security Testing'
+          job-name: 'codeql'
 
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
@@ -260,7 +263,8 @@ jobs:
           echo "⏱️ CodeQL analysis completed in: ${DURATION}s"
 
       - name: Workflow End Summary
-        uses: ./.github/actions/workflow-end-summary
+        uses: ./.github/actions/workflow-job-end
         with:
-          job-name: sast
+          workflow-name: 'CI - SAST Security Testing'
+          job-name: 'codeql'
         if: always()

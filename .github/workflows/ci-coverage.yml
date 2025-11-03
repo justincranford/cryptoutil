@@ -62,8 +62,9 @@ jobs:
 
     steps:
     - name: Workflow begin summary
-      uses: ./.github/actions/workflow-begin-summary
+      uses: ./.github/actions/workflow-job-begin
       with:
+        workflow-name: 'CI - Coverage Collection'
         job-name: 'coverage'
 
     - name: Checkout code
@@ -132,6 +133,7 @@ jobs:
         retention-days: 1
 
     - name: Coverage test summary
-      uses: ./.github/actions/workflow-end-summary
+      uses: ./.github/actions/workflow-job-end
       with:
+        workflow-name: 'CI - Coverage Collection'
         job-name: 'coverage'
