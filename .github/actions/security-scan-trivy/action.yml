@@ -13,7 +13,7 @@ inputs:
     required: true
   scan-ref:
     description: 'Reference to scan (path, image name, etc.)'
-    required: true
+    required: false
   trivy-sarif-output:
     description: 'Output filename for Trivy SARIF results'
     required: true
@@ -36,9 +36,14 @@ runs:
       run: |
         echo "🔍 Running Trivy ${{ inputs.scan-type }} security scan..."
         echo "📋 Scan Type: ${{ inputs.scan-type }}"
-        echo "📋 Scan Reference: ${{ inputs.scan-ref }}"
         echo "📋 Output: ${{ inputs.trivy-sarif-output }}"
         echo "📋 Severity: ${{ inputs.severity }}"
+
+        # Validate that either scan-ref or scan-files is provided
+        if [ -z "${{ inputs.scan-files }}" ] && [ -z "${{ inputs.scan-ref }}" ]; then
+          echo "❌ Error: Either scan-files or scan-ref must be provided"
+          exit 1
+        fi
 
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"

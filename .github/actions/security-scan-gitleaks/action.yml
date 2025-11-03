@@ -2,7 +2,7 @@
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
 name: 'security-scan-gitleaks'
-description: 'Scan files/directories for security issues using Trivy and GitLeaks'
+description: 'Scan files/directories for secrets using GitLeaks'
 
 inputs:
   files:
@@ -10,9 +10,6 @@ inputs:
     required: true
   scan-name:
     description: 'Output security scan name in SARIF metadata (e.g. Security Scan of Coverage Artifacts)'
-    required: true
-  trivy-sarif-output:
-    description: 'Output filename for Trivy SARIF results (e.g. trivy-files.sarif)'
     required: true
   gitleaks-sarif-output:
     description: 'Output filename for GitLeaks SARIF results (e.g. gitleaks-files.sarif)'
@@ -49,15 +46,6 @@ runs:
         echo "SCAN_FILES=$SCAN_LIST" >> $GITHUB_ENV
         echo "📋 Files to scan: $SCAN_LIST"
 
-    - name: Run Trivy file security scan
-      uses: ./.github/actions/security-scan-trivy
-      with:
-        scan-type: 'fs'
-        scan-files: ${{ env.SCAN_FILES }}
-        trivy-sarif-output: ${{ inputs.trivy-sarif-output }}
-        scan-name: ${{ inputs.scan-name }}
-        severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
-
     - name: Run GitLeaks secrets detection
       shell: bash
       run: |
@@ -91,8 +79,6 @@ runs:
         echo "$SCAN_FILES" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-
-        # Trivy results are handled by security-scan-trivy action
 
         if [ -f "${{ inputs.gitleaks-sarif-output }}" ]; then
           RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.gitleaks-sarif-output }} 2>/dev/null || echo "0")

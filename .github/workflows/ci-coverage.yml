@@ -102,13 +102,21 @@ jobs:
     - name: Generate function-level coverage report
       run: go tool cover -func=coverage.out > coverage-func.txt
 
-    - name: Scan coverage artifacts for security issues
+    - name: Scan coverage artifacts for secrets
       uses: ./.github/actions/security-scan-gitleaks
       with:
         files: 'coverage.out,coverage.html,coverage-func.txt'
         scan-name: 'Security Scan of Coverage Artifacts'
-        trivy-sarif-output: 'coverage-upload-artifacts-trivy.sarif'
         gitleaks-sarif-output: 'coverage-upload-artifacts-gitleaks.sarif'
+
+    - name: Scan coverage artifacts for vulnerabilities
+      uses: ./.github/actions/security-scan-trivy
+      with:
+        scan-type: 'fs'
+        scan-files: 'coverage.out coverage.html coverage-func.txt'
+        trivy-sarif-output: 'coverage-upload-artifacts-trivy.sarif'
+        scan-name: 'Security Scan of Coverage Artifacts'
+        severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
 
     - name: Display function-level coverage
       run: |
