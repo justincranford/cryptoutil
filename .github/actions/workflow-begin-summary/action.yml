@@ -15,6 +15,7 @@ runs:
     - name: Set workflow start time
       shell: bash
       run: |
+        # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass the start time from the begin-summary action to the end-summary action
         echo "WORKFLOW_START_TIME=$(date +%s)" >> $GITHUB_ENV
 
     - name: Workflow begin summary
@@ -27,5 +28,5 @@ runs:
         echo "${{ github.workflow }} ($WORKFLOW_FILE)"
         echo "Job: ${{ inputs.job-name }}"
         echo "Triggered by: ${{ github.event_name }}"
-        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_START_TIME")"
         echo "=========================================="
