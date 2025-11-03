@@ -139,10 +139,10 @@ func TestWorkflowsVariable(t *testing.T) {
 	// This tests the package-level variable initialization
 	assert.NotNil(t, workflowNames, "workflows variable should not be nil")
 
-	// Should have at least some workflows (from the actual .github/workflows/ directory)
-	assert.NotEmpty(t, workflowNames, "workflows variable should not be empty - no workflows found in .github/workflows/")
+	// Note: workflowNames may be empty if .github/workflows/ directory cannot be read
+	// This is expected behavior - no fallback hardcoded list
 
-	// Verify all workflows have empty config structs
+	// Verify all workflows have empty config structs (if any exist)
 	for name, config := range workflowNames {
 		// The config should be an empty struct
 		assert.Equal(t, WorkflowConfig{}, config, "Workflow '%s' should have empty config", name)

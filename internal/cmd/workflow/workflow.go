@@ -101,19 +101,8 @@ func getAvailableWorkflows() (map[string]WorkflowConfig, error) {
 var workflowNames = func() map[string]WorkflowConfig {
 	workflows, err := getAvailableWorkflows()
 	if err != nil {
-		// Fallback to hardcoded list if directory read fails
-		return map[string]WorkflowConfig{
-			"benchmark": {},
-			"coverage":  {},
-			"dast":      {},
-			"e2e":       {},
-			"fuzz":      {},
-			"gitleaks":  {},
-			"load":      {},
-			"quality":   {},
-			"race":      {},
-			"sast":      {},
-		}
+		// Return empty map if directory read fails - no fallback list
+		return make(map[string]WorkflowConfig)
 	}
 
 	return workflows
