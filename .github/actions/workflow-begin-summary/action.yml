@@ -18,7 +18,7 @@ runs:
       run: |
         echo "WORKFLOW_START_TIME=$(date +%s)" >> $GITHUB_ENV
 
-        # Derive workflow file from job name pattern
+        # Derive workflow file name from job name pattern
         WORKFLOW_FILE_NAME=".github/workflows/ci-${{ inputs.job-name }}.yml"
 
         echo "WORKFLOW_FILE_NAME=$WORKFLOW_FILE_NAME" >> $GITHUB_ENV
