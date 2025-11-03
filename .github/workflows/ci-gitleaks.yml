@@ -78,7 +78,7 @@ jobs:
       with:
         files: 'cmd/,internal/,pkg/,scripts/'
         scan-name: 'Repository Secrets Scan'
-        gitleaks-sarif-output: 'repository-gitleaks.sarif'
+        sarif-output-name: 'repository-gitleaks.sarif'
 
     - name: GitLeaks scan summary
       run: |

@@ -11,7 +11,7 @@ inputs:
   scan-name:
     description: 'Output security scan name in SARIF metadata (e.g. Security Scan of Coverage Artifacts)'
     required: true
-  gitleaks-sarif-output:
+  sarif-output-name:
     description: 'Output filename for GitLeaks SARIF results (e.g. gitleaks-files.sarif)'
     required: true
 
@@ -55,7 +55,7 @@ runs:
 
         # Run GitLeaks on specified files
         # Use --no-git to scan files directly without git history
-        gitleaks detect --no-git --verbose --redact --format sarif --output ${{ inputs.gitleaks-sarif-output }} --path .
+        gitleaks detect --no-git --verbose --redact --format sarif --output ${{ inputs.sarif-output-name }} --path .
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
@@ -65,9 +65,9 @@ runs:
     - name: Upload GitLeaks results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v3
       with:
-        sarif_file: ${{ inputs.gitleaks-sarif-output }}
+        sarif_file: ${{ inputs.sarif-output-name }}
         category: "${{ inputs.scan-name }}-gitleaks"
-      if: always() && hashFiles('${{ inputs.gitleaks-sarif-output }}') != ''
+      if: always() && hashFiles('${{ inputs.sarif-output-name }}') != ''
 
     - name: Security scan summary
       shell: bash
@@ -80,10 +80,10 @@ runs:
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        if [ -f "${{ inputs.gitleaks-sarif-output }}" ]; then
-          RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.gitleaks-sarif-output }} 2>/dev/null || echo "0")
+        if [ -f "${{ inputs.sarif-output-name }}" ]; then
+          RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.sarif-output-name }} 2>/dev/null || echo "0")
           echo "### GitLeaks Results" >> $GITHUB_STEP_SUMMARY
-          echo "- SARIF file: \`${{ inputs.gitleaks-sarif-output }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- SARIF file: \`${{ inputs.sarif-output-name }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- Secrets found: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
           echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
         else
