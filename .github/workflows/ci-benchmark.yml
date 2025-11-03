@@ -55,57 +55,58 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Begin Workflow Job
-        uses: ./.github/actions/workflow-job-begin
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-        with:
-          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+    - name: Begin Workflow Job
+      id: begin-workflow-job
+      uses: ./.github/actions/workflow-job-begin
 
-      - name: Set up Go and validate dependencies
-        uses: ./.github/actions/go-setup
-        with:
-          go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
-          go-mod-download: true
-          go-mod-verify: true
-          go-mod-tidy: true
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+        go-mod-download: true
+        go-mod-verify: true
+        go-mod-tidy: true
 
-      - name: Run benchmark tests
-        working-directory: .
-        run: |
-          echo "📊 Running benchmark tests for performance validation..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Benchmark tests completed in: ${DURATION}s"
+    - name: Run benchmark tests
+      working-directory: .
+      run: |
+        echo "📊 Running benchmark tests for performance validation..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        go test -bench=. -benchmem -run=^$ ./internal/common/crypto/... > benchmark-results.txt
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Benchmark tests completed in: ${DURATION}s"
 
-      - name: Display benchmark results
-        run: |
-          echo "## 📊 Benchmark Results" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          cat benchmark-results.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+    - name: Display benchmark results
+      run: |
+        echo "## 📊 Benchmark Results" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        cat benchmark-results.txt >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
-      - name: Upload benchmark results
-        uses: actions/upload-artifact@v5.0.0
-        with:
-          name: benchmark-results
-          path: benchmark-results.txt
-          retention-days: 1
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: benchmark-results
+        path: benchmark-results.txt
+        retention-days: 1
 
-      - name: Benchmark test summary
-        run: |
-          echo "## 📊 Benchmark Testing Results" >> $GITHUB_STEP_SUMMARY
-          echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
-          echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
-          echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
-          echo "- Upload: Results artifact with 1-day retention" >> $GITHUB_STEP_SUMMARY
-          echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY
+    - name: Benchmark test summary
+      run: |
+        echo "## 📊 Benchmark Testing Results" >> $GITHUB_STEP_SUMMARY
+        echo "Performance benchmark tests completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "- Coverage: Key generation and cryptographic operations" >> $GITHUB_STEP_SUMMARY
+        echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
+        echo "- Upload: Results artifact with 1-day retention" >> $GITHUB_STEP_SUMMARY
+        echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY
 
-      - name: Benchmark summary
-        if: always()
-        uses: ./.github/actions/workflow-job-end
+    - name: Benchmark summary
+      if: always()
+      uses: ./.github/actions/workflow-job-end

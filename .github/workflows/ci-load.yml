@@ -79,293 +79,294 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Begin Workflow Job
-        uses: ./.github/actions/workflow-job-begin
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-        with:
-          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+    - name: Begin Workflow Job
+      id: begin-workflow-job
+      uses: ./.github/actions/workflow-job-begin
 
-      - name: Set up Go and validate dependencies
-        uses: ./.github/actions/go-setup
-        with:
-          go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
-          go-mod-download: true
-          go-mod-verify: true
-          go-mod-tidy: true
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+        go-mod-download: true
+        go-mod-verify: true
+        go-mod-tidy: true
 
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: ${{ env.JAVA_VERSION }} # workflow-job-begin sets this env var
-          cache: 'maven'
+    - name: Set up Java
+      uses: actions/setup-java@v5
+      with:
+        distribution: 'temurin'
+        java-version: ${{ steps.begin-workflow-job.outputs.java-version }}
+        cache: 'maven'
 
-      - name: Pre-pull Docker images (parallel)
-        uses: ./.github/actions/docker-images-pull
-        with:
-          images: |
-            golang:1.25.3
-            postgres:18
-            alpine:latest
-            otel/opentelemetry-collector-contrib:latest
-            grafana/otel-lgtm:latest
+    - name: Pre-pull Docker images (parallel)
+      uses: ./.github/actions/docker-images-pull
+      with:
+        images: |
+          golang:1.25.3
+          postgres:18
+          alpine:latest
+          otel/opentelemetry-collector-contrib:latest
+          grafana/otel-lgtm:latest
 
-      - name: Build Docker images
-        uses: ./.github/actions/docker-compose-build
+    - name: Build Docker images
+      uses: ./.github/actions/docker-compose-build
 
-      - name: Start Docker Compose services
-        uses: ./.github/actions/docker-compose-up
+    - name: Start Docker Compose services
+      uses: ./.github/actions/docker-compose-up
 
-      - name: Verify services are ready
-        uses: ./.github/actions/docker-compose-verify
-        with:
-          endpoints: '[{"url": "https://127.0.0.1:8080/ui/swagger/doc.json", "name": "cryptoutil-sqlite"}, {"url": "https://127.0.0.1:8081/ui/swagger/doc.json", "name": "cryptoutil-postgres-1"}, {"url": "https://127.0.0.1:8082/ui/swagger/doc.json", "name": "cryptoutil-postgres-2"}]'
+    - name: Verify services are ready
+      uses: ./.github/actions/docker-compose-verify
+      with:
+        endpoints: '[{"url": "https://127.0.0.1:8080/ui/swagger/doc.json", "name": "cryptoutil-sqlite"}, {"url": "https://127.0.0.1:8081/ui/swagger/doc.json", "name": "cryptoutil-postgres-1"}, {"url": "https://127.0.0.1:8082/ui/swagger/doc.json", "name": "cryptoutil-postgres-2"}]'
 
-      - name: Set load test parameters
-        id: load-params
-        run: |
-          echo "⚙️ Setting load test parameters..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          case "${{ env.LOAD_PROFILE }}" in
-            quick)
-              CLIENTS=10
-              DURATION=30
-              ;;
-            standard)
-              CLIENTS=50
-              DURATION=120
-              ;;
-            stress)
-              CLIENTS=200
-              DURATION=300
-              ;;
-            *)
-              CLIENTS=50
-              DURATION=120
-              ;;
-          esac
+    - name: Set load test parameters
+      id: load-params
+      run: |
+        echo "⚙️ Setting load test parameters..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        case "${{ env.LOAD_PROFILE }}" in
+          quick)
+            CLIENTS=10
+            DURATION=30
+            ;;
+          standard)
+            CLIENTS=50
+            DURATION=120
+            ;;
+          stress)
+            CLIENTS=200
+            DURATION=300
+            ;;
+          *)
+            CLIENTS=50
+            DURATION=120
+            ;;
+        esac
 
-          # Override with manual inputs if provided
-          if [ "${{ env.VIRTUAL_CLIENTS_OVERRIDE }}" != "0" ]; then
-            CLIENTS="${{ env.VIRTUAL_CLIENTS_OVERRIDE }}"
-          fi
-          if [ "${{ env.DURATION_OVERRIDE }}" != "0" ]; then
-            DURATION="${{ env.DURATION_OVERRIDE }}"
-          fi
+        # Override with manual inputs if provided
+        if [ "${{ env.VIRTUAL_CLIENTS_OVERRIDE }}" != "0" ]; then
+          CLIENTS="${{ env.VIRTUAL_CLIENTS_OVERRIDE }}"
+        fi
+        if [ "${{ env.DURATION_OVERRIDE }}" != "0" ]; then
+          DURATION="${{ env.DURATION_OVERRIDE }}"
+        fi
 
-          echo "virtual_clients=$CLIENTS" >> $GITHUB_OUTPUT
-          echo "duration=$DURATION" >> $GITHUB_OUTPUT
+        echo "virtual_clients=$CLIENTS" >> $GITHUB_OUTPUT
+        echo "duration=$DURATION" >> $GITHUB_OUTPUT
 
-          echo "📊 Load test configuration:"
-          echo "  Profile: ${{ env.LOAD_PROFILE }}"
-          echo "  Virtual Clients: $CLIENTS"
-          echo "  Duration: ${DURATION}s"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Load test parameter configuration completed in: ${DURATION}s"
+        echo "📊 Load test configuration:"
+        echo "  Profile: ${{ env.LOAD_PROFILE }}"
+        echo "  Virtual Clients: $CLIENTS"
+        echo "  Duration: ${DURATION}s"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Load test parameter configuration completed in: ${DURATION}s"
 
-      - name: Start infrastructure monitoring
-        run: |
-          echo "📊 Starting infrastructure monitoring..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+    - name: Start infrastructure monitoring
+      run: |
+        echo "📊 Starting infrastructure monitoring..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-          # Create monitoring directory
-          mkdir -p ./load-reports/infrastructure
+        # Create monitoring directory
+        mkdir -p ./load-reports/infrastructure
 
-          # Start background monitoring process
-          {
-            while true; do
-              # Use filesystem-safe timestamp format (no colons for GitHub Actions artifact compatibility)
-              TIMESTAMP=$(date -u +"%Y-%m-%d_%H-%M-%S")
+        # Start background monitoring process
+        {
+          while true; do
+            # Use filesystem-safe timestamp format (no colons for GitHub Actions artifact compatibility)
+            TIMESTAMP=$(date -u +"%Y-%m-%d_%H-%M-%S")
 
-              # Collect Docker stats
-              docker stats --no-stream --format "table {{.Container}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}},{{.NetIO}},{{.BlockIO}}" > "./load-reports/infrastructure/docker-stats-$TIMESTAMP.csv"
+            # Collect Docker stats
+            docker stats --no-stream --format "table {{.Container}},{{.CPUPerc}},{{.MemUsage}},{{.MemPerc}},{{.NetIO}},{{.BlockIO}}" > "./load-reports/infrastructure/docker-stats-$TIMESTAMP.csv"
 
-              # Collect system metrics (use ISO 8601 timestamp in CSV content, not filename)
-              {
-                echo "timestamp,metric,value"
-                TIMESTAMP_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-                echo "$TIMESTAMP_ISO,cpu_percent,$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')"
-                echo "$TIMESTAMP_ISO,mem_used_mb,$(free -m | awk 'NR==2{print $3}')"
-                echo "$TIMESTAMP_ISO,mem_total_mb,$(free -m | awk 'NR==2{print $2}')"
-                echo "$TIMESTAMP_ISO,disk_used_percent,$(df -h / | awk 'NR==2{print $5}' | sed 's/%//')"
-              } >> "./load-reports/infrastructure/system-metrics.csv"
+            # Collect system metrics (use ISO 8601 timestamp in CSV content, not filename)
+            {
+              echo "timestamp,metric,value"
+              TIMESTAMP_ISO=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+              echo "$TIMESTAMP_ISO,cpu_percent,$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')"
+              echo "$TIMESTAMP_ISO,mem_used_mb,$(free -m | awk 'NR==2{print $3}')"
+              echo "$TIMESTAMP_ISO,mem_total_mb,$(free -m | awk 'NR==2{print $2}')"
+              echo "$TIMESTAMP_ISO,disk_used_percent,$(df -h / | awk 'NR==2{print $5}' | sed 's/%//')"
+            } >> "./load-reports/infrastructure/system-metrics.csv"
 
-              sleep 5
-            done
-          } &
+            sleep 5
+          done
+        } &
 
-          MONITOR_PID=$!
-          echo "MONITOR_PID=$MONITOR_PID" >> $GITHUB_ENV
-          echo "✅ Infrastructure monitoring started (PID: $MONITOR_PID)"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Infrastructure monitoring startup completed in: ${DURATION}s"
+        MONITOR_PID=$!
+        echo "MONITOR_PID=$MONITOR_PID" >> $GITHUB_ENV
+        echo "✅ Infrastructure monitoring started (PID: $MONITOR_PID)"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Infrastructure monitoring startup completed in: ${DURATION}s"
 
-      - name: Run Gatling load tests
-        working-directory: ./test/load
-        run: |
-          echo "🚀 Running Gatling load tests..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          # Set environment variable to help with debugging
-          export LOAD_DEBUG=1
+    - name: Run Gatling load tests
+      working-directory: ./test/load
+      run: |
+        echo "🚀 Running Gatling load tests..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        # Set environment variable to help with debugging
+        export LOAD_DEBUG=1
 
-          # Configure JVM options for Gatling
-          export MAVEN_OPTS="-Xmx2g -Xms1g"
+        # Configure JVM options for Gatling
+        export MAVEN_OPTS="-Xmx2g -Xms1g"
 
-          # Run all simulations with configured parameters
-          if ./mvnw gatling:test \
-            -Dprofile=${{ env.LOAD_PROFILE }} \
-            -Dport=8080 \
-            -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
-            -DdurationSeconds=${{ steps.load-params.outputs.duration }} \
-            -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"; then
-            echo "✅ Gatling load tests completed successfully"
-          else
-            echo "❌ Gatling load tests failed"
-            exit 1
-          fi
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Gatling load tests completed in: ${DURATION}s"
+        # Run all simulations with configured parameters
+        if ./mvnw gatling:test \
+          -Dprofile=${{ env.LOAD_PROFILE }} \
+          -Dport=8080 \
+          -Dvirtualclients=${{ steps.load-params.outputs.virtual_clients }} \
+          -DdurationSeconds=${{ steps.load-params.outputs.duration }} \
+          -Dgatling.runDescription="CI Load Test - Profile: ${{ env.LOAD_PROFILE }}"; then
+          echo "✅ Gatling load tests completed successfully"
+        else
+          echo "❌ Gatling load tests failed"
+          exit 1
+        fi
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Gatling load tests completed in: ${DURATION}s"
 
-      - name: Stop infrastructure monitoring
-        if: always()
-        run: |
-          echo "🛑 Stopping infrastructure monitoring..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          if [ ! -z "$MONITOR_PID" ]; then
-            echo "🛑 Stopping infrastructure monitoring (PID: $MONITOR_PID)..."
-            kill $MONITOR_PID 2>/dev/null || true
-            wait $MONITOR_PID 2>/dev/null || true
-            echo "✅ Infrastructure monitoring stopped"
-          fi
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Infrastructure monitoring shutdown completed in: ${DURATION}s"
+    - name: Stop infrastructure monitoring
+      if: always()
+      run: |
+        echo "🛑 Stopping infrastructure monitoring..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        if [ ! -z "$MONITOR_PID" ]; then
+          echo "🛑 Stopping infrastructure monitoring (PID: $MONITOR_PID)..."
+          kill $MONITOR_PID 2>/dev/null || true
+          wait $MONITOR_PID 2>/dev/null || true
+          echo "✅ Infrastructure monitoring stopped"
+        fi
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Infrastructure monitoring shutdown completed in: ${DURATION}s"
 
-      - name: Collect service logs
-        if: always()
-        run: |
-          echo "📋 Collecting service logs..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          mkdir -p ./load-reports/service-logs
+    - name: Collect service logs
+      if: always()
+      run: |
+        echo "📋 Collecting service logs..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        mkdir -p ./load-reports/service-logs
 
-          # Collect logs from all cryptoutil services
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./load-reports/service-logs/cryptoutil-sqlite.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./load-reports/service-logs/cryptoutil-postgres-1.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./load-reports/service-logs/cryptoutil-postgres-2.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
+        # Collect logs from all cryptoutil services
+        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./load-reports/service-logs/cryptoutil-sqlite.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./load-reports/service-logs/cryptoutil-postgres-1.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./load-reports/service-logs/cryptoutil-postgres-2.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs postgres > ./load-reports/service-logs/postgres.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./load-reports/service-logs/otel-collector.log 2>&1 || true
 
-          echo "✅ Service logs collected"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Service log collection completed in: ${DURATION}s"
+        echo "✅ Service logs collected"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Service log collection completed in: ${DURATION}s"
 
-      - name: Generate load test summary
-        if: always()
-        run: |
-          echo "📊 Generating load test summary..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+    - name: Generate load test summary
+      if: always()
+      run: |
+        echo "📊 Generating load test summary..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-          cat > ./load-reports/load-test-summary.md << 'EOF'
-          # Load Test Summary
+        cat > ./load-reports/load-test-summary.md << 'EOF'
+        # Load Test Summary
 
-          **Profile:** ${{ env.LOAD_PROFILE }}
-          **Virtual Clients:** ${{ steps.load-params.outputs.virtual_clients }}
-          **Duration:** ${{ steps.load-params.outputs.duration }}s
-          **Triggered by:** ${{ github.event_name }}
-          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        **Profile:** ${{ env.LOAD_PROFILE }}
+        **Virtual Clients:** ${{ steps.load-params.outputs.virtual_clients }}
+        **Duration:** ${{ steps.load-params.outputs.duration }}s
+        **Triggered by:** ${{ github.event_name }}
+        **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
-          ## Test Configuration
+        ## Test Configuration
 
-          | Parameter | Value |
-          |-----------|-------|
-          | Load Profile | ${{ env.LOAD_PROFILE }} |
-          | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
-          | Test Duration | ${{ steps.load-params.outputs.duration }}s |
-          | Target Services | cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2 |
+        | Parameter | Value |
+        |-----------|-------|
+        | Load Profile | ${{ env.LOAD_PROFILE }} |
+        | Virtual Clients | ${{ steps.load-params.outputs.virtual_clients }} |
+        | Test Duration | ${{ steps.load-params.outputs.duration }}s |
+        | Target Services | cryptoutil-sqlite, cryptoutil-postgres-1, cryptoutil-postgres-2 |
 
-          ## Services Tested
+        ## Services Tested
 
-          - **cryptoutil-sqlite** - https://127.0.0.1:8080/service/api/v1
-          - **cryptoutil-postgres-1** - https://127.0.0.1:8081/service/api/v1
-          - **cryptoutil-postgres-2** - https://127.0.0.1:8082/service/api/v1
+        - **cryptoutil-sqlite** - https://127.0.0.1:8080/service/api/v1
+        - **cryptoutil-postgres-1** - https://127.0.0.1:8081/service/api/v1
+        - **cryptoutil-postgres-2** - https://127.0.0.1:8082/service/api/v1
 
-          ## Artifacts Generated
+        ## Artifacts Generated
 
-          - Gatling HTML reports: `test/load/target/gatling/`
-          - Infrastructure metrics: `load-reports/infrastructure/`
-          - Service logs: `load-reports/service-logs/`
+        - Gatling HTML reports: `test/load/target/gatling/`
+        - Infrastructure metrics: `load-reports/infrastructure/`
+        - Service logs: `load-reports/service-logs/`
 
-          ## Results
+        ## Results
 
-          See Gatling HTML reports in artifacts for detailed performance analysis.
+        See Gatling HTML reports in artifacts for detailed performance analysis.
 
-          EOF
+        EOF
 
-          echo "✅ Load test summary generated"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Load test summary generation completed in: ${DURATION}s"
+        echo "✅ Load test summary generated"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Load test summary generation completed in: ${DURATION}s"
 
-      - name: Stop services
-        if: always()
-        uses: ./.github/actions/docker-compose-down
+    - name: Stop services
+      if: always()
+      uses: ./.github/actions/docker-compose-down
 
-      - name: Upload Gatling reports
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: gatling-reports-${{ env.LOAD_PROFILE }}
-          path: test/load/target/gatling/
-          retention-days: 1
+    - name: Upload Gatling reports
+      if: always()
+      uses: actions/upload-artifact@v5
+      with:
+        name: gatling-reports-${{ env.LOAD_PROFILE }}
+        path: test/load/target/gatling/
+        retention-days: 1
 
-      - name: Upload infrastructure metrics
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: infrastructure-metrics-${{ env.LOAD_PROFILE }}
-          path: load-reports/infrastructure/
-          retention-days: 1
+    - name: Upload infrastructure metrics
+      if: always()
+      uses: actions/upload-artifact@v5
+      with:
+        name: infrastructure-metrics-${{ env.LOAD_PROFILE }}
+        path: load-reports/infrastructure/
+        retention-days: 1
 
-      - name: Upload service logs
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: service-logs-${{ env.LOAD_PROFILE }}
-          path: load-reports/service-logs/
-          retention-days: 1
+    - name: Upload service logs
+      if: always()
+      uses: actions/upload-artifact@v5
+      with:
+        name: service-logs-${{ env.LOAD_PROFILE }}
+        path: load-reports/service-logs/
+        retention-days: 1
 
-      - name: Upload load test summary
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: load-test-summary-${{ env.LOAD_PROFILE }}
-          path: load-reports/load-test-summary.md
-          retention-days: 1
+    - name: Upload load test summary
+      if: always()
+      uses: actions/upload-artifact@v5
+      with:
+        name: load-test-summary-${{ env.LOAD_PROFILE }}
+        path: load-reports/load-test-summary.md
+        retention-days: 1
 
-      - name: Load test summary
-        if: always()
-        run: |
-          echo "## 🚀 Load Testing Results" >> $GITHUB_STEP_SUMMARY
-          cat ./load-reports/load-test-summary.md >> $GITHUB_STEP_SUMMARY
+    - name: Load test summary
+      if: always()
+      run: |
+        echo "## 🚀 Load Testing Results" >> $GITHUB_STEP_SUMMARY
+        cat ./load-reports/load-test-summary.md >> $GITHUB_STEP_SUMMARY
 
-      - name: Load summary
-        if: always()
-        uses: ./.github/actions/workflow-job-end
+    - name: Load summary
+      if: always()
+      uses: ./.github/actions/workflow-job-end

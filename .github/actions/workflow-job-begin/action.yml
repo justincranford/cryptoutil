@@ -9,6 +9,14 @@ description: 'Add a standardized beginning summary to GitHub Actions workflow ru
 
 # No inputs required - uses built-in GITHUB_WORKFLOW and GITHUB_JOB environment variables
 
+outputs:
+  go-version:
+    description: "Go version to use"
+    value: ${{ steps.set-outputs.outputs.go-version }}
+  java-version:
+    description: "Java version to use"
+    value: ${{ steps.set-outputs.outputs.java-version }}
+
 runs:
   using: 'composite'
   steps:
@@ -17,11 +25,12 @@ runs:
       run: |
         echo "WORKFLOW_JOB_START_TIME=$(date +%s)" >> $GITHUB_ENV
 
-    - name: Set global environment variables
+    - name: Set global outputs
+      id: set-outputs
       shell: bash
       run: |
-        echo "GO_VERSION=1.25.3" >> $GITHUB_ENV
-        echo "JAVA_VERSION=21" >> $GITHUB_ENV
+        echo "go-version=1.25.3" >> $GITHUB_OUTPUT
+        echo "java-version=21" >> $GITHUB_OUTPUT
 
     - name: Print workflow job begin summary
       shell: bash

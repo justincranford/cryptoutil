@@ -55,95 +55,96 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Begin Workflow Job
-        uses: ./.github/actions/workflow-job-begin
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
-      - name: Checkout code
-        uses: actions/checkout@v5.0.0
-        with:
-          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+    - name: Begin Workflow Job
+      id: begin-workflow-job
+      uses: ./.github/actions/workflow-job-begin
 
-      - name: Set up Go and validate dependencies
-        uses: ./.github/actions/go-setup
-        with:
-          go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
-          go-mod-download: true
-          go-mod-verify: true
-          go-mod-tidy: true
+    - name: Set up Go and validate dependencies
+      uses: ./.github/actions/go-setup
+      with:
+        go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
+        go-mod-download: true
+        go-mod-verify: true
+        go-mod-tidy: true
 
-      - name: Pre-pull Docker images (parallel)
-        uses: ./.github/actions/docker-images-pull
-        with:
-          images: |
-            golang:1.25.3
-            postgres:18
-            alpine:latest
-            otel/opentelemetry-collector-contrib:latest
-            grafana/otel-lgtm:latest
+    - name: Pre-pull Docker images (parallel)
+      uses: ./.github/actions/docker-images-pull
+      with:
+        images: |
+          golang:1.25.3
+          postgres:18
+          alpine:latest
+          otel/opentelemetry-collector-contrib:latest
+          grafana/otel-lgtm:latest
 
-      - name: Build Docker images
-        uses: ./.github/actions/docker-compose-build
+    - name: Build Docker images
+      uses: ./.github/actions/docker-compose-build
 
-      - name: Run E2E tests
-        run: |
-          echo "🧪 Running end-to-end tests..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          # Set environment variable to help with debugging
-          export E2E_DEBUG=1
+    - name: Run E2E tests
+      run: |
+        echo "🧪 Running end-to-end tests..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        # Set environment variable to help with debugging
+        export E2E_DEBUG=1
 
-          # Run the tests and capture output
-          if go test -tags=e2e -v -timeout=30m ./internal/test/e2e/ 2>&1; then
-            echo "✅ E2E tests completed successfully"
-          else
-            echo "❌ E2E tests failed"
-            exit 1
-          fi
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ E2E tests completed in: ${DURATION}s"
+        # Run the tests and capture output
+        if go test -tags=e2e -v -timeout=30m ./internal/test/e2e/ 2>&1; then
+          echo "✅ E2E tests completed successfully"
+        else
+          echo "❌ E2E tests failed"
+          exit 1
+        fi
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ E2E tests completed in: ${DURATION}s"
 
-      - name: Collect service logs
-        if: always()
-        run: |
-          echo "📋 Collecting service logs..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          mkdir -p ./workflow-reports/e2e
+    - name: Collect service logs
+      if: always()
+      run: |
+        echo "📋 Collecting service logs..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        mkdir -p ./workflow-reports/e2e
 
-          # Collect logs from all cryptoutil services
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./workflow-reports/e2e/cryptoutil-sqlite.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./workflow-reports/e2e/cryptoutil-postgres-1.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./workflow-reports/e2e/cryptoutil-postgres-2.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs postgres > ./workflow-reports/e2e/postgres.log 2>&1 || true
-          docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
+        # Collect logs from all cryptoutil services
+        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-sqlite > ./workflow-reports/e2e/cryptoutil-sqlite.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-1 > ./workflow-reports/e2e/cryptoutil-postgres-1.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs cryptoutil-postgres-2 > ./workflow-reports/e2e/cryptoutil-postgres-2.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs postgres > ./workflow-reports/e2e/postgres.log 2>&1 || true
+        docker compose -f ./deployments/compose/compose.yml logs opentelemetry-collector-contrib > ./workflow-reports/e2e/otel-collector.log 2>&1 || true
 
-          echo "✅ Service logs collected"
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Service log collection completed in: ${DURATION}s"
+        echo "✅ Service logs collected"
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Service log collection completed in: ${DURATION}s"
 
-      - name: Display container logs
-        if: always()
-        uses: ./.github/actions/docker-compose-logs
-        with:
-          log-directory: ./workflow-reports/e2e
+    - name: Display container logs
+      if: always()
+      uses: ./.github/actions/docker-compose-logs
+      with:
+        log-directory: ./workflow-reports/e2e
 
-      - name: Upload container logs
-        if: always()
-        uses: actions/upload-artifact@v5.0.0
-        with:
-          name: e2e-container-logs-${{ github.run_id }}
-          path: ./workflow-reports/e2e/
-          if-no-files-found: ignore
-          retention-days: 1
+    - name: Upload container logs
+      if: always()
+      uses: actions/upload-artifact@v5.0.0
+      with:
+        name: e2e-container-logs-${{ github.run_id }}
+        path: ./workflow-reports/e2e/
+        if-no-files-found: ignore
+        retention-days: 1
 
-      - name: E2E test summary
-        if: always()
-        uses: ./.github/actions/workflow-job-end
+    - name: E2E test summary
+      if: always()
+      uses: ./.github/actions/workflow-job-end
 
-      - name: Stop services
-        if: always()
-        uses: ./.github/actions/docker-compose-down
+    - name: Stop services
+      if: always()
+      uses: ./.github/actions/docker-compose-down

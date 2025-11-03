@@ -57,18 +57,19 @@ jobs:
     name: Code Quality
     runs-on: ubuntu-latest
     steps:
-    - name: Begin Workflow Job
-      uses: ./.github/actions/workflow-job-begin
-
     - name: Checkout code
       uses: actions/checkout@v5.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
+    - name: Begin Workflow Job
+      id: begin-workflow-job
+      uses: ./.github/actions/workflow-job-begin
+
     - name: Set up Go and validate dependencies
       uses: ./.github/actions/go-setup
       with:
-        go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
+        go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
         go-mod-download: true
         go-mod-verify: true
         go-mod-tidy: true
@@ -92,18 +93,19 @@ jobs:
       packages: write
       security-events: write
     steps:
-      - name: Begin Workflow Job
-        uses: ./.github/actions/workflow-job-begin
-
       - name: Checkout code
         uses: actions/checkout@v5.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+
       - name: Set up Go and validate dependencies
         uses: ./.github/actions/go-setup
         with:
-          go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
           go-mod-download: true
           go-mod-verify: true
           go-mod-tidy: true
@@ -326,18 +328,19 @@ jobs:
     name: Generate SBOM
     runs-on: ubuntu-latest
     steps:
-      - name: Begin Workflow Job
-        uses: ./.github/actions/workflow-job-begin
-
       - name: Checkout code
         uses: actions/checkout@v5.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+
       - name: Set up Go and validate dependencies
         uses: ./.github/actions/go-setup
         with:
-          go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
           go-mod-download: true
           go-mod-verify: true
           go-mod-tidy: true
@@ -394,18 +397,19 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
-      - name: Begin Workflow Job
-        uses: ./.github/actions/workflow-job-begin
-
       - name: Checkout code
         uses: actions/checkout@v5.0.0
         with:
           sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+
       - name: Set up Go and validate dependencies
         uses: ./.github/actions/go-setup
         with:
-          go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
+          go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
           go-mod-download: true
           go-mod-verify: true
           go-mod-tidy: true

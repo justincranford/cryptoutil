@@ -134,13 +134,14 @@ jobs:
       actions: read
 
     steps:
-    - name: Begin Workflow Job
-      uses: ./.github/actions/workflow-job-begin
-
     - name: Checkout code
       uses: actions/checkout@v5.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+    - name: Begin Workflow Job
+      id: begin-workflow-job
+      uses: ./.github/actions/workflow-job-begin
 
     - name: Setup directories and Nuclei templates version
       id: nuclei-version
@@ -202,7 +203,7 @@ jobs:
     - name: Set up Go and validate dependencies
       uses: ./.github/actions/go-setup
       with:
-        go-version: ${{ env.GO_VERSION }} # workflow-job-begin sets this env var
+        go-version: ${{ steps.begin-workflow-job.outputs.go-version }}
         go-mod-download: true
         go-mod-verify: true
         go-mod-tidy: false  # DAST builds/tests but skips tidy to avoid modifying go.mod/go.sum during scans

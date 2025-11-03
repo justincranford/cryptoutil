@@ -58,13 +58,14 @@ jobs:
       actions: read
 
     steps:
-    - name: Begin Workflow Job
-      uses: ./.github/actions/workflow-job-begin
-
     - name: Checkout code
       uses: actions/checkout@v5.0.0
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+    - name: Begin Workflow Job
+      id: begin-workflow-job
+      uses: ./.github/actions/workflow-job-begin
 
     - name: Scan repository for secrets
       uses: ./.github/actions/security-scan-gitleaks
