@@ -12,17 +12,42 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass variables to workflow-end-summary action
+    - name: Set workflow end environment variables
+      shell: bash
+      run: |
+        if [ "$WORKFLOW_START_TIME" == "" ]; then
+          echo "::error::WORKFLOW_START_TIME is not set. Ensure that workflow-begin-summary action is used before this action."
+          exit 1
+        elif [ "$WORKFLOW_FILE_NAME" == "" ]; then
+          echo "::error::WORKFLOW_FILE_NAME is not set. Ensure that workflow-begin-summary action is used before this action."
+          exit 1
+        fi
+
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - WORKFLOW_START_TIME))
+        FORMATTED_DURATION="$(printf '%dm %ds' $((DURATION/60)) $((DURATION%60)))"
+
+        echo "END_TIME=$END_TIME" >> $GITHUB_ENV
+        echo "DURATION=$DURATION" >> $GITHUB_ENV
+        echo "FORMATTED_DURATION=$FORMATTED_DURATION" >> $GITHUB_ENV
+
     - name: Workflow end summary
       shell: bash
       run: |
+        echo "=========================================="
+        echo "${{ github.workflow }} ($WORKFLOW_FILE_NAME)"
+        echo "Job: ${{ inputs.job-name }}"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_START_TIME")"
+        echo "End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$END_TIME")"
+        echo "Duration: $FORMATTED_DURATION"
+        echo "=========================================="
+
         echo "## ${{ inputs.job-name }} Results" >> $GITHUB_STEP_SUMMARY
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_START_TIME")"
+        echo "📅 Duration: $FORMATTED_DURATION" >> $GITHUB_STEP_SUMMARY
         if [ "${{ job.status }}" == "success" ]; then
-          echo "✅ ${{ inputs.job-name }} completed successfully." >> $GITHUB_STEP_SUMMARY
+          echo "📊 Status: ✅ Success" >> $GITHUB_STEP_SUMMARY
         else
-          echo "❌ ${{ inputs.job-name }} failed." >> $GITHUB_STEP_SUMMARY
+          echo "📊 Status: ❌ Failed" >> $GITHUB_STEP_SUMMARY
         fi
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - WORKFLOW_START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ ${{ inputs.job-name }} completed in: ${DURATION}s"
