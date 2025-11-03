@@ -1,6 +1,10 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
+# NOTE: This action works in tandem with workflow-end-summary.
+# Changes to environment variables or naming conventions here must be reflected in workflow-end-summary.
+# Both actions should be updated together to maintain consistency.
+
 name: 'workflow-begin-summary'
 description: 'Add a standardized beginning summary to GitHub Actions workflow runs'
 

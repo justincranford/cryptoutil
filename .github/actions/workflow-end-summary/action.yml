@@ -1,6 +1,10 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
+# NOTE: This action depends on workflow-begin-summary being run first.
+# It expects WORKFLOW_START_TIME and WORKFLOW_FILE_NAME environment variables to be set.
+# Changes to environment variables or naming conventions must be synchronized between both actions.
+
 name: 'workflow-end-summary'
 description: 'Add a standardized summary to GitHub Actions workflow runs'
 
@@ -26,7 +30,15 @@ runs:
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - WORKFLOW_START_TIME))
-        FORMATTED_DURATION="$(printf '%dm %ds' $((DURATION/60)) $((DURATION%60)))"
+
+        # Format duration more robustly (handles seconds-only durations better)
+        MINUTES=$((DURATION / 60))
+        SECONDS=$((DURATION % 60))
+        if [ $MINUTES -gt 0 ]; then
+          FORMATTED_DURATION="${MINUTES}m ${SECONDS}s"
+        else
+          FORMATTED_DURATION="${SECONDS}s"
+        fi
 
         echo "END_TIME=$END_TIME" >> $GITHUB_ENV
         echo "DURATION=$DURATION" >> $GITHUB_ENV
@@ -50,4 +62,8 @@ runs:
           echo "📊 Status: ✅ Success" >> $GITHUB_STEP_SUMMARY
         else
           echo "📊 Status: ❌ Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Troubleshooting" >> $GITHUB_STEP_SUMMARY
+          echo "- Check the job logs above for detailed error messages" >> $GITHUB_STEP_SUMMARY
+          echo "- Review the workflow run at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
         fi
