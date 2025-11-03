@@ -149,12 +149,7 @@ jobs:
         if: always()
         uses: ./.github/actions/workflow-end-summary
         with:
-          workflow-name: ${{ github.workflow }}
-          job-name: e2e
-          operation-name: 'End-to-End Testing'
-          success-message: '✅ End-to-end tests completed successfully.'
-          failure-message: '❌ End-to-end tests failed.'
-          emoji: '🧪'
+          job-name: 'e2e'
 
       - name: Stop services
         if: always()

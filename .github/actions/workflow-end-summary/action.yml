@@ -5,27 +5,9 @@ name: 'workflow-end-summary'
 description: 'Add a standardized summary to GitHub Actions workflow runs'
 
 inputs:
-  workflow-name:
-    description: 'Name of the workflow (e.g., "CI - Coverage Collection")'
-    required: true
   job-name:
-    description: 'Name of the job (e.g., "coverage", "e2e")'
+    description: 'Name of the job (e.g., "e2e", "coverage", "gitleaks")'
     required: true
-  operation-name:
-    description: 'Name of the operation being summarized (e.g., "Coverage Collection", "End-to-End Testing")'
-    required: true
-  success-message:
-    description: 'Message to display on success (e.g., "Coverage collection completed successfully.")'
-    required: true
-  failure-message:
-    description: 'Message to display on failure (e.g., "Coverage collection failed.")'
-    required: true
-  emoji:
-    description: 'Emoji to use in the summary header (e.g., "📊", "🧪")'
-    required: true
-  additional-info:
-    description: 'Additional information to include in the summary (optional)'
-    required: false
 
 runs:
   using: 'composite'
@@ -33,16 +15,18 @@ runs:
     - name: Workflow end summary
       shell: bash
       run: |
-        echo "## ${{ inputs.emoji }} ${{ inputs.operation-name }} Results" >> $GITHUB_STEP_SUMMARY
+        # Derive operation name from job name (capitalize first letter)
+        OPERATION_NAME="$(echo ${{ inputs.job-name }} | sed 's/.*/\u&/')"
+
+        echo "## $OPERATION_NAME Results" >> $GITHUB_STEP_SUMMARY
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         if [ "${{ job.status }}" == "success" ]; then
-          echo "${{ inputs.success-message }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ ${{ inputs.job-name }} completed successfully." >> $GITHUB_STEP_SUMMARY
         else
-          echo "${{ inputs.failure-message }}" >> $GITHUB_STEP_SUMMARY
+          echo "❌ ${{ inputs.job-name }} failed." >> $GITHUB_STEP_SUMMARY
         fi
-        ${{ inputs.additional-info }}
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ ${{ inputs.operation-name }} summary completed in: ${DURATION}s"
+        echo "⏱️ $OPERATION_NAME summary completed in: ${DURATION}s"

@@ -78,13 +78,4 @@ jobs:
     - name: GitLeaks scan summary
       uses: ./.github/actions/workflow-end-summary
       with:
-        workflow-name: ${{ github.workflow }}
-        job-name: gitleaks
-        operation-name: 'GitLeaks Secrets Scan'
-        success-message: 'GitLeaks secrets scanning completed successfully.'
-        failure-message: 'GitLeaks secrets scanning failed.'
-        emoji: '🔍'
-        additional-info: |
-          echo "- Target: Repository source code (cmd/, internal/, pkg/, scripts/)" >> $GITHUB_STEP_SUMMARY
-          echo "- Output: SARIF report uploaded to GitHub Security tab" >> $GITHUB_STEP_SUMMARY
-          echo "- Findings: Any detected secrets will appear in the Security tab" >> $GITHUB_STEP_SUMMARY
+        job-name: 'gitleaks'
