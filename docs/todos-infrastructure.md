@@ -77,18 +77,6 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
 - **Expected Outcome**: Reliable networking in containerized environments with proper IPv4/IPv6 loopback support
 - **Priority**: Medium - Container networking reliability
 
-### Task INF8: Use HTTPS 127.0.0.1:9090 for Admin APIs
-- **Description**: Ensure admin APIs (shutdown, livez, readyz) are accessed via private server HTTPS 127.0.0.1:9090, not public server
-- **Current State**: INCOMPLETE - E2E tests check public service endpoints instead of private admin endpoints
-- **Action Items**:
-  - ❌ Update e2e tests to check readiness on private server URLs (9090) (NEEDS WORK)
-  - ✅ Update documentation to show correct admin API endpoints (DONE - README shows https://localhost:9090)
-  - ✅ Ensure health checks use private server endpoints (DONE - compose.yml uses 127.0.0.1:9090)
-  - ✅ Remove admin API routes from public server if accidentally added (DONE - admin routes only on private server)
-- **Files**: `internal/test/e2e/e2e_test.go`, documentation, health check scripts
-- **Expected Outcome**: Admin APIs properly isolated to private server
-- **Priority**: High - API security and correct architecture
-
 ### Task INF9: Add /admin/v1 Prefix to Private Admin APIs
 - **Description**: Add configurable /admin/v1 prefix to private admin APIs (shutdown, livez, readyz) on HTTPS 127.0.0.1:9090
 - **Current State**: Admin APIs use root paths (/shutdown, /livez, /readyz)
@@ -101,19 +89,6 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
 - **Files**: `internal/common/config/config.go`, `internal/server/application/application_listener.go`, `internal/test/e2e/e2e_test.go`, documentation
 - **Expected Outcome**: Properly prefixed admin APIs with configurable context path
 - **Priority**: Medium - API organization and consistency
-
-### Task INF11: Regular GitHub Actions Version Updates
-- **Description**: Keep workflow actions updated (e.g., v4→v5 transitions) to maintain compatibility
-- **Current State**: Actions are periodically updated but not systematically tracked
-- **Action Items**:
-  - Monitor GitHub Actions releases for new versions
-  - Update action versions in workflows when new versions are stable
-  - Test workflow compatibility after updates
-  - Update documentation examples with latest action versions
-- **Files**: `.github/workflows/*.yml`, workflow documentation
-- **Expected Outcome**: Workflows use latest stable action versions
-- **Priority**: LOW - Maintenance and compatibility
-- **Timeline**: Ongoing maintenance
 
 ---
 

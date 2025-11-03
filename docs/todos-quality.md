@@ -19,8 +19,6 @@
   - `internal/server/application/application_listener.go` - Multiple TODOs:
     - Line 54: "TODO Add separate timeouts for different shutdown phases (drain, force close, etc.)"
     - Line 93: "TODO Only use InsecureSkipVerify for DevMode"
-    - Line 200: "TODO Limit this to Swagger GET APIs, not Swagger UI static content"
-    - Line 239: "TODO Disable Swagger UI in production environments (check settings.DevMode or add settings.Environment)"
     - Line 240: "TODO Add authentication middleware for Swagger UI access"
 - **Action Items**:
   - Review each TODO comment for relevance and priority
