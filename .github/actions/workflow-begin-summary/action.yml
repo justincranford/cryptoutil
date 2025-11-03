@@ -12,20 +12,22 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Set workflow start time
+    # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass variables to workflow-end-summary action
+    - name: Set workflow begin environment variables
       shell: bash
       run: |
-        # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass the start time from the begin-summary action to the end-summary action
         echo "WORKFLOW_START_TIME=$(date +%s)" >> $GITHUB_ENV
 
-    - name: Workflow begin summary
+        # Derive workflow file from job name pattern
+        WORKFLOW_FILE_NAME=".github/workflows/ci-${{ inputs.job-name }}.yml"
+
+        echo "WORKFLOW_FILE_NAME=$WORKFLOW_FILE_NAME" >> $GITHUB_ENV
+
+    - name: Print workflow begin summary
       shell: bash
       run: |
-        # Derive workflow file from job name pattern
-        WORKFLOW_FILE=".github/workflows/ci-${{ inputs.job-name }}.yml"
-
         echo "=========================================="
-        echo "${{ github.workflow }} ($WORKFLOW_FILE)"
+        echo "${{ github.workflow }} ($WORKFLOW_FILE_NAME)"
         echo "Job: ${{ inputs.job-name }}"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_START_TIME")"
