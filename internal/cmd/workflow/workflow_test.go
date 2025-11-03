@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +17,7 @@ func TestGetAvailableWorkflows(t *testing.T) {
 	workflowsDir := filepath.Join(tempDir, ".github", "workflows")
 
 	// Create the workflows directory
-	err := os.MkdirAll(workflowsDir, 0o755)
+	err := os.MkdirAll(workflowsDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Failed to create workflows directory")
 
 	// Create some test workflow files
@@ -32,14 +34,14 @@ func TestGetAvailableWorkflows(t *testing.T) {
 	for _, filename := range testFiles {
 		filePath := filepath.Join(workflowsDir, filename)
 
-		err := os.WriteFile(filePath, []byte("name: Test Workflow"), 0o600)
+		err := os.WriteFile(filePath, []byte("name: Test Workflow"), cryptoutilMagic.FilePermOwnerReadWriteOnly)
 		require.NoError(t, err, "Failed to create test file %s", filename)
 	}
 
 	// Create a subdirectory (should be ignored)
 	subDir := filepath.Join(workflowsDir, "subdir")
 
-	err = os.MkdirAll(subDir, 0o755)
+	err = os.MkdirAll(subDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Failed to create subdirectory")
 
 	// Change to the temp directory to test the function
@@ -108,7 +110,7 @@ func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
 	tempDir := t.TempDir()
 	workflowsDir := filepath.Join(tempDir, ".github", "workflows")
 
-	err := os.MkdirAll(workflowsDir, 0o755)
+	err := os.MkdirAll(workflowsDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
 	require.NoError(t, err, "Failed to create workflows directory")
 
 	// Change to the temp directory

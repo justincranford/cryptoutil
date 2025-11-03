@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -64,41 +66,6 @@ type ExecutionSummary struct {
 	OutputDir     string
 	CombinedLog   string
 }
-
-// ANSI color codes for console output.
-const (
-	colorReset  = "\033[0m"
-	colorRed    = "\033[31m"
-	colorGreen  = "\033[32m"
-	colorYellow = "\033[33m"
-	colorCyan   = "\033[36m"
-
-	// Status constants.
-	statusSuccess = "✅ SUCCESS"
-	statusFailed  = "❌ FAILED"
-	taskSuccess   = "SUCCESS"
-	taskFailed    = "FAILED"
-
-	// Workflow names.
-	workflowNameDAST = "dast"
-	workflowNameLoad = "load"
-
-	// Event types.
-	eventTypePush             = "push"
-	eventTypeWorkflowDispatch = "workflow_dispatch"
-
-	// File permissions.
-	filePermissions = 0o644
-	dirPermissions  = 0o755
-
-	// Layout constants.
-	lineWidth         = 80
-	maxErrorDisplay   = 20
-	maxWarningDisplay = 10
-
-	// Memory conversion constants.
-	bytesPerMB = 1024 * 1024
-)
 
 // getAvailableWorkflows returns a map of available workflows by reading ci-*.yml files from .github/workflows/.
 func getAvailableWorkflows() (map[string]WorkflowConfig, error) {
@@ -165,7 +132,7 @@ func Run(args []string) int {
 	showList := fs.Bool("list", false, "List available workflows and exit")
 
 	if err := fs.Parse(args); err != nil {
-		fmt.Fprintf(os.Stderr, "%sError parsing flags: %v%s\n", colorRed, err, colorReset)
+		fmt.Fprintf(os.Stderr, "%sError parsing flags: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 
 		return 1
 	}
@@ -179,7 +146,7 @@ func Run(args []string) int {
 
 	// Validate workflow names.
 	if *workflowNames == "" {
-		fmt.Fprintf(os.Stderr, "%sError: No workflows specified. Use -workflows flag.%s\n", colorRed, colorReset)
+		fmt.Fprintf(os.Stderr, "%sError: No workflows specified. Use -workflows flag.%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
 		fmt.Fprintf(os.Stderr, "Use -list to see available workflows.\n")
 
 		return 1
@@ -187,7 +154,7 @@ func Run(args []string) int {
 
 	selectedWorkflows := parseWorkflowNames(*workflowNames)
 	if len(selectedWorkflows) == 0 {
-		fmt.Fprintf(os.Stderr, "%sError: No valid workflows specified.%s\n", colorRed, colorReset)
+		fmt.Fprintf(os.Stderr, "%sError: No valid workflows specified.%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
 
 		return 1
 	}
@@ -201,16 +168,16 @@ func Run(args []string) int {
 	}
 
 	// Setup output directory.
-	if err := os.MkdirAll(*outputDir, dirPermissions); err != nil {
-		fmt.Fprintf(os.Stderr, "%sError creating output directory: %v%s\n", colorRed, err, colorReset)
+	if err := os.MkdirAll(*outputDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute); err != nil {
+		fmt.Fprintf(os.Stderr, "%sError creating output directory: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 
 		return 1
 	}
 
 	// Open combined log file.
-	combinedLog, err := os.OpenFile(summary.CombinedLog, os.O_CREATE|os.O_WRONLY|os.O_APPEND, filePermissions)
+	combinedLog, err := os.OpenFile(summary.CombinedLog, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilMagic.FilePermOwnerReadWriteGroupRead)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%sError creating combined log file: %v%s\n", colorRed, err, colorReset)
+		fmt.Fprintf(os.Stderr, "%sError creating combined log file: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 
 		return 1
 	}
@@ -247,12 +214,12 @@ func Run(args []string) int {
 }
 
 func listWorkflows() {
-	fmt.Println("\n" + strings.Repeat("=", lineWidth))
-	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", colorCyan, colorReset)
-	fmt.Println(strings.Repeat("=", lineWidth))
+	fmt.Println("\n" + strings.Repeat("=", cryptoutilMagic.LineWidth))
+	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", cryptoutilMagic.ColorCyan, cryptoutilMagic.ColorReset)
+	fmt.Println(strings.Repeat("=", cryptoutilMagic.LineWidth))
 
 	for workflowName := range workflowNames {
-		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, workflowName, colorReset, getWorkflowDescription(workflowName))
+		fmt.Printf("\n%s%-12s%s %s\n", cryptoutilMagic.ColorGreen, workflowName, cryptoutilMagic.ColorReset, getWorkflowDescription(workflowName))
 		fmt.Printf("           File: %s\n", getWorkflowFile(workflowName))
 
 		if len(getWorkflowDefaultArgs(workflowName)) > 0 {
@@ -260,7 +227,7 @@ func listWorkflows() {
 		}
 	}
 
-	fmt.Println("\n" + strings.Repeat("=", lineWidth))
+	fmt.Println("\n" + strings.Repeat("=", cryptoutilMagic.LineWidth))
 	fmt.Println("\nUsage:")
 	fmt.Println("  go run ./cmd/workflow -workflows=e2e,dast")
 	fmt.Println("  go run ./cmd/workflow -workflows=quality -dry-run")
@@ -277,7 +244,7 @@ func parseWorkflowNames(names string) []WorkflowExecution {
 		if wf, ok := workflowNames[name]; ok {
 			result = append(result, WorkflowExecution{Name: name, Config: wf})
 		} else {
-			fmt.Fprintf(os.Stderr, "%sWarning: Unknown workflow '%s' (skipping)%s\n", colorYellow, name, colorReset)
+			fmt.Fprintf(os.Stderr, "%sWarning: Unknown workflow '%s' (skipping)%s\n", cryptoutilMagic.ColorYellow, name, cryptoutilMagic.ColorReset)
 		}
 	}
 
@@ -285,21 +252,21 @@ func parseWorkflowNames(names string) []WorkflowExecution {
 }
 
 func printExecutiveSummaryHeader(selectedWorkflows []WorkflowExecution, logFile *os.File, dryRun bool) {
-	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", lineWidth))
-	header += fmt.Sprintf("%s🚀 GITHUB ACTIONS LOCAL WORKFLOW EXECUTION%s\n", colorCyan, colorReset)
-	header += fmt.Sprintf("%s\n", strings.Repeat("=", lineWidth))
+	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
+	header += fmt.Sprintf("%s🚀 GITHUB ACTIONS LOCAL WORKFLOW EXECUTION%s\n", cryptoutilMagic.ColorCyan, cryptoutilMagic.ColorReset)
+	header += fmt.Sprintf("%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
 	header += fmt.Sprintf("\n📅 Execution Started: %s\n", time.Now().Format("2006-01-02 15:04:05"))
 	header += fmt.Sprintf("📊 Workflows Selected: %d\n", len(selectedWorkflows))
 
 	if dryRun {
-		header += fmt.Sprintf("%s🔍 DRY RUN MODE - No workflows will be executed%s\n", colorYellow, colorReset)
+		header += fmt.Sprintf("%s🔍 DRY RUN MODE - No workflows will be executed%s\n", cryptoutilMagic.ColorYellow, cryptoutilMagic.ColorReset)
 	}
 
 	header += "\n📋 Workflow Execution Plan:\n"
-	header += strings.Repeat("-", lineWidth) + "\n"
+	header += strings.Repeat("-", cryptoutilMagic.LineWidth) + "\n"
 
 	for i, wf := range selectedWorkflows {
-		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, colorGreen, wf.Name, colorReset, getWorkflowDescription(wf.Name))
+		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, cryptoutilMagic.ColorGreen, wf.Name, cryptoutilMagic.ColorReset, getWorkflowDescription(wf.Name))
 		header += fmt.Sprintf("    File: %s\n", getWorkflowFile(wf.Name))
 
 		if len(getWorkflowDefaultArgs(wf.Name)) > 0 {
@@ -307,7 +274,7 @@ func printExecutiveSummaryHeader(selectedWorkflows []WorkflowExecution, logFile 
 		}
 	}
 
-	header += "\n" + strings.Repeat("=", lineWidth) + "\n"
+	header += "\n" + strings.Repeat("=", cryptoutilMagic.LineWidth) + "\n"
 
 	// Print to console and log file.
 	fmt.Print(header)
@@ -318,59 +285,59 @@ func printExecutiveSummaryHeader(selectedWorkflows []WorkflowExecution, logFile 
 }
 
 func printExecutiveSummaryFooter(summary *ExecutionSummary, logFile *os.File) {
-	footer := fmt.Sprintf("\n%s\n", strings.Repeat("=", lineWidth))
-	footer += fmt.Sprintf("%s🎯 EXECUTION SUMMARY REPORT%s\n", colorCyan, colorReset)
-	footer += fmt.Sprintf("%s\n", strings.Repeat("=", lineWidth))
+	footer := fmt.Sprintf("\n%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
+	footer += fmt.Sprintf("%s🎯 EXECUTION SUMMARY REPORT%s\n", cryptoutilMagic.ColorCyan, cryptoutilMagic.ColorReset)
+	footer += fmt.Sprintf("%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
 
 	footer += fmt.Sprintf("\n📅 Execution Completed: %s\n", summary.EndTime.Format("2006-01-02 15:04:05"))
 	footer += fmt.Sprintf("⏱️  Total Duration: %v\n", summary.TotalDuration.Round(time.Second))
 	footer += fmt.Sprintf("📊 Total Workflows: %d\n", len(summary.Workflows))
-	footer += fmt.Sprintf("%s✅ Successful: %d%s\n", colorGreen, summary.TotalSuccess, colorReset)
+	footer += fmt.Sprintf("%s✅ Successful: %d%s\n", cryptoutilMagic.ColorGreen, summary.TotalSuccess, cryptoutilMagic.ColorReset)
 
 	if summary.TotalFailed > 0 {
-		footer += fmt.Sprintf("%s❌ Failed: %d%s\n", colorRed, summary.TotalFailed, colorReset)
+		footer += fmt.Sprintf("%s❌ Failed: %d%s\n", cryptoutilMagic.ColorRed, summary.TotalFailed, cryptoutilMagic.ColorReset)
 	} else {
 		footer += fmt.Sprintf("❌ Failed: %d\n", summary.TotalFailed)
 	}
 
-	footer += "\n" + strings.Repeat("-", lineWidth) + "\n"
+	footer += "\n" + strings.Repeat("-", cryptoutilMagic.LineWidth) + "\n"
 	footer += "📋 Workflow Results:\n"
-	footer += strings.Repeat("-", lineWidth) + "\n"
+	footer += strings.Repeat("-", cryptoutilMagic.LineWidth) + "\n"
 
 	for i, wf := range summary.Workflows {
-		status := statusSuccess
-		color := colorGreen
+		status := cryptoutilMagic.StatusSuccess
+		color := cryptoutilMagic.ColorGreen
 
 		if !wf.Success {
-			status = statusFailed
-			color = colorRed
+			status = cryptoutilMagic.StatusFailed
+			color = cryptoutilMagic.ColorRed
 		}
 
 		footer += fmt.Sprintf("%2d. %s%-10s%s %s%s%s (took %v)\n",
-			i+1, colorGreen, wf.Name, colorReset, color, status, colorReset, wf.Duration.Round(time.Second))
+			i+1, cryptoutilMagic.ColorGreen, wf.Name, cryptoutilMagic.ColorReset, color, status, cryptoutilMagic.ColorReset, wf.Duration.Round(time.Second))
 		footer += fmt.Sprintf("    Log: %s\n", wf.LogFile)
 		footer += fmt.Sprintf("    Analysis: %s\n", wf.AnalysisFile)
 
 		if len(wf.ErrorMessages) > 0 {
-			footer += fmt.Sprintf("    %sErrors: %d%s\n", colorRed, len(wf.ErrorMessages), colorReset)
+			footer += fmt.Sprintf("    %sErrors: %d%s\n", cryptoutilMagic.ColorRed, len(wf.ErrorMessages), cryptoutilMagic.ColorReset)
 		}
 
 		if len(wf.Warnings) > 0 {
-			footer += fmt.Sprintf("    %sWarnings: %d%s\n", colorYellow, len(wf.Warnings), colorReset)
+			footer += fmt.Sprintf("    %sWarnings: %d%s\n", cryptoutilMagic.ColorYellow, len(wf.Warnings), cryptoutilMagic.ColorReset)
 		}
 	}
 
-	footer += "\n" + strings.Repeat("=", lineWidth) + "\n"
+	footer += "\n" + strings.Repeat("=", cryptoutilMagic.LineWidth) + "\n"
 	footer += fmt.Sprintf("📁 Output Directory: %s\n", summary.OutputDir)
 	footer += fmt.Sprintf("📄 Combined Log: %s\n", summary.CombinedLog)
 
 	if summary.TotalFailed > 0 {
-		footer += fmt.Sprintf("\n%s⚠️  EXECUTION STATUS: PARTIAL SUCCESS%s\n", colorYellow, colorReset)
+		footer += fmt.Sprintf("\n%s⚠️  EXECUTION STATUS: PARTIAL SUCCESS%s\n", cryptoutilMagic.ColorYellow, cryptoutilMagic.ColorReset)
 	} else {
-		footer += fmt.Sprintf("\n%s🎉 EXECUTION STATUS: FULL SUCCESS%s\n", colorGreen, colorReset)
+		footer += fmt.Sprintf("\n%s🎉 EXECUTION STATUS: FULL SUCCESS%s\n", cryptoutilMagic.ColorGreen, cryptoutilMagic.ColorReset)
 	}
 
-	footer += strings.Repeat("=", lineWidth) + "\n"
+	footer += strings.Repeat("=", cryptoutilMagic.LineWidth) + "\n"
 
 	// Print to console and log file.
 	fmt.Print(footer)
@@ -399,13 +366,13 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	runtime.ReadMemStats(&initialMemStats)
 
 	// Print workflow header.
-	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", lineWidth))
-	header += fmt.Sprintf("%s🔧 Executing Workflow: %s%s\n", colorCyan, wf.Name, colorReset)
-	header += fmt.Sprintf("%s\n", strings.Repeat("=", lineWidth))
+	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
+	header += fmt.Sprintf("%s🔧 Executing Workflow: %s%s\n", cryptoutilMagic.ColorCyan, wf.Name, cryptoutilMagic.ColorReset)
+	header += fmt.Sprintf("%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
 	header += fmt.Sprintf("📁 Log File: %s\n", result.LogFile)
 	header += fmt.Sprintf("📄 Analysis File: %s\n", result.AnalysisFile)
 	header += fmt.Sprintf("⏰ Started: %s\n", startTime.Format("15:04:05"))
-	header += strings.Repeat("=", lineWidth) + "\n"
+	header += strings.Repeat("=", cryptoutilMagic.LineWidth) + "\n"
 
 	fmt.Print(header)
 
@@ -416,12 +383,12 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	if dryRun {
 		// Build act command for dry-run display.
 		// Use workflow_dispatch for DAST (supports inputs), push for others
-		event := eventTypePush
-		if wf.Name == workflowNameDAST {
-			event = eventTypeWorkflowDispatch
+		event := cryptoutilMagic.EventTypePush
+		if wf.Name == cryptoutilMagic.WorkflowNameDAST {
+			event = cryptoutilMagic.EventTypeWorkflowDispatch
 		}
 
-		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", colorYellow, getWorkflowFile(wf.Name), colorReset)
+		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", cryptoutilMagic.ColorYellow, getWorkflowFile(wf.Name), cryptoutilMagic.ColorReset)
 		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", actPath, event, getWorkflowFile(wf.Name))
 
 		if len(getWorkflowDefaultArgs(wf.Name)) > 0 {
@@ -432,7 +399,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 			dryRunMsg += fmt.Sprintf("   Extra Args: %s\n", actArgs)
 		}
 
-		dryRunMsg += strings.Repeat("=", lineWidth) + "\n"
+		dryRunMsg += strings.Repeat("=", cryptoutilMagic.LineWidth) + "\n"
 
 		fmt.Print(dryRunMsg)
 
@@ -452,9 +419,9 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 
 	// Build act command.
 	// Use workflow_dispatch for DAST (supports inputs), push for others
-	event := eventTypePush
-	if wf.Name == workflowNameDAST {
-		event = eventTypeWorkflowDispatch
+	event := cryptoutilMagic.EventTypePush
+	if wf.Name == cryptoutilMagic.WorkflowNameDAST {
+		event = cryptoutilMagic.EventTypeWorkflowDispatch
 	}
 
 	args := []string{event, "-W", getWorkflowFile(wf.Name)}
@@ -469,9 +436,9 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	fmt.Printf("🚀 Executing: %s %s\n", actPath, strings.Join(args, " "))
 
 	// Create workflow log file.
-	workflowLog, err := os.OpenFile(result.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, filePermissions)
+	workflowLog, err := os.OpenFile(result.LogFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, cryptoutilMagic.FilePermOwnerReadWriteGroupRead)
 	if err != nil {
-		errMsg := fmt.Sprintf("%sError creating workflow log file: %v%s\n", colorRed, err, colorReset)
+		errMsg := fmt.Sprintf("%sError creating workflow log file: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 		fmt.Print(errMsg)
 
 		if combinedLog != nil {
@@ -496,7 +463,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	// Setup stdout and stderr pipes for dual logging.
 	stdoutPipe, err := cmd.StdoutPipe()
 	if err != nil {
-		errMsg := fmt.Sprintf("%sError creating stdout pipe: %v%s\n", colorRed, err, colorReset)
+		errMsg := fmt.Sprintf("%sError creating stdout pipe: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 		fmt.Print(errMsg)
 
 		if combinedLog != nil {
@@ -516,7 +483,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 
 	stderrPipe, err := cmd.StderrPipe()
 	if err != nil {
-		errMsg := fmt.Sprintf("%sError creating stderr pipe: %v%s\n", colorRed, err, colorReset)
+		errMsg := fmt.Sprintf("%sError creating stderr pipe: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 		fmt.Print(errMsg)
 
 		if combinedLog != nil {
@@ -535,7 +502,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	}
 
 	if err := cmd.Start(); err != nil {
-		errMsg := fmt.Sprintf("%sError starting act command: %v%s\n", colorRed, err, colorReset)
+		errMsg := fmt.Sprintf("%sError starting act command: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 		fmt.Print(errMsg)
 
 		if combinedLog != nil {
@@ -602,17 +569,17 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	createAnalysisFile(result)
 
 	// Print workflow footer.
-	footer := fmt.Sprintf("\n%s\n", strings.Repeat("=", lineWidth))
-	footer += fmt.Sprintf("%s✅ Workflow Completed: %s%s\n", colorCyan, wf.Name, colorReset)
+	footer := fmt.Sprintf("\n%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
+	footer += fmt.Sprintf("%s✅ Workflow Completed: %s%s\n", cryptoutilMagic.ColorCyan, wf.Name, cryptoutilMagic.ColorReset)
 	footer += fmt.Sprintf("⏰ Duration: %v\n", result.Duration.Round(time.Second))
 
 	if result.Success {
-		footer += fmt.Sprintf("%s✅ Status: SUCCESS%s\n", colorGreen, colorReset)
+		footer += fmt.Sprintf("%s✅ Status: SUCCESS%s\n", cryptoutilMagic.ColorGreen, cryptoutilMagic.ColorReset)
 	} else {
-		footer += fmt.Sprintf("%s❌ Status: FAILED%s\n", colorRed, colorReset)
+		footer += fmt.Sprintf("%s❌ Status: FAILED%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
 	}
 
-	footer += strings.Repeat("=", lineWidth) + "\n"
+	footer += strings.Repeat("=", cryptoutilMagic.LineWidth) + "\n"
 
 	fmt.Print(footer)
 
@@ -661,9 +628,9 @@ func getWorkflowDescription(workflowName string) string {
 // getWorkflowDefaultArgs returns the default arguments for a given workflow name.
 func getWorkflowDefaultArgs(workflowName string) []string {
 	switch workflowName {
-	case workflowNameDAST:
+	case cryptoutilMagic.WorkflowNameDAST:
 		return []string{"--input", "scan_profile=quick"}
-	case workflowNameLoad:
+	case cryptoutilMagic.WorkflowNameLoad:
 		return []string{"--input", "load_profile=quick"}
 	default:
 		return []string{}
@@ -755,11 +722,11 @@ func analyzeWorkflowLog(logFile string, result *WorkflowResult) {
 func analyzeDastWorkflow(logContent string, result *WorkflowResult) {
 	// Check for Nuclei scan.
 	if strings.Contains(logContent, "Nuclei - Vulnerability Scan") {
-		status := taskFailed
+		status := cryptoutilMagic.TaskFailed
 		artifacts := []string{}
 
 		if strings.Contains(logContent, "nuclei.log") || strings.Contains(logContent, "nuclei.sarif") {
-			status = taskSuccess
+			status = cryptoutilMagic.TaskSuccess
 
 			artifacts = append(artifacts, "nuclei.log", "nuclei.sarif")
 		}
@@ -769,11 +736,11 @@ func analyzeDastWorkflow(logContent string, result *WorkflowResult) {
 
 	// Check for ZAP Full Scan.
 	if strings.Contains(logContent, "OWASP ZAP DAST Scan") {
-		status := taskFailed
+		status := cryptoutilMagic.TaskFailed
 		artifacts := []string{}
 
 		if strings.Contains(logContent, "zap-report") {
-			status = taskSuccess
+			status = cryptoutilMagic.TaskSuccess
 
 			artifacts = append(artifacts, "zap-report.html")
 		}
@@ -783,11 +750,11 @@ func analyzeDastWorkflow(logContent string, result *WorkflowResult) {
 
 	// Check for ZAP API Scan.
 	if strings.Contains(logContent, "OWASP ZAP API Scan") {
-		status := taskFailed
+		status := cryptoutilMagic.TaskFailed
 		artifacts := []string{}
 
 		if strings.Contains(logContent, "zap-api-report") {
-			status = taskSuccess
+			status = cryptoutilMagic.TaskSuccess
 
 			artifacts = append(artifacts, "zap-api-report.html")
 		}
@@ -799,7 +766,7 @@ func analyzeDastWorkflow(logContent string, result *WorkflowResult) {
 	if strings.Contains(logContent, "response-headers.txt") {
 		result.TaskResults["Header Capture"] = TaskResult{
 			Name:      "Header Capture",
-			Status:    taskSuccess,
+			Status:    cryptoutilMagic.TaskSuccess,
 			Artifacts: []string{"response-headers.txt"},
 		}
 	}
@@ -808,9 +775,9 @@ func analyzeDastWorkflow(logContent string, result *WorkflowResult) {
 func analyzeE2EWorkflow(logContent string, result *WorkflowResult) {
 	// Check for Docker Compose services.
 	if strings.Contains(logContent, "docker compose") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Docker Compose Setup"] = TaskResult{Name: "Docker Compose Setup", Status: status}
@@ -818,9 +785,9 @@ func analyzeE2EWorkflow(logContent string, result *WorkflowResult) {
 
 	// Check for E2E tests.
 	if strings.Contains(logContent, "go test -tags=e2e") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "FAIL:") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["E2E Tests"] = TaskResult{Name: "E2E Tests", Status: status}
@@ -830,9 +797,9 @@ func analyzeE2EWorkflow(logContent string, result *WorkflowResult) {
 func analyzeSastWorkflow(logContent string, result *WorkflowResult) {
 	// Check for gosec scan.
 	if strings.Contains(logContent, "gosec") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "Issues : ") && !strings.Contains(logContent, "Issues : 0") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Gosec Scan"] = TaskResult{Name: "Gosec Scan", Status: status}
@@ -840,9 +807,9 @@ func analyzeSastWorkflow(logContent string, result *WorkflowResult) {
 
 	// Check for golangci-lint.
 	if strings.Contains(logContent, "golangci-lint") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "found issues") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Golangci-Lint"] = TaskResult{Name: "Golangci-Lint", Status: status}
@@ -852,9 +819,9 @@ func analyzeSastWorkflow(logContent string, result *WorkflowResult) {
 func analyzeLoadWorkflow(logContent string, result *WorkflowResult) {
 	// Check for Gatling load tests.
 	if strings.Contains(logContent, "gatling") || strings.Contains(logContent, "Gatling") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Gatling Load Tests"] = TaskResult{Name: "Gatling Load Tests", Status: status}
@@ -862,9 +829,9 @@ func analyzeLoadWorkflow(logContent string, result *WorkflowResult) {
 
 	// Check for Docker Compose services.
 	if strings.Contains(logContent, "docker compose") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Docker Compose Setup"] = TaskResult{Name: "Docker Compose Setup", Status: status}
@@ -874,9 +841,9 @@ func analyzeLoadWorkflow(logContent string, result *WorkflowResult) {
 func analyzeGitleaksWorkflow(logContent string, result *WorkflowResult) {
 	// Check for Gitleaks scan.
 	if strings.Contains(logContent, "gitleaks") || strings.Contains(logContent, "Gitleaks") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "leaks found") || strings.Contains(logContent, "failed") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Gitleaks Secrets Scan"] = TaskResult{Name: "Gitleaks Secrets Scan", Status: status}
@@ -886,9 +853,9 @@ func analyzeGitleaksWorkflow(logContent string, result *WorkflowResult) {
 func analyzeBenchmarkWorkflow(logContent string, result *WorkflowResult) {
 	// Check for benchmarks.
 	if strings.Contains(logContent, "-bench") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "FAIL") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Benchmark Tests"] = TaskResult{Name: "Benchmark Tests", Status: status}
@@ -898,9 +865,9 @@ func analyzeBenchmarkWorkflow(logContent string, result *WorkflowResult) {
 func analyzeCoverageWorkflow(logContent string, result *WorkflowResult) {
 	// Check for coverage collection.
 	if strings.Contains(logContent, "-coverprofile") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Coverage Collection"] = TaskResult{Name: "Coverage Collection", Status: status}
@@ -908,7 +875,7 @@ func analyzeCoverageWorkflow(logContent string, result *WorkflowResult) {
 
 	// Check for coverage reporting.
 	if strings.Contains(logContent, "codecov") || strings.Contains(logContent, "coverage.html") {
-		result.TaskResults["Coverage Reporting"] = TaskResult{Name: "Coverage Reporting", Status: taskSuccess}
+		result.TaskResults["Coverage Reporting"] = TaskResult{Name: "Coverage Reporting", Status: cryptoutilMagic.TaskSuccess}
 	}
 }
 
@@ -921,9 +888,9 @@ func analyzeFuzzWorkflow(logContent string, result *WorkflowResult) {
 		strings.Contains(logContent, "FuzzGenerateAESKey") ||
 		strings.Contains(logContent, "FuzzGenerateAESHSKey") ||
 		strings.Contains(logContent, "FuzzGenerateHMACKey") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "fuzz: elapsed") && strings.Contains(logContent, "FAIL") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Fuzz Tests - Keygen"] = TaskResult{Name: "Fuzz Tests - Keygen", Status: status}
@@ -939,9 +906,9 @@ func analyzeFuzzWorkflow(logContent string, result *WorkflowResult) {
 		strings.Contains(logContent, "FuzzSHA384") ||
 		strings.Contains(logContent, "FuzzSHA256") ||
 		strings.Contains(logContent, "FuzzSHA224") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "fuzz: elapsed") && strings.Contains(logContent, "FAIL") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Fuzz Tests - Digests"] = TaskResult{Name: "Fuzz Tests - Digests", Status: status}
@@ -951,9 +918,9 @@ func analyzeFuzzWorkflow(logContent string, result *WorkflowResult) {
 func analyzeRaceWorkflow(logContent string, result *WorkflowResult) {
 	// Check for race condition detection.
 	if strings.Contains(logContent, "-race") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "DATA RACE") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Race Condition Detection"] = TaskResult{Name: "Race Condition Detection", Status: status}
@@ -963,9 +930,9 @@ func analyzeRaceWorkflow(logContent string, result *WorkflowResult) {
 func analyzeQualityWorkflow(logContent string, result *WorkflowResult) {
 	// Check for unit tests.
 	if strings.Contains(logContent, "go test") {
-		status := taskSuccess
+		status := cryptoutilMagic.TaskSuccess
 		if strings.Contains(logContent, "FAIL:") {
-			status = taskFailed
+			status = cryptoutilMagic.TaskFailed
 		}
 
 		result.TaskResults["Unit Tests"] = TaskResult{Name: "Unit Tests", Status: status}
@@ -973,7 +940,7 @@ func analyzeQualityWorkflow(logContent string, result *WorkflowResult) {
 
 	// Check for coverage.
 	if strings.Contains(logContent, "-coverprofile") {
-		result.TaskResults["Coverage Report"] = TaskResult{Name: "Coverage Report", Status: taskSuccess}
+		result.TaskResults["Coverage Report"] = TaskResult{Name: "Coverage Report", Status: cryptoutilMagic.TaskSuccess}
 	}
 }
 
@@ -996,7 +963,7 @@ func createAnalysisFile(result WorkflowResult) {
 	analysis.WriteString(fmt.Sprintf("- **End Time:** %s\n", result.EndTime.Format("2006-01-02 15:04:05")))
 	analysis.WriteString(fmt.Sprintf("- **Duration:** %v\n", result.Duration.Round(time.Millisecond)))
 	analysis.WriteString(fmt.Sprintf("- **CPU Time:** %v (approximated)\n", result.CPUTime.Round(time.Millisecond)))
-	analysis.WriteString(fmt.Sprintf("- **Memory Usage:** %.2f MB\n\n", float64(result.MemoryUsage)/bytesPerMB))
+	analysis.WriteString(fmt.Sprintf("- **Memory Usage:** %.2f MB\n\n", float64(result.MemoryUsage)/cryptoutilMagic.BytesPerMB))
 
 	if len(result.TaskResults) > 0 {
 		analysis.WriteString("## Task Results\n\n")
@@ -1019,8 +986,8 @@ func createAnalysisFile(result WorkflowResult) {
 		analysis.WriteString("## Error Messages\n\n")
 
 		for i, err := range result.ErrorMessages {
-			if i >= maxErrorDisplay {
-				analysis.WriteString(fmt.Sprintf("... and %d more errors (see log file)\n\n", len(result.ErrorMessages)-maxErrorDisplay))
+			if i >= cryptoutilMagic.MaxErrorDisplay {
+				analysis.WriteString(fmt.Sprintf("... and %d more errors (see log file)\n\n", len(result.ErrorMessages)-cryptoutilMagic.MaxErrorDisplay))
 
 				break
 			}
@@ -1035,8 +1002,8 @@ func createAnalysisFile(result WorkflowResult) {
 		analysis.WriteString("## Warnings\n\n")
 
 		for i, warn := range result.Warnings {
-			if i >= maxWarningDisplay {
-				analysis.WriteString(fmt.Sprintf("... and %d more warnings (see log file)\n\n", len(result.Warnings)-maxWarningDisplay))
+			if i >= cryptoutilMagic.MaxWarningDisplay {
+				analysis.WriteString(fmt.Sprintf("... and %d more warnings (see log file)\n\n", len(result.Warnings)-cryptoutilMagic.MaxWarningDisplay))
 
 				break
 			}
@@ -1076,8 +1043,8 @@ func createAnalysisFile(result WorkflowResult) {
 	}
 
 	// Write analysis to file.
-	if err := os.WriteFile(result.AnalysisFile, []byte(analysis.String()), filePermissions); err != nil {
-		fmt.Fprintf(os.Stderr, "%sError writing analysis file: %v%s\n", colorRed, err, colorReset)
+	if err := os.WriteFile(result.AnalysisFile, []byte(analysis.String()), cryptoutilMagic.FilePermOwnerReadWriteGroupRead); err != nil {
+		fmt.Fprintf(os.Stderr, "%sError writing analysis file: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 	}
 }
 
