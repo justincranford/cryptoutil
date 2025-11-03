@@ -32,8 +32,8 @@
 | '01-04.database.instructions.md' | ** | database operations and ORM patterns |
 | '01-05.security.instructions.md' | ** | security implementation, cryptographic operations, and network patterns |
 | '01-06.linting.instructions.md' | ** | code quality, linting, and maintenance standards |
-| '02-01.github.instructions.md' | .github/** | CI/CD workflow configuration, service connectivity verification, and diagnostic logging |
-| '02-02.docker.instructions.md' | **/*.yml | Docker and Docker Compose configuration |
+| '02-01.github.instructions.md' | ** | CI/CD workflow configuration, service connectivity verification, and diagnostic logging |
+| '02-02.docker.instructions.md' | ** | Docker and Docker Compose configuration |
 | '02-03.observability.instructions.md' | ** | observability and monitoring implementation |
 | '03-01.openapi.instructions.md' | ** | OpenAPI specification and code generation |
 | '03-02.cross-platform.instructions.md' | ** | platform-specific tooling: PowerShell, scripts, command restrictions, Docker pre-pull |
