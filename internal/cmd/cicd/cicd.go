@@ -428,8 +428,8 @@ func checkWorkflowLint(allFiles []string) {
 
 	// Process workflow files
 	for _, path := range workflowFiles {
-		// Run lightweight validation on the workflow file (filename prefix, name, logging)
-		issues, vErr := validateWorkflowFile(path)
+		// Run combined validation and action parsing (single file read)
+		issues, fileActions, vErr := validateAndParseWorkflowFile(path)
 		if vErr != nil {
 			// Non-fatal: report and continue
 			validationErrors = append(validationErrors, fmt.Sprintf("Failed to validate %s: %v", path, vErr))
@@ -439,14 +439,7 @@ func checkWorkflowLint(allFiles []string) {
 			validationErrors = append(validationErrors, fmt.Sprintf("%s: %s", filepath.Base(path), issue))
 		}
 
-		// Extract actions for version checks
-		fileActions, err := parseWorkflowFile(path)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Failed to parse %s: %v\n", path, err)
-
-			continue
-		}
-
+		// Add actions for version checks
 		actions = append(actions, fileActions...)
 	}
 
@@ -480,43 +473,14 @@ func checkWorkflowLint(allFiles []string) {
 		actionMap[key] = action
 	}
 
-	var (
-		outdated []ActionInfo
-		errors   []string
-		exempted []ActionInfo
-	)
+	// Check versions concurrently for better performance
+	fmt.Fprintf(os.Stderr, "Checking %d unique actions for updates...\n", len(actionMap))
 
-	for _, action := range actionMap {
-		// Check if this action is exempted
-		isExempted := false
+	versionCheckStart := time.Now()
+	outdated, exempted, errors := checkActionVersionsConcurrently(actionMap, exceptions)
+	versionCheckEnd := time.Now()
 
-		if exception, exists := exceptions.Exceptions[action.Name]; exists {
-			for _, allowedVersion := range exception.AllowedVersions {
-				if action.CurrentVersion == allowedVersion {
-					exempted = append(exempted, action)
-					isExempted = true
-
-					break
-				}
-			}
-		}
-
-		if isExempted {
-			continue
-		}
-
-		latest, err := getLatestVersion(action.Name)
-		if err != nil {
-			errors = append(errors, fmt.Sprintf("Failed to check %s: %v", action.Name, err))
-
-			continue
-		}
-
-		if isOutdated(action.CurrentVersion, latest) {
-			action.LatestVersion = latest
-			outdated = append(outdated, action)
-		}
-	}
+	fmt.Fprintf(os.Stderr, "Version checks completed in %.2fs\n", versionCheckEnd.Sub(versionCheckStart).Seconds())
 
 	// Report results
 	if len(errors) > 0 {
@@ -561,20 +525,17 @@ func checkWorkflowLint(allFiles []string) {
 		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(workflowFiles), len(actions), len(outdated), len(exempted))
 }
 
-// validateWorkflowFile performs lightweight checks on a workflow YAML file to ensure it
-// follows repository conventions:
-//   - filename must start with "ci-"
-//   - file must contain a top-level "name:" field
-//   - file must include a logging reference to the workflow name (e.g., "${{ github.workflow }}" or "GITHUB_WORKFLOW")
-//     OR use the ./.github/actions/workflow-job-begin action which handles logging
+// validateAndParseWorkflowFile performs lightweight validation and action parsing on a workflow YAML file.
+// It reads the file only once and performs both validation and action extraction in a single pass.
 //
-// Returns a list of human-readable issues (empty if file is valid) and any error encountered reading the file.
-func validateWorkflowFile(path string) ([]string, error) {
+// Returns validation issues (empty if file is valid), extracted actions, and any error encountered reading the file.
+func validateAndParseWorkflowFile(path string) ([]string, []ActionInfo, error) {
 	var issues []string
+	var actions []ActionInfo
 
 	contentBytes, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read workflow file: %w", err)
+		return nil, nil, fmt.Errorf("failed to read workflow file: %w", err)
 	}
 
 	content := string(contentBytes)
@@ -602,7 +563,82 @@ func validateWorkflowFile(path string) ([]string, error) {
 		issues = append(issues, "missing logging of workflow name/filename - include '${{ github.workflow }}' or reference 'GITHUB_WORKFLOW' in an early step, or use the ./.github/actions/workflow-job-begin action")
 	}
 
-	return issues, nil
+	// 4) Extract actions for version checks (same logic as parseWorkflowFile)
+	// Regex to match "uses: owner/repo@version" patterns
+	re := regexp.MustCompile(`uses:\s*([^\s@]+)@([^\s]+)`)
+	matches := re.FindAllStringSubmatch(content, -1)
+
+	for _, match := range matches {
+		if len(match) >= minActionMatchGroups {
+			action := ActionInfo{
+				Name:           match[1],
+				CurrentVersion: match[2],
+				WorkflowFile:   filepath.Base(path),
+			}
+			actions = append(actions, action)
+		}
+	}
+
+	return issues, actions, nil
+}
+
+// checkActionVersionsConcurrently checks multiple GitHub actions for updates concurrently.
+// It uses goroutines to make parallel API calls, significantly reducing total execution time.
+// Returns slices of outdated actions, exempted actions, and any errors encountered.
+func checkActionVersionsConcurrently(actionMap map[string]ActionInfo, exceptions *ActionExceptions) ([]ActionInfo, []ActionInfo, []string) {
+	type result struct {
+		action   ActionInfo
+		latest   string
+		err      error
+		exempted bool
+	}
+
+	results := make(chan result, len(actionMap))
+
+	// Start goroutines for each action check
+	for _, action := range actionMap {
+		go func(act ActionInfo) {
+			// Check if this action is exempted
+			isExempted := false
+			if exception, exists := exceptions.Exceptions[act.Name]; exists {
+				for _, allowedVersion := range exception.AllowedVersions {
+					if act.CurrentVersion == allowedVersion {
+						results <- result{action: act, exempted: true}
+						return
+					}
+				}
+			}
+
+			latest, err := getLatestVersion(act.Name)
+			results <- result{action: act, latest: latest, err: err, exempted: isExempted}
+		}(action)
+	}
+
+	// Collect results
+	var outdated []ActionInfo
+	var exempted []ActionInfo
+	var errors []string
+
+	for i := 0; i < len(actionMap); i++ {
+		res := <-results
+
+		if res.exempted {
+			exempted = append(exempted, res.action)
+			continue
+		}
+
+		if res.err != nil {
+			errors = append(errors, fmt.Sprintf("Failed to check %s: %v", res.action.Name, res.err))
+			continue
+		}
+
+		if isOutdated(res.action.CurrentVersion, res.latest) {
+			res.action.LatestVersion = res.latest
+			outdated = append(outdated, res.action)
+		}
+	}
+
+	return outdated, exempted, errors
 }
 
 func parseWorkflowFile(path string) ([]ActionInfo, error) {
