@@ -24,6 +24,9 @@ inputs:
     description: 'Output format (sarif, json, table, etc.)'
     required: false
     default: 'sarif'
+  scan-files:
+    description: 'Optional space-separated list of specific files to scan (overrides scan-ref when provided)'
+    required: false
 
 runs:
   using: 'composite'
@@ -41,11 +44,21 @@ runs:
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
         # Run Trivy scan with specified parameters
-        trivy ${{ inputs.scan-type }} \
-          --format ${{ inputs.format }} \
-          --output ${{ inputs.trivy-sarif-output }} \
-          --severity ${{ inputs.severity }} \
-          ${{ inputs.scan-ref }}
+        if [ -n "${{ inputs.scan-files }}" ]; then
+          echo "📋 Using specific files: ${{ inputs.scan-files }}"
+          trivy ${{ inputs.scan-type }} \
+            --format ${{ inputs.format }} \
+            --output ${{ inputs.trivy-sarif-output }} \
+            --severity ${{ inputs.severity }} \
+            ${{ inputs.scan-files }}
+        else
+          echo "📋 Using scan reference: ${{ inputs.scan-ref }}"
+          trivy ${{ inputs.scan-type }} \
+            --format ${{ inputs.format }} \
+            --output ${{ inputs.trivy-sarif-output }} \
+            --severity ${{ inputs.severity }} \
+            ${{ inputs.scan-ref }}
+        fi
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
@@ -66,7 +79,11 @@ runs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Scan Configuration" >> $GITHUB_STEP_SUMMARY
         echo "- **Type**: ${{ inputs.scan-type }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Reference**: \`${{ inputs.scan-ref }}\`" >> $GITHUB_STEP_SUMMARY
+        if [ -n "${{ inputs.scan-files }}" ]; then
+          echo "- **Files**: \`${{ inputs.scan-files }}\`" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- **Reference**: \`${{ inputs.scan-ref }}\`" >> $GITHUB_STEP_SUMMARY
+        fi
         echo "- **Severity**: ${{ inputs.severity }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Format**: ${{ inputs.format }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY

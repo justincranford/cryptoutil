@@ -50,26 +50,13 @@ runs:
         echo "📋 Files to scan: $SCAN_LIST"
 
     - name: Run Trivy file security scan
-      shell: bash
-      run: |
-        echo "🔍 Running Trivy security scan on files..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-        # Run Trivy scan on specified files
-        trivy fs --format sarif --output ${{ inputs.trivy-sarif-output }} $SCAN_FILES
-
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Trivy scan completed in: ${DURATION}s"
-
-    - name: Upload Trivy results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
+      uses: ./.github/actions/security-scan-all
       with:
-        sarif_file: ${{ inputs.trivy-sarif-output }}
-        category: "${{ inputs.scan-name }}-trivy"
-      if: always() && hashFiles('${{ inputs.trivy-sarif-output }}') != ''
+        scan-type: 'fs'
+        scan-files: ${{ env.SCAN_FILES }}
+        trivy-sarif-output: ${{ inputs.trivy-sarif-output }}
+        scan-name: ${{ inputs.scan-name }}
+        severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
 
     - name: Run GitLeaks secrets detection
       shell: bash
@@ -105,17 +92,7 @@ runs:
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Check if SARIF files were generated and have content
-        if [ -f "${{ inputs.trivy-sarif-output }}" ]; then
-          RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.trivy-sarif-output }} 2>/dev/null || echo "0")
-          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
-          echo "- SARIF file: \`${{ inputs.trivy-sarif-output }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Findings: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
-          echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Status: ❌ No SARIF file generated" >> $GITHUB_STEP_SUMMARY
-        fi
+        # Trivy results are handled by security-scan-all action
 
         if [ -f "${{ inputs.gitleaks-sarif-output }}" ]; then
           RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.gitleaks-sarif-output }} 2>/dev/null || echo "0")
