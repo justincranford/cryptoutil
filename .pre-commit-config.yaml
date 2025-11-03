@@ -148,11 +148,22 @@ repos:
   - repo: local
     hooks:
       - id: cicd-checks
-        name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep, github-lint)
+        name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep)
         entry: go
-        args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, github-workflow-lint, go-check-circular-package-dependencies]
+        args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, go-check-circular-package-dependencies]
         language: system
         pass_filenames: false
+
+  # GitHub workflow checks (slower, API calls - run on push only)
+  - repo: local
+    hooks:
+      - id: cicd-github-workflow-checks
+        name: Run GitHub workflow checks (github-workflow-lint)
+        entry: go
+        args: [run, cmd/cicd/main.go, github-workflow-lint]
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
 
   # Go dependency management (clean state before linting)
   - repo: local
