@@ -1,35 +1,38 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
-# NOTE: This action depends on workflow-begin-summary being run first.
-# It expects WORKFLOW_START_TIME and WORKFLOW_FILE_NAME environment variables to be set.
+# NOTE: This action depends on workflow-job-begin being run first.
+# It expects WORKFLOW_JOB_START_TIME and WORKFLOW_JOB_FILE_NAME environment variables to be set.
 # Changes to environment variables or naming conventions must be synchronized between both actions.
 
-name: 'workflow-end-summary'
+name: 'workflow-job-end'
 description: 'Add a standardized summary to GitHub Actions workflow runs'
 
 inputs:
+  workflow-name:
+    description: 'Name of the workflow (e.g., "CI - Quality Testing")'
+    required: true
   job-name:
-    description: 'Name of the job (e.g., "e2e", "coverage", "gitleaks")'
+    description: 'Name of the job (e.g., "code-quality", "build")'
     required: true
 
 runs:
   using: 'composite'
   steps:
-    # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass variables to workflow-end-summary action
-    - name: Set workflow end environment variables
+    # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass variables to workflow-job-end action
+    - name: Set workflow job end environment variables
       shell: bash
       run: |
-        if [ "$WORKFLOW_START_TIME" == "" ]; then
-          echo "::error::WORKFLOW_START_TIME is not set. Ensure that workflow-begin-summary action is used before this action."
+        if [ "$WORKFLOW_JOB_START_TIME" == "" ]; then
+          echo "::error::WORKFLOW_JOB_START_TIME is not set. Ensure that workflow-job-begin action is used before this action."
           exit 1
-        elif [ "$WORKFLOW_FILE_NAME" == "" ]; then
-          echo "::error::WORKFLOW_FILE_NAME is not set. Ensure that workflow-begin-summary action is used before this action."
+        elif [ "$WORKFLOW_JOB_FILE_NAME" == "" ]; then
+          echo "::error::WORKFLOW_JOB_FILE_NAME is not set. Ensure that workflow-job-begin action is used before this action."
           exit 1
         fi
 
         END_TIME=$(date +%s)
-        DURATION=$((END_TIME - WORKFLOW_START_TIME))
+        DURATION=$((END_TIME - WORKFLOW_JOB_START_TIME))
 
         # Format duration more robustly (handles seconds-only durations better)
         MINUTES=$((DURATION / 60))
@@ -44,14 +47,14 @@ runs:
         echo "DURATION=$DURATION" >> $GITHUB_ENV
         echo "FORMATTED_DURATION=$FORMATTED_DURATION" >> $GITHUB_ENV
 
-    - name: Workflow end summary
+    - name: Workflow job end summary
       shell: bash
       run: |
         echo "=========================================="
-        echo "${{ github.workflow }} ($WORKFLOW_FILE_NAME)"
+        echo "${{ inputs.workflow-name }} ($WORKFLOW_JOB_FILE_NAME)"
         echo "Job: ${{ inputs.job-name }}"
         echo "Triggered by: ${{ github.event_name }}"
-        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_START_TIME")"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_START_TIME")"
         echo "End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$END_TIME")"
         echo "Duration: $FORMATTED_DURATION"
         echo "=========================================="
