@@ -23,18 +23,19 @@ runs:
       run: |
         echo "WORKFLOW_JOB_START_TIME=$(date +%s)" >> $GITHUB_ENV
 
-        # Derive workflow file name from workflow name
-        # Input: "CI - Quality Testing" -> Output: "ci-quality.yml"
-        WORKFLOW_JOB_FILE_NAME=".github/workflows/ci-$(echo "$GITHUB_WORKFLOW" | sed 's/^CI - //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]').yml"
-
-        echo "WORKFLOW_JOB_FILE_NAME=$WORKFLOW_JOB_FILE_NAME" >> $GITHUB_ENV
-
     - name: Print workflow job begin summary
       shell: bash
       run: |
         echo "=========================================="
-        echo "$GITHUB_WORKFLOW ($WORKFLOW_JOB_FILE_NAME)"
+        echo "Workflow: $GITHUB_WORKFLOW"
+        echo "Workflow Ref: $GITHUB_WORKFLOW_REF"
         echo "Job: $GITHUB_JOB"
+        echo "Run URL: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        echo "Actor: $GITHUB_ACTOR"
+        echo "Branch/Tag: $GITHUB_REF"
+        echo "Commit: $GITHUB_SHA"
+        echo "Run ID: $GITHUB_RUN_ID"
+        echo "Runner: $RUNNER_OS ($RUNNER_ENVIRONMENT)"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_START_TIME")"
         echo "=========================================="

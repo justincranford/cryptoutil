@@ -19,41 +19,45 @@ runs:
         if [ "$WORKFLOW_JOB_START_TIME" == "" ]; then
           echo "::error::WORKFLOW_JOB_START_TIME is not set. Ensure that workflow-job-begin action is used before this action."
           exit 1
-        elif [ "$WORKFLOW_JOB_FILE_NAME" == "" ]; then
-          echo "::error::WORKFLOW_JOB_FILE_NAME is not set. Ensure that workflow-job-begin action is used before this action."
-          exit 1
         fi
 
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - WORKFLOW_JOB_START_TIME))
+        WORKFLOW_JOB_END_TIME=$(date +%s)
+        WORKFLOW_JOB_DURATION=$((WORKFLOW_JOB_END_TIME - WORKFLOW_JOB_START_TIME))
+
+        echo "WORKFLOW_JOB_END_TIME=$WORKFLOW_JOB_END_TIME" >> $GITHUB_ENV
+        echo "WORKFLOW_JOB_DURATION=$WORKFLOW_JOB_DURATION" >> $GITHUB_ENV
 
         # Format duration more robustly (handles seconds-only durations better)
-        MINUTES=$((DURATION / 60))
-        SECONDS=$((DURATION % 60))
+        MINUTES=$((WORKFLOW_JOB_DURATION / 60))
+        SECONDS=$((WORKFLOW_JOB_DURATION % 60))
         if [ $MINUTES -gt 0 ]; then
-          FORMATTED_DURATION="${MINUTES}m ${SECONDS}s"
+          FORMATTED_WORKFLOW_JOB_DURATION="${MINUTES}m ${SECONDS}s"
         else
-          FORMATTED_DURATION="${SECONDS}s"
+          FORMATTED_WORKFLOW_JOB_DURATION="${SECONDS}s"
         fi
-
-        echo "END_TIME=$END_TIME" >> $GITHUB_ENV
-        echo "DURATION=$DURATION" >> $GITHUB_ENV
-        echo "FORMATTED_DURATION=$FORMATTED_DURATION" >> $GITHUB_ENV
+        echo "FORMATTED_WORKFLOW_JOB_DURATION=$FORMATTED_WORKFLOW_JOB_DURATION" >> $GITHUB_ENV
 
     - name: Workflow job end summary
       shell: bash
       run: |
         echo "=========================================="
-        echo "$GITHUB_WORKFLOW ($WORKFLOW_JOB_FILE_NAME)"
+        echo "Workflow: $GITHUB_WORKFLOW"
+        echo "Workflow Ref: $GITHUB_WORKFLOW_REF"
         echo "Job: $GITHUB_JOB"
+        echo "Run URL: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+        echo "Actor: $GITHUB_ACTOR"
+        echo "Branch/Tag: $GITHUB_REF"
+        echo "Commit: $GITHUB_SHA"
+        echo "Run ID: $GITHUB_RUN_ID"
+        echo "Runner: $RUNNER_OS ($RUNNER_ENVIRONMENT)"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_START_TIME")"
-        echo "End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$END_TIME")"
-        echo "Duration: $FORMATTED_DURATION"
+        echo "End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_END_TIME")"
+        echo "Duration: $FORMATTED_WORKFLOW_JOB_DURATION"
         echo "=========================================="
 
         echo "## $GITHUB_JOB Results" >> $GITHUB_STEP_SUMMARY
-        echo "📅 Duration: $FORMATTED_DURATION" >> $GITHUB_STEP_SUMMARY
+        echo "📅 Duration: $FORMATTED_WORKFLOW_JOB_DURATION" >> $GITHUB_STEP_SUMMARY
         if [ "${{ job.status }}" == "success" ]; then
           echo "📊 Status: ✅ Success" >> $GITHUB_STEP_SUMMARY
         else
@@ -61,5 +65,5 @@ runs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Troubleshooting" >> $GITHUB_STEP_SUMMARY
           echo "- Check the job logs above for detailed error messages" >> $GITHUB_STEP_SUMMARY
-          echo "- Review the workflow run at: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Review the workflow run at: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_STEP_SUMMARY
         fi
