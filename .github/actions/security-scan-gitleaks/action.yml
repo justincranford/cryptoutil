@@ -18,6 +18,58 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Install GitLeaks
+      shell: bash
+      run: |
+        echo "🔧 Installing GitLeaks..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Determine platform and architecture
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          PLATFORM="linux"
+        elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          PLATFORM="darwin"
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
+          PLATFORM="windows"
+        else
+          echo "❌ Unsupported platform: $RUNNER_OS"
+          exit 1
+        fi
+
+        if [[ "$RUNNER_ARCH" == "X64" ]]; then
+          ARCH="x64"
+        elif [[ "$RUNNER_ARCH" == "ARM64" ]]; then
+          ARCH="arm64"
+        else
+          ARCH="x64"  # Default fallback
+        fi
+
+        # Get latest release info from GitHub API
+        LATEST_RELEASE=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest)
+        DOWNLOAD_URL=$(echo "$LATEST_RELEASE" | jq -r ".assets[] | select(.name | contains(\"$PLATFORM\") and contains(\"$ARCH\")) | .browser_download_url" | head -1)
+
+        if [[ -z "$DOWNLOAD_URL" ]]; then
+          echo "❌ Could not find GitLeaks download URL for $PLATFORM-$ARCH"
+          exit 1
+        fi
+
+        echo "📦 Downloading GitLeaks from: $DOWNLOAD_URL"
+        curl -L -o gitleaks.tar.gz "$DOWNLOAD_URL"
+
+        # Extract and install
+        tar -xzf gitleaks.tar.gz
+        chmod +x gitleaks
+        sudo mv gitleaks /usr/local/bin/ || mv gitleaks /usr/local/bin/
+
+        # Verify installation
+        gitleaks version
+
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ GitLeaks installed in: ${DURATION}s"
+
     - name: Parse file list
       shell: bash
       run: |
