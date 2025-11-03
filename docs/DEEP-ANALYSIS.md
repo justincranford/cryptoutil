@@ -730,13 +730,7 @@ pip install pre-commit
 pre-commit install
 ```
 
-Or use automated setup scripts:
-```bash
-# Windows
-.\scripts\setup-pre-commit.ps1
-# or
-.\scripts\setup-pre-commit.bat
-```
+Or follow the comprehensive setup instructions in [DEV-SETUP.md](DEV-SETUP.md).
 
 ### Code Quality Tools
 

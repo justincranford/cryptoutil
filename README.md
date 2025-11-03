@@ -679,14 +679,8 @@ pre-commit run --all-files
 # python -m pre_commit run --all-files
 ```
 
-**Automated Setup (Recommended):**
-```sh
-# Windows Batch
-.\scripts\setup-pre-commit.bat
-
-# Windows PowerShell
-.\scripts\setup-pre-commit.ps1
-```
+**Setup Instructions:**
+See [docs/DEV-SETUP.md](docs/DEV-SETUP.md) for comprehensive pre-commit setup instructions covering Windows, Linux, and macOS.
 
 **What Gets Checked Automatically:**
 - **File formatting**: End-of-file fixes, trailing whitespace removal

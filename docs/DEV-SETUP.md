@@ -298,26 +298,91 @@ go mod tidy
 
 ### 2. Setup Pre-commit Hooks
 
-**Windows:**
-```powershell
-# Using PowerShell script (recommended)
-.\scripts\setup-pre-commit.ps1
+Pre-commit hooks ensure code quality by running automated checks before each commit. The project uses pre-commit to enforce linting, formatting, and security standards.
 
-# Or using batch file
-.\scripts\setup-pre-commit.bat
+#### Windows
+
+**1. Install pre-commit:**
+```powershell
+# Install pre-commit globally
+python -m pip install pre-commit
 ```
 
-**Linux/macOS:**
+**2. Configure pre-commit cache location (recommended for performance):**
+```powershell
+# Set consistent cache location to avoid antivirus scanning delays
+$cachePath = "$env:USERPROFILE\.cache\pre-commit"
+[Environment]::SetEnvironmentVariable("PRE_COMMIT_HOME", $cachePath, "User")
+Write-Host "Set PRE_COMMIT_HOME to: $cachePath"
+```
+
+**3. Install pre-commit hooks:**
+```powershell
+# Navigate to project root
+cd C:\Dev\Projects\cryptoutil
+
+# Install the hooks
+python -m pre_commit install
+```
+
+**4. Test the setup:**
+```powershell
+# Run all hooks on all files to verify installation
+python -m pre_commit run --all-files
+```
+
+#### Linux
+
+**1. Install pre-commit:**
 ```bash
-# Install pre-commit
+# Install pre-commit globally
 pip3 install pre-commit
+```
 
-# Install hooks
+**2. Install pre-commit hooks:**
+```bash
+# Navigate to project root
+cd ~/cryptoutil
+
+# Install the hooks
 pre-commit install
+```
 
-# Test setup
+**3. Test the setup:**
+```bash
+# Run all hooks on all files to verify installation
 pre-commit run --all-files
 ```
+
+#### macOS
+
+**1. Install pre-commit:**
+```bash
+# Install pre-commit globally
+pip3 install pre-commit
+```
+
+**2. Install pre-commit hooks:**
+```bash
+# Navigate to project root
+cd ~/cryptoutil
+
+# Install the hooks
+pre-commit install
+```
+
+**3. Test the setup:**
+```bash
+# Run all hooks on all files to verify installation
+pre-commit run --all-files
+```
+
+**Pre-commit Hook Details:**
+- **Automatic execution**: Hooks run automatically on `git commit`
+- **Manual execution**: Run `pre-commit run --all-files` to check all files
+- **Selective execution**: Run `pre-commit run <hook-name>` for specific hooks
+- **Cache location**: Configured to avoid antivirus interference on Windows
+- **Performance**: First run may be slower (cache building), subsequent runs are fast
 
 ### 3. Generate OpenAPI Code
 
@@ -679,7 +744,6 @@ Get-ExecutionPolicy -List
 ### Getting Help
 
 - Check the main [README.md](../README.md) for application-specific documentation
-- Review [scripts/README.md](../scripts/README.md) for available utility scripts
 - Check GitHub Issues for known problems
 - Run diagnostic commands:
   ```bash
