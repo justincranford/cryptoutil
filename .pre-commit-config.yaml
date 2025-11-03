@@ -52,7 +52,7 @@ repos:
       # Prevent large files from being committed
       - id: check-added-large-files
         name: Check for large files
-        args: ['--maxkb=1024']
+        args: ['--maxkb=2048']  # Increased to 2MB for crypto project (keys, certs, test data)
         stages: [pre-commit]
 
       # Prevent merge conflict markers
@@ -101,6 +101,7 @@ repos:
       # Script validation
       - id: check-executables-have-shebangs
         name: Check executables have shebangs
+        exclude: '\.(exe|dll|so|dylib|key|crt|pem|der|bin|dat|db|sqlite|pdf|jpg|jpeg|png|gif|bmp|ico|mp4|avi|mov|zip|tar|gz|bz2|7z|rar)$'  # Skip binary/executable files
         stages: [pre-commit]
 
       # Ensure shebang scripts are executable
