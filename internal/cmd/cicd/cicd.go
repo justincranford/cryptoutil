@@ -596,6 +596,7 @@ func validateWorkflowFile(path string) ([]string, error) {
 	hasLoggingReference := strings.Contains(content, "${{ github.workflow }}") ||
 		strings.Contains(content, "github.workflow") ||
 		strings.Contains(content, "GITHUB_WORKFLOW") ||
+		strings.Contains(content, "$GITHUB_WORKFLOW") ||
 		strings.Contains(content, "./.github/actions/workflow-job-begin")
 	if !hasLoggingReference {
 		issues = append(issues, "missing logging of workflow name/filename - include '${{ github.workflow }}' or reference 'GITHUB_WORKFLOW' in an early step, or use the ./.github/actions/workflow-job-begin action")
