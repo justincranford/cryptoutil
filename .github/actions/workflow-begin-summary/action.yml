@@ -30,12 +30,11 @@ runs:
           "gitleaks")
             WORKFLOW_FILE=".github/workflows/ci-gitleaks.yml"
             OPERATION_NAME="GitLeaks Secrets Scan"
-            EMOJI="�"
+            EMOJI="🔍"
             ;;
           *)
-            WORKFLOW_FILE="unknown"
-            OPERATION_NAME="Unknown Operation"
-            EMOJI="❓"
+            echo "ERROR: Unknown job name '${{ inputs.job-name }}'. Supported job names: e2e, coverage, gitleaks"
+            exit 1
             ;;
         esac
 
