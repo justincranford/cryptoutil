@@ -100,19 +100,57 @@ const (
 	bytesPerMB = 1024 * 1024
 )
 
-// Available workflows. In alphabetical order.
-var workflows = map[string]WorkflowConfig{
-	"benchmark": {},
-	"coverage":  {},
-	"dast":      {},
-	"e2e":       {},
-	"fuzz":      {},
-	"gitleaks":  {},
-	"load":      {},
-	"quality":   {},
-	"race":      {},
-	"sast":      {},
+// getAvailableWorkflows returns a map of available workflows by reading ci-*.yml files from .github/workflows/.
+func getAvailableWorkflows() (map[string]WorkflowConfig, error) {
+	workflowsDir := ".github/workflows"
+
+	files, err := os.ReadDir(workflowsDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read workflows directory: %w", err)
+	}
+
+	workflows := make(map[string]WorkflowConfig)
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		filename := file.Name()
+		// Match files with pattern ci-*.yml
+		if strings.HasPrefix(filename, "ci-") && strings.HasSuffix(filename, ".yml") {
+			// Extract workflow name from filename (remove ci- prefix and .yml suffix)
+			workflowName := strings.TrimPrefix(filename, "ci-")
+			workflowName = strings.TrimSuffix(workflowName, ".yml")
+
+			workflows[workflowName] = WorkflowConfig{}
+		}
+	}
+
+	return workflows, nil
 }
+
+// Available workflows. In alphabetical order.
+var workflows = func() map[string]WorkflowConfig {
+	workflows, err := getAvailableWorkflows()
+	if err != nil {
+		// Fallback to hardcoded list if directory read fails
+		return map[string]WorkflowConfig{
+			"benchmark": {},
+			"coverage":  {},
+			"dast":      {},
+			"e2e":       {},
+			"fuzz":      {},
+			"gitleaks":  {},
+			"load":      {},
+			"quality":   {},
+			"race":      {},
+			"sast":      {},
+		}
+	}
+
+	return workflows
+}()
 
 // Run executes the workflow runner with the provided command line arguments.
 func Run(args []string) int {
