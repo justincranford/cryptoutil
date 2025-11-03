@@ -81,11 +81,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Workflow begin summary
+      - name: Workflow Job Begin
         uses: ./.github/actions/workflow-job-begin
-        with:
-          workflow-name: 'CI - Load Testing'
-          job-name: 'load'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -374,6 +371,3 @@ jobs:
       - name: Load summary
         if: always()
         uses: ./.github/actions/workflow-job-end
-        with:
-          workflow-name: 'CI - Load Testing'
-          job-name: 'load'

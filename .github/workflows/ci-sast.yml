@@ -68,9 +68,6 @@ jobs:
     steps:
       - name: Workflow Begin Summary
         uses: ./.github/actions/workflow-job-begin
-        with:
-          workflow-name: 'CI - SAST Security Testing'
-          job-name: 'security'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -180,9 +177,6 @@ jobs:
 
       - name: Workflow End Summary
         uses: ./.github/actions/workflow-job-end
-        with:
-          workflow-name: 'CI - SAST Security Testing'
-          job-name: 'security'
         if: always()
 
   # CodeQL Analysis
@@ -204,9 +198,6 @@ jobs:
     steps:
       - name: Workflow Begin Summary
         uses: ./.github/actions/workflow-job-begin
-        with:
-          workflow-name: 'CI - SAST Security Testing'
-          job-name: 'codeql'
 
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
@@ -264,7 +255,4 @@ jobs:
 
       - name: Workflow End Summary
         uses: ./.github/actions/workflow-job-end
-        with:
-          workflow-name: 'CI - SAST Security Testing'
-          job-name: 'codeql'
         if: always()

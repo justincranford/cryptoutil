@@ -57,11 +57,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Workflow begin summary
+    - name: Workflow Job Begin
       uses: ./.github/actions/workflow-job-begin
-      with:
-        workflow-name: 'CI - Race Condition Detection'
-        job-name: 'race'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0
@@ -101,6 +98,3 @@ jobs:
     - name: Race summary
       if: always()
       uses: ./.github/actions/workflow-job-end
-      with:
-        workflow-name: 'CI - Race Condition Detection'
-        job-name: 'race'

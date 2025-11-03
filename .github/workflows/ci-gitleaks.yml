@@ -58,11 +58,8 @@ jobs:
       actions: read
 
     steps:
-    - name: Workflow begin summary
+    - name: Workflow Job Begin
       uses: ./.github/actions/workflow-job-begin
-      with:
-        workflow-name: 'CI - GitLeaks Secrets Scan'
-        job-name: 'gitleaks'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0
@@ -78,6 +75,3 @@ jobs:
 
     - name: GitLeaks scan summary
       uses: ./.github/actions/workflow-job-end
-      with:
-        workflow-name: 'CI - GitLeaks Secrets Scan'
-        job-name: 'gitleaks'
