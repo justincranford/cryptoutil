@@ -81,7 +81,8 @@ jobs:
         echo "📊 Generating coverage report for tests..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic ./internal/... ./scripts/...
+        mkdir -p workflow-reports/coverage
+        go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic ./internal/...
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -94,12 +95,12 @@ jobs:
       run: go tool cover -func=workflow-reports/coverage/coverage.out > workflow-reports/coverage/coverage-func.txt
 
     - name: Scan coverage artifacts for vulnerabilities
-      uses: ./.github/actions/security-scan-trivy
+      uses: ./.github/actions/security-scan-trivy2
       with:
+        scan-name: 'coverage'
         scan-type: 'fs'
         scan-ref: 'workflow-reports/coverage'
         trivy-sarif-output: 'coverage-upload-artifacts-trivy.sarif'
-        scan-name: 'Security Scan of Coverage Artifacts'
         severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
 
     - name: Display function-level coverage
@@ -125,6 +126,7 @@ jobs:
           workflow-reports/coverage/coverage.out
           workflow-reports/coverage/coverage.html
           workflow-reports/coverage/coverage-func.txt
+          coverage-upload-artifacts-trivy.sarif
         retention-days: 1
 
     - name: Coverage test summary

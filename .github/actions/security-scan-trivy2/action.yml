@@ -1,0 +1,72 @@
+# $schema: https://json.schemastore.org/github-action.json
+# Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+
+name: 'security-scan-trivy2'
+description: 'Security scanning using official Trivy GitHub Action for repositories, containers, and dependencies'
+
+inputs:
+  scan-name:
+    description: 'Name for the security scan (used in SARIF metadata and reporting)'
+    required: true
+  scan-type:
+    description: 'Trivy scan type: fs (filesystem), image (container), repo (repository), config (config files)'
+    required: true
+  scan-ref:
+    description: 'Reference to scan (path, image name, etc.)'
+    required: false
+  trivy-sarif-output:
+    description: 'Output filename for Trivy SARIF results'
+    required: true
+  severity:
+    description: 'Minimum severity level to report (CRITICAL, HIGH, MEDIUM, LOW, UNKNOWN)'
+    required: true
+  format:
+    description: 'Output format (sarif, json, table, etc.)'
+    required: false
+    default: 'sarif'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Run Trivy security scan
+      uses: aquasecurity/trivy-action@0.33.1
+      with:
+        scan-type: ${{ inputs.scan-type }}
+        scan-ref: ${{ inputs.scan-ref }}
+        format: ${{ inputs.format }}
+        output: ${{ inputs.trivy-sarif-output }}
+        severity: ${{ inputs.severity }}
+
+    - name: Upload Trivy results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: ${{ inputs.trivy-sarif-output }}
+        category: "${{ inputs.scan-name }}-trivy"
+
+    - name: Security scan summary
+      shell: bash
+      run: |
+        echo "## 🔒 ${{ inputs.scan-name }} Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Scan Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- **Type**: ${{ inputs.scan-type }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Reference**: \`${{ inputs.scan-ref }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Severity**: ${{ inputs.severity }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Format**: ${{ inputs.format }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        # Check if SARIF file was generated and has content
+        if [ -f "${{ inputs.trivy-sarif-output }}" ]; then
+          RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.trivy-sarif-output }} 2>/dev/null || echo "0")
+          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- SARIF file: \`${{ inputs.trivy-sarif-output }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Findings: $RESULT_COUNT" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ✅ Uploaded to Security tab" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### Trivy Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ❌ No SARIF file generated" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Note**: Results are available in the [Security tab](https://github.com/${{ github.repository }}/security/code-scanning) for detailed analysis." >> $GITHUB_STEP_SUMMARY

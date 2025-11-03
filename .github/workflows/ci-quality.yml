@@ -206,31 +206,14 @@ jobs:
         id: first-tag
         run: echo "tag=$(echo '${{ steps.meta.outputs.tags }}' | head -n1)" >> $GITHUB_OUTPUT
 
-      - name: Run Trivy vulnerability scanner on image
-        run: |
-          echo "🔍 Running Trivy vulnerability scan..."
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          docker run --rm \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v $HOME/.cache/trivy:/root/.cache/trivy \
-            aquasecurity/trivy:latest image \
-            --format sarif \
-            --output /tmp/trivy-results.sarif \
-            ${{ steps.first-tag.outputs.tag }}
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ Trivy scan completed in: ${DURATION}s"
-
-      - name: Copy Trivy results
-        run: docker cp $(docker create --name trivy-temp aquasecurity/trivy:latest):/tmp/trivy-results.sarif ./trivy-image.sarif
-
-      - name: Upload Trivy image scan results
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Scan Docker image for vulnerabilities
+        uses: ./.github/actions/security-scan-trivy2
         with:
-          sarif_file: 'trivy-image.sarif'
-        if: always() && hashFiles('trivy-image.sarif') != ''
+          scan-name: 'docker-image'
+          scan-type: 'image'
+          scan-ref: ${{ steps.first-tag.outputs.tag }}
+          trivy-sarif-output: 'trivy-image.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
 
       # Docker Scout vulnerability scanning
       - name: Check Docker Scout authentication
