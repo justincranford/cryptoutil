@@ -1,20 +1,13 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+# Doc: https://docs.github.com/en/actions/reference/workflows-and-actions/variables
 
 # NOTE: This action depends on workflow-job-begin being run first.
-# It expects WORKFLOW_JOB_START_TIME and WORKFLOW_JOB_FILE_NAME environment variables to be set.
-# Changes to environment variables or naming conventions must be synchronized between both actions.
 
 name: 'workflow-job-end'
 description: 'Add a standardized summary to GitHub Actions workflow runs'
 
-inputs:
-  workflow-name:
-    description: 'Name of the workflow (e.g., "CI - Quality Testing")'
-    required: true
-  job-name:
-    description: 'Name of the job (e.g., "code-quality", "build")'
-    required: true
+# No inputs required - uses built-in GITHUB_WORKFLOW and GITHUB_JOB environment variables
 
 runs:
   using: 'composite'
@@ -51,15 +44,15 @@ runs:
       shell: bash
       run: |
         echo "=========================================="
-        echo "$INPUT_WORKFLOW_NAME ($WORKFLOW_JOB_FILE_NAME)"
-        echo "Job: $INPUT_JOB_NAME"
+        echo "$GITHUB_WORKFLOW ($WORKFLOW_JOB_FILE_NAME)"
+        echo "Job: $GITHUB_JOB"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_START_TIME")"
         echo "End Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$END_TIME")"
         echo "Duration: $FORMATTED_DURATION"
         echo "=========================================="
 
-        echo "## $INPUT_JOB_NAME Results" >> $GITHUB_STEP_SUMMARY
+        echo "## $GITHUB_JOB Results" >> $GITHUB_STEP_SUMMARY
         echo "📅 Duration: $FORMATTED_DURATION" >> $GITHUB_STEP_SUMMARY
         if [ "${{ job.status }}" == "success" ]; then
           echo "📊 Status: ✅ Success" >> $GITHUB_STEP_SUMMARY

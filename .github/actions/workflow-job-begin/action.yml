@@ -1,5 +1,6 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
+# Doc: https://docs.github.com/en/actions/reference/workflows-and-actions/variables
 
 # NOTE: This action works in tandem with workflow-job-end.
 # Changes to environment variables or naming conventions here must be reflected in workflow-job-end.
@@ -8,17 +9,16 @@
 name: 'workflow-job-begin'
 description: 'Add a standardized beginning summary to GitHub Actions workflow runs'
 
-inputs:
-  workflow-name:
-    description: 'Name of the workflow (e.g., "CI - Quality Testing")'
-    required: true
-  job-name:
-    description: 'Name of the job (e.g., "code-quality", "build")'
-    required: true
+# No inputs required - uses built-in GITHUB_WORKFLOW and GITHUB_JOB environment variables
 
 runs:
   using: 'composite'
   steps:
+    - name: Print all ENV names (no values)
+      shell: bash
+      run: |
+        printenv | cut -d '=' -f1 | sort
+
     # Use GitHub Actions' environment variable persistence mechanism ($GITHUB_ENV) to pass variables to workflow-job-end action
     - name: Set workflow job begin environment variables
       shell: bash
@@ -27,7 +27,7 @@ runs:
 
         # Derive workflow file name from workflow name
         # Input: "CI - Quality Testing" -> Output: "ci-quality.yml"
-        WORKFLOW_JOB_FILE_NAME=".github/workflows/ci-$(echo "$INPUT_WORKFLOW_NAME" | sed 's/^CI - //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]').yml"
+        WORKFLOW_JOB_FILE_NAME=".github/workflows/ci-$(echo "$GITHUB_WORKFLOW" | sed 's/^CI - //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]').yml"
 
         echo "WORKFLOW_JOB_FILE_NAME=$WORKFLOW_JOB_FILE_NAME" >> $GITHUB_ENV
 
@@ -35,8 +35,8 @@ runs:
       shell: bash
       run: |
         echo "=========================================="
-        echo "${{ inputs.workflow-name }} ($WORKFLOW_JOB_FILE_NAME)"
-        echo "Job: ${{ inputs.job-name }}"
+        echo "$GITHUB_WORKFLOW ($WORKFLOW_JOB_FILE_NAME)"
+        echo "Job: $GITHUB_JOB"
         echo "Triggered by: ${{ github.event_name }}"
         echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_JOB_START_TIME")"
         echo "=========================================="
