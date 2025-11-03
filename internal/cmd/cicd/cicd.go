@@ -419,7 +419,9 @@ func checkWorkflowLint(allFiles []string) {
 	var workflowFiles []string
 
 	for _, path := range allFiles {
-		if strings.HasPrefix(path, workflowsDir) && (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
+		// Normalize path separators for cross-platform compatibility
+		normalizedPath := filepath.ToSlash(path)
+		if strings.HasPrefix(normalizedPath, workflowsDir) && (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
 			workflowFiles = append(workflowFiles, path)
 		}
 	}
@@ -564,6 +566,7 @@ func checkWorkflowLint(allFiles []string) {
 //   - filename must start with "ci-"
 //   - file must contain a top-level "name:" field
 //   - file must include a logging reference to the workflow name (e.g., "${{ github.workflow }}" or "GITHUB_WORKFLOW")
+//     OR use the ./.github/actions/workflow-job-begin action which handles logging
 //
 // Returns a list of human-readable issues (empty if file is valid) and any error encountered reading the file.
 func validateWorkflowFile(path string) ([]string, error) {
@@ -589,9 +592,13 @@ func validateWorkflowFile(path string) ([]string, error) {
 	}
 
 	// 3) Logging requirement: ensure the workflow references the workflow name/filename so that jobs can log it
-	// We require at least one of these tokens to be present in the file.
-	if !strings.Contains(content, "${{ github.workflow }}") && !strings.Contains(content, "github.workflow") && !strings.Contains(content, "GITHUB_WORKFLOW") {
-		issues = append(issues, "missing logging of workflow name/filename - include '${{ github.workflow }}' or reference 'GITHUB_WORKFLOW' in an early step")
+	// We require at least one of these tokens to be present in the file, OR the workflow-job-begin action which handles logging.
+	hasLoggingReference := strings.Contains(content, "${{ github.workflow }}") ||
+		strings.Contains(content, "github.workflow") ||
+		strings.Contains(content, "GITHUB_WORKFLOW") ||
+		strings.Contains(content, "./.github/actions/workflow-job-begin")
+	if !hasLoggingReference {
+		issues = append(issues, "missing logging of workflow name/filename - include '${{ github.workflow }}' or reference 'GITHUB_WORKFLOW' in an early step, or use the ./.github/actions/workflow-job-begin action")
 	}
 
 	return issues, nil
