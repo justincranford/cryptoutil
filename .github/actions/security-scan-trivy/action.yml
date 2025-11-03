@@ -31,8 +31,57 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Install Trivy
+      shell: bash
+      run: |
+        echo "🔧 Installing Trivy..."
+        START_TIME=$(date +%s)
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+        # Check if trivy is already installed
+        if command -v trivy &> /dev/null; then
+          echo "✅ Trivy is already installed"
+          trivy version
+        else
+          echo "📦 Installing Trivy using official installation script..."
+
+          # Install Trivy using the official installation script (with verbose output)
+          if curl -fL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin; then
+            echo "✅ Trivy installation completed"
+          else
+            echo "❌ Trivy installation failed, trying alternative method..."
+            # Alternative: download binary directly
+            TRIVY_VERSION=$(curl -s https://api.github.com/repos/aquasecurity/trivy/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
+            echo "📦 Downloading Trivy ${TRIVY_VERSION}..."
+            curl -L -o trivy.tar.gz "https://github.com/aquasecurity/trivy/releases/download/${TRIVY_VERSION}/trivy_${TRIVY_VERSION#v}_Linux-64bit.tar.gz"
+            tar -xzf trivy.tar.gz
+            sudo mv trivy /usr/local/bin/
+            rm trivy.tar.gz
+          fi
+
+          # Verify installation and add to PATH if needed
+          if command -v trivy &> /dev/null; then
+            echo "✅ Trivy installed successfully"
+            trivy version
+            export PATH="/usr/local/bin:$PATH"
+            echo "📋 PATH updated: $PATH"
+          else
+            echo "❌ Trivy installation failed"
+            echo "📋 Current PATH: $PATH"
+            ls -la /usr/local/bin/trivy || echo "Trivy binary not found in /usr/local/bin"
+            exit 1
+          fi
+        fi
+
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "⏱️ Trivy installation completed in: ${DURATION}s"
+
     - name: Run Trivy comprehensive security scan
       shell: bash
+      env:
+        PATH: /usr/local/bin:$PATH
       run: |
         echo "🔍 Running Trivy ${{ inputs.scan-type }} security scan..."
         echo "📋 Scan Type: ${{ inputs.scan-type }}"
