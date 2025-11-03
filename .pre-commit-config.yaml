@@ -12,7 +12,7 @@ repos:
         args: [-m, pre_commit, autoupdate]
         language: system
         pass_filenames: false
-        stages: [pre-commit]
+        stages: [pre-push]
 
   # Generic file checks (lightweight and reliable)
   - repo: https://github.com/pre-commit/pre-commit-hooks

@@ -3,8 +3,6 @@
 # Doc: https://docs.github.com/en/actions/reference/workflows-and-actions/variables
 
 # NOTE: This action works in tandem with workflow-job-end.
-# Changes to environment variables or naming conventions here must be reflected in workflow-job-end.
-# Both actions should be updated together to maintain consistency.
 
 name: 'workflow-job-begin'
 description: 'Add a standardized beginning summary to GitHub Actions workflow runs'

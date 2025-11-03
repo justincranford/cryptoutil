@@ -60,9 +60,6 @@ jobs:
     steps:
       - name: Workflow begin summary
         uses: ./.github/actions/workflow-job-begin
-        with:
-          workflow-name: 'CI - End-to-End Testing'
-          job-name: 'e2e'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -149,9 +146,6 @@ jobs:
       - name: E2E test summary
         if: always()
         uses: ./.github/actions/workflow-job-end
-        with:
-          workflow-name: 'CI - End-to-End Testing'
-          job-name: 'e2e'
 
       - name: Stop services
         if: always()

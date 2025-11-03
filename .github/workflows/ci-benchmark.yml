@@ -58,11 +58,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Workflow begin summary
+      - name: Workflow Job Begin
         uses: ./.github/actions/workflow-job-begin
-        with:
-          workflow-name: 'CI - Benchmark Testing'
-          job-name: 'benchmark'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -115,6 +112,3 @@ jobs:
       - name: Benchmark summary
         if: always()
         uses: ./.github/actions/workflow-job-end
-        with:
-          workflow-name: 'CI - Benchmark Testing'
-          job-name: 'benchmark'

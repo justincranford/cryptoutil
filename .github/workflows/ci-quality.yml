@@ -58,7 +58,7 @@ jobs:
     name: Code Quality
     runs-on: ubuntu-latest
     steps:
-    - name: Workflow begin summary
+    - name: Workflow Job Begin
       uses: ./.github/actions/workflow-job-begin
 
     - name: Checkout code
@@ -93,7 +93,7 @@ jobs:
       packages: write
       security-events: write
     steps:
-      - name: Workflow begin summary
+      - name: Workflow Job Begin
         uses: ./.github/actions/workflow-job-begin
 
       - name: Checkout code
@@ -327,7 +327,7 @@ jobs:
     name: Generate SBOM
     runs-on: ubuntu-latest
     steps:
-      - name: Workflow begin summary
+      - name: Workflow Job Begin
         uses: ./.github/actions/workflow-job-begin
 
       - name: Checkout code
@@ -395,7 +395,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
-      - name: Workflow begin summary
+      - name: Workflow Job Begin
         uses: ./.github/actions/workflow-job-begin
 
       - name: Checkout code
