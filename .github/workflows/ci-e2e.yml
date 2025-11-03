@@ -151,19 +151,14 @@ jobs:
 
       - name: E2E test summary
         if: always()
-        run: |
-          echo "## 🧪 End-to-End Testing Results" >> $GITHUB_STEP_SUMMARY
-          START_TIME=$(date +%s)
-          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          if [ ${{ job.status }} == 'success' ]; then
-            echo "✅ End-to-end tests completed successfully." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ End-to-end tests failed." >> $GITHUB_STEP_SUMMARY
-          fi
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "⏱️ E2E test summary completed in: ${DURATION}s"
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          workflow-name: ${{ github.workflow }}
+          job-name: e2e
+          operation-name: 'End-to-End Testing'
+          success-message: '✅ End-to-end tests completed successfully.'
+          failure-message: '❌ End-to-end tests failed.'
+          emoji: '🧪'
 
       - name: Stop services
         if: always()
