@@ -15,18 +15,15 @@
 package cicd
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
@@ -39,10 +36,6 @@ const (
 	// Minimum number of regex match groups for action parsing.
 	minActionMatchGroups = 3
 )
-
-type GitHubRelease struct {
-	TagName string `json:"tag_name"`
-}
 
 type ActionException struct {
 	AllowedVersions []string `json:"allowed_versions"`
@@ -68,57 +61,6 @@ type ActionInfo struct {
 	LatestVersion  string
 	WorkflowFile   string
 }
-
-// GitHubAPICacheEntry represents a cached GitHub API response.
-type GitHubAPICacheEntry struct {
-	Version   string
-	Timestamp time.Time
-}
-
-// GitHubAPICache provides thread-safe caching for GitHub API responses.
-type GitHubAPICache struct {
-	mu    sync.RWMutex
-	cache map[string]GitHubAPICacheEntry
-}
-
-// NewGitHubAPICache creates a new GitHub API cache.
-func NewGitHubAPICache() *GitHubAPICache {
-	return &GitHubAPICache{
-		cache: make(map[string]GitHubAPICacheEntry),
-	}
-}
-
-// Get retrieves a cached version if it exists and is not expired.
-func (c *GitHubAPICache) Get(key string) (string, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	entry, exists := c.cache[key]
-	if !exists {
-		return "", false
-	}
-
-	// Check if cache entry is expired
-	if time.Since(entry.Timestamp) > cryptoutilMagic.TimeoutGitHubAPICacheTTL {
-		return "", false
-	}
-
-	return entry.Version, true
-}
-
-// Set stores a version in the cache.
-func (c *GitHubAPICache) Set(key, version string) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	c.cache[key] = GitHubAPICacheEntry{
-		Version:   version,
-		Timestamp: time.Now(),
-	}
-}
-
-// Global cache instance for GitHub API responses.
-var githubAPICache = NewGitHubAPICache()
 
 // getUsageMessage returns the usage message for the cicd command.
 func getUsageMessage() string {
@@ -724,156 +666,6 @@ func parseWorkflowFile(path string) ([]ActionInfo, error) {
 	}
 
 	return actions, nil
-}
-
-func getLatestVersion(actionName string) (string, error) {
-	// Check cache first
-	cacheKey := "release:" + actionName
-	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
-		fmt.Fprintf(os.Stderr, "[CACHE] Cache hit for %s: %s\n", actionName, cachedVersion)
-
-		return cachedVersion, nil
-	}
-
-	fmt.Fprintf(os.Stderr, "[CACHE] Cache miss for %s, making API call\n", actionName)
-
-	// GitHub API has rate limits, so add a delay
-	time.Sleep(cryptoutilMagic.TimeoutGitHubAPIDelay)
-
-	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", actionName)
-
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutGitHubAPITimeout)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to create HTTP request: %w", err)
-	}
-
-	// Use GitHub token if available to increase rate limit
-	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
-	}
-
-	// Set User-Agent as recommended by GitHub API
-	req.Header.Set("User-Agent", "check-script")
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to make HTTP request: %w", err)
-	}
-
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			fmt.Printf("Warning: failed to close HTTP response body: %v\n", closeErr)
-		}
-	}()
-
-	if resp.StatusCode == http.StatusNotFound {
-		// Some actions might not have releases, try tags
-		version, err := getLatestTag(actionName)
-		if err != nil {
-			return "", err
-		}
-		// Cache the result
-		githubAPICache.Set(cacheKey, version)
-
-		return version, nil
-	} else if resp.StatusCode == http.StatusForbidden {
-		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
-	} else if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	var release GitHubRelease
-	if err := json.Unmarshal(body, &release); err != nil {
-		return "", fmt.Errorf("failed to unmarshal GitHub release JSON: %w", err)
-	}
-
-	// Cache the result
-	githubAPICache.Set(cacheKey, release.TagName)
-
-	return release.TagName, nil
-}
-
-func getLatestTag(actionName string) (string, error) {
-	// Check cache first
-	cacheKey := "tags:" + actionName
-	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
-		fmt.Fprintf(os.Stderr, "[CACHE] Cache hit for %s tags: %s\n", actionName, cachedVersion)
-
-		return cachedVersion, nil
-	}
-
-	fmt.Fprintf(os.Stderr, "[CACHE] Cache miss for %s tags, making API call\n", actionName)
-
-	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
-
-	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutGitHubAPITimeout)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to create HTTP request for tags: %w", err)
-	}
-
-	// Use GitHub token if available
-	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
-		req.Header.Set("Authorization", "Bearer "+token)
-	}
-
-	req.Header.Set("User-Agent", "check-script")
-
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to make HTTP request for tags: %w", err)
-	}
-
-	defer func() {
-		if closeErr := resp.Body.Close(); closeErr != nil {
-			fmt.Printf("Warning: failed to close HTTP response body: %v\n", closeErr)
-		}
-	}()
-
-	if resp.StatusCode == http.StatusForbidden {
-		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
-	} else if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read tags response body: %w", err)
-	}
-
-	var tags []struct {
-		Name string `json:"name"`
-	}
-
-	if err := json.Unmarshal(body, &tags); err != nil {
-		return "", fmt.Errorf("failed to unmarshal GitHub tags JSON: %w", err)
-	}
-
-	if len(tags) == 0 {
-		return "", fmt.Errorf("no tags found")
-	}
-
-	// Return the first tag (should be the latest)
-	latestTag := tags[0].Name
-
-	// Cache the result
-	githubAPICache.Set(cacheKey, latestTag)
-
-	return latestTag, nil
 }
 
 func isOutdated(current, latest string) bool {
