@@ -40,6 +40,7 @@
     "/^(Remove-Item|del)\\b/i.*/": false, // Windows file deletion
     "/^rm\\b.*/": false,                 // Unix file deletion (complement to Remove-Item)
     "/^python.*/": false,                // Used for count_tokens.py but you didn't enable
+    "/^yamllint\\b.*/": false,           // YAML linting tool - not installed in Windows PowerShell
     "/^Test-NetConnection\\b.*/": true, // Network connectivity testing
     "/^\\[System\\.IO\\.File\\]::ReadAllBytes\\b.*/": false, // File reading operations - use read_file tool instead
     "/^(Get-Content|cat|type)\\b.*/": true, // File content reading - use read_file tool instead
