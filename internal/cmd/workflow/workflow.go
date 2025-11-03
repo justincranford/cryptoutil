@@ -13,12 +13,14 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // WorkflowConfig defines a GitHub Actions workflow that can be run locally with act.
 type WorkflowConfig struct {
-	Description string
-	DefaultArgs []string
+	// Description is computed dynamically from the workflow file
 }
 
 // WorkflowExecution represents a workflow to be executed with its name and config.
@@ -79,6 +81,7 @@ const (
 
 	// Workflow names.
 	workflowNameDAST = "dast"
+	workflowNameLoad = "load"
 
 	// Event types.
 	eventTypePush             = "push"
@@ -99,46 +102,16 @@ const (
 
 // Available workflows. In alphabetical order.
 var workflows = map[string]WorkflowConfig{
-	"benchmark": {
-		Description: "Benchmark Testing - Performance benchmarking",
-		DefaultArgs: []string{},
-	},
-	"coverage": {
-		Description: "Coverage Collection - Test coverage collection and reporting",
-		DefaultArgs: []string{},
-	},
-	"dast": {
-		Description: "Dynamic Application Security Testing - OWASP ZAP and Nuclei scans",
-		DefaultArgs: []string{"--input", "scan_profile=quick"},
-	},
-	"e2e": {
-		Description: "End-to-End Testing - Full system integration with Docker Compose",
-		DefaultArgs: []string{},
-	},
-	"fuzz": {
-		Description: "Fuzz Testing - Property-based testing for key generation and digests",
-		DefaultArgs: []string{},
-	},
-	"gitleaks": {
-		Description: "Secrets Scanning - GitLeaks secrets detection",
-		DefaultArgs: []string{},
-	},
-	"load": {
-		Description: "Load Testing - Gatling performance tests with infrastructure monitoring",
-		DefaultArgs: []string{"--input", "load_profile=quick"},
-	},
-	"quality": {
-		Description: "Code Quality - Unit tests, coverage, linting, formatting checks",
-		DefaultArgs: []string{},
-	},
-	"race": {
-		Description: "Race Condition Detection - Concurrency testing",
-		DefaultArgs: []string{},
-	},
-	"sast": {
-		Description: "Static Application Security Testing - gosec and golangci-lint security checks",
-		DefaultArgs: []string{},
-	},
+	"benchmark": {},
+	"coverage":  {},
+	"dast":      {},
+	"e2e":       {},
+	"fuzz":      {},
+	"gitleaks":  {},
+	"load":      {},
+	"quality":   {},
+	"race":      {},
+	"sast":      {},
 }
 
 // Run executes the workflow runner with the provided command line arguments.
@@ -240,12 +213,12 @@ func listWorkflows() {
 	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", colorCyan, colorReset)
 	fmt.Println(strings.Repeat("=", lineWidth))
 
-	for name, wf := range workflows {
-		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, name, colorReset, wf.Description)
+	for name := range workflows {
+		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, name, colorReset, getWorkflowDescription(name))
 		fmt.Printf("           File: %s\n", getWorkflowFile(name))
 
-		if len(wf.DefaultArgs) > 0 {
-			fmt.Printf("           Args: %s\n", strings.Join(wf.DefaultArgs, " "))
+		if len(getWorkflowDefaultArgs(name)) > 0 {
+			fmt.Printf("           Args: %s\n", strings.Join(getWorkflowDefaultArgs(name), " "))
 		}
 	}
 
@@ -288,11 +261,11 @@ func printExecutiveSummaryHeader(selectedWorkflows []WorkflowExecution, logFile 
 	header += strings.Repeat("-", lineWidth) + "\n"
 
 	for i, wf := range selectedWorkflows {
-		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, colorGreen, wf.Name, colorReset, wf.Config.Description)
+		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, colorGreen, wf.Name, colorReset, getWorkflowDescription(wf.Name))
 		header += fmt.Sprintf("    File: %s\n", getWorkflowFile(wf.Name))
 
-		if len(wf.Config.DefaultArgs) > 0 {
-			header += fmt.Sprintf("    Args: %s\n", strings.Join(wf.Config.DefaultArgs, " "))
+		if len(getWorkflowDefaultArgs(wf.Name)) > 0 {
+			header += fmt.Sprintf("    Args: %s\n", strings.Join(getWorkflowDefaultArgs(wf.Name), " "))
 		}
 	}
 
@@ -413,8 +386,8 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", colorYellow, getWorkflowFile(wf.Name), colorReset)
 		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", actPath, event, getWorkflowFile(wf.Name))
 
-		if len(wf.Config.DefaultArgs) > 0 {
-			dryRunMsg += fmt.Sprintf("   Args: %s\n", strings.Join(wf.Config.DefaultArgs, " "))
+		if len(getWorkflowDefaultArgs(wf.Name)) > 0 {
+			dryRunMsg += fmt.Sprintf("   Args: %s\n", strings.Join(getWorkflowDefaultArgs(wf.Name), " "))
 		}
 
 		if actArgs != "" {
@@ -447,7 +420,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	}
 
 	args := []string{event, "-W", getWorkflowFile(wf.Name)}
-	args = append(args, wf.Config.DefaultArgs...)
+	args = append(args, getWorkflowDefaultArgs(wf.Name)...)
 
 	if actArgs != "" {
 		args = append(args, strings.Fields(actArgs)...)
@@ -615,6 +588,48 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 // getWorkflowFile returns the workflow file path for a given workflow name.
 func getWorkflowFile(workflowName string) string {
 	return fmt.Sprintf(".github/workflows/ci-%s.yml", workflowName)
+}
+
+// getWorkflowDescription returns the description for a given workflow name by reading it from the workflow file.
+func getWorkflowDescription(workflowName string) string {
+	workflowFile := getWorkflowFile(workflowName)
+
+	content, err := os.ReadFile(workflowFile)
+	if err != nil {
+		// Fallback to a generic description if file cannot be read
+		caser := cases.Title(language.English)
+
+		return fmt.Sprintf("%s workflow", caser.String(workflowName))
+	}
+
+	lines := strings.Split(string(content), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "name:") {
+			// Extract the name value, removing quotes if present
+			nameValue := strings.TrimSpace(strings.TrimPrefix(line, "name:"))
+			nameValue = strings.Trim(nameValue, `"'`)
+
+			return nameValue
+		}
+	}
+
+	// Fallback if name not found
+	caser := cases.Title(language.English)
+
+	return fmt.Sprintf("%s workflow", caser.String(workflowName))
+}
+
+// getWorkflowDefaultArgs returns the default arguments for a given workflow name.
+func getWorkflowDefaultArgs(workflowName string) []string {
+	switch workflowName {
+	case workflowNameDAST:
+		return []string{"--input", "scan_profile=quick"}
+	case workflowNameLoad:
+		return []string{"--input", "load_profile=quick"}
+	default:
+		return []string{}
+	}
 }
 
 func getWorkflowLogFile(outputDir, workflowName string) string {

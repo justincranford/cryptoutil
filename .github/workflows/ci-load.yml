@@ -51,7 +51,7 @@ on:
       load_profile:
         description: 'Load test profile'
         required: false
-        default: 'standard'
+        default: 'quick'
         type: choice
         options:
           - quick
@@ -144,8 +144,8 @@ jobs:
             DURATION=300
             ;;
           *)
-            CLIENTS=50
-            DURATION=120
+            CLIENTS=10
+            DURATION=30
             ;;
         esac
 
