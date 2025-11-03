@@ -102,13 +102,6 @@ jobs:
     - name: Generate function-level coverage report
       run: go tool cover -func=coverage.out > coverage-func.txt
 
-    - name: Scan repository for secrets
-      uses: ./.github/actions/security-scan-gitleaks
-      with:
-        files: 'cmd/,internal/,pkg/,scripts/'
-        scan-name: 'Repository Secrets Scan'
-        gitleaks-sarif-output: 'repository-gitleaks.sarif'
-
     - name: Scan coverage artifacts for vulnerabilities
       uses: ./.github/actions/security-scan-trivy
       with:
@@ -149,6 +142,6 @@ jobs:
         echo "Coverage collection completed successfully." >> $GITHUB_STEP_SUMMARY
         echo "- Coverage: All packages" >> $GITHUB_STEP_SUMMARY
         echo "- Output: HTML report, coverage profile, and function-level report" >> $GITHUB_STEP_SUMMARY
-        echo "- Security: Repository scanned for secrets, coverage artifacts scanned for vulnerabilities" >> $GITHUB_STEP_SUMMARY
+        echo "- Security: Coverage artifacts scanned for vulnerabilities" >> $GITHUB_STEP_SUMMARY
         echo "- Upload: Codecov with fail-safe configuration" >> $GITHUB_STEP_SUMMARY
         echo "- Artifacts: coverage-reports (HTML + profile + function report) available for download" >> $GITHUB_STEP_SUMMARY

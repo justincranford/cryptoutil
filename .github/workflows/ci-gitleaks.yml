@@ -1,0 +1,89 @@
+# $schema: https://json.schemastore.org/github-workflow.json
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+
+name: CI - GitLeaks Secrets Scan
+# CROSS-PLATFORM COMPATIBILITY: All file references in this workflow MUST use relative paths
+# to support both GitHub Actions Ubuntu runners and Windows `act` local runner testing.
+# Absolute paths (e.g., C:\...) break cross-platform compatibility.
+# Example: Use './deployments/compose/compose.yml'
+
+on:
+  push:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with pull_request below
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  pull_request:
+    branches: [ main, develop ]
+    # SHARED PATHS-IGNORE CONFIGURATION - Keep synchronized with push above
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
+      - '.github/copilot-instructions.md'
+      - '.github/instructions/**'
+      - 'workflow-reports/**'
+      - 'nohup.out'
+      - 'LICENSE'
+      - '.editorconfig'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/pull_request_template.md'
+      - '.github/dependabot.yml'
+      - '**/*.log'
+      - '**/*.sarif'
+  workflow_dispatch:
+
+jobs:
+  gitleaks:
+    name: GitLeaks Secrets Scan
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    steps:
+    - name: Workflow Start - CI - GitLeaks Secrets Scan (ci-gitleaks.yml)
+      run: |
+        echo "=========================================="
+        echo "Workflow: ${{ github.workflow }}"
+        echo "File: .github/workflows/ci-gitleaks.yml"
+        echo "Job: gitleaks"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "=========================================="
+
+    - name: Checkout code
+      uses: actions/checkout@v5.0.0
+      with:
+        sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+    - name: Scan repository for secrets
+      uses: ./.github/actions/security-scan-gitleaks
+      with:
+        files: 'cmd/,internal/,pkg/,scripts/'
+        scan-name: 'Repository Secrets Scan'
+        gitleaks-sarif-output: 'repository-gitleaks.sarif'
+
+    - name: GitLeaks scan summary
+      run: |
+        echo "## 🔍 GitLeaks Secrets Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "GitLeaks secrets scanning completed successfully." >> $GITHUB_STEP_SUMMARY
+        echo "- Target: Repository source code (cmd/, internal/, pkg/, scripts/)" >> $GITHUB_STEP_SUMMARY
+        echo "- Output: SARIF report uploaded to GitHub Security tab" >> $GITHUB_STEP_SUMMARY
+        echo "- Findings: Any detected secrets will appear in the Security tab" >> $GITHUB_STEP_SUMMARY
