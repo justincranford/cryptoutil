@@ -130,8 +130,8 @@ func getAvailableWorkflows() (map[string]WorkflowConfig, error) {
 	return workflows, nil
 }
 
-// Available workflows. In alphabetical order.
-var workflows = func() map[string]WorkflowConfig {
+// Available workflowNames. In alphabetical order.
+var workflowNames = func() map[string]WorkflowConfig {
 	workflows, err := getAvailableWorkflows()
 	if err != nil {
 		// Fallback to hardcoded list if directory read fails
@@ -251,12 +251,12 @@ func listWorkflows() {
 	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", colorCyan, colorReset)
 	fmt.Println(strings.Repeat("=", lineWidth))
 
-	for name := range workflows {
-		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, name, colorReset, getWorkflowDescription(name))
-		fmt.Printf("           File: %s\n", getWorkflowFile(name))
+	for workflowName := range workflowNames {
+		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, workflowName, colorReset, getWorkflowDescription(workflowName))
+		fmt.Printf("           File: %s\n", getWorkflowFile(workflowName))
 
-		if len(getWorkflowDefaultArgs(name)) > 0 {
-			fmt.Printf("           Args: %s\n", strings.Join(getWorkflowDefaultArgs(name), " "))
+		if len(getWorkflowDefaultArgs(workflowName)) > 0 {
+			fmt.Printf("           Args: %s\n", strings.Join(getWorkflowDefaultArgs(workflowName), " "))
 		}
 	}
 
@@ -274,7 +274,7 @@ func parseWorkflowNames(names string) []WorkflowExecution {
 
 	for _, name := range parts {
 		name = strings.TrimSpace(name)
-		if wf, ok := workflows[name]; ok {
+		if wf, ok := workflowNames[name]; ok {
 			result = append(result, WorkflowExecution{Name: name, Config: wf})
 		} else {
 			fmt.Fprintf(os.Stderr, "%sWarning: Unknown workflow '%s' (skipping)%s\n", colorYellow, name, colorReset)
