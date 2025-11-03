@@ -14,7 +14,7 @@ import (
 func TestGetAvailableWorkflows(t *testing.T) {
 	// Create a temporary directory structure to simulate .github/workflows/
 	tempDir := t.TempDir()
-	workflowsDir := filepath.Join(tempDir, ".github", "workflows")
+	workflowsDir := filepath.Join(tempDir, "test_workflows")
 
 	// Create the workflows directory
 	err := os.MkdirAll(workflowsDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
@@ -58,7 +58,7 @@ func TestGetAvailableWorkflows(t *testing.T) {
 	require.NoError(t, err, "Failed to change to temp directory")
 
 	// Test the function
-	workflows, err := getAvailableWorkflows()
+	workflows, err := getAvailableWorkflows(workflowsDir)
 	require.NoError(t, err, "getAvailableWorkflows() returned error")
 
 	// Verify expected workflows are found
@@ -84,52 +84,22 @@ func TestGetAvailableWorkflows(t *testing.T) {
 }
 
 func TestGetAvailableWorkflows_NoWorkflowsDir(t *testing.T) {
-	// Test with a directory that doesn't have .github/workflows/
-	tempDir := t.TempDir()
-
-	// Change to the temp directory
-	originalWd, err := os.Getwd()
-	require.NoError(t, err, "Failed to get current working directory")
-
-	defer func() {
-		if chdirErr := os.Chdir(originalWd); chdirErr != nil {
-			assert.NoError(t, chdirErr, "Failed to restore working directory")
-		}
-	}()
-
-	err = os.Chdir(tempDir)
-	require.NoError(t, err, "Failed to change to temp directory")
-
 	// Test the function - should return error
-	_, err = getAvailableWorkflows()
+	_, err := getAvailableWorkflows(".github/workflows_nonexistent")
 	assert.Error(t, err, "Expected error when workflows directory doesn't exist")
 }
 
 func TestGetAvailableWorkflows_EmptyDir(t *testing.T) {
-	// Test with an empty .github/workflows/ directory
+	// Test with an empty directory
 	tempDir := t.TempDir()
-	workflowsDir := filepath.Join(tempDir, ".github", "workflows")
+	workflowsDir := filepath.Join(tempDir, "empty_workflows")
 
+	// Create the empty directory
 	err := os.MkdirAll(workflowsDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute)
-	require.NoError(t, err, "Failed to create workflows directory")
-
-	// Change to the temp directory
-	originalWd, err := os.Getwd()
-	require.NoError(t, err, "Failed to get current working directory")
-
-	defer func() {
-		if chdirErr := os.Chdir(originalWd); chdirErr != nil {
-			assert.NoError(t, chdirErr, "Failed to restore working directory")
-		}
-	}()
-
-	err = os.Chdir(tempDir)
-	require.NoError(t, err, "Failed to change to temp directory")
+	require.NoError(t, err, "Failed to create empty workflows directory")
 
 	// Test the function
-	workflows, err := getAvailableWorkflows()
-	require.NoError(t, err, "getAvailableWorkflows() returned error")
-
-	// Should return empty map
-	assert.Empty(t, workflows, "Expected empty workflows map")
+	workflows, err := getAvailableWorkflows(workflowsDir)
+	require.Error(t, err, "getAvailableWorkflows() returned error")
+	assert.Nil(t, workflows, "Expected nil workflows map for empty directory")
 }

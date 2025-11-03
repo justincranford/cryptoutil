@@ -73,7 +73,7 @@ on:
       scan_profile:
         description: 'Scan profile for performance optimization'
         required: false
-        default: 'full'
+        default: 'quick'
         type: choice
         options:
           - quick

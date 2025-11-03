@@ -22,7 +22,7 @@ import (
 
 // WorkflowConfig defines a GitHub Actions workflow that can be run locally with act.
 type WorkflowConfig struct {
-	// Description is computed dynamically from the workflow file
+	Description string
 }
 
 // WorkflowExecution represents a workflow to be executed with its name and config.
@@ -67,47 +67,17 @@ type ExecutionSummary struct {
 	CombinedLog   string
 }
 
-// getAvailableWorkflows returns a map of available workflows by reading ci-*.yml files from .github/workflows/.
-func getAvailableWorkflows() (map[string]WorkflowConfig, error) {
-	workflowsDir := ".github/workflows"
-
-	files, err := os.ReadDir(workflowsDir)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read workflows directory: %w", err)
-	}
-
-	workflows := make(map[string]WorkflowConfig)
-
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-
-		filename := file.Name()
-		// Match files with pattern ci-*.yml
-		if strings.HasPrefix(filename, "ci-") && strings.HasSuffix(filename, ".yml") {
-			// Extract workflow name from filename (remove ci- prefix and .yml suffix)
-			workflowName := strings.TrimPrefix(filename, "ci-")
-			workflowName = strings.TrimSuffix(workflowName, ".yml")
-
-			workflows[workflowName] = WorkflowConfig{}
-		}
-	}
-
-	return workflows, nil
-}
-
 // Run executes the workflow runner with the provided command line arguments.
 func Run(args []string) int {
 	// Create flag set for parsing.
 	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
 
-	workflowNames := fs.String("workflows", "", "Comma-separated list of workflows to run (quality,coverage,benchmark,gitleaks,sast,race,fuzz,e2e,dast,load)")
+	workflows := fs.String("workflows", "", "Comma-separated list of workflows to run (benchmark,coverage,dast,e2e,fuzz,gitleaks,load,quality,race,sast)")
+	showHelp := fs.Bool("help", false, "Show usage with list available workflows and exit")
 	outputDir := fs.String("output", "workflow-reports", "Output directory for logs and reports")
 	dryRun := fs.Bool("dry-run", false, "Show what would be executed without running workflows")
 	actPath := fs.String("act-path", "act", "Path to act executable")
 	actArgs := fs.String("act-args", "", "Additional arguments to pass to act")
-	showList := fs.Bool("list", false, "List available workflows and exit")
 
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(os.Stderr, "%sError parsing flags: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
@@ -116,7 +86,7 @@ func Run(args []string) int {
 	}
 
 	// Get available workflows - inline the call here
-	availableWorkflows, err := getAvailableWorkflows()
+	availableWorkflows, err := getAvailableWorkflows(".github/workflows")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%sError reading workflows directory: %v%s\n", cryptoutilMagic.ColorRed, err, cryptoutilMagic.ColorReset)
 		fmt.Fprintf(os.Stderr, "Make sure you're running from the project root with .github/workflows/ directory.\n")
@@ -124,29 +94,22 @@ func Run(args []string) int {
 		return 1
 	}
 
-	if len(availableWorkflows) == 0 {
-		fmt.Fprintf(os.Stderr, "%sError: No workflows found in .github/workflows/ directory%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
-		fmt.Fprintf(os.Stderr, "Make sure ci-*.yml workflow files exist in .github/workflows/.\n")
-
-		return 1
-	}
-
 	// Show available workflows if requested.
-	if *showList {
-		listWorkflows(availableWorkflows)
+	if *showHelp {
+		printHelp(availableWorkflows)
 
 		return 0
 	}
 
-	// Validate workflow names.
-	if *workflowNames == "" {
+	// Validate parameter values
+	if *workflows == "" {
 		fmt.Fprintf(os.Stderr, "%sError: No workflows specified. Use -workflows flag.%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
 		fmt.Fprintf(os.Stderr, "Use -list to see available workflows.\n")
 
 		return 1
 	}
 
-	selectedWorkflows := parseWorkflowNames(*workflowNames, availableWorkflows)
+	selectedWorkflows := parseWorkflowNames(*workflows, availableWorkflows)
 	if len(selectedWorkflows) == 0 {
 		fmt.Fprintf(os.Stderr, "%sError: No valid workflows specified.%s\n", cryptoutilMagic.ColorRed, cryptoutilMagic.ColorReset)
 
@@ -207,18 +170,49 @@ func Run(args []string) int {
 	return 0
 }
 
-func listWorkflows(availableWorkflows map[string]WorkflowConfig) {
+// getAvailableWorkflows returns a map of available workflows by reading ci-*.yml files from .github/workflows/.
+func getAvailableWorkflows(workflowsDir string) (map[string]WorkflowConfig, error) {
+	files, err := os.ReadDir(workflowsDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read workflows directory: %w", err)
+	}
+
+	workflows := make(map[string]WorkflowConfig)
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+
+		filename := file.Name()
+		// Match files with pattern ci-*.yml
+		if strings.HasPrefix(filename, "ci-") && strings.HasSuffix(filename, ".yml") {
+			// Extract workflow name from filename (remove ci- prefix and .yml suffix)
+			workflowName := strings.TrimPrefix(filename, "ci-")
+			workflowName = strings.TrimSuffix(workflowName, ".yml")
+
+			workflows[workflowName] = WorkflowConfig{Description: getWorkflowDescription(workflowName)}
+		}
+	}
+
+	if len(workflows) == 0 {
+		fmt.Fprintf(os.Stderr, "%sError: No workflows found in %s directory%s\n", cryptoutilMagic.ColorRed, workflowsDir, cryptoutilMagic.ColorReset)
+		fmt.Fprintf(os.Stderr, "Make sure workflow files %s/ci-*.yml exist.\n", workflowsDir)
+
+		return nil, fmt.Errorf("no workflows found in %s directory", workflowsDir)
+	}
+
+	return workflows, nil
+}
+
+func printHelp(availableWorkflows map[string]WorkflowConfig) {
 	fmt.Println("\n" + strings.Repeat("=", cryptoutilMagic.LineWidth))
 	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", cryptoutilMagic.ColorCyan, cryptoutilMagic.ColorReset)
 	fmt.Println(strings.Repeat("=", cryptoutilMagic.LineWidth))
 
-	for workflowName := range availableWorkflows {
-		fmt.Printf("\n%s%-12s%s %s\n", cryptoutilMagic.ColorGreen, workflowName, cryptoutilMagic.ColorReset, getWorkflowDescription(workflowName))
+	for workflowName, workflowConfig := range availableWorkflows {
+		fmt.Printf("\n%s%-12s%s %s\n", cryptoutilMagic.ColorGreen, workflowName, cryptoutilMagic.ColorReset, workflowConfig.Description)
 		fmt.Printf("           File: %s\n", getWorkflowFile(workflowName))
-
-		if len(getWorkflowDefaultArgs(workflowName)) > 0 {
-			fmt.Printf("           Args: %s\n", strings.Join(getWorkflowDefaultArgs(workflowName), " "))
-		}
 	}
 
 	fmt.Println("\n" + strings.Repeat("=", cryptoutilMagic.LineWidth))
@@ -260,12 +254,8 @@ func printExecutiveSummaryHeader(selectedWorkflows []WorkflowExecution, logFile 
 	header += strings.Repeat("-", cryptoutilMagic.LineWidth) + "\n"
 
 	for i, wf := range selectedWorkflows {
-		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, cryptoutilMagic.ColorGreen, wf.Name, cryptoutilMagic.ColorReset, getWorkflowDescription(wf.Name))
+		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, cryptoutilMagic.ColorGreen, wf.Name, cryptoutilMagic.ColorReset, wf.Config.Description)
 		header += fmt.Sprintf("    File: %s\n", getWorkflowFile(wf.Name))
-
-		if len(getWorkflowDefaultArgs(wf.Name)) > 0 {
-			header += fmt.Sprintf("    Args: %s\n", strings.Join(getWorkflowDefaultArgs(wf.Name), " "))
-		}
 	}
 
 	header += "\n" + strings.Repeat("=", cryptoutilMagic.LineWidth) + "\n"
@@ -385,10 +375,6 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", cryptoutilMagic.ColorYellow, getWorkflowFile(wf.Name), cryptoutilMagic.ColorReset)
 		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", actPath, event, getWorkflowFile(wf.Name))
 
-		if len(getWorkflowDefaultArgs(wf.Name)) > 0 {
-			dryRunMsg += fmt.Sprintf("   Args: %s\n", strings.Join(getWorkflowDefaultArgs(wf.Name), " "))
-		}
-
 		if actArgs != "" {
 			dryRunMsg += fmt.Sprintf("   Extra Args: %s\n", actArgs)
 		}
@@ -419,7 +405,6 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	}
 
 	args := []string{event, "-W", getWorkflowFile(wf.Name)}
-	args = append(args, getWorkflowDefaultArgs(wf.Name)...)
 
 	if actArgs != "" {
 		args = append(args, strings.Fields(actArgs)...)
@@ -601,8 +586,8 @@ func getWorkflowDescription(workflowName string) string {
 		return fmt.Sprintf("%s workflow", caser.String(workflowName))
 	}
 
-	lines := strings.Split(string(content), "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(string(content), "\n")
+	for line := range lines {
 		line = strings.TrimSpace(line)
 		if strings.HasPrefix(line, "name:") {
 			// Extract the name value, removing quotes if present
@@ -617,18 +602,6 @@ func getWorkflowDescription(workflowName string) string {
 	caser := cases.Title(language.English)
 
 	return fmt.Sprintf("%s workflow", caser.String(workflowName))
-}
-
-// getWorkflowDefaultArgs returns the default arguments for a given workflow name.
-func getWorkflowDefaultArgs(workflowName string) []string {
-	switch workflowName {
-	case cryptoutilMagic.WorkflowNameDAST:
-		return []string{"--input", "scan_profile=quick"}
-	case cryptoutilMagic.WorkflowNameLoad:
-		return []string{"--input", "load_profile=quick"}
-	default:
-		return []string{}
-	}
 }
 
 func getWorkflowLogFile(outputDir, workflowName string) string {
@@ -686,255 +659,6 @@ func analyzeWorkflowLog(logFile string, result *WorkflowResult) {
 		if !contains(result.Warnings, match) {
 			result.Warnings = append(result.Warnings, match)
 		}
-	}
-
-	// Workflow-specific task analysis.
-	switch result.Name {
-	case "dast":
-		analyzeDastWorkflow(logContent, result)
-	case "e2e":
-		analyzeE2EWorkflow(logContent, result)
-	case "sast":
-		analyzeSastWorkflow(logContent, result)
-	case "race":
-		analyzeRaceWorkflow(logContent, result)
-	case "fuzz":
-		analyzeFuzzWorkflow(logContent, result)
-	case "quality":
-		analyzeQualityWorkflow(logContent, result)
-	case "coverage":
-		analyzeCoverageWorkflow(logContent, result)
-	case "benchmark":
-		analyzeBenchmarkWorkflow(logContent, result)
-	case "gitleaks":
-		analyzeGitleaksWorkflow(logContent, result)
-	case "load":
-		analyzeLoadWorkflow(logContent, result)
-	}
-}
-
-func analyzeDastWorkflow(logContent string, result *WorkflowResult) {
-	// Check for Nuclei scan.
-	if strings.Contains(logContent, "Nuclei - Vulnerability Scan") {
-		status := cryptoutilMagic.TaskFailed
-		artifacts := []string{}
-
-		if strings.Contains(logContent, "nuclei.log") || strings.Contains(logContent, "nuclei.sarif") {
-			status = cryptoutilMagic.TaskSuccess
-
-			artifacts = append(artifacts, "nuclei.log", "nuclei.sarif")
-		}
-
-		result.TaskResults["Nuclei Scan"] = TaskResult{Name: "Nuclei Scan", Status: status, Artifacts: artifacts}
-	}
-
-	// Check for ZAP Full Scan.
-	if strings.Contains(logContent, "OWASP ZAP DAST Scan") {
-		status := cryptoutilMagic.TaskFailed
-		artifacts := []string{}
-
-		if strings.Contains(logContent, "zap-report") {
-			status = cryptoutilMagic.TaskSuccess
-
-			artifacts = append(artifacts, "zap-report.html")
-		}
-
-		result.TaskResults["ZAP Full Scan"] = TaskResult{Name: "ZAP Full Scan", Status: status, Artifacts: artifacts}
-	}
-
-	// Check for ZAP API Scan.
-	if strings.Contains(logContent, "OWASP ZAP API Scan") {
-		status := cryptoutilMagic.TaskFailed
-		artifacts := []string{}
-
-		if strings.Contains(logContent, "zap-api-report") {
-			status = cryptoutilMagic.TaskSuccess
-
-			artifacts = append(artifacts, "zap-api-report.html")
-		}
-
-		result.TaskResults["ZAP API Scan"] = TaskResult{Name: "ZAP API Scan", Status: status, Artifacts: artifacts}
-	}
-
-	// Check for header capture.
-	if strings.Contains(logContent, "response-headers.txt") {
-		result.TaskResults["Header Capture"] = TaskResult{
-			Name:      "Header Capture",
-			Status:    cryptoutilMagic.TaskSuccess,
-			Artifacts: []string{"response-headers.txt"},
-		}
-	}
-}
-
-func analyzeE2EWorkflow(logContent string, result *WorkflowResult) {
-	// Check for Docker Compose services.
-	if strings.Contains(logContent, "docker compose") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Docker Compose Setup"] = TaskResult{Name: "Docker Compose Setup", Status: status}
-	}
-
-	// Check for E2E tests.
-	if strings.Contains(logContent, "go test -tags=e2e") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "FAIL:") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["E2E Tests"] = TaskResult{Name: "E2E Tests", Status: status}
-	}
-}
-
-func analyzeSastWorkflow(logContent string, result *WorkflowResult) {
-	// Check for gosec scan.
-	if strings.Contains(logContent, "gosec") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "Issues : ") && !strings.Contains(logContent, "Issues : 0") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Gosec Scan"] = TaskResult{Name: "Gosec Scan", Status: status}
-	}
-
-	// Check for golangci-lint.
-	if strings.Contains(logContent, "golangci-lint") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "found issues") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Golangci-Lint"] = TaskResult{Name: "Golangci-Lint", Status: status}
-	}
-}
-
-func analyzeLoadWorkflow(logContent string, result *WorkflowResult) {
-	// Check for Gatling load tests.
-	if strings.Contains(logContent, "gatling") || strings.Contains(logContent, "Gatling") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Gatling Load Tests"] = TaskResult{Name: "Gatling Load Tests", Status: status}
-	}
-
-	// Check for Docker Compose services.
-	if strings.Contains(logContent, "docker compose") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Docker Compose Setup"] = TaskResult{Name: "Docker Compose Setup", Status: status}
-	}
-}
-
-func analyzeGitleaksWorkflow(logContent string, result *WorkflowResult) {
-	// Check for Gitleaks scan.
-	if strings.Contains(logContent, "gitleaks") || strings.Contains(logContent, "Gitleaks") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "leaks found") || strings.Contains(logContent, "failed") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Gitleaks Secrets Scan"] = TaskResult{Name: "Gitleaks Secrets Scan", Status: status}
-	}
-}
-
-func analyzeBenchmarkWorkflow(logContent string, result *WorkflowResult) {
-	// Check for benchmarks.
-	if strings.Contains(logContent, "-bench") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "FAIL") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Benchmark Tests"] = TaskResult{Name: "Benchmark Tests", Status: status}
-	}
-}
-
-func analyzeCoverageWorkflow(logContent string, result *WorkflowResult) {
-	// Check for coverage collection.
-	if strings.Contains(logContent, "-coverprofile") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Coverage Collection"] = TaskResult{Name: "Coverage Collection", Status: status}
-	}
-
-	// Check for coverage reporting.
-	if strings.Contains(logContent, "codecov") || strings.Contains(logContent, "coverage.html") {
-		result.TaskResults["Coverage Reporting"] = TaskResult{Name: "Coverage Reporting", Status: cryptoutilMagic.TaskSuccess}
-	}
-}
-
-func analyzeFuzzWorkflow(logContent string, result *WorkflowResult) {
-	// Check for fuzz tests - keygen package.
-	if strings.Contains(logContent, "FuzzGenerateRSAKeyPair") ||
-		strings.Contains(logContent, "FuzzGenerateECDSAKeyPair") ||
-		strings.Contains(logContent, "FuzzGenerateECDHKeyPair") ||
-		strings.Contains(logContent, "FuzzGenerateEDDSAKeyPair") ||
-		strings.Contains(logContent, "FuzzGenerateAESKey") ||
-		strings.Contains(logContent, "FuzzGenerateAESHSKey") ||
-		strings.Contains(logContent, "FuzzGenerateHMACKey") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "fuzz: elapsed") && strings.Contains(logContent, "FAIL") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Fuzz Tests - Keygen"] = TaskResult{Name: "Fuzz Tests - Keygen", Status: status}
-	}
-
-	// Check for fuzz tests - digests package.
-	if strings.Contains(logContent, "FuzzHKDFAllVariants") ||
-		strings.Contains(logContent, "FuzzHKDFwithSHA256") ||
-		strings.Contains(logContent, "FuzzHKDFwithSHA384") ||
-		strings.Contains(logContent, "FuzzHKDFwithSHA512") ||
-		strings.Contains(logContent, "FuzzHKDFwithSHA224") ||
-		strings.Contains(logContent, "FuzzSHA512") ||
-		strings.Contains(logContent, "FuzzSHA384") ||
-		strings.Contains(logContent, "FuzzSHA256") ||
-		strings.Contains(logContent, "FuzzSHA224") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "fuzz: elapsed") && strings.Contains(logContent, "FAIL") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Fuzz Tests - Digests"] = TaskResult{Name: "Fuzz Tests - Digests", Status: status}
-	}
-}
-
-func analyzeRaceWorkflow(logContent string, result *WorkflowResult) {
-	// Check for race condition detection.
-	if strings.Contains(logContent, "-race") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "DATA RACE") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Race Condition Detection"] = TaskResult{Name: "Race Condition Detection", Status: status}
-	}
-}
-
-func analyzeQualityWorkflow(logContent string, result *WorkflowResult) {
-	// Check for unit tests.
-	if strings.Contains(logContent, "go test") {
-		status := cryptoutilMagic.TaskSuccess
-		if strings.Contains(logContent, "FAIL:") {
-			status = cryptoutilMagic.TaskFailed
-		}
-
-		result.TaskResults["Unit Tests"] = TaskResult{Name: "Unit Tests", Status: status}
-	}
-
-	// Check for coverage.
-	if strings.Contains(logContent, "-coverprofile") {
-		result.TaskResults["Coverage Report"] = TaskResult{Name: "Coverage Report", Status: cryptoutilMagic.TaskSuccess}
 	}
 }
 
