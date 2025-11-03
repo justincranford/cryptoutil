@@ -17,10 +17,15 @@ import (
 
 // WorkflowConfig defines a GitHub Actions workflow that can be run locally with act.
 type WorkflowConfig struct {
-	Name         string
 	WorkflowFile string
 	Description  string
 	DefaultArgs  []string
+}
+
+// WorkflowExecution represents a workflow to be executed with its name and config.
+type WorkflowExecution struct {
+	Name   string
+	Config WorkflowConfig
 }
 
 // WorkflowResult captures the outcome of a workflow execution.
@@ -61,14 +66,11 @@ type ExecutionSummary struct {
 
 // ANSI color codes for console output.
 const (
-	colorReset   = "\033[0m"
-	colorRed     = "\033[31m"
-	colorGreen   = "\033[32m"
-	colorYellow  = "\033[33m"
-	colorBlue    = "\033[34m"
-	colorMagenta = "\033[35m"
-	colorCyan    = "\033[36m"
-	colorGray    = "\033[90m"
+	colorReset  = "\033[0m"
+	colorRed    = "\033[31m"
+	colorGreen  = "\033[32m"
+	colorYellow = "\033[33m"
+	colorCyan   = "\033[36m"
 
 	// Status constants.
 	statusSuccess = "✅ SUCCESS"
@@ -93,71 +95,60 @@ const (
 	maxWarningDisplay = 10
 
 	// Memory conversion constants.
-	bytesPerKB = 1024
 	bytesPerMB = 1024 * 1024
 )
 
-// Available workflows.
+// Available workflows. In alphabetical order.
 var workflows = map[string]WorkflowConfig{
-	"quality": {
-		Name:         "quality",
-		WorkflowFile: ".github/workflows/ci-quality.yml",
-		Description:  "Code Quality - Unit tests, coverage, linting, formatting checks",
-		DefaultArgs:  []string{},
-	},
-	"coverage": {
-		Name:         "coverage",
-		WorkflowFile: ".github/workflows/ci-coverage.yml",
-		Description:  "Coverage Collection - Test coverage collection and reporting",
-		DefaultArgs:  []string{},
-	},
 	"benchmark": {
-		Name:         "benchmark",
 		WorkflowFile: ".github/workflows/ci-benchmark.yml",
 		Description:  "Benchmark Testing - Performance benchmarking",
 		DefaultArgs:  []string{},
 	},
-	"gitleaks": {
-		Name:         "gitleaks",
-		WorkflowFile: ".github/workflows/ci-gitleaks.yml",
-		Description:  "Secrets Scanning - GitLeaks secrets detection",
-		DefaultArgs:  []string{},
-	},
-	"sast": {
-		Name:         "sast",
-		WorkflowFile: ".github/workflows/ci-sast.yml",
-		Description:  "Static Application Security Testing - gosec and golangci-lint security checks",
-		DefaultArgs:  []string{},
-	},
-	"race": {
-		Name:         "race",
-		WorkflowFile: ".github/workflows/ci-race.yml",
-		Description:  "Race Condition Detection - Concurrency testing",
-		DefaultArgs:  []string{},
-	},
-	"fuzz": {
-		Name:         "fuzz",
-		WorkflowFile: ".github/workflows/ci-fuzz.yml",
-		Description:  "Fuzz Testing - Property-based testing for key generation and digests",
-		DefaultArgs:  []string{},
-	},
-	"e2e": {
-		Name:         "e2e",
-		WorkflowFile: ".github/workflows/ci-e2e.yml",
-		Description:  "End-to-End Testing - Full system integration with Docker Compose",
+	"coverage": {
+		WorkflowFile: ".github/workflows/ci-coverage.yml",
+		Description:  "Coverage Collection - Test coverage collection and reporting",
 		DefaultArgs:  []string{},
 	},
 	"dast": {
-		Name:         "dast",
 		WorkflowFile: ".github/workflows/ci-dast.yml",
 		Description:  "Dynamic Application Security Testing - OWASP ZAP and Nuclei scans",
 		DefaultArgs:  []string{"--input", "scan_profile=quick"},
 	},
+	"e2e": {
+		WorkflowFile: ".github/workflows/ci-e2e.yml",
+		Description:  "End-to-End Testing - Full system integration with Docker Compose",
+		DefaultArgs:  []string{},
+	},
+	"fuzz": {
+		WorkflowFile: ".github/workflows/ci-fuzz.yml",
+		Description:  "Fuzz Testing - Property-based testing for key generation and digests",
+		DefaultArgs:  []string{},
+	},
+	"gitleaks": {
+		WorkflowFile: ".github/workflows/ci-gitleaks.yml",
+		Description:  "Secrets Scanning - GitLeaks secrets detection",
+		DefaultArgs:  []string{},
+	},
 	"load": {
-		Name:         "load",
 		WorkflowFile: ".github/workflows/ci-load.yml",
 		Description:  "Load Testing - Gatling performance tests with infrastructure monitoring",
 		DefaultArgs:  []string{"--input", "load_profile=quick"},
+	},
+	"quality": {
+		WorkflowFile: ".github/workflows/ci-quality.yml",
+		Description:  "Code Quality - Unit tests, coverage, linting, formatting checks",
+		DefaultArgs:  []string{},
+	},
+	"race": {
+		WorkflowFile: ".github/workflows/ci-race.yml",
+		Description:  "Race Condition Detection - Concurrency testing",
+		DefaultArgs:  []string{},
+	},
+	"sast": {
+		WorkflowFile: ".github/workflows/ci-sast.yml",
+		Description:  "Static Application Security Testing - gosec and golangci-lint security checks",
+		DefaultArgs:  []string{},
 	},
 }
 
@@ -260,9 +251,8 @@ func listWorkflows() {
 	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", colorCyan, colorReset)
 	fmt.Println(strings.Repeat("=", lineWidth))
 
-	for _, name := range []string{"quality", "coverage", "benchmark", "gitleaks", "sast", "race", "fuzz", "e2e", "dast", "load"} {
-		wf := workflows[name]
-		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, wf.Name, colorReset, wf.Description)
+	for name, wf := range workflows {
+		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, name, colorReset, wf.Description)
 		fmt.Printf("           File: %s\n", wf.WorkflowFile)
 
 		if len(wf.DefaultArgs) > 0 {
@@ -278,14 +268,14 @@ func listWorkflows() {
 	fmt.Println()
 }
 
-func parseWorkflowNames(names string) []WorkflowConfig {
+func parseWorkflowNames(names string) []WorkflowExecution {
 	parts := strings.Split(names, ",")
-	result := make([]WorkflowConfig, 0, len(parts))
+	result := make([]WorkflowExecution, 0, len(parts))
 
 	for _, name := range parts {
 		name = strings.TrimSpace(name)
 		if wf, ok := workflows[name]; ok {
-			result = append(result, wf)
+			result = append(result, WorkflowExecution{Name: name, Config: wf})
 		} else {
 			fmt.Fprintf(os.Stderr, "%sWarning: Unknown workflow '%s' (skipping)%s\n", colorYellow, name, colorReset)
 		}
@@ -294,7 +284,7 @@ func parseWorkflowNames(names string) []WorkflowConfig {
 	return result
 }
 
-func printExecutiveSummaryHeader(selectedWorkflows []WorkflowConfig, logFile *os.File, dryRun bool) {
+func printExecutiveSummaryHeader(selectedWorkflows []WorkflowExecution, logFile *os.File, dryRun bool) {
 	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", lineWidth))
 	header += fmt.Sprintf("%s🚀 GITHUB ACTIONS LOCAL WORKFLOW EXECUTION%s\n", colorCyan, colorReset)
 	header += fmt.Sprintf("%s\n", strings.Repeat("=", lineWidth))
@@ -309,11 +299,11 @@ func printExecutiveSummaryHeader(selectedWorkflows []WorkflowConfig, logFile *os
 	header += strings.Repeat("-", lineWidth) + "\n"
 
 	for i, wf := range selectedWorkflows {
-		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, colorGreen, wf.Name, colorReset, wf.Description)
-		header += fmt.Sprintf("    File: %s\n", wf.WorkflowFile)
+		header += fmt.Sprintf("%2d. %s%-10s%s - %s\n", i+1, colorGreen, wf.Name, colorReset, wf.Config.Description)
+		header += fmt.Sprintf("    File: %s\n", wf.Config.WorkflowFile)
 
-		if len(wf.DefaultArgs) > 0 {
-			header += fmt.Sprintf("    Args: %s\n", strings.Join(wf.DefaultArgs, " "))
+		if len(wf.Config.DefaultArgs) > 0 {
+			header += fmt.Sprintf("    Args: %s\n", strings.Join(wf.Config.DefaultArgs, " "))
 		}
 	}
 
@@ -390,7 +380,7 @@ func printExecutiveSummaryFooter(summary *ExecutionSummary, logFile *os.File) {
 	}
 }
 
-func executeWorkflow(wf WorkflowConfig, combinedLog *os.File, outputDir string, dryRun bool, actPath, actArgs string) WorkflowResult {
+func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir string, dryRun bool, actPath, actArgs string) WorkflowResult {
 	result := WorkflowResult{
 		Name:         wf.Name,
 		TaskResults:  make(map[string]TaskResult),
@@ -431,11 +421,11 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File, outputDir string, 
 			event = eventTypeWorkflowDispatch
 		}
 
-		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", colorYellow, wf.WorkflowFile, colorReset)
-		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", actPath, event, wf.WorkflowFile)
+		dryRunMsg := fmt.Sprintf("%s🔍 DRY RUN: Would execute act with workflow: %s%s\n", colorYellow, wf.Config.WorkflowFile, colorReset)
+		dryRunMsg += fmt.Sprintf("   Command: %s %s -W %s\n", actPath, event, wf.Config.WorkflowFile)
 
-		if len(wf.DefaultArgs) > 0 {
-			dryRunMsg += fmt.Sprintf("   Args: %s\n", strings.Join(wf.DefaultArgs, " "))
+		if len(wf.Config.DefaultArgs) > 0 {
+			dryRunMsg += fmt.Sprintf("   Args: %s\n", strings.Join(wf.Config.DefaultArgs, " "))
 		}
 
 		if actArgs != "" {
@@ -467,8 +457,8 @@ func executeWorkflow(wf WorkflowConfig, combinedLog *os.File, outputDir string, 
 		event = eventTypeWorkflowDispatch
 	}
 
-	args := []string{event, "-W", wf.WorkflowFile}
-	args = append(args, wf.DefaultArgs...)
+	args := []string{event, "-W", wf.Config.WorkflowFile}
+	args = append(args, wf.Config.DefaultArgs...)
 
 	if actArgs != "" {
 		args = append(args, strings.Fields(actArgs)...)
