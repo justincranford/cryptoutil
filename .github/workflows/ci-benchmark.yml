@@ -58,15 +58,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Workflow Start - CI - Benchmark Testing / benchmark (ci-benchmark.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-benchmark.yml"
-          echo "Job: benchmark"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+      - name: Workflow begin summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: 'benchmark'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -115,3 +110,9 @@ jobs:
           echo "- Output: Memory allocation statistics included" >> $GITHUB_STEP_SUMMARY
           echo "- Upload: Results artifact with 1-day retention" >> $GITHUB_STEP_SUMMARY
           echo "- Purpose: Performance validation and regression detection" >> $GITHUB_STEP_SUMMARY
+
+      - name: Benchmark summary
+        if: always()
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: 'benchmark'

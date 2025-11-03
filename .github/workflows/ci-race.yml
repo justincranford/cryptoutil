@@ -57,15 +57,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Workflow Start - CI - Race Condition Detection (ci-race.yml)
-      run: |
-        echo "=========================================="
-        echo "Workflow: ${{ github.workflow }}"
-        echo "File: .github/workflows/ci-race.yml"
-        echo "Job: race-condition-detection"
-        echo "Triggered by: ${{ github.event_name }}"
-        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "=========================================="
+    - name: Workflow begin summary
+      uses: ./.github/actions/workflow-begin-summary
+      with:
+        job-name: 'race'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0
@@ -101,3 +96,9 @@ jobs:
         echo "- Concurrent execution: 2 runs" >> $GITHUB_STEP_SUMMARY
         echo "- Timeout: 15 minutes" >> $GITHUB_STEP_SUMMARY
         echo "- Duration: \${DURATION}s" >> $GITHUB_STEP_SUMMARY
+
+    - name: Race summary
+      if: always()
+      uses: ./.github/actions/workflow-end-summary
+      with:
+        job-name: 'race'

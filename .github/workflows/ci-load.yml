@@ -81,15 +81,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Workflow Start - CI - Load Testing (ci-load.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-load.yml"
-          echo "Job: load-testing"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Load Profile: ${{ env.LOAD_PROFILE }}"
-          echo "=========================================="
+      - name: Workflow begin summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: 'load'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -374,3 +369,9 @@ jobs:
         run: |
           echo "## 🚀 Load Testing Results" >> $GITHUB_STEP_SUMMARY
           cat ./load-reports/load-test-summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Load summary
+        if: always()
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: 'load'

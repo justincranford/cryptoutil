@@ -58,15 +58,10 @@ jobs:
     name: Code Quality
     runs-on: ubuntu-latest
     steps:
-      - name: Workflow Start - CI - Quality Testing / code-quality (ci-quality.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-quality.yml"
-          echo "Job: code-quality"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+      - name: Workflow begin summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: 'quality'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -87,6 +82,12 @@ jobs:
       - name: Run custom cicd linting and validation
         uses: ./.github/actions/custom-cicd-lint
 
+      - name: Code quality summary
+        if: always()
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: 'quality'
+
   # Build and Container Security
   build:
     name: Build & Container Scan
@@ -96,15 +97,10 @@ jobs:
       packages: write
       security-events: write
     steps:
-      - name: Workflow Start - CI - Quality Testing / build (ci-quality.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-quality.yml"
-          echo "Job: build"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+      - name: Workflow begin summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: 'quality'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -328,20 +324,21 @@ jobs:
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "⏱️ Docker image push completed in: ${DURATION}s"
 
+      - name: Build summary
+        if: always()
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: 'quality'
+
   # SBOM Generation
   sbom:
     name: Generate SBOM
     runs-on: ubuntu-latest
     steps:
-      - name: Workflow Start - CI - Quality Testing / sbom (ci-quality.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-quality.yml"
-          echo "Job: sbom"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+      - name: Workflow begin summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: 'quality'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -398,21 +395,22 @@ jobs:
           upload-release-assets: false
           dependency-snapshot: true
 
+      - name: SBOM summary
+        if: always()
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: 'quality'
+
   # Mutation Testing - Quality Assessment
   mutation-testing:
     name: Mutation Testing
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'  # Only on main branch
     steps:
-      - name: Workflow Start - CI - Quality Testing / mutation-testing (ci-quality.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-quality.yml"
-          echo "Job: mutation-testing"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+      - name: Workflow begin summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: 'quality'
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -532,3 +530,9 @@ jobs:
           name: mutation-testing-reports
           path: mutation-*.json
           retention-days: 1
+
+      - name: Mutation testing summary
+        if: always()
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: 'quality'

@@ -136,15 +136,10 @@ jobs:
       actions: read
 
     steps:
-    - name: Workflow Start - CI - DAST Security Testing (ci-dast.yml)
-      run: |
-        echo "=========================================="
-        echo "Workflow: ${{ github.workflow }}"
-        echo "File: .github/workflows/ci-dast.yml"
-        echo "Job: dast-security-scan"
-        echo "Triggered by: ${{ github.event_name }}"
-        echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "=========================================="
+    - name: Workflow begin summary
+      uses: ./.github/actions/workflow-begin-summary
+      with:
+        job-name: 'dast'
 
     - name: Checkout code
       uses: actions/checkout@v5.0.0
@@ -843,3 +838,9 @@ jobs:
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ DAST cleanup completed in: ${DURATION}s"
+
+    - name: DAST summary
+      if: always()
+      uses: ./.github/actions/workflow-end-summary
+      with:
+        job-name: 'dast'

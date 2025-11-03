@@ -66,15 +66,10 @@ jobs:
       contents: read
       actions: read
     steps:
-      - name: Workflow Start - CI - SAST Pipeline / security (ci-sast.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-sast.yml"
-          echo "Job: security"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+      - name: Workflow Begin Summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: sast
 
       - name: Checkout code
         uses: actions/checkout@v5.0.0
@@ -182,6 +177,12 @@ jobs:
           scan-name: 'Repository Security Scan'
           severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
 
+      - name: Workflow End Summary
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: sast
+        if: always()
+
   # CodeQL Analysis
   # Multi-language security analysis using CodeQL
   # Matrix covers: Go (primary), JavaScript (embedded JS + shell scripts), Python
@@ -199,16 +200,10 @@ jobs:
       matrix:
         language: ['go', 'javascript', 'python']  # go: Go code, javascript: JS+shell scripts, python: Python scripts
     steps:
-      - name: Workflow Start - CI - SAST Pipeline / codeql (${{ matrix.language }}) (ci-sast.yml)
-        run: |
-          echo "=========================================="
-          echo "Workflow: ${{ github.workflow }}"
-          echo "File: .github/workflows/ci-sast.yml"
-          echo "Job: codeql"
-          echo "Language: ${{ matrix.language }}"
-          echo "Triggered by: ${{ github.event_name }}"
-          echo "Start Time: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-          echo "=========================================="
+      - name: Workflow Begin Summary
+        uses: ./.github/actions/workflow-begin-summary
+        with:
+          job-name: sast
 
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
@@ -263,3 +258,9 @@ jobs:
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "⏱️ CodeQL analysis completed in: ${DURATION}s"
+
+      - name: Workflow End Summary
+        uses: ./.github/actions/workflow-end-summary
+        with:
+          job-name: sast
+        if: always()
