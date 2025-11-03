@@ -3,18 +3,18 @@
 # Run manually: pre-commit run --all-files
 
 repos:
-  # Auto-update all external hook repositories to latest versions
+  # Check pre-commit hook versions, and auto-update them
   - repo: local
     hooks:
       - id: autoupdate-all-hooks
-        name: Auto-update all external hook repositories to latest versions
+        name: Auto-update pre-commit hook versions
         entry: python
         args: [-m, pre_commit, autoupdate]
         language: system
         pass_filenames: false
         stages: [pre-push]
 
-  # GitHub workflow checks (slower, external API calls - run on push only)
+  # Check Go direct dependency versions and GitHub workflow versions; Copilot Chat will auto-fix them
   - repo: local
     hooks:
       - id: cicd-checks-external
