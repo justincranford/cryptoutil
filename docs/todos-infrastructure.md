@@ -102,6 +102,19 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
 - **Expected Outcome**: Properly prefixed admin APIs with configurable context path
 - **Priority**: Medium - API organization and consistency
 
+### Task INF11: Regular GitHub Actions Version Updates
+- **Description**: Keep workflow actions updated (e.g., v4→v5 transitions) to maintain compatibility
+- **Current State**: Actions are periodically updated but not systematically tracked
+- **Action Items**:
+  - Monitor GitHub Actions releases for new versions
+  - Update action versions in workflows when new versions are stable
+  - Test workflow compatibility after updates
+  - Update documentation examples with latest action versions
+- **Files**: `.github/workflows/*.yml`, workflow documentation
+- **Expected Outcome**: Workflows use latest stable action versions
+- **Priority**: LOW - Maintenance and compatibility
+- **Timeline**: Ongoing maintenance
+
 ---
 
 ## 🔵 HIGH - Artifact Consolidation Refactoring

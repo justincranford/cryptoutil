@@ -185,14 +185,40 @@
 - **Expected Outcome**: Clear API evolution and compatibility guidelines
 - **Priority**: Low - API management
 
-### Task DOC2: Performance Benchmarks Documentation
-- **Description**: Create comprehensive performance benchmarks and documentation
-- **Current State**: Performance testing exists but not documented
+### Task DW6: Keep pkg/ Directory Empty (Architecture Decision)
+- **Description**: Maintain current decision to keep pkg/ directory empty as internal packages are well-structured and don't need external exposure
+- **Current State**: pkg/ directory is empty and properly excluded from builds
+- **Rationale**: pkg/ should only contain code intended for external reuse. Current internal structure is excellent and doesn't require external exposure.
 - **Action Items**:
-  - Document performance benchmarks for key operations
-  - Create performance comparison charts and metrics
-  - Document performance testing methodology
-  - Add performance expectations to API documentation
-- **Files**: `docs/performance-benchmarks.md`, benchmark results
-- **Expected Outcome**: Performance transparency and expectations
-- **Priority**: Low - Documentation enhancement
+  - Continue monitoring internal package organization
+  - Only add to pkg/ if external libraries or tools need to import cryptoutil packages
+  - Document this architectural decision in project guidelines
+- **Files**: `pkg/` directory (intentionally empty)
+- **Expected Outcome**: Clean separation between internal and external APIs
+- **Priority**: LOW - Architectural consistency
+- **Timeline**: Ongoing maintenance
+
+### Task DW7: Maintain cmd/internal Structure (Architecture Decision)
+- **Description**: Current cmd/ and internal/ organization follows Go best practices perfectly
+- **Current State**: Structure is already optimal for a production Go service
+- **Rationale**: No changes needed - current organization is exemplary
+- **Action Items**:
+  - Continue following established patterns for new code
+  - Document current structure as reference for future development
+- **Files**: `cmd/`, `internal/` directory structure
+- **Expected Outcome**: Consistent, maintainable project structure
+- **Priority**: LOW - Architectural consistency
+- **Timeline**: Ongoing maintenance
+
+### Task DOC3: Update Documentation Alongside Code Changes
+- **Description**: Ensure documentation reflects current implementation and workflows
+- **Current State**: Documentation generally accurate but needs proactive updates
+- **Action Items**:
+  - Update docs immediately when code changes affect user-facing behavior
+  - Keep workflow examples current with latest action versions
+  - Update setup guides when dependencies or procedures change
+  - Review docs after major feature additions
+- **Files**: `README.md`, `docs/`, workflow documentation
+- **Expected Outcome**: Accurate, up-to-date documentation
+- **Priority**: LOW - Documentation maintenance
+- **Timeline**: Ongoing maintenance
