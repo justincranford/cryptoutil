@@ -179,7 +179,7 @@ jobs:
 
   # CodeQL Analysis
   # Multi-language security analysis using CodeQL
-  # Matrix covers: Go (primary), JavaScript (embedded JS + shell scripts), Python
+  # Matrix covers: Go (primary), JavaScript (embedded JS + shell scripts), Java (load testing)
   # Note: 'javascript' pack includes shell script analysis (bash/sh/zsh)
   # No separate 'bash' entry needed - bundled in javascript language pack
   codeql:
@@ -192,7 +192,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['go', 'javascript', 'java']  # go: Go code, javascript: JS+shell scripts, Java: Java
+        language: ['go', 'javascript', 'java']  # go: Go code, javascript: JS+shell scripts, java: load testing code
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
@@ -227,6 +227,14 @@ jobs:
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
       - name: Execute CodeQL autobuild
         uses: github/codeql-action/autobuild@v3
+        if: matrix.language != 'java'
+
+      - name: Manual Java build (Maven)
+        if: matrix.language == 'java'
+        run: |
+          echo "🔨 Running manual Maven build for Java load testing code..."
+          cd test/load
+          ./mvnw compile -q
 
       - name: Complete CodeQL autobuild timing
         run: |
