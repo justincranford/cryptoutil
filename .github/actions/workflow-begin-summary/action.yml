@@ -12,6 +12,11 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Set workflow start time
+      shell: bash
+      run: |
+        echo "WORKFLOW_START_TIME=$(date +%s)" >> $GITHUB_ENV
+
     - name: Workflow begin summary
       shell: bash
       run: |

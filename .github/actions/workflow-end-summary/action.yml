@@ -19,14 +19,13 @@ runs:
         OPERATION_NAME="$(echo ${{ inputs.job-name }} | sed 's/.*/\u&/')"
 
         echo "## $OPERATION_NAME Results" >> $GITHUB_STEP_SUMMARY
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC' -d "@$WORKFLOW_START_TIME")"
         if [ "${{ job.status }}" == "success" ]; then
           echo "✅ ${{ inputs.job-name }} completed successfully." >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ ${{ inputs.job-name }} failed." >> $GITHUB_STEP_SUMMARY
         fi
         END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
+        DURATION=$((END_TIME - WORKFLOW_START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ $OPERATION_NAME summary completed in: ${DURATION}s"
