@@ -69,7 +69,6 @@ on:
         type: string
 
 env:
-  JAVA_VERSION: '21'
   LOAD_PROFILE: ${{ github.event.inputs.load_profile || 'standard' }}
   VIRTUAL_CLIENTS_OVERRIDE: ${{ github.event.inputs.virtual_clients || '0' }}
   DURATION_OVERRIDE: ${{ github.event.inputs.duration_seconds || '0' }}
