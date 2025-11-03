@@ -52,7 +52,7 @@ repos:
       # Prevent large files from being committed
       - id: check-added-large-files
         name: Check for large files
-        args: ['--maxkb=2048']  # Increased to 2MB for crypto project (keys, certs, test data)
+        args: ['--maxkb=1024']
         stages: [pre-commit]
 
       # Prevent merge conflict markers
