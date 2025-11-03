@@ -1,7 +1,7 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
-name: 'security-scan-files'
+name: 'security-scan-gitleaks'
 description: 'Scan files/directories for security issues using Trivy and GitLeaks'
 
 inputs:
@@ -50,7 +50,7 @@ runs:
         echo "📋 Files to scan: $SCAN_LIST"
 
     - name: Run Trivy file security scan
-      uses: ./.github/actions/security-scan-all
+      uses: ./.github/actions/security-scan-trivy
       with:
         scan-type: 'fs'
         scan-files: ${{ env.SCAN_FILES }}
@@ -92,7 +92,7 @@ runs:
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        # Trivy results are handled by security-scan-all action
+        # Trivy results are handled by security-scan-trivy action
 
         if [ -f "${{ inputs.gitleaks-sarif-output }}" ]; then
           RESULT_COUNT=$(jq '.runs[0].results | length' ${{ inputs.gitleaks-sarif-output }} 2>/dev/null || echo "0")

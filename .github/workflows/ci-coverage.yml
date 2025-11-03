@@ -103,7 +103,7 @@ jobs:
       run: go tool cover -func=coverage.out > coverage-func.txt
 
     - name: Scan coverage artifacts for security issues
-      uses: ./.github/actions/security-scan-files
+      uses: ./.github/actions/security-scan-gitleaks
       with:
         files: 'coverage.out,coverage.html,coverage-func.txt'
         scan-name: 'Security Scan of Coverage Artifacts'

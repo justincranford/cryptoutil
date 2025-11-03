@@ -1,7 +1,7 @@
 # $schema: https://json.schemastore.org/github-action.json
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
-name: 'security-scan-all'
+name: 'security-scan-trivy'
 description: 'Comprehensive security scanning using Trivy for repositories, containers, and dependencies'
 
 inputs:

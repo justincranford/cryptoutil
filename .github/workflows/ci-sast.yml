@@ -174,7 +174,7 @@ jobs:
 
       # Trivy - Vulnerability scanner for dependencies
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: ./.github/actions/security-scan-all
+        uses: ./.github/actions/security-scan-trivy
         with:
           scan-type: 'fs'
           scan-ref: '.'
