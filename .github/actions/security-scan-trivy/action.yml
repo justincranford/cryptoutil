@@ -35,8 +35,6 @@ runs:
       shell: bash
       run: |
         echo "🔧 Installing Trivy..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
         # Check if trivy is already installed
         if command -v trivy &> /dev/null; then
@@ -73,10 +71,7 @@ runs:
           fi
         fi
 
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Trivy installation completed in: ${DURATION}s"
+        echo "✅ Trivy installation completed"
 
     - name: Run Trivy comprehensive security scan
       shell: bash
@@ -93,9 +88,6 @@ runs:
           echo "❌ Error: Either scan-files or scan-ref must be provided"
           exit 1
         fi
-
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
         # Run Trivy scan with specified parameters
         if [ -n "${{ inputs.scan-files }}" ]; then
@@ -114,10 +106,7 @@ runs:
             ${{ inputs.scan-ref }}
         fi
 
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ Trivy scan completed in: ${DURATION}s"
+        echo "✅ Trivy scan completed"
 
     - name: Upload Trivy results to GitHub Security tab
       uses: github/codeql-action/upload-sarif@v3
