@@ -81,23 +81,23 @@ jobs:
         echo "📊 Generating coverage report for tests..."
         START_TIME=$(date +%s)
         echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go test -count=1 -p=2 -coverprofile=coverage.out -covermode=atomic ./internal/... ./scripts/...
+        go test -count=1 -p=2 -coverprofile=workflow-reports/coverage/coverage.out -covermode=atomic ./internal/... ./scripts/...
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))
         echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
         echo "⏱️ Coverage tests completed in: ${DURATION}s"
 
     - name: Generate coverage report
-      run: go tool cover -html=coverage.out -o coverage.html
+      run: go tool cover -html=workflow-reports/coverage/coverage.out -o workflow-reports/coverage/coverage.html
 
     - name: Generate function-level coverage report
-      run: go tool cover -func=coverage.out > coverage-func.txt
+      run: go tool cover -func=workflow-reports/coverage/coverage.out > workflow-reports/coverage/coverage-func.txt
 
     - name: Scan coverage artifacts for vulnerabilities
       uses: ./.github/actions/security-scan-trivy
       with:
         scan-type: 'fs'
-        scan-files: 'coverage.out coverage.html coverage-func.txt'
+        scan-ref: 'workflow-reports/coverage'
         trivy-sarif-output: 'coverage-upload-artifacts-trivy.sarif'
         scan-name: 'Security Scan of Coverage Artifacts'
         severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
@@ -106,13 +106,13 @@ jobs:
       run: |
         echo "## 📊 Function-Level Coverage Report" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        cat coverage-func.txt >> $GITHUB_STEP_SUMMARY
+        cat workflow-reports/coverage/coverage-func.txt >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
 
     - name: Upload coverage
       uses: codecov/codecov-action@v5.5.1
       with:
-        files: ./coverage.out
+        files: ./workflow-reports/coverage/coverage.out
         flags: coverage-tests  # Group uploads under "coverage-tests"
         name: codecov-coverage
         fail_ci_if_error: false
@@ -122,9 +122,9 @@ jobs:
       with:
         name: coverage-reports
         path: |
-          coverage.out
-          coverage.html
-          coverage-func.txt
+          workflow-reports/coverage/coverage.out
+          workflow-reports/coverage/coverage.html
+          workflow-reports/coverage/coverage-func.txt
         retention-days: 1
 
     - name: Coverage test summary
