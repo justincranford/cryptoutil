@@ -105,6 +105,42 @@ var workflows = map[string]WorkflowConfig{
 		Description:  "Code Quality - Unit tests, coverage, linting, formatting checks",
 		DefaultArgs:  []string{},
 	},
+	"coverage": {
+		Name:         "coverage",
+		WorkflowFile: ".github/workflows/ci-coverage.yml",
+		Description:  "Coverage Collection - Test coverage collection and reporting",
+		DefaultArgs:  []string{},
+	},
+	"benchmark": {
+		Name:         "benchmark",
+		WorkflowFile: ".github/workflows/ci-benchmark.yml",
+		Description:  "Benchmark Testing - Performance benchmarking",
+		DefaultArgs:  []string{},
+	},
+	"gitleaks": {
+		Name:         "gitleaks",
+		WorkflowFile: ".github/workflows/ci-gitleaks.yml",
+		Description:  "Secrets Scanning - GitLeaks secrets detection",
+		DefaultArgs:  []string{},
+	},
+	"sast": {
+		Name:         "sast",
+		WorkflowFile: ".github/workflows/ci-sast.yml",
+		Description:  "Static Application Security Testing - gosec and golangci-lint security checks",
+		DefaultArgs:  []string{},
+	},
+	"race": {
+		Name:         "race",
+		WorkflowFile: ".github/workflows/ci-race.yml",
+		Description:  "Race Condition Detection - Concurrency testing",
+		DefaultArgs:  []string{},
+	},
+	"fuzz": {
+		Name:         "fuzz",
+		WorkflowFile: ".github/workflows/ci-fuzz.yml",
+		Description:  "Fuzz Testing - Property-based testing for key generation and digests",
+		DefaultArgs:  []string{},
+	},
 	"e2e": {
 		Name:         "e2e",
 		WorkflowFile: ".github/workflows/ci-e2e.yml",
@@ -116,18 +152,6 @@ var workflows = map[string]WorkflowConfig{
 		WorkflowFile: ".github/workflows/ci-dast.yml",
 		Description:  "Dynamic Application Security Testing - OWASP ZAP and Nuclei scans",
 		DefaultArgs:  []string{"--input", "scan_profile=quick"},
-	},
-	"sast": {
-		Name:         "sast",
-		WorkflowFile: ".github/workflows/ci-sast.yml",
-		Description:  "Static Application Security Testing - gosec and golangci-lint security checks",
-		DefaultArgs:  []string{},
-	},
-	"robust": {
-		Name:         "robust",
-		WorkflowFile: ".github/workflows/ci-robust.yml",
-		Description:  "Robustness Testing - Concurrency, race detection, fuzz tests, benchmarks",
-		DefaultArgs:  []string{},
 	},
 	"load": {
 		Name:         "load",
@@ -142,7 +166,7 @@ func Run(args []string) int {
 	// Create flag set for parsing.
 	fs := flag.NewFlagSet("workflow", flag.ExitOnError)
 
-	workflowNames := fs.String("workflows", "", "Comma-separated list of workflows to run (e2e,dast,sast,robust,quality,load)")
+	workflowNames := fs.String("workflows", "", "Comma-separated list of workflows to run (quality,coverage,benchmark,gitleaks,sast,race,fuzz,e2e,dast,load)")
 	outputDir := fs.String("output", "workflow-reports", "Output directory for logs and reports")
 	dryRun := fs.Bool("dry-run", false, "Show what would be executed without running workflows")
 	actPath := fs.String("act-path", "act", "Path to act executable")
@@ -236,9 +260,9 @@ func listWorkflows() {
 	fmt.Printf("%s📋 Available GitHub Actions Workflows%s\n", colorCyan, colorReset)
 	fmt.Println(strings.Repeat("=", lineWidth))
 
-	for _, name := range []string{"e2e", "dast", "sast", "robust", "quality", "load"} {
+	for _, name := range []string{"quality", "coverage", "benchmark", "gitleaks", "sast", "race", "fuzz", "e2e", "dast", "load"} {
 		wf := workflows[name]
-		fmt.Printf("\n%s%-10s%s %s\n", colorGreen, wf.Name, colorReset, wf.Description)
+		fmt.Printf("\n%s%-12s%s %s\n", colorGreen, wf.Name, colorReset, wf.Description)
 		fmt.Printf("           File: %s\n", wf.WorkflowFile)
 
 		if len(wf.DefaultArgs) > 0 {
@@ -674,10 +698,20 @@ func analyzeWorkflowLog(logFile string, result *WorkflowResult) {
 		analyzeE2EWorkflow(logContent, result)
 	case "sast":
 		analyzeSastWorkflow(logContent, result)
-	case "robust":
-		analyzeRobustWorkflow(logContent, result)
+	case "race":
+		analyzeRaceWorkflow(logContent, result)
+	case "fuzz":
+		analyzeFuzzWorkflow(logContent, result)
 	case "quality":
 		analyzeQualityWorkflow(logContent, result)
+	case "coverage":
+		analyzeCoverageWorkflow(logContent, result)
+	case "benchmark":
+		analyzeBenchmarkWorkflow(logContent, result)
+	case "gitleaks":
+		analyzeGitleaksWorkflow(logContent, result)
+	case "load":
+		analyzeLoadWorkflow(logContent, result)
 	}
 }
 
@@ -778,17 +812,70 @@ func analyzeSastWorkflow(logContent string, result *WorkflowResult) {
 	}
 }
 
-func analyzeRobustWorkflow(logContent string, result *WorkflowResult) {
-	// Check for concurrency/race detection tests.
-	if strings.Contains(logContent, "-race") {
+func analyzeLoadWorkflow(logContent string, result *WorkflowResult) {
+	// Check for Gatling load tests.
+	if strings.Contains(logContent, "gatling") || strings.Contains(logContent, "Gatling") {
 		status := taskSuccess
-		if strings.Contains(logContent, "DATA RACE") {
+		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
 			status = taskFailed
 		}
 
-		result.TaskResults["Concurrency & Race Detection"] = TaskResult{Name: "Concurrency & Race Detection", Status: status}
+		result.TaskResults["Gatling Load Tests"] = TaskResult{Name: "Gatling Load Tests", Status: status}
 	}
 
+	// Check for Docker Compose services.
+	if strings.Contains(logContent, "docker compose") {
+		status := taskSuccess
+		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
+			status = taskFailed
+		}
+
+		result.TaskResults["Docker Compose Setup"] = TaskResult{Name: "Docker Compose Setup", Status: status}
+	}
+}
+
+func analyzeGitleaksWorkflow(logContent string, result *WorkflowResult) {
+	// Check for Gitleaks scan.
+	if strings.Contains(logContent, "gitleaks") || strings.Contains(logContent, "Gitleaks") {
+		status := taskSuccess
+		if strings.Contains(logContent, "leaks found") || strings.Contains(logContent, "failed") {
+			status = taskFailed
+		}
+
+		result.TaskResults["Gitleaks Secrets Scan"] = TaskResult{Name: "Gitleaks Secrets Scan", Status: status}
+	}
+}
+
+func analyzeBenchmarkWorkflow(logContent string, result *WorkflowResult) {
+	// Check for benchmarks.
+	if strings.Contains(logContent, "-bench") {
+		status := taskSuccess
+		if strings.Contains(logContent, "FAIL") {
+			status = taskFailed
+		}
+
+		result.TaskResults["Benchmark Tests"] = TaskResult{Name: "Benchmark Tests", Status: status}
+	}
+}
+
+func analyzeCoverageWorkflow(logContent string, result *WorkflowResult) {
+	// Check for coverage collection.
+	if strings.Contains(logContent, "-coverprofile") {
+		status := taskSuccess
+		if strings.Contains(logContent, "failed") || strings.Contains(logContent, "error") {
+			status = taskFailed
+		}
+
+		result.TaskResults["Coverage Collection"] = TaskResult{Name: "Coverage Collection", Status: status}
+	}
+
+	// Check for coverage reporting.
+	if strings.Contains(logContent, "codecov") || strings.Contains(logContent, "coverage.html") {
+		result.TaskResults["Coverage Reporting"] = TaskResult{Name: "Coverage Reporting", Status: taskSuccess}
+	}
+}
+
+func analyzeFuzzWorkflow(logContent string, result *WorkflowResult) {
 	// Check for fuzz tests - keygen package.
 	if strings.Contains(logContent, "FuzzGenerateRSAKeyPair") ||
 		strings.Contains(logContent, "FuzzGenerateECDSAKeyPair") ||
@@ -822,15 +909,17 @@ func analyzeRobustWorkflow(logContent string, result *WorkflowResult) {
 
 		result.TaskResults["Fuzz Tests - Digests"] = TaskResult{Name: "Fuzz Tests - Digests", Status: status}
 	}
+}
 
-	// Check for benchmarks.
-	if strings.Contains(logContent, "-bench") {
+func analyzeRaceWorkflow(logContent string, result *WorkflowResult) {
+	// Check for race condition detection.
+	if strings.Contains(logContent, "-race") {
 		status := taskSuccess
-		if strings.Contains(logContent, "FAIL") {
+		if strings.Contains(logContent, "DATA RACE") {
 			status = taskFailed
 		}
 
-		result.TaskResults["Benchmark Tests"] = TaskResult{Name: "Benchmark Tests", Status: status}
+		result.TaskResults["Race Condition Detection"] = TaskResult{Name: "Race Condition Detection", Status: status}
 	}
 }
 
