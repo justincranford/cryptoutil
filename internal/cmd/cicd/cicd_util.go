@@ -11,7 +11,19 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-const timeFormat = time.RFC3339Nano
+const (
+	timeFormat = time.RFC3339Nano
+	UsageCICD  = `Usage: cicd <command> [command...]
+
+	Commands:
+	  all-enforce-utf8                       - Enforce UTF-8 encoding without BOM
+	  go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
+	  go-enforce-any                         - Custom Go source code fixes (any -> any, etc.)
+	  go-check-circular-package-dependencies - Check for circular dependencies in Go packages
+	  go-update-direct-dependencies          - Check direct Go dependencies only
+	  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
+	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions`
+)
 
 type LogUtil struct {
 	startTime time.Time
@@ -29,32 +41,13 @@ func (l *LogUtil) Log(message string) {
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s: %s\n", now.Sub(l.startTime), now.Format(timeFormat), message)
 }
 
-func (l *LogUtil) LogWithDetails(operationStart time.Time, message string) {
-	now := time.Now().UTC()
-	fmt.Fprintf(os.Stderr, "[CICD] dur=%v start=%s end=%s: %s\n", now.Sub(operationStart), operationStart.Format(timeFormat), now.Format(timeFormat), message)
-}
-
-// getUsageMessage returns the usage message for the cicd command.
-func getUsageMessage() string {
-	return `Usage: cicd <command> [command...]
-
-Commands:
-  all-enforce-utf8                       - Enforce UTF-8 encoding without BOM
-  go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
-  go-enforce-any                         - Custom Go source code fixes (any -> any, etc.)
-  go-check-circular-package-dependencies - Check for circular dependencies in Go packages
-  go-update-direct-dependencies          - Check direct Go dependencies only
-  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
-  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions`
-}
-
 func validateCommands(commands []string) (bool, error) {
 	logger := NewLogUtil("validateCommands")
 
 	if len(commands) == 0 {
-		logger.LogWithDetails(logger.startTime, "validateCommands: empty commands")
+		logger.Log("validateCommands: empty commands")
 
-		return false, fmt.Errorf("%s", getUsageMessage())
+		return false, fmt.Errorf("%s", UsageCICD)
 	}
 
 	var errs []error
@@ -65,7 +58,7 @@ func validateCommands(commands []string) (bool, error) {
 		if cryptoutilMagic.ValidCommands[command] {
 			commandCounts[command]++
 		} else {
-			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, getUsageMessage()))
+			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, UsageCICD))
 		}
 	}
 
@@ -82,12 +75,12 @@ func validateCommands(commands []string) (bool, error) {
 	}
 
 	if len(errs) > 0 {
-		logger.LogWithDetails(logger.startTime, "validateCommands: validation errors")
+		logger.Log("validateCommands: validation errors")
 
 		return false, fmt.Errorf("command validation failed: %w", errors.Join(errs...))
 	}
 
-	logger.LogWithDetails(logger.startTime, "validateCommands: success")
+	logger.Log("validateCommands: success")
 
 	doFindAllFiles := commandCounts["all-enforce-utf8"] > 0 ||
 		commandCounts["go-enforce-test-patterns"] > 0 ||
@@ -97,9 +90,7 @@ func validateCommands(commands []string) (bool, error) {
 	return doFindAllFiles, nil
 }
 
-// collectAllFiles walks the now directory and collects all file paths.
-// Returns a slice of all file paths found.
-func collectAllFiles() ([]string, error) {
+func listAllFiles() ([]string, error) {
 	var allFiles []string
 
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {

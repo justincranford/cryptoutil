@@ -39,7 +39,7 @@ func TestCollectAllFiles(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Collect files
-	files, err := collectAllFiles()
+	files, err := listAllFiles()
 	require.NoError(t, err)
 
 	// Should find all test files

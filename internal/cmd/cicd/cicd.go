@@ -18,44 +18,37 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // Run executes the specified CI/CD check commands.
-// It takes a slice of command names and executes them sequentially.
-// Returns an error if any command is unknown or if execution fails.
 func Run(commands []string) error {
-	// Create LogUtil for structured performance logging
 	logger := NewLogUtil("Run")
 
-	// Validate commands and determine if file walk is needed
 	doFindAllFiles, err := validateCommands(commands)
 	if err != nil {
 		return err
 	}
 
+	logger.Log("validateCommands completed")
+
 	var allFiles []string
 
 	if doFindAllFiles {
-		// Collect all files once for efficiency
-		fileWalkStart := time.Now()
-
-		allFiles, err = collectAllFiles()
+		allFiles, err = listAllFiles()
 		if err != nil {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}
 
-		logger.LogWithDetails(fileWalkStart, "filepath.Walk")
+		logger.Log("collectAllFiles completed")
 	}
 
-	// Process all commands provided as arguments
-	for i := range commands {
-		command := commands[i]
+	logger.Log(fmt.Sprintf("Executing %d commands", len(commands)))
+
+	for i, command := range commands {
 		logger.Log(fmt.Sprintf("Executing command: %s", command))
 
-		// Execute command with performance logging
 		switch command {
 		case "all-enforce-utf8":
 			allEnforceUtf8(logger, allFiles)
