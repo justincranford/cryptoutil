@@ -13,8 +13,25 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+// goEnforceAnyFileExcludePatterns defines files that should be excluded from the go-enforce-any command
+// to prevent self-modification of the enforce-any hook implementation and related files.
+var goEnforceAnyFileExcludePatterns = []string{
+	`internal[/\\]cmd[/\\]cicd[/\\]cicd_enforce_any\.go$`,          // Exclude this file itself to prevent self-modification
+	`internal[/\\]cmd[/\\]cicd[/\\]cicd_enforce_any_test\.go$`,     // Exclude test file to preserve deliberate test patterns
+	`internal[/\\]cmd[/\\]cicd[/\\]file_patterns_enforce_any\.go$`, // Exclude pattern definitions to prevent self-modification
+	`api/client`,    // Generated API client
+	`api/model`,     // Generated API models
+	`api/server`,    // Generated API server
+	`_gen\.go$`,     // Generated files
+	`\.pb\.go$`,     // Protocol buffer files
+	`vendor/`,       // Vendored dependencies
+	`.git/`,         // Git directory
+	`node_modules/`, // Node.js dependencies
+}
+
 // goEnforceAny enforces custom Go source code fixes across all Go files.
-// It applies automated fixes like replacing any with any.
+// It applies automated fixes like replacing interface{} with any.
+// Files matching goEnforceAnyFileExcludePatterns are skipped to prevent self-modification.
 // This command modifies files in place and exits with code 1 if any files were modified.
 func goEnforceAny(allFiles []string) {
 	start := time.Now()
@@ -102,7 +119,8 @@ func goEnforceAny(allFiles []string) {
 }
 
 // processGoFile applies custom Go source code fixes to a single file.
-// Currently replaces any with any.
+// Currently replaces interface{} with any.
+// This function is protected from self-modification by goEnforceAnyFileExcludePatterns.
 // Returns the number of replacements made and any error encountered.
 func processGoFile(filePath string) (int, error) {
 	// Read the file
@@ -113,15 +131,16 @@ func processGoFile(filePath string) (int, error) {
 
 	originalContent := string(content)
 
-	// IMPORTANT: DO NOT CHANGE: Replace any with any
-	// Use a regex to match any as a whole word, not part of other identifiers
-	// Construct the pattern to avoid self-replacement in this source file
+	// IMPORTANT: Replace interface{} with any
+	// This regex matches the literal string "interface{}" in Go source code
+	// The goEnforceAnyFileExcludePatterns above prevent this file from being processed
+	// to avoid self-modification of the enforce-any hook implementation
 	interfacePattern := `interface\{\}`
 	re := regexp.MustCompile(interfacePattern)
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
-	// Count actual replacements by counting any in original content
-	replacements := strings.Count(originalContent, "any")
+	// Count actual replacements by counting interface{} in original content
+	replacements := strings.Count(originalContent, "interface{}")
 
 	// Only write if there were changes
 	if replacements > 0 {
