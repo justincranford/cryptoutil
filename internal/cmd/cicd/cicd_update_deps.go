@@ -78,6 +78,19 @@ func goUpdateDeps(mode DepCheckMode) {
 	// Cache miss or expired, perform actual check
 	fmt.Fprintf(os.Stderr, "Performing fresh dependency check...\n")
 
+	// Get file stats for the extracted function
+	goModStat, err := os.Stat("go.mod")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading go.mod: %v\n", err)
+		os.Exit(1)
+	}
+
+	goSumStat, err := os.Stat("go.sum")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading go.sum: %v\n", err)
+		os.Exit(1)
+	}
+
 	// Run go list -u -m all to check for outdated dependencies
 	cmd := exec.Command("go", "list", "-u", "-m", "all")
 
@@ -87,58 +100,28 @@ func goUpdateDeps(mode DepCheckMode) {
 		os.Exit(1)
 	}
 
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
-	allOutdated := []string{}
-
-	// Check for lines containing [v...] indicating available updates
-	for _, line := range lines {
-		if strings.Contains(line, "[v") && strings.Contains(line, "]") {
-			allOutdated = append(allOutdated, line)
-		}
-	}
-
-	var outdated []string
-
+	// Get direct dependencies for the check
+	var directDeps map[string]bool
 	if mode == DepCheckDirect {
-		// For direct mode, only check dependencies that are explicitly listed in go.mod
-		directDeps, err := getDirectDependencies()
+		directDeps, err = getDirectDependencies()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading direct dependencies: %v\n", err)
 			os.Exit(1)
 		}
+	}
 
-		// Filter to only direct dependencies
-		for _, dep := range allOutdated {
-			// Extract module name from the line (format: "module/path v1.2.3 [v1.2.4]")
-			parts := strings.Fields(dep)
-			if len(parts) > 0 {
-				moduleName := parts[0]
-				if directDeps[moduleName] {
-					outdated = append(outdated, dep)
-				}
-			}
-		}
-	} else {
-		// For all mode, check all dependencies
-		outdated = allOutdated
+	// Use the extracted function for the core logic
+	outdated, err := checkDependencyUpdates(mode, goModStat, goSumStat, string(output), directDeps)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error checking dependency updates: %v\n", err)
+		os.Exit(1)
 	}
 
 	// Save results to cache
-	goModModTime := time.Time{}
-	goSumModTime := time.Time{}
-
-	if goModStat, err := os.Stat("go.mod"); err == nil {
-		goModModTime = goModStat.ModTime()
-	}
-
-	if goSumStat, err := os.Stat("go.sum"); err == nil {
-		goSumModTime = goSumStat.ModTime()
-	}
-
 	cache := DepCache{
 		LastCheck:    time.Now(),
-		GoModModTime: goModModTime,
-		GoSumModTime: goSumModTime,
+		GoModModTime: goModStat.ModTime(),
+		GoSumModTime: goSumStat.ModTime(),
 		OutdatedDeps: outdated,
 		Mode:         modeName,
 	}
@@ -162,4 +145,41 @@ func goUpdateDeps(mode DepCheckMode) {
 	end := time.Now()
 	fmt.Fprintf(os.Stderr, "[PERF] goUpdateDeps: duration=%v start=%s end=%s mode=%s outdated=%d\n",
 		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), modeName, len(outdated))
+}
+
+// checkDependencyUpdates analyzes dependency update information and returns outdated dependencies.
+// It takes the mode, file stats, go list output, and direct dependencies map as inputs to enable testing with mock data.
+// Returns a slice of outdated dependency strings and an error if the check fails.
+func checkDependencyUpdates(mode DepCheckMode, goModStat, goSumStat os.FileInfo, goListOutput string, directDeps map[string]bool) ([]string, error) {
+	lines := strings.Split(strings.TrimSpace(goListOutput), "\n")
+	allOutdated := []string{}
+
+	// Check for lines containing [v...] indicating available updates
+	for _, line := range lines {
+		if strings.Contains(line, "[v") && strings.Contains(line, "]") {
+			allOutdated = append(allOutdated, line)
+		}
+	}
+
+	var outdated []string
+
+	if mode == DepCheckDirect {
+		// For direct mode, only check dependencies that are explicitly listed in go.mod
+		// Filter to only direct dependencies
+		for _, dep := range allOutdated {
+			// Extract module name from the line (format: "module/path v1.2.3 [v1.2.4]")
+			parts := strings.Fields(dep)
+			if len(parts) > 0 {
+				moduleName := parts[0]
+				if directDeps[moduleName] {
+					outdated = append(outdated, dep)
+				}
+			}
+		}
+	} else {
+		// For all mode, check all dependencies
+		outdated = allOutdated
+	}
+
+	return outdated, nil
 }

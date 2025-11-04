@@ -20,8 +20,6 @@ func goCheckCircularPackageDeps() {
 	start := time.Now()
 	fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps started at %s\n", start.Format(time.RFC3339Nano))
 
-	startTime := time.Now()
-
 	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
 
 	// PERFORMANCE OPTIMIZATION: Use single go list -json command instead of individual commands per package
@@ -40,8 +38,30 @@ func goCheckCircularPackageDeps() {
 		os.Exit(1)
 	}
 
+	// Use the extracted function for the core logic
+	if err := checkCircularDependencies(string(output)); err != nil {
+		fmt.Fprintf(os.Stderr, "❌ RESULT: %v\n", err)
+
+		end := time.Now()
+		fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s (circular dependencies found)\n",
+			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+
+		os.Exit(1) // Fail the build
+	}
+
+	fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
+	fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
+
+	end := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s (no circular dependencies)\n",
+		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+}
+
+// checkCircularDependencies analyzes the JSON output from 'go list -json ./...' for circular dependencies.
+// Returns an error if circular dependencies are found, nil if no circular dependencies exist.
+func checkCircularDependencies(jsonOutput string) error {
 	// Parse JSON output (multiple JSON objects in stream)
-	decoder := json.NewDecoder(strings.NewReader(string(output)))
+	decoder := json.NewDecoder(strings.NewReader(jsonOutput))
 	packages := make([]PackageInfo, 0)
 
 	for {
@@ -51,52 +71,24 @@ func goCheckCircularPackageDeps() {
 				break
 			}
 
-			fmt.Fprintf(os.Stderr, "Warning: Failed to parse package info: %v\n", err)
-
-			continue
+			return fmt.Errorf("failed to parse package info: %w", err)
 		}
 
 		packages = append(packages, pkg)
 	}
 
-	fmt.Fprintf(os.Stderr, "Found %d packages:\n", len(packages))
-
-	for i, pkg := range packages {
-		fmt.Fprintf(os.Stderr, "  %d. %s\n", i+1, pkg.ImportPath)
-	}
-
-	fmt.Fprintln(os.Stderr, "")
-
 	if len(packages) == 0 {
-		fmt.Fprintln(os.Stderr, "No packages found")
-
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s (no packages)\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
-
-		return
+		return fmt.Errorf("no packages found")
 	}
 
 	// Build dependency graph
-	fmt.Fprintln(os.Stderr, "Building dependency graph...")
-
-	graphStart := time.Now()
-
 	dependencyGraph := make(map[string][]string)
 
 	for _, pkg := range packages {
 		dependencyGraph[pkg.ImportPath] = pkg.Imports
 	}
 
-	graphElapsed := time.Since(graphStart)
-	fmt.Fprintf(os.Stderr, "Built dependency graph with %d packages (%.2fs)\n", len(dependencyGraph), graphElapsed.Seconds())
-
-	fmt.Fprintln(os.Stderr, "")
-
 	// Find circular dependencies using DFS
-	fmt.Fprintln(os.Stderr, "Starting DFS cycle detection...")
-
-	dfsStart := time.Now()
 	visited := make(map[string]bool)
 	recursionStack := make(map[string]bool)
 	circularDeps := [][]string{}
@@ -143,59 +135,23 @@ func goCheckCircularPackageDeps() {
 	}
 
 	// Check each package for circular dependencies
-	dfsCount := 0
-
 	for pkg := range dependencyGraph {
 		if !visited[pkg] {
 			dfs(pkg, []string{pkg})
-
-			dfsCount++
-			if dfsCount%5 == 0 {
-				elapsed := time.Since(dfsStart)
-				fmt.Fprintf(os.Stderr, "DFS processed %d/%d packages... (%.2fs)\n", dfsCount, len(dependencyGraph), elapsed.Seconds())
-			}
 		}
 	}
-
-	dfsElapsed := time.Since(dfsStart)
-	fmt.Fprintf(os.Stderr, "DFS completed for %d packages (%.2fs)\n", dfsCount, dfsElapsed.Seconds())
-	fmt.Fprintln(os.Stderr, "")
-
-	// Summary report
-	totalElapsed := time.Since(startTime)
-
-	fmt.Fprintf(os.Stderr, "=== CIRCULAR DEPENDENCY ANALYSIS SUMMARY ===\n")
-	fmt.Fprintf(os.Stderr, "Total execution time: %.2fs\n", totalElapsed.Seconds())
-	fmt.Fprintf(os.Stderr, "Packages analyzed: %d\n", len(dependencyGraph))
-	fmt.Fprintf(os.Stderr, "Internal dependencies checked: %d\n", func() int {
-		count := 0
-
-		for _, deps := range dependencyGraph {
-			for _, dep := range deps {
-				if strings.HasPrefix(dep, "cryptoutil/") {
-					count++
-				}
-			}
-		}
-
-		return count
-	}())
 
 	if len(circularDeps) == 0 {
-		fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
-		fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
-
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s packages=%d circular_deps=%d\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(dependencyGraph), len(circularDeps))
-
-		return
+		return nil // No circular dependencies found
 	}
 
-	fmt.Fprintf(os.Stderr, "❌ RESULT: Found %d circular dependency chain(s):\n\n", len(circularDeps))
+	// Build error message with details about circular dependencies
+	var errorMsg strings.Builder
+
+	errorMsg.WriteString(fmt.Sprintf("Found %d circular dependency chain(s):\n\n", len(circularDeps)))
 
 	for i, cycle := range circularDeps {
-		fmt.Fprintf(os.Stderr, "Chain %d (%d packages):\n", i+1, len(cycle))
+		errorMsg.WriteString(fmt.Sprintf("Chain %d (%d packages):\n", i+1, len(cycle)))
 
 		for j, pkg := range cycle {
 			prefix := "  "
@@ -203,13 +159,14 @@ func goCheckCircularPackageDeps() {
 				prefix = "  → "
 			}
 
-			fmt.Fprintf(os.Stderr, "%s%s\n", prefix, pkg)
+			errorMsg.WriteString(fmt.Sprintf("%s%s\n", prefix, pkg))
 		}
 
-		fmt.Fprintln(os.Stderr, "")
+		errorMsg.WriteString("\n")
 	}
 
-	fmt.Fprintln(os.Stderr, "Circular dependencies can prevent enabling advanced linters like gomnd.")
-	fmt.Fprintln(os.Stderr, "Consider refactoring to break these cycles.")
-	os.Exit(1) // Fail the build
+	errorMsg.WriteString("Circular dependencies can prevent enabling advanced linters like gomnd.\n")
+	errorMsg.WriteString("Consider refactoring to break these cycles.")
+
+	return fmt.Errorf("circular dependencies detected: %s", errorMsg.String())
 }
