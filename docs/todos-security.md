@@ -81,19 +81,18 @@
 - **Priority**: Medium - API contract consistency
 - **ZAP Reference**: Multiple WARN messages about VariantJSONQuery parsing failures
 
-### Task S4: Implement Trusted CA Certificate Management
-- **Description**: Replace self-signed certificates with trusted CA certificates for production deployments
-- **Current State**: Development uses self-signed certificates with `-k` flag for health checks
+### Task S5: Add Java Static Analysis to CI/CD Workflow
+- **Description**: Re-add Java static analysis to a dedicated workflow for load testing code
+- **Current State**: Java was removed from ci-sast.yml matrix to focus on Go and JavaScript analysis
 - **Action Items**:
-  - Set up certificate authority infrastructure (Let's Encrypt, internal CA, or commercial CA)
-  - Update Docker Compose to mount trusted certificates instead of generating self-signed ones
-  - Remove `-k` flag from health check curl commands
-  - Update certificate generation logic to support CA-signed certificates
-  - Add certificate renewal automation for production environments
-- **Files**: Docker Compose configuration, certificate generation scripts, health check configurations
-- **Expected Outcome**: Production deployments use trusted certificates without security warnings
-- **Priority**: Medium - Production readiness
-- **Timeline**: Future production deployment preparation
+  - Create dedicated workflow for Java static analysis (SpotBugs, PMD, or similar)
+  - Include Java load testing code in analysis
+  - Configure appropriate security rules for Java code
+  - Add SARIF upload to GitHub Security tab
+- **Files**: New workflow file (ci-java-sast.yml or similar), Java analysis configuration
+- **Expected Outcome**: Java code has automated static security analysis
+- **Priority**: Low - Future enhancement
+- **Timeline**: Future implementation
 
 ---
 

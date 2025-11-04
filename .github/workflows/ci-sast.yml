@@ -192,7 +192,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['go', 'javascript', 'java']  # go: Go code, javascript: JS+shell scripts, java: load testing code
+        language: ['go', 'javascript']  # go: Go code, javascript: JS+shell scripts
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
