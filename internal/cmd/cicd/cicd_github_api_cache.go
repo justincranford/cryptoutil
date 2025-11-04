@@ -51,7 +51,7 @@ func (c *GitHubAPICache) Get(key string) (string, bool) {
 		return "", false
 	}
 
-	if time.Now().After(entry.ExpiresAt) {
+	if time.Now().UTC().After(entry.ExpiresAt) {
 		// Entry has expired, remove it
 		delete(c.cache, key)
 
@@ -68,7 +68,7 @@ func (c *GitHubAPICache) Set(key, value string) {
 
 	c.cache[key] = GitHubAPICacheEntry{
 		Value:     value,
-		ExpiresAt: time.Now().Add(cryptoutilMagic.TimeoutGitHubAPICacheTTL),
+		ExpiresAt: time.Now().UTC().Add(cryptoutilMagic.TimeoutGitHubAPICacheTTL),
 	}
 }
 

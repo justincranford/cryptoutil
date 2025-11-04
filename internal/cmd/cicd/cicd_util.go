@@ -16,7 +16,7 @@ type LogUtil struct {
 }
 
 func NewLogUtil(operation string) *LogUtil {
-	start := time.Now()
+	start := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] start=%s\n", start.Format(cryptoutilMagic.TimeFormat))
 
 	return &LogUtil{startTime: start}

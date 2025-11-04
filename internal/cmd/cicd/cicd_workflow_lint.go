@@ -24,14 +24,14 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 		workflowActionExceptions = &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}
 	}
 
-	actionMap := validateAndGetWorkflowActions(logger, allFiles)
+	workflowsActionDetails := validateAndGetWorkflowActionsDetails(logger, allFiles)
 
 	// Check versions concurrently for better performance
-	fmt.Fprintf(os.Stderr, "Checking %d unique actions for updates...\n", len(actionMap))
+	fmt.Fprintf(os.Stderr, "Checking %d unique actions for updates...\n", len(workflowsActionDetails))
 
-	versionCheckStart := time.Now()
-	outdated, exempted, errors := checkActionVersionsConcurrently(logger, actionMap, workflowActionExceptions)
-	versionCheckEnd := time.Now()
+	versionCheckStart := time.Now().UTC()
+	outdated, exempted, errors := checkActionVersionsConcurrently(logger, workflowsActionDetails, workflowActionExceptions)
+	versionCheckEnd := time.Now().UTC()
 
 	fmt.Fprintf(os.Stderr, "Version checks completed in %.2fs\n", versionCheckEnd.Sub(versionCheckStart).Seconds())
 
@@ -76,7 +76,7 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 	logger.Log("checkWorkflowLint completed")
 }
 
-func validateAndGetWorkflowActions(logger *LogUtil, allFiles []string) map[string]WorkflowActionDetails {
+func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) map[string]WorkflowActionDetails {
 	workflowsActionDetails := make(map[string]WorkflowActionDetails)
 
 	var allValidationErrors []string

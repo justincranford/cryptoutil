@@ -117,7 +117,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 
 	// Save results to cache
 	cache := cryptoutilMagic.DepCache{
-		LastCheck:    time.Now(),
+		LastCheck:    time.Now().UTC(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
 		OutdatedDeps: outdated,
