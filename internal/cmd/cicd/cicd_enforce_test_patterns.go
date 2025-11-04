@@ -12,7 +12,7 @@ import (
 // goEnforceTestPatterns enforces test patterns including UUIDv7 usage and testify assertions.
 // It checks all test files for proper patterns and reports violations.
 func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
-	fmt.Fprintln(os.Stderr, "Enforcing test patterns (UUIDv7 usage, testify assertions)...")
+	logger.Log("Enforcing test patterns (UUIDv7 usage, testify assertions)")
 
 	// Find all test files
 	var testFiles []string
@@ -29,8 +29,6 @@ func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
 	}
 
 	if len(testFiles) == 0 {
-		fmt.Fprintln(os.Stderr, "No test files found")
-
 		logger.Log("goEnforceTestPatterns completed (no test files)")
 
 		return

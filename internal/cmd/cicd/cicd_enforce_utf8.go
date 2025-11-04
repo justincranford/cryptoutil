@@ -14,7 +14,7 @@ import (
 // It filters files based on include/exclude patterns and checks each file for proper encoding.
 // Any violations cause the function to print human-friendly messages and exit with a non-zero status.
 func allEnforceUtf8(logger *LogUtil, allFiles []string) {
-	fmt.Fprintln(os.Stderr, "Enforcing file encoding (UTF-8 without BOM)...")
+	logger.Log("Enforcing file encoding (UTF-8 without BOM)")
 
 	// Filter files from allFiles based on include/exclude patterns
 	var finalFiles []string
@@ -73,8 +73,6 @@ func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 	}
 
 	if len(finalFiles) == 0 {
-		fmt.Fprintln(os.Stderr, "No files found to check")
-
 		logger.Log("allEnforceUtf8 completed (no files)")
 
 		return

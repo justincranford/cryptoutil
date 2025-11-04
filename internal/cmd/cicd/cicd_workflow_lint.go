@@ -13,13 +13,10 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// checkWorkflowLint validates GitHub Actions workflow files:
-//  1. filenames are "ci-"
-//  2. versions are checked for outdated "uses: owner/repo@version".
 func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 	workflowActionExceptions, err := loadWorkflowActionExceptions()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Failed to load action exceptions: %v\n", err)
+		logger.Log(fmt.Sprintf("Warning: Failed to load action exceptions: %v", err))
 
 		workflowActionExceptions = &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}
 	}
@@ -27,13 +24,13 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 	workflowsActionDetails := validateAndGetWorkflowActionsDetails(logger, allFiles)
 
 	// Check versions concurrently for better performance
-	fmt.Fprintf(os.Stderr, "Checking %d unique actions for updates...\n", len(workflowsActionDetails))
+	logger.Log(fmt.Sprintf("Checking %d unique actions for updates", len(workflowsActionDetails)))
 
 	versionCheckStart := time.Now().UTC()
 	outdated, exempted, errors := checkActionVersionsConcurrently(logger, workflowsActionDetails, workflowActionExceptions)
 	versionCheckEnd := time.Now().UTC()
 
-	fmt.Fprintf(os.Stderr, "Version checks completed in %.2fs\n", versionCheckEnd.Sub(versionCheckStart).Seconds())
+	logger.Log(fmt.Sprintf("Version checks completed in %.2fs", versionCheckEnd.Sub(versionCheckStart).Seconds()))
 
 	// Report results
 	if len(errors) > 0 {

@@ -17,7 +17,7 @@ import (
 // Files matching goEnforceAnyFileExcludePatterns are skipped to prevent self-modification.
 // This command modifies files in place and exits with code 1 if any files were modified.
 func goEnforceAny(logger *LogUtil, allFiles []string) {
-	fmt.Fprintln(os.Stderr, "Running go-enforce-any - Custom Go source code fixes...")
+	logger.Log("Running go-enforce-any - Custom Go source code fixes")
 
 	// Find all .go files
 	var goFiles []string
@@ -30,7 +30,7 @@ func goEnforceAny(logger *LogUtil, allFiles []string) {
 			for _, pattern := range cryptoutilMagic.GoEnforceAnyFileExcludePatterns {
 				matched, err := regexp.MatchString(pattern, path)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error matching pattern %s: %v\n", pattern, err)
+					logger.Log(fmt.Sprintf("Error matching pattern %s: %v", pattern, err))
 
 					continue
 				}
@@ -49,14 +49,12 @@ func goEnforceAny(logger *LogUtil, allFiles []string) {
 	}
 
 	if len(goFiles) == 0 {
-		fmt.Fprintln(os.Stderr, "No Go files found to process")
-
 		logger.Log("goEnforceAny completed (no Go files)")
 
 		return
 	}
 
-	fmt.Fprintf(os.Stderr, "Found %d Go files to process\n", len(goFiles))
+	logger.Log(fmt.Sprintf("Found %d Go files to process", len(goFiles)))
 
 	// Process each file
 	filesModified := 0
@@ -65,7 +63,7 @@ func goEnforceAny(logger *LogUtil, allFiles []string) {
 	for _, filePath := range goFiles {
 		replacements, err := processGoFile(filePath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error processing %s: %v\n", filePath, err)
+			logger.Log(fmt.Sprintf("Error processing %s: %v", filePath, err))
 
 			continue
 		}
@@ -73,7 +71,7 @@ func goEnforceAny(logger *LogUtil, allFiles []string) {
 		if replacements > 0 {
 			filesModified++
 			totalReplacements += replacements
-			fmt.Fprintf(os.Stderr, "Modified %s: %d replacements\n", filePath, replacements)
+			logger.Log(fmt.Sprintf("Modified %s: %d replacements", filePath, replacements))
 		}
 	}
 

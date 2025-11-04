@@ -30,14 +30,14 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 		// Check if go.mod or go.sum have changed since cache was created
 		goModStat, err := os.Stat("go.mod")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Could not stat go.mod: %v\n", err)
+			logger.Log(fmt.Sprintf("Warning: Could not stat go.mod: %v", err))
 
 			goModStat = nil
 		}
 
 		goSumStat, err := os.Stat("go.sum")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: Could not stat go.sum: %v\n", err)
+			logger.Log(fmt.Sprintf("Warning: Could not stat go.sum: %v", err))
 
 			goSumStat = nil
 		}
@@ -79,13 +79,13 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	// Get file stats for the extracted function
 	goModStat, err := os.Stat("go.mod")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading go.mod: %v\n", err)
+		logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
 		os.Exit(1)
 	}
 
 	goSumStat, err := os.Stat("go.sum")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading go.sum: %v\n", err)
+		logger.Log(fmt.Sprintf("Error reading go.sum: %v", err))
 		os.Exit(1)
 	}
 
@@ -94,7 +94,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 
 	output, err := cmd.Output()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error checking dependencies: %v\n", err)
+		logger.Log(fmt.Sprintf("Error checking dependencies: %v", err))
 		os.Exit(1)
 	}
 
@@ -103,7 +103,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	if mode == cryptoutilMagic.DepCheckDirect {
 		directDeps, err = getDirectDependencies()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error reading direct dependencies: %v\n", err)
+			logger.Log(fmt.Sprintf("Error reading direct dependencies: %v", err))
 			os.Exit(1)
 		}
 	}
@@ -111,7 +111,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	// Use the extracted function for the core logic
 	outdated, err := checkDependencyUpdates(mode, goModStat, goSumStat, string(output), directDeps)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error checking dependency updates: %v\n", err)
+		logger.Log(fmt.Sprintf("Error checking dependency updates: %v", err))
 		os.Exit(1)
 	}
 
@@ -124,7 +124,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 		Mode:         modeName,
 	}
 	if err := saveDepCache(cacheFile, cache); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Failed to save dependency cache: %v\n", err)
+		logger.Log(fmt.Sprintf("Warning: Failed to save dependency cache: %v", err))
 	}
 
 	if len(outdated) > 0 {

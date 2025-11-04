@@ -138,7 +138,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		outputStr := string(output)
 
 		// Should contain success message for no files
-		require.Contains(t, outputStr, "No files found to check", "Should indicate no files found")
+		require.Contains(t, outputStr, "allEnforceUtf8 completed (no files)", "Should indicate no files found")
 		require.Contains(t, outputStr, "[CICD] dur=", "Should contain performance logging")
 	})
 
