@@ -264,8 +264,8 @@ func getDirectDependencies() (map[string]bool, error) {
 			// Parse lines like "github.com/example/package v1.2.3"
 			parts := strings.Fields(line)
 			if len(parts) >= 2 {
-				// Skip indirect dependencies
-				if len(parts) >= 3 && parts[2] == "indirect" {
+				// Skip indirect dependencies (marked with // indirect comment)
+				if strings.Contains(line, "// indirect") {
 					continue
 				}
 
