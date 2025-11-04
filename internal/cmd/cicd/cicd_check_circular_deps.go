@@ -13,6 +13,11 @@ import (
 	"time"
 )
 
+type PackageInfo struct {
+	ImportPath string   `json:"ImportPath"`
+	Imports    []string `json:"Imports"`
+}
+
 // goCheckCircularPackageDeps checks for circular dependencies in Go packages.
 // It analyzes the dependency graph of all packages in the project and reports any circular dependencies.
 // This command exits with code 1 if circular dependencies are found.
@@ -22,12 +27,6 @@ func goCheckCircularPackageDeps() {
 
 	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
 
-	// PERFORMANCE OPTIMIZATION: Use single go list -json command instead of individual commands per package
-	// Root cause of slowness: Previous implementation ran 38+ separate 'go list -f "{{.Imports}}" pkg' commands,
-	// each with ~200ms startup overhead (process creation + Go toolchain init + module loading).
-	// For 38 packages: 38 × 200ms = ~7.6s overhead, measured ~4.5s actual due to some caching.
-	// Fix: Single 'go list -json ./...' command gets all package info at once (~400ms total).
-	// Result: 10.5x performance improvement (4.5s → 0.4s for graph building phase).
 	fmt.Fprintln(os.Stderr, "Running: go list -json ./...")
 
 	cmd := exec.Command("go", "list", "-json", "./...")

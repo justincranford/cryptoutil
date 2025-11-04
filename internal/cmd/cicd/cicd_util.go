@@ -6,12 +6,10 @@
 package cicd
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -21,48 +19,7 @@ const (
 
 	// Minimum number of regex match groups for action parsing.
 	minActionMatchGroups = 3
-
-	// Cache file permissions (owner read/write only).
-	cacheFilePermissions = 0o600
 )
-
-type ActionException struct {
-	AllowedVersions []string `json:"allowed_versions"`
-	Reason          string   `json:"reason"`
-}
-
-type ActionExceptions struct {
-	Exceptions map[string]ActionException `json:"exceptions"`
-}
-
-type DepCheckMode int
-
-const (
-	DepCheckDirect DepCheckMode = iota // Check only direct dependencies
-	DepCheckAll                        // Check all dependencies (direct + transitive)
-	modeNameDirect = "direct"
-	modeNameAll    = "all"
-)
-
-type ActionInfo struct {
-	Name           string
-	CurrentVersion string
-	LatestVersion  string
-	WorkflowFile   string
-}
-
-type DepCache struct {
-	LastCheck    time.Time `json:"last_check"`
-	GoModModTime time.Time `json:"go_mod_mod_time"`
-	GoSumModTime time.Time `json:"go_sum_mod_time"`
-	OutdatedDeps []string  `json:"outdated_deps"`
-	Mode         string    `json:"mode"`
-}
-
-type PackageInfo struct {
-	ImportPath string   `json:"ImportPath"`
-	Imports    []string `json:"Imports"`
-}
 
 // getUsageMessage returns the usage message for the cicd command.
 func getUsageMessage() string {
@@ -174,105 +131,4 @@ func collectAllFiles() ([]string, error) {
 	}
 
 	return allFiles, nil
-}
-
-// loadActionExceptions loads action exceptions from the JSON file.
-// Returns an empty exceptions struct if the file doesn't exist.
-func loadActionExceptions() (*ActionExceptions, error) {
-	exceptionsFile := ".github/workflows-outdated-action-exemptions.json"
-	if _, err := os.Stat(exceptionsFile); os.IsNotExist(err) {
-		// No exceptions file, return empty exceptions
-		return &ActionExceptions{Exceptions: make(map[string]ActionException)}, nil
-	}
-
-	content, err := os.ReadFile(exceptionsFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read exceptions file: %w", err)
-	}
-
-	var exceptions ActionExceptions
-	if err := json.Unmarshal(content, &exceptions); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal exceptions JSON: %w", err)
-	}
-
-	return &exceptions, nil
-}
-
-// loadDepCache loads dependency cache from the specified file.
-// Returns the cache and any error encountered.
-func loadDepCache(cacheFile, mode string) (*DepCache, error) {
-	content, err := os.ReadFile(cacheFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read cache file: %w", err)
-	}
-
-	var cache DepCache
-	if err := json.Unmarshal(content, &cache); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal cache JSON: %w", err)
-	}
-
-	// Verify cache is for the same mode
-	if cache.Mode != mode {
-		return nil, fmt.Errorf("cache mode mismatch")
-	}
-
-	return &cache, nil
-}
-
-// saveDepCache saves dependency cache to the specified file.
-func saveDepCache(cacheFile string, cache DepCache) error {
-	content, err := json.MarshalIndent(cache, "", "  ")
-	if err != nil {
-		return fmt.Errorf("failed to marshal cache JSON: %w", err)
-	}
-
-	if err := os.WriteFile(cacheFile, content, cacheFilePermissions); err != nil {
-		return fmt.Errorf("failed to write cache file: %w", err)
-	}
-
-	return nil
-}
-
-// getDirectDependencies reads go.mod and returns a map of direct dependencies.
-func getDirectDependencies() (map[string]bool, error) {
-	// Read go.mod file to get direct dependencies
-	goModContent, err := os.ReadFile("go.mod")
-	if err != nil {
-		return nil, fmt.Errorf("failed to read go.mod: %w", err)
-	}
-
-	directDeps := make(map[string]bool)
-	lines := strings.Split(string(goModContent), "\n")
-
-	inRequireBlock := false
-
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "require (") {
-			inRequireBlock = true
-
-			continue
-		}
-
-		if line == ")" {
-			inRequireBlock = false
-
-			continue
-		}
-
-		if inRequireBlock || strings.HasPrefix(line, "require ") {
-			// Parse lines like "github.com/example/package v1.2.3"
-			parts := strings.Fields(line)
-			if len(parts) >= 2 {
-				// Skip indirect dependencies (marked with // indirect comment)
-				if strings.Contains(line, "// indirect") {
-					continue
-				}
-
-				directDeps[parts[0]] = true
-			}
-		}
-	}
-
-	return directDeps, nil
 }

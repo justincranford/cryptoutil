@@ -4,6 +4,7 @@
 package cicd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,6 +12,22 @@ import (
 	"strings"
 	"time"
 )
+
+type ActionException struct {
+	AllowedVersions []string `json:"allowed_versions"`
+	Reason          string   `json:"reason"`
+}
+
+type ActionExceptions struct {
+	Exceptions map[string]ActionException `json:"exceptions"`
+}
+
+type ActionInfo struct {
+	Name           string
+	CurrentVersion string
+	LatestVersion  string
+	WorkflowFile   string
+}
 
 // checkWorkflowLint validates GitHub Actions workflow files in two ways:
 //  1. Enforces repository-level workflow conventions (filename prefix "ci-", presence of a top-level
@@ -327,4 +344,26 @@ func isOutdated(current, latest string) bool {
 
 	// For specific versions, simple comparison
 	return current != latest
+}
+
+// loadActionExceptions loads action exceptions from the JSON file.
+// Returns an empty exceptions struct if the file doesn't exist.
+func loadActionExceptions() (*ActionExceptions, error) {
+	exceptionsFile := ".github/workflows-outdated-action-exemptions.json"
+	if _, err := os.Stat(exceptionsFile); os.IsNotExist(err) {
+		// No exceptions file, return empty exceptions
+		return &ActionExceptions{Exceptions: make(map[string]ActionException)}, nil
+	}
+
+	content, err := os.ReadFile(exceptionsFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read exceptions file: %w", err)
+	}
+
+	var exceptions ActionExceptions
+	if err := json.Unmarshal(content, &exceptions); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal exceptions JSON: %w", err)
+	}
+
+	return &exceptions, nil
 }
