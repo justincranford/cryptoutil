@@ -13,13 +13,16 @@ import (
 	"time"
 )
 
-const (
-	// UI constants.
-	separatorLength = 50
-
-	// Minimum number of regex match groups for action parsing.
-	minActionMatchGroups = 3
-)
+// validCommands defines the set of valid cicd commands.
+var validCommands = map[string]bool{
+	"all-enforce-utf8":                       true,
+	"go-enforce-test-patterns":               true,
+	"go-enforce-any":                         true,
+	"go-check-circular-package-dependencies": true,
+	"go-update-direct-dependencies":          true,
+	"go-update-all-dependencies":             true,
+	"github-workflow-lint":                   true,
+}
 
 // getUsageMessage returns the usage message for the cicd command.
 func getUsageMessage() string {
@@ -59,28 +62,19 @@ func validateCommands(commands []string) (bool, error) {
 
 	// Count command occurrences and determine if file walk is needed
 	for _, command := range commands {
-		switch command {
-		case "all-enforce-utf8":
+		if validCommands[command] {
 			commandCounts[command]++
-			doFindAllFiles = true
-		case "go-enforce-test-patterns":
-			commandCounts[command]++
-			doFindAllFiles = true
-		case "go-enforce-any":
-			commandCounts[command]++
-			doFindAllFiles = true
-		case "go-check-circular-package-dependencies":
-			commandCounts[command]++
-		case "go-update-direct-dependencies":
-			commandCounts[command]++
-		case "go-update-all-dependencies":
-			commandCounts[command]++
-		case "github-workflow-lint":
-			commandCounts[command]++
-			doFindAllFiles = true
-		default:
+		} else {
 			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, getUsageMessage()))
 		}
+	}
+
+	// Compute doFindAllFiles after counting all commands
+	if commandCounts["all-enforce-utf8"] > 0 ||
+		commandCounts["go-enforce-test-patterns"] > 0 ||
+		commandCounts["go-enforce-any"] > 0 ||
+		commandCounts["github-workflow-lint"] > 0 {
+		doFindAllFiles = true
 	}
 
 	// Check for duplicate commands

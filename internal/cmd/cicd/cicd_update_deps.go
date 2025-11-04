@@ -10,11 +10,8 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-)
 
-const (
-	// Cache file permissions (owner read/write only).
-	cacheFilePermissions = 0o600
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 type DepCheckMode int
@@ -22,8 +19,6 @@ type DepCheckMode int
 const (
 	DepCheckDirect DepCheckMode = iota // Check only direct dependencies
 	DepCheckAll                        // Check all dependencies (direct + transitive)
-	modeNameDirect = "direct"
-	modeNameAll    = "all"
 )
 
 type DepCache struct {
@@ -41,9 +36,9 @@ func goUpdateDeps(mode DepCheckMode) {
 	start := time.Now()
 	fmt.Fprintf(os.Stderr, "[PERF] goUpdateDeps started at %s (mode=%v)\n", start.Format(time.RFC3339Nano), mode)
 
-	modeName := modeNameDirect
+	modeName := cryptoutilMagic.ModeNameDirect
 	if mode == DepCheckAll {
-		modeName = modeNameAll
+		modeName = cryptoutilMagic.ModeNameAll
 	}
 
 	cacheFile := ".cicd-dep-cache.json"
@@ -235,7 +230,7 @@ func saveDepCache(cacheFile string, cache DepCache) error {
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)
 	}
 
-	if err := os.WriteFile(cacheFile, content, cacheFilePermissions); err != nil {
+	if err := os.WriteFile(cacheFile, content, cryptoutilMagic.CacheFilePermissions); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 

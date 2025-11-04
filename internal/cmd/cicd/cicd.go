@@ -19,6 +19,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // Run executes the specified CI/CD check commands.
@@ -89,7 +91,7 @@ func Run(commands []string) error {
 
 		// Add a separator between multiple commands
 		if i < len(commands)-1 {
-			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", separatorLength)+"\n")
+			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilMagic.SeparatorLength)+"\n")
 		}
 	}
 

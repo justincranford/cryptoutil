@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 type ActionException struct {
@@ -212,7 +214,7 @@ func validateAndParseWorkflowFile(path string) ([]string, []ActionInfo, error) {
 	matches := re.FindAllStringSubmatch(content, -1)
 
 	for _, match := range matches {
-		if len(match) >= minActionMatchGroups {
+		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
 			action := ActionInfo{
 				Name:           match[1],
 				CurrentVersion: match[2],
@@ -305,7 +307,7 @@ func parseWorkflowFile(path string) ([]ActionInfo, error) {
 	matches := re.FindAllStringSubmatch(string(content), -1)
 
 	for _, match := range matches {
-		if len(match) >= minActionMatchGroups {
+		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
 			action := ActionInfo{
 				Name:           match[1],
 				CurrentVersion: match[2],
