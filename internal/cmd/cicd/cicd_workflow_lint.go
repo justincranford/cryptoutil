@@ -24,14 +24,7 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 		workflowActionExceptions = &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}
 	}
 
-	workflowsActionDetails := validateAndGetWorkflowActions(logger, allFiles)
-
-	// Remove duplicates and check versions (reuse prior logic)
-	actionMap := make(map[string]WorkflowActionDetails)
-
-	for _, workflowActionDetails := range workflowsActionDetails {
-		actionMap[workflowActionDetails.Name+"@"+workflowActionDetails.CurrentVersion] = workflowActionDetails
-	}
+	actionMap := validateAndGetWorkflowActions(logger, allFiles)
 
 	// Check versions concurrently for better performance
 	fmt.Fprintf(os.Stderr, "Checking %d unique actions for updates...\n", len(actionMap))
@@ -83,13 +76,13 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 	logger.Log("checkWorkflowLint completed")
 }
 
-func validateAndGetWorkflowActions(logger *LogUtil, allFiles []string) []WorkflowActionDetails {
-	var workflowsActionDetails []WorkflowActionDetails
+func validateAndGetWorkflowActions(logger *LogUtil, allFiles []string) map[string]WorkflowActionDetails {
+	workflowsActionDetails := make(map[string]WorkflowActionDetails)
 
 	var allValidationErrors []string
 
 	for _, workflowFile := range filterWorkflowFiles(allFiles) {
-		workflowValidationErrors, workflowActionDetails, vErr := validateAndParseWorkflowFile(workflowFile)
+		workflowActionDetails, workflowValidationErrors, vErr := validateAndParseWorkflowFile(workflowFile)
 		if vErr != nil {
 			allValidationErrors = append(allValidationErrors, fmt.Sprintf("Failed to validate %s: %v", workflowFile, vErr))
 		}
@@ -98,7 +91,10 @@ func validateAndGetWorkflowActions(logger *LogUtil, allFiles []string) []Workflo
 			allValidationErrors = append(allValidationErrors, fmt.Sprintf("%s: %s", filepath.Base(workflowFile), issue))
 		}
 
-		workflowsActionDetails = append(workflowsActionDetails, workflowActionDetails...)
+		// Merge the map from this file into the global map (deduplication by key)
+		for key, action := range workflowActionDetails {
+			workflowsActionDetails[key] = action
+		}
 	}
 
 	if len(allValidationErrors) > 0 {
@@ -136,10 +132,10 @@ func filterWorkflowFiles(allFiles []string) []string {
 	return workflowFiles
 }
 
-func validateAndParseWorkflowFile(workflowFile string) ([]string, []WorkflowActionDetails, error) {
+func validateAndParseWorkflowFile(workflowFile string) (map[string]WorkflowActionDetails, []string, error) {
 	var validationErrors []string
 
-	var workflowActions []WorkflowActionDetails
+	workflowActions := make(map[string]WorkflowActionDetails)
 
 	workflowFileBytes, err := os.ReadFile(workflowFile)
 	if err != nil {
@@ -185,11 +181,12 @@ func validateAndParseWorkflowFile(workflowFile string) ([]string, []WorkflowActi
 				CurrentVersion: match[2],
 				WorkflowFile:   filepath.Base(workflowFile),
 			}
-			workflowActions = append(workflowActions, workflowAction)
+			key := workflowAction.Name + "@" + workflowAction.CurrentVersion
+			workflowActions[key] = workflowAction
 		}
 	}
 
-	return validationErrors, workflowActions, nil
+	return workflowActions, validationErrors, nil
 }
 
 // checkActionVersionsConcurrently checks multiple GitHub actions for updates concurrently.

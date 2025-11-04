@@ -28,7 +28,7 @@ jobs:
 `
 	require.NoError(t, os.WriteFile(validPath, []byte(validContent), 0o600))
 
-	issues, _, err := validateAndParseWorkflowFile(validPath)
+	_, issues, err := validateAndParseWorkflowFile(validPath)
 	require.NoError(t, err)
 	require.Len(t, issues, 0, "Expected no issues for valid workflow file: %v", issues)
 
@@ -44,7 +44,7 @@ jobs:
 `
 	require.NoError(t, os.WriteFile(invalidPath, []byte(invalidContent), 0o600))
 
-	issues2, _, err := validateAndParseWorkflowFile(invalidPath)
+	_, issues2, err := validateAndParseWorkflowFile(invalidPath)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(issues2), 1, "Expected at least one issue for invalid workflow file")
 }
@@ -65,7 +65,7 @@ jobs:
 `
 	require.NoError(t, os.WriteFile(p, []byte(content), 0o600))
 
-	issues, _, err := validateAndParseWorkflowFile(p)
+	_, issues, err := validateAndParseWorkflowFile(p)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(issues), 1)
 
@@ -139,7 +139,7 @@ jobs:
 			path := filepath.Join(tempDir, tt.filename)
 			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
 
-			issues, _, err := validateAndParseWorkflowFile(path)
+			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
 			require.Empty(t, issues, "Expected no validation issues for valid workflow: %v", issues)
 		})
@@ -226,7 +226,7 @@ jobs:
 			path := filepath.Join(tempDir, tt.filename)
 			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
 
-			issues, _, err := validateAndParseWorkflowFile(path)
+			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
 			require.GreaterOrEqual(t, len(issues), tt.minIssueCount, "Expected at least %d issues, got %d: %v", tt.minIssueCount, len(issues), issues)
 
@@ -310,7 +310,7 @@ jobs:
 			path := filepath.Join(tempDir, tt.filename)
 			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
 
-			issues, _, err := validateAndParseWorkflowFile(path)
+			_, issues, err := validateAndParseWorkflowFile(path)
 
 			if tt.expectError {
 				require.Error(t, err, "Expected error for test case")
