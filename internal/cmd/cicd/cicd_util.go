@@ -11,18 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-)
 
-// validCommands defines the set of valid cicd commands.
-var validCommands = map[string]bool{
-	"all-enforce-utf8":                       true,
-	"go-enforce-test-patterns":               true,
-	"go-enforce-any":                         true,
-	"go-check-circular-package-dependencies": true,
-	"go-update-direct-dependencies":          true,
-	"go-update-all-dependencies":             true,
-	"github-workflow-lint":                   true,
-}
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+)
 
 // getUsageMessage returns the usage message for the cicd command.
 func getUsageMessage() string {
@@ -62,7 +53,7 @@ func validateCommands(commands []string) (bool, error) {
 
 	// Count command occurrences and determine if file walk is needed
 	for _, command := range commands {
-		if validCommands[command] {
+		if cryptoutilMagic.ValidCommands[command] {
 			commandCounts[command]++
 		} else {
 			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, getUsageMessage()))

@@ -17,3 +17,14 @@ const (
 	ModeNameDirect = "direct"
 	ModeNameAll    = "all"
 )
+
+// ValidCommands defines the set of valid cicd commands.
+var ValidCommands = map[string]bool{
+	"all-enforce-utf8":                       true,
+	"go-enforce-test-patterns":               true,
+	"go-enforce-any":                         true,
+	"go-check-circular-package-dependencies": true,
+	"go-update-direct-dependencies":          true,
+	"go-update-all-dependencies":             true,
+	"github-workflow-lint":                   true,
+}
