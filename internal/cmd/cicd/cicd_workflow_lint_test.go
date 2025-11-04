@@ -435,12 +435,15 @@ func TestGetLatestVersion(t *testing.T) {
 	server := setupMockGitHubServer()
 	defer server.Close()
 
+	// Create a logger for testing
+	logger := NewLogUtil("test")
+
 	// We can't easily mock the internal getLatestVersion function,
 	// so we'll test the logic indirectly by testing a simpler version
 	// For now, just test that the function exists and can be called
 	// In a real scenario, you might want to refactor the code to make it more testable
 
-	_, err := getLatestVersion("actions/checkout")
+	_, err := getLatestVersion(logger, "actions/checkout")
 	// This will fail due to network call, but we can at least test it doesn't panic
 	if err == nil {
 		t.Log("getLatestVersion succeeded (network call worked)")

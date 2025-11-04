@@ -36,7 +36,7 @@ func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
 		return
 	}
 
-	fmt.Fprintf(os.Stderr, "Found %d test files to check\n", len(testFiles))
+	logger.Log(fmt.Sprintf("Found %d test files to check", len(testFiles)))
 
 	// Check each test file
 	totalIssues := 0
@@ -56,7 +56,7 @@ func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
 	}
 
 	if totalIssues > 0 {
-		fmt.Fprintf(os.Stderr, "\n❌ Found %d test pattern violations\n", totalIssues)
+		logger.Log(fmt.Sprintf("Found %d test pattern violations", totalIssues))
 		fmt.Fprintln(os.Stderr, "Please fix the issues above to follow established test patterns.")
 		os.Exit(1) // Fail the build
 	} else {

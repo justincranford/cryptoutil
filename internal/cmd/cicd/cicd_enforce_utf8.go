@@ -151,7 +151,7 @@ func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 		return
 	}
 
-	fmt.Fprintf(os.Stderr, "Found %d files to check for UTF-8 encoding\n", len(finalFiles))
+	logger.Log(fmt.Sprintf("Found %d files to check for UTF-8 encoding", len(finalFiles)))
 
 	// Check each file
 	var encodingViolations []string

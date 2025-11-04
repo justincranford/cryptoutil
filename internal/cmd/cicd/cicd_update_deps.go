@@ -67,10 +67,10 @@ func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 		}
 
 		if cacheValid && time.Since(cache.LastCheck) < time.Hour {
-			fmt.Fprintf(os.Stderr, "Using cached dependency check results (age: %.1fs)\n", time.Since(cache.LastCheck).Seconds())
+			logger.Log(fmt.Sprintf("Using cached dependency check results (age: %.1fs)", time.Since(cache.LastCheck).Seconds()))
 
 			if len(cache.OutdatedDeps) > 0 {
-				fmt.Fprintf(os.Stderr, "Found outdated Go dependencies (cached, checking %s):\n", modeName)
+				logger.Log(fmt.Sprintf("Found outdated Go dependencies (cached, checking %s)", modeName))
 
 				for _, dep := range cache.OutdatedDeps {
 					fmt.Fprintln(os.Stderr, dep)
@@ -80,7 +80,7 @@ func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 				os.Exit(1) // Fail to block push
 			}
 
-			fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date (cached).\n", modeName)
+			logger.Log(fmt.Sprintf("All %s Go dependencies are up to date (cached)", modeName))
 
 			logger.Log("goUpdateDeps completed (cached)")
 
@@ -89,7 +89,7 @@ func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 	}
 
 	// Cache miss or expired, perform actual check
-	fmt.Fprintf(os.Stderr, "Performing fresh dependency check...\n")
+	logger.Log("Performing fresh dependency check")
 
 	// Get file stats for the extracted function
 	goModStat, err := os.Stat("go.mod")
@@ -143,7 +143,7 @@ func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 	}
 
 	if len(outdated) > 0 {
-		fmt.Fprintf(os.Stderr, "Found outdated Go dependencies (checking %s):\n", modeName)
+		logger.Log(fmt.Sprintf("Found outdated Go dependencies (checking %s)", modeName))
 
 		for _, dep := range outdated {
 			fmt.Fprintln(os.Stderr, dep)

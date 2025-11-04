@@ -53,7 +53,7 @@ func Run(commands []string) error {
 	// Process all commands provided as arguments
 	for i := range commands {
 		command := commands[i]
-		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
+		logger.Log(fmt.Sprintf("Executing command: %s", command))
 
 		// Execute command with performance logging
 		switch command {

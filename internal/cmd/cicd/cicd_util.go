@@ -1,8 +1,4 @@
 // Package cicd provides common utilities for CI/CD quality control checks.
-//
-// This file contains shared types, constants, and utility functions used across
-// different CI/CD commands. It provides common functionality for performance timing,
-// file operations, command validation, and caching.
 package cicd
 
 import (
@@ -15,38 +11,27 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// LogUtil provides structured logging with elapsed time tracking for CI/CD operations.
-// It maintains a start time and automatically prepends elapsed duration and current time
-// to all log messages for consistent performance monitoring.
+const timeFormat = time.RFC3339Nano
+
 type LogUtil struct {
 	startTime time.Time
 }
 
-// NewLogUtil creates a new LogUtil instance with the current time as start time.
-// It immediately prints the start time to stderr.
 func NewLogUtil(operation string) *LogUtil {
 	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] %s started at %s\n", operation, start.Format(time.RFC3339Nano))
+	fmt.Fprintf(os.Stderr, "[CICD] start=%s\n", start.Format(timeFormat))
 
 	return &LogUtil{startTime: start}
 }
 
-// Log prints a formatted message to stderr with elapsed time and current time.
-// The message is prefixed with [PERF] and includes duration since LogUtil creation.
 func (l *LogUtil) Log(message string) {
-	now := time.Now()
-	elapsed := now.Sub(l.startTime)
-	fmt.Fprintf(os.Stderr, "[PERF] %s: duration=%v current=%s\n",
-		message, elapsed, now.Format(time.RFC3339Nano))
+	now := time.Now().UTC()
+	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s: %s\n", now.Sub(l.startTime), now.Format(timeFormat), message)
 }
 
-// LogWithDetails prints a detailed message to stderr with start time, end time, and elapsed time.
-// This is used for operations that need to show both start and end timestamps.
 func (l *LogUtil) LogWithDetails(message string, operationStart time.Time) {
-	now := time.Now()
-	elapsed := now.Sub(operationStart)
-	fmt.Fprintf(os.Stderr, "[PERF] %s: duration=%v start=%s end=%s\n",
-		message, elapsed, operationStart.Format(time.RFC3339Nano), now.Format(time.RFC3339Nano))
+	now := time.Now().UTC()
+	fmt.Fprintf(os.Stderr, "[CICD] dur=%v start=%s end=%s: %s\n", now.Sub(operationStart), operationStart.Format(timeFormat), now.Format(timeFormat), message)
 }
 
 // getUsageMessage returns the usage message for the cicd command.
@@ -63,43 +48,25 @@ Commands:
   github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions`
 }
 
-// validateCommands validates the provided commands for duplicates, mutually exclusive combinations,
-// and empty command lists. Returns doFindAllFiles flag and any validation error.
 func validateCommands(commands []string) (bool, error) {
-	// Start performance timing
-	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] validateCommands started at %s\n", start.Format(time.RFC3339Nano))
+	logger := NewLogUtil("validateCommands")
 
-	// Check for empty commands first (also handles nil slices since len(nil) == 0)
 	if len(commands) == 0 {
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] validateCommands: start=%s end=%s duration=%v (empty commands)\n",
-			start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), end.Sub(start))
+		logger.LogWithDetails("validateCommands: empty commands", logger.startTime)
 
 		return false, fmt.Errorf("%s", getUsageMessage())
 	}
-
-	doFindAllFiles := false
 
 	var errs []error
 
 	commandCounts := make(map[string]int)
 
-	// Count command occurrences and determine if file walk is needed
 	for _, command := range commands {
 		if cryptoutilMagic.ValidCommands[command] {
 			commandCounts[command]++
 		} else {
 			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, getUsageMessage()))
 		}
-	}
-
-	// Compute doFindAllFiles after counting all commands
-	if commandCounts["all-enforce-utf8"] > 0 ||
-		commandCounts["go-enforce-test-patterns"] > 0 ||
-		commandCounts["go-enforce-any"] > 0 ||
-		commandCounts["github-workflow-lint"] > 0 {
-		doFindAllFiles = true
 	}
 
 	// Check for duplicate commands
@@ -115,21 +82,22 @@ func validateCommands(commands []string) (bool, error) {
 	}
 
 	if len(errs) > 0 {
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] validateCommands: duration=%v start=%s end=%s (validation errors)\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+		logger.LogWithDetails("validateCommands: validation errors", logger.startTime)
 
 		return false, fmt.Errorf("command validation failed: %w", errors.Join(errs...))
 	}
 
-	end := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] validateCommands: duration=%v start=%s end=%s (success)\n",
-		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+	logger.LogWithDetails("validateCommands: success", logger.startTime)
+
+	doFindAllFiles := commandCounts["all-enforce-utf8"] > 0 ||
+		commandCounts["go-enforce-test-patterns"] > 0 ||
+		commandCounts["go-enforce-any"] > 0 ||
+		commandCounts["github-workflow-lint"] > 0
 
 	return doFindAllFiles, nil
 }
 
-// collectAllFiles walks the current directory and collects all file paths.
+// collectAllFiles walks the now directory and collects all file paths.
 // Returns a slice of all file paths found.
 func collectAllFiles() ([]string, error) {
 	var allFiles []string

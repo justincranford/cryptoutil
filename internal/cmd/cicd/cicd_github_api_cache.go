@@ -77,16 +77,16 @@ var githubAPICache = NewGitHubAPICache()
 
 // getLatestVersion retrieves the latest version of a GitHub action.
 // It uses caching to avoid repeated API calls for the same action.
-func getLatestVersion(actionName string) (string, error) {
+func getLatestVersion(logger *LogUtil, actionName string) (string, error) {
 	// Check cache first
 	cacheKey := "release:" + actionName
 	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
-		fmt.Fprintf(os.Stderr, "[CACHE] Cache hit for %s: %s\n", actionName, cachedVersion)
+		logger.Log(fmt.Sprintf("Cache hit for %s: %s", actionName, cachedVersion))
 
 		return cachedVersion, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "[CACHE] Cache miss for %s, making API call\n", actionName)
+	logger.Log(fmt.Sprintf("Cache miss for %s, making API call", actionName))
 
 	// GitHub API has rate limits, so add a delay
 	time.Sleep(cryptoutilMagic.TimeoutGitHubAPIDelay)
@@ -124,7 +124,7 @@ func getLatestVersion(actionName string) (string, error) {
 
 	if resp.StatusCode == http.StatusNotFound {
 		// Some actions might not have releases, try tags
-		version, err := getLatestTag(actionName)
+		version, err := getLatestTag(logger, actionName)
 		if err != nil {
 			return "", err
 		}
@@ -156,16 +156,16 @@ func getLatestVersion(actionName string) (string, error) {
 
 // getLatestTag retrieves the latest tag for a GitHub repository.
 // Used as a fallback when releases are not available.
-func getLatestTag(actionName string) (string, error) {
+func getLatestTag(logger *LogUtil, actionName string) (string, error) {
 	// Check cache first
 	cacheKey := "tags:" + actionName
 	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
-		fmt.Fprintf(os.Stderr, "[CACHE] Cache hit for %s tags: %s\n", actionName, cachedVersion)
+		logger.Log(fmt.Sprintf("Cache hit for %s tags: %s", actionName, cachedVersion))
 
 		return cachedVersion, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "[CACHE] Cache miss for %s tags, making API call\n", actionName)
+	logger.Log(fmt.Sprintf("Cache miss for %s tags, making API call", actionName))
 
 	url := fmt.Sprintf("https://api.github.com/repos/%s/tags", actionName)
 

@@ -116,7 +116,7 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 	fmt.Fprintf(os.Stderr, "Checking %d unique actions for updates...\n", len(actionMap))
 
 	versionCheckStart := time.Now()
-	outdated, exempted, errors := checkActionVersionsConcurrently(actionMap, exceptions)
+	outdated, exempted, errors := checkActionVersionsConcurrently(logger, actionMap, exceptions)
 	versionCheckEnd := time.Now()
 
 	fmt.Fprintf(os.Stderr, "Version checks completed in %.2fs\n", versionCheckEnd.Sub(versionCheckStart).Seconds())
@@ -223,7 +223,7 @@ func validateAndParseWorkflowFile(path string) ([]string, []ActionInfo, error) {
 // checkActionVersionsConcurrently checks multiple GitHub actions for updates concurrently.
 // It uses goroutines to make parallel API calls, significantly reducing total execution time.
 // Returns slices of outdated actions, exempted actions, and any errors encountered.
-func checkActionVersionsConcurrently(actionMap map[string]ActionInfo, exceptions *ActionExceptions) ([]ActionInfo, []ActionInfo, []string) {
+func checkActionVersionsConcurrently(logger *LogUtil, actionMap map[string]ActionInfo, exceptions *ActionExceptions) ([]ActionInfo, []ActionInfo, []string) {
 	type result struct {
 		action   ActionInfo
 		latest   string
@@ -249,7 +249,7 @@ func checkActionVersionsConcurrently(actionMap map[string]ActionInfo, exceptions
 				}
 			}
 
-			latest, err := getLatestVersion(act.Name)
+			latest, err := getLatestVersion(logger, act.Name)
 			results <- result{action: act, latest: latest, err: err, exempted: isExempted}
 		}(action)
 	}
