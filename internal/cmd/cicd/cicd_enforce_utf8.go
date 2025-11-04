@@ -14,12 +14,9 @@ import (
 )
 
 // allEnforceUtf8 enforces UTF-8 encoding without BOM for all text files.
-// It filters files based on include/exclude patterns and checks each file for proper encoding.
-// Any violations cause the function to print human-friendly messages and exit with a non-zero status.
 func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 	logger.Log("Enforcing file encoding (UTF-8 without BOM)")
 
-	// Filter files from allFiles based on include/exclude patterns
 	finalFiles := filterTextFiles(allFiles)
 
 	if len(finalFiles) == 0 {
@@ -30,63 +27,7 @@ func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 
 	logger.Log(fmt.Sprintf("Found %d files to check for UTF-8 encoding", len(finalFiles)))
 
-	// Check each file concurrently using a worker pool
-	var encodingViolations []string
-
-	var violationsMutex sync.Mutex
-
-	var wg sync.WaitGroup
-
-	// Channel for sending file paths to workers
-	fileChan := make(chan string, len(finalFiles))
-
-	// Channel for collecting results from workers
-	resultChan := make(chan []string, len(finalFiles))
-
-	// Start worker goroutines
-	for i := 0; i < cryptoutilMagic.Utf8EnforceWorkerPoolSize; i++ {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
-			for filePath := range fileChan {
-				if issues := checkFileEncoding(filePath); len(issues) > 0 {
-					var violations []string
-					for _, issue := range issues {
-						violations = append(violations, fmt.Sprintf("%s: %s", filePath, issue))
-					}
-					resultChan <- violations
-				} else {
-					resultChan <- nil // Send nil for files with no issues
-				}
-			}
-		}()
-	}
-
-	// Send all file paths to workers
-	go func() {
-		defer close(fileChan)
-
-		for _, filePath := range finalFiles {
-			fileChan <- filePath
-		}
-	}()
-
-	// Close result channel when all workers are done
-	go func() {
-		wg.Wait()
-		close(resultChan)
-	}()
-
-	// Collect results from all workers
-	for violations := range resultChan {
-		if violations != nil {
-			violationsMutex.Lock()
-			encodingViolations = append(encodingViolations, violations...)
-			violationsMutex.Unlock()
-		}
-	}
+	encodingViolations := checkFilesEncoding(finalFiles)
 
 	if len(encodingViolations) > 0 {
 		fmt.Fprintln(os.Stderr, "\n❌ Found file encoding violations:")
@@ -109,7 +50,6 @@ func filterTextFiles(allFiles []string) []string {
 	var finalFiles []string
 
 	for _, filePath := range allFiles {
-		// Check if matches any include pattern
 		included := false
 
 		for _, pattern := range cryptoutilMagic.EnforceUtf8FileIncludePatterns {
@@ -140,7 +80,6 @@ func filterTextFiles(allFiles []string) []string {
 			continue
 		}
 
-		// Check exclude patterns
 		excluded := false
 
 		for _, pattern := range cryptoutilMagic.EnforceUtf8FileExcludePatterns {
@@ -164,10 +103,57 @@ func filterTextFiles(allFiles []string) []string {
 	return finalFiles
 }
 
-// checkFileEncoding checks a single file for proper UTF-8 encoding without BOM.
-// It returns a slice of issues found, empty if the file is properly encoded.
+func checkFilesEncoding(finalFiles []string) []string {
+	var encodingViolations []string
+
+	var violationsMutex sync.Mutex
+
+	var wg sync.WaitGroup
+
+	fileChan := make(chan string, len(finalFiles))
+	resultChan := make(chan []string, len(finalFiles))
+
+	for range cryptoutilMagic.Utf8EnforceWorkerPoolSize {
+		wg.Go(func() {
+			for filePath := range fileChan {
+				if issues := checkFileEncoding(filePath); len(issues) > 0 {
+					var violations []string
+					for _, issue := range issues {
+						violations = append(violations, fmt.Sprintf("%s: %s", filePath, issue))
+					}
+					resultChan <- violations
+				} else {
+					resultChan <- nil // Send nil for files with no issues
+				}
+			}
+		})
+	}
+
+	go func() {
+		defer close(fileChan)
+
+		for _, filePath := range finalFiles {
+			fileChan <- filePath
+		}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	for violations := range resultChan {
+		if violations != nil {
+			violationsMutex.Lock()
+			encodingViolations = append(encodingViolations, violations...)
+			violationsMutex.Unlock()
+		}
+	}
+
+	return encodingViolations
+}
+
 func checkFileEncoding(filePath string) []string {
-	// Open file for reading
 	file, err := os.Open(filePath)
 	if err != nil {
 		return []string{fmt.Sprintf("Error reading file: %v", err)}
