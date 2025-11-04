@@ -343,8 +343,8 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
 	require.NoError(t, os.MkdirAll(filepath.Dir(exceptionsFile), 0o755), "Failed to create directory")
 
-	exceptionsData := ActionExceptions{
-		Exceptions: map[string]ActionException{
+	exceptionsData := WorkflowActionExceptions{
+		Exceptions: map[string]WorkflowActionException{
 			"actions/checkout": {
 				AllowedVersions: []string{"v4.1.7"},
 				Reason:          "Known stable version",
