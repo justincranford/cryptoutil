@@ -175,14 +175,13 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-          # Build the tag arguments
+          # Build the tag arguments using process substitution to avoid subshell variable scoping issues
           TAG_ARGS=""
-          # Split tags by newline and build tag arguments
-          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r tag; do
+          while IFS= read -r tag; do
             if [ -n "$tag" ]; then
               TAG_ARGS="$TAG_ARGS --tag $tag"
             fi
-          done
+          done <<< "${{ steps.meta.outputs.tags }}"
 
           docker buildx build \
             --load \
@@ -277,14 +276,13 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
 
-          # Build the tag arguments
+          # Build the tag arguments using process substitution to avoid subshell variable scoping issues
           TAG_ARGS=""
-          # Split tags by newline and build tag arguments
-          echo "${{ steps.meta.outputs.tags }}" | while IFS= read -r tag; do
+          while IFS= read -r tag; do
             if [ -n "$tag" ]; then
               TAG_ARGS="$TAG_ARGS --tag $tag"
             fi
-          done
+          done <<< "${{ steps.meta.outputs.tags }}"
 
           docker buildx build \
             --push \
