@@ -47,7 +47,7 @@ func Run(commands []string) error {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}
 
-		logger.LogWithDetails("filepath.Walk", fileWalkStart)
+		logger.LogWithDetails(fileWalkStart, "filepath.Walk")
 	}
 
 	// Process all commands provided as arguments

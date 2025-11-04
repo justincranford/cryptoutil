@@ -29,7 +29,7 @@ func (l *LogUtil) Log(message string) {
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s: %s\n", now.Sub(l.startTime), now.Format(timeFormat), message)
 }
 
-func (l *LogUtil) LogWithDetails(message string, operationStart time.Time) {
+func (l *LogUtil) LogWithDetails(operationStart time.Time, message string) {
 	now := time.Now().UTC()
 	fmt.Fprintf(os.Stderr, "[CICD] dur=%v start=%s end=%s: %s\n", now.Sub(operationStart), operationStart.Format(timeFormat), now.Format(timeFormat), message)
 }
@@ -52,7 +52,7 @@ func validateCommands(commands []string) (bool, error) {
 	logger := NewLogUtil("validateCommands")
 
 	if len(commands) == 0 {
-		logger.LogWithDetails("validateCommands: empty commands", logger.startTime)
+		logger.LogWithDetails(logger.startTime, "validateCommands: empty commands")
 
 		return false, fmt.Errorf("%s", getUsageMessage())
 	}
@@ -82,12 +82,12 @@ func validateCommands(commands []string) (bool, error) {
 	}
 
 	if len(errs) > 0 {
-		logger.LogWithDetails("validateCommands: validation errors", logger.startTime)
+		logger.LogWithDetails(logger.startTime, "validateCommands: validation errors")
 
 		return false, fmt.Errorf("command validation failed: %w", errors.Join(errs...))
 	}
 
-	logger.LogWithDetails("validateCommands: success", logger.startTime)
+	logger.LogWithDetails(logger.startTime, "validateCommands: success")
 
 	doFindAllFiles := commandCounts["all-enforce-utf8"] > 0 ||
 		commandCounts["go-enforce-test-patterns"] > 0 ||
