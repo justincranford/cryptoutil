@@ -89,13 +89,13 @@ func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) ma
 		}
 
 		// Merge workflow action details, combining workflow files for duplicate actions
-		for key, newAction := range workflowActionDetails {
-			if existingAction, exists := workflowsActionDetails[key]; exists {
+		for key, newWorkflowActionDetails := range workflowActionDetails {
+			if existingWorkflowActionDetails, exists := workflowsActionDetails[key]; exists {
 				// Merge workflow files lists
-				existingAction.WorkflowFiles = append(existingAction.WorkflowFiles, newAction.WorkflowFiles...)
-				workflowsActionDetails[key] = existingAction
+				existingWorkflowActionDetails.WorkflowFiles = append(existingWorkflowActionDetails.WorkflowFiles, newWorkflowActionDetails.WorkflowFiles...)
+				workflowsActionDetails[key] = existingWorkflowActionDetails
 			} else {
-				workflowsActionDetails[key] = newAction
+				workflowsActionDetails[key] = newWorkflowActionDetails
 			}
 		}
 	}
@@ -352,7 +352,7 @@ type WorkflowActionExceptions struct {
 
 type WorkflowActionDetails struct {
 	Name           string
-	WorkflowFiles  []string
 	CurrentVersion string
+	WorkflowFiles  []string
 	LatestVersion  string
 }
