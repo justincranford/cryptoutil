@@ -12,22 +12,6 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// goEnforceAnyFileExcludePatterns defines files that should be excluded from the go-enforce-any command
-// to prevent self-modification of the enforce-any hook implementation and related files.
-var goEnforceAnyFileExcludePatterns = []string{
-	`internal[/\\]cmd[/\\]cicd[/\\]cicd_enforce_any\.go$`,          // Exclude this file itself to prevent self-modification
-	`internal[/\\]cmd[/\\]cicd[/\\]cicd_enforce_any_test\.go$`,     // Exclude test file to preserve deliberate test patterns
-	`internal[/\\]cmd[/\\]cicd[/\\]file_patterns_enforce_any\.go$`, // Exclude pattern definitions to prevent self-modification
-	`api/client`,    // Generated API client
-	`api/model`,     // Generated API models
-	`api/server`,    // Generated API server
-	`_gen\.go$`,     // Generated files
-	`\.pb\.go$`,     // Protocol buffer files
-	`vendor/`,       // Vendored dependencies
-	`.git/`,         // Git directory
-	`node_modules/`, // Node.js dependencies
-}
-
 // goEnforceAny enforces custom Go source code fixes across all Go files.
 // It applies automated fixes like replacing interface{} with any.
 // Files matching goEnforceAnyFileExcludePatterns are skipped to prevent self-modification.
@@ -43,7 +27,7 @@ func goEnforceAny(logger *LogUtil, allFiles []string) {
 			// Check if file should be excluded
 			excluded := false
 
-			for _, pattern := range goEnforceAnyFileExcludePatterns {
+			for _, pattern := range cryptoutilMagic.GoEnforceAnyFileExcludePatterns {
 				matched, err := regexp.MatchString(pattern, path)
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "Error matching pattern %s: %v\n", pattern, err)

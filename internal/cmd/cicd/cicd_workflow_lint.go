@@ -13,14 +13,6 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-const workflowsDir = ".github/workflows"
-
-// Regex to match "uses: owner/repo@version" patterns in GitHub Actions workflows.
-var regexWorkflowActionUses = regexp.MustCompile(`uses:\s*([^\s@]+)@([^\s]+)`)
-
-// Regex to match top-level "name:" field in workflow files.
-var regexWorkflowName = regexp.MustCompile(`(?m)^\s*name:\s*.+`)
-
 // checkWorkflowLint validates GitHub Actions workflow files:
 //  1. filenames are "ci-"
 //  2. versions are checked for outdated "uses: owner/repo@version".
@@ -136,7 +128,7 @@ func filterWorkflowFiles(allFiles []string) []string {
 
 	for _, workflowFile := range allFiles {
 		normalizedFilePath := filepath.ToSlash(workflowFile)
-		if strings.HasPrefix(normalizedFilePath, workflowsDir) && (strings.HasSuffix(normalizedFilePath, ".yml") || strings.HasSuffix(normalizedFilePath, ".yaml")) {
+		if strings.HasPrefix(normalizedFilePath, cryptoutilMagic.WorkflowsDir) && (strings.HasSuffix(normalizedFilePath, ".yml") || strings.HasSuffix(normalizedFilePath, ".yaml")) {
 			workflowFiles = append(workflowFiles, normalizedFilePath)
 		}
 	}
@@ -167,7 +159,7 @@ func validateAndParseWorkflowFile(workflowFile string) ([]string, []WorkflowActi
 	}
 
 	// 2) Top-level name key: look for a 'name:' at the start of a line
-	if !regexWorkflowName.MatchString(workflowFileContents) {
+	if !cryptoutilMagic.RegexWorkflowName.MatchString(workflowFileContents) {
 		validationErrors = append(validationErrors, "missing top-level 'name:' field (for consistency across workflows)")
 	}
 
@@ -184,7 +176,7 @@ func validateAndParseWorkflowFile(workflowFile string) ([]string, []WorkflowActi
 
 	// 4) Extract actions for version checks (same logic as parseWorkflowFile)
 	// Regex to match "uses: owner/repo@version" patterns
-	matches := regexWorkflowActionUses.FindAllStringSubmatch(workflowFileContents, -1)
+	matches := cryptoutilMagic.RegexWorkflowActionUses.FindAllStringSubmatch(workflowFileContents, -1)
 
 	for _, match := range matches {
 		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
@@ -276,7 +268,7 @@ func parseWorkflowFile(path string) ([]WorkflowActionDetails, error) {
 	var actions []WorkflowActionDetails
 
 	// Regex to match "uses: owner/repo@version" patterns
-	matches := regexWorkflowActionUses.FindAllStringSubmatch(string(content), -1)
+	matches := cryptoutilMagic.RegexWorkflowActionUses.FindAllStringSubmatch(string(content), -1)
 
 	for _, match := range matches {
 		if len(match) >= cryptoutilMagic.MinActionMatchGroups {

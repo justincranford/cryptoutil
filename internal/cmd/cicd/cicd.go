@@ -59,9 +59,9 @@ func Run(commands []string) error {
 		case "go-check-circular-package-dependencies":
 			goCheckCircularPackageDeps(logger)
 		case "go-update-direct-dependencies": // Best practice, only direct dependencies
-			goUpdateDeps(logger, DepCheckDirect)
+			goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect)
 		case "go-update-all-dependencies": // Less practiced, direct & transient dependencies
-			goUpdateDeps(logger, DepCheckAll)
+			goUpdateDeps(logger, cryptoutilMagic.DepCheckAll)
 		case "github-workflow-lint":
 			checkWorkflowLint(logger, allFiles)
 		}

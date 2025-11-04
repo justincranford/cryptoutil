@@ -11,34 +11,20 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-const (
-	timeFormat = time.RFC3339Nano
-	UsageCICD  = `Usage: cicd <command> [command...]
-
-	Commands:
-	  all-enforce-utf8                       - Enforce UTF-8 encoding without BOM
-	  go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
-	  go-enforce-any                         - Custom Go source code fixes (any -> any, etc.)
-	  go-check-circular-package-dependencies - Check for circular dependencies in Go packages
-	  go-update-direct-dependencies          - Check direct Go dependencies only
-	  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
-	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions`
-)
-
 type LogUtil struct {
 	startTime time.Time
 }
 
 func NewLogUtil(operation string) *LogUtil {
 	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[CICD] start=%s\n", start.Format(timeFormat))
+	fmt.Fprintf(os.Stderr, "[CICD] start=%s\n", start.Format(cryptoutilMagic.TimeFormat))
 
 	return &LogUtil{startTime: start}
 }
 
 func (l *LogUtil) Log(message string) {
 	now := time.Now().UTC()
-	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s: %s\n", now.Sub(l.startTime), now.Format(timeFormat), message)
+	fmt.Fprintf(os.Stderr, "[CICD] dur=%v now=%s: %s\n", now.Sub(l.startTime), now.Format(cryptoutilMagic.TimeFormat), message)
 }
 
 func validateCommands(commands []string) (bool, error) {
@@ -47,7 +33,7 @@ func validateCommands(commands []string) (bool, error) {
 	if len(commands) == 0 {
 		logger.Log("validateCommands: empty commands")
 
-		return false, fmt.Errorf("%s", UsageCICD)
+		return false, fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
 	}
 
 	var errs []error
@@ -58,7 +44,7 @@ func validateCommands(commands []string) (bool, error) {
 		if cryptoutilMagic.ValidCommands[command] {
 			commandCounts[command]++
 		} else {
-			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, UsageCICD))
+			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, cryptoutilMagic.UsageCICD))
 		}
 	}
 

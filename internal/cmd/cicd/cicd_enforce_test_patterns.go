@@ -9,12 +9,6 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// Regex patterns for test pattern enforcement.
-var (
-	testErrorfPattern = regexp.MustCompile(`(?m)^[\t ]*t\.Errorf\(`)
-	testFatalfPattern = regexp.MustCompile(`(?m)^[\t ]*t\.Fatalf\(`)
-)
-
 // goEnforceTestPatterns enforces test patterns including UUIDv7 usage and testify assertions.
 // It checks all test files for proper patterns and reports violations.
 func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
@@ -26,7 +20,7 @@ func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
 	for _, path := range allFiles {
 		if strings.HasSuffix(path, "_test.go") {
 			// Exclude cicd_test.go and cicd.go as they contain deliberate patterns for testing cicd functionality
-			if strings.HasSuffix(path, "cicd_test.go") || strings.HasSuffix(path, "cicd.go") {
+			if strings.HasSuffix(path, "cicd_test.go") || strings.HasSuffix(path, "cicd.go") || strings.HasSuffix(path, "cicd_enforce_test_patterns_test.go") {
 				continue
 			}
 
@@ -99,13 +93,13 @@ func checkTestFile(filePath string) []string {
 	// Pattern 3: Check for testify usage patterns
 	// Look for t.Errorf/t.Fatalf that should use require/assert
 	// Use a more sophisticated pattern to avoid matching string literals
-	if testErrorfPattern.MatchString(contentStr) {
-		matches := testErrorfPattern.FindAllString(contentStr, -1)
+	if cryptoutilMagic.TestErrorfPattern.MatchString(contentStr) {
+		matches := cryptoutilMagic.TestErrorfPattern.FindAllString(contentStr, -1)
 		issues = append(issues, fmt.Sprintf("Found %d instances of t.Errorf() - should use require.Errorf() or assert.Errorf()", len(matches)))
 	}
 
-	if testFatalfPattern.MatchString(contentStr) {
-		matches := testFatalfPattern.FindAllString(contentStr, -1)
+	if cryptoutilMagic.TestFatalfPattern.MatchString(contentStr) {
+		matches := cryptoutilMagic.TestFatalfPattern.FindAllString(contentStr, -1)
 		issues = append(issues, fmt.Sprintf("Found %d instances of t.Fatalf() - should use require.Fatalf() or assert.Fatalf()", len(matches)))
 	}
 

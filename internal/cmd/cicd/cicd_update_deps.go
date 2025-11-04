@@ -14,27 +14,12 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-type DepCheckMode int
-
-const (
-	DepCheckDirect DepCheckMode = iota // Check only direct dependencies
-	DepCheckAll                        // Check all dependencies (direct + transitive)
-)
-
-type DepCache struct {
-	LastCheck    time.Time `json:"last_check"`
-	GoModModTime time.Time `json:"go_mod_mod_time"`
-	GoSumModTime time.Time `json:"go_sum_mod_time"`
-	OutdatedDeps []string  `json:"outdated_deps"`
-	Mode         string    `json:"mode"`
-}
-
 // goUpdateDeps checks for outdated Go dependencies and fails if any are found.
 // It supports two modes: direct dependencies only (go-update-direct-dependencies) or all dependencies (go-update-all-dependencies).
 // This command uses caching to avoid repeated expensive checks and exits with code 1 if outdated dependencies are found.
-func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
+func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	modeName := cryptoutilMagic.ModeNameDirect
-	if mode == DepCheckAll {
+	if mode == cryptoutilMagic.DepCheckAll {
 		modeName = cryptoutilMagic.ModeNameAll
 	}
 
@@ -115,7 +100,7 @@ func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 
 	// Get direct dependencies for the check
 	var directDeps map[string]bool
-	if mode == DepCheckDirect {
+	if mode == cryptoutilMagic.DepCheckDirect {
 		directDeps, err = getDirectDependencies()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error reading direct dependencies: %v\n", err)
@@ -131,7 +116,7 @@ func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 	}
 
 	// Save results to cache
-	cache := DepCache{
+	cache := cryptoutilMagic.DepCache{
 		LastCheck:    time.Now(),
 		GoModModTime: goModStat.ModTime(),
 		GoSumModTime: goSumStat.ModTime(),
@@ -161,7 +146,7 @@ func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 // checkDependencyUpdates analyzes dependency update information and returns outdated dependencies.
 // It takes the mode, file stats, go list output, and direct dependencies map as inputs to enable testing with mock data.
 // Returns a slice of outdated dependency strings and an error if the check fails.
-func checkDependencyUpdates(mode DepCheckMode, goModStat, goSumStat os.FileInfo, goListOutput string, directDeps map[string]bool) ([]string, error) {
+func checkDependencyUpdates(mode cryptoutilMagic.DepCheckMode, goModStat, goSumStat os.FileInfo, goListOutput string, directDeps map[string]bool) ([]string, error) {
 	lines := strings.Split(strings.TrimSpace(goListOutput), "\n")
 	allOutdated := []string{}
 
@@ -174,7 +159,7 @@ func checkDependencyUpdates(mode DepCheckMode, goModStat, goSumStat os.FileInfo,
 
 	var outdated []string
 
-	if mode == DepCheckDirect {
+	if mode == cryptoutilMagic.DepCheckDirect {
 		// For direct mode, only check dependencies that are explicitly listed in go.mod
 		// Filter to only direct dependencies
 		for _, dep := range allOutdated {
@@ -197,13 +182,13 @@ func checkDependencyUpdates(mode DepCheckMode, goModStat, goSumStat os.FileInfo,
 
 // loadDepCache loads dependency cache from the specified file.
 // Returns the cache and any error encountered.
-func loadDepCache(cacheFile, mode string) (*DepCache, error) {
+func loadDepCache(cacheFile, mode string) (*cryptoutilMagic.DepCache, error) {
 	content, err := os.ReadFile(cacheFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read cache file: %w", err)
 	}
 
-	var cache DepCache
+	var cache cryptoutilMagic.DepCache
 	if err := json.Unmarshal(content, &cache); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal cache JSON: %w", err)
 	}
@@ -217,7 +202,7 @@ func loadDepCache(cacheFile, mode string) (*DepCache, error) {
 }
 
 // saveDepCache saves dependency cache to the specified file.
-func saveDepCache(cacheFile string, cache DepCache) error {
+func saveDepCache(cacheFile string, cache cryptoutilMagic.DepCache) error {
 	content, err := json.MarshalIndent(cache, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)

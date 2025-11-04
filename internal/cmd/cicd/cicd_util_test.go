@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func TestCollectAllFiles(t *testing.T) {
@@ -122,7 +124,7 @@ func TestSaveDepCache(t *testing.T) {
 	tempDir := t.TempDir()
 	cacheFile := filepath.Join(tempDir, "test_cache.json")
 
-	cache := DepCache{
+	cache := cryptoutilMagic.DepCache{
 		LastCheck:    time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
 		GoModModTime: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
 		GoSumModTime: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -137,7 +139,7 @@ func TestSaveDepCache(t *testing.T) {
 	content, err := os.ReadFile(cacheFile)
 	require.NoError(t, err)
 
-	var loadedCache DepCache
+	var loadedCache cryptoutilMagic.DepCache
 
 	require.NoError(t, json.Unmarshal(content, &loadedCache))
 	require.Equal(t, cache, loadedCache)

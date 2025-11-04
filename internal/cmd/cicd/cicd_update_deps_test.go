@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,7 +31,7 @@ func TestCheckDependencyUpdates_NoOutdatedDeps(t *testing.T) {
 golang.org/x/crypto v0.14.0
 `
 
-	outdated, err := checkDependencyUpdates(DepCheckAll, goModStat, goSumStat, goListOutput, nil)
+	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
 	require.NoError(t, err)
 	require.Empty(t, outdated)
 }
@@ -42,7 +44,7 @@ func TestCheckDependencyUpdates_WithOutdatedDeps(t *testing.T) {
 	// Mock go list output with outdated dependencies
 	goListOutput := mockGoListOutputWithOutdatedDeps
 
-	outdated, err := checkDependencyUpdates(DepCheckAll, goModStat, goSumStat, goListOutput, nil)
+	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
 	require.NoError(t, err)
 	require.Len(t, outdated, 2)
 	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
@@ -62,7 +64,7 @@ func TestCheckDependencyUpdates_DirectMode(t *testing.T) {
 		"github.com/stretchr/testify": true,
 	}
 
-	outdated, err := checkDependencyUpdates(DepCheckDirect, goModStat, goSumStat, goListOutput, directDeps)
+	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckDirect, goModStat, goSumStat, goListOutput, directDeps)
 	require.NoError(t, err)
 	require.Len(t, outdated, 1)
 	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
@@ -76,7 +78,7 @@ func TestCheckDependencyUpdates_AllMode(t *testing.T) {
 	// Mock go list output with outdated dependencies
 	goListOutput := mockGoListOutputSimpleOutdatedDeps
 
-	outdated, err := checkDependencyUpdates(DepCheckAll, goModStat, goSumStat, goListOutput, nil)
+	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
 	require.NoError(t, err)
 	require.Len(t, outdated, 2)
 	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
@@ -91,7 +93,7 @@ func TestCheckDependencyUpdates_EmptyOutput(t *testing.T) {
 	// Empty go list output
 	goListOutput := ""
 
-	outdated, err := checkDependencyUpdates(DepCheckAll, goModStat, goSumStat, goListOutput, nil)
+	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
 	require.NoError(t, err)
 	require.Empty(t, outdated)
 }
@@ -108,7 +110,7 @@ another malformed line
 golang.org/x/crypto v0.14.0 [v0.15.0]
 `
 
-	outdated, err := checkDependencyUpdates(DepCheckAll, goModStat, goSumStat, goListOutput, nil)
+	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
 	require.NoError(t, err)
 	require.Len(t, outdated, 2)
 	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
