@@ -108,7 +108,9 @@ runs:
 
         # Run GitLeaks on specified files/directories
         # Use dir command to scan directories/files for secrets
-        gitleaks dir --verbose --redact --report-format sarif --report-path ${{ inputs.sarif-output-name }} $SCAN_FILES
+        # Convert space-separated SCAN_FILES to array for proper scanning
+        SCAN_ARRAY=($SCAN_FILES)
+        gitleaks dir --config .gitleaks.toml --verbose --redact --report-format sarif --report-path ${{ inputs.sarif-output-name }} "${SCAN_ARRAY[@]}"
 
         END_TIME=$(date +%s)
         DURATION=$((END_TIME - START_TIME))

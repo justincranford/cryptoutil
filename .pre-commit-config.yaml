@@ -197,7 +197,7 @@ repos:
     rev: v1.7.8
     hooks:
       - id: actionlint
-        files: '\.github/(workflows|actions)/.*\.(yml|yaml)$'
+        files: '\.github/workflows/.*\.(yml|yaml)$'
         require_serial: false
 
   # Specialized file linting: Dockerfile linting

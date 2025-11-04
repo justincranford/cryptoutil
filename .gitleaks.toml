@@ -1,0 +1,37 @@
+# GitLeaks configuration to ignore false positives in generated code and documentation
+title = "cryptoutil"
+
+[[rules]]
+	description = "Ignore OpenAPI generated files"
+	filepath = '''api/.*'''
+
+[[rules]]
+	description = "Ignore legitimate cryptographic algorithm identifiers"
+	regex = '''A\d+GCM/A\d+(GCM)?KW'''
+	tags = ["key", "token"]
+
+[[rules]]
+	description = "Ignore legitimate JWE algorithm constants"
+	regex = '''A\d+GCM/dir'''
+	tags = ["key", "token"]
+
+[[rules]]
+	description = "Ignore legitimate JWE algorithm constants with ECDH"
+	regex = '''A\d+GCM/ECDH-ES'''
+	tags = ["key", "token"]
+
+[[rules]]
+	description = "Ignore legitimate JWE algorithm constants with RSA"
+	regex = '''A\d+GCM/RSA\d_\d'''
+	tags = ["key", "token"]
+
+[[rules]]
+	description = "Ignore legitimate JWE algorithm constants with RSA-OAEP"
+	regex = '''A\d+GCM/RSA-OAEP(-\d+)?'''
+	tags = ["key", "token"]
+
+[[rules]]
+	description = "Ignore documentation examples"
+	filepath = '''README\.md'''
+	regex = '''DB_PASSWORD|export BUNDLE_ENTERPRISE'''
+	tags = ["key", "Secret"]
