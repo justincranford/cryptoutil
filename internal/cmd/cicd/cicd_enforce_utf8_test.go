@@ -191,10 +191,9 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that the function completes without exiting (indicating success)
 		logger := NewLogUtil("test")
-		allEnforceUtf8(logger, []string{goFile, mdFile})
 		// If we reach here, the function didn't call os.Exit(1), so it succeeded
+		allEnforceUtf8(logger, []string{goFile, mdFile})
 	})
-
 	t.Run("file filtering - include patterns", func(t *testing.T) {
 		tempDir := t.TempDir()
 
@@ -219,10 +218,9 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that only .go and .txt files are checked (binary should be excluded)
 		logger := NewLogUtil("test")
-		allEnforceUtf8(logger, []string{goFile, txtFile, binaryFile})
 		// If we reach here, the function succeeded and only checked the appropriate files
+		allEnforceUtf8(logger, []string{goFile, txtFile, binaryFile})
 	})
-
 	t.Run("file filtering - exclude patterns", func(t *testing.T) {
 		tempDir := t.TempDir()
 
@@ -250,7 +248,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that generated and vendor files are excluded
 		logger := NewLogUtil("test")
-		allEnforceUtf8(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
 		// If we reach here, the function succeeded and properly excluded files
+		allEnforceUtf8(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
 	})
 }
