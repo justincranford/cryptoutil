@@ -329,7 +329,7 @@ jobs:
 
 func TestLoadActionExceptions_NoFile(t *testing.T) {
 	// Test when exceptions file doesn't exist
-	exceptions, err := loadActionExceptions()
+	exceptions, err := loadWorkflowActionExceptions()
 	require.NoError(t, err, "Expected no error when file doesn't exist")
 
 	require.NotNil(t, exceptions)
@@ -367,7 +367,7 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 		require.NoError(t, os.Chdir(oldWd), "Failed to restore working directory")
 	}()
 
-	exceptions, err := loadActionExceptions()
+	exceptions, err := loadWorkflowActionExceptions()
 	require.NoError(t, err, "Expected no error when loading valid file")
 
 	require.Equal(t, "v4.1.7", exceptions.Exceptions["actions/checkout"].AllowedVersions[0], "Expected exception data to be loaded correctly")

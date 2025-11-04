@@ -1,6 +1,4 @@
 // Package cicd provides CI/CD quality control checks for the cryptoutil project.
-//
-// This file contains the github-workflow-lint command implementation.
 package cicd
 
 import (
@@ -14,6 +12,14 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
+
+const workflowsDir = ".github/workflows"
+
+// Regex to match "uses: owner/repo@version" patterns in GitHub Actions workflows.
+var actionUsesRegex = regexp.MustCompile(`uses:\s*([^\s@]+)@([^\s]+)`)
+
+// Regex to match top-level "name:" field in workflow files.
+var workflowNameRegex = regexp.MustCompile(`(?m)^\s*name:\s*.+`)
 
 type ActionException struct {
 	AllowedVersions []string `json:"allowed_versions"`
@@ -31,48 +37,33 @@ type ActionInfo struct {
 	WorkflowFile   string
 }
 
-// checkWorkflowLint validates GitHub Actions workflow files in two ways:
-//  1. Enforces repository-level workflow conventions (filename prefix "ci-", presence of a top-level
-//     "name:" field, and a logging step that prints the workflow name/filename before executing jobs).
-//  2. Performs the existing GitHub Actions version checks (detects outdated "uses: owner/repo@version").
-//
-// The function walks ".github/workflows", validates each YAML file using a lightweight text-based
-// validation (regex/search) to avoid adding a YAML dependency, and then reuses the existing
-// action-version logic to check for outdated actions. Any violations cause the function to print
-// human-friendly messages and exit with a non-zero status to block pushes.
+// checkWorkflowLint validates GitHub Actions workflow files:
+//  1. filenames are "ci-"
+//  2. versions are checked for outdated "uses: owner/repo@version".
 func checkWorkflowLint(logger *LogUtil, allFiles []string) {
-	// Load action exceptions (same behavior as prior implementation)
-	exceptions, err := loadActionExceptions()
+	exceptions, err := loadWorkflowActionExceptions()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: Failed to load action exceptions: %v\n", err)
 
 		exceptions = &ActionExceptions{Exceptions: make(map[string]ActionException)}
 	}
 
-	var (
-		actions          []ActionInfo
-		validationErrors []string
-	)
-
-	// Filter workflow files from allFiles
-	workflowsDir := ".github/workflows"
-
 	var workflowFiles []string
 
 	for _, path := range allFiles {
-		// Normalize path separators for cross-platform compatibility
 		normalizedPath := filepath.ToSlash(path)
 		if strings.HasPrefix(normalizedPath, workflowsDir) && (strings.HasSuffix(path, ".yml") || strings.HasSuffix(path, ".yaml")) {
 			workflowFiles = append(workflowFiles, path)
 		}
 	}
 
-	// Process workflow files
+	var actions []ActionInfo
+
+	var validationErrors []string
+
 	for _, path := range workflowFiles {
-		// Run combined validation and action parsing (single file read)
 		issues, fileActions, vErr := validateAndParseWorkflowFile(path)
 		if vErr != nil {
-			// Non-fatal: report and continue
 			validationErrors = append(validationErrors, fmt.Sprintf("Failed to validate %s: %v", path, vErr))
 		}
 
@@ -169,7 +160,7 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 func validateAndParseWorkflowFile(path string) ([]string, []ActionInfo, error) {
 	var issues []string
 
-	var actions []ActionInfo
+	var workflowActions []ActionInfo
 
 	contentBytes, err := os.ReadFile(path)
 	if err != nil {
@@ -185,8 +176,7 @@ func validateAndParseWorkflowFile(path string) ([]string, []ActionInfo, error) {
 	}
 
 	// 2) Top-level name key: look for a 'name:' at the start of a line
-	nameRe := regexp.MustCompile(`(?m)^\s*name:\s*.+`)
-	if !nameRe.MatchString(content) {
+	if !workflowNameRegex.MatchString(content) {
 		issues = append(issues, "missing top-level 'name:' field (required and should be consistent across workflows)")
 	}
 
@@ -203,21 +193,20 @@ func validateAndParseWorkflowFile(path string) ([]string, []ActionInfo, error) {
 
 	// 4) Extract actions for version checks (same logic as parseWorkflowFile)
 	// Regex to match "uses: owner/repo@version" patterns
-	re := regexp.MustCompile(`uses:\s*([^\s@]+)@([^\s]+)`)
-	matches := re.FindAllStringSubmatch(content, -1)
+	matches := actionUsesRegex.FindAllStringSubmatch(content, -1)
 
 	for _, match := range matches {
 		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
-			action := ActionInfo{
+			workflowAction := ActionInfo{
 				Name:           match[1],
 				CurrentVersion: match[2],
 				WorkflowFile:   filepath.Base(path),
 			}
-			actions = append(actions, action)
+			workflowActions = append(workflowActions, workflowAction)
 		}
 	}
 
-	return issues, actions, nil
+	return issues, workflowActions, nil
 }
 
 // checkActionVersionsConcurrently checks multiple GitHub actions for updates concurrently.
@@ -296,8 +285,7 @@ func parseWorkflowFile(path string) ([]ActionInfo, error) {
 	var actions []ActionInfo
 
 	// Regex to match "uses: owner/repo@version" patterns
-	re := regexp.MustCompile(`uses:\s*([^\s@]+)@([^\s]+)`)
-	matches := re.FindAllStringSubmatch(string(content), -1)
+	matches := actionUsesRegex.FindAllStringSubmatch(string(content), -1)
 
 	for _, match := range matches {
 		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
@@ -341,9 +329,9 @@ func isOutdated(current, latest string) bool {
 	return current != latest
 }
 
-// loadActionExceptions loads action exceptions from the JSON file.
+// loadWorkflowActionExceptions loads action exceptions from the JSON file.
 // Returns an empty exceptions struct if the file doesn't exist.
-func loadActionExceptions() (*ActionExceptions, error) {
+func loadWorkflowActionExceptions() (*ActionExceptions, error) {
 	exceptionsFile := ".github/workflows-outdated-action-exemptions.json"
 	if _, err := os.Stat(exceptionsFile); os.IsNotExist(err) {
 		// No exceptions file, return empty exceptions
