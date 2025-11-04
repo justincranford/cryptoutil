@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
@@ -29,14 +30,61 @@ func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 
 	logger.Log(fmt.Sprintf("Found %d files to check for UTF-8 encoding", len(finalFiles)))
 
-	// Check each file
+	// Check each file concurrently using a worker pool
 	var encodingViolations []string
 
-	for _, filePath := range finalFiles {
-		if issues := checkFileEncoding(filePath); len(issues) > 0 {
-			for _, issue := range issues {
-				encodingViolations = append(encodingViolations, fmt.Sprintf("%s: %s", filePath, issue))
+	var violationsMutex sync.Mutex
+
+	var wg sync.WaitGroup
+
+	// Channel for sending file paths to workers
+	fileChan := make(chan string, len(finalFiles))
+
+	// Channel for collecting results from workers
+	resultChan := make(chan []string, len(finalFiles))
+
+	// Start worker goroutines
+	for i := 0; i < cryptoutilMagic.Utf8EnforceWorkerPoolSize; i++ {
+		wg.Add(1)
+
+		go func() {
+			defer wg.Done()
+
+			for filePath := range fileChan {
+				if issues := checkFileEncoding(filePath); len(issues) > 0 {
+					var violations []string
+					for _, issue := range issues {
+						violations = append(violations, fmt.Sprintf("%s: %s", filePath, issue))
+					}
+					resultChan <- violations
+				} else {
+					resultChan <- nil // Send nil for files with no issues
+				}
 			}
+		}()
+	}
+
+	// Send all file paths to workers
+	go func() {
+		defer close(fileChan)
+
+		for _, filePath := range finalFiles {
+			fileChan <- filePath
+		}
+	}()
+
+	// Close result channel when all workers are done
+	go func() {
+		wg.Wait()
+		close(resultChan)
+	}()
+
+	// Collect results from all workers
+	for violations := range resultChan {
+		if violations != nil {
+			violationsMutex.Lock()
+			encodingViolations = append(encodingViolations, violations...)
+			violationsMutex.Unlock()
 		}
 	}
 
