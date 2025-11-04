@@ -4,6 +4,7 @@ package cicd
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -88,10 +89,7 @@ func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) ma
 			allValidationErrors = append(allValidationErrors, fmt.Sprintf("%s: %s", filepath.Base(workflowFile), issue))
 		}
 
-		// Merge the map from this file into the global map (deduplication by key)
-		for key, action := range workflowActionDetails {
-			workflowsActionDetails[key] = action
-		}
+		maps.Copy(workflowsActionDetails, workflowActionDetails)
 	}
 
 	if len(allValidationErrors) > 0 {
