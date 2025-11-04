@@ -4,7 +4,6 @@ package cicd
 import (
 	"encoding/json"
 	"fmt"
-	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -50,7 +49,7 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 		for _, action := range exempted {
 			if exception, exists := workflowActionExceptions.Exceptions[action.Name]; exists {
 				fmt.Fprintf(os.Stderr, "  %s@%s (in %s) - %s\n",
-					action.Name, action.CurrentVersion, action.WorkflowFile, exception.Reason)
+					action.Name, action.CurrentVersion, strings.Join(action.WorkflowFiles, ", "), exception.Reason)
 			}
 		}
 
@@ -62,7 +61,7 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 
 		for _, action := range outdated {
 			fmt.Fprintf(os.Stderr, "  %s@%s -> %s (in %s)\n",
-				action.Name, action.CurrentVersion, action.LatestVersion, action.WorkflowFile)
+				action.Name, action.CurrentVersion, action.LatestVersion, strings.Join(action.WorkflowFiles, ", "))
 		}
 
 		fmt.Fprintln(os.Stderr, "\nPlease update to the latest versions manually.")
@@ -89,7 +88,16 @@ func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) ma
 			allValidationErrors = append(allValidationErrors, fmt.Sprintf("%s: %s", filepath.Base(workflowFile), issue))
 		}
 
-		maps.Copy(workflowsActionDetails, workflowActionDetails)
+		// Merge workflow action details, combining workflow files for duplicate actions
+		for key, newAction := range workflowActionDetails {
+			if existingAction, exists := workflowsActionDetails[key]; exists {
+				// Merge workflow files lists
+				existingAction.WorkflowFiles = append(existingAction.WorkflowFiles, newAction.WorkflowFiles...)
+				workflowsActionDetails[key] = existingAction
+			} else {
+				workflowsActionDetails[key] = newAction
+			}
+		}
 	}
 
 	if len(allValidationErrors) > 0 {
@@ -171,13 +179,20 @@ func validateAndParseWorkflowFile(workflowFile string) (map[string]WorkflowActio
 
 	for _, match := range matches {
 		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
-			workflowAction := WorkflowActionDetails{
-				Name:           match[1],
-				CurrentVersion: match[2],
-				WorkflowFile:   filepath.Base(workflowFile),
+			key := match[1] + "@" + match[2]
+
+			if existingAction, exists := workflowActions[key]; exists {
+				// Append to existing workflow files list
+				existingAction.WorkflowFiles = append(existingAction.WorkflowFiles, filepath.Base(workflowFile))
+				workflowActions[key] = existingAction
+			} else {
+				// Create new entry
+				workflowActions[key] = WorkflowActionDetails{
+					Name:           match[1],
+					CurrentVersion: match[2],
+					WorkflowFiles:  []string{filepath.Base(workflowFile)},
+				}
 			}
-			key := workflowAction.Name + "@" + workflowAction.CurrentVersion
-			workflowActions[key] = workflowAction
 		}
 	}
 
@@ -264,12 +279,12 @@ func parseWorkflowFile(path string) ([]WorkflowActionDetails, error) {
 
 	for _, match := range matches {
 		if len(match) >= cryptoutilMagic.MinActionMatchGroups {
-			action := WorkflowActionDetails{
+			workflowActionDetails := WorkflowActionDetails{
 				Name:           match[1],
 				CurrentVersion: match[2],
-				WorkflowFile:   filepath.Base(path),
+				WorkflowFiles:  []string{filepath.Base(path)},
 			}
-			actions = append(actions, action)
+			actions = append(actions, workflowActionDetails)
 		}
 	}
 
@@ -337,7 +352,7 @@ type WorkflowActionExceptions struct {
 
 type WorkflowActionDetails struct {
 	Name           string
+	WorkflowFiles  []string
 	CurrentVersion string
 	LatestVersion  string
-	WorkflowFile   string
 }
