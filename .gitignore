@@ -34,6 +34,9 @@ go.work.sum
 .idea/
 output/
 
+# CI/CD cache files
+.cicd-dep-cache.json
+
 # ASN.1/DER/PEM encoded files
 *.pem
 *.der
