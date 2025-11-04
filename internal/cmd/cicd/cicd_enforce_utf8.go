@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
 )
 
 // File patterns for encoding checks (include patterns).
@@ -85,10 +84,7 @@ var enforceUtf8FileExcludePatterns = []string{ //nolint:unused
 // allEnforceUtf8 enforces UTF-8 encoding without BOM for all text files.
 // It filters files based on include/exclude patterns and checks each file for proper encoding.
 // Any violations cause the function to print human-friendly messages and exit with a non-zero status.
-func allEnforceUtf8(allFiles []string) {
-	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] allEnforceUtf8 started at %s\n", start.Format(time.RFC3339Nano))
-
+func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 	fmt.Fprintln(os.Stderr, "Enforcing file encoding (UTF-8 without BOM)...")
 
 	// Filter files from allFiles based on include/exclude patterns
@@ -150,9 +146,7 @@ func allEnforceUtf8(allFiles []string) {
 	if len(finalFiles) == 0 {
 		fmt.Fprintln(os.Stderr, "No files found to check")
 
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] allEnforceUtf8: duration=%v start=%s end=%s (no files)\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+		logger.Log("allEnforceUtf8 completed (no files)")
 
 		return
 	}
@@ -184,9 +178,7 @@ func allEnforceUtf8(allFiles []string) {
 		fmt.Fprintln(os.Stderr, "\n✅ All files have correct UTF-8 encoding without BOM")
 	}
 
-	end := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] allEnforceUtf8: duration=%v start=%s end=%s files=%d violations=%d\n",
-		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(finalFiles), len(encodingViolations))
+	logger.Log("allEnforceUtf8 completed")
 }
 
 // checkFileEncoding checks a single file for proper UTF-8 encoding without BOM.

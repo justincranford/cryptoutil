@@ -40,10 +40,7 @@ type ActionInfo struct {
 // validation (regex/search) to avoid adding a YAML dependency, and then reuses the existing
 // action-version logic to check for outdated actions. Any violations cause the function to print
 // human-friendly messages and exit with a non-zero status to block pushes.
-func checkWorkflowLint(allFiles []string) {
-	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] checkWorkflowLint started at %s\n", start.Format(time.RFC3339Nano))
-
+func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 	// Load action exceptions (same behavior as prior implementation)
 	exceptions, err := loadActionExceptions()
 	if err != nil {
@@ -103,9 +100,7 @@ func checkWorkflowLint(allFiles []string) {
 	if len(actions) == 0 {
 		fmt.Fprintln(os.Stderr, "No actions found in workflow files")
 
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] checkWorkflowLint: duration=%v start=%s end=%s workflows=%d actions=%d\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(workflowFiles), len(actions))
+		logger.Log("checkWorkflowLint completed (no actions)")
 		os.Exit(0)
 	}
 
@@ -164,9 +159,7 @@ func checkWorkflowLint(allFiles []string) {
 
 	fmt.Fprintln(os.Stderr, "All GitHub Actions are up to date.")
 
-	end := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] checkWorkflowLint: duration=%v start=%s end=%s workflows=%d actions=%d outdated=%d exempted=%d\n",
-		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(workflowFiles), len(actions), len(outdated), len(exempted))
+	logger.Log("checkWorkflowLint completed")
 }
 
 // validateAndParseWorkflowFile performs lightweight validation and action parsing on a workflow YAML file.

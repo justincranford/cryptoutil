@@ -125,7 +125,8 @@ func TestAllEnforceUtf8(t *testing.T) {
 		}()
 
 		// Test with empty file list
-		allEnforceUtf8([]string{})
+		logger := NewLogUtil("test")
+		allEnforceUtf8(logger, []string{})
 
 		// Close writer to flush output
 		w.Close()
@@ -189,7 +190,8 @@ func TestAllEnforceUtf8(t *testing.T) {
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that the function completes without exiting (indicating success)
-		allEnforceUtf8([]string{goFile, mdFile})
+		logger := NewLogUtil("test")
+		allEnforceUtf8(logger, []string{goFile, mdFile})
 		// If we reach here, the function didn't call os.Exit(1), so it succeeded
 	})
 
@@ -216,7 +218,8 @@ func TestAllEnforceUtf8(t *testing.T) {
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that only .go and .txt files are checked (binary should be excluded)
-		allEnforceUtf8([]string{goFile, txtFile, binaryFile})
+		logger := NewLogUtil("test")
+		allEnforceUtf8(logger, []string{goFile, txtFile, binaryFile})
 		// If we reach here, the function succeeded and only checked the appropriate files
 	})
 
@@ -246,7 +249,8 @@ func TestAllEnforceUtf8(t *testing.T) {
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that generated and vendor files are excluded
-		allEnforceUtf8([]string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
+		logger := NewLogUtil("test")
+		allEnforceUtf8(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
 		// If we reach here, the function succeeded and properly excluded files
 	})
 }

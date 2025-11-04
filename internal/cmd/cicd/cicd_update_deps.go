@@ -32,10 +32,7 @@ type DepCache struct {
 // goUpdateDeps checks for outdated Go dependencies and fails if any are found.
 // It supports two modes: direct dependencies only (go-update-direct-dependencies) or all dependencies (go-update-all-dependencies).
 // This command uses caching to avoid repeated expensive checks and exits with code 1 if outdated dependencies are found.
-func goUpdateDeps(mode DepCheckMode) {
-	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goUpdateDeps started at %s (mode=%v)\n", start.Format(time.RFC3339Nano), mode)
-
+func goUpdateDeps(logger *LogUtil, mode DepCheckMode) {
 	modeName := cryptoutilMagic.ModeNameDirect
 	if mode == DepCheckAll {
 		modeName = cryptoutilMagic.ModeNameAll
@@ -85,9 +82,7 @@ func goUpdateDeps(mode DepCheckMode) {
 
 			fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date (cached).\n", modeName)
 
-			end := time.Now()
-			fmt.Fprintf(os.Stderr, "[PERF] goUpdateDeps: duration=%v start=%s end=%s mode=%s outdated=%d (cached)\n",
-				end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), modeName, len(cache.OutdatedDeps))
+			logger.Log("goUpdateDeps completed (cached)")
 
 			return
 		}
@@ -160,9 +155,7 @@ func goUpdateDeps(mode DepCheckMode) {
 
 	fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date.\n", modeName)
 
-	end := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goUpdateDeps: duration=%v start=%s end=%s mode=%s outdated=%d\n",
-		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), modeName, len(outdated))
+	logger.Log("goUpdateDeps completed")
 }
 
 // checkDependencyUpdates analyzes dependency update information and returns outdated dependencies.

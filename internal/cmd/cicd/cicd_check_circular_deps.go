@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 type PackageInfo struct {
@@ -21,10 +20,7 @@ type PackageInfo struct {
 // goCheckCircularPackageDeps checks for circular dependencies in Go packages.
 // It analyzes the dependency graph of all packages in the project and reports any circular dependencies.
 // This command exits with code 1 if circular dependencies are found.
-func goCheckCircularPackageDeps() {
-	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps started at %s\n", start.Format(time.RFC3339Nano))
-
+func goCheckCircularPackageDeps(logger *LogUtil) {
 	fmt.Fprintln(os.Stderr, "Checking for circular dependencies in Go packages...")
 
 	fmt.Fprintln(os.Stderr, "Running: go list -json ./...")
@@ -41,9 +37,7 @@ func goCheckCircularPackageDeps() {
 	if err := checkCircularDependencies(string(output)); err != nil {
 		fmt.Fprintf(os.Stderr, "❌ RESULT: %v\n", err)
 
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s (circular dependencies found)\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+		logger.Log("goCheckCircularPackageDeps completed (circular dependencies found)")
 
 		os.Exit(1) // Fail the build
 	}
@@ -51,9 +45,7 @@ func goCheckCircularPackageDeps() {
 	fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
 	fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
 
-	end := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goCheckCircularPackageDeps: duration=%v start=%s end=%s (no circular dependencies)\n",
-		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+	logger.Log("goCheckCircularPackageDeps completed (no circular dependencies)")
 }
 
 // checkCircularDependencies analyzes the JSON output from 'go list -json ./...' for circular dependencies.

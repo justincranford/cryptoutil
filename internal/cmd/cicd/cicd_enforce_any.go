@@ -8,7 +8,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
@@ -33,10 +32,7 @@ var goEnforceAnyFileExcludePatterns = []string{
 // It applies automated fixes like replacing interface{} with any.
 // Files matching goEnforceAnyFileExcludePatterns are skipped to prevent self-modification.
 // This command modifies files in place and exits with code 1 if any files were modified.
-func goEnforceAny(allFiles []string) {
-	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goEnforceAny started at %s\n", start.Format(time.RFC3339Nano))
-
+func goEnforceAny(logger *LogUtil, allFiles []string) {
 	fmt.Fprintln(os.Stderr, "Running go-enforce-any - Custom Go source code fixes...")
 
 	// Find all .go files
@@ -71,9 +67,7 @@ func goEnforceAny(allFiles []string) {
 	if len(goFiles) == 0 {
 		fmt.Fprintln(os.Stderr, "No Go files found to process")
 
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] goEnforceAny: duration=%v start=%s end=%s (no Go files)\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+		logger.Log("goEnforceAny completed (no Go files)")
 
 		return
 	}
@@ -113,9 +107,7 @@ func goEnforceAny(allFiles []string) {
 		fmt.Fprintln(os.Stderr, "\n✅ All Go files are already properly formatted")
 	}
 
-	end := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goEnforceAny: duration=%v start=%s end=%s files=%d modified=%d replacements=%d\n",
-		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(goFiles), filesModified, totalReplacements)
+	logger.Log("goEnforceAny completed")
 }
 
 // processGoFile applies custom Go source code fixes to a single file.

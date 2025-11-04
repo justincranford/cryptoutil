@@ -5,17 +5,13 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // goEnforceTestPatterns enforces test patterns including UUIDv7 usage and testify assertions.
 // It checks all test files for proper patterns and reports violations.
-func goEnforceTestPatterns(allFiles []string) {
-	start := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goEnforceTestPatterns started at %s\n", start.Format(time.RFC3339Nano))
-
+func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
 	fmt.Fprintln(os.Stderr, "Enforcing test patterns (UUIDv7 usage, testify assertions)...")
 
 	// Find all test files
@@ -35,9 +31,7 @@ func goEnforceTestPatterns(allFiles []string) {
 	if len(testFiles) == 0 {
 		fmt.Fprintln(os.Stderr, "No test files found")
 
-		end := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] goEnforceTestPatterns: duration=%v start=%s end=%s (no test files)\n",
-			end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano))
+		logger.Log("goEnforceTestPatterns completed (no test files)")
 
 		return
 	}
@@ -69,9 +63,7 @@ func goEnforceTestPatterns(allFiles []string) {
 		fmt.Fprintln(os.Stderr, "\n✅ All test files follow established patterns")
 	}
 
-	end := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] goEnforceTestPatterns: duration=%v start=%s end=%s files=%d issues=%d\n",
-		end.Sub(start), start.Format(time.RFC3339Nano), end.Format(time.RFC3339Nano), len(testFiles), totalIssues)
+	logger.Log("goEnforceTestPatterns completed")
 }
 
 // checkTestFile checks a single test file for proper test patterns.

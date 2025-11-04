@@ -15,6 +15,40 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+// LogUtil provides structured logging with elapsed time tracking for CI/CD operations.
+// It maintains a start time and automatically prepends elapsed duration and current time
+// to all log messages for consistent performance monitoring.
+type LogUtil struct {
+	startTime time.Time
+}
+
+// NewLogUtil creates a new LogUtil instance with the current time as start time.
+// It immediately prints the start time to stderr.
+func NewLogUtil(operation string) *LogUtil {
+	start := time.Now()
+	fmt.Fprintf(os.Stderr, "[PERF] %s started at %s\n", operation, start.Format(time.RFC3339Nano))
+
+	return &LogUtil{startTime: start}
+}
+
+// Log prints a formatted message to stderr with elapsed time and current time.
+// The message is prefixed with [PERF] and includes duration since LogUtil creation.
+func (l *LogUtil) Log(message string) {
+	now := time.Now()
+	elapsed := now.Sub(l.startTime)
+	fmt.Fprintf(os.Stderr, "[PERF] %s: duration=%v current=%s\n",
+		message, elapsed, now.Format(time.RFC3339Nano))
+}
+
+// LogWithDetails prints a detailed message to stderr with start time, end time, and elapsed time.
+// This is used for operations that need to show both start and end timestamps.
+func (l *LogUtil) LogWithDetails(message string, operationStart time.Time) {
+	now := time.Now()
+	elapsed := now.Sub(operationStart)
+	fmt.Fprintf(os.Stderr, "[PERF] %s: duration=%v start=%s end=%s\n",
+		message, elapsed, operationStart.Format(time.RFC3339Nano), now.Format(time.RFC3339Nano))
+}
+
 // getUsageMessage returns the usage message for the cicd command.
 func getUsageMessage() string {
 	return `Usage: cicd <command> [command...]

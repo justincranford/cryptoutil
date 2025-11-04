@@ -27,21 +27,14 @@ import (
 // It takes a slice of command names and executes them sequentially.
 // Returns an error if any command is unknown or if execution fails.
 func Run(commands []string) error {
-	// Start overall performance timing
-	overallStart := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] Run started at %s\n", overallStart.Format(time.RFC3339Nano))
+	// Create LogUtil for structured performance logging
+	logger := NewLogUtil("Run")
 
 	// Validate commands and determine if file walk is needed
-	validateStart := time.Now()
-
 	doFindAllFiles, err := validateCommands(commands)
 	if err != nil {
 		return err
 	}
-
-	validateEnd := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] validateCommands: duration=%v start=%s end=%s\n",
-		validateEnd.Sub(validateStart), validateStart.Format(time.RFC3339Nano), validateEnd.Format(time.RFC3339Nano))
 
 	var allFiles []string
 
@@ -54,9 +47,7 @@ func Run(commands []string) error {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}
 
-		fileWalkEnd := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] filepath.Walk: duration=%v start=%s end=%s files=%d\n",
-			fileWalkEnd.Sub(fileWalkStart), fileWalkStart.Format(time.RFC3339Nano), fileWalkEnd.Format(time.RFC3339Nano), len(allFiles))
+		logger.LogWithDetails("filepath.Walk", fileWalkStart)
 	}
 
 	// Process all commands provided as arguments
@@ -64,30 +55,23 @@ func Run(commands []string) error {
 		command := commands[i]
 		fmt.Fprintf(os.Stderr, "Executing command: %s\n", command)
 
-		// Start command execution timing
-		commandStart := time.Now()
-
+		// Execute command with performance logging
 		switch command {
 		case "all-enforce-utf8":
-			allEnforceUtf8(allFiles)
+			allEnforceUtf8(logger, allFiles)
 		case "go-enforce-test-patterns":
-			goEnforceTestPatterns(allFiles)
+			goEnforceTestPatterns(logger, allFiles)
 		case "go-enforce-any":
-			goEnforceAny(allFiles)
+			goEnforceAny(logger, allFiles)
 		case "go-check-circular-package-dependencies":
-			goCheckCircularPackageDeps()
+			goCheckCircularPackageDeps(logger)
 		case "go-update-direct-dependencies": // Best practice, only direct dependencies
-			goUpdateDeps(DepCheckDirect)
+			goUpdateDeps(logger, DepCheckDirect)
 		case "go-update-all-dependencies": // Less practiced, direct & transient dependencies
-			goUpdateDeps(DepCheckAll)
+			goUpdateDeps(logger, DepCheckAll)
 		case "github-workflow-lint":
-			checkWorkflowLint(allFiles)
+			checkWorkflowLint(logger, allFiles)
 		}
-
-		// End command execution timing
-		commandEnd := time.Now()
-		fmt.Fprintf(os.Stderr, "[PERF] Command '%s': duration=%v start=%s end=%s\n",
-			command, commandEnd.Sub(commandStart), commandStart.Format(time.RFC3339Nano), commandEnd.Format(time.RFC3339Nano))
 
 		// Add a separator between multiple commands
 		if i < len(commands)-1 {
@@ -95,10 +79,7 @@ func Run(commands []string) error {
 		}
 	}
 
-	// End overall performance timing
-	overallEnd := time.Now()
-	fmt.Fprintf(os.Stderr, "[PERF] Run completed: duration=%v start=%s end=%s commands=%d\n",
-		overallEnd.Sub(overallStart), overallStart.Format(time.RFC3339Nano), overallEnd.Format(time.RFC3339Nano), len(commands))
+	logger.Log("Run completed")
 
 	return nil
 }
