@@ -3,6 +3,7 @@ package cicd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -98,11 +99,26 @@ func allEnforceUtf8(allFiles []string) {
 		included := false
 
 		for _, pattern := range enforceUtf8FileIncludePatterns {
-			suffix := strings.TrimPrefix(pattern, "**/*")
-			if strings.HasSuffix(filePath, suffix) {
-				included = true
+			if pattern == "" {
+				continue
+			}
 
-				break
+			// Handle different pattern types
+			if strings.HasPrefix(pattern, "*.") {
+				// Extension pattern like "*.go"
+				ext := strings.TrimPrefix(pattern, "*")
+				if strings.HasSuffix(filePath, ext) {
+					included = true
+
+					break
+				}
+			} else {
+				// Exact filename match like "Dockerfile"
+				if filepath.Base(filePath) == pattern {
+					included = true
+
+					break
+				}
 			}
 		}
 
@@ -110,7 +126,7 @@ func allEnforceUtf8(allFiles []string) {
 			continue
 		}
 
-		// Check exclude
+		// Check exclude patterns
 		excluded := false
 
 		for _, pattern := range enforceUtf8FileExcludePatterns {
@@ -183,29 +199,39 @@ func checkFileEncoding(filePath string) []string {
 
 	var issues []string
 
-	// Check for UTF-8 BOM (EF BB BF)
-	if len(content) >= 3 && content[0] == 0xEF && content[1] == 0xBB && content[2] == 0xBF {
-		issues = append(issues, "contains UTF-8 BOM (should be UTF-8 without BOM)")
-	}
-
-	// Check for UTF-16 LE BOM (FF FE)
-	if len(content) >= 2 && content[0] == 0xFF && content[1] == 0xFE {
-		issues = append(issues, "contains UTF-16 LE BOM (should be UTF-8 without BOM)")
-	}
-
-	// Check for UTF-16 BE BOM (FE FF)
-	if len(content) >= 2 && content[0] == 0xFE && content[1] == 0xFF {
-		issues = append(issues, "contains UTF-16 BE BOM (should be UTF-8 without BOM)")
-	}
-
-	// Check for UTF-32 LE BOM (FF FE 00 00)
+	// Check for UTF-32 LE BOM (FF FE 00 00) - check longest first
 	if len(content) >= 4 && content[0] == 0xFF && content[1] == 0xFE && content[2] == 0x00 && content[3] == 0x00 {
 		issues = append(issues, "contains UTF-32 LE BOM (should be UTF-8 without BOM)")
+
+		return issues // Return immediately when BOM is found
 	}
 
 	// Check for UTF-32 BE BOM (00 00 FE FF)
 	if len(content) >= 4 && content[0] == 0x00 && content[1] == 0x00 && content[2] == 0xFE && content[3] == 0xFF {
 		issues = append(issues, "contains UTF-32 BE BOM (should be UTF-8 without BOM)")
+
+		return issues // Return immediately when BOM is found
+	}
+
+	// Check for UTF-16 LE BOM (FF FE)
+	if len(content) >= 2 && content[0] == 0xFF && content[1] == 0xFE {
+		issues = append(issues, "contains UTF-16 LE BOM (should be UTF-8 without BOM)")
+
+		return issues // Return immediately when BOM is found
+	}
+
+	// Check for UTF-16 BE BOM (FE FF)
+	if len(content) >= 2 && content[0] == 0xFE && content[1] == 0xFF {
+		issues = append(issues, "contains UTF-16 BE BOM (should be UTF-8 without BOM)")
+
+		return issues // Return immediately when BOM is found
+	}
+
+	// Check for UTF-8 BOM (EF BB BF)
+	if len(content) >= 3 && content[0] == 0xEF && content[1] == 0xBB && content[2] == 0xBF {
+		issues = append(issues, "contains UTF-8 BOM (should be UTF-8 without BOM)")
+
+		return issues // Return immediately when BOM is found
 	}
 
 	return issues
