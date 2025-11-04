@@ -32,41 +32,7 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 		workflowActionExceptions = &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}
 	}
 
-	var workflowsActionDetails []WorkflowActionDetails
-
-	var allValidationErrors []string
-
-	for _, workflowFile := range filterWorkflowFiles(allFiles) {
-		workflowValidationErrors, workflowActionDetails, vErr := validateAndParseWorkflowFile(workflowFile)
-		if vErr != nil {
-			allValidationErrors = append(allValidationErrors, fmt.Sprintf("Failed to validate %s: %v", workflowFile, vErr))
-		}
-
-		for _, issue := range workflowValidationErrors {
-			allValidationErrors = append(allValidationErrors, fmt.Sprintf("%s: %s", filepath.Base(workflowFile), issue))
-		}
-
-		workflowsActionDetails = append(workflowsActionDetails, workflowActionDetails...)
-	}
-
-	if len(allValidationErrors) > 0 {
-		fmt.Fprintln(os.Stderr, "Workflow validation errors:")
-
-		for _, validationError := range allValidationErrors {
-			fmt.Fprintf(os.Stderr, "  - %s\n", validationError)
-		}
-
-		fmt.Fprintln(os.Stderr, "\nPlease fix the workflow files to match naming and logging conventions.")
-		os.Exit(1)
-	}
-
-	// If no actions were found, report and exit (no further checks necessary)
-	if len(workflowsActionDetails) == 0 {
-		fmt.Fprintln(os.Stderr, "No actions found in workflow files")
-
-		logger.Log("checkWorkflowLint completed (no actions)")
-		os.Exit(0)
-	}
+	workflowsActionDetails := validateAndGetWorkflowActions(logger, allFiles)
 
 	// Remove duplicates and check versions (reuse prior logic)
 	actionMap := make(map[string]WorkflowActionDetails)
@@ -123,6 +89,46 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 	fmt.Fprintln(os.Stderr, "All GitHub Actions are up to date.")
 
 	logger.Log("checkWorkflowLint completed")
+}
+
+func validateAndGetWorkflowActions(logger *LogUtil, allFiles []string) []WorkflowActionDetails {
+	var workflowsActionDetails []WorkflowActionDetails
+
+	var allValidationErrors []string
+
+	for _, workflowFile := range filterWorkflowFiles(allFiles) {
+		workflowValidationErrors, workflowActionDetails, vErr := validateAndParseWorkflowFile(workflowFile)
+		if vErr != nil {
+			allValidationErrors = append(allValidationErrors, fmt.Sprintf("Failed to validate %s: %v", workflowFile, vErr))
+		}
+
+		for _, issue := range workflowValidationErrors {
+			allValidationErrors = append(allValidationErrors, fmt.Sprintf("%s: %s", filepath.Base(workflowFile), issue))
+		}
+
+		workflowsActionDetails = append(workflowsActionDetails, workflowActionDetails...)
+	}
+
+	if len(allValidationErrors) > 0 {
+		fmt.Fprintln(os.Stderr, "Workflow validation errors:")
+
+		for _, validationError := range allValidationErrors {
+			fmt.Fprintf(os.Stderr, "  - %s\n", validationError)
+		}
+
+		fmt.Fprintln(os.Stderr, "\nPlease fix the workflow files to match naming and logging conventions.")
+		os.Exit(1)
+	}
+
+	// If no actions were found, report and exit (no further checks necessary)
+	if len(workflowsActionDetails) == 0 {
+		fmt.Fprintln(os.Stderr, "No actions found in workflow files")
+
+		logger.Log("checkWorkflowLint completed (no actions)")
+		os.Exit(0)
+	}
+
+	return workflowsActionDetails
 }
 
 func filterWorkflowFiles(allFiles []string) []string {
