@@ -185,6 +185,8 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		}
 	}
 
+	telemetryService.Slogger.Debug("loaded database drivers", "drivers", sql.Drivers())
+
 	sqlDB, err := sql.Open(string(dbType), databaseURL)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to open database", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
