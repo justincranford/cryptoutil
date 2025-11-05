@@ -8,33 +8,57 @@ title = "cryptoutil"
 	regex = ".*"
 
 [[rules]]
-	id = "ignore-crypto-algorithms"
-	description = "Ignore legitimate cryptographic algorithm identifiers"
-	regex = "A\\d+GCM/A\\d+(GCM)?KW"
+	id = "ignore-jwe-gcm-kw"
+	description = "Ignore legitimate JWE GCM algorithm identifiers with key wrapping"
+	regex = "A(256|192|128)GCM/A(256|192|128)(GCM)?KW"
 	tags = ["key", "token"]
 
 [[rules]]
-	id = "ignore-jwe-dir"
-	description = "Ignore legitimate JWE algorithm constants"
-	regex = "A\\d+GCM/dir"
+	id = "ignore-jwe-gcm-dir"
+	description = "Ignore legitimate JWE GCM algorithm identifiers with direct encryption"
+	regex = "A(256|192|128)GCM/dir"
 	tags = ["key", "token"]
 
 [[rules]]
-	id = "ignore-jwe-ecdh"
-	description = "Ignore legitimate JWE algorithm constants with ECDH"
-	regex = "A\\d+GCM/ECDH-ES"
+	id = "ignore-jwe-gcm-rsa"
+	description = "Ignore legitimate JWE GCM algorithm identifiers with RSA"
+	regex = "A(256|192|128)GCM/RSA(-OAEP(-512|-384|-256)?|1_5)"
 	tags = ["key", "token"]
 
 [[rules]]
-	id = "ignore-jwe-rsa"
-	description = "Ignore legitimate JWE algorithm constants with RSA"
-	regex = "A\\d+GCM/RSA\\d+_\\d"
+	id = "ignore-jwe-gcm-ecdh"
+	description = "Ignore legitimate JWE GCM algorithm identifiers with ECDH-ES"
+	regex = "A(256|192|128)GCM/ECDH-ES(\\+A(256|192|128)KW)?"
 	tags = ["key", "token"]
 
 [[rules]]
-	id = "ignore-jwe-rsa-oaep"
-	description = "Ignore legitimate JWE algorithm constants with RSA-OAEP"
-	regex = "A\\d+GCM/RSA-OAEP(-\\d+)?"
+	id = "ignore-jwe-cbc-kw"
+	description = "Ignore legitimate JWE CBC-HS algorithm identifiers with key wrapping"
+	regex = "A(256|192|128)CBC-HS(512|384|256)/A(256|192|128)(GCM)?KW"
+	tags = ["key", "token"]
+
+[[rules]]
+	id = "ignore-jwe-cbc-dir"
+	description = "Ignore legitimate JWE CBC-HS algorithm identifiers with direct encryption"
+	regex = "A(256|192|128)CBC-HS(512|384|256)/dir"
+	tags = ["key", "token"]
+
+[[rules]]
+	id = "ignore-jwe-cbc-rsa"
+	description = "Ignore legitimate JWE CBC-HS algorithm identifiers with RSA"
+	regex = "A(256|192|128)CBC-HS(512|384|256)/RSA(-OAEP(-512|-384|-256)?|1_5)"
+	tags = ["key", "token"]
+
+[[rules]]
+	id = "ignore-jwe-cbc-ecdh"
+	description = "Ignore legitimate JWE CBC-HS algorithm identifiers with ECDH-ES"
+	regex = "A(256|192|128)CBC-HS(512|384|256)/ECDH-ES(\\+A(256|192|128)KW)?"
+	tags = ["key", "token"]
+
+[[rules]]
+	id = "ignore-jws-algorithms"
+	description = "Ignore legitimate JWS algorithm identifiers"
+	regex = "(RS|PS|ES|HS)(256|384|512)|EdDSA"
 	tags = ["key", "token"]
 
 [[rules]]
