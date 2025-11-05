@@ -18,10 +18,3 @@ title = "cryptoutil"
 		"A(256|192|128)CBC-HS(512|384|256)/ECDH-ES(\\+A(256|192|128)KW)?",
 		"(RS|PS|ES|HS)(256|384|512)|EdDSA"
 	]
-
-[[rules]]
-	id = "ignore-documentation-examples"
-	description = "Ignore documentation examples"
-	filepath = "README\\.md"
-	regex = "DB_PASSWORD|export BUNDLE_ENTERPRISE"
-	tags = ["key", "Secret"]
