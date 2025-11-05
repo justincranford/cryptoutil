@@ -22,7 +22,7 @@ import (
 
 const (
 	DBTypeSQLite   SupportedDBType = "sqlite"
-	DBTypePostgres SupportedDBType = "postgres"
+	DBTypePostgres SupportedDBType = "pgx"
 
 	ContainerModeDisabled  ContainerMode = "disabled"
 	ContainerModePreferred ContainerMode = "preferred"
