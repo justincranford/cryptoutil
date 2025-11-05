@@ -16,6 +16,8 @@ import (
 	cryptoutilContainer "cryptoutil/internal/common/container"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
@@ -290,6 +292,8 @@ func (s *SQLRepository) logConnectionPoolSettings() {
 	maxIdleTimeClosed := sqlDBStats.MaxIdleTimeClosed
 	maxLifetimeClosed := sqlDBStats.MaxLifetimeClosed
 
-	s.telemetryService.Slogger.Info("DB Pool Settings", "maxOpenConnections", maxOpenConnections, "openConnections", openConnections, "idle", idle, "isUse", isUse,
-		"waitCount", waitCount, "waitDuration", waitDuration, "maxIdleClosed", maxIdleClosed, "maxIdleTimeClosed", maxIdleTimeClosed, "maxLifetimeClosed", maxLifetimeClosed)
+	if s.verboseMode {
+		s.telemetryService.Slogger.Info("DB Pool Settings", "maxOpenConnections", maxOpenConnections, "openConnections", openConnections, "idle", idle, "isUse", isUse,
+			"waitCount", waitCount, "waitDuration", waitDuration, "maxIdleClosed", maxIdleClosed, "maxIdleTimeClosed", maxIdleTimeClosed, "maxLifetimeClosed", maxLifetimeClosed)
+	}
 }

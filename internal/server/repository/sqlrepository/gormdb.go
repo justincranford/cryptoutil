@@ -11,9 +11,6 @@ import (
 	"gorm.io/gorm/logger"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
-
-	_ "github.com/jackc/pgx/v5/stdlib"
-	_ "modernc.org/sqlite"
 )
 
 const (
