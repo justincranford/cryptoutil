@@ -2,36 +2,44 @@
 title = "cryptoutil"
 
 [[rules]]
+	id = "ignore-openapi-generated"
 	description = "Ignore OpenAPI generated files"
-	filepath = '''api/.*'''
+	filepath = "api/.*"
+	regex = ".*"
 
 [[rules]]
+	id = "ignore-crypto-algorithms"
 	description = "Ignore legitimate cryptographic algorithm identifiers"
-	regex = '''A\d+GCM/A\d+(GCM)?KW'''
+	regex = "A\\d+GCM/A\\d+(GCM)?KW"
 	tags = ["key", "token"]
 
 [[rules]]
+	id = "ignore-jwe-dir"
 	description = "Ignore legitimate JWE algorithm constants"
-	regex = '''A\d+GCM/dir'''
+	regex = "A\\d+GCM/dir"
 	tags = ["key", "token"]
 
 [[rules]]
+	id = "ignore-jwe-ecdh"
 	description = "Ignore legitimate JWE algorithm constants with ECDH"
-	regex = '''A\d+GCM/ECDH-ES'''
+	regex = "A\\d+GCM/ECDH-ES"
 	tags = ["key", "token"]
 
 [[rules]]
+	id = "ignore-jwe-rsa"
 	description = "Ignore legitimate JWE algorithm constants with RSA"
-	regex = '''A\d+GCM/RSA\d_\d'''
+	regex = "A\\d+GCM/RSA\\d+_\\d"
 	tags = ["key", "token"]
 
 [[rules]]
+	id = "ignore-jwe-rsa-oaep"
 	description = "Ignore legitimate JWE algorithm constants with RSA-OAEP"
-	regex = '''A\d+GCM/RSA-OAEP(-\d+)?'''
+	regex = "A\\d+GCM/RSA-OAEP(-\\d+)?"
 	tags = ["key", "token"]
 
 [[rules]]
+	id = "ignore-documentation-examples"
 	description = "Ignore documentation examples"
-	filepath = '''README\.md'''
-	regex = '''DB_PASSWORD|export BUNDLE_ENTERPRISE'''
+	filepath = "README\\.md"
+	regex = "DB_PASSWORD|export BUNDLE_ENTERPRISE"
 	tags = ["key", "Secret"]
