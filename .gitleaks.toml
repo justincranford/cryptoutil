@@ -5,8 +5,7 @@ title = "cryptoutil"
 	paths = [
 		"api/client/",
 		"api/model/",
-		"api/server/",
-		".github/workflows/"
+		"api/server/"
 	]
 	regexes = [
 		"A(256|192|128)GCM/A(256|192|128)(GCM)?KW",

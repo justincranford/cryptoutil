@@ -103,11 +103,11 @@ env:
   APP_BIND_PRIVATE_PORT: 9090
 
   # Database uses localhost (not 127.0.0.1) for PostgreSQL client library optimization
-  DB_HOST: localhost
-  DB_PORT: 5432
-  DB_NAME: DB
-  DB_USER: USR
-  DB_PASSWORD: PWD
+  POSTGRES_HOST: localhost
+  POSTGRES_PORT: 5432
+  POSTGRES_NAME: DB
+  POSTGRES_USER: USR
+  POSTGRES_PASS: PWD
 
 jobs:
   dast-security-scan:
@@ -117,9 +117,9 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_DB: ${{ env.DB_NAME }}
-          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
-          POSTGRES_USER: ${{ env.DB_USER }}
+          POSTGRES_DB: ${{ env.POSTGRES_NAME }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASS }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -182,7 +182,7 @@ jobs:
         (top -b -n1 | head -30) >> $SYSINFO 2>&1 || ps aux --sort=-%mem | head -30 >> $SYSINFO 2>&1 || true
         echo "\n===== Selected environment variables =====" >> $SYSINFO
         # Print only non-secret env vars that are helpful for diagnostics
-        for v in GO_VERSION SCAN_PROFILE APP_PUBLIC_TARGET_URL APP_PRIVATE_TARGET_URL NUCLEI_PUBLIC_TARGET_URL ZAP_PUBLIC_TARGET_URL APP_BIND_PUBLIC_PORT APP_BIND_PRIVATE_PORT DB_HOST DB_PORT; do
+        for v in GO_VERSION SCAN_PROFILE APP_PUBLIC_TARGET_URL APP_PRIVATE_TARGET_URL NUCLEI_PUBLIC_TARGET_URL ZAP_PUBLIC_TARGET_URL APP_BIND_PUBLIC_PORT APP_BIND_PRIVATE_PORT POSTGRES_HOST POSTGRES_PORT; do
           echo "$v=${!v}" >> $SYSINFO 2>&1 || true
         done
         echo "\nWrote system diagnostics to: $SYSINFO"
@@ -244,7 +244,7 @@ jobs:
         bind-private-protocol: "${APP_BIND_PRIVATE_PROTOCOL}"
         bind-private-address: "${APP_BIND_PRIVATE_ADDRESS}"
         bind-private-port: ${APP_BIND_PRIVATE_PORT}
-        database-url: "postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable"
+        database-url: "postgres://${POSTGRES_USER}:${POSTGRES_PASS}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_NAME}?sslmode=disable"
         unseal-mode: "1-of-1"
         unseal-files:
           - ./configs/test/dast-simple-unseal-secret-value-1.secret
