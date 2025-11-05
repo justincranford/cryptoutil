@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
@@ -59,6 +61,11 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 		}
 
 		if time.Now().After(giveUpTime) {
+			// Before giving up, show container logs for failed services
+			Log(im.logger, "❌ Docker services not healthy after %v, showing recent container logs...", cryptoutilMagic.TestTimeoutDockerHealth)
+			if err := im.showFailedContainerLogs(ctx); err != nil {
+				Log(im.logger, "⚠️ Failed to show container logs: %v", err)
+			}
 			return fmt.Errorf("docker services not healthy after %v", cryptoutilMagic.TestTimeoutDockerHealth)
 		}
 
@@ -325,6 +332,46 @@ func logServiceHealthStatus(startTime time.Time, healthStatus map[string]bool) [
 	}
 
 	return unhealthyServices
+}
+
+// showFailedContainerLogs captures and displays recent logs from containers that have failed to start.
+func (im *InfrastructureManager) showFailedContainerLogs(ctx context.Context) error {
+	// Get list of containers that match our compose project
+	containers, err := getDockerContainers(ctx, im.logger)
+	if err != nil {
+		return fmt.Errorf("failed to get Docker containers: %w", err)
+	}
+
+	if len(containers) == 0 {
+		Log(im.logger, "⚠️ No containers found to show logs for")
+		return nil
+	}
+
+	Log(im.logger, "📋 Showing recent logs from %d containers...", len(containers))
+
+	for _, container := range containers {
+		Log(im.logger, "📄 Recent logs from container: %s", container.Name)
+
+		// Get last 50 lines of logs with timestamps
+		cmd := exec.CommandContext(ctx, "docker", "logs", "--tail", "50", "--timestamps", container.Name)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			Log(im.logger, "⚠️ Failed to get logs for container %s: %v", container.Name, err)
+			continue
+		}
+
+		// Split output into lines and log each line
+		lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+		for _, line := range lines {
+			if strings.TrimSpace(line) != "" {
+				Log(im.logger, "  %s: %s", container.Name, line)
+			}
+		}
+
+		Log(im.logger, "📄 End of logs for container: %s", container.Name)
+	}
+
+	return nil
 }
 
 // Helper methods.
