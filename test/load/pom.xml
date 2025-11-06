@@ -7,7 +7,7 @@
   <artifactId>gatling-maven-plugin-demo-java</artifactId>
   <version>3.14.6</version>
 
-  <properties>
+    <properties>
     <java.version>21</java.version>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -34,23 +34,122 @@
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <!-- Core Maven Plugins BOM would be ideal here, but using explicit versions for now -->
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven-compiler-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${maven-resources-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${maven-jar-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>io.gatling</groupId>
+          <artifactId>gatling-maven-plugin</artifactId>
+          <version>${gatling-maven-plugin.version}</version>
+        </plugin>
+
+        <!-- Security Analysis Plugins -->
+        <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${spotbugs-maven-plugin.version}</version>
+          <dependencies>
+            <!-- FindSecBugs addon for security vulnerability detection -->
+            <dependency>
+              <groupId>com.h3xstream.findsecbugs</groupId>
+              <artifactId>findsecbugs-plugin</artifactId>
+              <version>${findsecbugs.version}</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <effort>Max</effort>
+            <threshold>Low</threshold>
+            <failOnError>false</failOnError>
+            <includeTests>true</includeTests>
+            <plugins>
+              <plugin>
+                <groupId>com.h3xstream.findsecbugs</groupId>
+                <artifactId>findsecbugs-plugin</artifactId>
+                <version>${findsecbugs.version}</version>
+              </plugin>
+            </plugins>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- OWASP Dependency Check for Vulnerability Scanning -->
+        <plugin>
+          <groupId>org.owasp</groupId>
+          <artifactId>dependency-check-maven</artifactId>
+          <version>${owasp-dependency-check.version}</version>
+          <configuration>
+            <failBuildOnCVSS>7</failBuildOnCVSS>
+            <skipTestScope>false</skipTestScope>
+            <skipProvidedScope>false</skipProvidedScope>
+            <skipRuntimeScope>false</skipRuntimeScope>
+            <skipSystemScope>true</skipSystemScope>
+            <format>ALL</format>
+            <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>check</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- Versions Plugin for Outdated Dependency Detection -->
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>${versions-maven-plugin.version}</version>
+          <configuration>
+            <allowSnapshots>false</allowSnapshots>
+            <allowMajorUpdates>false</allowMajorUpdates>
+            <allowMinorUpdates>true</allowMinorUpdates>
+            <allowIncrementalUpdates>true</allowIncrementalUpdates>
+          </configuration>
+          <executions>
+            <execution>
+              <id>check-versions</id>
+              <goals>
+                <goal>display-dependency-updates</goal>
+                <goal>display-plugin-updates</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler-plugin.version}</version>
       </plugin>
       <plugin>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>${maven-resources-plugin.version}</version>
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>${maven-jar-plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>io.gatling</groupId>
         <artifactId>gatling-maven-plugin</artifactId>
-        <version>${gatling-maven-plugin.version}</version>
         <configuration>
           <!-- Enterprise Cloud (https://cloud.gatling.io/) configuration reference: https://docs.gatling.io/reference/integrations/build-tools/maven-plugin/#running-your-simulations-on-gatling-enterprise-cloud -->
         </configuration>
@@ -60,80 +159,18 @@
       <plugin>
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
-        <version>${spotbugs-maven-plugin.version}</version>
-        <dependencies>
-          <!-- FindSecBugs addon for security vulnerability detection -->
-          <dependency>
-            <groupId>com.h3xstream.findsecbugs</groupId>
-            <artifactId>findsecbugs-plugin</artifactId>
-            <version>${findsecbugs.version}</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <effort>Max</effort>
-          <threshold>Low</threshold>
-          <failOnError>false</failOnError>
-          <includeTests>true</includeTests>
-          <plugins>
-            <plugin>
-              <groupId>com.h3xstream.findsecbugs</groupId>
-              <artifactId>findsecbugs-plugin</artifactId>
-              <version>${findsecbugs.version}</version>
-            </plugin>
-          </plugins>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
 
       <!-- OWASP Dependency Check for Vulnerability Scanning -->
       <plugin>
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-maven</artifactId>
-        <version>${owasp-dependency-check.version}</version>
-        <configuration>
-          <failBuildOnCVSS>7</failBuildOnCVSS>
-          <skipTestScope>false</skipTestScope>
-          <skipProvidedScope>false</skipProvidedScope>
-          <skipRuntimeScope>false</skipRuntimeScope>
-          <skipSystemScope>true</skipSystemScope>
-          <format>ALL</format>
-          <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
 
       <!-- Versions Plugin for Outdated Dependency Detection -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>${versions-maven-plugin.version}</version>
-        <configuration>
-          <allowSnapshots>false</allowSnapshots>
-          <allowMajorUpdates>false</allowMajorUpdates>
-          <allowMinorUpdates>true</allowMinorUpdates>
-          <allowIncrementalUpdates>true</allowIncrementalUpdates>
-        </configuration>
-        <executions>
-          <execution>
-            <id>check-versions</id>
-            <goals>
-              <goal>display-dependency-updates</goal>
-              <goal>display-plugin-updates</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
