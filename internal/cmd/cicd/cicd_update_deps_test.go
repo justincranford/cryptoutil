@@ -12,109 +12,55 @@ import (
 )
 
 const (
-	mockGoListOutputWithOutdatedDeps = `github.com/stretchr/testify v1.8.4 [v1.9.0]
-golang.org/x/crypto v0.14.0 [v0.15.0]
-github.com/google/uuid v1.3.0
-`
-	mockGoListOutputSimpleOutdatedDeps = `github.com/stretchr/testify v1.8.4 [v1.9.0]
-golang.org/x/crypto v0.14.0 [v0.15.0]
-`
+	dep1         = "example.com/dep1"
+	dep2         = "example.com/dep2"
+	dep3         = "example.com/dep3"
+	latestDep1   = dep1 + " v1.9.0"
+	outdatedDep1 = dep1 + " v1.8.4 [v1.9.0]"
+	latestDep2   = dep2 + " v0.15.0"
+	outdatedDep2 = dep2 + " v0.14.0 [v0.15.0]"
+	latestDep3   = dep3 + " v1.4.0"
 )
 
+var (
+	goModStat = &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat = &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
+)
+
+func TestCheckDependencyUpdates_EmptyOutput(t *testing.T) {
+	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, "", []string{}, nil)
+}
+
 func TestCheckDependencyUpdates_NoOutdatedDeps(t *testing.T) {
-	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
-
-	// Mock go list output with no outdated dependencies
-	goListOutput := `github.com/stretchr/testify v1.8.4
-golang.org/x/crypto v0.14.0
-`
-
-	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
-	require.NoError(t, err)
-	require.Empty(t, outdated)
+	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, latestDep1+"\n"+latestDep2, []string{}, nil)
 }
 
 func TestCheckDependencyUpdates_WithOutdatedDeps(t *testing.T) {
-	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
-
-	// Mock go list output with outdated dependencies
-	goListOutput := mockGoListOutputWithOutdatedDeps
-
-	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
-	require.NoError(t, err)
-	require.Len(t, outdated, 2)
-	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
-	require.Contains(t, outdated, "golang.org/x/crypto v0.14.0 [v0.15.0]")
+	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\n"+outdatedDep2, []string{outdatedDep1, outdatedDep2}, nil)
 }
 
 func TestCheckDependencyUpdates_DirectMode(t *testing.T) {
-	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
-
-	// Mock go list output with both direct and indirect outdated dependencies
-	goListOutput := mockGoListOutputWithOutdatedDeps
-
-	// Mock direct dependencies map
-	directDeps := map[string]bool{
-		"github.com/stretchr/testify": true,
-	}
-
-	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckDirect, goModStat, goSumStat, goListOutput, directDeps)
-	require.NoError(t, err)
-	require.Len(t, outdated, 1)
-	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
+	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\n"+latestDep2+"\n"+latestDep3, []string{outdatedDep1}, map[string]bool{dep1: true})
 }
 
 func TestCheckDependencyUpdates_AllMode(t *testing.T) {
-	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
-
-	// Mock go list output with outdated dependencies
-	goListOutput := mockGoListOutputSimpleOutdatedDeps
-
-	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
-	require.NoError(t, err)
-	require.Len(t, outdated, 2)
-	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
-	require.Contains(t, outdated, "golang.org/x/crypto v0.14.0 [v0.15.0]")
-}
-
-func TestCheckDependencyUpdates_EmptyOutput(t *testing.T) {
-	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
-
-	// Empty go list output
-	goListOutput := ""
-
-	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
-	require.NoError(t, err)
-	require.Empty(t, outdated)
+	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\n"+outdatedDep2, []string{outdatedDep1, outdatedDep2}, nil)
 }
 
 func TestCheckDependencyUpdates_MalformedLines(t *testing.T) {
-	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
+	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\nmalformed\n"+outdatedDep2, []string{outdatedDep1, outdatedDep2}, nil)
+}
 
-	// Mock go list output with malformed lines (should be ignored)
-	goListOutput := `github.com/stretchr/testify v1.8.4 [v1.9.0]
-malformed line without brackets
-another malformed line
-golang.org/x/crypto v0.14.0 [v0.15.0]
-`
+func validateOutdatedDeps(t *testing.T, depCheckMode cryptoutilMagic.DepCheckMode, actualDeps string, expectedOutdatedDeps []string, directDeps map[string]bool) {
+	t.Helper()
 
-	outdated, err := checkDependencyUpdates(cryptoutilMagic.DepCheckAll, goModStat, goSumStat, goListOutput, nil)
+	actualOutdatedDeps, err := checkDependencyUpdates(depCheckMode, goModStat, goSumStat, actualDeps, directDeps)
 	require.NoError(t, err)
-	require.Len(t, outdated, 2)
-	require.Contains(t, outdated, "github.com/stretchr/testify v1.8.4 [v1.9.0]")
-	require.Contains(t, outdated, "golang.org/x/crypto v0.14.0 [v0.15.0]")
+	require.Len(t, actualOutdatedDeps, len(expectedOutdatedDeps))
+
+	for _, expectedOutdatedDep := range expectedOutdatedDeps {
+		require.Contains(t, actualOutdatedDeps, expectedOutdatedDep)
+	}
 }
 
 // mockFileInfo implements os.FileInfo for testing.
