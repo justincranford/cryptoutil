@@ -21,19 +21,16 @@ func TestCheckFileEncoding(t *testing.T) {
 	tempDir := t.TempDir()
 
 	t.Run("valid UTF-8 file without BOM", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "valid_utf8.txt")
-		content := "Hello, world! This is valid UTF-8 content without BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "valid_utf8.txt", "Hello, world! This is valid UTF-8 content without BOM.")
 
 		issues := checkFileEncoding(filePath)
-		require.Empty(t, issues, "Valid UTF-8 file should have no encoding issues")
+		require.Len(t, issues, 0, "Valid UTF-8 file without BOM should have no issues")
+		require.Empty(t, issues, "Valid UTF-8 file without BOM should have no encoding issues")
 	})
 
 	t.Run("file with UTF-8 BOM", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "utf8_bom.txt")
 		// UTF-8 BOM: EF BB BF
-		content := "\xEF\xBB\xBFHello, world! This has UTF-8 BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "utf8_bom.txt", "\xEF\xBB\xBFHello, world! This has UTF-8 BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-8 BOM should have one issue")
@@ -41,10 +38,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-16 LE BOM", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "utf16_le_bom.txt")
-		// UTF-16 LE BOM: FF FE
-		content := "\xFF\xFEHello, world! This has UTF-16 LE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "utf16_le_bom.txt", "\xFF\xFEHello, world! This has UTF-16 LE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-16 LE BOM should have one issue")
@@ -52,10 +46,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-16 BE BOM", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "utf16_be_bom.txt")
-		// UTF-16 BE BOM: FE FF
-		content := "\xFE\xFFHello, world! This has UTF-16 BE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "utf16_be_bom.txt", "\xFE\xFFHello, world! This has UTF-16 BE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-16 BE BOM should have one issue")
@@ -63,10 +54,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-32 LE BOM", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "utf32_le_bom.txt")
-		// UTF-32 LE BOM: FF FE 00 00
-		content := "\xFF\xFE\x00\x00Hello, world! This has UTF-32 LE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "utf32_le_bom.txt", "\xFF\xFE\x00\x00Hello, world! This has UTF-32 LE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-32 LE BOM should have one issue")
@@ -74,10 +62,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-32 BE BOM", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "utf32_be_bom.txt")
-		// UTF-32 BE BOM: 00 00 FE FF
-		content := "\x00\x00\xFE\xFFHello, world! This has UTF-32 BE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "utf32_be_bom.txt", "\x00\x00\xFE\xFFHello, world! This has UTF-32 BE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-32 BE BOM should have one issue")
@@ -93,23 +78,28 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("empty file", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "empty.txt")
-		require.NoError(t, os.WriteFile(filePath, []byte(""), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "empty.txt", "")
 
 		issues := checkFileEncoding(filePath)
 		require.Empty(t, issues, "Empty file should have no encoding issues")
 	})
 
 	t.Run("file with only BOM", func(t *testing.T) {
-		filePath := filepath.Join(tempDir, "only_bom.txt")
-		// Only UTF-8 BOM
-		content := "\xEF\xBB\xBF"
-		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		filePath := writeTempFile(t, tempDir, "only_bom.txt", "\xEF\xBB\xBF")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with only BOM should have one issue")
 		require.Contains(t, issues[0], "contains UTF-8 BOM", "Issue should mention UTF-8 BOM")
 	})
+}
+
+func writeTempFile(t *testing.T, tempDir, filename, content string) string {
+	t.Helper()
+
+	filePath := filepath.Join(tempDir, filename)
+	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+
+	return filePath
 }
 
 func TestAllEnforceUtf8(t *testing.T) {
