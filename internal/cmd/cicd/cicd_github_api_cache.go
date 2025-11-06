@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -148,6 +149,16 @@ func getLatestVersion(logger *LogUtil, actionName string) (string, error) {
 
 	logger.Log(fmt.Sprintf("API call completed [%s] (%dms)", url, duration.Milliseconds()))
 
+	// Check rate limit headers and add extra delay if needed
+	if remainingStr := resp.Header.Get("X-RateLimit-Remaining"); remainingStr != "" {
+		if remaining, err := strconv.Atoi(remainingStr); err == nil {
+			if remaining <= cryptoutilMagic.GitHubRateLimitRemainingThreshold {
+				logger.Log(fmt.Sprintf("Rate limit low (%d remaining), adding extra delay", remaining))
+				time.Sleep(cryptoutilMagic.GitHubRateLimitExtraDelay)
+			}
+		}
+	}
+
 	var release GitHubRelease
 	if err := json.Unmarshal(body, &release); err != nil {
 		return "", fmt.Errorf("failed to unmarshal GitHub release JSON: %w", err)
@@ -217,6 +228,16 @@ func getLatestTag(logger *LogUtil, actionName string) (string, error) {
 	}
 
 	logger.Log(fmt.Sprintf("API call completed [%s] (%dms)", url, duration.Milliseconds()))
+
+	// Check rate limit headers and add extra delay if needed
+	if remainingStr := resp.Header.Get("X-RateLimit-Remaining"); remainingStr != "" {
+		if remaining, err := strconv.Atoi(remainingStr); err == nil {
+			if remaining <= cryptoutilMagic.GitHubRateLimitRemainingThreshold {
+				logger.Log(fmt.Sprintf("Rate limit low (%d remaining), adding extra delay", remaining))
+				time.Sleep(cryptoutilMagic.GitHubRateLimitExtraDelay)
+			}
+		}
+	}
 
 	var tags []struct {
 		Name string `json:"name"`

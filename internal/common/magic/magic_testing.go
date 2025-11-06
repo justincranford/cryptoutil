@@ -62,6 +62,11 @@ const (
 	// TimeoutGitHubAPICacheTTL - TTL for GitHub API response cache (1 hour).
 	TimeoutGitHubAPICacheTTL = 1 * time.Hour
 
+	// GitHubRateLimitRemainingThreshold - Threshold for remaining API calls before adding extra delay.
+	GitHubRateLimitRemainingThreshold = 10
+	// GitHubRateLimitExtraDelay - Extra delay when remaining API calls are below threshold.
+	GitHubRateLimitExtraDelay = 2 * time.Second
+
 	// TestSleepCancelChanContext - 5 milliseconds duration for test delays.
 	TestSleepCancelChanContext = 5 * time.Millisecond //nolint:stylecheck // established API name
 
