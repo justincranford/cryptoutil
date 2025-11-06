@@ -3,6 +3,7 @@ package cicd
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -189,6 +190,153 @@ func TestSaveDepCache(t *testing.T) {
 	// On Windows, permissions might be different, so we just check that the file exists and is readable
 	require.True(t, info.Mode().IsRegular(), "Cache file should be a regular file")
 }
+
+func TestCheckAndUseDepCache(t *testing.T) {
+	tempDir := t.TempDir()
+	cacheFile := filepath.Join(tempDir, "test_cache.json")
+
+	// Create mock file stats
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)}
+
+	logger := NewLogUtil("test")
+
+	t.Run("cache hit - valid cache with no outdated deps", func(t *testing.T) {
+		// Create a valid cache file with recent timestamp
+		recentTime := time.Now().Add(-30 * time.Minute) // 30 minutes ago
+		cacheContent := fmt.Sprintf(`{
+			"last_check": "%s",
+			"go_mod_mod_time": "2025-01-01T12:00:00Z",
+			"go_sum_mod_time": "2025-01-01T12:00:00Z",
+			"outdated_deps": [],
+			"mode": "direct"
+		}`, recentTime.Format(time.RFC3339))
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+
+		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.True(t, cacheUsed)
+		require.Equal(t, "cache_hit", cacheState)
+	})
+
+	t.Run("cache hit - valid cache with outdated deps", func(t *testing.T) {
+		// This test would require capturing os.Exit, which is complex
+		// The logic is tested indirectly through integration tests
+		t.Skip("Cache hit with outdated deps causes os.Exit - tested via integration")
+	})
+
+	t.Run("cache expired - time based", func(t *testing.T) {
+		// Create cache older than 1 hour
+		oldTime := time.Now().Add(-2 * time.Hour)
+		cacheContent := fmt.Sprintf(`{
+			"last_check": "%s",
+			"go_mod_mod_time": "2025-01-01T12:00:00Z",
+			"go_sum_mod_time": "2025-01-01T12:00:00Z",
+			"outdated_deps": [],
+			"mode": "direct"
+		}`, oldTime.Format(time.RFC3339))
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+
+		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.False(t, cacheUsed)
+		require.Contains(t, cacheState, "cache_expired_time")
+		require.Contains(t, cacheState, "age:")
+	})
+
+	t.Run("cache expired - go.mod modified", func(t *testing.T) {
+		// Create cache with old go.mod modtime
+		cacheContent := `{
+			"last_check": "2025-01-01T13:00:00Z",
+			"go_mod_mod_time": "2025-01-01T11:00:00Z",
+			"go_sum_mod_time": "2025-01-01T12:00:00Z",
+			"outdated_deps": [],
+			"mode": "direct"
+		}`
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+
+		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.False(t, cacheUsed)
+		require.Equal(t, "cache_expired_files (go.mod modified)", cacheState)
+	})
+
+	t.Run("cache expired - go.sum modified", func(t *testing.T) {
+		// Create cache with old go.sum modtime
+		cacheContent := `{
+			"last_check": "2025-01-01T13:00:00Z",
+			"go_mod_mod_time": "2025-01-01T12:00:00Z",
+			"go_sum_mod_time": "2025-01-01T11:00:00Z",
+			"outdated_deps": [],
+			"mode": "direct"
+		}`
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+
+		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.False(t, cacheUsed)
+		require.Equal(t, "cache_expired_files (go.sum modified)", cacheState)
+	})
+
+	t.Run("cache expired - both files modified", func(t *testing.T) {
+		// Create cache with old modtimes for both files
+		cacheContent := `{
+			"last_check": "2025-01-01T13:00:00Z",
+			"go_mod_mod_time": "2025-01-01T11:00:00Z",
+			"go_sum_mod_time": "2025-01-01T11:00:00Z",
+			"outdated_deps": [],
+			"mode": "direct"
+		}`
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+
+		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.False(t, cacheUsed)
+		require.Equal(t, "cache_expired_files (go.mod and go.sum modified)", cacheState)
+	})
+
+	t.Run("cache mode mismatch", func(t *testing.T) {
+		// Create cache with different mode
+		cacheContent := `{
+			"last_check": "2025-01-01T13:00:00Z",
+			"go_mod_mod_time": "2025-01-01T12:00:00Z",
+			"go_sum_mod_time": "2025-01-01T12:00:00Z",
+			"outdated_deps": [],
+			"mode": "all"
+		}`
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+
+		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.False(t, cacheUsed)
+		require.Equal(t, "cache_mode_mismatch", cacheState)
+	})
+
+	t.Run("cache invalid - malformed JSON", func(t *testing.T) {
+		// Create invalid JSON cache file
+		require.NoError(t, os.WriteFile(cacheFile, []byte("invalid json content"), 0o600))
+
+		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.False(t, cacheUsed)
+		require.Equal(t, "cache_invalid", cacheState)
+	})
+
+	t.Run("cache not exists", func(t *testing.T) {
+		// Use non-existent cache file
+		nonExistentCache := filepath.Join(tempDir, "nonexistent.json")
+
+		cacheUsed, cacheState := checkAndUseDepCache(nonExistentCache, "direct", goModStat, goSumStat, logger)
+		require.False(t, cacheUsed)
+		require.Equal(t, "cache_not_exists", cacheState)
+	})
+}
+
+// mockFileInfo implements os.FileInfo for testing.
+type mockFileInfo struct {
+	name    string
+	modTime time.Time
+}
+
+func (m *mockFileInfo) Name() string       { return m.name }
+func (m *mockFileInfo) Size() int64        { return 0 }
+func (m *mockFileInfo) Mode() os.FileMode  { return 0o600 }
+func (m *mockFileInfo) ModTime() time.Time { return m.modTime }
+func (m *mockFileInfo) IsDir() bool        { return false }
+func (m *mockFileInfo) Sys() any           { return nil }
 
 type checkDependencyUpdatesTestCase struct {
 	name                 string

@@ -5,6 +5,7 @@ package cicd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,20 +26,30 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 
 	cacheFile := cryptoutilMagic.DepCacheFileName
 
-	// Check cache first
-	if checkAndUseDepCache(cacheFile, modeName, logger) {
-		return
+	// Get go.mod and go.sum file stats - needed for cache timestamp comparison
+	goModStat, err := os.Stat("go.mod")
+	if err != nil {
+		logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
+		os.Exit(1)
 	}
 
-	// Cache miss or expired, perform actual check
-	logger.Log("Performing fresh dependency check")
-
-	// Get file stats - go.sum is always needed, go.mod is handled below
 	goSumStat, err := os.Stat("go.sum")
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error reading go.sum: %v", err))
 		os.Exit(1)
 	}
+
+	// Check cache first
+	cacheUsed, cacheState := checkAndUseDepCache(cacheFile, modeName, goModStat, goSumStat, logger)
+	if cacheUsed {
+		return
+	}
+
+	// Log the cache miss reason
+	logger.Log(fmt.Sprintf("Cache miss: %s", cacheState))
+
+	// Cache miss or expired, perform actual check
+	logger.Log("Performing fresh dependency check")
 
 	// Run go list -u -m all to check for outdated dependencies
 	cmd := exec.Command("go", "list", "-u", "-m", "all")
@@ -52,8 +63,6 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	// Get direct dependencies for the check
 	var directDeps map[string]bool
 
-	var goModStat os.FileInfo
-
 	if mode == cryptoutilMagic.DepCheckDirect {
 		// Read go.mod file to get direct dependencies (this serves as exists check)
 		goModContent, err := os.ReadFile("go.mod")
@@ -62,23 +71,9 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 			os.Exit(1)
 		}
 
-		// Get file info for caching
-		goModStat, err = os.Stat("go.mod")
-		if err != nil {
-			logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
-			os.Exit(1)
-		}
-
 		directDeps, err = getDirectDependencies(goModContent)
 		if err != nil {
 			logger.Log(fmt.Sprintf("Error parsing direct dependencies: %v", err))
-			os.Exit(1)
-		}
-	} else {
-		// For all mode, we still need go.mod stat for caching
-		goModStat, err = os.Stat("go.mod")
-		if err != nil {
-			logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
 			os.Exit(1)
 		}
 	}
@@ -230,53 +225,67 @@ func getDirectDependencies(goModContent []byte) (map[string]bool, error) {
 
 // checkAndUseDepCache checks if valid cached dependency results exist and uses them if available.
 // Returns true if cache was used (and function should return), false if cache miss occurred.
-func checkAndUseDepCache(cacheFile, modeName string, logger *LogUtil) bool {
-	if cache, err := loadDepCache(cacheFile, modeName); err == nil {
-		// Check if go.mod or go.sum have changed since cache was created
-		goModStat, err := os.Stat("go.mod")
-		if err != nil {
-			logger.Log(fmt.Sprintf("Warning: Could not stat go.mod: %v", err))
-
-			goModStat = nil
+// Also returns a descriptive string about the cache state for logging.
+func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.FileInfo, logger *LogUtil) (bool, string) {
+	cache, err := loadDepCache(cacheFile, modeName)
+	if err != nil {
+		// Determine the specific reason for cache miss
+		if errors.Is(err, os.ErrNotExist) {
+			return false, "cache_not_exists"
 		}
-
-		goSumStat, err := os.Stat("go.sum")
-		if err != nil {
-			logger.Log(fmt.Sprintf("Warning: Could not stat go.sum: %v", err))
-
-			goSumStat = nil
+		// Check if it's a mode mismatch (our custom error)
+		if strings.Contains(err.Error(), "cache mode mismatch") {
+			return false, "cache_mode_mismatch"
 		}
+		// Other errors (JSON parsing, etc.)
+		return false, "cache_invalid"
+	}
 
-		cacheValid := true
-		if goModStat != nil && !goModStat.ModTime().Equal(cache.GoModModTime) {
-			cacheValid = false
-		}
+	// Cache loaded successfully, check if it's still valid
+	cacheValid := true
 
-		if goSumStat != nil && !goSumStat.ModTime().Equal(cache.GoSumModTime) {
-			cacheValid = false
-		}
+	var invalidReason string
 
-		if cacheValid && time.Since(cache.LastCheck) < time.Hour {
-			logger.Log(fmt.Sprintf("Using cached dependency check results (age: %.1fs)", time.Since(cache.LastCheck).Seconds()))
+	if goModStat != nil && !goModStat.ModTime().Equal(cache.GoModModTime) {
+		cacheValid = false
+		invalidReason = "go.mod modified"
+	}
 
-			if len(cache.OutdatedDeps) > 0 {
-				logger.Log(fmt.Sprintf("Found outdated Go dependencies (cached, checking %s)", modeName))
+	if goSumStat != nil && !goSumStat.ModTime().Equal(cache.GoSumModTime) {
+		cacheValid = false
 
-				for _, dep := range cache.OutdatedDeps {
-					fmt.Fprintln(os.Stderr, dep)
-				}
-
-				fmt.Fprintln(os.Stderr, "\nPlease run 'go get -u ./...' to update dependencies manually.")
-				os.Exit(1) // Fail to block push
-			}
-
-			logger.Log(fmt.Sprintf("All %s Go dependencies are up to date (cached)", modeName))
-
-			logger.Log("goUpdateDeps completed (cached)")
-
-			return true
+		if invalidReason == "" {
+			invalidReason = "go.sum modified"
+		} else {
+			invalidReason = "go.mod and go.sum modified"
 		}
 	}
 
-	return false
+	if !cacheValid {
+		return false, fmt.Sprintf("cache_expired_files (%s)", invalidReason)
+	}
+
+	if time.Since(cache.LastCheck) >= time.Hour {
+		return false, fmt.Sprintf("cache_expired_time (age: %.1fs)", time.Since(cache.LastCheck).Seconds())
+	}
+
+	// Cache is valid and fresh - use it
+	logger.Log(fmt.Sprintf("Using cached dependency check results (age: %.1fs)", time.Since(cache.LastCheck).Seconds()))
+
+	if len(cache.OutdatedDeps) > 0 {
+		logger.Log(fmt.Sprintf("Found outdated Go dependencies (cached, checking %s)", modeName))
+
+		for _, dep := range cache.OutdatedDeps {
+			fmt.Fprintln(os.Stderr, dep)
+		}
+
+		fmt.Fprintln(os.Stderr, "\nPlease run 'go get -u ./...' to update dependencies manually.")
+		os.Exit(1) // Fail to block push
+	}
+
+	logger.Log(fmt.Sprintf("All %s Go dependencies are up to date (cached)", modeName))
+
+	logger.Log("goUpdateDeps completed (cached)")
+
+	return true, "cache_hit"
 }
