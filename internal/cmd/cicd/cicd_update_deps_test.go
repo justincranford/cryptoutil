@@ -54,7 +54,7 @@ require (
 	github.com/example/direct3 v3.0.0
 )
 `
-		require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilMagic.CacheFilePermissions))
+		writeTempFile(t, tempDir, "go.mod", goModContent)
 
 		// Read the file content to pass to getDirectDependencies
 		goModBytes, err := os.ReadFile("go.mod")
@@ -93,7 +93,7 @@ require (
 		}()
 		require.NoError(t, os.Chdir(tempDir))
 
-		require.NoError(t, os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.21\n"), cryptoutilMagic.CacheFilePermissions))
+		writeTempFile(t, tempDir, "go.mod", "module example.com/test\ngo 1.21\n")
 
 		// Read the file content to pass to getDirectDependencies
 		goModBytes, err := os.ReadFile("go.mod")
