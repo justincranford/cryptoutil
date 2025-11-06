@@ -117,7 +117,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": ["github.com/example/old"],
 			"mode": "direct"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), cryptoutilMagic.CacheFilePermissions))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.NoError(t, err)
@@ -136,7 +136,7 @@ func TestLoadDepCache(t *testing.T) {
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
-		require.NoError(t, os.WriteFile(cacheFile, []byte("invalid json"), cryptoutilMagic.CacheFilePermissions))
+		writeTestFile(t, cacheFile, "invalid json")
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.Error(t, err)
 		require.Nil(t, cache)
@@ -151,7 +151,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), cryptoutilMagic.CacheFilePermissions))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cache, err := loadDepCache(cacheFile, "all")
 		require.Error(t, err)
@@ -211,7 +211,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`, recentTime.Format(time.RFC3339))
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.True(t, cacheUsed)
@@ -234,7 +234,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`, oldTime.Format(time.RFC3339))
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -251,7 +251,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -267,7 +267,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -283,7 +283,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -299,7 +299,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "all"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		writeTestFile(t, cacheFile, cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -308,7 +308,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 
 	t.Run("cache invalid - malformed JSON", func(t *testing.T) {
 		// Create invalid JSON cache file
-		require.NoError(t, os.WriteFile(cacheFile, []byte("invalid json content"), 0o600))
+		writeTestFile(t, cacheFile, "invalid json content")
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -333,7 +333,7 @@ type mockFileInfo struct {
 
 func (m *mockFileInfo) Name() string       { return m.name }
 func (m *mockFileInfo) Size() int64        { return 0 }
-func (m *mockFileInfo) Mode() os.FileMode  { return 0o600 }
+func (m *mockFileInfo) Mode() os.FileMode  { return cryptoutilMagic.CacheFilePermissions }
 func (m *mockFileInfo) ModTime() time.Time { return m.modTime }
 func (m *mockFileInfo) IsDir() bool        { return false }
 func (m *mockFileInfo) Sys() any           { return nil }

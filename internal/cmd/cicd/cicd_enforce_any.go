@@ -118,7 +118,7 @@ func processGoFile(filePath string) (int, error) {
 
 	// Only write if there were changes
 	if replacements > 0 {
-		err = os.WriteFile(filePath, []byte(modifiedContent), cryptoutilMagic.FilePermissionsDefault)
+		err = writeFile(filePath, modifiedContent, cryptoutilMagic.FilePermissionsDefault)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}

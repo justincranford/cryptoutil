@@ -64,15 +64,3 @@ func TestListAllFiles(t *testing.T) {
 	// Sort both slices for comparison
 	require.ElementsMatch(t, normalizedTestFiles, files, "Should find all expected files")
 }
-
-// writeTempFile is a helper function for creating temporary test files.
-// It creates a file with the given filename in the tempDir and writes the content to it.
-// Returns the full path to the created file.
-func writeTempFile(t *testing.T, tempDir, filename, content string) string {
-	t.Helper()
-
-	filePath := filepath.Join(tempDir, filename)
-	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
-
-	return filePath
-}
