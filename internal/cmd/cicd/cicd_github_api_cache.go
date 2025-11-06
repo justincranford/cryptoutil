@@ -111,7 +111,10 @@ func getLatestVersion(logger *LogUtil, actionName string) (string, error) {
 
 	client := &http.Client{}
 
+	startTime := time.Now()
 	resp, err := client.Do(req)
+	duration := time.Since(startTime)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request: %w", err)
 	}
@@ -142,6 +145,8 @@ func getLatestVersion(logger *LogUtil, actionName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read response body: %w", err)
 	}
+
+	logger.Log(fmt.Sprintf("API call completed [%s] (%dms)", url, duration.Milliseconds()))
 
 	var release GitHubRelease
 	if err := json.Unmarshal(body, &release); err != nil {
@@ -186,7 +191,10 @@ func getLatestTag(logger *LogUtil, actionName string) (string, error) {
 
 	client := &http.Client{}
 
+	startTime := time.Now()
 	resp, err := client.Do(req)
+	duration := time.Since(startTime)
+
 	if err != nil {
 		return "", fmt.Errorf("failed to make HTTP request for tags: %w", err)
 	}
@@ -207,6 +215,8 @@ func getLatestTag(logger *LogUtil, actionName string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to read tags response body: %w", err)
 	}
+
+	logger.Log(fmt.Sprintf("API call completed [%s] (%dms)", url, duration.Milliseconds()))
 
 	var tags []struct {
 		Name string `json:"name"`
