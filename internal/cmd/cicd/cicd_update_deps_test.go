@@ -9,6 +9,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCheckDependencyUpdates(t *testing.T) {
+	for _, tt := range checkDependencyUpdatesTestCases() {
+		t.Run(tt.name, func(t *testing.T) {
+			actualOutdatedDeps, err := checkDependencyUpdates(tt.depCheckMode, tt.actualDeps, tt.directDeps)
+			require.NoError(t, err)
+			require.Len(t, actualOutdatedDeps, len(tt.expectedOutdatedDeps))
+
+			for _, expectedOutdatedDep := range tt.expectedOutdatedDeps {
+				require.Contains(t, actualOutdatedDeps, expectedOutdatedDep)
+			}
+		})
+	}
+}
+
 type checkDependencyUpdatesTestCase struct {
 	name                 string
 	depCheckMode         cryptoutilMagic.DepCheckMode
@@ -17,7 +31,7 @@ type checkDependencyUpdatesTestCase struct {
 	directDeps           map[string]bool
 }
 
-func TestCheckDependencyUpdates(t *testing.T) {
+func checkDependencyUpdatesTestCases() []checkDependencyUpdatesTestCase {
 	dep1 := "example.com/dep1"
 	dep2 := "github.com/dep2"
 	dep3 := "example.com/dep3"
@@ -117,15 +131,5 @@ func TestCheckDependencyUpdates(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			actualOutdatedDeps, err := checkDependencyUpdates(tt.depCheckMode, tt.actualDeps, tt.directDeps)
-			require.NoError(t, err)
-			require.Len(t, actualOutdatedDeps, len(tt.expectedOutdatedDeps))
-
-			for _, expectedOutdatedDep := range tt.expectedOutdatedDeps {
-				require.Contains(t, actualOutdatedDeps, expectedOutdatedDep)
-			}
-		})
-	}
+	return tests
 }
