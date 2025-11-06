@@ -107,7 +107,6 @@ require (
 
 func TestLoadDepCache(t *testing.T) {
 	tempDir := t.TempDir()
-	cacheFile := filepath.Join(tempDir, "test_cache.json")
 
 	t.Run("valid cache file", func(t *testing.T) {
 		cacheContent := `{
@@ -117,7 +116,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": ["github.com/example/old"],
 			"mode": "direct"
 		}`
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.NoError(t, err)
@@ -136,7 +135,7 @@ func TestLoadDepCache(t *testing.T) {
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
-		writeTestFile(t, cacheFile, "invalid json")
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", "invalid json")
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.Error(t, err)
 		require.Nil(t, cache)
@@ -151,7 +150,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cache, err := loadDepCache(cacheFile, "all")
 		require.Error(t, err)
@@ -193,7 +192,6 @@ func TestSaveDepCache(t *testing.T) {
 
 func TestCheckAndUseDepCache(t *testing.T) {
 	tempDir := t.TempDir()
-	cacheFile := filepath.Join(tempDir, "test_cache.json")
 
 	// Create mock file stats
 	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)}
@@ -211,7 +209,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`, recentTime.Format(time.RFC3339))
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.True(t, cacheUsed)
@@ -234,7 +232,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`, oldTime.Format(time.RFC3339))
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -251,7 +249,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -267,7 +265,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -283,7 +281,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -299,7 +297,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "all"
 		}`
-		writeTestFile(t, cacheFile, cacheContent)
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -308,7 +306,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 
 	t.Run("cache invalid - malformed JSON", func(t *testing.T) {
 		// Create invalid JSON cache file
-		writeTestFile(t, cacheFile, "invalid json content")
+		cacheFile := writeTempFile(t, tempDir, "test_cache.json", "invalid json content")
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
