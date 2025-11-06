@@ -13,8 +13,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func TestCheckFileEncoding(t *testing.T) {
@@ -93,15 +91,6 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 }
 
-func writeTempFile(t *testing.T, tempDir, filename, content string) string {
-	t.Helper()
-
-	filePath := filepath.Join(tempDir, filename)
-	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
-
-	return filePath
-}
-
 func TestAllEnforceUtf8(t *testing.T) {
 	t.Run("no files to check", func(t *testing.T) {
 		// Capture stderr for testing output
@@ -138,13 +127,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create test files
-		validFile := filepath.Join(tempDir, "valid.go")
-		require.NoError(t, os.WriteFile(validFile, []byte("package main\n\nfunc main() {}\n"), cryptoutilMagic.CacheFilePermissions))
-
-		invalidFile := filepath.Join(tempDir, "invalid.go")
-		// Add UTF-8 BOM to make it invalid
-		content := "\xEF\xBB\xBFpackage main\n\nfunc main() {}\n"
-		require.NoError(t, os.WriteFile(invalidFile, []byte(content), cryptoutilMagic.CacheFilePermissions))
+		invalidFile := writeTempFile(t, tempDir, "invalid.go", "\xEF\xBB\xBFpackage main\n\nfunc main() {}\n")
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -166,11 +149,8 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create valid test files
-		goFile := filepath.Join(tempDir, "test.go")
-		require.NoError(t, os.WriteFile(goFile, []byte("package main\n\nfunc main() {}\n"), cryptoutilMagic.CacheFilePermissions))
-
-		mdFile := filepath.Join(tempDir, "README.md")
-		require.NoError(t, os.WriteFile(mdFile, []byte("# Test\n\nThis is a test file.\n"), cryptoutilMagic.CacheFilePermissions))
+		goFile := writeTempFile(t, tempDir, "test.go", "package main\n\nfunc main() {}\n")
+		mdFile := writeTempFile(t, tempDir, "README.md", "# Test\n\nThis is a test file.\n")
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -190,14 +170,9 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create files with different extensions
-		goFile := filepath.Join(tempDir, "test.go")
-		require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilMagic.CacheFilePermissions))
-
-		txtFile := filepath.Join(tempDir, "test.txt")
-		require.NoError(t, os.WriteFile(txtFile, []byte("text content"), cryptoutilMagic.CacheFilePermissions))
-
-		binaryFile := filepath.Join(tempDir, "test.bin")
-		require.NoError(t, os.WriteFile(binaryFile, []byte{0x00, 0x01, 0x02}, cryptoutilMagic.CacheFilePermissions))
+		goFile := writeTempFile(t, tempDir, "test.go", "package main\n")
+		txtFile := writeTempFile(t, tempDir, "test.txt", "text content")
+		binaryFile := writeTempFile(t, tempDir, "test.bin", string([]byte{0x00, 0x01, 0x02}))
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -217,17 +192,13 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create files including one that should be excluded
-		goFile := filepath.Join(tempDir, "test.go")
-		require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilMagic.CacheFilePermissions))
-
-		genFile := filepath.Join(tempDir, "generated_gen.go")
-		require.NoError(t, os.WriteFile(genFile, []byte("package main\n"), cryptoutilMagic.CacheFilePermissions))
+		_ = writeTempFile(t, tempDir, "test.go", "package main\n")
+		_ = writeTempFile(t, tempDir, "generated_gen.go", "package main\n")
 
 		// Create vendor directory and file
 		vendorDir := filepath.Join(tempDir, "vendor")
 		require.NoError(t, os.MkdirAll(vendorDir, 0o755))
-		vendorFile := filepath.Join(vendorDir, "lib.go")
-		require.NoError(t, os.WriteFile(vendorFile, []byte("package lib\n"), cryptoutilMagic.CacheFilePermissions))
+		writeTempFile(t, vendorDir, "lib.go", "package lib\n")
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()

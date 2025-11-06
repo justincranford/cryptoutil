@@ -25,10 +25,12 @@ func TestCollectAllFiles(t *testing.T) {
 	}
 
 	for _, file := range testFiles {
-		fullPath := filepath.Join(tempDir, file)
-		dir := filepath.Dir(fullPath)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
-		require.NoError(t, os.WriteFile(fullPath, []byte("test content"), cryptoutilMagic.CacheFilePermissions))
+		dir := filepath.Dir(file)
+		if dir != "." {
+			require.NoError(t, os.MkdirAll(filepath.Join(tempDir, dir), 0o755))
+		}
+
+		writeTempFile(t, tempDir, file, "test content")
 	}
 
 	// Change to temp directory
@@ -219,4 +221,16 @@ require (
 		require.NoError(t, err)
 		require.Empty(t, deps)
 	})
+}
+
+// writeTempFile is a helper function for creating temporary test files.
+// It creates a file with the given filename in the tempDir and writes the content to it.
+// Returns the full path to the created file.
+func writeTempFile(t *testing.T, tempDir, filename, content string) string {
+	t.Helper()
+
+	filePath := filepath.Join(tempDir, filename)
+	require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
+
+	return filePath
 }

@@ -10,17 +10,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func TestValidateWorkflowFile_NameAndPrefix(t *testing.T) {
 	tempDir := t.TempDir()
 
-	// Valid workflow file (filename prefixed with ci-, has name and logging token)
-	validPath := filepath.Join(tempDir, "ci-valid.yml")
-	validContent := `name: CI Valid Workflow
-on: [push]
+	// Valid workflow file (has ci- prefix, name, and logging)
+	validContent := `name: Valid CI Workflow
+on: push
 jobs:
 	test:
 		runs-on: ubuntu-latest
@@ -28,14 +25,13 @@ jobs:
 			- name: Log workflow
 				run: echo "workflow=${{ github.workflow }} file=$GITHUB_WORKFLOW"
 `
-	require.NoError(t, os.WriteFile(validPath, []byte(validContent), cryptoutilMagic.CacheFilePermissions))
+	validPath := writeTempFile(t, tempDir, "ci-valid.yml", validContent)
 
 	_, issues, err := validateAndParseWorkflowFile(validPath)
 	require.NoError(t, err)
 	require.Len(t, issues, 0, "Expected no issues for valid workflow file: %v", issues)
 
 	// Invalid workflow file (missing prefix, missing name, missing logging)
-	invalidPath := filepath.Join(tempDir, "dast.yml")
 	invalidContent := `on: push
 jobs:
 	build:
@@ -44,7 +40,7 @@ jobs:
 			- name: Do nothing
 				run: echo "hello"
 `
-	require.NoError(t, os.WriteFile(invalidPath, []byte(invalidContent), cryptoutilMagic.CacheFilePermissions))
+	invalidPath := writeTempFile(t, tempDir, "dast.yml", invalidContent)
 
 	_, issues2, err := validateAndParseWorkflowFile(invalidPath)
 	require.NoError(t, err)
@@ -55,7 +51,6 @@ func TestValidateWorkflowFile_LoggingRequirement(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// File that has prefix and name but lacks logging tokens
-	p := filepath.Join(tempDir, "ci-nolog.yml")
 	content := `name: Needs Logging
 on: push
 jobs:
@@ -65,7 +60,7 @@ jobs:
 			- name: No log here
 				run: echo "just a message"
 `
-	require.NoError(t, os.WriteFile(p, []byte(content), cryptoutilMagic.CacheFilePermissions))
+	p := writeTempFile(t, tempDir, "ci-nolog.yml", content)
 
 	_, issues, err := validateAndParseWorkflowFile(p)
 	require.NoError(t, err)
@@ -138,8 +133,7 @@ jobs:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := filepath.Join(tempDir, tt.filename)
-			require.NoError(t, os.WriteFile(path, []byte(tt.content), cryptoutilMagic.CacheFilePermissions))
+			path := writeTempFile(t, tempDir, tt.filename, tt.content)
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
@@ -225,8 +219,7 @@ jobs:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := filepath.Join(tempDir, tt.filename)
-			require.NoError(t, os.WriteFile(path, []byte(tt.content), cryptoutilMagic.CacheFilePermissions))
+			path := writeTempFile(t, tempDir, tt.filename, tt.content)
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
@@ -309,8 +302,7 @@ jobs:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := filepath.Join(tempDir, tt.filename)
-			require.NoError(t, os.WriteFile(path, []byte(tt.content), cryptoutilMagic.CacheFilePermissions))
+			path := writeTempFile(t, tempDir, tt.filename, tt.content)
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 
@@ -342,9 +334,6 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	// Create temporary exceptions file
 	tempDir := t.TempDir()
 
-	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
-	require.NoError(t, os.MkdirAll(filepath.Dir(exceptionsFile), 0o755), "Failed to create directory")
-
 	exceptionsData := WorkflowActionExceptions{
 		Exceptions: map[string]WorkflowActionException{
 			"actions/checkout": {
@@ -357,7 +346,9 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	data, err := json.MarshalIndent(exceptionsData, "", "  ")
 	require.NoError(t, err, "Failed to marshal JSON")
 
-	require.NoError(t, os.WriteFile(exceptionsFile, data, cryptoutilMagic.CacheFilePermissions), "Failed to write file")
+	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
+	require.NoError(t, os.MkdirAll(filepath.Dir(exceptionsFile), 0o755), "Failed to create directory")
+	_ = writeTempFile(t, filepath.Dir(exceptionsFile), "workflows-outdated-action-exemptions.json", string(data))
 
 	// Change to temp directory
 	oldWd, err := os.Getwd()
@@ -378,7 +369,6 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 func TestParseWorkflowFile(t *testing.T) {
 	// Create a temporary workflow file
 	tempDir := t.TempDir()
-	workflowFile := filepath.Join(tempDir, "test.yml")
 
 	content := `
 name: Test Workflow
@@ -392,9 +382,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v4
 `
 
-	if err := os.WriteFile(workflowFile, []byte(content), cryptoutilMagic.CacheFilePermissions); err != nil {
-		require.NoError(t, err, "Failed to write workflow file")
-	}
+	workflowFile := writeTempFile(t, tempDir, "test.yml", content)
 
 	actions, err := parseWorkflowFile(workflowFile)
 	require.NoError(t, err, "Expected no error parsing workflow file")

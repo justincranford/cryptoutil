@@ -7,8 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 const (
@@ -26,7 +24,6 @@ func TestGoEnforceAny_ProcessGoFile(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Test case 1: File with interface{} that should be replaced
-	testFile1 := filepath.Join(tempDir, "test1.go")
 	content1 := testPackageMain + `
 
 ` + testImportFmt + `
@@ -39,10 +36,7 @@ func process(data interface{}) interface{} {
 	return data
 }
 `
-
-	if err := os.WriteFile(testFile1, []byte(content1), cryptoutilMagic.CacheFilePermissions); err != nil {
-		require.NoError(t, err, "Failed to create test file")
-	}
+	testFile1 := writeTempFile(t, tempDir, "test1.go", content1)
 
 	// Process the file
 	replacements1, err := processGoFile(testFile1)
@@ -73,17 +67,13 @@ func process(data any) any {
 	require.Equal(t, expectedContent1, string(modifiedContent1), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent1), expectedContent1)
 
 	// Test case 2: File with no any (should not be modified)
-	testFile2 := filepath.Join(tempDir, "test2.go")
 	content2 := testPackageMain + `
 
 ` + testImportFmt + testFuncMainStart + `
 	var x int
 	fmt.Println(x)
 ` + testFuncMainEnd
-
-	if err := os.WriteFile(testFile2, []byte(content2), cryptoutilMagic.CacheFilePermissions); err != nil {
-		require.NoError(t, err, "Failed to create test file")
-	}
+	testFile2 := writeTempFile(t, tempDir, "test2.go", content2)
 
 	// Process the file
 	replacements2, err := processGoFile(testFile2)
@@ -104,16 +94,12 @@ func process(data any) any {
 	require.Equal(t, expectedContent2, string(modifiedContent2), "File content was not modified as expected.\nGot:\n%s\nExpected:\n%s", string(modifiedContent2), expectedContent2)
 
 	// Test case 3: File with interface{} in comments and strings (currently replaced - limitation of simple regex)
-	testFile3 := filepath.Join(tempDir, "test3.go")
 	content3 := testPackageMain + `
 // This is a comment with interface{} that should not be replaced` + testFuncMainStart + `
 	var x interface{}` + testStrAssignmentInterface + `
 	fmt.Println(x, str)
 ` + testFuncMainEnd
-
-	if err := os.WriteFile(testFile3, []byte(content3), cryptoutilMagic.CacheFilePermissions); err != nil {
-		require.NoError(t, err, "Failed to create test file")
-	}
+	testFile3 := writeTempFile(t, tempDir, "test3.go", content3)
 
 	// Process the file
 	replacements3, err := processGoFile(testFile3)
@@ -142,24 +128,16 @@ func TestGoEnforceAny_RunGoEnforceAny(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create test Go files with interface{}
-	testFile1 := filepath.Join(tempDir, "test1.go")
 	content1 := testPackageMain + `
 func main() {
 	var x interface{}
 }
 `
+	testFile1 := writeTempFile(t, tempDir, "test1.go", content1)
 
-	if err := os.WriteFile(testFile1, []byte(content1), cryptoutilMagic.CacheFilePermissions); err != nil {
-		require.NoError(t, err, "Failed to create test file")
-	}
-
-	testFile2 := filepath.Join(tempDir, "test2.go")
 	content2 := testPackageMain + testTypeMyStructInterface + `
 `
-
-	if err := os.WriteFile(testFile2, []byte(content2), cryptoutilMagic.CacheFilePermissions); err != nil {
-		require.NoError(t, err, "Failed to create test file")
-	}
+	testFile2 := writeTempFile(t, tempDir, "test2.go", content2)
 
 	// Simulate the file discovery logic from runGoEnforceAny
 	var goFiles []string
