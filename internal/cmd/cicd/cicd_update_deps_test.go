@@ -9,6 +9,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+type checkDependencyUpdatesTestCase struct {
+	name                 string
+	depCheckMode         cryptoutilMagic.DepCheckMode
+	actualDeps           string
+	expectedOutdatedDeps []string
+	directDeps           map[string]bool
+}
+
 func TestCheckDependencyUpdates(t *testing.T) {
 	dep1 := "example.com/dep1"
 	dep2 := "github.com/dep2"
@@ -22,15 +30,9 @@ func TestCheckDependencyUpdates(t *testing.T) {
 	outdatedDep2 := dep2 + " v0.14.0 [v0.15.0]"
 	outdatedDep3 := dep3 + " v1.3.0 [v1.4.0]"
 
-	tests := []struct {
-		name                 string
-		depCheckMode         cryptoutilMagic.DepCheckMode
-		actualDeps           string
-		expectedOutdatedDeps []string
-		directDeps           map[string]bool
-	}{
+	tests := []checkDependencyUpdatesTestCase{
 		{
-			name:                 "MalformedLines",
+			name:                 "Malformed Lines",
 			depCheckMode:         cryptoutilMagic.DepCheckAll,
 			actualDeps:           outdatedDep1 + "\nmalformed\n" + outdatedDep2,
 			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
