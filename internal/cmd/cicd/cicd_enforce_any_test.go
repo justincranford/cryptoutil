@@ -45,8 +45,7 @@ func process(data interface{}) interface{} {
 	require.Equal(t, 4, replacements1, "Expected 4 replacements")
 
 	// Verify the content was modified correctly
-	modifiedContent1, err := os.ReadFile(testFile1)
-	require.NoError(t, err, "Failed to read modified file")
+	modifiedContent1 := readTestFile(t, testFile1)
 
 	expectedContent1 := testPackageMain + `
 
@@ -82,8 +81,7 @@ func process(data any) any {
 	require.Equal(t, 0, replacements2, "Expected 0 replacements")
 
 	// Verify the content was not modified
-	modifiedContent2, err := os.ReadFile(testFile2)
-	require.NoError(t, err, "Failed to read modified file")
+	modifiedContent2 := readTestFile(t, testFile2)
 
 	expectedContent2 := testPackageMain + `
 
@@ -108,8 +106,7 @@ func process(data any) any {
 	require.Equal(t, 3, replacements3, "Expected 3 replacements (in comment, string, and code)")
 
 	// Verify the content was modified (currently replaces everywhere due to simple regex)
-	modifiedContent3, err := os.ReadFile(testFile3)
-	require.NoError(t, err, "Failed to read modified file")
+	modifiedContent3 := readTestFile(t, testFile3)
 
 	expectedContent3 := `package main
 // This is a comment with any that should not be replaced
@@ -176,13 +173,11 @@ func main() {
 	require.Equal(t, 2, totalReplacements, "Expected 2 total replacements")
 
 	// Verify files were actually modified
-	modifiedContent1, err := os.ReadFile(testFile1)
-	require.NoError(t, err, "Failed to read modified file")
+	modifiedContent1 := readTestFile(t, testFile1)
 
 	require.Contains(t, string(modifiedContent1), "var x any", "File 1 was not modified correctly. Content: %s", string(modifiedContent1))
 
-	modifiedContent2, err := os.ReadFile(testFile2)
-	require.NoError(t, err, "Failed to read modified file")
+	modifiedContent2 := readTestFile(t, testFile2)
 
 	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly. Content: %s", string(modifiedContent2))
 }

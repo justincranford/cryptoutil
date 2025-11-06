@@ -57,8 +57,7 @@ require (
 		writeTempFile(t, tempDir, "go.mod", goModContent)
 
 		// Read the file content to pass to getDirectDependencies
-		goModBytes, err := os.ReadFile("go.mod")
-		require.NoError(t, err)
+		goModBytes := readTestFile(t, "go.mod")
 
 		deps, err := getDirectDependencies(goModBytes)
 		require.NoError(t, err)
@@ -96,8 +95,7 @@ require (
 		writeTempFile(t, tempDir, "go.mod", "module example.com/test\ngo 1.21\n")
 
 		// Read the file content to pass to getDirectDependencies
-		goModBytes, err := os.ReadFile("go.mod")
-		require.NoError(t, err)
+		goModBytes := readTestFile(t, "go.mod")
 
 		deps, err := getDirectDependencies(goModBytes)
 		require.NoError(t, err)
@@ -175,8 +173,7 @@ func TestSaveDepCache(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify file was created and has correct content
-	content, err := os.ReadFile(cacheFile)
-	require.NoError(t, err)
+	content := readTestFile(t, cacheFile)
 
 	var loadedCache cryptoutilMagic.DepCache
 

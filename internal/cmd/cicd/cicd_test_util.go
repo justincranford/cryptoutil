@@ -2,6 +2,7 @@
 package cicd
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -25,4 +26,14 @@ func writeTestFile(t *testing.T, filePath, content string) {
 	t.Helper()
 
 	require.NoError(t, writeFile(filePath, content, cryptoutilMagic.CacheFilePermissions))
+}
+
+// readTestFile is a helper function for reading test files with content.
+func readTestFile(t *testing.T, filePath string) []byte {
+	t.Helper()
+
+	content, err := os.ReadFile(filePath)
+	require.NoError(t, err)
+
+	return content
 }
