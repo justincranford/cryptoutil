@@ -22,12 +22,10 @@ const (
 	latestDep3   = dep3 + " v1.4.0"
 )
 
-var (
-	goModStat = &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat = &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
-)
-
 func TestCheckDependencyUpdates(t *testing.T) {
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
+
 	tests := []struct {
 		name                 string
 		depCheckMode         cryptoutilMagic.DepCheckMode
@@ -81,20 +79,14 @@ func TestCheckDependencyUpdates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			validateOutdatedDeps(t, tt.depCheckMode, tt.actualDeps, tt.expectedOutdatedDeps, tt.directDeps)
+			actualOutdatedDeps, err := checkDependencyUpdates(tt.depCheckMode, goModStat, goSumStat, tt.actualDeps, tt.directDeps)
+			require.NoError(t, err)
+			require.Len(t, actualOutdatedDeps, len(tt.expectedOutdatedDeps))
+
+			for _, expectedOutdatedDep := range tt.expectedOutdatedDeps {
+				require.Contains(t, actualOutdatedDeps, expectedOutdatedDep)
+			}
 		})
-	}
-}
-
-func validateOutdatedDeps(t *testing.T, depCheckMode cryptoutilMagic.DepCheckMode, actualDeps string, expectedOutdatedDeps []string, directDeps map[string]bool) {
-	t.Helper()
-
-	actualOutdatedDeps, err := checkDependencyUpdates(depCheckMode, goModStat, goSumStat, actualDeps, directDeps)
-	require.NoError(t, err)
-	require.Len(t, actualOutdatedDeps, len(expectedOutdatedDeps))
-
-	for _, expectedOutdatedDep := range expectedOutdatedDeps {
-		require.Contains(t, actualOutdatedDeps, expectedOutdatedDep)
 	}
 }
 
