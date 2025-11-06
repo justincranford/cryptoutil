@@ -55,7 +55,11 @@ require (
 `
 		require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilMagic.CacheFilePermissions))
 
-		deps, err := getDirectDependencies()
+		// Read the file content to pass to getDirectDependencies
+		goModBytes, err := os.ReadFile("go.mod")
+		require.NoError(t, err)
+
+		deps, err := getDirectDependencies(goModBytes)
 		require.NoError(t, err)
 		require.Contains(t, deps, "github.com/example/direct1")
 		require.Contains(t, deps, "github.com/example/direct2")
@@ -73,10 +77,9 @@ require (
 		}()
 		require.NoError(t, os.Chdir(tempDir))
 
-		deps, err := getDirectDependencies()
-		require.Error(t, err)
-		require.Nil(t, deps)
-		require.Contains(t, err.Error(), "failed to read go.mod")
+		// This test case is no longer relevant since file reading is done in goUpdateDeps
+		// The error checking is now handled there
+		t.Skip("File reading is now handled in goUpdateDeps")
 	})
 
 	t.Run("empty go.mod", func(t *testing.T) {
@@ -91,7 +94,11 @@ require (
 
 		require.NoError(t, os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.21\n"), cryptoutilMagic.CacheFilePermissions))
 
-		deps, err := getDirectDependencies()
+		// Read the file content to pass to getDirectDependencies
+		goModBytes, err := os.ReadFile("go.mod")
+		require.NoError(t, err)
+
+		deps, err := getDirectDependencies(goModBytes)
 		require.NoError(t, err)
 		require.Empty(t, deps)
 	})

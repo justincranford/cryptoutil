@@ -40,6 +40,9 @@ const (
 	// Cache file permissions (owner read/write only).
 	CacheFilePermissions = 0o600
 
+	// Dependency cache file name.
+	DepCacheFileName = ".cicd-dep-cache.json"
+
 	// Dependency check mode names.
 	ModeNameDirect = "direct"
 	ModeNameAll    = "all"
