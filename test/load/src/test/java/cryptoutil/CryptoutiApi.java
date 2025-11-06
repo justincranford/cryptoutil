@@ -28,7 +28,7 @@ public class CryptoutiApi {
         Stream.generate((Supplier<Map<String, Object>>) () -> Map.of("uuid", UUID.randomUUID().toString()))
             .iterator();
 
-    public static final String[] ELASTIC_KEY_ENCRYPTION_ALGORITHMS = {
+    static final String[] ELASTIC_KEY_ENCRYPTION_ALGORITHMS = {
         // GCM with A256KW
         "A256GCM/A256KW",
         "A192GCM/A256KW",
@@ -64,7 +64,7 @@ public class CryptoutiApi {
     };
 
     // Signature algorithms from happyPathElasticKeyTestCasesSign in client_test.go
-    public static final String[] ELASTIC_KEY_SIGNATURE_ALGORITHMS = {
+    static final String[] ELASTIC_KEY_SIGNATURE_ALGORITHMS = {
         // "RS256",
         // "RS384",
         // "RS512",
@@ -80,7 +80,7 @@ public class CryptoutiApi {
         // "EdDSA",
     };
 
-    public static final String[] DATA_KEY_ALGORITHMS = {
+    static final String[] DATA_KEY_ALGORITHMS = {
         // "RSA/4096",
         // "RSA/3072",
         // "RSA/2048",
