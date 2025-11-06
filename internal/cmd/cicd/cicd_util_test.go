@@ -9,6 +9,7 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
+	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
 func TestListAllFiles(t *testing.T) {
@@ -42,7 +43,7 @@ func TestListAllFiles(t *testing.T) {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Collect files
-	files, err := listAllFiles()
+	files, err := cryptoutilFiles.ListAllFiles(".")
 	require.NoError(t, err)
 
 	// Should find all test files

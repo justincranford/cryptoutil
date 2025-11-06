@@ -4,6 +4,7 @@ package files
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // WriteFile writes content to a file with the specified permissions.
@@ -30,4 +31,27 @@ func WriteFile(filePath string, bytesOrString any, permissions os.FileMode) erro
 	}
 
 	return nil
+}
+
+// ListAllFiles walks the directory tree starting from startDirectory and returns all file paths.
+// It excludes directories and only includes regular files.
+func ListAllFiles(startDirectory string) ([]string, error) {
+	var allFiles []string
+
+	err := filepath.Walk(startDirectory, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			allFiles = append(allFiles, path)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to walk directory: %w", err)
+	}
+
+	return allFiles, nil
 }

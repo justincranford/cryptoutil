@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
 // Run executes the specified CI/CD check commands.
@@ -36,7 +37,7 @@ func Run(commands []string) error {
 	var allFiles []string
 
 	if doListAllFiles {
-		allFiles, err = listAllFiles()
+		allFiles, err = cryptoutilFiles.ListAllFiles(".")
 		if err != nil {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}

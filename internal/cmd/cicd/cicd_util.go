@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
@@ -74,25 +73,4 @@ func validateCommands(commands []string) (bool, error) {
 		commandCounts["github-workflow-lint"] > 0
 
 	return doListAllFiles, nil
-}
-
-func listAllFiles() ([]string, error) {
-	var allFiles []string
-
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !info.IsDir() {
-			allFiles = append(allFiles, path)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to walk directory: %w", err)
-	}
-
-	return allFiles, nil
 }
