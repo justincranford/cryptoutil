@@ -54,10 +54,10 @@ require (
 	github.com/example/direct3 v3.0.0
 )
 `
-		writeTempFile(t, tempDir, "go.mod", goModContent)
+		WriteTempFile(t, tempDir, "go.mod", goModContent)
 
 		// Read the file content to pass to getDirectDependencies
-		goModBytes := readTestFile(t, "go.mod")
+		goModBytes := ReadTestFile(t, "go.mod")
 
 		deps, err := getDirectDependencies(goModBytes)
 		require.NoError(t, err)
@@ -92,10 +92,10 @@ require (
 		}()
 		require.NoError(t, os.Chdir(tempDir))
 
-		writeTempFile(t, tempDir, "go.mod", "module example.com/test\ngo 1.21\n")
+		WriteTempFile(t, tempDir, "go.mod", "module example.com/test\ngo 1.21\n")
 
 		// Read the file content to pass to getDirectDependencies
-		goModBytes := readTestFile(t, "go.mod")
+		goModBytes := ReadTestFile(t, "go.mod")
 
 		deps, err := getDirectDependencies(goModBytes)
 		require.NoError(t, err)
@@ -114,7 +114,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": ["github.com/example/old"],
 			"mode": "direct"
 		}`
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.NoError(t, err)
@@ -133,7 +133,7 @@ func TestLoadDepCache(t *testing.T) {
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", "invalid json")
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", "invalid json")
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.Error(t, err)
 		require.Nil(t, cache)
@@ -148,7 +148,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cache, err := loadDepCache(cacheFile, "all")
 		require.Error(t, err)
@@ -173,7 +173,7 @@ func TestSaveDepCache(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify file was created and has correct content
-	content := readTestFile(t, cacheFile)
+	content := ReadTestFile(t, cacheFile)
 
 	var loadedCache cryptoutilMagic.DepCache
 
@@ -206,7 +206,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`, recentTime.Format(time.RFC3339))
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.True(t, cacheUsed)
@@ -229,7 +229,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`, oldTime.Format(time.RFC3339))
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -246,7 +246,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -262,7 +262,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -278,7 +278,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -294,7 +294,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "all"
 		}`
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", cacheContent)
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
@@ -303,7 +303,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 
 	t.Run("cache invalid - malformed JSON", func(t *testing.T) {
 		// Create invalid JSON cache file
-		cacheFile := writeTempFile(t, tempDir, "test_cache.json", "invalid json content")
+		cacheFile := WriteTempFile(t, tempDir, "test_cache.json", "invalid json content")
 
 		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)

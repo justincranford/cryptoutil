@@ -28,7 +28,7 @@ func TestListAllFiles(t *testing.T) {
 			require.NoError(t, os.MkdirAll(filepath.Join(tempDir, dir), cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		}
 
-		writeTempFile(t, tempDir, file, "test content")
+		WriteTempFile(t, tempDir, file, "test content")
 	}
 
 	// Change to temp directory

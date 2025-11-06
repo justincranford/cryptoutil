@@ -11,25 +11,25 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// writeTempFile is a helper function for creating temporary test files.
-func writeTempFile(t *testing.T, tempDir, filename, content string) string {
+// WriteTempFile is a helper function for creating temporary test files.
+func WriteTempFile(t *testing.T, tempDir, filename, content string) string {
 	t.Helper()
 
 	filePath := filepath.Join(tempDir, filename)
-	writeTestFile(t, filePath, content)
+	WriteTestFile(t, filePath, content)
 
 	return filePath
 }
 
-// writeTestFile is a helper function for creating test files with content.
-func writeTestFile(t *testing.T, filePath, content string) {
+// WriteTestFile is a helper function for creating test files with content.
+func WriteTestFile(t *testing.T, filePath, content string) {
 	t.Helper()
 
 	require.NoError(t, writeFile(filePath, content, cryptoutilMagic.CacheFilePermissions))
 }
 
-// readTestFile is a helper function for reading test files with content.
-func readTestFile(t *testing.T, filePath string) []byte {
+// ReadTestFile is a helper function for reading test files with content.
+func ReadTestFile(t *testing.T, filePath string) []byte {
 	t.Helper()
 
 	content, err := os.ReadFile(filePath)

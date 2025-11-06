@@ -27,7 +27,7 @@ jobs:
 			- name: Log workflow
 				run: echo "workflow=${{ github.workflow }} file=$GITHUB_WORKFLOW"
 `
-	validPath := writeTempFile(t, tempDir, "ci-valid.yml", validContent)
+	validPath := WriteTempFile(t, tempDir, "ci-valid.yml", validContent)
 
 	_, issues, err := validateAndParseWorkflowFile(validPath)
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ jobs:
 			- name: Do nothing
 				run: echo "hello"
 `
-	invalidPath := writeTempFile(t, tempDir, "dast.yml", invalidContent)
+	invalidPath := WriteTempFile(t, tempDir, "dast.yml", invalidContent)
 
 	_, issues2, err := validateAndParseWorkflowFile(invalidPath)
 	require.NoError(t, err)
@@ -62,7 +62,7 @@ jobs:
 			- name: No log here
 				run: echo "just a message"
 `
-	p := writeTempFile(t, tempDir, "ci-nolog.yml", content)
+	p := WriteTempFile(t, tempDir, "ci-nolog.yml", content)
 
 	_, issues, err := validateAndParseWorkflowFile(p)
 	require.NoError(t, err)
@@ -135,7 +135,7 @@ jobs:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := writeTempFile(t, tempDir, tt.filename, tt.content)
+			path := WriteTempFile(t, tempDir, tt.filename, tt.content)
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
@@ -221,7 +221,7 @@ jobs:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := writeTempFile(t, tempDir, tt.filename, tt.content)
+			path := WriteTempFile(t, tempDir, tt.filename, tt.content)
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
@@ -304,7 +304,7 @@ jobs:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			path := writeTempFile(t, tempDir, tt.filename, tt.content)
+			path := WriteTempFile(t, tempDir, tt.filename, tt.content)
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 
@@ -350,7 +350,7 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 
 	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
 	require.NoError(t, os.MkdirAll(filepath.Dir(exceptionsFile), cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute), "Failed to create directory")
-	_ = writeTempFile(t, filepath.Dir(exceptionsFile), "workflows-outdated-action-exemptions.json", string(data))
+	_ = WriteTempFile(t, filepath.Dir(exceptionsFile), "workflows-outdated-action-exemptions.json", string(data))
 
 	// Change to temp directory
 	oldWd, err := os.Getwd()
@@ -384,7 +384,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v4
 `
 
-	workflowFile := writeTempFile(t, tempDir, "test.yml", content)
+	workflowFile := WriteTempFile(t, tempDir, "test.yml", content)
 
 	actions, err := parseWorkflowFile(workflowFile)
 	require.NoError(t, err, "Expected no error parsing workflow file")
