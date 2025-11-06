@@ -15,6 +15,7 @@
 package cicd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -76,4 +77,53 @@ func Run(commands []string) error {
 	logger.Log("Run completed")
 
 	return nil
+}
+
+func validateCommands(commands []string) (bool, error) {
+	logger := NewLogUtil("validateCommands")
+
+	if len(commands) == 0 {
+		logger.Log("validateCommands: empty commands")
+
+		return false, fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
+	}
+
+	var errs []error
+
+	commandCounts := make(map[string]int)
+
+	for _, command := range commands {
+		if cryptoutilMagic.ValidCommands[command] {
+			commandCounts[command]++
+		} else {
+			errs = append(errs, fmt.Errorf("unknown command: %s\n\n%s", command, cryptoutilMagic.UsageCICD))
+		}
+	}
+
+	// Check for duplicate commands
+	for command, count := range commandCounts {
+		if count > 1 {
+			errs = append(errs, fmt.Errorf("command '%s' specified %d times - each command can only be used once", command, count))
+		}
+	}
+
+	// Check for mutually exclusive commands
+	if commandCounts["go-update-direct-dependencies"] > 0 && commandCounts["go-update-all-dependencies"] > 0 {
+		errs = append(errs, fmt.Errorf("commands 'go-update-direct-dependencies' and 'go-update-all-dependencies' cannot be used together - choose one dependency update mode"))
+	}
+
+	if len(errs) > 0 {
+		logger.Log("validateCommands: validation errors")
+
+		return false, fmt.Errorf("command validation failed: %w", errors.Join(errs...))
+	}
+
+	logger.Log("validateCommands: success")
+
+	doListAllFiles := commandCounts["all-enforce-utf8"] > 0 ||
+		commandCounts["go-enforce-test-patterns"] > 0 ||
+		commandCounts["go-enforce-any"] > 0 ||
+		commandCounts["github-workflow-lint"] > 0
+
+	return doListAllFiles, nil
 }
