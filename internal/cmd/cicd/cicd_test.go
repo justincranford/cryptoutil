@@ -86,7 +86,7 @@ func TestValidateCommands_HappyPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := validateCommands(tt.commands)
+			err := validateCommands(tt.commands)
 			require.NoError(t, err, "Expected no error for valid commands: %v", tt.commands)
 		})
 	}
@@ -125,7 +125,7 @@ func TestValidateCommands_DuplicateCommands(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := validateCommands(tt.commands)
+			err := validateCommands(tt.commands)
 			require.Error(t, err, "Expected error for duplicate commands: %v", tt.commands)
 
 			errMsg := err.Error()
@@ -161,7 +161,7 @@ func TestValidateCommands_MutuallyExclusiveCommands(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := validateCommands(tt.commands)
+			err := validateCommands(tt.commands)
 			require.Error(t, err, "Expected error for mutually exclusive commands: %v", tt.commands)
 			require.Contains(t, err.Error(), tt.expected, "Error message should contain expected text")
 		})
@@ -198,7 +198,7 @@ func TestValidateCommands_EdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := validateCommands(tt.commands)
+			err := validateCommands(tt.commands)
 			if tt.expectError {
 				require.Error(t, err, "Expected error for edge case: %v", tt.commands)
 			} else {
@@ -243,7 +243,7 @@ func TestValidateCommands_MultipleErrorTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := validateCommands(tt.commands)
+			err := validateCommands(tt.commands)
 			require.Error(t, err, "Expected error for multiple error types: %v", tt.commands)
 
 			errMsg := err.Error()
@@ -256,76 +256,66 @@ func TestValidateCommands_MultipleErrorTypes(t *testing.T) {
 
 func TestValidateCommands(t *testing.T) {
 	tests := []struct {
-		name            string
-		commands        []string
-		expectedDoFiles bool
-		expectedError   bool
-		errorContains   string
+		name          string
+		commands      []string
+		expectedError bool
+		errorContains string
 	}{
 		{
-			name:            "empty commands",
-			commands:        []string{},
-			expectedDoFiles: false,
-			expectedError:   true,
-			errorContains:   "Usage:",
+			name:          "empty commands",
+			commands:      []string{},
+			expectedError: true,
+			errorContains: "Usage:",
 		},
 		{
-			name:            "nil commands",
-			commands:        nil,
-			expectedDoFiles: false,
-			expectedError:   true,
-			errorContains:   "Usage:",
+			name:          "nil commands",
+			commands:      nil,
+			expectedError: true,
+			errorContains: "Usage:",
 		},
 		{
-			name:            "single valid command that needs files",
-			commands:        []string{"all-enforce-utf8"},
-			expectedDoFiles: true,
-			expectedError:   false,
+			name:          "single valid command that needs files",
+			commands:      []string{"all-enforce-utf8"},
+			expectedError: false,
 		},
 		{
-			name:            "single valid command that doesn't need files",
-			commands:        []string{"go-update-direct-dependencies"},
-			expectedDoFiles: false,
-			expectedError:   false,
+			name:          "single valid command that doesn't need files",
+			commands:      []string{"go-update-direct-dependencies"},
+			expectedError: false,
 		},
 		{
-			name:            "multiple valid commands",
-			commands:        []string{"all-enforce-utf8", "go-update-direct-dependencies"},
-			expectedDoFiles: true,
-			expectedError:   false,
+			name:          "multiple valid commands",
+			commands:      []string{"all-enforce-utf8", "go-update-direct-dependencies"},
+			expectedError: false,
 		},
 		{
-			name:            "unknown command",
-			commands:        []string{"unknown-command"},
-			expectedDoFiles: false,
-			expectedError:   true,
-			errorContains:   "unknown command",
+			name:          "unknown command",
+			commands:      []string{"unknown-command"},
+			expectedError: true,
+			errorContains: "unknown command",
 		},
 		{
-			name:            "duplicate command",
-			commands:        []string{"all-enforce-utf8", "all-enforce-utf8"},
-			expectedDoFiles: false,
-			expectedError:   true,
-			errorContains:   "specified 2 times",
+			name:          "duplicate command",
+			commands:      []string{"all-enforce-utf8", "all-enforce-utf8"},
+			expectedError: true,
+			errorContains: "specified 2 times",
 		},
 		{
-			name:            "mutually exclusive commands",
-			commands:        []string{"go-update-direct-dependencies", "go-update-all-dependencies"},
-			expectedDoFiles: false,
-			expectedError:   true,
-			errorContains:   "cannot be used together",
+			name:          "mutually exclusive commands",
+			commands:      []string{"go-update-direct-dependencies", "go-update-all-dependencies"},
+			expectedError: true,
+			errorContains: "cannot be used together",
 		},
 		{
-			name:            "all valid commands",
-			commands:        []string{"all-enforce-utf8", "go-enforce-test-patterns", "go-enforce-any", "go-check-circular-package-dependencies", "go-update-direct-dependencies", "github-workflow-lint"},
-			expectedDoFiles: true,
-			expectedError:   false,
+			name:          "all valid commands",
+			commands:      []string{"all-enforce-utf8", "go-enforce-test-patterns", "go-enforce-any", "go-check-circular-package-dependencies", "go-update-direct-dependencies", "github-workflow-lint"},
+			expectedError: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			doFiles, err := validateCommands(tt.commands)
+			err := validateCommands(tt.commands)
 
 			if tt.expectedError {
 				require.Error(t, err, "Expected error for test case: %s", tt.name)
@@ -335,7 +325,6 @@ func TestValidateCommands(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err, "Expected no error for test case: %s", tt.name)
-				require.Equal(t, tt.expectedDoFiles, doFiles, "doFindAllFiles should match expected value")
 			}
 		})
 	}

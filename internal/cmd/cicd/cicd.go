@@ -28,7 +28,7 @@ import (
 func Run(commands []string) error {
 	logger := NewLogUtil("Run")
 
-	doListAllFiles, err := validateCommands(commands)
+	err := validateCommands(commands)
 	if err != nil {
 		return err
 	}
@@ -36,6 +36,16 @@ func Run(commands []string) error {
 	logger.Log("validateCommands completed")
 
 	var allFiles []string
+
+	doListAllFiles := false
+
+	for _, cmd := range commands {
+		if cmd == "all-enforce-utf8" || cmd == "go-enforce-test-patterns" || cmd == "go-enforce-any" || cmd == "github-workflow-lint" {
+			doListAllFiles = true
+
+			break
+		}
+	}
 
 	if doListAllFiles {
 		allFiles, err = cryptoutilFiles.ListAllFiles(".")
@@ -79,13 +89,13 @@ func Run(commands []string) error {
 	return nil
 }
 
-func validateCommands(commands []string) (bool, error) {
+func validateCommands(commands []string) error {
 	logger := NewLogUtil("validateCommands")
 
 	if len(commands) == 0 {
 		logger.Log("validateCommands: empty commands")
 
-		return false, fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
+		return fmt.Errorf("%s", cryptoutilMagic.UsageCICD)
 	}
 
 	var errs []error
@@ -115,15 +125,10 @@ func validateCommands(commands []string) (bool, error) {
 	if len(errs) > 0 {
 		logger.Log("validateCommands: validation errors")
 
-		return false, fmt.Errorf("command validation failed: %w", errors.Join(errs...))
+		return fmt.Errorf("command validation failed: %w", errors.Join(errs...))
 	}
 
 	logger.Log("validateCommands: success")
 
-	doListAllFiles := commandCounts["all-enforce-utf8"] > 0 ||
-		commandCounts["go-enforce-test-patterns"] > 0 ||
-		commandCounts["go-enforce-any"] > 0 ||
-		commandCounts["github-workflow-lint"] > 0
-
-	return doListAllFiles, nil
+	return nil
 }
