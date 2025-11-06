@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func TestValidateWorkflowFile_NameAndPrefix(t *testing.T) {
@@ -347,7 +349,7 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	require.NoError(t, err, "Failed to marshal JSON")
 
 	exceptionsFile := filepath.Join(tempDir, ".github", "workflows-outdated-action-exemptions.json")
-	require.NoError(t, os.MkdirAll(filepath.Dir(exceptionsFile), 0o755), "Failed to create directory")
+	require.NoError(t, os.MkdirAll(filepath.Dir(exceptionsFile), cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute), "Failed to create directory")
 	_ = writeTempFile(t, filepath.Dir(exceptionsFile), "workflows-outdated-action-exemptions.json", string(data))
 
 	// Change to temp directory

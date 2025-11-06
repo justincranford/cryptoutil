@@ -25,7 +25,7 @@ func TestListAllFiles(t *testing.T) {
 	for _, file := range testFiles {
 		dir := filepath.Dir(file)
 		if dir != "." {
-			require.NoError(t, os.MkdirAll(filepath.Join(tempDir, dir), 0o755))
+			require.NoError(t, os.MkdirAll(filepath.Join(tempDir, dir), cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		}
 
 		writeTempFile(t, tempDir, file, "test content")

@@ -68,12 +68,12 @@ func validateCommands(commands []string) (bool, error) {
 
 	logger.Log("validateCommands: success")
 
-	doFindAllFiles := commandCounts["all-enforce-utf8"] > 0 ||
+	doListAllFiles := commandCounts["all-enforce-utf8"] > 0 ||
 		commandCounts["go-enforce-test-patterns"] > 0 ||
 		commandCounts["go-enforce-any"] > 0 ||
 		commandCounts["github-workflow-lint"] > 0
 
-	return doFindAllFiles, nil
+	return doListAllFiles, nil
 }
 
 func listAllFiles() ([]string, error) {

@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func TestCheckFileEncoding(t *testing.T) {
@@ -197,7 +199,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Create vendor directory and file
 		vendorDir := filepath.Join(tempDir, "vendor")
-		require.NoError(t, os.MkdirAll(vendorDir, 0o755))
+		require.NoError(t, os.MkdirAll(vendorDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		writeTempFile(t, vendorDir, "lib.go", "package lib\n")
 
 		// Change to temp directory

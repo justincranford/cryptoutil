@@ -26,7 +26,7 @@ import (
 func Run(commands []string) error {
 	logger := NewLogUtil("Run")
 
-	doFindAllFiles, err := validateCommands(commands)
+	doListAllFiles, err := validateCommands(commands)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func Run(commands []string) error {
 
 	var allFiles []string
 
-	if doFindAllFiles {
+	if doListAllFiles {
 		allFiles, err = listAllFiles()
 		if err != nil {
 			return fmt.Errorf("failed to collect files: %w", err)
