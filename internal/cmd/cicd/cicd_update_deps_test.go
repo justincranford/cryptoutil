@@ -52,6 +52,9 @@ func checkDependencyUpdatesTestCases() []checkDependencyUpdatesTestCase {
 			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
 			directDeps:           map[string]bool{dep1: true, dep2: true},
 		},
+
+		// All mode test cases
+
 		{
 			name:                 "0 Deps, 0 Outdated, All mode",
 			depCheckMode:         cryptoutilMagic.DepCheckAll,
@@ -125,6 +128,86 @@ func checkDependencyUpdatesTestCases() []checkDependencyUpdatesTestCase {
 		{
 			name:                 "3 Direct Deps, 1 Outdated (Third), All mode",
 			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1 + "\n" + latestDep2 + "\n" + outdatedDep3,
+			expectedOutdatedDeps: []string{outdatedDep3},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
+		},
+
+		// Direct mode test cases
+
+		{
+			name:                 "0 Deps, 0 Direct Outdated, Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           "",
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{},
+		},
+		{
+			name:                 "1 Direct Deps, 0 Direct Outdated, Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           latestDep1,
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{dep1: true},
+		},
+		{
+			name:                 "1 Direct Deps, 1 Direct Outdated, Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           outdatedDep1,
+			expectedOutdatedDeps: []string{outdatedDep1},
+			directDeps:           map[string]bool{dep1: true},
+		},
+		{
+			name:                 "2 Direct Deps, 0 Direct Outdated, Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           latestDep1 + "\n" + latestDep2,
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "2 Direct Deps, 1 Outdated (First), Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           outdatedDep1 + "\n" + latestDep2,
+			expectedOutdatedDeps: []string{outdatedDep1},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "2 Direct Deps, 1 Outdated (Second), Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           latestDep1 + "\n" + outdatedDep2,
+			expectedOutdatedDeps: []string{outdatedDep2},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "2 Direct Deps, 2 Direct Outdated, Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           outdatedDep1 + "\n" + outdatedDep2,
+			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "3 Direct Deps, 0 Direct Outdated, Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           latestDep1 + "\n" + latestDep2 + "\n" + latestDep3,
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
+		},
+		{
+			name:                 "3 Direct Deps, 1 Direct Outdated (First), Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           outdatedDep1 + "\n" + latestDep2 + "\n" + latestDep3,
+			expectedOutdatedDeps: []string{outdatedDep1},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
+		},
+		{
+			name:                 "3 Direct Deps, 1 Direct Outdated (Second), Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
+			actualDeps:           latestDep1 + "\n" + outdatedDep2 + "\n" + latestDep3,
+			expectedOutdatedDeps: []string{outdatedDep2},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
+		},
+		{
+			name:                 "3 Direct Deps, 1 Direct Outdated (Third), Direct mode",
+			depCheckMode:         cryptoutilMagic.DepCheckDirect,
 			actualDeps:           latestDep1 + "\n" + latestDep2 + "\n" + outdatedDep3,
 			expectedOutdatedDeps: []string{outdatedDep3},
 			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
