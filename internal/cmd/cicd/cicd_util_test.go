@@ -28,7 +28,7 @@ func TestCollectAllFiles(t *testing.T) {
 		fullPath := filepath.Join(tempDir, file)
 		dir := filepath.Dir(fullPath)
 		require.NoError(t, os.MkdirAll(dir, 0o755))
-		require.NoError(t, os.WriteFile(fullPath, []byte("test content"), 0o600))
+		require.NoError(t, os.WriteFile(fullPath, []byte("test content"), cryptoutilMagic.CacheFilePermissions))
 	}
 
 	// Change to temp directory
@@ -77,7 +77,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": ["github.com/example/old"],
 			"mode": "direct"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), cryptoutilMagic.CacheFilePermissions))
 
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestLoadDepCache(t *testing.T) {
 	})
 
 	t.Run("invalid JSON", func(t *testing.T) {
-		require.NoError(t, os.WriteFile(cacheFile, []byte("invalid json"), 0o600))
+		require.NoError(t, os.WriteFile(cacheFile, []byte("invalid json"), cryptoutilMagic.CacheFilePermissions))
 		cache, err := loadDepCache(cacheFile, "direct")
 		require.Error(t, err)
 		require.Nil(t, cache)
@@ -111,7 +111,7 @@ func TestLoadDepCache(t *testing.T) {
 			"outdated_deps": [],
 			"mode": "direct"
 		}`
-		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), 0o600))
+		require.NoError(t, os.WriteFile(cacheFile, []byte(cacheContent), cryptoutilMagic.CacheFilePermissions))
 
 		cache, err := loadDepCache(cacheFile, "all")
 		require.Error(t, err)
@@ -177,7 +177,7 @@ require (
 	github.com/example/direct3 v3.0.0
 )
 `
-		require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), 0o600))
+		require.NoError(t, os.WriteFile("go.mod", []byte(goModContent), cryptoutilMagic.CacheFilePermissions))
 
 		deps, err := getDirectDependencies()
 		require.NoError(t, err)
@@ -213,7 +213,7 @@ require (
 		}()
 		require.NoError(t, os.Chdir(tempDir))
 
-		require.NoError(t, os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.21\n"), 0o600))
+		require.NoError(t, os.WriteFile("go.mod", []byte("module example.com/test\ngo 1.21\n"), cryptoutilMagic.CacheFilePermissions))
 
 		deps, err := getDirectDependencies()
 		require.NoError(t, err)

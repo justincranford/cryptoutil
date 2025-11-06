@@ -13,6 +13,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func TestCheckFileEncoding(t *testing.T) {
@@ -21,7 +23,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	t.Run("valid UTF-8 file without BOM", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "valid_utf8.txt")
 		content := "Hello, world! This is valid UTF-8 content without BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Empty(t, issues, "Valid UTF-8 file should have no encoding issues")
@@ -31,7 +33,7 @@ func TestCheckFileEncoding(t *testing.T) {
 		filePath := filepath.Join(tempDir, "utf8_bom.txt")
 		// UTF-8 BOM: EF BB BF
 		content := "\xEF\xBB\xBFHello, world! This has UTF-8 BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-8 BOM should have one issue")
@@ -42,7 +44,7 @@ func TestCheckFileEncoding(t *testing.T) {
 		filePath := filepath.Join(tempDir, "utf16_le_bom.txt")
 		// UTF-16 LE BOM: FF FE
 		content := "\xFF\xFEHello, world! This has UTF-16 LE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-16 LE BOM should have one issue")
@@ -53,7 +55,7 @@ func TestCheckFileEncoding(t *testing.T) {
 		filePath := filepath.Join(tempDir, "utf16_be_bom.txt")
 		// UTF-16 BE BOM: FE FF
 		content := "\xFE\xFFHello, world! This has UTF-16 BE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-16 BE BOM should have one issue")
@@ -64,7 +66,7 @@ func TestCheckFileEncoding(t *testing.T) {
 		filePath := filepath.Join(tempDir, "utf32_le_bom.txt")
 		// UTF-32 LE BOM: FF FE 00 00
 		content := "\xFF\xFE\x00\x00Hello, world! This has UTF-32 LE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-32 LE BOM should have one issue")
@@ -75,7 +77,7 @@ func TestCheckFileEncoding(t *testing.T) {
 		filePath := filepath.Join(tempDir, "utf32_be_bom.txt")
 		// UTF-32 BE BOM: 00 00 FE FF
 		content := "\x00\x00\xFE\xFFHello, world! This has UTF-32 BE BOM."
-		require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-32 BE BOM should have one issue")
@@ -92,7 +94,7 @@ func TestCheckFileEncoding(t *testing.T) {
 
 	t.Run("empty file", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "empty.txt")
-		require.NoError(t, os.WriteFile(filePath, []byte(""), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(""), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Empty(t, issues, "Empty file should have no encoding issues")
@@ -102,7 +104,7 @@ func TestCheckFileEncoding(t *testing.T) {
 		filePath := filepath.Join(tempDir, "only_bom.txt")
 		// Only UTF-8 BOM
 		content := "\xEF\xBB\xBF"
-		require.NoError(t, os.WriteFile(filePath, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with only BOM should have one issue")
@@ -147,12 +149,12 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Create test files
 		validFile := filepath.Join(tempDir, "valid.go")
-		require.NoError(t, os.WriteFile(validFile, []byte("package main\n\nfunc main() {}\n"), 0o600))
+		require.NoError(t, os.WriteFile(validFile, []byte("package main\n\nfunc main() {}\n"), cryptoutilMagic.CacheFilePermissions))
 
 		invalidFile := filepath.Join(tempDir, "invalid.go")
 		// Add UTF-8 BOM to make it invalid
 		content := "\xEF\xBB\xBFpackage main\n\nfunc main() {}\n"
-		require.NoError(t, os.WriteFile(invalidFile, []byte(content), 0o600))
+		require.NoError(t, os.WriteFile(invalidFile, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -175,10 +177,10 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Create valid test files
 		goFile := filepath.Join(tempDir, "test.go")
-		require.NoError(t, os.WriteFile(goFile, []byte("package main\n\nfunc main() {}\n"), 0o600))
+		require.NoError(t, os.WriteFile(goFile, []byte("package main\n\nfunc main() {}\n"), cryptoutilMagic.CacheFilePermissions))
 
 		mdFile := filepath.Join(tempDir, "README.md")
-		require.NoError(t, os.WriteFile(mdFile, []byte("# Test\n\nThis is a test file.\n"), 0o600))
+		require.NoError(t, os.WriteFile(mdFile, []byte("# Test\n\nThis is a test file.\n"), cryptoutilMagic.CacheFilePermissions))
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -199,13 +201,13 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Create files with different extensions
 		goFile := filepath.Join(tempDir, "test.go")
-		require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), 0o600))
+		require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilMagic.CacheFilePermissions))
 
 		txtFile := filepath.Join(tempDir, "test.txt")
-		require.NoError(t, os.WriteFile(txtFile, []byte("text content"), 0o600))
+		require.NoError(t, os.WriteFile(txtFile, []byte("text content"), cryptoutilMagic.CacheFilePermissions))
 
 		binaryFile := filepath.Join(tempDir, "test.bin")
-		require.NoError(t, os.WriteFile(binaryFile, []byte{0x00, 0x01, 0x02}, 0o600))
+		require.NoError(t, os.WriteFile(binaryFile, []byte{0x00, 0x01, 0x02}, cryptoutilMagic.CacheFilePermissions))
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -226,16 +228,16 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Create files including one that should be excluded
 		goFile := filepath.Join(tempDir, "test.go")
-		require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), 0o600))
+		require.NoError(t, os.WriteFile(goFile, []byte("package main\n"), cryptoutilMagic.CacheFilePermissions))
 
 		genFile := filepath.Join(tempDir, "generated_gen.go")
-		require.NoError(t, os.WriteFile(genFile, []byte("package main\n"), 0o600))
+		require.NoError(t, os.WriteFile(genFile, []byte("package main\n"), cryptoutilMagic.CacheFilePermissions))
 
 		// Create vendor directory and file
 		vendorDir := filepath.Join(tempDir, "vendor")
 		require.NoError(t, os.MkdirAll(vendorDir, 0o755))
 		vendorFile := filepath.Join(vendorDir, "lib.go")
-		require.NoError(t, os.WriteFile(vendorFile, []byte("package lib\n"), 0o600))
+		require.NoError(t, os.WriteFile(vendorFile, []byte("package lib\n"), cryptoutilMagic.CacheFilePermissions))
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()

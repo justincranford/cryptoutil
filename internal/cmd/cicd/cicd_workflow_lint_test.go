@@ -10,6 +10,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func TestValidateWorkflowFile_NameAndPrefix(t *testing.T) {
@@ -26,7 +28,7 @@ jobs:
 			- name: Log workflow
 				run: echo "workflow=${{ github.workflow }} file=$GITHUB_WORKFLOW"
 `
-	require.NoError(t, os.WriteFile(validPath, []byte(validContent), 0o600))
+	require.NoError(t, os.WriteFile(validPath, []byte(validContent), cryptoutilMagic.CacheFilePermissions))
 
 	_, issues, err := validateAndParseWorkflowFile(validPath)
 	require.NoError(t, err)
@@ -42,7 +44,7 @@ jobs:
 			- name: Do nothing
 				run: echo "hello"
 `
-	require.NoError(t, os.WriteFile(invalidPath, []byte(invalidContent), 0o600))
+	require.NoError(t, os.WriteFile(invalidPath, []byte(invalidContent), cryptoutilMagic.CacheFilePermissions))
 
 	_, issues2, err := validateAndParseWorkflowFile(invalidPath)
 	require.NoError(t, err)
@@ -63,7 +65,7 @@ jobs:
 			- name: No log here
 				run: echo "just a message"
 `
-	require.NoError(t, os.WriteFile(p, []byte(content), 0o600))
+	require.NoError(t, os.WriteFile(p, []byte(content), cryptoutilMagic.CacheFilePermissions))
 
 	_, issues, err := validateAndParseWorkflowFile(p)
 	require.NoError(t, err)
@@ -137,7 +139,7 @@ jobs:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := filepath.Join(tempDir, tt.filename)
-			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
+			require.NoError(t, os.WriteFile(path, []byte(tt.content), cryptoutilMagic.CacheFilePermissions))
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
@@ -224,7 +226,7 @@ jobs:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := filepath.Join(tempDir, tt.filename)
-			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
+			require.NoError(t, os.WriteFile(path, []byte(tt.content), cryptoutilMagic.CacheFilePermissions))
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 			require.NoError(t, err, "Should not error reading file")
@@ -308,7 +310,7 @@ jobs:
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := filepath.Join(tempDir, tt.filename)
-			require.NoError(t, os.WriteFile(path, []byte(tt.content), 0o600))
+			require.NoError(t, os.WriteFile(path, []byte(tt.content), cryptoutilMagic.CacheFilePermissions))
 
 			_, issues, err := validateAndParseWorkflowFile(path)
 
@@ -355,7 +357,7 @@ func TestLoadActionExceptions_WithFile(t *testing.T) {
 	data, err := json.MarshalIndent(exceptionsData, "", "  ")
 	require.NoError(t, err, "Failed to marshal JSON")
 
-	require.NoError(t, os.WriteFile(exceptionsFile, data, 0o600), "Failed to write file")
+	require.NoError(t, os.WriteFile(exceptionsFile, data, cryptoutilMagic.CacheFilePermissions), "Failed to write file")
 
 	// Change to temp directory
 	oldWd, err := os.Getwd()
@@ -390,7 +392,7 @@ jobs:
       - uses: golangci/golangci-lint-action@v4
 `
 
-	if err := os.WriteFile(workflowFile, []byte(content), 0o600); err != nil {
+	if err := os.WriteFile(workflowFile, []byte(content), cryptoutilMagic.CacheFilePermissions); err != nil {
 		require.NoError(t, err, "Failed to write workflow file")
 	}
 

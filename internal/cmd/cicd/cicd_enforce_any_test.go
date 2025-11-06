@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 const (
@@ -38,7 +40,7 @@ func process(data interface{}) interface{} {
 }
 `
 
-	if err := os.WriteFile(testFile1, []byte(content1), 0o600); err != nil {
+	if err := os.WriteFile(testFile1, []byte(content1), cryptoutilMagic.CacheFilePermissions); err != nil {
 		require.NoError(t, err, "Failed to create test file")
 	}
 
@@ -79,7 +81,7 @@ func process(data any) any {
 	fmt.Println(x)
 ` + testFuncMainEnd
 
-	if err := os.WriteFile(testFile2, []byte(content2), 0o600); err != nil {
+	if err := os.WriteFile(testFile2, []byte(content2), cryptoutilMagic.CacheFilePermissions); err != nil {
 		require.NoError(t, err, "Failed to create test file")
 	}
 
@@ -109,7 +111,7 @@ func process(data any) any {
 	fmt.Println(x, str)
 ` + testFuncMainEnd
 
-	if err := os.WriteFile(testFile3, []byte(content3), 0o600); err != nil {
+	if err := os.WriteFile(testFile3, []byte(content3), cryptoutilMagic.CacheFilePermissions); err != nil {
 		require.NoError(t, err, "Failed to create test file")
 	}
 
@@ -147,7 +149,7 @@ func main() {
 }
 `
 
-	if err := os.WriteFile(testFile1, []byte(content1), 0o600); err != nil {
+	if err := os.WriteFile(testFile1, []byte(content1), cryptoutilMagic.CacheFilePermissions); err != nil {
 		require.NoError(t, err, "Failed to create test file")
 	}
 
@@ -155,7 +157,7 @@ func main() {
 	content2 := testPackageMain + testTypeMyStructInterface + `
 `
 
-	if err := os.WriteFile(testFile2, []byte(content2), 0o600); err != nil {
+	if err := os.WriteFile(testFile2, []byte(content2), cryptoutilMagic.CacheFilePermissions); err != nil {
 		require.NoError(t, err, "Failed to create test file")
 	}
 
