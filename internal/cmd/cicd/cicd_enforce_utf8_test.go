@@ -15,13 +15,14 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
 
 func TestCheckFileEncoding(t *testing.T) {
 	tempDir := t.TempDir()
 
 	t.Run("valid UTF-8 file without BOM", func(t *testing.T) {
-		filePath := WriteTempFile(t, tempDir, "valid_utf8.txt", "Hello, world! This is valid UTF-8 content without BOM.")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "valid_utf8.txt", "Hello, world! This is valid UTF-8 content without BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 0, "Valid UTF-8 file without BOM should have no issues")
@@ -30,7 +31,7 @@ func TestCheckFileEncoding(t *testing.T) {
 
 	t.Run("file with UTF-8 BOM", func(t *testing.T) {
 		// UTF-8 BOM: EF BB BF
-		filePath := WriteTempFile(t, tempDir, "utf8_bom.txt", "\xEF\xBB\xBFHello, world! This has UTF-8 BOM.")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf8_bom.txt", "\xEF\xBB\xBFHello, world! This has UTF-8 BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-8 BOM should have one issue")
@@ -38,7 +39,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-16 LE BOM", func(t *testing.T) {
-		filePath := WriteTempFile(t, tempDir, "utf16_le_bom.txt", "\xFF\xFEHello, world! This has UTF-16 LE BOM.")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf16_le_bom.txt", "\xFF\xFEHello, world! This has UTF-16 LE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-16 LE BOM should have one issue")
@@ -46,7 +47,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-16 BE BOM", func(t *testing.T) {
-		filePath := WriteTempFile(t, tempDir, "utf16_be_bom.txt", "\xFE\xFFHello, world! This has UTF-16 BE BOM.")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf16_be_bom.txt", "\xFE\xFFHello, world! This has UTF-16 BE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-16 BE BOM should have one issue")
@@ -54,7 +55,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-32 LE BOM", func(t *testing.T) {
-		filePath := WriteTempFile(t, tempDir, "utf32_le_bom.txt", "\xFF\xFE\x00\x00Hello, world! This has UTF-32 LE BOM.")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf32_le_bom.txt", "\xFF\xFE\x00\x00Hello, world! This has UTF-32 LE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-32 LE BOM should have one issue")
@@ -62,7 +63,7 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("file with UTF-32 BE BOM", func(t *testing.T) {
-		filePath := WriteTempFile(t, tempDir, "utf32_be_bom.txt", "\x00\x00\xFE\xFFHello, world! This has UTF-32 BE BOM.")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "utf32_be_bom.txt", "\x00\x00\xFE\xFFHello, world! This has UTF-32 BE BOM.")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with UTF-32 BE BOM should have one issue")
@@ -78,14 +79,14 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 
 	t.Run("empty file", func(t *testing.T) {
-		filePath := WriteTempFile(t, tempDir, "empty.txt", "")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "empty.txt", "")
 
 		issues := checkFileEncoding(filePath)
 		require.Empty(t, issues, "Empty file should have no encoding issues")
 	})
 
 	t.Run("file with only BOM", func(t *testing.T) {
-		filePath := WriteTempFile(t, tempDir, "only_bom.txt", "\xEF\xBB\xBF")
+		filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, "only_bom.txt", "\xEF\xBB\xBF")
 
 		issues := checkFileEncoding(filePath)
 		require.Len(t, issues, 1, "File with only BOM should have one issue")
@@ -129,7 +130,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create test files
-		invalidFile := WriteTempFile(t, tempDir, "invalid.go", "\xEF\xBB\xBFpackage main\n\nfunc main() {}\n")
+		invalidFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "invalid.go", "\xEF\xBB\xBFpackage main\n\nfunc main() {}\n")
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -151,8 +152,8 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create valid test files
-		goFile := WriteTempFile(t, tempDir, "test.go", "package main\n\nfunc main() {}\n")
-		mdFile := WriteTempFile(t, tempDir, "README.md", "# Test\n\nThis is a test file.\n")
+		goFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.go", "package main\n\nfunc main() {}\n")
+		mdFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "README.md", "# Test\n\nThis is a test file.\n")
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -172,9 +173,9 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create files with different extensions
-		goFile := WriteTempFile(t, tempDir, "test.go", "package main\n")
-		txtFile := WriteTempFile(t, tempDir, "test.txt", "text content")
-		binaryFile := WriteTempFile(t, tempDir, "test.bin", string([]byte{0x00, 0x01, 0x02}))
+		goFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.go", "package main\n")
+		txtFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.txt", "text content")
+		binaryFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.bin", string([]byte{0x00, 0x01, 0x02}))
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()
@@ -194,13 +195,13 @@ func TestAllEnforceUtf8(t *testing.T) {
 		tempDir := t.TempDir()
 
 		// Create files including one that should be excluded
-		_ = WriteTempFile(t, tempDir, "test.go", "package main\n")
-		_ = WriteTempFile(t, tempDir, "generated_gen.go", "package main\n")
+		_ = cryptoutilTestutil.WriteTempFile(t, tempDir, "test.go", "package main\n")
+		_ = cryptoutilTestutil.WriteTempFile(t, tempDir, "generated_gen.go", "package main\n")
 
 		// Create vendor directory and file
 		vendorDir := filepath.Join(tempDir, "vendor")
 		require.NoError(t, os.MkdirAll(vendorDir, cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
-		WriteTempFile(t, vendorDir, "lib.go", "package lib\n")
+		cryptoutilTestutil.WriteTempFile(t, vendorDir, "lib.go", "package lib\n")
 
 		// Change to temp directory
 		oldWd, err := os.Getwd()

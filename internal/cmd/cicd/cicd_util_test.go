@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
 
 func TestListAllFiles(t *testing.T) {
@@ -28,7 +29,7 @@ func TestListAllFiles(t *testing.T) {
 			require.NoError(t, os.MkdirAll(filepath.Join(tempDir, dir), cryptoutilMagic.FilePermOwnerReadWriteExecuteGroupOtherReadExecute))
 		}
 
-		WriteTempFile(t, tempDir, file, "test content")
+		cryptoutilTestutil.WriteTempFile(t, tempDir, file, "test content")
 	}
 
 	// Change to temp directory

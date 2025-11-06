@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
 // goEnforceAny enforces custom Go source code fixes across all Go files.
@@ -118,7 +119,7 @@ func processGoFile(filePath string) (int, error) {
 
 	// Only write if there were changes
 	if replacements > 0 {
-		err = writeFile(filePath, modifiedContent, cryptoutilMagic.FilePermissionsDefault)
+		err = cryptoutilFiles.WriteFile(filePath, modifiedContent, cryptoutilMagic.FilePermissionsDefault)
 		if err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
 // goUpdateDeps checks for outdated Go dependencies and fails if any are found.
@@ -178,7 +179,7 @@ func saveDepCache(cacheFile string, cache cryptoutilMagic.DepCache) error {
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)
 	}
 
-	if err := writeFile(cacheFile, content, cryptoutilMagic.CacheFilePermissions); err != nil {
+	if err := cryptoutilFiles.WriteFile(cacheFile, content, cryptoutilMagic.CacheFilePermissions); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 

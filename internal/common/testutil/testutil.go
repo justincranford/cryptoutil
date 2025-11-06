@@ -1,5 +1,5 @@
-// Package cicd provides test utilities for CI/CD quality control checks.
-package cicd
+// Package testutil provides shared test utilities for file operations.
+package testutil
 
 import (
 	"os"
@@ -25,7 +25,8 @@ func WriteTempFile(t *testing.T, tempDir, filename, content string) string {
 func WriteTestFile(t *testing.T, filePath, content string) {
 	t.Helper()
 
-	require.NoError(t, writeFile(filePath, content, cryptoutilMagic.CacheFilePermissions))
+	err := os.WriteFile(filePath, []byte(content), cryptoutilMagic.CacheFilePermissions)
+	require.NoError(t, err)
 }
 
 // ReadTestFile is a helper function for reading test files with content.

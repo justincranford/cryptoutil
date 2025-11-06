@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
 
 const (
@@ -36,7 +38,7 @@ func process(data interface{}) interface{} {
 	return data
 }
 `
-	testFile1 := WriteTempFile(t, tempDir, "test1.go", content1)
+	testFile1 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test1.go", content1)
 
 	// Process the file
 	replacements1, err := processGoFile(testFile1)
@@ -45,7 +47,7 @@ func process(data interface{}) interface{} {
 	require.Equal(t, 4, replacements1, "Expected 4 replacements")
 
 	// Verify the content was modified correctly
-	modifiedContent1 := ReadTestFile(t, testFile1)
+	modifiedContent1 := cryptoutilTestutil.ReadTestFile(t, testFile1)
 
 	expectedContent1 := testPackageMain + `
 
@@ -72,7 +74,7 @@ func process(data any) any {
 	var x int
 	fmt.Println(x)
 ` + testFuncMainEnd
-	testFile2 := WriteTempFile(t, tempDir, "test2.go", content2)
+	testFile2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test2.go", content2)
 
 	// Process the file
 	replacements2, err := processGoFile(testFile2)
@@ -81,7 +83,7 @@ func process(data any) any {
 	require.Equal(t, 0, replacements2, "Expected 0 replacements")
 
 	// Verify the content was not modified
-	modifiedContent2 := ReadTestFile(t, testFile2)
+	modifiedContent2 := cryptoutilTestutil.ReadTestFile(t, testFile2)
 
 	expectedContent2 := testPackageMain + `
 
@@ -97,7 +99,7 @@ func process(data any) any {
 	var x interface{}` + testStrAssignmentInterface + `
 	fmt.Println(x, str)
 ` + testFuncMainEnd
-	testFile3 := WriteTempFile(t, tempDir, "test3.go", content3)
+	testFile3 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test3.go", content3)
 
 	// Process the file
 	replacements3, err := processGoFile(testFile3)
@@ -106,7 +108,7 @@ func process(data any) any {
 	require.Equal(t, 3, replacements3, "Expected 3 replacements (in comment, string, and code)")
 
 	// Verify the content was modified (currently replaces everywhere due to simple regex)
-	modifiedContent3 := ReadTestFile(t, testFile3)
+	modifiedContent3 := cryptoutilTestutil.ReadTestFile(t, testFile3)
 
 	expectedContent3 := `package main
 // This is a comment with any that should not be replaced
@@ -130,11 +132,11 @@ func main() {
 	var x interface{}
 }
 `
-	testFile1 := WriteTempFile(t, tempDir, "test1.go", content1)
+	testFile1 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test1.go", content1)
 
 	content2 := testPackageMain + testTypeMyStructInterface + `
 `
-	testFile2 := WriteTempFile(t, tempDir, "test2.go", content2)
+	testFile2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test2.go", content2)
 
 	// Simulate the file discovery logic from runGoEnforceAny
 	var goFiles []string
@@ -173,11 +175,11 @@ func main() {
 	require.Equal(t, 2, totalReplacements, "Expected 2 total replacements")
 
 	// Verify files were actually modified
-	modifiedContent1 := ReadTestFile(t, testFile1)
+	modifiedContent1 := cryptoutilTestutil.ReadTestFile(t, testFile1)
 
 	require.Contains(t, string(modifiedContent1), "var x any", "File 1 was not modified correctly. Content: %s", string(modifiedContent1))
 
-	modifiedContent2 := ReadTestFile(t, testFile2)
+	modifiedContent2 := cryptoutilTestutil.ReadTestFile(t, testFile2)
 
 	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly. Content: %s", string(modifiedContent2))
 }
