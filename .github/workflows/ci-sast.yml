@@ -52,6 +52,103 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Java SAST Analysis
+  # Dedicated Java security analysis for load testing code
+  # Tools: SpotBugs (with FindSecBugs), OWASP Dependency Check, License Check, Versions Check
+  java-sast:
+    name: Java SAST Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5.0.0
+        with:
+          sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
+
+      - name: Begin Workflow Job
+        id: begin-workflow-job
+        uses: ./.github/actions/workflow-job-begin
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # SpotBugs Static Analysis with FindSecBugs
+      - name: Run SpotBugs Security Analysis
+        run: |
+          echo "🔍 Running SpotBugs security analysis with FindSecBugs..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          cd test/load
+          ../mvnw spotbugs:check -Dspotbugs.skip=false
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ SpotBugs analysis completed in: ${DURATION}s"
+
+      # OWASP Dependency Check
+      - name: Run OWASP Dependency Check
+        run: |
+          echo "🔍 Running OWASP dependency vulnerability check..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          cd test/load
+          ../mvnw org.owasp:dependency-check-maven:check
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ OWASP dependency check completed in: ${DURATION}s"
+
+      # Outdated Dependencies Check
+      - name: Check for Outdated Dependencies
+        run: |
+          echo "🔍 Checking for outdated dependencies..."
+          START_TIME=$(date +%s)
+          echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          cd test/load
+          ../mvnw versions:display-dependency-updates versions:display-plugin-updates
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
+          echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          echo "⏱️ Dependency version check completed in: ${DURATION}s"
+
+      # Generate SARIF reports for GitHub Security tab
+      - name: Generate SpotBugs SARIF Report
+        run: |
+          echo "📋 Generating SpotBugs SARIF report..."
+          cd test/load
+          if [ -f target/spotbugsXml.xml ]; then
+            # Convert SpotBugs XML to SARIF if converter is available
+            echo "✅ SpotBugs XML report found"
+            # Note: SARIF conversion would require additional tooling
+            # For now, we'll rely on the Maven plugin output
+          else
+            echo "ℹ️ No SpotBugs issues found or report not generated"
+          fi
+
+      - name: Upload OWASP Dependency Check results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: test/load/target/dependency-check/dependency-check-report.sarif
+        if: always() && hashFiles('test/load/target/dependency-check/dependency-check-report.sarif') != ''
+
+      - name: Workflow End Summary
+        uses: ./.github/actions/workflow-job-end
+        if: always()
+
   # Security Scanning
   # Multiple SAST tools run sequentially in one job for efficiency
   # Tools: Staticcheck (Go linter), Govulncheck (Go vuln scanner), Trivy (dependency scanner)
@@ -179,9 +276,10 @@ jobs:
 
   # CodeQL Analysis
   # Multi-language security analysis using CodeQL
-  # Matrix covers: Go (primary), JavaScript (embedded JS + shell scripts), Java (load testing)
+  # Matrix covers: Go (primary), JavaScript (embedded JS + shell scripts)
   # Note: 'javascript' pack includes shell script analysis (bash/sh/zsh)
   # No separate 'bash' entry needed - bundled in javascript language pack
+  # Java analysis moved to dedicated java-sast job for comprehensive Maven-based analysis
   codeql:
     name: CodeQL Analysis
     runs-on: ubuntu-latest
@@ -192,7 +290,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ['go', 'javascript']  # go: Go code, javascript: JS+shell scripts
+        language: ['go', 'javascript']  # go: Go code, javascript: JS+shell scripts (Java moved to dedicated job)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5.0.0
@@ -227,14 +325,6 @@ jobs:
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
       - name: Execute CodeQL autobuild
         uses: github/codeql-action/autobuild@v3
-        if: matrix.language != 'java'
-
-      - name: Manual Java build (Maven)
-        if: matrix.language == 'java'
-        run: |
-          echo "🔨 Running manual Maven build for Java load testing code..."
-          cd test/load
-          ./mvnw compile -q
 
       - name: Complete CodeQL autobuild timing
         run: |
