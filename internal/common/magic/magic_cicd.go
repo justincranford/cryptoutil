@@ -47,6 +47,13 @@ const (
 	ModeNameDirect = "direct"
 	ModeNameAll    = "all"
 
+	// Time constants for dependency cache testing.
+	TestCacheValidMinutes = 30
+	TestCacheExpiredHours = 2
+
+	// Time constants for GitHub API cache testing.
+	TestGitHubAPICacheExpiredHours = 1
+
 	// Time format for logging and timestamps.
 	TimeFormat = "2006-01-02T15:04:05.999999999Z07:00"
 
@@ -83,6 +90,11 @@ var (
 	TestErrorfPattern = regexp.MustCompile(`\bt\.Errorf\s*\(`)
 	// TestFatalfPattern - Regex pattern to match test.Fatalf calls.
 	TestFatalfPattern = regexp.MustCompile(`\bt\.Fatalf\s*\(`)
+
+	// Test validation regex patterns for cicd test files.
+	TestErrorfValidationPattern  = regexp.MustCompile(`^t\.Errorf\([^)]+\)$`)
+	TestFErrorfValidationPattern = regexp.MustCompile(`^f\.Errorf\([^)]+\)$`)
+	TestFatalfValidationPattern  = regexp.MustCompile(`t\.Fatalf\([^)]+\)`)
 )
 
 // File patterns for CI/CD enforcement commands.

@@ -1,17 +1,18 @@
 package cicd
 
 import (
-	"regexp"
 	"testing"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
 )
 
 // Test regex patterns for validation.
 var (
-	testErrorfValidationPattern  = regexp.MustCompile(`^t\.Errorf\([^)]+\)$`)
-	testFErrorfValidationPattern = regexp.MustCompile(`^f\.Errorf\([^)]+\)$`)
-	testFatalfValidationPattern  = regexp.MustCompile(`t\.Fatalf\([^)]+\)`)
+	testErrorfValidationPattern  = cryptoutilMagic.TestErrorfValidationPattern
+	testFErrorfValidationPattern = cryptoutilMagic.TestFErrorfValidationPattern
+	testFatalfValidationPattern  = cryptoutilMagic.TestFatalfValidationPattern
 )
 
 func TestGoEnforceTestPatterns_RegexValidation(t *testing.T) {

@@ -35,7 +35,7 @@ func TestGitHubAPICache_Get(t *testing.T) {
 	cache.mu.Lock()
 	cache.cache["expired-key"] = GitHubAPICacheEntry{
 		Value:     "expired-value",
-		ExpiresAt: time.Now().UTC().Add(-time.Hour), // Expired 1 hour ago
+		ExpiresAt: time.Now().UTC().Add(-cryptoutilMagic.TestGitHubAPICacheExpiredHours * time.Hour), // Expired 1 hour ago
 	}
 	cache.mu.Unlock()
 

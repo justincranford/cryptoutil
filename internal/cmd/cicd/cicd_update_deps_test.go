@@ -199,7 +199,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 
 	t.Run("cache hit - valid cache with no outdated deps", func(t *testing.T) {
 		// Create a valid cache file with recent timestamp
-		recentTime := time.Now().UTC().Add(-30 * time.Minute) // 30 minutes ago
+		recentTime := time.Now().UTC().Add(-cryptoutilMagic.TestCacheValidMinutes * time.Minute) // 30 minutes ago
 		cacheContent := fmt.Sprintf(`{
 			"last_check": "%s",
 			"go_mod_mod_time": "2025-01-01T12:00:00Z",
@@ -217,7 +217,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 
 	t.Run("cache hit - valid cache with outdated deps", func(t *testing.T) {
 		// Create a valid cache file with recent timestamp and outdated deps
-		recentTime := time.Now().UTC().Add(-30 * time.Minute) // 30 minutes ago
+		recentTime := time.Now().UTC().Add(-cryptoutilMagic.TestCacheValidMinutes * time.Minute) // 30 minutes ago
 		cacheContent := fmt.Sprintf(`{
 			"last_check": "%s",
 			"go_mod_mod_time": "2025-01-01T12:00:00Z",
@@ -236,7 +236,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 
 	t.Run("cache expired - time based", func(t *testing.T) {
 		// Create cache older than 1 hour
-		oldTime := time.Now().UTC().Add(-2 * time.Hour)
+		oldTime := time.Now().UTC().Add(-cryptoutilMagic.TestCacheExpiredHours * time.Hour)
 		cacheContent := fmt.Sprintf(`{
 			"last_check": "%s",
 			"go_mod_mod_time": "2025-01-01T12:00:00Z",
