@@ -7,7 +7,6 @@
 package cicd
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -96,34 +95,10 @@ func TestCheckFileEncoding(t *testing.T) {
 
 func TestAllEnforceUtf8(t *testing.T) {
 	t.Run("no files to check", func(t *testing.T) {
-		// Capture stderr for testing output
-		oldStderr := os.Stderr
-		r, w, err := os.Pipe()
-		require.NoError(t, err)
-
-		os.Stderr = w
-
-		// Restore stderr after test
-		defer func() {
-			os.Stderr = oldStderr
-		}()
-
 		// Test with empty file list
 		logger := NewLogUtil("test")
-		allEnforceUtf8(logger, []string{})
-
-		// Close writer to flush output
-		w.Close()
-
-		// Read captured output
-		output, err := io.ReadAll(r)
-		require.NoError(t, err)
-
-		outputStr := string(output)
-
-		// Should contain success message for no files
-		require.Contains(t, outputStr, "allEnforceUtf8 completed (no files)", "Should indicate no files found")
-		require.Contains(t, outputStr, "[CICD] dur=", "Should contain performance logging")
+		err := allEnforceUtf8(logger, []string{})
+		require.NoError(t, err, "Should not return error for no files")
 	})
 
 	t.Run("files with encoding violations", func(t *testing.T) {
@@ -141,11 +116,11 @@ func TestAllEnforceUtf8(t *testing.T) {
 		}()
 		require.NoError(t, os.Chdir(tempDir))
 
-		// Since allEnforceUtf8 calls os.Exit(1) on violations, we can't test it directly
-		// Instead, test the checkFileEncoding function directly for the invalid file
-		issues := checkFileEncoding(invalidFile)
-		require.NotEmpty(t, issues, "Invalid file should have encoding issues")
-		require.Contains(t, issues[0], "contains UTF-8 BOM", "Should detect UTF-8 BOM")
+		// Test that allEnforceUtf8 returns an error for encoding violations
+		logger := NewLogUtil("test")
+		err = allEnforceUtf8(logger, []string{invalidFile})
+		require.Error(t, err, "Should return error for encoding violations")
+		require.Contains(t, err.Error(), "file encoding violations found", "Error should mention encoding violations")
 	})
 
 	t.Run("all files valid", func(t *testing.T) {
@@ -164,10 +139,10 @@ func TestAllEnforceUtf8(t *testing.T) {
 		}()
 		require.NoError(t, os.Chdir(tempDir))
 
-		// Test that the function completes without exiting (indicating success)
+		// Test that the function completes without error for valid files
 		logger := NewLogUtil("test")
-		// If we reach here, the function didn't call os.Exit(1), so it succeeded
-		allEnforceUtf8(logger, []string{goFile, mdFile})
+		err = allEnforceUtf8(logger, []string{goFile, mdFile})
+		require.NoError(t, err, "Should not return error for valid files")
 	})
 	t.Run("file filtering - include patterns", func(t *testing.T) {
 		tempDir := t.TempDir()
@@ -188,8 +163,8 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that only .go and .txt files are checked (binary should be excluded)
 		logger := NewLogUtil("test")
-		// If we reach here, the function succeeded and only checked the appropriate files
-		allEnforceUtf8(logger, []string{goFile, txtFile, binaryFile})
+		err = allEnforceUtf8(logger, []string{goFile, txtFile, binaryFile})
+		require.NoError(t, err, "Should not return error when only valid files are checked")
 	})
 	t.Run("file filtering - exclude patterns", func(t *testing.T) {
 		tempDir := t.TempDir()
@@ -214,7 +189,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that generated and vendor files are excluded
 		logger := NewLogUtil("test")
-		// If we reach here, the function succeeded and properly excluded files
-		allEnforceUtf8(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
+		err = allEnforceUtf8(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
+		require.NoError(t, err, "Should not return error when excluded files are properly filtered")
 	})
 }

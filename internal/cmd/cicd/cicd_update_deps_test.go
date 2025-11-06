@@ -209,15 +209,29 @@ func TestCheckAndUseDepCache(t *testing.T) {
 		}`, recentTime.Format(time.RFC3339))
 		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
-		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.True(t, cacheUsed)
-		require.Equal(t, "cache_hit", cacheState)
+		require.Equal(t, cacheHitState, cacheState)
+		require.NoError(t, err)
 	})
 
 	t.Run("cache hit - valid cache with outdated deps", func(t *testing.T) {
-		// This test would require capturing os.Exit, which is complex
-		// The logic is tested indirectly through integration tests
-		t.Skip("Cache hit with outdated deps causes os.Exit - tested via integration")
+		// Create a valid cache file with recent timestamp and outdated deps
+		recentTime := time.Now().UTC().Add(-30 * time.Minute) // 30 minutes ago
+		cacheContent := fmt.Sprintf(`{
+			"last_check": "%s",
+			"go_mod_mod_time": "2025-01-01T12:00:00Z",
+			"go_sum_mod_time": "2025-01-01T12:00:00Z",
+			"outdated_deps": ["github.com/example/dep v1.0.0 [v1.1.0]"],
+			"mode": "direct"
+		}`, recentTime.Format(time.RFC3339))
+		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
+
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		require.True(t, cacheUsed)
+		require.Equal(t, cacheHitState, cacheState)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "outdated dependencies found in cache")
 	})
 
 	t.Run("cache expired - time based", func(t *testing.T) {
@@ -232,10 +246,11 @@ func TestCheckAndUseDepCache(t *testing.T) {
 		}`, oldTime.Format(time.RFC3339))
 		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
-		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
 		require.Contains(t, cacheState, "cache_expired_time")
 		require.Contains(t, cacheState, "age:")
+		require.NoError(t, err)
 	})
 
 	t.Run("cache expired - go.mod modified", func(t *testing.T) {
@@ -249,9 +264,10 @@ func TestCheckAndUseDepCache(t *testing.T) {
 		}`
 		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
-		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
 		require.Equal(t, "cache_expired_files (go.mod modified)", cacheState)
+		require.NoError(t, err)
 	})
 
 	t.Run("cache expired - go.sum modified", func(t *testing.T) {
@@ -265,9 +281,10 @@ func TestCheckAndUseDepCache(t *testing.T) {
 		}`
 		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
-		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
 		require.Equal(t, "cache_expired_files (go.sum modified)", cacheState)
+		require.NoError(t, err)
 	})
 
 	t.Run("cache expired - both files modified", func(t *testing.T) {
@@ -281,9 +298,10 @@ func TestCheckAndUseDepCache(t *testing.T) {
 		}`
 		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
-		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
 		require.Equal(t, "cache_expired_files (go.mod and go.sum modified)", cacheState)
+		require.NoError(t, err)
 	})
 
 	t.Run("cache mode mismatch", func(t *testing.T) {
@@ -297,27 +315,30 @@ func TestCheckAndUseDepCache(t *testing.T) {
 		}`
 		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", cacheContent)
 
-		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
 		require.Equal(t, "cache_mode_mismatch", cacheState)
+		require.NoError(t, err)
 	})
 
 	t.Run("cache invalid - malformed JSON", func(t *testing.T) {
 		// Create invalid JSON cache file
 		cacheFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test_cache.json", "invalid json content")
 
-		cacheUsed, cacheState := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
 		require.Equal(t, "cache_invalid", cacheState)
+		require.NoError(t, err)
 	})
 
 	t.Run("cache not exists", func(t *testing.T) {
 		// Use non-existent cache file
 		nonExistentCache := filepath.Join(tempDir, "nonexistent.json")
 
-		cacheUsed, cacheState := checkAndUseDepCache(nonExistentCache, "direct", goModStat, goSumStat, logger)
+		cacheUsed, cacheState, err := checkAndUseDepCache(nonExistentCache, "direct", goModStat, goSumStat, logger)
 		require.False(t, cacheUsed)
 		require.Equal(t, "cache_not_exists", cacheState)
+		require.NoError(t, err)
 	})
 }
 

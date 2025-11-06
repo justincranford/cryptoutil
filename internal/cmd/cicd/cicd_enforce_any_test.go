@@ -2,8 +2,6 @@ package cicd
 
 import (
 	"os"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -122,8 +120,6 @@ func main() {
 }
 
 func TestGoEnforceAny_RunGoEnforceAny(t *testing.T) {
-	// Note: This test cannot easily test runGoEnforceAny() directly because it calls os.Exit(1)
-	// when files are modified. Instead, we test the core logic by simulating what it does.
 	tempDir := t.TempDir()
 
 	// Create test Go files with interface{}
@@ -138,48 +134,25 @@ func main() {
 `
 	testFile2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test2.go", content2)
 
-	// Simulate the file discovery logic from runGoEnforceAny
-	var goFiles []string
+	// Change to temp directory
+	oldWd, err := os.Getwd()
+	require.NoError(t, err)
 
-	err := filepath.Walk(tempDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+	defer func() {
+		require.NoError(t, os.Chdir(oldWd))
+	}()
+	require.NoError(t, os.Chdir(tempDir))
 
-		if !info.IsDir() && strings.HasSuffix(path, ".go") {
-			goFiles = append(goFiles, path)
-		}
-
-		return nil
-	})
-	require.NoError(t, err, "Failed to walk temp dir")
-
-	require.Len(t, goFiles, 2, "Expected 2 Go files")
-
-	// Process each file
-	filesModified := 0
-	totalReplacements := 0
-
-	for _, filePath := range goFiles {
-		replacements, err := processGoFile(filePath)
-		require.NoError(t, err, "Error processing %s", filePath)
-
-		if replacements > 0 {
-			filesModified++
-			totalReplacements += replacements
-		}
-	}
-
-	require.Equal(t, 2, filesModified, "Expected 2 files modified")
-
-	require.Equal(t, 2, totalReplacements, "Expected 2 total replacements")
+	// Test that goEnforceAny returns an error when files are modified
+	logger := NewLogUtil("test")
+	err = goEnforceAny(logger, []string{testFile1, testFile2})
+	require.Error(t, err, "Should return error when files are modified")
+	require.Contains(t, err.Error(), "modified", "Error should indicate files were modified")
 
 	// Verify files were actually modified
 	modifiedContent1 := cryptoutilTestutil.ReadTestFile(t, testFile1)
-
-	require.Contains(t, string(modifiedContent1), "var x any", "File 1 was not modified correctly. Content: %s", string(modifiedContent1))
+	require.Contains(t, string(modifiedContent1), "var x any", "File 1 was not modified correctly")
 
 	modifiedContent2 := cryptoutilTestutil.ReadTestFile(t, testFile2)
-
-	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly. Content: %s", string(modifiedContent2))
+	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly")
 }

@@ -16,8 +16,8 @@ import (
 // goEnforceAny enforces custom Go source code fixes across all Go files.
 // It applies automated fixes like replacing interface{} with any.
 // Files matching goEnforceAnyFileExcludePatterns are skipped to prevent self-modification.
-// This command modifies files in place and exits with code 1 if any files were modified.
-func goEnforceAny(logger *LogUtil, allFiles []string) {
+// Returns an error if any files were modified (to indicate changes were made).
+func goEnforceAny(logger *LogUtil, allFiles []string) error {
 	logger.Log("Running go-enforce-any - Custom Go source code fixes")
 
 	// Find all .go files
@@ -52,7 +52,7 @@ func goEnforceAny(logger *LogUtil, allFiles []string) {
 	if len(goFiles) == 0 {
 		logger.Log("goEnforceAny completed (no Go files)")
 
-		return
+		return nil
 	}
 
 	logger.Log(fmt.Sprintf("Found %d Go files to process", len(goFiles)))
@@ -85,12 +85,15 @@ func goEnforceAny(logger *LogUtil, allFiles []string) {
 	if filesModified > 0 {
 		fmt.Fprintln(os.Stderr, "\n✅ Successfully applied custom Go source code fixes")
 		fmt.Fprintln(os.Stderr, "Please review and commit the changes")
-		os.Exit(1) // Exit with error to indicate files were modified
+
+		return fmt.Errorf("modified %d files with %d total replacements", filesModified, totalReplacements)
 	} else {
 		fmt.Fprintln(os.Stderr, "\n✅ All Go files are already properly formatted")
 	}
 
 	logger.Log("goEnforceAny completed")
+
+	return nil
 }
 
 // processGoFile applies custom Go source code fixes to a single file.

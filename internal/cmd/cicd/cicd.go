@@ -63,17 +63,29 @@ func Run(commands []string) error {
 
 		switch command {
 		case "all-enforce-utf8":
-			allEnforceUtf8(logger, allFiles)
+			if err := allEnforceUtf8(logger, allFiles); err != nil {
+				return err
+			}
 		case "go-enforce-test-patterns":
-			goEnforceTestPatterns(logger, allFiles)
+			if err := goEnforceTestPatterns(logger, allFiles); err != nil {
+				return err
+			}
 		case "go-enforce-any":
-			goEnforceAny(logger, allFiles)
+			if err := goEnforceAny(logger, allFiles); err != nil {
+				return err
+			}
 		case "go-check-circular-package-dependencies":
-			goCheckCircularPackageDeps(logger)
+			if err := goCheckCircularPackageDeps(logger); err != nil {
+				return err
+			}
 		case "go-update-direct-dependencies": // Best practice, only direct dependencies
-			goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect)
+			if err := goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect); err != nil {
+				return fmt.Errorf("go-update-direct-dependencies failed: %w", err)
+			}
 		case "go-update-all-dependencies": // Less practiced, direct & transient dependencies
-			goUpdateDeps(logger, cryptoutilMagic.DepCheckAll)
+			if err := goUpdateDeps(logger, cryptoutilMagic.DepCheckAll); err != nil {
+				return fmt.Errorf("go-update-all-dependencies failed: %w", err)
+			}
 		case "github-workflow-lint":
 			checkWorkflowLint(logger, allFiles)
 		}

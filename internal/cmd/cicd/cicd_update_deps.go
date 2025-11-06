@@ -16,10 +16,14 @@ import (
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
+const (
+	cacheHitState = "cache_hit"
+)
+
 // goUpdateDeps checks for outdated Go dependencies and fails if any are found.
 // It supports two modes: direct dependencies only (go-update-direct-dependencies) or all dependencies (go-update-all-dependencies).
-// This command uses caching to avoid repeated expensive checks and exits with code 1 if outdated dependencies are found.
-func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
+// This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
+func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) error {
 	modeName := cryptoutilMagic.ModeNameDirect
 	if mode == cryptoutilMagic.DepCheckAll {
 		modeName = cryptoutilMagic.ModeNameAll
@@ -31,19 +35,25 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	goModStat, err := os.Stat("go.mod")
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
-		os.Exit(1)
+
+		return fmt.Errorf("failed to read go.mod: %w", err)
 	}
 
 	goSumStat, err := os.Stat("go.sum")
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error reading go.sum: %v", err))
-		os.Exit(1)
+
+		return fmt.Errorf("failed to read go.sum: %w", err)
 	}
 
 	// Check cache first
-	cacheUsed, cacheState := checkAndUseDepCache(cacheFile, modeName, goModStat, goSumStat, logger)
+	cacheUsed, cacheState, err := checkAndUseDepCache(cacheFile, modeName, goModStat, goSumStat, logger)
+	if err != nil {
+		return fmt.Errorf("cached dependency check failed: %w", err)
+	}
+
 	if cacheUsed {
-		return
+		return nil
 	}
 
 	// Log the cache miss reason
@@ -58,7 +68,8 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	output, err := cmd.Output()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error checking dependencies: %v", err))
-		os.Exit(1)
+
+		return fmt.Errorf("failed to check dependencies: %w", err)
 	}
 
 	// Get direct dependencies for the check
@@ -69,13 +80,15 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 		goModContent, err := os.ReadFile("go.mod")
 		if err != nil {
 			logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
-			os.Exit(1)
+
+			return fmt.Errorf("failed to read go.mod for direct dependencies: %w", err)
 		}
 
 		directDeps, err = getDirectDependencies(goModContent)
 		if err != nil {
 			logger.Log(fmt.Sprintf("Error parsing direct dependencies: %v", err))
-			os.Exit(1)
+
+			return fmt.Errorf("failed to parse direct dependencies: %w", err)
 		}
 	}
 
@@ -83,7 +96,8 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	outdated, err := checkDependencyUpdates(mode, string(output), directDeps)
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error checking dependency updates: %v", err))
-		os.Exit(1)
+
+		return fmt.Errorf("failed to check dependency updates: %w", err)
 	}
 
 	// Save results to cache
@@ -106,12 +120,15 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 		}
 
 		fmt.Fprintln(os.Stderr, "\nPlease run 'go get -u ./...' to update dependencies manually.")
-		os.Exit(1) // Fail to block push
+
+		return fmt.Errorf("outdated dependencies found")
 	}
 
 	fmt.Fprintf(os.Stderr, "All %s Go dependencies are up to date.\n", modeName)
 
 	logger.Log("goUpdateDeps completed")
+
+	return nil
 }
 
 // checkDependencyUpdates analyzes dependency update information and returns outdated dependencies.
@@ -226,20 +243,20 @@ func getDirectDependencies(goModContent []byte) (map[string]bool, error) {
 
 // checkAndUseDepCache checks if valid cached dependency results exist and uses them if available.
 // Returns true if cache was used (and function should return), false if cache miss occurred.
-// Also returns a descriptive string about the cache state for logging.
-func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.FileInfo, logger *LogUtil) (bool, string) {
+// Also returns a descriptive string about the cache state for logging and an error if outdated deps were found in cache.
+func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.FileInfo, logger *LogUtil) (bool, string, error) {
 	cache, err := loadDepCache(cacheFile, modeName)
 	if err != nil {
 		// Determine the specific reason for cache miss
 		if errors.Is(err, os.ErrNotExist) {
-			return false, "cache_not_exists"
+			return false, "cache_not_exists", nil
 		}
 		// Check if it's a mode mismatch (our custom error)
 		if strings.Contains(err.Error(), "cache mode mismatch") {
-			return false, "cache_mode_mismatch"
+			return false, "cache_mode_mismatch", nil
 		}
 		// Other errors (JSON parsing, etc.)
-		return false, "cache_invalid"
+		return false, "cache_invalid", nil
 	}
 
 	// Cache loaded successfully, check if it's still valid
@@ -263,11 +280,11 @@ func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.Fil
 	}
 
 	if !cacheValid {
-		return false, fmt.Sprintf("cache_expired_files (%s)", invalidReason)
+		return false, fmt.Sprintf("cache_expired_files (%s)", invalidReason), nil
 	}
 
 	if time.Since(cache.LastCheck) >= time.Hour {
-		return false, fmt.Sprintf("cache_expired_time (age: %.1fs)", time.Since(cache.LastCheck).Seconds())
+		return false, fmt.Sprintf("cache_expired_time (age: %.1fs)", time.Since(cache.LastCheck).Seconds()), nil
 	}
 
 	// Cache is valid and fresh - use it
@@ -281,12 +298,13 @@ func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.Fil
 		}
 
 		fmt.Fprintln(os.Stderr, "\nPlease run 'go get -u ./...' to update dependencies manually.")
-		os.Exit(1) // Fail to block push
+
+		return true, cacheHitState, fmt.Errorf("outdated dependencies found in cache")
 	}
 
 	logger.Log(fmt.Sprintf("All %s Go dependencies are up to date (cached)", modeName))
 
 	logger.Log("goUpdateDeps completed (cached)")
 
-	return true, "cache_hit"
+	return true, cacheHitState, nil
 }

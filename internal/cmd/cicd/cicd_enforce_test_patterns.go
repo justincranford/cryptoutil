@@ -10,8 +10,8 @@ import (
 )
 
 // goEnforceTestPatterns enforces test patterns including UUIDv7 usage and testify assertions.
-// It checks all test files for proper patterns and reports violations.
-func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
+// It checks all test files for proper patterns and returns an error if violations are found.
+func goEnforceTestPatterns(logger *LogUtil, allFiles []string) error {
 	logger.Log("Enforcing test patterns (UUIDv7 usage, testify assertions)")
 
 	// Find all test files
@@ -31,7 +31,7 @@ func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
 	if len(testFiles) == 0 {
 		logger.Log("goEnforceTestPatterns completed (no test files)")
 
-		return
+		return nil
 	}
 
 	logger.Log(fmt.Sprintf("Found %d test files to check", len(testFiles)))
@@ -56,12 +56,15 @@ func goEnforceTestPatterns(logger *LogUtil, allFiles []string) {
 	if totalIssues > 0 {
 		logger.Log(fmt.Sprintf("Found %d test pattern violations", totalIssues))
 		fmt.Fprintln(os.Stderr, "Please fix the issues above to follow established test patterns.")
-		os.Exit(1) // Fail the build
+
+		return fmt.Errorf("found %d test pattern violations across %d files", totalIssues, len(testFiles))
 	} else {
 		fmt.Fprintln(os.Stderr, "\n✅ All test files follow established patterns")
 	}
 
 	logger.Log("goEnforceTestPatterns completed")
+
+	return nil
 }
 
 // checkTestFile checks a single test file for proper test patterns.

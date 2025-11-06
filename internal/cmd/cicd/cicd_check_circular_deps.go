@@ -18,9 +18,8 @@ type PackageInfo struct {
 }
 
 // goCheckCircularPackageDeps checks for circular dependencies in Go packages.
-// It analyzes the dependency graph of all packages in the project and reports any circular dependencies.
-// This command exits with code 1 if circular dependencies are found.
-func goCheckCircularPackageDeps(logger *LogUtil) {
+// It analyzes the dependency graph of all packages in the project and returns an error if circular dependencies are found.
+func goCheckCircularPackageDeps(logger *LogUtil) error {
 	logger.Log("Checking for circular dependencies in Go packages")
 
 	logger.Log("Running: go list -json ./...")
@@ -30,7 +29,8 @@ func goCheckCircularPackageDeps(logger *LogUtil) {
 	output, err := cmd.Output()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error running go list: %v", err))
-		os.Exit(1)
+
+		return fmt.Errorf("failed to run go list: %w", err)
 	}
 
 	// Use the extracted function for the core logic
@@ -39,13 +39,15 @@ func goCheckCircularPackageDeps(logger *LogUtil) {
 
 		logger.Log("goCheckCircularPackageDeps completed (circular dependencies found)")
 
-		os.Exit(1) // Fail the build
+		return err
 	}
 
 	fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
 	fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
 
 	logger.Log("goCheckCircularPackageDeps completed (no circular dependencies)")
+
+	return nil
 }
 
 // checkCircularDependencies analyzes the JSON output from 'go list -json ./...' for circular dependencies.

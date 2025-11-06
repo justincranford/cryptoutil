@@ -14,7 +14,7 @@ import (
 )
 
 // allEnforceUtf8 enforces UTF-8 encoding without BOM for all text files.
-func allEnforceUtf8(logger *LogUtil, allFiles []string) {
+func allEnforceUtf8(logger *LogUtil, allFiles []string) error {
 	logger.Log("Enforcing file encoding (UTF-8 without BOM)")
 
 	finalFiles := filterTextFiles(allFiles)
@@ -22,7 +22,7 @@ func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 	if len(finalFiles) == 0 {
 		logger.Log("allEnforceUtf8 completed (no files)")
 
-		return
+		return nil
 	}
 
 	logger.Log(fmt.Sprintf("Found %d files to check for UTF-8 encoding", len(finalFiles)))
@@ -38,12 +38,15 @@ func allEnforceUtf8(logger *LogUtil, allFiles []string) {
 
 		fmt.Fprintln(os.Stderr, "\nPlease fix the encoding issues above. Use UTF-8 without BOM for all text files.")
 		fmt.Fprintln(os.Stderr, "PowerShell example: $utf8NoBom = New-Object System.Text.UTF8Encoding $false; [System.IO.File]::WriteAllText('file.txt', 'content', $utf8NoBom)")
-		os.Exit(1) // Fail the build
+
+		return fmt.Errorf("file encoding violations found: %d files have incorrect encoding", len(encodingViolations))
 	} else {
 		fmt.Fprintln(os.Stderr, "\n✅ All files have correct UTF-8 encoding without BOM")
 	}
 
 	logger.Log("allEnforceUtf8 completed")
+
+	return nil
 }
 
 func filterTextFiles(allFiles []string) []string {
