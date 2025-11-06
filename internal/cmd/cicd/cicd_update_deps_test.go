@@ -13,7 +13,7 @@ import (
 
 const (
 	dep1         = "example.com/dep1"
-	dep2         = "example.com/dep2"
+	dep2         = "github.com/dep2"
 	dep3         = "example.com/dep3"
 	latestDep1   = dep1 + " v1.9.0"
 	outdatedDep1 = dep1 + " v1.8.4 [v1.9.0]"
@@ -27,28 +27,63 @@ var (
 	goSumStat = &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
 )
 
-func TestCheckDependencyUpdates_EmptyOutput(t *testing.T) {
-	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, "", []string{}, nil)
-}
+func TestCheckDependencyUpdates(t *testing.T) {
+	tests := []struct {
+		name                 string
+		depCheckMode         cryptoutilMagic.DepCheckMode
+		actualDeps           string
+		expectedOutdatedDeps []string
+		directDeps           map[string]bool
+	}{
+		{
+			name:                 "EmptyOutput",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           "",
+			expectedOutdatedDeps: []string{},
+			directDeps:           nil,
+		},
+		{
+			name:                 "NoOutdatedDeps",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1 + "\n" + latestDep2,
+			expectedOutdatedDeps: []string{},
+			directDeps:           nil,
+		},
+		{
+			name:                 "WithOutdatedDeps",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1 + "\n" + outdatedDep2,
+			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
+			directDeps:           nil,
+		},
+		{
+			name:                 "DirectMode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1 + "\n" + latestDep2 + "\n" + latestDep3,
+			expectedOutdatedDeps: []string{outdatedDep1},
+			directDeps:           map[string]bool{dep1: true},
+		},
+		{
+			name:                 "AllMode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1 + "\n" + outdatedDep2,
+			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
+			directDeps:           nil,
+		},
+		{
+			name:                 "MalformedLines",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1 + "\nmalformed\n" + outdatedDep2,
+			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
+			directDeps:           nil,
+		},
+	}
 
-func TestCheckDependencyUpdates_NoOutdatedDeps(t *testing.T) {
-	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, latestDep1+"\n"+latestDep2, []string{}, nil)
-}
-
-func TestCheckDependencyUpdates_WithOutdatedDeps(t *testing.T) {
-	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\n"+outdatedDep2, []string{outdatedDep1, outdatedDep2}, nil)
-}
-
-func TestCheckDependencyUpdates_DirectMode(t *testing.T) {
-	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\n"+latestDep2+"\n"+latestDep3, []string{outdatedDep1}, map[string]bool{dep1: true})
-}
-
-func TestCheckDependencyUpdates_AllMode(t *testing.T) {
-	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\n"+outdatedDep2, []string{outdatedDep1, outdatedDep2}, nil)
-}
-
-func TestCheckDependencyUpdates_MalformedLines(t *testing.T) {
-	validateOutdatedDeps(t, cryptoutilMagic.DepCheckAll, outdatedDep1+"\nmalformed\n"+outdatedDep2, []string{outdatedDep1, outdatedDep2}, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			validateOutdatedDeps(t, tt.depCheckMode, tt.actualDeps, tt.expectedOutdatedDeps, tt.directDeps)
+		})
+	}
 }
 
 func validateOutdatedDeps(t *testing.T, depCheckMode cryptoutilMagic.DepCheckMode, actualDeps string, expectedOutdatedDeps []string, directDeps map[string]bool) {
