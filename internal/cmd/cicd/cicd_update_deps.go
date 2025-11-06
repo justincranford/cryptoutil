@@ -109,7 +109,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 	}
 
 	// Use the extracted function for the core logic
-	outdated, err := checkDependencyUpdates(mode, goModStat, goSumStat, string(output), directDeps)
+	outdated, err := checkDependencyUpdates(mode, string(output), directDeps)
 	if err != nil {
 		logger.Log(fmt.Sprintf("Error checking dependency updates: %v", err))
 		os.Exit(1)
@@ -146,7 +146,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) {
 // checkDependencyUpdates analyzes dependency update information and returns outdated dependencies.
 // It takes the mode, file stats, go list output, and direct dependencies map as inputs to enable testing with mock data.
 // Returns a slice of outdated dependency strings and an error if the check fails.
-func checkDependencyUpdates(mode cryptoutilMagic.DepCheckMode, goModStat, goSumStat os.FileInfo, goListOutput string, directDeps map[string]bool) ([]string, error) {
+func checkDependencyUpdates(mode cryptoutilMagic.DepCheckMode, goListOutput string, directDeps map[string]bool) ([]string, error) {
 	lines := strings.Split(strings.TrimSpace(goListOutput), "\n")
 	allOutdated := []string{}
 

@@ -2,29 +2,25 @@
 package cicd
 
 import (
-	"os"
 	"testing"
-	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	dep1         = "example.com/dep1"
-	dep2         = "github.com/dep2"
-	dep3         = "example.com/dep3"
-	latestDep1   = dep1 + " v1.9.0"
-	outdatedDep1 = dep1 + " v1.8.4 [v1.9.0]"
-	latestDep2   = dep2 + " v0.15.0"
-	outdatedDep2 = dep2 + " v0.14.0 [v0.15.0]"
-	latestDep3   = dep3 + " v1.4.0"
-)
-
 func TestCheckDependencyUpdates(t *testing.T) {
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
+	dep1 := "example.com/dep1"
+	dep2 := "github.com/dep2"
+	dep3 := "example.com/dep3"
+
+	latestDep1 := dep1 + " v1.9.0"
+	latestDep2 := dep2 + " v0.15.0"
+	latestDep3 := dep3 + " v1.4.0"
+
+	outdatedDep1 := dep1 + " v1.8.4 [v1.9.0]"
+	outdatedDep2 := dep2 + " v0.14.0 [v0.15.0]"
+	outdatedDep3 := dep3 + " v1.3.0 [v1.4.0]"
 
 	tests := []struct {
 		name                 string
@@ -34,52 +30,94 @@ func TestCheckDependencyUpdates(t *testing.T) {
 		directDeps           map[string]bool
 	}{
 		{
-			name:                 "EmptyOutput",
-			depCheckMode:         cryptoutilMagic.DepCheckAll,
-			actualDeps:           "",
-			expectedOutdatedDeps: []string{},
-			directDeps:           nil,
-		},
-		{
-			name:                 "NoOutdatedDeps",
-			depCheckMode:         cryptoutilMagic.DepCheckAll,
-			actualDeps:           latestDep1 + "\n" + latestDep2,
-			expectedOutdatedDeps: []string{},
-			directDeps:           nil,
-		},
-		{
-			name:                 "WithOutdatedDeps",
-			depCheckMode:         cryptoutilMagic.DepCheckAll,
-			actualDeps:           outdatedDep1 + "\n" + outdatedDep2,
-			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
-			directDeps:           nil,
-		},
-		{
-			name:                 "DirectMode",
-			depCheckMode:         cryptoutilMagic.DepCheckAll,
-			actualDeps:           outdatedDep1 + "\n" + latestDep2 + "\n" + latestDep3,
-			expectedOutdatedDeps: []string{outdatedDep1},
-			directDeps:           map[string]bool{dep1: true},
-		},
-		{
-			name:                 "AllMode",
-			depCheckMode:         cryptoutilMagic.DepCheckAll,
-			actualDeps:           outdatedDep1 + "\n" + outdatedDep2,
-			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
-			directDeps:           nil,
-		},
-		{
 			name:                 "MalformedLines",
 			depCheckMode:         cryptoutilMagic.DepCheckAll,
 			actualDeps:           outdatedDep1 + "\nmalformed\n" + outdatedDep2,
 			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
-			directDeps:           nil,
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "0 Deps, 0 Outdated, All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           "",
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{},
+		},
+		{
+			name:                 "1 Direct Deps, 0 Outdated, All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1,
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{dep1: true},
+		},
+		{
+			name:                 "1 Direct Deps, 1 Outdated, All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1,
+			expectedOutdatedDeps: []string{outdatedDep1},
+			directDeps:           map[string]bool{dep1: true},
+		},
+		{
+			name:                 "2 Direct Deps, 0 Outdated, All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1 + "\n" + latestDep2,
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "2 Direct Deps, 1 Outdated (First), All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1 + "\n" + latestDep2,
+			expectedOutdatedDeps: []string{outdatedDep1},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "2 Direct Deps, 1 Outdated (Second), All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1 + "\n" + outdatedDep2,
+			expectedOutdatedDeps: []string{outdatedDep2},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "2 Direct Deps, 2 Outdated, All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1 + "\n" + outdatedDep2,
+			expectedOutdatedDeps: []string{outdatedDep1, outdatedDep2},
+			directDeps:           map[string]bool{dep1: true, dep2: true},
+		},
+		{
+			name:                 "3 Direct Deps, 0 Outdated, All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1 + "\n" + latestDep2 + "\n" + latestDep3,
+			expectedOutdatedDeps: []string{},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
+		},
+		{
+			name:                 "3 Direct Deps, 1 Outdated (First), All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           outdatedDep1 + "\n" + latestDep2 + "\n" + latestDep3,
+			expectedOutdatedDeps: []string{outdatedDep1},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
+		},
+		{
+			name:                 "3 Direct Deps, 1 Outdated (Second), All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1 + "\n" + outdatedDep2 + "\n" + latestDep3,
+			expectedOutdatedDeps: []string{outdatedDep2},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
+		},
+		{
+			name:                 "3 Direct Deps, 1 Outdated (Third), All mode",
+			depCheckMode:         cryptoutilMagic.DepCheckAll,
+			actualDeps:           latestDep1 + "\n" + latestDep2 + "\n" + outdatedDep3,
+			expectedOutdatedDeps: []string{outdatedDep3},
+			directDeps:           map[string]bool{dep1: true, dep2: true, dep3: true},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			actualOutdatedDeps, err := checkDependencyUpdates(tt.depCheckMode, goModStat, goSumStat, tt.actualDeps, tt.directDeps)
+			actualOutdatedDeps, err := checkDependencyUpdates(tt.depCheckMode, tt.actualDeps, tt.directDeps)
 			require.NoError(t, err)
 			require.Len(t, actualOutdatedDeps, len(tt.expectedOutdatedDeps))
 
@@ -89,19 +127,3 @@ func TestCheckDependencyUpdates(t *testing.T) {
 		})
 	}
 }
-
-// mockFileInfo implements os.FileInfo for testing.
-type mockFileInfo struct {
-	name    string
-	size    int64
-	mode    os.FileMode
-	modTime time.Time
-	isDir   bool
-}
-
-func (m *mockFileInfo) Name() string       { return m.name }
-func (m *mockFileInfo) Size() int64        { return m.size }
-func (m *mockFileInfo) Mode() os.FileMode  { return m.mode }
-func (m *mockFileInfo) ModTime() time.Time { return m.modTime }
-func (m *mockFileInfo) IsDir() bool        { return m.isDir }
-func (m *mockFileInfo) Sys() any           { return nil }
