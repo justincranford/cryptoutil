@@ -118,10 +118,10 @@ func Run(args []string) int {
 
 	// Create execution summary.
 	summary := &ExecutionSummary{
-		StartTime:   time.Now(),
+		StartTime:   time.Now().UTC(),
 		Workflows:   make([]WorkflowResult, 0, len(selectedWorkflows)),
 		OutputDir:   *outputDir,
-		CombinedLog: filepath.Join(*outputDir, fmt.Sprintf("combined-%s.log", time.Now().Format("2006-01-02_15-04-05"))),
+		CombinedLog: filepath.Join(*outputDir, fmt.Sprintf("combined-%s.log", time.Now().UTC().Format("2006-01-02_15-04-05"))),
 	}
 
 	// Setup output directory.
@@ -156,7 +156,7 @@ func Run(args []string) int {
 	}
 
 	// Complete summary.
-	summary.EndTime = time.Now()
+	summary.EndTime = time.Now().UTC()
 	summary.TotalDuration = summary.EndTime.Sub(summary.StartTime)
 
 	// Print final executive summary.
@@ -243,7 +243,7 @@ func printExecutiveSummaryHeader(selectedWorkflows []WorkflowExecution, logFile 
 	header := fmt.Sprintf("\n%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
 	header += fmt.Sprintf("%s🚀 GITHUB ACTIONS LOCAL WORKFLOW EXECUTION%s\n", cryptoutilMagic.ColorCyan, cryptoutilMagic.ColorReset)
 	header += fmt.Sprintf("%s\n", strings.Repeat("=", cryptoutilMagic.LineWidth))
-	header += fmt.Sprintf("\n📅 Execution Started: %s\n", time.Now().Format("2006-01-02 15:04:05"))
+	header += fmt.Sprintf("\n📅 Execution Started: %s\n", time.Now().UTC().Format("2006-01-02 15:04:05"))
 	header += fmt.Sprintf("📊 Workflows Selected: %d\n", len(selectedWorkflows))
 
 	if dryRun {
@@ -336,10 +336,10 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		Name:         wf.Name,
 		TaskResults:  make(map[string]TaskResult),
 		LogFile:      getWorkflowLogFile(outputDir, wf.Name),
-		AnalysisFile: filepath.Join(outputDir, fmt.Sprintf("%s-analysis-%s.md", wf.Name, time.Now().Format("2006-01-02_15-04-05"))),
+		AnalysisFile: filepath.Join(outputDir, fmt.Sprintf("%s-analysis-%s.md", wf.Name, time.Now().UTC().Format("2006-01-02_15-04-05"))),
 	}
 
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 	result.StartTime = startTime
 
 	// Capture initial memory stats
@@ -388,7 +388,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		}
 
 		result.Success = true
-		result.EndTime = time.Now()
+		result.EndTime = time.Now().UTC()
 		result.Duration = result.EndTime.Sub(result.StartTime)
 		result.CPUTime = time.Duration(0) // No CPU time for dry run
 		result.MemoryUsage = 0            // No memory usage for dry run
@@ -425,7 +425,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		}
 
 		result.Success = false
-		result.EndTime = time.Now()
+		result.EndTime = time.Now().UTC()
 		result.Duration = result.EndTime.Sub(result.StartTime)
 		result.CPUTime = time.Duration(0)
 		result.MemoryUsage = 0
@@ -450,7 +450,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		}
 
 		result.Success = false
-		result.EndTime = time.Now()
+		result.EndTime = time.Now().UTC()
 		result.Duration = result.EndTime.Sub(result.StartTime)
 		result.CPUTime = time.Duration(0)
 		result.MemoryUsage = 0
@@ -470,7 +470,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		}
 
 		result.Success = false
-		result.EndTime = time.Now()
+		result.EndTime = time.Now().UTC()
 		result.Duration = result.EndTime.Sub(result.StartTime)
 		result.CPUTime = time.Duration(0)
 		result.MemoryUsage = 0
@@ -489,7 +489,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 		}
 
 		result.Success = false
-		result.EndTime = time.Now()
+		result.EndTime = time.Now().UTC()
 		result.Duration = result.EndTime.Sub(result.StartTime)
 		result.CPUTime = time.Duration(0)
 		result.MemoryUsage = 0
@@ -526,7 +526,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	}
 
 	// Capture final metrics
-	endTime := time.Now()
+	endTime := time.Now().UTC()
 	result.EndTime = endTime
 	result.Duration = endTime.Sub(startTime)
 
@@ -606,7 +606,7 @@ func getWorkflowDescription(workflowName string) string {
 
 func getWorkflowLogFile(outputDir, workflowName string) string {
 	// All workflows use the same timestamped naming pattern
-	return filepath.Join(outputDir, fmt.Sprintf("%s-%s.log", workflowName, time.Now().Format("2006-01-02_15-04-05")))
+	return filepath.Join(outputDir, fmt.Sprintf("%s-%s.log", workflowName, time.Now().UTC().Format("2006-01-02_15-04-05")))
 }
 
 func teeReader(reader io.Reader, writers ...io.Writer) {
@@ -666,7 +666,7 @@ func createAnalysisFile(result WorkflowResult) {
 	analysis := strings.Builder{}
 
 	analysis.WriteString(fmt.Sprintf("# Workflow Analysis: %s\n\n", result.Name))
-	analysis.WriteString(fmt.Sprintf("**Generated:** %s\n\n", time.Now().Format("2006-01-02 15:04:05")))
+	analysis.WriteString(fmt.Sprintf("**Generated:** %s\n\n", time.Now().UTC().Format("2006-01-02 15:04:05")))
 
 	analysis.WriteString("## Executive Summary\n\n")
 	analysis.WriteString(fmt.Sprintf("- **Duration:** %v\n", result.Duration.Round(time.Second)))

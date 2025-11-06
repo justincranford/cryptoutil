@@ -34,7 +34,7 @@ type SummaryTestSuite struct {
 // SetupSuite runs once before all tests in the suite.
 func (suite *SummaryTestSuite) SetupSuite() {
 	suite.summary = &TestSummary{
-		StartTime: time.Now(),
+		StartTime: time.Now().UTC(),
 		Steps:     make([]TestStep, 0),
 	}
 
@@ -86,7 +86,7 @@ func (suite *SummaryTestSuite) TestQuickDemo() {
 func (suite *SummaryTestSuite) logStep(name, description string) {
 	step := TestStep{
 		Name:        name,
-		StartTime:   time.Now(),
+		StartTime:   time.Now().UTC(),
 		Description: description,
 	}
 	suite.summary.Steps = append(suite.summary.Steps, step)
@@ -102,7 +102,7 @@ func (suite *SummaryTestSuite) completeStep(status, result string) {
 	}
 
 	step := &suite.summary.Steps[len(suite.summary.Steps)-1]
-	step.EndTime = time.Now()
+	step.EndTime = time.Now().UTC()
 	step.Duration = step.EndTime.Sub(step.StartTime)
 	step.Status = status
 
@@ -125,7 +125,7 @@ func (suite *SummaryTestSuite) completeStep(status, result string) {
 }
 
 func (suite *SummaryTestSuite) generateSummaryReport() {
-	suite.summary.EndTime = time.Now()
+	suite.summary.EndTime = time.Now().UTC()
 	totalDuration := suite.summary.EndTime.Sub(suite.summary.StartTime)
 
 	report := strings.Builder{}

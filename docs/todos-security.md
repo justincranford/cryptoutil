@@ -235,7 +235,7 @@ func (h *Handler) handleM2MToken(c *fiber.Ctx) error {
         "sub": clientID,
         "aud": "service-api",
         "scope": "service:api",
-        "exp": time.Now().Add(time.Hour).Unix(),
+        "exp": time.Now().UTC().Add(time.Hour).Unix(),
     })
 
     signedToken, err := token.SignedString(h.privateKey)

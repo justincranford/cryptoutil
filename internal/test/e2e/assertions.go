@@ -43,11 +43,11 @@ func (a *ServiceAssertions) AssertCryptoutilHealth(baseURL string, rootCAsPool *
 func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL string, rootCAsPool *x509.CertPool) {
 	Log(a.logger, "⏳ Waiting for cryptoutil ready at %s", baseURL)
 
-	giveUpTime := time.Now().Add(cryptoutilMagic.TestTimeoutCryptoutilReady)
+	giveUpTime := time.Now().UTC().Add(cryptoutilMagic.TestTimeoutCryptoutilReady)
 	checkCount := 0
 
 	for {
-		require.False(a.t, time.Now().After(giveUpTime), "Cryptoutil service not ready after %v: %s", cryptoutilMagic.TestTimeoutCryptoutilReady, baseURL)
+		require.False(a.t, time.Now().UTC().After(giveUpTime), "Cryptoutil service not ready after %v: %s", cryptoutilMagic.TestTimeoutCryptoutilReady, baseURL)
 
 		checkCount++
 		Log(a.logger, "🔍 Cryptoutil readiness check #%d for %s", checkCount, baseURL)
@@ -71,11 +71,11 @@ func (a *ServiceAssertions) AssertCryptoutilReady(ctx context.Context, baseURL s
 func (a *ServiceAssertions) AssertHTTPReady(ctx context.Context, url string, timeout time.Duration) {
 	Log(a.logger, "⏳ Waiting for HTTP endpoint ready: %s", url)
 
-	giveUpTime := time.Now().Add(timeout)
+	giveUpTime := time.Now().UTC().Add(timeout)
 	client := &http.Client{Timeout: cryptoutilMagic.TestTimeoutHTTPClient}
 
 	for {
-		require.False(a.t, time.Now().After(giveUpTime), "Service not ready after %v: %s", timeout, url)
+		require.False(a.t, time.Now().UTC().After(giveUpTime), "Service not ready after %v: %s", timeout, url)
 
 		req, cancel := context.WithTimeout(ctx, cryptoutilMagic.TimeoutHTTPHealthRequest)
 		httpReq, err := http.NewRequestWithContext(req, http.MethodGet, url, nil)

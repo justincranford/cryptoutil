@@ -35,7 +35,7 @@ func TestGitHubAPICache_Get(t *testing.T) {
 	cache.mu.Lock()
 	cache.cache["expired-key"] = GitHubAPICacheEntry{
 		Value:     "expired-value",
-		ExpiresAt: time.Now().Add(-time.Hour), // Expired 1 hour ago
+		ExpiresAt: time.Now().UTC().Add(-time.Hour), // Expired 1 hour ago
 	}
 	cache.mu.Unlock()
 
@@ -65,8 +65,8 @@ func TestGitHubAPICache_Set(t *testing.T) {
 	require.Equal(t, "test-value", entry.Value, "Value should be stored correctly")
 
 	// Verify expiration time is set correctly (should be now + TTL)
-	expectedExpiry := time.Now().Add(cryptoutilMagic.TimeoutGitHubAPICacheTTL)
-	require.True(t, entry.ExpiresAt.After(time.Now()), "Expiration should be in the future")
+	expectedExpiry := time.Now().UTC().Add(cryptoutilMagic.TimeoutGitHubAPICacheTTL)
+	require.True(t, entry.ExpiresAt.After(time.Now().UTC()), "Expiration should be in the future")
 	require.True(t, entry.ExpiresAt.Before(expectedExpiry.Add(time.Second)), "Expiration should be approximately TTL from now")
 
 	// Test overwriting existing value

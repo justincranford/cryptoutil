@@ -23,8 +23,8 @@ golang.org/x/crypto v0.14.0 [v0.15.0]
 
 func TestCheckDependencyUpdates_NoOutdatedDeps(t *testing.T) {
 	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now()}
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
 
 	// Mock go list output with no outdated dependencies
 	goListOutput := `github.com/stretchr/testify v1.8.4
@@ -38,8 +38,8 @@ golang.org/x/crypto v0.14.0
 
 func TestCheckDependencyUpdates_WithOutdatedDeps(t *testing.T) {
 	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now()}
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
 
 	// Mock go list output with outdated dependencies
 	goListOutput := mockGoListOutputWithOutdatedDeps
@@ -53,8 +53,8 @@ func TestCheckDependencyUpdates_WithOutdatedDeps(t *testing.T) {
 
 func TestCheckDependencyUpdates_DirectMode(t *testing.T) {
 	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now()}
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
 
 	// Mock go list output with both direct and indirect outdated dependencies
 	goListOutput := mockGoListOutputWithOutdatedDeps
@@ -72,8 +72,8 @@ func TestCheckDependencyUpdates_DirectMode(t *testing.T) {
 
 func TestCheckDependencyUpdates_AllMode(t *testing.T) {
 	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now()}
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
 
 	// Mock go list output with outdated dependencies
 	goListOutput := mockGoListOutputSimpleOutdatedDeps
@@ -87,8 +87,8 @@ func TestCheckDependencyUpdates_AllMode(t *testing.T) {
 
 func TestCheckDependencyUpdates_EmptyOutput(t *testing.T) {
 	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now()}
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
 
 	// Empty go list output
 	goListOutput := ""
@@ -100,8 +100,8 @@ func TestCheckDependencyUpdates_EmptyOutput(t *testing.T) {
 
 func TestCheckDependencyUpdates_MalformedLines(t *testing.T) {
 	// Create mock file info
-	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now()}
-	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now()}
+	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Now().UTC()}
+	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Now().UTC()}
 
 	// Mock go list output with malformed lines (should be ignored)
 	goListOutput := `github.com/stretchr/testify v1.8.4 [v1.9.0]

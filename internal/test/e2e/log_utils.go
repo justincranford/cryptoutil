@@ -32,7 +32,7 @@ func Log(logger *Logger, format string, args ...any) {
 	}
 
 	message := fmt.Sprintf("[%s] [%v] %s\n",
-		time.Now().Format("15:04:05"),
+		time.Now().UTC().Format("15:04:05"),
 		time.Since(logger.startTime).Round(time.Second),
 		fmt.Sprintf(format, args...))
 
@@ -101,7 +101,7 @@ func LogTestCleanup(logger *Logger, testName string) {
 func LogStep(summary *TestSummary, logger *Logger, name, description string) {
 	step := TestStep{
 		Name:        name,
-		StartTime:   time.Now(),
+		StartTime:   time.Now().UTC(),
 		Description: description,
 	}
 	summary.Steps = append(summary.Steps, step)
@@ -119,7 +119,7 @@ func CompleteStep(summary *TestSummary, logger *Logger, status, result string) {
 	}
 
 	step := &summary.Steps[len(summary.Steps)-1]
-	step.EndTime = time.Now()
+	step.EndTime = time.Now().UTC()
 	step.Duration = step.EndTime.Sub(step.StartTime)
 	step.Status = status
 

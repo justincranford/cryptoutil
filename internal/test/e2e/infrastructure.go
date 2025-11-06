@@ -50,7 +50,7 @@ func (im *InfrastructureManager) StartServices(ctx context.Context) error {
 
 // WaitForDockerServicesHealthy waits for Docker services to report healthy status.
 func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Context) error {
-	giveUpTime := time.Now().Add(cryptoutilMagic.TestTimeoutDockerHealth)
+	giveUpTime := time.Now().UTC().Add(cryptoutilMagic.TestTimeoutDockerHealth)
 	checkCount := 0
 
 	for {
@@ -60,7 +60,7 @@ func (im *InfrastructureManager) WaitForDockerServicesHealthy(ctx context.Contex
 		default:
 		}
 
-		if time.Now().After(giveUpTime) {
+		if time.Now().UTC().After(giveUpTime) {
 			// Before giving up, show container logs for failed services
 			Log(im.logger, "❌ Docker services not healthy after %v, showing recent container logs...", cryptoutilMagic.TestTimeoutDockerHealth)
 			if err := im.showFailedContainerLogs(ctx); err != nil {
@@ -276,7 +276,7 @@ func (im *InfrastructureManager) verifyCryptoutilPortsReachable(ctx context.Cont
 
 // waitForHTTPReady waits for an HTTP endpoint to return 200.
 func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url string, timeout time.Duration) error {
-	giveUpTime := time.Now().Add(timeout)
+	giveUpTime := time.Now().UTC().Add(timeout)
 	client := CreateHTTPClient()
 
 	for {
@@ -286,7 +286,7 @@ func (im *InfrastructureManager) waitForHTTPReady(ctx context.Context, url strin
 		default:
 		}
 
-		if time.Now().After(giveUpTime) {
+		if time.Now().UTC().After(giveUpTime) {
 			return fmt.Errorf("service not ready after %v: %s", timeout, url)
 		}
 
@@ -322,7 +322,7 @@ func logServiceHealthStatus(startTime time.Time, healthStatus map[string]bool) [
 		}
 
 		fmt.Printf("[%s] [%v]    %s: %s\n",
-			time.Now().Format("15:04:05"),
+			time.Now().UTC().Format("15:04:05"),
 			time.Since(startTime).Round(time.Second),
 			service, status)
 

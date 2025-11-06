@@ -50,7 +50,7 @@ type E2ETestSuite struct {
 // SetupSuite runs once before all tests in the suite.
 func (suite *E2ETestSuite) SetupSuite() {
 	suite.summary = &TestSummary{
-		StartTime: time.Now(),
+		StartTime: time.Now().UTC(),
 		Steps:     make([]TestStep, 0),
 	}
 
@@ -308,7 +308,7 @@ func (suite *E2ETestSuite) cleanupTestData() {
 
 // generateSummaryReport creates and displays a detailed summary report.
 func (suite *E2ETestSuite) generateSummaryReport() {
-	suite.summary.EndTime = time.Now()
+	suite.summary.EndTime = time.Now().UTC()
 	totalDuration := suite.summary.EndTime.Sub(suite.summary.StartTime)
 
 	// Generate summary report

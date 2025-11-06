@@ -55,7 +55,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 
 				return
 			default:
-				if err := netTCPListener.SetDeadline(time.Now().Add(readTimeout)); err != nil {
+				if err := netTCPListener.SetDeadline(time.Now().UTC().Add(readTimeout)); err != nil {
 					log.Printf("warning: failed to set TCP deadline: %v", err)
 				}
 
@@ -94,11 +94,11 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 					}()
 
 					// Set both read and write deadlines upfront
-					if err := conn.SetReadDeadline(time.Now().Add(readTimeout)); err != nil {
+					if err := conn.SetReadDeadline(time.Now().UTC().Add(readTimeout)); err != nil {
 						log.Printf("warning: failed to set read deadline: %v", err)
 					}
 
-					if err := conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
+					if err := conn.SetWriteDeadline(time.Now().UTC().Add(writeTimeout)); err != nil {
 						log.Printf("warning: failed to set write deadline: %v", err)
 					}
 
@@ -118,7 +118,7 @@ func startTLSEchoServer(tlsServerListener string, readTimeout, writeTimeout time
 					// Do not treat empty request as shutdown; just ignore
 					if bytesRead > 0 {
 						// Refresh write deadline before writing
-						if err := conn.SetWriteDeadline(time.Now().Add(writeTimeout)); err != nil {
+						if err := conn.SetWriteDeadline(time.Now().UTC().Add(writeTimeout)); err != nil {
 							log.Printf("warning: failed to set write deadline: %v", err)
 						}
 

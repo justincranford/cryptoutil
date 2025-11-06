@@ -52,7 +52,7 @@ func NewTestFixture(t *testing.T) *TestFixture {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	startTime := time.Now()
+	startTime := time.Now().UTC()
 
 	// Create log file
 	logFileName := filepath.Join("..", "..", "..", "workflow-reports", "e2e", fmt.Sprintf("e2e-test-%s.log", startTime.Format("2006-01-02_15-04-05")))

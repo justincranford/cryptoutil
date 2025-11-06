@@ -168,7 +168,7 @@ func CaptureAndZipContainerLogs(ctx context.Context, logger *Logger, outputDir s
 	}
 
 	// Create zip file with timestamp
-	timestamp := time.Now().Format("2006-01-02_15-04-05")
+	timestamp := time.Now().UTC().Format("2006-01-02_15-04-05")
 	zipFileName := filepath.Join(outputDir, fmt.Sprintf("container-logs_%s.zip", timestamp))
 
 	zipFile, err := os.Create(zipFileName)
