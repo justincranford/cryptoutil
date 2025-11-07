@@ -103,3 +103,18 @@ const (
 	RateLimitRequestsPerWindow = 100 // Maximum requests per time window.
 	RateLimitWindowSeconds     = 60  // Time window in seconds.
 )
+
+// Fiber HTTP server timeout constants (in seconds).
+const (
+	FiberReadTimeoutSeconds  = 30  // Fiber read timeout in seconds.
+	FiberWriteTimeoutSeconds = 30  // Fiber write timeout in seconds.
+	FiberIdleTimeoutSeconds  = 120 // Fiber idle timeout in seconds.
+)
+
+// Default server ports.
+const (
+	DefaultAuthZPort       = 8443 // Default OAuth 2.1 authorization server port.
+	DefaultIDPPort         = 8444 // Default OIDC identity provider server port.
+	DefaultRSPort          = 8445 // Default resource server port.
+	ShutdownTimeoutSeconds = 10   // Default server shutdown timeout in seconds.
+)
