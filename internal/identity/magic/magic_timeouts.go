@@ -79,6 +79,8 @@ const (
 	DefaultOTPLength   = 6                 // Default OTP length.
 	DefaultOTPLifetime = 300 * time.Second // Default OTP lifetime (5 minutes).
 	MaxOTPAttempts     = 3                 // Maximum OTP verification attempts.
+	DefaultOTPLockout  = 15 * time.Minute  // Default OTP lockout duration (15 minutes).
+	DecimalRadix       = 10                // Decimal radix for numeric OTP generation.
 )
 
 // Magic link configuration.
