@@ -65,6 +65,7 @@ var (
 	ErrInvalidToken          = NewIdentityError("invalid_token", "Invalid token", http.StatusUnauthorized, nil)
 	ErrTokenIssuanceFailed   = NewIdentityError("token_issuance_failed", "Failed to issue token", http.StatusInternalServerError, nil)
 	ErrTokenValidationFailed = NewIdentityError("token_validation_failed", "Failed to validate token", http.StatusInternalServerError, nil)
+	ErrTokenRevocationFailed = NewIdentityError("token_revocation_failed", "Failed to revoke token", http.StatusInternalServerError, nil)
 
 	// Session errors.
 	ErrSessionNotFound   = NewIdentityError("session_not_found", "Session not found", http.StatusNotFound, nil)

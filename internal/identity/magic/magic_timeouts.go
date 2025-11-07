@@ -8,6 +8,11 @@ const (
 	DefaultRefreshTokenLifetime = 86400 * time.Second // Default refresh token lifetime (24 hours).
 	DefaultIDTokenLifetime      = 3600 * time.Second  // Default ID token lifetime (1 hour).
 	DefaultCodeLifetime         = 300 * time.Second   // Default authorization code lifetime (5 minutes).
+
+	// Token expiry in seconds for OAuth 2.1 responses.
+	AccessTokenExpirySeconds  = 3600  // Access token expiry in seconds (1 hour).
+	RefreshTokenExpirySeconds = 86400 // Refresh token expiry in seconds (24 hours).
+	IDTokenExpirySeconds      = 3600  // ID token expiry in seconds (1 hour).
 )
 
 // Session lifetimes.

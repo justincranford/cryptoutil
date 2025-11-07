@@ -287,6 +287,8 @@ linters-settings:
       - errors.Unwrap(
       - .Wrap(
       - .Wrapf(
+      - (*github.com/gofiber/fiber/v2.Ctx).JSON(
+      - (*github.com/gofiber/fiber/v2.Ctx).SendStatus(
 
   thelper:
     test:                # Check t.Helper() calls in test functions

@@ -31,7 +31,9 @@ const (
 
 // OAuth 2.1 token types.
 const (
-	TokenTypeBearer = "Bearer" // Bearer token type.
+	TokenTypeBearer       = "Bearer"        // Bearer token type.
+	TokenTypeAccessToken  = "access_token"  // Access token type hint.
+	TokenTypeRefreshToken = "refresh_token" // Refresh token type hint.
 )
 
 // OAuth 2.1 PKCE methods.
@@ -66,6 +68,8 @@ const (
 	ParamTokenType           = "token_type"            // Token type parameter.
 	ParamExpiresIn           = "expires_in"            // Token expiration parameter.
 	ParamIDToken             = "id_token"              // ID token parameter.
+	ParamToken               = "token"                 // Token parameter (introspection/revocation).
+	ParamTokenTypeHint       = "token_type_hint"       // Token type hint parameter.
 )
 
 // OAuth 2.1 error codes.

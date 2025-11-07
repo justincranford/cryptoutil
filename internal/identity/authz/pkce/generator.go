@@ -1,0 +1,49 @@
+package pkce
+
+import (
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/base64"
+	"fmt"
+
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+)
+
+const (
+	codeVerifierLength = 43 // Minimum length per RFC 7636.
+)
+
+// GenerateCodeVerifier generates a cryptographically random PKCE code verifier.
+func GenerateCodeVerifier() (string, error) {
+	bytes := make([]byte, codeVerifierLength)
+
+	_, err := rand.Read(bytes)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate code verifier: %w", err)
+	}
+
+	return base64.RawURLEncoding.EncodeToString(bytes), nil
+}
+
+// GenerateCodeChallenge generates a PKCE code challenge from a code verifier.
+func GenerateCodeChallenge(codeVerifier, method string) string {
+	if method == "" {
+		method = cryptoutilIdentityMagic.PKCEMethodS256
+	}
+
+	switch method {
+	case cryptoutilIdentityMagic.PKCEMethodPlain:
+		return codeVerifier
+	case cryptoutilIdentityMagic.PKCEMethodS256:
+		return GenerateS256Challenge(codeVerifier)
+	default:
+		return ""
+	}
+}
+
+// GenerateS256Challenge generates S256 PKCE code challenge.
+func GenerateS256Challenge(codeVerifier string) string {
+	hash := sha256.Sum256([]byte(codeVerifier))
+
+	return base64.RawURLEncoding.EncodeToString(hash[:])
+}
