@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 )
 
@@ -24,8 +24,8 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	case "sqlite":
 		dialector = sqlite.Open(cfg.DSN)
 	default:
-		return nil, cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrInvalidConfiguration,
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
 			fmt.Errorf("unsupported database type: %s", cfg.Type),
 		)
 	}
@@ -38,8 +38,8 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 		Logger: gormLogger,
 	})
 	if err != nil {
-		return nil, cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrDatabaseConnection,
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrDatabaseConnection,
 			fmt.Errorf("failed to connect to database: %w", err),
 		)
 	}
@@ -47,8 +47,8 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	// Configure connection pool.
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrDatabaseConnection,
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrDatabaseConnection,
 			fmt.Errorf("failed to get database instance: %w", err),
 		)
 	}
@@ -60,8 +60,8 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 
 	// Verify connection.
 	if err := sqlDB.PingContext(ctx); err != nil {
-		return nil, cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrDatabaseConnection,
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrDatabaseConnection,
 			fmt.Errorf("failed to ping database: %w", err),
 		)
 	}

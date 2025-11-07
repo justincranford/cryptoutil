@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -30,18 +30,18 @@ func (p *EmailPasswordProfile) Name() string {
 func (p *EmailPasswordProfile) Authenticate(ctx context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
 	email, ok := credentials["email"]
 	if !ok || email == "" {
-		return nil, fmt.Errorf("%w: missing email", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing email", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	password, ok := credentials["password"]
 	if !ok || password == "" {
-		return nil, fmt.Errorf("%w: missing password", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing password", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	// Fetch user by email.
 	user, err := p.userRepo.GetByEmail(ctx, email)
 	if err != nil {
-		return nil, fmt.Errorf("%w: user lookup failed: %w", cryptoutilIdentityApperr.ErrInvalidCredentials, err)
+		return nil, fmt.Errorf("%w: user lookup failed: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 	}
 
 	// TODO: Validate password hash using bcrypt or argon2.
@@ -60,12 +60,12 @@ func (p *EmailPasswordProfile) RequiresMFA() bool {
 func (p *EmailPasswordProfile) ValidateCredentials(credentials map[string]string) error {
 	email, ok := credentials["email"]
 	if !ok || email == "" {
-		return fmt.Errorf("%w: missing email", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing email", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	password, ok := credentials["password"]
 	if !ok || password == "" {
-		return fmt.Errorf("%w: missing password", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing password", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	return nil

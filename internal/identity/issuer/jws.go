@@ -10,7 +10,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -33,17 +33,17 @@ func NewJWSIssuer(
 ) (*JWSIssuer, error) {
 	// Validate issuer.
 	if issuer == "" {
-		return nil, cryptoutilIdentityApperr.ErrInvalidConfiguration
+		return nil, cryptoutilIdentityAppErr.ErrInvalidConfiguration
 	}
 
 	// Validate signing algorithm.
 	if signingAlg == "" {
-		return nil, cryptoutilIdentityApperr.ErrInvalidConfiguration
+		return nil, cryptoutilIdentityAppErr.ErrInvalidConfiguration
 	}
 
 	// Validate signing key.
 	if signingKey == nil {
-		return nil, cryptoutilIdentityApperr.ErrInvalidConfiguration
+		return nil, cryptoutilIdentityAppErr.ErrInvalidConfiguration
 	}
 
 	return &JWSIssuer{
@@ -92,15 +92,15 @@ func (i *JWSIssuer) IssueAccessToken(ctx context.Context, claims map[string]any)
 func (i *JWSIssuer) IssueIDToken(ctx context.Context, claims map[string]any) (string, error) {
 	// Validate required OIDC claims.
 	if _, ok := claims[cryptoutilIdentityMagic.ClaimSub].(string); !ok {
-		return "", cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrTokenIssuanceFailed,
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
 			fmt.Errorf("missing required claim: %s", cryptoutilIdentityMagic.ClaimSub),
 		)
 	}
 
 	if _, ok := claims[cryptoutilIdentityMagic.ClaimAud]; !ok {
-		return "", cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrTokenIssuanceFailed,
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
 			fmt.Errorf("missing required claim: %s", cryptoutilIdentityMagic.ClaimAud),
 		)
 	}
@@ -128,14 +128,14 @@ func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[
 	// Parse JWT parts (header.claims.signature).
 	parts := strings.Split(tokenString, ".")
 	if len(parts) != cryptoutilIdentityMagic.JWSPartCount {
-		return nil, cryptoutilIdentityApperr.ErrInvalidToken
+		return nil, cryptoutilIdentityAppErr.ErrInvalidToken
 	}
 
 	// Decode claims.
 	claimsBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
 	if err != nil {
-		return nil, cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrTokenValidationFailed,
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
 			fmt.Errorf("failed to decode claims: %w", err),
 		)
 	}
@@ -143,8 +143,8 @@ func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[
 	// Parse claims JSON.
 	var claims map[string]any
 	if err := json.Unmarshal(claimsBytes, &claims); err != nil {
-		return nil, cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrTokenValidationFailed,
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
 			fmt.Errorf("failed to parse claims: %w", err),
 		)
 	}
@@ -152,7 +152,7 @@ func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[
 	// Validate expiration.
 	if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
 		if time.Now().Unix() > int64(exp) {
-			return nil, cryptoutilIdentityApperr.ErrTokenExpired
+			return nil, cryptoutilIdentityAppErr.ErrTokenExpired
 		}
 	}
 
@@ -170,8 +170,8 @@ func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 	// Encode header.
 	headerBytes, err := json.Marshal(header)
 	if err != nil {
-		return "", cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrTokenIssuanceFailed,
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
 			fmt.Errorf("failed to marshal header: %w", err),
 		)
 	}
@@ -181,8 +181,8 @@ func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
 	// Encode claims.
 	claimsBytes, err := json.Marshal(claims)
 	if err != nil {
-		return "", cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrTokenIssuanceFailed,
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
 			fmt.Errorf("failed to marshal claims: %w", err),
 		)
 	}

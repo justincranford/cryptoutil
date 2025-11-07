@@ -6,7 +6,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 )
 
 // UUIDIssuer issues opaque UUID-based tokens.
@@ -21,8 +21,8 @@ func NewUUIDIssuer() *UUIDIssuer {
 func (i *UUIDIssuer) IssueToken(ctx context.Context) (string, error) {
 	token := googleUuid.NewString()
 	if token == "" {
-		return "", cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrTokenIssuanceFailed,
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
 			fmt.Errorf("failed to generate UUID token"),
 		)
 	}
@@ -33,8 +33,8 @@ func (i *UUIDIssuer) IssueToken(ctx context.Context) (string, error) {
 // ValidateToken validates a UUID token format (basic check).
 func (i *UUIDIssuer) ValidateToken(ctx context.Context, token string) error {
 	if _, err := googleUuid.Parse(token); err != nil {
-		return cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrInvalidToken,
+		return cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrInvalidToken,
 			fmt.Errorf("invalid UUID format: %w", err),
 		)
 	}

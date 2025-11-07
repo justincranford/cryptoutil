@@ -9,7 +9,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
@@ -26,7 +26,7 @@ func NewSessionRepository(db *gorm.DB) *SessionRepositoryGORM {
 // Create creates a new session.
 func (r *SessionRepositoryGORM) Create(ctx context.Context, session *cryptoutilIdentityDomain.Session) error {
 	if err := r.db.WithContext(ctx).Create(session).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to create session: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create session: %w", err))
 	}
 
 	return nil
@@ -37,10 +37,10 @@ func (r *SessionRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID)
 	var session cryptoutilIdentityDomain.Session
 	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&session).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, cryptoutilIdentityApperr.ErrSessionNotFound
+			return nil, cryptoutilIdentityAppErr.ErrSessionNotFound
 		}
 
-		return nil, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to get session by ID: %w", err))
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get session by ID: %w", err))
 	}
 
 	return &session, nil
@@ -51,10 +51,10 @@ func (r *SessionRepositoryGORM) GetBySessionID(ctx context.Context, sessionID st
 	var session cryptoutilIdentityDomain.Session
 	if err := r.db.WithContext(ctx).Where("session_id = ? AND deleted_at IS NULL", sessionID).First(&session).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, cryptoutilIdentityApperr.ErrSessionNotFound
+			return nil, cryptoutilIdentityAppErr.ErrSessionNotFound
 		}
 
-		return nil, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to get session by session_id: %w", err))
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get session by session_id: %w", err))
 	}
 
 	return &session, nil
@@ -64,7 +64,7 @@ func (r *SessionRepositoryGORM) GetBySessionID(ctx context.Context, sessionID st
 func (r *SessionRepositoryGORM) Update(ctx context.Context, session *cryptoutilIdentityDomain.Session) error {
 	session.UpdatedAt = time.Now()
 	if err := r.db.WithContext(ctx).Save(session).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to update session: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update session: %w", err))
 	}
 
 	return nil
@@ -73,7 +73,7 @@ func (r *SessionRepositoryGORM) Update(ctx context.Context, session *cryptoutilI
 // Delete deletes a session by ID (soft delete).
 func (r *SessionRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
 	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.Session{}).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to delete session: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete session: %w", err))
 	}
 
 	return nil
@@ -89,11 +89,11 @@ func (r *SessionRepositoryGORM) TerminateByID(ctx context.Context, id googleUuid
 		})
 
 	if result.Error != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to terminate session by ID: %w", result.Error))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to terminate session by ID: %w", result.Error))
 	}
 
 	if result.RowsAffected == 0 {
-		return cryptoutilIdentityApperr.ErrSessionNotFound
+		return cryptoutilIdentityAppErr.ErrSessionNotFound
 	}
 
 	return nil
@@ -109,11 +109,11 @@ func (r *SessionRepositoryGORM) TerminateBySessionID(ctx context.Context, sessio
 		})
 
 	if result.Error != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to terminate session by session_id: %w", result.Error))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to terminate session by session_id: %w", result.Error))
 	}
 
 	if result.RowsAffected == 0 {
-		return cryptoutilIdentityApperr.ErrSessionNotFound
+		return cryptoutilIdentityAppErr.ErrSessionNotFound
 	}
 
 	return nil
@@ -124,7 +124,7 @@ func (r *SessionRepositoryGORM) DeleteExpired(ctx context.Context) error {
 	if err := r.db.WithContext(ctx).Unscoped().
 		Where("expires_at < ?", time.Now()).
 		Delete(&cryptoutilIdentityDomain.Session{}).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired sessions: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired sessions: %w", err))
 	}
 
 	return nil
@@ -134,7 +134,7 @@ func (r *SessionRepositoryGORM) DeleteExpired(ctx context.Context) error {
 func (r *SessionRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Session, error) {
 	var sessions []*cryptoutilIdentityDomain.Session
 	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&sessions).Error; err != nil {
-		return nil, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to list sessions: %w", err))
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to list sessions: %w", err))
 	}
 
 	return sessions, nil
@@ -144,7 +144,7 @@ func (r *SessionRepositoryGORM) List(ctx context.Context, offset, limit int) ([]
 func (r *SessionRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
-		return 0, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to count sessions: %w", err))
+		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to count sessions: %w", err))
 	}
 
 	return count, nil

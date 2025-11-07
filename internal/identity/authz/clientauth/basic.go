@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -40,7 +40,7 @@ func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credent
 	// Split into client_id:client_secret.
 	parts := strings.SplitN(string(decoded), ":", 2)
 	if len(parts) != 2 {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientAuth
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
 	decodedClientID := parts[0]
@@ -48,7 +48,7 @@ func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credent
 
 	// Validate client_id matches.
 	if decodedClientID != clientID {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientAuth
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
 	// Fetch client from database.
@@ -59,12 +59,12 @@ func (b *BasicAuthenticator) Authenticate(ctx context.Context, clientID, credent
 
 	// Validate client secret (TODO: implement proper hash comparison).
 	if client.ClientSecret != clientSecret {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientSecret
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientSecret
 	}
 
 	// Validate client authentication method.
 	if !b.validateAuthMethod(client) {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientAuth
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
 	return client, nil

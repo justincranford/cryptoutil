@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -41,7 +41,7 @@ func (s *SelfSignedAuthenticator) Authenticate(ctx context.Context, clientID, cr
 
 	// Validate client authentication method.
 	if !s.validateAuthMethod(client) {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientAuth
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
 	// TODO: Validate self-signed certificate against stored certificate (pinning required).

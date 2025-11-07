@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
@@ -95,8 +95,8 @@ func (f *RepositoryFactory) Transaction(ctx context.Context, fn func(context.Con
 	if err := f.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		return fn(ctx)
 	}); err != nil {
-		return cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrDatabaseTransaction,
+		return cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrDatabaseTransaction,
 			fmt.Errorf("transaction failed: %w", err),
 		)
 	}
@@ -108,15 +108,15 @@ func (f *RepositoryFactory) Transaction(ctx context.Context, fn func(context.Con
 func (f *RepositoryFactory) Close() error {
 	sqlDB, err := f.db.DB()
 	if err != nil {
-		return cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrDatabaseConnection,
+		return cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrDatabaseConnection,
 			fmt.Errorf("failed to get database instance: %w", err),
 		)
 	}
 
 	if err := sqlDB.Close(); err != nil {
-		return cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrDatabaseConnection,
+		return cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrDatabaseConnection,
 			fmt.Errorf("failed to close database: %w", err),
 		)
 	}
@@ -136,8 +136,8 @@ func (f *RepositoryFactory) AutoMigrate(ctx context.Context) error {
 		&cryptoutilIdentityDomain.AuthProfile{},
 		&cryptoutilIdentityDomain.MFAFactor{},
 	); err != nil {
-		return cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrDatabaseQuery,
+		return cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrDatabaseQuery,
 			fmt.Errorf("auto-migration failed: %w", err),
 		)
 	}

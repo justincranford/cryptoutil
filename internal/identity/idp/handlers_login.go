@@ -3,7 +3,7 @@ package idp
 import (
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -52,7 +52,7 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	// Authenticate user.
 	user, err := userRepo.GetByUsername(ctx, username)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrUserNotFound
+		appErr := cryptoutilIdentityAppErr.ErrUserNotFound
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorAccessDenied,

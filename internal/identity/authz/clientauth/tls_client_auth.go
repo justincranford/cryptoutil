@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -41,7 +41,7 @@ func (t *TLSClientAuthenticator) Authenticate(ctx context.Context, clientID, cre
 
 	// Validate client authentication method.
 	if !t.validateAuthMethod(client) {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientAuth
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
 	// TODO: Validate certificate chain against stored certificates.

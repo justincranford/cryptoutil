@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -39,12 +39,12 @@ func (p *PostAuthenticator) Authenticate(ctx context.Context, clientID, credenti
 
 	// Validate client secret (TODO: implement proper hash comparison).
 	if client.ClientSecret != clientSecret {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientSecret
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientSecret
 	}
 
 	// Validate client authentication method.
 	if !p.validateAuthMethod(client) {
-		return nil, cryptoutilIdentityApperr.ErrInvalidClientAuth
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
 	return client, nil

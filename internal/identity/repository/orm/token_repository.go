@@ -9,7 +9,7 @@ import (
 	googleUuid "github.com/google/uuid"
 	"gorm.io/gorm"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
@@ -26,7 +26,7 @@ func NewTokenRepository(db *gorm.DB) *TokenRepositoryGORM {
 // Create creates a new token.
 func (r *TokenRepositoryGORM) Create(ctx context.Context, token *cryptoutilIdentityDomain.Token) error {
 	if err := r.db.WithContext(ctx).Create(token).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to create token: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create token: %w", err))
 	}
 
 	return nil
@@ -37,10 +37,10 @@ func (r *TokenRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (
 	var token cryptoutilIdentityDomain.Token
 	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&token).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, cryptoutilIdentityApperr.ErrTokenNotFound
+			return nil, cryptoutilIdentityAppErr.ErrTokenNotFound
 		}
 
-		return nil, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to get token by ID: %w", err))
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get token by ID: %w", err))
 	}
 
 	return &token, nil
@@ -51,10 +51,10 @@ func (r *TokenRepositoryGORM) GetByTokenValue(ctx context.Context, tokenValue st
 	var token cryptoutilIdentityDomain.Token
 	if err := r.db.WithContext(ctx).Where("token_value = ? AND deleted_at IS NULL", tokenValue).First(&token).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, cryptoutilIdentityApperr.ErrTokenNotFound
+			return nil, cryptoutilIdentityAppErr.ErrTokenNotFound
 		}
 
-		return nil, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to get token by value: %w", err))
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to get token by value: %w", err))
 	}
 
 	return &token, nil
@@ -64,7 +64,7 @@ func (r *TokenRepositoryGORM) GetByTokenValue(ctx context.Context, tokenValue st
 func (r *TokenRepositoryGORM) Update(ctx context.Context, token *cryptoutilIdentityDomain.Token) error {
 	token.UpdatedAt = time.Now()
 	if err := r.db.WithContext(ctx).Save(token).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to update token: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update token: %w", err))
 	}
 
 	return nil
@@ -73,7 +73,7 @@ func (r *TokenRepositoryGORM) Update(ctx context.Context, token *cryptoutilIdent
 // Delete deletes a token by ID (soft delete).
 func (r *TokenRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
 	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.Token{}).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to delete token: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete token: %w", err))
 	}
 
 	return nil
@@ -86,11 +86,11 @@ func (r *TokenRepositoryGORM) RevokeByID(ctx context.Context, id googleUuid.UUID
 		Update("revoked", true)
 
 	if result.Error != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to revoke token by ID: %w", result.Error))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to revoke token by ID: %w", result.Error))
 	}
 
 	if result.RowsAffected == 0 {
-		return cryptoutilIdentityApperr.ErrTokenNotFound
+		return cryptoutilIdentityAppErr.ErrTokenNotFound
 	}
 
 	return nil
@@ -103,11 +103,11 @@ func (r *TokenRepositoryGORM) RevokeByTokenValue(ctx context.Context, tokenValue
 		Update("revoked", true)
 
 	if result.Error != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to revoke token by value: %w", result.Error))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to revoke token by value: %w", result.Error))
 	}
 
 	if result.RowsAffected == 0 {
-		return cryptoutilIdentityApperr.ErrTokenNotFound
+		return cryptoutilIdentityAppErr.ErrTokenNotFound
 	}
 
 	return nil
@@ -118,7 +118,7 @@ func (r *TokenRepositoryGORM) DeleteExpired(ctx context.Context) error {
 	if err := r.db.WithContext(ctx).Unscoped().
 		Where("expires_at < ?", time.Now()).
 		Delete(&cryptoutilIdentityDomain.Token{}).Error; err != nil {
-		return cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired tokens: %w", err))
+		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired tokens: %w", err))
 	}
 
 	return nil
@@ -128,7 +128,7 @@ func (r *TokenRepositoryGORM) DeleteExpired(ctx context.Context) error {
 func (r *TokenRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Token, error) {
 	var tokens []*cryptoutilIdentityDomain.Token
 	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&tokens).Error; err != nil {
-		return nil, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to list tokens: %w", err))
+		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to list tokens: %w", err))
 	}
 
 	return tokens, nil
@@ -138,7 +138,7 @@ func (r *TokenRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*c
 func (r *TokenRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.Token{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
-		return 0, cryptoutilIdentityApperr.WrapError(cryptoutilIdentityApperr.ErrDatabaseQuery, fmt.Errorf("failed to count tokens: %w", err))
+		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to count tokens: %w", err))
 	}
 
 	return count, nil

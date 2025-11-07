@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
@@ -85,7 +85,7 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrTokenIssuanceFailed
+		appErr := cryptoutilIdentityAppErr.ErrTokenIssuanceFailed
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,
@@ -128,7 +128,7 @@ func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrTokenIssuanceFailed
+		appErr := cryptoutilIdentityAppErr.ErrTokenIssuanceFailed
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,
@@ -172,7 +172,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 	// Validate refresh token.
 	token, err := tokenRepo.GetByTokenValue(ctx, refreshToken)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrTokenNotFound
+		appErr := cryptoutilIdentityAppErr.ErrTokenNotFound
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidGrant,
@@ -215,7 +215,7 @@ func (s *Service) handleRefreshTokenGrant(c *fiber.Ctx) error {
 
 	accessToken, err := s.tokenSvc.IssueAccessToken(ctx, accessTokenClaims)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrTokenIssuanceFailed
+		appErr := cryptoutilIdentityAppErr.ErrTokenIssuanceFailed
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,

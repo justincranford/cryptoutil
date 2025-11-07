@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -30,12 +30,12 @@ func (p *TOTPProfile) Name() string {
 func (p *TOTPProfile) Authenticate(ctx context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
 	userID, ok := credentials["user_id"]
 	if !ok || userID == "" {
-		return nil, fmt.Errorf("%w: missing user_id", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing user_id", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	otpCode, ok := credentials["otp_code"]
 	if !ok || otpCode == "" {
-		return nil, fmt.Errorf("%w: missing otp_code", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	// TODO: Fetch MFA factors for user.
@@ -45,7 +45,7 @@ func (p *TOTPProfile) Authenticate(ctx context.Context, credentials map[string]s
 	_ = userID
 	_ = otpCode
 
-	return nil, fmt.Errorf("%w: TOTP validation not implemented", cryptoutilIdentityApperr.ErrServerError)
+	return nil, fmt.Errorf("%w: TOTP validation not implemented", cryptoutilIdentityAppErr.ErrServerError)
 }
 
 // RequiresMFA indicates whether this profile requires multi-factor authentication.
@@ -57,12 +57,12 @@ func (p *TOTPProfile) RequiresMFA() bool {
 func (p *TOTPProfile) ValidateCredentials(credentials map[string]string) error {
 	userID, ok := credentials["user_id"]
 	if !ok || userID == "" {
-		return fmt.Errorf("%w: missing user_id", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing user_id", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	otpCode, ok := credentials["otp_code"]
 	if !ok || otpCode == "" {
-		return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	return nil

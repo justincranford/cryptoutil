@@ -5,7 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
@@ -124,7 +124,7 @@ func (s *Service) handleRevoke(c *fiber.Ctx) error {
 	// Revoke token.
 	err = tokenRepo.RevokeByTokenValue(ctx, token)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrTokenRevocationFailed
+		appErr := cryptoutilIdentityAppErr.ErrTokenRevocationFailed
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorServerError,

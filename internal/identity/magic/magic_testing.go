@@ -1,0 +1,17 @@
+package magic
+
+import "time"
+
+// Test server timeout constants.
+const (
+	// TestReadTimeout is the default read timeout for test HTTP servers.
+	TestReadTimeout = 30 * time.Second
+	// TestWriteTimeout is the default write timeout for test HTTP servers.
+	TestWriteTimeout = 30 * time.Second
+	// TestIdleTimeout is the default idle timeout for test HTTP servers.
+	TestIdleTimeout = 120 * time.Second
+	// TestRefreshTokenLifetime is the default refresh token lifetime for tests.
+	TestRefreshTokenLifetime = 24 * time.Hour
+	// TestServerWaitTickerInterval is the interval for checking server readiness.
+	TestServerWaitTickerInterval = 100 * time.Millisecond
+)

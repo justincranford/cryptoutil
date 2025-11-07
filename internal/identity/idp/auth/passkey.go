@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -32,12 +32,12 @@ func (p *PasskeyProfile) Name() string {
 func (p *PasskeyProfile) Authenticate(ctx context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
 	credentialID, ok := credentials["credential_id"]
 	if !ok || credentialID == "" {
-		return nil, fmt.Errorf("%w: missing credential_id", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing credential_id", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	assertion, ok := credentials["assertion"]
 	if !ok || assertion == "" {
-		return nil, fmt.Errorf("%w: missing assertion", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing assertion", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	// TODO: Validate WebAuthn assertion using library (e.g., go-webauthn/webauthn).
@@ -48,7 +48,7 @@ func (p *PasskeyProfile) Authenticate(ctx context.Context, credentials map[strin
 	_ = credentialID
 	_ = assertion
 
-	return nil, fmt.Errorf("%w: passkey validation not implemented", cryptoutilIdentityApperr.ErrServerError)
+	return nil, fmt.Errorf("%w: passkey validation not implemented", cryptoutilIdentityAppErr.ErrServerError)
 }
 
 // RequiresMFA indicates whether this profile requires multi-factor authentication.
@@ -60,12 +60,12 @@ func (p *PasskeyProfile) RequiresMFA() bool {
 func (p *PasskeyProfile) ValidateCredentials(credentials map[string]string) error {
 	credentialID, ok := credentials["credential_id"]
 	if !ok || credentialID == "" {
-		return fmt.Errorf("%w: missing credential_id", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing credential_id", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	assertion, ok := credentials["assertion"]
 	if !ok || assertion == "" {
-		return fmt.Errorf("%w: missing assertion", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing assertion", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	return nil

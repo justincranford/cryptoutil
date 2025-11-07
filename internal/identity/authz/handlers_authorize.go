@@ -3,7 +3,7 @@ package authz
 import (
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -72,7 +72,7 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 
 	client, err := clientRepo.GetByClientID(ctx, clientID)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrClientNotFound
+		appErr := cryptoutilIdentityAppErr.ErrClientNotFound
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
@@ -176,7 +176,7 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 
 	client, err := clientRepo.GetByClientID(ctx, clientID)
 	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrClientNotFound
+		appErr := cryptoutilIdentityAppErr.ErrClientNotFound
 
 		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,

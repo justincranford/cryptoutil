@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -30,18 +30,18 @@ func (p *UsernamePasswordProfile) Name() string {
 func (p *UsernamePasswordProfile) Authenticate(ctx context.Context, credentials map[string]string) (*cryptoutilIdentityDomain.User, error) {
 	username, ok := credentials["username"]
 	if !ok || username == "" {
-		return nil, fmt.Errorf("%w: missing username", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing username", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	password, ok := credentials["password"]
 	if !ok || password == "" {
-		return nil, fmt.Errorf("%w: missing password", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return nil, fmt.Errorf("%w: missing password", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	// Fetch user by username.
 	user, err := p.userRepo.GetByUsername(ctx, username)
 	if err != nil {
-		return nil, fmt.Errorf("%w: user lookup failed: %w", cryptoutilIdentityApperr.ErrInvalidCredentials, err)
+		return nil, fmt.Errorf("%w: user lookup failed: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 	}
 
 	// TODO: Validate password hash using bcrypt or argon2.
@@ -60,12 +60,12 @@ func (p *UsernamePasswordProfile) RequiresMFA() bool {
 func (p *UsernamePasswordProfile) ValidateCredentials(credentials map[string]string) error {
 	username, ok := credentials["username"]
 	if !ok || username == "" {
-		return fmt.Errorf("%w: missing username", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing username", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	password, ok := credentials["password"]
 	if !ok || password == "" {
-		return fmt.Errorf("%w: missing password", cryptoutilIdentityApperr.ErrInvalidCredentials)
+		return fmt.Errorf("%w: missing password", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 	}
 
 	return nil

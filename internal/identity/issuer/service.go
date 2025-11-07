@@ -7,7 +7,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -51,8 +51,8 @@ func (s *TokenService) IssueAccessToken(ctx context.Context, claims map[string]a
 	case cryptoutilIdentityMagic.TokenFormatUUID:
 		return s.uuidIssuer.IssueToken(ctx)
 	default:
-		return "", cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrInvalidConfiguration,
+		return "", cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
 			fmt.Errorf("unsupported access token format: %s", s.config.AccessTokenFormat),
 		)
 	}
@@ -87,8 +87,8 @@ func (s *TokenService) ValidateAccessToken(ctx context.Context, token string) (m
 
 		return map[string]any{}, nil
 	default:
-		return nil, cryptoutilIdentityApperr.WrapError(
-			cryptoutilIdentityApperr.ErrInvalidConfiguration,
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
 			fmt.Errorf("unsupported access token format: %s", s.config.AccessTokenFormat),
 		)
 	}

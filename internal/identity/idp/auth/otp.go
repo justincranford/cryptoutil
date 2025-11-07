@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
@@ -40,7 +40,7 @@ func (s *OTPService) GenerateOTP(ctx context.Context, user *cryptoutilIdentityDo
 	_ = user
 	_ = method
 
-	return "", fmt.Errorf("%w: OTP generation not implemented", cryptoutilIdentityApperr.ErrServerError)
+	return "", fmt.Errorf("%w: OTP generation not implemented", cryptoutilIdentityAppErr.ErrServerError)
 }
 
 // ValidateOTP validates a one-time password for the specified user.
@@ -53,5 +53,5 @@ func (s *OTPService) ValidateOTP(ctx context.Context, user *cryptoutilIdentityDo
 	_ = otpCode
 	_ = method
 
-	return fmt.Errorf("%w: OTP validation not implemented", cryptoutilIdentityApperr.ErrServerError)
+	return fmt.Errorf("%w: OTP validation not implemented", cryptoutilIdentityAppErr.ErrServerError)
 }

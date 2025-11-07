@@ -6,7 +6,7 @@ import (
 
 	googleUuid "github.com/google/uuid"
 
-	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -68,7 +68,7 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 	}
 
 	if matchingFactor == nil {
-		return fmt.Errorf("%w: MFA factor not configured", cryptoutilIdentityApperr.ErrMFAFactorNotFound)
+		return fmt.Errorf("%w: MFA factor not configured", cryptoutilIdentityAppErr.ErrMFAFactorNotFound)
 	}
 
 	// Validate factor based on type.
@@ -76,7 +76,7 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 	case string(OTPMethodTOTP):
 		otpCode, ok := credentials["otp_code"]
 		if !ok || otpCode == "" {
-			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityApperr.ErrInvalidCredentials)
+			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 		}
 		// TODO: Validate TOTP using library (e.g., pquerna/otp).
 		_ = otpCode
@@ -84,7 +84,7 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 	case "email_otp":
 		otpCode, ok := credentials["otp_code"]
 		if !ok || otpCode == "" {
-			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityApperr.ErrInvalidCredentials)
+			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 		}
 		// TODO: Get user from context for OTP validation.
 		// For now, this is a placeholder.
@@ -93,14 +93,14 @@ func (o *MFAOrchestrator) ValidateFactor(ctx context.Context, authProfileID goog
 	case "sms_otp":
 		otpCode, ok := credentials["otp_code"]
 		if !ok || otpCode == "" {
-			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityApperr.ErrInvalidCredentials)
+			return fmt.Errorf("%w: missing otp_code", cryptoutilIdentityAppErr.ErrInvalidCredentials)
 		}
 		// TODO: Get user from context for OTP validation.
 		// For now, this is a placeholder.
 		_ = otpCode
 
 	default:
-		return fmt.Errorf("%w: unsupported MFA factor type: %s", cryptoutilIdentityApperr.ErrServerError, factorType)
+		return fmt.Errorf("%w: unsupported MFA factor type: %s", cryptoutilIdentityAppErr.ErrServerError, factorType)
 	}
 
 	return nil
