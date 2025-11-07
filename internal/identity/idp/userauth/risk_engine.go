@@ -344,7 +344,7 @@ func (e *BehavioralRiskEngine) calculateConfidence(baseline *UserBaseline, facto
 	factorContribution := math.Min(float64(factorCount)/maxFactors, 1.0) * cryptoutilIdentityMagic.ConfidenceWeightFactors
 
 	// Baseline quality contribution (max 50%).
-	baselineContribution := 0.0
+	baselineContribution := cryptoutilIdentityMagic.BaselineContributionZero
 	if len(baseline.KnownLocations) > 0 {
 		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBaseline
 	}

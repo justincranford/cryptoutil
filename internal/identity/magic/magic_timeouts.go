@@ -95,3 +95,11 @@ const (
 	DefaultRetryDelay    = 1 * time.Second  // Default retry delay.
 	DefaultRetryMaxDelay = 30 * time.Second // Default maximum retry delay.
 )
+
+// Authentication method identifiers.
+const (
+	AuthMethodTOTP        = "totp"         // TOTP authentication method.
+	AuthMethodSMSOTP      = "sms_otp"      // SMS OTP authentication method.
+	AuthMethodHardwareKey = "hardware_key" // Hardware key authentication method.
+	AuthMethodBiometric   = "biometric"    // Biometric authentication method.
+)

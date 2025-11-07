@@ -106,7 +106,7 @@ func (s *StepUpAuthenticator) EvaluateStepUp(
 	expiresAt := time.Now().Add(cryptoutilIdentityMagic.DefaultOTPLifetime)
 
 	// Select step-up method (first allowed method for simplicity).
-	challengeMethod := "totp"
+	challengeMethod := cryptoutilIdentityMagic.AuthMethodTOTP
 	if len(policy.AllowedMethods) > 0 {
 		challengeMethod = policy.AllowedMethods[0]
 	}
@@ -253,31 +253,31 @@ func DefaultStepUpPolicies() map[string]*StepUpPolicy {
 		policyTransferFunds: {
 			OperationPattern: policyTransferFunds,
 			RequiredLevel:    AuthLevelMFA,
-			AllowedMethods:   []string{"totp", "sms_otp", "hardware_key"},
+			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP, cryptoutilIdentityMagic.AuthMethodHardwareKey},
 			MaxAge:           cryptoutilIdentityMagic.StepUpTransferFundsMaxAge,
 		},
 		policyChangePassword: {
 			OperationPattern: policyChangePassword,
 			RequiredLevel:    AuthLevelStepUp,
-			AllowedMethods:   []string{"totp", "sms_otp"},
+			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP},
 			MaxAge:           cryptoutilIdentityMagic.StepUpChangePasswordMaxAge,
 		},
 		policyAddPayee: {
 			OperationPattern: policyAddPayee,
 			RequiredLevel:    AuthLevelMFA,
-			AllowedMethods:   []string{"totp", "sms_otp", "hardware_key"},
+			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP, cryptoutilIdentityMagic.AuthMethodHardwareKey},
 			MaxAge:           cryptoutilIdentityMagic.StepUpAddPayeeMaxAge,
 		},
 		policyDeleteAccount: {
 			OperationPattern: policyDeleteAccount,
 			RequiredLevel:    AuthLevelStrongMFA,
-			AllowedMethods:   []string{"hardware_key", "biometric"},
+			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodHardwareKey, cryptoutilIdentityMagic.AuthMethodBiometric},
 			MaxAge:           cryptoutilIdentityMagic.StepUpDeleteAccountMaxAge,
 		},
 		policyViewPII: {
 			OperationPattern: policyViewPII,
 			RequiredLevel:    AuthLevelMFA,
-			AllowedMethods:   []string{"totp", "sms_otp"},
+			AllowedMethods:   []string{cryptoutilIdentityMagic.AuthMethodTOTP, cryptoutilIdentityMagic.AuthMethodSMSOTP},
 			MaxAge:           cryptoutilIdentityMagic.StepUpViewPIIMaxAge,
 		},
 	}

@@ -39,3 +39,8 @@ const (
 	VPNRiskScore   = 0.5 // Risk score for VPN usage.
 	ProxyRiskScore = 0.6 // Risk score for proxy usage.
 )
+
+// Baseline contribution values.
+const (
+	BaselineContributionZero = 0.0 // Zero baseline contribution for initial calculation.
+)
