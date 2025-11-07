@@ -48,11 +48,15 @@ var (
 	ErrPasswordHashFailed = NewIdentityError("password_hash_failed", "Failed to hash password", http.StatusInternalServerError, nil)
 
 	// Client errors.
-	ErrClientNotFound      = NewIdentityError("client_not_found", "Client not found", http.StatusNotFound, nil)
-	ErrClientAlreadyExists = NewIdentityError("client_already_exists", "Client already exists", http.StatusConflict, nil)
-	ErrClientDisabled      = NewIdentityError("client_disabled", "Client is disabled", http.StatusForbidden, nil)
-	ErrInvalidClientAuth   = NewIdentityError("invalid_client", "Invalid client authentication", http.StatusUnauthorized, nil)
-	ErrInvalidClientSecret = NewIdentityError("invalid_client_secret", "Invalid client secret", http.StatusUnauthorized, nil)
+	ErrClientNotFound        = NewIdentityError("client_not_found", "Client not found", http.StatusNotFound, nil)
+	ErrClientAlreadyExists   = NewIdentityError("client_already_exists", "Client already exists", http.StatusConflict, nil)
+	ErrClientDisabled        = NewIdentityError("client_disabled", "Client is disabled", http.StatusForbidden, nil)
+	ErrInvalidClientAuth     = NewIdentityError("invalid_client", "Invalid client authentication", http.StatusUnauthorized, nil)
+	ErrInvalidClientSecret   = NewIdentityError("invalid_client_secret", "Invalid client secret", http.StatusUnauthorized, nil)
+	ErrClientProfileNotFound = NewIdentityError("client_profile_not_found", "Client profile not found", http.StatusNotFound, nil)
+	ErrAuthFlowNotFound      = NewIdentityError("auth_flow_not_found", "Authorization flow not found", http.StatusNotFound, nil)
+	ErrAuthProfileNotFound   = NewIdentityError("auth_profile_not_found", "Authentication profile not found", http.StatusNotFound, nil)
+	ErrMFAFactorNotFound     = NewIdentityError("mfa_factor_not_found", "MFA factor not found", http.StatusNotFound, nil)
 
 	// Token errors.
 	ErrTokenNotFound         = NewIdentityError("token_not_found", "Token not found", http.StatusNotFound, nil)
