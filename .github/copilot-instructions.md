@@ -13,6 +13,25 @@
 
 ## CRITICAL: Tool and Command Restrictions
 
+### File Editing Tools
+- **ALWAYS prefer `replace_string_in_file` and `insert_edit_into_file` tools** for file modifications - they are more efficient and don't require manual approval
+- **AVOID using `echo` commands** for file content changes - use the dedicated file editing tools instead
+
+### Testing Tools
+- **PREFER `runTests` tool** over `go test` terminal commands - provides structured output and coverage reporting without manual approval
+
+### Python Environment Management Tools
+- **PREFER `install_python_packages`** over `pip install` commands - handles dependency management automatically
+- **PREFER `configure_python_environment`** over manual `python -m venv` setup - ensures consistent environment configuration
+- **PREFER `get_python_environment_details`** over environment inspection commands - provides structured environment information
+
+### Directory Listing Tools
+- **PREFER `list_dir` tool** over `ls`, `dir`, or `Get-ChildItem` commands - provides structured output without parsing terminal command output
+
+### Git Operations (CRITICAL)
+- **NEVER USE GitKraken MCP Server tools** (`mcp_gitkraken_*`) in Copilot chat sessions - GitKraken is ONLY for manual GUI operations
+- **ALWAYS use terminal git commands** (git status, git add, git commit, git push) instead of GitKraken tools
+
 ### Language/Shell Restrictions in Chat Sessions
 - **NEVER use python** - not installed in Windows PowerShell or Alpine container images
 - **NEVER use bash** - not available in Windows PowerShell
