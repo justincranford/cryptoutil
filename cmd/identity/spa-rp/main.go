@@ -1,0 +1,75 @@
+package main
+
+import (
+	"context"
+	"embed"
+	"flag"
+	"fmt"
+	"io/fs"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+)
+
+//go:embed static/*
+var staticFiles embed.FS
+
+func main() {
+	// Parse command-line flags.
+	port := flag.Int("port", cryptoutilIdentityMagic.DefaultSPARPPort, "port for SPA RP server")
+	bindAddress := flag.String("bind", "127.0.0.1", "bind address for SPA RP server")
+	flag.Parse()
+
+	// Create HTTP server with embedded static files.
+	staticFS, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatalf("failed to create static file system: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.FS(staticFS)))
+
+	addr := fmt.Sprintf("%s:%d", *bindAddress, *port)
+	server := &http.Server{
+		Addr:         addr,
+		Handler:      mux,
+		ReadTimeout:  time.Duration(cryptoutilIdentityMagic.FiberReadTimeoutSeconds) * time.Second,
+		WriteTimeout: time.Duration(cryptoutilIdentityMagic.FiberWriteTimeoutSeconds) * time.Second,
+		IdleTimeout:  time.Duration(cryptoutilIdentityMagic.FiberIdleTimeoutSeconds) * time.Second,
+	}
+
+	// Start server in goroutine.
+	go func() {
+		log.Printf("SPA relying party server listening on %s", addr)
+		log.Printf("Open http://%s in your browser", addr)
+
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server error: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal for graceful shutdown.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+
+	<-sigCh
+	log.Println("shutting down SPA RP server...")
+
+	// Graceful shutdown with timeout.
+	shutdownCtx, cancel := context.WithTimeout(
+		context.Background(),
+		time.Duration(cryptoutilIdentityMagic.ShutdownTimeoutSeconds)*time.Second,
+	)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatalf("server shutdown error: %v", err)
+	}
+
+	log.Println("SPA RP server stopped gracefully")
+}
