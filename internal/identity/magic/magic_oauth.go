@@ -40,6 +40,13 @@ const (
 	PKCEMethodS256  = "S256"  // SHA-256 PKCE method.
 )
 
+// Token formats.
+const (
+	TokenFormatJWS  = "jws"  // JWS token format (signed JWT).
+	TokenFormatJWE  = "jwe"  // JWE token format (encrypted JWT).
+	TokenFormatUUID = "uuid" // UUID token format (opaque token).
+)
+
 // OAuth 2.1 parameter names.
 const (
 	ParamClientID            = "client_id"             // Client ID parameter.

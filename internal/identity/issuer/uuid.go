@@ -1,0 +1,43 @@
+package issuer
+
+import (
+	"context"
+	"fmt"
+
+	googleUuid "github.com/google/uuid"
+
+	cryptoutilIdentityApperr "cryptoutil/internal/identity/apperr"
+)
+
+// UUIDIssuer issues opaque UUID-based tokens.
+type UUIDIssuer struct{}
+
+// NewUUIDIssuer creates a new UUID token issuer.
+func NewUUIDIssuer() *UUIDIssuer {
+	return &UUIDIssuer{}
+}
+
+// IssueToken issues a new opaque UUID token.
+func (i *UUIDIssuer) IssueToken(ctx context.Context) (string, error) {
+	token := googleUuid.NewString()
+	if token == "" {
+		return "", cryptoutilIdentityApperr.WrapError(
+			cryptoutilIdentityApperr.ErrTokenIssuanceFailed,
+			fmt.Errorf("failed to generate UUID token"),
+		)
+	}
+
+	return token, nil
+}
+
+// ValidateToken validates a UUID token format (basic check).
+func (i *UUIDIssuer) ValidateToken(ctx context.Context, token string) error {
+	if _, err := googleUuid.Parse(token); err != nil {
+		return cryptoutilIdentityApperr.WrapError(
+			cryptoutilIdentityApperr.ErrInvalidToken,
+			fmt.Errorf("invalid UUID format: %w", err),
+		)
+	}
+
+	return nil
+}

@@ -50,6 +50,8 @@ const (
 	DefaultNonceLength        = 32 // Default nonce parameter length.
 	DefaultAuthCodeLength     = 32 // Default authorization code length.
 	DefaultRefreshTokenLength = 64 // Default refresh token length.
+	AES256KeySize             = 32 // AES-256 key size in bytes.
+	JWSPartCount              = 3  // JWT JWS part count (header.payload.signature).
 )
 
 // Password hashing.
