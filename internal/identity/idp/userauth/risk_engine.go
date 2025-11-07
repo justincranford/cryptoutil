@@ -1,0 +1,365 @@
+package userauth
+
+import (
+	"context"
+	"fmt"
+	"math"
+	"time"
+
+	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+)
+
+// RiskLevel represents the assessed risk level.
+type RiskLevel string
+
+const (
+	RiskLevelLow      RiskLevel = "low"
+	RiskLevelMedium   RiskLevel = "medium"
+	RiskLevelHigh     RiskLevel = "high"
+	RiskLevelCritical RiskLevel = "critical"
+)
+
+// RiskFactorType represents the type of risk factor.
+type RiskFactorType string
+
+const (
+	RiskFactorLocation       RiskFactorType = "location"
+	RiskFactorDevice         RiskFactorType = "device"
+	RiskFactorTime           RiskFactorType = "time"
+	RiskFactorBehavior       RiskFactorType = "behavior"
+	RiskFactorNetwork        RiskFactorType = "network"
+	RiskFactorVelocity       RiskFactorType = "velocity"
+	RiskFactorAuthentication RiskFactorType = "authentication"
+)
+
+// RiskFactor represents an individual risk factor contributing to the overall risk score.
+type RiskFactor struct {
+	Type     RiskFactorType
+	Score    float64
+	Weight   float64
+	Reason   string
+	Metadata map[string]any
+}
+
+// RiskScore represents the overall risk assessment result.
+type RiskScore struct {
+	Score      float64      // Overall risk score (0.0-1.0).
+	Level      RiskLevel    // Risk level categorization.
+	Factors    []RiskFactor // Individual risk factors.
+	Confidence float64      // Confidence in the assessment (0.0-1.0).
+	AssessedAt time.Time    // When the assessment was performed.
+}
+
+// RiskEngine assesses authentication risk based on context.
+type RiskEngine interface {
+	AssessRisk(ctx context.Context, userID string, authContext *AuthContext) (*RiskScore, error)
+	CalculateRiskFactors(authContext *AuthContext, baseline *UserBaseline) []RiskFactor
+}
+
+// BehavioralRiskEngine implements risk assessment based on behavioral analytics.
+type BehavioralRiskEngine struct {
+	userHistory    UserBehaviorStore
+	geoIP          GeoIPService
+	deviceDB       DeviceFingerprintDB
+	locationWeight float64
+	deviceWeight   float64
+	timeWeight     float64
+	behaviorWeight float64
+	networkWeight  float64
+	velocityWeight float64
+}
+
+// NewBehavioralRiskEngine creates a new behavioral risk engine.
+func NewBehavioralRiskEngine(
+	userHistory UserBehaviorStore,
+	geoIP GeoIPService,
+	deviceDB DeviceFingerprintDB,
+) *BehavioralRiskEngine {
+	const (
+		defaultLocationWeight = 0.25
+		defaultDeviceWeight   = 0.20
+		defaultTimeWeight     = 0.15
+		defaultBehaviorWeight = 0.20
+		defaultNetworkWeight  = 0.10
+		defaultVelocityWeight = 0.10
+	)
+
+	return &BehavioralRiskEngine{
+		userHistory:    userHistory,
+		geoIP:          geoIP,
+		deviceDB:       deviceDB,
+		locationWeight: defaultLocationWeight,
+		deviceWeight:   defaultDeviceWeight,
+		timeWeight:     defaultTimeWeight,
+		behaviorWeight: defaultBehaviorWeight,
+		networkWeight:  defaultNetworkWeight,
+		velocityWeight: defaultVelocityWeight,
+	}
+}
+
+// AssessRisk evaluates the overall risk for an authentication attempt.
+func (e *BehavioralRiskEngine) AssessRisk(ctx context.Context, userID string, authContext *AuthContext) (*RiskScore, error) {
+	// Get user baseline.
+	baseline, err := e.userHistory.GetBaseline(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user baseline: %w", err)
+	}
+
+	// Calculate individual risk factors.
+	factors := e.CalculateRiskFactors(authContext, baseline)
+
+	// Calculate weighted risk score.
+	var totalScore float64
+
+	var totalWeight float64
+
+	for _, factor := range factors {
+		totalScore += factor.Score * factor.Weight
+		totalWeight += factor.Weight
+	}
+
+	// Normalize score to 0.0-1.0 range.
+	score := totalScore / totalWeight
+
+	// Determine risk level.
+	level := e.determineRiskLevel(score)
+
+	// Calculate confidence based on baseline data availability.
+	confidence := e.calculateConfidence(baseline, len(factors))
+
+	return &RiskScore{
+		Score:      score,
+		Level:      level,
+		Factors:    factors,
+		Confidence: confidence,
+		AssessedAt: time.Now(),
+	}, nil
+}
+
+// CalculateRiskFactors computes individual risk factors.
+func (e *BehavioralRiskEngine) CalculateRiskFactors(authContext *AuthContext, baseline *UserBaseline) []RiskFactor {
+	factors := make([]RiskFactor, 0)
+
+	// Location risk.
+	if authContext.Location != nil {
+		locationRisk := e.assessLocationRisk(authContext.Location, baseline)
+		factors = append(factors, RiskFactor{
+			Type:   RiskFactorLocation,
+			Score:  locationRisk,
+			Weight: e.locationWeight,
+			Reason: "Location-based risk assessment",
+			Metadata: map[string]any{
+				"country": authContext.Location.Country,
+				"city":    authContext.Location.City,
+			},
+		})
+	}
+
+	// Device risk.
+	if authContext.Device != nil {
+		deviceRisk := e.assessDeviceRisk(authContext.Device, baseline)
+		factors = append(factors, RiskFactor{
+			Type:   RiskFactorDevice,
+			Score:  deviceRisk,
+			Weight: e.deviceWeight,
+			Reason: "Device fingerprint risk assessment",
+			Metadata: map[string]any{
+				"device_id": authContext.Device.ID,
+			},
+		})
+	}
+
+	// Time-based risk.
+	timeRisk := e.assessTimeRisk(authContext.Time, baseline)
+	factors = append(factors, RiskFactor{
+		Type:   RiskFactorTime,
+		Score:  timeRisk,
+		Weight: e.timeWeight,
+		Reason: "Time-based risk assessment",
+		Metadata: map[string]any{
+			"hour": authContext.Time.Hour(),
+		},
+	})
+
+	// Behavioral risk.
+	if authContext.Behavior != nil {
+		behaviorRisk := e.assessBehaviorRisk(authContext.Behavior, baseline)
+		factors = append(factors, RiskFactor{
+			Type:   RiskFactorBehavior,
+			Score:  behaviorRisk,
+			Weight: e.behaviorWeight,
+			Reason: "Behavioral pattern risk assessment",
+		})
+	}
+
+	// Network risk.
+	if authContext.Network != nil {
+		networkRisk := e.assessNetworkRisk(authContext.Network, baseline)
+		factors = append(factors, RiskFactor{
+			Type:   RiskFactorNetwork,
+			Score:  networkRisk,
+			Weight: e.networkWeight,
+			Reason: "Network-based risk assessment",
+			Metadata: map[string]any{
+				"ip": authContext.Network.IPAddress,
+			},
+		})
+	}
+
+	// Velocity risk (how quickly authentication attempts occur).
+	velocityRisk := e.assessVelocityRisk(authContext, baseline)
+	factors = append(factors, RiskFactor{
+		Type:   RiskFactorVelocity,
+		Score:  velocityRisk,
+		Weight: e.velocityWeight,
+		Reason: "Authentication velocity risk assessment",
+	})
+
+	return factors
+}
+
+// Helper methods for individual risk assessments.
+
+func (e *BehavioralRiskEngine) assessLocationRisk(location *GeoLocation, baseline *UserBaseline) float64 {
+	// Check if location is in user's known locations.
+	for _, knownLoc := range baseline.KnownLocations {
+		if knownLoc.Country == location.Country && knownLoc.City == location.City {
+			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for known location.
+		}
+	}
+
+	// Unknown location - higher risk.
+	return cryptoutilIdentityMagic.RiskScoreCritical
+}
+
+func (e *BehavioralRiskEngine) assessDeviceRisk(device *DeviceFingerprint, baseline *UserBaseline) float64 {
+	// Check if device is recognized.
+	for _, knownDevice := range baseline.KnownDevices {
+		if knownDevice == device.ID {
+			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for known device.
+		}
+	}
+
+	// Unknown device - higher risk.
+	return cryptoutilIdentityMagic.RiskScoreHigh
+}
+
+func (e *BehavioralRiskEngine) assessTimeRisk(authTime time.Time, baseline *UserBaseline) float64 {
+	hour := authTime.Hour()
+
+	// Check if time matches user's typical authentication hours.
+	for _, typicalHour := range baseline.TypicalHours {
+		if hour == typicalHour {
+			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for typical time.
+		}
+	}
+
+	// Unusual time - moderate risk.
+	return cryptoutilIdentityMagic.RiskScoreMedium
+}
+
+func (e *BehavioralRiskEngine) assessBehaviorRisk(behavior *UserBehavior, baseline *UserBaseline) float64 {
+	// Compare behavior patterns with baseline.
+	// This is simplified - real implementation would use ML/statistical analysis.
+	if baseline.BehaviorProfile == nil {
+		return cryptoutilIdentityMagic.RiskScoreMedium + cryptoutilIdentityMagic.RiskScoreLow // No baseline, moderate risk.
+	}
+
+	// Simple similarity check (real implementation would be more sophisticated).
+	return cryptoutilIdentityMagic.RiskScoreLow
+}
+
+func (e *BehavioralRiskEngine) assessNetworkRisk(network *NetworkInfo, baseline *UserBaseline) float64 {
+	// Check if network is recognized.
+	for _, knownNet := range baseline.KnownNetworks {
+		if knownNet == network.IPAddress {
+			return cryptoutilIdentityMagic.RiskScoreLow // Low risk for known network.
+		}
+	}
+
+	// Check if using VPN/Proxy.
+	if network.IsVPN {
+		return cryptoutilIdentityMagic.VPNRiskScore
+	}
+
+	if network.IsProxy {
+		return cryptoutilIdentityMagic.ProxyRiskScore
+	}
+
+	// Unknown network - moderate risk.
+	return cryptoutilIdentityMagic.RiskScoreMedium
+}
+
+func (e *BehavioralRiskEngine) assessVelocityRisk(authContext *AuthContext, baseline *UserBaseline) float64 {
+	if baseline.LastAuthTime.IsZero() {
+		return cryptoutilIdentityMagic.RiskScoreLow // No previous authentication, low risk.
+	}
+
+	// Calculate time since last authentication.
+	timeSinceLastAuth := authContext.Time.Sub(baseline.LastAuthTime)
+
+	const (
+		veryFastThreshold = 5 * time.Second
+		fastThreshold     = 1 * time.Minute
+	)
+
+	if timeSinceLastAuth < veryFastThreshold {
+		return cryptoutilIdentityMagic.RiskScoreExtreme
+	}
+
+	if timeSinceLastAuth < fastThreshold {
+		return cryptoutilIdentityMagic.RiskScoreHigh
+	}
+
+	const velocityRiskNormal = 0.2
+
+	return velocityRiskNormal
+}
+
+func (e *BehavioralRiskEngine) determineRiskLevel(score float64) RiskLevel {
+	const (
+		lowThreshold    = 0.25
+		mediumThreshold = 0.50
+		highThreshold   = 0.75
+	)
+
+	switch {
+	case score < lowThreshold:
+		return RiskLevelLow
+	case score < mediumThreshold:
+		return RiskLevelMedium
+	case score < highThreshold:
+		return RiskLevelHigh
+	default:
+		return RiskLevelCritical
+	}
+}
+
+func (e *BehavioralRiskEngine) calculateConfidence(baseline *UserBaseline, factorCount int) float64 {
+	// Confidence based on:
+	// 1. Number of available risk factors.
+	// 2. Quality of baseline data.
+	// Factor count contribution (max 50%).
+	const maxFactors = 6.0
+	factorContribution := math.Min(float64(factorCount)/maxFactors, 1.0) * cryptoutilIdentityMagic.ConfidenceWeightFactors
+
+	// Baseline quality contribution (max 50%).
+	baselineContribution := 0.0
+	if len(baseline.KnownLocations) > 0 {
+		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBaseline
+	}
+
+	if len(baseline.KnownDevices) > 0 {
+		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBaseline
+	}
+
+	if len(baseline.TypicalHours) > 0 {
+		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBehavior
+	}
+
+	if baseline.BehaviorProfile != nil {
+		baselineContribution += cryptoutilIdentityMagic.ConfidenceWeightBehavior
+	}
+
+	return factorContribution + baselineContribution
+}
