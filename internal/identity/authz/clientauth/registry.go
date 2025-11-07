@@ -15,8 +15,10 @@ func NewRegistry(repoFactory *cryptoutilIdentityRepository.RepositoryFactory) *R
 
 	return &Registry{
 		authenticators: map[string]ClientAuthenticator{
-			"client_secret_basic": NewBasicAuthenticator(clientRepo),
-			"client_secret_post":  NewPostAuthenticator(clientRepo),
+			"client_secret_basic":         NewBasicAuthenticator(clientRepo),
+			"client_secret_post":          NewPostAuthenticator(clientRepo),
+			"tls_client_auth":             NewTLSClientAuthenticator(clientRepo),
+			"self_signed_tls_client_auth": NewSelfSignedAuthenticator(clientRepo),
 		},
 	}
 }
