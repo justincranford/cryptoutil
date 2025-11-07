@@ -1,12 +1,11 @@
 package integration
 
 import (
+	"cryptoutil/internal/identity/test/testutils"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"cryptoutil/internal/identity/test/testutils"
 )
 
 // TestDatabaseSetup tests basic database setup and teardown.
@@ -22,7 +21,7 @@ func TestDatabaseSetup(t *testing.T) {
 // TestConfigCreation tests test configuration creation.
 func TestConfigCreation(t *testing.T) {
 	config := testutils.CreateTestConfig(t, 8443, 8444, 8445)
-	
+
 	require.NotNil(t, config, "config should be created")
 	assert.Equal(t, 8443, config.AuthZ.Port, "AuthZ port should match")
 	assert.Equal(t, 8444, config.IDP.Port, "IDP port should match")

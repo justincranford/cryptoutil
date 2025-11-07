@@ -40,6 +40,9 @@ type Client struct {
 	ClientSecret string     `json:"-"`                                     // Client secret (hashed).
 	ClientType   ClientType `gorm:"not null" json:"client_type"`           // Client type (confidential, public, SPA).
 
+	// Client JWK Set (for private_key_jwt authentication).
+	JWKs string `gorm:"type:text" json:"jwks,omitempty"` // JSON Web Key Set (RFC 7517).
+
 	// Client metadata.
 	Name        string `gorm:"not null" json:"name"`    // Human-readable client name.
 	Description string `json:"description,omitempty"`   // Client description.

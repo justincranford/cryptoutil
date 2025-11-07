@@ -30,6 +30,7 @@ func SetupTestDatabase(t *testing.T) *gorm.DB {
 		if err.Error() == "Binary was compiled with 'CGO_ENABLED=0', go-sqlite3 requires cgo to work. This is a stub" {
 			t.Skip("Skipping database tests: CGO not available (required for SQLite)")
 		}
+
 		require.NoError(t, err, "failed to open test database")
 	}
 
@@ -60,7 +61,7 @@ func CleanupTestDatabase(t *testing.T, db *gorm.DB) {
 }
 
 // CreateTestConfig creates a minimal test configuration.
-func CreateTestConfig(t *testing.T, authzPort int, idpPort int, rsPort int) *cryptoutilIdentityConfig.Config {
+func CreateTestConfig(t *testing.T, authzPort, idpPort, rsPort int) *cryptoutilIdentityConfig.Config {
 	t.Helper()
 
 	return &cryptoutilIdentityConfig.Config{
