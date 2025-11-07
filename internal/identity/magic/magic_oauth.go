@@ -97,3 +97,9 @@ const (
 	ClientAuthMethodBearerToken       = "bearer_token"                // Bearer token authentication.
 	ClientAuthMethodNone              = "none"                        // No authentication (public clients).
 )
+
+// Rate limiting constants.
+const (
+	RateLimitRequestsPerWindow = 100 // Maximum requests per time window.
+	RateLimitWindowSeconds     = 60  // Time window in seconds.
+)
