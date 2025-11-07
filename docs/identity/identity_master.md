@@ -98,7 +98,23 @@ workflow-reports/identity/
 
 ### Magic Values
 
-**ALL constants** → `/internal/identity/<package>/magic*.go` files
+**ALL constants** → `/internal/identity/<package>/magic*.go` files (linting configuration updated to allow this)
+
+### Import Aliases
+
+**CRITICAL**: When creating identity packages, add corresponding import aliases to `.golangci.yml`:
+
+```yaml
+# Add to .golangci.yml importas section:
+- pkg: cryptoutil/internal/identity/authz
+  alias: cryptoutilIdentityAuthz
+- pkg: cryptoutil/internal/identity/idp
+  alias: cryptoutilIdentityIdp
+- pkg: cryptoutil/internal/identity/rs
+  alias: cryptoutilIdentityRs
+- pkg: cryptoutil/internal/identity/common
+  alias: cryptoutilIdentityCommon
+```
 
 ### Architecture
 
