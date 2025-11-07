@@ -1,0 +1,108 @@
+package apperr
+
+import (
+	"fmt"
+	"net/http"
+)
+
+// IdentityError represents an identity module-specific error.
+type IdentityError struct {
+	Code       string // Error code.
+	Message    string // Error message.
+	HTTPStatus int    // HTTP status code.
+	Internal   error  // Internal error (if any).
+}
+
+// Error implements the error interface.
+func (e *IdentityError) Error() string {
+	if e.Internal != nil {
+		return fmt.Sprintf("%s: %s (internal: %v)", e.Code, e.Message, e.Internal)
+	}
+
+	return fmt.Sprintf("%s: %s", e.Code, e.Message)
+}
+
+// Unwrap returns the internal error for error chain unwrapping.
+func (e *IdentityError) Unwrap() error {
+	return e.Internal
+}
+
+// NewIdentityError creates a new identity error.
+func NewIdentityError(code, message string, httpStatus int, internal error) *IdentityError {
+	return &IdentityError{
+		Code:       code,
+		Message:    message,
+		HTTPStatus: httpStatus,
+		Internal:   internal,
+	}
+}
+
+// Common identity errors.
+var (
+	// User errors.
+	ErrUserNotFound       = NewIdentityError("user_not_found", "User not found", http.StatusNotFound, nil)
+	ErrUserAlreadyExists  = NewIdentityError("user_already_exists", "User already exists", http.StatusConflict, nil)
+	ErrUserDisabled       = NewIdentityError("user_disabled", "User account is disabled", http.StatusForbidden, nil)
+	ErrUserLocked         = NewIdentityError("user_locked", "User account is locked", http.StatusForbidden, nil)
+	ErrInvalidCredentials = NewIdentityError("invalid_credentials", "Invalid username or password", http.StatusUnauthorized, nil)
+	ErrPasswordHashFailed = NewIdentityError("password_hash_failed", "Failed to hash password", http.StatusInternalServerError, nil)
+
+	// Client errors.
+	ErrClientNotFound      = NewIdentityError("client_not_found", "Client not found", http.StatusNotFound, nil)
+	ErrClientAlreadyExists = NewIdentityError("client_already_exists", "Client already exists", http.StatusConflict, nil)
+	ErrClientDisabled      = NewIdentityError("client_disabled", "Client is disabled", http.StatusForbidden, nil)
+	ErrInvalidClientAuth   = NewIdentityError("invalid_client", "Invalid client authentication", http.StatusUnauthorized, nil)
+	ErrInvalidClientSecret = NewIdentityError("invalid_client_secret", "Invalid client secret", http.StatusUnauthorized, nil)
+
+	// Token errors.
+	ErrTokenNotFound         = NewIdentityError("token_not_found", "Token not found", http.StatusNotFound, nil)
+	ErrTokenExpired          = NewIdentityError("token_expired", "Token has expired", http.StatusUnauthorized, nil)
+	ErrTokenRevoked          = NewIdentityError("token_revoked", "Token has been revoked", http.StatusUnauthorized, nil)
+	ErrInvalidToken          = NewIdentityError("invalid_token", "Invalid token", http.StatusUnauthorized, nil)
+	ErrTokenIssuanceFailed   = NewIdentityError("token_issuance_failed", "Failed to issue token", http.StatusInternalServerError, nil)
+	ErrTokenValidationFailed = NewIdentityError("token_validation_failed", "Failed to validate token", http.StatusInternalServerError, nil)
+
+	// Session errors.
+	ErrSessionNotFound   = NewIdentityError("session_not_found", "Session not found", http.StatusNotFound, nil)
+	ErrSessionExpired    = NewIdentityError("session_expired", "Session has expired", http.StatusUnauthorized, nil)
+	ErrSessionTerminated = NewIdentityError("session_terminated", "Session has been terminated", http.StatusUnauthorized, nil)
+	ErrInvalidSession    = NewIdentityError("invalid_session", "Invalid session", http.StatusUnauthorized, nil)
+
+	// OAuth errors.
+	ErrInvalidRequest       = NewIdentityError("invalid_request", "Invalid OAuth request", http.StatusBadRequest, nil)
+	ErrInvalidGrant         = NewIdentityError("invalid_grant", "Invalid authorization grant", http.StatusBadRequest, nil)
+	ErrUnauthorizedClient   = NewIdentityError("unauthorized_client", "Client is not authorized", http.StatusUnauthorized, nil)
+	ErrAccessDenied         = NewIdentityError("access_denied", "Access denied", http.StatusForbidden, nil)
+	ErrUnsupportedGrantType = NewIdentityError("unsupported_grant_type", "Unsupported grant type", http.StatusBadRequest, nil)
+	ErrInvalidScope         = NewIdentityError("invalid_scope", "Invalid scope", http.StatusBadRequest, nil)
+	ErrServerError          = NewIdentityError("server_error", "Internal server error", http.StatusInternalServerError, nil)
+
+	// PKCE errors.
+	ErrPKCERequired         = NewIdentityError("pkce_required", "PKCE is required for this flow", http.StatusBadRequest, nil)
+	ErrInvalidCodeChallenge = NewIdentityError("invalid_code_challenge", "Invalid PKCE code challenge", http.StatusBadRequest, nil)
+	ErrInvalidCodeVerifier  = NewIdentityError("invalid_code_verifier", "Invalid PKCE code verifier", http.StatusBadRequest, nil)
+
+	// OIDC errors.
+	ErrInvalidIDToken     = NewIdentityError("invalid_id_token", "Invalid ID token", http.StatusUnauthorized, nil)
+	ErrInvalidNonce       = NewIdentityError("invalid_nonce", "Invalid nonce", http.StatusBadRequest, nil)
+	ErrInvalidRedirectURI = NewIdentityError("invalid_redirect_uri", "Invalid redirect URI", http.StatusBadRequest, nil)
+
+	// Configuration errors.
+	ErrInvalidConfiguration = NewIdentityError("invalid_configuration", "Invalid configuration", http.StatusInternalServerError, nil)
+	ErrMissingConfiguration = NewIdentityError("missing_configuration", "Missing required configuration", http.StatusInternalServerError, nil)
+
+	// Database errors.
+	ErrDatabaseConnection  = NewIdentityError("database_connection", "Database connection failed", http.StatusInternalServerError, nil)
+	ErrDatabaseQuery       = NewIdentityError("database_query", "Database query failed", http.StatusInternalServerError, nil)
+	ErrDatabaseTransaction = NewIdentityError("database_transaction", "Database transaction failed", http.StatusInternalServerError, nil)
+)
+
+// WrapError wraps an internal error with an identity error.
+func WrapError(identityErr *IdentityError, internal error) *IdentityError {
+	return &IdentityError{
+		Code:       identityErr.Code,
+		Message:    identityErr.Message,
+		HTTPStatus: identityErr.HTTPStatus,
+		Internal:   internal,
+	}
+}

@@ -1,0 +1,88 @@
+package magic
+
+// OAuth 2.1 grant types.
+const (
+	GrantTypeAuthorizationCode = "authorization_code" // Authorization code grant type.
+	GrantTypeClientCredentials = "client_credentials" // Client credentials grant type.
+	GrantTypeRefreshToken      = "refresh_token"      // Refresh token grant type.
+)
+
+// OAuth 2.1 response types.
+const (
+	ResponseTypeCode = "code" // Authorization code response type.
+)
+
+// OAuth 2.1 response modes.
+const (
+	ResponseModeQuery    = "query"     // Query string response mode.
+	ResponseModeFragment = "fragment"  // Fragment response mode.
+	ResponseModeFormPost = "form_post" // Form POST response mode.
+)
+
+// OAuth 2.1 scopes.
+const (
+	ScopeOpenID        = "openid"         // OpenID scope.
+	ScopeProfile       = "profile"        // Profile scope.
+	ScopeEmail         = "email"          // Email scope.
+	ScopeAddress       = "address"        // Address scope.
+	ScopePhone         = "phone"          // Phone scope.
+	ScopeOfflineAccess = "offline_access" // Offline access scope (refresh tokens).
+)
+
+// OAuth 2.1 token types.
+const (
+	TokenTypeBearer = "Bearer" // Bearer token type.
+)
+
+// OAuth 2.1 PKCE methods.
+const (
+	PKCEMethodPlain = "plain" // Plain PKCE method.
+	PKCEMethodS256  = "S256"  // SHA-256 PKCE method.
+)
+
+// OAuth 2.1 parameter names.
+const (
+	ParamClientID            = "client_id"             // Client ID parameter.
+	ParamClientSecret        = "client_secret"         // Client secret parameter.
+	ParamGrantType           = "grant_type"            // Grant type parameter.
+	ParamCode                = "code"                  // Authorization code parameter.
+	ParamRedirectURI         = "redirect_uri"          // Redirect URI parameter.
+	ParamState               = "state"                 // State parameter.
+	ParamScope               = "scope"                 // Scope parameter.
+	ParamResponseType        = "response_type"         // Response type parameter.
+	ParamResponseMode        = "response_mode"         // Response mode parameter.
+	ParamCodeChallenge       = "code_challenge"        // PKCE code challenge parameter.
+	ParamCodeChallengeMethod = "code_challenge_method" // PKCE code challenge method parameter.
+	ParamCodeVerifier        = "code_verifier"         // PKCE code verifier parameter.
+	ParamAccessToken         = "access_token"          // Access token parameter.
+	ParamRefreshToken        = "refresh_token"         // Refresh token parameter.
+	ParamTokenType           = "token_type"            // Token type parameter.
+	ParamExpiresIn           = "expires_in"            // Token expiration parameter.
+	ParamIDToken             = "id_token"              // ID token parameter.
+)
+
+// OAuth 2.1 error codes.
+const (
+	ErrorInvalidRequest          = "invalid_request"           // Invalid request error.
+	ErrorInvalidClient           = "invalid_client"            // Invalid client error.
+	ErrorInvalidGrant            = "invalid_grant"             // Invalid grant error.
+	ErrorUnauthorizedClient      = "unauthorized_client"       // Unauthorized client error.
+	ErrorUnsupportedGrantType    = "unsupported_grant_type"    // Unsupported grant type error.
+	ErrorInvalidScope            = "invalid_scope"             // Invalid scope error.
+	ErrorAccessDenied            = "access_denied"             // Access denied error.
+	ErrorUnsupportedResponseType = "unsupported_response_type" // Unsupported response type error.
+	ErrorServerError             = "server_error"              // Server error.
+	ErrorTemporarilyUnavailable  = "temporarily_unavailable"   // Temporarily unavailable error.
+)
+
+// OAuth 2.1 client authentication methods.
+const (
+	ClientAuthMethodSecretBasic       = "client_secret_basic"         // HTTP Basic authentication.
+	ClientAuthMethodSecretPost        = "client_secret_post"          // POST body authentication.
+	ClientAuthMethodSecretJWT         = "client_secret_jwt"           // JWT signed with client secret.
+	ClientAuthMethodPrivateKeyJWT     = "private_key_jwt"             // JWT signed with private key.
+	ClientAuthMethodTLSClientAuth     = "tls_client_auth"             // mTLS with CA-issued certificate.
+	ClientAuthMethodSelfSignedTLSAuth = "self_signed_tls_client_auth" // mTLS with self-signed certificate.
+	ClientAuthMethodBearerToken       = "bearer_token"                // Bearer token authentication.
+	ClientAuthMethodNone              = "none"                        // No authentication (public clients).
+)
