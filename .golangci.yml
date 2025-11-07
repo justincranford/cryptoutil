@@ -104,7 +104,9 @@ linters-settings:
     ignore-tests: false
 
   mnd:
-    # Magic numbers should be defined as named constants in internal/common/magic package
+    # Magic numbers should be defined as named constants
+    # Primary location: internal/common/magic package for shared constants
+    # Secondary location: internal/identity/<package>/magic*.go for identity-specific constants
     # Only ignore numbers in specific cases where constants don't make sense
     ignored-numbers:
       # Mathematical operations that are self-documenting
