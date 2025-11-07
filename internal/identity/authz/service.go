@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+	"cryptoutil/internal/identity/authz/clientauth"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
@@ -13,6 +14,7 @@ type Service struct {
 	config      *cryptoutilIdentityConfig.Config
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory
 	tokenSvc    *cryptoutilIdentityIssuer.TokenService
+	clientAuth  *clientauth.Registry
 }
 
 // NewService creates a new authorization server service.
@@ -25,6 +27,7 @@ func NewService(
 		config:      config,
 		repoFactory: repoFactory,
 		tokenSvc:    tokenSvc,
+		clientAuth:  clientauth.NewRegistry(repoFactory),
 	}
 }
 

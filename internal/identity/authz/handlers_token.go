@@ -104,47 +104,23 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 // handleClientCredentialsGrant handles client_credentials grant.
 func (s *Service) handleClientCredentialsGrant(c *fiber.Ctx) error {
-	// Extract parameters.
-	clientID := c.FormValue(cryptoutilIdentityMagic.ParamClientID)
-	clientSecret := c.FormValue(cryptoutilIdentityMagic.ParamClientSecret)
+	// Authenticate client.
+	client, err := s.authenticateClient(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
+			"error_description": "Client authentication failed",
+		})
+	}
+
+	// Extract scope.
 	scope := c.FormValue(cryptoutilIdentityMagic.ParamScope)
 
-	// Validate required parameters.
-	if clientID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
-			"error_description": "client_id is required",
-		})
-	}
-
-	if clientSecret == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidRequest,
-			"error_description": "client_secret is required",
-		})
-	}
-
 	ctx := c.Context()
-	clientRepo := s.repoFactory.ClientRepository()
-
-	// Validate client credentials.
-	client, err := clientRepo.GetByClientID(ctx, clientID)
-	if err != nil {
-		appErr := cryptoutilIdentityApperr.ErrClientNotFound
-
-		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
-			"error":             cryptoutilIdentityMagic.ErrorInvalidClient,
-			"error_description": appErr.Message,
-		})
-	}
-
-	// TODO: Validate client_secret (hash comparison).
-	_ = client
-	_ = clientSecret
 
 	// Generate access token.
 	accessTokenClaims := map[string]any{
-		"client_id": clientID,
+		"client_id": client.ClientID,
 		"scope":     scope,
 		"exp":       time.Now().Add(time.Hour).Unix(),
 		"iat":       time.Now().Unix(),
