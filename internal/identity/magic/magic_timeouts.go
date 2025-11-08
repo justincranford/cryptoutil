@@ -98,8 +98,9 @@ const (
 
 // Authentication method identifiers.
 const (
-	AuthMethodTOTP        = "totp"         // TOTP authentication method.
-	AuthMethodSMSOTP      = "sms_otp"      // SMS OTP authentication method.
-	AuthMethodHardwareKey = "hardware_key" // Hardware key authentication method.
-	AuthMethodBiometric   = "biometric"    // Biometric authentication method.
+	AuthMethodTOTP             = "totp"              // TOTP authentication method.
+	AuthMethodSMSOTP           = "sms_otp"           // SMS OTP authentication method.
+	AuthMethodHardwareKey      = "hardware_key"      // Hardware key authentication method.
+	AuthMethodBiometric        = "biometric"         // Biometric authentication method.
+	AuthMethodUsernamePassword = "username_password" // Username/password authentication method.
 )
