@@ -10,11 +10,13 @@ import (
 	"net"
 	"os"
 	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 func main() {
 	// Generate private key
-	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	priv, err := rsa.GenerateKey(rand.Reader, cryptoutilMagic.TestRSAKeySize)
 	if err != nil {
 		panic(err)
 	}

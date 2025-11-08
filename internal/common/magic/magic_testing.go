@@ -165,6 +165,29 @@ const (
 const (
 	// TestJwkJwsAlgorithm - JWS algorithm for elastic key signing in tests.
 	TestJwkJwsAlgorithm = "RS256"
+
+	// TestRSAKeySize - RSA key size for test certificate generation.
+	TestRSAKeySize = 2048
+	// TestRandomStringLength32 - Standard random string length for tokens.
+	TestRandomStringLength32 = 32
+	// TestRandomStringLength16 - Short random string length for session IDs.
+	TestRandomStringLength16 = 16
+	// TestRandomStringLength64 - Long random string length for ID tokens.
+	TestRandomStringLength64 = 64
+	// TestTokenExpirationSeconds - Standard token expiration time in seconds.
+	TestTokenExpirationSeconds = 3600
+	// TestServiceStartupDelaySeconds - Delay to allow services to start.
+	TestServiceStartupDelaySeconds = 3
+	// TestHTTPHealthTimeoutSeconds - HTTP health check timeout.
+	TestHTTPHealthTimeoutSeconds = 5
+	// TestAuthZServerPort - Authorization server port for E2E tests.
+	TestAuthZServerPort = 8080
+	// TestIDPServerPort - Identity provider server port for E2E tests.
+	TestIDPServerPort = 8081
+	// TestResourceServerPort - Resource server port for E2E tests.
+	TestResourceServerPort = 8082
+	// TestSPARPServerPort - SPA relying party server port for E2E tests.
+	TestSPARPServerPort = 8083
 )
 
 var (

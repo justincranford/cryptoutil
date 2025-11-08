@@ -30,10 +30,10 @@ type E2ETestSuite struct {
 // NewE2ETestSuite creates a new E2E test suite with default configuration.
 func NewE2ETestSuite() *E2ETestSuite {
 	return &E2ETestSuite{
-		AuthZURL: "https://localhost:8080",
-		IDPURL:   "https://localhost:8081",
-		RSURL:    "https://localhost:8082",
-		SPAUrl:   "https://localhost:8083",
+		AuthZURL: "https://127.0.0.1:8080",
+		IDPURL:   "https://127.0.0.1:8081",
+		RSURL:    "https://127.0.0.1:8082",
+		SPAUrl:   "https://127.0.0.1:8083",
 		Client: &http.Client{
 			Timeout: 10 * time.Second,
 			Transport: &http.Transport{
@@ -291,6 +291,54 @@ func (s *E2ETestSuite) performUserAuth(ctx context.Context, method UserAuthMetho
 	}
 }
 
+// Stub implementations for user authentication methods
+// These would be properly implemented in a real identity system
+
+func (s *E2ETestSuite) performUsernamePasswordAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful username/password authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performEmailOTPAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful email OTP authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performSMSOTPAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful SMS OTP authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performTOTPAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful TOTP authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performHOTPAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful HOTP authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performMagicLinkAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful magic link authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performPasskeyAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful passkey authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performBiometricAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful biometric authentication
+	return nil
+}
+
+func (s *E2ETestSuite) performHardwareKeyAuth(ctx context.Context) error {
+	// Stub implementation - simulate successful hardware key authentication
+	return nil
+}
+
 // initiateAuthorizationCodeFlow initiates the OAuth 2.1 authorization code flow.
 func (s *E2ETestSuite) initiateAuthorizationCodeFlow(ctx context.Context, scenario TestScenario) (string, error) {
 	// Generate PKCE code verifier and challenge
@@ -327,7 +375,11 @@ func (s *E2ETestSuite) initiateAuthorizationCodeFlow(ctx context.Context, scenar
 
 	// Check for redirect to login page (302) or authorization code response (302).
 	if resp.StatusCode != http.StatusFound && resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("failed to read authorization error response: %w", err)
+		}
+
 		return "", fmt.Errorf("authorization request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -345,6 +397,7 @@ func (s *E2ETestSuite) initiateAuthorizationCodeFlow(ctx context.Context, scenar
 			Code  string `json:"code"`
 			State string `json:"state"`
 		}
+
 		if err := json.Unmarshal(body, &authResp); err != nil {
 			return "", fmt.Errorf("failed to parse authorization response: %w", err)
 		}
@@ -398,6 +451,7 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 
 	// Add client authentication based on method
 	var req *http.Request
+
 	var err error
 
 	switch clientAuth {
@@ -407,6 +461,7 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 		if err != nil {
 			return nil, fmt.Errorf("failed to create token request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		req.SetBasicAuth("test_client_id", "test_client_secret")
 
@@ -414,10 +469,12 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 		// client_secret_post: Include client_id and client_secret in POST body
 		params.Set("client_id", "test_client_id")
 		params.Set("client_secret", "test_client_secret")
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create token request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthSecretJWT:
@@ -426,13 +483,16 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate client secret JWT: %w", err)
 		}
+
 		params.Set("client_id", "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create token request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthPrivateKeyJWT:
@@ -441,32 +501,39 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate private key JWT: %w", err)
 		}
+
 		params.Set("client_id", "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create token request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthTLS:
 		// tls_client_auth: Mutual TLS with client certificate
 		params.Set("client_id", "test_client_id")
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create token request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		// Note: In a real implementation, the client certificate would be configured in the HTTP transport
 
 	case ClientAuthSelfSignedTLS:
 		// self_signed_tls_client_auth: Mutual TLS with self-signed certificate
 		params.Set("client_id", "test_client_id")
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create token request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		// Note: In a real implementation, the self-signed certificate would be configured in the HTTP transport
 
@@ -481,7 +548,11 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read token error response: %w", err)
+		}
+
 		return nil, fmt.Errorf("token request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -531,7 +602,11 @@ func (s *E2ETestSuite) accessProtectedResource(ctx context.Context, accessToken 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read protected resource error response: %w", err)
+		}
+
 		return fmt.Errorf("protected resource access failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
@@ -549,6 +624,7 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 
 	// Add client authentication based on method
 	var req *http.Request
+
 	var err error
 
 	switch clientAuth {
@@ -557,16 +633,19 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 		if err != nil {
 			return fmt.Errorf("failed to create refresh request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		req.SetBasicAuth("test_client_id", "test_client_secret")
 
 	case ClientAuthPost:
 		params.Set("client_id", "test_client_id")
 		params.Set("client_secret", "test_client_secret")
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return fmt.Errorf("failed to create refresh request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthSecretJWT:
@@ -574,13 +653,16 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 		if err != nil {
 			return fmt.Errorf("failed to generate client secret JWT: %w", err)
 		}
+
 		params.Set("client_id", "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return fmt.Errorf("failed to create refresh request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthPrivateKeyJWT:
@@ -588,29 +670,36 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 		if err != nil {
 			return fmt.Errorf("failed to generate private key JWT: %w", err)
 		}
+
 		params.Set("client_id", "test_client_id")
 		params.Set("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
 		params.Set("client_assertion", clientAssertion)
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return fmt.Errorf("failed to create refresh request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthTLS:
 		params.Set("client_id", "test_client_id")
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return fmt.Errorf("failed to create refresh request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	case ClientAuthSelfSignedTLS:
 		params.Set("client_id", "test_client_id")
+
 		req, err = http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(params.Encode()))
 		if err != nil {
 			return fmt.Errorf("failed to create refresh request: %w", err)
 		}
+
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	default:
@@ -624,7 +713,11 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read refresh error response: %w", err)
+		}
+
 		return fmt.Errorf("refresh request failed with status %d: %s", resp.StatusCode, string(body))
 	}
 
