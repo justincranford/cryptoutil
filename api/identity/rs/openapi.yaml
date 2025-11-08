@@ -1,0 +1,158 @@
+openapi: 3.0.3
+info:
+  title: Resource Server API
+  version: 1.0.0
+  description: |
+    OAuth 2.1 Resource Server providing protected API endpoints.
+
+    This server validates access tokens and enforces scope-based authorization
+    for protected resources. Supports both public and protected endpoints.
+  contact:
+    name: CryptoUtil Identity Team
+    email: identity@cryptoutil.dev
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://rs.cryptoutil.local
+    description: Resource Server (Production)
+  - url: http://localhost:8082
+    description: Resource Server (Development)
+
+tags:
+  - name: protected
+    description: Protected resource endpoints requiring authentication
+  - name: public
+    description: Public resource endpoints (no authentication required)
+
+paths:
+  /api/v1/protected:
+    get:
+      tags:
+        - protected
+      summary: Protected Resource
+      description: |
+        Access protected resource data. Requires valid access token with
+        appropriate scopes.
+      operationId: getProtectedResource
+      security:
+        - BearerAuth:
+          - 'read:resource'
+      responses:
+        '200':
+          description: Successfully accessed protected resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProtectedResourceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/v1/public:
+    get:
+      tags:
+        - public
+      summary: Public Resource
+      description: |
+        Access public resource data. No authentication required.
+      operationId: getPublicResource
+      responses:
+        '200':
+          description: Successfully accessed public resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicResourceResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Access token obtained from authorization server.
+        Token must contain required scopes for the endpoint.
+
+  schemas:
+    ProtectedResourceResponse:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: Protected resource accessed successfully
+        data:
+          type: string
+          example: Sensitive information
+        timestamp:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+          description: Authenticated user identifier
+
+    PublicResourceResponse:
+      type: object
+      required:
+        - message
+        - data
+      properties:
+        message:
+          type: string
+          example: Public resource accessed successfully
+        data:
+          type: string
+          example: Public information
+        timestamp:
+          type: string
+          format: date-time
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    Unauthorized:
+      description: Unauthorized - missing or invalid access token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+          description: Authentication challenge
+
+    Forbidden:
+      description: Forbidden - insufficient scopes or permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

@@ -1,0 +1,523 @@
+openapi: 3.0.3
+info:
+  title: OpenID Connect Identity Provider API
+  version: 1.0.0
+  description: |
+    OpenID Connect 1.0 Identity Provider implementing OIDC Core specification.
+
+    This IdP provides secure user authentication and identity management with support for:
+    - Multiple authentication methods (password, OTP, TOTP, passkey, biometric, hardware keys)
+    - User consent management
+    - UserInfo endpoint for identity claims
+    - Session management and logout
+    - Multi-factor authentication (MFA)
+    - Adaptive authentication (risk-based, step-up)
+  contact:
+    name: CryptoUtil Identity Team
+    email: identity@cryptoutil.dev
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://idp.cryptoutil.local
+    description: Identity Provider (Production)
+  - url: http://localhost:8081
+    description: Identity Provider (Development)
+
+tags:
+  - name: authentication
+    description: User authentication endpoints
+  - name: consent
+    description: User consent endpoints
+  - name: userinfo
+    description: OIDC UserInfo endpoint
+  - name: session
+    description: Session management endpoints
+
+paths:
+  /login:
+    get:
+      tags:
+        - authentication
+      summary: Login Page
+      description: |
+        Displays the login page for user authentication. Supports multiple
+        authentication methods based on configured authentication profiles.
+      operationId: getLogin
+      parameters:
+        - name: login_hint
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Hint to pre-fill username/email
+        - name: auth_method
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - username_password
+              - email_otp
+              - sms_otp
+              - totp
+              - hotp
+              - magic_link
+              - passkey
+              - biometric
+              - hardware_key
+          description: Requested authentication method
+        - name: prompt
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [none, login, consent, select_account]
+          description: OIDC prompt parameter
+      responses:
+        '200':
+          description: Login page HTML
+          content:
+            text/html:
+              schema:
+                type: string
+        '302':
+          description: Redirect if already authenticated or prompt=none
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    post:
+      tags:
+        - authentication
+      summary: Submit Login Credentials
+      description: |
+        Submits user credentials for authentication. Supports various
+        authentication methods and MFA flows.
+      operationId: postLogin
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '302':
+          description: Redirect to consent page or back to authorization server
+          headers:
+            Location:
+              schema:
+                type: string
+            Set-Cookie:
+              schema:
+                type: string
+              description: Session cookie
+        '200':
+          description: MFA challenge response (if MFA required)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MFAChallenge'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /consent:
+    get:
+      tags:
+        - consent
+      summary: Consent Page
+      description: |
+        Displays the user consent page showing requested scopes and permissions.
+      operationId: getConsent
+      parameters:
+        - name: consent_challenge
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Consent challenge identifier
+      responses:
+        '200':
+          description: Consent page HTML
+          content:
+            text/html:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+    post:
+      tags:
+        - consent
+      summary: Submit Consent Decision
+      description: |
+        Submits the user's consent decision (approve or deny).
+      operationId: postConsent
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ConsentRequest'
+      responses:
+        '302':
+          description: Redirect back to authorization server with decision
+          headers:
+            Location:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /userinfo:
+    get:
+      tags:
+        - userinfo
+      summary: UserInfo Endpoint (GET)
+      description: |
+        Returns OIDC user claims for the authenticated user.
+        Requires valid access token with openid scope.
+      operationId: getUserInfo
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User information claims
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      tags:
+        - userinfo
+      summary: UserInfo Endpoint (POST)
+      description: |
+        Alternative POST method for UserInfo endpoint. Token can be in
+        Authorization header or request body.
+      operationId: postUserInfo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                  description: Access token (alternative to Authorization header)
+      responses:
+        '200':
+          description: User information claims
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /logout:
+    post:
+      tags:
+        - session
+      summary: Logout Endpoint
+      description: |
+        Terminates the user session and optionally triggers back-channel logout.
+      operationId: logout
+      requestBody:
+        required: false
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id_token_hint:
+                  type: string
+                  description: ID token hint for logout
+                post_logout_redirect_uri:
+                  type: string
+                  format: uri
+                  description: Redirect URI after logout
+                state:
+                  type: string
+                  description: State parameter
+      responses:
+        '302':
+          description: Redirect to post_logout_redirect_uri or default page
+          headers:
+            Location:
+              schema:
+                type: string
+            Set-Cookie:
+              schema:
+                type: string
+              description: Session cookie deletion
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [logged_out]
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token with openid scope
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - auth_method
+      properties:
+        auth_method:
+          type: string
+          enum:
+            - username_password
+            - email_otp
+            - sms_otp
+            - totp
+            - hotp
+            - magic_link
+            - passkey
+            - biometric
+            - hardware_key
+          description: Authentication method to use
+        username:
+          type: string
+          description: Username or email (for username_password, email_otp)
+        password:
+          type: string
+          format: password
+          description: Password (for username_password)
+        otp_code:
+          type: string
+          description: OTP code (for email_otp, sms_otp, totp, hotp)
+        phone_number:
+          type: string
+          description: Phone number (for sms_otp)
+        magic_token:
+          type: string
+          description: Magic link token (for magic_link)
+        challenge_id:
+          type: string
+          description: Authentication challenge ID (for MFA flows)
+        credential_id:
+          type: string
+          description: Credential ID (for passkey, biometric, hardware_key)
+        authenticator_data:
+          type: string
+          format: byte
+          description: WebAuthn authenticator data (for passkey, hardware_key)
+        client_data:
+          type: string
+          format: byte
+          description: WebAuthn client data (for passkey, hardware_key)
+        signature:
+          type: string
+          format: byte
+          description: Signature (for passkey, biometric, hardware_key)
+
+    MFAChallenge:
+      type: object
+      required:
+        - challenge_id
+        - challenge_type
+        - expires_at
+      properties:
+        challenge_id:
+          type: string
+          description: Unique challenge identifier
+        challenge_type:
+          type: string
+          enum: [totp, hotp, sms_otp, email_otp, hardware_key, biometric]
+          description: Type of MFA challenge
+        expires_at:
+          type: string
+          format: date-time
+          description: Challenge expiration time
+        metadata:
+          type: object
+          description: Challenge-specific metadata
+          properties:
+            qr_code:
+              type: string
+              description: Base64-encoded QR code (for TOTP/HOTP setup)
+            phone_number_hint:
+              type: string
+              description: Masked phone number (for SMS OTP)
+            email_hint:
+              type: string
+              description: Masked email (for email OTP)
+
+    ConsentRequest:
+      type: object
+      required:
+        - consent_challenge
+        - action
+      properties:
+        consent_challenge:
+          type: string
+          description: Consent challenge identifier
+        action:
+          type: string
+          enum: [approve, deny]
+          description: User's consent decision
+        granted_scopes:
+          type: array
+          items:
+            type: string
+          description: Scopes approved by user (if action=approve)
+        remember:
+          type: boolean
+          description: Whether to remember consent decision
+        remember_for:
+          type: integer
+          description: How long to remember consent (seconds)
+
+    UserInfo:
+      type: object
+      required:
+        - sub
+      properties:
+        sub:
+          type: string
+          description: Subject identifier (unique user ID)
+        name:
+          type: string
+          description: Full name
+        given_name:
+          type: string
+          description: Given name(s) or first name(s)
+        family_name:
+          type: string
+          description: Surname(s) or last name(s)
+        middle_name:
+          type: string
+          description: Middle name(s)
+        nickname:
+          type: string
+          description: Casual name
+        preferred_username:
+          type: string
+          description: Shorthand name by which user wishes to be referred
+        profile:
+          type: string
+          format: uri
+          description: Profile page URL
+        picture:
+          type: string
+          format: uri
+          description: Profile picture URL
+        website:
+          type: string
+          format: uri
+          description: Web page or blog URL
+        email:
+          type: string
+          format: email
+          description: Email address
+        email_verified:
+          type: boolean
+          description: Whether email has been verified
+        gender:
+          type: string
+          description: Gender
+        birthdate:
+          type: string
+          format: date
+          description: Birthday (YYYY-MM-DD)
+        zoneinfo:
+          type: string
+          description: Time zone (e.g., America/Los_Angeles)
+        locale:
+          type: string
+          description: Locale (e.g., en-US)
+        phone_number:
+          type: string
+          description: Phone number (E.164 format)
+        phone_number_verified:
+          type: boolean
+          description: Whether phone number has been verified
+        address:
+          $ref: '#/components/schemas/Address'
+        updated_at:
+          type: integer
+          description: Time of last update (Unix timestamp)
+
+    Address:
+      type: object
+      properties:
+        formatted:
+          type: string
+          description: Full mailing address
+        street_address:
+          type: string
+          description: Street address component
+        locality:
+          type: string
+          description: City or locality
+        region:
+          type: string
+          description: State, province, prefecture, or region
+        postal_code:
+          type: string
+          description: Zip code or postal code
+        country:
+          type: string
+          description: Country name
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - authentication required or failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

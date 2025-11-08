@@ -1,0 +1,570 @@
+openapi: 3.0.3
+info:
+  title: OAuth 2.1 Authorization Server API
+  version: 1.0.0
+  description: |
+    OAuth 2.1 Authorization Server implementing RFC 6749 (OAuth 2.0),
+    RFC 7636 (PKCE), RFC 7662 (Token Introspection), and RFC 7009 (Token Revocation).
+
+    This server provides secure authorization flows for OAuth 2.1 clients with support for:
+    - Authorization Code Flow with mandatory PKCE
+    - Client Credentials Flow
+    - Refresh Token Flow
+    - Multiple client authentication methods
+    - Token introspection and revocation
+  contact:
+    name: CryptoUtil Identity Team
+    email: identity@cryptoutil.dev
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+
+servers:
+  - url: https://authz.cryptoutil.local
+    description: Authorization Server (Production)
+  - url: http://localhost:8080
+    description: Authorization Server (Development)
+
+tags:
+  - name: authorization
+    description: OAuth 2.1 authorization endpoints
+  - name: token
+    description: Token management endpoints
+  - name: introspection
+    description: Token introspection and revocation
+
+paths:
+  /authorize:
+    get:
+      tags:
+        - authorization
+      summary: Authorization Endpoint (GET)
+      description: |
+        Initiates the OAuth 2.1 authorization code flow. Requires PKCE parameters.
+        Returns authorization code or error redirect to client's redirect_uri.
+      operationId: authorizeGET
+      parameters:
+        - $ref: '#/components/parameters/ResponseType'
+        - $ref: '#/components/parameters/ClientId'
+        - $ref: '#/components/parameters/RedirectUri'
+        - $ref: '#/components/parameters/Scope'
+        - $ref: '#/components/parameters/State'
+        - $ref: '#/components/parameters/CodeChallenge'
+        - $ref: '#/components/parameters/CodeChallengeMethod'
+        - $ref: '#/components/parameters/Nonce'
+        - $ref: '#/components/parameters/Prompt'
+        - $ref: '#/components/parameters/MaxAge'
+      responses:
+        '302':
+          description: Redirect to client redirect_uri with authorization code or error
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Redirect URI with code or error parameters
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - authorization
+      summary: Authorization Endpoint (POST)
+      description: |
+        Alternative POST method for authorization endpoint. Same as GET but accepts
+        parameters in request body (application/x-www-form-urlencoded).
+      operationId: authorizePOST
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthorizeRequest'
+      responses:
+        '302':
+          description: Redirect to client redirect_uri with authorization code or error
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Redirect URI with code or error parameters
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /token:
+    post:
+      tags:
+        - token
+      summary: Token Endpoint
+      description: |
+        Issues access tokens, refresh tokens, and ID tokens for valid grant requests.
+        Supports multiple grant types:
+        - authorization_code (with PKCE verification)
+        - refresh_token
+        - client_credentials
+
+        Requires client authentication via one of the supported methods.
+      operationId: token
+      security:
+        - ClientBasicAuth: []
+        - ClientSecretPost: []
+        - ClientSecretJWT: []
+        - PrivateKeyJWT: []
+        - TLSClientAuth: []
+        - SelfSignedTLSClientAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Successfully issued tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400':
+          $ref: '#/components/responses/OAuth2Error'
+        '401':
+          $ref: '#/components/responses/OAuth2Error'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /introspect:
+    post:
+      tags:
+        - introspection
+      summary: Token Introspection Endpoint
+      description: |
+        Introspects an access token or refresh token to determine its validity
+        and associated metadata. RFC 7662 compliant.
+
+        Requires client authentication.
+      operationId: introspect
+      security:
+        - ClientBasicAuth: []
+        - ClientSecretPost: []
+        - ClientSecretJWT: []
+        - PrivateKeyJWT: []
+        - TLSClientAuth: []
+        - SelfSignedTLSClientAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IntrospectRequest'
+      responses:
+        '200':
+          description: Token introspection result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntrospectResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /revoke:
+    post:
+      tags:
+        - introspection
+      summary: Token Revocation Endpoint
+      description: |
+        Revokes an access token or refresh token. RFC 7009 compliant.
+        Once revoked, the token can no longer be used.
+
+        Requires client authentication.
+      operationId: revoke
+      security:
+        - ClientBasicAuth: []
+        - ClientSecretPost: []
+        - ClientSecretJWT: []
+        - PrivateKeyJWT: []
+        - TLSClientAuth: []
+        - SelfSignedTLSClientAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RevokeRequest'
+      responses:
+        '200':
+          description: Token revocation successful (or token already invalid)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  revoked:
+                    type: boolean
+                    description: Whether token was successfully revoked
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    ClientBasicAuth:
+      type: http
+      scheme: basic
+      description: HTTP Basic authentication with client_id as username and client_secret as password
+
+    ClientSecretPost:
+      type: apiKey
+      in: formData
+      name: client_secret
+      description: Client secret sent in POST body along with client_id
+
+    ClientSecretJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Client authentication using JWT signed with client_secret (HS256)
+
+    PrivateKeyJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Client authentication using JWT signed with private key (RS256/ES256)
+
+    TLSClientAuth:
+      type: mutualTLS
+      description: Client authentication via mutual TLS with registered certificate
+
+    SelfSignedTLSClientAuth:
+      type: mutualTLS
+      description: Client authentication via mutual TLS with self-signed certificate
+
+  parameters:
+    ResponseType:
+      name: response_type
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [code]
+      description: OAuth 2.1 response type (only 'code' supported)
+
+    ClientId:
+      name: client_id
+      in: query
+      required: true
+      schema:
+        type: string
+      description: Client identifier
+
+    RedirectUri:
+      name: redirect_uri
+      in: query
+      required: true
+      schema:
+        type: string
+        format: uri
+      description: Client redirect URI (must match registered URI)
+
+    Scope:
+      name: scope
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Space-delimited scope values
+
+    State:
+      name: state
+      in: query
+      required: true
+      schema:
+        type: string
+      description: Opaque state value for CSRF protection (mandatory in OAuth 2.1)
+
+    CodeChallenge:
+      name: code_challenge
+      in: query
+      required: true
+      schema:
+        type: string
+      description: PKCE code challenge (mandatory in OAuth 2.1)
+
+    CodeChallengeMethod:
+      name: code_challenge_method
+      in: query
+      required: true
+      schema:
+        type: string
+        enum: [S256]
+      description: PKCE code challenge method (only S256 supported)
+
+    Nonce:
+      name: nonce
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Nonce value for OIDC ID token binding
+
+    Prompt:
+      name: prompt
+      in: query
+      required: false
+      schema:
+        type: string
+        enum: [none, login, consent, select_account]
+      description: OIDC prompt parameter
+
+    MaxAge:
+      name: max_age
+      in: query
+      required: false
+      schema:
+        type: integer
+      description: Maximum authentication age in seconds
+
+  schemas:
+    AuthorizeRequest:
+      type: object
+      required:
+        - response_type
+        - client_id
+        - redirect_uri
+        - state
+        - code_challenge
+        - code_challenge_method
+      properties:
+        response_type:
+          type: string
+          enum: [code]
+        client_id:
+          type: string
+        redirect_uri:
+          type: string
+          format: uri
+        scope:
+          type: string
+        state:
+          type: string
+        code_challenge:
+          type: string
+        code_challenge_method:
+          type: string
+          enum: [S256]
+        nonce:
+          type: string
+        prompt:
+          type: string
+          enum: [none, login, consent, select_account]
+        max_age:
+          type: integer
+
+    TokenRequest:
+      type: object
+      required:
+        - grant_type
+      properties:
+        grant_type:
+          type: string
+          enum: [authorization_code, refresh_token, client_credentials]
+        code:
+          type: string
+          description: Authorization code (required for authorization_code grant)
+        redirect_uri:
+          type: string
+          format: uri
+          description: Redirect URI (required for authorization_code grant)
+        code_verifier:
+          type: string
+          description: PKCE code verifier (required for authorization_code grant)
+        refresh_token:
+          type: string
+          description: Refresh token (required for refresh_token grant)
+        scope:
+          type: string
+          description: Requested scope (optional, defaults to original scope)
+        client_id:
+          type: string
+          description: Client ID (required if not using Basic auth)
+        client_secret:
+          type: string
+          description: Client secret (for client_secret_post)
+        client_assertion_type:
+          type: string
+          enum:
+            - 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer'
+          description: Client assertion type (for JWT authentication)
+        client_assertion:
+          type: string
+          description: JWT assertion (for client_secret_jwt or private_key_jwt)
+
+    TokenResponse:
+      type: object
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      properties:
+        access_token:
+          type: string
+          description: Access token (JWT or opaque)
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          description: Token lifetime in seconds
+        refresh_token:
+          type: string
+          description: Refresh token (if applicable)
+        scope:
+          type: string
+          description: Granted scopes
+        id_token:
+          type: string
+          description: OIDC ID token (if openid scope requested)
+
+    IntrospectRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Token to introspect
+        token_type_hint:
+          type: string
+          enum: [access_token, refresh_token]
+          description: Hint about token type
+
+    IntrospectResponse:
+      type: object
+      required:
+        - active
+      properties:
+        active:
+          type: boolean
+          description: Whether token is active
+        scope:
+          type: string
+          description: Token scopes
+        client_id:
+          type: string
+          description: Client identifier
+        username:
+          type: string
+          description: User identifier
+        token_type:
+          type: string
+          description: Token type
+        exp:
+          type: integer
+          description: Expiration timestamp
+        iat:
+          type: integer
+          description: Issued-at timestamp
+        nbf:
+          type: integer
+          description: Not-before timestamp
+        sub:
+          type: string
+          description: Subject identifier
+        aud:
+          type: string
+          description: Audience
+        iss:
+          type: string
+          description: Issuer
+        jti:
+          type: string
+          description: JWT ID
+
+    RevokeRequest:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          description: Token to revoke
+        token_type_hint:
+          type: string
+          enum: [access_token, refresh_token]
+          description: Hint about token type
+
+    OAuth2Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          enum:
+            - invalid_request
+            - invalid_client
+            - invalid_grant
+            - unauthorized_client
+            - unsupported_grant_type
+            - invalid_scope
+        error_description:
+          type: string
+          description: Human-readable error description
+        error_uri:
+          type: string
+          format: uri
+          description: URI with error information
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    OAuth2Error:
+      description: OAuth 2.1 error response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/OAuth2Error'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
