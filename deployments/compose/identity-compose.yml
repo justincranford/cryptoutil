@@ -11,7 +11,7 @@ services:
     ports:
       - "5433:5432"  # Different port to avoid conflict with cryptoutil postgres
     volumes:
-      - identity_postgres_data:/var/lib/postgresql/data
+      - identity_postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U identity_user -d identity_db"]
       start_period: 5s
