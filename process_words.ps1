@@ -2,28 +2,7 @@ param(
     [int]$MaxWords = 0  # 0 means process all words
 )
 
-# Read words from cspell.json words array, filtering out those that already have comments
-$content = Get-Content ".vscode/cspell.json" -Raw
-$words = @()
-
-# Find the words array and extract words that don't have comments after them
-if ($content -match '"words":\s*\[([^\]]*)\]') {
-    $wordsSection = $matches[1]
-    $lines = $wordsSection -split "`n"
-
-    for ($i = 0; $i -lt $lines.Count; $i++) {
-        $line = $lines[$i].Trim()
-        if ($line -match '"([^"]+)",?') {
-            $word = $matches[1]
-            # Check if the next line is a comment (starts with //)
-            $nextLine = if ($i + 1 -lt $lines.Count) { $lines[$i + 1].Trim() } else { "" }
-            if ($nextLine -notmatch '^//') {
-                # Word doesn't have a comment after it
-                $words += $word
-            }
-        }
-    }
-}
+$words = Get-Content "words_list.txt"
 
 # Limit words if MaxWords parameter is specified and > 0
 if ($MaxWords -gt 0 -and $words.Count -gt $MaxWords) {
@@ -32,9 +11,13 @@ if ($MaxWords -gt 0 -and $words.Count -gt $MaxWords) {
 }
 
 $results = @{}
-$batchSize = 20  # Process 20 words at a time
+$batchSize = 50  # Process 50 words at a time for better throughput
+$maxConcurrentJobs = 8  # Run up to 8 concurrent cspell processes
 
-Write-Host "Processing $($words.Count) words in batches of $batchSize..."
+Write-Host "Processing $($words.Count) words in batches of $batchSize with $maxConcurrentJobs concurrent jobs..."
+
+# Create a cache for dictionary lookups to avoid redundant cspell calls
+$dictionaryCache = @{}
 
 for ($i = 0; $i -lt $words.Count; $i += $batchSize) {
     $batchEnd = [math]::Min($i + $batchSize - 1, $words.Count - 1)
@@ -44,16 +27,60 @@ for ($i = 0; $i -lt $words.Count; $i += $batchSize) {
 
     Write-Host "Processing batch $batchNum of $totalBatches (words $($i+1) to $($batchEnd+1))..."
 
+    # Process words concurrently using jobs
+    $jobs = @()
     foreach ($word in $batch) {
-        try {
-            $output = cspell trace --config .vscode/cspell.json $word 2>$null
-            $dictionaries = ($output -split "`n" |
-                Where-Object { $_ -match "^$word\s+\*\s+(.+)\*\s+" -and $_ -notmatch "\[words\]\*" } |
-                ForEach-Object { ($_.Split()[2] -replace "\*$", "") }) -join ", "
-            $results[$word] = $dictionaries
-        } catch {
-            Write-Host "Error processing word: $word"
-            $results[$word] = ""
+        if ($dictionaryCache.ContainsKey($word)) {
+            # Use cached result
+            $results[$word] = $dictionaryCache[$word]
+        } else {
+            # Start a new job for cspell lookup
+            $job = Start-Job -ScriptBlock {
+                param($word, $configPath)
+                try {
+                    $output = & cspell trace --config $configPath $word 2>$null
+                    $dictionaries = ($output -split "`n" |
+                        Where-Object { $_ -match "^$word\s+\*\s+(.+)\*\s+" -and $_ -notmatch "\[words\]\*" } |
+                        ForEach-Object { ($_.Split()[2] -replace "\*$", "") }) -join ", "
+                    return @{ Word = $word; Dictionaries = $dictionaries }
+                } catch {
+                    return @{ Word = $word; Dictionaries = "" }
+                }
+            } -ArgumentList $word, (Resolve-Path ".vscode/cspell.json")
+
+            $jobs += $job
+
+            # Limit concurrent jobs
+            while ($jobs.Count -ge $maxConcurrentJobs) {
+                $completedJobs = $jobs | Where-Object { $_.State -eq "Completed" }
+                foreach ($job in $completedJobs) {
+                    $result = Receive-Job -Job $job
+                    $results[$result.Word] = $result.Dictionaries
+                    $dictionaryCache[$result.Word] = $result.Dictionaries
+                    Remove-Job -Job $job
+                }
+                $jobs = $jobs | Where-Object { $_.State -ne "Completed" }
+
+                if ($jobs.Count -ge $maxConcurrentJobs) {
+                    Start-Sleep -Milliseconds 100
+                }
+            }
+        }
+    }
+
+    # Wait for remaining jobs in this batch to complete
+    while ($jobs.Count -gt 0) {
+        $completedJobs = $jobs | Where-Object { $_.State -eq "Completed" }
+        foreach ($job in $completedJobs) {
+            $result = Receive-Job -Job $job
+            $results[$result.Word] = $result.Dictionaries
+            $dictionaryCache[$result.Word] = $result.Dictionaries
+            Remove-Job -Job $job
+        }
+        $jobs = $jobs | Where-Object { $_.State -ne "Completed" }
+
+        if ($jobs.Count -gt 0) {
+            Start-Sleep -Milliseconds 100
         }
     }
 }

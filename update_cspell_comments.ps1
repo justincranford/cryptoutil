@@ -2,15 +2,16 @@ param(
     [int]$MaxWords = 0  # 0 means process all words
 )
 
-$mappings = Get-Content "word_dictionaries.json" | ConvertFrom-Json
+# Read the cspell.json file
 $content = Get-Content ".vscode/cspell.json" -Raw
 
-# Get all words to process
-$allWords = $mappings.PSObject.Properties.Name
-
-# Filter out words that already have comments in the file
+# Extract all words from the words array that don't have comments
 $wordsToProcess = @()
-foreach ($word in $allWords) {
+$wordsSection = [regex]::Match($content, '"words":\s*\[([^\]]*)\]').Groups[1].Value
+$wordMatches = [regex]::Matches($wordsSection, '"([^"]+)",?')
+
+foreach ($match in $wordMatches) {
+    $word = $match.Groups[1].Value
     # Check if this word already has a comment on the same line
     $wordPattern = [regex]::Escape('"' + $word + '"') + '\s*,\s*//'
     if ($content -notmatch $wordPattern) {
@@ -18,6 +19,12 @@ foreach ($word in $allWords) {
         $wordsToProcess += $word
     }
 }
+
+# Load mappings for dictionary information
+$mappings = Get-Content "word_dictionaries.json" | ConvertFrom-Json
+
+# Filter to only words that exist in mappings
+$wordsToProcess = $wordsToProcess | Where-Object { $mappings.PSObject.Properties.Name -contains $_ }
 
 # Limit words if MaxWords parameter is specified and > 0
 if ($MaxWords -gt 0 -and $wordsToProcess.Count -gt $MaxWords) {

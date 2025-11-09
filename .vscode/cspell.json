@@ -101,103 +101,103 @@
     "businesslogic", // NOT COVERED BY ANY DICTIONARY
     "bwassign", // NOT COVERED BY ANY DICTIONARY
     "BYOK", // NOT COVERED BY ANY DICTIONARY
-    "bytebufferpool",
-    "caser",
+    "bytebufferpool", // cpp
+    "caser", // NOT COVERED BY ANY DICTIONARY
     "CBCHS", // NOT COVERED BY ANY DICTIONARY
-    "ccgo",
+    "ccgo", // NOT COVERED BY ANY DICTIONARY
     "CCID", // NOT COVERED BY ANY DICTIONARY
     "Cehxc", // NOT COVERED BY ANY DICTIONARY
-    "cenkalti",
+    "cenkalti", // NOT COVERED BY ANY DICTIONARY
     "CICD", // NOT COVERED BY ANY DICTIONARY
     "CICD", // NOT COVERED BY ANY DICTIONARY
     "Ciphertext", // cpp, en-gb
     "Ciphertext", // cpp, en-gb
-    "circl",
-    "circlepin",
-    "classfile",
-    "clickjacking",
-    "clipperhouse",
+    "circl", // NOT COVERED BY ANY DICTIONARY
+    "circlepin", // NOT COVERED BY ANY DICTIONARY
+    "classfile", // cpp, java
+    "clickjacking", // en-gb
+    "clipperhouse", // NOT COVERED BY ANY DICTIONARY
     "Clsz", // NOT COVERED BY ANY DICTIONARY
-    "codegen",
-    "codehaus",
-    "columnrange",
-    "combinators",
-    "commitizen",
-    "contentkeysservice",
-    "conv",
-    "coordsize",
-    "copyloopvar",
-    "covermode",
-    "coverpkg",
-    "coverprofile",
+    "codegen", // cpp
+    "codehaus", // NOT COVERED BY ANY DICTIONARY
+    "columnrange", // NOT COVERED BY ANY DICTIONARY
+    "combinators", // css, en-gb, python-common
+    "commitizen", // npm, python
+    "contentkeysservice", // NOT COVERED BY ANY DICTIONARY
+    "conv", // cpp, golang, python, python-common, sql
+    "coordsize", // NOT COVERED BY ANY DICTIONARY
+    "copyloopvar", // cpp
+    "covermode", // cpp
+    "coverpkg", // cpp
+    "coverprofile", // cpp
     "Cprj", // NOT COVERED BY ANY DICTIONARY
-    "cpuguy",
-    "cpus",
-    "crand",
+    "cpuguy", // NOT COVERED BY ANY DICTIONARY
+    "cpus", // cpp, en-gb, node
+    "crand", // NOT COVERED BY ANY DICTIONARY
     "Cranford", // en-gb
     "Crcrak", // NOT COVERED BY ANY DICTIONARY
-    "creack",
-    "crosshairs",
+    "creack", // NOT COVERED BY ANY DICTIONARY
+    "crosshairs", // NOT COVERED BY ANY DICTIONARY
     "Cryptoutil", // NOT COVERED BY ANY DICTIONARY
     "Cryptoutil", // NOT COVERED BY ANY DICTIONARY
     "CSPRNG", // en-gb
-    "csrftoken",
-    "ctype",
-    "cves",
+    "csrftoken", // python-common
+    "ctype", // cpp, cpp-refined, java, python, python-common
+    "cves", // NOT COVERED BY ANY DICTIONARY
     "Dadmin", // cpp
-    "dashstyle",
-    "databind",
-    "davecgh",
+    "dashstyle", // cpp
+    "databind", // cpp
+    "davecgh", // NOT COVERED BY ANY DICTIONARY
     "Dbaseurl", // cpp
-    "dbname",
+    "dbname", // cpp, python-common, sql
     "Dbrowser", // NOT COVERED BY ANY DICTIONARY
     "DBSQ", // NOT COVERED BY ANY DICTIONARY
-    "dcrd",
-    "dcrec",
+    "dcrd", // NOT COVERED BY ANY DICTIONARY
+    "dcrec", // NOT COVERED BY ANY DICTIONARY
     "Dduration", // NOT COVERED BY ANY DICTIONARY
-    "debasishg",
-    "decred",
-    "decryptedtext",
-    "deepcopy",
-    "depguard",
-    "derypt",
-    "deskcolor",
-    "desynchronization",
-    "dflt",
+    "debasishg", // NOT COVERED BY ANY DICTIONARY
+    "decred", // NOT COVERED BY ANY DICTIONARY
+    "decryptedtext", // NOT COVERED BY ANY DICTIONARY
+    "deepcopy", // python
+    "depguard", // NOT COVERED BY ANY DICTIONARY
+    "derypt", // NOT COVERED BY ANY DICTIONARY
+    "deskcolor", // NOT COVERED BY ANY DICTIONARY
+    "desynchronization", // NOT COVERED BY ANY DICTIONARY
+    "dflt", // cpp, java
     "Dgatling", // NOT COVERED BY ANY DICTIONARY
-    "dhui",
+    "dhui", // NOT COVERED BY ANY DICTIONARY
     "Dialector", // NOT COVERED BY ANY DICTIONARY
     "Dialector", // NOT COVERED BY ANY DICTIONARY
     "Diffie", // cpp, en-gb
     "Djavax", // NOT COVERED BY ANY DICTIONARY
     "Djvm", // NOT COVERED BY ANY DICTIONARY
-    "dktest",
+    "dktest", // NOT COVERED BY ANY DICTIONARY
     "Dlogback", // cpp
     "Dmaven", // NOT COVERED BY ANY DICTIONARY
     "DNOQOHHMYYI", // NOT COVERED BY ANY DICTIONARY
-    "dockercfg",
+    "dockercfg", // NOT COVERED BY ANY DICTIONARY
     "Dockerfiles", // NOT COVERED BY ANY DICTIONARY
-    "docname",
+    "docname", // cpp
     "Dolrw", // NOT COVERED BY ANY DICTIONARY
-    "doublestar",
-    "downloadability",
+    "doublestar", // python
+    "downloadability", // en-gb
     "Dport", // cpp
     "Dprofile", // cpp
-    "dprotaso",
-    "dsig",
+    "dprotaso", // NOT COVERED BY ANY DICTIONARY
+    "dsig", // cpp
     "Dspotbugs", // NOT COVERED BY ANY DICTIONARY
-    "dupl",
+    "dupl", // NOT COVERED BY ANY DICTIONARY
     "Dvirtual", // cpp
     "Dvirtualadminclients", // cpp
     "Dvirtualclients", // cpp
     "Dvirtualusers", // cpp
-    "dylib",
+    "dylib", // cpp, flutter, golang, python
     "Dzpp", // NOT COVERED BY ANY DICTIONARY
-    "eamodio",
-    "easyjson",
-    "eatthepath",
+    "eamodio", // NOT COVERED BY ANY DICTIONARY
+    "easyjson", // NOT COVERED BY ANY DICTIONARY
+    "eatthepath", // cpp
     "EAYPJV", // NOT COVERED BY ANY DICTIONARY
-    "ebitengine",
+    "ebitengine", // NOT COVERED BY ANY DICTIONARY
     "ECDH", // golang, node, typescript
     "ECDHES", // NOT COVERED BY ANY DICTIONARY
     "ECDHESA", // NOT COVERED BY ANY DICTIONARY
@@ -213,612 +213,612 @@
     "Elastickey", // NOT COVERED BY ANY DICTIONARY
     "Elastickeys", // NOT COVERED BY ANY DICTIONARY
     "Elastickeys", // NOT COVERED BY ANY DICTIONARY
-    "elastickeytest",
-    "elif",
+    "elastickeytest", // NOT COVERED BY ANY DICTIONARY
+    "elif", // bash, cpp, cpp-refined, data-science, fullstack, python, shellscript
     "Ellipsed", // NOT COVERED BY ANY DICTIONARY
     "Ellipsed", // NOT COVERED BY ANY DICTIONARY
     "Embedder", // en-gb, flutter, node
     "Embedder", // en-gb, flutter, node
-    "Encodeds",
-    "Encs",
-    "encs",
-    "endlocal",
-    "endsession",
-    "endswith",
-    "envdb",
-    "epoll",
-    "errcheck",
-    "errdefs",
-    "errorbar",
-    "Errorf",
+    "Encodeds", // NOT COVERED BY ANY DICTIONARY
+    "Encs", // NOT COVERED BY ANY DICTIONARY
+    "Encs", // NOT COVERED BY ANY DICTIONARY
+    "endlocal", // cpp, powershell
+    "endsession", // cpp
+    "endswith", // cpp, python, terraform, typescript
+    "envdb", // cpp
+    "epoll", // cpp
+    "errcheck", // cpp, golang, python-common
+    "errdefs", // cpp
+    "errorbar", // cpp
+    "Errorf", // golang
     "ERRORLEVEL", // cpp, powershell, python
-    "errorlint",
-    "errorprone",
-    "errwrap",
-    "esac",
-    "expando",
-    "expecteded",
-    "Exporterotlptracegrpc",
-    "Exporterotlptracehttp",
-    "exportloopref",
-    "extldflags",
-    "extractall",
-    "faceid",
-    "Fanout",
-    "fasterxml",
-    "fasthttp",
-    "fastjson",
-    "Fatalf",
-    "Fazjq",
-    "Fbivi",
-    "felixge",
-    "FHEB",
-    "fibermiddleware",
-    "Finalizer",
-    "Finalizers",
-    "findbugs",
-    "findsecbugs",
-    "findstr",
-    "FIPS",
-    "fixexternalref",
-    "focusinfocus",
-    "focusoutblur",
-    "Fosite",
-    "frankban",
-    "frise",
-    "frontmatter",
-    "fsnotify",
-    "fuzztime",
-    "GCMA",
-    "GCMECDHES",
-    "GCMECDHESA",
-    "GCMKW",
-    "gcmkw",
-    "GCMRSA",
-    "GCMRSAOAEP",
-    "geant",
-    "genproto",
-    "geolocation",
-    "getent",
-    "Getenv",
-    "getkin",
-    "getpid",
-    "Gjomw",
-    "gnuflag",
-    "goabi",
-    "GOARCH",
-    "GOCACHE",
-    "goccy",
-    "gocognit",
-    "goconst",
-    "gocyclo",
-    "godoc",
-    "godox",
-    "gofiber",
-    "gofmt",
-    "gofumpt",
-    "GOFUMPTER",
-    "goheader",
-    "goimports",
-    "Golangci",
-    "golangci",
-    "goleak",
-    "golint",
-    "gomega",
-    "gomnd",
-    "gomod",
-    "GOMODCACHE",
-    "gomoddirectives",
-    "gomodguard",
-    "gonum",
-    "GOPATH",
-    "gopkg",
-    "gopls",
-    "gopsutil",
-    "GORM",
-    "gorm",
-    "gormdb",
-    "gosec",
-    "gosimple",
-    "gostd",
-    "gotenv",
-    "gotest",
-    "GOTMPDIR",
-    "govet",
-    "Govulncheck",
-    "govulncheck",
-    "gradlew",
-    "GRPCS",
-    "grpcs",
-    "gruntfuggly",
-    "HAMC",
-    "healthcheck",
-    "Healthchecks",
-    "Healthz",
-    "HGPB",
-    "Highcharts",
-    "highcharts",
-    "Highstock",
-    "HKDF",
-    "HKDFSHA",
-    "HMAC",
-    "HMACJWK",
-    "honnef",
-    "Honsi",
-    "horiz",
-    "hostnames",
-    "HOTP",
-    "hotp",
-    "hpcloud",
-    "Hrvmerg",
-    "HSTS",
-    "hsts",
-    "httpcc",
-    "HTTPGET",
-    "httprc",
-    "httpsnoop",
-    "hzowdiut",
-    "Ibhfb",
-    "IDASC",
-    "IDDESC",
-    "IDPAUTH",
-    "IDPURL",
-    "Ifldk",
-    "ignorelist",
-    "imgheight",
-    "imgwidth",
-    "importas",
-    "ineffassign",
-    "initailize",
-    "inkscape",
-    "inlayhint",
-    "intermediatekeysservice",
-    "iofs",
-    "isatty",
-    "isort",
-    "isready",
-    "Jacb",
-    "jackc",
-    "javaapi",
-    "javac",
-    "JAVACMD",
-    "javap",
-    "JBEAP",
-    "jdbc",
-    "jinfo",
-    "jinzhu",
-    "jmap",
-    "jmespath",
-    "jodah",
-    "josharian",
-    "Joxs",
-    "jqfake",
-    "JSESSIONID",
-    "jsoncommentstrip",
-    "jsonmerge",
-    "jsonname",
-    "jsonpointer",
-    "jsonreference",
-    "jsonutils",
-    "JSSE",
-    "jstack",
-    "jstat",
-    "justi",
-    "justincranford",
-    "JWEA",
-    "JWEAESJWK",
-    "JWEJWK",
-    "JWEJWKs",
-    "JWERSAJWK",
-    "jwkgen",
-    "JWSHMACJWK",
-    "JWSJWK",
-    "JWSJWKs",
-    "JWSRSAJWK",
-    "JWTID",
-    "Jwzv",
-    "Kcls",
-    "kdks",
-    "keepalive",
-    "keks",
-    "KEKUUID",
-    "Keygen",
-    "keygen",
-    "keygenpool",
-    "keypairs",
-    "keytool",
-    "Khtp",
-    "klauspost",
-    "klnvt",
-    "Kpfs",
-    "kustomization",
-    "Kzlz",
-    "labelrank",
-    "lagarto",
-    "LANCID",
-    "LASTEXITCODE",
-    "LDFLAGS",
-    "ldflags",
-    "lestrrat",
-    "Lightbend",
-    "libc",
-    "libexec",
-    "Livez",
-    "Livez",
-    "livez",
-    "logback",
-    "logcomment",
-    "logr",
-    "logrus",
-    "logtest",
-    "longdash",
-    "loopctrl",
-    "Lucida",
-    "lufia",
-    "Lymc",
-    "magiconair",
-    "mailru",
-    "makedirs",
-    "Makefiles",
-    "mapstructure",
-    "materi",
-    "Materialkey",
-    "materialkey",
-    "Materialkeys",
-    "materialkeys",
-    "mathutil",
-    "mattn",
-    "mavenrc",
-    "mbytes",
-    "mcover",
-    "mergo",
-    "metarank",
-    "Mgmt",
-    "MGTPE",
-    "mhutchie",
-    "millis",
-    "minversion",
-    "mktemp",
-    "moby",
-    "modernc",
-    "modtime",
-    "modtimes",
-    "mohae",
-    "morikuni",
-    "msgp",
-    "MSPOINTER",
-    "multierror",
-    "mvdan",
-    "MVNW",
-    "mvnw",
-    "mypy",
-    "namedview",
-    "namelist",
-    "namev",
-    "ncruces",
-    "nektos",
-    "netgo",
-    "newgrp",
-    "nextline",
-    "Njhi",
-    "nlreturn",
-    "noctx",
-    "nohup",
-    "nolint",
-    "nolog",
-    "nologging",
-    "noname",
-    "nosec",
-    "nosniff",
-    "notnull",
-    "NOTQ",
-    "Nullness",
-    "numcpus",
-    "nxadm",
-    "NXSQ",
-    "OAEP",
-    "Oapi",
-    "oapi",
-    "oasdiff",
-    "objx",
-    "OCSP",
-    "Ogtu",
-    "ohlc",
-    "oltp",
-    "oneline",
-    "onglet",
-    "onsi",
-    "opencontainers",
-    "otelcol",
-    "otelcontribcol",
-    "otelfiber",
-    "otelhttp",
-    "otelslog",
-    "oteltest",
-    "OTLPGRPC",
-    "OTLPHTTP",
-    "otlphttp",
-    "otlplog",
-    "otlploggrpc",
-    "otlploghttp",
-    "otlpmetric",
-    "otlpmetricgrpc",
-    "otlpmetrichttp",
-    "otlptrace",
-    "otlptracegrpc",
-    "otlptracehttp",
-    "OUWs",
-    "overfitting",
-    "overrideability",
-    "Oycmz",
-    "pagecheckerboard",
-    "pagecolor",
-    "pageopacity",
-    "parsererror",
-    "Passthru",
-    "Passwordless",
-    "passwordless",
-    "patternmatcher",
-    "pebbletemplates",
-    "Perc",
-    "perfstat",
-    "perimeterx",
-    "pflag",
-    "pgconn",
-    "pgerrcode",
-    "pgpassfile",
-    "pgservicefile",
-    "pgtest",
-    "philhofer",
-    "Pjizirpfq",
-    "PKCE",
-    "pkce",
-    "PKCS",
-    "PKIX",
-    "pmezard",
-    "pprof",
-    "pquerna",
-    "prealloc",
-    "Prefilter",
-    "preprod",
-    "progid",
-    "PROJECTBASEDIR",
-    "projectdiscovery",
-    "proprietart",
-    "purego",
-    "pyproject",
-    "pycache",
-    "pytest",
-    "pyrightconfig",
-    "dmypy",
-    "pypackages",
-    "pdm",
-    "htmlcov",
-    "Pipfile",
-    "mvnw",
-    "gradlew",
-    "classpath",
-    "maventest",
-    "gradle",
-    "javadoc",
-    "javap",
-    "jps",
-    "jstat",
-    "jinfo",
-    "keytool",
-    "jmap",
-    "jstack",
-    "QEVQ",
-    "qsks",
-    "quicklens",
-    "quicktest",
-    "quickview",
-    "RAMMB",
-    "randomstring",
-    "readarray",
-    "readlink",
-    "Readyz",
-    "readyz",
-    "redisclient",
-    "reflog",
-    "relpath",
-    "remyoudompheng",
-    "REPOURL",
-    "reqbody",
-    "reqhead",
-    "resourcedetection",
-    "respbody",
-    "resphead",
-    "Rivest",
-    "Rjnvosn",
-    "Rkfdsw",
-    "rkudds",
-    "rnamespace",
-    "rogpeppe",
-    "rootkeysservice",
-    "rquery",
-    "RSAJWK",
-    "RSAOAEP",
-    "RSURL",
-    "runbook",
-    "Runbooks",
-    "runbooks",
-    "samber",
-    "SARIF",
-    "sarif",
-    "SCEP",
-    "scertificate",
-    "scrollbox",
-    "secp",
-    "segmentio",
-    "semconv",
-    "semgrep",
-    "sendgrid",
-    "sergi",
-    "setlocal",
-    "setuptools",
-    "setx",
-    "Shamir",
-    "shellcheck",
-    "shirou",
-    "shortdash",
-    "shortdashdot",
-    "shortdashdotdot",
-    "shortdot",
-    "showpageshadow",
-    "signedtext",
-    "Signt",
-    "simpleflatmapper",
-    "sirupsen",
-    "SJLDPF",
-    "slowloris",
-    "SMSOTP",
-    "sodipodi",
-    "solokey",
-    "sortutil",
-    "SPARP",
-    "spkg",
-    "spotbugs",
-    "sprivate",
-    "sqlrepository",
-    "SQLSTATE",
-    "squarepin",
-    "sslmode",
-    "Staticcheck",
-    "staticcheck",
-    "stdlib",
-    "stdoutmetric",
-    "stdouttrace",
-    "stdr",
-    "stretchr",
-    "strftime",
-    "stringish",
-    "stringutils",
-    "strokecolor",
-    "strokeweight",
-    "strutil",
-    "stylecheck",
-    "Suboption",
-    "subosito",
-    "subshell",
-    "subtest",
-    "Subtests",
-    "suzaku",
-    "swaggo",
-    "Syft",
-    "syft",
-    "sysconf",
-    "SYSINFO",
-    "Sysinfos",
-    "sysinfos",
-    "systeminfo",
-    "taintanalysis",
-    "tcnative",
-    "Tekow",
-    "temurin",
-    "tenantid",
-    "testcontainers",
-    "testdata",
-    "testpackage",
-    "testpaths",
-    "Testutil",
-    "testutil",
-    "TESTUTILS",
-    "testutils",
-    "Tgvy",
-    "thelper",
-    "tickmark",
-    "timepicker",
-    "tini",
-    "tinylib",
-    "tklauser",
-    "tlsserver",
-    "tmpl",
-    "topbar",
-    "Torstein",
-    "TOSURI",
-    "TOTP",
-    "totp",
-    "touchpoints",
-    "tparallel",
-    "traceid",
-    "trimpath",
-    "truststore",
-    "typesafe",
-    "typetools",
-    "typeutils",
-    "tzdata",
-    "ubarrier",
-    "Ubsg",
-    "ugorji",
-    "unbescape",
-    "undelegate",
-    "unidirectionally",
-    "unparam",
-    "unpooled",
-    "unsealkeysservice",
-    "Unsquish",
-    "unsquish",
-    "unusedparams",
-    "unusedvariables",
-    "usebackq",
-    "USERAUTH",
-    "userauth",
-    "userinfo",
-    "usermod",
-    "userns",
-    "USERPROFILE",
-    "Usvbm",
-    "UUIDV",
-    "uuidv",
-    "valyala",
-    "venv",
-    "Verdana",
-    "verifiedtest",
-    "virtualadminclients",
-    "virtualclients",
-    "virtualusers",
-    "Vkseilnfg",
-    "vscjava",
-    "WDIR",
-    "wdir",
-    "webauthn",
-    "webclient",
-    "whitebox",
-    "winget",
-    "winio",
-    "wmnl",
-    "woodsbury",
-    "worktree",
-    "wrapcheck",
-    "Wrapf",
-    "Xaol",
-    "Xarg",
-    "xaxis",
-    "xmlresolver",
-    "Xrunjdwp",
-    "xstream",
-    "XVCJ",
-    "Xxhx",
-    "xyproto",
-    "yamlutils",
-    "yaxis",
-    "Yncou",
-    "yourdomain",
-    "Yubi",
-    "yubikey",
-    "yusufpapurcu",
-    "ywbzncy",
-    "yzhang",
-    "zaproxy",
-    "Zitadel",
-    "zitadel",
-    "Zoneinfo",
-    "zoneinfo",
-    "zpages",
-    "Zscifu",
-    "Zsviup",
-    "ZURL",
-    "Zylia"
+    "errorlint", // NOT COVERED BY ANY DICTIONARY
+    "errorprone", // NOT COVERED BY ANY DICTIONARY
+    "errwrap", // cpp
+    "esac", // bash, shellscript
+    "expando", // NOT COVERED BY ANY DICTIONARY
+    "expecteded", // NOT COVERED BY ANY DICTIONARY
+    "Exporterotlptracegrpc", // NOT COVERED BY ANY DICTIONARY
+    "Exporterotlptracehttp", // NOT COVERED BY ANY DICTIONARY
+    "exportloopref", // cpp
+    "extldflags", // NOT COVERED BY ANY DICTIONARY
+    "extractall", // cpp, python
+    "faceid", // cpp
+    "Fanout", // en-gb
+    "fasterxml", // NOT COVERED BY ANY DICTIONARY
+    "fasthttp", // cpp
+    "fastjson", // cpp
+    "Fatalf", // golang
+    "Fazjq", // NOT COVERED BY ANY DICTIONARY
+    "Fbivi", // NOT COVERED BY ANY DICTIONARY
+    "felixge", // NOT COVERED BY ANY DICTIONARY
+    "FHEB", // NOT COVERED BY ANY DICTIONARY
+    "fibermiddleware", // cpp
+    "Finalizer", // cpp, flutter, node
+    "Finalizers", // k8s, node
+    "findbugs", // cpp
+    "findsecbugs", // cpp
+    "findstr", // cpp, powershell
+    "FIPS", // cpp, cpp-legacy, node
+    "fixexternalref", // cpp
+    "focusinfocus", // NOT COVERED BY ANY DICTIONARY
+    "focusoutblur", // NOT COVERED BY ANY DICTIONARY
+    "Fosite", // NOT COVERED BY ANY DICTIONARY
+    "frankban", // NOT COVERED BY ANY DICTIONARY
+    "frise", // NOT COVERED BY ANY DICTIONARY
+    "frontmatter", // fullstack
+    "fsnotify", // cpp
+    "fuzztime", // NOT COVERED BY ANY DICTIONARY
+    "GCMA", // NOT COVERED BY ANY DICTIONARY
+    "GCMECDHES", // NOT COVERED BY ANY DICTIONARY
+    "GCMECDHESA", // NOT COVERED BY ANY DICTIONARY
+    "GCMKW", // NOT COVERED BY ANY DICTIONARY
+    "GCMKW", // NOT COVERED BY ANY DICTIONARY
+    "GCMRSA", // NOT COVERED BY ANY DICTIONARY
+    "GCMRSAOAEP", // NOT COVERED BY ANY DICTIONARY
+    "geant", // NOT COVERED BY ANY DICTIONARY
+    "genproto", // cpp
+    "geolocation", // en-gb, fullstack, typescript
+    "getent", // bash, cpp, shellscript
+    "Getenv", // cpp, cpp-refined, golang, lua, python
+    "getkin", // NOT COVERED BY ANY DICTIONARY
+    "getpid", // cpp, golang
+    "Gjomw", // NOT COVERED BY ANY DICTIONARY
+    "gnuflag", // cpp
+    "goabi", // NOT COVERED BY ANY DICTIONARY
+    "GOARCH", // golang
+    "GOCACHE", // golang
+    "goccy", // NOT COVERED BY ANY DICTIONARY
+    "gocognit", // NOT COVERED BY ANY DICTIONARY
+    "goconst", // NOT COVERED BY ANY DICTIONARY
+    "gocyclo", // NOT COVERED BY ANY DICTIONARY
+    "godoc", // NOT COVERED BY ANY DICTIONARY
+    "godox", // NOT COVERED BY ANY DICTIONARY
+    "gofiber", // NOT COVERED BY ANY DICTIONARY
+    "gofmt", // NOT COVERED BY ANY DICTIONARY
+    "gofumpt", // NOT COVERED BY ANY DICTIONARY
+    "GOFUMPTER", // NOT COVERED BY ANY DICTIONARY
+    "goheader", // NOT COVERED BY ANY DICTIONARY
+    "goimports", // golang
+    "Golangci", // NOT COVERED BY ANY DICTIONARY
+    "Golangci", // NOT COVERED BY ANY DICTIONARY
+    "goleak", // NOT COVERED BY ANY DICTIONARY
+    "golint", // NOT COVERED BY ANY DICTIONARY
+    "gomega", // NOT COVERED BY ANY DICTIONARY
+    "gomnd", // NOT COVERED BY ANY DICTIONARY
+    "gomod", // NOT COVERED BY ANY DICTIONARY
+    "GOMODCACHE", // golang
+    "gomoddirectives", // NOT COVERED BY ANY DICTIONARY
+    "gomodguard", // NOT COVERED BY ANY DICTIONARY
+    "gonum", // NOT COVERED BY ANY DICTIONARY
+    "GOPATH", // golang
+    "gopkg", // golang
+    "gopls", // NOT COVERED BY ANY DICTIONARY
+    "gopsutil", // NOT COVERED BY ANY DICTIONARY
+    "GORM", // NOT COVERED BY ANY DICTIONARY
+    "GORM", // NOT COVERED BY ANY DICTIONARY
+    "gormdb", // NOT COVERED BY ANY DICTIONARY
+    "gosec", // NOT COVERED BY ANY DICTIONARY
+    "gosimple", // NOT COVERED BY ANY DICTIONARY
+    "gostd", // NOT COVERED BY ANY DICTIONARY
+    "gotenv", // NOT COVERED BY ANY DICTIONARY
+    "gotest", // NOT COVERED BY ANY DICTIONARY
+    "GOTMPDIR", // golang
+    "govet", // NOT COVERED BY ANY DICTIONARY
+    "Govulncheck", // NOT COVERED BY ANY DICTIONARY
+    "Govulncheck", // NOT COVERED BY ANY DICTIONARY
+    "gradlew", // flutter
+    "GRPCS", // NOT COVERED BY ANY DICTIONARY
+    "GRPCS", // NOT COVERED BY ANY DICTIONARY
+    "gruntfuggly", // NOT COVERED BY ANY DICTIONARY
+    "HAMC", // NOT COVERED BY ANY DICTIONARY
+    "healthcheck", // docker
+    "Healthchecks", // NOT COVERED BY ANY DICTIONARY
+    "Healthz", // NOT COVERED BY ANY DICTIONARY
+    "HGPB", // NOT COVERED BY ANY DICTIONARY
+    "Highcharts", // NOT COVERED BY ANY DICTIONARY
+    "Highcharts", // NOT COVERED BY ANY DICTIONARY
+    "Highstock", // NOT COVERED BY ANY DICTIONARY
+    "HKDF", // golang, node, typescript
+    "HKDFSHA", // NOT COVERED BY ANY DICTIONARY
+    "HMAC", // cpp, cpp-legacy, golang, node, python, typescript
+    "HMACJWK", // NOT COVERED BY ANY DICTIONARY
+    "honnef", // NOT COVERED BY ANY DICTIONARY
+    "Honsi", // NOT COVERED BY ANY DICTIONARY
+    "horiz", // cpp, flutter, html
+    "hostnames", // cpp, en-gb, flutter, k8s, node
+    "HOTP", // NOT COVERED BY ANY DICTIONARY
+    "HOTP", // NOT COVERED BY ANY DICTIONARY
+    "hpcloud", // NOT COVERED BY ANY DICTIONARY
+    "Hrvmerg", // NOT COVERED BY ANY DICTIONARY
+    "HSTS", // NOT COVERED BY ANY DICTIONARY
+    "HSTS", // NOT COVERED BY ANY DICTIONARY
+    "httpcc", // NOT COVERED BY ANY DICTIONARY
+    "HTTPGET", // cpp, k8s
+    "httprc", // NOT COVERED BY ANY DICTIONARY
+    "httpsnoop", // NOT COVERED BY ANY DICTIONARY
+    "hzowdiut", // NOT COVERED BY ANY DICTIONARY
+    "Ibhfb", // NOT COVERED BY ANY DICTIONARY
+    "IDASC", // NOT COVERED BY ANY DICTIONARY
+    "IDDESC", // cpp
+    "IDPAUTH", // NOT COVERED BY ANY DICTIONARY
+    "IDPURL", // NOT COVERED BY ANY DICTIONARY
+    "Ifldk", // NOT COVERED BY ANY DICTIONARY
+    "ignorelist", // cpp
+    "imgheight", // cpp
+    "imgwidth", // cpp
+    "importas", // NOT COVERED BY ANY DICTIONARY
+    "ineffassign", // NOT COVERED BY ANY DICTIONARY
+    "initailize", // NOT COVERED BY ANY DICTIONARY
+    "inkscape", // NOT COVERED BY ANY DICTIONARY
+    "inlayhint", // NOT COVERED BY ANY DICTIONARY
+    "intermediatekeysservice", // NOT COVERED BY ANY DICTIONARY
+    "iofs", // NOT COVERED BY ANY DICTIONARY
+    "isatty", // cpp, node, python
+    "isort", // cpp, python
+    "isready", // cpp
+    "Jacb", // NOT COVERED BY ANY DICTIONARY
+    "jackc", // NOT COVERED BY ANY DICTIONARY
+    "javaapi", // cpp
+    "javac", // NOT COVERED BY ANY DICTIONARY
+    "JAVACMD", // cpp
+    "javap", // cpp
+    "JBEAP", // NOT COVERED BY ANY DICTIONARY
+    "jdbc", // NOT COVERED BY ANY DICTIONARY
+    "jinfo", // NOT COVERED BY ANY DICTIONARY
+    "jinzhu", // NOT COVERED BY ANY DICTIONARY
+    "jmap", // NOT COVERED BY ANY DICTIONARY
+    "jmespath", // python
+    "jodah", // NOT COVERED BY ANY DICTIONARY
+    "josharian", // NOT COVERED BY ANY DICTIONARY
+    "Joxs", // NOT COVERED BY ANY DICTIONARY
+    "jqfake", // NOT COVERED BY ANY DICTIONARY
+    "JSESSIONID", // java
+    "jsoncommentstrip", // cpp
+    "jsonmerge", // cpp
+    "jsonname", // cpp
+    "jsonpointer", // cpp, python
+    "jsonreference", // cpp
+    "jsonutils", // cpp
+    "JSSE", // NOT COVERED BY ANY DICTIONARY
+    "jstack", // cpp
+    "jstat", // NOT COVERED BY ANY DICTIONARY
+    "justi", // NOT COVERED BY ANY DICTIONARY
+    "justincranford", // NOT COVERED BY ANY DICTIONARY
+    "JWEA", // NOT COVERED BY ANY DICTIONARY
+    "JWEAESJWK", // NOT COVERED BY ANY DICTIONARY
+    "JWEJWK", // NOT COVERED BY ANY DICTIONARY
+    "JWEJWKs", // NOT COVERED BY ANY DICTIONARY
+    "JWERSAJWK", // NOT COVERED BY ANY DICTIONARY
+    "jwkgen", // NOT COVERED BY ANY DICTIONARY
+    "JWSHMACJWK", // NOT COVERED BY ANY DICTIONARY
+    "JWSJWK", // NOT COVERED BY ANY DICTIONARY
+    "JWSJWKs", // NOT COVERED BY ANY DICTIONARY
+    "JWSRSAJWK", // NOT COVERED BY ANY DICTIONARY
+    "JWTID", // NOT COVERED BY ANY DICTIONARY
+    "Jwzv", // NOT COVERED BY ANY DICTIONARY
+    "Kcls", // NOT COVERED BY ANY DICTIONARY
+    "kdks", // NOT COVERED BY ANY DICTIONARY
+    "keepalive", // cpp, golang, node, typescript
+    "keks", // NOT COVERED BY ANY DICTIONARY
+    "KEKUUID", // NOT COVERED BY ANY DICTIONARY
+    "Keygen", // cpp, html, node, typescript
+    "Keygen", // cpp, html, node, typescript
+    "keygenpool", // NOT COVERED BY ANY DICTIONARY
+    "keypairs", // en-gb
+    "keytool", // NOT COVERED BY ANY DICTIONARY
+    "Khtp", // NOT COVERED BY ANY DICTIONARY
+    "klauspost", // NOT COVERED BY ANY DICTIONARY
+    "klnvt", // NOT COVERED BY ANY DICTIONARY
+    "Kpfs", // NOT COVERED BY ANY DICTIONARY
+    "kustomization", // k8s
+    "Kzlz", // NOT COVERED BY ANY DICTIONARY
+    "labelrank", // NOT COVERED BY ANY DICTIONARY
+    "lagarto", // NOT COVERED BY ANY DICTIONARY
+    "LANCID", // NOT COVERED BY ANY DICTIONARY
+    "LASTEXITCODE", // cpp
+    "LDFLAGS", // cpp, golang, makefile
+    "LDFLAGS", // cpp, golang, makefile
+    "lestrrat", // NOT COVERED BY ANY DICTIONARY
+    "Lightbend", // NOT COVERED BY ANY DICTIONARY
+    "libc", // cpp, cpp-refined
+    "libexec", // cpp, makefile
+    "Livez", // NOT COVERED BY ANY DICTIONARY
+    "Livez", // NOT COVERED BY ANY DICTIONARY
+    "Livez", // NOT COVERED BY ANY DICTIONARY
+    "logback", // cpp
+    "logcomment", // cpp
+    "logr", // NOT COVERED BY ANY DICTIONARY
+    "logrus", // golang
+    "logtest", // cpp
+    "longdash", // cpp
+    "loopctrl", // NOT COVERED BY ANY DICTIONARY
+    "Lucida", // css, fonts
+    "lufia", // NOT COVERED BY ANY DICTIONARY
+    "Lymc", // NOT COVERED BY ANY DICTIONARY
+    "magiconair", // NOT COVERED BY ANY DICTIONARY
+    "mailru", // NOT COVERED BY ANY DICTIONARY
+    "makedirs", // cpp, python
+    "Makefiles", // cpp, en-gb, makefile
+    "mapstructure", // NOT COVERED BY ANY DICTIONARY
+    "materi", // NOT COVERED BY ANY DICTIONARY
+    "Materialkey", // NOT COVERED BY ANY DICTIONARY
+    "Materialkey", // NOT COVERED BY ANY DICTIONARY
+    "Materialkeys", // NOT COVERED BY ANY DICTIONARY
+    "Materialkeys", // NOT COVERED BY ANY DICTIONARY
+    "mathutil", // cpp
+    "mattn", // NOT COVERED BY ANY DICTIONARY
+    "mavenrc", // NOT COVERED BY ANY DICTIONARY
+    "mbytes", // cpp
+    "mcover", // NOT COVERED BY ANY DICTIONARY
+    "mergo", // NOT COVERED BY ANY DICTIONARY
+    "metarank", // NOT COVERED BY ANY DICTIONARY
+    "Mgmt", // cpp
+    "MGTPE", // NOT COVERED BY ANY DICTIONARY
+    "mhutchie", // NOT COVERED BY ANY DICTIONARY
+    "millis", // cpp, flutter, golang, java, rust, scala
+    "minversion", // cpp, node
+    "mktemp", // bash, cpp, python, shellscript
+    "moby", // en-gb
+    "modernc", // NOT COVERED BY ANY DICTIONARY
+    "modtime", // cpp
+    "modtimes", // cpp
+    "mohae", // NOT COVERED BY ANY DICTIONARY
+    "morikuni", // NOT COVERED BY ANY DICTIONARY
+    "msgp", // cpp
+    "MSPOINTER", // NOT COVERED BY ANY DICTIONARY
+    "multierror", // cpp
+    "mvdan", // NOT COVERED BY ANY DICTIONARY
+    "MVNW", // NOT COVERED BY ANY DICTIONARY
+    "MVNW", // NOT COVERED BY ANY DICTIONARY
+    "mypy", // python
+    "namedview", // cpp
+    "namelist", // cpp, python
+    "namev", // NOT COVERED BY ANY DICTIONARY
+    "ncruces", // NOT COVERED BY ANY DICTIONARY
+    "nektos", // NOT COVERED BY ANY DICTIONARY
+    "netgo", // golang
+    "newgrp", // cpp
+    "nextline", // cpp
+    "Njhi", // NOT COVERED BY ANY DICTIONARY
+    "nlreturn", // NOT COVERED BY ANY DICTIONARY
+    "noctx", // cpp
+    "nohup", // NOT COVERED BY ANY DICTIONARY
+    "nolint", // cpp-refined
+    "nolog", // bash, cpp, python, shellscript
+    "nologging", // cpp
+    "noname", // cpp, node
+    "nosec", // cpp, python
+    "nosniff", // NOT COVERED BY ANY DICTIONARY
+    "notnull", // cpp, python-common, sql
+    "NOTQ", // java
+    "Nullness", // NOT COVERED BY ANY DICTIONARY
+    "numcpus", // cpp
+    "nxadm", // NOT COVERED BY ANY DICTIONARY
+    "NXSQ", // NOT COVERED BY ANY DICTIONARY
+    "OAEP", // cpp-legacy, typescript
+    "Oapi", // NOT COVERED BY ANY DICTIONARY
+    "Oapi", // NOT COVERED BY ANY DICTIONARY
+    "oasdiff", // NOT COVERED BY ANY DICTIONARY
+    "objx", // NOT COVERED BY ANY DICTIONARY
+    "OCSP", // golang
+    "Ogtu", // NOT COVERED BY ANY DICTIONARY
+    "ohlc", // data-science
+    "oltp", // sql
+    "oneline", // cpp
+    "onglet", // NOT COVERED BY ANY DICTIONARY
+    "onsi", // NOT COVERED BY ANY DICTIONARY
+    "opencontainers", // cpp, docker
+    "otelcol", // NOT COVERED BY ANY DICTIONARY
+    "otelcontribcol", // NOT COVERED BY ANY DICTIONARY
+    "otelfiber", // NOT COVERED BY ANY DICTIONARY
+    "otelhttp", // NOT COVERED BY ANY DICTIONARY
+    "otelslog", // NOT COVERED BY ANY DICTIONARY
+    "oteltest", // NOT COVERED BY ANY DICTIONARY
+    "OTLPGRPC", // NOT COVERED BY ANY DICTIONARY
+    "OTLPHTTP", // NOT COVERED BY ANY DICTIONARY
+    "OTLPHTTP", // NOT COVERED BY ANY DICTIONARY
+    "otlplog", // NOT COVERED BY ANY DICTIONARY
+    "otlploggrpc", // NOT COVERED BY ANY DICTIONARY
+    "otlploghttp", // NOT COVERED BY ANY DICTIONARY
+    "otlpmetric", // NOT COVERED BY ANY DICTIONARY
+    "otlpmetricgrpc", // NOT COVERED BY ANY DICTIONARY
+    "otlpmetrichttp", // NOT COVERED BY ANY DICTIONARY
+    "otlptrace", // NOT COVERED BY ANY DICTIONARY
+    "otlptracegrpc", // NOT COVERED BY ANY DICTIONARY
+    "otlptracehttp", // NOT COVERED BY ANY DICTIONARY
+    "OUWs", // NOT COVERED BY ANY DICTIONARY
+    "overfitting", // data-science
+    "overrideability", // NOT COVERED BY ANY DICTIONARY
+    "Oycmz", // NOT COVERED BY ANY DICTIONARY
+    "pagecheckerboard", // NOT COVERED BY ANY DICTIONARY
+    "pagecolor", // cpp
+    "pageopacity", // NOT COVERED BY ANY DICTIONARY
+    "parsererror", // cpp
+    "Passthru", // cpp
+    "Passwordless", // cpp
+    "Passwordless", // cpp
+    "patternmatcher", // cpp
+    "pebbletemplates", // NOT COVERED BY ANY DICTIONARY
+    "Perc", // NOT COVERED BY ANY DICTIONARY
+    "perfstat", // cpp
+    "perimeterx", // NOT COVERED BY ANY DICTIONARY
+    "pflag", // cpp
+    "pgconn", // NOT COVERED BY ANY DICTIONARY
+    "pgerrcode", // NOT COVERED BY ANY DICTIONARY
+    "pgpassfile", // NOT COVERED BY ANY DICTIONARY
+    "pgservicefile", // NOT COVERED BY ANY DICTIONARY
+    "pgtest", // NOT COVERED BY ANY DICTIONARY
+    "philhofer", // NOT COVERED BY ANY DICTIONARY
+    "Pjizirpfq", // NOT COVERED BY ANY DICTIONARY
+    "PKCE", // python
+    "PKCE", // python
+    "PKCS", // cpp, en-gb, node, typescript
+    "PKIX", // cpp, cpp-legacy, golang
+    "pmezard", // NOT COVERED BY ANY DICTIONARY
+    "pprof", // golang
+    "pquerna", // NOT COVERED BY ANY DICTIONARY
+    "prealloc", // cpp
+    "Prefilter", // cpp, k8s
+    "preprod", // NOT COVERED BY ANY DICTIONARY
+    "progid", // cpp, css, python
+    "PROJECTBASEDIR", // cpp
+    "projectdiscovery", // cpp
+    "proprietart", // NOT COVERED BY ANY DICTIONARY
+    "purego", // NOT COVERED BY ANY DICTIONARY
+    "pyproject", // cpp, python
+    "pycache", // cpp, python
+    "pytest", // cpp, python
+    "pyrightconfig", // cpp
+    "dmypy", // NOT COVERED BY ANY DICTIONARY
+    "pypackages", // cpp
+    "pdm", // NOT COVERED BY ANY DICTIONARY
+    "htmlcov", // NOT COVERED BY ANY DICTIONARY
+    "Pipfile", // cpp, python
+    "MVNW", // NOT COVERED BY ANY DICTIONARY
+    "gradlew", // flutter
+    "classpath", // cpp, softwareTerms
+    "maventest", // NOT COVERED BY ANY DICTIONARY
+    "gradle", // en-gb, filetypes, game-development
+    "javadoc", // cpp, en-gb, fullstack, java, softwareTerms
+    "javap", // cpp
+    "jps", // NOT COVERED BY ANY DICTIONARY
+    "jstat", // NOT COVERED BY ANY DICTIONARY
+    "jinfo", // NOT COVERED BY ANY DICTIONARY
+    "keytool", // NOT COVERED BY ANY DICTIONARY
+    "jmap", // NOT COVERED BY ANY DICTIONARY
+    "jstack", // cpp
+    "QEVQ", // NOT COVERED BY ANY DICTIONARY
+    "qsks", // NOT COVERED BY ANY DICTIONARY
+    "quicklens", // cpp
+    "quicktest", // cpp
+    "quickview", // cpp
+    "RAMMB", // NOT COVERED BY ANY DICTIONARY
+    "randomstring", // cpp, npm
+    "readarray", // bash, cpp, shellscript
+    "readlink", // bash, cpp, flutter, golang, node, python, shellscript
+    "Readyz", // NOT COVERED BY ANY DICTIONARY
+    "Readyz", // NOT COVERED BY ANY DICTIONARY
+    "redisclient", // NOT COVERED BY ANY DICTIONARY
+    "reflog", // cpp
+    "relpath", // cpp, python
+    "remyoudompheng", // NOT COVERED BY ANY DICTIONARY
+    "REPOURL", // NOT COVERED BY ANY DICTIONARY
+    "reqbody", // cpp
+    "reqhead", // cpp
+    "resourcedetection", // NOT COVERED BY ANY DICTIONARY
+    "respbody", // cpp-legacy
+    "resphead", // NOT COVERED BY ANY DICTIONARY
+    "Rivest", // cpp, en-gb
+    "Rjnvosn", // NOT COVERED BY ANY DICTIONARY
+    "Rkfdsw", // NOT COVERED BY ANY DICTIONARY
+    "rkudds", // NOT COVERED BY ANY DICTIONARY
+    "rnamespace", // NOT COVERED BY ANY DICTIONARY
+    "rogpeppe", // NOT COVERED BY ANY DICTIONARY
+    "rootkeysservice", // NOT COVERED BY ANY DICTIONARY
+    "rquery", // NOT COVERED BY ANY DICTIONARY
+    "RSAJWK", // NOT COVERED BY ANY DICTIONARY
+    "RSAOAEP", // NOT COVERED BY ANY DICTIONARY
+    "RSURL", // NOT COVERED BY ANY DICTIONARY
+    "runbook", // cpp
+    "Runbooks", // NOT COVERED BY ANY DICTIONARY
+    "Runbooks", // NOT COVERED BY ANY DICTIONARY
+    "samber", // NOT COVERED BY ANY DICTIONARY
+    "SARIF", // NOT COVERED BY ANY DICTIONARY
+    "SARIF", // NOT COVERED BY ANY DICTIONARY
+    "SCEP", // NOT COVERED BY ANY DICTIONARY
+    "scertificate", // cpp
+    "scrollbox", // NOT COVERED BY ANY DICTIONARY
+    "secp", // cpp
+    "segmentio", // cpp
+    "semconv", // NOT COVERED BY ANY DICTIONARY
+    "semgrep", // NOT COVERED BY ANY DICTIONARY
+    "sendgrid", // python
+    "sergi", // NOT COVERED BY ANY DICTIONARY
+    "setlocal", // cpp, lua, powershell
+    "setuptools", // python, python-common
+    "setx", // cpp, python
+    "Shamir", // en-gb
+    "shellcheck", // bash, shellscript
+    "shirou", // NOT COVERED BY ANY DICTIONARY
+    "shortdash", // cpp
+    "shortdashdot", // cpp
+    "shortdashdotdot", // cpp
+    "shortdot", // cpp
+    "showpageshadow", // NOT COVERED BY ANY DICTIONARY
+    "signedtext", // cpp
+    "Signt", // NOT COVERED BY ANY DICTIONARY
+    "simpleflatmapper", // NOT COVERED BY ANY DICTIONARY
+    "sirupsen", // NOT COVERED BY ANY DICTIONARY
+    "SJLDPF", // NOT COVERED BY ANY DICTIONARY
+    "slowloris", // NOT COVERED BY ANY DICTIONARY
+    "SMSOTP", // NOT COVERED BY ANY DICTIONARY
+    "sodipodi", // NOT COVERED BY ANY DICTIONARY
+    "solokey", // NOT COVERED BY ANY DICTIONARY
+    "sortutil", // cpp
+    "SPARP", // NOT COVERED BY ANY DICTIONARY
+    "spkg", // cpp
+    "spotbugs", // NOT COVERED BY ANY DICTIONARY
+    "sprivate", // NOT COVERED BY ANY DICTIONARY
+    "sqlrepository", // NOT COVERED BY ANY DICTIONARY
+    "SQLSTATE", // cpp, sql
+    "squarepin", // NOT COVERED BY ANY DICTIONARY
+    "sslmode", // cpp, python-common
+    "Staticcheck", // cpp, golang
+    "Staticcheck", // cpp, golang
+    "stdlib", // cpp, fullstack, makefile, node
+    "stdoutmetric", // cpp
+    "stdouttrace", // cpp
+    "stdr", // NOT COVERED BY ANY DICTIONARY
+    "stretchr", // NOT COVERED BY ANY DICTIONARY
+    "strftime", // cpp, cpp-refined, npm, python, shellscript
+    "stringish", // NOT COVERED BY ANY DICTIONARY
+    "stringutils", // cpp
+    "strokecolor", // NOT COVERED BY ANY DICTIONARY
+    "strokeweight", // NOT COVERED BY ANY DICTIONARY
+    "strutil", // cpp
+    "stylecheck", // cpp
+    "Suboption", // cpp, en-gb
+    "subosito", // NOT COVERED BY ANY DICTIONARY
+    "subshell", // cpp, en-gb
+    "subtest", // cpp, en-gb, python
+    "Subtests", // cpp, en-gb, python-common
+    "suzaku", // NOT COVERED BY ANY DICTIONARY
+    "swaggo", // NOT COVERED BY ANY DICTIONARY
+    "Syft", // NOT COVERED BY ANY DICTIONARY
+    "Syft", // NOT COVERED BY ANY DICTIONARY
+    "sysconf", // cpp, golang
+    "SYSINFO", // cpp, golang, sql
+    "Sysinfos", // cpp
+    "Sysinfos", // cpp
+    "systeminfo", // cpp
+    "taintanalysis", // NOT COVERED BY ANY DICTIONARY
+    "tcnative", // NOT COVERED BY ANY DICTIONARY
+    "Tekow", // NOT COVERED BY ANY DICTIONARY
+    "temurin", // NOT COVERED BY ANY DICTIONARY
+    "tenantid", // NOT COVERED BY ANY DICTIONARY
+    "testcontainers", // cpp, npm, python
+    "testdata", // cpp, golang, python-common
+    "testpackage", // cpp
+    "testpaths", // cpp
+    "Testutil", // cpp
+    "Testutil", // cpp
+    "TESTUTILS", // cpp
+    "TESTUTILS", // cpp
+    "Tgvy", // NOT COVERED BY ANY DICTIONARY
+    "thelper", // NOT COVERED BY ANY DICTIONARY
+    "tickmark", // cpp
+    "timepicker", // fullstack
+    "tini", // NOT COVERED BY ANY DICTIONARY
+    "tinylib", // NOT COVERED BY ANY DICTIONARY
+    "tklauser", // NOT COVERED BY ANY DICTIONARY
+    "tlsserver", // NOT COVERED BY ANY DICTIONARY
+    "tmpl", // html
+    "topbar", // cpp
+    "Torstein", // NOT COVERED BY ANY DICTIONARY
+    "TOSURI", // NOT COVERED BY ANY DICTIONARY
+    "TOTP", // NOT COVERED BY ANY DICTIONARY
+    "TOTP", // NOT COVERED BY ANY DICTIONARY
+    "touchpoints", // en-gb
+    "tparallel", // NOT COVERED BY ANY DICTIONARY
+    "traceid", // cpp
+    "trimpath", // NOT COVERED BY ANY DICTIONARY
+    "truststore", // cpp
+    "typesafe", // cpp, cpp-legacy
+    "typetools", // NOT COVERED BY ANY DICTIONARY
+    "typeutils", // cpp
+    "tzdata", // cpp, golang, python
+    "ubarrier", // cpp
+    "Ubsg", // NOT COVERED BY ANY DICTIONARY
+    "ugorji", // NOT COVERED BY ANY DICTIONARY
+    "unbescape", // NOT COVERED BY ANY DICTIONARY
+    "undelegate", // NOT COVERED BY ANY DICTIONARY
+    "unidirectionally", // en-gb
+    "unparam", // cpp
+    "unpooled", // NOT COVERED BY ANY DICTIONARY
+    "unsealkeysservice", // NOT COVERED BY ANY DICTIONARY
+    "Unsquish", // NOT COVERED BY ANY DICTIONARY
+    "Unsquish", // NOT COVERED BY ANY DICTIONARY
+    "unusedparams", // cpp
+    "unusedvariables", // cpp
+    "usebackq", // NOT COVERED BY ANY DICTIONARY
+    "USERAUTH", // cpp
+    "USERAUTH", // cpp
+    "userinfo", // cpp, golang, k8s, node
+    "usermod", // bash, cpp, shellscript
+    "userns", // NOT COVERED BY ANY DICTIONARY
+    "USERPROFILE", // cpp, node, powershell, python-common
+    "Usvbm", // NOT COVERED BY ANY DICTIONARY
+    "UUIDV", // NOT COVERED BY ANY DICTIONARY
+    "UUIDV", // NOT COVERED BY ANY DICTIONARY
+    "valyala", // NOT COVERED BY ANY DICTIONARY
+    "venv", // cpp, python
+    "Verdana", // css, en-gb, fonts
+    "verifiedtest", // NOT COVERED BY ANY DICTIONARY
+    "virtualadminclients", // cpp
+    "virtualclients", // cpp
+    "virtualusers", // cpp
+    "Vkseilnfg", // NOT COVERED BY ANY DICTIONARY
+    "vscjava", // NOT COVERED BY ANY DICTIONARY
+    "WDIR", // NOT COVERED BY ANY DICTIONARY
+    "WDIR", // NOT COVERED BY ANY DICTIONARY
+    "webauthn", // NOT COVERED BY ANY DICTIONARY
+    "webclient", // cpp
+    "whitebox", // cpp, java
+    "winget", // cpp
+    "winio", // cpp
+    "wmnl", // NOT COVERED BY ANY DICTIONARY
+    "woodsbury", // NOT COVERED BY ANY DICTIONARY
+    "worktree", // cpp
+    "wrapcheck", // cpp
+    "Wrapf", // NOT COVERED BY ANY DICTIONARY
+    "Xaol", // NOT COVERED BY ANY DICTIONARY
+    "Xarg", // NOT COVERED BY ANY DICTIONARY
+    "xaxis", // data-science
+    "xmlresolver", // NOT COVERED BY ANY DICTIONARY
+    "Xrunjdwp", // NOT COVERED BY ANY DICTIONARY
+    "xstream", // NOT COVERED BY ANY DICTIONARY
+    "XVCJ", // NOT COVERED BY ANY DICTIONARY
+    "Xxhx", // NOT COVERED BY ANY DICTIONARY
+    "xyproto", // NOT COVERED BY ANY DICTIONARY
+    "yamlutils", // NOT COVERED BY ANY DICTIONARY
+    "yaxis", // data-science
+    "Yncou", // NOT COVERED BY ANY DICTIONARY
+    "yourdomain", // NOT COVERED BY ANY DICTIONARY
+    "Yubi", // NOT COVERED BY ANY DICTIONARY
+    "yubikey", // NOT COVERED BY ANY DICTIONARY
+    "yusufpapurcu", // NOT COVERED BY ANY DICTIONARY
+    "ywbzncy", // NOT COVERED BY ANY DICTIONARY
+    "yzhang", // NOT COVERED BY ANY DICTIONARY
+    "zaproxy", // NOT COVERED BY ANY DICTIONARY
+    "Zitadel", // NOT COVERED BY ANY DICTIONARY
+    "Zitadel", // NOT COVERED BY ANY DICTIONARY
+    "Zoneinfo", // cpp, python
+    "Zoneinfo", // cpp, python
+    "zpages", // NOT COVERED BY ANY DICTIONARY
+    "Zscifu", // NOT COVERED BY ANY DICTIONARY
+    "Zsviup", // NOT COVERED BY ANY DICTIONARY
+    "ZURL", // NOT COVERED BY ANY DICTIONARY
+    "Zylia", // NOT COVERED BY ANY DICTIONARY
   ]
 }
