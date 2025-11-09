@@ -10,8 +10,10 @@
 - Each instruction should not be verbose
 - Don't reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
-- Maximize request frequency at all times, except when approaching rate limiting threshold; throttle back minimally to avoid threshold exhaustion; speed up again as soon as possible
-- GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers to prevent session interruption
+- Use tools efficiently to minimize API calls and avoid rate limiting
+- Batch related operations when possible to reduce request frequency
+- When approaching rate limiting, wait between requests as needed
+- GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
 
 ## Instruction File Structure
 
