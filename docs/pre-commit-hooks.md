@@ -41,7 +41,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 | **3. Go Auto-Fix & Validation** | Formatting, imports, and comprehensive linting | golangci-lint --fix | Single tool handles all auto-fixable issues + validation |
 | **4. Build Validation** | Compilation verification | go build | Ensure code compiles after linting |
 | **5. Custom Rules** | Project-specific checks | cicd commands | Business logic and project-specific validations |
-| **6. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit | Targeted validation by file type |
+| **6. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit, cspell | Targeted validation by file type |
 | **7. Commit Validation** | Message format checking | commitizen | Final gate before push |
 
 ## Tool Details and Configuration
@@ -290,7 +290,28 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [bandit](https://bandit.readthedocs.io/)
 
-### 10. Conventional Commit Validation (commitizen)
+### 10. Spell Checking (cSpell)
+
+**Purpose**: Checks spelling in code, comments, and documentation files.
+
+**Configuration**:
+```yaml
+- repo: https://github.com/streetsidesoftware/cspell-precommit
+  rev: v4.0.0
+  hooks:
+    - id: cspell
+      name: Check spelling
+      args: [--no-progress]
+```
+
+**Key Features**:
+- Validates spelling in source code and documentation
+- Uses custom dictionaries for technical terms
+- Configurable via .vscode/cspell.json
+
+**Documentation**: [cSpell](https://cspell.org/)
+
+### 11. Conventional Commit Validation (commitizen)
 
 **Purpose**: Enforces conventional commit message formatting.
 

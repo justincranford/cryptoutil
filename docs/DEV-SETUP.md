@@ -77,6 +77,9 @@ go install honnef.co/go/tools/cmd/staticcheck@latest
 
 # Install govulncheck (vulnerability scanning)
 go install golang.org/x/vuln/cmd/govulncheck@latest
+
+# Install cspell (spell checking)
+npm install -g cspell
 ```
 
 #### 3. Install Security & Testing Tools
@@ -202,6 +205,9 @@ go install honnef.co/go/tools/cmd/staticcheck@latest
 
 # Install govulncheck
 go install golang.org/x/vuln/cmd/govulncheck@latest
+
+# Install cspell
+npm install -g cspell
 ```
 
 #### 3. Install Security & Testing Tools
@@ -269,6 +275,9 @@ go install honnef.co/go/tools/cmd/staticcheck@latest
 
 # Install govulncheck
 go install golang.org/x/vuln/cmd/govulncheck@latest
+
+# Install cspell
+npm install -g cspell
 ```
 
 #### 3. Install Security & Testing Tools
@@ -408,6 +417,7 @@ python3 --version
 golangci-lint --version
 gofumpt --version
 goimports --version
+cspell --version
 
 # Check security tools
 trivy --version

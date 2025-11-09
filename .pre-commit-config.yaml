@@ -228,6 +228,17 @@ repos:
         files: '\.py$'
         require_serial: false
 
+  # Spell checking
+  - repo: local
+    hooks:
+      - id: cspell
+        name: Check spelling
+        entry: cspell
+        args: [--no-progress, --cache]
+        language: system
+        files: '\.(md|txt|go|yaml|yml|json|js|ts|py|sh|ps1)$'
+        exclude: '^(test/|vendor/|\.git/|node_modules/|\.cache/)'
+
   # Conventional commit validation
   - repo: https://github.com/commitizen-tools/commitizen
     rev: v4.9.1

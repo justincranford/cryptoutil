@@ -98,7 +98,7 @@
     "/^docker (run|exec).*/": false,
     "/^(rm|Remove-Item|del)\\b/i.*/": false,
 
-    "/^(code|pre-commit|golangci-lint|gofumpt|goimports|gremlins|act).*/": true,
+    "/^(code|pre-commit|golangci-lint|gofumpt|goimports|gremlins|act|cspell).*/": true,
     "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify|mod edit).*/": true,
     "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|stash pop|stash list|fetch|mv|commit|rev-parse|restore|describe).*/": true,
     "/^(gradlew|gradle|mvnw|mvn|javac|java|javap|javadoc|jps|jstat|jinfo|keytool|jmap|jstack|jar)\\b.*/": true,
