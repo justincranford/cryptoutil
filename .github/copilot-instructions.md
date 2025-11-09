@@ -34,7 +34,7 @@
 ## CRITICAL: Tool and Command Restrictions
 
 ### File Editing Tools
-- **ALWAYS prefer `apply_patch`, `create_file`, and `create_directory`** for file modifications - they are purpose-built and avoid terminal auto-approval prompts
+- **ALWAYS prefer `create_file`, and `create_directory`** for file modifications - they are purpose-built and avoid terminal auto-approval prompts
 - **Document when file-level edits require multiple passes** so human reviewers can trace changes
 - **AVOID using shell redirection commands** for file content changes; the editing tools provide cleaner diffs and auditability
 
