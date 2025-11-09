@@ -61,79 +61,45 @@
     "en-us-common-misspellings"
   ],
   "words": [
-    // NOT COVERED BY ANY DICTIONARY
-    "aayushatharva",
-    // NOT COVERED BY ANY DICTIONARY
-    "ADRFY",
-    // NOT COVERED BY ANY DICTIONARY
-    "AESHS",
-    // NOT COVERED BY ANY DICTIONARY
-    "AESHSJWK",
-    // NOT COVERED BY ANY DICTIONARY
-    "AESJWK",
-    // NOT COVERED BY ANY DICTIONARY
-    "afero",
-    // NOT COVERED BY ANY DICTIONARY
-    "AMRMTLS",
-    // NOT COVERED BY ANY DICTIONARY
-    "AMRSMS",
-    // NOT COVERED BY ANY DICTIONARY
-    "AMRTOTP",
-    // NOT COVERED BY ANY DICTIONARY
-    "anchore",
-    // NOT COVERED BY ANY DICTIONARY
-    "andybalholm",
-    // NOT COVERED BY ANY DICTIONARY
-    "ansiterm",
-    // NOT COVERED BY ANY DICTIONARY
-    "apapsch",
-    // NOT COVERED BY ANY DICTIONARY
-    "aquasecurity",
-    // NOT COVERED BY ANY DICTIONARY
-    "arearange",
-    // NOT COVERED BY ANY DICTIONARY
-    "areaspline",
-    // NOT COVERED BY ANY DICTIONARY
-    "areasplinerange",
-    // NOT COVERED BY ANY DICTIONARY
-    "barrierservice",
-    // NOT COVERED BY ANY DICTIONARY
-    "bcel",
-    // NOT COVERED BY ANY DICTIONARY
-    "BCID",
-    // NOT COVERED BY ANY DICTIONARY
-    "BCLZ",
-    // NOT COVERED BY ANY DICTIONARY
-    "benchmem",
-    // NOT COVERED BY ANY DICTIONARY
-    "benchstat",
-    // NOT COVERED BY ANY DICTIONARY
-    "BFHES",
-    // NOT COVERED BY ANY DICTIONARY
-    "bigfft",
-    // NOT COVERED BY ANY DICTIONARY
-    "BIOUDA",
-    // cpp, java
-    "Blackbox",
-    // cpp
-    "blackmagic",
-    // NOT COVERED BY ANY DICTIONARY
-    "bmatcuk",
-    // cpp
-    "bodyclose",
-    // NOT COVERED BY ANY DICTIONARY
-    "boopickle",
-    // cpp
-    "bordercolor",
-    // NOT COVERED BY ANY DICTIONARY
-    "borderopacity",
-    // cpp-legacy
-    "boringssl",
-    "BUILDKIT",
-    "buildpath",
-    "buildx",
-    "businesslogic",
-    "bwassign",
+    "aayushatharva", // NOT COVERED BY ANY DICTIONARY
+    "ADRFY", // NOT COVERED BY ANY DICTIONARY
+    "AESHS", // NOT COVERED BY ANY DICTIONARY
+    "AESHSJWK", // NOT COVERED BY ANY DICTIONARY
+    "AESJWK", // NOT COVERED BY ANY DICTIONARY
+    "afero", // NOT COVERED BY ANY DICTIONARY
+    "AMRMTLS", // NOT COVERED BY ANY DICTIONARY
+    "AMRSMS", // NOT COVERED BY ANY DICTIONARY
+    "AMRTOTP", // NOT COVERED BY ANY DICTIONARY
+    "anchore", // NOT COVERED BY ANY DICTIONARY
+    "andybalholm", // NOT COVERED BY ANY DICTIONARY
+    "ansiterm", // NOT COVERED BY ANY DICTIONARY
+    "apapsch", // NOT COVERED BY ANY DICTIONARY
+    "aquasecurity", // NOT COVERED BY ANY DICTIONARY
+    "arearange", // NOT COVERED BY ANY DICTIONARY
+    "areaspline", // NOT COVERED BY ANY DICTIONARY
+    "areasplinerange", // NOT COVERED BY ANY DICTIONARY
+    "barrierservice", // NOT COVERED BY ANY DICTIONARY
+    "bcel", // NOT COVERED BY ANY DICTIONARY
+    "BCID", // NOT COVERED BY ANY DICTIONARY
+    "BCLZ", // NOT COVERED BY ANY DICTIONARY
+    "benchmem", // NOT COVERED BY ANY DICTIONARY
+    "benchstat", // NOT COVERED BY ANY DICTIONARY
+    "BFHES", // NOT COVERED BY ANY DICTIONARY
+    "bigfft", // NOT COVERED BY ANY DICTIONARY
+    "BIOUDA", // NOT COVERED BY ANY DICTIONARY
+    "Blackbox", // cpp, java
+    "blackmagic", // cpp
+    "bmatcuk", // NOT COVERED BY ANY DICTIONARY
+    "bodyclose", // cpp
+    "boopickle", // NOT COVERED BY ANY DICTIONARY
+    "bordercolor", // cpp
+    "borderopacity", // NOT COVERED BY ANY DICTIONARY
+    "boringssl", // cpp-legacy
+    "BUILDKIT", // NOT COVERED BY ANY DICTIONARY
+    "buildpath", // NOT COVERED BY ANY DICTIONARY
+    "buildx", // NOT COVERED BY ANY DICTIONARY
+    "businesslogic", // NOT COVERED BY ANY DICTIONARY
+    "bwassign", // NOT COVERED BY ANY DICTIONARY
     "BYOK",
     "bytebufferpool",
     "caser",

@@ -2,12 +2,33 @@ param(
     [int]$MaxWords = 0  # 0 means process all words
 )
 
-$words = Get-Content "words_list.txt"
+# Read words from cspell.json words array, filtering out those that already have comments
+$content = Get-Content ".vscode/cspell.json" -Raw
+$words = @()
+
+# Find the words array and extract words that don't have comments after them
+if ($content -match '"words":\s*\[([^\]]*)\]') {
+    $wordsSection = $matches[1]
+    $lines = $wordsSection -split "`n"
+
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i].Trim()
+        if ($line -match '"([^"]+)",?') {
+            $word = $matches[1]
+            # Check if the next line is a comment (starts with //)
+            $nextLine = if ($i + 1 -lt $lines.Count) { $lines[$i + 1].Trim() } else { "" }
+            if ($nextLine -notmatch '^//') {
+                # Word doesn't have a comment after it
+                $words += $word
+            }
+        }
+    }
+}
 
 # Limit words if MaxWords parameter is specified and > 0
 if ($MaxWords -gt 0 -and $words.Count -gt $MaxWords) {
     $words = $words | Select-Object -First $MaxWords
-    Write-Host "Limiting to first $MaxWords words out of $(Get-Content "words_list.txt" | Measure-Object | Select-Object -ExpandProperty Count) total words"
+    Write-Host "Limiting to first $MaxWords words out of $($words.Count) total words"
 }
 
 $results = @{}
