@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 
 	"github.com/stretchr/testify/require"

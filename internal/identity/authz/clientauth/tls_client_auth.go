@@ -2,7 +2,6 @@ package clientauth
 
 import (
 	"context"
-	"crypto/x509"
 	"fmt"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
@@ -13,12 +12,16 @@ import (
 // TLSClientAuthenticator implements TLS client certificate authentication.
 type TLSClientAuthenticator struct {
 	clientRepo cryptoutilIdentityRepository.ClientRepository
+	validator  CertificateValidator
+	parser     *CertificateParser
 }
 
 // NewTLSClientAuthenticator creates a new TLSClientAuthenticator.
-func NewTLSClientAuthenticator(clientRepo cryptoutilIdentityRepository.ClientRepository) *TLSClientAuthenticator {
+func NewTLSClientAuthenticator(clientRepo cryptoutilIdentityRepository.ClientRepository, validator CertificateValidator) *TLSClientAuthenticator {
 	return &TLSClientAuthenticator{
 		clientRepo: clientRepo,
+		validator:  validator,
+		parser:     &CertificateParser{},
 	}
 }
 
@@ -29,9 +32,33 @@ func (t *TLSClientAuthenticator) Method() string {
 
 // Authenticate authenticates a client using TLS client certificate.
 func (t *TLSClientAuthenticator) Authenticate(ctx context.Context, clientID, credential string) (*cryptoutilIdentityDomain.Client, error) {
-	// credential contains the PEM-encoded client certificate.
-	// TODO: Parse PEM certificate and validate.
-	_ = credential
+	// credential contains the PEM-encoded client certificate chain.
+	if credential == "" {
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
+	}
+
+	// Parse the certificate chain from PEM
+	certs, err := t.parser.ParsePEMCertificateChain([]byte(credential))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse certificate chain: %w", err)
+	}
+
+	if len(certs) == 0 {
+		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
+	}
+
+	// The first certificate is the client certificate
+	clientCert := certs[0]
+
+	// Validate the certificate
+	rawCerts := make([][]byte, len(certs))
+	for i, cert := range certs {
+		rawCerts[i] = cert.Raw
+	}
+
+	if err := t.validator.ValidateCertificate(clientCert, rawCerts); err != nil {
+		return nil, fmt.Errorf("certificate validation failed: %w", err)
+	}
 
 	// Fetch client from database.
 	client, err := t.clientRepo.GetByClientID(ctx, clientID)
@@ -44,8 +71,8 @@ func (t *TLSClientAuthenticator) Authenticate(ctx context.Context, clientID, cre
 		return nil, cryptoutilIdentityAppErr.ErrInvalidClientAuth
 	}
 
-	// TODO: Validate certificate chain against stored certificates.
-	// TODO: Check certificate revocation status.
+	// TODO: Optionally validate that the certificate subject matches the client
+	// This could be done by storing certificate fingerprints or subject info in the client record
 
 	return client, nil
 }
@@ -53,17 +80,4 @@ func (t *TLSClientAuthenticator) Authenticate(ctx context.Context, clientID, cre
 // validateAuthMethod checks if the client supports this authentication method.
 func (t *TLSClientAuthenticator) validateAuthMethod(client *cryptoutilIdentityDomain.Client) bool {
 	return client.TokenEndpointAuthMethod == cryptoutilIdentityDomain.ClientAuthMethodTLSClientAuth
-}
-
-// ValidateCertificate validates a client certificate against stored certificates.
-func (t *TLSClientAuthenticator) ValidateCertificate(clientCert *x509.Certificate, storedCerts []*x509.Certificate) error {
-	// TODO: Implement certificate validation logic.
-	// - Verify certificate is not expired
-	// - Verify certificate signature
-	// - Check certificate against stored certificates (pinning)
-	// - Validate certificate extensions
-	_ = clientCert
-	_ = storedCerts
-
-	return fmt.Errorf("certificate validation not yet implemented")
 }

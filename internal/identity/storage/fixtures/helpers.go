@@ -3,8 +3,8 @@ package fixtures
 import (
 	"context"
 
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
 
 // TestDataHelper provides utilities for setting up and cleaning test data.
@@ -25,10 +25,12 @@ func NewTestDataHelper(ctx context.Context, repoFactory *cryptoutilIdentityRepos
 func (h *TestDataHelper) CreateTestUser(builder *TestUserBuilder) (*cryptoutilIdentityDomain.User, error) {
 	user := builder.Build()
 	userRepo := h.repoFactory.UserRepository()
+
 	err := userRepo.Create(h.ctx, user)
 	if err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 
@@ -36,10 +38,12 @@ func (h *TestDataHelper) CreateTestUser(builder *TestUserBuilder) (*cryptoutilId
 func (h *TestDataHelper) CreateTestClient(builder *TestClientBuilder) (*cryptoutilIdentityDomain.Client, error) {
 	client := builder.Build()
 	clientRepo := h.repoFactory.ClientRepository()
+
 	err := clientRepo.Create(h.ctx, client)
 	if err != nil {
 		return nil, err
 	}
+
 	return client, nil
 }
 
@@ -47,10 +51,12 @@ func (h *TestDataHelper) CreateTestClient(builder *TestClientBuilder) (*cryptout
 func (h *TestDataHelper) CreateTestToken(builder *TestTokenBuilder) (*cryptoutilIdentityDomain.Token, error) {
 	token := builder.Build()
 	tokenRepo := h.repoFactory.TokenRepository()
+
 	err := tokenRepo.Create(h.ctx, token)
 	if err != nil {
 		return nil, err
 	}
+
 	return token, nil
 }
 
@@ -58,10 +64,12 @@ func (h *TestDataHelper) CreateTestToken(builder *TestTokenBuilder) (*cryptoutil
 func (h *TestDataHelper) CreateTestSession(builder *TestSessionBuilder) (*cryptoutilIdentityDomain.Session, error) {
 	session := builder.Build()
 	sessionRepo := h.repoFactory.SessionRepository()
+
 	err := sessionRepo.Create(h.ctx, session)
 	if err != nil {
 		return nil, err
 	}
+
 	return session, nil
 }
 

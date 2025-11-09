@@ -4,6 +4,7 @@ import (
 	"time"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+
 	googleUuid "github.com/google/uuid"
 )
 
@@ -16,13 +17,13 @@ type TestUserBuilder struct {
 func NewTestUserBuilder() *TestUserBuilder {
 	return &TestUserBuilder{
 		user: &cryptoutilIdentityDomain.User{
-			Sub:         googleUuid.Must(googleUuid.NewV7()).String(),
-			Email:       "test@example.com",
-			Name:        "Test User",
-			Enabled:     true,
+			Sub:          googleUuid.Must(googleUuid.NewV7()).String(),
+			Email:        "test@example.com",
+			Name:         "Test User",
+			Enabled:      true,
 			PasswordHash: "$2a$10$example.hash.for.testing.purposes.only", // bcrypt hash for "password"
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			CreatedAt:    time.Now(),
+			UpdatedAt:    time.Now(),
 		},
 	}
 }
@@ -30,24 +31,28 @@ func NewTestUserBuilder() *TestUserBuilder {
 // WithSub sets the subject identifier.
 func (b *TestUserBuilder) WithSub(sub string) *TestUserBuilder {
 	b.user.Sub = sub
+
 	return b
 }
 
 // WithEmail sets the email address.
 func (b *TestUserBuilder) WithEmail(email string) *TestUserBuilder {
 	b.user.Email = email
+
 	return b
 }
 
 // WithName sets the full name.
 func (b *TestUserBuilder) WithName(name string) *TestUserBuilder {
 	b.user.Name = name
+
 	return b
 }
 
 // WithEnabled sets the enabled status.
 func (b *TestUserBuilder) WithEnabled(enabled bool) *TestUserBuilder {
 	b.user.Enabled = enabled
+
 	return b
 }
 
@@ -65,12 +70,12 @@ type TestClientBuilder struct {
 func NewTestClientBuilder() *TestClientBuilder {
 	return &TestClientBuilder{
 		client: &cryptoutilIdentityDomain.Client{
-			ClientID:     googleUuid.Must(googleUuid.NewV7()).String(),
-			ClientType:   cryptoutilIdentityDomain.ClientTypeConfidential,
-			Name:         "Test Client",
-			Enabled:      true,
-			CreatedAt:    time.Now(),
-			UpdatedAt:    time.Now(),
+			ClientID:   googleUuid.Must(googleUuid.NewV7()).String(),
+			ClientType: cryptoutilIdentityDomain.ClientTypeConfidential,
+			Name:       "Test Client",
+			Enabled:    true,
+			CreatedAt:  time.Now(),
+			UpdatedAt:  time.Now(),
 		},
 	}
 }
@@ -78,24 +83,28 @@ func NewTestClientBuilder() *TestClientBuilder {
 // WithClientID sets the client identifier.
 func (b *TestClientBuilder) WithClientID(clientID string) *TestClientBuilder {
 	b.client.ClientID = clientID
+
 	return b
 }
 
 // WithClientType sets the client type.
 func (b *TestClientBuilder) WithClientType(clientType cryptoutilIdentityDomain.ClientType) *TestClientBuilder {
 	b.client.ClientType = clientType
+
 	return b
 }
 
 // WithName sets the client name.
 func (b *TestClientBuilder) WithName(name string) *TestClientBuilder {
 	b.client.Name = name
+
 	return b
 }
 
 // WithEnabled sets the enabled status.
 func (b *TestClientBuilder) WithEnabled(enabled bool) *TestClientBuilder {
 	b.client.Enabled = enabled
+
 	return b
 }
 
@@ -129,30 +138,35 @@ func NewTestTokenBuilder() *TestTokenBuilder {
 // WithTokenValue sets the token value.
 func (b *TestTokenBuilder) WithTokenValue(tokenValue string) *TestTokenBuilder {
 	b.token.TokenValue = tokenValue
+
 	return b
 }
 
 // WithClientID sets the client ID.
 func (b *TestTokenBuilder) WithClientID(clientID googleUuid.UUID) *TestTokenBuilder {
 	b.token.ClientID = clientID
+
 	return b
 }
 
 // WithUserID sets the user ID.
 func (b *TestTokenBuilder) WithUserID(userID *googleUuid.UUID) *TestTokenBuilder {
 	b.token.UserID = userID
+
 	return b
 }
 
 // WithScopes sets the token scopes.
 func (b *TestTokenBuilder) WithScopes(scopes []string) *TestTokenBuilder {
 	b.token.Scopes = scopes
+
 	return b
 }
 
 // WithExpiresAt sets the expiration time.
 func (b *TestTokenBuilder) WithExpiresAt(expiresAt time.Time) *TestTokenBuilder {
 	b.token.ExpiresAt = expiresAt
+
 	return b
 }
 
@@ -184,18 +198,21 @@ func NewTestSessionBuilder() *TestSessionBuilder {
 // WithSessionID sets the session identifier.
 func (b *TestSessionBuilder) WithSessionID(sessionID string) *TestSessionBuilder {
 	b.session.SessionID = sessionID
+
 	return b
 }
 
 // WithUserID sets the user ID.
 func (b *TestSessionBuilder) WithUserID(userID googleUuid.UUID) *TestSessionBuilder {
 	b.session.UserID = userID
+
 	return b
 }
 
 // WithActive sets the active status.
 func (b *TestSessionBuilder) WithActive(active bool) *TestSessionBuilder {
 	b.session.Active = active
+
 	return b
 }
 

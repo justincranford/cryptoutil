@@ -6,8 +6,8 @@ import (
 	"time"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
-	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
+	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 
 	"github.com/stretchr/testify/require"
 	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
