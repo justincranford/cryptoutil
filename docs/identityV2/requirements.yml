@@ -1,0 +1,215 @@
+# yaml-language-server: $schema=./requirements.schema.json
+
+meta:
+  version: "1.0"
+  generated: "2025-11-09"
+  sources:
+    - type: document
+      value: docs/identity/identity_master.md
+    - type: document
+      value: docs/identityV2/history-baseline.md
+    - type: commit
+      value: 1974b06
+    - type: commit
+      value: 0418528
+    - type: commit
+      value: d784ca6
+    - type: commit
+      value: 74dcf14
+    - type: commit
+      value: 5c04e44
+    - type: commit
+      value: dc68619
+  notes: |
+    This registry enumerates functional and non-functional requirements for
+    Identity V2 remediation. Each requirement receives a stable identifier,
+    traceability links (tests, tasks), and priority ranking.
+
+entries:
+  - id: REQ-AUTHZ-001
+    title: OAuth Authorization Code Flow with PKCE
+    domain: authz
+    priority: critical
+    description: |
+      Authorization server SHALL implement OAuth 2.1 authorization code flow
+      with mandatory PKCE validation, including storage of authorization
+      requests, user consent, and issuance of authorization codes.
+    acceptance:
+      - Authorization requests persist with associated PKCE challenge, scopes, and state.
+      - Consent screen captures user decision and records audit entry.
+      - Authorization code exchange succeeds with valid verifier and fails otherwise.
+    verification:
+      tasks:
+        - 6
+        - 9
+        - 19
+      tests:
+        - internal/identity/authz
+        - cmd/identity/workflows/e2e
+        - integration: identity-authz-code-flow
+    dependencies:
+      configs:
+        - configs/identity/authz.yml
+      secrets:
+        - unseal quorum (3-of-5)
+
+  - id: REQ-AUTHZ-002
+    title: Token Endpoint Grant Handling
+    domain: authz
+    priority: critical
+    description: |
+      Token endpoint SHALL support authorization_code, refresh_token, and
+      client_credentials grants with appropriate validation, token issuance, and
+      error responses per RFC 6749 and OAuth 2.1 draft 15.
+    acceptance:
+      - Authorization code exchange validates PKCE verifier and client binding.
+      - Refresh token rotation occurs with revocation of previous refresh tokens.
+      - Client credentials grant enforces client authentication policies.
+    verification:
+      tasks:
+        - 6
+        - 7
+        - 8
+      tests:
+        - internal/identity/authz/token
+        - e2e: oauth-code-flow
+        - integration: client-credentials-grant
+    dependencies:
+      configs:
+        - configs/identity/token-service.yml
+      secrets:
+        - service-client-credentials
+
+  - id: REQ-IDP-001
+    title: User Authentication with MFA Support
+    domain: idp
+    priority: critical
+    description: |
+      Identity Provider SHALL authenticate users using configured profiles
+      (password, TOTP/HOTP, passkey, hardware key) and orchestrate MFA chains
+      based on policy definitions.
+    acceptance:
+      - Login endpoint validates credentials and establishes session context.
+      - MFA chain executes configured factors with telemetry for each step.
+      - Failure and recovery flows emit auditable events.
+    verification:
+      tasks:
+        - 7
+        - 11
+        - 12
+        - 13
+        - 14
+        - 15
+      tests:
+        - internal/identity/idp
+        - integration: identity-mfa
+        - e2e: adaptive-authentication
+    dependencies:
+      configs:
+        - configs/identity/mfa-policies.yml
+      services:
+        - sms-gateway
+
+  - id: REQ-RS-001
+    title: Resource Server Token Validation
+    domain: rs
+    priority: high
+    description: |
+      Resource server SHALL validate access tokens using introspection or local
+      verification, enforce scopes, and emit structured logs and metrics.
+    acceptance:
+      - Protected endpoints reject missing, invalid, or expired tokens.
+      - Scope mismatches return HTTP 403 with audit logging.
+      - Public endpoints remain accessible without tokens.
+    verification:
+      tasks:
+        - 8
+        - 10
+        - 19
+      tests:
+        - internal/identity/server
+        - integration: resource-server
+        - e2e: api-protection
+    dependencies:
+      configs:
+        - configs/identity/resource-server.yml
+      telemetry:
+        - otlp collector pipeline
+
+  - id: REQ-CONF-001
+    title: Configuration Normalization
+    domain: configuration
+    priority: high
+    description: |
+      All identity services SHALL consume normalized configuration templates
+      defined under configs/identity, with consistent defaults across CLI, Docker,
+      and workflow automation.
+    acceptance:
+      - Templates exist for development, test, and production profiles.
+      - Services boot via CLI, Docker Compose, and workflows using identical values.
+      - Secrets referenced via file paths per security instructions.
+    verification:
+      tasks:
+        - 3
+        - 6
+        - 7
+        - 8
+        - 10
+        - 18
+      tests:
+        - internal/identity/config
+        - docker-compose smoke tests
+        - workflow: identity-suite
+    dependencies:
+      configs:
+        - configs/identity/common.yml
+      orchestration:
+        - deployments/compose/identity-compose.yml
+
+  - id: REQ-TEST-001
+    title: Integration and E2E Coverage
+    domain: testing
+    priority: critical
+    description: |
+      Identity remediation SHALL deliver deterministic integration and e2e
+      suites covering OAuth flows, MFA, SPA interactions, and orchestration.
+    acceptance:
+      - go test ./internal/identity/... -tags=e2e executes without flake.
+      - go run ./cmd/workflow -workflows=e2e succeeds with published artefacts.
+      - Coverage reports demonstrate >=95% coverage on touched packages.
+    verification:
+      tasks:
+        - 19
+        - 20
+      tests:
+        - internal/identity/test/e2e
+        - workflow-reports/e2e
+    dependencies:
+      tooling:
+        - cmd/workflow/main.go
+      documentation:
+        - docs/identityV2/task-19-integration-e2e-fabric.md
+
+  - id: REQ-DOC-001
+    title: Documentation Synchronization
+    domain: documentation
+    priority: medium
+    description: |
+      Documentation SHALL remain synchronized with implementation, including
+      release checklists, runbooks, and remediation trackers.
+    acceptance:
+      - Identity V2 master plan reflects current state after each task.
+      - Gap analysis references requirement IDs with mitigation statuses.
+      - Operations runbooks updated after orchestration and verification tasks.
+    verification:
+      tasks:
+        - 17
+        - 18
+        - 20
+      tests:
+        - documentation reviews
+        - workflow artefacts
+    dependencies:
+      documentation:
+        - docs/identityV2/identityV2_master.md
+        - docs/identityV2/task-17-gap-analysis.md

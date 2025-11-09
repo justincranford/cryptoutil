@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "acceptance": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "dependencies": {
+            "additionalProperties": false,
+            "properties": {
+              "configs": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "documentation": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "orchestration": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "secrets": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "services": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "telemetry": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "tooling": {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "description": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "verification": {
+            "additionalProperties": false,
+            "properties": {
+              "tasks": {
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              "tests": {
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            },
+            "required": [
+              "tasks",
+              "tests"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "domain",
+          "priority",
+          "description",
+          "acceptance",
+          "verification"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "meta": {
+      "additionalProperties": false,
+      "properties": {
+        "generated": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "version",
+        "generated",
+        "sources",
+        "notes"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "meta",
+    "entries"
+  ],
+  "title": "Identity V2 Requirements Registry",
+  "type": "object"
+}
