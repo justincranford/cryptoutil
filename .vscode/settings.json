@@ -38,6 +38,164 @@
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
   "files.encoding": "utf8", // File encoding to use - Default: "utf8"
   "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
+  "files.exclude": {
+    // System/OS files
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+
+    // Temporary files
+    "**/*.log": true,
+    "**/*.tmp": true,
+    "**/*.swp": true,
+    "**/*.swo": true,
+
+    // Build artifacts
+    "**/bin": true,
+    "**/*.exe": true,
+    "**/*.exe~": true,
+    "**/*.dll": true,
+    "**/*.so": true,
+    "**/*.dylib": true,
+
+    // Go workspace files
+    "**/go.work": true,
+    "**/go.work.sum": true,
+
+    // Dependencies
+    "**/vendor": true,
+    "**/node_modules": true,
+
+    // Cache files
+    "**/.cspellcache": true,
+
+    // Environment files
+    "**/.env": true,
+
+    // Test artifacts
+    "**/*.test": true,
+    "**/coverage.out": true,
+    "**/coverage.html": true,
+    "**/test-results": true,
+
+    // Python artifacts
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/*.pyo": true,
+    "**/*.pyd": true,
+    "**/.Python": true,
+    "**/pip-log.txt": true,
+    "**/pip-delete-this-directory.txt": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "**/env": true,
+    "**/ENV": true,
+    "**/.tox": true,
+    "**/.coverage": true,
+    "**/.coverage.*": true,
+    "**/coverage.xml": true,
+    "**/*.cover": true,
+    "**/.hypothesis": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.nox": true
+  },
+  "search.exclude": {
+    // Git internal files
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+
+    // Dependencies
+    "**/node_modules": true,
+    "**/vendor": true,
+
+    // Temporary files
+    "**/*.log": true,
+
+    // Cache files
+    "**/.cspellcache": true,
+    "**/go.work.sum": true,
+
+    // Build artifacts
+    "**/bin": true,
+    "**/*.exe": true,
+
+    // Environment files
+    "**/.env": true,
+
+    // Test artifacts
+    "**/*.test": true,
+    "**/coverage.out": true,
+    "**/test-results": true,
+
+    // Python artifacts
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/*.pyo": true,
+    "**/*.pyd": true,
+    "**/.Python": true,
+    "**/pip-log.txt": true,
+    "**/pip-delete-this-directory.txt": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "**/env": true,
+    "**/ENV": true,
+    "**/.tox": true,
+    "**/.coverage": true,
+    "**/.coverage.*": true,
+    "**/coverage.xml": true,
+    "**/*.cover": true,
+    "**/.hypothesis": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.nox": true
+  },
+  "files.watcherExclude": {
+    // Git internal files
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+
+    // Dependencies
+    "**/node_modules/**": true,
+    "**/vendor/**": true,
+
+    // Build artifacts
+    "**/bin/**": true,
+
+    // Temporary files
+    "**/*.log": true,
+
+    // Cache files
+    "**/.cspellcache": true,
+    "**/go.work.sum": true,
+
+    // Environment files
+    "**/.env": true,
+
+    // Test artifacts
+    "**/test-results/**": true,
+
+    // Python artifacts
+    "**/__pycache__/**": true,
+    "**/*.pyc": true,
+    "**/*.pyo": true,
+    "**/*.pyd": true,
+    "**/.Python": true,
+    "**/pip-log.txt": true,
+    "**/pip-delete-this-directory.txt": true,
+    "**/.venv/**": true,
+    "**/venv/**": true,
+    "**/env/**": true,
+    "**/ENV/**": true,
+    "**/.tox/**": true,
+    "**/.coverage": true,
+    "**/.coverage.*": true,
+    "**/coverage.xml": true,
+    "**/*.cover": true,
+    "**/.hypothesis/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.nox/**": true
+  },
 
   // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
   "markdown.preview.scrollEditorWithPreview": true, // Sync scroll between editor and preview - Default: true
