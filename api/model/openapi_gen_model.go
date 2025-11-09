@@ -656,6 +656,7 @@ type HTTP504GatewayTimeout struct {
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
+
 	"H4sIAAAAAAAC/+x8bXPbOJLwX0Hx2SrbO7IsyVY21tbzQZGVRPE40Vl2UrszOQ9EtiRsSJADgI41U/7v",
 	"V3jhCyhSlihNkqvzB5fFJrrRL0CjgW7wT8cNgyikQAV3en86EWY4AAFMPQ19zAVxL2H5XzGw5Vi+7Pvz",
 	"kBGxCFQLD7jLSCRISJ2e85r4AhiaLpHBRJewRDjBaDoNBx4iP/TA6QkWQ8MhEu13SdxpOBQH4PSctL3T",
@@ -725,8 +726,8 @@ var swaggerSpec = []string{
 	"A31a9m7y4X2qPhEiVfQACKN3n27U+dGMAchIp/Byoi59LcMYUZB6Na0aqDQRVpnzSpJiVqasMhGmJX3y",
 	"6FM2wyJmgA7ffZrUOPnsokpaNQ8+x+YkLCW3yelmE/V93xxuYgaIJqeAOx9cTvLX9se++kjHEydnbjqQ",
 	"mshIk5y4pkNEqUiNGvX5Ix6BK2NrF3NQh1rZkJNNb9SJY6qRtb3zpNWWx18/bXa49VFN/Kc/KfE8sp5H",
-	"Vr2RVeW00nxBMpTwNIyFXomSU2IGPPZLvgEjVwNCZ+Eq1evh5Ab1x6O0DDWYgielvbyaoCvishAl38NR",
-	"Ugsi9C2S8SirinR6TqvZaralGGEEFEfE6TmnzVbzVCtqwZ0ejX3/8X8CAAD//2aTKcCJZwAA",
+	"Vr2RVeW00nxBMpTwNIyFXomSU2IGPPZLvgEjVwNCZ+Eq1evh5Ab1x6O0DDWYgielvbyaoCvishCZ7+Eo",
+	"oQUR+hLJeJQVRTo9p9VsNdtSijACiiPi9JzTZqt5qvW04E6Pxr7/+D8BAAD//5I4p/6IZwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
@@ -792,11 +793,11 @@ func GetSwagger() (swagger *openapi3.T, err error) {
 	var specData []byte
 	specData, err = rawSpec()
 	if err != nil {
-		return swagger, err
+		return
 	}
 	swagger, err = loader.LoadFromData(specData)
 	if err != nil {
-		return swagger, err
+		return
 	}
-	return swagger, err
+	return
 }

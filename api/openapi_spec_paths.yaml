@@ -310,6 +310,11 @@ paths:
             $ref: './openapi_spec_components.yaml#/components/schemas/GenerateAlgorithm'
       requestBody:
         required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: Optional request body (can be empty)
       responses:
         '200':
           description: Encrypted JWK.
@@ -509,5 +514,3 @@ paths:
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP503ServiceUnavailable'
         '504':
           $ref: './openapi_spec_components.yaml#/components/responses/HTTP504GatewayTimeout'
-
-components:
