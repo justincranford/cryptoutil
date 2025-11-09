@@ -100,24 +100,24 @@
     "buildx", // NOT COVERED BY ANY DICTIONARY
     "businesslogic", // NOT COVERED BY ANY DICTIONARY
     "bwassign", // NOT COVERED BY ANY DICTIONARY
-    "BYOK",
+    "BYOK", // NOT COVERED BY ANY DICTIONARY
     "bytebufferpool",
     "caser",
-    "CBCHS",
+    "CBCHS", // NOT COVERED BY ANY DICTIONARY
     "ccgo",
-    "CCID",
-    "Cehxc",
+    "CCID", // NOT COVERED BY ANY DICTIONARY
+    "Cehxc", // NOT COVERED BY ANY DICTIONARY
     "cenkalti",
-    "CICD",
-    "cicd",
-    "Ciphertext",
-    "ciphertext",
+    "CICD", // NOT COVERED BY ANY DICTIONARY
+    "CICD", // NOT COVERED BY ANY DICTIONARY
+    "Ciphertext", // cpp, en-gb
+    "Ciphertext", // cpp, en-gb
     "circl",
     "circlepin",
     "classfile",
     "clickjacking",
     "clipperhouse",
-    "Clsz",
+    "Clsz", // NOT COVERED BY ANY DICTIONARY
     "codegen",
     "codehaus",
     "columnrange",
@@ -130,31 +130,31 @@
     "covermode",
     "coverpkg",
     "coverprofile",
-    "Cprj",
+    "Cprj", // NOT COVERED BY ANY DICTIONARY
     "cpuguy",
     "cpus",
     "crand",
-    "Cranford",
-    "Crcrak",
+    "Cranford", // en-gb
+    "Crcrak", // NOT COVERED BY ANY DICTIONARY
     "creack",
     "crosshairs",
-    "Cryptoutil",
-    "cryptoutil",
-    "CSPRNG",
+    "Cryptoutil", // NOT COVERED BY ANY DICTIONARY
+    "Cryptoutil", // NOT COVERED BY ANY DICTIONARY
+    "CSPRNG", // en-gb
     "csrftoken",
     "ctype",
     "cves",
-    "Dadmin",
+    "Dadmin", // cpp
     "dashstyle",
     "databind",
     "davecgh",
-    "Dbaseurl",
+    "Dbaseurl", // cpp
     "dbname",
-    "Dbrowser",
-    "DBSQ",
+    "Dbrowser", // NOT COVERED BY ANY DICTIONARY
+    "DBSQ", // NOT COVERED BY ANY DICTIONARY
     "dcrd",
     "dcrec",
-    "Dduration",
+    "Dduration", // NOT COVERED BY ANY DICTIONARY
     "debasishg",
     "decred",
     "decryptedtext",
@@ -164,61 +164,61 @@
     "deskcolor",
     "desynchronization",
     "dflt",
-    "Dgatling",
+    "Dgatling", // NOT COVERED BY ANY DICTIONARY
     "dhui",
-    "Dialector",
-    "dialector",
-    "Diffie",
-    "Djavax",
-    "Djvm",
+    "Dialector", // NOT COVERED BY ANY DICTIONARY
+    "Dialector", // NOT COVERED BY ANY DICTIONARY
+    "Diffie", // cpp, en-gb
+    "Djavax", // NOT COVERED BY ANY DICTIONARY
+    "Djvm", // NOT COVERED BY ANY DICTIONARY
     "dktest",
-    "Dlogback",
-    "Dmaven",
-    "DNOQOHHMYYI",
+    "Dlogback", // cpp
+    "Dmaven", // NOT COVERED BY ANY DICTIONARY
+    "DNOQOHHMYYI", // NOT COVERED BY ANY DICTIONARY
     "dockercfg",
-    "Dockerfiles",
+    "Dockerfiles", // NOT COVERED BY ANY DICTIONARY
     "docname",
-    "Dolrw",
+    "Dolrw", // NOT COVERED BY ANY DICTIONARY
     "doublestar",
     "downloadability",
-    "Dport",
-    "Dprofile",
+    "Dport", // cpp
+    "Dprofile", // cpp
     "dprotaso",
     "dsig",
-    "Dspotbugs",
+    "Dspotbugs", // NOT COVERED BY ANY DICTIONARY
     "dupl",
-    "Dvirtual",
-    "Dvirtualadminclients",
-    "Dvirtualclients",
-    "Dvirtualusers",
+    "Dvirtual", // cpp
+    "Dvirtualadminclients", // cpp
+    "Dvirtualclients", // cpp
+    "Dvirtualusers", // cpp
     "dylib",
-    "Dzpp",
+    "Dzpp", // NOT COVERED BY ANY DICTIONARY
     "eamodio",
     "easyjson",
     "eatthepath",
-    "EAYPJV",
+    "EAYPJV", // NOT COVERED BY ANY DICTIONARY
     "ebitengine",
-    "ECDH",
-    "ECDHES",
-    "ECDHESA",
-    "ECDHJWK",
-    "ECDHP",
-    "ECDSAJWK",
-    "ECDSAP",
-    "EDDSA",
-    "Eddsa",
-    "eddsa",
-    "EDDSAJWK",
-    "Elastickey",
-    "elastickey",
-    "Elastickeys",
-    "elastickeys",
+    "ECDH", // golang, node, typescript
+    "ECDHES", // NOT COVERED BY ANY DICTIONARY
+    "ECDHESA", // NOT COVERED BY ANY DICTIONARY
+    "ECDHJWK", // NOT COVERED BY ANY DICTIONARY
+    "ECDHP", // NOT COVERED BY ANY DICTIONARY
+    "ECDSAJWK", // NOT COVERED BY ANY DICTIONARY
+    "ECDSAP", // NOT COVERED BY ANY DICTIONARY
+    "EDDSA", // NOT COVERED BY ANY DICTIONARY
+    "EDDSA", // NOT COVERED BY ANY DICTIONARY
+    "EDDSA", // NOT COVERED BY ANY DICTIONARY
+    "EDDSAJWK", // NOT COVERED BY ANY DICTIONARY
+    "Elastickey", // NOT COVERED BY ANY DICTIONARY
+    "Elastickey", // NOT COVERED BY ANY DICTIONARY
+    "Elastickeys", // NOT COVERED BY ANY DICTIONARY
+    "Elastickeys", // NOT COVERED BY ANY DICTIONARY
     "elastickeytest",
     "elif",
-    "Ellipsed",
-    "ellipsed",
-    "Embedder",
-    "embedder",
+    "Ellipsed", // NOT COVERED BY ANY DICTIONARY
+    "Ellipsed", // NOT COVERED BY ANY DICTIONARY
+    "Embedder", // en-gb, flutter, node
+    "Embedder", // en-gb, flutter, node
     "Encodeds",
     "Encs",
     "encs",
@@ -231,7 +231,7 @@
     "errdefs",
     "errorbar",
     "Errorf",
-    "ERRORLEVEL",
+    "ERRORLEVEL", // cpp, powershell, python
     "errorlint",
     "errorprone",
     "errwrap",
