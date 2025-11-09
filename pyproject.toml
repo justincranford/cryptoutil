@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cryptoutil"
+version = "0.1.0"
+description = "Cryptographic utilities"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest>=9.0.0",
+    "codecov>=2.1.13",
+    "black>=25.9.0",
+    "isort>=7.0.0",
+    "flake8>=7.3.0",
+    "mypy>=1.18.2",
+    "sphinx>=8.2.3",
+    "pre-commit>=4.4.0",
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["."]
+omit = ["*/tests/*", "*/venv/*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203", "W503"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
