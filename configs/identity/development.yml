@@ -1,0 +1,90 @@
+# Identity Module Development Configuration
+# This configuration is optimized for local development with SQLite in-memory database.
+
+authz:
+  name: authz-dev
+  bind_address: 127.0.0.1
+  port: 8100
+  tls_enabled: false
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 127.0.0.1
+  admin_port: 9100
+
+idp:
+  name: idp-dev
+  bind_address: 127.0.0.1
+  port: 8101
+  tls_enabled: false
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 127.0.0.1
+  admin_port: 9101
+
+rs:
+  name: rs-dev
+  bind_address: 127.0.0.1
+  port: 8102
+  tls_enabled: false
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 127.0.0.1
+  admin_port: 9102
+
+database:
+  type: sqlite
+  dsn: ":memory:"
+  max_open_conns: 5
+  max_idle_conns: 2
+  conn_max_lifetime: 60m
+  conn_max_idle_time: 10m
+  auto_migrate: true
+
+tokens:
+  access_token_lifetime: 3600s
+  refresh_token_lifetime: 86400s
+  id_token_lifetime: 3600s
+  access_token_format: jws
+  refresh_token_format: uuid
+  id_token_format: jws
+  issuer: https://identity-dev.example.com
+  signing_algorithm: RS256
+  signing_key_id: ""
+  encryption_enabled: false
+
+sessions:
+  session_lifetime: 86400s
+  idle_timeout: 3600s
+  cookie_name: identity_session_dev
+  cookie_domain: ""
+  cookie_path: /
+  cookie_secure: false
+  cookie_http_only: true
+  cookie_same_site: Lax
+
+security:
+  require_pkce: true
+  pkce_challenge_method: S256
+  require_state: true
+  rate_limit_enabled: false
+  cors_enabled: true
+  cors_allowed_origins:
+    - http://localhost:3000
+    - http://localhost:8100
+    - http://localhost:8101
+    - http://localhost:8102
+  csrf_enabled: false
+
+observability:
+  log_level: debug
+  log_format: text
+  metrics_enabled: true
+  metrics_path: /metrics
+  tracing_enabled: true
+  tracing_backend: otlp

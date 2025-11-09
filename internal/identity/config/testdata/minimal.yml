@@ -1,0 +1,12 @@
+# Minimal test fixture for config loading tests.
+authz:
+  name: test-authz
+  bind_address: 127.0.0.1
+  port: 9000
+
+database:
+  type: sqlite
+  dsn: ":memory:"
+
+tokens:
+  issuer: https://test.example.com

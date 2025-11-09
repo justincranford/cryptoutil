@@ -1,0 +1,97 @@
+# Identity Module Production Configuration
+# This configuration is optimized for production deployment with PostgreSQL.
+# IMPORTANT: All secrets must be provided via file paths, not environment variables.
+
+authz:
+  name: authz-prod
+  bind_address: 0.0.0.0
+  port: 8443
+  tls_enabled: true
+  tls_cert_file: /run/secrets/authz_tls_cert
+  tls_key_file: /run/secrets/authz_tls_key
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 127.0.0.1
+  admin_port: 9443
+
+idp:
+  name: idp-prod
+  bind_address: 0.0.0.0
+  port: 8444
+  tls_enabled: true
+  tls_cert_file: /run/secrets/idp_tls_cert
+  tls_key_file: /run/secrets/idp_tls_key
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 127.0.0.1
+  admin_port: 9444
+
+rs:
+  name: rs-prod
+  bind_address: 0.0.0.0
+  port: 8445
+  tls_enabled: true
+  tls_cert_file: /run/secrets/rs_tls_cert
+  tls_key_file: /run/secrets/rs_tls_key
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  admin_enabled: true
+  admin_bind_address: 127.0.0.1
+  admin_port: 9445
+
+database:
+  type: postgres
+  dsn: file:///run/secrets/database_url
+  max_open_conns: 25
+  max_idle_conns: 10
+  conn_max_lifetime: 300m
+  conn_max_idle_time: 30m
+  auto_migrate: false
+
+tokens:
+  access_token_lifetime: 900s
+  refresh_token_lifetime: 86400s
+  id_token_lifetime: 900s
+  access_token_format: jws
+  refresh_token_format: uuid
+  id_token_format: jws
+  issuer: https://identity.example.com
+  signing_algorithm: RS256
+  signing_key_id: file:///run/secrets/signing_key_id
+  encryption_enabled: true
+
+sessions:
+  session_lifetime: 28800s
+  idle_timeout: 1800s
+  cookie_name: identity_session
+  cookie_domain: .example.com
+  cookie_path: /
+  cookie_secure: true
+  cookie_http_only: true
+  cookie_same_site: Strict
+
+security:
+  require_pkce: true
+  pkce_challenge_method: S256
+  require_state: true
+  rate_limit_enabled: true
+  rate_limit_requests: 100
+  rate_limit_window: 60s
+  cors_enabled: true
+  cors_allowed_origins:
+    - https://app.example.com
+    - https://admin.example.com
+  csrf_enabled: true
+
+observability:
+  log_level: info
+  log_format: json
+  metrics_enabled: true
+  metrics_path: /metrics
+  tracing_enabled: true
+  tracing_backend: otlp

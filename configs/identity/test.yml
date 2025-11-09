@@ -1,0 +1,77 @@
+# Identity Module Test Configuration
+# This configuration is optimized for automated testing with ephemeral resources.
+
+authz:
+  name: authz-test
+  bind_address: 127.0.0.1
+  port: 0
+  tls_enabled: false
+  read_timeout: 10s
+  write_timeout: 10s
+  idle_timeout: 30s
+  admin_enabled: false
+
+idp:
+  name: idp-test
+  bind_address: 127.0.0.1
+  port: 0
+  tls_enabled: false
+  read_timeout: 10s
+  write_timeout: 10s
+  idle_timeout: 30s
+  admin_enabled: false
+
+rs:
+  name: rs-test
+  bind_address: 127.0.0.1
+  port: 0
+  tls_enabled: false
+  read_timeout: 10s
+  write_timeout: 10s
+  idle_timeout: 30s
+  admin_enabled: false
+
+database:
+  type: sqlite
+  dsn: ":memory:"
+  max_open_conns: 1
+  max_idle_conns: 1
+  conn_max_lifetime: 5m
+  conn_max_idle_time: 1m
+  auto_migrate: true
+
+tokens:
+  access_token_lifetime: 300s
+  refresh_token_lifetime: 600s
+  id_token_lifetime: 300s
+  access_token_format: jws
+  refresh_token_format: uuid
+  id_token_format: jws
+  issuer: https://identity-test.example.com
+  signing_algorithm: RS256
+  signing_key_id: test-key-1
+  encryption_enabled: false
+
+sessions:
+  session_lifetime: 3600s
+  idle_timeout: 600s
+  cookie_name: identity_session_test
+  cookie_domain: ""
+  cookie_path: /
+  cookie_secure: false
+  cookie_http_only: true
+  cookie_same_site: Lax
+
+security:
+  require_pkce: true
+  pkce_challenge_method: S256
+  require_state: true
+  rate_limit_enabled: false
+  cors_enabled: false
+  csrf_enabled: false
+
+observability:
+  log_level: info
+  log_format: json
+  metrics_enabled: false
+  tracing_enabled: false
