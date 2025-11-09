@@ -63,7 +63,7 @@
     "/^git (push|pull|reset|rebase).*/": false,
     "/^docker compose (exec).*/": false,
     "/^docker container exec.*/": false,
-    "/^docker (run|exec|kill|rm|rmi|prune).*/": false,
+    "/^docker (run|exec).*/": false,
     "/^(rm|Remove-Item|del)\\b/i.*/": false,
 
     "/^(code|pre-commit|golangci-lint|gofumpt|goimports|gremlins|act).*/": true,
