@@ -96,7 +96,7 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
 
 ### Task INF10: Consolidate All Temporary Artifacts to `.build/` Directory
 - **Description**: Refactor entire project to consolidate all temporary build, test, and scan artifacts under single `.build/` directory for easier management, cleanup, and gitignore maintenance
-- **Current State**: Artifacts scattered across 10+ locations (see DEEP-ANALYSIS.md for full inventory)
+- **Current State**: Artifacts scattered across 10+ locations (see docs/README.md for architecture details)
 - **Proposed Structure**:
   ```
   .build/                         # Single consolidated directory for ALL temporary artifacts
@@ -169,7 +169,7 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
   6. **Phase 6 - Cleanup & Documentation**:
      - Add cleanup script: `scripts/clean-build.{ps1,sh}` to remove `.build/`
      - Update README.md with new artifact locations
-     - Update DEEP-ANALYSIS.md with refactored structure
+     - Update docs/README.md with refactored structure
      - Remove old scattered artifact directories from repository
 - **Files Modified**:
   - `.gitignore` (simplified to single `.build/` exclusion)
@@ -177,7 +177,7 @@ w- **Current State**: PARTIALLY COMPLETE - Docker health checks use 127.0.0.1 bu
   - `internal/test/e2e/*.go` (E2E test utilities)
   - `.github/workflows/*.yml` (all 5 workflows)
   - `test/load/pom.xml` (Gatling output directory)
-  - `README.md` and `docs/DEEP-ANALYSIS.md`
+  - `README.md` and `docs/README.md`
 - **Expected Outcome**:
   - Single directory for all temporary artifacts
   - Simplified `.gitignore` (one line instead of 15+)
