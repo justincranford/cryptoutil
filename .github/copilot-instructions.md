@@ -10,8 +10,7 @@
 - Each instruction should not be verbose
 - Don't reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
-- Use tools efficiently to minimize API calls and avoid rate limiting
-- Batch related operations when possible to reduce request frequency
+- Use built-in tools one at a time, to minimize prompts for approval
 - When approaching rate limiting, wait between requests as needed
 - GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
 - **Rate Limit Monitoring**: Monitor HTTP response headers (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) to detect approaching rate limit thresholds
