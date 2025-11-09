@@ -1,4 +1,44 @@
 {
+  // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
+  "github.copilot.enable": { "markdown": true }, // Enable Copilot for markdown - Default: {}, Recommended: true (enable markdown support)
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
+  "github.copilot.chat.mcp.enabled": true,
+  "github.copilot.chat.generateTests.codeLens": true, // Enable test generation code lens - Default: false, Recommended: true (experimental)
+  "github.copilot.chat.editor.temporalContext.enabled": true, // Enable temporal context in editor - Default: false, Recommended: true (experimental)
+  "github.copilot.nextEditSuggestions.enabled": true, // Enable next edit suggestions - Default: false, Recommended: true (experimental)
+  "chat.agentSessionsViewLocation": "view", // Agent sessions view location - Default: "auxiliary", Recommended: "view" (main view)
+  "chat.agent.maxRequests": 1000, // Maximum agent requests - Default: 25, Recommended: 1000 (higher limit for complex tasks)
+  "chat.math.enabled": true, // Enable math expressions in chat - Default: false, Recommended: true (experimental)
+  "chat.fontSize": 14, // Increase GitHub Copilot Chat font size for non-code text (default 12)
+  "chat.editor.fontSize": 14, // Increase GitHub Copilot Chat font size for code text (default 12)
+  "workbench.secondarySideBar.defaultVisibility": "visible", // Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
+
+  "git.enableSmartCommit": true, // Commit button is only enabled when you have staged changes - Default: true
+  "git.confirmSync": false, // Confirm git sync operations - Default: true, Recommended: false (optional)
+  "git.openRepositoryInParentFolders": "always", // Open git repository in parent folders - Default: "never", Recommended: "always" (enables nested repo support)
+
+  // GitLens Settings
+  "gitlens.ai.model": "vscode", // GitLens AI model provider - Default: "openai", Recommended: "vscode" (use VS Code integration)
+  "gitlens.ai.vscode.model": "copilot:gpt-4.1", // GitLens VS Code AI model - Default: "copilot:gpt-4", Recommended: "copilot:gpt-4.1" (latest model)
+
+  // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
+  "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
+  "terminal.integrated.defaultProfile.windows": "PowerShell", // Set PowerShell as default terminal profile
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"]
+    }
+  }, // Configure PowerShell terminal to suppress banner and set execution policy to RemoteSigned for consistency with system policy
+
+  // Diff Editor Settings
+  "diffEditor.ignoreTrimWhitespace": true, // Ignore trimmed whitespace in diff - Default: true
+  "diffEditor.hideUnchangedRegions.enabled": false, // Hide unchanged regions in diff - Default: false
+
+  // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
+  "files.encoding": "utf8", // File encoding to use - Default: "utf8"
+  "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
+
   // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
   "markdown.preview.scrollEditorWithPreview": true, // Sync scroll between editor and preview - Default: true
   "markdown.preview.openMarkdownLinks": "inPreview", // How to open links in markdown files - Default: "inPreview"
@@ -8,74 +48,62 @@
   "markdown.validate.fragmentLinks.enabled": "warning", // Validate fragment links in markdown - Default: "ignore", Recommended: "warning"
   "markdown.validate.fileLinks.enabled": "warning", // Validate file links in markdown - Default: "ignore", Recommended: "warning"
 
-  // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
-  "files.encoding": "utf8", // File encoding to use - Default: "utf8"
-
   // VS Code Editor Settings https://code.visualstudio.com/docs/getstarted/settings
   "editor.aiStats.enabled": true, // Enable AI-powered statistics in editor - Default: false, Recommended: true (experimental)
   "editor.rulers": [80, 120, 160, 200], // Show vertical rulers at specified columns - Default: [], Recommended: [80, 120]
+  "editor.minimap.enabled": false, // Show minimap in editor - Default: true, Recommended: false (optional)
+  "explorer.confirmDragAndDrop": false, // Confirm drag and drop operations - Default: true, Recommended: false (review)
+  "explorer.confirmDelete": false, // Confirm delete operations - Default: true, Recommended: false (review)
+  "terminal.integrated.enableMultiLinePasteWarning": "never", // Enable multi-line paste warning - Default: "auto", Recommended: "never" (reduce interruptions)
+  "terminal.integrated.scrollback": 100000, // Terminal scrollback buffer size - Default: 1000, Recommended: 100000 (increased for long outputs)
+  "workbench.editor.empty.hint": "hidden", // Show hint when no editor is open - Default: "welcomeView", Recommended: "hidden" (reduce clutter)
 
   // VS Code Chat Settings https://code.visualstudio.com/docs/copilot/chat/copilot-chat
   "chat.tools.terminal.autoApprove": {
-    "/^go (mod edit).*/": false,
-    "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify).*/": true,
-    "/^golangci-lint run.*/": true,
-    "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|fetch|mv).*/": true,
     "/^git (push|pull|reset|rebase).*/": false,
-    "/^docker system df.*/": true,
-    "/^docker (run|exec|stop|kill|system|rm|rmi|swarm|prune).*/": false,
     "/^docker compose (exec).*/": false,
-    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (create|update|scale|rollback|connect|disconnect|restart).*/": false,
-    "/^docker (volume|network|container|service|image|images|context|plugin|secret|config|stack|node) (ls|inspect|logs|history).*/": true,
-    "/^docker (pull|build|tag|inspect|version|info).*/": true,
+    "/^docker (run|exec).*/": false,
+    "/^(rm|Remove-Item|del)\\b/i.*/": false,
+
+    "/^go (test|run|build|mod|generate|version|env|list|doc|fmt|vet|mod tidy|mod download|mod verify|mod edit).*/": true,
+    "/^(pre-commit|golangci-lint|gofumpt|goimports|gremlins|act).*/": true,
+    "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|stash pop|stash list|fetch|mv|commit|rev-parse|restore|describe).*/": true,
+    "/^(gradlew|gradle|mvnw|mvn|javac|java|javap|javadoc|jps|jstat|jinfo|keytool|jmap|jstack|jar)\\b.*/": true,
+    "/^(python|python3|pip|pip3|pytest|codecov|black|isort|flake8|mypy|sphinx-build)\\b.*/": true,
     "/^docker compose (up|down|logs|ps|build|pull|start|stop|restart|config).*/": true,
-    "/^kubectl.*/": false,         // Kubernetes operations (if used in future)
-    "/^pre-commit run.*/": true,
-    "/^act .*/": true,
-    "/^(mkdir|rmdir)\\b.*/": true,
-    "/^(ls|dir)\\b.*/": true,
-    "/^(find)\\b.*/": true,
-    "/^(Get-ChildItem)\\b.*/": true,
-    "/^(grep)\\b.*/": true,
-    "/^(Remove-Item|del)\\b/i.*/": false, // Windows file deletion
-    "/^rm\\b.*/": false,                 // Unix file deletion (complement to Remove-Item)
-    "/^python.*/": false,                // Used for count_tokens.py but you didn't enable
-    "/^yamllint\\b.*/": false,           // YAML linting tool - not installed in Windows PowerShell
-    "/^Test-NetConnection\\b.*/": true, // Network connectivity testing
-    "/^\\[System\\.IO\\.File\\]::ReadAllBytes\\b.*/": false, // File reading operations - use read_file tool instead
-    "/^(Get-Content|cat|type)\\b.*/": true, // File content reading - use read_file tool instead
-    "/^tee\\b.*/": false, // Output redirection - E2E tests already log automatically
+    "/^docker service (scale|ls|inspect|logs|create|update).*/": true,
+    "/^docker container (create|start|stop|restart|rm|exec|logs|inspect|stats|top|update|scale|rollback).*/": true,
+    "/^docker (image|images) (ls|inspect|history|rm).*/": true,
+    "/^docker volume (ls|inspect|create|rm).*/": true,
+    "/^docker network (ls|inspect|create|rm|connect|disconnect).*/": true,
+    "/^docker context (ls|inspect|create|update).*/": true,
+    "/^docker plugin (ls|inspect|create|update).*/": true,
+    "/^docker secret (ls|inspect|create|update).*/": true,
+    "/^docker config (ls|inspect|create|update).*/": true,
+    "/^docker stack (ls|inspect|logs).*/": true,
+    "/^docker node (ls|inspect|create|update).*/": true,
+    "/^docker (stop|kill|system|rm|rmi|swarm|prune).*/": true,
+    "/^docker (pull|build|tag|inspect|version|info|search|system df).*/": true,
+    "/^(openssl|jq|mkdir|ls|dir|where|which|find|grep|sed|awk|Get-Content|cat|type|tee|netstat)\\b.*/": true,
+    "/^(Get-ChildItem|Get-Process|Test-Path|Copy-Item|Invoke-WebRequest|Receive-Job|Get-Job|Start-Job|Stop-Job)\\b.*/": true,
+
+    }, // Auto-approve terminal commands - Patterns ordered for precedence: false first, then true
   }, // Auto-approve terminal commands matching patterns - Default: {}, Recommended: configured patterns
-  "github.copilot.chat.virtualTools.threshold": 64, // Threshold for virtual tools - Default: 64, Recommended: 64 (experimental)
-  "chat.math.enabled": true, // Enable math expressions in chat - Default: false, Recommended: true (experimental)
-  "chat.checkpoints.enabled": true, // Enable chat checkpoints - Default: true
-  "chat.checkpoints.showFileChanges": true, // Show file changes in checkpoints - Default: true
-  "chat.editRequests": "inline", // How to handle edit requests - Default: "inline"
-  "chat.fontSize": 14, // Increase GitHub Copilot Chat font size for non-code text (+1 from default 12)
-  "chat.editor.fontSize": 14, // Increase GitHub Copilot Chat font size for code text (+1 from default 12)
-  "workbench.secondarySideBar.defaultVisibility": "visible", // Default visibility of secondary sidebar - Default: "hidden", Recommended: "visible"
-
-  // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
-  "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
-
-  // Disable GitKraken MCP Server for Copilot Chat - use terminal git commands instead
-  "github.copilot.chat.mcp.enabled": false, // Disable all MCP servers to prevent GitKraken usage in chat
-
-  // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
-  "terminal.integrated.defaultProfile.windows": "PowerShell", // Set PowerShell as default terminal profile
-  "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
-  "terminal.integrated.profiles.windows": {
-    "PowerShell": {
-      "source": "PowerShell",
-      "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"]
-    }
-  }, // Configure PowerShell terminal to suppress banner and set execution policy to RemoteSigned for consistency with system policy
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
   "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv
 
+  // Java Extension Settings
+  "maven.terminal.useJavaHome": true, // Use JAVA_HOME in Maven terminal - Default: false, Recommended: true (consistent Java version)
+  "java.import.maven.enabled": true, // Enable Maven import - Default: true, Recommended: true (standard Maven support)
+  "java.configuration.updateBuildConfiguration": "automatic" // Update build configuration automatically - Default: "interactive", Recommended: "automatic" (streamlined workflow)
+
+  // ESLint Extension Settings (for JavaScript files in the project)
+  "eslint.enable": true, // Enable ESLint - Default: true, Recommended: true (lint JavaScript files)
+  "eslint.validate": ["javascript", "javascriptreact"], // File types to validate - Default: ["javascript", "javascriptreact"], Recommended: includes TypeScript if added later
+  "eslint.workingDirectories": ["."], // Working directories for ESLint - Default: [], Recommended: project root
+
   // Go Extension Settings https://github.com/golang/vscode-go/blob/master/docs/settings.md
-  "go.useLanguageServer": true, // Use gopls language server - Default: true
   "go.alternateTools": {
     "gopls": "gopls"
   }, // Override default tools - Default: {}, Recommended: {"gopls": "gopls"}
@@ -91,11 +119,11 @@
   "go.testOnSave": false, // Run tests on save - Default: false
   "go.coverOnSave": false, // Run coverage on save - Default: false
   "go.testExplorer.enable": true, // Enable test explorer - Default: false, Recommended: true
-  "go.toolsManagement.autoUpdate": true, // Auto-update Go tools - Default: true
+  "go.toolsManagement.autoUpdate": true, // Auto-update Go tools - Default: true, Recommended: true (keep tools current)
   "go.terminal.activateEnvironment": true, // Activate Go environment in terminal - Default: true
   "gopls": {
     "ui.completion.usePlaceholders": false, // Use placeholders in completion - Default: true, Recommended: false
-    "ui.completion.completionBudget": "100ms", // Time budget for completion - Default: "100ms"
+    "ui.completion.completionBudget": "200ms", // Time budget for completion - Default: "100ms"
     "ui.diagnostic.analyses": {
       "unusedparams": true,
       "unusedvariables": true
@@ -112,5 +140,5 @@
       "parameterNames": true, // Show parameter names - Default: false, Recommended: true
       "rangeVariableTypes": true // Show range variable types - Default: false, Recommended: true
     } // Configure inlay hints - Default: {}, Recommended: all enabled
-  } // gopls language server configuration - Default: {}, Recommended: configured settings
+  }, // gopls language server configuration - Default: {}, Recommended: configured settings
 }
