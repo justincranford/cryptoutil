@@ -97,7 +97,17 @@
     "**/.hypothesis": true,
     "**/.pytest_cache": true,
     "**/.mypy_cache": true,
-    "**/.nox": true
+    "**/.nox": true,
+    "**/htmlcov": true,
+    "**/.python-version": true,
+    "**/Pipfile.lock": true,
+    "**/poetry.lock": true,
+    "**/__pypackages__": true,
+    "**/.ruff_cache": true,
+    "**/.dmypy.json": true,
+    "**/pyrightconfig.json": true,
+    "**/.pdm.toml": true,
+    "**/.pdm-python": true
   },
   "search.exclude": {
     // Git internal files
@@ -147,7 +157,17 @@
     "**/.hypothesis": true,
     "**/.pytest_cache": true,
     "**/.mypy_cache": true,
-    "**/.nox": true
+    "**/.nox": true,
+    "**/htmlcov": true,
+    "**/.python-version": true,
+    "**/Pipfile.lock": true,
+    "**/poetry.lock": true,
+    "**/__pypackages__": true,
+    "**/.ruff_cache": true,
+    "**/.dmypy.json": true,
+    "**/pyrightconfig.json": true,
+    "**/.pdm.toml": true,
+    "**/.pdm-python": true
   },
   "files.watcherExclude": {
     // Git internal files
@@ -194,7 +214,17 @@
     "**/.hypothesis/**": true,
     "**/.pytest_cache/**": true,
     "**/.mypy_cache/**": true,
-    "**/.nox/**": true
+    "**/.nox/**": true,
+    "**/htmlcov/**": true,
+    "**/.python-version": true,
+    "**/Pipfile.lock": true,
+    "**/poetry.lock": true,
+    "**/__pypackages__/**": true,
+    "**/.ruff_cache/**": true,
+    "**/.dmypy.json": true,
+    "**/pyrightconfig.json": true,
+    "**/.pdm.toml": true,
+    "**/.pdm-python": true
   },
 
   // VS Code Markdown Settings https://code.visualstudio.com/docs/languages/markdown
