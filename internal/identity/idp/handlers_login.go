@@ -73,15 +73,15 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 
 	// Create user session.
 	session := &cryptoutilIdentityDomain.Session{
-		UserID:               user.ID,
-		IPAddress:            c.IP(),
-		UserAgent:            c.Get("User-Agent"),
-		IssuedAt:             time.Now(),
-		ExpiresAt:            time.Now().Add(s.config.Sessions.SessionLifetime),
-		LastSeenAt:           time.Now(),
-		Active:               true,
+		UserID:                user.ID,
+		IPAddress:             c.IP(),
+		UserAgent:             c.Get("User-Agent"),
+		IssuedAt:              time.Now(),
+		ExpiresAt:             time.Now().Add(s.config.Sessions.SessionLifetime),
+		LastSeenAt:            time.Now(),
+		Active:                true,
 		AuthenticationMethods: []string{"username_password"},
-		AuthenticationTime:   time.Now(),
+		AuthenticationTime:    time.Now(),
 	}
 
 	sessionRepo := s.repoFactory.SessionRepository()
