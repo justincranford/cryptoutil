@@ -58,30 +58,11 @@
     "**/*.dylib": true,
 
     // Java/Maven/Gradle build artifacts
-    "**/target": true,
-    "**/build": true,
     "**/out": true,
-    "**/*.class": true,
-    "**/*.jar": true,
-    "**/*.war": true,
-    "**/*.ear": true,
 
-    // Java IDEs
-    "**/.idea": true,
-    "**/.eclipse": true,
-    "**/.settings": true,
-    "**/.classpath": true,
-    "**/.project": true,
-
-    // Maven/Gradle wrappers and caches
+    // Maven/Gradle caches
     "**/.mvn": true,
     "**/.gradle": true,
-    "**/gradle-wrapper.jar": true,
-    "**/maven-wrapper.jar": true,
-    "**/mvnw": true,
-    "**/mvnw.cmd": true,
-    "**/gradlew": true,
-    "**/gradlew.bat": true,
 
     // Go workspace files
     "**/go.work": true,
@@ -148,13 +129,7 @@
     "**/*.log": true,
 
     // Java/Maven/Gradle build artifacts
-    "**/target": true,
-    "**/build": true,
     "**/out": true,
-
-    // Java IDEs
-    "**/.idea": true,
-    "**/.eclipse": true,
 
     // Maven/Gradle caches
     "**/.mvn": true,
@@ -218,16 +193,9 @@
     "**/vendor/**": true,
 
     // Java/Maven/Gradle build artifacts
-    "**/target/**": true,
-    "**/build/**": true,
-    "**/out/**": true,
+    "**/out": true,
 
-    // Java IDEs
-    "**/.idea/**": true,
-    "**/.eclipse/**": true,
-    "**/.settings/**": true,
-
-    // Maven/Gradle caches and wrappers
+    // Maven/Gradle caches
     "**/.mvn/**": true,
     "**/.gradle/**": true,
 
