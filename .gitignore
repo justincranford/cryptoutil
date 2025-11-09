@@ -36,6 +36,7 @@ output/
 
 # CI/CD cache files
 .cicd-dep-cache.json
+.cspellcache
 
 # ASN.1/DER/PEM encoded files
 *.pem

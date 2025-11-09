@@ -6,4 +6,4 @@
 extra-rules = true
 
 # Module path for import grouping (groups local imports together)
-module-path = "github.com/jcranford/cryptoutil"
+module-path = "github.com/justincranford/cryptoutil"

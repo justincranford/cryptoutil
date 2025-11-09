@@ -86,7 +86,7 @@ linters-settings:
     # Enable all extra rules (equivalent to -extra flag)
     extra-rules: true
     # Set module path for proper formatting
-    module-path: github.com/jcranford/cryptoutil
+    module-path: github.com/justincranford/cryptoutil
 
   gosec:
     severity: medium
