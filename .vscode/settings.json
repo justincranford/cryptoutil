@@ -94,7 +94,7 @@
     "/^docker kill.*/": true,
     "/^docker rm.*/": true,
     "/^docker rmi.*/": true,
-    "/^(openssl|jq|mkdir|ls|dir|where|which|find|grep|sed|awk|Get-Content|cat|type|tee|netstat)\\b.*/": true,
+    "/^(openssl|jq|yq|curl|wget|mkdir|ls|dir|where|which|find|findstr|grep|sed|awk|Get-Content|cat|type|tee|netstat)\\b.*/": true,
     "/^(Get-ChildItem|Get-Process|Test-Path|Copy-Item|Invoke-WebRequest|Receive-Job|Get-Job|Start-Job|Stop-Job)\\b.*/": true
   }, // Auto-approve terminal commands - Patterns ordered for precedence: false first, then true
 
