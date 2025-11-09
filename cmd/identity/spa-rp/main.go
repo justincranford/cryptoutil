@@ -5,6 +5,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -33,6 +34,25 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(http.FS(staticFS)))
+	// Handle OAuth callback by serving the main HTML page
+	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+		// Serve the index.html file for OAuth callback processing
+		indexFile, err := staticFS.Open("index.html")
+		if err != nil {
+			http.Error(w, "file not found", http.StatusNotFound)
+
+			return
+		}
+		defer indexFile.Close()
+
+		w.Header().Set("Content-Type", "text/html")
+
+		if _, err := io.Copy(w, indexFile); err != nil {
+			http.Error(w, "Failed to serve index.html", http.StatusInternalServerError)
+
+			return
+		}
+	})
 
 	addr := fmt.Sprintf("%s:%d", *bindAddress, *port)
 	server := &http.Server{

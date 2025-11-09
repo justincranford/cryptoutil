@@ -6,10 +6,11 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -17,37 +18,90 @@ import (
 )
 
 const (
-	alphabetSize = 26 // Number of letters in English alphabet
+	alphabetSize       = 26              // Number of letters in English alphabet
+	tokenExpirySeconds = 3600            // Standard OAuth token expiry time (1 hour)
+	healthCheckTimeout = 5 * time.Second // Timeout for health check requests
+	mockCertFile       = "mock_cert.pem"
+	mockKeyFile        = "mock_key.pem"
+	httpMethodOptions  = "OPTIONS" // HTTP OPTIONS method for CORS preflight
 )
+
+func getCertPaths() (string, string) {
+	// Try to find cert files relative to current executable
+	exePath, err := os.Executable()
+	if err != nil {
+		log.Printf("Failed to get executable path: %v", err)
+
+		return mockCertFile, mockKeyFile
+	}
+
+	exeDir := filepath.Dir(exePath)
+	certFile := filepath.Join(exeDir, mockCertFile)
+	keyFile := filepath.Join(exeDir, mockKeyFile)
+
+	// Check if files exist in exe directory
+	if _, err := os.Stat(certFile); os.IsNotExist(err) {
+		// Fall back to current working directory
+		certFile = mockCertFile
+		keyFile = mockKeyFile
+	}
+
+	return certFile, keyFile
+}
 
 // MockAuthZServer simulates OAuth 2.1 Authorization Server.
 func startAuthZServer(ctx context.Context, port int) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/authorize", func(w http.ResponseWriter, r *http.Request) {
-		// Simulate successful authorization - redirect with code
-		code := generateRandomString(cryptoutilMagic.TestRandomStringLength32)
-		redirectURI := r.URL.Query().Get("redirect_uri")
-		state := r.URL.Query().Get("state")
 
+	// CORS middleware
+	corsHandler := func(handler http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			// Set CORS headers
+			w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:8446")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+			// Handle preflight requests
+			if r.Method == httpMethodOptions {
+				w.WriteHeader(http.StatusOK)
+
+				return
+			}
+
+			handler(w, r)
+		}
+	}
+
+	mux.HandleFunc("/oauth2/v1/authorize", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate OAuth 2.1 authorization code flow
+		// Parse the redirect_uri from query parameters
+		redirectURI := r.URL.Query().Get("redirect_uri")
 		if redirectURI == "" {
-			http.Error(w, "missing redirect_uri", http.StatusBadRequest)
+			http.Error(w, "redirect_uri is required", http.StatusBadRequest)
 
 			return
 		}
 
-		location := fmt.Sprintf("%s?code=%s&state=%s", redirectURI, code, state)
-		w.Header().Set("Location", location)
-		w.WriteHeader(http.StatusFound)
-	})
+		// Generate authorization code and get state
+		code := generateRandomString(cryptoutilMagic.TestRandomStringLength16)
+		state := r.URL.Query().Get("state")
 
-	mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
+		// Build redirect URL with authorization code and state
+		redirectURL := fmt.Sprintf("%s?code=%s&state=%s", redirectURI, code, state)
+
+		// Perform HTTP redirect
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+	}))
+
+	mux.HandleFunc("/oauth2/v1/token", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate token exchange
 		response := map[string]any{
 			"access_token":  generateRandomString(cryptoutilMagic.TestRandomStringLength32),
 			"token_type":    "Bearer",
-			"expires_in":    cryptoutilMagic.TestTokenExpirationSeconds,
-			"refresh_token": generateRandomString(cryptoutilMagic.TestRandomStringLength32),
+			"expires_in":    tokenExpirySeconds,
 			"id_token":      generateRandomString(cryptoutilMagic.TestRandomStringLength64),
+			"refresh_token": generateRandomString(cryptoutilMagic.TestRandomStringLength32),
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -58,9 +112,66 @@ func startAuthZServer(ctx context.Context, port int) {
 
 			return
 		}
-	})
+	}))
 
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/oauth2/v1/introspect", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate token introspection
+		response := map[string]any{
+			"active":     true,
+			"client_id":  "spa-client",
+			"token_type": "Bearer",
+			"exp":        time.Now().Add(time.Hour).Unix(),
+			"iat":        time.Now().Unix(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			log.Printf("Failed to encode introspect response: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+
+			return
+		}
+	}))
+
+	mux.HandleFunc("/authorize", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate OAuth 2.1 authorization code flow
+		response := map[string]any{
+			"code":  generateRandomString(cryptoutilMagic.TestRandomStringLength16),
+			"state": r.URL.Query().Get("state"),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			log.Printf("Failed to encode authorize response: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+
+			return
+		}
+	}))
+
+	mux.HandleFunc("/token", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate token exchange
+		response := map[string]any{
+			"access_token":  generateRandomString(cryptoutilMagic.TestRandomStringLength32),
+			"token_type":    "Bearer",
+			"expires_in":    tokenExpirySeconds,
+			"id_token":      generateRandomString(cryptoutilMagic.TestRandomStringLength64),
+			"refresh_token": generateRandomString(cryptoutilMagic.TestRandomStringLength32),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			log.Printf("Failed to encode token response: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+
+			return
+		}
+	}))
+
+	mux.HandleFunc("/health", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "service": "authz"}); err != nil {
@@ -69,7 +180,7 @@ func startAuthZServer(ctx context.Context, port int) {
 
 			return
 		}
-	})
+	}))
 
 	server := &http.Server{
 		Addr:    "127.0.0.1:" + fmt.Sprintf("%d", port),
@@ -78,31 +189,74 @@ func startAuthZServer(ctx context.Context, port int) {
 
 	log.Printf("AuthZ Server starting on port %d", port)
 
-	// Channel to signal when server is done
-	done := make(chan error, 1)
+	// Start server in background and don't wait
 	go func() {
-		done <- server.ListenAndServeTLS("mock_cert.pem", "mock_key.pem")
-	}()
+		log.Printf("AuthZ Server attempting to listen on %s", server.Addr)
 
-	// Wait for context cancellation or server error
-	select {
-	case err := <-done:
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		certFile, keyFile := getCertPaths()
+
+		if err := server.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			log.Printf("AuthZ Server on port %d failed: %v", port, err)
+		} else {
+			log.Printf("AuthZ Server on port %d stopped gracefully", port)
 		}
-	case <-ctx.Done():
-		log.Printf("AuthZ Server on port %d shutting down", port)
-
-		if err := server.Shutdown(context.Background()); err != nil {
-			log.Printf("AuthZ Server shutdown error: %v", err)
-		}
-	}
+	}()
 }
 
 // MockIdPServer simulates OIDC Identity Provider.
 func startIDPServer(ctx context.Context, port int) {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+
+	// CORS middleware
+	corsHandler := func(handler http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			// Set CORS headers
+			w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:8446")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+			// Handle preflight requests
+			if r.Method == httpMethodOptions {
+				w.WriteHeader(http.StatusOK)
+
+				return
+			}
+
+			handler(w, r)
+		}
+	}
+
+	mux.HandleFunc("/oidc/v1/userinfo", corsHandler(func(w http.ResponseWriter, r *http.Request) {
+		// Simulate OIDC UserInfo endpoint
+		auth := r.Header.Get("Authorization")
+		if !strings.HasPrefix(auth, "Bearer ") {
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
+
+			return
+		}
+
+		response := map[string]any{
+			"sub":            "test_user",
+			"name":           "Test User",
+			"email":          "test@example.com",
+			"email_verified": true,
+			"profile":        "https://example.com/profile/test_user",
+			"picture":        "https://example.com/avatar/test_user.jpg",
+			"updated_at":     time.Now().Unix(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+
+		if err := json.NewEncoder(w).Encode(response); err != nil {
+			log.Printf("Failed to encode userinfo response: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+
+			return
+		}
+	}))
+
+	mux.HandleFunc("/login", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		// Simulate successful authentication for any method
 		response := map[string]any{
 			"success":    true,
@@ -118,9 +272,9 @@ func startIDPServer(ctx context.Context, port int) {
 
 			return
 		}
-	})
+	}))
 
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/health", corsHandler(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "service": "idp"}); err != nil {
@@ -129,7 +283,7 @@ func startIDPServer(ctx context.Context, port int) {
 
 			return
 		}
-	})
+	}))
 
 	server := &http.Server{
 		Addr:    "127.0.0.1:" + fmt.Sprintf("%d", port),
@@ -138,25 +292,14 @@ func startIDPServer(ctx context.Context, port int) {
 
 	log.Printf("IdP Server starting on port %d", port)
 
-	// Channel to signal when server is done
-	done := make(chan error, 1)
+	// Start server in background and don't wait
 	go func() {
-		done <- server.ListenAndServeTLS("mock_cert.pem", "mock_key.pem")
-	}()
+		certFile, keyFile := getCertPaths()
 
-	// Wait for context cancellation or server error
-	select {
-	case err := <-done:
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			log.Printf("IdP Server on port %d failed: %v", port, err)
 		}
-	case <-ctx.Done():
-		log.Printf("IdP Server on port %d shutting down", port)
-
-		if err := server.Shutdown(context.Background()); err != nil {
-			log.Printf("IdP Server shutdown error: %v", err)
-		}
-	}
+	}()
 }
 
 // MockResourceServer simulates protected API.
@@ -203,25 +346,14 @@ func startResourceServer(ctx context.Context, port int) {
 
 	log.Printf("Resource Server starting on port %d", port)
 
-	// Channel to signal when server is done
-	done := make(chan error, 1)
+	// Start server in background and don't wait
 	go func() {
-		done <- server.ListenAndServeTLS("mock_cert.pem", "mock_key.pem")
-	}()
+		certFile, keyFile := getCertPaths()
 
-	// Wait for context cancellation or server error
-	select {
-	case err := <-done:
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			log.Printf("Resource Server on port %d failed: %v", port, err)
 		}
-	case <-ctx.Done():
-		log.Printf("Resource Server on port %d shutting down", port)
-
-		if err := server.Shutdown(context.Background()); err != nil {
-			log.Printf("Resource Server shutdown error: %v", err)
-		}
-	}
+	}()
 }
 
 // MockSPARP simulates SPA Relying Party.
@@ -265,25 +397,14 @@ func startSPARP(ctx context.Context, port int) {
 
 	log.Printf("SPA RP starting on port %d", port)
 
-	// Channel to signal when server is done
-	done := make(chan error, 1)
+	// Start server in background and don't wait
 	go func() {
-		done <- server.ListenAndServeTLS("mock_cert.pem", "mock_key.pem")
-	}()
+		certFile, keyFile := getCertPaths()
 
-	// Wait for context cancellation or server error
-	select {
-	case err := <-done:
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := server.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
 			log.Printf("SPA RP on port %d failed: %v", port, err)
 		}
-	case <-ctx.Done():
-		log.Printf("SPA RP on port %d shutting down", port)
-
-		if err := server.Shutdown(context.Background()); err != nil {
-			log.Printf("SPA RP shutdown error: %v", err)
-		}
-	}
+	}()
 }
 
 func generateRandomString(length int) string {
@@ -299,67 +420,80 @@ func generateRandomString(length int) string {
 	return base64.URLEncoding.EncodeToString(bytes)[:length]
 }
 
-func main() {
-	log.Println("Starting mock identity services...")
+func testHealthEndpoints() {
+	// Give servers time to start
+	time.Sleep(2 * time.Second)
 
-	// Start all mock services in goroutines
-	go startAuthZServer(context.Background(), cryptoutilMagic.TestAuthZServerPort)
-	go startIDPServer(context.Background(), cryptoutilMagic.TestIDPServerPort)
-	go startResourceServer(context.Background(), cryptoutilMagic.TestResourceServerPort)
-	go startSPARP(context.Background(), cryptoutilMagic.TestSPARPServerPort)
-
-	// Wait for services to be ready
-	log.Println("Waiting for services to be ready...")
-	time.Sleep(cryptoutilMagic.TestServiceStartupDelaySeconds * time.Second) // Give services time to start
-
-	// Health check all services
-	if !waitForService("https://127.0.0.1:8080/health", "AuthZ") ||
-		!waitForService("https://127.0.0.1:8081/health", "IdP") ||
-		!waitForService("https://127.0.0.1:8082/health", "Resource") ||
-		!waitForService("https://127.0.0.1:8083/health", "SPA RP") {
-		log.Fatal("One or more services failed to start")
+	endpoints := []struct {
+		url      string
+		expected string
+	}{
+		{"https://127.0.0.1:8080/health", "authz"},
+		{"https://127.0.0.1:8081/health", "idp"},
+		{"https://127.0.0.1:8082/health", "resource"},
+		{"https://127.0.0.1:8083/health", "spa-rp"},
 	}
 
-	log.Println("All mock identity services started successfully")
-
-	// Keep services running indefinitely for UI access
-	log.Println("Services are running. Press Ctrl+C to stop.")
-	select {} // Block forever
-}
-
-func waitForService(url, serviceName string) bool {
 	client := &http.Client{
-		Timeout: cryptoutilMagic.TestHTTPHealthTimeoutSeconds * time.Second,
+		Timeout: healthCheckTimeout,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		},
 	}
 
-	for i := 0; i < 10; i++ {
-		req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
+	for _, ep := range endpoints {
+		req, err := http.NewRequestWithContext(context.Background(), "GET", ep.url, nil)
 		if err != nil {
-			log.Printf("Failed to create request: %v", err)
-			time.Sleep(1 * time.Second)
+			log.Printf("❌ Health check FAILED for %s: failed to create request: %v", ep.url, err)
 
 			continue
 		}
 
 		resp, err := client.Do(req)
-		if err == nil {
-			resp.Body.Close()
+		if err != nil {
+			log.Printf("❌ Health check FAILED for %s: %v", ep.url, err)
 
-			if resp.StatusCode == http.StatusOK {
-				log.Printf("%s service is ready", serviceName)
+			continue
+		}
+		defer resp.Body.Close()
 
-				return true
-			}
+		var result map[string]string
+		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+			log.Printf("❌ Health check FAILED for %s: invalid JSON response", ep.url)
+
+			continue
 		}
 
-		log.Printf("Waiting for %s service... (%d/10)", serviceName, i+1)
-		time.Sleep(1 * time.Second)
+		if result["status"] == "ok" && result["service"] == ep.expected {
+			log.Printf("✅ Health check PASSED for %s", ep.url)
+		} else {
+			log.Printf("❌ Health check FAILED for %s: unexpected response %+v", ep.url, result)
+		}
 	}
+}
 
-	log.Printf("%s service failed to start", serviceName)
+func main() {
+	log.Println("Starting mock identity services...")
 
-	return false
+	// Start all mock services - they will run until the process is killed
+	startAuthZServer(context.Background(), cryptoutilMagic.TestAuthZServerPort)
+	startIDPServer(context.Background(), cryptoutilMagic.TestIDPServerPort)
+	startResourceServer(context.Background(), cryptoutilMagic.TestResourceServerPort)
+	startSPARP(context.Background(), cryptoutilMagic.TestSPARPServerPort)
+
+	log.Println("All mock identity services started successfully")
+	log.Println("Services are running on:")
+	log.Println("  AuthZ Server: https://127.0.0.1:8080")
+	log.Println("  IdP Server:   https://127.0.0.1:8081")
+	log.Println("  Resource:     https://127.0.0.1:8082")
+	log.Println("  SPA RP:       https://127.0.0.1:8083")
+
+	// Test health endpoints
+	log.Println("Testing health endpoints...")
+	testHealthEndpoints()
+
+	log.Println("Press Ctrl+C to stop.")
+
+	// Keep services running indefinitely
+	select {}
 }
