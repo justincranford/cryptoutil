@@ -1,8 +1,8 @@
 {
+  "$schema": "vscode://schemas/settings/user",
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
   "github.copilot.enable": { "markdown": true }, // Enable Copilot for markdown - Default: {}, Recommended: true (enable markdown support)
   "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
-  "github.copilot.chat.mcp.enabled": true,
   "github.copilot.chat.generateTests.codeLens": true, // Enable test generation code lens - Default: false, Recommended: true (experimental)
   "github.copilot.chat.editor.temporalContext.enabled": true, // Enable temporal context in editor - Default: false, Recommended: true (experimental)
   "github.copilot.nextEditSuggestions.enabled": true, // Enable next edit suggestions - Default: false, Recommended: true (experimental)
@@ -70,6 +70,7 @@
     "/^git (status|add|log|reflog|diff|branch|worktree|checkout|merge|stash|stash pop|stash list|fetch|mv|commit|rev-parse|restore|describe).*/": true,
     "/^(gradlew|gradle|mvnw|mvn|javac|java|javap|javadoc|jps|jstat|jinfo|keytool|jmap|jstack|jar)\\b.*/": true,
     "/^(python|python3|pip|pip3|pytest|codecov|black|isort|flake8|mypy|sphinx-build)\\b.*/": true,
+    "/^code\\b.*/": true,
     "/^docker compose (up|down|logs|ps|build|pull|start|stop|restart|config).*/": true,
     "/^docker service (scale|ls|inspect|logs|create|update).*/": true,
     "/^docker container (create|start|stop|restart|rm|exec|logs|inspect|stats|top|update|scale|rollback).*/": true,
@@ -85,10 +86,8 @@
     "/^docker (stop|kill|system|rm|rmi|swarm|prune).*/": true,
     "/^docker (pull|build|tag|inspect|version|info|search|system df).*/": true,
     "/^(openssl|jq|mkdir|ls|dir|where|which|find|grep|sed|awk|Get-Content|cat|type|tee|netstat)\\b.*/": true,
-    "/^(Get-ChildItem|Get-Process|Test-Path|Copy-Item|Invoke-WebRequest|Receive-Job|Get-Job|Start-Job|Stop-Job)\\b.*/": true,
-
-    }, // Auto-approve terminal commands - Patterns ordered for precedence: false first, then true
-  }, // Auto-approve terminal commands matching patterns - Default: {}, Recommended: configured patterns
+    "/^(Get-ChildItem|Get-Process|Test-Path|Copy-Item|Invoke-WebRequest|Receive-Job|Get-Job|Start-Job|Stop-Job)\\b.*/": true
+  }, // Auto-approve terminal commands - Patterns ordered for precedence: false first, then true
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
   "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv
@@ -96,7 +95,7 @@
   // Java Extension Settings
   "maven.terminal.useJavaHome": true, // Use JAVA_HOME in Maven terminal - Default: false, Recommended: true (consistent Java version)
   "java.import.maven.enabled": true, // Enable Maven import - Default: true, Recommended: true (standard Maven support)
-  "java.configuration.updateBuildConfiguration": "automatic" // Update build configuration automatically - Default: "interactive", Recommended: "automatic" (streamlined workflow)
+  "java.configuration.updateBuildConfiguration": "automatic", // Update build configuration automatically - Default: "interactive", Recommended: "automatic" (streamlined workflow)
 
   // ESLint Extension Settings (for JavaScript files in the project)
   "eslint.enable": true, // Enable ESLint - Default: true, Recommended: true (lint JavaScript files)
@@ -140,5 +139,5 @@
       "parameterNames": true, // Show parameter names - Default: false, Recommended: true
       "rangeVariableTypes": true // Show range variable types - Default: false, Recommended: true
     } // Configure inlay hints - Default: {}, Recommended: all enabled
-  }, // gopls language server configuration - Default: {}, Recommended: configured settings
+  } // gopls language server configuration - Default: {}, Recommended: configured settings
 }
