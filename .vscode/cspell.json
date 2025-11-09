@@ -5,112 +5,129 @@
     ".gofumpt.toml"
   ],
   "dictionaries": [
-    "aws", // Amazon Web Services terms (Amazon)
-    "bash", // Bash shell scripting terms
-    "coding-compound-terms", // Compound coding terms
-    "companies", // Company and brand names
-    "computing-acronyms", // Computing and IT acronyms
-    "cpp", // C++ programming language
-    "cpp-legacy", // Legacy C++ terms
-    "cpp-refined", // Refined C++ terms
-    "cryptocurrencies", // Cryptocurrency and blockchain terms
-    "cryptocurrencies-legacy", // Legacy cryptocurrency terms
-    "css", // CSS properties and values
-    "data-science", // Data science and analytics terms
-    "data-science-models", // ML/AI model names and algorithms
-    "data-science-tools", // Data science tool names
-    "docker", // Docker containerization terms (Docker Inc.)
-    "en-gb", // British English dictionary
-    "en_us", // US English dictionary
-    "filetypes", // File extension names
-    "flutter", // Google UI Flutter framework terms (Google)
-    "fonts", // Font names and typography terms
-    "fullstack", // Full-stack development terms
-    "game-development", // Game development terminology
-    "gaming-terms", // Gaming and game-related terms
-    "git", // Git version control commands
-    "golang", // Go programming language terms (Google)
-    "google", // Google-specific terms (Google)
-    "html", // HTML tags and attributes
-    "html-symbol-entities", // HTML symbol entities
-    "java", // Java programming language terms (Oracle)
-    "k8s", // Kubernetes container orchestration (Google)
-    "kotlin", // Kotlin programming language (JetBrains)
-    "lorem-ipsum", // Lorem ipsum scrambled Latin text terms
-    "lua", // Lua programming language
-    "makefile", // Makefile build system terms
-    "networking-terms", // Network and infrastructure terms
-    "node", // Node.js ecosystem terms
-    "npm", // NPM package manager terms (npm, Inc.)
-    "powershell", // PowerShell scripting terms (Microsoft)
-    "public-licenses", // Open source license names
-    "python", // Python programming language terms
-    "python-common", // Common Python terms and libraries
-    "rust", // Rust programming language (Mozilla)
-    "scala", // Scala programming language (Lightbend)
-    "shellscript", // Shell scripting terms
-    "software-term-suggestions", // Software term suggestions
-    "softwareTerms", // General software terminology
-    "software-tools", // Software development tools
-    "sql", // SQL database terms
-    "terraform", // Infrastructure as Code terms (HashiCorp)
-    "typescript", // TypeScript programming language (Microsoft)
-    "web-services", // Web service terminology
-    // Common misspellings dictionaries (reject lists - flag incorrect spellings - can cause false positives)
-    "en-common-misspellings", // Common English misspellings
-    "en-gb-common-misspellings", // British English misspellings
-    "en-us-common-misspellings" // US English misspellings
+    "aws",
+    "bash",
+    "coding-compound-terms",
+    "companies",
+    "computing-acronyms",
+    "cpp",
+    "cpp-legacy",
+    "cpp-refined",
+    "cryptocurrencies",
+    "cryptocurrencies-legacy",
+    "css",
+    "data-science",
+    "data-science-models",
+    "data-science-tools",
+    "docker",
+    "en-gb",
+    "en_us",
+    "filetypes",
+    "flutter",
+    "fonts",
+    "fullstack",
+    "game-development",
+    "gaming-terms",
+    "git",
+    "golang",
+    "google",
+    "html",
+    "html-symbol-entities",
+    "java",
+    "k8s",
+    "kotlin",
+    "lorem-ipsum",
+    "lua",
+    "makefile",
+    "networking-terms",
+    "node",
+    "npm",
+    "powershell",
+    "public-licenses",
+    "python",
+    "python-common",
+    "rust",
+    "scala",
+    "shellscript",
+    "software-term-suggestions",
+    "softwareTerms",
+    "software-tools",
+    "sql",
+    "terraform",
+    "typescript",
+    "web-services",
+    "en-common-misspellings",
+    "en-gb-common-misspellings",
+    "en-us-common-misspellings"
   ],
   "words": [
-    "AAGUID",
-    "aarch",
+    // NOT COVERED BY ANY DICTIONARY
     "aayushatharva",
-    "addopts",
-    "addrs",
-    "Adleman",
-    "adoc",
+    // NOT COVERED BY ANY DICTIONARY
     "ADRFY",
+    // NOT COVERED BY ANY DICTIONARY
     "AESHS",
+    // NOT COVERED BY ANY DICTIONARY
     "AESHSJWK",
+    // NOT COVERED BY ANY DICTIONARY
     "AESJWK",
+    // NOT COVERED BY ANY DICTIONARY
     "afero",
-    "algs",
-    "allreq",
+    // NOT COVERED BY ANY DICTIONARY
     "AMRMTLS",
+    // NOT COVERED BY ANY DICTIONARY
     "AMRSMS",
+    // NOT COVERED BY ANY DICTIONARY
     "AMRTOTP",
+    // NOT COVERED BY ANY DICTIONARY
     "anchore",
+    // NOT COVERED BY ANY DICTIONARY
     "andybalholm",
+    // NOT COVERED BY ANY DICTIONARY
     "ansiterm",
+    // NOT COVERED BY ANY DICTIONARY
     "apapsch",
-    "APIIP",
-    "Appender",
-    "appender",
-    "APPERR",
-    "apperr",
+    // NOT COVERED BY ANY DICTIONARY
     "aquasecurity",
+    // NOT COVERED BY ANY DICTIONARY
     "arearange",
+    // NOT COVERED BY ANY DICTIONARY
     "areaspline",
+    // NOT COVERED BY ANY DICTIONARY
     "areasplinerange",
-    "atomicwriter",
-    "Autobuild",
-    "autobuild",
+    // NOT COVERED BY ANY DICTIONARY
     "barrierservice",
+    // NOT COVERED BY ANY DICTIONARY
     "bcel",
+    // NOT COVERED BY ANY DICTIONARY
     "BCID",
+    // NOT COVERED BY ANY DICTIONARY
     "BCLZ",
+    // NOT COVERED BY ANY DICTIONARY
     "benchmem",
+    // NOT COVERED BY ANY DICTIONARY
     "benchstat",
+    // NOT COVERED BY ANY DICTIONARY
     "BFHES",
+    // NOT COVERED BY ANY DICTIONARY
     "bigfft",
+    // NOT COVERED BY ANY DICTIONARY
     "BIOUDA",
+    // cpp, java
     "Blackbox",
+    // cpp
     "blackmagic",
+    // NOT COVERED BY ANY DICTIONARY
     "bmatcuk",
+    // cpp
     "bodyclose",
+    // NOT COVERED BY ANY DICTIONARY
     "boopickle",
+    // cpp
     "bordercolor",
+    // NOT COVERED BY ANY DICTIONARY
     "borderopacity",
+    // cpp-legacy
     "boringssl",
     "BUILDKIT",
     "buildpath",
