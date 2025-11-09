@@ -9,6 +9,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
@@ -22,7 +23,11 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	case "postgres":
 		dialector = postgres.Open(cfg.DSN)
 	case "sqlite":
-		dialector = sqlite.Open(cfg.DSN)
+		// Use modernc.org/sqlite (CGO-free) instead of mattn/go-sqlite3
+		dialector = sqlite.New(sqlite.Config{
+			DriverName: "sqlite",
+			DSN:        cfg.DSN,
+		})
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrInvalidConfiguration,

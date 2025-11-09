@@ -11,6 +11,7 @@
 - Don't reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
 - Use built-in tools one at a time, to minimize prompts for approval
+- When calling terminal commands, avoid commands that require prepending environment variables
 - When approaching rate limiting, wait between requests as needed
 - GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
 - **Rate Limit Monitoring**: Monitor HTTP response headers (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) to detect approaching rate limit thresholds
