@@ -94,8 +94,10 @@
     "/^docker kill.*/": true,
     "/^docker rm.*/": true,
     "/^docker rmi.*/": true,
-    "/^(openssl|jq|yq|curl|wget|mkdir|ls|dir|where|which|find|findstr|grep|sed|awk|Get-Content|cat|type|tee|netstat)\\b.*/": true,
-    "/^(Get-ChildItem|Get-Process|Test-Path|Copy-Item|Invoke-WebRequest|Receive-Job|Get-Job|Start-Job|Stop-Job)\\b.*/": true
+    "/^(ls|which|find|grep|sed|awk|cat|netstat|head|tail|wc|sort|uniq|cut|tr|ps|df|du|tar|gzip|gunzip|less|file|id)\\b.*/": true, // Linux
+    "/^(dir|where|findstr|type|tasklist|systeminfo|hostname|tree|fc|more|attrib|mode)\\b.*/": true, // Windows
+    "/^(openssl|jq|yq|curl|wget|mkdir|tee|make|cmake|ninja|ssh|scp|perl)\\b.*/": true, // Cross-platform
+    "/^(Get-Command|Get-Help|Get-ChildItem|Get-Process|Test-Path|Copy-Item|Get-Content|Invoke-WebRequest|Receive-Job|Get-Job|Start-Job|Stop-Job|Get-Service|Get-Date|Get-Location|Set-Location|Select-Object|Where-Object|ForEach-Object|Sort-Object|Group-Object|Measure-Object|Format-Table|Format-List|Out-String|ConvertTo-Json|ConvertFrom-Json|Get-Alias)\\b.*/": true, // PowerShell
   }, // Auto-approve terminal commands - Patterns ordered for precedence: false first, then true
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
