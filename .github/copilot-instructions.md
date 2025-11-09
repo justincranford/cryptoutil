@@ -10,6 +10,7 @@
 - Each instruction should not be verbose
 - Don't reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
+- Maximize request frequency until approaching rate limits, then throttle back minimally to avoid threshold exhaustion; speed up again as soon as possible
 
 ## Instruction File Structure
 
