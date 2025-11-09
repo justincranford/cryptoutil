@@ -1,5 +1,5 @@
 {
-  "language": "en-CA,fr-FR,es-ES",
+  "language": "en,en-CA,en-US,fr,fr-FR,es,es-ES",
   "ignorePaths": [
     ".golangci.yml",
     ".gofumpt.toml"
