@@ -72,7 +72,7 @@
     "/^(gradlew|gradle|mvnw|mvn|javac|java|javap|javadoc|jps|jstat|jinfo|keytool|jmap|jstack|jar)\\b.*/": true,
     "/^(python|python3|pip|pip3|pytest|codecov|black|isort|flake8|mypy|sphinx-build)\\b.*/": true,
     "/^docker compose (up|down|logs|ps|build|pull|start|stop|restart|config).*/": true,
-    "/^docker container (create|start|stop|restart|rm|logs|inspect|stats|top|update|scale|rollback).*/": true,
+    "/^docker container (create|start|stop|restart|rm|logs|inspect|stats|top|update|scale|rollback|prune).*/": true,
     "/^docker service (create|inspect|logs|ls|ps|rm|rollback|scale|update).*/": true,
     "/^docker (image|images) (ls|inspect|rm|prune|history|pull|push|build|import|load|save|tag).*/": true,
     "/^docker volume (ls|inspect|create|rm|prune).*/": true,
@@ -82,7 +82,7 @@
     "/^docker secret (ls|inspect|create|update|rm).*/": true,
     "/^docker config (ls|inspect|create|update|rm).*/": true,
     "/^docker stack (config|deploy|ls|ps|rm|services).*/": true,
-    "/^docker system (df|info).*/": true,
+    "/^docker system (df|info|prune).*/": true,
     "/^docker pull.*/": true,
     "/^docker build.*/": true,
     "/^docker tag.*/": true,
@@ -94,7 +94,6 @@
     "/^docker kill.*/": true,
     "/^docker rm.*/": true,
     "/^docker rmi.*/": true,
-    "/^docker prune.*/": true,
     "/^(openssl|jq|mkdir|ls|dir|where|which|find|grep|sed|awk|Get-Content|cat|type|tee|netstat)\\b.*/": true,
     "/^(Get-ChildItem|Get-Process|Test-Path|Copy-Item|Invoke-WebRequest|Receive-Job|Get-Job|Start-Job|Stop-Job)\\b.*/": true
   }, // Auto-approve terminal commands - Patterns ordered for precedence: false first, then true
