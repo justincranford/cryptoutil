@@ -21,6 +21,7 @@ func TestUserRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -88,6 +89,7 @@ func TestClientRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -143,6 +145,7 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -211,6 +214,7 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -267,6 +271,7 @@ func TestClientProfileRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -311,6 +316,7 @@ func TestAuthFlowRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -355,6 +361,7 @@ func TestAuthProfileRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -399,6 +406,7 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -447,16 +455,16 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Helper function to set up test repository factory
+// Helper function to set up test repository factory.
 func setupTestRepositoryFactory(t *testing.T, ctx context.Context) *cryptoutilIdentityRepository.RepositoryFactory {
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:             "sqlite",
-		DSN:              ":memory:",
-		MaxOpenConns:     1,
-		MaxIdleConns:     1,
-		ConnMaxLifetime:  0,
-		ConnMaxIdleTime:  0,
-		AutoMigrate:      true,
+		Type:            "sqlite",
+		DSN:             ":memory:",
+		MaxOpenConns:    1,
+		MaxIdleConns:    1,
+		ConnMaxLifetime: 0,
+		ConnMaxIdleTime: 0,
+		AutoMigrate:     true,
 	}
 
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)

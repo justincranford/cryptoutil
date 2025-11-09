@@ -19,6 +19,7 @@ func TestTransactionRollback(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -48,7 +49,6 @@ func TestTransactionRollback(t *testing.T) {
 
 		// Simulate an error to trigger rollback
 		return errors.New("simulated error for rollback test")
-
 		// The transaction should rollback, so neither user nor client should exist
 	})
 
@@ -73,6 +73,7 @@ func TestTransactionCommit(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -126,6 +127,7 @@ func TestTransactionIsolation(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -174,6 +176,7 @@ func TestConcurrentTransactions(t *testing.T) {
 	}
 
 	ctx := context.Background()
+
 	repoFactory := setupTestRepositoryFactory(t, ctx)
 	defer repoFactory.Close()
 
@@ -190,6 +193,7 @@ func TestConcurrentTransactions(t *testing.T) {
 			}
 
 			userRepo := repoFactory.UserRepository()
+
 			return userRepo.Create(ctx, user)
 		})
 		require.NoError(t, err)
@@ -206,6 +210,7 @@ func TestConcurrentTransactions(t *testing.T) {
 			}
 
 			userRepo := repoFactory.UserRepository()
+
 			return userRepo.Create(ctx, user)
 		})
 		require.NoError(t, err)

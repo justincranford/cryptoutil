@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"golang.org/x/crypto/bcrypt"
+
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -44,9 +46,20 @@ func (p *UsernamePasswordProfile) Authenticate(ctx context.Context, credentials 
 		return nil, fmt.Errorf("%w: user lookup failed: %w", cryptoutilIdentityAppErr.ErrInvalidCredentials, err)
 	}
 
-	// TODO: Validate password hash using bcrypt or argon2.
-	// For now, this is a placeholder that always succeeds if the user exists.
-	_ = password
+	// Check if account is enabled.
+	if !user.Enabled {
+		return nil, fmt.Errorf("%w: account disabled", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+	}
+
+	// Check if account is locked.
+	if user.Locked {
+		return nil, fmt.Errorf("%w: account locked", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+	}
+
+	// Validate password hash using bcrypt.
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return nil, fmt.Errorf("%w: invalid password", cryptoutilIdentityAppErr.ErrInvalidCredentials)
+	}
 
 	return user, nil
 }

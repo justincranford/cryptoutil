@@ -23,13 +23,13 @@ func TestSQLiteMigrations(t *testing.T) {
 
 	// Create database config for in-memory SQLite
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:             "sqlite",
-		DSN:              ":memory:",
-		MaxOpenConns:     1,
-		MaxIdleConns:     1,
-		ConnMaxLifetime:  0,
-		ConnMaxIdleTime:  0,
-		AutoMigrate:      true,
+		Type:            "sqlite",
+		DSN:             ":memory:",
+		MaxOpenConns:    1,
+		MaxIdleConns:    1,
+		ConnMaxLifetime: 0,
+		ConnMaxIdleTime: 0,
+		AutoMigrate:     true,
 	}
 
 	// Create repository factory
@@ -76,13 +76,13 @@ func TestMigrationIdempotency(t *testing.T) {
 
 	// Create database config for in-memory SQLite
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:             "sqlite",
-		DSN:              ":memory:",
-		MaxOpenConns:     1,
-		MaxIdleConns:     1,
-		ConnMaxLifetime:  0,
-		ConnMaxIdleTime:  0,
-		AutoMigrate:      true,
+		Type:            "sqlite",
+		DSN:             ":memory:",
+		MaxOpenConns:    1,
+		MaxIdleConns:    1,
+		ConnMaxLifetime: 0,
+		ConnMaxIdleTime: 0,
+		AutoMigrate:     true,
 	}
 
 	// Create repository factory
@@ -102,25 +102,26 @@ func TestMigrationIdempotency(t *testing.T) {
 	}
 }
 
-// Helper function to check if CGO is available
+// Helper function to check if CGO is available.
 func isCGOAvailable() bool {
 	// Try to create a repository factory with SQLite - if it fails due to CGO, skip the test
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
-		Type:             "sqlite",
-		DSN:              ":memory:",
-		MaxOpenConns:     1,
-		MaxIdleConns:     1,
-		ConnMaxLifetime:  0,
-		ConnMaxIdleTime:  0,
-		AutoMigrate:      true,
+		Type:            "sqlite",
+		DSN:             ":memory:",
+		MaxOpenConns:    1,
+		MaxIdleConns:    1,
+		ConnMaxLifetime: 0,
+		ConnMaxIdleTime: 0,
+		AutoMigrate:     true,
 	}
 
 	ctx := context.Background()
 	_, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
+
 	return err == nil
 }
 
-// Helper function to test basic CRUD operations after migration
+// Helper function to test basic CRUD operations after migration.
 func testBasicCRUDOperations(t *testing.T, ctx context.Context, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
 	// This would test basic CRUD operations on each repository
 	// Implementation depends on the specific repository interfaces

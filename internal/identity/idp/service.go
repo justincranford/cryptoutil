@@ -4,6 +4,7 @@ import (
 	"context"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityIdpAuth "cryptoutil/internal/identity/idp/auth"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 )
@@ -13,6 +14,7 @@ type Service struct {
 	config      *cryptoutilIdentityConfig.Config
 	repoFactory *cryptoutilIdentityRepository.RepositoryFactory
 	tokenSvc    *cryptoutilIdentityIssuer.TokenService
+	authProfiles *cryptoutilIdentityIdpAuth.ProfileRegistry
 }
 
 // NewService creates a new identity provider service.
@@ -25,17 +27,29 @@ func NewService(
 		config:      config,
 		repoFactory: repoFactory,
 		tokenSvc:    tokenSvc,
+		authProfiles: cryptoutilIdentityIdpAuth.NewProfileRegistry(),
 	}
 }
 
-// Start starts the identity provider server.
+// Start starts the identity provider service.
 func (s *Service) Start(ctx context.Context) error {
-	// TODO: Implement server startup logic.
+	// Initialize authentication profiles
+	s.initializeAuthProfiles()
+
 	return nil
 }
 
-// Stop stops the identity provider server.
+// Stop stops the identity provider service.
 func (s *Service) Stop(ctx context.Context) error {
-	// TODO: Implement server shutdown logic.
+	// TODO: Implement cleanup logic for sessions, challenges, etc.
 	return nil
+}
+
+// initializeAuthProfiles sets up the available authentication profiles.
+func (s *Service) initializeAuthProfiles() {
+	// Register username/password authentication
+	usernamePasswordProfile := cryptoutilIdentityIdpAuth.NewUsernamePasswordProfile(s.repoFactory.UserRepository())
+	s.authProfiles.Register(usernamePasswordProfile)
+
+	// TODO: Register additional authentication profiles (email+OTP, TOTP, passkey, etc.)
 }

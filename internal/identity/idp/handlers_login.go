@@ -1,9 +1,11 @@
 package idp
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 
-	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
@@ -47,28 +49,64 @@ func (s *Service) handleLoginSubmit(c *fiber.Ctx) error {
 	}
 
 	ctx := c.Context()
-	userRepo := s.repoFactory.UserRepository()
+
+	// Use the default username/password authentication profile.
+	profile, exists := s.authProfiles.Get("username_password")
+	if !exists {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Authentication profile not available",
+		})
+	}
 
 	// Authenticate user.
-	user, err := userRepo.GetByUsername(ctx, username)
+	user, err := profile.Authenticate(ctx, map[string]string{
+		"username": username,
+		"password": password,
+	})
 	if err != nil {
-		appErr := cryptoutilIdentityAppErr.ErrUserNotFound
-
-		return c.Status(appErr.HTTPStatus).JSON(fiber.Map{
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":             cryptoutilIdentityMagic.ErrorAccessDenied,
 			"error_description": "Invalid username or password",
 		})
 	}
 
-	// TODO: Validate password hash.
-	_ = user
-	_ = password
+	// Create user session.
+	session := &cryptoutilIdentityDomain.Session{
+		UserID:               user.ID,
+		IPAddress:            c.IP(),
+		UserAgent:            c.Get("User-Agent"),
+		IssuedAt:             time.Now(),
+		ExpiresAt:            time.Now().Add(s.config.Sessions.SessionLifetime),
+		LastSeenAt:           time.Now(),
+		Active:               true,
+		AuthenticationMethods: []string{"username_password"},
+		AuthenticationTime:   time.Now(),
+	}
 
-	// TODO: Create user session.
-	// TODO: Redirect to consent page or authorization callback.
+	sessionRepo := s.repoFactory.SessionRepository()
+	if err := sessionRepo.Create(ctx, session); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to create session",
+		})
+	}
 
+	// Set session cookie.
+	c.Cookie(&fiber.Cookie{
+		Name:     s.config.Sessions.CookieName,
+		Value:    session.SessionID,
+		Expires:  session.ExpiresAt,
+		HTTPOnly: s.config.Sessions.CookieHTTPOnly,
+		Secure:   s.config.IDP.TLSEnabled,
+		SameSite: s.config.Sessions.CookieSameSite,
+	})
+
+	// TODO: Redirect to consent page or authorization callback based on original request.
+	// For now, return success.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "Login successful",
-		"user_id": user.ID.String(),
+		"message":    "Login successful",
+		"user_id":    user.ID.String(),
+		"session_id": session.SessionID,
 	})
 }
