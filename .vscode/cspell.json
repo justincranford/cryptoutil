@@ -5,60 +5,60 @@
     ".gofumpt.toml"
   ],
   "dictionaries": [
-    "aws",
-    "bash",
-    "coding-compound-terms",
-    "companies",
-    "computing-acronyms",
-    "cpp",
-    "cpp-legacy",
-    "cpp-refined",
-    "cryptocurrencies",
-    "cryptocurrencies-legacy",
-    "css",
-    "data-science",
-    "data-science-models",
-    "data-science-tools",
-    "docker",
-    "en-gb",
-    "en_us",
-    "filetypes",
-    "flutter",
-    "fonts",
-    "fullstack",
-    "game-development",
-    "gaming-terms",
-    "git",
-    "golang",
-    "google",
-    "html",
-    "html-symbol-entities",
-    "java",
-    "k8s",
-    "kotlin",
-    "lorem-ipsum",
-    "lua",
-    "makefile",
-    "networking-terms",
-    "node",
-    "npm",
-    "powershell",
-    "public-licenses",
-    "python",
-    "python-common",
-    "rust",
-    "scala",
-    "shellscript",
-    "software-term-suggestions",
-    "softwareTerms",
-    "software-tools",
-    "sql",
-    "terraform",
-    "typescript",
-    "web-services",
-    "en-common-misspellings",
-    "en-gb-common-misspellings",
-    "en-us-common-misspellings"
+    "aws", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/aws/src/aws-words.txt
+    "bash", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/bash/src/bash-words.txt
+    "coding-compound-terms", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/coding-compound-terms/src/coding-compound-terms-words.txt
+    "companies", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/companies/src/companies-words.txt
+    "computing-acronyms", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/computing-acronyms/src/computing-acronyms-words.txt
+    "cpp", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/cpp/src/cpp-words.txt
+    "cpp-legacy", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/cpp-legacy/src/cpp-legacy-words.txt
+    "cpp-refined", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/cpp-refined/src/cpp-refined-words.txt
+    "cryptocurrencies", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/cryptocurrencies/src/cryptocurrencies-words.txt
+    "cryptocurrencies-legacy", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/cryptocurrencies-legacy/src/cryptocurrencies-legacy-words.txt
+    "css", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/css/src/css-words.txt
+    "data-science", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/data-science/src/data-science-words.txt
+    "data-science-models", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/data-science-models/src/data-science-models-words.txt
+    "data-science-tools", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/data-science-tools/src/data-science-tools-words.txt
+    "docker", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/docker/src/docker-words.txt
+    "en-gb", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/en-gb/src/en-gb-words.txt
+    "en_us", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/en_us/src/en_us-words.txt
+    "filetypes", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/filetypes/src/filetypes-words.txt
+    "flutter", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/flutter/src/flutter-words.txt
+    "fonts", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/fonts/src/fonts-words.txt
+    "fullstack", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/fullstack/src/fullstack-words.txt
+    "game-development", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/game-development/src/game-development-words.txt
+    "gaming-terms", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/gaming-terms/src/gaming-terms-words.txt
+    "git", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/git/src/git-words.txt
+    "golang", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/golang/src/golang-words.txt
+    "google", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/google/src/google-words.txt
+    "html", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/html/src/html-words.txt
+    "html-symbol-entities", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/html-symbol-entities/src/html-symbol-entities-words.txt
+    "java", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/java/src/java-words.txt
+    "k8s", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/k8s/src/k8s-words.txt
+    "kotlin", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/kotlin/src/kotlin-words.txt
+    "lorem-ipsum", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/lorem-ipsum/src/lorem-ipsum-words.txt
+    "lua", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/lua/src/lua-words.txt
+    "makefile", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/makefile/src/makefile-words.txt
+    "networking-terms", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/networking-terms/src/networking-terms-words.txt
+    "node", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/node/src/node-words.txt
+    "npm", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/npm/src/npm-words.txt
+    "powershell", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/powershell/src/powershell-words.txt
+    "public-licenses", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/public-licenses/src/public-licenses-words.txt
+    "python", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/python/src/python-words.txt
+    "python-common", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/python-common/src/python-common-words.txt
+    "rust", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/rust/src/rust-words.txt
+    "scala", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/scala/src/scala-words.txt
+    "shellscript", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/shellscript/src/shellscript-words.txt
+    "software-term-suggestions", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/software-term-suggestions/src/software-term-suggestions-words.txt
+    "softwareTerms", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/softwareTerms/src/softwareTerms-words.txt
+    "software-tools", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/software-tools/src/software-tools-words.txt
+    "sql", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/sql/src/sql-words.txt
+    "terraform", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/terraform/src/terraform-words.txt
+    "typescript", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/typescript/src/typescript-words.txt
+    "web-services", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/web-services/src/web-services-words.txt
+    "en-common-misspellings", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/en-common-misspellings/src/en-common-misspellings-words.txt
+    "en-gb-common-misspellings", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/en-gb-common-misspellings/src/en-gb-common-misspellings-words.txt
+    "en-us-common-misspellings" // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/en-us-common-misspellings/src/en-us-common-misspellings-words.txt
   ],
   "words": [
     "aayushatharva", // NOT COVERED BY ANY DICTIONARY
