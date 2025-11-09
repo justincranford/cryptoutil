@@ -9,14 +9,37 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 )
+
+// TestMain sets up and tears down mock services for e2e tests.
+func TestMain(m *testing.M) {
+	// Create mock services
+	mockServices := NewTestableMockServices()
+
+	// Start mock services
+	ctx := context.Background()
+	if err := mockServices.Start(ctx); err != nil {
+		log.Fatalf("Failed to start mock services: %v", err)
+	}
+
+	// Run tests
+	code := m.Run()
+
+	// Stop mock services
+	mockServices.Stop(ctx)
+
+	// Exit with test result code
+	os.Exit(code)
+}
 
 // E2ETestSuite manages the E2E testing environment.
 type E2ETestSuite struct {
