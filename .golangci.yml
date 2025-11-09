@@ -68,6 +68,9 @@ linters:
     # Error handling
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
 
+    # Dependency management
+    - depguard      # Enforce allowed/disallowed import dependencies
+
   disable:
     # Disabled for code quality/complexity management
     - dupl      # Code duplication detection
@@ -327,6 +330,34 @@ linters-settings:
       const:
         LICENSE: |
           Copyright (c) 2025 Justin Cranford
+
+  depguard:
+    # Enforce dependency boundaries - prevents cross-domain coupling
+    rules:
+      # Ensure identity module maintains clean boundaries from cryptoutil KMS domain
+      identity-domain-isolation:
+        desc: "Identity domain must not import from cryptoutil KMS server, client, or API packages"
+        files:
+          - "internal/identity/**/*.go"
+        deny:
+          - pkg: "cryptoutil/internal/server"
+            desc: "Identity module must not depend on cryptoutil KMS server"
+          - pkg: "cryptoutil/internal/client"
+            desc: "Identity module must not depend on cryptoutil KMS client"
+          - pkg: "cryptoutil/api"
+            desc: "Identity module must not depend on cryptoutil OpenAPI generated code"
+          - pkg: "cryptoutil/cmd/cryptoutil"
+            desc: "Identity module must not depend on cryptoutil CLI"
+          - pkg: "cryptoutil/internal/common/crypto"
+            desc: "Identity module must not depend on cryptoutil crypto utilities (use standard library instead)"
+          - pkg: "cryptoutil/internal/common/pool"
+            desc: "Identity module must not depend on cryptoutil resource pools"
+          - pkg: "cryptoutil/internal/common/container"
+            desc: "Identity module must not depend on cryptoutil container utilities"
+          - pkg: "cryptoutil/internal/common/telemetry"
+            desc: "Identity module must not depend on cryptoutil telemetry (use standard slog instead)"
+          - pkg: "cryptoutil/internal/common/util"
+            desc: "Identity module must not depend on cryptoutil utilities"
 
   lll:
     # Line length limits
