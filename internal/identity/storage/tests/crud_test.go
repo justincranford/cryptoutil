@@ -457,6 +457,8 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 
 // Helper function to set up test repository factory.
 func setupTestRepositoryFactory(t *testing.T, ctx context.Context) *cryptoutilIdentityRepository.RepositoryFactory {
+	t.Helper()
+
 	dbConfig := &cryptoutilIdentityConfig.DatabaseConfig{
 		Type:            "sqlite",
 		DSN:             ":memory:",

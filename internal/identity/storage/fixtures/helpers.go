@@ -2,6 +2,7 @@ package fixtures
 
 import (
 	"context"
+	"fmt"
 
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -28,7 +29,7 @@ func (h *TestDataHelper) CreateTestUser(builder *TestUserBuilder) (*cryptoutilId
 
 	err := userRepo.Create(h.ctx, user)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create test user: %w", err)
 	}
 
 	return user, nil
@@ -41,7 +42,7 @@ func (h *TestDataHelper) CreateTestClient(builder *TestClientBuilder) (*cryptout
 
 	err := clientRepo.Create(h.ctx, client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create test client: %w", err)
 	}
 
 	return client, nil
@@ -54,7 +55,7 @@ func (h *TestDataHelper) CreateTestToken(builder *TestTokenBuilder) (*cryptoutil
 
 	err := tokenRepo.Create(h.ctx, token)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create test token: %w", err)
 	}
 
 	return token, nil
@@ -67,7 +68,7 @@ func (h *TestDataHelper) CreateTestSession(builder *TestSessionBuilder) (*crypto
 
 	err := sessionRepo.Create(h.ctx, session)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create test session: %w", err)
 	}
 
 	return session, nil
@@ -145,28 +146,28 @@ func (h *TestDataHelper) CleanupTestScenario(scenario *TestScenario) error {
 	if scenario.Token != nil {
 		tokenRepo := h.repoFactory.TokenRepository()
 		if err := tokenRepo.Delete(h.ctx, scenario.Token.ID); err != nil {
-			return err
+			return fmt.Errorf("failed to delete test token: %w", err)
 		}
 	}
 
 	if scenario.Session != nil {
 		sessionRepo := h.repoFactory.SessionRepository()
 		if err := sessionRepo.Delete(h.ctx, scenario.Session.ID); err != nil {
-			return err
+			return fmt.Errorf("failed to delete test session: %w", err)
 		}
 	}
 
 	if scenario.Client != nil {
 		clientRepo := h.repoFactory.ClientRepository()
 		if err := clientRepo.Delete(h.ctx, scenario.Client.ID); err != nil {
-			return err
+			return fmt.Errorf("failed to delete test client: %w", err)
 		}
 	}
 
 	if scenario.User != nil {
 		userRepo := h.repoFactory.UserRepository()
 		if err := userRepo.Delete(h.ctx, scenario.User.ID); err != nil {
-			return err
+			return fmt.Errorf("failed to delete test user: %w", err)
 		}
 	}
 

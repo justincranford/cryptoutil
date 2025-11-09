@@ -123,6 +123,7 @@ func isCGOAvailable() bool {
 
 // Helper function to test basic CRUD operations after migration.
 func testBasicCRUDOperations(t *testing.T, ctx context.Context, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
+	t.Helper()
 	// This would test basic CRUD operations on each repository
 	// Implementation depends on the specific repository interfaces
 	// For now, just verify the repository factory is created successfully
