@@ -32,17 +32,16 @@ type User struct {
 	PhoneNumber       string    `json:"phone_number,omitempty"`                                    // Phone number.
 	PhoneVerified     bool      `json:"phone_number_verified,omitempty"`                           // Phone verification status.
 	Address           *Address  `gorm:"embedded;embeddedPrefix:address_" json:"address,omitempty"` // Physical address.
-	UpdatedAt         time.Time `json:"updated_at"`                                                // Last update timestamp.
 
 	// Authentication credentials.
 	PasswordHash string `gorm:"not null" json:"-"` // Bcrypt password hash.
 
 	// Account status.
-	Enabled     bool       `gorm:"default:true" json:"enabled"`       // Account enabled status.
-	Locked      bool       `gorm:"default:false" json:"locked"`       // Account locked status.
-	CreatedAt   time.Time  `json:"created_at"`                        // Account creation timestamp.
-	DBUpdatedAt time.Time  `gorm:"column:updated_at" json:"-"`        // Database last update timestamp.
-	DeletedAt   *time.Time `gorm:"index" json:"deleted_at,omitempty"` // Soft delete timestamp.
+	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Account enabled status.
+	Locked    bool       `gorm:"default:false" json:"locked"`       // Account locked status.
+	CreatedAt time.Time  `json:"created_at"`                        // Account creation timestamp.
+	UpdatedAt time.Time  `json:"updated_at"`                        // Last update timestamp (OIDC claim + GORM timestamp).
+	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"` // Soft delete timestamp.
 }
 
 // Address represents OIDC address claim structure.

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "modernc.org/sqlite" // Register CGO-free SQLite driver
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
@@ -23,11 +26,17 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	case "postgres":
 		dialector = postgres.Open(cfg.DSN)
 	case "sqlite":
-		// Use modernc.org/sqlite (CGO-free) instead of mattn/go-sqlite3
-		dialector = sqlite.New(sqlite.Config{
-			DriverName: "sqlite",
-			DSN:        cfg.DSN,
-		})
+		// Open SQLite database with modernc driver (CGO-free).
+		sqlDB, err := sql.Open("sqlite", cfg.DSN)
+		if err != nil {
+			return nil, cryptoutilIdentityAppErr.WrapError(
+				cryptoutilIdentityAppErr.ErrDatabaseConnection,
+				fmt.Errorf("failed to open SQLite database: %w", err),
+			)
+		}
+
+		// Use GORM sqlite dialector with existing sql.DB connection.
+		dialector = sqlite.Dialector{Conn: sqlDB}
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
