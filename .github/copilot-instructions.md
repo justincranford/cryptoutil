@@ -39,30 +39,35 @@
 
 ## CRITICAL: Tool and Command Restrictions
 
+### Goals and Rationale
+- **MAXIMIZE use of built-in tools** because they don't require manual user approval - enabling faster, uninterrupted iteration in Copilot Chat sessions
+- **When falling back to terminal commands in rare cases** (e.g., large files, external paths, or complex piping), leverage the extensive auto-approval patterns in `.vscode/settings.json` - this allows Copilot Chat to auto-execute commands without stopping for manual approval, extending productive iteration cycles
+- **Combination effect**: Prioritizing tools first + auto-approved terminal commands = longer autonomous workflows before requiring user intervention
+
 ### File Editing Tools
-- **ALWAYS prefer `create_file`, and `create_directory`** for file modifications - they are purpose-built and avoid terminal auto-approval prompts
+- **ALWAYS USE `create_file` and `create_directory`** for file modifications - they are purpose-built and avoid terminal auto-approval prompts entirely
 - **Document when file-level edits require multiple passes** so human reviewers can trace changes
 - **AVOID using shell redirection commands** for file content changes; the editing tools provide cleaner diffs and auditability
 
 ### Testing Tools
-- **PREFER `runTests` tool** over `go test` terminal commands - provides structured output and coverage reporting without manual approval
+- **ALWAYS USE `runTests` tool** over `go test` terminal commands - provides structured output and coverage reporting without manual approval
 
 ### Python Environment Management Tools
-- **PREFER `install_python_packages`** over `pip install` commands - handles dependency management automatically
-- **PREFER `configure_python_environment`** over manual `python -m venv` setup - ensures consistent environment configuration
-- **PREFER `get_python_environment_details`** over environment inspection commands - provides structured environment information
+- **ALWAYS USE `install_python_packages`** over `pip install` commands - handles dependency management automatically
+- **ALWAYS USE `configure_python_environment`** over manual `python -m venv` setup - ensures consistent environment configuration
+- **ALWAYS USE `get_python_environment_details`** over environment inspection commands - provides structured environment information
 
 ### Directory Listing Tools
-- **PREFER `list_dir` tool** over `ls`, `dir`, or `Get-ChildItem` commands - provides structured output without parsing terminal command output
+- **ALWAYS USE `list_dir` tool** over `ls`, `dir`, or `Get-ChildItem` commands - provides structured output without parsing terminal command output
 
 ### Workspace Tools
-- **PREFER `read_file`** over `type`, `cat`, or `Get-Content` commands for file inspection
-- **PREFER `file_search`** over `find`, `dir /s`, or `Get-ChildItem -Recurse`
-- **PREFER `semantic_search`** over multi-step `grep` or `rg` shell pipelines when looking for concepts
-- **PREFER `get_changed_files`** over `git status --short` when summarizing staged/unstaged work
-- **PREFER `get_errors`** over running `go build`, `go vet`, or `golangci-lint run` purely for diagnostics
-- **PREFER `list_code_usages`** over manual grep when tracing symbol usage
-- **PREFER Pylance tools (`mcp_pylance_*`)** over ad-hoc Python shell commands for environment inspection
+- **ALWAYS USE `read_file`** over `type`, `cat`, or `Get-Content` commands for file inspection
+- **ALWAYS USE `file_search`** over `find`, `dir /s`, or `Get-ChildItem -Recurse`
+- **ALWAYS USE `semantic_search`** over multi-step `grep` or `rg` shell pipelines when looking for concepts
+- **ALWAYS USE `get_changed_files`** over `git status --short` when summarizing staged/unstaged work
+- **ALWAYS USE `get_errors`** over running `go build`, `go vet`, or `golangci-lint run` purely for diagnostics
+- **ALWAYS USE `list_code_usages`** over manual grep when tracing symbol usage
+- **ALWAYS USE Pylance tools (`mcp_pylance_*`)** over ad-hoc Python shell commands for environment inspection
 - Consult `docs/TOOLS.md` for the complete tool catalog before falling back to shell commands
 
 ### Git Operations (CRITICAL)
