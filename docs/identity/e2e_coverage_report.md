@@ -92,7 +92,8 @@ All OAuth 2.1 + OIDC E2E test implementations have been successfully completed a
 - `internal/identity/test/e2e/mfa_flows_test.go` - Multi-factor authentication tests
 
 ### Infrastructure Files
-- `scripts/mock-identity-services.go` - Mock services with HTTPS support
+
+- `cmd/identity/mock-identity-services.go` - Mock services with HTTPS support
 - `generate_mock_certs.go` - Self-signed certificate generation
 - `deployments/compose/identity-compose.yml` - Docker orchestration
 
