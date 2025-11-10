@@ -84,6 +84,8 @@ const (
 	ErrorUnsupportedResponseType = "unsupported_response_type" // Unsupported response type error.
 	ErrorServerError             = "server_error"              // Server error.
 	ErrorTemporarilyUnavailable  = "temporarily_unavailable"   // Temporarily unavailable error.
+	ErrorInvalidToken            = "invalid_token"             // Invalid token error (RFC 6750).
+	ErrorInsufficientScope       = "insufficient_scope"        // Insufficient scope error (RFC 6750).
 )
 
 // OAuth 2.1 client authentication methods.

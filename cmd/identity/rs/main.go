@@ -5,12 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
 )
@@ -29,8 +31,19 @@ func main() {
 		},
 	}
 
+	// Create logger.
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	// Create token service (stub for now - would be initialized from issuer module).
+	var tokenSvc *cryptoutilIdentityIssuer.TokenService
+
 	// Create RS server.
-	rsServer := cryptoutilIdentityServer.NewRSServer(cfg)
+	ctx := context.Background()
+
+	rsServer, err := cryptoutilIdentityServer.NewRSServer(ctx, cfg, logger, tokenSvc)
+	if err != nil {
+		log.Fatalf("failed to create RS server: %v", err)
+	}
 
 	// Start RS server in a goroutine.
 	go func() {

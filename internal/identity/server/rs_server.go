@@ -3,78 +3,89 @@ package server
 import (
 	"context"
 	"fmt"
-	"time"
+	"log/slog"
 
-	"github.com/gofiber/fiber/v2"
+	fiber "github.com/gofiber/fiber/v2"
 
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
+	cryptoutilIdentityRS "cryptoutil/internal/identity/rs"
 )
 
-// RSServer represents the resource server.
+// RSServer wraps the Resource Server service with HTTP server lifecycle.
 type RSServer struct {
-	config *cryptoutilIdentityConfig.Config
-	app    *fiber.App
+	config     *cryptoutilIdentityConfig.Config
+	logger     *slog.Logger
+	fiberApp   *fiber.App
+	service    *cryptoutilIdentityRS.Service
+	shutdownCh chan struct{}
 }
 
-// NewRSServer creates a new resource server.
-func NewRSServer(config *cryptoutilIdentityConfig.Config) *RSServer {
-	// Create Fiber app.
-	app := fiber.New(fiber.Config{
-		ReadTimeout:  time.Duration(cryptoutilIdentityMagic.FiberReadTimeoutSeconds) * time.Second,
-		WriteTimeout: time.Duration(cryptoutilIdentityMagic.FiberWriteTimeoutSeconds) * time.Second,
-		IdleTimeout:  time.Duration(cryptoutilIdentityMagic.FiberIdleTimeoutSeconds) * time.Second,
+// NewRSServer creates a new Resource Server HTTP server.
+func NewRSServer(ctx context.Context, config *cryptoutilIdentityConfig.Config, logger *slog.Logger, tokenSvc cryptoutilIdentityRS.TokenService) (*RSServer, error) {
+	if config == nil {
+		return nil, fmt.Errorf("config cannot be nil")
+	} else if logger == nil {
+		return nil, fmt.Errorf("logger cannot be nil")
+	} else if tokenSvc == nil {
+		return nil, fmt.Errorf("tokenSvc cannot be nil")
+	}
+
+	// Create Fiber app for resource server.
+	fiberApp := fiber.New(fiber.Config{
+		DisableStartupMessage: true,
+		ReadTimeout:           cryptoutilIdentityMagic.DefaultReadTimeout,
+		WriteTimeout:          cryptoutilIdentityMagic.DefaultWriteTimeout,
+		IdleTimeout:           cryptoutilIdentityMagic.DefaultIdleTimeout,
+		ServerHeader:          "Resource-Server",
+		AppName:               "Identity Resource Server",
 	})
 
-	// Register routes.
-	app.Get("/api/v1/protected", func(c *fiber.Ctx) error {
-		// TODO: Validate access token.
-		// TODO: Check scopes.
-		return c.JSON(fiber.Map{
-			"message": "Protected resource accessed successfully",
-			"data":    "Sensitive information",
-		})
-	})
+	// Create resource server service.
+	service := cryptoutilIdentityRS.NewService(config, logger, tokenSvc)
 
-	app.Get("/api/v1/public", func(c *fiber.Ctx) error {
-		return c.JSON(fiber.Map{
-			"message": "Public resource accessed successfully",
-			"data":    "Public information",
-		})
-	})
+	// Register middleware and routes.
+	service.RegisterMiddleware(fiberApp)
+	service.RegisterRoutes(fiberApp)
 
 	return &RSServer{
-		config: config,
-		app:    app,
-	}
+		config:     config,
+		logger:     logger,
+		fiberApp:   fiberApp,
+		service:    service,
+		shutdownCh: make(chan struct{}),
+	}, nil
 }
 
-// Start starts the resource server.
+// Start begins listening for HTTP requests.
 func (s *RSServer) Start(ctx context.Context) error {
-	addr := fmt.Sprintf("%s:%d", s.config.RS.BindAddress, s.config.RS.Port)
+	listenAddr := fmt.Sprintf("%s:%d", s.config.RS.BindAddress, s.config.RS.Port)
 
-	// Start HTTP server.
-	if s.config.RS.TLSEnabled {
-		if err := s.app.ListenTLS(addr, s.config.RS.TLSCertFile, s.config.RS.TLSKeyFile); err != nil {
-			return fmt.Errorf("failed to start HTTPS server: %w", err)
-		}
+	s.logger.Info("Starting Resource Server",
+		slog.String("address", listenAddr))
 
-		return nil
-	}
-
-	if err := s.app.Listen(addr); err != nil {
-		return fmt.Errorf("failed to start HTTP server: %w", err)
+	if err := s.fiberApp.Listen(listenAddr); err != nil {
+		return fmt.Errorf("resource server failed to start: %w", err)
 	}
 
 	return nil
 }
 
-// Stop stops the resource server.
+// Stop gracefully shuts down the HTTP server.
 func (s *RSServer) Stop(ctx context.Context) error {
-	// Shutdown HTTP server.
-	if err := s.app.ShutdownWithContext(ctx); err != nil {
-		return fmt.Errorf("failed to shutdown HTTP server: %w", err)
+	s.logger.Info("Stopping Resource Server")
+
+	if err := s.fiberApp.ShutdownWithContext(ctx); err != nil {
+		return fmt.Errorf("resource server shutdown failed: %w", err)
 	}
 
+	close(s.shutdownCh)
+	s.logger.Info("Resource Server stopped")
+
 	return nil
+}
+
+// Wait blocks until the server is shut down.
+func (s *RSServer) Wait() {
+	<-s.shutdownCh
 }

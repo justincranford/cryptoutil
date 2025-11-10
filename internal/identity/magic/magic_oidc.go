@@ -47,6 +47,8 @@ const (
 	ClaimAmr      = "amr"       // Authentication Methods References.
 	ClaimAzp      = "azp"       // Authorized party claim.
 	ClaimAuthTime = "auth_time" // Authentication time claim.
+	ClaimClientID = "client_id" // Client ID claim (OAuth 2.0).
+	ClaimScope    = "scope"     // Scope claim (OAuth 2.0).
 )
 
 // OIDC endpoint paths.

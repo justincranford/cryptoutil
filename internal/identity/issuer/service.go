@@ -99,6 +99,27 @@ func (s *TokenService) ValidateIDToken(ctx context.Context, token string) (map[s
 	return s.jwsIssuer.ValidateToken(ctx, token)
 }
 
+// IsTokenActive checks if a token is currently active (not expired, not before valid).
+func (s *TokenService) IsTokenActive(claims map[string]any) bool {
+	now := time.Now().Unix()
+
+	// Check expiration time (exp claim).
+	if exp, ok := claims[cryptoutilIdentityMagic.ClaimExp].(float64); ok {
+		if int64(exp) < now {
+			return false
+		}
+	}
+
+	// Check not before time (nbf claim).
+	if nbf, ok := claims[cryptoutilIdentityMagic.ClaimNbf].(float64); ok {
+		if int64(nbf) > now {
+			return false
+		}
+	}
+
+	return true
+}
+
 // IntrospectToken introspects a token and returns metadata.
 func (s *TokenService) IntrospectToken(ctx context.Context, token string) (*TokenMetadata, error) {
 	// Validate token.
