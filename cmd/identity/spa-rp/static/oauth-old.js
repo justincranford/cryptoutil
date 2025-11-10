@@ -1,4 +1,4 @@
-// OAuth 2.1 + OIDC Client with PKCE Support (Enhanced with Diagnostics)
+// OAuth 2.1 + OIDC Client with PKCE Support
 // Implements RFC 6749, RFC 7636 (PKCE), and OpenID Connect Core 1.0
 
 // ==================== Diagnostic Logging ====================
@@ -26,28 +26,6 @@ function logDiagnostic(level, operation, data = {}) {
     logMethod(`[OAuth-${level.toUpperCase()}] ${operation}`, logEntry);
 }
 
-// ==================== Loading State Management ====================
-
-/**
- * Show loading indicator
- * @param {string} message - Loading message
- */
-function showLoading(message) {
-    const statusEl = document.getElementById('status');
-    statusEl.textContent = '⏳ ' + message;
-    statusEl.className = 'status loading';
-    document.querySelectorAll('button').forEach(btn => btn.disabled = true);
-    logDiagnostic('debug', 'showLoading', { message });
-}
-
-/**
- * Hide loading indicator
- */
-function hideLoading() {
-    updateUI();
-    logDiagnostic('debug', 'hideLoading');
-}
-
 // ==================== PKCE Utilities ====================
 
 /**
@@ -57,9 +35,7 @@ function hideLoading() {
 function generateCodeVerifier() {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    const verifier = base64URLEncode(array);
-    logDiagnostic('debug', 'generateCodeVerifier', { length: verifier.length });
-    return verifier;
+    return base64URLEncode(array);
 }
 
 /**
@@ -71,9 +47,7 @@ async function generateCodeChallenge(verifier) {
     const encoder = new TextEncoder();
     const data = encoder.encode(verifier);
     const hash = await crypto.subtle.digest('SHA-256', data);
-    const challenge = base64URLEncode(new Uint8Array(hash));
-    logDiagnostic('debug', 'generateCodeChallenge', { verifierLength: verifier.length, challengeLength: challenge.length });
-    return challenge;
+    return base64URLEncode(new Uint8Array(hash));
 }
 
 /**
@@ -93,9 +67,7 @@ function base64URLEncode(buffer) {
 function generateState() {
     const array = new Uint8Array(16);
     crypto.getRandomValues(array);
-    const state = base64URLEncode(array);
-    logDiagnostic('debug', 'generateState', { length: state.length });
-    return state;
+    return base64URLEncode(array);
 }
 
 // ==================== Token Storage ====================
@@ -110,13 +82,6 @@ const STATE_STORAGE_KEY = 'oauth_state';
  */
 function storeTokens(tokens) {
     sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(tokens));
-    logDiagnostic('info', 'storeTokens', {
-        hasAccessToken: !!tokens.access_token,
-        hasIDToken: !!tokens.id_token,
-        hasRefreshToken: !!tokens.refresh_token,
-        tokenType: tokens.token_type,
-        expiresIn: tokens.expires_in
-    });
     updateUI();
 }
 
@@ -126,9 +91,7 @@ function storeTokens(tokens) {
  */
 function getStoredTokens() {
     const tokens = sessionStorage.getItem(TOKEN_STORAGE_KEY);
-    const parsed = tokens ? JSON.parse(tokens) : null;
-    logDiagnostic('debug', 'getStoredTokens', { found: !!parsed });
-    return parsed;
+    return tokens ? JSON.parse(tokens) : null;
 }
 
 /**
@@ -138,7 +101,6 @@ function clearStorage() {
     sessionStorage.removeItem(TOKEN_STORAGE_KEY);
     sessionStorage.removeItem(PKCE_STORAGE_KEY);
     sessionStorage.removeItem(STATE_STORAGE_KEY);
-    logDiagnostic('info', 'clearStorage', { message: 'All OAuth data cleared from sessionStorage' });
 }
 
 // ==================== OAuth 2.1 Flow ====================
@@ -147,34 +109,25 @@ function clearStorage() {
  * Start OAuth 2.1 authorization code flow with PKCE
  */
 async function startLogin() {
-    logDiagnostic('info', 'startLogin', { message: 'Initiating OAuth 2.1 authorization code flow with PKCE' });
-
     try {
         const authzUrl = document.getElementById('authzUrl').value;
         const clientId = document.getElementById('clientId').value;
         const redirectUri = document.getElementById('redirectUri').value;
         const scope = document.getElementById('scope').value;
 
-        logDiagnostic('debug', 'startLogin:config', { authzUrl, clientId, redirectUri, scope });
-
-        // Show loading state.
-        showLoading('Initiating login flow...');
-
-        // Generate PKCE parameters.
+        // Generate PKCE parameters
         const codeVerifier = generateCodeVerifier();
         const codeChallenge = await generateCodeChallenge(codeVerifier);
         const state = generateState();
 
-        // Store PKCE data and state for callback.
+        // Store PKCE data and state for callback
         sessionStorage.setItem(PKCE_STORAGE_KEY, JSON.stringify({
             verifier: codeVerifier,
             challenge: codeChallenge
         }));
         sessionStorage.setItem(STATE_STORAGE_KEY, state);
 
-        logDiagnostic('debug', 'startLogin:storage', { message: 'PKCE data and state stored in sessionStorage' });
-
-        // Build authorization URL.
+        // Build authorization URL
         const params = new URLSearchParams({
             response_type: 'code',
             client_id: clientId,
@@ -187,17 +140,10 @@ async function startLogin() {
 
         const authUrl = `${authzUrl}/oauth2/v1/authorize?${params.toString()}`;
 
-        logDiagnostic('info', 'startLogin:redirect', {
-            authUrl: authUrl.split('?')[0],
-            params: Object.fromEntries(params)
-        });
-
-        // Redirect to authorization server.
+        // Redirect to authorization server
         window.location.href = authUrl;
     } catch (error) {
-        logDiagnostic('error', 'startLogin:error', { error: error.message, stack: error.stack });
         showError('Failed to start login: ' + error.message);
-        hideLoading();
     }
 }
 
@@ -210,46 +156,28 @@ async function handleCallback() {
     const state = params.get('state');
     const error = params.get('error');
 
-    logDiagnostic('info', 'handleCallback', {
-        hasCode: !!code,
-        hasState: !!state,
-        hasError: !!error,
-        error: error,
-        errorDescription: params.get('error_description')
-    });
-
-    // Check for errors.
+    // Check for errors
     if (error) {
-        const errorDesc = params.get('error_description') || error;
-        logDiagnostic('error', 'handleCallback:authError', { error, errorDescription: errorDesc });
-        showError('Authorization failed: ' + errorDesc);
+        showError('Authorization failed: ' + (params.get('error_description') || error));
         clearStorage();
         return;
     }
 
-    // Validate state parameter (CSRF protection).
+    // Validate state parameter (CSRF protection)
     const storedState = sessionStorage.getItem(STATE_STORAGE_KEY);
     if (!state || state !== storedState) {
-        logDiagnostic('error', 'handleCallback:stateValidation', {
-            providedState: state,
-            storedState: storedState,
-            match: state === storedState
-        });
         showError('Invalid state parameter - possible CSRF attack');
         clearStorage();
         return;
     }
 
-    logDiagnostic('info', 'handleCallback:stateValid', { message: 'State parameter validated successfully' });
-
-    // Exchange authorization code for tokens.
+    // Exchange authorization code for tokens
     if (code) {
         await exchangeCodeForTokens(code);
     }
 
-    // Clean up URL.
+    // Clean up URL
     window.history.replaceState({}, document.title, window.location.pathname);
-    logDiagnostic('debug', 'handleCallback:cleanup', { message: 'URL cleaned up' });
 }
 
 /**
@@ -257,24 +185,18 @@ async function handleCallback() {
  * @param {string} code - Authorization code
  */
 async function exchangeCodeForTokens(code) {
-    logDiagnostic('info', 'exchangeCodeForTokens', { codeLength: code.length });
-
     try {
-        showLoading('Exchanging authorization code for tokens...');
-
         const authzUrl = document.getElementById('authzUrl').value;
         const clientId = document.getElementById('clientId').value;
         const redirectUri = document.getElementById('redirectUri').value;
 
-        // Retrieve PKCE verifier.
+        // Retrieve PKCE verifier
         const pkceData = JSON.parse(sessionStorage.getItem(PKCE_STORAGE_KEY) || '{}');
         if (!pkceData.verifier) {
-            throw new Error('PKCE verifier not found - possible session expiry');
+            throw new Error('PKCE verifier not found');
         }
 
-        logDiagnostic('debug', 'exchangeCodeForTokens:pkce', { verifierLength: pkceData.verifier.length });
-
-        // Build token request.
+        // Build token request
         const body = new URLSearchParams({
             grant_type: 'authorization_code',
             code: code,
@@ -283,14 +205,8 @@ async function exchangeCodeForTokens(code) {
             code_verifier: pkceData.verifier
         });
 
-        const tokenEndpoint = `${authzUrl}/oauth2/v1/token`;
-        logDiagnostic('debug', 'exchangeCodeForTokens:request', {
-            endpoint: tokenEndpoint,
-            grantType: 'authorization_code'
-        });
-
-        // Make token request.
-        const response = await fetch(tokenEndpoint, {
+        // Make token request
+        const response = await fetch(`${authzUrl}/oauth2/v1/token`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -298,44 +214,23 @@ async function exchangeCodeForTokens(code) {
             body: body.toString()
         });
 
-        logDiagnostic('debug', 'exchangeCodeForTokens:response', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok
-        });
-
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
-            logDiagnostic('error', 'exchangeCodeForTokens:httpError', {
-                status: response.status,
-                error: errorData.error,
-                errorDescription: errorData.error_description
-            });
             throw new Error(errorData.error_description || 'Token exchange failed');
         }
 
         const tokens = await response.json();
 
-        logDiagnostic('info', 'exchangeCodeForTokens:success', {
-            tokenType: tokens.token_type,
-            expiresIn: tokens.expires_in,
-            hasRefreshToken: !!tokens.refresh_token
-        });
-
-        // Store tokens and update UI.
+        // Store tokens and update UI
         storeTokens(tokens);
         showSuccess('Successfully authenticated!');
 
-        // Clean up PKCE data.
+        // Clean up PKCE data
         sessionStorage.removeItem(PKCE_STORAGE_KEY);
         sessionStorage.removeItem(STATE_STORAGE_KEY);
-
-        hideLoading();
     } catch (error) {
-        logDiagnostic('error', 'exchangeCodeForTokens:error', { error: error.message, stack: error.stack });
         showError('Token exchange failed: ' + error.message);
         clearStorage();
-        hideLoading();
     }
 }
 
@@ -343,14 +238,10 @@ async function exchangeCodeForTokens(code) {
  * Refresh access token using refresh token
  */
 async function refreshToken() {
-    logDiagnostic('info', 'refreshToken', { message: 'Initiating token refresh' });
-
     try {
-        showLoading('Refreshing access token...');
-
         const tokens = getStoredTokens();
         if (!tokens || !tokens.refresh_token) {
-            throw new Error('No refresh token available - please log in again');
+            throw new Error('No refresh token available');
         }
 
         const authzUrl = document.getElementById('authzUrl').value;
@@ -362,10 +253,7 @@ async function refreshToken() {
             client_id: clientId
         });
 
-        const tokenEndpoint = `${authzUrl}/oauth2/v1/token`;
-        logDiagnostic('debug', 'refreshToken:request', { endpoint: tokenEndpoint });
-
-        const response = await fetch(tokenEndpoint, {
+        const response = await fetch(`${authzUrl}/oauth2/v1/token`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -373,28 +261,17 @@ async function refreshToken() {
             body: body.toString()
         });
 
-        logDiagnostic('debug', 'refreshToken:response', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok
-        });
-
         if (!response.ok) {
-            throw new Error('Token refresh failed - please log in again');
+            throw new Error('Token refresh failed');
         }
 
         const newTokens = await response.json();
-        logDiagnostic('info', 'refreshToken:success', { expiresIn: newTokens.expires_in });
-
         storeTokens(newTokens);
         showSuccess('Token refreshed successfully!');
-        hideLoading();
     } catch (error) {
-        logDiagnostic('error', 'refreshToken:error', { error: error.message, stack: error.stack });
         showError('Token refresh failed: ' + error.message);
         clearStorage();
         updateUI();
-        hideLoading();
     }
 }
 
@@ -402,49 +279,32 @@ async function refreshToken() {
  * Fetch user info from OIDC UserInfo endpoint
  */
 async function getUserInfo() {
-    logDiagnostic('info', 'getUserInfo', { message: 'Fetching OIDC UserInfo' });
-
     try {
-        showLoading('Fetching user information...');
-
         const tokens = getStoredTokens();
         if (!tokens || !tokens.access_token) {
-            throw new Error('No access token available - please log in first');
+            throw new Error('No access token available');
         }
 
         const idpUrl = document.getElementById('idpUrl').value;
-        const userInfoEndpoint = `${idpUrl}/oidc/v1/userinfo`;
 
-        logDiagnostic('debug', 'getUserInfo:request', { endpoint: userInfoEndpoint });
-
-        const response = await fetch(userInfoEndpoint, {
+        const response = await fetch(`${idpUrl}/oidc/v1/userinfo`, {
             headers: {
                 'Authorization': `Bearer ${tokens.access_token}`
             }
         });
 
-        logDiagnostic('debug', 'getUserInfo:response', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok
-        });
-
         if (!response.ok) {
-            throw new Error('UserInfo request failed - token may be expired');
+            throw new Error('UserInfo request failed');
         }
 
         const userInfo = await response.json();
-        logDiagnostic('info', 'getUserInfo:success', { claims: Object.keys(userInfo) });
 
-        // Display user info.
+        // Display user info
         document.getElementById('userInfoData').textContent = JSON.stringify(userInfo, null, 2);
         document.getElementById('userInfoSection').style.display = 'block';
         showSuccess('User info retrieved successfully!');
-        hideLoading();
     } catch (error) {
-        logDiagnostic('error', 'getUserInfo:error', { error: error.message, stack: error.stack });
         showError('Failed to get user info: ' + error.message);
-        hideLoading();
     }
 }
 
@@ -452,14 +312,10 @@ async function getUserInfo() {
  * Introspect access token
  */
 async function introspectToken() {
-    logDiagnostic('info', 'introspectToken', { message: 'Introspecting access token' });
-
     try {
-        showLoading('Introspecting token...');
-
         const tokens = getStoredTokens();
         if (!tokens || !tokens.access_token) {
-            throw new Error('No access token available - please log in first');
+            throw new Error('No access token available');
         }
 
         const authzUrl = document.getElementById('authzUrl').value;
@@ -470,10 +326,7 @@ async function introspectToken() {
             client_id: clientId
         });
 
-        const introspectEndpoint = `${authzUrl}/oauth2/v1/introspect`;
-        logDiagnostic('debug', 'introspectToken:request', { endpoint: introspectEndpoint });
-
-        const response = await fetch(introspectEndpoint, {
+        const response = await fetch(`${authzUrl}/oauth2/v1/introspect`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -481,29 +334,14 @@ async function introspectToken() {
             body: body.toString()
         });
 
-        logDiagnostic('debug', 'introspectToken:response', {
-            status: response.status,
-            statusText: response.statusText,
-            ok: response.ok
-        });
-
         if (!response.ok) {
             throw new Error('Token introspection failed');
         }
 
         const introspection = await response.json();
-        logDiagnostic('info', 'introspectToken:success', {
-            active: introspection.active,
-            clientId: introspection.client_id,
-            scope: introspection.scope
-        });
-
         alert('Token Introspection:\n\n' + JSON.stringify(introspection, null, 2));
-        hideLoading();
     } catch (error) {
-        logDiagnostic('error', 'introspectToken:error', { error: error.message, stack: error.stack });
         showError('Failed to introspect token: ' + error.message);
-        hideLoading();
     }
 }
 
@@ -511,12 +349,11 @@ async function introspectToken() {
  * Logout and clear all stored data
  */
 function logout() {
-    logDiagnostic('info', 'logout', { message: 'Logging out and clearing session' });
     clearStorage();
     updateUI();
     showSuccess('Logged out successfully');
 
-    // Hide user info and token sections.
+    // Hide user info and token sections
     document.getElementById('userInfoSection').style.display = 'none';
     document.getElementById('tokenSection').style.display = 'none';
 }
@@ -530,22 +367,20 @@ function updateUI() {
     const tokens = getStoredTokens();
     const isAuthenticated = !!(tokens && tokens.access_token);
 
-    logDiagnostic('debug', 'updateUI', { isAuthenticated, hasRefreshToken: !!(tokens && tokens.refresh_token) });
-
-    // Update buttons.
+    // Update buttons
     document.getElementById('loginBtn').disabled = isAuthenticated;
     document.getElementById('logoutBtn').disabled = !isAuthenticated;
     document.getElementById('refreshBtn').disabled = !isAuthenticated || !tokens.refresh_token;
     document.getElementById('userInfoBtn').disabled = !isAuthenticated;
     document.getElementById('introspectBtn').disabled = !isAuthenticated;
 
-    // Update status.
+    // Update status
     const statusEl = document.getElementById('status');
     if (isAuthenticated) {
         statusEl.textContent = '✓ Authenticated';
         statusEl.className = 'status logged-in';
 
-        // Show tokens.
+        // Show tokens
         document.getElementById('accessToken').value = tokens.access_token || '';
         document.getElementById('idToken').value = tokens.id_token || '';
         document.getElementById('refreshToken').value = tokens.refresh_token || '';
@@ -565,7 +400,6 @@ function showSuccess(message) {
     const statusEl = document.getElementById('status');
     statusEl.textContent = '✓ ' + message;
     statusEl.className = 'status logged-in';
-    logDiagnostic('info', 'showSuccess', { message });
 }
 
 /**
@@ -576,14 +410,12 @@ function showError(message) {
     const statusEl = document.getElementById('status');
     statusEl.textContent = '✗ ' + message;
     statusEl.className = 'status error';
-    logDiagnostic('error', 'showError', { message });
 }
 
 // ==================== Initialization ====================
 
-// Handle OAuth callback on page load.
+// Handle OAuth callback on page load
 window.addEventListener('DOMContentLoaded', () => {
-    logDiagnostic('info', 'init', { message: 'OAuth SPA initialized', url: window.location.href });
     handleCallback();
     updateUI();
 });
