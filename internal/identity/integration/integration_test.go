@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	cryptoutilIdentityPKCE "cryptoutil/internal/identity/authz/pkce"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
@@ -59,8 +60,9 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 
-	// Create unique database name for this test using UUIDv7.
-	testDBName := fmt.Sprintf(":memory:?_testdb_%s", googleUuid.New().String())
+	// Create unique database name for this test.
+	// Use simple :memory: for SQLite to avoid query parameter issues.
+	testDBName := ":memory:"
 
 	// Configure all three servers.
 	authzConfig := &cryptoutilIdentityConfig.Config{
@@ -165,6 +167,9 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 	// Wait for servers to start.
 	time.Sleep(serverStartDelay)
 
+	// Seed test data: create test client.
+	seedTestData(t, ctx, repoFactory)
+
 	return servers, cancel
 }
 
@@ -186,6 +191,91 @@ func shutdownTestServers(t *testing.T, servers *testServers) {
 	if err := servers.rsServer.Stop(shutdownCtx); err != nil {
 		t.Logf("RS server shutdown error: %v", err)
 	}
+}
+
+// seedTestData seeds the database with test client using raw SQL to avoid GORM migration issues.
+func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
+	t.Helper()
+
+	// Create clients table manually using raw SQL DB (GORM AutoMigrate has issues).
+	sqlDB, err := repoFactory.DB().DB()
+	testify.NoError(t, err, "Failed to get SQL DB")
+
+	createTableSQL := `
+		CREATE TABLE IF NOT EXISTS clients (
+			id TEXT PRIMARY KEY,
+			client_id TEXT UNIQUE NOT NULL,
+			client_secret TEXT NOT NULL,
+			client_type TEXT NOT NULL,
+			jwks TEXT,
+			name TEXT NOT NULL,
+			description TEXT,
+			logo_uri TEXT,
+			home_page_uri TEXT,
+			policy_uri TEXT,
+			tos_uri TEXT,
+			redirect_uris TEXT NOT NULL,
+			allowed_grant_types TEXT NOT NULL,
+			allowed_response_types TEXT NOT NULL,
+			allowed_scopes TEXT NOT NULL,
+			token_endpoint_auth_method TEXT NOT NULL,
+			require_pkce INTEGER DEFAULT 1,
+			pkce_challenge_method TEXT DEFAULT 'S256',
+			access_token_lifetime INTEGER DEFAULT 3600,
+			refresh_token_lifetime INTEGER DEFAULT 86400,
+			id_token_lifetime INTEGER DEFAULT 3600,
+			client_profile_id TEXT,
+			enabled INTEGER DEFAULT 1,
+			created_at DATETIME NOT NULL,
+			updated_at DATETIME NOT NULL,
+			deleted_at DATETIME
+		)
+	`
+
+	_, err = sqlDB.Exec(createTableSQL)
+	testify.NoError(t, err, "Failed to create clients table")
+
+	// Verify table was created.
+	var tableCount int
+
+	err = repoFactory.DB().Raw("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='clients'").Scan(&tableCount).Error
+	testify.NoError(t, err, "Failed to query sqlite_master")
+	testify.Equal(t, 1, tableCount, "Clients table should exist")
+
+	// Insert test client using raw SQL.
+	testClientUUID := googleUuid.Must(googleUuid.NewV7())
+	now := time.Now()
+
+	err = repoFactory.DB().Exec(`
+		INSERT INTO clients (
+			id, client_id, client_secret, client_type, name, description,
+			redirect_uris, allowed_grant_types, allowed_response_types, allowed_scopes,
+			token_endpoint_auth_method, require_pkce, pkce_challenge_method,
+			access_token_lifetime, refresh_token_lifetime, id_token_lifetime,
+			enabled, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`,
+		testClientUUID.String(),
+		testClientID,     // This is the string "test-client" from constants
+		testClientSecret, // pragma: allowlist secret
+		"confidential",
+		"Test Client",
+		"Test client for integration tests",
+		`["http://127.0.0.1:18083/callback"]`,
+		`["authorization_code","client_credentials","refresh_token"]`,
+		`["code"]`,
+		`["read:resource","write:resource","delete:resource","admin"]`,
+		"client_secret_post",
+		1,
+		"S256",
+		3600,
+		86400,
+		3600,
+		1,
+		now,
+		now,
+	).Error
+	testify.NoError(t, err, "Failed to insert test client")
 }
 
 // TestHealthCheckEndpoints verifies all servers respond to health checks.
@@ -226,9 +316,15 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	defer cancel()
 	defer shutdownTestServers(t, servers)
 
-	// Step 1: Request authorization code.
-	authorizeURL := fmt.Sprintf("%s/oauth2/v1/authorize?response_type=code&client_id=%s&redirect_uri=%s&scope=%s&state=test-state",
-		testAuthZBaseURL, testClientID, url.QueryEscape(testRedirectURI), url.QueryEscape(testScope))
+	// Generate PKCE code verifier and challenge (OAuth 2.1 requirement).
+	codeVerifier, err := cryptoutilIdentityPKCE.GenerateCodeVerifier()
+	testify.NoError(t, err, "Failed to generate code verifier")
+
+	codeChallenge := cryptoutilIdentityPKCE.GenerateCodeChallenge(codeVerifier, "S256")
+
+	// Step 1: Request authorization code with PKCE.
+	authorizeURL := fmt.Sprintf("%s/oauth2/v1/authorize?response_type=code&client_id=%s&redirect_uri=%s&scope=%s&state=test-state&code_challenge=%s&code_challenge_method=S256",
+		testAuthZBaseURL, testClientID, url.QueryEscape(testRedirectURI), url.QueryEscape(testScope), codeChallenge)
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, authorizeURL, nil)
 	testify.NoError(t, err, "Failed to create authorize request")
@@ -272,6 +368,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	tokenData.Set("redirect_uri", testRedirectURI)
 	tokenData.Set("client_id", testClientID)
 	tokenData.Set("client_secret", testClientSecret)
+	tokenData.Set("code_verifier", codeVerifier) // OAuth 2.1 PKCE requirement
 
 	tokenReq, err := http.NewRequestWithContext(context.Background(), http.MethodPost, tokenURL, strings.NewReader(tokenData.Encode()))
 	testify.NoError(t, err, "Failed to create token request")

@@ -6,6 +6,9 @@ import (
 
 // RegisterRoutes registers all OAuth 2.1 authorization server routes.
 func (s *Service) RegisterRoutes(app *fiber.App) {
+	// Health check endpoint (no prefix).
+	app.Get("/health", s.handleHealth)
+
 	// OAuth 2.1 endpoints with /oauth2/v1 prefix.
 	oauth := app.Group("/oauth2/v1")
 	oauth.Get("/authorize", s.handleAuthorizeGET)

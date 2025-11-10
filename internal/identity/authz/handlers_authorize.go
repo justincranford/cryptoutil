@@ -1,6 +1,7 @@
 package authz
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -316,13 +317,16 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 		"scope", scope,
 	)
 
-	// Placeholder response.
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":    "Authorization code generated",
-		"code":       code,
-		"state":      state,
-		"request_id": requestID.String(),
-		"client_id":  clientID,
-		"scope":      scope,
-	})
+	// Build redirect URI with authorization code and state.
+	redirectURL := redirectURI + "?code=" + code
+	if state != "" {
+		redirectURL += "&state=" + state
+	}
+
+	// Return 302 redirect to client's redirect_uri with authorization code.
+	if err := c.Redirect(redirectURL, fiber.StatusFound); err != nil {
+		return fmt.Errorf("failed to redirect to callback: %w", err)
+	}
+
+	return nil
 }
