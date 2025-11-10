@@ -1,4 +1,39 @@
 # Task 18 – Docker Compose Orchestration Suite
+## ⚠️ NOTE: Core orchestration functionality **PARTIALLY MOVED** to Task 10.6 (Unified CLI) in refactored plan.
+
+**Original Task 18 content retained. This task now focuses on advanced orchestration patterns (scaling, templating, Docker profiles).**
+
+**See also**: `docs/identityV2/task-10.6-unified-cli.md` - unified CLI provides foundation for orchestration.
+
+---
+
+## Task Reflection
+
+### What Went Well
+
+- ✅ **Task 10.6 Unified CLI**: One-liner bootstrap (`./identity start --profile demo`) achieved
+- ✅ **Existing Compose Infrastructure**: `identity-compose.yml` provides Docker orchestration foundation
+- ✅ **Task 10.7 OpenAPI**: Well-documented APIs simplify client integration
+
+### At Risk Items
+
+- ⚠️ **Scaling Templates Missing**: No Nx/Mx/Xx patterns for multiple service instances
+- ⚠️ **Secret Handling Incomplete**: Current Compose files only partially follow Docker secrets best practices
+- ⚠️ **Troubleshooting Gaps**: Limited documentation for common Docker issues (networking, health checks)
+
+### Could Be Improved
+
+- **Profile Variety**: Need demo, development, CI, production-like Compose configurations
+- **Health Check Integration**: Better integration with `./identity health` command for Docker mode
+- **Developer Experience**: Simplified workflows for common scenarios (single-service testing, debugging)
+
+### Dependencies and Blockers
+
+- **Dependency on Task 10.6**: Unified CLI provides orchestration foundation
+- **Dependency on Task 10**: Integration tests validate Docker Compose health checks
+- **Enables Task 18**: E2E testing requires deterministic Docker orchestration
+
+---
 
 ## Objective
 

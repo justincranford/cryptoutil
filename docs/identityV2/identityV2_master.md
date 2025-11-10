@@ -16,36 +16,108 @@
 
 ## Execution Guidelines
 
-- Execute tasks strictly in numerical order to maintain dependency flow.
-- Commit after **every** task (`git commit` per task) before moving to the next. Never combine multiple tasks into one commit.
-- Each task document defines objective, scope, deliverables, validation, dependencies, and known risks. Treat the documents as contracts; update them only through follow-up change control.
-- Maintain at least 95% test coverage for the identity packages touched by each task. Add regression tests whenever remediation fixes a historical defect.
-- Keep documentation synchronized. When a task updates behaviour or configuration, update both the task deliverables and any affected higher-level docs (for example, service READMEs or runbooks).
+### Task Reflection Requirement
+
+**CRITICAL**: Every task MUST begin with a reflection section evaluating prior work:
+
+```markdown
+## Task Reflection
+
+### What Went Well
+- [List successes from previous tasks]
+
+### At Risk Items
+- [Identify risks discovered during implementation]
+
+### Could Be Improved
+- [Note areas for enhancement or technical debt]
+
+### Dependencies and Blockers
+- [Any dependencies from prior tasks needing resolution]
+```
+
+This reflection informs the current task's approach and ensures continuous improvement.
+
+### Execution Rules
+
+1. **Strictly Sequential Execution**: Complete tasks in numerical order (01 → 02 → ... → 19)
+   - Exception: If a task discovers blocking issues in prior tasks, pause and remediate before continuing
+   - Document any out-of-order fixes in task reflection sections
+
+2. **Commit After Every Task**: Each task completion requires a git commit with:
+   - Conventional commit format: `feat(identity): complete task NN - <summary>`
+   - Detailed commit message referencing task document
+   - All linting passing (`golangci-lint run`)
+   - All tests passing (`go test ./...`)
+
+3. **Quality Gates**: Before marking task complete:
+   - ✅ All deliverables from task document implemented
+   - ✅ Tests written and passing (unit, integration, e2e as appropriate)
+   - ✅ Documentation updated (code comments, README, runbooks)
+   - ✅ Linting passes with zero violations
+   - ✅ Task reflection completed and added to task document
+
+4. **Incremental Progress**: Break large tasks into subtasks but commit the complete task atomically
+   - Use `manage_todo_list` tool for subtask tracking during implementation
+   - Final commit represents complete, tested, documented task
+
+5. **Cross-Platform Validation**: All code must work on:
+   - Windows PowerShell development environments
+   - Linux GitHub Actions runners
+   - Docker containers (Alpine, Ubuntu bases)
+
+6. **Bootstrap Simplicity Goal**: Maintain focus on delivering one-liner commands:
+   - `./identity start --profile demo` (local development)
+   - `docker compose -f identity-demo.yml up` (containerized)
+   - `./identity test --suite e2e` (testing)
 
 ## Task Index
 
-| # | Task | Document | Summary |
-|---|------|----------|---------|
-| 01 | Historical Baseline Assessment | `docs/identityV2/task-01-historical-baseline-assessment.md` | Capture the precise identity state from commit `15cd8297` through `HEAD` and produce comparison matrices. |
-| 02 | Requirements and Success Criteria Registry | `docs/identityV2/task-02-requirements-success-criteria.md` | Translate user and client flows into measurable requirements with traceability. |
-| 03 | Configuration Inventory and Normalization | `docs/identityV2/task-03-configuration-normalization.md` | Create canonical configuration templates and fixtures across services. |
-| 04 | Identity Package Dependency Audit | `docs/identityV2/task-04-dependency-audit.md` | Detect and enforce domain boundaries within `internal/identity/**`. |
-| 05 | Storage Layer Verification | `docs/identityV2/task-05-storage-verification.md` | Validate migrations, schemas, and CRUD operations across SQLite/PostgreSQL. |
-| 06 | OAuth 2.1 Authorization Server Core Rehab | `docs/identityV2/task-06-authz-core-rehab.md` | Align the authorization server with OAuth 2.1 draft 15 and strengthen telemetry. |
-| 07 | Client Authentication Enhancements | `docs/identityV2/task-07-client-auth-enhancements.md` | Harden client authentication methods including mTLS and policy controls. |
-| 08 | Token Service Hardening | `docs/identityV2/task-08-token-service-hardening.md` | Introduce deterministic key rotation and expand token validation coverage. |
-| 09 | SPA Relying Party UX Repair | `docs/identityV2/task-09-spa-ux-repair.md` | Restore SPA usability, add telemetry, and align API contracts. |
-| 10 | Integration Layer Completion | `docs/identityV2/task-10-integration-layer-completion.md` | Finish service composition, queue listeners, and Docker orchestration. |
-| 11 | Client MFA Chains Stabilization | `docs/identityV2/task-11-client-mfa-stabilization.md` | Ensure multi-factor flows are concurrency-safe with observability hooks. |
-| 12 | OTP and Magic Link Services | `docs/identityV2/task-12-otp-magic-link.md` | Secure provider abstractions with rate limiting and auditing. |
-| 13 | Adaptive Authentication Engine | `docs/identityV2/task-13-adaptive-engine.md` | Externalize risk policies and add simulation support. |
-| 14 | Biometric + WebAuthn Path | `docs/identityV2/task-14-biometric-webauthn.md` | Bring WebAuthn features to production readiness. |
-| 15 | Hardware Credential Support | `docs/identityV2/task-15-hardware-credential-support.md` | Deliver end-to-end hardware credential enrolment and validation. |
-| 16 | OpenAPI 3.0 Spec Modernization | `docs/identityV2/task-16-openapi-modernization.md` | Synchronize OpenAPI specs and generation configs with current services. |
-| 17 | Gap Analysis and Remediation Plan | `docs/identityV2/task-17-gap-analysis.md` | Produce remediation tracker aligned with compliance obligations. |
-| 18 | Docker Compose Orchestration Suite | `docs/identityV2/task-18-orchestration-suite.md` | Build deterministic orchestration bundles and tooling. |
-| 19 | Integration and E2E Testing Fabric | `docs/identityV2/task-19-integration-e2e-fabric.md` | Create comprehensive automated test coverage and reporting. |
-| 20 | Final Verification and Delivery Readiness | `docs/identityV2/task-20-final-verification.md` | Execute regression, DR drills, and delivery sign-off. |
+### ✅ PHASE 1: Foundation (Tasks 01-10.4) - COMPLETED
+
+| # | Task | Document | Summary | Status |
+|---|------|----------|---------|--------|
+| 01 | Historical Baseline Assessment | `docs/identityV2/task-01-historical-baseline-assessment.md` | Capture the precise identity state from commit `15cd8297` through `HEAD` and produce comparison matrices. | ✅ Complete |
+| 02 | Requirements and Success Criteria Registry | `docs/identityV2/task-02-requirements-success-criteria.md` | Translate user and client flows into measurable requirements with traceability. | ✅ Complete |
+| 03 | Configuration Inventory and Normalization | `docs/identityV2/task-03-configuration-normalization.md` | Create canonical configuration templates and fixtures across services. | ✅ Complete |
+| 04 | Identity Package Dependency Audit | `docs/identityV2/task-04-dependency-audit.md` | Detect and enforce domain boundaries within `internal/identity/**`. | ✅ Complete |
+| 05 | Storage Layer Verification | `docs/identityV2/task-05-storage-verification.md` | Validate migrations, schemas, and CRUD operations across SQLite/PostgreSQL. | ✅ Complete |
+| 06 | OAuth 2.1 Authorization Server Core Rehab | `docs/identityV2/task-06-authz-core-rehab.md` | Align the authorization server with OAuth 2.1 draft 15 and strengthen telemetry. | ✅ Complete |
+| 07 | Client Authentication Enhancements | `docs/identityV2/task-07-client-auth-enhancements.md` | Harden client authentication methods including mTLS and policy controls. | ✅ Complete |
+| 08 | Token Service Hardening | `docs/identityV2/task-08-token-service-hardening.md` | Introduce deterministic key rotation and expand token validation coverage. | ✅ Complete |
+| 09 | SPA Relying Party UX Repair | `docs/identityV2/task-09-spa-ux-repair.md` | Restore SPA usability, add telemetry, and align API contracts. | ✅ Complete |
+| 10.1-10.4 | Integration Layer Infrastructure | `docs/identityV2/task-10-integration-layer-completion.md` | Integration tests, background jobs, queue decision, architecture docs. | ✅ Complete |
+
+### 🔴 PHASE 2: Critical Path - Foundation Completion (Tasks 10.5-10.7) - IN PROGRESS
+
+**CRITICAL**: Integration tests revealed AuthZ/IdP servers lack core OAuth/OIDC endpoints. Must complete before feature additions.
+
+| # | Task | Document | Summary | Status |
+|---|------|----------|---------|--------|
+| 10.5 | AuthZ/IdP Core Endpoints | `docs/identityV2/task-10.5-authz-idp-endpoints.md` | Implement `/oauth2/v1/authorize`, `/oauth2/v1/token`, `/health`, `/oidc/v1/login` to make integration tests pass. | 🔴 **NEXT** |
+| 10.6 | Unified Identity CLI | `docs/identityV2/task-10.6-unified-cli.md` | Create `./identity start --profile <name>` for one-liner bootstrap of all service combinations. | ⏳ Pending |
+| 10.7 | OpenAPI Synchronization | `docs/identityV2/task-10.7-openapi-sync.md` | Synchronize OpenAPI specs with implemented endpoints, generate client libraries, update Swagger UI. | ⏳ Pending |
+
+### 🟡 PHASE 3: Enhanced Features (Tasks 11-15)
+
+| # | Task | Document | Summary | Status |
+|---|------|----------|---------|--------|
+| 11 | Client MFA Chains Stabilization | `docs/identityV2/task-11-client-mfa-stabilization.md` | Ensure multi-factor flows are concurrency-safe with observability hooks. | ⏳ Pending |
+| 12 | OTP and Magic Link Services | `docs/identityV2/task-12-otp-magic-link.md` | Secure provider abstractions with rate limiting and auditing. | ⏳ Pending |
+| 13 | Adaptive Authentication Engine | `docs/identityV2/task-13-adaptive-engine.md` | Externalize risk policies and add simulation support. | ⏳ Pending |
+| 14 | Biometric + WebAuthn Path | `docs/identityV2/task-14-biometric-webauthn.md` | Bring WebAuthn features to production readiness. | ⏳ Pending |
+| 15 | Hardware Credential Support | `docs/identityV2/task-15-hardware-credential-support.md` | Deliver end-to-end hardware credential enrolment and validation. | ⏳ Pending |
+
+### 🟢 PHASE 4: Quality & Delivery (Tasks 16-20)
+
+| # | Task | Document | Summary | Status |
+|---|------|----------|---------|--------|
+| 16 | Gap Analysis and Remediation Plan | `docs/identityV2/task-16-gap-analysis.md` | Produce remediation tracker aligned with compliance obligations. | ⏳ Pending |
+| 17 | Docker Compose Orchestration Suite | `docs/identityV2/task-17-orchestration-suite.md` | Build deterministic orchestration bundles and Docker profiles. | ⏳ Pending |
+| 18 | Integration and E2E Testing Fabric | `docs/identityV2/task-18-integration-e2e-fabric.md` | Create comprehensive automated test coverage and reporting. | ⏳ Pending |
+| 19 | Final Verification and Delivery Readiness | `docs/identityV2/task-19-final-verification.md` | Execute regression, DR drills, and delivery sign-off. | ⏳ Pending |
+
+**Note**: Original Tasks 16-20 renumbered to 16-19. Task 18 (Orchestration) merged into 10.6-10.7 and 17.
 
 ## Dependencies and Cross-Cutting Concerns
 

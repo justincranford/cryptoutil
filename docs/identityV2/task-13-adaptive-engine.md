@@ -1,5 +1,34 @@
 # Task 13 – Adaptive Authentication Engine
 
+## Task Reflection
+
+### What Went Well
+
+- ✅ **Task 12 OTP/Magic Link**: Provider abstractions enable risk-based step-up authentication
+- ✅ **Task 11 MFA Chains**: Stable foundation for triggering adaptive authentication based on risk scores
+- ✅ **Telemetry Stack**: Ready to capture risk scoring decisions, policy evaluations, and overrides
+
+### At Risk Items
+
+- ⚠️ **Hard-Coded Policies**: Commit `e4dbeac` has risk policies embedded in code, limiting configurability
+- ⚠️ **No Simulation Tooling**: Cannot test policy changes against historical scenarios before deployment
+- ⚠️ **Policy Testing Gap**: Insufficient coverage of edge cases (high-risk bypass, false positives)
+
+### Could Be Improved
+
+- **Policy Externalization**: Move policies from code to YAML configuration for operational flexibility
+- **Risk Signal Collection**: Limited signals (IP, device fingerprint) - need user behavior patterns, velocity checks
+- **Observability**: Risk decisions not exposed as metrics for monitoring/alerting
+
+### Dependencies and Blockers
+
+- **Dependency on Task 11**: MFA chains required for adaptive step-up authentication
+- **Dependency on Task 12**: OTP services used as step-up factor for high-risk scenarios
+- **Enables Task 14**: WebAuthn integrates with adaptive policies for device-based risk assessment
+- **Enables Task 19**: Final verification requires comprehensive adaptive auth testing
+
+---
+
 ## Objective
 
 Deliver a configurable adaptive authentication engine that scores risk, selects contextual prompts, and supports extensible policies.

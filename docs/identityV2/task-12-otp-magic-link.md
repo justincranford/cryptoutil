@@ -1,5 +1,34 @@
 # Task 12 – OTP and Magic Link Services
 
+## Task Reflection
+
+### What Went Well
+
+- ✅ **Task 11 MFA Foundation**: Stable concurrency-safe MFA chains provide foundation for OTP/magic link integration
+- ✅ **Provider Abstraction Pattern**: Existing architecture supports pluggable provider implementations
+- ✅ **Telemetry Infrastructure**: Observability stack ready for rate limiting and abuse detection metrics
+
+### At Risk Items
+
+- ⚠️ **Token Leakage Risk**: Security reviews highlighted potential exposure of OTP tokens in logs/traces
+- ⚠️ **Rate Limiting Gaps**: Current implementation lacks per-user, per-IP, and global rate limiting
+- ⚠️ **Audit Log Completeness**: Insufficient tracking of token generation, validation attempts, and invalidation events
+
+### Could Be Improved
+
+- **Provider Testing**: Need contract tests to ensure production connectors match test doubles behavior
+- **Incident Response**: No documented procedures for compromised tokens or provider outages
+- **Token Rotation**: Key rotation procedures unclear for signing OTP/magic link tokens
+
+### Dependencies and Blockers
+
+- **Dependency on Task 11**: MFA chains must be stable for OTP integration
+- **Dependency on Task 05**: Storage layer required for token persistence
+- **Enables Task 13**: Adaptive auth uses OTP as step-up authentication factor
+- **Risk Factor**: SMS/email provider outages block user authentication
+
+---
+
 ## Objective
 
 Harden SMS and email-based OTP plus magic link services with robust provider abstractions, rate limiting, auditing, and automated testing.

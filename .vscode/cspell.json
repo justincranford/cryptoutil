@@ -450,6 +450,9 @@
     "MIID",
     "certbot",
     "Verif",
-    "Decr"
+    "Decr",
+    "bubbletea",
+    "schemathesis",
+    "apidevtools"
   ]
 }
