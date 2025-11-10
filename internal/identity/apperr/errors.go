@@ -67,6 +67,11 @@ var (
 	ErrTokenValidationFailed = NewIdentityError("token_validation_failed", "Failed to validate token", http.StatusInternalServerError, nil)
 	ErrTokenRevocationFailed = NewIdentityError("token_revocation_failed", "Failed to revoke token", http.StatusInternalServerError, nil)
 
+	// Key management errors.
+	ErrKeyNotFound         = NewIdentityError("key_not_found", "Cryptographic key not found", http.StatusNotFound, nil)
+	ErrKeyRotationFailed   = NewIdentityError("key_rotation_failed", "Key rotation failed", http.StatusInternalServerError, nil)
+	ErrKeyGenerationFailed = NewIdentityError("key_generation_failed", "Key generation failed", http.StatusInternalServerError, nil)
+
 	// Session errors.
 	ErrSessionNotFound   = NewIdentityError("session_not_found", "Session not found", http.StatusNotFound, nil)
 	ErrSessionExpired    = NewIdentityError("session_expired", "Session has expired", http.StatusUnauthorized, nil)

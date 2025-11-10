@@ -107,6 +107,24 @@ const (
 	StrictCertificateMaxAgeDays  = 90  // Strict maximum certificate age in days (90 days).
 )
 
+// Key rotation configuration.
+const (
+	// Default policy (balanced security).
+	DefaultKeyRotationInterval = 30 * 24 * time.Hour // Default key rotation interval (30 days).
+	DefaultKeyGracePeriod      = 7 * 24 * time.Hour  // Default key grace period (7 days).
+	DefaultMaxActiveKeys       = 3                   // Default maximum active keys.
+
+	// Strict policy (production).
+	StrictKeyRotationInterval = 7 * 24 * time.Hour // Strict key rotation interval (7 days).
+	StrictKeyGracePeriod      = 24 * time.Hour     // Strict key grace period (1 day).
+	StrictMaxActiveKeys       = 2                  // Strict maximum active keys.
+
+	// Development policy (relaxed).
+	DevelopmentKeyRotationInterval = 365 * 24 * time.Hour // Development key rotation interval (1 year).
+	DevelopmentKeyGracePeriod      = 30 * 24 * time.Hour  // Development key grace period (30 days).
+	DevelopmentMaxActiveKeys       = 5                    // Development maximum active keys.
+)
+
 // Authentication method identifiers.
 const (
 	AuthMethodTOTP             = "totp"              // TOTP authentication method.
