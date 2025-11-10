@@ -96,6 +96,11 @@ const (
 	DefaultRetryMaxDelay = 30 * time.Second // Default maximum retry delay.
 )
 
+// Cleanup intervals.
+const (
+	ChallengeCleanupInterval = 5 * time.Minute // Challenge cleanup interval for expired entries.
+)
+
 // Authentication method identifiers.
 const (
 	AuthMethodTOTP             = "totp"              // TOTP authentication method.

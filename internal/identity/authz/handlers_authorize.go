@@ -1,7 +1,11 @@
 package authz
 
 import (
+	"log/slog"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
+	googleUuid "github.com/google/uuid"
 
 	cryptoutilIdentityAppErr "cryptoutil/internal/identity/apperr"
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
@@ -102,12 +106,54 @@ func (s *Service) handleAuthorizeGET(c *fiber.Ctx) error {
 	// TODO: Redirect to login/consent flow.
 	// TODO: Generate authorization code after user consent.
 
+	// Store authorization request with PKCE challenge.
+	requestID, err := googleUuid.NewV7()
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to generate request ID", "error", err)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to generate request ID",
+		})
+	}
+
+	authRequest := &AuthorizationRequest{
+		RequestID:           requestID,
+		ClientID:            clientID,
+		RedirectURI:         redirectURI,
+		ResponseType:        responseType,
+		Scope:               scope,
+		State:               state,
+		CodeChallenge:       codeChallenge,
+		CodeChallengeMethod: codeChallengeMethod,
+		CreatedAt:           time.Now(),
+		ExpiresAt:           time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
+		ConsentGranted:      false,
+	}
+
+	if err := s.authReqStore.Store(ctx, authRequest); err != nil {
+		slog.ErrorContext(ctx, "Failed to store authorization request", "error", err, "request_id", requestID)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to store authorization request",
+		})
+	}
+
+	slog.InfoContext(ctx, "Authorization request created",
+		"request_id", requestID,
+		"client_id", clientID,
+		"scope", scope,
+	)
+
 	// Placeholder response - redirect to consent screen.
+	// TODO: In future tasks, integrate with IdP for login/consent flow.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":   "Authorization request accepted - user authentication and consent required",
-		"client_id": clientID,
-		"scope":     scope,
-		"state":     state,
+		"message":    "Authorization request accepted - user authentication and consent required",
+		"request_id": requestID.String(),
+		"client_id":  clientID,
+		"scope":      scope,
+		"state":      state,
 	})
 }
 
@@ -205,11 +251,78 @@ func (s *Service) handleAuthorizePOST(c *fiber.Ctx) error {
 	// TODO: Store authorization request with PKCE challenge.
 	// TODO: Generate authorization code.
 
+	// Store authorization request with PKCE challenge.
+	requestID, err := googleUuid.NewV7()
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to generate request ID", "error", err)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to generate request ID",
+		})
+	}
+
+	authRequest := &AuthorizationRequest{
+		RequestID:           requestID,
+		ClientID:            clientID,
+		RedirectURI:         redirectURI,
+		ResponseType:        responseType,
+		Scope:               scope,
+		State:               state,
+		CodeChallenge:       codeChallenge,
+		CodeChallengeMethod: codeChallengeMethod,
+		CreatedAt:           time.Now(),
+		ExpiresAt:           time.Now().Add(cryptoutilIdentityMagic.DefaultCodeLifetime),
+		ConsentGranted:      false,
+	}
+
+	if err := s.authReqStore.Store(ctx, authRequest); err != nil {
+		slog.ErrorContext(ctx, "Failed to store authorization request", "error", err, "request_id", requestID)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to store authorization request",
+		})
+	}
+
+	// Generate authorization code (simulating consent being granted immediately for now).
+	// TODO: In future tasks, integrate with IdP for login/consent flow before generating code.
+	code, err := GenerateAuthorizationCode()
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to generate authorization code", "error", err, "request_id", requestID)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to generate authorization code",
+		})
+	}
+
+	// Update authorization request with code and consent.
+	authRequest.Code = code
+	authRequest.ConsentGranted = true
+
+	if err := s.authReqStore.Update(ctx, authRequest); err != nil {
+		slog.ErrorContext(ctx, "Failed to update authorization request", "error", err, "request_id", requestID)
+
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":             cryptoutilIdentityMagic.ErrorServerError,
+			"error_description": "Failed to update authorization request",
+		})
+	}
+
+	slog.InfoContext(ctx, "Authorization code generated",
+		"request_id", requestID,
+		"client_id", clientID,
+		"scope", scope,
+	)
+
 	// Placeholder response.
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message":   "Authorization code generation - to be implemented",
-		"client_id": clientID,
-		"scope":     scope,
-		"state":     state,
+		"message":    "Authorization code generated",
+		"code":       code,
+		"state":      state,
+		"request_id": requestID.String(),
+		"client_id":  clientID,
+		"scope":      scope,
 	})
 }

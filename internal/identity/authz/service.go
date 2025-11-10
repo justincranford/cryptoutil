@@ -11,10 +11,11 @@ import (
 
 // Service provides OAuth 2.1 authorization server functionality.
 type Service struct {
-	config      *cryptoutilIdentityConfig.Config
-	repoFactory *cryptoutilIdentityRepository.RepositoryFactory
-	tokenSvc    *cryptoutilIdentityIssuer.TokenService
-	clientAuth  *clientauth.Registry
+	config       *cryptoutilIdentityConfig.Config
+	repoFactory  *cryptoutilIdentityRepository.RepositoryFactory
+	tokenSvc     *cryptoutilIdentityIssuer.TokenService
+	clientAuth   *clientauth.Registry
+	authReqStore AuthorizationRequestStore
 }
 
 // NewService creates a new authorization server service.
@@ -24,10 +25,11 @@ func NewService(
 	tokenSvc *cryptoutilIdentityIssuer.TokenService,
 ) *Service {
 	return &Service{
-		config:      config,
-		repoFactory: repoFactory,
-		tokenSvc:    tokenSvc,
-		clientAuth:  clientauth.NewRegistry(repoFactory),
+		config:       config,
+		repoFactory:  repoFactory,
+		tokenSvc:     tokenSvc,
+		clientAuth:   clientauth.NewRegistry(repoFactory),
+		authReqStore: NewInMemoryAuthorizationRequestStore(),
 	}
 }
 
