@@ -101,6 +101,12 @@ const (
 	ChallengeCleanupInterval = 5 * time.Minute // Challenge cleanup interval for expired entries.
 )
 
+// Certificate validation.
+const (
+	DefaultCertificateMaxAgeDays = 365 // Default maximum certificate age in days (1 year).
+	StrictCertificateMaxAgeDays  = 90  // Strict maximum certificate age in days (90 days).
+)
+
 // Authentication method identifiers.
 const (
 	AuthMethodTOTP             = "totp"              // TOTP authentication method.
