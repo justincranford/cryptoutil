@@ -41,10 +41,9 @@ type Session struct {
 	GrantedScopes []string `gorm:"type:json" json:"scopes"` // Granted scopes.
 
 	// GORM timestamps.
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
-	DeletedAt  *time.Time `gorm:"index" json:"deleted_at,omitempty"`
-	gorm.Model `json:"-"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 // BeforeCreate generates UUID for new sessions.

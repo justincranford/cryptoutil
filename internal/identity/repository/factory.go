@@ -126,7 +126,11 @@ func (f *RepositoryFactory) Close() error {
 
 // AutoMigrate runs database migrations for all domain models.
 func (f *RepositoryFactory) AutoMigrate(ctx context.Context) error {
-	if err := f.db.WithContext(ctx).AutoMigrate(
+	// For SQLite, disable foreign key constraints during migration to avoid circular dependency errors.
+	_ = f.db.WithContext(ctx).Exec("PRAGMA foreign_keys = OFF").Error
+
+	// Migrate one model at a time with error logging to identify which model fails.
+	models := []any{
 		&cryptoutilIdentityDomain.User{},
 		&cryptoutilIdentityDomain.Client{},
 		&cryptoutilIdentityDomain.Token{},
@@ -135,12 +139,19 @@ func (f *RepositoryFactory) AutoMigrate(ctx context.Context) error {
 		&cryptoutilIdentityDomain.AuthFlow{},
 		&cryptoutilIdentityDomain.AuthProfile{},
 		&cryptoutilIdentityDomain.MFAFactor{},
-	); err != nil {
-		return cryptoutilIdentityAppErr.WrapError(
-			cryptoutilIdentityAppErr.ErrDatabaseQuery,
-			fmt.Errorf("auto-migration failed: %w", err),
-		)
 	}
+
+	for _, model := range models {
+		if err := f.db.WithContext(ctx).AutoMigrate(model); err != nil {
+			return cryptoutilIdentityAppErr.WrapError(
+				cryptoutilIdentityAppErr.ErrDatabaseQuery,
+				fmt.Errorf("auto-migration failed for %T: %w", model, err),
+			)
+		}
+	}
+
+	// Re-enable foreign key constraints for SQLite.
+	_ = f.db.WithContext(ctx).Exec("PRAGMA foreign_keys = ON").Error
 
 	return nil
 }

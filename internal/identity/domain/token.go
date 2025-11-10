@@ -57,10 +57,9 @@ type Token struct {
 	CodeChallengeMethod string `json:"code_challenge_method,omitempty"` // PKCE code challenge method.
 
 	// GORM timestamps.
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
-	DeletedAt  *time.Time `gorm:"index" json:"deleted_at,omitempty"`
-	gorm.Model `json:"-"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"`
 }
 
 // BeforeCreate generates UUID for new tokens.

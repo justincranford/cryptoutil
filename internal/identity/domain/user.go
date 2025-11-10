@@ -10,7 +10,7 @@ import (
 // User represents a user entity with OIDC standard claims.
 type User struct {
 	// Primary identifier.
-	ID googleUuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	ID googleUuid.UUID `gorm:"type:text;primaryKey" json:"id"`
 
 	// OIDC standard claims.
 	Sub               string    `gorm:"uniqueIndex;not null" json:"sub"`                           // Subject identifier.
@@ -38,13 +38,11 @@ type User struct {
 	PasswordHash string `gorm:"not null" json:"-"` // Bcrypt password hash.
 
 	// Account status.
-	Enabled   bool       `gorm:"default:true" json:"enabled"`       // Account enabled status.
-	Locked    bool       `gorm:"default:false" json:"locked"`       // Account locked status.
-	CreatedAt time.Time  `json:"created_at"`                        // Account creation timestamp.
-	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"` // Soft delete timestamp.
-
-	// GORM timestamps.
-	gorm.Model `json:"-"`
+	Enabled     bool       `gorm:"default:true" json:"enabled"`       // Account enabled status.
+	Locked      bool       `gorm:"default:false" json:"locked"`       // Account locked status.
+	CreatedAt   time.Time  `json:"created_at"`                        // Account creation timestamp.
+	DBUpdatedAt time.Time  `gorm:"column:updated_at" json:"-"`        // Database last update timestamp.
+	DeletedAt   *time.Time `gorm:"index" json:"deleted_at,omitempty"` // Soft delete timestamp.
 }
 
 // Address represents OIDC address claim structure.

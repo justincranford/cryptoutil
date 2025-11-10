@@ -15,6 +15,7 @@ import (
 
 	cryptoutilIdentityPKCE "cryptoutil/internal/identity/authz/pkce"
 	cryptoutilIdentityConfig "cryptoutil/internal/identity/config"
+	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 	cryptoutilIdentityIssuer "cryptoutil/internal/identity/issuer"
 	cryptoutilIdentityRepository "cryptoutil/internal/identity/repository"
 	cryptoutilIdentityServer "cryptoutil/internal/identity/server"
@@ -116,6 +117,10 @@ func setupTestServers(t *testing.T) (*testServers, context.CancelFunc) {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, authzConfig.Database)
 	testify.NoError(t, err, "Failed to initialize repository factory")
 
+	// Run database migrations.
+	err = repoFactory.AutoMigrate(ctx)
+	testify.NoError(t, err, "Failed to run database migrations")
+
 	// Create logger for tests.
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelError, // Reduce noise in test output.
@@ -193,89 +198,49 @@ func shutdownTestServers(t *testing.T, servers *testServers) {
 	}
 }
 
-// seedTestData seeds the database with test client using raw SQL to avoid GORM migration issues.
+// seedTestData seeds the database with test client.
 func seedTestData(t *testing.T, ctx context.Context, repoFactory *cryptoutilIdentityRepository.RepositoryFactory) {
 	t.Helper()
 
-	// Create clients table manually using raw SQL DB (GORM AutoMigrate has issues).
-	sqlDB, err := repoFactory.DB().DB()
-	testify.NoError(t, err, "Failed to get SQL DB")
+	// Use GORM AutoMigrate now that gorm.Model duplication is fixed.
+	db := repoFactory.DB()
 
-	createTableSQL := `
-		CREATE TABLE IF NOT EXISTS clients (
-			id TEXT PRIMARY KEY,
-			client_id TEXT UNIQUE NOT NULL,
-			client_secret TEXT NOT NULL,
-			client_type TEXT NOT NULL,
-			jwks TEXT,
-			name TEXT NOT NULL,
-			description TEXT,
-			logo_uri TEXT,
-			home_page_uri TEXT,
-			policy_uri TEXT,
-			tos_uri TEXT,
-			redirect_uris TEXT NOT NULL,
-			allowed_grant_types TEXT NOT NULL,
-			allowed_response_types TEXT NOT NULL,
-			allowed_scopes TEXT NOT NULL,
-			token_endpoint_auth_method TEXT NOT NULL,
-			require_pkce INTEGER DEFAULT 1,
-			pkce_challenge_method TEXT DEFAULT 'S256',
-			access_token_lifetime INTEGER DEFAULT 3600,
-			refresh_token_lifetime INTEGER DEFAULT 86400,
-			id_token_lifetime INTEGER DEFAULT 3600,
-			client_profile_id TEXT,
-			enabled INTEGER DEFAULT 1,
-			created_at DATETIME NOT NULL,
-			updated_at DATETIME NOT NULL,
-			deleted_at DATETIME
-		)
-	`
-
-	_, err = sqlDB.Exec(createTableSQL)
-	testify.NoError(t, err, "Failed to create clients table")
-
-	// Verify table was created.
-	var tableCount int
-
-	err = repoFactory.DB().Raw("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='clients'").Scan(&tableCount).Error
-	testify.NoError(t, err, "Failed to query sqlite_master")
-	testify.Equal(t, 1, tableCount, "Clients table should exist")
-
-	// Insert test client using raw SQL.
+	// Create test client using repository.
+	clientRepo := repoFactory.ClientRepository()
 	testClientUUID := googleUuid.Must(googleUuid.NewV7())
 	now := time.Now()
 
-	err = repoFactory.DB().Exec(`
-		INSERT INTO clients (
-			id, client_id, client_secret, client_type, name, description,
-			redirect_uris, allowed_grant_types, allowed_response_types, allowed_scopes,
-			token_endpoint_auth_method, require_pkce, pkce_challenge_method,
-			access_token_lifetime, refresh_token_lifetime, id_token_lifetime,
-			enabled, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`,
-		testClientUUID.String(),
-		testClientID,     // This is the string "test-client" from constants
-		testClientSecret, // pragma: allowlist secret
-		"confidential",
-		"Test Client",
-		"Test client for integration tests",
-		`["http://127.0.0.1:18083/callback"]`,
-		`["authorization_code","client_credentials","refresh_token"]`,
-		`["code"]`,
-		`["read:resource","write:resource","delete:resource","admin"]`,
-		"client_secret_post",
-		1,
-		"S256",
-		3600,
-		86400,
-		3600,
-		1,
-		now,
-		now,
-	).Error
-	testify.NoError(t, err, "Failed to insert test client")
+	testClient := &cryptoutilIdentityDomain.Client{
+		ID:                      testClientUUID,
+		ClientID:                testClientID,
+		ClientSecret:            testClientSecret, // pragma: allowlist secret
+		ClientType:              "confidential",
+		Name:                    "Test Client",
+		Description:             "Test client for integration tests",
+		RedirectURIs:            []string{testRedirectURI},
+		AllowedGrantTypes:       []string{"authorization_code", "client_credentials", "refresh_token"},
+		AllowedResponseTypes:    []string{"code"},
+		AllowedScopes:           []string{"read:resource", "write:resource", "delete:resource", "admin"},
+		TokenEndpointAuthMethod: "client_secret_post",
+		RequirePKCE:             true,
+		PKCEChallengeMethod:     "S256",
+		AccessTokenLifetime:     3600,
+		RefreshTokenLifetime:    86400,
+		IDTokenLifetime:         3600,
+		Enabled:                 true,
+		CreatedAt:               now,
+		UpdatedAt:               now,
+	}
+
+	err := clientRepo.Create(ctx, testClient)
+	testify.NoError(t, err, "Failed to create test client")
+
+	// Verify client was created.
+	var clientCount int64
+
+	err = db.Table("clients").Count(&clientCount).Error
+	testify.NoError(t, err, "Failed to count clients")
+	testify.Equal(t, int64(1), clientCount, "Should have exactly 1 client")
 }
 
 // TestHealthCheckEndpoints verifies all servers respond to health checks.

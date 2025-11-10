@@ -34,9 +34,6 @@ type ClientProfile struct {
 	CreatedAt time.Time  `json:"created_at"`                        // Creation timestamp.
 	UpdatedAt time.Time  `json:"updated_at"`                        // Last update timestamp.
 	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"` // Soft delete timestamp.
-
-	// GORM timestamps.
-	gorm.Model `json:"-"`
 }
 
 // BeforeCreate generates UUID for new client profiles.
