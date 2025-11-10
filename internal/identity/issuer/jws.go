@@ -14,17 +14,55 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
-// JWSIssuer issues JWS (signed) JWT tokens using cryptoutil crypto primitives.
+// JWSIssuer issues JWS (signed) JWT tokens using versioned signing keys.
 type JWSIssuer struct {
-	issuer         string
-	signingKey     any
-	signingAlg     string
-	accessTokenTTL time.Duration
-	idTokenTTL     time.Duration
+	issuer           string
+	keyRotationMgr   *KeyRotationManager
+	defaultAlgorithm string
+	accessTokenTTL   time.Duration
+	idTokenTTL       time.Duration
+	legacySigningKey any    // Deprecated: for backward compatibility.
+	legacySigningAlg string // Deprecated: for backward compatibility.
 }
 
-// NewJWSIssuer creates a new JWS issuer with the specified signing key.
+// NewJWSIssuer creates a new JWS issuer with the specified key rotation manager.
 func NewJWSIssuer(
+	issuer string,
+	keyRotationMgr *KeyRotationManager,
+	defaultAlgorithm string,
+	accessTokenTTL time.Duration,
+	idTokenTTL time.Duration,
+) (*JWSIssuer, error) {
+	// Validate issuer.
+	if issuer == "" {
+		return nil, cryptoutilIdentityAppErr.ErrInvalidConfiguration
+	}
+
+	// Validate signing algorithm.
+	if defaultAlgorithm == "" {
+		return nil, cryptoutilIdentityAppErr.ErrInvalidConfiguration
+	}
+
+	// Key rotation manager is optional for backward compatibility.
+	// If nil, must use NewJWSIssuerLegacy instead.
+	if keyRotationMgr == nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
+			fmt.Errorf("key rotation manager is required; use NewJWSIssuerLegacy for backward compatibility"),
+		)
+	}
+
+	return &JWSIssuer{
+		issuer:           issuer,
+		keyRotationMgr:   keyRotationMgr,
+		defaultAlgorithm: defaultAlgorithm,
+		accessTokenTTL:   accessTokenTTL,
+		idTokenTTL:       idTokenTTL,
+	}, nil
+}
+
+// NewJWSIssuerLegacy creates a new JWS issuer with a single signing key (deprecated).
+func NewJWSIssuerLegacy(
 	issuer string,
 	signingKey any,
 	signingAlg string,
@@ -47,11 +85,11 @@ func NewJWSIssuer(
 	}
 
 	return &JWSIssuer{
-		issuer:         issuer,
-		signingKey:     signingKey,
-		signingAlg:     signingAlg,
-		accessTokenTTL: accessTokenTTL,
-		idTokenTTL:     idTokenTTL,
+		issuer:           issuer,
+		legacySigningKey: signingKey,
+		legacySigningAlg: signingAlg,
+		accessTokenTTL:   accessTokenTTL,
+		idTokenTTL:       idTokenTTL,
 	}, nil
 }
 
@@ -159,12 +197,39 @@ func (i *JWSIssuer) ValidateToken(ctx context.Context, tokenString string) (map[
 	return claims, nil
 }
 
-// buildJWS builds a JWS token (simplified for MVP without signature verification).
+// buildJWS builds a JWS token using the active signing key.
 func (i *JWSIssuer) buildJWS(claims map[string]any) (string, error) {
+	var signingAlg string
+
+	var keyID string
+
+	// Get active signing key (or use legacy key).
+	if i.keyRotationMgr != nil {
+		activeKey, err := i.keyRotationMgr.GetActiveSigningKey()
+		if err != nil {
+			return "", cryptoutilIdentityAppErr.WrapError(
+				cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
+				fmt.Errorf("failed to get active signing key: %w", err),
+			)
+		}
+
+		signingAlg = activeKey.Algorithm
+		keyID = activeKey.KeyID
+	} else {
+		// Legacy mode: use single signing key.
+		signingAlg = i.legacySigningAlg
+		keyID = "" // No key ID in legacy mode.
+	}
+
 	// Create JWS header.
 	header := map[string]any{
-		"alg": i.signingAlg,
+		"alg": signingAlg,
 		"typ": "JWT",
+	}
+
+	// Add key ID if available.
+	if keyID != "" {
+		header["kid"] = keyID
 	}
 
 	// Encode header.

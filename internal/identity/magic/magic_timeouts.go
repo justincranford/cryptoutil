@@ -57,6 +57,7 @@ const (
 	DefaultRefreshTokenLength = 64 // Default refresh token length.
 	AES256KeySize             = 32 // AES-256 key size in bytes.
 	JWSPartCount              = 3  // JWT JWS part count (header.payload.signature).
+	ByteShift                 = 8  // Bit shift for byte operations.
 )
 
 // Password hashing.

@@ -12,13 +12,29 @@ import (
 	cryptoutilIdentityMagic "cryptoutil/internal/identity/magic"
 )
 
-// JWEIssuer issues JWE (encrypted) tokens using AES-GCM encryption.
+// JWEIssuer issues JWE (encrypted) tokens using versioned encryption keys.
 type JWEIssuer struct {
-	encryptionKey []byte
+	keyRotationMgr      *KeyRotationManager
+	legacyEncryptionKey []byte // Deprecated: for backward compatibility.
 }
 
-// NewJWEIssuer creates a new JWE issuer with the specified encryption key.
-func NewJWEIssuer(encryptionKey []byte) (*JWEIssuer, error) {
+// NewJWEIssuer creates a new JWE issuer with the specified key rotation manager.
+func NewJWEIssuer(keyRotationMgr *KeyRotationManager) (*JWEIssuer, error) {
+	// Key rotation manager is optional for backward compatibility.
+	if keyRotationMgr == nil {
+		return nil, cryptoutilIdentityAppErr.WrapError(
+			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
+			fmt.Errorf("key rotation manager is required; use NewJWEIssuerLegacy for backward compatibility"),
+		)
+	}
+
+	return &JWEIssuer{
+		keyRotationMgr: keyRotationMgr,
+	}, nil
+}
+
+// NewJWEIssuerLegacy creates a new JWE issuer with a single encryption key (deprecated).
+func NewJWEIssuerLegacy(encryptionKey []byte) (*JWEIssuer, error) {
 	if len(encryptionKey) != cryptoutilIdentityMagic.AES256KeySize {
 		return nil, cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrInvalidConfiguration,
@@ -27,14 +43,36 @@ func NewJWEIssuer(encryptionKey []byte) (*JWEIssuer, error) {
 	}
 
 	return &JWEIssuer{
-		encryptionKey: encryptionKey,
+		legacyEncryptionKey: encryptionKey,
 	}, nil
 }
 
-// EncryptToken encrypts a plaintext token (e.g., JWS) using AES-GCM.
+// EncryptToken encrypts a plaintext token (e.g., JWS) using AES-GCM with active encryption key.
 func (i *JWEIssuer) EncryptToken(ctx context.Context, plaintext string) (string, error) {
+	var encryptionKey []byte
+
+	var keyID string
+
+	// Get active encryption key (or use legacy key).
+	if i.keyRotationMgr != nil {
+		activeKey, err := i.keyRotationMgr.GetActiveEncryptionKey()
+		if err != nil {
+			return "", cryptoutilIdentityAppErr.WrapError(
+				cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
+				fmt.Errorf("failed to get active encryption key: %w", err),
+			)
+		}
+
+		encryptionKey = activeKey.Key
+		keyID = activeKey.KeyID
+	} else {
+		// Legacy mode: use single encryption key.
+		encryptionKey = i.legacyEncryptionKey
+		keyID = "" // No key ID in legacy mode.
+	}
+
 	// Create AES cipher.
-	block, err := aes.NewCipher(i.encryptionKey)
+	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return "", cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrTokenIssuanceFailed,
@@ -63,11 +101,23 @@ func (i *JWEIssuer) EncryptToken(ctx context.Context, plaintext string) (string,
 	// Encrypt plaintext.
 	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
 
+	// Prepend key ID if available (format: keyID||ciphertext).
+	if keyID != "" {
+		keyIDBytes := []byte(keyID)
+		keyIDLen := len(keyIDBytes)
+		result := make([]byte, 2+keyIDLen+len(ciphertext))
+		result[0] = byte(keyIDLen >> cryptoutilIdentityMagic.ByteShift)
+		result[1] = byte(keyIDLen)
+		copy(result[2:], keyIDBytes)
+		copy(result[2+keyIDLen:], ciphertext)
+		ciphertext = result
+	}
+
 	// Encode as base64.
 	return base64.RawURLEncoding.EncodeToString(ciphertext), nil
 }
 
-// DecryptToken decrypts a JWE token using AES-GCM.
+// DecryptToken decrypts a JWE token using AES-GCM with key ID lookup.
 func (i *JWEIssuer) DecryptToken(ctx context.Context, encryptedToken string) (string, error) {
 	// Decode base64.
 	ciphertext, err := base64.RawURLEncoding.DecodeString(encryptedToken)
@@ -78,8 +128,48 @@ func (i *JWEIssuer) DecryptToken(ctx context.Context, encryptedToken string) (st
 		)
 	}
 
+	var encryptionKey []byte
+
+	var actualCiphertext []byte
+
+	// Extract key ID if present (format: keyID||ciphertext).
+	if i.keyRotationMgr != nil && len(ciphertext) > 2 {
+		keyIDLen := int(ciphertext[0])<<cryptoutilIdentityMagic.ByteShift | int(ciphertext[1])
+		if keyIDLen > 0 && len(ciphertext) > 2+keyIDLen {
+			keyID := string(ciphertext[2 : 2+keyIDLen])
+			actualCiphertext = ciphertext[2+keyIDLen:]
+
+			// Get encryption key by ID.
+			key, err := i.keyRotationMgr.GetEncryptionKeyByID(keyID)
+			if err != nil {
+				return "", cryptoutilIdentityAppErr.WrapError(
+					cryptoutilIdentityAppErr.ErrTokenValidationFailed,
+					fmt.Errorf("failed to get encryption key: %w", err),
+				)
+			}
+
+			encryptionKey = key.Key
+		} else {
+			// No key ID, use active key.
+			activeKey, err := i.keyRotationMgr.GetActiveEncryptionKey()
+			if err != nil {
+				return "", cryptoutilIdentityAppErr.WrapError(
+					cryptoutilIdentityAppErr.ErrTokenValidationFailed,
+					fmt.Errorf("failed to get active encryption key: %w", err),
+				)
+			}
+
+			encryptionKey = activeKey.Key
+			actualCiphertext = ciphertext
+		}
+	} else {
+		// Legacy mode: use single encryption key.
+		encryptionKey = i.legacyEncryptionKey
+		actualCiphertext = ciphertext
+	}
+
 	// Create AES cipher.
-	block, err := aes.NewCipher(i.encryptionKey)
+	block, err := aes.NewCipher(encryptionKey)
 	if err != nil {
 		return "", cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
@@ -98,14 +188,14 @@ func (i *JWEIssuer) DecryptToken(ctx context.Context, encryptedToken string) (st
 
 	// Extract nonce.
 	nonceSize := gcm.NonceSize()
-	if len(ciphertext) < nonceSize {
+	if len(actualCiphertext) < nonceSize {
 		return "", cryptoutilIdentityAppErr.ErrInvalidToken
 	}
 
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	nonce, encryptedData := actualCiphertext[:nonceSize], actualCiphertext[nonceSize:]
 
 	// Decrypt ciphertext.
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	plaintext, err := gcm.Open(nil, nonce, encryptedData, nil)
 	if err != nil {
 		return "", cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrTokenValidationFailed,
