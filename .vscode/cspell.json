@@ -4,7 +4,7 @@
     "docs/dictionaries/"
   ],
   "dictionaries": [
-    // ===== DICTIONARIES WITH .txt FILES (DOWNLOADABLE) =====
+    // ===== DICTIONARIES WITH .txt FILES =====
     "aws", // https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/aws/dict/aws.txt
     "coding-compound-terms", // https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/software-terms/dict/software-compound-terms.txt
     "companies", // https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/companies/dict/companies.txt
@@ -45,7 +45,7 @@
     "en-common-misspellings", // https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/en-common-misspellings/dict/en-common-misspellings.txt
     "en-gb-common-misspellings", // https://raw.githubusercontent.com/streetsidesoftware/cspell-dicts/main/dictionaries/en-common-misspellings/dict/en-gb-common-misspellings.txt
 
-    // ===== DICTIONARIES WITH ONLY .trie FILES (BINARY FORMAT, NOT DOWNLOADABLE) =====
+    // ===== DICTIONARIES WITH ONLY .trie FILES =====
     "bash", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/bash/dict/bash.trie
     "cpp", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/cpp/dict/cpp.trie
     "cryptocurrencies-legacy", // https://github.com/streetsidesoftware/cspell-dicts/blob/main/dictionaries/cryptocurrencies/cryptocurrencies-legacy.trie
