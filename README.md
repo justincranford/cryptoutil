@@ -1,3 +1,11 @@
+# Notice
+
+Development is going to slow for approximately 3 weeks while waiting for ASUS RMA to replace my failed motherboard.
+
+This marks the second ASUS motherboard failure this calendar year. The board was only 7 months old and failed on November 10, 2025—right in the middle of developing this project.
+
+I will be evaluating options for a more reliable backup development system to avoid future hardware-related interruptions.
+
 # cryptoutil
 
 cryptoutil is a production-ready embedded Key Management System (KMS) and cryptographic service with enterprise-grade security features. It implements a hierarchical cryptographic architecture following NIST FIPS 140-3 standards.
@@ -117,7 +125,7 @@ Grafana-OTEL-LGTM (Prometheus) → OpenTelemetry Collector Contrib (HTTP:8888/me
 
 **OpenTelemetry Collector Ports:**
 - **4317**: OTLP gRPC receiver (application telemetry ingress)
-- **4318**: OTLP HTTP receiver (application telemetry ingress)  
+- **4318**: OTLP HTTP receiver (application telemetry ingress)
 - **8888**: Self-metrics (Prometheus, internal scraping)
 - **8889**: Received-metrics (Prometheus, for re-export)
 - **13133**: Health check extension (container health monitoring)
@@ -322,7 +330,7 @@ Fuzz tests run automatically in GitHub Actions on:
 
 **Key Generation Functions (7 fuzz tests):**
 - `FuzzGenerateRSAKeyPair` - RSA key pair generation
-- `FuzzGenerateECDSAKeyPair` - ECDSA key pair generation  
+- `FuzzGenerateECDSAKeyPair` - ECDSA key pair generation
 - `FuzzGenerateECDHKeyPair` - ECDH key pair generation
 - `FuzzGenerateEdDSAKeyPair` - EdDSA key pair generation
 - `FuzzGenerateAESKey` - AES key generation
@@ -332,7 +340,7 @@ Fuzz tests run automatically in GitHub Actions on:
 **Digest Functions (9 fuzz tests):**
 - `FuzzHKDF` - HMAC-based Key Derivation Function
 - `FuzzHKDFWithSHA256` - HKDF with SHA-256
-- `FuzzHKDFWithSHA384` - HKDF with SHA-384  
+- `FuzzHKDFWithSHA384` - HKDF with SHA-384
 - `FuzzHKDFWithSHA512` - HKDF with SHA-512
 - `FuzzSHA256` - SHA-256 hashing
 - `FuzzSHA384` - SHA-384 hashing
@@ -505,7 +513,7 @@ Runtime security testing with active vulnerability scanning:
 
 **DAST Scan Profiles:**
 - **Quick**: Basic security checks (3-5 minutes)
-- **Full**: Comprehensive scanning (10-15 minutes)  
+- **Full**: Comprehensive scanning (10-15 minutes)
 - **Deep**: Exhaustive security assessment (20-25 minutes)
 
 ### Robustness Testing (ci-robust.yml)
