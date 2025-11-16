@@ -5,6 +5,14 @@
 
 ## General Principles
 
+- Chat summary should be concise numbered list, and focused on key changes or questions
+
+# Short Summary Rule
+- Use a one-line headline and a one-sentence summary. Optional: up to 3 short bullet details.
+
+Example:
+	- Fix dependency-check NVD parsing error.
+	- Upgraded plugin to 12.1.9 and added a CI `update-only` step.
 - Keep instructions short and self-contained
 - Each instruction should be a single, simple statement
 - Each instruction should not be verbose
