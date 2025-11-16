@@ -45,7 +45,6 @@
     "**/Thumbs.db": true,
 
     // Temporary files
-    "**/*.log": true,
     "**/*.tmp": true,
     "**/*.swp": true,
     "**/*.swo": true,
@@ -126,9 +125,6 @@
     "**/node_modules": true,
     "**/vendor": true,
 
-    // Temporary files
-    "**/*.log": true,
-
     // Java/Maven/Gradle build artifacts
     "**/out": true,
 
@@ -202,9 +198,6 @@
 
     // Build artifacts
     "**/bin/**": true,
-
-    // Temporary files
-    "**/*.log": true,
 
     // Cache files
     "**/.cspellcache": true,
