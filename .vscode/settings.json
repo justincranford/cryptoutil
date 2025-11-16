@@ -18,10 +18,6 @@
   "git.openRepositoryInParentFolders": "always", // Open git repository in parent folders - Default: "never", Recommended: "always" (enables nested repo support)
   "git.blame.editorDecoration.enabled": true, // Show git blame information inline in the editor
 
-  // GitLens Settings
-  "gitlens.ai.model": "vscode", // GitLens AI model provider - Default: "openai", Recommended: "vscode" (use VS Code integration)
-  "gitlens.ai.vscode.model": "copilot:gpt-4.1", // GitLens VS Code AI model - Default: "copilot:gpt-4", Recommended: "copilot:gpt-4.1" (latest model)
-
   // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
   "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
   "terminal.integrated.defaultProfile.windows": "PowerShell", // Set PowerShell as default terminal profile
