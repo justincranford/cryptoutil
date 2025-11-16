@@ -134,7 +134,7 @@ jobs:
             EXTRA_ARGS="-DnvdApiKey=${NVD_API_KEY} -Dnvd.apiKey=${NVD_API_KEY}"
           fi
           # Pass explicit H2 connectionString so the plugin uses project-local DB and doesn't default to ~/.m2
-          ./mvnw org.owasp:dependency-check-maven:update-only $EXTRA_ARGS -Ddependency-check.dataDirectory=${{ github.workspace }}/test/load/target/dependency-check/data -Ddependency-check.connectionString=jdbc:h2:file:${{ github.workspace }}/test/load/target/dependency-check/data/dependency-check-db;AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE
+          ./mvnw org.owasp:dependency-check-maven:update-only $EXTRA_ARGS -Ddependency-check.dataDirectory=${{ github.workspace }}/test/load/target/dependency-check/data -Ddependency-check.connectionString=jdbc:h2:file:${{ github.workspace }}/test/load/target/dependency-check/data/dependency-check-db;DB_CLOSE_ON_EXIT=FALSE
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -146,6 +146,20 @@ jobs:
           ls -la test/load/target/dependency-check || true
           echo "Size summary (if du available):"
           if command -v du >/dev/null 2>&1; then du -sh test/load/target/dependency-check || true; fi
+
+      - name: Verify H2 database exists before check
+        run: |
+          echo "🔍 Verifying H2 database was populated by update-only step..."
+          DB_FILE="test/load/target/dependency-check/data/dependency-check-db.mv.db"
+          if [ -f "$DB_FILE" ]; then
+            DB_SIZE=$(du -h "$DB_FILE" | cut -f1)
+            echo "✅ Database file exists: $DB_SIZE"
+          else
+            echo "::error::❌ Database file not found at $DB_FILE"
+            echo "::error::The update-only step may have failed to populate the NVD database."
+            echo "::error::Check the update-only step logs for errors."
+            exit 1
+          fi
 
       - name: Run OWASP Dependency Check
         # Inject NVD API key securely from repository secrets. If not defined, the step runs without the key.
@@ -170,7 +184,7 @@ jobs:
           # Always avoid failing entire CI job if the dependency-check plugin fails to parse the NVD feed.
           # This happens when NVD adds new enum values (e.g., 'SAFETY' for CVSSv4) and the client library is older.
           # Ensure we use a project-local data directory and do not auto-update during analysis.
-          EXTRA_ARGS="$EXTRA_ARGS -Ddependency-check.failOnError=false -Ddependency-check.skipRebuild=false -Ddependency-check.dataDirectory=${{ github.workspace }}/test/load/target/dependency-check/data -Ddependency-check.autoUpdate=false -Ddependency-check.connectionString=jdbc:h2:file:${{ github.workspace }}/test/load/target/dependency-check/data/dependency-check-db;AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE"
+          EXTRA_ARGS="$EXTRA_ARGS -Ddependency-check.failOnError=false -Ddependency-check.skipRebuild=false -Ddependency-check.dataDirectory=${{ github.workspace }}/test/load/target/dependency-check/data -Ddependency-check.autoUpdate=false -Ddependency-check.connectionString=jdbc:h2:file:${{ github.workspace }}/test/load/target/dependency-check/data/dependency-check-db;DB_CLOSE_ON_EXIT=FALSE"
           ./mvnw org.owasp:dependency-check-maven:check ${EXTRA_ARGS}
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))

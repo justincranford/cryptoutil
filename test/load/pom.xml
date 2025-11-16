@@ -105,9 +105,9 @@
             <failOnError>false</failOnError>
             <!-- Store NVD data in project-local directory to avoid shared ~/.m2 locking conflicts -->
             <dataDirectory>${project.build.directory}/dependency-check/data</dataDirectory>
-            <!-- Use an H2 file DB with AUTO_SERVER to avoid exclusive locks across processes and ensure DB is not closed on JVM exit -->
-            <!-- Use H2 file DB with AUTO_SERVER for cross-process access; DB_CLOSE_ON_EXIT is not supported on newer H2 versions when used with AUTO_SERVER. -->
-            <connectionString>jdbc:h2:file:${project.build.directory}/dependency-check/data/dependency-check-db;AUTO_SERVER=TRUE</connectionString>
+            <!-- Use H2 file DB with DB_CLOSE_ON_EXIT=FALSE to prevent premature closure during concurrent NVD API processing -->
+            <!-- Note: AUTO_SERVER=TRUE is incompatible with DB_CLOSE_ON_EXIT=FALSE in H2 2.4.x -->
+            <connectionString>jdbc:h2:file:${project.build.directory}/dependency-check/data/dependency-check-db;DB_CLOSE_ON_EXIT=FALSE</connectionString>
             <!-- Disable auto-updating during the check stage (we'll run `update-only` as a separate step in CI or local workflow) -->
             <autoUpdate>false</autoUpdate>
             <!-- Retry and delay tuning for NVD API access (adjustable) -->
