@@ -48,8 +48,8 @@ func TestTransactionRollback(t *testing.T) {
 		require.NoError(t, err)
 
 		// Simulate an error to trigger rollback
-		return errors.New("simulated error for rollback test")
 		// The transaction should rollback, so neither user nor client should exist
+		return errors.New("simulated error for rollback test")
 	})
 
 	// Transaction should have failed

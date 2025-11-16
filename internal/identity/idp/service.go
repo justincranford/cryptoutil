@@ -49,6 +49,6 @@ func (s *Service) Stop(ctx context.Context) error {
 func (s *Service) initializeAuthProfiles() {
 	// Register username/password authentication
 	usernamePasswordProfile := cryptoutilIdentityAuth.NewUsernamePasswordProfile(s.repoFactory.UserRepository())
-	s.authProfiles.Register(usernamePasswordProfile)
 	// TODO: Register additional authentication profiles (email+OTP, TOTP, passkey, etc.)
+	s.authProfiles.Register(usernamePasswordProfile)
 }

@@ -32,6 +32,8 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 	}))
 
 	// Rate limiting.
+	// TODO: Add authentication middleware for protected endpoints (/userinfo, /logout).
+	// TODO: Add session validation middleware.
 	app.Use(limiter.New(limiter.Config{
 		Max:        cryptoutilIdentityMagic.RateLimitRequestsPerWindow,
 		Expiration: time.Duration(cryptoutilIdentityMagic.RateLimitWindowSeconds) * time.Second,
@@ -42,6 +44,4 @@ func (s *Service) RegisterMiddleware(app *fiber.App) {
 			})
 		},
 	}))
-	// TODO: Add authentication middleware for protected endpoints (/userinfo, /logout).
-	// TODO: Add session validation middleware.
 }

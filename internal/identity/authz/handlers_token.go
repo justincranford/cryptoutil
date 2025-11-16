@@ -120,8 +120,8 @@ func (s *Service) handleAuthorizationCodeGrant(c *fiber.Ctx) error {
 
 	// Delete authorization code (single-use).
 	if err := s.authReqStore.Delete(ctx, authRequest.RequestID); err != nil {
-		slog.ErrorContext(ctx, "Failed to delete authorization code", "error", err, "request_id", authRequest.RequestID)
 		// Continue anyway - token issuance is more important.
+		slog.ErrorContext(ctx, "Failed to delete authorization code", "error", err, "request_id", authRequest.RequestID)
 	}
 
 	// Get client for token configuration.
