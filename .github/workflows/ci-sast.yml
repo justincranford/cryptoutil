@@ -93,7 +93,9 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           cd test/load
-          ../mvnw spotbugs:check -Dspotbugs.skip=false
+          # Ensure mvnw is executable and run plugin locally
+          chmod +x ./mvnw || true
+          ./mvnw spotbugs:check -Dspotbugs.skip=false
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -106,7 +108,8 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           cd test/load
-          ../mvnw org.owasp:dependency-check-maven:check
+          chmod +x ./mvnw || true
+          ./mvnw org.owasp:dependency-check-maven:check
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
@@ -119,7 +122,8 @@ jobs:
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           cd test/load
-          ../mvnw versions:display-dependency-updates versions:display-plugin-updates
+          chmod +x ./mvnw || true
+          ./mvnw versions:display-dependency-updates versions:display-plugin-updates
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
