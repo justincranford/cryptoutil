@@ -140,6 +140,13 @@ jobs:
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           echo "⏱️ NVD update-only completed in: ${DURATION}s"
 
+      - name: Show dependency-check data directory (debug)
+        run: |
+          echo "Dependency-check data dir contents:"
+          ls -la test/load/target/dependency-check || true
+          echo "Size summary (if du available):"
+          if command -v du >/dev/null 2>&1; then du -sh test/load/target/dependency-check || true; fi
+
       - name: Run OWASP Dependency Check
         # Inject NVD API key securely from repository secrets. If not defined, the step runs without the key.
         env:
