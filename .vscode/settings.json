@@ -1,7 +1,7 @@
 {
   "$schema": "vscode://schemas/settings/user",
   // VS Code Copilot Customization Instructions https://code.visualstudio.com/docs/copilot/customization/custom-instructions
-  "github.copilot.enable": { "markdown": true }, // Enable Copilot for markdown - Default: {}, Recommended: true (enable markdown support)
+  "github.copilot.enable": { "*": true }, // Enable Copilot for all languages by default (workspace-level). Caution: confirm policy.
   "github.copilot.chat.codeGeneration.useInstructionFiles": true, // Use instruction files for code generation - Default: false, Recommended: true
   "github.copilot.chat.generateTests.codeLens": true, // Enable test generation code lens - Default: false, Recommended: true (experimental)
   "github.copilot.chat.editor.temporalContext.enabled": true, // Enable temporal context in editor - Default: false, Recommended: true (experimental)
@@ -16,6 +16,7 @@
   "git.enableSmartCommit": true, // Commit button is only enabled when you have staged changes - Default: true
   "git.confirmSync": false, // Confirm git sync operations - Default: true, Recommended: false (optional)
   "git.openRepositoryInParentFolders": "always", // Open git repository in parent folders - Default: "never", Recommended: "always" (enables nested repo support)
+  "git.blame.editorDecoration.enabled": true, // Show git blame information inline in the editor
 
   // GitLens Settings
   "gitlens.ai.model": "vscode", // GitLens AI model provider - Default: "openai", Recommended: "vscode" (use VS Code integration)
@@ -30,6 +31,7 @@
       "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"]
     }
   }, // Configure PowerShell terminal to suppress banner and set execution policy to RemoteSigned for consistency with system policy
+  "terminal.integrated.shellIntegration.enabled": true, // Enable shell integration for better command detection
 
   // Diff Editor Settings
   "diffEditor.ignoreTrimWhitespace": true, // Ignore trimmed whitespace in diff - Default: true
@@ -37,6 +39,9 @@
 
   // VS Code Files Settings https://code.visualstudio.com/docs/getstarted/settings
   "files.encoding": "utf8", // File encoding to use - Default: "utf8"
+  "files.insertFinalNewline": true, // Ensure files end with a newline - Recommended to align with project policy
+  "files.trimFinalNewlines": true, // Trim extra final newlines - Recommended for consistent file endings
+  "files.associations": { "*.py": "python" },
   "files.trimTrailingWhitespace": true, // Trim trailing whitespace on save - Default: false, Recommended: true (aligns with linting standards)
   "files.exclude": {
     // System/OS files
@@ -343,6 +348,11 @@
 
   // Python Extension Settings https://code.visualstudio.com/docs/python/settings-reference
   "python.terminal.activateEnvironment": true, // Re-enable auto-activation for venv
+  "python.defaultInterpreterPath": "python3",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.testing.pytestArgs": ["."],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
 
   // Java Extension Settings
   "maven.terminal.useJavaHome": true, // Use JAVA_HOME in Maven terminal - Default: false, Recommended: true (consistent Java version)
