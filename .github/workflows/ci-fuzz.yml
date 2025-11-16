@@ -57,20 +57,40 @@ on:
           - all
           - fuzz-keygen
           - fuzz-digests
+      gomaxprocs:
+        description: 'GOMAXPROCS for fuzz tests'
+        required: false
+        default: '4'
+        type: string
       rsa_fuzztime:
         description: 'RSA fuzz test duration (seconds)'
         required: false
         default: '30'
+        type: string
+      rsa_timeout:
+        description: 'RSA fuzz test timeout (seconds)'
+        required: false
+        default: '120'
         type: string
       keygen_fuzztime:
         description: 'Keygen fuzz test duration for non-RSA tests (seconds)'
         required: false
         default: '15'
         type: string
+      keygen_timeout:
+        description: 'Keygen fuzz test timeout for non-RSA tests (seconds)'
+        required: false
+        default: '60'
+        type: string
       digest_fuzztime:
         description: 'Digest fuzz test duration (seconds)'
         required: false
         default: '15'
+        type: string
+      digest_timeout:
+        description: 'Digest fuzz test timeout (seconds)'
+        required: false
+        default: '60'
         type: string
 
 jobs:
@@ -82,7 +102,10 @@ jobs:
 
     env:
       RSA_FUZZTIME: ${{ github.event.inputs.rsa_fuzztime || '30' }}
+      RSA_TIMEOUT: ${{ github.event.inputs.rsa_timeout || '120' }}
       KEYGEN_FUZZTIME: ${{ github.event.inputs.keygen_fuzztime || '15' }}
+      KEYGEN_TIMEOUT: ${{ github.event.inputs.keygen_timeout || '60' }}
+      GOMAXPROCS: ${{ github.event.inputs.gomaxprocs || '4' }}
 
     steps:
     - name: Checkout code
@@ -107,49 +130,63 @@ jobs:
       with:
         fuzz_function_name: FuzzGenerateRSAKeyPair
         package_path: ./internal/common/crypto/keygen
+        gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.RSA_FUZZTIME }}
+        timeout_seconds: ${{ env.RSA_TIMEOUT }}
 
     - name: ECDSA Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateECDSAKeyPair
         package_path: ./internal/common/crypto/keygen
+        gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
+        timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
 
     - name: ECDH Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateECDHKeyPair
         package_path: ./internal/common/crypto/keygen
+        gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
+        timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
 
     - name: EdDSA Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateEDDSAKeyPair
         package_path: ./internal/common/crypto/keygen
+        gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
+        timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
 
     - name: AES Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateAESKey
         package_path: ./internal/common/crypto/keygen
+        gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
+        timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
 
     - name: AES-HS Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateAESHSKey
         package_path: ./internal/common/crypto/keygen
+        gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
+        timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
 
     - name: HMAC Keygen Fuzz Test
       uses: ./.github/actions/fuzz-test
       with:
         fuzz_function_name: FuzzGenerateHMACKey
         package_path: ./internal/common/crypto/keygen
+        gomaxprocs: ${{ env.GOMAXPROCS }}
         fuzztime_seconds: ${{ env.KEYGEN_FUZZTIME }}
+        timeout_seconds: ${{ env.KEYGEN_TIMEOUT }}
 
     - name: Keygen fuzz test summary
       run: |
@@ -171,6 +208,8 @@ jobs:
 
     env:
       DIGEST_FUZZTIME: ${{ github.event.inputs.digest_fuzztime || '15' }}
+      DIGEST_TIMEOUT: ${{ github.event.inputs.digest_timeout || '60' }}
+      GOMAXPROCS: ${{ github.event.inputs.gomaxprocs || '4' }}
 
     steps:
       - name: Checkout code
@@ -195,63 +234,81 @@ jobs:
         with:
           fuzz_function_name: FuzzHKDFAllVariants
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: HKDF SHA256 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA256
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: HKDF SHA384 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA384
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: HKDF SHA512 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA512
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: HKDF SHA224 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzHKDFwithSHA224
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: SHA512 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA512
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: SHA384 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA384
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: SHA256 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA256
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: SHA224 Fuzz Test
         uses: ./.github/actions/fuzz-test
         with:
           fuzz_function_name: FuzzSHA224
           package_path: ./internal/common/crypto/digests
+          gomaxprocs: ${{ env.GOMAXPROCS }}
           fuzztime_seconds: ${{ env.DIGEST_FUZZTIME }}
+          timeout_seconds: ${{ env.DIGEST_TIMEOUT }}
 
       - name: Digests fuzz test summary
         run: |
