@@ -1,45 +1,66 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=75.1.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "cryptoutil"
 version = "0.1.0"
 description = "Cryptographic utilities"
-requires-python = ">=3.10"
+readme = "README.md"
+requires-python = ">=3.14"
+authors = [
+    {name = "Justin Cranford"}
+]
 dependencies = [
     "pytest>=9.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-mock>=3.14.0",
+    "pytest-benchmark>=5.2.3",
     "codecov>=2.1.13",
-    "black>=25.9.0",
-    "isort>=7.0.0",
+    "black>=24.10.0",
+    "isort>=7.1.0",
     "flake8>=7.3.0",
     "mypy>=1.18.2",
+    "bandit>=1.8.0",
     "sphinx>=8.2.3",
     "pre-commit>=4.4.0",
+    "types-requests>=2.32.0",
 ]
 
 [tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "-ra -q --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
+minversion = "7.0"
+addopts = "-ra -q -strict-markers --cov=. --cov-report=term-missing --cov-report=xml --cov-fail-under=96"
 testpaths = ["tests"]
 
 [tool.coverage.run]
+precision = 2
 source = ["."]
-omit = ["*/tests/*", "*/venv/*"]
+omit = ["*/tests/*", "*/venv/*", "*/test_*.py", "*/__pycache__/*"]
 
 [tool.black]
-line-length = 88
-target-version = ['py310']
+line-length = 200
+target-version = ['py313']
+include = "\\.pyi?$"
 
 [tool.isort]
 profile = "black"
+line_length = 200
 multi_line_output = 3
 
 [tool.flake8]
-max-line-length = 88
+max-line-length = 200
 extend-ignore = ["E203", "W503"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.node]
+dependencies = [
+    "nvm-windows>=1.2.2",
+    "node>=24.11.1",
+    "cspell>=9.0.0",
+]
