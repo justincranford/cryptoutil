@@ -103,13 +103,17 @@ jobs:
 
       # OWASP Dependency Check
       - name: Run OWASP Dependency Check
+        # Inject NVD API key securely from repository secrets, do not echo or print the secret value.
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: |
           echo "🔍 Running OWASP dependency vulnerability check..."
           START_TIME=$(date +%s)
           echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
           cd test/load
           chmod +x ./mvnw || true
-          ./mvnw org.owasp:dependency-check-maven:check
+          # Pass NVD API key to the dependency-check plugin via -Dnvd.apiKey. GitHub masks secrets in logs.
+          ./mvnw org.owasp:dependency-check-maven:check -Dnvd.apiKey=${NVD_API_KEY}
           END_TIME=$(date +%s)
           DURATION=$((END_TIME - START_TIME))
           echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
