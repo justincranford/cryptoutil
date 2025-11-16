@@ -2,20 +2,33 @@
   // Schema: vscode://schemas/extensions
   // Recommended extensions for the CryptoUtil workspace
   "recommendations": [
-    "github.copilot",         // GitHub Copilot assistance
-    "github.copilot-chat",    // Copilot Chat integration
+    "github.copilot", // GitHub: Copilot AI pair programmer
+    "github.copilot-chat", // GitHub: Copilot Chat features
+    "github.vscode-github-actions", // GitHub: Actions workflows support
+    "visualstudioexptteam.intellicode-api-usage-examples", // IntelliCode API usage
+    "visualstudioexptteam.vscodeintellicode", // IntelliCode
+    "ms-python.python", // Python language support
+    "ms-python.debugpy", // Python debugger (debugpy)
+    "ms-python.vscode-pylance", // Python language server (Pylance)
+    "ms-python.vscode-python-envs", // Python environments utility
+    "ms-vscode.powershell", // PowerShell language support
+    "ms-vscode-remote.remote-containers", // Remote container development
+    "ms-azuretools.vscode-containers", // Azure containers tooling
+    "docker.docker", // Docker extension
+    "redhat.vscode-yaml", // YAML language support
+    "mhutchie.git-graph", // Visual Git graph
+    "yzhang.markdown-all-in-one", // Markdown tooling
+    "gruntfuggly.todo-tree", // TODO/FIXME tree
+    "mechatroner.rainbow-csv", // CSV highlighting
     "golang.go",              // Go language support and tooling
-    "mhutchie.git-graph",     // Visualize Git history for complex refactors
-    "eamodio.gitlens",         // Advanced Git insights (already configured)
     "vscjava.vscode-java-pack", // Java development pack (for Gatling load tests)
-    "ms-python.python",       // Python scripts and tooling helpers
     "ms-vscode.vscode-eslint", // ESLint for JavaScript/TypeScript (if needed)
     "ms-azuretools.vscode-docker", // Docker and Docker Compose authoring
-    "redhat.vscode-yaml",     // YAML editing validation (Compose, workflows)
-    "yzhang.markdown-all-in-one", // Enhanced Markdown editing
     "42Crunch.vscode-openapi", // OpenAPI spec validation and editing
     "streetsidesoftware.code-spell-checker", // Spell checking docs/instructions
-    "gruntfuggly.todo-tree",  // Surface TODO items in docs/todos files
   ],
-  "unwantedRecommendations": []
+  "unwantedRecommendations": [
+    "gitkraken.gitkraken", // GitKraken GUI client
+    "eamodio.gitlens" // GitLens GUI client (deprecated/blocked)
+  ]
 }

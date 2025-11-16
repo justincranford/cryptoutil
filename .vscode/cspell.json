@@ -453,6 +453,10 @@
     "Decr",
     "bubbletea",
     "schemathesis",
-    "apidevtools"
+    "apidevtools",
+    "visualstudioexptteam",
+    "intellicode",
+    "vscodeintellicode",
+    "mechatroner"
   ]
 }
