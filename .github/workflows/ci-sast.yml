@@ -102,6 +102,15 @@ jobs:
           echo "⏱️ SpotBugs analysis completed in: ${DURATION}s"
 
       # OWASP Dependency Check
+      - name: Check effective maven plugin config for dependency-check (diagnostic)
+        run: |
+          echo "🔍 Checking effective pom for dependency-check plugin config (no secrets will be printed):"
+          cd test/load
+          chmod +x ./mvnw || true
+          # Output the effective pom (plugin configuration should show ${env.NVD_API_KEY} if present in plugin config)
+          ./mvnw org.apache.maven.plugins:maven-help-plugin:3.2.0:effective-pom -Doutput=effective-pom.xml || true
+          grep -n "nvdApiKey" effective-pom.xml || echo "ℹ️ nvdApiKey not configured in effective POM"
+
       - name: Run OWASP Dependency Check
         # Inject NVD API key securely from repository secrets. If not defined, the step runs without the key.
         env:
@@ -116,7 +125,9 @@ jobs:
           EXTRA_ARGS=""
           if [ -n "${NVD_API_KEY}" ]; then
             echo "🔐 NVD API key detected; running with NVD API key (value is masked)."
-            EXTRA_ARGS="-Dnvd.apiKey=${NVD_API_KEY}"
+            # Pass multiple possible property names to be compatible with different plugin versions.
+            # cspell:ignore nvdApiKey nvd.apiKey
+            EXTRA_ARGS="-DnvdApiKey=${NVD_API_KEY} -Dnvd.apiKey=${NVD_API_KEY}"
           else
             echo "ℹ️ NVD API key not set; running without it (this may be slower)."
           fi

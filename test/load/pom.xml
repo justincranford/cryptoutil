@@ -103,6 +103,8 @@
             <skipSystemScope>true</skipSystemScope>
             <format>ALL</format>
             <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>
+            <!-- Allow the NVD API key to be supplied from environment variable NVD_API_KEY (keeps secret out of VCS). -->
+            <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
           </configuration>
           <executions>
             <execution>
