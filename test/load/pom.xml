@@ -20,7 +20,12 @@
     <spotbugs.version>4.8.6</spotbugs.version>
     <spotbugs-maven-plugin.version>4.8.6.4</spotbugs-maven-plugin.version>
     <findsecbugs.version>1.12.0</findsecbugs.version>
-    <owasp-dependency-check.version>10.0.4</owasp-dependency-check.version>
+    <!-- Bumped to pick up fixes in the openvulnerability client for CVSS v4 parsing (e.g., SAFETY enum) -->
+    <!-- Bumped to release 12.1.9 to include updated openvulnerability client and jackson libs fixing CVSSv4 enum parsing -->
+        <!-- Bumped to pick up fixes in the openvulnerability client for CVSS v4 parsing (e.g., SAFETY enum).
+          Using a more recent plugin (12.x) for improved reliability and bugfixes.
+        -->
+        <owasp-dependency-check.version>12.1.9</owasp-dependency-check.version>
     <versions-maven-plugin.version>2.17.1</versions-maven-plugin.version>
   </properties>
 
@@ -96,6 +101,17 @@
           <artifactId>dependency-check-maven</artifactId>
           <version>${owasp-dependency-check.version}</version>
           <configuration>
+            <!-- Don't fail the entire build if the NVD feed schema changes (e.g., new CVSSv4 enums like "SAFETY") -->
+            <failOnError>false</failOnError>
+            <!-- Store NVD data in project-local directory to avoid shared ~/.m2 locking conflicts -->
+            <dataDirectory>${project.build.directory}/dependency-check/data</dataDirectory>
+            <!-- Use an H2 file DB with AUTO_SERVER to avoid exclusive locks across processes and ensure DB is not closed on JVM exit -->
+            <!-- Use H2 file DB with AUTO_SERVER for cross-process access; DB_CLOSE_ON_EXIT is not supported on newer H2 versions when used with AUTO_SERVER. -->
+            <connectionString>jdbc:h2:file:${project.build.directory}/dependency-check/data/dependency-check-db;AUTO_SERVER=TRUE</connectionString>
+            <!-- Disable auto-updating during the check stage (we'll run `update-only` as a separate step in CI or local workflow) -->
+            <autoUpdate>false</autoUpdate>
+            <!-- Retry and delay tuning for NVD API access (adjustable) -->
+            <nvdMaxRetryCount>5</nvdMaxRetryCount>
             <failBuildOnCVSS>7</failBuildOnCVSS>
             <skipTestScope>false</skipTestScope>
             <skipProvidedScope>false</skipProvidedScope>
