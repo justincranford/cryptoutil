@@ -74,8 +74,6 @@ func TestFilterWorkflowFiles(t *testing.T) {
 }
 
 func TestCheckWorkflowLintWithError_NoFiles(t *testing.T) {
-	t.Skip("Skipping test that calls os.Exit() - not testable in unit tests")
-
 	logger := NewLogUtil("TestCheckWorkflowLintWithError_NoFiles")
 	allFiles := []string{}
 
@@ -84,8 +82,6 @@ func TestCheckWorkflowLintWithError_NoFiles(t *testing.T) {
 }
 
 func TestCheckWorkflowLintWithError_NoWorkflowFiles(t *testing.T) {
-	t.Skip("Skipping test that calls os.Exit() - not testable in unit tests")
-
 	logger := NewLogUtil("TestCheckWorkflowLintWithError_NoWorkflowFiles")
 	allFiles := []string{
 		"README.md",
@@ -98,8 +94,6 @@ func TestCheckWorkflowLintWithError_NoWorkflowFiles(t *testing.T) {
 }
 
 func TestCheckWorkflowLintWithError_ValidWorkflowFile(t *testing.T) {
-	t.Skip("Skipping test that calls os.Exit() - not testable in unit tests")
-
 	logger := NewLogUtil("TestCheckWorkflowLintWithError_ValidWorkflowFile")
 
 	tmpDir := t.TempDir()
@@ -122,8 +116,6 @@ jobs:
 	require.NoError(t, err)
 
 	allFiles := []string{workflowFile}
-	//nolint:ineffassign,errcheck // Testing workflow lint, may succeed or fail
-	err = checkWorkflowLintWithError(logger, allFiles)
 	// May pass or fail depending on whether action versions are up to date
 	// The important thing is it doesn't panic
 	require.NotPanics(t, func() {
@@ -133,8 +125,6 @@ jobs:
 }
 
 func TestCheckWorkflowLintWithError_MissingCIPrefix(t *testing.T) {
-	t.Skip("Skipping test that calls os.Exit() - not testable in unit tests")
-
 	logger := NewLogUtil("TestCheckWorkflowLintWithError_MissingCIPrefix")
 
 	tmpDir := t.TempDir()
@@ -161,8 +151,6 @@ jobs:
 }
 
 func TestCheckWorkflowLintWithError_MissingWorkflowReference(t *testing.T) {
-	t.Skip("Skipping test that calls os.Exit() - not testable in unit tests")
-
 	logger := NewLogUtil("TestCheckWorkflowLintWithError_MissingWorkflowReference")
 
 	tmpDir := t.TempDir()
