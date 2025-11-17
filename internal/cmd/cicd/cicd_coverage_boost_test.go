@@ -1,3 +1,6 @@
+// CRITICAL: This file is EXCLUDED from go-enforce-any enforcement (see magic_cicd.go GoEnforceAnyFileExcludePatterns).
+// It contains deliberate `interface {}` patterns to test the enforcement logic.
+// DO NOT run go-enforce-any on this file as it would modify the test patterns.
 package cicd
 
 import (
@@ -30,8 +33,8 @@ func main() {}
 `
 	testAnyContent = `package test
 
-var x any = 42
-var y any = "hello"
+var x interface{} = 42
+var y interface{} = "hello"
 `
 )
 
@@ -374,16 +377,16 @@ func process(data any) any {
 	require.Error(t, err, "goEnforceAny should return error when modifications are made")
 	require.Contains(t, err.Error(), "modified")
 
-	// Verify replacements were made
+	// Verify replacements were made - interface{} should have been replaced with any
 	modifiedContent1, err := os.ReadFile(file1)
 	require.NoError(t, err)
-	require.Contains(t, string(modifiedContent1), "any")
-	require.NotContains(t, string(modifiedContent1), "any")
+	require.Contains(t, string(modifiedContent1), "any", "Should contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent1), "interface{}", "Should not contain 'interface{}' after replacement")
 
 	modifiedContent2, err := os.ReadFile(file2)
 	require.NoError(t, err)
-	require.Contains(t, string(modifiedContent2), "any")
-	require.NotContains(t, string(modifiedContent2), "any")
+	require.Contains(t, string(modifiedContent2), "any", "Should contain 'any' after replacement")
+	require.NotContains(t, string(modifiedContent2), "interface{}", "Should not contain 'interface{}' after replacement")
 }
 
 // TestGoEnforceAny_AlreadyUsingAny tests files already using 'any'.

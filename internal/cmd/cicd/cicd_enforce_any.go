@@ -1,6 +1,10 @@
 // Package cicd provides CI/CD quality control checks for the cryptoutil project.
 //
 // This file contains the go-enforce-any command implementation.
+//
+// CRITICAL: This file is EXCLUDED from go-enforce-any enforcement (see magic_cicd.go GoEnforceAnyFileExcludePatterns).
+// It may contain `interface {}` patterns for demonstration or implementation purposes.
+// DO NOT run go-enforce-any on this file as it would modify its own implementation.
 package cicd
 
 import (

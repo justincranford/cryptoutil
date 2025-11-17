@@ -1,3 +1,7 @@
+// CRITICAL: This file is EXCLUDED from go-enforce-any enforcement (see magic_cicd.go GoEnforceAnyFileExcludePatterns).
+// It contains deliberate `interface {}` patterns to test the enforcement logic.
+// ALL tests for `interface {}` to `any` enforcement MUST be in this file to avoid modification by go-enforce-any.
+// DO NOT add `interface {}` test patterns to other test files unless they are also excluded.
 package cicd
 
 import (

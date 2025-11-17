@@ -125,9 +125,12 @@ var (
 // File patterns for CI/CD enforcement commands.
 var (
 	// GoEnforceAnyFileExcludePatterns - Files excluded from go-enforce-any command to prevent self-modification.
+	// CRITICAL: Test files containing deliberate `interface {}` (note space) patterns MUST be excluded to prevent modification.
+	// When adding new tests for `interface {}` to `any` enforcement, add them to cicd_enforce_any_test.go.
 	GoEnforceAnyFileExcludePatterns = []string{
 		`internal[/\\]cmd[/\\]cicd[/\\]cicd_enforce_any\.go$`,          // Exclude this file itself to prevent self-modification
-		`internal[/\\]cmd[/\\]cicd[/\\]cicd_enforce_any_test\.go$`,     // Exclude test file to preserve deliberate test patterns
+		`internal[/\\]cmd[/\\]cicd[/\\]cicd_enforce_any_test\.go$`,     // Exclude test file to preserve deliberate `interface {}` test patterns
+		`internal[/\\]cmd[/\\]cicd[/\\]cicd_coverage_boost_test\.go$`,  // Exclude coverage test file with deliberate `interface {}` patterns
 		`internal[/\\]cmd[/\\]cicd[/\\]file_patterns_enforce_any\.go$`, // Exclude pattern definitions to prevent self-modification
 		`api/client`,    // Generated API client
 		`api/model`,     // Generated API models
