@@ -188,19 +188,16 @@ jobs:
 }
 
 func TestValidateAndGetWorkflowActionsDetails_EmptyFiles(t *testing.T) {
-	t.Skip("Skipping test that calls os.Exit() - not testable in unit tests")
-
 	logger := NewLogUtil("TestValidateAndGetWorkflowActionsDetails_EmptyFiles")
 	allFiles := []string{}
 
-	result := validateAndGetWorkflowActionsDetails(logger, allFiles)
+	result, err := validateAndGetWorkflowActionsDetails(logger, allFiles)
+	require.NoError(t, err)
 	require.NotNil(t, result)
 	require.Empty(t, result)
 }
 
 func TestValidateAndGetWorkflowActionsDetails_WithActions(t *testing.T) {
-	t.Skip("Skipping test that calls os.Exit() - not testable in unit tests")
-
 	logger := NewLogUtil("TestValidateAndGetWorkflowActionsDetails_WithActions")
 
 	tmpDir := t.TempDir()
@@ -224,7 +221,8 @@ jobs:
 	require.NoError(t, err)
 
 	allFiles := []string{workflowFile}
-	result := validateAndGetWorkflowActionsDetails(logger, allFiles)
+	result, err := validateAndGetWorkflowActionsDetails(logger, allFiles)
+	require.NoError(t, err)
 	require.NotNil(t, result)
 	// Should have found actions/checkout and actions/setup-go
 	require.NotEmpty(t, result)

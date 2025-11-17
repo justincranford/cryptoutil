@@ -22,7 +22,15 @@ func checkWorkflowLintWithError(logger *LogUtil, allFiles []string) error {
 		workflowActionExceptions = &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}
 	}
 
-	workflowsActionDetails := validateAndGetWorkflowActionsDetails(logger, allFiles)
+	workflowsActionDetails, err := validateAndGetWorkflowActionsDetails(logger, allFiles)
+	if err != nil {
+		return fmt.Errorf("workflow validation failed: %w", err)
+	}
+
+	// If no actions found, nothing to check
+	if len(workflowsActionDetails) == 0 {
+		return nil
+	}
 
 	// Check versions concurrently for better performance
 	logger.Log(fmt.Sprintf("Checking %d unique actions for updates", len(workflowsActionDetails)))
@@ -77,7 +85,7 @@ func checkWorkflowLintWithError(logger *LogUtil, allFiles []string) error {
 	return nil
 }
 
-func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) map[string]WorkflowActionDetails {
+func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) (map[string]WorkflowActionDetails, error) {
 	workflowsActionDetails := make(map[string]WorkflowActionDetails)
 
 	var allValidationErrors []string
@@ -112,18 +120,20 @@ func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) ma
 		}
 
 		fmt.Fprintln(os.Stderr, "\nPlease fix the workflow files to match naming and logging conventions.")
-		os.Exit(1)
+
+		return nil, fmt.Errorf("found %d workflow validation errors", len(allValidationErrors))
 	}
 
-	// If no actions were found, report and exit (no further checks necessary)
+	// If no actions were found, return empty map (not an error)
 	if len(workflowsActionDetails) == 0 {
 		fmt.Fprintln(os.Stderr, "No actions found in workflow files")
 
 		logger.Log("checkWorkflowLint completed (no actions)")
-		os.Exit(0)
+
+		return workflowsActionDetails, nil
 	}
 
-	return workflowsActionDetails
+	return workflowsActionDetails, nil
 }
 
 func filterWorkflowFiles(allFiles []string) []string {
@@ -131,7 +141,8 @@ func filterWorkflowFiles(allFiles []string) []string {
 
 	for _, workflowFile := range allFiles {
 		normalizedFilePath := filepath.ToSlash(workflowFile)
-		if strings.HasPrefix(normalizedFilePath, cryptoutilMagic.WorkflowsDir) && (strings.HasSuffix(normalizedFilePath, ".yml") || strings.HasSuffix(normalizedFilePath, ".yaml")) {
+		// Check if path contains .github/workflows/ (not just prefix) to support test temp directories.
+		if strings.Contains(normalizedFilePath, cryptoutilMagic.WorkflowsDir+"/") && (strings.HasSuffix(normalizedFilePath, ".yml") || strings.HasSuffix(normalizedFilePath, ".yaml")) {
 			workflowFiles = append(workflowFiles, normalizedFilePath)
 		}
 	}
