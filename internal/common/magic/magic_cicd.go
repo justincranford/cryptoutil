@@ -28,6 +28,14 @@ type DepCache struct {
 	Mode         string    `json:"mode"`
 }
 
+// CircularDepCache represents cached circular dependency check results.
+type CircularDepCache struct {
+	LastCheck       time.Time `json:"last_check"`
+	GoModModTime    time.Time `json:"go_mod_mod_time"`
+	HasCircularDeps bool      `json:"has_circular_deps"`
+	CircularDeps    []string  `json:"circular_deps"` // Flattened representation of cycles
+}
+
 // Regex patterns for test enforcement.
 
 const (
@@ -43,6 +51,9 @@ const (
 	// Dependency cache file name.
 	DepCacheFileName = ".cicd-dep-cache.json"
 
+	// Circular dependency cache file name.
+	CircularDepCacheFileName = ".cicd-circular-dep-cache.json"
+
 	// Dependency check mode names.
 	ModeNameDirect = "direct"
 	ModeNameAll    = "all"
@@ -50,6 +61,12 @@ const (
 	// Time constants for dependency cache testing.
 	TestCacheValidMinutes = 30
 	TestCacheExpiredHours = 2
+
+	// Dependency cache validity duration.
+	DepCacheValidDuration = 30 * time.Minute
+
+	// Circular dependency cache validity (longer since go.mod changes less frequently).
+	CircularDepCacheValidDuration = 60 * time.Minute
 
 	// Time constants for GitHub API cache testing.
 	TestGitHubAPICacheExpiredHours = 1

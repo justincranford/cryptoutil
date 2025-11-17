@@ -10,6 +10,10 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
+	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
 type PackageInfo struct {
@@ -19,9 +23,56 @@ type PackageInfo struct {
 
 // goCheckCircularPackageDeps checks for circular dependencies in Go packages.
 // It analyzes the dependency graph of all packages in the project and returns an error if circular dependencies are found.
+// Uses caching to avoid expensive go list calls when nothing has changed.
 func goCheckCircularPackageDeps(logger *LogUtil) error {
 	logger.Log("Checking for circular dependencies in Go packages")
 
+	cacheFile := cryptoutilMagic.CircularDepCacheFileName
+
+	// Check if we can use cached results
+	goModStat, err := os.Stat("go.mod")
+	if err != nil {
+		logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
+
+		return fmt.Errorf("failed to read go.mod: %w", err)
+	}
+
+	// Try to load cache
+	if cache, err := loadCircularDepCache(cacheFile); err == nil {
+		// Check if cache is still valid
+		cacheAge := time.Since(cache.LastCheck)
+		isExpired := cacheAge > cryptoutilMagic.CircularDepCacheValidDuration
+		goModChanged := cache.GoModModTime.Before(goModStat.ModTime())
+
+		if !isExpired && !goModChanged {
+			logger.Log(fmt.Sprintf("Using cached circular dependency check results (age: %.1fs)", cacheAge.Seconds()))
+
+			if cache.HasCircularDeps {
+				errMsg := fmt.Sprintf("circular dependencies detected (cached): %s", strings.Join(cache.CircularDeps, ", "))
+				logger.Log(fmt.Sprintf("❌ RESULT: %s", errMsg))
+
+				return fmt.Errorf("%s", errMsg)
+			}
+
+			fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found (cached)")
+			fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
+			logger.Log("goCheckCircularPackageDeps completed (cached, no circular dependencies)")
+
+			return nil
+		}
+
+		if isExpired {
+			logger.Log(fmt.Sprintf("Cache expired (age: %.1fs > %.0fs)", cacheAge.Seconds(), cryptoutilMagic.CircularDepCacheValidDuration.Seconds()))
+		}
+
+		if goModChanged {
+			logger.Log("Cache invalidated: go.mod was modified")
+		}
+	} else {
+		logger.Log(fmt.Sprintf("Cache miss: %v", err))
+	}
+
+	// Cache miss or expired, perform actual check
 	logger.Log("Running: go list -json ./...")
 
 	cmd := exec.Command("go", "list", "-json", "./...")
@@ -34,18 +85,65 @@ func goCheckCircularPackageDeps(logger *LogUtil) error {
 	}
 
 	// Use the extracted function for the core logic
-	if err := checkCircularDependencies(string(output)); err != nil {
-		logger.Log(fmt.Sprintf("❌ RESULT: %v", err))
+	circularDepsError := checkCircularDependencies(string(output))
 
+	// Save results to cache
+	cache := cryptoutilMagic.CircularDepCache{
+		LastCheck:       time.Now().UTC(),
+		GoModModTime:    goModStat.ModTime(),
+		HasCircularDeps: circularDepsError != nil,
+		CircularDeps:    []string{},
+	}
+
+	if circularDepsError != nil {
+		// Store simplified error message in cache
+		cache.CircularDeps = []string{circularDepsError.Error()}
+	}
+
+	if err := saveCircularDepCache(cacheFile, cache); err != nil {
+		logger.Log(fmt.Sprintf("Warning: Failed to save circular dependency cache: %v", err))
+	}
+
+	if circularDepsError != nil {
+		logger.Log(fmt.Sprintf("❌ RESULT: %v", circularDepsError))
 		logger.Log("goCheckCircularPackageDeps completed (circular dependencies found)")
 
-		return err
+		return circularDepsError
 	}
 
 	fmt.Fprintln(os.Stderr, "✅ RESULT: No circular dependencies found")
 	fmt.Fprintln(os.Stderr, "All internal package dependencies are acyclic.")
 
 	logger.Log("goCheckCircularPackageDeps completed (no circular dependencies)")
+
+	return nil
+}
+
+// loadCircularDepCache loads circular dependency cache from the specified file.
+func loadCircularDepCache(cacheFile string) (*cryptoutilMagic.CircularDepCache, error) {
+	content, err := os.ReadFile(cacheFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read cache file: %w", err)
+	}
+
+	var cache cryptoutilMagic.CircularDepCache
+	if err := json.Unmarshal(content, &cache); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal cache JSON: %w", err)
+	}
+
+	return &cache, nil
+}
+
+// saveCircularDepCache saves circular dependency cache to the specified file.
+func saveCircularDepCache(cacheFile string, cache cryptoutilMagic.CircularDepCache) error {
+	content, err := json.MarshalIndent(cache, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal cache JSON: %w", err)
+	}
+
+	if err := cryptoutilFiles.WriteFile(cacheFile, content, cryptoutilMagic.CacheFilePermissions); err != nil {
+		return fmt.Errorf("failed to write cache file: %w", err)
+	}
 
 	return nil
 }
