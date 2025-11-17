@@ -11,6 +11,12 @@ import (
 	cryptoutilIdentityORM "cryptoutil/internal/identity/repository/orm"
 )
 
+// contextKey is the type for context keys to avoid collisions.
+type contextKey string
+
+// txKey is the context key for storing the transaction DB.
+const txKey contextKey = "gorm_tx"
+
 // RepositoryFactory creates and manages repository instances.
 type RepositoryFactory struct {
 	db                *gorm.DB
@@ -44,9 +50,19 @@ func NewRepositoryFactory(ctx context.Context, cfg *cryptoutilIdentityConfig.Dat
 	}, nil
 }
 
-// UserRepository returns the user repository.
+// User returns the user repository.
+func (f *RepositoryFactory) User() UserRepository {
+	return f.userRepo
+}
+
+// UserRepository returns the user repository (alias for User for backwards compatibility).
 func (f *RepositoryFactory) UserRepository() UserRepository {
 	return f.userRepo
+}
+
+// UserWithContext returns the user repository with transaction support from context.
+func (f *RepositoryFactory) UserWithContext(ctx context.Context) UserRepository {
+	return cryptoutilIdentityORM.NewUserRepository(f.getDB(ctx))
 }
 
 // ClientRepository returns the client repository.
@@ -92,7 +108,10 @@ func (f *RepositoryFactory) DB() *gorm.DB {
 // Transaction executes the given function within a database transaction.
 func (f *RepositoryFactory) Transaction(ctx context.Context, fn func(context.Context) error) error {
 	if err := f.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		return fn(ctx)
+		// Store transaction DB in context so repositories can use it.
+		txCtx := context.WithValue(ctx, txKey, tx)
+
+		return fn(txCtx)
 	}); err != nil {
 		return cryptoutilIdentityAppErr.WrapError(
 			cryptoutilIdentityAppErr.ErrDatabaseTransaction,
@@ -101,6 +120,15 @@ func (f *RepositoryFactory) Transaction(ctx context.Context, fn func(context.Con
 	}
 
 	return nil
+}
+
+// getDB returns the transaction DB from context if present, otherwise returns the base DB.
+func (f *RepositoryFactory) getDB(ctx context.Context) *gorm.DB {
+	if tx, ok := ctx.Value(txKey).(*gorm.DB); ok {
+		return tx
+	}
+
+	return f.db
 }
 
 // Close closes the database connection.

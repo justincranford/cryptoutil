@@ -25,7 +25,7 @@ func NewClientProfileRepository(db *gorm.DB) *ClientProfileRepositoryGORM {
 
 // Create creates a new client profile.
 func (r *ClientProfileRepositoryGORM) Create(ctx context.Context, profile *cryptoutilIdentityDomain.ClientProfile) error {
-	if err := r.db.WithContext(ctx).Create(profile).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Create(profile).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create client profile: %w", err))
 	}
 
@@ -35,7 +35,7 @@ func (r *ClientProfileRepositoryGORM) Create(ctx context.Context, profile *crypt
 // GetByID retrieves a client profile by ID.
 func (r *ClientProfileRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.ClientProfile, error) {
 	var profile cryptoutilIdentityDomain.ClientProfile
-	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&profile).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&profile).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrClientProfileNotFound
 		}
@@ -49,7 +49,7 @@ func (r *ClientProfileRepositoryGORM) GetByID(ctx context.Context, id googleUuid
 // GetByName retrieves a client profile by name.
 func (r *ClientProfileRepositoryGORM) GetByName(ctx context.Context, name string) (*cryptoutilIdentityDomain.ClientProfile, error) {
 	var profile cryptoutilIdentityDomain.ClientProfile
-	if err := r.db.WithContext(ctx).Where("name = ? AND deleted_at IS NULL", name).First(&profile).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("name = ? AND deleted_at IS NULL", name).First(&profile).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrClientProfileNotFound
 		}
@@ -63,7 +63,7 @@ func (r *ClientProfileRepositoryGORM) GetByName(ctx context.Context, name string
 // Update updates an existing client profile.
 func (r *ClientProfileRepositoryGORM) Update(ctx context.Context, profile *cryptoutilIdentityDomain.ClientProfile) error {
 	profile.UpdatedAt = time.Now()
-	if err := r.db.WithContext(ctx).Save(profile).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Save(profile).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update client profile: %w", err))
 	}
 
@@ -72,7 +72,7 @@ func (r *ClientProfileRepositoryGORM) Update(ctx context.Context, profile *crypt
 
 // Delete deletes a client profile by ID (soft delete).
 func (r *ClientProfileRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.ClientProfile{}).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.ClientProfile{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete client profile: %w", err))
 	}
 
@@ -82,7 +82,7 @@ func (r *ClientProfileRepositoryGORM) Delete(ctx context.Context, id googleUuid.
 // List lists client profiles with pagination.
 func (r *ClientProfileRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.ClientProfile, error) {
 	var profiles []*cryptoutilIdentityDomain.ClientProfile
-	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&profiles).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&profiles).Error; err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to list client profiles: %w", err))
 	}
 
@@ -92,7 +92,7 @@ func (r *ClientProfileRepositoryGORM) List(ctx context.Context, offset, limit in
 // Count returns the total number of client profiles.
 func (r *ClientProfileRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
-	if err := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.ClientProfile{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.ClientProfile{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
 		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to count client profiles: %w", err))
 	}
 

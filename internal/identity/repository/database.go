@@ -19,10 +19,18 @@ import (
 )
 
 const (
+	// Database type constants.
+	dbTypePostgres = "postgres"
+	dbTypeSQLite   = "sqlite"
+
 	// dsnMemory is the DSN for in-memory SQLite databases.
 	dsnMemory = ":memory:"
 	// dsnMemoryShared is the DSN for shared in-memory SQLite databases.
 	dsnMemoryShared = "file::memory:?cache=shared"
+
+	// SQLite connection pool settings for GORM transaction pattern.
+	sqliteMaxOpenConns = 5 // Balance between concurrency and resource usage.
+	sqliteMaxIdleConns = 5
 )
 
 // initializeDatabase initializes a GORM database connection based on configuration.
@@ -30,29 +38,22 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 	var dialector gorm.Dialector
 
 	switch cfg.Type {
-	case "postgres":
+	case dbTypePostgres:
 		dialector = postgres.Open(cfg.DSN)
-	case "sqlite":
+	case dbTypeSQLite:
 		// For in-memory databases, use shared cache mode to ensure all connections share the same database.
 		dsn := cfg.DSN
 		if dsn == dsnMemory {
 			dsn = dsnMemoryShared
 		}
 
-		// Open SQLite database with modernc driver (CGO-free).
+		// Open SQLite database with modernc driver (CGO-free) explicitly.
 		sqlDB, err := sql.Open("sqlite", dsn)
 		if err != nil {
 			return nil, cryptoutilIdentityAppErr.WrapError(
 				cryptoutilIdentityAppErr.ErrDatabaseConnection,
 				fmt.Errorf("failed to open SQLite database: %w", err),
 			)
-		}
-
-		// For in-memory databases with shared cache, keep at least one connection alive.
-		if cfg.DSN == dsnMemory {
-			sqlDB.SetMaxIdleConns(1)
-			sqlDB.SetMaxOpenConns(1)
-			sqlDB.SetConnMaxLifetime(0) // Never close connections for in-memory DB.
 		}
 
 		// Enable WAL mode for better concurrency (allows multiple readers + 1 writer).
@@ -71,7 +72,7 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 			)
 		}
 
-		// Use GORM sqlite dialector with existing sql.DB connection.
+		// Use GORM sqlite dialector with existing sql.DB connection from modernc driver.
 		dialector = sqlite.Dialector{Conn: sqlDB}
 	default:
 		return nil, cryptoutilIdentityAppErr.WrapError(
@@ -85,7 +86,8 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 
 	// Open database connection.
 	db, err := gorm.Open(dialector, &gorm.Config{
-		Logger: gormLogger,
+		Logger:                 gormLogger,
+		SkipDefaultTransaction: true, // Disable automatic transactions for Create/Update/Delete (we manage transactions explicitly)
 	})
 	if err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(
@@ -103,9 +105,18 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 		)
 	}
 
-	// Apply connection pool settings only if not using in-memory database.
-	// For in-memory databases, we already set MaxIdleConns=1 and MaxOpenConns=1 above.
-	if cfg.DSN != dsnMemory {
+	// Apply connection pool settings.
+	// For SQLite: Limit pool size but allow enough connections for GORM transaction + operation pattern.
+	// SQLite in WAL mode supports multiple readers + 1 writer.
+	// GORM with SkipDefaultTransaction=true still needs 2+ connections: one for explicit transaction,
+	// one for the CRUD operation inside the transaction.
+	// busy_timeout makes SQLite retry when a connection is locked by another transaction.
+	if cfg.Type == dbTypeSQLite {
+		sqlDB.SetMaxOpenConns(sqliteMaxOpenConns) // Balance between concurrency and resource usage for GORM pattern.
+		sqlDB.SetMaxIdleConns(sqliteMaxIdleConns)
+		sqlDB.SetConnMaxLifetime(0) // Never close connections for in-memory DB.
+		sqlDB.SetConnMaxIdleTime(0)
+	} else {
 		sqlDB.SetMaxOpenConns(cfg.MaxOpenConns)
 		sqlDB.SetMaxIdleConns(cfg.MaxIdleConns)
 		sqlDB.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifetime) * time.Second)

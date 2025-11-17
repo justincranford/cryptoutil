@@ -25,7 +25,7 @@ func NewClientRepository(db *gorm.DB) *ClientRepositoryGORM {
 
 // Create creates a new client.
 func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
-	if err := r.db.WithContext(ctx).Create(client).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Create(client).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create client: %w", err))
 	}
 
@@ -35,7 +35,7 @@ func (r *ClientRepositoryGORM) Create(ctx context.Context, client *cryptoutilIde
 // GetByID retrieves a client by ID.
 func (r *ClientRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Client, error) {
 	var client cryptoutilIdentityDomain.Client
-	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&client).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&client).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrClientNotFound
 		}
@@ -49,7 +49,7 @@ func (r *ClientRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) 
 // GetByClientID retrieves a client by OAuth client_id.
 func (r *ClientRepositoryGORM) GetByClientID(ctx context.Context, clientID string) (*cryptoutilIdentityDomain.Client, error) {
 	var client cryptoutilIdentityDomain.Client
-	if err := r.db.WithContext(ctx).Where("client_id = ? AND deleted_at IS NULL", clientID).First(&client).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("client_id = ? AND deleted_at IS NULL", clientID).First(&client).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrClientNotFound
 		}
@@ -63,7 +63,7 @@ func (r *ClientRepositoryGORM) GetByClientID(ctx context.Context, clientID strin
 // Update updates an existing client.
 func (r *ClientRepositoryGORM) Update(ctx context.Context, client *cryptoutilIdentityDomain.Client) error {
 	client.UpdatedAt = time.Now()
-	if err := r.db.WithContext(ctx).Save(client).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Save(client).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update client: %w", err))
 	}
 
@@ -72,7 +72,7 @@ func (r *ClientRepositoryGORM) Update(ctx context.Context, client *cryptoutilIde
 
 // Delete deletes a client by ID (soft delete).
 func (r *ClientRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.Client{}).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.Client{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete client: %w", err))
 	}
 
@@ -82,7 +82,7 @@ func (r *ClientRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) e
 // List lists clients with pagination.
 func (r *ClientRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Client, error) {
 	var clients []*cryptoutilIdentityDomain.Client
-	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&clients).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&clients).Error; err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to list clients: %w", err))
 	}
 
@@ -92,7 +92,7 @@ func (r *ClientRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*
 // Count returns the total number of clients.
 func (r *ClientRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
-	if err := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.Client{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Client{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
 		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to count clients: %w", err))
 	}
 

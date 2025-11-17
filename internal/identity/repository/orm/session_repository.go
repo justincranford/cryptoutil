@@ -25,7 +25,7 @@ func NewSessionRepository(db *gorm.DB) *SessionRepositoryGORM {
 
 // Create creates a new session.
 func (r *SessionRepositoryGORM) Create(ctx context.Context, session *cryptoutilIdentityDomain.Session) error {
-	if err := r.db.WithContext(ctx).Create(session).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Create(session).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create session: %w", err))
 	}
 
@@ -35,7 +35,7 @@ func (r *SessionRepositoryGORM) Create(ctx context.Context, session *cryptoutilI
 // GetByID retrieves a session by ID.
 func (r *SessionRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.Session, error) {
 	var session cryptoutilIdentityDomain.Session
-	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&session).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&session).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrSessionNotFound
 		}
@@ -49,7 +49,7 @@ func (r *SessionRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID)
 // GetBySessionID retrieves a session by session_id.
 func (r *SessionRepositoryGORM) GetBySessionID(ctx context.Context, sessionID string) (*cryptoutilIdentityDomain.Session, error) {
 	var session cryptoutilIdentityDomain.Session
-	if err := r.db.WithContext(ctx).Where("session_id = ? AND deleted_at IS NULL", sessionID).First(&session).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("session_id = ? AND deleted_at IS NULL", sessionID).First(&session).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrSessionNotFound
 		}
@@ -63,7 +63,7 @@ func (r *SessionRepositoryGORM) GetBySessionID(ctx context.Context, sessionID st
 // Update updates an existing session.
 func (r *SessionRepositoryGORM) Update(ctx context.Context, session *cryptoutilIdentityDomain.Session) error {
 	session.UpdatedAt = time.Now()
-	if err := r.db.WithContext(ctx).Save(session).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Save(session).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update session: %w", err))
 	}
 
@@ -72,7 +72,7 @@ func (r *SessionRepositoryGORM) Update(ctx context.Context, session *cryptoutilI
 
 // Delete deletes a session by ID (soft delete).
 func (r *SessionRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.Session{}).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.Session{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete session: %w", err))
 	}
 
@@ -81,7 +81,7 @@ func (r *SessionRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) 
 
 // TerminateByID terminates a session by ID.
 func (r *SessionRepositoryGORM) TerminateByID(ctx context.Context, id googleUuid.UUID) error {
-	result := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).
+	result := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).
 		Where("id = ? AND deleted_at IS NULL", id).
 		Updates(map[string]any{
 			"active":        false,
@@ -101,7 +101,7 @@ func (r *SessionRepositoryGORM) TerminateByID(ctx context.Context, id googleUuid
 
 // TerminateBySessionID terminates a session by session_id.
 func (r *SessionRepositoryGORM) TerminateBySessionID(ctx context.Context, sessionID string) error {
-	result := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).
+	result := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).
 		Where("session_id = ? AND deleted_at IS NULL", sessionID).
 		Updates(map[string]any{
 			"active":        false,
@@ -121,7 +121,7 @@ func (r *SessionRepositoryGORM) TerminateBySessionID(ctx context.Context, sessio
 
 // DeleteExpired deletes expired sessions (hard delete).
 func (r *SessionRepositoryGORM) DeleteExpired(ctx context.Context) error {
-	if err := r.db.WithContext(ctx).Unscoped().
+	if err := getDB(ctx, r.db).WithContext(ctx).Unscoped().
 		Where("expires_at < ?", time.Now()).
 		Delete(&cryptoutilIdentityDomain.Session{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete expired sessions: %w", err))
@@ -133,7 +133,7 @@ func (r *SessionRepositoryGORM) DeleteExpired(ctx context.Context) error {
 // List lists sessions with pagination.
 func (r *SessionRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.Session, error) {
 	var sessions []*cryptoutilIdentityDomain.Session
-	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&sessions).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&sessions).Error; err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to list sessions: %w", err))
 	}
 
@@ -143,7 +143,7 @@ func (r *SessionRepositoryGORM) List(ctx context.Context, offset, limit int) ([]
 // Count returns the total number of sessions.
 func (r *SessionRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
-	if err := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.Session{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
 		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to count sessions: %w", err))
 	}
 

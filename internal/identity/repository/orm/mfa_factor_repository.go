@@ -25,7 +25,7 @@ func NewMFAFactorRepository(db *gorm.DB) *MFAFactorRepositoryGORM {
 
 // Create creates a new MFA factor.
 func (r *MFAFactorRepositoryGORM) Create(ctx context.Context, factor *cryptoutilIdentityDomain.MFAFactor) error {
-	if err := r.db.WithContext(ctx).Create(factor).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Create(factor).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create MFA factor: %w", err))
 	}
 
@@ -35,7 +35,7 @@ func (r *MFAFactorRepositoryGORM) Create(ctx context.Context, factor *cryptoutil
 // GetByID retrieves an MFA factor by ID.
 func (r *MFAFactorRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.MFAFactor, error) {
 	var factor cryptoutilIdentityDomain.MFAFactor
-	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&factor).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&factor).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrMFAFactorNotFound
 		}
@@ -49,7 +49,7 @@ func (r *MFAFactorRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUI
 // GetByAuthProfileID retrieves MFA factors by authentication profile ID.
 func (r *MFAFactorRepositoryGORM) GetByAuthProfileID(ctx context.Context, authProfileID googleUuid.UUID) ([]*cryptoutilIdentityDomain.MFAFactor, error) {
 	var factors []*cryptoutilIdentityDomain.MFAFactor
-	if err := r.db.WithContext(ctx).
+	if err := getDB(ctx, r.db).WithContext(ctx).
 		Where("auth_profile_id = ? AND deleted_at IS NULL", authProfileID).
 		Order("\"order\" ASC").
 		Find(&factors).Error; err != nil {
@@ -62,7 +62,7 @@ func (r *MFAFactorRepositoryGORM) GetByAuthProfileID(ctx context.Context, authPr
 // Update updates an existing MFA factor.
 func (r *MFAFactorRepositoryGORM) Update(ctx context.Context, factor *cryptoutilIdentityDomain.MFAFactor) error {
 	factor.UpdatedAt = time.Now()
-	if err := r.db.WithContext(ctx).Save(factor).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Save(factor).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update MFA factor: %w", err))
 	}
 
@@ -71,7 +71,7 @@ func (r *MFAFactorRepositoryGORM) Update(ctx context.Context, factor *cryptoutil
 
 // Delete deletes an MFA factor by ID (soft delete).
 func (r *MFAFactorRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.MFAFactor{}).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.MFAFactor{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete MFA factor: %w", err))
 	}
 
@@ -81,7 +81,7 @@ func (r *MFAFactorRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID
 // List lists MFA factors with pagination.
 func (r *MFAFactorRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.MFAFactor, error) {
 	var factors []*cryptoutilIdentityDomain.MFAFactor
-	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&factors).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&factors).Error; err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to list MFA factors: %w", err))
 	}
 
@@ -91,7 +91,7 @@ func (r *MFAFactorRepositoryGORM) List(ctx context.Context, offset, limit int) (
 // Count returns the total number of MFA factors.
 func (r *MFAFactorRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
-	if err := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.MFAFactor{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.MFAFactor{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
 		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to count MFA factors: %w", err))
 	}
 

@@ -25,7 +25,7 @@ func NewAuthFlowRepository(db *gorm.DB) *AuthFlowRepositoryGORM {
 
 // Create creates a new authorization flow.
 func (r *AuthFlowRepositoryGORM) Create(ctx context.Context, flow *cryptoutilIdentityDomain.AuthFlow) error {
-	if err := r.db.WithContext(ctx).Create(flow).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Create(flow).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to create auth flow: %w", err))
 	}
 
@@ -35,7 +35,7 @@ func (r *AuthFlowRepositoryGORM) Create(ctx context.Context, flow *cryptoutilIde
 // GetByID retrieves an authorization flow by ID.
 func (r *AuthFlowRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID) (*cryptoutilIdentityDomain.AuthFlow, error) {
 	var flow cryptoutilIdentityDomain.AuthFlow
-	if err := r.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&flow).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(&flow).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrAuthFlowNotFound
 		}
@@ -49,7 +49,7 @@ func (r *AuthFlowRepositoryGORM) GetByID(ctx context.Context, id googleUuid.UUID
 // GetByName retrieves an authorization flow by name.
 func (r *AuthFlowRepositoryGORM) GetByName(ctx context.Context, name string) (*cryptoutilIdentityDomain.AuthFlow, error) {
 	var flow cryptoutilIdentityDomain.AuthFlow
-	if err := r.db.WithContext(ctx).Where("name = ? AND deleted_at IS NULL", name).First(&flow).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("name = ? AND deleted_at IS NULL", name).First(&flow).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, cryptoutilIdentityAppErr.ErrAuthFlowNotFound
 		}
@@ -63,7 +63,7 @@ func (r *AuthFlowRepositoryGORM) GetByName(ctx context.Context, name string) (*c
 // Update updates an existing authorization flow.
 func (r *AuthFlowRepositoryGORM) Update(ctx context.Context, flow *cryptoutilIdentityDomain.AuthFlow) error {
 	flow.UpdatedAt = time.Now()
-	if err := r.db.WithContext(ctx).Save(flow).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Save(flow).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to update auth flow: %w", err))
 	}
 
@@ -72,7 +72,7 @@ func (r *AuthFlowRepositoryGORM) Update(ctx context.Context, flow *cryptoutilIde
 
 // Delete deletes an authorization flow by ID (soft delete).
 func (r *AuthFlowRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID) error {
-	if err := r.db.WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.AuthFlow{}).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("id = ?", id).Delete(&cryptoutilIdentityDomain.AuthFlow{}).Error; err != nil {
 		return cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to delete auth flow: %w", err))
 	}
 
@@ -82,7 +82,7 @@ func (r *AuthFlowRepositoryGORM) Delete(ctx context.Context, id googleUuid.UUID)
 // List lists authorization flows with pagination.
 func (r *AuthFlowRepositoryGORM) List(ctx context.Context, offset, limit int) ([]*cryptoutilIdentityDomain.AuthFlow, error) {
 	var flows []*cryptoutilIdentityDomain.AuthFlow
-	if err := r.db.WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&flows).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Where("deleted_at IS NULL").Offset(offset).Limit(limit).Find(&flows).Error; err != nil {
 		return nil, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to list auth flows: %w", err))
 	}
 
@@ -92,7 +92,7 @@ func (r *AuthFlowRepositoryGORM) List(ctx context.Context, offset, limit int) ([
 // Count returns the total number of authorization flows.
 func (r *AuthFlowRepositoryGORM) Count(ctx context.Context) (int64, error) {
 	var count int64
-	if err := r.db.WithContext(ctx).Model(&cryptoutilIdentityDomain.AuthFlow{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
+	if err := getDB(ctx, r.db).WithContext(ctx).Model(&cryptoutilIdentityDomain.AuthFlow{}).Where("deleted_at IS NULL").Count(&count).Error; err != nil {
 		return 0, cryptoutilIdentityAppErr.WrapError(cryptoutilIdentityAppErr.ErrDatabaseQuery, fmt.Errorf("failed to count auth flows: %w", err))
 	}
 
