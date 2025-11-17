@@ -1,52 +1,41 @@
 # CRYPTOUTIL PROJECT - REMAINING TASKS
 
-## PRIORITY 1: Fix os.Exit() Architecture to Enable 96% Coverage
+**IMPORTANT:** Completed items are tracked in `docs/codecov/completed.txt`
 
-### Task 1.1: Add Copilot Instruction for os.Exit() Usage
-- Add instruction to .github/copilot-instructions.md:
-  - NEVER invoke os.Exit() in main or test code
-  - ONLY exception: main() functions or cmd pattern entry functions
-  - ALWAYS return wrapped errors all the way up, so os.Exit() is only called at the command entry point
-  - REASON: Support maximum unit testing, because os.Exit() calls halt unit tests which is undesirable
-- Commit: "docs(copilot): add os.Exit() usage restrictions for testability"
+## PRIORITY 1: Achieve 96% Coverage for cicd Package
 
-### Task 1.2: Refactor cicd Package to Remove os.Exit() Calls
-- Fix internal/cmd/cicd/*.go code that calls os.Exit() and blocks maximizing code coverage in unit tests
-- Specifically refactor:
-  - cicd_workflow_lint.go: checkWorkflowLintWithError() - return error instead of os.Exit(1)
-  - cicd_workflow_lint.go: validateAndGetWorkflowActionsDetails() - return error instead of os.Exit(0)/os.Exit(1)
-  - cicd_github_api_cache.go: getLatestTag() - any os.Exit() calls
-- Update cmd/cicd/main.go to handle returned errors and call os.Exit() at entry point only
+### Task 1.4: Achieve 96%+ Coverage for cicd Package (CONTINUING)
+- Current: 87.6% (was 82.4%, was 53.0%)
+- Target: 96%+
+- Need: +8.4% more coverage
+- Add comprehensive tests for remaining untestable functions
+- Add tests for edge cases and error paths
 - Verify tests pass
-- Commit: "refactor(cicd): remove os.Exit() calls from library code for testability"
-
-### Task 1.3: Reorganize cicd Package into Command Subdirectories
-- Move CICD command-specific main and test code to subdirectories: internal/cmd/cicd/<COMMAND>/
-  - cicd_check_circular_deps/ (cicd_check_circular_deps.go + tests)
-  - cicd_enforce_any/ (cicd_enforce_any.go + tests)
-  - cicd_enforce_test_patterns/ (cicd_enforce_test_patterns.go + tests)
-  - cicd_enforce_utf8/ (cicd_enforce_utf8.go + tests)
-  - cicd_update_deps/ (cicd_update_deps.go + tests)
-  - cicd_workflow_lint/ (cicd_workflow_lint.go + cicd_github_api_cache.go + tests)
-- Keep shared utilities in internal/cmd/cicd/ root: cicd.go, cicd_log.go
-- REASON: Simplify exclusion pattern for cicd_enforce_any command to ignore all main and test files in that subdirectory
-- Update import paths in all files
-- Simplify exclusion pattern for cicd_enforce_any command in magic_cicd.go
-- Verify tests pass
-- Commit: "refactor(cicd): reorganize into command subdirectories for better organization"
-
-### Task 1.4: Achieve 96%+ Coverage for cicd Package
-- Add comprehensive tests for previously untestable functions (now testable after os.Exit() removal)
-- Add tests for checkWorkflowLintWithError() error paths
-- Add tests for validateAndGetWorkflowActionsDetails() validation scenarios
-- Target: 96% or higher coverage
-- Verify tests pass
-- Commit: "test(cicd): achieve 96%+ coverage after os.Exit() refactoring"
+- Commit: "test(cicd): achieve 96%+ coverage"
 
 ## PRIORITY 2: Database Performance Optimization (4 packages)
 
-### Task 2.1: Optimize internal/server/repository/sqlrepository
-- Add parameterized happy and sad path tests
+### Task 2.1: Optimize internal/server/repository/sqlrepository (CONTINUING)
+- Current: 58.9% (was 52.6%)
+- Target: 90%+
+- Need: +31.1% more coverage
+- Continue adding parameterized happy and sad path tests
+- Add tests for error paths, PostgreSQL-specific code
+- Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
+- Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
+- Latency: Minimize latency for individual transactions and CRUD statements (SQLite + PostgreSQL)
+- Throughput: Maximum throughput for bulk transactions and CRUD statements (SQLite + PostgreSQL)
+- Document findings in docs/DB-PERF-kms-sql.md (pros, cons, what went well, what needs improvement)
+- Verify tests pass
+- Commit: "perf(sqlrepository): optimize performance and add comprehensive tests"
+
+### Task 2.2: Optimize internal/server/repository/orm (CONTINUING)
+- Current: 47.9% (was 29.7%)
+- Target: 90%+
+- Need: +42.1% more coverage
+- Fix test isolation issues in barrier_operations_test.go (data persistence)
+- Add business entity tests (ElasticKey, MaterialKey operations)
+- Continue adding parameterized happy and sad path tests
 - Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
 - Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
 - Latency: Minimize latency for individual transactions and CRUD statements (SQLite + PostgreSQL)

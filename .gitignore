@@ -39,10 +39,11 @@ cryptoutil$
 **/htmlcov/
 **/.tox/
 **/.nox/
-**/.coverage
-**/.coverage.*
 **/.cache
 **/nosetests.xml
+**/.coverage
+**/.coverage.*
+**/coverage
 **/coverage.xml
 **/coverage.out
 **/coverage.html
@@ -50,7 +51,6 @@ cryptoutil$
 **/coverage.lcov
 **/coverage_test
 **/coverage_cicd
-**/coverage
 **/*.cover
 **/*.test
 **/.hypothesis/
