@@ -324,7 +324,8 @@ func isOutdated(current, latest string) bool {
 // loadWorkflowActionExceptions loads action exceptions from the JSON file.
 // Returns an empty exceptions struct if the file doesn't exist.
 func loadWorkflowActionExceptions() (*WorkflowActionExceptions, error) {
-	exceptionsFile := ".github/workflows-outdated-action-exemptions.json"
+	const exceptionsFile = ".github/workflows-outdated-action-exemptions.json"
+
 	if _, err := os.Stat(exceptionsFile); os.IsNotExist(err) {
 		// No exceptions file, return empty exceptions
 		return &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}, nil
