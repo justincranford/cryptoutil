@@ -13,7 +13,8 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-func checkWorkflowLint(logger *LogUtil, allFiles []string) {
+// checkWorkflowLintWithError is a wrapper that returns an error instead of calling os.Exit.
+func checkWorkflowLintWithError(logger *LogUtil, allFiles []string) error {
 	workflowActionExceptions, err := loadWorkflowActionExceptions()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to load action exceptions: %v", err))
@@ -65,12 +66,15 @@ func checkWorkflowLint(logger *LogUtil, allFiles []string) {
 		}
 
 		fmt.Fprintln(os.Stderr, "\nPlease update to the latest versions manually.")
-		os.Exit(1) // Fail to block push
+
+		return fmt.Errorf("found %d outdated GitHub Actions", len(outdated))
 	}
 
 	fmt.Fprintln(os.Stderr, "All GitHub Actions are up to date.")
 
 	logger.Log("checkWorkflowLint completed")
+
+	return nil
 }
 
 func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) map[string]WorkflowActionDetails {

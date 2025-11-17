@@ -7,7 +7,9 @@
 package cicd
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -326,6 +328,91 @@ func TestValidateCommands(t *testing.T) {
 			} else {
 				require.NoError(t, err, "Expected no error for test case: %s", tt.name)
 			}
+		})
+	}
+}
+
+func TestPrintExecutionSummary(t *testing.T) {
+	tests := []struct {
+		name          string
+		results       []CommandResult
+		totalDuration time.Duration
+	}{
+		{
+			name: "all commands successful",
+			results: []CommandResult{
+				{Command: "all-enforce-utf8", Duration: 100 * time.Millisecond, Error: nil},
+				{Command: "go-enforce-test-patterns", Duration: 200 * time.Millisecond, Error: nil},
+				{Command: "go-enforce-any", Duration: 150 * time.Millisecond, Error: nil},
+			},
+			totalDuration: 450 * time.Millisecond,
+		},
+		{
+			name: "some commands failed",
+			results: []CommandResult{
+				{Command: "all-enforce-utf8", Duration: 100 * time.Millisecond, Error: nil},
+				{Command: "go-enforce-test-patterns", Duration: 200 * time.Millisecond, Error: fmt.Errorf("pattern violation")},
+				{Command: "go-enforce-any", Duration: 150 * time.Millisecond, Error: nil},
+			},
+			totalDuration: 450 * time.Millisecond,
+		},
+		{
+			name: "all commands failed",
+			results: []CommandResult{
+				{Command: "all-enforce-utf8", Duration: 100 * time.Millisecond, Error: fmt.Errorf("encoding error")},
+				{Command: "go-enforce-test-patterns", Duration: 200 * time.Millisecond, Error: fmt.Errorf("pattern violation")},
+			},
+			totalDuration: 300 * time.Millisecond,
+		},
+		{
+			name:          "no commands executed",
+			results:       []CommandResult{},
+			totalDuration: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test just ensures printExecutionSummary doesn't panic
+			// Actual output validation would require capturing stderr
+			require.NotPanics(t, func() {
+				printExecutionSummary(tt.results, tt.totalDuration)
+			}, "printExecutionSummary should not panic")
+		})
+	}
+}
+
+func TestCommandResult(t *testing.T) {
+	tests := []struct {
+		name     string
+		result   CommandResult
+		hasError bool
+	}{
+		{
+			name: "successful command",
+			result: CommandResult{
+				Command:  "all-enforce-utf8",
+				Duration: 100 * time.Millisecond,
+				Error:    nil,
+			},
+			hasError: false,
+		},
+		{
+			name: "failed command",
+			result: CommandResult{
+				Command:  "go-enforce-test-patterns",
+				Duration: 200 * time.Millisecond,
+				Error:    fmt.Errorf("test pattern violation"),
+			},
+			hasError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.hasError, tt.result.Error != nil, "Error state should match expectation")
+			require.NotEmpty(t, tt.result.Command, "Command name should not be empty")
+			require.GreaterOrEqual(t, tt.result.Duration, time.Duration(0), "Duration should be non-negative")
 		})
 	}
 }

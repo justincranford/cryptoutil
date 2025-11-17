@@ -19,14 +19,25 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
+// CommandResult tracks the execution result of a single command.
+type CommandResult struct {
+	Command  string
+	Duration time.Duration
+	Error    error
+}
+
 // Run executes the specified CI/CD check commands.
+// Commands are executed sequentially, collecting results for each.
+// Returns an error if any command fails, but continues executing all commands.
 func Run(commands []string) error {
 	logger := NewLogUtil("Run")
+	startTime := time.Now()
 
 	err := validateCommands(commands)
 	if err != nil {
@@ -48,47 +59,53 @@ func Run(commands []string) error {
 	}
 
 	if doListAllFiles {
+		listFilesStart := time.Now()
+
 		allFiles, err = cryptoutilFiles.ListAllFiles(".")
 		if err != nil {
 			return fmt.Errorf("failed to collect files: %w", err)
 		}
 
-		logger.Log("collectAllFiles completed")
+		logger.Log(fmt.Sprintf("collectAllFiles completed in %.2fs", time.Since(listFilesStart).Seconds()))
 	}
 
 	logger.Log(fmt.Sprintf("Executing %d commands", len(commands)))
 
+	// Execute all commands and collect results
+	results := make([]CommandResult, 0, len(commands))
+
 	for i, command := range commands {
-		logger.Log(fmt.Sprintf("Executing command: %s", command))
+		cmdStart := time.Now()
+
+		logger.Log(fmt.Sprintf("Executing command %d/%d: %s", i+1, len(commands), command))
+
+		var cmdErr error
 
 		switch command {
 		case "all-enforce-utf8":
-			if err := allEnforceUtf8(logger, allFiles); err != nil {
-				return err
-			}
+			cmdErr = allEnforceUtf8(logger, allFiles)
 		case "go-enforce-test-patterns":
-			if err := goEnforceTestPatterns(logger, allFiles); err != nil {
-				return err
-			}
+			cmdErr = goEnforceTestPatterns(logger, allFiles)
 		case "go-enforce-any":
-			if err := goEnforceAny(logger, allFiles); err != nil {
-				return err
-			}
+			cmdErr = goEnforceAny(logger, allFiles)
 		case "go-check-circular-package-dependencies":
-			if err := goCheckCircularPackageDeps(logger); err != nil {
-				return err
-			}
-		case "go-update-direct-dependencies": // Best practice, only direct dependencies
-			if err := goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect); err != nil {
-				return fmt.Errorf("go-update-direct-dependencies failed: %w", err)
-			}
-		case "go-update-all-dependencies": // Less practiced, direct & transient dependencies
-			if err := goUpdateDeps(logger, cryptoutilMagic.DepCheckAll); err != nil {
-				return fmt.Errorf("go-update-all-dependencies failed: %w", err)
-			}
+			cmdErr = goCheckCircularPackageDeps(logger)
+		case "go-update-direct-dependencies":
+			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect)
+		case "go-update-all-dependencies":
+			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckAll)
 		case "github-workflow-lint":
-			checkWorkflowLint(logger, allFiles)
+			cmdErr = checkWorkflowLintWithError(logger, allFiles)
 		}
+
+		cmdDuration := time.Since(cmdStart)
+		results = append(results, CommandResult{
+			Command:  command,
+			Duration: cmdDuration,
+			Error:    cmdErr,
+		})
+
+		logger.Log(fmt.Sprintf("Command '%s' completed in %.2fs", command, cmdDuration.Seconds()))
 
 		// Add a separator between multiple commands
 		if i < len(commands)-1 {
@@ -96,9 +113,59 @@ func Run(commands []string) error {
 		}
 	}
 
-	logger.Log("Run completed")
+	// Print summary
+	totalDuration := time.Since(startTime)
+	printExecutionSummary(results, totalDuration)
+
+	// Collect all errors
+	var failedCommands []string
+
+	for _, result := range results {
+		if result.Error != nil {
+			failedCommands = append(failedCommands, result.Command)
+		}
+	}
+
+	if len(failedCommands) > 0 {
+		return fmt.Errorf("failed commands: %s", strings.Join(failedCommands, ", "))
+	}
+
+	logger.Log("Run completed successfully")
 
 	return nil
+}
+
+// printExecutionSummary prints a summary of all command executions.
+func printExecutionSummary(results []CommandResult, totalDuration time.Duration) {
+	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilMagic.SeparatorLength))
+	fmt.Fprintln(os.Stderr, "EXECUTION SUMMARY")
+	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilMagic.SeparatorLength))
+
+	successCount := 0
+	failureCount := 0
+
+	for _, result := range results {
+		status := "✅ SUCCESS"
+		if result.Error != nil {
+			status = "❌ FAILED"
+			failureCount++
+		} else {
+			successCount++
+		}
+
+		fmt.Fprintf(os.Stderr, "%s  %-45s  %8.2fs\n",
+			status,
+			result.Command,
+			result.Duration.Seconds())
+	}
+
+	fmt.Fprintln(os.Stderr, strings.Repeat("-", cryptoutilMagic.SeparatorLength))
+	fmt.Fprintf(os.Stderr, "Total: %d commands  |  Passed: %d  |  Failed: %d  |  Time: %.2fs\n",
+		len(results),
+		successCount,
+		failureCount,
+		totalDuration.Seconds())
+	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilMagic.SeparatorLength))
 }
 
 func validateCommands(commands []string) error {
