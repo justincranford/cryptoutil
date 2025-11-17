@@ -89,6 +89,8 @@
     "**/*.test": true,
     "**/coverage.out": true,
     "**/coverage_test": true,
+    "**/coverage_cicd": true,
+    "**/coverage": true,
     "**/coverage.html": true,
     "**/test-results": true,
 
@@ -155,6 +157,8 @@
     "**/*.test": true,
     "**/coverage.out": true,
     "**/coverage_test": true,
+    "**/coverage_cicd": true,
+    "**/coverage": true,
     "**/test-results": true,
 
     // Python artifacts
@@ -217,6 +221,10 @@
 
     // Test artifacts
     "**/test-results/**": true,
+    "**/coverage.out": true,
+    "**/coverage_test": true,
+    "**/coverage_cicd/**": true,
+    "**/coverage": true,
 
     // Python artifacts
     "**/__pycache__/**": true,

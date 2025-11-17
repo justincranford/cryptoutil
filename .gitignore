@@ -49,6 +49,8 @@ cryptoutil$
 **/coverage.json
 **/coverage.lcov
 **/coverage_test
+**/coverage_cicd
+**/coverage
 **/*.cover
 **/*.test
 **/.hypothesis/
