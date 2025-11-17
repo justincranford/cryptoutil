@@ -72,11 +72,11 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) error {
 		return fmt.Errorf("failed to check dependencies: %w", err)
 	}
 
-	// Get direct dependencies for the check
+	// Get direct dependencies for the check (only read go.mod once)
 	var directDeps map[string]bool
 
 	if mode == cryptoutilMagic.DepCheckDirect {
-		// Read go.mod file to get direct dependencies (this serves as exists check)
+		// Read go.mod file to get direct dependencies (optimization: read once, use for both stat and parsing)
 		goModContent, err := os.ReadFile("go.mod")
 		if err != nil {
 			logger.Log(fmt.Sprintf("Error reading go.mod: %v", err))
@@ -135,14 +135,38 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) error {
 // It takes the mode, file stats, go list output, and direct dependencies map as inputs to enable testing with mock data.
 // Returns a slice of outdated dependency strings and an error if the check fails.
 func checkDependencyUpdates(mode cryptoutilMagic.DepCheckMode, goListOutput string, directDeps map[string]bool) ([]string, error) {
-	lines := strings.Split(strings.TrimSpace(goListOutput), "\n")
-	allOutdated := []string{}
+	// Optimize: avoid trim and split overhead for empty output
+	if goListOutput == "" {
+		return []string{}, nil
+	}
+
+	lines := strings.Split(goListOutput, "\n")
+	// Preallocate with reasonable capacity to avoid multiple allocations
+	allOutdated := make([]string, 0, 16)
 
 	// Check for lines containing [v...] indicating available updates
+	// Optimize: use single pass with minimal string operations
 	for _, line := range lines {
-		if strings.Contains(line, "[v") && strings.Contains(line, "]") {
+		// Skip empty lines early
+		if len(line) == 0 {
+			continue
+		}
+
+		// Check for update marker "[v"
+		updateIdx := strings.Index(line, "[v")
+		if updateIdx == -1 {
+			continue
+		}
+
+		// Verify closing bracket exists
+		if strings.Contains(line[updateIdx:], "]") {
 			allOutdated = append(allOutdated, line)
 		}
+	}
+
+	// If no outdated dependencies found, return early
+	if len(allOutdated) == 0 {
+		return []string{}, nil
 	}
 
 	var outdated []string
@@ -150,11 +174,14 @@ func checkDependencyUpdates(mode cryptoutilMagic.DepCheckMode, goListOutput stri
 	if mode == cryptoutilMagic.DepCheckDirect {
 		// For direct mode, only check dependencies that are explicitly listed in go.mod
 		// Filter to only direct dependencies
+		outdated = make([]string, 0, len(allOutdated)) // Preallocate with upper bound
+
 		for _, dep := range allOutdated {
 			// Extract module name from the line (format: "module/path v1.2.3 [v1.2.4]")
-			parts := strings.Fields(dep)
-			if len(parts) > 0 {
-				moduleName := parts[0]
+			// Optimize: use index-based parsing instead of Fields which allocates
+			spaceIdx := strings.Index(dep, " ")
+			if spaceIdx > 0 {
+				moduleName := dep[:spaceIdx]
 				if directDeps[moduleName] {
 					outdated = append(outdated, dep)
 				}
@@ -210,13 +237,23 @@ func saveDepCache(cacheFile string, cache cryptoutilMagic.DepCache) error {
 
 // getDirectDependencies parses go.mod content and returns a map of direct dependencies.
 func getDirectDependencies(goModContent []byte) (map[string]bool, error) {
-	directDeps := make(map[string]bool)
-	lines := strings.Split(string(goModContent), "\n")
+	// Preallocate map with reasonable capacity
+	directDeps := make(map[string]bool, 32)
+
+	// Convert to string once
+	content := string(goModContent)
+	lines := strings.Split(content, "\n")
 
 	inRequireBlock := false
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+
+		// Skip empty lines early
+		if len(line) == 0 {
+			continue
+		}
+
 		if strings.HasPrefix(line, "require (") {
 			inRequireBlock = true
 
@@ -230,15 +267,28 @@ func getDirectDependencies(goModContent []byte) (map[string]bool, error) {
 		}
 
 		if inRequireBlock || strings.HasPrefix(line, "require ") {
+			// Skip indirect dependencies early
+			if strings.Contains(line, "// indirect") {
+				continue
+			}
+
 			// Parse lines like "github.com/example/package v1.2.3"
-			parts := strings.Fields(line)
-			if len(parts) >= 2 {
-				// Skip indirect dependencies (marked with // indirect comment)
-				if strings.Contains(line, "// indirect") {
-					continue
+			// Optimize: use index-based parsing instead of Fields
+			spaceIdx := strings.Index(line, " ")
+			if spaceIdx > 0 {
+				moduleName := line[:spaceIdx]
+				// Handle "require " prefix for single-line requires
+				if strings.HasPrefix(moduleName, "require") {
+					// Skip the "require " prefix
+					moduleName = strings.TrimPrefix(line, "require ")
+					spaceIdx = strings.Index(moduleName, " ")
+
+					if spaceIdx > 0 {
+						moduleName = moduleName[:spaceIdx]
+					}
 				}
 
-				directDeps[parts[0]] = true
+				directDeps[moduleName] = true
 			}
 		}
 	}
