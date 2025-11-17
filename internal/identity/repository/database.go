@@ -55,6 +55,22 @@ func initializeDatabase(ctx context.Context, cfg *cryptoutilIdentityConfig.Datab
 			sqlDB.SetConnMaxLifetime(0) // Never close connections for in-memory DB.
 		}
 
+		// Enable WAL mode for better concurrency (allows multiple readers + 1 writer).
+		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+			return nil, cryptoutilIdentityAppErr.WrapError(
+				cryptoutilIdentityAppErr.ErrDatabaseConnection,
+				fmt.Errorf("failed to enable WAL mode: %w", err),
+			)
+		}
+
+		// Set busy timeout for handling concurrent write operations (30 seconds).
+		if _, err := sqlDB.Exec("PRAGMA busy_timeout = 30000;"); err != nil {
+			return nil, cryptoutilIdentityAppErr.WrapError(
+				cryptoutilIdentityAppErr.ErrDatabaseConnection,
+				fmt.Errorf("failed to set busy timeout: %w", err),
+			)
+		}
+
 		// Use GORM sqlite dialector with existing sql.DB connection.
 		dialector = sqlite.Dialector{Conn: sqlDB}
 	default:

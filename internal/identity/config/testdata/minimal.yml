@@ -7,6 +7,15 @@ authz:
 database:
   type: sqlite
   dsn: ":memory:"
+  max_open_conns: 1
+  max_idle_conns: 1
 
 tokens:
   issuer: https://test.example.com
+  access_token_lifetime: 3600s
+  refresh_token_lifetime: 86400s
+  id_token_lifetime: 3600s
+  access_token_format: jws
+  refresh_token_format: uuid
+  id_token_format: jws
+  signing_algorithm: RS256
