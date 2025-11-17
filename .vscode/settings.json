@@ -20,16 +20,22 @@
 
   // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
   "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
-  "terminal.integrated.defaultProfile.windows": "PowerShell", // Set PowerShell as default terminal profile
+  "terminal.integrated.defaultProfile.windows": "PowerShell Core", // Set PowerShell Core (pwsh) as default terminal profile
   "terminal.integrated.profiles.windows": {
+    "PowerShell Core": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": ["-NoLogo"]
+    },
     "PowerShell": {
       "source": "PowerShell",
       "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"]
     }
-  }, // Configure PowerShell terminal to suppress banner and set execution policy to RemoteSigned for consistency with system policy
+  }, // Configure PowerShell Core (pwsh) terminal for shell integration support; fallback to Windows PowerShell 5.1 if needed
   "terminal.integrated.shellIntegration.enabled": true, // Enable shell integration for better command detection
+  "terminal.integrated.shellIntegration.history": 500,
 
-  // Diff Editor Settings
+    // Diff Editor Settings
   "diffEditor.ignoreTrimWhitespace": true, // Ignore trimmed whitespace in diff - Default: true
   "diffEditor.hideUnchangedRegions.enabled": false, // Hide unchanged regions in diff - Default: false
 
