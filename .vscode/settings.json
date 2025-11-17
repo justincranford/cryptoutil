@@ -20,6 +20,8 @@
 
   // VS Code Terminal Settings https://code.visualstudio.com/docs/terminal/profiles
   "terminal.integrated.fontSize": 15, // Increase terminal font size (default 12)
+  "terminal.integrated.shellIntegration.enabled": true, // Enable shell integration for better command detection
+  "terminal.integrated.shellIntegration.history": 500,
   "terminal.integrated.defaultProfile.windows": "PowerShell Core", // Set PowerShell Core (pwsh) as default terminal profile
   "terminal.integrated.profiles.windows": {
     "PowerShell Core": {
@@ -32,8 +34,6 @@
       "args": ["-NoLogo", "-ExecutionPolicy", "RemoteSigned"]
     }
   }, // Configure PowerShell Core (pwsh) terminal for shell integration support; fallback to Windows PowerShell 5.1 if needed
-  "terminal.integrated.shellIntegration.enabled": true, // Enable shell integration for better command detection
-  "terminal.integrated.shellIntegration.history": 500,
 
     // Diff Editor Settings
   "diffEditor.ignoreTrimWhitespace": true, // Ignore trimmed whitespace in diff - Default: true
@@ -87,6 +87,7 @@
     // Test artifacts
     "**/*.test": true,
     "**/coverage.out": true,
+    "**/coverage_test": true,
     "**/coverage.html": true,
     "**/test-results": true,
 
@@ -152,6 +153,7 @@
     // Test artifacts
     "**/*.test": true,
     "**/coverage.out": true,
+    "**/coverage_test": true,
     "**/test-results": true,
 
     // Python artifacts
