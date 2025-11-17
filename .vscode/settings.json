@@ -78,8 +78,9 @@
     "**/vendor": true,
     "**/node_modules": true,
 
-    // Cache files
+    // Cache files and cicd outputs
     "**/.cspellcache": true,
+    "**/.cicd": true,
 
     // Environment files
     "**/.env": true,

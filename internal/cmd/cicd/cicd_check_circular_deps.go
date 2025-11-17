@@ -141,6 +141,11 @@ func saveCircularDepCache(cacheFile string, cache cryptoutilMagic.CircularDepCac
 		return fmt.Errorf("failed to marshal cache JSON: %w", err)
 	}
 
+	// Ensure output directory exists.
+	if err := os.MkdirAll(cryptoutilMagic.CICDOutputDir, cryptoutilMagic.CICDOutputDirPermissions); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
 	if err := cryptoutilFiles.WriteFile(cacheFile, content, cryptoutilMagic.CacheFilePermissions); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}

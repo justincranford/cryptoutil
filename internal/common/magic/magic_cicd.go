@@ -42,17 +42,25 @@ const (
 	// UI constants.
 	SeparatorLength = 50
 
-	// Minimum number of regex match groups for action parsing.
+	// MinActionMatchGroups is the minimum number of regex match groups for action parsing.
 	MinActionMatchGroups = 3
 
 	// Cache file permissions (owner read/write only).
 	CacheFilePermissions = 0o600
 
+	// Directory permissions (owner read/write/execute, group and others execute).
+	CICDOutputDirPermissions = 0o711
+
+	// CICD output directory for all generated files, reports, and cache files.
+	// Centralizes all cicd outputs to declutter repo root, simplify .gitignore patterns,
+	// and simplify VS Code settings.json file exclusions.
+	CICDOutputDir = ".cicd"
+
 	// Dependency cache file name.
-	DepCacheFileName = ".cicd-dep-cache.json"
+	DepCacheFileName = ".cicd/dep-cache.json"
 
 	// Circular dependency cache file name.
-	CircularDepCacheFileName = ".cicd-circular-dep-cache.json"
+	CircularDepCacheFileName = ".cicd/circular-dep-cache.json"
 
 	// Dependency check mode names.
 	ModeNameDirect = "direct"

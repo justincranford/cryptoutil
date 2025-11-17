@@ -35,8 +35,8 @@ go.work.sum
 .idea/
 output/
 
-# CI/CD cache files
-.cicd-dep-cache.json
+# CI/CD output directory (cache files, reports, and other generated files)
+.cicd/
 .cspellcache
 
 # ASN.1/DER/PEM encoded files
