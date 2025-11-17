@@ -127,7 +127,7 @@ func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) ma
 }
 
 func filterWorkflowFiles(allFiles []string) []string {
-	var workflowFiles []string
+	workflowFiles := make([]string, 0)
 
 	for _, workflowFile := range allFiles {
 		normalizedFilePath := filepath.ToSlash(workflowFile)
@@ -238,11 +238,9 @@ func checkActionVersionsConcurrently(logger *LogUtil, actionMap map[string]Workf
 	}
 
 	// Collect results
-	var outdated []WorkflowActionDetails
-
-	var exempted []WorkflowActionDetails
-
-	var errors []string
+	outdated := make([]WorkflowActionDetails, 0)
+	exempted := make([]WorkflowActionDetails, 0)
+	errors := make([]string, 0)
 
 	for i := 0; i < len(actionMap); i++ {
 		res := <-results

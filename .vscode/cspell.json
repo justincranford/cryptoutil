@@ -1,7 +1,16 @@
 {
   "language": "en,en-CA,en-US,fr,fr-FR,es,es-ES",
   "ignorePaths": [
-    "docs/dictionaries/"
+    ".cspellcache",
+    "docs/dictionaries/",
+    "htmlcov/",
+    "coverage.*",
+    "tests/",
+    ".git/",
+    "node_modules/",
+    ".cache/",
+    "htmlcov/",
+    ".pytest_cache/"
   ],
   "dictionaries": [
     // ===== DICTIONARIES WITH .txt FILES =====
@@ -459,6 +468,7 @@
     "vscodeintellicode",
     "mechatroner",
     "Dnvd",
-    "openvulnerability"
+    "openvulnerability",
+    "nosetests"
   ]
 }

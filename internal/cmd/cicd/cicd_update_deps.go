@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -224,7 +225,8 @@ func saveDepCache(cacheFile string, cache cryptoutilMagic.DepCache) error {
 	}
 
 	// Ensure output directory exists.
-	if err := os.MkdirAll(cryptoutilMagic.CICDOutputDir, cryptoutilMagic.CICDOutputDirPermissions); err != nil {
+	cacheDir := filepath.Dir(cacheFile)
+	if err := os.MkdirAll(cacheDir, cryptoutilMagic.CICDOutputDirPermissions); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 

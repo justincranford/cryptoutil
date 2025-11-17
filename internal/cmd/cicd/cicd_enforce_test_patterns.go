@@ -20,7 +20,11 @@ func goEnforceTestPatterns(logger *LogUtil, allFiles []string) error {
 	for _, path := range allFiles {
 		if strings.HasSuffix(path, "_test.go") {
 			// Exclude cicd_test.go and cicd.go as they contain deliberate patterns for testing cicd functionality
-			if strings.HasSuffix(path, "cicd_test.go") || strings.HasSuffix(path, "cicd.go") || strings.HasSuffix(path, "cicd_enforce_test_patterns_test.go") {
+			if strings.HasSuffix(path, "cicd_test.go") ||
+				strings.HasSuffix(path, "cicd.go") ||
+				strings.HasSuffix(path, "cicd_enforce_test_patterns_test.go") ||
+				strings.HasSuffix(path, "cicd_enforce_test_patterns_integration_test.go") ||
+				strings.HasSuffix(path, "cicd_run_integration_test.go") {
 				continue
 			}
 

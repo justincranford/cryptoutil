@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -142,7 +143,8 @@ func saveCircularDepCache(cacheFile string, cache cryptoutilMagic.CircularDepCac
 	}
 
 	// Ensure output directory exists.
-	if err := os.MkdirAll(cryptoutilMagic.CICDOutputDir, cryptoutilMagic.CICDOutputDirPermissions); err != nil {
+	cacheDir := filepath.Dir(cacheFile)
+	if err := os.MkdirAll(cacheDir, cryptoutilMagic.CICDOutputDirPermissions); err != nil {
 		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 

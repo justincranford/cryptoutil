@@ -2,21 +2,57 @@
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
 # Binaries for programs and plugins
-bin/
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+**/bin/
+**/build/
+**/lib/
+**/lib64/
+**/dist/
+**/downloads/
+**/*.exe
+**/*.exe~
+**/*.dll
+**/*.so
+**/*.dylib
 cryptoutil$
 
-# Test binary, built with `go test -c`
-*.test
+# Distribution / packaging
+**/.Python
+**/develop-eggs/
+**/eggs/
+**/.eggs/
+**/*.egg
+**/*.egg-info/
+**/parts/
+**/sdist/
+**/var/
+**/wheels/
+**/.installed.cfg
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-coverage.out
-coverage.html
-coverage_test
+# PyInstaller
+**/*.manifest
+**/*.spec
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+
+# Unit test / coverage reports
+**/htmlcov/
+**/.tox/
+**/.nox/
+**/.coverage
+**/.coverage.*
+**/.cache
+**/nosetests.xml
+**/coverage.xml
+**/coverage.out
+**/coverage.html
+**/coverage.json
+**/coverage.lcov
+**/coverage_test
+**/*.cover
+**/*.test
+**/.hypothesis/
+**/.pytest_cache/
 
 # Output of test or workflow reports
 **/dast-reports/
@@ -26,24 +62,41 @@ coverage_test
 **/test-results/
 **/workflow-reports/
 
+# Virtual environments
+**/venv/
+**/.venv
+**/env/
+**/.env
+**/ENV/
+**/output/
+
+# IDEs
+**/*.swp
+**/*.swo
+**/*~
+
+# OS
+**/.DS_Store
+**/Thumbs.db
+
+# Logs
+**/*.log
+
+# Spell checker cache
+**/.cspellcache
+
+# CI/CD cache
+.cicd/
+
 # Go workspace file
 go.work
 go.work.sum
 
-# env file
-.env
-.idea/
-output/
-
-# CI/CD output directory (cache files, reports, and other generated files)
-.cicd/
-.cspellcache
-
 # ASN.1/DER/PEM encoded files
-*.pem
-*.der
-*.crt
-*.key
-*.csr
-*.pfx
-*.p12
+**/*.pem
+**/*.der
+**/*.crt
+**/*.key
+**/*.csr
+**/*.pfx
+**/*.p12
