@@ -16,6 +16,7 @@ cryptoutil$
 # Output of the go coverage tool, specifically when used with LiteIDE
 coverage.out
 coverage.html
+coverage_test
 
 # Output of test or workflow reports
 **/dast-reports/
