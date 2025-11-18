@@ -1,4 +1,4 @@
-# $schema: https://json.schemastore.org/golangci-lint.json
+# $schema: https://golangci-lint.run/jsonschema/golangci.jsonschema.json
 # golangci-lint configuration for cryptoutil project
 # doc: https://golangci-lint.run/docs/configuration/file/
 #
