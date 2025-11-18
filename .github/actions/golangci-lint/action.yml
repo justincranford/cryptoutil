@@ -15,7 +15,7 @@ inputs:
   version:
     description: 'golangci-lint version to use'
     required: false
-    default: 'latest'
+    default: 'v2.0.0'
 runs:
   using: 'composite'
   steps:
