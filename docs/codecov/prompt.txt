@@ -58,16 +58,6 @@
 
 ## PRIORITY 3: Add Tests to 22 Additional Packages (one at a time)
 
-### Task 3.1: internal/common/util
-- Add parameterized happy and sad path tests
-- Verify tests pass
-- Commit: "test(common/util): add comprehensive parameterized tests"
-
-### Task 3.2: internal/common/config
-- Add parameterized happy and sad path tests
-- Verify tests pass
-- Commit: "test(common/config): add comprehensive parameterized tests"
-
 ### Task 3.3: internal/common/crypto/asn1
 - Add parameterized happy and sad path tests
 - Verify tests pass
