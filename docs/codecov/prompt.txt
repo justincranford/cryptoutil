@@ -29,25 +29,20 @@
 - Verify tests pass
 - Commit: "perf(sqlrepository): optimize performance and add comprehensive tests"
 
-### Task 2.2: Optimize internal/server/repository/orm (CONTINUING)
-- Current: 81.3% (was 47.9%, was 29.7%)
+### Task 2.2: Optimize internal/server/repository/orm (FINAL PUSH - 90% GOAL)
+- Current: 88.2% (was 81.3%, was 47.9%, was 29.7%)
 - Target: 90%+
-- Need: +8.7% more coverage
-- Fix test isolation issues in barrier_operations_test.go (data persistence)
-- Add business entity tests (ElasticKey, MaterialKey operations)
+- Need: +1.8% more coverage (NEARLY THERE!)
+- Add final error path tests for barrier Get*/Delete operations (currently 75%)
+- Add edge case tests for business operations (currently 83-87%)
 - Continue adding parameterized happy and sad path tests
 - Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
 - Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
 - Latency: Minimize latency for individual transactions and CRUD statements (SQLite + PostgreSQL)
 - Throughput: Maximum throughput for bulk transactions and CRUD statements (SQLite + PostgreSQL)
-- Document findings in docs/DB-PERF-kms-sql.md (pros, cons, what went well, what needs improvement)
+- Document findings in docs/DB-PERF-kms-orm.md (pros, cons, what went well, what needs improvement)
 - Verify tests pass
-- Commit: "perf(sqlrepository): optimize performance and add comprehensive tests"
-
-### Task 2.2: Optimize internal/server/repository/orm
-- Add parameterized happy and sad path tests
-- Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
-- Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
+- Commit: "perf(orm): achieve 90%+ coverage and optimize performance"
 - Latency: Minimize latency for individual transactions and CRUD statements (SQLite + PostgreSQL)
 - Throughput: Maximum throughput for bulk transactions and CRUD statements (SQLite + PostgreSQL)
 - Document findings in docs/DB-PERF-kms-orm.md (pros, cons, what went well, what needs improvement)
