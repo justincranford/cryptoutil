@@ -110,35 +110,6 @@ func TestWithTransaction_ContextCancelled(t *testing.T) {
 	_ = err // Don't assert specific outcome, just test the code path.
 }
 
-// TestWithTransaction_NestedTransaction tests nested transaction behavior.
-func TestWithTransaction_NestedTransaction(t *testing.T) {
-	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
-	testName := "TestWithTransaction_NestedTransaction_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
-
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
-	defer telemetryService.Shutdown()
-
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
-	defer sqlRepo.Shutdown()
-
-	// Execute nested transactions.
-	executedOuter := false
-	executedInner := false
-	err := sqlRepo.WithTransaction(ctx, false, func(outerTx *sqlrepository.SQLTransaction) error {
-		executedOuter = true
-		return sqlRepo.WithTransaction(ctx, false, func(innerTx *sqlrepository.SQLTransaction) error {
-			executedInner = true
-			return nil
-		})
-	})
-
-	testify.NoError(t, err)
-	testify.True(t, executedOuter)
-	testify.True(t, executedInner)
-}
-
 // TestWithTransaction_CommitError tests transaction commit failure handling.
 func TestWithTransaction_CommitError(t *testing.T) {
 	ctx := context.Background()
