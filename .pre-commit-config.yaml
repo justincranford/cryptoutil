@@ -5,26 +5,40 @@
 
 repos:
   # Check pre-commit hook versions, and auto-update them
+  # NOTE: This is expensive (network calls), run manually: pre-commit run autoupdate-all-hooks --hook-stage manual
   - repo: local
     hooks:
       - id: autoupdate-all-hooks
-        name: Auto-update pre-commit hook versions
+        name: Auto-update pre-commit hook versions (manual)
         entry: python
         args: [-m, pre_commit, autoupdate]
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        stages: [manual]  # Run manually, not on every push
 
-  # Check Go direct dependency versions and GitHub workflow versions; Copilot Chat will auto-fix them
+  # Check Go direct dependency versions (expensive - network calls)
+  # NOTE: Run manually: pre-commit run go-update-direct-dependencies --hook-stage manual
   - repo: local
     hooks:
-      - id: cicd-checks-external
-        name: Run custom CI/CD checks (go-update-direct-dep, github-workflow-lint)
+      - id: go-update-direct-dependencies
+        name: Check Go direct dependency updates (manual)
         entry: go
-        args: [run, cmd/cicd/main.go, go-update-direct-dependencies, github-workflow-lint]
+        args: [run, cmd/cicd/main.go, go-update-direct-dependencies]
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        stages: [manual]  # Run manually, not on every push
+
+  # GitHub workflow linting (only when workflows change)
+  - repo: local
+    hooks:
+      - id: github-workflow-lint
+        name: GitHub workflow lint
+        entry: go
+        args: [run, cmd/cicd/main.go, github-workflow-lint]
+        language: system
+        pass_filenames: false
+        files: '\.github/workflows/.*\.(yml|yaml)$'
+        stages: [pre-push]  # Only run when workflow files change
 
   # Generic file checks (lightweight and reliable)
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -230,7 +244,7 @@ repos:
 
   # Specialized file linting: Python security linting
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.9.0
+    rev: 1.9.1
     hooks:
       - id: bandit
         name: Python security linting

@@ -2,6 +2,21 @@
 
 This document describes the design intent, optimal ordering, and detailed configuration of the cryptoutil project's pre-commit hooks pipeline.
 
+## Quick Reference: Manual Commands
+
+Some expensive hooks are configured to run manually instead of on every commit/push:
+
+```bash
+# Update pre-commit hook versions (weekly recommended)
+pre-commit run autoupdate-all-hooks --hook-stage manual
+
+# Check for Go dependency updates (weekly recommended)
+pre-commit run go-update-direct-dependencies --hook-stage manual
+
+# Run all manual checks at once
+pre-commit run --hook-stage manual --all-files
+```
+
 ## Design Intent
 
 The pre-commit hooks pipeline is designed with a **fail-fast, progressive validation** philosophy that optimizes for both developer experience and CI/CD performance.
