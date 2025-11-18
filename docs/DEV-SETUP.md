@@ -18,7 +18,7 @@ This guide covers setting up a complete development environment for the cryptout
 ## Prerequisites
 
 ### Core Requirements (All Platforms)
-- **Go 1.25.3+** - The project requires Go 1.25.3 or later
+- **Go 1.25.4+** - The project requires Go 1.25.4 or later
 - **Docker & Docker Compose** - Required for PostgreSQL database and containerized testing
 - **Git** - Version control (usually pre-installed on most systems)
 
@@ -33,7 +33,7 @@ This guide covers setting up a complete development environment for the cryptout
 
 #### 1. Install Core Prerequisites
 
-**Go 1.25.3+**
+**Go 1.25.4+**
 ```powershell
 # Download and install from https://golang.org/dl/
 # Or use winget:
@@ -148,9 +148,9 @@ go env GOCACHE
 # Update package list
 sudo apt update
 
-# Install Go 1.25.3+
-wget https://go.dev/dl/go1.25.3.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.3.linux-amd64.tar.gz
+# Install Go 1.25.4+
+wget https://go.dev/dl/go1.25.4.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 
@@ -170,8 +170,8 @@ sudo apt install -y git
 **Fedora/RHEL/CentOS:**
 ```bash
 # Install Go
-wget https://go.dev/dl/go1.25.3.linux-amd64.tar.gz
-sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.3.linux-amd64.tar.gz
+wget https://go.dev/dl/go1.25.4.linux-amd64.tar.gz
+sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 
@@ -237,7 +237,7 @@ sudo chmod +x /usr/local/bin/act
 # Install Homebrew if not already installed
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Install Go 1.25.3+
+# Install Go 1.25.4+
 brew install go
 
 # Install Docker Desktop
@@ -467,7 +467,7 @@ act --version
 **GoLand/IntelliJ IDEA:**
 - Install Go plugin
 - Import project as Go module
-- Configure Go SDK to 1.25.3+
+- Configure Go SDK to 1.25.4+
 
 **Vim/Neovim:**
 - Install vim-go plugin
