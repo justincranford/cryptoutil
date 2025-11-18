@@ -2,15 +2,6 @@
 
 **IMPORTANT:** Completed items are tracked in `docs/codecov/completed.txt`
 
-## PRIORITY 0: Performance Optimization Tasks
-
-### Task 0.3: Document Pre-commit/Pre-push Optimization
-- Update docs/pre-commit-hooks.md with performance analysis
-- Document timing expectations for each hook
-- Add troubleshooting section for slow hooks
-- Explain pre-commit vs pre-push strategy
-- Commit: "docs(pre-commit): add performance optimization guide"
-
 ## PRIORITY 1: Achieve 96% Coverage for cicd Package
 
 ### Task 1.4: Achieve 96%+ Coverage for cicd Package (CONTINUING)
