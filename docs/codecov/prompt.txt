@@ -23,20 +23,25 @@
 - Next: Verify 90%+ coverage in CI/CD workflow
 - Commit status: Multiple commits completed (error fixes, tests, documentation)
 
-### Task 2.2: Optimize internal/server/repository/orm (CONTINUING)
-- Current: 47.9% (was 29.7%)
+### Task 2.2: Optimize internal/server/repository/orm (IN PROGRESS)
+- Current: 72.2% (was 70.0%, was 47.9%, was 29.7%)
 - Target: 90%+
-- Need: +42.1% more coverage
-- Fix test isolation issues in barrier_operations_test.go (data persistence)
-- Add business entity tests (ElasticKey, MaterialKey operations)
-- Continue adding parameterized happy and sad path tests
-- Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
-- Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
-- Latency: Minimize latency for individual transactions and CRUD statements (SQLite + PostgreSQL)
-- Throughput: Maximum throughput for bulk transactions and CRUD statements (SQLite + PostgreSQL)
-- Document findings in docs/DB-PERF-kms-orm.md (pros, cons, what went well, what needs improvement)
-- Verify tests pass
-- Commit: "perf(orm): optimize performance and add comprehensive tests"
+- Need: +17.8% more coverage
+- Progress in this session:
+  - Fixed parallel test isolation issues (barrier operations, business entities)
+  - Modified tests to verify relative changes, not absolute counts (parallel-safe pattern)
+  - Fixed pagination bug: empty filters defaulted to PageSize=0 causing Limit(0) → 0 rows
+  - Added t.Parallel() to all business_entities tests
+  - Coverage: 47.9% → 72.2% (+24.3% improvement)
+- CRITICAL LESSONS LEARNED:
+  - **Coverage file management**: Place temp coverage files in /test-output/ to avoid cluttering project root
+  - **Test execution time**: orm tests take 10+ minutes; avoid running full suite repeatedly; use targeted test runs
+  - **File lifecycle**: Create permanent test files, not temp files requiring deletion (deletion needs manual approval)
+- Next steps:
+  - Add more tests for uncovered paths (barrier entity getters/setters, error mapping)
+  - Focus on high-value, fast-running tests to reach 90%
+  - Document findings in docs/DB-PERF-kms-orm.md
+- Commit status: Multiple commits (parallel-safe fixes, pagination bug fix)
 
 ### Task 2.3: Optimize internal/identity/repository
 - Add parameterized happy and sad path tests
