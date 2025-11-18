@@ -89,7 +89,7 @@
 - **Total gain: +11.5% this session** (from 76.7% → 88.2%)
 - **Phase gain: +58.5%** (from 29.7% → 88.2%)
 
-**Test Files Created (7 files, 64 test functions):**
+**Test Files Created (11 files, 79 test functions):**
 1. orm_entities_test.go - Entity getter/setter tests
 2. orm_transaction_verbose_test.go - Transaction state management (+0.6%)
 3. business_entities_material_key_test.go - Material key operations (+1.1%)
@@ -97,9 +97,13 @@
 5. barrier_entities_operations_test.go - Barrier CRUD operations (+2.6% combined)
 6. barrier_entities_errors_test.go - Barrier error paths (+2.6% combined)
 7. business_entities_toapperr_test.go - GORM error mapping (+1.1%)
-8. barrier_entities_get_delete_errors_test.go - Barrier Get/Delete error paths (9 tests, documented existing coverage)
+8. barrier_entities_get_delete_errors_test.go - Barrier Get/Delete error paths (9 tests)
+9. business_entities_update_errors_test.go - Update operation error paths (8 tests, +0.6%)
+10. business_entities_materialkey_errors_test.go - MaterialKey error paths (3 tests, +0.3%)
+11. business_entities_get_errors_test.go - GetElasticKey error path (1 test, 0%)
+12. business_entities_additional_errors_test.go - Additional error paths (3 tests, 0%)
 
-**Commits (7 commits):**
+**Commits (11 commits):**
 - 9154aeb "docs(codecov): update completed tasks and statistics"
 - 82765d5 "test(orm): add transaction verbose mode and state management tests"
 - 8c8c88e "test(orm): add material key version and latest tests"
@@ -107,8 +111,13 @@
 - 1ac8dbd "test(orm): add comprehensive barrier entity tests"
 - 2466ff2 "test(orm): add toAppErr error mapping tests"
 - 78a481b "test(orm): add barrier entity Get/Delete error path tests"
+- 4cc429f "docs(codecov): update ORM progress with Get/Delete error tests (88.2%)"
+- 86b7b0a "test(orm): add Update operation error path tests (88.8%)"
+- 2371408 "test(orm): add MaterialKey operation error path tests (89.1%)"
+- 616523f "test(orm): add GetElasticKey not found error path test (89.1%)"
+- 0a0fd47 "test(orm): add AddElasticKey and MaterialKey version error path tests (89.1%)"
 
-**Remaining to 90% goal: +1.8%** - Nearly complete!
+**Remaining to 90% goal: +0.9%** - Nearly complete!
   - TestBarrierContentKey_GettersSetters
   - TestOrmRepository_Shutdown (skipped)
 - Coverage improved: 29.7% → 35.2% (+5.5%)
@@ -153,7 +162,42 @@
 - Coverage improved: 70.0% → 76.7% (+6.7%)
 - Commit: 94442fa "test(orm): add comprehensive filter application tests"
 
-- Total ORM coverage gain: 29.7% → 76.7% (+47.0%)
+- Added business entity Update operation error tests
+- Created business_entities_update_errors_test.go (204 lines):
+  - TestUpdateElasticKey_InvalidUUID (zero UUID validation)
+  - TestUpdateElasticKey_NonExistentRecord (record not found)
+  - TestUpdateElasticKeyStatus_InvalidUUID (zero UUID validation)
+  - TestUpdateElasticKeyStatus_NonExistentRecord (record not found)
+  - TestGetElasticKeys_EmptyResult (empty query result)
+  - TestUpdateElasticKey_DatabaseConstraintViolation (UNIQUE constraint)
+  - TestUpdateElasticKeyStatus_DatabaseConstraintViolation (UNIQUE constraint)
+  - *(8th test function)*
+- Coverage improved: 88.2% → 88.8% (+0.6%)
+- Commit: 86b7b0a "test(orm): add Update operation error path tests (88.8%)"
+
+- Added MaterialKey operation error tests
+- Created business_entities_materialkey_errors_test.go (89 lines):
+  - TestGetMaterialKeysForElasticKey_EmptyResult (empty query result path)
+  - TestGetMaterialKeys_EmptyResult (filtered empty query)
+  - TestAddElasticKeyMaterialKey_DuplicateConstraintViolation (database constraint error)
+- Coverage improved: 88.8% → 89.1% (+0.3%)
+- Commit: 2371408 "test(orm): add MaterialKey operation error path tests (89.1%)"
+
+- Added GetElasticKey error test
+- Created business_entities_get_errors_test.go (23 lines):
+  - TestGetElasticKey_NotFoundError (record not found error path)
+- Coverage: 89.1% (no change - already covered)
+- Commit: 616523f "test(orm): add GetElasticKey not found error path test (89.1%)"
+
+- Added additional error path tests
+- Created business_entities_additional_errors_test.go (96 lines):
+  - TestAddElasticKey_DuplicateConstraintViolation (ElasticKey duplicate constraint)
+  - TestGetElasticKeyMaterialKeyLatest_NotFoundError (Latest MaterialKey not found)
+  - TestGetElasticKeyMaterialKeyVersion_NotFoundError (Specific MaterialKey version not found)
+- Coverage: 89.1% (no change - already covered)
+- Commit: 0a0fd47 "test(orm): add AddElasticKey and MaterialKey version error path tests (89.1%)"
+
+- **Total ORM coverage gain: 29.7% → 89.1% (+59.4%)**
 
 - Fixed test isolation issues
 - Created orm_repository_test_util.go:
@@ -206,7 +250,7 @@
   - Coverage improved: 79.3% → 80.5% (+1.2%)
   - Commit: 1d01d65 "test(orm): add AutoCommit transaction edge case tests"
 
-- Total ORM coverage gain: 29.7% → 80.5% (+50.8%)
+- Total ORM coverage gain: 29.7% → 89.1% (+59.4%)
 
 - Added GORM error mapping tests
 - Created business_entities_gorm_errors_test.go (173 lines):
@@ -220,7 +264,7 @@
   - Coverage improved: 80.5% → 81.3% (+0.8%)
   - Commit: ca1e4f9 "test(orm): add comprehensive GORM error mapping tests"
 
-- Total ORM coverage gain: 29.7% → 81.3% (+51.6%)
+- Total ORM coverage gain: 29.7% → 89.1% (+59.4%)
 
 ## COMPLETED: Earlier Tasks (Reference)
 
@@ -246,9 +290,9 @@
 **Total Coverage Improvements:**
 - cicd: 53.0% → 87.6% (+34.6%)
 - sqlrepository: 52.6% → 58.9% (+6.3%)
-- orm: 29.7% → 81.3% (+51.6%)
+- orm: 29.7% → 89.1% (+59.4%)
 
-**Total Commits:** 19
+**Total Commits:** 23
 - 07bb0ad: Coverage file cleanup
 - 7717ec9: Copilot instructions for os.Exit()
 - 9dcc9a7: Remove os.Exit() from workflow lint
@@ -267,9 +311,15 @@
 - 1d01d65: AutoCommit transaction edge case tests (+1.2%)
 - 002fd33: Documentation update (moved completed tasks to completed.txt)
 - ca1e4f9: GORM error mapping tests (+0.8%)
+- 78a481b: Barrier Get/Delete error tests (9 tests)
+- 4cc429f: Documentation update for Get/Delete tests (88.2%)
+- 86b7b0a: Update operation error tests (8 tests, +0.6% to 88.8%)
+- 2371408: MaterialKey operation error tests (3 tests, +0.3% to 89.1%)
+- 616523f: GetElasticKey not found error test (1 test, 0%)
+- 0a0fd47: AddElasticKey and MaterialKey version error tests (3 tests, 0%)
 - (cspell update included in 94442fa)
 
-**Test Files Created:** 12
+**Test Files Created:** 16
 - internal/server/repository/sqlrepository/sql_comprehensive_test.go (209 lines)
 - internal/server/repository/sqlrepository/sql_additional_coverage_test.go (135 lines)
 - internal/server/repository/orm/orm_entities_test.go (76 lines)
@@ -283,5 +333,9 @@
 - internal/server/repository/orm/business_entities_error_mapping_test.go (142 lines)
 - internal/server/repository/orm/orm_transaction_autocommit_test.go (78 lines)
 - internal/server/repository/orm/business_entities_gorm_errors_test.go (173 lines)
+- internal/server/repository/orm/business_entities_update_errors_test.go (204 lines)
+- internal/server/repository/orm/business_entities_materialkey_errors_test.go (89 lines)
+- internal/server/repository/orm/business_entities_get_errors_test.go (23 lines)
+- internal/server/repository/orm/business_entities_additional_errors_test.go (96 lines)
 
-**Total Lines of Test Code Added:** 2,666 lines
+**Total Lines of Test Code Added:** 3,078 lines
