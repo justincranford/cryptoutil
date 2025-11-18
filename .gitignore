@@ -1,23 +1,7 @@
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
-# Binaries for programs and plugins (Project Root Directory)
-./bin/
-./build/
-./lib/
-./lib64/
-./dist/
-./downloads/
-./*.exe
-./*.exe~
-./*.dll
-./*.so
-./*.dylib
-./*.o
-./*.a
-./*.out
-./cryptoutil$
-# Binaries for programs and plugins (Subdirectories)
+# Binaries for programs and plugins
 **/bin/
 **/build/
 **/lib/
@@ -29,23 +13,9 @@
 **/*.dll
 **/*.so
 **/*.dylib
-**/*.o
-**/*.a
-**/*.out
+cryptoutil$
 
-# Distribution / packaging (Project Root Directory)
-./.Python
-./develop-eggs/
-./eggs/
-./.eggs/
-./*.egg
-./*.egg-info/
-./parts/
-./sdist/
-./var/
-./wheels/
-./.installed.cfg
-# Distribution / packaging (Subdirectories)
+# Distribution / packaging
 **/.Python
 **/develop-eggs/
 **/eggs/
@@ -58,44 +28,14 @@
 **/wheels/
 **/.installed.cfg
 
-# PyInstaller (Project Root Directory)
-./*.manifest
-./*.spec
-./__pycache__/
-./*.py[cod]
-./*$py.class
-# PyInstaller (Subdirectories)
+# PyInstaller
 **/*.manifest
 **/*.spec
 **/__pycache__/
 **/*.py[cod]
 **/*$py.class
 
-# Unit test / coverage reports (Project Root Directory)
-./test-output/
-./htmlcov/
-./.tox/
-./.nox/
-./.cache
-./nosetests.xml
-./.coverage
-./.coverage.*
-./coverage
-./coverage-*.txt
-./coverage.txt
-./coverage.xml
-./coverage.out
-./coverage.html
-./coverage.json
-./coverage.lcov
-./coverage_test
-./coverage_cicd
-./*.cover
-./*.test
-./.hypothesis/
-./.pytest_cache/
-# Unit test / coverage reports (Subdirectories)
-**/test-output/
+# Unit test / coverage reports
 **/htmlcov/
 **/.tox/
 **/.nox/
@@ -104,28 +44,22 @@
 **/.coverage
 **/.coverage.*
 **/coverage
-**/coverage-*.txt
-**/coverage.txt
+**/coverage_*
+**/coverage*.out
+**/coverage*.txt
 **/coverage.xml
-**/coverage.out
 **/coverage.html
 **/coverage.json
 **/coverage.lcov
-**/coverage_test
-**/coverage_cicd
 **/*.cover
 **/*.test
 **/.hypothesis/
 **/.pytest_cache/
+**/orm_coverage
+**/*_coverage
+**/*_functions.txt
 
-# Output of test or workflow reports (Project Root Directory)
-./dast-reports/
-./e2e-reports/
-./load-reports/
-./test-results/
-./test-results/
-./workflow-reports/
-# Output of test or workflow reports (Subdirectories)
+# Output of test or workflow reports
 **/dast-reports/
 **/e2e-reports/
 **/load-reports/
@@ -133,14 +67,7 @@
 **/test-results/
 **/workflow-reports/
 
-# Virtual environments (Project Root Directory)
-./venv/
-./.venv
-./env/
-./.env
-./ENV/
-./output/
-# Virtual environments (Subdirectories)
+# Virtual environments
 **/venv/
 **/.venv
 **/env/
@@ -148,46 +75,29 @@
 **/ENV/
 **/output/
 
-# IDEs (Project Root Directory)
-./*.swp
-./*.swo
-./*~
-# IDEs (Subdirectories)
+# IDEs
 **/*.swp
 **/*.swo
 **/*~
 
-# OS (Project Root Directory)
-./.DS_Store
-./Thumbs.db
-# OS (Subdirectories)
+# OS
 **/.DS_Store
 **/Thumbs.db
 
-# Logs (Project Root Directory)
-./*.log
-# Logs (Subdirectories)
+# Logs
 **/*.log
 
-# Spell checker cache (Subdirectories)
+# Spell checker cache
 **/.cspellcache
 
-# CI/CD cache (Project Root Directory)
-./.cicd/
+# CI/CD cache
+.cicd/
 
-# Go workspace file (Project Root Directory)
-./go.work
-./go.work.sum
+# Go workspace file
+go.work
+go.work.sum
 
-# ASN.1/DER/PEM encoded files (Project Root Directory)
-./*.pem
-./*.der
-./*.crt
-./*.key
-./*.csr
-./*.pfx
-./*.p12
-# ASN.1/DER/PEM encoded files (Subdirectories)
+# ASN.1/DER/PEM encoded files
 **/*.pem
 **/*.der
 **/*.crt
