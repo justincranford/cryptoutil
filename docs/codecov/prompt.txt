@@ -30,16 +30,23 @@
 - Commit: "perf(sqlrepository): optimize performance and add comprehensive tests"
 
 ### Task 2.2: Optimize internal/server/repository/orm (FINAL PUSH - 90% GOAL)
-- Current: 88.2% (was 81.3%, was 47.9%, was 29.7%)
+- Current: 89.1% (was 88.2%, was 81.3%, was 47.9%, was 29.7%)
 - Target: 90%+
-- Need: +1.8% more coverage (NEARLY THERE!)
+- Need: +0.9% more coverage (SO CLOSE!)
 - ✅ Added barrier Get/Delete error path tests (commit 78a481b) - documented existing coverage
-- Next: Target Update operation error paths and database-specific error mapping
-  - business_entities_operations.go lines 82-84 (UpdateElasticKey error path)
-  - business_entities_operations.go lines 95-97 (UpdateElasticKeyStatus error path)
-  - business_entities_operations.go lines 108-110 (GetElasticKeys error path)
-  - business_entities_operations.go lines 224-227 (SQLite error branches in toAppErr)
-  - business_entities_operations.go lines 234-242 (PostgreSQL error branches in toAppErr)
+- ✅ Added Update operation error path tests (commit 86b7b0a) - +0.6% to 88.8%
+- ✅ Added MaterialKey operation error path tests (commit 2371408) - +0.3% to 89.1%
+- ✅ Added GetElasticKey error test (commit 616523f) - 0% (already covered)
+- ✅ Added additional error tests (commit 0a0fd47) - 0% (already covered)
+- **STATUS**: Error path tests saturated - last 7 tests added 0% coverage
+- **STRATEGY PIVOT NEEDED**: Target non-error-path code for final +0.9%
+- Next targets to investigate:
+  1. toAppErr database branches (lines 224-242): SQLite vs PostgreSQL specific error handling
+  2. Filter application logic: Complex query building not exercised by error tests
+  3. Helper functions: Utility functions not covered by CRUD operations
+  4. Barrier entities: Check for any uncovered barrier operation paths
+  5. ORM transaction edge cases: State management, concurrent operations
+  6. Initialization/configuration: Setup code, validators not in error paths
 - Continue adding parameterized happy and sad path tests
 - Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
 - Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
