@@ -71,6 +71,7 @@ func TestContentKeysService_EncryptContent_Success(t *testing.T) {
 	contentKeysService, err := NewContentKeysService(testTelemetryService, testJWKGenService, testOrmRepository, testIntermediateKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, contentKeysService)
+
 	defer contentKeysService.Shutdown()
 
 	clearBytes := []byte("Test data for encryption")
@@ -92,6 +93,7 @@ func TestContentKeysService_DecryptContent_Success(t *testing.T) {
 	contentKeysService, err := NewContentKeysService(testTelemetryService, testJWKGenService, testOrmRepository, testIntermediateKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, contentKeysService)
+
 	defer contentKeysService.Shutdown()
 
 	clearBytes := []byte("Test data for round-trip encryption")
@@ -124,6 +126,7 @@ func TestContentKeysService_DecryptContent_InvalidEncryptedData(t *testing.T) {
 	contentKeysService, err := NewContentKeysService(testTelemetryService, testJWKGenService, testOrmRepository, testIntermediateKeysService)
 	require.NoError(t, err)
 	require.NotNil(t, contentKeysService)
+
 	defer contentKeysService.Shutdown()
 
 	invalidEncryptedData := []byte("invalid-encrypted-content")

@@ -21,7 +21,10 @@ func toTelemetryService(v any) *cryptoutilTelemetry.TelemetryService {
 		return nil
 	}
 
-	service, _ := v.(*cryptoutilTelemetry.TelemetryService)
+	service, ok := v.(*cryptoutilTelemetry.TelemetryService)
+	if !ok {
+		return nil
+	}
 
 	return service
 }
@@ -31,7 +34,10 @@ func toJWKGenService(v any) *cryptoutilJose.JWKGenService {
 		return nil
 	}
 
-	service, _ := v.(*cryptoutilJose.JWKGenService)
+	service, ok := v.(*cryptoutilJose.JWKGenService)
+	if !ok {
+		return nil
+	}
 
 	return service
 }
@@ -41,7 +47,10 @@ func toOrmRepository(v any) *cryptoutilOrmRepository.OrmRepository {
 		return nil
 	}
 
-	repo, _ := v.(*cryptoutilOrmRepository.OrmRepository)
+	repo, ok := v.(*cryptoutilOrmRepository.OrmRepository)
+	if !ok {
+		return nil
+	}
 
 	return repo
 }
@@ -51,7 +60,10 @@ func toRootKeysService(v any) *cryptoutilRootKeysService.RootKeysService {
 		return nil
 	}
 
-	service, _ := v.(*cryptoutilRootKeysService.RootKeysService)
+	service, ok := v.(*cryptoutilRootKeysService.RootKeysService)
+	if !ok {
+		return nil
+	}
 
 	return service
 }

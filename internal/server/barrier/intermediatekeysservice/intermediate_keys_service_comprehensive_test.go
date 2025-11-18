@@ -205,6 +205,7 @@ func TestIntermediateKeysService_RoundTrip(t *testing.T) {
 
 				jwkKey, ok := clearContentKey.(joseJwk.Key)
 				require.True(t, ok)
+
 				encryptedContentKeyBytes, _, encErr = intermediateKeysService.EncryptKey(sqlTransaction, jwkKey)
 				require.NoError(t, encErr)
 
@@ -217,6 +218,7 @@ func TestIntermediateKeysService_RoundTrip(t *testing.T) {
 				decryptedContentKey, decErr := intermediateKeysService.DecryptKey(sqlTransaction, encryptedContentKeyBytes)
 				require.NoError(t, decErr)
 				require.NotNil(t, decryptedContentKey)
+
 				jwkKey, ok := clearContentKey.(joseJwk.Key)
 				require.True(t, ok)
 				require.ElementsMatch(t, jwkKey.Keys(), decryptedContentKey.Keys())

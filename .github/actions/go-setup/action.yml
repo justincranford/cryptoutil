@@ -5,7 +5,7 @@ name: 'go-setup-and-validation'
 description: 'Set up Go environment, download dependencies, and validate module integrity'
 inputs:
   go-version:
-    description: 'Go version to set up (e.g., 1.25.3)'
+    description: 'Go version to set up (e.g., 1.25.4)'
     required: true
   go-mod-download:
     description: 'Whether to run "go mod download"'

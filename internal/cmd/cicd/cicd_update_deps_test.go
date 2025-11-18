@@ -43,7 +43,7 @@ func TestGetDirectDependencies(t *testing.T) {
 		// Create a test go.mod file
 		goModContent := `module example.com/test
 
-go 1.25.3
+go 1.25.4
 
 require (
 	github.com/example/direct1 v1.0.0

@@ -1,7 +1,7 @@
 # $schema: https://json.schemastore.org/golangci-lint.json
 # golangci-lint configuration for cryptoutil project
 #
-# This project uses Go 1.25.3 with golangci-lint v1.25.3
+# This project uses Go 1.25.4 with golangci-lint v1.25.4
 # All linters are compatible with the current Go version
 #
 # Usage: golangci-lint run --timeout=10m

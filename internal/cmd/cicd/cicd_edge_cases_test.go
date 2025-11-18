@@ -44,7 +44,7 @@ func TestGetDirectDependencies_EdgeCases(t *testing.T) {
 		{
 			name: "only module declaration",
 			goModContent: `module example.com/test
-go 1.23
+go 1.25.4
 `,
 			wantCount: 0,
 			wantErr:   false,
@@ -52,7 +52,7 @@ go 1.23
 		{
 			name: "single require line",
 			goModContent: `module example.com/test
-go 1.23
+go 1.25.4
 require github.com/example/dep v1.0.0
 `,
 			wantCount: 1,
@@ -61,7 +61,7 @@ require github.com/example/dep v1.0.0
 		{
 			name: "require block with indirect",
 			goModContent: `module example.com/test
-go 1.23
+go 1.25.4
 require (
 	github.com/direct/dep v1.0.0
 	github.com/indirect/dep v2.0.0 // indirect
@@ -73,7 +73,7 @@ require (
 		{
 			name: "multiple require blocks",
 			goModContent: `module example.com/test
-go 1.23
+go 1.25.4
 require github.com/first/dep v1.0.0
 require (
 	github.com/second/dep v2.0.0
@@ -86,7 +86,7 @@ require (
 		{
 			name: "malformed require line",
 			goModContent: `module example.com/test
-go 1.23
+go 1.25.4
 require invalid
 `,
 			wantCount: 0, // Malformed lines are skipped

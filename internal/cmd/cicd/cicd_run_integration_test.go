@@ -10,7 +10,7 @@ import (
 
 const testGoModMinimal3 = `module example.com/test
 
-go 1.23
+go 1.25.4
 `
 
 // TestRun_SingleCommand tests Run with a single command.
@@ -215,7 +215,7 @@ func TestRun_GoUpdateDirectDependencies(t *testing.T) {
 	// Create minimal go.mod and go.sum
 	goModContent := `module example.com/test
 
-go 1.23
+go 1.25.4
 
 require github.com/stretchr/testify v1.8.0
 `
