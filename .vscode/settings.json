@@ -87,11 +87,17 @@
 
     // Test artifacts
     "**/*.test": true,
-    "**/coverage.out": true,
-    "**/coverage_test": true,
-    "**/coverage_cicd": true,
     "**/coverage": true,
+    "**/coverage_*": true,
+    "**/coverage*.out": true,
+    "**/coverage*.txt": true,
+    "**/coverage.xml": true,
     "**/coverage.html": true,
+    "**/coverage.json": true,
+    "**/coverage.lcov": true,
+    "**/orm_coverage": true,
+    "**/*_coverage": true,
+    "**/*_functions.txt": true,
     "**/test-results": true,
 
     // Python artifacts
@@ -155,10 +161,17 @@
 
     // Test artifacts
     "**/*.test": true,
-    "**/coverage.out": true,
-    "**/coverage_test": true,
-    "**/coverage_cicd": true,
     "**/coverage": true,
+    "**/coverage_*": true,
+    "**/coverage*.out": true,
+    "**/coverage*.txt": true,
+    "**/coverage.xml": true,
+    "**/coverage.html": true,
+    "**/coverage.json": true,
+    "**/coverage.lcov": true,
+    "**/orm_coverage": true,
+    "**/*_coverage": true,
+    "**/*_functions.txt": true,
     "**/test-results": true,
 
     // Python artifacts
@@ -221,10 +234,17 @@
 
     // Test artifacts
     "**/test-results/**": true,
-    "**/coverage.out": true,
-    "**/coverage_test": true,
-    "**/coverage_cicd/**": true,
     "**/coverage": true,
+    "**/coverage_*": true,
+    "**/coverage*.out": true,
+    "**/coverage*.txt": true,
+    "**/coverage.xml": true,
+    "**/coverage.html": true,
+    "**/coverage.json": true,
+    "**/coverage.lcov": true,
+    "**/orm_coverage": true,
+    "**/*_coverage": true,
+    "**/*_functions.txt": true,
 
     // Python artifacts
     "**/__pycache__/**": true,
