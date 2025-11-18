@@ -10,6 +10,14 @@
 - Expected improvement for incremental commits: ~70% faster
 - Commit: 8102389 "perf(pre-commit): optimize hooks for faster development workflow"
 
+### ✅ Task 0.2: Optimize Pre-push Hooks for Speed
+- Made autoupdate-all-hooks manual (expensive network calls)
+- Made go-update-direct-dependencies manual (expensive network calls)
+- Split github-workflow-lint to only run on workflow file changes
+- Added manual commands documentation to pre-commit-hooks.md
+- Manual command: `pre-commit run --hook-stage manual --all-files`
+- Commit: 24040e9 "perf(pre-push): optimize expensive checks and add caching"
+
 ## COMPLETED: Priority 1 - os.Exit() Architecture Fixes
 
 ### ✅ Task 1.1: Add Copilot Instruction for os.Exit() Usage

@@ -4,14 +4,6 @@
 
 ## PRIORITY 0: Performance Optimization Tasks
 
-### Task 0.2: Optimize Pre-push Hooks for Speed
-- Make dependency update checks optional/manual (not every push)
-- Cache results for github-workflow-lint
-- Make autoupdate-all-hooks a scheduled job instead of every push
-- Document manual commands for these checks
-- Verify all hooks still work correctly
-- Commit: "perf(pre-push): optimize expensive checks and add caching"
-
 ### Task 0.3: Document Pre-commit/Pre-push Optimization
 - Update docs/pre-commit-hooks.md with performance analysis
 - Document timing expectations for each hook
