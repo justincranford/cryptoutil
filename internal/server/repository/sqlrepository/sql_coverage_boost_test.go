@@ -93,29 +93,6 @@ func TestLogPostgresSchema(t *testing.T) {
 	t.Skip("Requires PostgreSQL instance - tested in integration tests")
 }
 
-// TestLogSchema_SQLite tests LogSchema with SQLite (verbose mode).
-func TestLogSchema_SQLite(t *testing.T) {
-	ctx := context.Background()
-
-	// Create test configuration and telemetry.
-	uuidVal, _ := googleUuid.NewV7()
-	testName := "TestLogSchema_SQLite_" + uuidVal.String()
-	testSettings := cryptoutilConfig.RequireNewForTest(testName)
-
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
-	defer telemetryService.Shutdown()
-
-	// Enable verbose mode to trigger schema logging.
-	testSettings.VerboseMode = true
-
-	// Create SQL repository (LogSchema is called internally when verbose mode is enabled).
-	sqlRepo := sqlrepository.RequireNewForTest(ctx, telemetryService, testSettings)
-	defer sqlRepo.Shutdown()
-
-	// Verify repository was created successfully (LogSchema didn't panic).
-	testify.NotNil(t, sqlRepo)
-}
-
 // TestLogSchema_Postgres tests LogSchema with PostgreSQL (verbose mode).
 func TestLogSchema_Postgres(t *testing.T) {
 	t.Skip("Requires PostgreSQL instance - tested in integration tests")

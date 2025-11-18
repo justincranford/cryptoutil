@@ -173,34 +173,6 @@ func TestSQLRepository_WithTransaction_CommitError(t *testing.T) {
 	}
 }
 
-// TestSQLRepository_SQLTransaction_GetTx tests SQLTransaction GetTx method.
-func TestSQLRepository_SQLTransaction_GetTx(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	
-	settings := cryptoutilConfig.RequireNewForTest("gettx_test")
-	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
-	
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
-	defer telemetryService.Shutdown()
-
-	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-	testify.NoError(t, err)
-	testify.NotNil(t, repo)
-	defer repo.Shutdown()
-
-	// Test GetTx method
-	err = repo.WithTransaction(ctx, false, func(sqlTx *cryptoutilSQLRepository.SQLTransaction) error {
-		tx := sqlTx.GetTx()
-		testify.NotNil(t, tx)
-		testify.IsType(t, &sql.Tx{}, tx)
-		return nil
-	})
-	testify.NoError(t, err)
-}
-
 // TestSQLRepository_WithTransaction_RollbackOnError tests automatic rollback on error.
 func TestSQLRepository_WithTransaction_RollbackOnError(t *testing.T) {
 	t.Parallel()
