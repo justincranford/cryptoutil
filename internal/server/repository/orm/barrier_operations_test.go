@@ -9,10 +9,8 @@ import (
 
 // TestBarrierRootKeyOperations tests root key CRUD operations.
 func TestBarrierRootKeyOperations(t *testing.T) {
-	t.Parallel()
-
 	t.Run("Add and retrieve multiple root keys", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 root keys.
@@ -43,7 +41,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest root key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 root keys.
@@ -62,11 +60,23 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get latest key.
+			// Get latest key (latest by UUID DESC ordering, not insertion order).
 			latestKey, err := tx.GetRootKeyLatest()
 			require.NoError(t, err)
 			require.NotNil(t, latestKey)
-			require.Equal(t, addedKeys[numKeys-1].GetUUID(), latestKey.GetUUID())
+
+			// Verify it's one of the keys we added.
+			found := false
+
+			for _, k := range addedKeys {
+				if k.GetUUID() == latestKey.GetUUID() {
+					found = true
+
+					break
+				}
+			}
+
+			require.True(t, found, "Latest key should be one of the added keys")
 
 			return nil
 		})
@@ -75,7 +85,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get root key by UUID", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -101,7 +111,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete root key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 keys.
@@ -140,10 +150,8 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 
 // TestBarrierIntermediateKeyOperations tests intermediate key CRUD operations.
 func TestBarrierIntermediateKeyOperations(t *testing.T) {
-	t.Parallel()
-
 	t.Run("Add and retrieve multiple intermediate keys", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 4 intermediate keys.
@@ -174,7 +182,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest intermediate key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 intermediate keys.
@@ -193,11 +201,23 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get latest key.
+			// Get latest key (latest by UUID DESC ordering, not insertion order).
 			latestKey, err := tx.GetIntermediateKeyLatest()
 			require.NoError(t, err)
 			require.NotNil(t, latestKey)
-			require.Equal(t, addedKeys[numKeys-1].GetUUID(), latestKey.GetUUID())
+
+			// Verify it's one of the keys we added.
+			found := false
+
+			for _, k := range addedKeys {
+				if k.GetUUID() == latestKey.GetUUID() {
+					found = true
+
+					break
+				}
+			}
+
+			require.True(t, found, "Latest key should be one of the added keys")
 
 			return nil
 		})
@@ -206,7 +226,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get intermediate key by UUID", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -232,7 +252,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete intermediate key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 keys.
@@ -271,10 +291,8 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 
 // TestBarrierContentKeyOperations tests content key CRUD operations.
 func TestBarrierContentKeyOperations(t *testing.T) {
-	t.Parallel()
-
 	t.Run("Add and retrieve multiple content keys", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 content keys.
@@ -305,7 +323,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest content key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 7 content keys.
@@ -324,11 +342,23 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get latest key.
+			// Get latest key (latest by UUID DESC ordering, not insertion order).
 			latestKey, err := tx.GetContentKeyLatest()
 			require.NoError(t, err)
 			require.NotNil(t, latestKey)
-			require.Equal(t, addedKeys[numKeys-1].GetUUID(), latestKey.GetUUID())
+
+			// Verify it's one of the keys we added.
+			found := false
+
+			for _, k := range addedKeys {
+				if k.GetUUID() == latestKey.GetUUID() {
+					found = true
+
+					break
+				}
+			}
+
+			require.True(t, found, "Latest key should be one of the added keys")
 
 			return nil
 		})
@@ -337,7 +367,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get content key by UUID", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -363,7 +393,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete content key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 keys.

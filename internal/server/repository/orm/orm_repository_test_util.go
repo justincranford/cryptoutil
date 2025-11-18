@@ -2,6 +2,7 @@ package orm
 
 import (
 	"context"
+	"testing"
 
 	cryptoutilAppErr "cryptoutil/internal/common/apperr"
 	cryptoutilConfig "cryptoutil/internal/common/config"
@@ -15,4 +16,37 @@ func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetr
 	cryptoutilAppErr.RequireNoError(err, "failed to create new ORM repository")
 
 	return ormRepository
+}
+
+// CleanupDatabase removes all data from database tables to ensure test isolation.
+// Should be called via t.Cleanup() at the start of each test that modifies database state.
+func CleanupDatabase(t *testing.T, repo *OrmRepository) {
+	t.Helper()
+	t.Cleanup(func() {
+		err := repo.WithTransaction(context.Background(), ReadWrite, func(tx *OrmTransaction) error {
+			// Delete in reverse foreign key dependency order.
+			if err := tx.state.gormTx.Exec("DELETE FROM material_keys").Error; err != nil {
+				return err
+			}
+
+			if err := tx.state.gormTx.Exec("DELETE FROM elastic_keys").Error; err != nil {
+				return err
+			}
+
+			if err := tx.state.gormTx.Exec("DELETE FROM barrier_content_keys").Error; err != nil {
+				return err
+			}
+
+			if err := tx.state.gormTx.Exec("DELETE FROM barrier_intermediate_keys").Error; err != nil {
+				return err
+			}
+
+			if err := tx.state.gormTx.Exec("DELETE FROM barrier_root_keys").Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+		cryptoutilAppErr.RequireNoError(err, "failed to cleanup database tables")
+	})
 }
