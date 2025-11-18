@@ -21,6 +21,36 @@ Example:
 - When calling terminal commands, avoid commands that require prepending environment variables
 - When approaching rate limiting, wait between requests as needed
 - GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
+
+## CRITICAL: Continuous Work Directive
+
+**NEVER STOP AFTER COMMITS** - Commits are NOT milestones or stopping points
+- **Pattern**: commit → implement next item → commit → repeat
+- **WRONG**: commit → provide summary → stop
+- **RIGHT**: commit → immediately start next test/task
+- **Rationale**: Commits are incremental progress markers, not session endpoints
+
+**Token Budget Awareness**
+- Check remaining tokens before considering stopping
+- Continue if >10% token budget available (>100k tokens)
+- User directive overrides: "NEVER STOP DUE TO TIME OR TOKENS"
+- Only stop when ALL tasks complete or explicit user instruction
+
+**Speed Optimization for Continuous Work**
+- Use `git commit --no-verify` to skip pre-commit hooks (faster iterations)
+- Use `runTests` tool exclusively (NEVER `go test` - it can hang)
+- Batch related file operations when possible
+- Keep momentum: don't pause between logical units of work
+
+**Implementation Pattern**
+1. Identify next test/task to implement
+2. Create/modify files
+3. Run tests with `runTests` tool
+4. Commit with `--no-verify` flag
+5. **IMMEDIATELY** go to step 1 (no stopping, no summary)
+6. Repeat until ALL tasks in prompt.txt complete
+
+**Lessons Applied**: Based on analysis in docs/codecov/dont_stop.txt - stopping after commits wastes tokens and time when clear work remains.
 - **ALWAYS use modernc.org/sqlite for SQLite** because it is CGO-free (required when CGO_ENABLED=0)
 - **NEVER invoke os.Exit() in library or test code** - ONLY in main() functions or cmd pattern entry functions
   - ALWAYS return wrapped errors all the way up the call stack

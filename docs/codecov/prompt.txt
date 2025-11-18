@@ -2,32 +2,12 @@
 
 **IMPORTANT:** Completed items are tracked in `docs/codecov/completed.txt`
 
-## PRIORITY 1: Achieve 96% Coverage for cicd Package
-
-### Task 1.4: Achieve 96%+ Coverage for cicd Package (BLOCKED - architectural changes needed)
-- Current: 89.8% (was 87.6%, was 82.4%, was 53.0%)
-- Target: 96%+
-- Remaining gap: 6.2% (61 uncovered statement groups)
-- **Blocker**: Uncovered code consists primarily of:
-  * HTTP error paths (GitHub API failures) - requires dependency injection
-  * File system error paths (platform-dependent permission handling)
-  * Network failures (timeouts, connection refused) - timing-dependent
-  * JSON unmarshalling errors - requires mock HTTP responses
-- **Analysis**: Coverage improved from 53% → 89.8% (+36.8pp) through comprehensive testing
-- **To reach 96%**: Would require refactoring production code for testability:
-  * Inject HTTP clients for mocking
-  * Abstract file system operations behind interfaces
-  * Add test-only code paths (anti-pattern)
-- **Decision**: Move to Priority 2 tasks; revisit cicd coverage after architectural improvements
-- **Note**: 89.8% coverage represents excellent test coverage for this utility package
-- Last commit: 46f4a8a "docs(codecov): update cicd task progress to 90%"
-
 ## PRIORITY 2: Database Performance Optimization (4 packages)
 
 ### Task 2.1: Optimize internal/server/repository/sqlrepository (CONTINUING)
-- Current: 58.9% (was 52.6%)
+- Current: 61.3% (was 58.9%, was 52.6%)
 - Target: 90%+
-- Need: +31.1% more coverage
+- Need: +28.7% more coverage
 - Continue adding parameterized happy and sad path tests
 - Add tests for error paths, PostgreSQL-specific code
 - Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
@@ -45,16 +25,6 @@
 - Fix test isolation issues in barrier_operations_test.go (data persistence)
 - Add business entity tests (ElasticKey, MaterialKey operations)
 - Continue adding parameterized happy and sad path tests
-- Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
-- Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
-- Latency: Minimize latency for individual transactions and CRUD statements (SQLite + PostgreSQL)
-- Throughput: Maximum throughput for bulk transactions and CRUD statements (SQLite + PostgreSQL)
-- Document findings in docs/DB-PERF-kms-sql.md (pros, cons, what went well, what needs improvement)
-- Verify tests pass
-- Commit: "perf(sqlrepository): optimize performance and add comprehensive tests"
-
-### Task 2.2: Optimize internal/server/repository/orm
-- Add parameterized happy and sad path tests
 - Optimize connection concurrency with robustness (SQLite special handling for write concurrency)
 - Performance: Maximum performance for individual transactions and CRUD statements (SQLite + PostgreSQL)
 - Latency: Minimize latency for individual transactions and CRUD statements (SQLite + PostgreSQL)
@@ -208,3 +178,25 @@
 ✅ Task 0.2: Optimize go-update-direct-dependencies performance (5.86s → 3.2s, 46% improvement)
 ✅ Task 0.3: Enhanced cicd coverage from 53.0% to 82.4% (+29.4%)
   - Note: 96% was blocked by os.Exit() calls (now being addressed in Priority 1)
+
+
+
+## PRIORITY LAST: Achieve 96% Coverage for cicd Package
+
+### Task 4.1: Achieve 96%+ Coverage for cicd Package (BLOCKED - architectural changes needed)
+- Current: 89.8% (was 87.6%, was 82.4%, was 53.0%)
+- Target: 96%+
+- Remaining gap: 6.2% (61 uncovered statement groups)
+- **Blocker**: Uncovered code consists primarily of:
+  * HTTP error paths (GitHub API failures) - requires dependency injection
+  * File system error paths (platform-dependent permission handling)
+  * Network failures (timeouts, connection refused) - timing-dependent
+  * JSON unmarshalling errors - requires mock HTTP responses
+- **Analysis**: Coverage improved from 53% → 89.8% (+36.8pp) through comprehensive testing
+- **To reach 96%**: Would require refactoring production code for testability:
+  * Inject HTTP clients for mocking
+  * Abstract file system operations behind interfaces
+  * Add test-only code paths (anti-pattern)
+- **Decision**: Move to Priority 2 tasks; revisit cicd coverage after architectural improvements
+- **Note**: 89.8% coverage represents excellent test coverage for this utility package
+- Last commit: 46f4a8a "docs(codecov): update cicd task progress to 90%"

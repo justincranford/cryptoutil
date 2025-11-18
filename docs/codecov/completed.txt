@@ -66,8 +66,23 @@
   - TestSQLTransaction_Context
   - TestLogSchema
   - TestApplyEmbeddedSQLMigrations_UnsupportedDBType
-- Coverage improved: 52.6% → 58.9% (+6.3%)
-- Commit: 5647070 "test(sqlrepository): add comprehensive parameterized tests"
+- Created sql_coverage_boost_test.go (123 lines):
+  - TestNewSQLRepository_InvalidDSN (3 error cases)
+  - TestLogSchema_WithLogger (3 db types)
+  - TestSQLRepository_Close_ErrorHandling
+  - TestSQLTransaction_FunctionReturnsError
+  - TestSQLTransaction_NilCheck
+  - TestApplyEmbeddedSQLMigrations_MigrationFailure
+- Created sql_provider_edge_cases_test.go (109 lines):
+  - TestNewSQLRepository_SQLiteSharedCache
+  - TestSQLRepository_GetDBTypeError
+  - TestSQLTransaction_NilContextHandling
+  - TestApplyEmbeddedSQLMigrations_NilSourceParam
+  - TestExtractSchemaFromURL_MissingSchema
+- Coverage improved: 52.6% → 58.9% → 61.3% (+8.7% total)
+- Commits:
+  - 5647070 "test(sqlrepository): add comprehensive parameterized tests"
+  - 97c0f14 "test(sqlrepository): improve coverage with edge case tests"
 
 ### ✅ Task 2.2: internal/server/repository/orm (Partial)
 - Added entity getter/setter tests
