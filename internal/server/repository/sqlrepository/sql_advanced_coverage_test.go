@@ -16,12 +16,12 @@ func TestSQLRepository_PoolSettings(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name                string
-		devMode             bool
-		dbType              string
-		expectedMaxOpen     int
-		verboseMode         bool
-		checkPoolSettings   bool
+		name              string
+		devMode           bool
+		dbType            string
+		expectedMaxOpen   int
+		verboseMode       bool
+		checkPoolSettings bool
 	}{
 		{
 			name:              "SQLite pool settings with verbose logging",
@@ -46,12 +46,12 @@ func TestSQLRepository_PoolSettings(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			
+
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseContainer = "disabled"
 			settings.VerboseMode = tc.verboseMode
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
@@ -77,11 +77,11 @@ func TestSQLRepository_Shutdown_Multiple(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("shutdown_multiple_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -119,12 +119,12 @@ func TestSQLRepository_DBStats(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("dbstats_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
 	settings.VerboseMode = true
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -151,11 +151,11 @@ func TestSQLRepository_ConnectionPoolExhaustion(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("pool_exhaustion_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 

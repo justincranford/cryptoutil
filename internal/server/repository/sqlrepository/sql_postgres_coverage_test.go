@@ -43,12 +43,12 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			
+
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false // Use PostgreSQL
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = tc.containerMode
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
@@ -100,12 +100,12 @@ func TestNewSQLRepository_PostgreSQL_InvalidURL(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			
+
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = "disabled"
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
@@ -148,12 +148,12 @@ func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
 			t.Parallel()
 
 			ctx := context.Background()
-			
+
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = "disabled"
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 

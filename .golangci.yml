@@ -1,25 +1,31 @@
-# $schema: https://json.schemastore.org/golangci-lint.json
+# $schema: https://golangci-lint.run/jsonschema/golangci.jsonschema.json
 # golangci-lint configuration for cryptoutil project
-# Doc: https://golangci-lint.run/docs/configuration/file/
+# doc: https://golangci-lint.run/docs/configuration/file/
 #
-# This project uses Go 1.25.4 with golangci-lint v1.25.4
+# This project uses Go 1.25.4 with golangci-lint v2.0.0
 # All linters are compatible with the current Go version
 #
 # Usage: golangci-lint run --timeout=10m
+
+version: "2"
 
 run:
   timeout: 10m
   issues-exit-code: 1
   tests: true
   # Performance optimizations
+  concurrency: 0  # Use all available CPUs (default behavior, explicit for clarity)
+  build-cache: true  # Enable Go build cache for faster subsequent runs
   go: '1.25.4'                    # Explicit Go version from go.mod - avoids auto-detection overhead
-  modules-download-mode: readonly # Prevent implicit go.mod updates - faster module loading
+  modules-download-mode: readonly  # Don't download modules during linting (assume already downloaded)
   allow-parallel-runners: true    # Allow concurrent golangci-lint instances
-  concurrency: 0                  # Auto-detect optimal parallelism (default behavior)
 
 output:
   formats:
-    - format: colored-line-number
+    colored-line-number: stdout
+  print-issued-lines: true
+  print-linter-name: true
+  sort-results: true
 
 linters:
   enable:
@@ -80,7 +86,7 @@ linters:
     - gocyclo   # Cyclomatic complexity
     - godox     # TODO/FIXME comments tracked in todos.md instead
 
-  settings:
+linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
@@ -337,16 +343,6 @@ linters:
   depguard:
     # Enforce dependency boundaries - prevents cross-domain coupling
     rules:
-      # Main list - allow all imports by default (only specific deny rules below)
-      Main:
-        desc: "Allow all standard imports"
-        files:
-          - "**/*.go"
-        allow:
-          - $gostd
-          - github.com
-          - cryptoutil
-
       # Ensure identity module maintains clean boundaries from cryptoutil KMS domain
       identity-domain-isolation:
         desc: "Identity domain must not import from cryptoutil KMS server, client, or API packages"
@@ -393,13 +389,6 @@ linters:
               - fmt
 
 issues:
-  # Performance optimization: Allow unlimited issues to avoid early exit
-  max-issues-per-linter: 0
-  max-same-issues: 0
-
-  # Deduplicate issues by line for cleaner output
-  uniq-by-line: true
-
   exclude-dirs:
     # IDE and tool configurations - DO NOT LINT
     - .idea       # Skip IntelliJ IDEA/GoLand IDE files, no Go files
@@ -448,8 +437,14 @@ issues:
     # - scripts/    # Build scripts with Go code - SHOULD BE LINTED
     # - api/        # OpenAPI generation triggers (generate.go) - SHOULD BE LINTED
   exclude-files:
-    - ".*\\.pb\\.go$"
-    - ".*_gen\\.go$"
+    - ".*\\.pb\\.go$"      # Skip protobuf generated files
+    - ".*_gen\\.go$"       # Skip code generated files
+    - "api/client/.*"      # Skip OpenAPI client code
+    - "api/model/.*"       # Skip OpenAPI model code
+    - "api/server/.*"      # Skip OpenAPI server code
+  uniq-by-line: true
+  max-issues-per-linter: 100
+  max-same-issues: 20
 
   exclude-rules:
     - path: _test\.go

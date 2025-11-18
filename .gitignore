@@ -80,6 +80,8 @@
 ./.coverage
 ./.coverage.*
 ./coverage
+./coverage-*.txt
+./coverage.txt
 ./coverage.xml
 ./coverage.out
 ./coverage.html
@@ -100,6 +102,8 @@
 **/.coverage
 **/.coverage.*
 **/coverage
+**/coverage-*.txt
+**/coverage.txt
 **/coverage.xml
 **/coverage.out
 **/coverage.html
@@ -127,6 +131,13 @@
 **/test-results/
 **/workflow-reports/
 
+# Virtual environments (Project Root Directory)
+./venv/
+./.venv
+./env/
+./.env
+./ENV/
+./output/
 # Virtual environments (Subdirectories)
 **/venv/
 **/.venv
@@ -135,28 +146,45 @@
 **/ENV/
 **/output/
 
+# IDEs (Project Root Directory)
+./*.swp
+./*.swo
+./*~
 # IDEs (Subdirectories)
 **/*.swp
 **/*.swo
 **/*~
 
+# OS (Project Root Directory)
+./.DS_Store
+./Thumbs.db
 # OS (Subdirectories)
 **/.DS_Store
 **/Thumbs.db
 
+# Logs (Project Root Directory)
+./*.log
 # Logs (Subdirectories)
 **/*.log
 
 # Spell checker cache (Subdirectories)
 **/.cspellcache
 
-# CI/CD cache
-.cicd/
+# CI/CD cache (Project Root Directory)
+./.cicd/
 
-# Go workspace file
-go.work
-go.work.sum
+# Go workspace file (Project Root Directory)
+./go.work
+./go.work.sum
 
+# ASN.1/DER/PEM encoded files (Project Root Directory)
+./*.pem
+./*.der
+./*.crt
+./*.key
+./*.csr
+./*.pfx
+./*.p12
 # ASN.1/DER/PEM encoded files (Subdirectories)
 **/*.pem
 **/*.der
