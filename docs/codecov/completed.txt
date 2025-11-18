@@ -134,6 +134,39 @@
   - generateJWK tests: JWE algorithms (A128CBC-HS256/dir, A128GCM/dir, RSA-OAEP, ECDH-ES), JWS algorithms (HS256, RS256, ES256, EdDSA), unsupported algorithm error handling
 - Remaining 0% functions require database/barrier mocks (AddElasticKey, Get*, Post*, decrypt, sign, verify operations)
 - Commit: c630881 "test(businesslogic): add comprehensive mapper and core service tests - 38.3%"
+
+### ✅ Task 3.4: internal/common/crypto/asn1 (COMPLETED - 88.7%)
+- **Coverage achieved: 88.7%** (was 24.7%)
+- **Total gain: +64.0%**
+- Created der_pem_comprehensive_test.go with 35 test functions:
+  - TestPEMEncodes (2 tests): Encoding multiple certificates to PEM, unsupported types
+  - TestDEREncodes (2 tests): Encoding multiple certificates to DER, unsupported types
+  - TestDEREncode_AllKeyTypes (7 parameterized cases): RSA/ECDSA/EdDSA private/public keys, byte slice secret keys
+  - TestDEREncode_UnsupportedType: Error handling for invalid types
+  - TestDERDecode_AllKeyTypes (7 parameterized cases): Decoding all supported key types
+  - TestDERDecode_UnsupportedType: Error handling for unsupported PEM types
+  - TestDERDecode_InvalidData (3 cases): Error handling for invalid DER data
+  - TestDERDecodes (3 cases): Automatic DER type detection for RSA/ECDSA/secret keys
+  - TestPEMDecode_InvalidData (3 cases): Error handling for invalid PEM data
+  - TestPEMRead (3 cases): Reading RSA/ECDSA/EdDSA keys from PEM files
+  - TestPEMRead_NonExistentFile: Error handling for missing files
+  - TestDERRead (2 cases): Reading RSA/ECDSA keys from DER files
+  - TestDERRead_NonExistentFile: Error handling for missing files
+  - TestPEMWrite (3 cases): Writing RSA/ECDSA/EdDSA keys to PEM files with subdirectory creation
+  - TestPEMWrite_UnsupportedType: Error handling for invalid types
+  - TestDERWrite (3 cases): Writing RSA/ECDSA/EdDSA keys to DER files with subdirectory creation
+  - TestDERWrite_UnsupportedType: Error handling for invalid types
+  - TestRoundTrip_PEMFileOperations: Complete PEM write/read cycle verification
+  - TestRoundTrip_DERFileOperations: Complete DER write/read cycle verification
+  - TestCertificateRequest_EncodeDecode: CSR encoding/decoding
+- Test coverage:
+  - All encoding functions at 100%: PEMEncodes, DEREncodes, PEMEncode, DEREncode
+  - All decoding functions at 100%: DERDecode, DERDecodes, PEMDecode
+  - All file I/O functions at 100%: PEMRead, DERRead, PEMWrite, DERWrite
+  - Comprehensive parameterized tests for all key types: RSA, ECDSA, EdDSA, ECDH (skipped due to Go bug), byte slices
+  - Error handling: unsupported types, invalid data, non-existent files
+  - Round-trip verification for encoding/decoding cycles
+- Commit: 815a66c "test(asn1): add comprehensive DER/PEM encoding/decoding tests - 88.7%"
 - 2371408 "test(orm): add MaterialKey operation error path tests (89.1%)"
 - 616523f "test(orm): add GetElasticKey not found error path test (89.1%)"
 - 0a0fd47 "test(orm): add AddElasticKey and MaterialKey version error path tests (89.1%)"
