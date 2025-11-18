@@ -58,26 +58,6 @@
 
 ## PRIORITY 3: Add Tests to 22 Additional Packages (one at a time)
 
-### Task 3.3: internal/common/telemetry
-- Add parameterized happy and sad path tests
-- Verify tests pass
-- Commit: "test(common/telemetry): add comprehensive parameterized tests"
-
-### Task 3.4: internal/server/handler
-- Add parameterized happy and sad path tests
-- Verify tests pass
-- Commit: "test(server/handler): add comprehensive parameterized tests"
-
-### Task 3.5: internal/server/barrier/unsealkeysservice
-- Add parameterized happy and sad path tests
-- Verify tests pass
-- Commit: "test(server/barrier/unsealkeysservice): add comprehensive parameterized tests"
-
-### Task 3.6: internal/server/barrier/rootkeysservice
-- Add parameterized happy and sad path tests
-- Verify tests pass
-- Commit: "test(server/barrier/rootkeysservice): add comprehensive parameterized tests"
-
 ### Task 3.7: internal/server/barrier/intermediatekeysservice
 - Add parameterized happy and sad path tests
 - Verify tests pass
