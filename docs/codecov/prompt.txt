@@ -4,14 +4,6 @@
 
 ## PRIORITY 0: Performance Optimization Tasks
 
-### Task 0.1: Optimize Pre-commit Hooks for Speed
-- Make golangci-lint incremental on pre-commit with --new-from-rev=HEAD~1
-- Move go build to pre-push stage (already compiles in CI)
-- Create separate full golangci-lint check for pre-push
-- Expected improvement: 41s → 8-12s (~70% faster)
-- Verify all hooks still work correctly
-- Commit: "perf(pre-commit): optimize hooks for faster development workflow"
-
 ### Task 0.2: Optimize Pre-push Hooks for Speed
 - Make dependency update checks optional/manual (not every push)
 - Cache results for github-workflow-lint
