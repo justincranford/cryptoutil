@@ -18,15 +18,14 @@ import (
 const (
 	testGoModMinimal = `module example.com/test
 
-go 1.23
+go 1.25.4
 `
 	testGoModWithDeps = `module example.com/test
 
-go 1.23
+go 1.25.4
 
 require (
-	github.com/stretchr/testify v1.8.0
-)
+	github.com/stretchr/testify v1.9.0
 `
 	testMainContent = `package main
 

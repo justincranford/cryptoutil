@@ -170,6 +170,7 @@ sudo apt install -y git
 **Fedora/RHEL/CentOS:**
 ```bash
 # Install Go
+```bash
 wget https://go.dev/dl/go1.25.4.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.25.4.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
@@ -467,7 +468,7 @@ act --version
 **GoLand/IntelliJ IDEA:**
 - Install Go plugin
 - Import project as Go module
-- Configure Go SDK to 1.25.4+
+# Configure Go SDK to 1.25.4+
 
 **Vim/Neovim:**
 - Install vim-go plugin

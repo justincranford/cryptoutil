@@ -18,7 +18,7 @@ import (
 const (
 	testGoModMinimal2 = `module example.com/test
 
-go 1.23
+go 1.25.4
 `
 	testMainContent2 = `package main
 
@@ -65,7 +65,7 @@ func TestGoUpdateDeps_MissingGoSum(t *testing.T) {
 	// Create go.mod but not go.sum
 	goModContent := `module example.com/test
 
-go 1.23
+go 1.25.4
 
 require (
 	github.com/stretchr/testify v1.8.0
