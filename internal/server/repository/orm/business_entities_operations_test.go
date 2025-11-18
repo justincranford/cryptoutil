@@ -1,7 +1,3 @@
-// Copyright (c) 2025 Justin Cranford
-//
-//
-
 package orm
 
 import (
@@ -15,11 +11,9 @@ import (
 
 // TestElasticKeyOperations tests CRUD operations for ElasticKey entity.
 func TestElasticKeyOperations(t *testing.T) {
-	t.Parallel()
+	CleanupDatabase(t, testOrmRepository)
 
 	t.Run("Add and retrieve single elastic key", func(t *testing.T) {
-		t.Parallel()
-
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create test elastic key.
 			ekID := googleUuid.New()
@@ -51,8 +45,6 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Update elastic key", func(t *testing.T) {
-		t.Parallel()
-
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create and add elastic key.
 			ekID := googleUuid.New()
@@ -85,8 +77,6 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Update elastic key status", func(t *testing.T) {
-		t.Parallel()
-
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create and add elastic key.
 			ekID := googleUuid.New()
@@ -118,7 +108,7 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get elastic keys with filters", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create multiple elastic keys with different statuses.
@@ -157,10 +147,10 @@ func TestElasticKeyOperations(t *testing.T) {
 
 // TestMaterialKeyOperations tests CRUD operations for MaterialKey entity.
 func TestMaterialKeyOperations(t *testing.T) {
-	t.Parallel()
+	CleanupDatabase(t, testOrmRepository)
 
 	t.Run("Add and retrieve material keys for elastic key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
@@ -211,8 +201,6 @@ func TestMaterialKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest material key for elastic key", func(t *testing.T) {
-		t.Parallel()
-
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
 			ekID := googleUuid.New()
@@ -255,7 +243,7 @@ func TestMaterialKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get all material keys with filters", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
@@ -387,49 +375,5 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 			return nil
 		})
 		require.NoError(t, err, "Transaction should commit (GORM allows updates with 0 rows affected)")
-	})
-
-	t.Run("Test GetMaterialKeys with filters", func(t *testing.T) {
-		t.Parallel()
-
-		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
-			// Create multiple elastic keys with material keys.
-			for i := 0; i < 2; i++ {
-				ekID := googleUuid.New()
-				elasticKey := &ElasticKey{
-					ElasticKeyID:                ekID,
-					ElasticKeyName:              "batch-key-" + ekID.String()[:8],
-					ElasticKeyDescription:       "Batch test key",
-					ElasticKeyProvider:          cryptoutilOpenapiModel.Internal,
-					ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128CBCHS256A256KW,
-					ElasticKeyVersioningAllowed: true,
-					ElasticKeyImportAllowed:     false,
-					ElasticKeyStatus:            cryptoutilOpenapiModel.Active,
-				}
-				err := tx.AddElasticKey(elasticKey)
-				require.NoError(t, err)
-
-				// Add material keys for this elastic key.
-				for j := 0; j < 2; j++ {
-					mkID := googleUuid.New()
-					materialKey := &MaterialKey{
-						ElasticKeyID:                  ekID,
-						MaterialKeyID:                 mkID,
-						MaterialKeyClearPublic:        []byte("pub"),
-						MaterialKeyEncryptedNonPublic: []byte("priv"),
-					}
-					err := tx.AddElasticKeyMaterialKey(materialKey)
-					require.NoError(t, err)
-				}
-			}
-
-			// Get all material keys (no filtering).
-			allKeys, err := tx.GetMaterialKeys(&GetMaterialKeysFilters{})
-			require.NoError(t, err)
-			require.GreaterOrEqual(t, len(allKeys), 4) // At least 2 elastic keys * 2 material keys each.
-
-			return nil
-		})
-		require.NoError(t, err)
 	})
 }

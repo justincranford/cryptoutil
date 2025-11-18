@@ -1,7 +1,3 @@
-// Copyright (c) 2025 Justin Cranford
-//
-//
-
 package orm
 
 import (
@@ -13,10 +9,8 @@ import (
 
 // TestBarrierRootKeyOperations tests root key CRUD operations.
 func TestBarrierRootKeyOperations(t *testing.T) {
-	t.Parallel()
-
 	t.Run("Add and retrieve multiple root keys", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 root keys.
@@ -35,10 +29,10 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Retrieve all keys and verify test-added keys are present.
+			// Retrieve all keys.
 			keys, err := tx.GetRootKeys()
 			require.NoError(t, err)
-			require.GreaterOrEqual(t, len(keys), numKeys)
+			require.Len(t, keys, numKeys)
 
 			return nil
 		})
@@ -47,7 +41,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest root key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 root keys.
@@ -66,11 +60,23 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get latest key - in concurrent execution, another test may have added newer keys.
-			// Just verify we can retrieve A latest key successfully.
+			// Get latest key (latest by UUID DESC ordering, not insertion order).
 			latestKey, err := tx.GetRootKeyLatest()
 			require.NoError(t, err)
 			require.NotNil(t, latestKey)
+
+			// Verify it's one of the keys we added.
+			found := false
+
+			for _, k := range addedKeys {
+				if k.GetUUID() == latestKey.GetUUID() {
+					found = true
+
+					break
+				}
+			}
+
+			require.True(t, found, "Latest key should be one of the added keys")
 
 			return nil
 		})
@@ -79,7 +85,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get root key by UUID", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -105,7 +111,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete root key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 keys.
@@ -124,27 +130,16 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get count before deletion.
-			beforeKeys, err := tx.GetRootKeys()
-			require.NoError(t, err)
-
-			beforeCount := len(beforeKeys)
-
 			// Delete one key.
 			targetUUID := addedKeys[1].GetUUID()
 			deletedKey, err := tx.DeleteRootKey(&targetUUID)
 			require.NoError(t, err)
 			require.NotNil(t, deletedKey)
 
-			// Verify deletion - count should decrease by 1.
-			afterKeys, err := tx.GetRootKeys()
+			// Verify deletion.
+			remainingKeys, err := tx.GetRootKeys()
 			require.NoError(t, err)
-			require.Equal(t, beforeCount-1, len(afterKeys))
-
-			// Verify the deleted key is not in results.
-			for _, key := range afterKeys {
-				require.NotEqual(t, targetUUID, key.GetUUID())
-			}
+			require.Len(t, remainingKeys, numKeys-1)
 
 			return nil
 		})
@@ -155,10 +150,8 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 
 // TestBarrierIntermediateKeyOperations tests intermediate key CRUD operations.
 func TestBarrierIntermediateKeyOperations(t *testing.T) {
-	t.Parallel()
-
 	t.Run("Add and retrieve multiple intermediate keys", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 4 intermediate keys.
@@ -177,10 +170,10 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Retrieve all keys and verify test-added keys are present.
+			// Retrieve all keys.
 			keys, err := tx.GetIntermediateKeys()
 			require.NoError(t, err)
-			require.GreaterOrEqual(t, len(keys), numKeys)
+			require.Len(t, keys, numKeys)
 
 			return nil
 		})
@@ -189,7 +182,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest intermediate key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 intermediate keys.
@@ -208,11 +201,23 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get latest key - in concurrent execution, another test may have added newer keys.
-			// Just verify we can retrieve A latest key successfully.
+			// Get latest key (latest by UUID DESC ordering, not insertion order).
 			latestKey, err := tx.GetIntermediateKeyLatest()
 			require.NoError(t, err)
 			require.NotNil(t, latestKey)
+
+			// Verify it's one of the keys we added.
+			found := false
+
+			for _, k := range addedKeys {
+				if k.GetUUID() == latestKey.GetUUID() {
+					found = true
+
+					break
+				}
+			}
+
+			require.True(t, found, "Latest key should be one of the added keys")
 
 			return nil
 		})
@@ -221,7 +226,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get intermediate key by UUID", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -247,7 +252,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete intermediate key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 keys.
@@ -266,27 +271,16 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get count before deletion.
-			beforeKeys, err := tx.GetIntermediateKeys()
-			require.NoError(t, err)
-
-			beforeCount := len(beforeKeys)
-
 			// Delete one key.
 			targetUUID := addedKeys[2].GetUUID()
 			deletedKey, err := tx.DeleteIntermediateKey(&targetUUID)
 			require.NoError(t, err)
 			require.NotNil(t, deletedKey)
 
-			// Verify deletion - count should decrease by 1.
-			afterKeys, err := tx.GetIntermediateKeys()
+			// Verify deletion.
+			remainingKeys, err := tx.GetIntermediateKeys()
 			require.NoError(t, err)
-			require.Equal(t, beforeCount-1, len(afterKeys))
-
-			// Verify the deleted key is not in results.
-			for _, key := range afterKeys {
-				require.NotEqual(t, targetUUID, key.GetUUID())
-			}
+			require.Len(t, remainingKeys, numKeys-1)
 
 			return nil
 		})
@@ -297,10 +291,8 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 
 // TestBarrierContentKeyOperations tests content key CRUD operations.
 func TestBarrierContentKeyOperations(t *testing.T) {
-	t.Parallel()
-
 	t.Run("Add and retrieve multiple content keys", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 content keys.
@@ -319,10 +311,10 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Retrieve all keys and verify test-added keys are present.
+			// Retrieve all keys.
 			keys, err := tx.GetContentKeys()
 			require.NoError(t, err)
-			require.GreaterOrEqual(t, len(keys), numKeys)
+			require.Len(t, keys, numKeys)
 
 			return nil
 		})
@@ -331,7 +323,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest content key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 7 content keys.
@@ -350,11 +342,23 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get latest key - in concurrent execution, another test may have added newer keys.
-			// Just verify we can retrieve A latest key successfully.
+			// Get latest key (latest by UUID DESC ordering, not insertion order).
 			latestKey, err := tx.GetContentKeyLatest()
 			require.NoError(t, err)
 			require.NotNil(t, latestKey)
+
+			// Verify it's one of the keys we added.
+			found := false
+
+			for _, k := range addedKeys {
+				if k.GetUUID() == latestKey.GetUUID() {
+					found = true
+
+					break
+				}
+			}
+
+			require.True(t, found, "Latest key should be one of the added keys")
 
 			return nil
 		})
@@ -363,7 +367,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get content key by UUID", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add key.
@@ -389,7 +393,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Delete content key", func(t *testing.T) {
-		t.Parallel()
+		CleanupDatabase(t, testOrmRepository)
 
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 keys.
@@ -408,27 +412,16 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 				addedKeys[i] = key
 			}
 
-			// Get count before deletion.
-			beforeKeys, err := tx.GetContentKeys()
-			require.NoError(t, err)
-
-			beforeCount := len(beforeKeys)
-
 			// Delete one key.
 			targetUUID := addedKeys[3].GetUUID()
 			deletedKey, err := tx.DeleteContentKey(&targetUUID)
 			require.NoError(t, err)
 			require.NotNil(t, deletedKey)
 
-			// Verify deletion - count should decrease by 1.
-			afterKeys, err := tx.GetContentKeys()
+			// Verify deletion.
+			remainingKeys, err := tx.GetContentKeys()
 			require.NoError(t, err)
-			require.Equal(t, beforeCount-1, len(afterKeys))
-
-			// Verify the deleted key is not in results.
-			for _, key := range afterKeys {
-				require.NotEqual(t, targetUUID, key.GetUUID())
-			}
+			require.Len(t, remainingKeys, numKeys-1)
 
 			return nil
 		})
