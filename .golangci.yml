@@ -337,6 +337,16 @@ linters:
   depguard:
     # Enforce dependency boundaries - prevents cross-domain coupling
     rules:
+      # Main list - allow all imports by default (only specific deny rules below)
+      Main:
+        desc: "Allow all standard imports"
+        files:
+          - "**/*.go"
+        allow:
+          - $gostd
+          - github.com
+          - cryptoutil
+
       # Ensure identity module maintains clean boundaries from cryptoutil KMS domain
       identity-domain-isolation:
         desc: "Identity domain must not import from cryptoutil KMS server, client, or API packages"
