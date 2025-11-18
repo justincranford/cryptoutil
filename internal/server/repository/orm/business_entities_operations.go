@@ -281,8 +281,15 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 		}
 	}
 
-	db = db.Offset(filters.PageNumber * filters.PageSize)
-	db = db.Limit(filters.PageSize)
+	// Apply pagination with defaults.
+	pageNumber := filters.PageNumber
+	pageSize := filters.PageSize
+	if pageSize <= 0 {
+		pageSize = 100 // Default page size when not specified.
+	}
+
+	db = db.Offset(pageNumber * pageSize)
+	db = db.Limit(pageSize)
 
 	return db
 }
@@ -314,8 +321,15 @@ func applyKeyFilters(db *gorm.DB, filters *GetMaterialKeysFilters) *gorm.DB {
 		}
 	}
 
-	db = db.Offset(filters.PageNumber * filters.PageSize)
-	db = db.Limit(filters.PageSize)
+	// Apply pagination with defaults.
+	pageNumber := filters.PageNumber
+	pageSize := filters.PageSize
+	if pageSize <= 0 {
+		pageSize = 100 // Default page size when not specified.
+	}
+
+	db = db.Offset(pageNumber * pageSize)
+	db = db.Limit(pageSize)
 
 	return db
 }
@@ -343,8 +357,15 @@ func applyGetElasticKeyKeysFilters(db *gorm.DB, filters *GetElasticKeyMaterialKe
 		}
 	}
 
-	db = db.Offset(filters.PageNumber * filters.PageSize)
-	db = db.Limit(filters.PageSize)
+	// Apply pagination with defaults.
+	pageNumber := filters.PageNumber
+	pageSize := filters.PageSize
+	if pageSize <= 0 {
+		pageSize = 100 // Default page size when not specified.
+	}
+
+	db = db.Offset(pageNumber * pageSize)
+	db = db.Limit(pageSize)
 
 	return db
 }

@@ -11,7 +11,11 @@ import (
 
 // TestElasticKeyOperations tests CRUD operations for ElasticKey entity.
 func TestElasticKeyOperations(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Add and retrieve single elastic key", func(t *testing.T) {
+		t.Parallel()
+
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create test elastic key.
 			ekID := googleUuid.New()
@@ -43,6 +47,8 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Update elastic key", func(t *testing.T) {
+		t.Parallel()
+
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create and add elastic key.
 			ekID := googleUuid.New()
@@ -75,6 +81,8 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Update elastic key status", func(t *testing.T) {
+		t.Parallel()
+
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create and add elastic key.
 			ekID := googleUuid.New()
@@ -106,6 +114,8 @@ func TestElasticKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get elastic keys with filters", func(t *testing.T) {
+		t.Parallel()
+
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create multiple elastic keys with different statuses.
 			for i := 0; i < 3; i++ {
@@ -143,7 +153,11 @@ func TestElasticKeyOperations(t *testing.T) {
 
 // TestMaterialKeyOperations tests CRUD operations for MaterialKey entity.
 func TestMaterialKeyOperations(t *testing.T) {
+	t.Parallel()
+
 	t.Run("Add and retrieve material keys for elastic key", func(t *testing.T) {
+		t.Parallel()
+
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
 			ekID := googleUuid.New()
@@ -193,6 +207,8 @@ func TestMaterialKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get latest material key for elastic key", func(t *testing.T) {
+		t.Parallel()
+
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
 			ekID := googleUuid.New()
@@ -235,6 +251,8 @@ func TestMaterialKeyOperations(t *testing.T) {
 	})
 
 	t.Run("Get all material keys with filters", func(t *testing.T) {
+		t.Parallel()
+
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Create parent elastic key.
 			ekID := googleUuid.New()
