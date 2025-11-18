@@ -108,7 +108,7 @@
 15. business_entities_versioning_filter_test.go - VersioningAllowed filter (1 test with 3 subtests, 0%)
 16. business_entities_postgres_errors_test.go - PostgreSQL error handling (5 tests, +1.4% to 90.8%)
 
-**Commits (11 commits):**
+**Commits (17 commits):**
 - 9154aeb "docs(codecov): update completed tasks and statistics"
 - 82765d5 "test(orm): add transaction verbose mode and state management tests"
 - 8c8c88e "test(orm): add material key version and latest tests"
@@ -121,8 +121,14 @@
 - 2371408 "test(orm): add MaterialKey operation error path tests (89.1%)"
 - 616523f "test(orm): add GetElasticKey not found error path test (89.1%)"
 - 0a0fd47 "test(orm): add AddElasticKey and MaterialKey version error path tests (89.1%)"
+- 442f04d "docs(codecov): update progress to 89.1% with error path test saturation analysis"
+- 02b4730 "test(orm): add dead code filter tests (ExportAllowed, ImportAllowed) - 89.4%"
+- 423eb24 "test(orm): add comprehensive filter edge case tests (nil, dates, sort, pagination) - 89.4%"
+- 189b831 "test(orm): add VersioningAllowed filter boolean test (true/false/nil) - 89.4%"
+- b7d853a "test(orm): add PostgreSQL error handling tests (unique, fk, check, truncation) - 90.8%"
+- 62d9f14 "docs(codecov): update ORM task to completed with 90.8% achievement"
 
-**Remaining to 90% goal: +0.9%** - Nearly complete!
+**GOAL EXCEEDED: 90.8% achieved! (+0.8% above target)**
   - TestBarrierContentKey_GettersSetters
   - TestOrmRepository_Shutdown (skipped)
 - Coverage improved: 29.7% → 35.2% (+5.5%)
