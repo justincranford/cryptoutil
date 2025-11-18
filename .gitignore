@@ -44,17 +44,20 @@ cryptoutil$
 **/.coverage
 **/.coverage.*
 **/coverage
+**/coverage_*
+**/coverage*.out
+**/coverage*.txt
 **/coverage.xml
-**/coverage.out
 **/coverage.html
 **/coverage.json
 **/coverage.lcov
-**/coverage_test
-**/coverage_cicd
 **/*.cover
 **/*.test
 **/.hypothesis/
 **/.pytest_cache/
+**/orm_coverage
+**/*_coverage
+**/*_functions.txt
 
 # Output of test or workflow reports
 **/dast-reports/
