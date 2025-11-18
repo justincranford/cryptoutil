@@ -399,3 +399,53 @@
 - internal/server/repository/orm/business_entities_additional_errors_test.go (96 lines)
 
 **Total Lines of Test Code Added:** 3,078 lines
+
+### ✅ Task 3.3: internal/common/telemetry (COMPLETED - 67.7%)
+- **Coverage achieved: 67.7%** (was 27.2%)
+- **Total gain: +40.5%**
+- Created telemetry_comprehensive_test.go with comprehensive tests:
+  - TestShutdown: Shutdown operation validation
+  - Health check tests: Livez, Readyz endpoints
+  - Error path tests: Comprehensive error handling coverage
+- All parameterized tests with happy and error paths
+- Commit: 7bd3b4d "test(telemetry): add comprehensive tests for Shutdown, health checks, and error paths (+40.5% coverage: 27.2% → 67.7%)"
+
+### ✅ Task 3.4: internal/server/handler (COMPLETED - 27.8%)
+- **Coverage achieved: 27.8%** (was 1.8%)
+- **Total gain: +26.0%**
+- Created handler_test.go with comprehensive mapper tests:
+  - Error response mapper tests
+  - Parameter mapping tests
+  - Comprehensive coverage of handler utilities
+- All parameterized tests with happy and error paths
+- Commit: d3c87d1 "test(handler): add comprehensive mapper tests for error responses and parameter mapping (+26.0% coverage: 1.8% → 27.8%)"
+
+### ✅ Task 3.5: internal/server/barrier/unsealkeysservice (COMPLETED - 49.4%)
+- **Coverage achieved: 49.4%** (was 33.3%)
+- **Total gain: +16.1%**
+- Created unseal_keys_service_comprehensive_test.go with comprehensive tests:
+  - Encryption/decryption operation tests
+  - Error path coverage
+  - Service lifecycle tests
+- All parameterized tests with happy and error paths
+- Commit: b0a4495 "test(unsealkeysservice): add comprehensive tests for encryption/decryption operations (+16.1% coverage: 33.3% → 49.4%)"
+
+### ✅ Task 3.6: internal/server/barrier/rootkeysservice (COMPLETED - 79.2%)
+- **Coverage achieved: 79.2%** (was 41.7%)
+- **Total gain: +37.5%**
+- Created root_keys_service_comprehensive_test.go with comprehensive tests:
+  - EncryptKey operation tests
+  - DecryptKey operation tests
+  - Shutdown lifecycle tests
+- All parameterized tests with happy and error paths
+- Commit: d06ebed "test(rootkeysservice): add comprehensive tests for EncryptKey, DecryptKey, Shutdown (+37.5% coverage: 41.7% → 79.2%)"
+
+### ✅ Task 3.X: internal/common/crypto/keygen (COMPLETED - 85.2%)
+- **Coverage achieved: 85.2%** (was 51.9%)
+- **Total gain: +33.3%**
+- Created keygen_test.go with comprehensive tests:
+  - All key generation function tests
+  - Multiple algorithm coverage
+  - Comprehensive parameterized tests
+- All parameterized tests with happy and error paths
+- Commit: 1ec2254 "test(keygen): add comprehensive tests for all key generation functions (+33.3% coverage: 51.9% → 85.2%)"
