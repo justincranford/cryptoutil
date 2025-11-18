@@ -134,7 +134,21 @@
 - Commit: 94442fa "test(orm): add comprehensive filter application tests"
 
 - Total ORM coverage gain: 29.7% → 76.7% (+47.0%)
-- Note: Some barrier operation tests failing due to data persistence; acceptable for current progress
+
+- Fixed test isolation issues
+- Created orm_repository_test_util.go:
+  - CleanupDatabase helper function for test state cleanup
+  - Uses t.Cleanup() for automatic execution after tests
+  - Deletes all rows from 5 tables in reverse FK dependency order
+- Modified barrier_operations_test.go:
+  - Removed all 15 t.Parallel() calls (shared in-memory SQLite DB)
+  - Added CleanupDatabase calls to all test functions
+  - Fixed "Get latest" tests to handle UUID DESC ordering vs insertion order
+  - All barrier tests now passing (12 subtests)
+- Modified business_entities_operations_test.go:
+  - Added CleanupDatabase to parent test functions and failing subtests
+  - 3 subtests still failing (needs further diagnosis)
+- Commit: bcd3aca "fix(orm tests): add database cleanup for test isolation"
 
 ## COMPLETED: Earlier Tasks (Reference)
 
@@ -162,7 +176,7 @@
 - sqlrepository: 52.6% → 58.9% (+6.3%)
 - orm: 29.7% → 76.7% (+47.0%)
 
-**Total Commits:** 11
+**Total Commits:** 12
 - 07bb0ad: Coverage file cleanup
 - 7717ec9: Copilot instructions for os.Exit()
 - 9dcc9a7: Remove os.Exit() from workflow lint
@@ -173,12 +187,18 @@
 - a770bd3: ORM business entity operations tests (+21.8%)
 - cbfc730: ORM business entity builders/filters tests (+0.3%)
 - 94442fa: ORM filter application tests (+6.7%)
+- bcd3aca: Test isolation improvements (CleanupDatabase, remove t.Parallel(), fix "Get latest" tests)
 - (cspell update included in 94442fa)
 
-**Test Files Created:** 4
+**Test Files Created:** 7
 - internal/server/repository/sqlrepository/sql_comprehensive_test.go (209 lines)
 - internal/server/repository/sqlrepository/sql_additional_coverage_test.go (135 lines)
 - internal/server/repository/orm/orm_entities_test.go (76 lines)
 - internal/server/repository/orm/barrier_operations_test.go (401 lines)
+- internal/server/repository/orm/business_entities_operations_test.go (434 lines)
+- internal/server/repository/orm/business_entities_builders_test.go (115 lines)
+- internal/server/repository/orm/business_entities_filters_test.go (220 lines)
+- internal/server/repository/orm/business_entities_filter_application_test.go (586 lines)
+- internal/server/repository/orm/orm_repository_test_util.go (50 lines, test utilities)
 
-**Total Lines of Test Code Added:** 821 lines
+**Total Lines of Test Code Added:** 2,226 lines
