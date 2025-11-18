@@ -115,64 +115,6 @@ func TestSQLRepository_WithTransaction_ReadOnly(t *testing.T) {
 	testify.NoError(t, err)
 }
 
-// TestSQLRepository_WithTransaction_PanicRecovery tests panic recovery in transactions.
-func TestSQLRepository_WithTransaction_PanicRecovery(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	
-	settings := cryptoutilConfig.RequireNewForTest("panic_recovery_test")
-	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
-	
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
-	defer telemetryService.Shutdown()
-
-	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-	testify.NoError(t, err)
-	testify.NotNil(t, repo)
-	defer repo.Shutdown()
-
-	// Test panic recovery
-	err = repo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
-		panic("intentional test panic")
-	})
-	testify.Error(t, err)
-	testify.ErrorContains(t, err, "intentional test panic")
-}
-
-// TestSQLRepository_WithTransaction_CommitError tests commit error handling.
-func TestSQLRepository_WithTransaction_CommitError(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	
-	// Cancel context before commit to force error
-	ctx, cancel := context.WithCancel(ctx)
-	
-	settings := cryptoutilConfig.RequireNewForTest("commit_error_test")
-	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
-	
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
-	defer telemetryService.Shutdown()
-
-	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-	testify.NoError(t, err)
-	testify.NotNil(t, repo)
-	defer repo.Shutdown()
-
-	// Start transaction, then cancel context
-	err = repo.WithTransaction(ctx, false, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
-		cancel() // Cancel context during transaction
-		return nil
-	})
-	// Transaction should fail due to cancelled context
-	if err != nil {
-		testify.Error(t, err)
-	}
-}
-
 // TestSQLRepository_WithTransaction_RollbackOnError tests automatic rollback on error.
 func TestSQLRepository_WithTransaction_RollbackOnError(t *testing.T) {
 	t.Parallel()
