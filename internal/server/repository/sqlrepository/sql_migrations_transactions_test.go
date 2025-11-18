@@ -89,31 +89,8 @@ func TestSQLRepository_WithTransaction_NestedTransaction(t *testing.T) {
 	testify.NoError(t, err)
 }
 
-// TestSQLRepository_WithTransaction_ReadOnly tests read-only transaction mode.
-func TestSQLRepository_WithTransaction_ReadOnly(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-	
-	settings := cryptoutilConfig.RequireNewForTest("readonly_transaction_test")
-	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
-	
-	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
-	defer telemetryService.Shutdown()
-
-	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-	testify.NoError(t, err)
-	testify.NotNil(t, repo)
-	defer repo.Shutdown()
-
-	// Test read-only transaction
-	err = repo.WithTransaction(ctx, true, func(tx *cryptoutilSQLRepository.SQLTransaction) error {
-		// Read-only transactions should succeed for queries
-		return nil
-	})
-	testify.NoError(t, err)
-}
+// NOTE: Read-only transactions not supported by SQLite driver (modernc.org/sqlite)
+// TestSQLRepository_WithTransaction_ReadOnly removed - PostgreSQL-only feature
 
 // TestSQLRepository_WithTransaction_RollbackOnError tests automatic rollback on error.
 func TestSQLRepository_WithTransaction_RollbackOnError(t *testing.T) {
