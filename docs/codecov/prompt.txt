@@ -58,47 +58,42 @@
 
 ## PRIORITY 3: Add Tests to 22 Additional Packages (one at a time)
 
-### Task 3.3: internal/common/crypto/asn1
-- Add parameterized happy and sad path tests
-- Verify tests pass
-- Commit: "test(common/crypto/asn1): add comprehensive parameterized tests"
-
-### Task 3.4: internal/common/telemetry
+### Task 3.3: internal/common/telemetry
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(common/telemetry): add comprehensive parameterized tests"
 
-### Task 3.5: internal/server/handler
+### Task 3.4: internal/server/handler
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(server/handler): add comprehensive parameterized tests"
 
-### Task 3.6: internal/server/barrier/unsealkeysservice
+### Task 3.5: internal/server/barrier/unsealkeysservice
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(server/barrier/unsealkeysservice): add comprehensive parameterized tests"
 
-### Task 3.7: internal/server/barrier/rootkeysservice
+### Task 3.6: internal/server/barrier/rootkeysservice
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(server/barrier/rootkeysservice): add comprehensive parameterized tests"
 
-### Task 3.8: internal/server/barrier/intermediatekeysservice
+### Task 3.7: internal/server/barrier/intermediatekeysservice
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(server/barrier/intermediatekeysservice): add comprehensive parameterized tests"
 
-### Task 3.9: internal/server/barrier/contentkeysservice
+### Task 3.8: internal/server/barrier/contentkeysservice
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(server/barrier/contentkeysservice): add comprehensive parameterized tests"
 
-### Task 3.10: internal/server/application
+### Task 3.9: internal/server/application
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(server/application): add comprehensive parameterized tests"
 
-### Task 3.11: internal/identity/authz/clientauth
+### Task 3.10: internal/identity/authz/clientauth
 - Add parameterized happy and sad path tests
 - Verify tests pass
 - Commit: "test(identity/authz/clientauth): add comprehensive parameterized tests"
