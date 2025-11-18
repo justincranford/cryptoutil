@@ -4,30 +4,48 @@
 # Version control
 # .git  # Temporarily allow .git for metadata generation
 .gitignore
+.worktree
 
 # Editor/IDE files
 .vscode/
 .idea/
-*.swp
 
-# OS/Temp files
-*.log
-*.tmp
-*.bak
-.DS_Store
-Thumbs.db
+# Build artifacts
+bin/
+dist/
+**/*.out
+
+# OS/Temp files (Project Root Directory)
+./*.swp
+./*.log
+./*.tmp
+./*.bak
+./.DS_Store
+./Thumbs.db
+./coverage/
+./test/
+./docs/
+./scripts/
+# OS/Temp files (Subdirectories)
+**/*.swp
+**/*.log
+**/*.tmp
+**/*.bak
+**/.DS_Store
+**/Thumbs.db
+**/coverage/
+**/test/
+**/docs/
+**/scripts/
 
 # Test and coverage artifacts
+**/*_test.go
+**/*_test_util.go
+**/coverage.*
+
+# Report Directories
 **/dast-reports/
 **/workflow-reports/
 **/load-reports/
 **/e2e-reports/
 **/test-results/
-**/*_test.go
-**/*_test_util.go
-coverage.*
-*.out
-
-# Build artifacts
-bin/
-dist/

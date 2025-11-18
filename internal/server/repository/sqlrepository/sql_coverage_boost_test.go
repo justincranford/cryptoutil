@@ -2,14 +2,14 @@ package sqlrepository_test
 
 import (
 	"context"
+	"cryptoutil/internal/server/repository/sqlrepository"
 	"testing"
 
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/require"
+	googleUuid "github.com/google/uuid"
+	testify "github.com/stretchr/testify/require"
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	"cryptoutil/internal/server/repository/sqlrepository"
 )
 
 // TestCreateGormDB_SQLite tests CreateGormDB with SQLite.
@@ -17,7 +17,7 @@ func TestCreateGormDB_SQLite(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration and telemetry (creates SQLite by default).
-	uuidVal, _ := uuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7()
 	testName := "TestCreateGormDB_SQLite_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -29,8 +29,8 @@ func TestCreateGormDB_SQLite(t *testing.T) {
 	defer sqlRepo.Shutdown()
 
 	// Verify repository was created successfully with SQLite.
-	require.NotNil(t, sqlRepo)
-	require.Equal(t, sqlrepository.DBTypeSQLite, sqlRepo.GetDBType())
+	testify.NotNil(t, sqlRepo)
+	testify.Equal(t, sqlrepository.DBTypeSQLite, sqlRepo.GetDBType())
 }
 
 // TestCreateGormDB_Postgres tests CreateGormDB with PostgreSQL.
@@ -43,7 +43,7 @@ func TestCreateGormDB_UnsupportedType(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration and telemetry.
-	uuidVal, _ := uuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7()
 	testName := "TestCreateGormDB_UnsupportedType_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -59,10 +59,10 @@ func TestCreateGormDB_UnsupportedType(t *testing.T) {
 	// Try to create SQL repository with unsupported type.
 	sqlRepo, err := sqlrepository.NewSQLRepository(ctx, telemetryService, testSettings)
 
-		// Should fail with unsupported database type error.
-	require.Error(t, err)
-	require.Nil(t, sqlRepo)
-	require.Contains(t, err.Error(), "unsupported database URL format")
+	// Should fail with unsupported database type error.
+	testify.Error(t, err)
+	testify.Nil(t, sqlRepo)
+	testify.Contains(t, err.Error(), "unsupported database URL format")
 }
 
 // TestSQLRepository_Shutdown_Isolated tests shutdown in isolation.
@@ -70,7 +70,7 @@ func TestSQLRepository_Shutdown_Isolated(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration and telemetry.
-	uuidVal, _ := uuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7()
 	testName := "TestSQLRepository_Shutdown_Isolated_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -85,7 +85,7 @@ func TestSQLRepository_Shutdown_Isolated(t *testing.T) {
 
 	// Verify shutdown was successful (health check should fail after shutdown).
 	_, err := sqlRepo.HealthCheck(ctx)
-	require.Error(t, err, "Health check should fail after shutdown")
+	testify.Error(t, err, "Health check should fail after shutdown")
 }
 
 // TestLogPostgresSchema tests PostgreSQL schema logging.
@@ -98,7 +98,7 @@ func TestLogSchema_SQLite(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration and telemetry.
-	uuidVal, _ := uuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7()
 	testName := "TestLogSchema_SQLite_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -113,7 +113,7 @@ func TestLogSchema_SQLite(t *testing.T) {
 	defer sqlRepo.Shutdown()
 
 	// Verify repository was created successfully (LogSchema didn't panic).
-	require.NotNil(t, sqlRepo)
+	testify.NotNil(t, sqlRepo)
 }
 
 // TestLogSchema_Postgres tests LogSchema with PostgreSQL (verbose mode).

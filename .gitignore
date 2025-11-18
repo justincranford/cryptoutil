@@ -1,7 +1,23 @@
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
 #
-# Binaries for programs and plugins
+# Binaries for programs and plugins (Project Root Directory)
+./bin/
+./build/
+./lib/
+./lib64/
+./dist/
+./downloads/
+./*.exe
+./*.exe~
+./*.dll
+./*.so
+./*.dylib
+./*.o
+./*.a
+./*.out
+./cryptoutil$
+# Binaries for programs and plugins (Subdirectories)
 **/bin/
 **/build/
 **/lib/
@@ -13,9 +29,23 @@
 **/*.dll
 **/*.so
 **/*.dylib
-cryptoutil$
+**/*.o
+**/*.a
+**/*.out
 
-# Distribution / packaging
+# Distribution / packaging (Project Root Directory)
+./.Python
+./develop-eggs/
+./eggs/
+./.eggs/
+./*.egg
+./*.egg-info/
+./parts/
+./sdist/
+./var/
+./wheels/
+./.installed.cfg
+# Distribution / packaging (Subdirectories)
 **/.Python
 **/develop-eggs/
 **/eggs/
@@ -28,14 +58,40 @@ cryptoutil$
 **/wheels/
 **/.installed.cfg
 
-# PyInstaller
+# PyInstaller (Project Root Directory)
+./*.manifest
+./*.spec
+./__pycache__/
+./*.py[cod]
+./*$py.class
+# PyInstaller (Subdirectories)
 **/*.manifest
 **/*.spec
 **/__pycache__/
 **/*.py[cod]
 **/*$py.class
 
-# Unit test / coverage reports
+# Unit test / coverage reports (Project Root Directory)
+./htmlcov/
+./.tox/
+./.nox/
+./.cache
+./nosetests.xml
+./.coverage
+./.coverage.*
+./coverage
+./coverage.xml
+./coverage.out
+./coverage.html
+./coverage.json
+./coverage.lcov
+./coverage_test
+./coverage_cicd
+./*.cover
+./*.test
+./.hypothesis/
+./.pytest_cache/
+# Unit test / coverage reports (Subdirectories)
 **/htmlcov/
 **/.tox/
 **/.nox/
@@ -56,7 +112,14 @@ cryptoutil$
 **/.hypothesis/
 **/.pytest_cache/
 
-# Output of test or workflow reports
+# Output of test or workflow reports (Project Root Directory)
+./dast-reports/
+./e2e-reports/
+./load-reports/
+./test-results/
+./test-results/
+./workflow-reports/
+# Output of test or workflow reports (Subdirectories)
 **/dast-reports/
 **/e2e-reports/
 **/load-reports/
@@ -64,7 +127,7 @@ cryptoutil$
 **/test-results/
 **/workflow-reports/
 
-# Virtual environments
+# Virtual environments (Subdirectories)
 **/venv/
 **/.venv
 **/env/
@@ -72,19 +135,19 @@ cryptoutil$
 **/ENV/
 **/output/
 
-# IDEs
+# IDEs (Subdirectories)
 **/*.swp
 **/*.swo
 **/*~
 
-# OS
+# OS (Subdirectories)
 **/.DS_Store
 **/Thumbs.db
 
-# Logs
+# Logs (Subdirectories)
 **/*.log
 
-# Spell checker cache
+# Spell checker cache (Subdirectories)
 **/.cspellcache
 
 # CI/CD cache
@@ -94,7 +157,7 @@ cryptoutil$
 go.work
 go.work.sum
 
-# ASN.1/DER/PEM encoded files
+# ASN.1/DER/PEM encoded files (Subdirectories)
 **/*.pem
 **/*.der
 **/*.crt
