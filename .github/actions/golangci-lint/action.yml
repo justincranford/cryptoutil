@@ -2,7 +2,7 @@
 # Doc: https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions
 
 name: 'golangci-lint'
-description: 'Install and run golangci-lint with auto-fix and final validation'
+description: 'Run golangci-lint with auto-fix and final validation using official golangci-lint-action'
 inputs:
   config-file:
     description: 'Path to golangci-lint configuration file'
@@ -12,41 +12,33 @@ inputs:
     description: 'Timeout for golangci-lint runs'
     required: false
     default: '10m'
+  version:
+    description: 'golangci-lint version to use'
+    required: false
+    default: 'latest'
 runs:
   using: 'composite'
   steps:
-    - name: Install golangci-lint
-      shell: bash
-      run: |
-        echo "🔧 Installing golangci-lint..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ golangci-lint installed in: ${DURATION}s"
-
     - name: Run golangci-lint with auto-fix
-      shell: bash
-      run: |
-        echo "🔍 Running golangci-lint with auto-fix..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        golangci-lint run --fix --timeout=${{ inputs.timeout }} --config=${{ inputs.config-file }}
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ golangci-lint auto-fix completed in: ${DURATION}s"
+      uses: golangci/golangci-lint-action@v8
+      with:
+        version: ${{ inputs.version }}
+        args: --fix --timeout=${{ inputs.timeout }} --config=${{ inputs.config-file }}
+        # Performance optimizations
+        skip-cache: false
+        skip-pkg-cache: false
+        skip-build-cache: false
+        # Only report new issues in PRs (disabled for now to see all issues)
+        only-new-issues: false
 
     - name: Run golangci-lint final check
-      shell: bash
-      run: |
-        echo "✅ Running golangci-lint final check..."
-        START_TIME=$(date +%s)
-        echo "📅 Start: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        golangci-lint run --timeout=${{ inputs.timeout }} --config=${{ inputs.config-file }}
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        echo "📅 End: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-        echo "⏱️ golangci-lint final check completed in: ${DURATION}s"
+      uses: golangci/golangci-lint-action@v8
+      with:
+        version: ${{ inputs.version }}
+        args: --timeout=${{ inputs.timeout }} --config=${{ inputs.config-file }}
+        # Performance optimizations
+        skip-cache: false
+        skip-pkg-cache: false
+        skip-build-cache: false
+        # Only report new issues in PRs (disabled for now to see all issues)
+        only-new-issues: false
