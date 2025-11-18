@@ -147,6 +147,20 @@
 
 - Total ORM coverage gain: 29.7% → 80.5% (+50.8%)
 
+- Added GORM error mapping tests
+- Created business_entities_gorm_errors_test.go (173 lines):
+  - TestToAppErr_GormDuplicatedKey (duplicate primary key error handling)
+  - TestToAppErr_GormCheckConstraintViolated (CHECK constraint violations)
+  - TestToAppErr_GormInvalidData (invalid data error handling)
+  - TestToAppErr_GormInvalidValueOfLength (invalid length error handling)
+  - TestToAppErr_GormNotImplemented (not implemented feature error handling)
+  - Tests real database operations triggering actual errors where possible
+  - Uses direct error mapping for errors difficult to trigger naturally
+  - Coverage improved: 80.5% → 81.3% (+0.8%)
+  - Commit: ca1e4f9 "test(orm): add comprehensive GORM error mapping tests"
+
+- Total ORM coverage gain: 29.7% → 81.3% (+51.6%)
+
 ## COMPLETED: Earlier Tasks (Reference)
 
 ### ✅ Task 0.1: Refactor cicd.go cache outputs to .cicd/ subdirectory
@@ -171,9 +185,9 @@
 **Total Coverage Improvements:**
 - cicd: 53.0% → 87.6% (+34.6%)
 - sqlrepository: 52.6% → 58.9% (+6.3%)
-- orm: 29.7% → 80.5% (+50.8%)
+- orm: 29.7% → 81.3% (+51.6%)
 
-**Total Commits:** 17
+**Total Commits:** 19
 - 07bb0ad: Coverage file cleanup
 - 7717ec9: Copilot instructions for os.Exit()
 - 9dcc9a7: Remove os.Exit() from workflow lint
@@ -190,9 +204,11 @@
 - d5580b8: Constructor validation tests (+1.1%)
 - 0b10ef1: Error mapping tests (+0.6%)
 - 1d01d65: AutoCommit transaction edge case tests (+1.2%)
+- 002fd33: Documentation update (moved completed tasks to completed.txt)
+- ca1e4f9: GORM error mapping tests (+0.8%)
 - (cspell update included in 94442fa)
 
-**Test Files Created:** 11
+**Test Files Created:** 12
 - internal/server/repository/sqlrepository/sql_comprehensive_test.go (209 lines)
 - internal/server/repository/sqlrepository/sql_additional_coverage_test.go (135 lines)
 - internal/server/repository/orm/orm_entities_test.go (76 lines)
@@ -205,5 +221,6 @@
 - internal/server/repository/orm/orm_repository_test.go (47 lines)
 - internal/server/repository/orm/business_entities_error_mapping_test.go (142 lines)
 - internal/server/repository/orm/orm_transaction_autocommit_test.go (78 lines)
+- internal/server/repository/orm/business_entities_gorm_errors_test.go (173 lines)
 
-**Total Lines of Test Code Added:** 2,493 lines
+**Total Lines of Test Code Added:** 2,666 lines

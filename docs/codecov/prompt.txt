@@ -30,9 +30,9 @@
 - Commit: "perf(sqlrepository): optimize performance and add comprehensive tests"
 
 ### Task 2.2: Optimize internal/server/repository/orm (CONTINUING)
-- Current: 47.9% (was 29.7%)
+- Current: 81.3% (was 47.9%, was 29.7%)
 - Target: 90%+
-- Need: +42.1% more coverage
+- Need: +8.7% more coverage
 - Fix test isolation issues in barrier_operations_test.go (data persistence)
 - Add business entity tests (ElasticKey, MaterialKey operations)
 - Continue adding parameterized happy and sad path tests
