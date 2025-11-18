@@ -109,6 +109,44 @@
   - 3 subtests still failing (needs further diagnosis)
 - Commit: bcd3aca "fix(orm tests): add database cleanup for test isolation"
 
+- Fixed critical pagination bug and added comprehensive edge case tests
+- Fixed business_entities_operations.go pagination bug:
+  - Problem: Filter functions applying Limit(0) when PageSize=0, returning zero rows
+  - Root cause: Empty filter struct has PageSize=0 (zero value), and db.Limit(0) returns NO ROWS
+  - Solution: Added conditional check "if filters.PageSize > 0" before applying Offset/Limit
+  - Fixed in 3 filter functions: applyGetElasticKeysFilters, applyKeyFilters, applyGetElasticKeyKeysFilters
+  - Result: All 3 failing business entity tests now passing
+  - Coverage improved: 76.7% → 77.6% (+0.9%)
+  - Commit: b595b4e "fix(orm): add pagination guards to prevent Limit(0) errors"
+
+- Added constructor validation tests
+- Created orm_repository_test.go (47 lines):
+  - TestNewOrmRepository_NilChecks (4 subtests: nil ctx, telemetry, sqlRepo, jwkGen)
+  - TestOrmRepository_Shutdown_NoOp
+  - Coverage improved: 77.6% → 78.7% (+1.1%)
+  - Commit: d5580b8 "test(orm): add repository constructor validation tests"
+
+- Added error mapping tests
+- Created business_entities_error_mapping_test.go (142 lines):
+  - TestToAppErr_GormRecordNotFound
+  - TestToAppErr_UniqueConstraintViolation
+  - TestToAppErr_ForeignKeyViolation
+  - TestToAppErr_GenericError
+  - Tests real database operations triggering actual errors (not mocks)
+  - Coverage improved: 78.7% → 79.3% (+0.6%)
+  - Commit: 0b10ef1 "test(orm): add error mapping tests for toAppErr function"
+
+- Added AutoCommit transaction edge case tests
+- Created orm_transaction_autocommit_test.go (78 lines):
+  - TestOrmTransaction_AutoCommit_CommitFailure
+  - TestOrmTransaction_AutoCommit_RollbackFailure
+  - TestOrmTransaction_AutoCommit_Success
+  - Tests that AutoCommit mode cannot be manually committed/rolled back
+  - Coverage improved: 79.3% → 80.5% (+1.2%)
+  - Commit: 1d01d65 "test(orm): add AutoCommit transaction edge case tests"
+
+- Total ORM coverage gain: 29.7% → 80.5% (+50.8%)
+
 ## COMPLETED: Earlier Tasks (Reference)
 
 ### ✅ Task 0.1: Refactor cicd.go cache outputs to .cicd/ subdirectory
@@ -133,9 +171,9 @@
 **Total Coverage Improvements:**
 - cicd: 53.0% → 87.6% (+34.6%)
 - sqlrepository: 52.6% → 58.9% (+6.3%)
-- orm: 29.7% → 76.7% (+47.0%)
+- orm: 29.7% → 80.5% (+50.8%)
 
-**Total Commits:** 12
+**Total Commits:** 17
 - 07bb0ad: Coverage file cleanup
 - 7717ec9: Copilot instructions for os.Exit()
 - 9dcc9a7: Remove os.Exit() from workflow lint
@@ -147,9 +185,14 @@
 - cbfc730: ORM business entity builders/filters tests (+0.3%)
 - 94442fa: ORM filter application tests (+6.7%)
 - bcd3aca: Test isolation improvements (CleanupDatabase, remove t.Parallel(), fix "Get latest" tests)
+- c5b05b2: Documentation update (moved completed tasks to completed.txt)
+- b595b4e: Fixed pagination bug in filter functions (+0.9%)
+- d5580b8: Constructor validation tests (+1.1%)
+- 0b10ef1: Error mapping tests (+0.6%)
+- 1d01d65: AutoCommit transaction edge case tests (+1.2%)
 - (cspell update included in 94442fa)
 
-**Test Files Created:** 7
+**Test Files Created:** 11
 - internal/server/repository/sqlrepository/sql_comprehensive_test.go (209 lines)
 - internal/server/repository/sqlrepository/sql_additional_coverage_test.go (135 lines)
 - internal/server/repository/orm/orm_entities_test.go (76 lines)
@@ -159,5 +202,8 @@
 - internal/server/repository/orm/business_entities_filters_test.go (220 lines)
 - internal/server/repository/orm/business_entities_filter_application_test.go (586 lines)
 - internal/server/repository/orm/orm_repository_test_util.go (50 lines, test utilities)
+- internal/server/repository/orm/orm_repository_test.go (47 lines)
+- internal/server/repository/orm/business_entities_error_mapping_test.go (142 lines)
+- internal/server/repository/orm/orm_transaction_autocommit_test.go (78 lines)
 
-**Total Lines of Test Code Added:** 2,226 lines
+**Total Lines of Test Code Added:** 2,493 lines
