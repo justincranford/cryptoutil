@@ -10,6 +10,32 @@ run:
   timeout: 10m
   issues-exit-code: 1
   tests: true
+  # Performance optimizations
+  concurrency: 0  # Use all available CPUs (default behavior, explicit for clarity)
+  build-cache: true  # Enable Go build cache for faster subsequent runs
+  modules-download-mode: readonly  # Don't download modules during linting (assume already downloaded)
+  # Skip directories without Go code (faster directory traversal)
+  skip-dirs:
+    - dast-reports
+    - e2e-reports
+    - load-reports
+    - test-reports
+    - test-results
+    - workflow-reports
+    - docs
+    - .git
+    - .github
+    - .vscode
+    - .idea
+    - deployments
+    - configs
+  # Skip generated files patterns (faster file filtering)
+  skip-files:
+    - ".*\\.pb\\.go$"
+    - ".*_gen\\.go$"
+    - "api/client/.*"
+    - "api/model/.*"
+    - "api/server/.*"
 
 output:
   formats:
