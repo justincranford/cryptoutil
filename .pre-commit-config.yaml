@@ -153,13 +153,21 @@ repos:
   - repo: local
     hooks:
       - id: golangci-lint
-        name: golangci-lint (auto-fix + validation)
+        name: golangci-lint (incremental auto-fix)
         entry: golangci-lint
-        args: [run, --fix, --timeout=30m]
+        args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
         language: system
         pass_filenames: false
         files: '\.go$'
-        stages: [pre-commit]  # Run full linting on commit, not just on push
+        stages: [pre-commit]  # Fast incremental check on commit
+
+      - id: golangci-lint-full
+        name: golangci-lint (full validation)
+        entry: golangci-lint
+        args: [run, --timeout=30m]
+        language: system
+        pass_filenames: false
+        stages: [pre-push]  # Full check before push
 
   # Custom project checks (fast, internal checks)
   - repo: local
@@ -182,7 +190,7 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
-  # Go build validation
+  # Go build validation (moved to pre-push for faster pre-commit)
   - repo: local
     hooks:
       - id: go-build
@@ -192,6 +200,7 @@ repos:
         language: system
         pass_filenames: false
         files: '\.go$|go\.mod$|go\.sum$'
+        stages: [pre-push]  # Build validation before push, not on every commit
 
   # Specialized file linting: GitHub Actions workflow linting
   - repo: https://github.com/rhysd/actionlint
