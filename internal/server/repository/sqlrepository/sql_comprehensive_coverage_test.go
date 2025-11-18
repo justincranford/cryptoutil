@@ -17,12 +17,12 @@ func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("ping_retry_test")
 	settings.DevMode = false
 	settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -38,11 +38,11 @@ func TestHealthCheck_AllConnectionPoolStats(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("pool_stats_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -64,7 +64,7 @@ func TestHealthCheck_AllConnectionPoolStats(t *testing.T) {
 	testify.NoError(t, err)
 	testify.NotNil(t, result)
 	testify.Equal(t, "ok", result["status"])
-	
+
 	// Verify all stat fields are present
 	testify.Contains(t, result, "db_type")
 	testify.Contains(t, result, "open_connections")
@@ -80,11 +80,11 @@ func TestSQLRepository_Shutdown_AlreadyClosed(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("shutdown_closed_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -107,12 +107,12 @@ func TestSQLRepository_LogConnectionPoolSettings_VerboseMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("verbose_pool_logging")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
 	settings.VerboseMode = true // Enable verbose logging
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -131,11 +131,11 @@ func TestHealthCheck_PingError(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("healthcheck_ping_error")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -160,11 +160,11 @@ func TestSQLRepository_WithTransaction_MultipleSequential(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("sequential_transactions")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -187,11 +187,11 @@ func TestSQLRepository_WithTransaction_ContextDeadlineExceeded(t *testing.T) {
 	t.Parallel()
 
 	baseCtx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("deadline_exceeded_test")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(baseCtx, settings)
 	defer telemetryService.Shutdown()
 
@@ -219,7 +219,7 @@ func TestSQLRepository_ErrorTypes_Wrapping(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name          string
 		setup         func() (*cryptoutilSQLRepository.SQLRepository, error)
@@ -231,10 +231,10 @@ func TestSQLRepository_ErrorTypes_Wrapping(t *testing.T) {
 				settings := cryptoutilConfig.RequireNewForTest("container_not_exist")
 				settings.DevMode = true // SQLite
 				settings.DatabaseContainer = "required" // SQLite doesn't support containers
-				
+
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
-				
+
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			},
 			expectedError: cryptoutilSQLRepository.ErrContainerOptionNotExist,

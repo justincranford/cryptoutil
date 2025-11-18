@@ -16,12 +16,12 @@ func TestNewSQLRepository_PostgreSQL_ContainerRequired(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("postgres_container_required")
 	settings.DevMode = false
 	settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 	settings.DatabaseContainer = "required" // Will fail without Docker
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -36,12 +36,12 @@ func TestNewSQLRepository_PostgreSQL_ContainerPreferred(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("postgres_container_preferred")
 	settings.DevMode = false
 	settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 	settings.DatabaseContainer = "preferred" // Will fallback to URL
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -57,12 +57,12 @@ func TestNewSQLRepository_UnsupportedDBType(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("unsupported_db_type")
 	settings.DevMode = false
 	settings.DatabaseURL = "mysql://user:pass@localhost:3306/testdb" // MySQL not supported
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -76,7 +76,7 @@ func TestSQLRepository_GetDBType_AllTypes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name           string
 		devMode        bool
@@ -96,7 +96,7 @@ func TestSQLRepository_GetDBType_AllTypes(t *testing.T) {
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseContainer = "disabled"
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
@@ -115,11 +115,11 @@ func TestHealthCheck_ContextTimeout(t *testing.T) {
 	t.Parallel()
 
 	baseCtx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("healthcheck_timeout")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(baseCtx, settings)
 	defer telemetryService.Shutdown()
 
@@ -145,7 +145,7 @@ func TestNewSQLRepository_InvalidDatabaseURL_Formats(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name        string
 		databaseURL string
@@ -172,7 +172,7 @@ func TestNewSQLRepository_InvalidDatabaseURL_Formats(t *testing.T) {
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = "disabled"
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 

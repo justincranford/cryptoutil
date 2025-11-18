@@ -17,7 +17,7 @@ func TestMapDBTypeAndURL_AllScenarios(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name           string
 		devMode        bool
@@ -63,12 +63,12 @@ func TestMapDBTypeAndURL_AllScenarios(t *testing.T) {
 			settings.DevMode = tc.devMode
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = "disabled"
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-			
+
 			if tc.expectError {
 				testify.Error(t, err)
 				testify.Nil(t, repo)
@@ -89,7 +89,7 @@ func TestMapContainerMode_AllModes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name          string
 		containerMode string
@@ -125,12 +125,12 @@ func TestMapContainerMode_AllModes(t *testing.T) {
 			settings.DevMode = false
 			settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 			settings.DatabaseContainer = tc.containerMode
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
-			
+
 			if tc.expectError {
 				testify.Error(t, err)
 				testify.Nil(t, repo)
@@ -150,7 +150,7 @@ func TestLogSchema_BothDatabaseTypes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name    string
 		devMode bool
@@ -168,7 +168,7 @@ func TestLogSchema_BothDatabaseTypes(t *testing.T) {
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseContainer = "disabled"
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
@@ -193,7 +193,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name          string
 		setup         func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error)
@@ -205,10 +205,10 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				settings := cryptoutilConfig.RequireNewForTest("error_container_not_exist")
 				settings.DevMode = true
 				settings.DatabaseContainer = "required"
-				
+
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
-				
+
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			},
 			checkError: func(t *testing.T, err error) {
@@ -222,10 +222,10 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				settings.DevMode = false
 				settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 				settings.DatabaseContainer = "required"
-				
+
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
-				
+
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			},
 			checkError: func(t *testing.T, err error) {
@@ -239,10 +239,10 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				settings.DevMode = false
 				settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
 				settings.DatabaseContainer = "disabled"
-				
+
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
-				
+
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			},
 			checkError: func(t *testing.T, err error) {
@@ -268,11 +268,11 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("transaction_errors")
 	settings.DevMode = true
 	settings.DatabaseContainer = "disabled"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 

@@ -133,4 +133,3 @@ func TestWithTransaction_CommitError(t *testing.T) {
 	// Should fail with database error after shutdown.
 	testify.Error(t, err)
 }
-

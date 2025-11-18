@@ -16,11 +16,11 @@ func TestNewSQLRepository_SQLite_ContainerMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("sqlite_container_test")
 	settings.DevMode = true // SQLite
 	settings.DatabaseContainer = "required" // SQLite doesn't support containers
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -35,11 +35,11 @@ func TestNewSQLRepository_InvalidContainerMode(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	settings := cryptoutilConfig.RequireNewForTest("invalid_container_mode")
 	settings.DevMode = true
 	settings.DatabaseContainer = "invalid-mode"
-	
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -103,7 +103,7 @@ func TestMapDBTypeAndURL_EdgeCases(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name        string
 		devMode     bool
@@ -131,7 +131,7 @@ func TestMapDBTypeAndURL_EdgeCases(t *testing.T) {
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseURL = tc.databaseURL
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
@@ -154,7 +154,7 @@ func TestExtractSchemaFromURL_EdgeCases(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	
+
 	tests := []struct {
 		name        string
 		databaseURL string
@@ -180,7 +180,7 @@ func TestExtractSchemaFromURL_EdgeCases(t *testing.T) {
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
 			settings.DatabaseContainer = "disabled"
-			
+
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
 
