@@ -187,6 +187,7 @@
     "getkin",
     "Gjomw",
     "goabi",
+    "gochecknoglobals",
     "goccy",
     "gocognit",
     "goconst",
