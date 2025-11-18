@@ -21,19 +21,123 @@ pre-commit run --hook-stage manual --all-files
 
 The pre-commit hooks pipeline is designed with a **fail-fast, progressive validation** philosophy that optimizes for both developer experience and CI/CD performance.
 
+### Hook Stage Strategy
+
+The pipeline uses a **three-tier approach** to balance speed and thoroughness:
+
+**Tier 1: Pre-commit (Fast & Iterative)**
+- **Purpose**: Catch common issues quickly during development
+- **Target Time**: 8-12 seconds for typical changes
+- **Approach**: Incremental validation of changed files only
+- **Benefits**: Fast feedback loop, minimal interruption to flow state
+
+**Tier 2: Pre-push (Comprehensive)**
+- **Purpose**: Full validation before sharing code with team
+- **Target Time**: 45-60 seconds
+- **Approach**: Complete codebase analysis and build verification
+- **Benefits**: Ensures CI/CD will succeed, catches integration issues
+
+**Tier 3: Manual (As-needed)**
+- **Purpose**: Expensive maintenance tasks run on-demand
+- **Target Time**: Varies (2-5 minutes)
+- **Approach**: Network-dependent operations (dependency updates, hook updates)
+- **Benefits**: Eliminates unnecessary network calls, run on your schedule
+
+This staged approach provides optimal developer experience:
+- **Rapid iteration** during active development (pre-commit)
+- **Confidence before pushing** to shared branches (pre-push)
+- **Flexible maintenance** scheduling (manual)
+
 ### Core Principles
 
 1. **Fail Fast**: Quick, inexpensive checks run first to catch obvious issues early
 2. **Progressive Validation**: Each stage builds on the previous, ensuring code quality accumulates
 3. **Auto-Fix First**: Formatting and import fixes happen before validation to reduce noise
-4. **Dependency Management**: Module dependencies are cleaned before expensive linting operations
-5. **Build Validation**: Code compilation is verified after linting passes
+4. **Incremental Analysis**: Pre-commit only checks changed files for speed
+5. **Comprehensive Verification**: Pre-push validates entire codebase
+6. **Dependency Management**: Module dependencies are cleaned before expensive linting operations
+7. **Build Validation**: Code compilation is verified after linting passes
 6. **Custom Checks**: Project-specific rules run after basic validation
 7. **Specialized Linting**: File-type specific checks run last for comprehensive coverage
 
 ### Performance Optimization
 
+The hook pipeline is optimized for both speed and thoroughness through a strategic pre-commit vs pre-push split:
+
+**Pre-commit (Fast - ~8-12 seconds for incremental changes)**:
+- Incremental golangci-lint with `--new-from-rev=HEAD~1` (only checks changed files)
+- Quick file checks and formatting
+- Fast custom checks
+- Spell checking with cache
+
+**Pre-push (Thorough - ~45-60 seconds)**:
+- Full golangci-lint validation (all files)
+- Go build verification
+- GitHub workflow linting (when workflows change)
+
+**Manual (Run weekly or as-needed)**:
+- Pre-commit hook version updates: `pre-commit run autoupdate-all-hooks --hook-stage manual`
+- Go dependency updates: `pre-commit run go-update-direct-dependencies --hook-stage manual`
+
+This approach provides:
+- **~70% faster development workflow** for typical commits
+- **Full validation before pushing** to ensure CI/CD success
+- **Flexible scheduling** for expensive maintenance tasks
+
+### Timing Expectations
+
+| Hook Category | Stage | Expected Time | Notes |
+|---------------|-------|---------------|-------|
+| Generic File Checks | pre-commit | 1-2s | Very fast, runs on all files |
+| go mod tidy | pre-commit | 0.5-1s | Only when go.mod changes |
+| golangci-lint (incremental) | pre-commit | 2-5s | Only changed files |
+| Custom CI/CD checks | pre-commit | 3-5s | Fast internal validations |
+| cspell | pre-commit | 1-3s | Cached spell checking |
+| golangci-lint (full) | pre-push | 30-60s | Complete codebase validation |
+| go build | pre-push | 10-20s | Full compilation check |
+| github-workflow-lint | pre-push | 2-5s | Only when .github/workflows/ changes |
+| **Total pre-commit** | - | **8-12s** | Incremental changes |
+| **Total pre-push** | - | **45-60s** | Full validation |
+
+### Troubleshooting Slow Hooks
+
+**If pre-commit is slow (>15 seconds for small changes)**:
+
+1. **Check if running on all files**:
+   ```bash
+   # Should only show changed files
+   git diff --name-only HEAD~1
+   ```
+
+2. **Verify incremental mode is working**:
+   ```bash
+   # Should see --new-from-rev in output
+   pre-commit run --verbose | grep golangci-lint
+   ```
+
+3. **Clear pre-commit cache**:
+   ```bash
+   pre-commit clean
+   pre-commit install --install-hooks
+   ```
+
+**If pre-push is very slow (>2 minutes)**:
+
+1. **Run golangci-lint directly to identify slow linters**:
+   ```bash
+   golangci-lint run --timeout=30m --verbose
+   ```
+
+2. **Check for large generated files** that should be excluded
+
+3. **Verify build cache is working**:
+   ```bash
+   go clean -cache
+   go build ./...  # Rebuild cache
+   ```
+
 The ordering minimizes redundant work and maximizes parallel processing potential:
+
 - Auto-fixing tools run before their validation counterparts
 - Expensive operations (golangci-lint) run after cheap fixes
 - Related tools are grouped to share repository contexts
