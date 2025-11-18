@@ -123,9 +123,9 @@ cryptoutil/internal/server/repository/orm/business_entities_operations.go:202.46
 cryptoutil/internal/server/repository/orm/business_entities_operations.go:204.45,205.85 1 0
 cryptoutil/internal/server/repository/orm/business_entities_operations.go:206.50,207.85 1 0
 cryptoutil/internal/server/repository/orm/business_entities_operations.go:208.55,209.85 1 0
-cryptoutil/internal/server/repository/orm/business_entities_operations.go:210.43,211.85 1 0
-cryptoutil/internal/server/repository/orm/business_entities_operations.go:212.52,213.85 1 0
-cryptoutil/internal/server/repository/orm/business_entities_operations.go:214.46,215.106 1 0
+cryptoutil/internal/server/repository/orm/business_entities_operations.go:210.43,211.85 1 1
+cryptoutil/internal/server/repository/orm/business_entities_operations.go:212.52,213.85 1 1
+cryptoutil/internal/server/repository/orm/business_entities_operations.go:214.46,215.106 1 1
 cryptoutil/internal/server/repository/orm/business_entities_operations.go:219.2,220.32 2 1
 cryptoutil/internal/server/repository/orm/business_entities_operations.go:220.32,221.27 1 1
 cryptoutil/internal/server/repository/orm/business_entities_operations.go:222.34,223.86 1 1
