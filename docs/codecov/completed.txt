@@ -84,6 +84,27 @@
   - 5647070 "test(sqlrepository): add comprehensive parameterized tests"
   - 97c0f14 "test(sqlrepository): improve coverage with edge case tests"
 
+- Added schema logging and shutdown tests
+- Created sql_schema_shutdown_test.go (93 lines):
+  - TestLogSchema_PostgreSQL (logPostgresSchema path - 0%, needs real PostgreSQL)
+  - TestLogSchema_SQLite (logSQLiteSchema path)
+  - TestShutdown_SQLite (Shutdown + verify DB closed)
+  - TestShutdown_PostgreSQL (Shutdown with container cleanup)
+- Coverage improved: 58.9% → 60.4% (+1.5%)
+- Commit: 9db3fbe "test(sqlrepository): add schema logging and shutdown tests - 60.4%"
+
+- Added initialization validation and transaction error tests
+- Created sql_initialization_test.go (150 lines):
+  - TestNewSQLRepository_NilContext (validates ctx != nil check)
+  - TestNewSQLRepository_NilTelemetry (validates telemetryService != nil check)
+  - TestNewSQLRepository_NilSettings (validates settings != nil check)
+  - TestNewTransaction_NilRepository (validates repository != nil check)
+  - TestWithTransaction_ReadOnlySQLite (tests SQLite read-only rejection)
+  - TestWithTransaction_FunctionError (tests error propagation)
+  - TestWithTransaction_PanicRecovery (tests panic recovery and re-panic)
+- Coverage improved: 60.4% → 60.7% (+0.3%)
+- Commit: 82c3221 "test(sqlrepository): add initialization validation and transaction error tests - 60.7%"
+
 ### ✅ Task 2.2: internal/server/repository/orm (COMPLETED - EXCEEDED 90% GOAL!)
 - **Coverage achieved: 90.8%** (was 89.1%, was 88.2%, was 81.3%, was 47.9%, was 29.7%)
 - **Final session gain: +2.6%** (from 88.2% → 90.8%)
