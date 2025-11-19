@@ -17,6 +17,12 @@ run:
   tests: true
   concurrency: 0  # Use all available CPUs
 
+# NOTE: gofumpt and goimports are NOT linters in v2 (moved to formatters)
+# They are applied automatically when using: golangci-lint run --fix
+# Pre-commit hooks run with --fix flag, ensuring formatting is applied
+# gofumpt: Stricter Go formatting (superset of gofmt) with extra rules enabled
+# goimports: Import organization (stdlib → third-party → cryptoutil)
+
 output:
   formats:
     tab:
@@ -29,62 +35,67 @@ output:
 linters:
   enable:
     # Essential linters (fast static analysis)
-    - errcheck      # Check for unchecked errors
-    - govet         # Reports suspicious constructs (Go's built-in vet)
-    - ineffassign   # Detect ineffectual assignments
-    - staticcheck   # Advanced static analysis (includes gosimple, stylecheck in v2)
-    - unused        # Find unused constants, variables, functions and types
+    - errcheck      # Check for unchecked errors (return values must be handled)
+    - govet         # Reports suspicious constructs (Go's built-in vet tool)
+    - ineffassign   # Detect ineffectual assignments (assigned but never used)
+    - staticcheck   # Advanced static analysis (includes gosimple, stylecheck in v2 - merged for performance)
+    - unused        # Find unused constants, variables, functions and types (dead code detection)
 
     # Code quality linters (fast)
-    - revive        # Golint replacement with more rules
-    - godot         # Check for missing periods in documentation comments
-    - copyloopvar   # Check for loop variables captured by reference
-    - goconst       # Find repeated strings that could be constants
-    - importas      # Enforce consistent import aliasing
+    - revive        # Golint replacement with more rules (style and best practices)
+    - godot         # Check for missing periods in documentation comments (enforces proper documentation)
+    - copyloopvar   # Check for loop variables captured by reference (Go 1.22+ automatic capture detection)
+    - goconst       # Find repeated strings that could be constants (DRY principle, magic values in magic/ package)
+    - importas      # Enforce consistent import aliasing (60+ aliases configured below, cryptoutil* prefix required)
 
     # Security and error handling
-    - gosec         # Security-focused static analysis
-    - noctx         # Check for missing context in HTTP requests
-    - wrapcheck     # Check error wrapping consistency
-    - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
+    - gosec         # Security-focused static analysis (detects common security issues, excludes configured below)
+    - noctx         # Check for missing context in HTTP requests (ensures proper cancellation/timeout)
+    - wrapcheck     # Check error wrapping consistency (ensures proper error context propagation)
+    - errorlint     # Find code that will cause problems with Go 1.13 error wrapping (fmt.Errorf %w usage)
 
     # Testing quality
-    - thelper       # Check test helper functions
-    - tparallel     # Check for parallel test issues
-    - testpackage   # Test package naming conventions
-    - gomodguard    # Prevent importing blocked modules
-    - gomoddirectives # Validate Go module directives
+    - thelper       # Check test helper functions (ensures t.Helper() usage)
+    - tparallel     # Check for parallel test issues (validates t.Parallel() correctness)
+    - testpackage   # Test package naming conventions (enforces _test package suffix for external testing)
+    - gomodguard    # Prevent importing blocked modules (blocks github.com/pkg/errors, use stdlib instead)
+    - gomoddirectives # Validate Go module directives (ensures clean go.mod)
 
     # Performance and style
-    - prealloc      # Find slice declarations that could pre-allocate
-    - bodyclose     # Check for HTTP response body closure
-    - mnd           # Detect magic numbers
-    - wsl_v5        # Whitespace linter (v5)
-    - nlreturn      # Enforce newlines after return statements
+    - prealloc      # Find slice declarations that could pre-allocate (performance optimization)
+    - bodyclose     # Check for HTTP response body closure (prevents resource leaks)
+    - mnd           # Detect magic numbers (enforces named constants in magic/ package)
+    - wsl_v5        # Whitespace linter v5 (enforces consistent blank lines, NO //nolint:wsl suppressions allowed)
+    - nlreturn      # Enforce newlines after return statements (readability)
 
     # Maintainability
-    - goheader      # Copyright header enforcement
-    - depguard      # Enforce allowed/disallowed import dependencies
+    - goheader      # Copyright header enforcement (ensures license headers present)
+    - depguard      # Enforce allowed/disallowed import dependencies (domain isolation, prevents cross-boundary imports)
 
   disable:
-    - dupl          # Code duplication
-    - gocyclo       # Cyclomatic complexity
-    - godox         # TODO/FIXME comments
+    # Disabled for code quality/complexity management
+    - dupl      # Code duplication detection (intentionally disabled, prefer manual refactoring)
+    - gocyclo   # Cyclomatic complexity (intentionally disabled, prefer code reviews)
+    - godox     # TODO/FIXME comments (tracked in docs/todos-*.md instead)
 
   settings:
     errcheck:
+      # Check type assertions for error conditions
       check-type-assertions: true
+      # Check blank identifier assignments (x, _ := func() should still handle potential errors)
       check-blank: true
 
     gosec:
+      # Security linter sensitivity (medium = reasonable balance)
       severity: medium
       confidence: medium
+      # Exclude specific security rules (acceptable in test/development contexts)
       excludes:
-        - G204  # Subprocess launched with variable
-        - G301  # Directory permissions too permissive
-        - G302  # File permissions too permissive
-        - G304  # Potential file inclusion via variable
-        - G402  # TLS InsecureSkipVerify set true
+        - G204  # Subprocess launched with variable - acceptable for controlled docker compose commands in tests
+        - G301  # Directory permissions too permissive - acceptable for test directories
+        - G302  # File permissions too permissive - acceptable for test files
+        - G304  # Potential file inclusion via variable - acceptable for controlled test file operations
+        - G402  # TLS InsecureSkipVerify set true - required for test code connecting to self-signed certificates
 
     gocyclo:
       min-complexity: 15
@@ -95,12 +106,15 @@ linters:
       numbers: true
 
     mnd:
+      # Magic Number Detector - enforces named constants for clarity
+      # Define magic values in internal/common/magic/ package files (magic_*.go)
+      # OR in identity-specific magic files: internal/identity/<package>/magic*.go
       ignored-numbers:
-        - '2'  # Common in bit operations
+        - '2'        # Common in bit operations, array splits, mathematical operations (context makes meaning clear)
       ignored-functions:
-        - 'math.*'
-        - 'len'
-        - 'make'
+        - 'math.*'   # Mathematical functions (math.Pow(2, 8) is self-documenting)
+        - 'len'      # Length checks (if len(slice) > 0)
+        - 'make'     # Buffer allocation (make([]byte, 1024))
 
     dupl:
       threshold: 100
@@ -130,15 +144,21 @@ linters:
       skip-regexp: '.*_test\.go$'
 
     depguard:
+      # Dependency guard - prevents importing discouraged packages
+      # NOTE: v2 simplified from v1's complex identity-domain-isolation rules
+      # Domain isolation (identity vs KMS) now enforced via manual code review
       rules:
         main:
           deny:
             - pkg: github.com/pkg/errors
-              desc: "Use Go 1.13+ error wrapping instead"
+              desc: "Use Go 1.13+ error wrapping instead (fmt.Errorf with %w)"
 
     importas:
+      # Import alias enforcement - ensures consistent package naming across codebase
+      # CRITICAL: ALL cryptoutil imports MUST use camelCase aliases starting with "cryptoutil" prefix
+      # This synchronizes with .github/instructions/01-03.golang.instructions.md importas section
       alias:
-        # JOSE libraries
+        # JOSE libraries (JSON Web Encryption/Signatures)
         - pkg: github.com/lestrrat-go/jwx/v3/jwe
           alias: joseJwe
         - pkg: github.com/lestrrat-go/jwx/v3/jwk

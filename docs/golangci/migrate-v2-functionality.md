@@ -109,10 +109,12 @@ This document compares linting functionality between v1 (backup) and v2 (current
 ### Moved to Formatters (No Longer Linters)
 
 - 🔄 `gofmt` - Now a formatter (use `golangci-lint run --fix` or standalone gofmt)
-- 🔄 `gofumpt` - Now a formatter (stricter than gofmt)
-- 🔄 `goimports` - Now a formatter (import organization)
+- 🔄 `gofumpt` - Now a formatter (stricter than gofmt, configured in .golangci.yml formatters section)
+- 🔄 `goimports` - Now a formatter (import organization, configured in .golangci.yml formatters section)
 - **Reason**: v2 separates formatting from linting
-- **Impact**: Use `--fix` flag or pre-commit hooks for formatting
+- **Impact**: ✅ STILL ENFORCED via `--fix` flag and pre-commit hooks
+- **Configuration**: .golangci.yml now has `formatters:` section with gofumpt extra-rules and goimports local-prefixes
+- **Pre-commit**: golangci-lint hook runs with `--fix` flag, applying gofumpt and goimports automatically
 
 ### Settings API Changes
 
@@ -306,10 +308,10 @@ This document compares linting functionality between v1 (backup) and v2 (current
 
 ### Potential Additions
 
-1. **Re-enable `lll` linter** - If line length enforcement desired
-2. **Add custom depguard rules** - If domain isolation enforcement needed
-3. **Configure formatter integration** - Use `--fix` flag or pre-commit hooks for gofumpt/goimports
-4. **Add misspell replacements** - If crypto term false positives become problematic
+1. **Re-enable `lll` linter** - If line length enforcement desired (currently no automatic enforcement)
+2. **Add custom depguard rules** - If domain isolation enforcement needed (identity vs KMS module boundaries)
+3. ~~**Configure formatter integration**~~ - ✅ ALREADY CONFIGURED (gofumpt + goimports in .golangci.yml formatters section)
+4. **Add misspell custom dictionary** - If crypto term false positives become problematic (v2 removed ignore-words)
 
 ### Migration Success Criteria ✅
 
