@@ -66,6 +66,7 @@ cryptoutil$
 **/test-results/
 **/test-results/
 **/workflow-reports/
+test-output/
 
 # Virtual environments
 **/venv/
