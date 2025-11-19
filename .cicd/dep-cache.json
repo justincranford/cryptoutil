@@ -1,9 +1,0 @@
-{
-  "go_mod_mod_time": "2025-11-17T22:27:40.1992214-05:00",
-  "go_sum_mod_time": "2025-11-16T02:34:36.0831427-05:00",
-  "last_check": "2025-11-18T04:17:30.1821776Z",
-  "mode": "direct",
-  "outdated_deps": [
-    "modernc.org/sqlite v1.40.0 [v1.40.1]"
-  ]
-}

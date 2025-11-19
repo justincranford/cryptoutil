@@ -19,6 +19,7 @@ run:
   modules-download-mode: readonly  # Don't download modules during linting (assume already downloaded)
   # Skip directories without Go code (faster directory traversal)
   skip-dirs:
+    - .cicd
     - dast-reports
     - e2e-reports
     - load-reports
