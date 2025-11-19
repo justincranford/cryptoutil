@@ -55,6 +55,13 @@ linters:
     - gomodguard    # Prevent importing blocked modules
     - gomoddirectives # Validate Go module directives
 
+    # Performance and style
+    - prealloc      # Find slice declarations that could pre-allocate
+    - bodyclose     # Check for HTTP response body closure
+    - mnd           # Detect magic numbers
+    - wsl           # Whitespace linter
+    - nlreturn      # Enforce newlines after return statements
+
   settings:
     gosec:
       severity: medium
@@ -65,3 +72,11 @@ linters:
         - G302  # File permissions too permissive
         - G304  # Potential file inclusion via variable
         - G402  # TLS InsecureSkipVerify set true
+
+    mnd:
+      ignored-numbers:
+        - '2'  # Common in bit operations
+      ignored-functions:
+        - 'math.*'
+        - 'len'
+        - 'make'

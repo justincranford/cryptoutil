@@ -115,3 +115,14 @@ internal\cmd\workflow\workflow.go:623:17                                        
 - testpackage
 - gomodguard
 - gomoddirectives
+
+## Step 7: Performance & Style Linters
+
+**Status**: Complete
+
+**Linters Enabled**:
+- prealloc
+- bodyclose
+- mnd (with settings)
+- wsl
+- nlreturn
