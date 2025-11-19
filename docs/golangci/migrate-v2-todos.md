@@ -192,7 +192,7 @@ blockedPackages := []string{
 
 ## Medium Priority Tasks
 
-### 4. Consider Line Length Enforcement 📏
+### 4. Consider Line Length Enforcement ✅ COMPLETE (NOT ENABLING)
 
 **Problem**: v2 config doesn't enable `lll` linter (line length)
 
@@ -200,24 +200,58 @@ blockedPackages := []string{
 
 **Impact**: No automatic line length enforcement (relies on developer discipline)
 
-**Action Items**:
+**Survey Results** (November 19, 2025):
 
-- [ ] Survey codebase for long lines: `grep -r ".{191,}" --include="*.go" .`
-- [ ] Decide if line length enforcement valuable:
-  - Yes → Re-enable lll linter with 190 character limit
-  - No → Document style guide in README (manual enforcement)
-- [ ] If enabling, configure in .golangci.yml:
+```bash
+# Count lines >190 characters in Go files
+Get-ChildItem -Recurse -Include *.go | Select-String -Pattern ".{191,}" | Measure-Object
+```
 
-  ```yaml
-  linters:
-    enable:
-      - lll
-  settings:
-    lll:
-      line-length: 190
-  ```
+**Findings**: 246 lines exceed 190 characters across 15+ files
 
-**Acceptance Criteria**: Documented decision (enable or manual) in this task
+**Top Offenders**:
+
+- `openapi_gen_client.go`: 66 long lines (GENERATED CODE - cannot fix)
+- `jwkgen_service.go`: 22 long lines
+- `keygenpool_test_util.go`: 17 long lines
+- `application_test.go`: 10 long lines
+- `openapi_gen_model.go`: 9 long lines (GENERATED CODE)
+- Others: <10 lines each (test utils, mappers, handlers)
+
+**Analysis**:
+
+1. **Generated Code**: 75 lines (30%) from OpenAPI generation (cannot modify)
+2. **Test Code**: ~100 lines (40%) from test utilities and test files
+3. **Production Code**: ~71 lines (30%) from business logic/mappers
+
+**Decision**: ❌ **DO NOT ENABLE lll LINTER**
+
+**Rationale**:
+
+1. **Generated Code Exemption**: 30% of long lines are OpenAPI-generated (would require nolint comments)
+2. **Test Code Tolerance**: 40% are test files (long test names, fixture data acceptable)
+3. **Low Value**: Most production long lines are complex function signatures or table-driven test data
+4. **Tooling Support**: Modern editors (VS Code) show line length visually (no linter needed)
+5. **Maintenance Burden**: Requires constant nolint comment management for generated code
+
+**Alternative**: Document style guide in README
+
+**Style Guide Addition** (README.md):
+
+```markdown
+## Code Style
+
+### Line Length
+- **Recommended**: Keep lines under 190 characters for readability
+- **Editor Support**: VS Code shows ruler at 190 characters
+- **Exceptions**: 
+  - Generated code (OpenAPI clients/models)
+  - Long test fixture data
+  - Complex function signatures with many parameters
+- **No Automated Enforcement**: Relying on developer discipline and code review
+```
+
+**Acceptance Criteria**: ✅ Documented decision NOT to enable lll linter (cost > benefit)
 
 ---
 
