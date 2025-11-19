@@ -294,33 +294,30 @@ Get-ChildItem -Recurse -Include *.go | Select-String -Pattern ".{191,}" | Measur
 
 ## Low Priority Tasks
 
-### 7. Update Instruction Files 📝
+### 7. Update Instruction Files ✅ COMPLETE
 
 **Problem**: Instruction files reference v1 configuration
 
-**Files to Update**:
+**Files Updated** (November 19, 2025):
 
-- `.github/instructions/01-06.linting.instructions.md`
-  - Document v2 API changes
-  - Update removed properties list
-  - Document wsl → wsl_v5 migration
-  - Add depguard rules configuration
-  - Clarify gofumpt/goimports are built-in formatters (no config needed)
+1. **`.github/instructions/01-06.linting.instructions.md`**:
+   - Added golangci-lint v2 Configuration section
+   - Documented removed settings (wsl.force-err-cuddling, misspell.ignore-words, wrapcheck.ignoreSigs, depguard file-scoped rules)
+   - Documented renamed linters (wsl → wsl_v5 configuration key)
+   - Documented built-in formatters (gofumpt, goimports)
+   - Added Depguard Domain Isolation section
+   - Listed 9 blocked packages for identity module
+   - Documented custom cicd check: `go run ./cmd/cicd go-check-identity-imports`
 
-- `docs/pre-commit-hooks.md`
-  - Update golangci-lint configuration section
-  - Document v2-specific settings
-  - Clarify formatter vs linter distinction
-  - Document that gofumpt/goimports are automatically applied with --fix
+2. **`docs/pre-commit-hooks.md`**:
+   - Added version info (v2.6.2, migrated November 2025)
+   - Updated auto-fixable linters list with wsl_v5 config key
+   - Added v2 Built-in Formatters section
+   - Added v2 Configuration Changes section
+   - Documented 22 enabled linters in v2
+   - Cross-referenced linting instructions for complete v2 migration details
 
-**Action Items**:
-
-- [ ] Read migrate-v2-summary.md for v2 API changes
-- [ ] Update linting.instructions.md with v2 specifics
-- [ ] Update pre-commit-hooks.md with v2 changes
-- [ ] Document built-in formatter behavior
-
-**Acceptance Criteria**: Instruction files accurately reflect v2 configuration
+**Acceptance Criteria**: ✅ Instruction files accurately reflect v2 configuration
 
 ---
 
