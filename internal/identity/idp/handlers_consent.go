@@ -1,3 +1,4 @@
+//nolint:wrapcheck // Fiber HTTP handlers return framework errors directly
 // Copyright (c) 2025 Justin Cranford
 //
 //
