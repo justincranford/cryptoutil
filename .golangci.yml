@@ -267,3 +267,18 @@ linters:
           alias: sha512
         - pkg: crypto/rand
           alias: crand
+
+issues:
+  max-issues-per-linter: 100
+  max-same-issues: 20
+
+severity:
+  default: error
+  rules:
+    - linters:
+        - revive
+        - godot
+      severity: warning
+    - linters:
+        - misspell
+      severity: info

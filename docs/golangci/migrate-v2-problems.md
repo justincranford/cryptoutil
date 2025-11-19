@@ -165,3 +165,22 @@ internal\cmd\workflow\workflow.go:623:17                                        
 **Status**: Complete
 
 **Aliases Added**: 60+ import aliases for cryptoutil packages and dependencies
+
+## Step 11 & 12: Issues and Severity Configuration
+
+**Status**: Complete (v2 removed many exclusion options)
+
+**v2 Changes**:
+- exclude-dirs, exclude-files, exclude-rules removed
+- exclude-generated removed
+- Directory exclusions now handled via run.skip-dirs (which also removed in v2)
+- File exclusions for generated code automatic via language server
+
+**Issues Configuration**:
+- max-issues-per-linter: 100
+- max-same-issues: 20
+
+**Severity Configuration**:
+- default: error
+- revive, godot: warning
+- misspell: info
