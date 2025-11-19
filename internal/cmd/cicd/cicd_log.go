@@ -1,4 +1,7 @@
-// Package cicd provides common utilities for CI/CD quality control checks.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package cicd
 
 import (

@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -28,6 +32,7 @@ func TestApplyEmbeddedSQLMigrations_SQLite(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Migrations are applied during NewSQLRepository, verify database schema exists
@@ -51,6 +56,7 @@ func TestLogSchema_SQLite(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// LogSchema is called during NewSQLRepository initialization
@@ -74,6 +80,7 @@ func TestSQLRepository_WithTransaction_NestedTransaction(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Start outer transaction
@@ -84,6 +91,7 @@ func TestSQLRepository_WithTransaction_NestedTransaction(t *testing.T) {
 		})
 		testify.Error(t, err)
 		testify.ErrorContains(t, err, "transaction already started")
+
 		return nil
 	})
 	testify.NoError(t, err)
@@ -108,6 +116,7 @@ func TestSQLRepository_WithTransaction_RollbackOnError(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Transaction that returns error (should rollback automatically)

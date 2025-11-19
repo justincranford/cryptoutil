@@ -1,6 +1,7 @@
-// Package magic provides magic values and constants for the cryptoutil project.
+// Copyright (c) 2025 Justin Cranford
 //
-// This file contains constants related to CI/CD operations.
+//
+
 package magic
 
 import (

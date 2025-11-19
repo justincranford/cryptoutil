@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -49,6 +53,7 @@ func TestHealthCheck_AllConnectionPoolStats(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Perform multiple operations to generate pool statistics
@@ -119,6 +124,7 @@ func TestSQLRepository_LogConnectionPoolSettings_VerboseMode(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Verbose logging happens during initialization
@@ -171,6 +177,7 @@ func TestSQLRepository_WithTransaction_MultipleSequential(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Execute multiple sequential transactions
@@ -198,6 +205,7 @@ func TestSQLRepository_WithTransaction_ContextDeadlineExceeded(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(baseCtx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Create context with very short timeout
@@ -229,7 +237,7 @@ func TestSQLRepository_ErrorTypes_Wrapping(t *testing.T) {
 			name: "ErrContainerOptionNotExist",
 			setup: func() (*cryptoutilSQLRepository.SQLRepository, error) {
 				settings := cryptoutilConfig.RequireNewForTest("container_not_exist")
-				settings.DevMode = true // SQLite
+				settings.DevMode = true                 // SQLite
 				settings.DatabaseContainer = "required" // SQLite doesn't support containers
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)

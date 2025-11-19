@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -103,6 +107,7 @@ func TestSQLRepository_GetDBType_AllTypes(t *testing.T) {
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			testify.NoError(t, err)
 			testify.NotNil(t, repo)
+
 			defer repo.Shutdown()
 
 			testify.Equal(t, tc.expectedDBType, repo.GetDBType())
@@ -126,6 +131,7 @@ func TestHealthCheck_ContextTimeout(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(baseCtx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Health check with already-cancelled context

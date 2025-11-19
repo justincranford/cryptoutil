@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package magic
 
 // OAuth 2.1 grant types.

@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -131,6 +135,7 @@ func TestSQLRepository_DBStats(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Perform health check to get stats.
@@ -162,6 +167,7 @@ func TestSQLRepository_ConnectionPoolExhaustion(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// SQLite has MaxOpenConns=1, so this tests sequential access pattern.

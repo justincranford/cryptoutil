@@ -1,9 +1,7 @@
-// IMPORTANT: This file contains deliberate linter error patterns for testing cicd functionality.
-// It MUST be excluded from all linting operations to prevent self-referencing errors.
-// See .golangci.yml exclude-rules and cicd.go exclusion patterns for details.
+// Copyright (c) 2025 Justin Cranford
 //
-// This file intentionally uses any patterns and other lint violations to test
-// that cicd correctly identifies and reports such patterns in other files.
+//
+
 package cicd
 
 import (

@@ -1,6 +1,7 @@
-// Package cicd provides CI/CD quality control checks for the cryptoutil project.
+// Copyright (c) 2025 Justin Cranford
 //
-// This file contains the go-update-direct-dependencies and go-update-all-dependencies command implementations.
+//
+
 package cicd
 
 import (

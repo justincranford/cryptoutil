@@ -1,7 +1,12 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
 	"context"
+	"cryptoutil/internal/server/repository/sqlrepository"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -9,7 +14,6 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	"cryptoutil/internal/server/repository/sqlrepository"
 )
 
 // TestNewSQLRepository_InvalidDatabaseURL tests error handling for malformed database URLs.

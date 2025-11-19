@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package pool
 
 func CancelAllNotNil[T any](keyGenPools []*ValueGenPool[T]) {

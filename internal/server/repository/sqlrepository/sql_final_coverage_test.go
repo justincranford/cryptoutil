@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -75,6 +79,7 @@ func TestMapDBTypeAndURL_AllScenarios(t *testing.T) {
 			} else {
 				testify.NoError(t, err)
 				testify.NotNil(t, repo)
+
 				if repo != nil {
 					testify.Equal(t, tc.expectedDBType, repo.GetDBType())
 					defer repo.Shutdown()
@@ -137,6 +142,7 @@ func TestMapContainerMode_AllModes(t *testing.T) {
 			} else {
 				testify.NoError(t, err)
 				testify.NotNil(t, repo)
+
 				if repo != nil {
 					defer repo.Shutdown()
 				}
@@ -175,6 +181,7 @@ func TestLogSchema_BothDatabaseTypes(t *testing.T) {
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			testify.NoError(t, err)
 			testify.NotNil(t, repo)
+
 			defer repo.Shutdown()
 
 			// LogSchema is called during NewSQLRepository
@@ -195,9 +202,9 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name          string
-		setup         func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error)
-		checkError    func(t *testing.T, err error)
+		name       string
+		setup      func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error)
+		checkError func(t *testing.T, err error)
 	}{
 		{
 			name: "ErrContainerOptionNotExist - SQLite with container mode",
@@ -279,6 +286,7 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	tests := []struct {

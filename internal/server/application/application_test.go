@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package application
 
 import (
@@ -90,7 +94,7 @@ func TestHttpGetTraceHead(t *testing.T) {
 
 			var contentString string
 			if body != nil {
-				contentString = strings.Replace(string(body), "\n", " ", -1)
+				contentString = strings.ReplaceAll(string(body), "\n", " ")
 			}
 
 			if err == nil {

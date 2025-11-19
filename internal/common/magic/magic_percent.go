@@ -1,5 +1,7 @@
-// Package magic provides commonly used magic numbers and values as named constants.
-// This file contains percentage and tolerance constants.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package magic
 
 // Percentages and tolerances (as decimal values).

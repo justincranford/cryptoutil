@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package util
 
 func Contains[T comparable](slice []*T, item *T) bool {

@@ -1,4 +1,7 @@
-// Package files provides utilities for file operations.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package files
 
 import (

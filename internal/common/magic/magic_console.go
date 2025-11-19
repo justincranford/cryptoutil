@@ -1,5 +1,7 @@
-// Package magic provides commonly used magic numbers and values as named constants.
-// This file contains console and display-related constants.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package magic
 
 // ANSI color codes for console output.

@@ -1,17 +1,7 @@
-// Package cicd provides CI/CD quality control checks for the cryptoutil project.
+// Copyright (c) 2025 Justin Cranford
 //
-// This package performs various automated checks to ensure code quality, dependency freshness,
-// and workflow consistency. It is designed to run both locally (during development) and
-// in CI/CD pipelines (via pre-push hooks and GitHub Actions).
 //
-// IMPORTANT: This file contains deliberate linter error patterns for testing cicd functionality.
-// It MUST be excluded from all linting operations to prevent self-referencing errors.
-// See .golangci.yml exclude-rules and cicd.go exclusion patterns for details.
-//
-// Exit Codes:
-//
-//	0: All checks passed
-//	1: One or more checks failed (details printed to stderr)
+
 package cicd
 
 import (

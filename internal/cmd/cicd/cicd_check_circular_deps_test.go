@@ -1,4 +1,7 @@
-// Package cicd provides tests for circular dependency checking functionality.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package cicd
 
 import (

@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -28,6 +32,7 @@ func TestNewSQLRepository_SQLite_PragmaSettings(t *testing.T) {
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
+
 	defer repo.Shutdown()
 
 	// Verify repo was created successfully (PRAGMA settings applied internally)
@@ -90,6 +95,7 @@ func TestNewSQLRepository_VerboseMode_ConnectionPoolLogging(t *testing.T) {
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			testify.NoError(t, err)
 			testify.NotNil(t, repo)
+
 			defer repo.Shutdown()
 		})
 	}
@@ -126,9 +132,9 @@ func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name        string
-		devMode     bool
-		databaseURL string
+		name         string
+		devMode      bool
+		databaseURL  string
 		expectSQLite bool
 	}{
 		{
@@ -157,9 +163,11 @@ func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
 
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
+
 			if tc.databaseURL != "" {
 				settings.DatabaseURL = tc.databaseURL
 			}
+
 			settings.DatabaseContainer = "disabled"
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -170,6 +178,7 @@ func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
 			if tc.expectSQLite {
 				testify.NoError(t, err)
 				testify.NotNil(t, repo)
+
 				if repo != nil {
 					testify.Equal(t, cryptoutilSQLRepository.DBTypeSQLite, repo.GetDBType())
 					defer repo.Shutdown()

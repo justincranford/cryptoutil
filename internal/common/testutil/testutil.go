@@ -1,4 +1,7 @@
-// Package testutil provides shared test utilities for file operations.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package testutil
 
 import (

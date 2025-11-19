@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package openapi
 
 // TODO Move to golang command pattern directory

@@ -1,4 +1,7 @@
-// Package cicd provides CI/CD quality control checks for the cryptoutil project.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package cicd
 
 import (
@@ -168,7 +171,7 @@ func validateAndParseWorkflowFile(workflowFile string) (map[string]WorkflowActio
 		validationErrors = append(validationErrors, "workflow filename must be prefixed with 'ci-'")
 	}
 
-	if !(strings.HasSuffix(base, ".yml") || strings.HasSuffix(base, ".yaml")) {
+	if !strings.HasSuffix(base, ".yml") && !strings.HasSuffix(base, ".yaml") {
 		validationErrors = append(validationErrors, "workflow filename must have .yml or .yaml suffix")
 	}
 

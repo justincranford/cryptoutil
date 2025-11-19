@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package orm
 
 import (
@@ -283,6 +287,7 @@ func applyGetElasticKeysFilters(db *gorm.DB, filters *GetElasticKeysFilters) *go
 
 	// Apply pagination with defaults.
 	pageNumber := filters.PageNumber
+
 	pageSize := filters.PageSize
 	if pageSize <= 0 {
 		pageSize = 100 // Default page size when not specified.
@@ -323,6 +328,7 @@ func applyKeyFilters(db *gorm.DB, filters *GetMaterialKeysFilters) *gorm.DB {
 
 	// Apply pagination with defaults.
 	pageNumber := filters.PageNumber
+
 	pageSize := filters.PageSize
 	if pageSize <= 0 {
 		pageSize = 100 // Default page size when not specified.
@@ -359,6 +365,7 @@ func applyGetElasticKeyKeysFilters(db *gorm.DB, filters *GetElasticKeyMaterialKe
 
 	// Apply pagination with defaults.
 	pageNumber := filters.PageNumber
+
 	pageSize := filters.PageSize
 	if pageSize <= 0 {
 		pageSize = 100 // Default page size when not specified.

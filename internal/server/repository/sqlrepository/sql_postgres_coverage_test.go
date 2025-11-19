@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -55,12 +59,14 @@ func TestNewSQLRepository_PostgreSQL_ContainerModes(t *testing.T) {
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			if tc.expectError {
 				testify.Error(t, err)
+
 				if tc.errorContains != "" {
 					testify.ErrorContains(t, err, tc.errorContains)
 				}
 			} else {
 				testify.NoError(t, err)
 				testify.NotNil(t, repo)
+
 				if repo != nil {
 					defer repo.Shutdown()
 				}
@@ -161,6 +167,7 @@ func TestExtractSchemaFromURL_PostgreSQL(t *testing.T) {
 			if tc.expectError {
 				testify.Error(t, err)
 			}
+
 			testify.Nil(t, repo)
 		})
 	}

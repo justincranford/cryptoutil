@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package config
 
 import (
@@ -989,7 +993,7 @@ func logSettings(s *Settings) {
 		// Iterate through all registered settings and log them
 		for _, setting := range allRegisteredSettings {
 			value := valueMap[setting.name]
-			if setting.redacted && !(s.DevMode && s.VerboseMode) {
+			if setting.redacted && (!s.DevMode || !s.VerboseMode) {
 				value = "REDACTED"
 			}
 

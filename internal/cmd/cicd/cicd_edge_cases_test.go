@@ -1,5 +1,7 @@
-// CRITICAL: This file contains edge case tests to boost cicd coverage to 96%+.
-// Focus on testing error paths, edge cases, and boundary conditions.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package cicd
 
 import (

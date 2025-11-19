@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package orm
 
 import (
@@ -123,6 +127,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 			// Get count before deletion.
 			beforeKeys, err := tx.GetRootKeys()
 			require.NoError(t, err)
+
 			beforeCount := len(beforeKeys)
 
 			// Delete one key.
@@ -264,6 +269,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 			// Get count before deletion.
 			beforeKeys, err := tx.GetIntermediateKeys()
 			require.NoError(t, err)
+
 			beforeCount := len(beforeKeys)
 
 			// Delete one key.
@@ -405,6 +411,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 			// Get count before deletion.
 			beforeKeys, err := tx.GetContentKeys()
 			require.NoError(t, err)
+
 			beforeCount := len(beforeKeys)
 
 			// Delete one key.

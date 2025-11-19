@@ -1,18 +1,7 @@
-// Package main provides the command-line interface for CI/CD quality control checks.
+// Copyright (c) 2025 Justin Cranford
 //
-// This executable wraps the cicd package to provide a CLI for running automated checks
-// to ensure code quality, dependency freshness, and workflow consistency.
 //
-// Usage:
-//
-//	cicd <command> [<command>...]
-//	go run cmd/cicd/main.go <command> [<command>...]
-//
-// Examples:
-//
-//	cicd go-update-direct-dependencies
-//	cicd github-workflow-lint
-//	cicd go-update-direct-dependencies github-workflow-lint
+
 package main
 
 import (

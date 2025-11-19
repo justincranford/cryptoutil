@@ -1,6 +1,7 @@
-// CRITICAL: This file is EXCLUDED from go-enforce-any enforcement (see magic_cicd.go GoEnforceAnyFileExcludePatterns).
-// It contains deliberate `interface {}` patterns to test the enforcement logic.
-// DO NOT run go-enforce-any on this file as it would modify the test patterns.
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package cicd
 
 import (

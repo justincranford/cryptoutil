@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
@@ -18,7 +22,7 @@ func TestNewSQLRepository_SQLite_ContainerMode(t *testing.T) {
 	ctx := context.Background()
 
 	settings := cryptoutilConfig.RequireNewForTest("sqlite_container_test")
-	settings.DevMode = true // SQLite
+	settings.DevMode = true                 // SQLite
 	settings.DatabaseContainer = "required" // SQLite doesn't support containers
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -55,6 +59,7 @@ func TestNewSQLRepository_NilInputs(t *testing.T) {
 
 	ctx := context.Background()
 	settings := cryptoutilConfig.RequireNewForTest("nil_inputs_test")
+
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
 
@@ -188,6 +193,7 @@ func TestExtractSchemaFromURL_EdgeCases(t *testing.T) {
 			if tc.expectError {
 				testify.Error(t, err)
 			}
+
 			testify.Nil(t, repo)
 		})
 	}

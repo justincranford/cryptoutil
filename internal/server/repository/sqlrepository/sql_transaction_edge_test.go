@@ -1,7 +1,12 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
 	"context"
+	"cryptoutil/internal/server/repository/sqlrepository"
 	"errors"
 	"testing"
 
@@ -10,7 +15,6 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	"cryptoutil/internal/server/repository/sqlrepository"
 )
 
 // TestWithTransaction_Success tests successful transaction execution.
@@ -30,6 +34,7 @@ func TestWithTransaction_Success(t *testing.T) {
 	executedCommit := false
 	err := sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error {
 		executedCommit = true
+
 		return nil
 	})
 

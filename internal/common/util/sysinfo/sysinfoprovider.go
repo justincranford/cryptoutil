@@ -1,3 +1,7 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sysinfo
 
 type SysInfoProvider interface {

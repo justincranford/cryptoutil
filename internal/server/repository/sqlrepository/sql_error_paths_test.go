@@ -1,7 +1,12 @@
+// Copyright (c) 2025 Justin Cranford
+//
+//
+
 package sqlrepository_test
 
 import (
 	"context"
+	"cryptoutil/internal/server/repository/sqlrepository"
 	"testing"
 
 	googleUuid "github.com/google/uuid"
@@ -9,7 +14,6 @@ import (
 
 	cryptoutilConfig "cryptoutil/internal/common/config"
 	cryptoutilTelemetry "cryptoutil/internal/common/telemetry"
-	"cryptoutil/internal/server/repository/sqlrepository"
 )
 
 // TestNewSQLRepository_ErrorPaths tests various error conditions during repository creation.
@@ -28,6 +32,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				settings := cryptoutilConfig.RequireNewForTest("nil_ctx_test")
 				settings.DevMode = true
 				settings.DatabaseContainer = "disabled"
+
 				return settings
 			},
 			expectError: true,
@@ -39,6 +44,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				settings := cryptoutilConfig.RequireNewForTest("nil_telemetry_test")
 				settings.DevMode = true
 				settings.DatabaseContainer = "disabled"
+
 				return settings
 			},
 			expectError: true,
@@ -59,6 +65,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				settings.DevMode = false // Production mode
 				settings.DatabaseURL = ""
 				settings.DatabaseContainer = "disabled"
+
 				return settings
 			},
 			expectError: true,
@@ -71,6 +78,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 			settings := tc.setupConfig()
 
 			var repo *sqlrepository.SQLRepository
+
 			var err error
 
 			if settings == nil {
@@ -100,6 +108,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 			} else {
 				testify.NoError(t, err)
 				testify.NotNil(t, repo)
+
 				if repo != nil {
 					defer repo.Shutdown()
 				}
@@ -189,9 +198,9 @@ func TestSQLTransaction_PublicMethods(t *testing.T) {
 	err = sqlRepo.WithTransaction(ctx, true, func(tx *sqlrepository.SQLTransaction) error {
 		isReadOnly := tx.IsReadOnly()
 		testify.True(t, isReadOnly)
+
 		return nil
 	})
-
 	// SQLite should fail with "database sqlite doesn't support read-only transactions".
 	if err != nil {
 		testify.ErrorContains(t, err, "doesn't support read-only transactions")
@@ -214,7 +223,6 @@ func TestSQLRepository_Shutdown_MultipleCallsSafe(t *testing.T) {
 	sqlRepo.Shutdown()
 	sqlRepo.Shutdown()
 	sqlRepo.Shutdown()
-
 	// No panic expected.
 }
 
@@ -236,7 +244,6 @@ func TestSQLRepository_GetDBType_SQLiteOnly(t *testing.T) {
 	defer sqlRepo.Shutdown()
 
 	testify.Equal(t, sqlrepository.DBTypeSQLite, sqlRepo.GetDBType())
-
 	// PostgreSQL test would require actual PostgreSQL instance, so skip it.
 	// The code path is covered by sql_postgres_coverage_test.go (CI/CD only).
 }
