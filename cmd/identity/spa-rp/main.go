@@ -48,7 +48,11 @@ func main() {
 
 			return
 		}
-		defer indexFile.Close()
+		defer func() {
+			if closeErr := indexFile.Close(); closeErr != nil {
+				log.Printf("Failed to close index file: %v", closeErr)
+			}
+		}()
 
 		w.Header().Set("Content-Type", "text/html")
 

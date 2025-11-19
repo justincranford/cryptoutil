@@ -459,7 +459,11 @@ func testHealthEndpoints() {
 
 			continue
 		}
-		defer resp.Body.Close()
+		defer func() {
+			if closeErr := resp.Body.Close(); closeErr != nil {
+				log.Printf("⚠️  Failed to close response body: %v", closeErr)
+			}
+		}()
 
 		var result map[string]string
 		if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
