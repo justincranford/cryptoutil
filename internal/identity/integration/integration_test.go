@@ -271,7 +271,7 @@ func TestHealthCheckEndpoints(t *testing.T) {
 			testify.NoError(t, err, "Health check request failed")
 
 			defer func() {
-				_ = resp.Body.Close()
+				_ = defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
 			}()
 
 			testify.Equal(t, http.StatusOK, resp.StatusCode, "Health check should return 200 OK")
@@ -310,7 +310,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	testify.NoError(t, err, "Authorization request failed")
 
 	defer func() {
-		_ = resp.Body.Close()
+		_ = defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}()
 
 	// Should get 302 redirect.
@@ -348,7 +348,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	testify.NoError(t, err, "Token request failed")
 
 	defer func() {
-		_ = tokenResp.Body.Close()
+		_ = defer func() { _ = tokenResp.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}()
 
 	testify.Equal(t, http.StatusOK, tokenResp.StatusCode, "Token request should succeed")
@@ -373,7 +373,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	testify.NoError(t, err, "Resource request failed")
 
 	defer func() {
-		_ = resourceResp.Body.Close()
+		_ = defer func() { _ = resourceResp.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}()
 
 	testify.Equal(t, http.StatusOK, resourceResp.StatusCode, "Protected resource access should succeed")
@@ -438,7 +438,7 @@ func TestResourceServerScopeEnforcement(t *testing.T) {
 			testify.NoError(t, err, "Resource request failed")
 
 			defer func() {
-				_ = resp.Body.Close()
+				_ = defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
 			}()
 
 			testify.Equal(t, tt.expectedStatus, resp.StatusCode, "Unexpected status code for %s", tt.endpoint)
@@ -469,7 +469,7 @@ func TestUnauthorizedAccess(t *testing.T) {
 			testify.NoError(t, err, "Resource request failed")
 
 			defer func() {
-				_ = resp.Body.Close()
+				_ = defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
 			}()
 
 			testify.Equal(t, http.StatusUnauthorized, resp.StatusCode, "Should return 401 Unauthorized")
@@ -492,7 +492,7 @@ func TestGracefulShutdown(t *testing.T) {
 	testify.NoError(t, err, "Health check failed before shutdown")
 
 	if resp != nil && resp.Body != nil {
-		_ = resp.Body.Close()
+		_ = defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}
 
 	testify.Equal(t, http.StatusOK, resp.StatusCode, "Server should be healthy before shutdown")
@@ -511,7 +511,7 @@ func TestGracefulShutdown(t *testing.T) {
 
 	resp2, err := servers.httpClient.Do(req2)
 	if resp2 != nil && resp2.Body != nil {
-		_ = resp2.Body.Close()
+		_ = defer func() { _ = resp2.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}
 
 	testify.Error(t, err, "Connection should fail after shutdown")
@@ -539,7 +539,7 @@ func getTestAccessToken(t *testing.T, servers *testServers, scope string) string
 	testify.NoError(t, err, "Token request failed")
 
 	defer func() {
-		_ = resp.Body.Close()
+		_ = defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test code cleanup
 	}()
 
 	testify.Equal(t, http.StatusOK, resp.StatusCode, "Token request should succeed")

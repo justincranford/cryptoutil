@@ -128,7 +128,7 @@ func TestApplyEmbeddedSQLMigrations_UnsupportedDBType(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
 
-	defer db.Close()
+	defer func() { _ = db.Close() }() //nolint:errcheck // Test cleanup
 
 	// Test with unsupported DB type (should fail).
 	err = ApplyEmbeddedSQLMigrations(testTelemetryService, db, "unsupported")

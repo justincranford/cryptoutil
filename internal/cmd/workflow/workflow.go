@@ -142,7 +142,11 @@ func Run(args []string) int {
 
 		return 1
 	}
-	defer combinedLog.Close()
+	defer func() {
+		if err := combinedLog.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close combined log: %v\n", err)
+		}
+	}()
 
 	// Print executive summary header.
 	printExecutiveSummaryHeader(selectedWorkflows, combinedLog, *dryRun)
@@ -438,7 +442,11 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 
 		return result
 	}
-	defer workflowLog.Close()
+	defer func() {
+		if err := workflowLog.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to close workflow log: %v\n", err)
+		}
+	}()
 
 	// Execute act command.
 	cmd := exec.Command(actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
@@ -622,7 +630,7 @@ func teeReader(reader io.Reader, writers ...io.Writer) {
 
 		for _, w := range writers {
 			if w != nil {
-				fmt.Fprintln(w, line)
+				_, _ = fmt.Fprintln(w, line) //nolint:errcheck // Internal logging helper
 			}
 		}
 	}

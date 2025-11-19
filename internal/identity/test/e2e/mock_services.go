@@ -580,7 +580,7 @@ func (tms *TestableMockServices) waitForServicesReady(ctx context.Context) error
 
 				break
 			}
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 			var result map[string]string
 			if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {

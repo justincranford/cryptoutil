@@ -80,7 +80,7 @@ func TestWithTransaction_Panic(t *testing.T) {
 
 	// Execute transaction with panic to trigger recovery and re-panic.
 	testify.Panics(t, func() {
-		_ = sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error {
+		_ = sqlRepo.WithTransaction(ctx, false, func(tx *sqlrepository.SQLTransaction) error { //nolint:errcheck // Test expects panic
 			panic("intentional test panic")
 		})
 	})

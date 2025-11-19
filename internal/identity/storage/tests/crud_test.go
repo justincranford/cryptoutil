@@ -27,7 +27,7 @@ func TestUserRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	userRepo := repoFactory.UserRepository()
 
@@ -95,7 +95,7 @@ func TestClientRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	clientRepo := repoFactory.ClientRepository()
 
@@ -151,7 +151,7 @@ func TestTokenRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	tokenRepo := repoFactory.TokenRepository()
 
@@ -220,7 +220,7 @@ func TestSessionRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	sessionRepo := repoFactory.SessionRepository()
 
@@ -277,7 +277,7 @@ func TestClientProfileRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	profileRepo := repoFactory.ClientProfileRepository()
 
@@ -322,7 +322,7 @@ func TestAuthFlowRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	flowRepo := repoFactory.AuthFlowRepository()
 
@@ -367,7 +367,7 @@ func TestAuthProfileRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	profileRepo := repoFactory.AuthProfileRepository()
 
@@ -412,7 +412,7 @@ func TestMFAFactorRepositoryCRUD(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer repoFactory.Close()
+	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
 
 	factorRepo := repoFactory.MFAFactorRepository()
 

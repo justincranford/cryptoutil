@@ -60,7 +60,7 @@ func CleanupTestDatabase(t *testing.T, db *gorm.DB) {
 
 	sqlDB, err := db.DB()
 	if err == nil {
-		_ = sqlDB.Close()
+		_ = sqlDB.Close() //nolint:errcheck // Test helper cleanup
 	}
 }
 
