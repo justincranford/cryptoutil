@@ -59,7 +59,7 @@ linters:
     - prealloc      # Find slice declarations that could pre-allocate
     - bodyclose     # Check for HTTP response body closure
     - mnd           # Detect magic numbers
-    - wsl           # Whitespace linter
+    - wsl_v5        # Whitespace linter (v5)
     - nlreturn      # Enforce newlines after return statements
 
     # Maintainability
@@ -128,6 +128,13 @@ linters:
 
     testpackage:
       skip-regexp: '.*_test\.go$'
+
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: github.com/pkg/errors
+              desc: "Use Go 1.13+ error wrapping instead"
 
     importas:
       alias:
