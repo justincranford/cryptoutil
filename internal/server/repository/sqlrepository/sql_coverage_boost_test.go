@@ -74,7 +74,7 @@ func TestSQLRepository_Shutdown_Isolated(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration and telemetry.
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestSQLRepository_Shutdown_Isolated_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 

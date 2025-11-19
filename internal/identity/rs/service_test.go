@@ -95,7 +95,7 @@ func TestPublicEndpoint(t *testing.T) {
 	resp, err := app.Test(req)
 	testify.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	testify.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -118,7 +118,7 @@ func TestProtectedEndpoint_NoToken(t *testing.T) {
 	resp, err := app.Test(req)
 	testify.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	testify.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
@@ -154,7 +154,7 @@ func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
 			resp, err := app.Test(req)
 			testify.NoError(t, err)
 
-			defer func() { _ = resp.Body.Close() }()
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 			testify.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		})
@@ -183,7 +183,7 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	resp, err := app.Test(req)
 	testify.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	testify.Equal(t, http.StatusForbidden, resp.StatusCode)
 
@@ -220,7 +220,7 @@ func TestScopeEnforcement_ValidScope(t *testing.T) {
 	resp, err := app.Test(req)
 	testify.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	testify.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -268,7 +268,7 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 			resp, err := app.Test(req)
 			testify.NoError(t, err)
 
-			defer func() { _ = resp.Body.Close() }()
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 			testify.Equal(t, tc.expectedStatus, resp.StatusCode)
 		})
@@ -299,7 +299,7 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 	resp, err := app.Test(req)
 	testify.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	testify.Equal(t, http.StatusCreated, resp.StatusCode)
 
@@ -346,7 +346,7 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 			resp, err := app.Test(req)
 			testify.NoError(t, err)
 
-			defer func() { _ = resp.Body.Close() }()
+			defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 			testify.Equal(t, tc.expectedStatus, resp.StatusCode)
 		})
@@ -381,7 +381,7 @@ func TestExpiredToken(t *testing.T) {
 	resp, err := app.Test(req)
 	testify.NoError(t, err)
 
-	defer func() { _ = resp.Body.Close() }()
+	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	testify.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }

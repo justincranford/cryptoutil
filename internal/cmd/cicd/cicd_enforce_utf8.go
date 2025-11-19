@@ -168,9 +168,7 @@ func checkFileEncoding(filePath string) []string {
 	if err != nil {
 		return []string{fmt.Sprintf("Error reading file: %v", err)}
 	}
-	defer func() {
-		_ = file.Close() // Error not actionable in detection context
-	}()
+	defer func() { _ = file.Close() }() //nolint:errcheck // Cleanup in error detection context
 
 	// Read only the first 4 bytes (maximum needed for BOM detection)
 	buffer := make([]byte, 4)

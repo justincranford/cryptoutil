@@ -25,7 +25,7 @@ func TestTransactionRollback(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Test transaction rollback on error
 	err := repoFactory.Transaction(ctx, func(ctx context.Context) error {
@@ -79,7 +79,7 @@ func TestTransactionCommit(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Test successful transaction commit
 	err := repoFactory.Transaction(ctx, func(ctx context.Context) error {
@@ -133,7 +133,7 @@ func TestTransactionIsolation(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Create a user outside transaction
 	externalUser := &cryptoutilIdentityDomain.User{
@@ -182,7 +182,7 @@ func TestConcurrentTransactions(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
-	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Test concurrent transactions
 	done := make(chan bool, 2)

@@ -115,7 +115,7 @@ func TestGoCheckCircularPackageDeps_WithValidProject(t *testing.T) {
 		_ = os.Chdir(originalDir)
 		// Clean up cache file
 		cacheFile := filepath.Join(tmpDir, cryptoutilMagic.CICDOutputDir, "circular-dep-cache.json")
-		_ = os.Remove(cacheFile)
+		_ = os.Remove(cacheFile) //nolint:errcheck // Test cleanup - file may not exist
 	}()
 
 	err = os.Chdir(tmpDir)

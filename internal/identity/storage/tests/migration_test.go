@@ -40,7 +40,7 @@ func TestSQLiteMigrations(t *testing.T) {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
 
-	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Run migrations
 	err = repoFactory.AutoMigrate(ctx)
@@ -95,7 +95,7 @@ func TestMigrationIdempotency(t *testing.T) {
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
 
-	defer defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup
+	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Run migrations multiple times to test idempotency
 	for i := 0; i < 3; i++ {

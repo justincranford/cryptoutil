@@ -44,13 +44,13 @@ func TestGetLatestTag_WithGitHubToken(t *testing.T) {
 
 	defer func() {
 		if originalToken == "" {
-			_ = os.Unsetenv("GITHUB_TOKEN") // Test cleanup - error not actionable
+			_ = os.Unsetenv("GITHUB_TOKEN") //nolint:errcheck // Test cleanup
 		} else {
-			_ = os.Setenv("GITHUB_TOKEN", originalToken) // Test cleanup - error not actionable
+			_ = os.Setenv("GITHUB_TOKEN", originalToken) //nolint:errcheck // Test cleanup
 		}
 	}()
 
-	_ = os.Setenv("GITHUB_TOKEN", "fake-token-for-testing") // Test setup - error not actionable
+	_ = os.Setenv("GITHUB_TOKEN", "fake-token-for-testing") //nolint:errcheck // Test setup
 
 	// Clear cache
 	githubAPICache = NewGitHubAPICache()
