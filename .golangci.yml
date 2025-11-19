@@ -41,3 +41,20 @@ linters:
     - copyloopvar   # Check for loop variables captured by reference
     - goconst       # Find repeated strings that could be constants
     - importas      # Enforce consistent import aliasing
+
+    # Security and error handling
+    - gosec         # Security-focused static analysis
+    - noctx         # Check for missing context in HTTP requests
+    - wrapcheck     # Check error wrapping consistency
+    - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
+
+  settings:
+    gosec:
+      severity: medium
+      confidence: medium
+      excludes:
+        - G204  # Subprocess launched with variable
+        - G301  # Directory permissions too permissive
+        - G302  # File permissions too permissive
+        - G304  # Potential file inclusion via variable
+        - G402  # TLS InsecureSkipVerify set true

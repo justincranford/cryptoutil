@@ -94,3 +94,13 @@ internal\cmd\cicd\cicd_final_coverage_test.go:52:11                             
 internal\cmd\workflow\workflow.go:145:25                                            errcheck     Error return value of `combinedLog.Close` is not checked
 internal\cmd\workflow\workflow.go:441:25                                            errcheck     Error return value of `workflowLog.Close` is not checked
 internal\cmd\workflow\workflow.go:623:17                                            errcheck     Error return value of `fmt.Fprintln` is not checked
+
+## Step 5: Security & Error Handling
+
+**Status**: Complete (wrapcheck settings removed - v2 API changed)
+
+**Linters Enabled**:
+- gosec (with excludes)
+- noctx
+- wrapcheck (no custom settings in v2)
+- errorlint
