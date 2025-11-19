@@ -62,6 +62,15 @@ linters:
     - wsl           # Whitespace linter
     - nlreturn      # Enforce newlines after return statements
 
+    # Maintainability
+    - goheader      # Copyright header enforcement
+    - depguard      # Enforce allowed/disallowed import dependencies
+
+  disable:
+    - dupl          # Code duplication
+    - gocyclo       # Cyclomatic complexity
+    - godox         # TODO/FIXME comments
+
   settings:
     gosec:
       severity: medium

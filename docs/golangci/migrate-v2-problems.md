@@ -126,3 +126,16 @@ internal\cmd\workflow\workflow.go:623:17                                        
 - mnd (with settings)
 - wsl
 - nlreturn
+
+## Step 8: Maintainability & Headers
+
+**Status**: Complete
+
+**Linters Enabled**:
+- goheader
+- depguard
+
+**Linters Disabled**:
+- dupl
+- gocyclo
+- godox
