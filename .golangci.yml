@@ -34,3 +34,10 @@ linters:
     - ineffassign   # Detect ineffectual assignments
     - staticcheck   # Advanced static analysis (includes gosimple, stylecheck in v2)
     - unused        # Find unused constants, variables, functions and types
+
+    # Code quality linters (fast)
+    - revive        # Golint replacement with more rules
+    - godot         # Check for missing periods in documentation comments
+    - copyloopvar   # Check for loop variables captured by reference
+    - goconst       # Find repeated strings that could be constants
+    - importas      # Enforce consistent import aliasing
