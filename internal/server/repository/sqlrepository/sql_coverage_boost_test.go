@@ -21,7 +21,7 @@ func TestCreateGormDB_SQLite(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration and telemetry (creates SQLite by default).
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestCreateGormDB_SQLite_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -47,7 +47,7 @@ func TestCreateGormDB_UnsupportedType(t *testing.T) {
 	ctx := context.Background()
 
 	// Create test configuration and telemetry.
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestCreateGormDB_UnsupportedType_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 

@@ -20,7 +20,7 @@ import (
 // TestWithTransaction_Success tests successful transaction execution.
 func TestWithTransaction_Success(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_Success_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -45,7 +45,7 @@ func TestWithTransaction_Success(t *testing.T) {
 // TestWithTransaction_Rollback tests transaction rollback on error.
 func TestWithTransaction_Rollback(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_Rollback_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -68,7 +68,7 @@ func TestWithTransaction_Rollback(t *testing.T) {
 // TestWithTransaction_Panic tests transaction panic recovery.
 func TestWithTransaction_Panic(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_Panic_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -89,7 +89,7 @@ func TestWithTransaction_Panic(t *testing.T) {
 // TestWithTransaction_ContextCancelled tests transaction with cancelled context.
 func TestWithTransaction_ContextCancelled(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_ContextCancelled_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -117,7 +117,7 @@ func TestWithTransaction_ContextCancelled(t *testing.T) {
 // TestWithTransaction_CommitError tests transaction commit failure handling.
 func TestWithTransaction_CommitError(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_CommitError_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 

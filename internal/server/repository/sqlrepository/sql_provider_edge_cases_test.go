@@ -19,7 +19,7 @@ import (
 // TestNewSQLRepository_NilTelemetryService tests nil telemetry service error.
 func TestNewSQLRepository_NilTelemetryService(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_NilTelemetryService_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -33,7 +33,7 @@ func TestNewSQLRepository_NilTelemetryService(t *testing.T) {
 // TestNewSQLRepository_NilSettings tests nil settings error.
 func TestNewSQLRepository_NilSettings(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_NilSettings_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -50,7 +50,7 @@ func TestNewSQLRepository_NilSettings(t *testing.T) {
 // TestNewSQLRepository_ContainerModeInvalid tests invalid container mode.
 func TestNewSQLRepository_ContainerModeInvalid(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestNewSQLRepository_ContainerModeInvalid_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -70,7 +70,7 @@ func TestNewSQLRepository_ContainerModeInvalid(t *testing.T) {
 // TestHealthCheck tests database health check.
 func TestHealthCheck(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestHealthCheck_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -91,7 +91,7 @@ func TestHealthCheck(t *testing.T) {
 // TestHealthCheck_AfterShutdown tests health check after shutdown.
 func TestHealthCheck_AfterShutdown(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestHealthCheck_AfterShutdown_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 

@@ -123,7 +123,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 // TestSQLRepository_WithTransaction_NilContext tests transaction with nil context.
 func TestSQLRepository_WithTransaction_NilContext(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_NilContext_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -145,7 +145,7 @@ func TestSQLRepository_WithTransaction_NilContext(t *testing.T) {
 // TestSQLRepository_WithTransaction_NilFunction tests transaction with nil function.
 func TestSQLRepository_WithTransaction_NilFunction(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestWithTransaction_NilFunction_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -165,7 +165,7 @@ func TestSQLRepository_WithTransaction_NilFunction(t *testing.T) {
 // TestSQLTransaction_PublicMethods tests all public methods on SQLTransaction.
 func TestSQLTransaction_PublicMethods(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestSQLTransaction_PublicMethods_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -213,7 +213,7 @@ func TestSQLTransaction_PublicMethods(t *testing.T) {
 // TestSQLRepository_Shutdown_MultipleCallsSafe tests that multiple shutdown calls are safe.
 func TestSQLRepository_Shutdown_MultipleCallsSafe(t *testing.T) {
 	ctx := context.Background()
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestShutdown_MultipleCalls_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 
@@ -234,7 +234,7 @@ func TestSQLRepository_GetDBType_SQLiteOnly(t *testing.T) {
 	ctx := context.Background()
 
 	// Test SQLite.
-	uuidVal, _ := googleUuid.NewV7()
+	uuidVal, _ := googleUuid.NewV7() //nolint:errcheck // UUID generation error virtually impossible
 	testName := "TestGetDBType_SQLite_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 	testSettings.DevMode = true
