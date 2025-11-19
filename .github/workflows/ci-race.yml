@@ -55,7 +55,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v5.0.0
+      uses: actions/checkout@v5.0.1
       with:
         sparse-checkout-cone-mode: false  # Disabled for cross-platform compatibility between GitHub Actions and act local runner
 
