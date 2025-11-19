@@ -380,6 +380,7 @@ func getTestKeys(t *testing.T) *jwkTestKeys {
 			}
 		}
 	}()
+
 	wg.Wait()
 
 	if rsaEncryptErr != nil || rsaSignErr != nil || ecdsaErr != nil || ecdhErr != nil || ed25519Err != nil || aesErr != nil || hmacErr != nil {

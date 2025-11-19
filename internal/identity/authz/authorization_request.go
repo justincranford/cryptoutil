@@ -180,6 +180,7 @@ func (s *InMemoryAuthorizationRequestStore) cleanup() {
 
 	for range ticker.C {
 		s.mu.Lock()
+
 		now := time.Now()
 
 		for id, request := range s.requests {

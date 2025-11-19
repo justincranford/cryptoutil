@@ -68,13 +68,16 @@ func TestChan(t *testing.T) {
 		time.Sleep(cryptoutilMagic.TestSleepCancelChanContext)
 		cancel()
 	}()
+
 	waitAndClose()
 
 	s.guard.Lock()
 	defer s.guard.Unlock()
+
 	fmt.Printf("Senders>   Count: %d, Sum: %d, Min: %d, Max: %d, Average: %f\n", s.count, s.sum, s.minimum, s.maximum, float32(s.sum)/float32(s.count))
 
 	r.guard.Lock()
 	defer r.guard.Unlock()
+
 	fmt.Printf("Receivers> Count: %d, Sum: %d, Min: %d, Max: %d, Average: %f\n", r.count, r.sum, r.minimum, r.maximum, float32(r.sum)/float32(r.count))
 }

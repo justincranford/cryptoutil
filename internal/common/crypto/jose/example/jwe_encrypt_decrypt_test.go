@@ -174,6 +174,7 @@ func getKidEncAlgFromJWK(t *testing.T, recipientJWK jwk.Key) (string, jwa.Conten
 	t.Helper()
 
 	var kid string
+
 	err := recipientJWK.Get(jwk.KeyIDKey, &kid)
 	require.NoError(t, err, "failed to get 'kid' from recipient JWK")
 
@@ -182,6 +183,7 @@ func getKidEncAlgFromJWK(t *testing.T, recipientJWK jwk.Key) (string, jwa.Conten
 	err = recipientJWK.Get("enc", &enc) // EX: A256GCM, A256CBC-HS512, dir
 	if err != nil {
 		var encString string // Workaround: get 'enc' as string and convert to ContentEncryptionAlgorithm
+
 		err = recipientJWK.Get("enc", &encString)
 		require.NoError(t, err, "failed to get 'enc' from recipient JWK")
 
@@ -189,6 +191,7 @@ func getKidEncAlgFromJWK(t *testing.T, recipientJWK jwk.Key) (string, jwa.Conten
 	}
 
 	var alg jwa.KeyEncryptionAlgorithm
+
 	err = recipientJWK.Get(jwk.AlgorithmKey, &alg) // EX: A256KW, A256GCMKW, RSA_OAEP_512, RSA1_5, ECDH_ES_A256KW
 	require.NoError(t, err, "failed to get 'alg' from recipient JWK")
 

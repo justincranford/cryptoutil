@@ -96,6 +96,7 @@ func TestPublicEndpoint(t *testing.T) {
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
+
 	testify.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Parse response.
@@ -118,6 +119,7 @@ func TestProtectedEndpoint_NoToken(t *testing.T) {
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
+
 	testify.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 
 	// Parse error response.
@@ -153,6 +155,7 @@ func TestProtectedEndpoint_InvalidTokenFormat(t *testing.T) {
 			testify.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }()
+
 			testify.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		})
 	}
@@ -181,6 +184,7 @@ func TestScopeEnforcement_MissingScope(t *testing.T) {
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
+
 	testify.Equal(t, http.StatusForbidden, resp.StatusCode)
 
 	// Parse error response.
@@ -217,6 +221,7 @@ func TestScopeEnforcement_ValidScope(t *testing.T) {
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
+
 	testify.Equal(t, http.StatusOK, resp.StatusCode)
 
 	// Parse success response.
@@ -264,6 +269,7 @@ func TestAdminEndpoint_RequiresAdminScope(t *testing.T) {
 			testify.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }()
+
 			testify.Equal(t, tc.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -294,6 +300,7 @@ func TestCreateResource_RequiresWriteScope(t *testing.T) {
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
+
 	testify.Equal(t, http.StatusCreated, resp.StatusCode)
 
 	// Parse success response.
@@ -340,6 +347,7 @@ func TestDeleteResource_RequiresDeleteScope(t *testing.T) {
 			testify.NoError(t, err)
 
 			defer func() { _ = resp.Body.Close() }()
+
 			testify.Equal(t, tc.expectedStatus, resp.StatusCode)
 		})
 	}
@@ -374,5 +382,6 @@ func TestExpiredToken(t *testing.T) {
 	testify.NoError(t, err)
 
 	defer func() { _ = resp.Body.Close() }()
+
 	testify.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 }

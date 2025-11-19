@@ -79,11 +79,13 @@ func TestRootKeysService_MultipleEncryptDecryptRounds(t *testing.T) {
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	// Create root keys service
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
 	require.NoError(t, err)
+
 	defer rootKeysService.Shutdown()
 
 	// Test multiple rounds of encryption/decryption
@@ -125,6 +127,7 @@ func TestRootKeysService_Shutdown(t *testing.T) {
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	// Create root keys service
@@ -152,11 +155,13 @@ func TestRootKeysService_DecryptKey_InvalidData(t *testing.T) {
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	// Create root keys service
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
 	require.NoError(t, err)
+
 	defer rootKeysService.Shutdown()
 
 	// Try to decrypt invalid data
@@ -185,11 +190,13 @@ func TestRootKeysService_DecryptKey_EmptyData(t *testing.T) {
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	// Create root keys service
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
 	require.NoError(t, err)
+
 	defer rootKeysService.Shutdown()
 
 	// Try to decrypt empty data
@@ -215,6 +222,7 @@ func TestNewRootKeysService_NilTelemetryService(t *testing.T) {
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(nil, testJWKGenService, testOrmRepository, unsealKeysServiceSimple)
@@ -236,6 +244,7 @@ func TestNewRootKeysService_NilJWKGenService(t *testing.T) {
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, nil, testOrmRepository, unsealKeysServiceSimple)
@@ -251,6 +260,7 @@ func TestNewRootKeysService_NilOrmRepository(t *testing.T) {
 
 	unsealKeysServiceSimple, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{unsealJWK})
 	require.NoError(t, err)
+
 	defer unsealKeysServiceSimple.Shutdown()
 
 	rootKeysService, err := NewRootKeysService(testTelemetryService, testJWKGenService, nil, unsealKeysServiceSimple)

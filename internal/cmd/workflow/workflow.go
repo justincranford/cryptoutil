@@ -510,11 +510,13 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 
 	go func() {
 		defer wg.Done()
+
 		teeReader(stdoutPipe, os.Stdout, workflowLog, combinedLog)
 	}()
 
 	go func() {
 		defer wg.Done()
+
 		teeReader(stderrPipe, os.Stderr, workflowLog, combinedLog)
 	}()
 

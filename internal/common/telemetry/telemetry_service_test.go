@@ -99,6 +99,7 @@ func TestTrace(t *testing.T) {
 	time.Sleep(10 * time.Millisecond)
 
 	defer exampleChildSpan1.End()
+
 	testTelemetryService.Slogger.Info("exampleChildSpan1", "testCtx", exampleChildSpanContext1, "span", exampleChildSpan1)
 
 	// simulate time spent in parent function, before calling child 2 function
@@ -110,6 +111,7 @@ func TestTrace(t *testing.T) {
 	time.Sleep(15 * time.Millisecond)
 
 	defer exampleChildSpan2.End()
+
 	testTelemetryService.Slogger.Info("exampleChildSpan2", "testCtx", exampleChildSpanContext2, "span", exampleChildSpan2)
 
 	// simulate time spent in parent function, before returning

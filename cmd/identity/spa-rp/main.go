@@ -28,6 +28,7 @@ func main() {
 	// Parse command-line flags.
 	port := flag.Int("port", cryptoutilIdentityMagic.DefaultSPARPPort, "port for SPA RP server")
 	bindAddress := flag.String("bind", "127.0.0.1", "bind address for SPA RP server")
+
 	flag.Parse()
 
 	// Create HTTP server with embedded static files.

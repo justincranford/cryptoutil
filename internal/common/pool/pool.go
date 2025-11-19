@@ -109,6 +109,7 @@ func NewValueGenPool[T any](cfg *ValueGenPoolConfig[T], err error) (*ValueGenPoo
 
 		go func() {
 			defer waitForWorkers.Done()
+
 			valuePool.generateWorker(workerNum)
 		}()
 	}
@@ -144,6 +145,7 @@ func (pool *ValueGenPool[T]) Get() T {
 	if pool.cfg.verbose {
 		pool.cfg.telemetryService.Slogger.Debug("getting", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 	}
+
 	select {
 	case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
 		if pool.cfg.verbose {
@@ -216,6 +218,7 @@ func (pool *ValueGenPool[T]) Cancel() {
 				pool.cfg.telemetryService.Slogger.Debug("canceled ok", "pool", pool.cfg.poolName, "duration", time.Since(startTime).Seconds())
 			}
 		}()
+
 		pool.stopGeneratingFunction() // raise Done() signal to N workers, 1 closeChannelsThread, and M getters
 		pool.stopGeneratingFunction = nil
 		didCancelThisTime = true
@@ -251,6 +254,7 @@ func (pool *ValueGenPool[T]) generateWorker(workerNum uint32) {
 		if pool.cfg.verbose {
 			pool.cfg.telemetryService.Slogger.Debug("wait for permission", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 		}
+
 		select {
 		case <-pool.stopGeneratingCtx.Done(): // someone called Cancel()
 			if pool.cfg.verbose {
@@ -335,6 +339,7 @@ func (pool *ValueGenPool[T]) generatePublishRelease(workerNum uint32, startTime 
 	}
 
 	pool.generateChannel <- value
+
 	if pool.cfg.verbose {
 		pool.cfg.telemetryService.Slogger.Debug("published", "pool", pool.cfg.poolName, "worker", workerNum, "duration", time.Since(startTime).Seconds())
 	}
@@ -354,7 +359,8 @@ func (pool *ValueGenPool[T]) closeChannelsThread(waitForWorkers *sync.WaitGroup)
 
 	// this is a finite pool; periodically wake up and check if one of the pool limits has been reached (e.g. time), especially if all workers and getters are idle
 	ticker := time.NewTicker(cryptoutilMagic.PoolMaintenanceInterval) // time keeps on ticking ticking ticking... into the future
-	defer func() { ticker.Stop() }()                                  //nolint:errcheck
+
+	defer func() { ticker.Stop() }() //nolint:errcheck
 
 	for {
 		select {

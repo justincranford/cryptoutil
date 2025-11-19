@@ -16,6 +16,7 @@ func TestOrmRepository_VerboseMode(t *testing.T) {
 
 	// Enable verbose mode.
 	testOrmRepository.verboseMode = true
+
 	defer func() { testOrmRepository.verboseMode = false }() // Restore after test
 
 	// Test verbose logging in begin/commit/rollback.

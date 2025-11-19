@@ -145,6 +145,7 @@ func main() {
 	defer func() {
 		require.NoError(t, os.Chdir(oldWd))
 	}()
+
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Test that goEnforceAny returns an error when files are modified

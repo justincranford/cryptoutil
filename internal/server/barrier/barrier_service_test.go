@@ -58,6 +58,7 @@ func Test_HappyPath_SameUnsealJWKs(t *testing.T) {
 
 	originalUnsealKeysService, err := cryptoutilUnsealKeysService.NewUnsealKeysServiceSimple([]joseJwk.Key{nonPublicJWEJWK})
 	require.NoError(t, err)
+
 	defer originalUnsealKeysService.Shutdown()
 
 	encryptDecryptContentRestartDecryptAgain(t, ormRepository, originalUnsealKeysService, originalUnsealKeysService)
@@ -136,6 +137,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 	// start barrier service
 	barrierService1, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, originalUnsealKeysService)
 	require.NoError(t, err)
+
 	defer barrierService1.Shutdown()
 
 	// encrypt N times
@@ -147,6 +149,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 
 		err := testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 			var err error
+
 			encryptedBytes, err = barrierService1.EncryptContent(sqlTransaction, plaintext)
 
 			return err
@@ -162,6 +165,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 
 		err := testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 			var err error
+
 			decryptedBytes, err = barrierService1.DecryptContent(sqlTransaction, encryptedBytes)
 
 			return err
@@ -176,6 +180,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 	// barrier encrypt with shut down service should fail
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
+
 		_, err = barrierService1.EncryptContent(sqlTransaction, plaintext)
 
 		return err
@@ -185,6 +190,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 	// barrier decrypt with shut down service should fail
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
+
 		_, err = barrierService1.DecryptContent(sqlTransaction, plaintext)
 
 		return err
@@ -194,6 +200,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 	// restart new service with same unseal key repository
 	barrierService2, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, restartedUnsealKeysService)
 	require.NoError(t, err)
+
 	defer barrierService2.Shutdown()
 
 	// decrypt N times with restarted service
@@ -202,6 +209,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 
 		err := testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 			var err error
+
 			decryptedBytes, err = barrierService2.DecryptContent(sqlTransaction, encryptedBytes)
 
 			return err
@@ -215,6 +223,7 @@ func encryptDecryptContentRestartDecryptAgain(t *testing.T, testOrmRepository *c
 
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
+
 		_, err = barrierService2.EncryptContent(sqlTransaction, plaintext)
 
 		return err
@@ -272,6 +281,7 @@ func Test_ErrorCase_DecryptWithInvalidJWKs(t *testing.T) {
 
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
+
 		encryptedBytes, err = barrierService.EncryptContent(sqlTransaction, plaintext)
 
 		return err
@@ -285,12 +295,14 @@ func Test_ErrorCase_DecryptWithInvalidJWKs(t *testing.T) {
 	// try to decrypt with invalid JWKs - this should fail
 	barrierServiceInvalid, err := NewBarrierService(testCtx, testTelemetryService, testJWKGenService, testOrmRepository, invalidUnsealKeysService)
 	require.NoError(t, err)
+
 	defer barrierServiceInvalid.Shutdown()
 
 	var decryptedBytes []byte
 
 	err = testOrmRepository.WithTransaction(context.Background(), cryptoutilOrmRepository.ReadWrite, func(sqlTransaction *cryptoutilOrmRepository.OrmTransaction) error {
 		var err error
+
 		decryptedBytes, err = barrierServiceInvalid.DecryptContent(sqlTransaction, encryptedBytes)
 
 		return err

@@ -345,6 +345,7 @@ func (e *BehavioralRiskEngine) calculateConfidence(baseline *UserBaseline, facto
 	// 2. Quality of baseline data.
 	// Factor count contribution (max 50%).
 	const maxFactors = 6.0
+
 	factorContribution := math.Min(float64(factorCount)/maxFactors, 1.0) * cryptoutilIdentityMagic.ConfidenceWeightFactors
 
 	// Baseline quality contribution (max 50%).

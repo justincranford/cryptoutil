@@ -41,6 +41,7 @@ func TestGetDirectDependencies(t *testing.T) {
 		defer func() {
 			require.NoError(t, os.Chdir(oldWd))
 		}()
+
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Create a test go.mod file
@@ -79,6 +80,7 @@ require (
 		defer func() {
 			require.NoError(t, os.Chdir(oldWd))
 		}()
+
 		require.NoError(t, os.Chdir(tempDir))
 
 		// This test case is no longer relevant since file reading is done in goUpdateDeps
@@ -94,6 +96,7 @@ require (
 		defer func() {
 			require.NoError(t, os.Chdir(oldWd))
 		}()
+
 		require.NoError(t, os.Chdir(tempDir))
 
 		cryptoutilTestutil.WriteTempFile(t, tempDir, "go.mod", "module example.com/test\ngo 1.21\n")

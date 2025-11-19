@@ -94,6 +94,7 @@ func (s *InMemoryChallengeStore) cleanup() {
 				delete(s.challenges, id)
 			}
 		}
+
 		s.mu.Unlock()
 	}
 }

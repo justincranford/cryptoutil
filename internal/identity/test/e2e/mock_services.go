@@ -135,6 +135,7 @@ func (tms *TestableMockServices) Stop(ctx context.Context) {
 
 	// Wait for all goroutines to finish
 	done := make(chan struct{})
+
 	go func() {
 		tms.wg.Wait()
 		close(done)
@@ -322,6 +323,7 @@ func (tms *TestableMockServices) startAuthZServer(ctx context.Context) error {
 
 	go func() {
 		defer tms.wg.Done()
+
 		certFile, keyFile := tms.getCertPaths()
 
 		if err := tms.authZServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
@@ -422,6 +424,7 @@ func (tms *TestableMockServices) startIDPServer(ctx context.Context) error {
 
 	go func() {
 		defer tms.wg.Done()
+
 		certFile, keyFile := tms.getCertPaths()
 
 		if err := tms.idpServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
@@ -477,6 +480,7 @@ func (tms *TestableMockServices) startResourceServer(ctx context.Context) error 
 
 	go func() {
 		defer tms.wg.Done()
+
 		certFile, keyFile := tms.getCertPaths()
 
 		if err := tms.rsServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {
@@ -529,6 +533,7 @@ func (tms *TestableMockServices) startSPARPServer(ctx context.Context) error {
 
 	go func() {
 		defer tms.wg.Done()
+
 		certFile, keyFile := tms.getCertPaths()
 
 		if err := tms.spaRPServer.ListenAndServeTLS(certFile, keyFile); err != nil && err != http.ErrServerClosed {

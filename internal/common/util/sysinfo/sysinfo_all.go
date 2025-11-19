@@ -68,6 +68,7 @@ func GetAllInfoWithTimeout(sysInfoProvider SysInfoProvider, timeout time.Duratio
 
 		go func() {
 			var ram uint64
+
 			ram, ramErr = sysInfoProvider.RAMSize()
 			ramSize = fmt.Sprintf("%d", ram)
 

@@ -70,6 +70,7 @@ func TestRootKeysService_HappyPath_OneUnsealJWKs(t *testing.T) {
 
 func TestRootKeysService_SadPath_ZeroUnsealJWKs(t *testing.T) {
 	unsealKeysServiceSimple := cryptoutilUnsealKeysService.RequireNewSimpleForTest([]joseJwk.Key{})
+
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 
@@ -87,6 +88,7 @@ func TestRootKeysService_SadPath_ZeroUnsealJWKs(t *testing.T) {
 
 func TestRootKeysService_SadPath_NilUnsealJWKs(t *testing.T) {
 	unsealKeysServiceSimple := cryptoutilUnsealKeysService.RequireNewSimpleForTest(nil)
+
 	require.NotNil(t, unsealKeysServiceSimple)
 	defer unsealKeysServiceSimple.Shutdown()
 

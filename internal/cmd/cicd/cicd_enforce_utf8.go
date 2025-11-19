@@ -128,6 +128,7 @@ func checkFilesEncoding(finalFiles []string) []string {
 					for _, issue := range issues {
 						violations = append(violations, fmt.Sprintf("%s: %s", filePath, issue))
 					}
+
 					resultChan <- violations
 				} else {
 					resultChan <- nil // Send nil for files with no issues
@@ -152,7 +153,9 @@ func checkFilesEncoding(finalFiles []string) []string {
 	for violations := range resultChan {
 		if violations != nil {
 			violationsMutex.Lock()
+
 			encodingViolations = append(encodingViolations, violations...)
+
 			violationsMutex.Unlock()
 		}
 	}

@@ -44,6 +44,7 @@ func TestListAllFiles(t *testing.T) {
 	defer func() {
 		require.NoError(t, os.Chdir(oldWd))
 	}()
+
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Collect files

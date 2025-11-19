@@ -102,6 +102,7 @@ func TestHappyPath(t *testing.T) {
 
 func TestGenerateError(t *testing.T) {
 	const numGets = 3
+
 	poolInstance, err := NewValueGenPool(NewValueGenPoolConfig(testCtx, testTelemetryService, "Fail", 1, 1, numGets, time.Second, generateErrorFunction(), false))
 	require.NoError(t, err)
 	require.NotNil(t, poolInstance)

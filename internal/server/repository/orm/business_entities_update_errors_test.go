@@ -109,6 +109,7 @@ func TestGetElasticKeys_EmptyResult(t *testing.T) {
 		}
 
 		var queryErr error
+
 		keys, queryErr = tx.GetElasticKeys(filters)
 
 		return queryErr

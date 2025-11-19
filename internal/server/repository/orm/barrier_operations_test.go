@@ -15,6 +15,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 root keys.
 			const numKeys = 3
+
 			addedKeys := make([]*BarrierRootKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -46,6 +47,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 root keys.
 			const numKeys = 5
+
 			addedKeys := make([]*BarrierRootKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -116,6 +118,7 @@ func TestBarrierRootKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 3 keys.
 			const numKeys = 3
+
 			addedKeys := make([]*BarrierRootKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -156,6 +159,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 4 intermediate keys.
 			const numKeys = 4
+
 			addedKeys := make([]*BarrierIntermediateKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -187,6 +191,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 intermediate keys.
 			const numKeys = 6
+
 			addedKeys := make([]*BarrierIntermediateKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -257,6 +262,7 @@ func TestBarrierIntermediateKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 keys.
 			const numKeys = 5
+
 			addedKeys := make([]*BarrierIntermediateKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -297,6 +303,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 5 content keys.
 			const numKeys = 5
+
 			addedKeys := make([]*BarrierContentKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -328,6 +335,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 7 content keys.
 			const numKeys = 7
+
 			addedKeys := make([]*BarrierContentKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {
@@ -398,6 +406,7 @@ func TestBarrierContentKeyOperations(t *testing.T) {
 		err := testOrmRepository.WithTransaction(testCtx, ReadWrite, func(tx *OrmTransaction) error {
 			// Add 6 keys.
 			const numKeys = 6
+
 			addedKeys := make([]*BarrierContentKey, numKeys)
 
 			for i := 0; i < numKeys; i++ {

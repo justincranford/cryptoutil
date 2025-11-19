@@ -201,6 +201,7 @@ func TestConcurrentTransactions(t *testing.T) {
 			return userRepo.Create(ctx, user)
 		})
 		require.NoError(t, err)
+
 		done <- true
 	}()
 
@@ -218,6 +219,7 @@ func TestConcurrentTransactions(t *testing.T) {
 			return userRepo.Create(ctx, user)
 		})
 		require.NoError(t, err)
+
 		done <- true
 	}()
 

@@ -23,6 +23,7 @@ import (
 func main() {
 	// Parse command-line flags.
 	configFile := flag.String("config", "configs/identity/idp.yml", "Path to configuration file")
+
 	flag.Parse()
 
 	// TODO: Load configuration from YAML file.

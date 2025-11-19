@@ -90,6 +90,7 @@ func TestGitHubAPICache_Concurrency(t *testing.T) {
 			cache.Set("key1", "value1")
 			_, _ = cache.Get("key1")
 		}
+
 		done <- true
 	}()
 
@@ -98,6 +99,7 @@ func TestGitHubAPICache_Concurrency(t *testing.T) {
 			cache.Set("key2", "value2")
 			_, _ = cache.Get("key2")
 		}
+
 		done <- true
 	}()
 

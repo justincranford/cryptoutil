@@ -41,6 +41,7 @@ func TestGetLatestTag_WithGitHubToken(t *testing.T) {
 
 	// Set a fake token
 	originalToken := os.Getenv("GITHUB_TOKEN")
+
 	defer func() {
 		if originalToken == "" {
 			os.Unsetenv("GITHUB_TOKEN")
@@ -184,10 +185,12 @@ func TestGitHubAPICache_CacheDuration(t *testing.T) {
 
 	// Manually set ExpiresAt to past (simulate expired entry)
 	cache.mu.Lock()
+
 	if entry, exists := cache.cache["key1"]; exists {
 		entry.ExpiresAt = time.Now().UTC().Add(-1 * time.Hour)
 		cache.cache["key1"] = entry
 	}
+
 	cache.mu.Unlock()
 
 	// Get should return false for expired entry

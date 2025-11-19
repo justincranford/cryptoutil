@@ -193,6 +193,7 @@ func checkCircularDependencies(jsonOutput string) error {
 	circularDeps := [][]string{}
 
 	var dfs func(string, []string)
+
 	dfs = func(pkg string, path []string) {
 		// Check if package exists in dependency graph
 		if _, exists := dependencyGraph[pkg]; !exists {

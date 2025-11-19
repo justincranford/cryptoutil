@@ -31,7 +31,6 @@ func StartContainer(ctx context.Context, telemetryService *cryptoutilTelemetry.T
 		telemetryService.Slogger.Debug("terminating container")
 
 		err := startedContainer.Terminate(ctx)
-
 		if err == nil {
 			telemetryService.Slogger.Debug("successfully terminated container")
 		} else {

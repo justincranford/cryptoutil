@@ -34,6 +34,7 @@ func TestMain(m *testing.M) {
 
 		testSQLRepository = RequireNewForTest(testCtx, testTelemetryService, testSettings)
 		defer testSQLRepository.Shutdown()
+
 		testSQLRepository.logConnectionPoolSettings()
 
 		rc = m.Run()

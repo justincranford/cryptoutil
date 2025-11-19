@@ -354,6 +354,7 @@ func TestOAuth2AuthorizationCodeFlow(t *testing.T) {
 	testify.Equal(t, http.StatusOK, tokenResp.StatusCode, "Token request should succeed")
 
 	var tokenResponse map[string]any
+
 	err = json.NewDecoder(tokenResp.Body).Decode(&tokenResponse)
 	testify.NoError(t, err, "Failed to decode token response")
 
@@ -547,6 +548,7 @@ func getTestAccessToken(t *testing.T, servers *testServers, scope string) string
 	testify.NoError(t, err, "Failed to read token response")
 
 	var tokenResponse map[string]any
+
 	err = json.Unmarshal(body, &tokenResponse)
 	testify.NoError(t, err, "Failed to decode token response")
 

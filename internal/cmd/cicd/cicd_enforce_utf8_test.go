@@ -112,6 +112,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		defer func() {
 			require.NoError(t, os.Chdir(oldWd))
 		}()
+
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that allEnforceUtf8 returns an error for encoding violations
@@ -135,6 +136,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		defer func() {
 			require.NoError(t, os.Chdir(oldWd))
 		}()
+
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that the function completes without error for valid files
@@ -157,6 +159,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		defer func() {
 			require.NoError(t, os.Chdir(oldWd))
 		}()
+
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that only .go and .txt files are checked (binary should be excluded)
@@ -183,6 +186,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		defer func() {
 			require.NoError(t, os.Chdir(oldWd))
 		}()
+
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that generated and vendor files are excluded

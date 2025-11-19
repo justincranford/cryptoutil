@@ -63,6 +63,7 @@ func HTTPPostShutdown(ctx context.Context, baseURL string, timeout time.Duration
 func HTTPResponse(ctx context.Context, method, url string, timeout time.Duration, followRedirects bool, rootCAsPool *x509.CertPool, insecureSkipVerify bool) (int, http.Header, []byte, error) {
 	if timeout > 0 {
 		var cancel context.CancelFunc
+
 		ctx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}

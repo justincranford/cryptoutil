@@ -202,6 +202,7 @@ func (t *TOTPAuthenticator) generateTOTPAtTime(secret string, testTime time.Time
 
 	// Generate code.
 	const base10 = 10
+
 	code := truncatedHash % uint32(pow(base10, t.digits)) //nolint:gosec // Conversion safe within TOTP digit range.
 
 	// Format with leading zeros.
@@ -304,6 +305,7 @@ func (h *HOTPAuthenticator) GenerateHOTP(ctx context.Context, secret string, cou
 
 	// Generate code.
 	const base10 = 10
+
 	code := truncatedHash % uint32(pow(base10, h.digits)) //nolint:gosec // Conversion safe within HOTP digit range.
 
 	// Format with leading zeros.

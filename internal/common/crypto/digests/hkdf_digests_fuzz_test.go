@@ -75,7 +75,6 @@ func FuzzHKDFwithSHA256(f *testing.F) {
 		}
 
 		result, err := HKDFwithSHA256(secret, salt, info, outputLength)
-
 		if err == nil {
 			require.Len(t, result, outputLength, "HKDFwithSHA256 should return result of correct length")
 		} else {
@@ -106,7 +105,6 @@ func FuzzHKDFwithSHA384(f *testing.F) {
 		}
 
 		result, err := HKDFwithSHA384(secret, salt, info, outputLength)
-
 		if err == nil {
 			require.Len(t, result, outputLength, "HKDFwithSHA384 should return result of correct length")
 		} else {
@@ -137,7 +135,6 @@ func FuzzHKDFwithSHA512(f *testing.F) {
 		}
 
 		result, err := HKDFwithSHA512(secret, salt, info, outputLength)
-
 		if err == nil {
 			require.Len(t, result, outputLength, "HKDFwithSHA512 should return result of correct length")
 		} else {
@@ -168,7 +165,6 @@ func FuzzHKDFwithSHA224(f *testing.F) {
 		}
 
 		result, err := HKDFwithSHA224(secret, salt, info, outputLength)
-
 		if err == nil {
 			require.Len(t, result, outputLength, "HKDFwithSHA224 should return result of correct length")
 		} else {

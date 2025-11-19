@@ -990,6 +990,7 @@ func publicBrowserCSRFMiddlewareFunction(settings *cryptoutilConfig.Settings) fi
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			if settings.DevMode {
 				cookieToken := c.Cookies(settings.CSRFTokenName)
+
 				headerToken := c.Get("X-CSRF-Token")
 				if headerToken == "" {
 					headerToken = c.Get("X-Csrf-Token")

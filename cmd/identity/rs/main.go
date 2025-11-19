@@ -24,6 +24,7 @@ import (
 func main() {
 	// Parse command-line flags.
 	configPath := flag.String("config", "configs/identity/rs.yml", "path to RS server configuration file")
+
 	flag.Parse()
 
 	// TODO: Load configuration from YAML file at configPath.

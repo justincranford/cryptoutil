@@ -85,11 +85,13 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				// Test nil settings
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, cryptoutilConfig.RequireNewForTest("temp"))
 				defer telemetryService.Shutdown()
+
 				repo, err = sqlrepository.NewSQLRepository(ctx, telemetryService, nil)
 			} else if tc.name == "Nil context" {
 				// Test nil context
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
+
 				repo, err = sqlrepository.NewSQLRepository(nil, telemetryService, settings)
 			} else if tc.name == "Nil telemetry service" {
 				// Test nil telemetry service
@@ -98,6 +100,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				// Normal test
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
+
 				repo, err = sqlrepository.NewSQLRepository(ctx, telemetryService, settings)
 			}
 

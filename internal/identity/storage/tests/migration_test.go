@@ -39,6 +39,7 @@ func TestSQLiteMigrations(t *testing.T) {
 	// Create repository factory
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
+
 	defer repoFactory.Close()
 
 	// Run migrations
@@ -53,6 +54,7 @@ func TestSQLiteMigrations(t *testing.T) {
 
 	for _, table := range tables {
 		var count int64
+
 		err = repoFactory.DB().Table(table).Count(&count).Error
 		require.NoError(t, err, "table %s should exist after migration", table)
 	}
@@ -92,6 +94,7 @@ func TestMigrationIdempotency(t *testing.T) {
 	// Create repository factory
 	repoFactory, err := cryptoutilIdentityRepository.NewRepositoryFactory(ctx, dbConfig)
 	require.NoError(t, err)
+
 	defer repoFactory.Close()
 
 	// Run migrations multiple times to test idempotency
@@ -101,6 +104,7 @@ func TestMigrationIdempotency(t *testing.T) {
 
 		// Verify tables still exist after each migration
 		var count int64
+
 		err = repoFactory.DB().Table("users").Count(&count).Error
 		require.NoError(t, err, "users table should exist after migration %d", i+1)
 	}

@@ -39,6 +39,7 @@ func ComputeCombinations(m M, n int) (combinations, error) {
 	combination := make(combination, n) // Properly initialize the 'combination' slice
 
 	var helper func(int, int)
+
 	helper = func(start, depth int) {
 		if depth == n {
 			// Directly create a new 'combination' instance as a slice

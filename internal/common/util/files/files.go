@@ -19,6 +19,7 @@ func WriteFile(filePath string, bytesOrString any, permissions os.FileMode) erro
 	}
 
 	var data []byte
+
 	switch v := bytesOrString.(type) {
 	case string:
 		data = []byte(v)

@@ -127,6 +127,7 @@ func TestApplyEmbeddedSQLMigrations_UnsupportedDBType(t *testing.T) {
 	// Create a new in-memory SQLite database for testing migrations.
 	db, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
+
 	defer db.Close()
 
 	// Test with unsupported DB type (should fail).
