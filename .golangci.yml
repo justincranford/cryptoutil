@@ -25,3 +25,12 @@ output:
     - linter
     - severity
     - file
+
+linters:
+  enable:
+    # Essential linters (fast static analysis)
+    - errcheck      # Check for unchecked errors
+    - govet         # Reports suspicious constructs (Go's built-in vet)
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Advanced static analysis (includes gosimple, stylecheck in v2)
+    - unused        # Find unused constants, variables, functions and types
