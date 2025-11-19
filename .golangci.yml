@@ -48,6 +48,13 @@ linters:
     - wrapcheck     # Check error wrapping consistency
     - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
 
+    # Testing quality
+    - thelper       # Check test helper functions
+    - tparallel     # Check for parallel test issues
+    - testpackage   # Test package naming conventions
+    - gomodguard    # Prevent importing blocked modules
+    - gomoddirectives # Validate Go module directives
+
   settings:
     gosec:
       severity: medium
