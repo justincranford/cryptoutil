@@ -221,6 +221,8 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Purpose**: Comprehensive Go code linting with 40+ built-in linters plus automatic fixing for formatting, imports, and code quality issues.
 
+**Version**: v2.6.2 (migrated November 2025)
+
 **Configuration**:
 ```yaml
 - id: golangci-lint
@@ -241,7 +243,7 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - `gofmt`: Go code formatting
 - `gofumpt`: Stricter Go formatting with extra rules (replaces standalone gofumpt -extra -w)
 - `goimports`: Import organization and formatting (replaces standalone goimports -w)
-- `wsl`: Whitespace consistency (blank lines between statements)
+- `wsl` (config key: `wsl_v5`): Whitespace consistency (blank lines between statements)
 - `godot`: Adds missing periods to documentation comments
 - `goconst`: Creates named constants for repeated strings
 - `importas`: Fixes import aliases to match configured rules
@@ -249,8 +251,20 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 - `testpackage`: Renames test packages to follow conventions
 - `revive`: Fixes various style and code quality issues (subset of rules)
 
+**v2 Built-in Formatters**:
+- **gofumpt** and **goimports** are built into golangci-lint v2
+- No separate installation required
+- Configuration files (`.gofumpt.toml`) still respected
+- Both run automatically with `--fix` flag
+
+**v2 Configuration Changes**:
+- **wsl**: Configuration key renamed to `wsl_v5` (linter name unchanged)
+- **Removed settings**: `wsl.force-err-cuddling`, `misspell.ignore-words`, `wrapcheck.ignoreSigs`
+- **Depguard**: File-scoped rules removed; use custom cicd checks instead
+- See `.github/instructions/01-06.linting.instructions.md` for complete v2 migration details
+
 **Integration**: Uses [../.golangci.yml](../.golangci.yml) for detailed configuration including:
-- Enabled/disabled linters
+- Enabled/disabled linters (22 enabled in v2)
 - Custom settings per linter (gofumpt extra-rules, module-path)
 - Exclusion rules for generated code
 - Severity levels and output formatting

@@ -19,11 +19,11 @@ import (
 
 // IdentityImportsCache represents cached identity imports check results.
 type IdentityImportsCache struct {
-	LastCheck         time.Time `json:"last_check"`
-	GoModModTime      time.Time `json:"go_mod_mod_time"`
-	IdentityModTime   time.Time `json:"identity_mod_time"`
-	HasForbiddenImports bool    `json:"has_forbidden_imports"`
-	ForbiddenImports  []string  `json:"forbidden_imports"` // Format: "file:line:package"
+	LastCheck           time.Time `json:"last_check"`
+	GoModModTime        time.Time `json:"go_mod_mod_time"`
+	IdentityModTime     time.Time `json:"identity_mod_time"`
+	HasForbiddenImports bool      `json:"has_forbidden_imports"`
+	ForbiddenImports    []string  `json:"forbidden_imports"` // Format: "file:line:package"
 }
 
 // BlockedPackage represents a package that identity module cannot import.
@@ -198,7 +198,6 @@ func checkIdentityImports(logger *LogUtil) ([]string, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
