@@ -94,6 +94,7 @@ const (
 	  go-enforce-test-patterns               - Enforce test patterns (UUIDv7 usage, testify assertions)
 	  go-enforce-any                         - Custom Go source code fixes (any -> any, etc.)
 	  go-check-circular-package-dependencies - Check for circular dependencies in Go packages
+	  go-check-identity-imports              - Check identity module domain isolation (forbidden imports)
 	  go-update-direct-dependencies          - Check direct Go dependencies only
 	  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
 	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions`
@@ -105,6 +106,7 @@ var ValidCommands = map[string]bool{
 	"go-enforce-test-patterns":               true,
 	"go-enforce-any":                         true,
 	"go-check-circular-package-dependencies": true,
+	"go-check-identity-imports":              true,
 	"go-update-direct-dependencies":          true,
 	"go-update-all-dependencies":             true,
 	"github-workflow-lint":                   true,

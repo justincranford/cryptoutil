@@ -80,6 +80,8 @@ func Run(commands []string) error {
 			cmdErr = goEnforceAny(logger, allFiles)
 		case "go-check-circular-package-dependencies":
 			cmdErr = goCheckCircularPackageDeps(logger)
+		case "go-check-identity-imports":
+			cmdErr = goCheckIdentityImports(logger)
 		case "go-update-direct-dependencies":
 			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect)
 		case "go-update-all-dependencies":

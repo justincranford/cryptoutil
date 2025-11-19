@@ -187,9 +187,9 @@ repos:
   - repo: local
     hooks:
       - id: cicd-checks-internal
-        name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep)
+        name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep, go-identity-imports)
         entry: go
-        args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, go-check-circular-package-dependencies]
+        args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, go-check-circular-package-dependencies, go-check-identity-imports]
         language: system
         pass_filenames: false
 

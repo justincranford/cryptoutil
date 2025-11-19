@@ -244,7 +244,7 @@ Get-ChildItem -Recurse -Include *.go | Select-String -Pattern ".{191,}" | Measur
 ### Line Length
 - **Recommended**: Keep lines under 190 characters for readability
 - **Editor Support**: VS Code shows ruler at 190 characters
-- **Exceptions**: 
+- **Exceptions**:
   - Generated code (OpenAPI clients/models)
   - Long test fixture data
   - Complex function signatures with many parameters
