@@ -139,3 +139,23 @@ internal\cmd\workflow\workflow.go:623:17                                        
 - dupl
 - gocyclo
 - godox
+
+## Step 9: Linter-Specific Settings
+
+**Status**: Complete (some v2 API changes)
+
+**Settings Added**:
+- errcheck (check-type-assertions, check-blank)
+- gocyclo (min-complexity)
+- goconst (min-len, min-occurrences, numbers)
+- dupl (threshold)
+- misspell (locale only - ignore-words removed in v2)
+- revive (severity)
+- godot (scope, capital)
+- godox (keywords)
+- thelper (test.begin)
+- testpackage (skip-regexp)
+
+**v2 Changes**:
+- goconst.ignore-tests removed
+- misspell.ignore-words removed

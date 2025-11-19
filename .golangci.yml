@@ -72,6 +72,10 @@ linters:
     - godox         # TODO/FIXME comments
 
   settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+
     gosec:
       severity: medium
       confidence: medium
@@ -82,6 +86,14 @@ linters:
         - G304  # Potential file inclusion via variable
         - G402  # TLS InsecureSkipVerify set true
 
+    gocyclo:
+      min-complexity: 15
+
+    goconst:
+      min-len: 1
+      min-occurrences: 2
+      numbers: true
+
     mnd:
       ignored-numbers:
         - '2'  # Common in bit operations
@@ -89,3 +101,30 @@ linters:
         - 'math.*'
         - 'len'
         - 'make'
+
+    dupl:
+      threshold: 100
+
+    misspell:
+      locale: US
+
+    revive:
+      severity: warning
+
+    godot:
+      scope: declarations
+      capital: false
+
+    godox:
+      keywords:
+        - TODO
+        - FIXME
+        - BUG
+        - HACK
+
+    thelper:
+      test:
+        begin: true
+
+    testpackage:
+      skip-regexp: '.*_test\.go$'
