@@ -43,6 +43,7 @@ func TestRegistry_AllAuthMethods(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	registry := NewRegistry(repoFactory)
@@ -67,6 +68,7 @@ func TestRegistry_UnknownMethod(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	registry := NewRegistry(repoFactory)
@@ -79,6 +81,7 @@ func TestRegistry_RegisterCustomAuthenticator(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	registry := NewRegistry(repoFactory)
@@ -97,6 +100,7 @@ func TestBasicAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	authenticator := NewBasicAuthenticator(repoFactory.ClientRepository())
@@ -107,6 +111,7 @@ func TestPostAuthenticator_Method(t *testing.T) {
 	t.Parallel()
 
 	repoFactory, _ := setupTestRepository(t)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	authenticator := NewPostAuthenticator(repoFactory.ClientRepository())

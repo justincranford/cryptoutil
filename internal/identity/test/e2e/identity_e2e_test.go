@@ -111,6 +111,7 @@ func (s *E2ETestSuite) checkHealth(ctx context.Context, baseURL string) error {
 	if err != nil {
 		return fmt.Errorf("failed to perform health check: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	if resp.StatusCode != http.StatusOK {
@@ -398,6 +399,7 @@ func (s *E2ETestSuite) initiateAuthorizationCodeFlow(ctx context.Context, scenar
 	if err != nil {
 		return "", fmt.Errorf("failed to perform authorization request: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	// Check for redirect to login page (302) or authorization code response (302).
@@ -572,6 +574,7 @@ func (s *E2ETestSuite) exchangeCodeForTokens(ctx context.Context, code string, c
 	if err != nil {
 		return nil, fmt.Errorf("failed to perform token request: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	if resp.StatusCode != http.StatusOK {
@@ -626,6 +629,7 @@ func (s *E2ETestSuite) accessProtectedResource(ctx context.Context, accessToken 
 	if err != nil {
 		return fmt.Errorf("failed to access protected resource: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	if resp.StatusCode != http.StatusOK {
@@ -737,6 +741,7 @@ func (s *E2ETestSuite) refreshAccessToken(ctx context.Context, refreshToken stri
 	if err != nil {
 		return fmt.Errorf("failed to perform refresh request: %w", err)
 	}
+
 	defer func() { _ = resp.Body.Close() }() //nolint:errcheck // Test cleanup
 
 	if resp.StatusCode != http.StatusOK {

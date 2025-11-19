@@ -25,6 +25,7 @@ func TestTransactionRollback(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Test transaction rollback on error
@@ -79,6 +80,7 @@ func TestTransactionCommit(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Test successful transaction commit
@@ -133,6 +135,7 @@ func TestTransactionIsolation(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Create a user outside transaction
@@ -182,6 +185,7 @@ func TestConcurrentTransactions(t *testing.T) {
 	ctx := context.Background()
 
 	repoFactory := setupTestRepositoryFactory(t, ctx)
+
 	defer func() { _ = repoFactory.Close() }() //nolint:errcheck // Test cleanup //nolint:errcheck // Test cleanup
 
 	// Test concurrent transactions

@@ -142,6 +142,7 @@ func Run(args []string) int {
 
 		return 1
 	}
+
 	defer func() {
 		if err := combinedLog.Close(); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to close combined log: %v\n", err)
@@ -442,6 +443,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 
 		return result
 	}
+
 	defer func() {
 		if err := workflowLog.Close(); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to close workflow log: %v\n", err)

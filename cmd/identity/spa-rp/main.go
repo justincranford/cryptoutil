@@ -48,6 +48,7 @@ func main() {
 
 			return
 		}
+
 		defer func() {
 			if closeErr := indexFile.Close(); closeErr != nil {
 				log.Printf("Failed to close index file: %v", closeErr)

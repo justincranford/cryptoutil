@@ -459,6 +459,7 @@ func testHealthEndpoints() {
 
 			continue
 		}
+
 		defer func() {
 			if closeErr := resp.Body.Close(); closeErr != nil {
 				log.Printf("⚠️  Failed to close response body: %v", closeErr)
