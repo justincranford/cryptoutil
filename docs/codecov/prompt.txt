@@ -2,6 +2,18 @@
 
 **IMPORTANT:** Completed items are tracked in `docs/codecov/completed.txt`
 
+## PRIORITY 0: golangci-lint v2.6.2 Migration (URGENT)
+
+### Task 0.1: Clean up .golangci.yml for v2.6.2 compatibility
+- Remove any deprecated v1.x config format remnants
+- Migrate to v2.6.2 configuration format if needed
+- Run `golangci-lint config verify` to validate
+- Run `golangci-lint migrate` if available for automated migration
+- Verify all linters work with new config
+- Test with `golangci-lint run --fix` to ensure auto-fixes work
+- Update .pre-commit-config.yaml to use golangci-lint v2.6.2+
+- Commit: "build(tools): migrate golangci-lint config to v2.6.2"
+
 ## PRIORITY 2: Database Performance Optimization (3 packages + 1 deferred)
 
 ### Task 2.1: Optimize internal/server/repository/sqlrepository (COMPLETED LOCAL, CONTINUING CI)

@@ -1,0 +1,475 @@
+# $schema: https://golangci-lint.run/jsonschema/golangci.jsonschema.json
+# golangci-lint configuration for cryptoutil project
+# doc: https://golangci-lint.run/docs/configuration/file/
+#
+# This project uses Go 1.25.4 with golangci-lint v2.6.2
+# All linters are compatible with the current Go version
+#
+# Usage: golangci-lint run --timeout=10m
+
+version: "2"
+
+run:
+  timeout: 10m
+  issues-exit-code: 1
+  tests: true
+  # Performance optimizations
+  concurrency: 0  # Use all available CPUs (default behavior, explicit for clarity)
+  go: '1.25.4'                    # Explicit Go version from go.mod - avoids auto-detection overhead
+  modules-download-mode: readonly  # Don't download modules during linting (assume already downloaded)
+  allow-parallel-runners: true    # Allow concurrent golangci-lint instances
+
+output:
+  formats:
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+  sort-order:
+    - linter
+    - file
+
+linters:
+  enable:
+    # Essential linters
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Suggest code simplifications
+    - govet         # Reports suspicious constructs (Go's built-in vet)
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Advanced static analysis checks
+    - unused        # Find unused constants, variables, functions and types
+
+    # Code quality
+    # gofmt         # DISABLED! Go code formatting (auto-fixable with --fix), but gofumpt is always preferred
+    - gofumpt       # Stricter Go formatting (auto-fixable with --fix)
+    - goimports     # Import organization and formatting (auto-fixable with --fix)
+    - revive        # Golint replacement with more rules
+    - stylecheck    # Go style guide compliance
+
+    # Security
+    - gosec         # Security-focused static analysis
+
+    # Documentation and maintenance
+    - godot         # Check for missing periods in documentation comments
+
+    # Context and error handling
+    - noctx         # Check for missing context in HTTP requests
+    - wrapcheck     # Check error wrapping consistency
+
+    # Testing quality
+    - thelper       # Check test helper functions
+    - tparallel     # Check for parallel test issues
+    - testpackage   # Test package naming conventions
+    - gomodguard    # Prevent importing blocked modules
+    - gomoddirectives # Validate Go module directives
+
+    # Performance
+    - prealloc      # Find slice declarations that could pre-allocate
+    - bodyclose     # Check for HTTP response body closure
+
+    # Maintainability
+    - copyloopvar    # Check for loop variables captured by reference (replaces exportloopref)
+    - goconst       # Find repeated strings that could be constants
+    - importas      # Enforce consistent import aliasing
+    - mnd           # Detect magic numbers (formerly gomnd)
+    - wsl           # Whitespace linter
+    - nlreturn      # Enforce newlines after return statements
+    - goheader       # Copyright header enforcement
+
+    # Error handling
+    - errorlint     # Find code that will cause problems with Go 1.13 error wrapping
+
+    # Dependency management
+    - depguard      # Enforce allowed/disallowed import dependencies
+
+  disable:
+    # Disabled for code quality/complexity management
+    - dupl      # Code duplication detection
+    - gocyclo   # Cyclomatic complexity
+    - godox     # TODO/FIXME comments tracked in todos.md instead
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  gofumpt:
+    # Enable all extra rules (equivalent to -extra flag)
+    extra-rules: true
+    # Set module path for proper formatting
+    module-path: github.com/justincranford/cryptoutil
+
+  gosec:
+    severity: medium
+    confidence: medium
+    excludes:
+      - G204  # Subprocess launched with variable - acceptable for controlled docker compose commands in tests
+      - G301  # Directory permissions too permissive - acceptable for test directories
+      - G302  # File permissions too permissive - acceptable for test files
+      - G304  # Potential file inclusion via variable - acceptable for controlled test file operations
+      - G402  # TLS InsecureSkipVerify set true - required for test code connecting to self-signed certificates
+
+  gocyclo:
+    min-complexity: 15
+
+  goconst:
+    min-len: 1
+    min-occurrences: 2
+    numbers: true
+    ignore-tests: false
+
+  mnd:
+    # Magic numbers should be defined as named constants
+    # Primary location: internal/common/magic package for shared constants
+    # Secondary location: internal/identity/<package>/magic*.go for identity-specific constants
+    # Only ignore numbers in specific cases where constants don't make sense
+    ignored-numbers:
+      # Mathematical operations that are self-documenting
+      - '2'        # Common in bit operations, array splits, CLI arg checks (when context makes it clear)
+    ignored-functions:
+      - 'math.*'
+      - 'len'
+      - 'make'
+
+  dupl:
+    threshold: 100
+
+  copyloopvar:
+    # Check for loop variables captured by reference in closures
+
+  importas:
+    # Enforce consistent import aliasing
+    # All cryptoutil internal imports MUST use camelCase aliases starting with "cryptoutil"
+    alias:
+      # JOSE (JSON Web Encryption/Signatures) library aliases
+      - pkg: github.com/lestrrat-go/jwx/v3/jwe
+        alias: joseJwe
+      - pkg: github.com/lestrrat-go/jwx/v3/jwk
+        alias: joseJwk
+      - pkg: github.com/lestrrat-go/jwx/v3/jws
+        alias: joseJws
+      - pkg: github.com/lestrrat-go/jwx/v3/jwa
+        alias: joseJwa
+      # Google UUID library
+      - pkg: github.com/google/uuid
+        alias: googleUuid
+      # Standard library aliases
+      - pkg: encoding/json
+        alias: json
+      - pkg: encoding/xml
+        alias: xml
+      - pkg: net/http
+        alias: http
+      # Common third-party aliases
+      - pkg: github.com/gofiber/fiber/v2
+        alias: fiber
+      - pkg: github.com/stretchr/testify
+        alias: testify
+      # Cryptoutil API packages (OpenAPI generated code)
+      - pkg: cryptoutil/api/client
+        alias: cryptoutilOpenapiClient
+      - pkg: cryptoutil/api/model
+        alias: cryptoutilOpenapiModel
+      - pkg: cryptoutil/api/server
+        alias: cryptoutilOpenapiServer
+      # Cryptoutil internal packages - client and command
+      - pkg: cryptoutil/internal/client
+        alias: cryptoutilClient
+      - pkg: cryptoutil/internal/cmd
+        alias: cryptoutilCmd
+      - pkg: cryptoutil/internal/cmd/cryptoutil
+        alias: cryptoutilCmdCryptoutil
+      - pkg: cryptoutil/internal/cmd/workflow
+        alias: cryptoutilWorkflow
+      # Cryptoutil internal packages - test utilities
+      - pkg: cryptoutil/internal/test/e2e
+        alias: cryptoutilE2E
+      # Cryptoutil internal packages - common utilities
+      - pkg: cryptoutil/internal/common/apperr
+        alias: cryptoutilAppErr
+      - pkg: cryptoutil/internal/common/config
+        alias: cryptoutilConfig
+      - pkg: cryptoutil/internal/common/container
+        alias: cryptoutilContainer
+      - pkg: cryptoutil/internal/common/magic
+        alias: cryptoutilMagic
+      - pkg: cryptoutil/internal/common/pool
+        alias: cryptoutilPool
+      - pkg: cryptoutil/internal/common/telemetry
+        alias: cryptoutilTelemetry
+      - pkg: cryptoutil/internal/common/util
+        alias: cryptoutilUtil
+      - pkg: cryptoutil/internal/common/util/combinations
+        alias: cryptoutilCombinations
+      - pkg: cryptoutil/internal/common/util/datetime
+        alias: cryptoutilDateTime
+      - pkg: cryptoutil/internal/common/util/network
+        alias: cryptoutilNetwork
+      - pkg: cryptoutil/internal/common/util/sysinfo
+        alias: cryptoutilSysinfo
+      # Cryptoutil internal packages - crypto operations
+      - pkg: cryptoutil/internal/common/crypto/asn1
+        alias: cryptoutilAsn1
+      - pkg: cryptoutil/internal/common/crypto/certificate
+        alias: cryptoutilCertificate
+      - pkg: cryptoutil/internal/common/crypto/digests
+        alias: cryptoutilDigests
+      - pkg: cryptoutil/internal/common/crypto/jose
+        alias: cryptoutilJose
+      - pkg: cryptoutil/internal/common/crypto/keygen
+        alias: cryptoutilKeyGen
+      # Cryptoutil internal packages - server application
+      - pkg: cryptoutil/internal/server/application
+        alias: cryptoutilServerApplication
+      - pkg: cryptoutil/internal/server/businesslogic
+        alias: cryptoutilBusinessLogic
+      - pkg: cryptoutil/internal/server/handler
+        alias: cryptoutilOpenapiHandler
+      # Cryptoutil internal packages - server barrier services
+      - pkg: cryptoutil/internal/server/barrier
+        alias: cryptoutilBarrierService
+      - pkg: cryptoutil/internal/server/barrier/contentkeysservice
+        alias: cryptoutilContentKeysService
+      - pkg: cryptoutil/internal/server/barrier/intermediatekeysservice
+        alias: cryptoutilIntermediateKeysService
+      - pkg: cryptoutil/internal/server/barrier/rootkeysservice
+        alias: cryptoutilRootKeysService
+      - pkg: cryptoutil/internal/server/barrier/unsealkeysservice
+        alias: cryptoutilUnsealKeysService
+      # Cryptoutil internal packages - server repository
+      - pkg: cryptoutil/internal/server/repository/orm
+        alias: cryptoutilOrmRepository
+      - pkg: cryptoutil/internal/server/repository/sqlrepository
+        alias: cryptoutilSQLRepository
+      # Cryptoutil internal packages - identity module
+      - pkg: cryptoutil/internal/identity/apperr
+        alias: cryptoutilIdentityAppErr
+      - pkg: cryptoutil/internal/identity/config
+        alias: cryptoutilIdentityConfig
+      - pkg: cryptoutil/internal/identity/domain
+        alias: cryptoutilIdentityDomain
+      - pkg: cryptoutil/internal/identity/magic
+        alias: cryptoutilIdentityMagic
+      - pkg: cryptoutil/internal/identity/repository
+        alias: cryptoutilIdentityRepository
+      - pkg: cryptoutil/internal/identity/issuer
+        alias: cryptoutilIdentityIssuer
+      - pkg: cryptoutil/internal/identity/authz
+        alias: cryptoutilIdentityAuthz
+      - pkg: cryptoutil/internal/identity/authz/clientauth
+        alias: cryptoutilIdentityClientAuth
+      - pkg: cryptoutil/internal/identity/idp
+        alias: cryptoutilIdentityIdp
+      - pkg: cryptoutil/internal/identity/idp/auth
+        alias: cryptoutilIdentityAuth
+      - pkg: cryptoutil/internal/identity/server
+        alias: cryptoutilIdentityServer
+      # Crypto/acronym aliases (standard Go conventions)
+      - pkg: crypto/aes
+        alias: aes
+      - pkg: crypto/ecdsa
+        alias: ecdsa
+      - pkg: crypto/hmac
+        alias: hmac
+      - pkg: crypto/rsa
+        alias: rsa
+      - pkg: crypto/sha256
+        alias: sha256
+      - pkg: crypto/sha512
+        alias: sha512
+      - pkg: crypto/rand
+        alias: crand
+
+  misspell:
+    locale: US
+    ignore-words:
+      - cryptoutil  # Project name
+      - keygen      # Key generation
+      - jwa         # JSON Web Algorithms (JOSE)
+      - jwk         # JSON Web Key (JOSE)
+      - jwe         # JSON Web Encryption (JOSE)
+      - jws         # JSON Web Signature (JOSE)
+      - ecdsa       # Elliptic Curve Digital Signature Algorithm
+      - ecdh        # Elliptic Curve Diffie-Hellman
+      - rsa         # Rivest-Shamir-Adleman
+      - hmac        # Hash-based Message Authentication Code
+      - aes         # Advanced Encryption Standard
+      - pkcs        # Public-Key Cryptography Standards
+      - pkix        # Public Key Infrastructure X.509
+      - x509        # X.509 certificate standard
+      - pem         # Privacy Enhanced Mail (base64 encoded certificates)
+      - der         # Distinguished Encoding Rules (binary certificate format)
+      - ikm         # Input Keying Material
+
+  revive:
+    severity: warning  # Overridden by global severity rules - style issues shouldn't block builds
+
+  stylecheck:
+    checks: ["all", "-ST1000"]  # Exclude ST1000 (package comment) - many packages have descriptive names that don't need additional comments
+
+  godot:
+    scope: declarations  # Check periods in all declarations
+    capital: false       # Don't require capitalization
+
+  godox:
+    keywords:            # Detect these maintenance keywords
+      - TODO
+      - FIXME
+      - BUG
+      - HACK
+
+  wrapcheck:
+    ignoreSigs:          # Don't require wrapping for these function signatures
+      - .Errorf(
+      - errors.New(
+      - errors.Unwrap(
+      - .Wrap(
+      - .Wrapf(
+      - (*github.com/gofiber/fiber/v2.Ctx).JSON(
+      - (*github.com/gofiber/fiber/v2.Ctx).SendStatus(
+
+  thelper:
+    test:                # Check t.Helper() calls in test functions
+      begin: true
+
+  wsl:
+    # Whitespace linter - enforces consistent whitespace usage
+
+  goheader:
+    # Copyright header enforcement
+    values:
+      const:
+        LICENSE: |
+          Copyright (c) 2025 Justin Cranford
+
+  depguard:
+    # Enforce dependency boundaries - prevents cross-domain coupling
+    rules:
+      # Ensure identity module maintains clean boundaries from cryptoutil KMS domain
+      identity-domain-isolation:
+        desc: "Identity domain must not import from cryptoutil KMS server, client, or API packages"
+        files:
+          - "internal/identity/**/*.go"
+        deny:
+          - pkg: "cryptoutil/internal/server"
+            desc: "Identity module must not depend on cryptoutil KMS server"
+          - pkg: "cryptoutil/internal/client"
+            desc: "Identity module must not depend on cryptoutil KMS client"
+          - pkg: "cryptoutil/api"
+            desc: "Identity module must not depend on cryptoutil OpenAPI generated code"
+          - pkg: "cryptoutil/cmd/cryptoutil"
+            desc: "Identity module must not depend on cryptoutil CLI"
+          - pkg: "cryptoutil/internal/common/crypto"
+            desc: "Identity module must not depend on cryptoutil crypto utilities (use standard library instead)"
+          - pkg: "cryptoutil/internal/common/pool"
+            desc: "Identity module must not depend on cryptoutil resource pools"
+          - pkg: "cryptoutil/internal/common/container"
+            desc: "Identity module must not depend on cryptoutil container utilities"
+          - pkg: "cryptoutil/internal/common/telemetry"
+            desc: "Identity module must not depend on cryptoutil telemetry (use standard slog instead)"
+          - pkg: "cryptoutil/internal/common/util"
+            desc: "Identity module must not depend on cryptoutil utilities"
+
+  lll:
+    # Line length limits
+    line-length: 190
+
+  testpackage:
+    # Test package naming conventions
+    # By default, enforces external testing (separate _test packages)
+    # This ensures tests use the public API rather than internal implementation
+    skip-regexp: '.*_test\.go$'  # Skip all test files (allow internal testing)
+
+  gomodguard:
+    # Prevent importing blocked modules
+    blocked:
+      # Block all versions of these modules
+      modules:
+        - github.com/pkg/errors: # Use Go 1.13+ error wrapping instead
+            recommendations:
+              - errors
+              - fmt
+
+issues:
+  exclude-dirs:
+    # IDE and tool configurations - DO NOT LINT
+    - .idea       # Skip IntelliJ IDEA/GoLand IDE files, no Go files
+    - .vscode     # Skip VS Code IDE files, no Go files
+    - .project    # Skip Eclipse IDE files, no Go files
+    - .settings   # Skip Eclipse IDE settings files, no Go files
+    - .classpath  # Skip Eclipse IDE classpath files, no Go files
+    - .buildpath  # Skip Eclipse IDE build path files, no Go files
+
+    # Version control and CI/CD - DO NOT LINT
+    - .git        # Skip Git repository metadata, no Go files
+    - .github     # Skip GitHub workflows and configurations, no Go files
+
+    # Non-Go code directories - DO NOT LINT
+    - test/load   # Skip test/load directory (Java Gatling performance tests, no Go code)
+
+    # Build artifacts and reports - DO NOT LINT
+    - dast-reports     # Skip generated DAST security scan reports
+    - e2e-reports      # Skip generated E2E security scan reports
+    - load-reports     # Skip generated LOAD security scan reports
+    - test-reports     # Skip generated TEST security scan reports
+    - test-results     # Skip generated test result artifacts
+    - workflow-reports # Skip generated WORKFLOW security scan reports
+
+    # Generated/dependency directories - DO NOT LINT
+    - vendor      # Skip vendored Go dependencies, third-party Go code
+    - api/client  # Skip OpenAPI client code, generated Go code by oapi-codegen
+    - api/model   # Skip OpenAPI model code, generated Go code by oapi-codegen
+    - api/server  # Skip OpenAPI server code, generated Go code by oapi-codegen
+
+    # Configuration and deployment files - DO NOT LINT
+    - configs     # Skip YAML/JSON configuration files, no Go files
+    - deployments # Skip Docker/K8s deployment configurations, no Go files
+
+    # Security scanner configurations - DO NOT LINT
+    - .zap        # Skip ZAP security scanner configuration, no Go files
+
+    # Documentation and assets - DO NOT LINT
+    - docs        # Skip Markdown documentation files, no Go files
+    - static      # Skip static web assets (CSS, images, etc.), no Go files
+
+    # RECOMMENDED: DO NOT exclude these directories (they contain Go code to lint):
+    # - cmd/        # Application entry points (Nx main.go) - SHOULD BE LINTED
+    # - internal/   # Internal packages - SHOULD BE LINTED
+    # - pkg/        # Public packages - SHOULD BE LINTED
+    # - scripts/    # Build scripts with Go code - SHOULD BE LINTED
+    # - api/        # OpenAPI generation triggers (generate.go) - SHOULD BE LINTED
+  exclude-files:
+    - ".*\\.pb\\.go$"      # Skip protobuf generated files
+    - ".*_gen\\.go$"       # Skip code generated files
+    - "api/client/.*"      # Skip OpenAPI client code
+    - "api/model/.*"       # Skip OpenAPI model code
+    - "api/server/.*"      # Skip OpenAPI server code
+  uniq-by-line: true
+  max-issues-per-linter: 100
+  max-same-issues: 20
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - dupl      # Code duplication detection
+        - gocyclo   # Cyclomatic complexity
+    # Exclude cicd.go and cicd_test.go from linting as they contain deliberate patterns for testing cicd functionality
+    - path: internal/cmd/cicd/cicd\.go
+      linters:
+        - goconst   # Command strings used in switch and tests (deliberate for testing)
+        - wrapcheck # errors.Join from stdlib (acceptable for error aggregation)
+    - path: internal/cmd/cicd/cicd_test\.go
+      linters:
+        - goconst   # Command strings used in tests (deliberate for testing)
+
+severity:
+  default-severity: error  # Most issues should block builds (security, logic bugs, crashes)
+  rules:
+    - linters:
+        - revive           # Golint replacement with more rules
+        - stylecheck       # Go style guide compliance
+      severity: warning    # Style/readability issues - important but shouldn't break builds
+    - linters:
+        - misspell         # Find common misspellings in comments and strings
+      severity: info       # Cosmetic typos - lowest priority, can be batch-fixed later

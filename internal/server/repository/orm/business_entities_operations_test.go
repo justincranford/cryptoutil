@@ -397,7 +397,7 @@ func TestBusinessEntityErrorHandling(t *testing.T) {
 					ElasticKeyName:              "batch-key-" + ekID.String()[:8],
 					ElasticKeyDescription:       "Batch test key",
 					ElasticKeyProvider:          cryptoutilOpenapiModel.Internal,
-					ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128GCM,
+					ElasticKeyAlgorithm:         cryptoutilOpenapiModel.A128CBCHS256A256KW,
 					ElasticKeyVersioningAllowed: true,
 					ElasticKeyImportAllowed:     false,
 					ElasticKeyStatus:            cryptoutilOpenapiModel.Active,

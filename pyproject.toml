@@ -11,6 +11,11 @@ requires-python = ">=3.14"
 authors = [
     {name = "Justin Cranford"}
 ]
+
+[project.optional-dependencies]
+dev = [
+    "golangci-lint>=2.6.2",  # Minimum version enforced - always use latest
+]
 dependencies = [
     "pytest>=9.0.0",
     "pytest-cov>=5.0.0",

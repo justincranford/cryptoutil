@@ -5,6 +5,15 @@
 
 ## General Principles
 
+**CRITICAL: ALWAYS USE LATEST VERSIONS**
+- **ALWAYS ALWAYS ALWAYS use latest stable versions** for ALL project dependencies, tools, and frameworks
+- Check for updates regularly: Go modules, golangci-lint, Docker images, GitHub Actions, pre-commit hooks
+- Current minimum versions enforced:
+  - **golangci-lint**: v2.6.2+ (enforced in pyproject.toml and .pre-commit-config.yaml)
+  - **Go**: 1.25.4+ (enforced in go.mod)
+- When suggesting package updates, ALWAYS verify latest stable release first
+- Never accept outdated versions without explicit justification
+
 - Chat summary should be concise numbered list, and focused on key changes or questions
 
 # Short Summary Rule
