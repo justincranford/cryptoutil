@@ -100,7 +100,7 @@ golangci-lint run --enable-only=wrapcheck
 
 ---
 
-### 3. Restore Domain Isolation Enforcement 🔴
+### 3. Restore Domain Isolation Enforcement 🔧 IN PROGRESS
 
 **Problem**: v2 removed complex depguard file-scoped rules
 
@@ -127,17 +127,66 @@ depguard:
 
 **Impact**: Identity module can now import from KMS domain (breaks architectural boundaries)
 
-**Action Items**:
+**Research Results** (November 19, 2025):
 
-- [ ] Research v2 depguard file-scoped rules syntax (may be possible in v2.6.2)
-- [ ] If v2 supports file-scoped rules, restore identity-domain-isolation configuration
-- [ ] If v2 doesn't support, evaluate alternatives:
-  - Option A: Manual code review (document in PR template)
-  - Option B: Custom cicd check: `go run cmd/cicd/main.go check-identity-imports`
-  - Option C: Use go-mod-graph to validate no cross-domain imports
-  - Option D: Accept risk (identity module is work-in-progress)
+- **v2 depguard status**: File-scoped rules NOT SUPPORTED in v2.6.2
+- **v1 config lost**: Complex identity-domain-isolation rule with file patterns
+- **v2 limitation**: Only global deny rules supported (single main rule in .golangci.yml)
+- **Reference**: `docs/golangci/migrate-v2-functionality.md` (Complex Depguard Rules section)
 
-**Acceptance Criteria**: Automated enforcement of identity/KMS domain isolation
+**Solution**: ✅ **CUSTOM CICD CHECK** - Follow existing pattern
+
+**Implementation Plan**:
+
+1. **Create check command**: `internal/cmd/cicd/cicd_check_identity_imports.go`
+   - Pattern: Follow `cicd_check_circular_deps.go` structure (275 lines)
+   - Input: Scan `internal/identity/**/*.go` files
+   - Logic: Parse imports, check against blocked package list
+   - Cache: Use cache file pattern (similar to circular deps check)
+   - Output: Error if forbidden imports detected, success otherwise
+
+2. **Add test coverage**: `internal/cmd/cicd/cicd_check_identity_imports_test.go`
+   - Unit tests: Blocked import detection, cache validation
+   - Integration tests: Real file scanning
+
+3. **Integrate with pre-commit hook**: `.pre-commit-config.yaml`
+   - Add hook: `cicd check-identity-imports` (similar to circular deps hook)
+   - Stage: Run after go-any check, before golangci-lint
+
+4. **Add to cicd.go command registry**:
+   - Command: `cicd check-identity-imports`
+   - Alias: `cicd all` should include this check
+
+**Blocked Imports** (from v1 config):
+
+```go
+blockedPackages := []string{
+    "cryptoutil/internal/server",      // KMS server domain
+    "cryptoutil/internal/client",      // KMS client
+    "cryptoutil/api",                  // OpenAPI generated code
+    "cryptoutil/cmd/cryptoutil",       // CLI command
+    "cryptoutil/internal/common/crypto", // Use stdlib instead
+    "cryptoutil/internal/common/pool",
+    "cryptoutil/internal/common/container",
+    "cryptoutil/internal/common/telemetry",
+    "cryptoutil/internal/common/util",
+}
+```
+
+**Cache Strategy** (like circular deps):
+
+- Cache file: `.cicd/identity-imports-cache.json`
+- Invalidation: When `internal/identity/**/*.go` files change OR go.mod changes
+- Validity: 5 minutes (same as circular deps check)
+
+**Acceptance Criteria**:
+
+- ✅ Command `cicd check-identity-imports` detects forbidden imports
+- ✅ Pre-commit hook runs check automatically
+- ✅ Cache prevents expensive scanning on every commit
+- ✅ Clear error messages showing file + line + forbidden import
+
+**Status**: 🔧 READY FOR IMPLEMENTATION (pattern identified, design complete)
 
 ---
 
