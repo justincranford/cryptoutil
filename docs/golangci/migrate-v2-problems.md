@@ -44,3 +44,17 @@ Each step should document:
 **Next**: Check v2 reference for exclusion patterns (likely moved to linters.exclusions section)
 
 ---
+
+## Step 2: Output Configuration
+
+**Status**: Complete - v2 changed output format
+
+**Changes from v1**:
+- sort-results: true → sort-order: [linter, severity, file]
+- formats.text structure → formats array with format field
+
+**Configuration Applied**:
+- formats: colored-line-number
+- sort-order: by linter, severity, file
+
+**Linter Test**:
