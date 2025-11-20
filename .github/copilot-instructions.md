@@ -6,11 +6,12 @@
 ## General Principles
 
 **CRITICAL: ALWAYS USE LATEST VERSIONS**
-- **ALWAYS ALWAYS ALWAYS use latest stable versions** for ALL project dependencies, tools, and frameworks
-- Check for updates regularly: Go modules, golangci-lint, Docker images, GitHub Actions, pre-commit hooks
+- **ALWAYS use latest stable versions** for ALL project dependencies, tools, extensions, plugins, actions, and frameworks
+- Check for updates regularly: Go modules, golangci-lint, Docker images, GitHub Actions, pre-commit hooks, Python de
 - Current minimum versions enforced:
-  - **golangci-lint**: v2.6.2+ (enforced in pyproject.toml and .pre-commit-config.yaml)
   - **Go**: 1.25.4+ (enforced in go.mod)
+  - **Python**: 3.14+
+  - **golangci-lint**: v2.6.2+ (enforced in pyproject.toml and .pre-commit-config.yaml)
 - When suggesting package updates, ALWAYS verify latest stable release first
 - Never accept outdated versions without explicit justification
 
@@ -20,15 +21,17 @@
 - Use a one-line headline and a one-sentence summary. Optional: up to 3 short bullet details.
 
 Example:
-	- Fix dependency-check NVD parsing error.
+	- Fixed dependency-check NVD parsing error.
 	- Upgraded plugin to 12.1.9 and added a CI `update-only` step.
+
+# Short Instructions Rule
+
 - Keep instructions short and self-contained
 - Each instruction should be a single, simple statement
 - Each instruction should not be verbose
-- Don't reference external resources in instructions
+- Do reference external resources in instructions
 - Store instructions in properly structured files for version control and team sharing
 - When calling terminal commands, avoid commands that require prepending environment variables
-- When approaching rate limiting, wait between requests as needed
 - GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
 
 ## CRITICAL: Continuous Work Directive
