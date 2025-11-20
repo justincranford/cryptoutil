@@ -16,7 +16,7 @@ import (
 )
 
 func TestGetBlockedPackages(t *testing.T) {
-	t.Parallel()
+
 
 	blocked := GetBlockedPackages()
 
@@ -44,7 +44,7 @@ func TestGetBlockedPackages(t *testing.T) {
 }
 
 func TestCheckImports_NoViolations(t *testing.T) {
-	t.Parallel()
+
 
 	// Create temporary identity module with valid imports
 	tempDir := t.TempDir()
@@ -91,7 +91,7 @@ func Test() {
 }
 
 func TestCheckImports_WithViolations(t *testing.T) {
-	t.Parallel()
+
 
 	// Create temporary identity module with forbidden imports
 	tempDir := t.TempDir()
@@ -144,7 +144,7 @@ func Test() {
 }
 
 func TestCheckImports_NonGoFiles(t *testing.T) {
-	t.Parallel()
+
 
 	// Create temporary identity module with non-Go files
 	tempDir := t.TempDir()
@@ -180,7 +180,7 @@ func TestCheckImports_NonGoFiles(t *testing.T) {
 }
 
 func TestCheckImports_InvalidGoSyntax(t *testing.T) {
-	t.Parallel()
+
 
 	// Create temporary identity module with invalid Go syntax
 	tempDir := t.TempDir()
@@ -222,7 +222,7 @@ import (
 }
 
 func TestGetLatestModTime(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	testDir := filepath.Join(tempDir, "testdir")
@@ -257,14 +257,14 @@ func TestGetLatestModTime(t *testing.T) {
 }
 
 func TestGetLatestModTime_NonExistentDir(t *testing.T) {
-	t.Parallel()
+
 
 	_, err := getLatestModTime("/nonexistent/directory")
 	testify.Error(t, err, "Should error on non-existent directory")
 }
 
 func TestGetLatestModTime_EmptyDir(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	testDir := filepath.Join(tempDir, "empty")
@@ -277,7 +277,7 @@ func TestGetLatestModTime_EmptyDir(t *testing.T) {
 }
 
 func TestCacheOperations(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	cacheFile := filepath.Join(tempDir, ".cicd", "identity-imports-cache.json")
@@ -303,14 +303,14 @@ func TestCacheOperations(t *testing.T) {
 }
 
 func TestLoadCache_NonExistentFile(t *testing.T) {
-	t.Parallel()
+
 
 	_, err := loadCache("/nonexistent/cache.json")
 	testify.Error(t, err, "Load should fail for non-existent file")
 }
 
 func TestLoadCache_InvalidJSON(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	cacheFile := filepath.Join(tempDir, "invalid.json")
@@ -323,7 +323,7 @@ func TestLoadCache_InvalidJSON(t *testing.T) {
 }
 
 func TestSaveCache_WithViolations(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	cacheFile := filepath.Join(tempDir, "cache.json")
@@ -347,7 +347,7 @@ func TestSaveCache_WithViolations(t *testing.T) {
 }
 
 func TestSaveCache_DirectoryCreation(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	cacheFile := filepath.Join(tempDir, "deep", "nested", "cache.json")
@@ -367,7 +367,7 @@ func TestSaveCache_DirectoryCreation(t *testing.T) {
 }
 
 func TestCacheJSONFormat(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	cacheFile := filepath.Join(tempDir, "cache.json")
@@ -398,7 +398,7 @@ func TestCacheJSONFormat(t *testing.T) {
 }
 
 func TestCheckImports_NestedDirectories(t *testing.T) {
-	t.Parallel()
+
 
 	// Create nested directory structure
 	tempDir := t.TempDir()
@@ -454,7 +454,7 @@ import (
 }
 
 func TestCachePermissions(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	cacheFile := filepath.Join(tempDir, "cache.json")
@@ -475,7 +475,7 @@ func TestCachePermissions(t *testing.T) {
 }
 
 func TestCheckImports_MultipleViolationsInSameFile(t *testing.T) {
-	t.Parallel()
+
 
 	tempDir := t.TempDir()
 	identityDir := filepath.Join(tempDir, "internal", "identity")
