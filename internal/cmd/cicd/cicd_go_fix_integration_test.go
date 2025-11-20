@@ -37,6 +37,28 @@ var ErrFailed = errors.New("Failed to process")
 	require.Contains(t, string(fixed), `errors.New("failed to process")`)
 }
 
+// TestGoFixStaticcheckErrorStrings_NoIssues tests wrapper when no issues are found.
+func TestGoFixStaticcheckErrorStrings_NoIssues(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	logger := cryptoutilCmd.NewLogger("test-staticcheck-no-issues")
+
+	// Create file WITHOUT staticcheck error string issue.
+	cleanFile := filepath.Join(tmpDir, "clean.go")
+	cleanContent := `package test
+
+import "errors"
+
+var ErrFailed = errors.New("failed to process")
+`
+	require.NoError(t, os.WriteFile(cleanFile, []byte(cleanContent), 0o600))
+
+	// Call wrapper.
+	err := goFixStaticcheckErrorStrings(logger, tmpDir)
+	require.NoError(t, err)
+}
+
 // TestGoFixCopyLoopVar_Integration tests the wrapper calling fix/copyloopvar package.
 func TestGoFixCopyLoopVar_Integration(t *testing.T) {
 	t.Parallel()
@@ -69,6 +91,42 @@ func Process(items []int) {
 	require.NotContains(t, string(fixed), "item := item")
 }
 
+// TestGoFixCopyLoopVar_NoFiles tests wrapper with empty file list.
+func TestGoFixCopyLoopVar_NoFiles(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmd.NewLogger("test-copyloopvar-no-files")
+
+	// Call wrapper with empty file list.
+	err := goFixCopyLoopVar(logger, []string{})
+	require.NoError(t, err)
+}
+
+// TestGoFixCopyLoopVar_NoIssues tests wrapper when no issues are found.
+func TestGoFixCopyLoopVar_NoIssues(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	logger := cryptoutilCmd.NewLogger("test-copyloopvar-no-issues")
+
+	// Create file WITHOUT copyloopvar issue.
+	cleanFile := filepath.Join(tmpDir, "clean.go")
+	cleanContent := `package test
+
+func Process(items []int) {
+	for _, item := range items {
+		println(item)
+	}
+}
+`
+	require.NoError(t, os.WriteFile(cleanFile, []byte(cleanContent), 0o600))
+
+	// Call wrapper with file list.
+	files := []string{cleanFile}
+	err := goFixCopyLoopVar(logger, files)
+	require.NoError(t, err) // Should return nil when no issues found.
+}
+
 // TestGoFixTHelper_Integration tests the wrapper calling fix/thelper package.
 func TestGoFixTHelper_Integration(t *testing.T) {
 	t.Parallel()
@@ -98,6 +156,42 @@ func setupTest(t *testing.T) {
 	fixed, err := os.ReadFile(testFile)
 	require.NoError(t, err)
 	require.Contains(t, string(fixed), "t.Helper()")
+}
+
+// TestGoFixTHelper_NoFiles tests wrapper with empty file list.
+func TestGoFixTHelper_NoFiles(t *testing.T) {
+	t.Parallel()
+
+	logger := cryptoutilCmd.NewLogger("test-thelper-no-files")
+
+	// Call wrapper with empty file list.
+	err := goFixTHelper(logger, []string{})
+	require.NoError(t, err)
+}
+
+// TestGoFixTHelper_NoIssues tests wrapper when no issues are found.
+func TestGoFixTHelper_NoIssues(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	logger := cryptoutilCmd.NewLogger("test-thelper-no-issues")
+
+	// Create test file WITHOUT thelper issue (not a helper function).
+	testFile := filepath.Join(tmpDir, "test_test.go")
+	testContent := `package test
+
+import "testing"
+
+func TestSomething(t *testing.T) {
+	t.Log("test")
+}
+`
+	require.NoError(t, os.WriteFile(testFile, []byte(testContent), 0o600))
+
+	// Call wrapper with file list.
+	files := []string{testFile}
+	err := goFixTHelper(logger, files)
+	require.NoError(t, err) // Should return nil when no issues found.
 }
 
 // TestGoFixAll_Integration tests the orchestrator calling all fix commands.

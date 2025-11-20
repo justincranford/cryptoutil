@@ -257,3 +257,157 @@ func TestRun_GoUpdateAllDependencies(t *testing.T) {
 	// May succeed or fail depending on network/cache, but should not panic
 	_ = err
 }
+
+// TestRun_GoFixStaticcheckErrorStrings tests Run with go-fix-staticcheck-error-strings command.
+func TestRun_GoFixStaticcheckErrorStrings(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+	//nolint:errcheck // Best effort to restore directory
+	defer os.Chdir(originalDir)
+
+	// Create file with staticcheck error string issue.
+	errorFile := filepath.Join(tmpDir, "errors.go")
+	errorContent := `package test
+
+import "errors"
+
+var ErrFailed = errors.New("Failed to process")
+`
+	err = os.WriteFile(errorFile, []byte(errorContent), 0o600)
+	require.NoError(t, err)
+
+	err = Run([]string{"go-fix-staticcheck-error-strings"})
+	require.NoError(t, err)
+}
+
+// TestRun_GoFixCopyLoopVar tests Run with go-fix-copyloopvar command.
+func TestRun_GoFixCopyLoopVar(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+	//nolint:errcheck // Best effort to restore directory
+	defer os.Chdir(originalDir)
+
+	// Create file with copyloopvar issue.
+	loopFile := filepath.Join(tmpDir, "loop.go")
+	loopContent := `package test
+
+func Process(items []int) {
+	for _, item := range items {
+		item := item
+		println(item)
+	}
+}
+`
+	err = os.WriteFile(loopFile, []byte(loopContent), 0o600)
+	require.NoError(t, err)
+
+	err = Run([]string{"go-fix-copyloopvar"})
+	require.Error(t, err) // Should fail because fixes were applied.
+	require.Contains(t, err.Error(), "failed commands")
+}
+
+// TestRun_GoFixTHelper tests Run with go-fix-thelper command.
+func TestRun_GoFixTHelper(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+	//nolint:errcheck // Best effort to restore directory
+	defer os.Chdir(originalDir)
+
+	// Create test file with thelper issue.
+	testFile := filepath.Join(tmpDir, "helpers_test.go")
+	testContent := `package test
+
+import "testing"
+
+func setupTest(t *testing.T) {
+	t.Log("setup")
+}
+`
+	err = os.WriteFile(testFile, []byte(testContent), 0o600)
+	require.NoError(t, err)
+
+	err = Run([]string{"go-fix-thelper"})
+	require.Error(t, err) // Should fail because fixes were applied.
+	require.Contains(t, err.Error(), "failed commands")
+}
+
+// TestRun_GoFixAll tests Run with go-fix-all command.
+func TestRun_GoFixAll(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+	//nolint:errcheck // Best effort to restore directory
+	defer os.Chdir(originalDir)
+
+	// Create files with all three types of issues.
+	errorFile := filepath.Join(tmpDir, "errors.go")
+	errorContent := `package test
+
+import "errors"
+
+var ErrFailed = errors.New("Failed to process")
+`
+	err = os.WriteFile(errorFile, []byte(errorContent), 0o600)
+	require.NoError(t, err)
+
+	err = Run([]string{"go-fix-all"})
+	require.NoError(t, err)
+}
+
+// TestRun_GitHubWorkflowLint tests Run with github-workflow-lint command.
+func TestRun_GitHubWorkflowLint(t *testing.T) {
+	tmpDir := t.TempDir()
+	originalDir, err := os.Getwd()
+	require.NoError(t, err)
+
+	err = os.Chdir(tmpDir)
+	require.NoError(t, err)
+	//nolint:errcheck // Best effort to restore directory
+	defer os.Chdir(originalDir)
+
+	// Create .github/workflows directory.
+	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
+	err = os.MkdirAll(workflowDir, 0o755)
+	require.NoError(t, err)
+
+	// Create a minimal valid workflow file.
+	workflowFile := filepath.Join(workflowDir, "test.yml")
+	workflowContent := `name: Test
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+`
+	err = os.WriteFile(workflowFile, []byte(workflowContent), 0o600)
+	require.NoError(t, err)
+
+	err = Run([]string{"github-workflow-lint"})
+	// May succeed or fail depending on action versions, but should not panic.
+	_ = err
+}
+
+// TestRun_GoCheckIdentityImports tests Run with go-check-identity-imports command.
+func TestRun_GoCheckIdentityImports(t *testing.T) {
+	// This command requires workspace context, so we just verify it doesn't panic.
+	err := Run([]string{"go-check-identity-imports"})
+	// May succeed or fail, but should not panic.
+	_ = err
+}
+

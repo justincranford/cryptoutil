@@ -11,9 +11,10 @@ import (
 	"testing"
 	"time"
 
+	testify "github.com/stretchr/testify/require"
+
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
-	testify "github.com/stretchr/testify/require"
 )
 
 func TestCheckDependencies_NoCycle(t *testing.T) {

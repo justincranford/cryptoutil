@@ -9,9 +9,10 @@ import (
 	"testing"
 	"time"
 
+	testify "github.com/stretchr/testify/require"
+
 	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
-	testify "github.com/stretchr/testify/require"
 )
 
 func TestGetBlockedPackages(t *testing.T) {
@@ -24,15 +25,15 @@ func TestGetBlockedPackages(t *testing.T) {
 
 	// Verify expected packages are blocked
 	expectedBlocked := map[string]bool{
-		"cryptoutil/internal/server":             true,
-		"cryptoutil/internal/client":             true,
-		"cryptoutil/api":                         true,
-		"cryptoutil/cmd/cryptoutil":              true,
-		"cryptoutil/internal/common/crypto":      true,
-		"cryptoutil/internal/common/pool":        true,
-		"cryptoutil/internal/common/container":   true,
-		"cryptoutil/internal/common/telemetry":   true,
-		"cryptoutil/internal/common/util":        true,
+		"cryptoutil/internal/server":           true,
+		"cryptoutil/internal/client":           true,
+		"cryptoutil/api":                       true,
+		"cryptoutil/cmd/cryptoutil":            true,
+		"cryptoutil/internal/common/crypto":    true,
+		"cryptoutil/internal/common/pool":      true,
+		"cryptoutil/internal/common/container": true,
+		"cryptoutil/internal/common/telemetry": true,
+		"cryptoutil/internal/common/util":      true,
 	}
 
 	for _, pkg := range blocked {
