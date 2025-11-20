@@ -2,6 +2,7 @@
 //
 //
 
+//nolint:wrapcheck // Fiber HTTP handlers return framework errors directly
 package authz
 
 import (

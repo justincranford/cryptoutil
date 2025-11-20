@@ -165,7 +165,7 @@ func checkIdentityImports(logger *LogUtil) ([]string, error) {
 	// Walk identity directory
 	err := filepath.Walk("internal/identity", func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return err //nolint:wrapcheck // Cache helper - wrapping adds no value
 		}
 
 		// Skip directories and non-Go files
@@ -199,7 +199,7 @@ func checkIdentityImports(logger *LogUtil) ([]string, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck // Cache helper - wrapping adds no value
 	}
 
 	return violations, nil
@@ -223,7 +223,7 @@ func getLatestModTime(dir string) (time.Time, error) {
 		return nil
 	})
 
-	return latest, err
+	return latest, err //nolint:wrapcheck // Cache helper - wrapping adds no value
 }
 
 // loadIdentityImportsCache loads cached results from file.
@@ -232,12 +232,12 @@ func loadIdentityImportsCache(filename string) (IdentityImportsCache, error) {
 
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		return cache, err
+		return cache, err //nolint:wrapcheck // Cache helper - wrapping adds no value
 	}
 
 	err = json.Unmarshal(data, &cache)
 
-	return cache, err
+	return cache, err //nolint:wrapcheck // Cache helper - wrapping adds no value
 }
 
 // saveIdentityImportsCache saves check results to cache file.
@@ -250,8 +250,12 @@ func saveIdentityImportsCache(filename string, cache IdentityImportsCache) error
 
 	data, err := json.MarshalIndent(cache, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal cache: %w", err) //nolint:wrapcheck // Cache helper - wrapping adds no value
 	}
 
-	return os.WriteFile(filename, data, cryptoutilMagic.CacheFilePermissions)
+	if err := os.WriteFile(filename, data, cryptoutilMagic.CacheFilePermissions); err != nil { //nolint:wrapcheck // Cache helper - wrapping adds no value
+		return fmt.Errorf("failed to write cache file: %w", err)
+	}
+
+	return nil
 }
