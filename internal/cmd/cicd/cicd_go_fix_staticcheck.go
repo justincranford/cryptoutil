@@ -15,7 +15,7 @@ import (
 // Error string pattern matchers.
 var (
 	// Pattern to match error creation with capitalized first word.
-	// Matches: fmt.Errorf("Uppercase..."), errors.New("Uppercase...")
+	// Matches: fmt.Errorf("uppercase..."), errors.New("uppercase...")
 	errorStringPattern = regexp.MustCompile(`(fmt\.Errorf|errors\.New)\s*\(\s*"([A-Z][^"]*)"`)
 
 	// Common acronyms that should remain uppercase.
@@ -181,13 +181,30 @@ func fixErrorStringsInFile(filePath string) (int, error) {
 			continue
 		}
 
-		fullMatch := match[0]       // e.g., `fmt.Errorf("Missing openapi spec"`
+		fullMatch := match[0]       // e.g., `fmt.Errorf("missing openapi spec"`
 		errorMsg := match[2]        // e.g., `Missing openapi spec`
 		
-		// Check if the first word is an acronym
+		// Check if the first word is an acronym or starts with an acronym
 		firstWord := strings.Fields(errorMsg)[0]
+		
+		// Check if first word is exactly an acronym
 		if commonAcronyms[firstWord] {
 			// Skip - this is an acronym that should remain uppercase
+			continue
+		}
+		
+		// Check if first word starts with an acronym (e.g., "UUIDs" starts with "UUID")
+		// We need to handle cases like "UUIDs can't be nil" where UUID is plural
+		skipDueToAcronym := false
+		for acronym := range commonAcronyms {
+			if strings.HasPrefix(firstWord, acronym) {
+				// This word starts with an acronym, skip it
+				skipDueToAcronym = true
+
+				break
+			}
+		}
+		if skipDueToAcronym {
 			continue
 		}
 

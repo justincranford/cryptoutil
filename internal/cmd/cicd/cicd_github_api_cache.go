@@ -137,9 +137,9 @@ func getLatestVersion(logger *LogUtil, actionName string) (string, error) {
 
 		return version, nil
 	} else if resp.StatusCode == http.StatusForbidden {
-		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
+		return "", fmt.Errorf("gitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
 	} else if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("gitHub API returned status %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -217,9 +217,9 @@ func getLatestTag(logger *LogUtil, actionName string) (string, error) {
 	}()
 
 	if resp.StatusCode == http.StatusForbidden {
-		return "", fmt.Errorf("GitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
+		return "", fmt.Errorf("gitHub API rate limit exceeded (403). Set GITHUB_TOKEN environment variable to increase limit")
 	} else if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("gitHub API returned status %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)

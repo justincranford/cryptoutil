@@ -537,13 +537,13 @@ func checkSidecarHealth(ctx context.Context, settings *cryptoutilConfig.Settings
 			grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint),
 			grpcTraceExporterotlptracegrpc.WithInsecure())
 		if err != nil {
-			return fmt.Errorf("GRPC sidecar connectivity check failed: %w", err)
+			return fmt.Errorf("gRPC sidecar connectivity check failed: %w", err)
 		}
 	} else if isGRPCS {
 		_, err = grpcTraceExporterotlptracegrpc.New(ctx,
 			grpcTraceExporterotlptracegrpc.WithEndpoint(*endpoint))
 		if err != nil {
-			return fmt.Errorf("GRPCS sidecar connectivity check failed: %w", err)
+			return fmt.Errorf("gRPCS sidecar connectivity check failed: %w", err)
 		}
 	} else if isHTTP {
 		_, err = httpTraceExporterotlptracehttp.New(ctx,

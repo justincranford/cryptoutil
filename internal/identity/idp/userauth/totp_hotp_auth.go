@@ -149,7 +149,7 @@ func (t *TOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respons
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
 		}
 
-		return nil, fmt.Errorf("TOTP challenge expired")
+		return nil, fmt.Errorf("tOTP challenge expired")
 	}
 
 	// Validate TOTP code.
@@ -395,13 +395,13 @@ func (h *HOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respons
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
 		}
 
-		return nil, fmt.Errorf("HOTP challenge expired")
+		return nil, fmt.Errorf("hOTP challenge expired")
 	}
 
 	// Validate HOTP code.
 	valid, err := h.ValidateHOTP(ctx, challenge.UserID, storedSecret, response)
 	if err != nil {
-		return nil, fmt.Errorf("HOTP validation error: %w", err)
+		return nil, fmt.Errorf("hOTP validation error: %w", err)
 	}
 
 	if !valid {

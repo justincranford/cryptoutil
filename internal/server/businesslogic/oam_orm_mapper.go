@@ -323,7 +323,7 @@ func (*oamOrmMapper) toOrmDateRange(minDate, maxDate *time.Time) (*time.Time, *t
 
 		if nonNullMaxDate {
 			// if maxDate.Compare(now) > 0 {
-			// 	errs = append(errs, fmt.Errorf("Max Date can't be in the future"))
+			// 	errs = append(errs, fmt.Errorf("max Date can't be in the future"))
 			// }
 			if nonNullMinDate && minDate.Compare(*maxDate) > 0 {
 				errs = append(errs, fmt.Errorf("min date must be before max date"))

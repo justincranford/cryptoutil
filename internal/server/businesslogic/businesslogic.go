@@ -62,7 +62,7 @@ func (s *BusinessLogicService) AddElasticKey(ctx context.Context, openapiElastic
 	ormElasticKey := s.oamOrmMapper.toOrmAddElasticKey(elasticKeyID, openapiElasticKeyCreate)
 
 	if ormElasticKey.ElasticKeyImportAllowed {
-		return nil, fmt.Errorf("ElasticKeyImportAllowed=true not supported yet")
+		return nil, fmt.Errorf("elasticKeyImportAllowed=true not supported yet")
 	}
 
 	// generate first MaterialKey automatically

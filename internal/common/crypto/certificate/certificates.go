@@ -332,9 +332,9 @@ func DeserializeSubjects(keyMaterialEncodedBytesList [][]byte) ([]*Subject, erro
 		}
 
 		if len(keyMaterial.CertificateChain) == 0 {
-			return nil, fmt.Errorf("CertChain is empty for item %d", i)
+			return nil, fmt.Errorf("certChain is empty for item %d", i)
 		} else if keyMaterial.PublicKey == nil {
-			return nil, fmt.Errorf("PublicKey is nil for item %d", i)
+			return nil, fmt.Errorf("publicKey is nil for item %d", i)
 		}
 
 		certificate := keyMaterial.CertificateChain[0]
@@ -367,7 +367,7 @@ func serializeKeyMaterial(keyMaterial *KeyMaterial, includePrivateKey bool) (*Ke
 	} else if len(keyMaterial.CertificateChain) == 0 {
 		return nil, fmt.Errorf("certificate chain cannot be empty")
 	} else if keyMaterial.PublicKey == nil {
-		return nil, fmt.Errorf("PublicKey cannot be nil")
+		return nil, fmt.Errorf("publicKey cannot be nil")
 	}
 
 	for i, certificate := range keyMaterial.CertificateChain {

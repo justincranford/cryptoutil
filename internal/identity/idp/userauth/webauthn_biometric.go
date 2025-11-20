@@ -181,7 +181,7 @@ func (w *WebAuthnAuthenticator) FinishRegistration(ctx context.Context, challeng
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
 		}
 
-		return nil, fmt.Errorf("WebAuthn challenge expired")
+		return nil, fmt.Errorf("webAuthn challenge expired")
 	}
 
 	// In full implementation:
@@ -260,7 +260,7 @@ func (w *WebAuthnAuthenticator) VerifyAuth(ctx context.Context, challengeID, res
 	// 3. Validate client data and authenticator data.
 	// 4. Check sign count for cloned authenticator detection.
 	// 5. Update credential last used timestamp.
-	return nil, fmt.Errorf("WebAuthn authentication requires full implementation with github.com/go-webauthn/webauthn library")
+	return nil, fmt.Errorf("webAuthn authentication requires full implementation with github.com/go-webauthn/webauthn library")
 }
 
 // HardwareKeyAuthenticator implements hardware security key authentication.

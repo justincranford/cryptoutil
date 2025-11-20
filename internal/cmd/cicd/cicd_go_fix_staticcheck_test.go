@@ -66,9 +66,9 @@ import (
 
 func example() error {
 	if true {
-		return fmt.Errorf("Missing openapi spec")
+		return fmt.Errorf("missing openapi spec")
 	}
-	return errors.New("Invalid configuration")
+	return errors.New("invalid configuration")
 }
 `
 
@@ -123,6 +123,10 @@ func example2() error {
 func example3() error {
 	return fmt.Errorf("UUID generation failed")
 }
+
+func example4() error {
+	return fmt.Errorf("UUIDs can't be nil")
+}
 `
 
 	err := os.WriteFile(testFile, []byte(content), 0o644)
@@ -150,13 +154,13 @@ import "fmt"
 
 func example() error {
 	// Should fix this
-	err1 := fmt.Errorf("Failed to connect")
+	err1 := fmt.Errorf("failed to connect")
 	
 	// Should NOT fix this (acronym)
 	err2 := fmt.Errorf("HTTP connection failed")
 	
 	// Should fix this
-	err3 := fmt.Errorf("Connection timeout occurred")
+	err3 := fmt.Errorf("connection timeout occurred")
 	
 	// Should NOT fix this (already lowercase)
 	err4 := fmt.Errorf("operation failed")
@@ -211,7 +215,7 @@ func TestGoFixStaticcheckErrorStrings_MultipleFiles(t *testing.T) {
 	// File 1: Has errors to fix
 	content1 := `package test
 import "fmt"
-func f1() error { return fmt.Errorf("Error occurred") }
+func f1() error { return fmt.Errorf("error occurred") }
 `
 	expected1 := `package test
 import "fmt"
@@ -227,7 +231,7 @@ func f2() error { return fmt.Errorf("already lowercase") }
 	// File 3: Has errors to fix
 	content3 := `package test
 import "errors"
-func f3() error { return errors.New("Something went wrong") }
+func f3() error { return errors.New("something went wrong") }
 `
 	expected3 := `package test
 import "errors"
@@ -279,7 +283,7 @@ func TestGoFixStaticcheckErrorStrings_ExcludesGenerated(t *testing.T) {
 
 	genContent := `package test
 import "fmt"
-func gen() error { return fmt.Errorf("Generated error") }
+func gen() error { return fmt.Errorf("generated error") }
 `
 
 	err = os.WriteFile(genFile, []byte(genContent), 0o644)
@@ -428,7 +432,7 @@ func TestGoFixAll_AppliesFixes(t *testing.T) {
 import "fmt"
 
 func example() error {
-	return fmt.Errorf("Error occurred")
+	return fmt.Errorf("error occurred")
 }
 `
 

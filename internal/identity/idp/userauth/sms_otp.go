@@ -127,7 +127,7 @@ func (a *SMSOTPAuthenticator) VerifyAuth(ctx context.Context, challengeID, respo
 			fmt.Printf("warning: failed to delete expired challenge: %v\n", err)
 		}
 
-		return nil, fmt.Errorf("OTP expired")
+		return nil, fmt.Errorf("oTP expired")
 	}
 
 	// Verify OTP.

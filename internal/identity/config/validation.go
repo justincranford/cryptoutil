@@ -188,7 +188,7 @@ func (sc *SessionConfig) Validate() error {
 // Validate validates security configuration.
 func (sc *SecurityConfig) Validate() error {
 	if sc.PKCEChallengeMethod != "S256" && sc.PKCEChallengeMethod != "plain" {
-		return fmt.Errorf("PKCE challenge method must be 'S256' or 'plain'")
+		return fmt.Errorf("pKCE challenge method must be 'S256' or 'plain'")
 	}
 
 	if sc.RateLimitEnabled {
