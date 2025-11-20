@@ -15,7 +15,7 @@ inputs:
   version:
     description: 'golangci-lint version to use'
     required: false
-    default: 'v2.0.0'
+    default: 'v2.6.2'
 runs:
   using: 'composite'
   steps:
@@ -26,8 +26,6 @@ runs:
         args: --fix --timeout=${{ inputs.timeout }} --config=${{ inputs.config-file }}
         # Performance optimizations
         skip-cache: false
-        skip-pkg-cache: false
-        skip-build-cache: false
         # Only report new issues in PRs (disabled for now to see all issues)
         only-new-issues: false
 
@@ -38,7 +36,5 @@ runs:
         args: --timeout=${{ inputs.timeout }} --config=${{ inputs.config-file }}
         # Performance optimizations
         skip-cache: false
-        skip-pkg-cache: false
-        skip-build-cache: false
         # Only report new issues in PRs (disabled for now to see all issues)
         only-new-issues: false
