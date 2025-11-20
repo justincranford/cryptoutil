@@ -162,7 +162,7 @@ func fixTHelperInFile(filePath string) (int, error) {
 	}
 
 	return fixCount, nil
-}// countTHelperCalls counts t.Helper() calls in the AST.
+} // countTHelperCalls counts t.Helper() calls in the AST.
 func countTHelperCalls(node *ast.File) int {
 	count := 0
 	ast.Inspect(node, func(n ast.Node) bool {
