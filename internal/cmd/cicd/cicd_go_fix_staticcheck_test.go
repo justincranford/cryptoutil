@@ -66,9 +66,9 @@ import (
 
 func example() error {
 	if true {
-		return fmt.Errorf("missing openapi spec")
+		return fmt.Errorf("Missing openapi spec")
 	}
-	return errors.New("invalid configuration")
+	return errors.New("Invalid configuration")
 }
 `
 
@@ -154,13 +154,13 @@ import "fmt"
 
 func example() error {
 	// Should fix this
-	err1 := fmt.Errorf("failed to connect")
+	err1 := fmt.Errorf("Failed to connect")
 
 	// Should NOT fix this (acronym)
 	err2 := fmt.Errorf("HTTP connection failed")
 
 	// Should fix this
-	err3 := fmt.Errorf("connection timeout occurred")
+	err3 := fmt.Errorf("Connection timeout occurred")
 
 	// Should NOT fix this (already lowercase)
 	err4 := fmt.Errorf("operation failed")
@@ -215,7 +215,7 @@ func TestGoFixStaticcheckErrorStrings_MultipleFiles(t *testing.T) {
 	// File 1: Has errors to fix
 	content1 := `package test
 import "fmt"
-func f1() error { return fmt.Errorf("error occurred") }
+func f1() error { return fmt.Errorf("Error occurred") }
 `
 	expected1 := `package test
 import "fmt"
@@ -231,7 +231,7 @@ func f2() error { return fmt.Errorf("already lowercase") }
 	// File 3: Has errors to fix
 	content3 := `package test
 import "errors"
-func f3() error { return errors.New("something went wrong") }
+func f3() error { return errors.New("Something went wrong") }
 `
 	expected3 := `package test
 import "errors"
