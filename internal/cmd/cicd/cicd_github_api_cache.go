@@ -80,6 +80,10 @@ var githubAPICache = NewGitHubAPICache()
 // getLatestVersion retrieves the latest version of a GitHub action.
 // It uses caching to avoid repeated API calls for the same action.
 func getLatestVersion(logger *common.Logger, actionName string) (string, error) {
+	return getLatestVersionWithBaseURL(logger, actionName, "https://api.github.com")
+}
+
+func getLatestVersionWithBaseURL(logger *common.Logger, actionName string, baseURL string) (string, error) {
 	// Check cache first
 	cacheKey := "release:" + actionName
 	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
@@ -93,7 +97,7 @@ func getLatestVersion(logger *common.Logger, actionName string) (string, error) 
 	// GitHub API has rate limits, so add a delay
 	time.Sleep(cryptoutilMagic.TimeoutGitHubAPIDelay)
 
-	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", actionName)
+	url := fmt.Sprintf("%s/repos/%s/releases/latest", baseURL, actionName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), cryptoutilMagic.TimeoutGitHubAPITimeout)
 	defer cancel()
