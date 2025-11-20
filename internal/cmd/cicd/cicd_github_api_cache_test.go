@@ -111,3 +111,123 @@ func TestGitHubAPICache_Concurrency(t *testing.T) {
 	_, found2 := cache.Get("key2")
 	require.True(t, found1 || found2, "At least one key should exist (race condition dependent)")
 }
+
+func TestGitHubAPICache_ExpiredEntryCleanup(t *testing.T) {
+	t.Parallel()
+
+	cache := NewGitHubAPICache()
+
+	// Set expired entry directly
+	cache.mu.Lock()
+	cache.cache["expired-key"] = GitHubAPICacheEntry{
+		Value:     "should-be-removed",
+		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
+	}
+	cache.mu.Unlock()
+
+	// Get should remove expired entry
+	value, found := cache.Get("expired-key")
+	require.False(t, found, "Expired entry should not be found")
+	require.Empty(t, value, "Value should be empty for expired entry")
+
+	// Verify cleanup happened (entry removed from map during Get)
+	cache.mu.RLock()
+	_, exists := cache.cache["expired-key"]
+	cache.mu.RUnlock()
+	require.False(t, exists, "Expired entry should be removed from cache map")
+}
+
+func TestGitHubAPICache_NearExpiration(t *testing.T) {
+	t.Parallel()
+
+	cache := NewGitHubAPICache()
+
+	// Set entry that expires in 1 second
+	cache.mu.Lock()
+	cache.cache["near-expiry"] = GitHubAPICacheEntry{
+		Value:     "expires-soon",
+		ExpiresAt: time.Now().UTC().Add(100 * time.Millisecond),
+	}
+	cache.mu.Unlock()
+
+	// Should be valid immediately
+	value, found := cache.Get("near-expiry")
+	require.True(t, found, "Entry should be found before expiration")
+	require.Equal(t, "expires-soon", value, "Value should match")
+
+	// Wait for expiration
+	time.Sleep(150 * time.Millisecond)
+
+	// Should be expired now
+	value, found = cache.Get("near-expiry")
+	require.False(t, found, "Entry should be expired after waiting")
+	require.Empty(t, value, "Value should be empty after expiration")
+}
+
+func TestGitHubAPICache_MultipleKeys(t *testing.T) {
+	t.Parallel()
+
+	cache := NewGitHubAPICache()
+
+	// Set multiple keys
+	cache.Set("key1", "value1")
+	cache.Set("key2", "value2")
+	cache.Set("key3", "value3")
+
+	// Verify all keys exist
+	val1, found1 := cache.Get("key1")
+	require.True(t, found1)
+	require.Equal(t, "value1", val1)
+
+	val2, found2 := cache.Get("key2")
+	require.True(t, found2)
+	require.Equal(t, "value2", val2)
+
+	val3, found3 := cache.Get("key3")
+	require.True(t, found3)
+	require.Equal(t, "value3", val3)
+
+	// Expire one key
+	cache.mu.Lock()
+	cache.cache["key2"] = GitHubAPICacheEntry{
+		Value:     "value2",
+		ExpiresAt: time.Now().UTC().Add(-1 * time.Hour),
+	}
+	cache.mu.Unlock()
+
+	// Verify expired key removed, others remain
+	_, found2 = cache.Get("key2")
+	require.False(t, found2, "Expired key should not be found")
+
+	val1, found1 = cache.Get("key1")
+	require.True(t, found1, "Non-expired key should still exist")
+	require.Equal(t, "value1", val1)
+
+	val3, found3 = cache.Get("key3")
+	require.True(t, found3, "Non-expired key should still exist")
+	require.Equal(t, "value3", val3)
+}
+
+func TestGitHubAPICache_UpdateExisting(t *testing.T) {
+	t.Parallel()
+
+	cache := NewGitHubAPICache()
+
+	// Set initial value
+	cache.Set("update-key", "initial")
+	val, found := cache.Get("update-key")
+	require.True(t, found)
+	require.Equal(t, "initial", val)
+
+	// Update value
+	cache.Set("update-key", "updated")
+	val, found = cache.Get("update-key")
+	require.True(t, found)
+	require.Equal(t, "updated", val, "Value should be updated")
+
+	// Update again
+	cache.Set("update-key", "final")
+	val, found = cache.Get("update-key")
+	require.True(t, found)
+	require.Equal(t, "final", val, "Value should be updated again")
+}
