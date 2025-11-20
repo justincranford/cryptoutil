@@ -127,6 +127,30 @@ func Process(items []int) {
 	require.NoError(t, err) // Should return nil when no issues found.
 }
 
+// TestGoFixCopyLoopVar_ErrorPropagation tests wrapper error handling.
+func TestGoFixCopyLoopVar_ErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	logger := cryptoutilCmd.NewLogger("test-copyloopvar-error")
+
+	// Create invalid Go file that will cause parsing errors.
+	invalidFile := filepath.Join(tmpDir, "invalid.go")
+	invalidContent := `package test
+
+func broken( {
+	// Syntax error
+}
+`
+	require.NoError(t, os.WriteFile(invalidFile, []byte(invalidContent), 0o600))
+
+	// Call wrapper with file list.
+	files := []string{invalidFile}
+	err := goFixCopyLoopVar(logger, files)
+	require.Error(t, err) // Should propagate parsing error.
+	require.Contains(t, err.Error(), "copyloopvar fix failed")
+}
+
 // TestGoFixTHelper_Integration tests the wrapper calling fix/thelper package.
 func TestGoFixTHelper_Integration(t *testing.T) {
 	t.Parallel()
@@ -192,6 +216,32 @@ func TestSomething(t *testing.T) {
 	files := []string{testFile}
 	err := goFixTHelper(logger, files)
 	require.NoError(t, err) // Should return nil when no issues found.
+}
+
+// TestGoFixTHelper_ErrorPropagation tests wrapper error handling.
+func TestGoFixTHelper_ErrorPropagation(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	logger := cryptoutilCmd.NewLogger("test-thelper-error")
+
+	// Create invalid Go file that will cause parsing errors.
+	invalidFile := filepath.Join(tmpDir, "invalid_test.go")
+	invalidContent := `package test
+
+import "testing"
+
+func broken( t *testing.T {
+	// Syntax error
+}
+`
+	require.NoError(t, os.WriteFile(invalidFile, []byte(invalidContent), 0o600))
+
+	// Call wrapper with file list.
+	files := []string{invalidFile}
+	err := goFixTHelper(logger, files)
+	require.Error(t, err) // Should propagate parsing error.
+	require.Contains(t, err.Error(), "thelper fix failed")
 }
 
 // TestGoFixAll_Integration tests the orchestrator calling all fix commands.
