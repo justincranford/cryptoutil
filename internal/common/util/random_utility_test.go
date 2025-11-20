@@ -45,8 +45,10 @@ func TestGenerateString(t *testing.T) {
 func TestGenerateString_Uniqueness(t *testing.T) {
 	t.Parallel()
 
-	const length = 32
-	const iterations = 100
+	const (
+		length     = 32
+		iterations = 100
+	)
 
 	seen := make(map[string]bool, iterations)
 
@@ -91,8 +93,10 @@ func TestGenerateBytes(t *testing.T) {
 func TestGenerateBytes_Uniqueness(t *testing.T) {
 	t.Parallel()
 
-	const lengthBytes = 32
-	const iterations = 100
+	const (
+		lengthBytes = 32
+		iterations  = 100
+	)
 
 	seen := make(map[string]bool, iterations)
 

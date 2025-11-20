@@ -3,36 +3,38 @@
 ## Core Principles
 - **Instruction files auto-discovered from `.github/instructions/`** - use `.instructions.md` extension with YAML frontmatter
 
+## Short Instructions Rule
+
+- Store instructions in properly structured files for version control and team sharing
+- Use semantic file names with tier-priority format for prioritization, grouping, and ordering e.g., `01-01.coding.instructions.md`
+- Keep instructions short and self-contained
+- Each instruction should be a simple, single statement
+- Each instruction should not be verbose
+- Do reference external resources in instructions
+- Do reference project resources in instructions
+- When calling terminal commands, avoid commands that require prepending environment variables
+- GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
+- Each instruction should use a one-line headline and a one-sentence summary. Optional: up to 3 short bullet details.
+
 ## General Principles
 
 **CRITICAL: ALWAYS USE LATEST VERSIONS**
 - **ALWAYS use latest stable versions** for ALL project dependencies, tools, extensions, plugins, actions, and frameworks
 - Check for updates regularly: Go modules, golangci-lint, Docker images, GitHub Actions, pre-commit hooks, Python de
 - Current minimum versions enforced:
-  - **Go**: 1.25.4+ (enforced in go.mod)
-  - **Python**: 3.14+
-  - **golangci-lint**: v2.6.2+ (enforced in pyproject.toml and .pre-commit-config.yaml)
+  - **Go**: 1.25.4+ (latest version, enforced in go.mod)
+  - **Python**: 3.14+ (latest version)
+  - **golangci-lint**: v2.6.2+ (latest version, enforced in pyproject.toml and .pre-commit-config.yaml)
+  - **node**: v24.11.1+ (latest LTS version)
 - When suggesting package updates, ALWAYS verify latest stable release first
 - Never accept outdated versions without explicit justification
 
-- Chat summary should be concise numbered list, and focused on key changes or questions
-
-# Short Summary Rule
-- Use a one-line headline and a one-sentence summary. Optional: up to 3 short bullet details.
+## Chat Responses
+- Responses must be concise summary with numbered list, and focused on key changes or questions
 
 Example:
 	- Fixed dependency-check NVD parsing error.
 	- Upgraded plugin to 12.1.9 and added a CI `update-only` step.
-
-# Short Instructions Rule
-
-- Keep instructions short and self-contained
-- Each instruction should be a single, simple statement
-- Each instruction should not be verbose
-- Do reference external resources in instructions
-- Store instructions in properly structured files for version control and team sharing
-- When calling terminal commands, avoid commands that require prepending environment variables
-- GitHub Copilot Chat Extension monitors GitHub Copilot Service rate limiting via HTTP response headers
 
 ## CRITICAL: Continuous Work Directive
 
@@ -49,7 +51,7 @@ Example:
 - **ENFORCEMENT**: If you announce continuation, you MUST follow with actual work in same response
 
 **Token Budget Awareness**
-- Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5%) remaining
+- Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5% of 1M budget) remaining
 - Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
 - STOP only when: tokens used ≥950k OR all tasks complete OR explicit user instruction
 - User directive: "NEVER STOP DUE TO TIME OR TOKENS until 95% utilization"
@@ -68,7 +70,7 @@ Example:
 3. Run tests with `runTests` tool
 4. Commit with `--no-verify` flag
 5. **IMMEDIATELY** go to step 1 (no stopping, no summary, no announcement)
-6. Repeat until ALL tasks in prompt.txt complete
+6. Repeat until ALL tasks complete
 
 **Lessons Applied**: Based on analysis in docs/codecov/dont_stop.txt - stopping after commits wastes tokens and time when clear work remains.
 **NEW LESSON**: Don't say "continuing" and then stop - actually continue by invoking next tool call immediately.
@@ -80,12 +82,6 @@ Example:
 - Apply limits to all code files: production code, tests, configs, scripts
 - Exceptions require explicit justification and documentation
 
-- **ALWAYS use modernc.org/sqlite for SQLite** because it is CGO-free (required when CGO_ENABLED=0)
-- **NEVER invoke os.Exit() in library or test code** - ONLY in main() functions or cmd pattern entry functions
-  - ALWAYS return wrapped errors all the way up the call stack
-  - os.Exit() should ONLY be called at the command entry point (main function)
-  - REASON: Supports maximum unit testing, because os.Exit() calls halt unit tests which is undesirable
-  - Library functions must return errors instead of calling os.Exit()
 - **Rate Limit Monitoring**: Monitor HTTP response headers (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) to detect approaching rate limit thresholds
 - **Rate Limit Checking**: You can also call the GET /rate_limit endpoint to check your rate limit. Calling this endpoint does not count against your primary rate limit, but it can count against your secondary rate limit. See [REST API endpoints for rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#checking-the-status-of-your-rate-limit). When possible, you should use the rate limit response headers instead of calling the API to check your rate limit.
 - **Rate Limit Error Handling**: Follow GitHub's best practices for handling rate limit errors. Use `retry-after` header when present, check `x-ratelimit-remaining` and `x-ratelimit-reset` headers, implement exponential backoff for secondary rate limits, and avoid making requests while rate limited to prevent integration bans. See [Best practices for using the REST API](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api#handle-rate-limit-errors-appropriately).
