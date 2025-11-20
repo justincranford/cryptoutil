@@ -22,7 +22,7 @@ func TestNewSQLRepository_SQLite_ContainerMode(t *testing.T) {
 	ctx := context.Background()
 
 	settings := cryptoutilConfig.RequireNewForTest("sqlite_container_test")
-	settings.DevMode = true                 // SQLite
+	settings.DevMode = true                            // SQLite
 	settings.DatabaseContainer = containerModeRequired // SQLite doesn't support containers
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -61,6 +61,7 @@ func TestNewSQLRepository_NilInputs(t *testing.T) {
 	settings := cryptoutilConfig.RequireNewForTest("nil_inputs_test")
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	tests := []struct {
@@ -94,9 +95,9 @@ func TestNewSQLRepository_NilInputs(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(tc.ctx, tc.telemetry, tc.settings)
 			testify.Error(t, err)
 			testify.ErrorContains(t, err, tc.errorContains)

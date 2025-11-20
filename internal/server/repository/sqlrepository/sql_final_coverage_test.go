@@ -210,6 +210,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 			name: "ErrContainerOptionNotExist - SQLite with container mode",
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
 				t.Helper()
+
 				settings := cryptoutilConfig.RequireNewForTest("error_container_not_exist")
 				settings.DevMode = true
 				settings.DatabaseContainer = containerModeRequired
@@ -228,6 +229,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 			name: "ErrContainerModeRequiredButContainerNotStarted",
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
 				t.Helper()
+
 				settings := cryptoutilConfig.RequireNewForTest("error_container_required")
 				settings.DevMode = false
 				settings.DatabaseURL = testPostgresURL
@@ -247,6 +249,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 			name: "ErrPingDatabaseFailed - PostgreSQL without server",
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
 				t.Helper()
+
 				settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
 				settings.DevMode = false
 				settings.DatabaseURL = testPostgresURL
@@ -287,6 +290,7 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
+
 	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
@@ -317,9 +321,9 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture range variable
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
+
 			err := repo.WithTransaction(ctx, false, tc.fn)
 			if tc.wantError {
 				testify.Error(t, err)
