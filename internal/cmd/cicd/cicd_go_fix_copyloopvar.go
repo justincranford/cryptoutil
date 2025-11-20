@@ -18,6 +18,7 @@ func goFixCopyLoopVar(logger *cryptoutilCmd.Logger, files []string) error {
 	// Get root directory from files.
 	if len(files) == 0 {
 		logger.Log("No files provided")
+
 		return nil
 	}
 
@@ -38,5 +39,6 @@ func goFixCopyLoopVar(logger *cryptoutilCmd.Logger, files []string) error {
 	}
 
 	logger.Log("No loop variable copies needed fixing")
+
 	return nil
 }

@@ -22,6 +22,7 @@ func TestGetCached_CachedTrue(t *testing.T) {
 	// Subsequent calls return nil because the closure doesn't re-execute
 
 	callCount := 0
+
 	var capturedValue any
 
 	getter := func() any {
@@ -58,8 +59,10 @@ func TestGetCached_CachedFalse(t *testing.T) {
 		return callCount
 	}
 
-	var once1 sync.Once
-	var once2 sync.Once
+	var (
+		once1 sync.Once
+		once2 sync.Once
+	)
 
 	// Act: Call twice with cached=false (with separate sync.Once instances)
 	result1 := util.GetCached(false, &once1, getter)
@@ -183,8 +186,10 @@ func TestGetCachedWithError_CachedFalse_Success(t *testing.T) {
 		return callCount, nil
 	}
 
-	var once1 sync.Once
-	var once2 sync.Once
+	var (
+		once1 sync.Once
+		once2 sync.Once
+	)
 
 	// Act: Call twice with cached=false
 	result1, err1 := util.GetCachedWithError(false, &once1, getter)
@@ -208,8 +213,10 @@ func TestGetCachedWithError_CachedFalse_Error(t *testing.T) {
 		return nil, errors.New("error")
 	}
 
-	var once1 sync.Once
-	var once2 sync.Once
+	var (
+		once1 sync.Once
+		once2 sync.Once
+	)
 
 	// Act: Call twice with cached=false
 	result1, err1 := util.GetCachedWithError(false, &once1, getter)

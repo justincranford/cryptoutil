@@ -30,9 +30,11 @@ func TestPrintExecutionSummary(t *testing.T) {
 	PrintExecutionSummary(results, 500*time.Millisecond)
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -62,9 +64,11 @@ func TestPrintExecutionSummary_AllSuccess(t *testing.T) {
 	PrintExecutionSummary(results, 150*time.Millisecond)
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -86,9 +90,11 @@ func TestPrintExecutionSummary_AllFailure(t *testing.T) {
 	PrintExecutionSummary(results, 150*time.Millisecond)
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -107,9 +113,11 @@ func TestPrintExecutionSummary_Empty(t *testing.T) {
 	PrintExecutionSummary(results, 0)
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -127,9 +135,11 @@ func TestPrintCommandSeparator(t *testing.T) {
 	PrintCommandSeparator()
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -199,7 +209,7 @@ func TestCalculateStats(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -253,7 +263,7 @@ func TestHasFailures(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -306,7 +316,7 @@ func TestGetFailedCommands(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

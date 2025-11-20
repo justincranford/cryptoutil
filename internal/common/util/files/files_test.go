@@ -69,7 +69,7 @@ func TestWriteFile(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -94,6 +94,7 @@ func TestWriteFile(t *testing.T) {
 				require.NoError(t, readErr, "Should read file")
 
 				var expectedContent []byte
+
 				switch v := tc.content.(type) {
 				case string:
 					expectedContent = []byte(v)
@@ -114,14 +115,14 @@ func TestListAllFiles(t *testing.T) {
 
 	tests := []struct {
 		name         string
-		setupFiles   []string        // Files to create in temp dir
-		setupDirs    []string        // Subdirectories to create
+		setupFiles   []string                    // Files to create in temp dir
+		setupDirs    []string                    // Subdirectories to create
 		expectedFunc func([]string, string) bool // Custom validation function
 		wantErr      bool
 		errContains  string
 	}{
 		{
-			name: "Single_file_in_directory",
+			name:       "Single_file_in_directory",
 			setupFiles: []string{"file1.txt"},
 			expectedFunc: func(result []string, baseDir string) bool {
 				return len(result) == 1 && filepath.Base(result[0]) == "file1.txt"
@@ -129,7 +130,7 @@ func TestListAllFiles(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "Multiple_files_in_directory",
+			name:       "Multiple_files_in_directory",
 			setupFiles: []string{"file1.txt", "file2.txt", "file3.txt"},
 			expectedFunc: func(result []string, baseDir string) bool {
 				return len(result) == 3
@@ -169,7 +170,7 @@ func TestListAllFiles(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

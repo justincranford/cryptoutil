@@ -15,10 +15,13 @@ import (
 func Fix(logger *cryptoutilCmd.Logger, rootDir string, goVersion string) (int, int, int, error) {
 	logger.Log("Starting fix-all: running all auto-fix commands")
 
-	var totalProcessed, totalModified, totalIssuesFixed int
-	var errors []error
+	var (
+		totalProcessed, totalModified, totalIssuesFixed int
+		errors                                          []error
+	)
 
 	// Run staticcheck fixes.
+
 	logger.Log("Running staticcheck error string fixes")
 
 	processed, modified, issuesFixed, err := staticcheck.Fix(logger, rootDir)

@@ -272,6 +272,7 @@ func TestCacheJSONFormat(t *testing.T) {
 
 	// Verify it's valid JSON
 	var decoded cryptoutilMagic.CircularDepCache
+
 	err = json.Unmarshal(content, &decoded)
 	testify.NoError(t, err, "JSON should be valid")
 

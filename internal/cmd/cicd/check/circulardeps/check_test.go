@@ -17,7 +17,6 @@ import (
 // TestCheck_NoCycle tests Check function with no circular dependencies.
 func TestCheck_NoCycle(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-
 	tempDir := t.TempDir()
 
 	// Create go.mod
@@ -60,7 +59,6 @@ func Test() {
 // TestCheck_CacheHit_NoCycle tests Check using cached results (no cycle).
 func TestCheck_CacheHit_NoCycle(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-
 	tempDir := t.TempDir()
 
 	// Create go.mod
@@ -123,7 +121,6 @@ func Test() {
 // TestCheck_CacheExpired tests Check when cache is expired.
 func TestCheck_CacheExpired(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-
 	tempDir := t.TempDir()
 
 	// Create go.mod
@@ -182,7 +179,6 @@ func Test() {}
 // TestCheck_GoModChanged tests Check when go.mod was modified after cache.
 func TestCheck_GoModChanged(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-
 	tempDir := t.TempDir()
 
 	// Create go.mod with old timestamp
@@ -246,7 +242,6 @@ func Test() {}
 // TestCheck_MissingGoMod tests Check when go.mod doesn't exist.
 func TestCheck_MissingGoMod(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-
 	tempDir := t.TempDir()
 
 	// Don't create go.mod

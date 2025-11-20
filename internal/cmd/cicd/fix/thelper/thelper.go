@@ -70,6 +70,7 @@ func fixTHelperInFile(logger *cryptoutilCmd.Logger, filePath string) (bool, int,
 	}
 
 	fixCount := 0
+
 	ast.Inspect(node, func(n ast.Node) bool {
 		funcDecl, ok := n.(*ast.FuncDecl)
 		if !ok {

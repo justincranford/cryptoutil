@@ -73,6 +73,7 @@ func fixCopyLoopVarInFile(logger *cryptoutilCmd.Logger, filePath string) (bool, 
 	}
 
 	fixCount := 0
+
 	ast.Inspect(node, func(n ast.Node) bool {
 		rangeStmt, ok := n.(*ast.RangeStmt)
 		if !ok {
@@ -131,6 +132,7 @@ func isLoopVarCopy(rangeStmt *ast.RangeStmt, assign *ast.AssignStmt) bool {
 	}
 
 	lhs, ok1 := assign.Lhs[0].(*ast.Ident)
+
 	rhs, ok2 := assign.Rhs[0].(*ast.Ident)
 	if !ok1 || !ok2 {
 		return false

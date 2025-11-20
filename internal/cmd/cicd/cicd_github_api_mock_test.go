@@ -71,6 +71,7 @@ func (m *MockGitHubServer) handleRequest(w http.ResponseWriter, r *http.Request)
 	parts := strings.Split(strings.TrimPrefix(path, "/repos/"), "/")
 	if len(parts) < 2 {
 		http.Error(w, "Invalid path", http.StatusBadRequest)
+
 		return
 	}
 
@@ -89,6 +90,7 @@ func (m *MockGitHubServer) handleRequest(w http.ResponseWriter, r *http.Request)
 		default:
 			_, _ = w.Write([]byte(`{"message": "Server error"}`))
 		}
+
 		return
 	}
 
@@ -98,9 +100,12 @@ func (m *MockGitHubServer) handleRequest(w http.ResponseWriter, r *http.Request)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(data))
+
 			return
 		}
+
 		http.Error(w, "Release not found", http.StatusNotFound)
+
 		return
 	}
 
@@ -110,9 +115,12 @@ func (m *MockGitHubServer) handleRequest(w http.ResponseWriter, r *http.Request)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(data))
+
 			return
 		}
+
 		http.Error(w, "Tags not found", http.StatusNotFound)
+
 		return
 	}
 
@@ -134,5 +142,6 @@ func SampleTagsJSON(tags ...string) string {
 	for _, tag := range tags {
 		tagObjects = append(tagObjects, fmt.Sprintf(`{"name": "%s"}`, tag))
 	}
+
 	return "[" + strings.Join(tagObjects, ",") + "]"
 }

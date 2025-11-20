@@ -27,9 +27,11 @@ func TestNewLogger(t *testing.T) {
 	logger := NewLogger("test-operation")
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -48,13 +50,16 @@ func TestLogger_Log(t *testing.T) {
 	os.Stderr = w
 
 	logger := NewLogger("test-log")
+
 	time.Sleep(10 * time.Millisecond) // Ensure some duration
 	logger.Log("test message")
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -77,9 +82,11 @@ func TestLogger_LogError(t *testing.T) {
 	logger.LogError(testErr)
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -99,9 +106,11 @@ func TestLogger_LogWithPrefix(t *testing.T) {
 	logger.LogWithPrefix("CUSTOM", "custom message")
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -113,6 +122,7 @@ func TestLogger_Duration(t *testing.T) {
 	t.Parallel()
 
 	logger := NewLogger("test-duration")
+
 	time.Sleep(50 * time.Millisecond)
 
 	duration := logger.Duration()
@@ -135,7 +145,7 @@ func TestLogger_Operation(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
+
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -147,9 +157,11 @@ func TestLogger_Operation(t *testing.T) {
 			logger := NewLogger(tc.operation)
 
 			w.Close()
+
 			os.Stderr = oldStderr
 
 			var buf bytes.Buffer
+
 			_, _ = buf.ReadFrom(r) // Drain pipe
 
 			require.Equal(t, tc.operation, logger.Operation(), "Operation should match input")
@@ -173,9 +185,11 @@ func TestLogger_MultipleLogs(t *testing.T) {
 	logger.Log("message 3")
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
@@ -204,9 +218,11 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 
 	// Spawn multiple goroutines logging concurrently
 	done := make(chan bool)
+
 	for i := 0; i < 10; i++ {
 		go func(id int) {
 			logger.Log(fmt.Sprintf("concurrent message %d", id))
+
 			done <- true
 		}(i)
 	}
@@ -217,9 +233,11 @@ func TestLogger_ConcurrentLogging(t *testing.T) {
 	}
 
 	w.Close()
+
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
+
 	_, _ = buf.ReadFrom(r)
 	output := buf.String()
 
