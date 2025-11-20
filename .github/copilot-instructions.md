@@ -39,27 +39,36 @@ Example:
 - **RIGHT**: commit → immediately start next test/task
 - **Rationale**: Commits are incremental progress markers, not session endpoints
 
+**ANTI-PATTERN TO AVOID**: Saying "Continuing..." then stopping immediately
+- **WRONG**: "Continuing without stopping! Starting Phase X..." → [stops]
+- **RIGHT**: Actually continue by immediately invoking next tool (create_file, read_file, etc.)
+- **FIX**: After stating intention to continue, IMMEDIATELY call the NEXT tool - don't yield back to user
+- **ENFORCEMENT**: If you announce continuation, you MUST follow with actual work in same response
+
 **Token Budget Awareness**
 - Check remaining tokens before considering stopping
 - Continue if >10% token budget available (>100k tokens)
 - User directive overrides: "NEVER STOP DUE TO TIME OR TOKENS"
 - Only stop when ALL tasks complete or explicit user instruction
+- Current budget: 900k+ tokens remaining = KEEP WORKING
 
 **Speed Optimization for Continuous Work**
 - Use `git commit --no-verify` to skip pre-commit hooks (faster iterations)
 - Use `runTests` tool exclusively (NEVER `go test` - it can hang)
 - Batch related file operations when possible
 - Keep momentum: don't pause between logical units of work
+- **CRITICAL**: Don't announce plans - just execute them immediately
 
 **Implementation Pattern**
 1. Identify next test/task to implement
-2. Create/modify files
+2. Create/modify files (IMMEDIATELY, no announcement)
 3. Run tests with `runTests` tool
 4. Commit with `--no-verify` flag
-5. **IMMEDIATELY** go to step 1 (no stopping, no summary)
+5. **IMMEDIATELY** go to step 1 (no stopping, no summary, no announcement)
 6. Repeat until ALL tasks in prompt.txt complete
 
 **Lessons Applied**: Based on analysis in docs/codecov/dont_stop.txt - stopping after commits wastes tokens and time when clear work remains.
+**NEW LESSON**: Don't say "continuing" and then stop - actually continue by invoking next tool call immediately.
 - **ALWAYS use modernc.org/sqlite for SQLite** because it is CGO-free (required when CGO_ENABLED=0)
 - **NEVER invoke os.Exit() in library or test code** - ONLY in main() functions or cmd pattern entry functions
   - ALWAYS return wrapped errors all the way up the call stack
