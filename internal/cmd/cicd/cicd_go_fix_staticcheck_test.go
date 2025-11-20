@@ -425,23 +425,19 @@ func TestGoFixAll_AppliesFixes(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	testFile := filepath.Join(tmpDir, "test.go")
+	testFile := filepath.Join(tmpDir, "test_test.go") // Use _test.go suffix for thelper
 
 	originalContent := `package test
 
 import "fmt"
+import "testing"
 
 func example() error {
-	return fmt.Errorf("error occurred")
+	return fmt.Errorf("Error occurred") // Uppercase error string - will be fixed by staticcheck
 }
-`
 
-	expectedContent := `package test
-
-import "fmt"
-
-func example() error {
-	return fmt.Errorf("error occurred")
+func setupTest(t *testing.T) {
+	// Helper function without t.Helper() - will be fixed by thelper
 }
 `
 
@@ -451,10 +447,12 @@ func example() error {
 	logger := NewLogUtil("TestGoFixAll_AppliesFixes")
 	err = goFixAll(logger, []string{testFile})
 	require.Error(t, err, "Should return error when fixes are made")
-	require.Contains(t, err.Error(), "go-fix-staticcheck-error-strings failed", "Should report which command made fixes")
 
-	// Verify file was fixed
+	// Verify file was modified
 	resultContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
-	require.Equal(t, expectedContent, string(resultContent), "Error string should be lowercased")
+	// Should contain t.Helper() (added by thelper)
+	require.Contains(t, string(resultContent), ".Helper()", "Should have added Helper() call")
+	// Should have lowercase error string (fixed by staticcheck)
+	require.Contains(t, string(resultContent), `"error occurred"`, "Should have lowercased error string")
 }
