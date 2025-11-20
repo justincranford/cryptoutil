@@ -46,11 +46,11 @@ Example:
 - **ENFORCEMENT**: If you announce continuation, you MUST follow with actual work in same response
 
 **Token Budget Awareness**
-- Check remaining tokens before considering stopping
-- Continue if >10% token budget available (>100k tokens)
-- User directive overrides: "NEVER STOP DUE TO TIME OR TOKENS"
-- Only stop when ALL tasks complete or explicit user instruction
-- Current budget: 900k+ tokens remaining = KEEP WORKING
+- Work until 950k tokens used (95% of 1M budget), leaving only 50k tokens (5%) remaining
+- Check <system_warning> after each tool call: "Token usage: X/1000000; Y remaining"
+- STOP only when: tokens used ≥950k OR all tasks complete OR explicit user instruction
+- User directive: "NEVER STOP DUE TO TIME OR TOKENS until 95% utilization"
+- Example: 70k used, 930k remaining = KEEP WORKING (only 7% used)
 
 **Speed Optimization for Continuous Work**
 - Use `git commit --no-verify` to skip pre-commit hooks (faster iterations)
