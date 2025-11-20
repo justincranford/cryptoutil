@@ -17,7 +17,7 @@ func TestNewTelemetryService_NilContext(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("test_nil_ctx")
 
-	_, err := NewTelemetryService(nil, settings)
+	_, err := NewTelemetryService(nil, settings) //nolint:staticcheck // Testing nil context error handling
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "context must be non-nil")
 }

@@ -92,7 +92,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
 
-				repo, err = sqlrepository.NewSQLRepository(nil, telemetryService, settings)
+				repo, err = sqlrepository.NewSQLRepository(nil, telemetryService, settings) //nolint:staticcheck // Testing nil context error handling
 			} else if tc.name == "Nil telemetry service" {
 				// Test nil telemetry service
 				repo, err = sqlrepository.NewSQLRepository(ctx, nil, settings)
@@ -134,7 +134,7 @@ func TestSQLRepository_WithTransaction_NilContext(t *testing.T) {
 	defer sqlRepo.Shutdown()
 
 	// Test with nil context.
-	err := sqlRepo.WithTransaction(nil, false, func(tx *sqlrepository.SQLTransaction) error {
+	err := sqlRepo.WithTransaction(nil, false, func(tx *sqlrepository.SQLTransaction) error { //nolint:staticcheck // Testing nil context error handling
 		return nil
 	})
 

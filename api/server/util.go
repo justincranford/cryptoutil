@@ -11,7 +11,7 @@ import (
 func FiberHandlerOpenAPISpec() (func(c *fiber.Ctx) error, error) {
 	rawSpecBytes, err := rawSpec()
 	if err != nil {
-		return nil, fmt.Errorf("Missing openapi spec: %w", err)
+		return nil, fmt.Errorf("missing openapi spec: %w", err)
 	}
 
 	return func(c *fiber.Ctx) error {

@@ -21,7 +21,7 @@ func TestNewSQLRepository_NilContext(t *testing.T) {
 	defer telemetry.Shutdown()
 
 	// Call NewSQLRepository with nil context.
-	repo, err := NewSQLRepository(nil, telemetry, settings)
+	repo, err := NewSQLRepository(nil, telemetry, settings) //nolint:staticcheck // Testing nil context error handling
 	require.Error(t, err, "NewSQLRepository should fail with nil context")
 	require.Nil(t, repo, "Repository should be nil on error")
 	require.Contains(t, err.Error(), "ctx must be non-nil", "Error should indicate nil context")
