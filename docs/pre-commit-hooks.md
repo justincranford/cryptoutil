@@ -90,13 +90,14 @@ This approach provides:
 |---------------|-------|---------------|-------|
 | Generic File Checks | pre-commit | 1-2s | Very fast, runs on all files |
 | go mod tidy | pre-commit | 0.5-1s | Only when go.mod changes |
+| go-fix-all | pre-commit | 1-3s | Auto-fixes for Go files |
 | golangci-lint (incremental) | pre-commit | 2-5s | Only changed files |
 | Custom CI/CD checks | pre-commit | 3-5s | Fast internal validations |
 | cspell | pre-commit | 1-3s | Cached spell checking |
 | golangci-lint (full) | pre-push | 30-60s | Complete codebase validation |
 | go build | pre-push | 10-20s | Full compilation check |
 | github-workflow-lint | pre-push | 2-5s | Only when .github/workflows/ changes |
-| **Total pre-commit** | - | **8-12s** | Incremental changes |
+| **Total pre-commit** | - | **10-15s** | Incremental changes |
 | **Total pre-push** | - | **45-60s** | Full validation |
 
 ### Troubleshooting Slow Hooks
@@ -157,11 +158,12 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 |-------|---------|-------|-----------|
 | **1. Generic File Checks** | Universal file validation | pre-commit-hooks | Fast, catches basic issues first |
 | **2. Dependency Management** | Module cleanup | go mod tidy | Clean state before expensive linting |
-| **3. Go Auto-Fix & Validation** | Formatting, imports, and comprehensive linting | golangci-lint --fix | Single tool handles all auto-fixable issues + validation |
-| **4. Build Validation** | Compilation verification | go build | Ensure code compiles after linting |
-| **5. Custom Rules** | Project-specific checks | cicd commands | Business logic and project-specific validations |
-| **6. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit, cspell | Targeted validation by file type |
-| **7. Commit Validation** | Message format checking | commitizen | Final gate before push |
+| **3. Go Auto-Fixes** | Fix common code issues automatically | go-fix-all (cicd) | Apply fixes before linting reduces linter noise |
+| **4. Go Linting & Validation** | Formatting, imports, and comprehensive linting | golangci-lint --fix | Single tool handles remaining auto-fixable issues + validation |
+| **5. Build Validation** | Compilation verification | go build | Ensure code compiles after linting |
+| **6. Custom Rules** | Project-specific checks | cicd commands | Business logic and project-specific validations |
+| **7. Specialized Linting** | File-type specific checks | actionlint, hadolint, shellcheck, bandit, cspell | Targeted validation by file type |
+| **8. Commit Validation** | Message format checking | commitizen | Final gate before push |
 
 ## Tool Details and Configuration
 
@@ -217,7 +219,44 @@ The ordering minimizes redundant work and maximizes parallel processing potentia
 
 **Documentation**: [Go Modules](https://go.dev/ref/mod)
 
-### 3. Go Linting with Auto-Fix (golangci-lint)
+### 3. Go Auto-Fix Commands (go-fix-all)
+
+**Purpose**: Automatically fixes common Go code issues detected by staticcheck, copyloopvar, and thelper before running comprehensive linting.
+
+**Version**: Custom cicd utility (internal/cmd/cicd)
+
+**Configuration**:
+```yaml
+- id: go-fix-all
+  name: Auto-fix Go issues (staticcheck, copyloopvar, thelper)
+  entry: go
+  args: [run, cmd/cicd/main.go, go-fix-all]
+  language: system
+  pass_filenames: false
+  files: '\.go$'
+  stages: [pre-commit]
+```
+
+**Commands Executed**:
+1. **go-fix-staticcheck-error-strings**: Fixes ST1005 violations (lowercase error strings, preserves acronyms)
+2. **go-fix-copyloopvar**: Fixes loop variable capture issues (for Go <1.25, no-op for Go ≥1.25)
+3. **go-fix-thelper**: Adds missing `t.Helper()` calls to test helper functions
+
+**Key Parameters**:
+- `files: '\.go$'`: Only runs when Go files change
+- `pass_filenames: false`: Processes all Go files matching filter
+- `stages: [pre-commit]`: Runs before golangci-lint for maximum effectiveness
+
+**Behavior**:
+- Returns error when fixes are applied (allows review before committing)
+- Skips generated files (`_gen.go`, `/vendor/`, `/api/`)
+- Safe to run multiple times (idempotent)
+
+**Rationale**: Applying auto-fixes before golangci-lint reduces linter errors and allows incremental linting to focus on real issues rather than auto-fixable violations.
+
+**Documentation**: See `internal/cmd/cicd/cicd_go_fix_*.go` for implementation details
+
+### 4. Go Linting with Auto-Fix (golangci-lint)
 
 **Purpose**: Comprehensive Go code linting with 40+ built-in linters plus automatic fixing for formatting, imports, and code quality issues.
 

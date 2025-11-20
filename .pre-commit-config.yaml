@@ -204,6 +204,18 @@ repos:
         pass_filenames: false
         files: go\.mod$
 
+  # Go auto-fix commands (apply before linting)
+  - repo: local
+    hooks:
+      - id: go-fix-all
+        name: Auto-fix Go issues (staticcheck, copyloopvar, thelper)
+        entry: go
+        args: [run, cmd/cicd/main.go, go-fix-all]
+        language: system
+        pass_filenames: false
+        files: '\.go$'
+        stages: [pre-commit]
+
   # Go build validation (moved to pre-push for faster pre-commit)
   - repo: local
     hooks:
