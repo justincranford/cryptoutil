@@ -10,7 +10,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"cryptoutil/internal/cmd/cicd/common"
+	"cryptoutil/internal/cmd/cicd/enforce/testpatterns"
 )
 
 func TestGoEnforceTestPatterns_NoFiles(t *testing.T) {
@@ -168,7 +170,7 @@ func TestValidExample(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(validContent), 0o600)
 	require.NoError(t, err)
 
-	issues := checkTestFile(testFile)
+	issues := testpatterns.CheckTestFile(testFile)
 	require.Empty(t, issues, "Valid file should have no issues")
 }
 
@@ -191,13 +193,13 @@ func TestExample(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(invalidContent), 0o600)
 	require.NoError(t, err)
 
-	issues := checkTestFile(testFile)
+	issues := testpatterns.CheckTestFile(testFile)
 	require.NotEmpty(t, issues, "Invalid file should have issues")
 	require.GreaterOrEqual(t, len(issues), 4, "Should detect multiple violations")
 }
 
 func TestCheckTestFile_FileReadError(t *testing.T) {
-	issues := checkTestFile("/nonexistent/file/that/does/not/exist.go")
+	issues := testpatterns.CheckTestFile("/nonexistent/file/that/does/not/exist.go")
 	require.Len(t, issues, 1)
 	require.Contains(t, issues[0], "Error reading file")
 }
@@ -219,7 +221,7 @@ func TestUUID(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	issues := checkTestFile(testFile)
+	issues := testpatterns.CheckTestFile(testFile)
 	require.NotEmpty(t, issues)
 
 	foundUUIDIssue := false
@@ -251,7 +253,7 @@ func TestExample(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(content), 0o600)
 	require.NoError(t, err)
 
-	issues := checkTestFile(testFile)
+	issues := testpatterns.CheckTestFile(testFile)
 	require.NotEmpty(t, issues)
 
 	foundImportIssue := false
