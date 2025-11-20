@@ -321,70 +321,56 @@ GoFixStaticcheckErrorStringsFileExcludePatterns = []string{
 
 ---
 
-## Proposed Refactoring Structure
+## Target Refactoring Structure
 
-### Target Directory Layout
+### CORRECT Target Directory Layout (Flat Snake_Case)
 
-```
+**This is the FINAL target structure matching copilot instructions:**
+
+```plaintext
 internal/cmd/cicd/
-├── cicd.go                          # Main command dispatcher (simplified)
-├── cicd_test.go                     # Integration tests for dispatcher
-│
-├── common/                          # Shared utilities (extracted)
-│   ├── logger.go                    # Logging utility (from cicd_log.go)
-│   ├── logger_test.go
-│   ├── files.go                     # File collection helpers
-│   ├── files_test.go
-│   ├── cache.go                     # Generic caching (from github_api_cache)
-│   ├── cache_test.go
-│   └── summary.go                   # Execution summary formatting
-│
-├── enforce/                         # Enforcement commands
-│   ├── utf8/
-│   │   ├── utf8.go                  # UTF-8 encoding enforcement
-│   │   └── utf8_test.go
-│   ├── any/
-│   │   ├── any.go                   # Go 'any' enforcement
-│   │   └── any_test.go
-│   └── testpatterns/
-│       ├── testpatterns.go          # UUIDv7, testify enforcement
-│       ├── testpatterns_test.go
-│       └── testpatterns_integration_test.go
-│
-├── check/                           # Analysis/checking commands
-│   ├── circulardeps/
-│   │   ├── circulardeps.go           # Circular dependency checker
-│   │   └── circulardeps_test.go
-│   └── identityimports/
-│       ├── identityimports.go       # Identity domain isolation
-│       ├── identityimports_test.go
-│       └── cache.go                 # Import check caching
-│
-├── fix/                             # Auto-fix commands
-│   ├── staticcheck/
-│   │   ├── staticcheck.go           # ST1005 auto-fix
-│   │   └── staticcheck_test.go
-│   ├── copyloopvar/
-│   │   ├── copyloopvar.go           # Loop variable capture fix
-│   │   └── copyloopvar_test.go
-│   ├── thelper/
-│   │   ├── thelper.go               # t.Helper() auto-fix
-│   │   └── thelper_test.go
-│   └── all/
-│       ├── all.go                   # Run all auto-fix commands
-│       └── all_test.go
-│
-├── update/                          # Dependency management
-│   ├── deps/
-│   │   ├── deps.go                  # Dependency update checker
-│   │   ├── deps_test.go
-│   │   └── github_cache.go          # GitHub API caching
-│
-└── lint/                            # External file linting
-    └── workflow/
-        ├── workflow.go              # GitHub workflow linting
-        ├── workflow_test.go
-        └── workflow_integration_test.go
+├── cicd.go                                     # Main dispatcher
+├── cicd_test.go                                # Dispatcher tests
+├── common/                                     # Shared utilities
+│   ├── logger.go
+│   ├── result.go
+│   └── summary.go
+├── all_enforce_utf8/                           # Command: all-enforce-utf8
+│   ├── utf8.go
+│   └── utf8_test.go
+├── go_enforce_any/                             # Command: go-enforce-any
+│   ├── any.go
+│   └── any_test.go
+├── go_enforce_test_patterns/                   # Command: go-enforce-test-patterns
+│   ├── testpatterns.go
+│   └── testpatterns_test.go
+├── go_check_circular_package_dependencies/     # Command: go-check-circular-package-dependencies
+│   ├── circulardeps.go
+│   └── circulardeps_test.go
+├── go_check_identity_imports/                  # Command: go-check-identity-imports
+│   ├── identityimports.go
+│   └── identityimports_test.go
+├── go_fix_staticcheck_error_strings/           # Command: go-fix-staticcheck-error-strings
+│   ├── staticcheck.go
+│   └── staticcheck_test.go
+├── go_fix_copyloopvar/                         # Command: go-fix-copyloopvar
+│   ├── copyloopvar.go
+│   └── copyloopvar_test.go
+├── go_fix_thelper/                             # Command: go-fix-thelper
+│   ├── thelper.go
+│   └── thelper_test.go
+├── go_fix_all/                                 # Command: go-fix-all
+│   ├── all.go
+│   └── all_test.go
+├── go_update_direct_dependencies/              # Command: go-update-direct-dependencies
+│   ├── deps.go
+│   └── deps_test.go
+├── go_update_all_dependencies/                 # Command: go-update-all-dependencies
+│   ├── deps.go
+│   └── deps_test.go
+└── github_workflow_lint/                       # Command: github-workflow-lint
+    ├── workflow.go
+    └── workflow_test.go
 ```
 
 ### File Size Targets
@@ -394,7 +380,7 @@ internal/cmd/cicd/
 - `cicd_go_fix_staticcheck.go` → Split validation, transformation, formatting
 - `cicd_update_deps.go` → Split API calls, parsing, analysis
 
-**Target**: All files <200 lines for easy comprehension and maintenance
+**Target**: All files ≤300 lines (soft limit), ≤500 lines (hard limit) for maintainability
 
 ---
 
