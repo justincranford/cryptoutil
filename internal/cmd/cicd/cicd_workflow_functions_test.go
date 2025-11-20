@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // TestIsOutdated_EdgeCases tests version comparison logic.

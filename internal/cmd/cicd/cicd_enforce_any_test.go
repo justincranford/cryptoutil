@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 const (

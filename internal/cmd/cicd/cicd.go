@@ -7,7 +7,6 @@ package cicd
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 

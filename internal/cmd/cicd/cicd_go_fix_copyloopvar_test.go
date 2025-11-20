@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 func TestGoFixCopyLoopVar_NoGoFiles(t *testing.T) {

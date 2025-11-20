@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // Common test constants to avoid goconst linter violations.
@@ -333,12 +334,12 @@ func TestValidateCommands(t *testing.T) {
 func TestPrintExecutionSummary(t *testing.T) {
 	tests := []struct {
 		name          string
-		results       []CommandResult
+		results       []common.CommandResult
 		totalDuration time.Duration
 	}{
 		{
 			name: "all commands successful",
-			results: []CommandResult{
+			results: []common.CommandResult{
 				{Command: "all-enforce-utf8", Duration: 100 * time.Millisecond, Error: nil},
 				{Command: "go-enforce-test-patterns", Duration: 200 * time.Millisecond, Error: nil},
 				{Command: "go-enforce-any", Duration: 150 * time.Millisecond, Error: nil},
@@ -347,7 +348,7 @@ func TestPrintExecutionSummary(t *testing.T) {
 		},
 		{
 			name: "some commands failed",
-			results: []CommandResult{
+			results: []common.CommandResult{
 				{Command: "all-enforce-utf8", Duration: 100 * time.Millisecond, Error: nil},
 				{Command: "go-enforce-test-patterns", Duration: 200 * time.Millisecond, Error: fmt.Errorf("pattern violation")},
 				{Command: "go-enforce-any", Duration: 150 * time.Millisecond, Error: nil},
@@ -356,7 +357,7 @@ func TestPrintExecutionSummary(t *testing.T) {
 		},
 		{
 			name: "all commands failed",
-			results: []CommandResult{
+			results: []common.CommandResult{
 				{Command: "all-enforce-utf8", Duration: 100 * time.Millisecond, Error: fmt.Errorf("encoding error")},
 				{Command: "go-enforce-test-patterns", Duration: 200 * time.Millisecond, Error: fmt.Errorf("pattern violation")},
 			},
@@ -364,18 +365,18 @@ func TestPrintExecutionSummary(t *testing.T) {
 		},
 		{
 			name:          "no commands executed",
-			results:       []CommandResult{},
+			results:       []common.CommandResult{},
 			totalDuration: 0,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test just ensures printExecutionSummary doesn't panic
+			// Test just ensures common.PrintExecutionSummary doesn't panic
 			// Actual output validation would require capturing stderr
 			require.NotPanics(t, func() {
-				printExecutionSummary(tt.results, tt.totalDuration)
-			}, "printExecutionSummary should not panic")
+				common.PrintExecutionSummary(tt.results, tt.totalDuration)
+			}, "common.PrintExecutionSummary should not panic")
 		})
 	}
 }
@@ -383,12 +384,12 @@ func TestPrintExecutionSummary(t *testing.T) {
 func TestCommandResult(t *testing.T) {
 	tests := []struct {
 		name     string
-		result   CommandResult
+		result   common.CommandResult
 		hasError bool
 	}{
 		{
 			name: "successful command",
-			result: CommandResult{
+			result: common.CommandResult{
 				Command:  "all-enforce-utf8",
 				Duration: 100 * time.Millisecond,
 				Error:    nil,
@@ -397,7 +398,7 @@ func TestCommandResult(t *testing.T) {
 		},
 		{
 			name: "failed command",
-			result: CommandResult{
+			result: common.CommandResult{
 				Command:  "go-enforce-test-patterns",
 				Duration: 200 * time.Millisecond,
 				Error:    fmt.Errorf("test pattern violation"),

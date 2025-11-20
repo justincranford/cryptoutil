@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // TestGetLatestTag_HTTPErrors tests error paths in getLatestTag.

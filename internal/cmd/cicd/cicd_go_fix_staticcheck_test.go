@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 func TestGoFixStaticcheckErrorStrings_NoGoFiles(t *testing.T) {
