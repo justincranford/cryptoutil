@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
@@ -94,7 +95,7 @@ func TestCheckFileEncoding(t *testing.T) {
 func TestAllEnforceUtf8(t *testing.T) {
 	t.Run("no files to check", func(t *testing.T) {
 		// Test with empty file list
-		logger := NewLogUtil("test")
+		logger := common.NewLogger("test")
 		err := allEnforceUtf8(logger, []string{})
 		require.NoError(t, err, "Should not return error for no files")
 	})
@@ -116,7 +117,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that allEnforceUtf8 returns an error for encoding violations
-		logger := NewLogUtil("test")
+		logger := common.NewLogger("test")
 		err = allEnforceUtf8(logger, []string{invalidFile})
 		require.Error(t, err, "Should return error for encoding violations")
 		require.Contains(t, err.Error(), "file encoding violations found", "Error should mention encoding violations")
@@ -140,7 +141,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that the function completes without error for valid files
-		logger := NewLogUtil("test")
+		logger := common.NewLogger("test")
 		err = allEnforceUtf8(logger, []string{goFile, mdFile})
 		require.NoError(t, err, "Should not return error for valid files")
 	})
@@ -163,7 +164,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that only .go and .txt files are checked (binary should be excluded)
-		logger := NewLogUtil("test")
+		logger := common.NewLogger("test")
 		err = allEnforceUtf8(logger, []string{goFile, txtFile, binaryFile})
 		require.NoError(t, err, "Should not return error when only valid files are checked")
 	})
@@ -190,7 +191,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 		require.NoError(t, os.Chdir(tempDir))
 
 		// Test that generated and vendor files are excluded
-		logger := NewLogUtil("test")
+		logger := common.NewLogger("test")
 		err = allEnforceUtf8(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
 		require.NoError(t, err, "Should not return error when excluded files are properly filtered")
 	})

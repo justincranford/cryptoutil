@@ -12,14 +12,15 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // goEnforceAny enforces custom Go source code fixes across all Go files.
 // It applies automated fixes like replacing interface{} with any.
 // Files matching goEnforceAnyFileExcludePatterns are skipped to prevent self-modification.
 // Returns an error if any files were modified (to indicate changes were made).
-func goEnforceAny(logger *LogUtil, allFiles []string) error {
-	logger.Log("Running go-enforce-any - Custom Go source code fixes")
+func goEnforceAny(logger *common.Logger, allFiles []string) error {
+	logger.Log("Enforcing 'any' instead of 'interface{}' in Go files...")
 
 	// Find all .go files
 	var goFiles []string

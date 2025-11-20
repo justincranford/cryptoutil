@@ -19,7 +19,7 @@ func TestGetLatestTag_HTTPErrors(t *testing.T) {
 
 // TestGetLatestTag_CacheHit tests cache hit path in getLatestTag.
 func TestGetLatestTag_CacheHit(t *testing.T) {
-	logger := NewLogUtil("TestGetLatestTag_Cache")
+	logger := common.NewLogger("TestGetLatestTag_Cache")
 
 	// Clear cache and set a value
 	githubAPICache = NewGitHubAPICache()
@@ -37,7 +37,7 @@ func TestGetLatestTag_CacheHit(t *testing.T) {
 func TestGetLatestTag_WithGitHubToken(t *testing.T) {
 	// This test verifies the code path that sets Authorization header
 	// We can't fully test it without mocking, but we can verify the env var check path
-	logger := NewLogUtil("TestGetLatestTag_Token")
+	logger := common.NewLogger("TestGetLatestTag_Token")
 
 	// Set a fake token
 	originalToken := os.Getenv("GITHUB_TOKEN")

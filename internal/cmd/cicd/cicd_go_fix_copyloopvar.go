@@ -12,11 +12,13 @@ import (
 	"strings"
 
 	"golang.org/x/mod/modfile"
+
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // goFixCopyLoopVar removes unnecessary loop variable copies (x := x) in Go 1.25+.
 // In Go 1.25+, loop variables are automatically per-iteration, making explicit copies redundant.
-func goFixCopyLoopVar(logger *LogUtil, files []string) error {
+func goFixCopyLoopVar(logger *common.Logger, files []string) error {
 	logger.Log("Starting copyloopvar auto-fix")
 
 	// Check Go version from go.mod

@@ -17,6 +17,7 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 type PackageInfo struct {
@@ -27,8 +28,8 @@ type PackageInfo struct {
 // goCheckCircularPackageDeps checks for circular dependencies in Go packages.
 // It analyzes the dependency graph of all packages in the project and returns an error if circular dependencies are found.
 // Uses caching to avoid expensive go list calls when nothing has changed.
-func goCheckCircularPackageDeps(logger *LogUtil) error {
-	logger.Log("Checking for circular dependencies in Go packages")
+func goCheckCircularPackageDeps(logger *common.Logger) error {
+	logger.Log("Checking for circular package dependencies...")
 
 	cacheFile := cryptoutilMagic.CircularDepCacheFileName
 

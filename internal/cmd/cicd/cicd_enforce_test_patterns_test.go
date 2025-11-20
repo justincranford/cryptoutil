@@ -7,6 +7,7 @@ package cicd
 import (
 	"testing"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"

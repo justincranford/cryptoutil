@@ -17,6 +17,7 @@ import (
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 const (
@@ -26,7 +27,7 @@ const (
 // goUpdateDeps checks for outdated Go dependencies and fails if any are found.
 // It supports two modes: direct dependencies only (go-update-direct-dependencies) or all dependencies (go-update-all-dependencies).
 // This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
-func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) error {
+func goUpdateDeps(logger *common.Logger, mode cryptoutilMagic.DepCheckMode) error {
 	modeName := cryptoutilMagic.ModeNameDirect
 	if mode == cryptoutilMagic.DepCheckAll {
 		modeName = cryptoutilMagic.ModeNameAll
@@ -303,7 +304,7 @@ func getDirectDependencies(goModContent []byte) (map[string]bool, error) {
 // checkAndUseDepCache checks if valid cached dependency results exist and uses them if available.
 // Returns true if cache was used (and function should return), false if cache miss occurred.
 // Also returns a descriptive string about the cache state for logging and an error if outdated deps were found in cache.
-func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.FileInfo, logger *LogUtil) (bool, string, error) {
+func checkAndUseDepCache(cacheFile, modeName string, goModStat, goSumStat os.FileInfo, logger *common.Logger) (bool, string, error) {
 	cache, err := loadDepCache(cacheFile, modeName)
 	if err != nil {
 		// Determine the specific reason for cache miss

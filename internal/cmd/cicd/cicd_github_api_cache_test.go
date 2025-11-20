@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 

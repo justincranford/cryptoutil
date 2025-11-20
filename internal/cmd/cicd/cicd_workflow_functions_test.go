@@ -181,7 +181,7 @@ func TestCheckActionVersionsConcurrently_Coverage(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestCheckActionVersionsConcurrently_Coverage")
+	logger := common.NewLogger("TestCheckActionVersionsConcurrently_Coverage")
 
 	// Test with empty map
 	outdated, exempted, errors := checkActionVersionsConcurrently(logger, map[string]WorkflowActionDetails{}, &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)})
@@ -219,7 +219,7 @@ func TestCheckActionVersionsConcurrently_NonExempted(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestCheckActionVersionsConcurrently_NonExempted")
+	logger := common.NewLogger("TestCheckActionVersionsConcurrently_NonExempted")
 
 	actionMap := map[string]WorkflowActionDetails{
 		"actions/checkout@v4": {

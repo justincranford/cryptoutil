@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
@@ -201,7 +202,7 @@ func TestCheckAndUseDepCache(t *testing.T) {
 	goModStat := &mockFileInfo{name: "go.mod", modTime: time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)}
 	goSumStat := &mockFileInfo{name: "go.sum", modTime: time.Date(2025, 1, 1, 12, 0, 0, 0, time.UTC)}
 
-	logger := NewLogUtil("test")
+	logger := common.NewLogger("test")
 
 	t.Run("cache hit - valid cache with no outdated deps", func(t *testing.T) {
 		// Create a valid cache file with recent timestamp

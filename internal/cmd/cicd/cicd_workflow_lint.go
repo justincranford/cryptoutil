@@ -14,10 +14,11 @@ import (
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // checkWorkflowLintWithError is a wrapper that returns an error instead of calling os.Exit.
-func checkWorkflowLintWithError(logger *LogUtil, allFiles []string) error {
+func checkWorkflowLintWithError(logger *common.Logger, allFiles []string) error {
 	workflowActionExceptions, err := loadWorkflowActionExceptions()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to load action exceptions: %v", err))
@@ -88,7 +89,7 @@ func checkWorkflowLintWithError(logger *LogUtil, allFiles []string) error {
 	return nil
 }
 
-func validateAndGetWorkflowActionsDetails(logger *LogUtil, allFiles []string) (map[string]WorkflowActionDetails, error) {
+func validateAndGetWorkflowActionsDetails(logger *common.Logger, allFiles []string) (map[string]WorkflowActionDetails, error) {
 	workflowsActionDetails := make(map[string]WorkflowActionDetails)
 
 	var allValidationErrors []string
@@ -220,7 +221,7 @@ func validateAndParseWorkflowFile(workflowFile string) (map[string]WorkflowActio
 // checkActionVersionsConcurrently checks multiple GitHub actions for updates concurrently.
 // It uses goroutines to make parallel API calls, significantly reducing total execution time.
 // Returns slices of outdated actions, exempted actions, and any errors encountered.
-func checkActionVersionsConcurrently(logger *LogUtil, actionMap map[string]WorkflowActionDetails, exceptions *WorkflowActionExceptions) ([]WorkflowActionDetails, []WorkflowActionDetails, []string) {
+func checkActionVersionsConcurrently(logger *common.Logger, actionMap map[string]WorkflowActionDetails, exceptions *WorkflowActionExceptions) ([]WorkflowActionDetails, []WorkflowActionDetails, []string) {
 	type result struct {
 		action   WorkflowActionDetails
 		latest   string

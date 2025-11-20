@@ -15,6 +15,7 @@ import (
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // IdentityImportsCache represents cached identity imports check results.
@@ -49,8 +50,8 @@ func getBlockedPackages() []BlockedPackage {
 
 // goCheckIdentityImports checks that identity module doesn't import from forbidden packages.
 // This enforces domain isolation between identity and KMS server domains.
-func goCheckIdentityImports(logger *LogUtil) error {
-	logger.Log("Checking identity module imports for domain isolation violations")
+func goCheckIdentityImports(logger *common.Logger) error {
+	logger.Log("Checking identity module imports for domain isolation violations...")
 
 	cacheFile := ".cicd/identity-imports-cache.json"
 
@@ -152,7 +153,7 @@ func goCheckIdentityImports(logger *LogUtil) error {
 }
 
 // checkIdentityImports scans identity module files for forbidden imports.
-func checkIdentityImports(logger *LogUtil) ([]string, error) {
+func checkIdentityImports(logger *common.Logger) ([]string, error) {
 	violations := []string{}
 	blockedPkgs := getBlockedPackages()
 

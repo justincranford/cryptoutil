@@ -16,6 +16,7 @@ import (
 	"time"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // GitHubRelease represents a GitHub release API response.
@@ -78,7 +79,7 @@ var githubAPICache = NewGitHubAPICache()
 
 // getLatestVersion retrieves the latest version of a GitHub action.
 // It uses caching to avoid repeated API calls for the same action.
-func getLatestVersion(logger *LogUtil, actionName string) (string, error) {
+func getLatestVersion(logger *common.Logger, actionName string) (string, error) {
 	// Check cache first
 	cacheKey := "release:" + actionName
 	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
@@ -172,7 +173,7 @@ func getLatestVersion(logger *LogUtil, actionName string) (string, error) {
 
 // getLatestTag retrieves the latest tag for a GitHub repository.
 // Used as a fallback when releases are not available.
-func getLatestTag(logger *LogUtil, actionName string) (string, error) {
+func getLatestTag(logger *common.Logger, actionName string) (string, error) {
 	// Check cache first
 	cacheKey := "tags:" + actionName
 	if cachedVersion, found := githubAPICache.Get(cacheKey); found {

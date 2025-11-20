@@ -149,7 +149,7 @@ func main() {
 	require.NoError(t, os.Chdir(tempDir))
 
 	// Test that goEnforceAny returns an error when files are modified
-	logger := NewLogUtil("test")
+	logger := common.NewLogger("test")
 	err = goEnforceAny(logger, []string{testFile1, testFile2})
 	require.Error(t, err, "Should return error when files are modified")
 	require.Contains(t, err.Error(), "modified", "Error should indicate files were modified")

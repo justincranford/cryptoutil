@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"

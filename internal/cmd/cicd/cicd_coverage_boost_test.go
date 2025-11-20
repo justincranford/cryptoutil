@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
@@ -44,7 +45,7 @@ func TestGoUpdateDeps_AllMode(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoUpdateDeps_AllMode")
+	logger := common.NewLogger("TestGoUpdateDeps_AllMode")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -74,7 +75,7 @@ func TestGoUpdateDeps_DirectMode(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoUpdateDeps_DirectMode")
+	logger := common.NewLogger("TestGoUpdateDeps_DirectMode")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -100,7 +101,7 @@ func TestGoUpdateDeps_DirectMode(t *testing.T) {
 
 // TestGoUpdateDeps_WithCache tests that cache is used when valid.
 func TestGoUpdateDeps_WithCache(t *testing.T) {
-	logger := NewLogUtil("TestGoUpdateDeps_WithCache")
+	logger := common.NewLogger("TestGoUpdateDeps_WithCache")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -153,7 +154,7 @@ func TestGoUpdateDeps_ExpiredCache(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoUpdateDeps_ExpiredCache")
+	logger := common.NewLogger("TestGoUpdateDeps_ExpiredCache")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -207,7 +208,7 @@ func TestGoUpdateDeps_InvalidatedCache(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoUpdateDeps_InvalidatedCache")
+	logger := common.NewLogger("TestGoUpdateDeps_InvalidatedCache")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -255,7 +256,7 @@ func TestGoUpdateDeps_InvalidatedCache(t *testing.T) {
 
 // TestGoCheckCircularPackageDeps_WithCache tests cache usage.
 func TestGoCheckCircularPackageDeps_WithCache(t *testing.T) {
-	logger := NewLogUtil("TestGoCheckCircularPackageDeps_WithCache")
+	logger := common.NewLogger("TestGoCheckCircularPackageDeps_WithCache")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -351,7 +352,7 @@ func TestLoadCircularDepCache_InvalidJSON(t *testing.T) {
 
 // TestGoEnforceAny_MultipleReplacements tests enforcement with multiple files.
 func TestGoEnforceAny_MultipleReplacements(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceAny_MultipleReplacements")
+	logger := common.NewLogger("TestGoEnforceAny_MultipleReplacements")
 
 	tmpDir := t.TempDir()
 
@@ -391,7 +392,7 @@ func process(data any) any {
 
 // TestGoEnforceAny_AlreadyUsingAny tests files already using 'any'.
 func TestGoEnforceAny_AlreadyUsingAny(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceAny_AlreadyUsingAny")
+	logger := common.NewLogger("TestGoEnforceAny_AlreadyUsingAny")
 
 	tmpDir := t.TempDir()
 
@@ -417,7 +418,7 @@ var y any = "hello"
 
 // TestGoEnforceAny_NonGoFiles tests filtering of non-Go files.
 func TestGoEnforceAny_NonGoFiles(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceAny_NonGoFiles")
+	logger := common.NewLogger("TestGoEnforceAny_NonGoFiles")
 
 	tmpDir := t.TempDir()
 

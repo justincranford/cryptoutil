@@ -12,7 +12,7 @@ import (
 func TestGoFixTHelper_NoTestFiles(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_NoTestFiles")
+	logger := common.NewLogger("TestGoFixTHelper_NoTestFiles")
 	files := []string{"main.go", "handler.go", "util.go"}
 
 	err := goFixTHelper(logger, files)
@@ -22,7 +22,7 @@ func TestGoFixTHelper_NoTestFiles(t *testing.T) {
 func TestGoFixTHelper_NoHelperFunctions(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_NoHelperFunctions")
+	logger := common.NewLogger("TestGoFixTHelper_NoHelperFunctions")
 	tempDir := t.TempDir()
 
 	// Create a test file with no helper functions
@@ -48,7 +48,7 @@ func TestMain(t *testing.T) {
 func TestGoFixTHelper_AddsTHelperToSetup(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_AddsTHelperToSetup")
+	logger := common.NewLogger("TestGoFixTHelper_AddsTHelperToSetup")
 	tempDir := t.TempDir()
 
 	// Create a test file with setup function missing t.Helper()
@@ -82,7 +82,7 @@ type Database struct {
 func TestGoFixTHelper_PreservesExistingTHelper(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_PreservesExistingTHelper")
+	logger := common.NewLogger("TestGoFixTHelper_PreservesExistingTHelper")
 	tempDir := t.TempDir()
 
 	// Create a test file with helper function that already has t.Helper()
@@ -112,7 +112,7 @@ func helperFunction(t *testing.T) string {
 func TestGoFixTHelper_MultipleHelperFunctions(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_MultipleHelperFunctions")
+	logger := common.NewLogger("TestGoFixTHelper_MultipleHelperFunctions")
 	tempDir := t.TempDir()
 
 	// Create a test file with multiple helper functions
@@ -152,7 +152,7 @@ func verifyState(t *testing.T) {
 func TestGoFixTHelper_OnlyHelperPrefixes(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_OnlyHelperPrefixes")
+	logger := common.NewLogger("TestGoFixTHelper_OnlyHelperPrefixes")
 	tempDir := t.TempDir()
 
 	// Create a test file with functions that don't match helper patterns
@@ -190,7 +190,7 @@ func helperDoSomething(t *testing.T) {
 func TestGoFixTHelper_ExcludesNonTestFiles(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_ExcludesNonTestFiles")
+	logger := common.NewLogger("TestGoFixTHelper_ExcludesNonTestFiles")
 	tempDir := t.TempDir()
 
 	// Create a regular Go file with helper-like function
@@ -221,7 +221,7 @@ type Database struct {
 func TestGoFixTHelper_MultipleFiles(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixTHelper_MultipleFiles")
+	logger := common.NewLogger("TestGoFixTHelper_MultipleFiles")
 	tempDir := t.TempDir()
 
 	// Create multiple test files

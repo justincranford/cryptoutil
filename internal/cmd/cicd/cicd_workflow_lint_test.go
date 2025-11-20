@@ -15,6 +15,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
@@ -433,7 +434,7 @@ func TestGetLatestVersion(t *testing.T) {
 	defer server.Close()
 
 	// Create a logger for testing
-	logger := NewLogUtil("test")
+	logger := common.NewLogger("test")
 
 	// We can't easily mock the internal getLatestVersion function,
 	// so we'll test the logic indirectly by testing a simpler version

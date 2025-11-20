@@ -78,7 +78,7 @@ func TestFilterWorkflowFiles(t *testing.T) {
 }
 
 func TestCheckWorkflowLintWithError_NoFiles(t *testing.T) {
-	logger := NewLogUtil("TestCheckWorkflowLintWithError_NoFiles")
+	logger := common.NewLogger("TestCheckWorkflowLintWithError_NoFiles")
 	allFiles := []string{}
 
 	err := checkWorkflowLintWithError(logger, allFiles)
@@ -86,7 +86,7 @@ func TestCheckWorkflowLintWithError_NoFiles(t *testing.T) {
 }
 
 func TestCheckWorkflowLintWithError_NoWorkflowFiles(t *testing.T) {
-	logger := NewLogUtil("TestCheckWorkflowLintWithError_NoWorkflowFiles")
+	logger := common.NewLogger("TestCheckWorkflowLintWithError_NoWorkflowFiles")
 	allFiles := []string{
 		"README.md",
 		"main.go",
@@ -98,7 +98,7 @@ func TestCheckWorkflowLintWithError_NoWorkflowFiles(t *testing.T) {
 }
 
 func TestCheckWorkflowLintWithError_ValidWorkflowFile(t *testing.T) {
-	logger := NewLogUtil("TestCheckWorkflowLintWithError_ValidWorkflowFile")
+	logger := common.NewLogger("TestCheckWorkflowLintWithError_ValidWorkflowFile")
 
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
@@ -129,7 +129,7 @@ jobs:
 }
 
 func TestCheckWorkflowLintWithError_MissingCIPrefix(t *testing.T) {
-	logger := NewLogUtil("TestCheckWorkflowLintWithError_MissingCIPrefix")
+	logger := common.NewLogger("TestCheckWorkflowLintWithError_MissingCIPrefix")
 
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
@@ -155,7 +155,7 @@ jobs:
 }
 
 func TestCheckWorkflowLintWithError_MissingWorkflowReference(t *testing.T) {
-	logger := NewLogUtil("TestCheckWorkflowLintWithError_MissingWorkflowReference")
+	logger := common.NewLogger("TestCheckWorkflowLintWithError_MissingWorkflowReference")
 
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
@@ -180,7 +180,7 @@ jobs:
 }
 
 func TestValidateAndGetWorkflowActionsDetails_EmptyFiles(t *testing.T) {
-	logger := NewLogUtil("TestValidateAndGetWorkflowActionsDetails_EmptyFiles")
+	logger := common.NewLogger("TestValidateAndGetWorkflowActionsDetails_EmptyFiles")
 	allFiles := []string{}
 
 	result, err := validateAndGetWorkflowActionsDetails(logger, allFiles)
@@ -190,7 +190,7 @@ func TestValidateAndGetWorkflowActionsDetails_EmptyFiles(t *testing.T) {
 }
 
 func TestValidateAndGetWorkflowActionsDetails_WithActions(t *testing.T) {
-	logger := NewLogUtil("TestValidateAndGetWorkflowActionsDetails_WithActions")
+	logger := common.NewLogger("TestValidateAndGetWorkflowActionsDetails_WithActions")
 
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
@@ -221,7 +221,7 @@ jobs:
 }
 
 func TestCheckActionVersionsConcurrently_NoActions(t *testing.T) {
-	logger := NewLogUtil("TestCheckActionVersionsConcurrently_NoActions")
+	logger := common.NewLogger("TestCheckActionVersionsConcurrently_NoActions")
 	workflowsActionDetails := make(map[string]WorkflowActionDetails)
 	exceptions := &WorkflowActionExceptions{Exceptions: make(map[string]WorkflowActionException)}
 
@@ -236,7 +236,7 @@ func TestCheckActionVersionsConcurrently_WithActions(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestCheckActionVersionsConcurrently_WithActions")
+	logger := common.NewLogger("TestCheckActionVersionsConcurrently_WithActions")
 
 	workflowsActionDetails := map[string]WorkflowActionDetails{
 		"actions/checkout": {
@@ -261,7 +261,7 @@ func TestGetLatestTag_ValidRepo(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestGetLatestTag_ValidRepo")
+	logger := common.NewLogger("TestGetLatestTag_ValidRepo")
 
 	// Test with a known repository
 	tag, err := getLatestTag(logger, "actions/checkout")
@@ -278,7 +278,7 @@ func TestGetLatestTag_InvalidRepo(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestGetLatestTag_InvalidRepo")
+	logger := common.NewLogger("TestGetLatestTag_InvalidRepo")
 
 	// Test with an invalid repository
 	_, err := getLatestTag(logger, "nonexistent/repository-that-does-not-exist")

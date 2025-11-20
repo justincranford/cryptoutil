@@ -10,6 +10,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // Error string pattern matchers.
@@ -77,12 +79,12 @@ var (
 
 // goFixAll runs all auto-fix commands in sequence.
 // This is a convenience command that orchestrates all go-fix-* commands.
-func goFixAll(logger *LogUtil, files []string) error {
+func goFixAll(logger *common.Logger, files []string) error {
 	logger.Log("Starting go-fix-all: running all auto-fix commands")
 
 	commands := []struct {
 		name string
-		fn   func(*LogUtil, []string) error
+		fn   func(*common.Logger, []string) error
 	}{
 		{"go-fix-staticcheck-error-strings", goFixStaticcheckErrorStrings},
 		{"go-fix-copyloopvar", goFixCopyLoopVar},
@@ -123,7 +125,7 @@ func goFixAll(logger *LogUtil, files []string) error {
 // goFixStaticcheckErrorStrings fixes error strings that start with uppercase letters.
 // According to Go style guide, error strings should not start with capital letters
 // (unless beginning with proper nouns or acronyms).
-func goFixStaticcheckErrorStrings(logger *LogUtil, files []string) error {
+func goFixStaticcheckErrorStrings(logger *common.Logger, files []string) error {
 	logger.Log("Starting staticcheck error string fixes")
 
 	goFiles := filterGoFiles(files)

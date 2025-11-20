@@ -11,12 +11,13 @@ import (
 	"strings"
 
 	cryptoutilMagic "cryptoutil/internal/common/magic"
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // goEnforceTestPatterns enforces test patterns including UUIDv7 usage and testify assertions.
 // It checks all test files for proper patterns and returns an error if violations are found.
-func goEnforceTestPatterns(logger *LogUtil, allFiles []string) error {
-	logger.Log("Enforcing test patterns (UUIDv7 usage, testify assertions)")
+func goEnforceTestPatterns(logger *common.Logger, allFiles []string) error {
+	logger.Log("Enforcing Go test patterns...")
 
 	// Find all test files
 	var testFiles []string

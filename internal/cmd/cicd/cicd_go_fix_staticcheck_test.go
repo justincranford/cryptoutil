@@ -15,7 +15,7 @@ import (
 func TestGoFixStaticcheckErrorStrings_NoGoFiles(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixStaticcheckErrorStrings_NoGoFiles")
+	logger := common.NewLogger("TestGoFixStaticcheckErrorStrings_NoGoFiles")
 	files := []string{"README.md", "config.yml"}
 
 	err := goFixStaticcheckErrorStrings(logger, files)
@@ -40,7 +40,7 @@ func example() error {
 	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixStaticcheckErrorStrings_NoErrors")
+	logger := common.NewLogger("TestGoFixStaticcheckErrorStrings_NoErrors")
 	err = goFixStaticcheckErrorStrings(logger, []string{testFile})
 	require.NoError(t, err, "Should not error when no fixes needed")
 
@@ -90,7 +90,7 @@ func example() error {
 	err := os.WriteFile(testFile, []byte(originalContent), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixStaticcheckErrorStrings_BasicFixes")
+	logger := common.NewLogger("TestGoFixStaticcheckErrorStrings_BasicFixes")
 	err = goFixStaticcheckErrorStrings(logger, []string{testFile})
 	require.Error(t, err, "Should return error when fixes are made")
 	require.Contains(t, err.Error(), "fixed 2 error strings", "Should report number of fixes")
@@ -132,7 +132,7 @@ func example4() error {
 	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixStaticcheckErrorStrings_PreservesAcronyms")
+	logger := common.NewLogger("TestGoFixStaticcheckErrorStrings_PreservesAcronyms")
 	err = goFixStaticcheckErrorStrings(logger, []string{testFile})
 	require.NoError(t, err, "Should not modify error strings starting with acronyms")
 
@@ -193,7 +193,7 @@ func example() error {
 	err := os.WriteFile(testFile, []byte(originalContent), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixStaticcheckErrorStrings_MixedCase")
+	logger := common.NewLogger("TestGoFixStaticcheckErrorStrings_MixedCase")
 	err = goFixStaticcheckErrorStrings(logger, []string{testFile})
 	require.Error(t, err, "Should return error when fixes are made")
 	require.Contains(t, err.Error(), "fixed 2 error strings", "Should fix only non-acronym capitalized strings")
@@ -245,7 +245,7 @@ func f3() error { return errors.New("something went wrong") }
 	err = os.WriteFile(file3, []byte(content3), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixStaticcheckErrorStrings_MultipleFiles")
+	logger := common.NewLogger("TestGoFixStaticcheckErrorStrings_MultipleFiles")
 	err = goFixStaticcheckErrorStrings(logger, []string{file1, file2, file3})
 	require.Error(t, err, "Should return error when fixes are made")
 	require.Contains(t, err.Error(), "fixed 2 error strings", "Should fix errors in 2 files")
@@ -293,7 +293,7 @@ func gen() error { return fmt.Errorf("generated error") }
 	err = os.WriteFile(apiFile, []byte(genContent), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixStaticcheckErrorStrings_ExcludesGenerated")
+	logger := common.NewLogger("TestGoFixStaticcheckErrorStrings_ExcludesGenerated")
 	err = goFixStaticcheckErrorStrings(logger, []string{genFile, pbFile, apiFile})
 	require.NoError(t, err, "Should not process generated files")
 
@@ -386,7 +386,7 @@ func TestFilterGoFiles(t *testing.T) {
 func TestGoFixAll_NoFiles(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixAll_NoFiles")
+	logger := common.NewLogger("TestGoFixAll_NoFiles")
 	files := []string{"README.md", "config.yml"}
 
 	err := goFixAll(logger, files)
@@ -411,7 +411,7 @@ func example() error {
 	err := os.WriteFile(testFile, []byte(content), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixAll_NoChangesNeeded")
+	logger := common.NewLogger("TestGoFixAll_NoChangesNeeded")
 	err = goFixAll(logger, []string{testFile})
 	require.NoError(t, err, "Should not error when no fixes needed")
 
@@ -444,7 +444,7 @@ func setupTest(t *testing.T) {
 	err := os.WriteFile(testFile, []byte(originalContent), 0o644)
 	require.NoError(t, err)
 
-	logger := NewLogUtil("TestGoFixAll_AppliesFixes")
+	logger := common.NewLogger("TestGoFixAll_AppliesFixes")
 	err = goFixAll(logger, []string{testFile})
 	require.Error(t, err, "Should return error when fixes are made")
 

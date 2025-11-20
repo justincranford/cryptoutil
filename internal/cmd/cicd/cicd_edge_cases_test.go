@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
@@ -221,7 +222,7 @@ func convert(a any, b any) (any, any) {
 
 // TestGoCheckCircularPackageDeps_CacheScenarios tests various cache scenarios.
 func TestGoCheckCircularPackageDeps_CacheScenarios(t *testing.T) {
-	logger := NewLogUtil("TestGoCheckCircularPackageDeps_CacheScenarios")
+	logger := common.NewLogger("TestGoCheckCircularPackageDeps_CacheScenarios")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -269,7 +270,7 @@ func TestGoUpdateDeps_CacheScenarios(t *testing.T) {
 		t.Skip("Skipping network test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoUpdateDeps_CacheScenarios")
+	logger := common.NewLogger("TestGoUpdateDeps_CacheScenarios")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -461,7 +462,7 @@ func TestLoadWorkflowActionExceptions_EdgeCases(t *testing.T) {
 
 // TestCheckActionVersionsConcurrently_EdgeCases tests additional branches in concurrent version checking.
 func TestCheckActionVersionsConcurrently_EdgeCases(t *testing.T) {
-	logger := NewLogUtil("TestCheckActionVersionsConcurrently")
+	logger := common.NewLogger("TestCheckActionVersionsConcurrently")
 
 	tests := []struct {
 		name            string
@@ -577,7 +578,7 @@ func TestCheckActionVersionsConcurrently_EdgeCases(t *testing.T) {
 
 // TestCheckActionVersionsConcurrently_ConcurrentExecution tests concurrent behavior.
 func TestCheckActionVersionsConcurrently_ConcurrentExecution(t *testing.T) {
-	logger := NewLogUtil("TestCheckActionVersionsConcurrently_Concurrent")
+	logger := common.NewLogger("TestCheckActionVersionsConcurrently_Concurrent")
 
 	// Create a larger action map to test concurrent execution
 	actions := make(map[string]WorkflowActionDetails)

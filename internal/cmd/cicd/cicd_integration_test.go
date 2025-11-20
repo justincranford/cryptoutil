@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
@@ -27,7 +28,7 @@ func main() {}
 )
 
 func TestGoUpdateDeps_MissingGoMod(t *testing.T) {
-	logger := NewLogUtil("TestGoUpdateDeps_MissingGoMod")
+	logger := common.NewLogger("TestGoUpdateDeps_MissingGoMod")
 
 	// Change to temp directory without go.mod
 	tmpDir := t.TempDir()
@@ -48,7 +49,7 @@ func TestGoUpdateDeps_MissingGoMod(t *testing.T) {
 }
 
 func TestGoUpdateDeps_MissingGoSum(t *testing.T) {
-	logger := NewLogUtil("TestGoUpdateDeps_MissingGoSum")
+	logger := common.NewLogger("TestGoUpdateDeps_MissingGoSum")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -80,7 +81,7 @@ require (
 }
 
 func TestGoCheckCircularPackageDeps_MissingGoMod(t *testing.T) {
-	logger := NewLogUtil("TestGoCheckCircularPackageDeps_MissingGoMod")
+	logger := common.NewLogger("TestGoCheckCircularPackageDeps_MissingGoMod")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -104,7 +105,7 @@ func TestGoCheckCircularPackageDeps_WithValidProject(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoCheckCircularPackageDeps_WithValidProject")
+	logger := common.NewLogger("TestGoCheckCircularPackageDeps_WithValidProject")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -145,7 +146,7 @@ func TestGoCheckCircularPackageDeps_CacheHit(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoCheckCircularPackageDeps_CacheHit")
+	logger := common.NewLogger("TestGoCheckCircularPackageDeps_CacheHit")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
@@ -183,7 +184,7 @@ func TestGoCheckCircularPackageDeps_ExpiredCache(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	logger := NewLogUtil("TestGoCheckCircularPackageDeps_ExpiredCache")
+	logger := common.NewLogger("TestGoCheckCircularPackageDeps_ExpiredCache")
 
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()

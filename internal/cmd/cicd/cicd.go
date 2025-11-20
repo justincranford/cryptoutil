@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
@@ -41,18 +42,11 @@ const (
 	cmdGoFixAll = "go-fix-all"
 )
 
-// CommandResult tracks the execution result of a single command.
-type CommandResult struct {
-	Command  string
-	Duration time.Duration
-	Error    error
-}
-
 // Run executes the specified CI/CD check commands.
 // Commands are executed sequentially, collecting results for each.
 // Returns an error if any command fails, but continues executing all commands.
 func Run(commands []string) error {
-	logger := NewLogUtil("Run")
+	logger := common.NewLogger("Run")
 	startTime := time.Now()
 
 	err := validateCommands(commands)
@@ -88,7 +82,7 @@ func Run(commands []string) error {
 	logger.Log(fmt.Sprintf("Executing %d commands", len(commands)))
 
 	// Execute all commands and collect results
-	results := make([]CommandResult, 0, len(commands))
+	results := make([]common.CommandResult, 0, len(commands))
 
 	for i, command := range commands {
 		cmdStart := time.Now()
@@ -125,7 +119,7 @@ func Run(commands []string) error {
 		}
 
 		cmdDuration := time.Since(cmdStart)
-		results = append(results, CommandResult{
+		results = append(results, common.CommandResult{
 			Command:  command,
 			Duration: cmdDuration,
 			Error:    cmdErr,
@@ -135,22 +129,16 @@ func Run(commands []string) error {
 
 		// Add a separator between multiple commands
 		if i < len(commands)-1 {
-			fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilMagic.SeparatorLength)+"\n")
+			common.PrintCommandSeparator()
 		}
 	}
 
 	// Print summary
 	totalDuration := time.Since(startTime)
-	printExecutionSummary(results, totalDuration)
+	common.PrintExecutionSummary(results, totalDuration)
 
 	// Collect all errors
-	var failedCommands []string
-
-	for _, result := range results {
-		if result.Error != nil {
-			failedCommands = append(failedCommands, result.Command)
-		}
-	}
+	failedCommands := common.GetFailedCommands(results)
 
 	if len(failedCommands) > 0 {
 		return fmt.Errorf("failed commands: %s", strings.Join(failedCommands, ", "))
@@ -161,41 +149,8 @@ func Run(commands []string) error {
 	return nil
 }
 
-// printExecutionSummary prints a summary of all command executions.
-func printExecutionSummary(results []CommandResult, totalDuration time.Duration) {
-	fmt.Fprintln(os.Stderr, "\n"+strings.Repeat("=", cryptoutilMagic.SeparatorLength))
-	fmt.Fprintln(os.Stderr, "EXECUTION SUMMARY")
-	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilMagic.SeparatorLength))
-
-	successCount := 0
-	failureCount := 0
-
-	for _, result := range results {
-		status := "✅ SUCCESS"
-		if result.Error != nil {
-			status = "❌ FAILED"
-			failureCount++
-		} else {
-			successCount++
-		}
-
-		fmt.Fprintf(os.Stderr, "%s  %-45s  %8.2fs\n",
-			status,
-			result.Command,
-			result.Duration.Seconds())
-	}
-
-	fmt.Fprintln(os.Stderr, strings.Repeat("-", cryptoutilMagic.SeparatorLength))
-	fmt.Fprintf(os.Stderr, "Total: %d commands  |  Passed: %d  |  Failed: %d  |  Time: %.2fs\n",
-		len(results),
-		successCount,
-		failureCount,
-		totalDuration.Seconds())
-	fmt.Fprintln(os.Stderr, strings.Repeat("=", cryptoutilMagic.SeparatorLength))
-}
-
 func validateCommands(commands []string) error {
-	logger := NewLogUtil("validateCommands")
+	logger := common.NewLogger("validateCommands")
 
 	if len(commands) == 0 {
 		logger.Log("validateCommands: empty commands")

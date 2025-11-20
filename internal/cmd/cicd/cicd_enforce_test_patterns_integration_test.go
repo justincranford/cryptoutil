@@ -13,7 +13,7 @@ import (
 )
 
 func TestGoEnforceTestPatterns_NoFiles(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceTestPatterns_NoFiles")
+	logger := common.NewLogger("TestGoEnforceTestPatterns_NoFiles")
 	allFiles := []string{}
 
 	err := goEnforceTestPatterns(logger, allFiles)
@@ -21,7 +21,7 @@ func TestGoEnforceTestPatterns_NoFiles(t *testing.T) {
 }
 
 func TestGoEnforceTestPatterns_NoTestFiles(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceTestPatterns_NoTestFiles")
+	logger := common.NewLogger("TestGoEnforceTestPatterns_NoTestFiles")
 	allFiles := []string{"main.go", "util.go", "README.md"}
 
 	err := goEnforceTestPatterns(logger, allFiles)
@@ -29,7 +29,7 @@ func TestGoEnforceTestPatterns_NoTestFiles(t *testing.T) {
 }
 
 func TestGoEnforceTestPatterns_ValidTestFile(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceTestPatterns_ValidTestFile")
+	logger := common.NewLogger("TestGoEnforceTestPatterns_ValidTestFile")
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "example_test.go")
@@ -57,7 +57,7 @@ func TestExample(t *testing.T) {
 }
 
 func TestGoEnforceTestPatterns_InvalidTestFile_UUIDNew(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceTestPatterns_InvalidTestFile_UUIDNew")
+	logger := common.NewLogger("TestGoEnforceTestPatterns_InvalidTestFile_UUIDNew")
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "example_test.go")
@@ -85,7 +85,7 @@ func TestExample(t *testing.T) {
 }
 
 func TestGoEnforceTestPatterns_InvalidTestFile_TErrorf(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceTestPatterns_InvalidTestFile_TErrorf")
+	logger := common.NewLogger("TestGoEnforceTestPatterns_InvalidTestFile_TErrorf")
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "example_test.go")
@@ -109,7 +109,7 @@ func TestExample(t *testing.T) {
 }
 
 func TestGoEnforceTestPatterns_InvalidTestFile_TFatalf(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceTestPatterns_InvalidTestFile_TFatalf")
+	logger := common.NewLogger("TestGoEnforceTestPatterns_InvalidTestFile_TFatalf")
 
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "example_test.go")
@@ -133,7 +133,7 @@ func TestExample(t *testing.T) {
 }
 
 func TestGoEnforceTestPatterns_ExcludesCICDFiles(t *testing.T) {
-	logger := NewLogUtil("TestGoEnforceTestPatterns_ExcludesCICDFiles")
+	logger := common.NewLogger("TestGoEnforceTestPatterns_ExcludesCICDFiles")
 
 	// These files should be excluded even if they have violations
 	allFiles := []string{

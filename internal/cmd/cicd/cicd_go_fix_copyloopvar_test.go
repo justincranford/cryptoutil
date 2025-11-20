@@ -11,7 +11,7 @@ import (
 func TestGoFixCopyLoopVar_NoGoFiles(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_NoGoFiles")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_NoGoFiles")
 	files := []string{"README.md", "Dockerfile", "config.yml"}
 
 	err := goFixCopyLoopVar(logger, files)
@@ -21,7 +21,7 @@ func TestGoFixCopyLoopVar_NoGoFiles(t *testing.T) {
 func TestGoFixCopyLoopVar_NoLoopVarCopies(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_NoLoopVarCopies")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_NoLoopVarCopies")
 	tempDir := t.TempDir()
 
 	// Create a Go file with no loop variable copies
@@ -45,7 +45,7 @@ func main() {
 func TestGoFixCopyLoopVar_BasicFix(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_BasicFix")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_BasicFix")
 	tempDir := t.TempDir()
 
 	// Create a Go file with loop variable copy
@@ -76,7 +76,7 @@ func main() {
 func TestGoFixCopyLoopVar_MultipleVars(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_MultipleVars")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_MultipleVars")
 	tempDir := t.TempDir()
 
 	// Create a Go file with multiple loop variable copies
@@ -109,7 +109,7 @@ func main() {
 func TestGoFixCopyLoopVar_PreserveOtherAssignments(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_PreserveOtherAssignments")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_PreserveOtherAssignments")
 	tempDir := t.TempDir()
 
 	// Create a Go file with loop variable copy AND other assignments
@@ -142,7 +142,7 @@ func main() {
 func TestGoFixCopyLoopVar_MultipleLoops(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_MultipleLoops")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_MultipleLoops")
 	tempDir := t.TempDir()
 
 	// Create a Go file with multiple loops
@@ -180,7 +180,7 @@ func main() {
 func TestGoFixCopyLoopVar_ExcludesGenerated(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_ExcludesGenerated")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_ExcludesGenerated")
 	tempDir := t.TempDir()
 
 	// Create generated Go files
@@ -209,7 +209,7 @@ func main() {
 func TestGoFixCopyLoopVar_MultipleFiles(t *testing.T) {
 	t.Parallel()
 
-	logger := NewLogUtil("TestGoFixCopyLoopVar_MultipleFiles")
+	logger := common.NewLogger("TestGoFixCopyLoopVar_MultipleFiles")
 	tempDir := t.TempDir()
 
 	// Create multiple Go files

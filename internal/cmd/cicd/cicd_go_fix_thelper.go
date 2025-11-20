@@ -8,11 +8,13 @@ import (
 	"go/token"
 	"os"
 	"strings"
+
+	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // goFixTHelper adds t.Helper() to test helper functions that are missing it.
 // Test helper functions are identified by naming patterns (setup*, check*, assert*, verify*, helper*).
-func goFixTHelper(logger *LogUtil, files []string) error {
+func goFixTHelper(logger *common.Logger, files []string) error {
 	logger.Log("Starting thelper auto-fix")
 
 	goFiles := filterGoFiles(files)
