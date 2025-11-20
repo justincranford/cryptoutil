@@ -471,6 +471,7 @@
     "mechatroner",
     "Dnvd",
     "openvulnerability",
-    "nosetests"
+    "nosetests",
+    "circulardeps"
   ]
 }
