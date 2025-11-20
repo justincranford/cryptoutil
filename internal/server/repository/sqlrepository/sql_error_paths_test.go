@@ -31,7 +31,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 			setupConfig: func() *cryptoutilConfig.Settings {
 				settings := cryptoutilConfig.RequireNewForTest("nil_ctx_test")
 				settings.DevMode = true
-				settings.DatabaseContainer = "disabled"
+				settings.DatabaseContainer = containerModeDisabled
 
 				return settings
 			},
@@ -43,7 +43,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 			setupConfig: func() *cryptoutilConfig.Settings {
 				settings := cryptoutilConfig.RequireNewForTest("nil_telemetry_test")
 				settings.DevMode = true
-				settings.DatabaseContainer = "disabled"
+				settings.DatabaseContainer = containerModeDisabled
 
 				return settings
 			},
@@ -64,7 +64,7 @@ func TestNewSQLRepository_ErrorPaths(t *testing.T) {
 				settings := cryptoutilConfig.RequireNewForTest("empty_url_test")
 				settings.DevMode = false // Production mode
 				settings.DatabaseURL = ""
-				settings.DatabaseContainer = "disabled"
+				settings.DatabaseContainer = containerModeDisabled
 
 				return settings
 			},
@@ -238,7 +238,7 @@ func TestSQLRepository_GetDBType_SQLiteOnly(t *testing.T) {
 	testName := "TestGetDBType_SQLite_" + uuidVal.String()
 	testSettings := cryptoutilConfig.RequireNewForTest(testName)
 	testSettings.DevMode = true
-	testSettings.DatabaseContainer = "disabled"
+	testSettings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, testSettings)
 	defer telemetryService.Shutdown()

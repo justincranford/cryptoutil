@@ -23,7 +23,7 @@ func TestNewSQLRepository_SQLite_PragmaSettings(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("pragma_test")
 	settings.DevMode = true // SQLite
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 	settings.VerboseMode = true // Enable verbose logging to cover logConnectionPoolSettings
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -49,7 +49,7 @@ func TestNewSQLRepository_PostgreSQL_SchemaCreation(t *testing.T) {
 	settings := cryptoutilConfig.RequireNewForTest("schema_creation_test")
 	settings.DevMode = false
 	settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?search_path=test_schema_123&sslmode=disable"
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -86,7 +86,7 @@ func TestNewSQLRepository_VerboseMode_ConnectionPoolLogging(t *testing.T) {
 
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = true
-			settings.DatabaseContainer = "disabled"
+			settings.DatabaseContainer = containerModeDisabled
 			settings.VerboseMode = tc.verboseMode
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -109,7 +109,7 @@ func TestSQLRepository_Shutdown_ErrorHandling(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("shutdown_error_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -168,7 +168,7 @@ func TestMapDBTypeAndURL_DevModeVariations(t *testing.T) {
 				settings.DatabaseURL = tc.databaseURL
 			}
 
-			settings.DatabaseContainer = "disabled"
+			settings.DatabaseContainer = containerModeDisabled
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
@@ -237,7 +237,7 @@ func TestExtractSchemaFromURL_PostgreSQL_VariousFormats(t *testing.T) {
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
-			settings.DatabaseContainer = "disabled"
+			settings.DatabaseContainer = containerModeDisabled
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()

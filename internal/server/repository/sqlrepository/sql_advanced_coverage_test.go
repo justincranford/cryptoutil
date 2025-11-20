@@ -53,7 +53,7 @@ func TestSQLRepository_PoolSettings(t *testing.T) {
 
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
-			settings.DatabaseContainer = "disabled"
+			settings.DatabaseContainer = containerModeDisabled
 			settings.VerboseMode = tc.verboseMode
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -84,7 +84,7 @@ func TestSQLRepository_Shutdown_Multiple(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("shutdown_multiple_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -126,7 +126,7 @@ func TestSQLRepository_DBStats(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("dbstats_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 	settings.VerboseMode = true
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -159,7 +159,7 @@ func TestSQLRepository_ConnectionPoolExhaustion(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("pool_exhaustion_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()

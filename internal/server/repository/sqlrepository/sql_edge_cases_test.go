@@ -23,7 +23,7 @@ func TestNewSQLRepository_SQLite_ContainerMode(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("sqlite_container_test")
 	settings.DevMode = true                 // SQLite
-	settings.DatabaseContainer = "required" // SQLite doesn't support containers
+	settings.DatabaseContainer = containerModeRequired // SQLite doesn't support containers
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -42,7 +42,7 @@ func TestNewSQLRepository_InvalidContainerMode(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("invalid_container_mode")
 	settings.DevMode = true
-	settings.DatabaseContainer = "invalid-mode"
+	settings.DatabaseContainer = containerModeInvalid
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -186,7 +186,7 @@ func TestExtractSchemaFromURL_EdgeCases(t *testing.T) {
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
 			settings.DatabaseURL = tc.databaseURL
-			settings.DatabaseContainer = "disabled"
+			settings.DatabaseContainer = containerModeDisabled
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()

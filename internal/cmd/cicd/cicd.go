@@ -15,6 +15,20 @@ import (
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
 
+const (
+	// Command name for enforcing UTF-8 encoding on all files.
+	cmdAllEnforceUTF8 = "all-enforce-utf8"
+
+	// Command name for enforcing Go any usage instead of interface{}.
+	cmdGoEnforceAny = "go-enforce-any"
+
+	// Command name for enforcing test patterns in Go files.
+	cmdGoEnforceTestPatterns = "go-enforce-test-patterns"
+
+	// Command name for linting GitHub workflow files.
+	cmdGitHubWorkflowLint = "github-workflow-lint"
+)
+
 // CommandResult tracks the execution result of a single command.
 type CommandResult struct {
 	Command  string
@@ -41,7 +55,7 @@ func Run(commands []string) error {
 	doListAllFiles := false
 
 	for _, cmd := range commands {
-		if cmd == "all-enforce-utf8" || cmd == "go-enforce-test-patterns" || cmd == "go-enforce-any" || cmd == "github-workflow-lint" {
+		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint {
 			doListAllFiles = true
 
 			break
@@ -72,11 +86,11 @@ func Run(commands []string) error {
 		var cmdErr error
 
 		switch command {
-		case "all-enforce-utf8":
+		case cmdAllEnforceUTF8:
 			cmdErr = allEnforceUtf8(logger, allFiles)
-		case "go-enforce-test-patterns":
+		case cmdGoEnforceTestPatterns:
 			cmdErr = goEnforceTestPatterns(logger, allFiles)
-		case "go-enforce-any":
+		case cmdGoEnforceAny:
 			cmdErr = goEnforceAny(logger, allFiles)
 		case "go-check-circular-package-dependencies":
 			cmdErr = goCheckCircularPackageDeps(logger)
@@ -86,7 +100,7 @@ func Run(commands []string) error {
 			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect)
 		case "go-update-all-dependencies":
 			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckAll)
-		case "github-workflow-lint":
+		case cmdGitHubWorkflowLint:
 			cmdErr = checkWorkflowLintWithError(logger, allFiles)
 		}
 

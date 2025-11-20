@@ -24,7 +24,7 @@ func TestApplyEmbeddedSQLMigrations_SQLite(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("migrations_sqlite")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -47,7 +47,7 @@ func TestLogSchema_SQLite(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("log_schema_sqlite")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 	settings.VerboseMode = true // Enable verbose logging
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -72,7 +72,7 @@ func TestSQLRepository_WithTransaction_NestedTransaction(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("nested_transaction_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -108,7 +108,7 @@ func TestSQLRepository_WithTransaction_RollbackOnError(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("rollback_error_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()

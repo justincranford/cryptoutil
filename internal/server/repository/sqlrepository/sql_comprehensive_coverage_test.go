@@ -16,6 +16,17 @@ import (
 	testify "github.com/stretchr/testify/require"
 )
 
+const (
+	// Database container mode constants.
+	containerModeDisabled  = "disabled"
+	containerModePreferred = "preferred"
+	containerModeRequired  = "required"
+	containerModeInvalid   = "invalid-mode"
+
+	// Test database URL for PostgreSQL connection tests.
+	testPostgresURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
+)
+
 // TestNewSQLRepository_PostgreSQL_PingRetry tests database ping retry logic.
 func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
 	t.Parallel()
@@ -24,8 +35,8 @@ func TestNewSQLRepository_PostgreSQL_PingRetry(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("ping_retry_test")
 	settings.DevMode = false
-	settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseURL = testPostgresURL
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -45,7 +56,7 @@ func TestHealthCheck_AllConnectionPoolStats(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("pool_stats_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -88,7 +99,7 @@ func TestSQLRepository_Shutdown_AlreadyClosed(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("shutdown_closed_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -115,7 +126,7 @@ func TestSQLRepository_LogConnectionPoolSettings_VerboseMode(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("verbose_pool_logging")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 	settings.VerboseMode = true // Enable verbose logging
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -140,7 +151,7 @@ func TestHealthCheck_PingError(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("healthcheck_ping_error")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -169,7 +180,7 @@ func TestSQLRepository_WithTransaction_MultipleSequential(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("sequential_transactions")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	defer telemetryService.Shutdown()
@@ -197,7 +208,7 @@ func TestSQLRepository_WithTransaction_ContextDeadlineExceeded(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("deadline_exceeded_test")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(baseCtx, settings)
 	defer telemetryService.Shutdown()
@@ -238,7 +249,7 @@ func TestSQLRepository_ErrorTypes_Wrapping(t *testing.T) {
 			setup: func() (*cryptoutilSQLRepository.SQLRepository, error) {
 				settings := cryptoutilConfig.RequireNewForTest("container_not_exist")
 				settings.DevMode = true                 // SQLite
-				settings.DatabaseContainer = "required" // SQLite doesn't support containers
+				settings.DatabaseContainer = containerModeRequired // SQLite doesn't support containers
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()

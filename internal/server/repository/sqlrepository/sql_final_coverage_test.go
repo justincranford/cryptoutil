@@ -66,7 +66,7 @@ func TestMapDBTypeAndURL_AllScenarios(t *testing.T) {
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
 			settings.DatabaseURL = tc.databaseURL
-			settings.DatabaseContainer = "disabled"
+			settings.DatabaseContainer = containerModeDisabled
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
@@ -128,7 +128,7 @@ func TestMapContainerMode_AllModes(t *testing.T) {
 
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = false
-			settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
+			settings.DatabaseURL = testPostgresURL
 			settings.DatabaseContainer = tc.containerMode
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
@@ -173,7 +173,7 @@ func TestLogSchema_BothDatabaseTypes(t *testing.T) {
 
 			settings := cryptoutilConfig.RequireNewForTest(tc.name)
 			settings.DevMode = tc.devMode
-			settings.DatabaseContainer = "disabled"
+			settings.DatabaseContainer = containerModeDisabled
 
 			telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 			defer telemetryService.Shutdown()
@@ -212,7 +212,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				t.Helper()
 				settings := cryptoutilConfig.RequireNewForTest("error_container_not_exist")
 				settings.DevMode = true
-				settings.DatabaseContainer = "required"
+				settings.DatabaseContainer = containerModeRequired
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
@@ -230,8 +230,8 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				t.Helper()
 				settings := cryptoutilConfig.RequireNewForTest("error_container_required")
 				settings.DevMode = false
-				settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
-				settings.DatabaseContainer = "required"
+				settings.DatabaseURL = testPostgresURL
+				settings.DatabaseContainer = containerModeRequired
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
@@ -249,8 +249,8 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				t.Helper()
 				settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
 				settings.DevMode = false
-				settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
-				settings.DatabaseContainer = "disabled"
+				settings.DatabaseURL = testPostgresURL
+				settings.DatabaseContainer = containerModeDisabled
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 				defer telemetryService.Shutdown()
@@ -284,7 +284,7 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 
 	settings := cryptoutilConfig.RequireNewForTest("transaction_errors")
 	settings.DevMode = true
-	settings.DatabaseContainer = "disabled"
+	settings.DatabaseContainer = containerModeDisabled
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
 	t.Cleanup(func() { telemetryService.Shutdown() })
