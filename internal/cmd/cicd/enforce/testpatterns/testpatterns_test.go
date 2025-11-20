@@ -1,14 +1,13 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
 
-package cicd
+package testpatterns
 
 import (
 	"testing"
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"
+
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // Test regex patterns for validation.
@@ -18,8 +17,8 @@ var (
 	testFatalfValidationPattern  = cryptoutilMagic.TestFatalfValidationPattern
 )
 
-func TestGoEnforceTestPatterns_RegexValidation(t *testing.T) {
-	// Test the regex patterns used in checkTestFile to ensure they work correctly
+func TestEnforce_RegexValidation(t *testing.T) {
+	// Test the regex patterns used in CheckTestFile to ensure they work correctly
 	// This was originally created as a one-off test during chat session
 	// Test t.Errorf pattern
 	t.Logf("Compiled regex pattern: %s", `t\.Errorf\([^)]+\)`)
