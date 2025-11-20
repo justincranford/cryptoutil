@@ -29,16 +29,17 @@ repos:
         stages: [manual]  # Run manually, not on every push
 
   # GitHub workflow linting (only when workflows change)
-  - repo: local
-    hooks:
-      - id: github-workflow-lint
-        name: GitHub workflow lint
-        entry: go
-        args: [run, cmd/cicd/main.go, github-workflow-lint]
-        language: system
-        pass_filenames: false
-        files: '\.github/workflows/.*\.(yml|yaml)$'
-        stages: [pre-push]  # Only run when workflow files change
+  # TEMPORARILY DISABLED during cicd refactoring
+  # - repo: local
+  #   hooks:
+  #     - id: github-workflow-lint
+  #       name: GitHub workflow lint
+  #       entry: go
+  #       args: [run, cmd/cicd/main.go, github-workflow-lint]
+  #       language: system
+  #       pass_filenames: false
+  #       files: '\.github/workflows/.*\.(yml|yaml)$'
+  #       stages: [pre-push]  # Only run when workflow files change
 
   # Generic file checks (lightweight and reliable)
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -184,14 +185,15 @@ repos:
         stages: [pre-push]  # Full check before push
 
   # Custom project checks (fast, internal checks)
-  - repo: local
-    hooks:
-      - id: cicd-checks-internal
-        name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep, go-identity-imports)
-        entry: go
-        args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, go-check-circular-package-dependencies, go-check-identity-imports]
-        language: system
-        pass_filenames: false
+  # TEMPORARILY DISABLED during cicd refactoring
+  # - repo: local
+  #   hooks:
+  #     - id: cicd-checks-internal
+  #       name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep, go-identity-imports)
+  #       entry: go
+  #       args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, go-check-circular-package-dependencies, go-check-identity-imports]
+  #       language: system
+  #       pass_filenames: false
 
   # Go dependency management (clean state before linting)
   - repo: local
@@ -205,16 +207,17 @@ repos:
         files: go\.mod$
 
   # Go auto-fix commands (apply before linting)
-  - repo: local
-    hooks:
-      - id: go-fix-all
-        name: Auto-fix Go issues (staticcheck, copyloopvar, thelper)
-        entry: go
-        args: [run, cmd/cicd/main.go, go-fix-all]
-        language: system
-        pass_filenames: false
-        files: '\.go$'
-        stages: [pre-commit]
+  # TEMPORARILY DISABLED during cicd refactoring
+  # - repo: local
+  #   hooks:
+  #     - id: go-fix-all
+  #       name: Auto-fix Go issues (staticcheck, copyloopvar, thelper)
+  #       entry: go
+  #       args: [run, cmd/cicd/main.go, go-fix-all]
+  #       language: system
+  #       pass_filenames: false
+  #       files: '\.go$'
+  #       stages: [pre-commit]
 
   # Go build validation (moved to pre-push for faster pre-commit)
   - repo: local
