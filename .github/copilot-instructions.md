@@ -69,6 +69,14 @@ Example:
 
 **Lessons Applied**: Based on analysis in docs/codecov/dont_stop.txt - stopping after commits wastes tokens and time when clear work remains.
 **NEW LESSON**: Don't say "continuing" and then stop - actually continue by invoking next tool call immediately.
+
+**File Size Limits**
+- **Soft limit: 300 lines** - Consider refactoring for better maintainability
+- **Medium limit: 400 lines** - Should refactor to improve code organization
+- **Hard limit: 500 lines** - Must refactor; files exceeding this threshold violate project standards
+- Apply limits to all code files: production code, tests, configs, scripts
+- Exceptions require explicit justification and documentation
+
 - **ALWAYS use modernc.org/sqlite for SQLite** because it is CGO-free (required when CGO_ENABLED=0)
 - **NEVER invoke os.Exit() in library or test code** - ONLY in main() functions or cmd pattern entry functions
   - ALWAYS return wrapped errors all the way up the call stack
