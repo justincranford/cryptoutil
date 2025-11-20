@@ -100,7 +100,9 @@ const (
 	  go-check-identity-imports              - Check identity module domain isolation (forbidden imports)
 	  go-update-direct-dependencies          - Check direct Go dependencies only
 	  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
-	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions`
+	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions
+	  go-fix-staticcheck-error-strings       - Auto-fix: Lowercase error string first characters (staticcheck ST1005)
+	  go-fix-all                             - Auto-fix: Run all go-fix-* commands in sequence`
 )
 
 // ValidCommands defines the set of valid cicd commands.
@@ -113,6 +115,8 @@ var ValidCommands = map[string]bool{
 	"go-update-direct-dependencies":          true,
 	"go-update-all-dependencies":             true,
 	"github-workflow-lint":                   true,
+	"go-fix-staticcheck-error-strings":       true,
+	"go-fix-all":                             true,
 }
 
 // Regex patterns for test enforcement.

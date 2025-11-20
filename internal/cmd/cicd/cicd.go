@@ -27,6 +27,12 @@ const (
 
 	// Command name for linting GitHub workflow files.
 	cmdGitHubWorkflowLint = "github-workflow-lint"
+
+	// Command name for auto-fixing staticcheck error strings.
+	cmdGoFixStaticcheckErrorStrings = "go-fix-staticcheck-error-strings"
+
+	// Command name for running all auto-fix commands.
+	cmdGoFixAll = "go-fix-all"
 )
 
 // CommandResult tracks the execution result of a single command.
@@ -55,7 +61,7 @@ func Run(commands []string) error {
 	doListAllFiles := false
 
 	for _, cmd := range commands {
-		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint {
+		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint || cmd == cmdGoFixStaticcheckErrorStrings || cmd == cmdGoFixAll {
 			doListAllFiles = true
 
 			break
@@ -102,6 +108,10 @@ func Run(commands []string) error {
 			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckAll)
 		case cmdGitHubWorkflowLint:
 			cmdErr = checkWorkflowLintWithError(logger, allFiles)
+		case cmdGoFixStaticcheckErrorStrings:
+			cmdErr = goFixStaticcheckErrorStrings(logger, allFiles)
+		case cmdGoFixAll:
+			cmdErr = goFixAll(logger, allFiles)
 		}
 
 		cmdDuration := time.Since(cmdStart)
