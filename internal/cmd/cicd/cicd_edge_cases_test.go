@@ -110,66 +110,6 @@ require invalid
 	}
 }
 
-// TestProcessGoFile_EdgeCases tests edge cases in processGoFile.
-func TestProcessGoFile_EdgeCases(t *testing.T) {
-	tests := []struct {
-		name             string
-		content          string
-		wantModified     bool
-		wantReplacements int
-	}{
-		{
-			name:             "empty file",
-			content:          "",
-			wantModified:     false,
-			wantReplacements: 0,
-		},
-		{
-			name:             "only comments",
-			content:          "// This is a comment\n/* Block comment */\n",
-			wantModified:     false,
-			wantReplacements: 0,
-		},
-		{
-			name: "already using any",
-			content: `package test
-var x any = 42
-`,
-			wantModified:     false,
-			wantReplacements: 0,
-		},
-		{
-			name: "multiple any on same line",
-			content: `package test
-func convert(a any, b any) (any, any) {
-	return a, b
-}
-`,
-			wantModified:     false, // Already using 'any', nothing to replace
-			wantReplacements: 0,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tmpFile := filepath.Join(t.TempDir(), "test.go")
-			err := os.WriteFile(tmpFile, []byte(tt.content), 0o600)
-			require.NoError(t, err)
-
-			replacements, err := processGoFile(tmpFile)
-			require.NoError(t, err)
-
-			if tt.wantModified {
-				require.Greater(t, replacements, 0, "Expected modifications")
-			} else {
-				require.Equal(t, 0, replacements, "Expected no modifications")
-			}
-
-			require.Equal(t, tt.wantReplacements, replacements, "Unexpected replacement count")
-		})
-	}
-}
-
 // TestGoCheckCircularPackageDeps_CacheScenarios tests various cache scenarios.
 func TestGoCheckCircularPackageDeps_CacheScenarios(t *testing.T) {
 	logger := common.NewLogger("TestGoCheckCircularPackageDeps_CacheScenarios")

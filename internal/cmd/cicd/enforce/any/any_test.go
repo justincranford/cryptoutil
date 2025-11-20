@@ -1,8 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
 
-package cicd
+package any
 
 import (
 	"os"
@@ -10,11 +8,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 	"cryptoutil/internal/cmd/cicd/common"
+	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
 
 const (
+	testPackageMain        = "package main"
+	testImportFmt          = `import "fmt"`
+	testFuncMainStart      = "\nfunc main() {"
+	testFuncMainEnd        = "\n}\n"
 	testTypeMyStructInterface = `
 type MyStruct struct {
 	Data interface{}
@@ -24,7 +26,7 @@ type MyStruct struct {
 	str := "interface{} in string should not be replaced"`
 )
 
-func TestGoEnforceAny_ProcessGoFile(t *testing.T) {
+func TestProcessGoFile(t *testing.T) {
 	// Create a temporary directory for test files
 	tempDir := t.TempDir()
 
@@ -119,12 +121,13 @@ func main() {
 	var x any
 	str := "any in string should not be replaced"
 	fmt.Println(x, str)
+
 }
 `
 	require.Equal(t, expectedContent3, string(modifiedContent3), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent3), expectedContent3)
 }
 
-func TestGoEnforceAny_RunGoEnforceAny(t *testing.T) {
+func TestEnforce(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create test Go files with interface{}
@@ -149,9 +152,9 @@ func main() {
 
 	require.NoError(t, os.Chdir(tempDir))
 
-	// Test that goEnforceAny returns an error when files are modified
+	// Test that Enforce returns an error when files are modified
 	logger := common.NewLogger("test")
-	err = goEnforceAny(logger, []string{testFile1, testFile2})
+	err = Enforce(logger, []string{testFile1, testFile2})
 	require.Error(t, err, "Should return error when files are modified")
 	require.Contains(t, err.Error(), "modified", "Error should indicate files were modified")
 
@@ -161,4 +164,61 @@ func main() {
 
 	modifiedContent2 := cryptoutilTestutil.ReadTestFile(t, testFile2)
 	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly")
+}
+
+func TestProcessGoFile_EdgeCases(t *testing.T) {
+	tests := []struct {
+		name             string
+		content          string
+		wantModified     bool
+		wantReplacements int
+	}{
+		{
+			name:             "empty file",
+			content:          "",
+			wantModified:     false,
+			wantReplacements: 0,
+		},
+		{
+			name:             "only comments",
+			content:          "// This is a comment\n/* Block comment */\n",
+			wantModified:     false,
+			wantReplacements: 0,
+		},
+		{
+			name: "already using any",
+			content: `package test
+var x any = 42
+`,
+			wantModified:     false,
+			wantReplacements: 0,
+		},
+		{
+			name: "multiple any on same line",
+			content: `package test
+func convert(a any, b any) (any, any) {
+	return a, b
+}
+`,
+			wantModified:     false, // Already using 'any', nothing to replace
+			wantReplacements: 0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpFile := cryptoutilTestutil.WriteTempFile(t, t.TempDir(), "test.go", tt.content)
+
+			replacements, err := processGoFile(tmpFile)
+			require.NoError(t, err)
+
+			if tt.wantModified {
+				require.Greater(t, replacements, 0, "Expected modifications")
+			} else {
+				require.Equal(t, 0, replacements, "Expected no modifications")
+			}
+
+			require.Equal(t, tt.wantReplacements, replacements, "Unexpected replacement count")
+		})
+	}
 }
