@@ -410,4 +410,3 @@ func TestRun_GoCheckIdentityImports(t *testing.T) {
 	// May succeed or fail, but should not panic.
 	_ = err
 }
-

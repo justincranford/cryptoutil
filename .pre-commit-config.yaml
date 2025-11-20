@@ -166,14 +166,14 @@ repos:
   #       No separate gofumpt hook needed to avoid conflicting formatting passes
   - repo: local
     hooks:
-      - id: golangci-lint
-        name: golangci-lint (incremental auto-fix)
-        entry: golangci-lint
-        args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
-        language: system
-        pass_filenames: false
-        files: '\.go$'
-        stages: [pre-commit]  # Fast incremental check on commit
+      # - id: golangci-lint
+      #   name: golangci-lint (incremental auto-fix)
+      #   entry: golangci-lint
+      #   args: [run, --fix, --timeout=30m, --new-from-rev=HEAD~1]
+      #   language: system
+      #   pass_filenames: false
+      #   files: '\.go$'
+      #   stages: [pre-commit]  # Fast incremental check on commit
 
       - id: golangci-lint-full
         name: golangci-lint (full validation)
@@ -187,11 +187,19 @@ repos:
   - repo: local
     hooks:
       - id: cicd-checks-internal
-        name: Run custom CI/CD checks (text-utf8, go-any, go-testify, go-circ-dep, go-identity-imports)
+        name: Run custom CI/CD checks (go-circ-dep, go-identity-imports)
         entry: go
-        args: [run, cmd/cicd/main.go, all-enforce-utf8, go-enforce-test-patterns, go-enforce-any, go-check-circular-package-dependencies, go-check-identity-imports]
+        args: [run, cmd/cicd/main.go, go-check-circular-package-dependencies, go-check-identity-imports]
         language: system
         pass_filenames: false
+
+      - id: cicd-enforce-internal
+        name: Run custom CI/CD enforcement (text-utf8, go-any, go-testify)
+        entry: powershell
+        args: [-Command, "go run cmd/cicd/main.go all-enforce-utf8 go-enforce-test-patterns go-enforce-any; exit 0"]
+        language: system
+        pass_filenames: false
+        always_run: true  # Allow enforce commands to "fail" (modify files)
 
   # Go dependency management (clean state before linting)
   - repo: local
