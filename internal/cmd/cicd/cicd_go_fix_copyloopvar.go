@@ -162,7 +162,7 @@ func getGoVersion() (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("failed to get working directory: %w", err)
 		}
-		
+
 		// Walk up directory tree to find go.mod
 		dir := cwd
 		for {
@@ -171,7 +171,7 @@ func getGoVersion() (string, error) {
 				modPath = testPath
 				break
 			}
-			
+
 			parent := filepath.Dir(dir)
 			if parent == dir {
 				// Reached root without finding go.mod

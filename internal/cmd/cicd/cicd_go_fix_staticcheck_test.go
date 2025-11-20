@@ -155,16 +155,16 @@ import "fmt"
 func example() error {
 	// Should fix this
 	err1 := fmt.Errorf("failed to connect")
-	
+
 	// Should NOT fix this (acronym)
 	err2 := fmt.Errorf("HTTP connection failed")
-	
+
 	// Should fix this
 	err3 := fmt.Errorf("connection timeout occurred")
-	
+
 	// Should NOT fix this (already lowercase)
 	err4 := fmt.Errorf("operation failed")
-	
+
 	return err1
 }
 `
@@ -176,16 +176,16 @@ import "fmt"
 func example() error {
 	// Should fix this
 	err1 := fmt.Errorf("failed to connect")
-	
+
 	// Should NOT fix this (acronym)
 	err2 := fmt.Errorf("HTTP connection failed")
-	
+
 	// Should fix this
 	err3 := fmt.Errorf("connection timeout occurred")
-	
+
 	// Should NOT fix this (already lowercase)
 	err4 := fmt.Errorf("operation failed")
-	
+
 	return err1
 }
 `
@@ -207,7 +207,7 @@ func TestGoFixStaticcheckErrorStrings_MultipleFiles(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	
+
 	file1 := filepath.Join(tmpDir, "file1.go")
 	file2 := filepath.Join(tmpDir, "file2.go")
 	file3 := filepath.Join(tmpDir, "file3.go")
@@ -270,7 +270,7 @@ func TestGoFixStaticcheckErrorStrings_ExcludesGenerated(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
-	
+
 	// Create subdirectories
 	apiClientDir := filepath.Join(tmpDir, "api", "client")
 	err := os.MkdirAll(apiClientDir, 0o755)
@@ -458,4 +458,3 @@ func example() error {
 	require.NoError(t, err)
 	require.Equal(t, expectedContent, string(resultContent), "Error string should be lowercased")
 }
-

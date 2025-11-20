@@ -248,7 +248,7 @@ func TestSQLRepository_ErrorTypes_Wrapping(t *testing.T) {
 			name: "ErrContainerOptionNotExist",
 			setup: func() (*cryptoutilSQLRepository.SQLRepository, error) {
 				settings := cryptoutilConfig.RequireNewForTest("container_not_exist")
-				settings.DevMode = true                 // SQLite
+				settings.DevMode = true                            // SQLite
 				settings.DatabaseContainer = containerModeRequired // SQLite doesn't support containers
 
 				telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)

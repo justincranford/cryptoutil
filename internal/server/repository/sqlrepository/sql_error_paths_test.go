@@ -6,8 +6,9 @@ package sqlrepository_test
 
 import (
 	"context"
-	"cryptoutil/internal/server/repository/sqlrepository"
 	"testing"
+
+	"cryptoutil/internal/server/repository/sqlrepository"
 
 	googleUuid "github.com/google/uuid"
 	testify "github.com/stretchr/testify/require"

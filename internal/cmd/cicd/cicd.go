@@ -34,6 +34,9 @@ const (
 	// Command name for auto-fixing copyloopvar issues.
 	cmdGoFixCopyLoopVar = "go-fix-copyloopvar"
 
+	// Command name for auto-fixing thelper issues.
+	cmdGoFixTHelper = "go-fix-thelper"
+
 	// Command name for running all auto-fix commands.
 	cmdGoFixAll = "go-fix-all"
 )
@@ -64,7 +67,7 @@ func Run(commands []string) error {
 	doListAllFiles := false
 
 	for _, cmd := range commands {
-		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint || cmd == cmdGoFixStaticcheckErrorStrings || cmd == cmdGoFixAll {
+		if cmd == cmdAllEnforceUTF8 || cmd == cmdGoEnforceTestPatterns || cmd == cmdGoEnforceAny || cmd == cmdGitHubWorkflowLint || cmd == cmdGoFixStaticcheckErrorStrings || cmd == cmdGoFixCopyLoopVar || cmd == cmdGoFixTHelper || cmd == cmdGoFixAll {
 			doListAllFiles = true
 
 			break
@@ -115,6 +118,8 @@ func Run(commands []string) error {
 			cmdErr = goFixStaticcheckErrorStrings(logger, allFiles)
 		case cmdGoFixCopyLoopVar:
 			cmdErr = goFixCopyLoopVar(logger, allFiles)
+		case cmdGoFixTHelper:
+			cmdErr = goFixTHelper(logger, allFiles)
 		case cmdGoFixAll:
 			cmdErr = goFixAll(logger, allFiles)
 		}

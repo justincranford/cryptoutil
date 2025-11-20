@@ -26,7 +26,7 @@ var (
 		"URL":   true,
 		"URI":   true,
 		"API":   true,
-		"JSON":   true,
+		"JSON":  true,
 		"XML":   true,
 		"HTML":  true,
 		"SQL":   true,
@@ -86,8 +86,7 @@ func goFixAll(logger *LogUtil, files []string) error {
 	}{
 		{"go-fix-staticcheck-error-strings", goFixStaticcheckErrorStrings},
 		{"go-fix-copyloopvar", goFixCopyLoopVar},
-		// Add more auto-fix commands here as they are implemented:
-		// {"go-fix-thelper", goFixTHelper},
+		{"go-fix-thelper", goFixTHelper},
 	}
 
 	var errors []error
@@ -181,18 +180,18 @@ func fixErrorStringsInFile(filePath string) (int, error) {
 			continue
 		}
 
-		fullMatch := match[0]       // e.g., `fmt.Errorf("missing openapi spec"`
-		errorMsg := match[2]        // e.g., `Missing openapi spec`
-		
+		fullMatch := match[0] // e.g., `fmt.Errorf("missing openapi spec"`
+		errorMsg := match[2]  // e.g., `Missing openapi spec`
+
 		// Check if the first word is an acronym or starts with an acronym
 		firstWord := strings.Fields(errorMsg)[0]
-		
+
 		// Check if first word is exactly an acronym
 		if commonAcronyms[firstWord] {
 			// Skip - this is an acronym that should remain uppercase
 			continue
 		}
-		
+
 		// Check if first word starts with an acronym (e.g., "UUIDs" starts with "UUID")
 		// We need to handle cases like "UUIDs can't be nil" where UUID is plural
 		skipDueToAcronym := false
