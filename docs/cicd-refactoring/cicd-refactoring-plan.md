@@ -380,7 +380,7 @@ internal/cmd/cicd/
 - `cicd_go_fix_staticcheck.go` → Split validation, transformation, formatting
 - `cicd_update_deps.go` → Split API calls, parsing, analysis
 
-**Target**: All files ≤300 lines (soft limit), ≤500 lines (hard limit) for maintainability
+**Target**: All files ≤300 lines (soft limit), ≤400 lines (medium limit), ≤500 lines (hard limit) for maintainability
 
 ---
 
