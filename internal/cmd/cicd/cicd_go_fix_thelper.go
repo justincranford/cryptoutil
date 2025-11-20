@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
-	"go/format"
 	"go/parser"
+	"go/printer"
 	"go/token"
 	"os"
 	"strings"
@@ -87,8 +87,15 @@ func fixTHelperInFile(filePath string) (int, error) {
 
 	// Write back to file if modified
 	if modified {
+		// Verify AST has the expected t.Helper() calls before formatting
+		actualHelperCount := countTHelperCalls(node)
+		if actualHelperCount != fixCount {
+			return 0, fmt.Errorf("AST modification verification failed: expected %d t.Helper() calls, found %d", fixCount, actualHelperCount)
+		}
+
 		var buf bytes.Buffer
-		if err := format.Node(&buf, fset, node); err != nil {
+		cfg := &printer.Config{Mode: printer.UseSpaces | printer.TabIndent, Tabwidth: 8}
+		if err := cfg.Fprint(&buf, fset, node); err != nil {
 			return 0, fmt.Errorf("failed to format code: %w", err)
 		}
 
@@ -96,9 +103,48 @@ func fixTHelperInFile(filePath string) (int, error) {
 		if err := os.WriteFile(filePath, buf.Bytes(), 0o600); err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
 		}
+
+		// Verify output file has expected t.Helper() calls
+		outputContent := buf.String()
+		outputHelperCount := strings.Count(outputContent, "t.Helper()")
+		if outputHelperCount != fixCount {
+			return 0, fmt.Errorf("output verification failed: expected %d t.Helper() calls in output, found %d", fixCount, outputHelperCount)
+		}
 	}
 
 	return fixCount, nil
+}
+
+// countTHelperCalls counts t.Helper() calls in the AST.
+func countTHelperCalls(node *ast.File) int {
+	count := 0
+	ast.Inspect(node, func(n ast.Node) bool {
+		exprStmt, ok := n.(*ast.ExprStmt)
+		if !ok {
+			return true
+		}
+
+		callExpr, ok := exprStmt.X.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		selectorExpr, ok := callExpr.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+
+		if selectorExpr.Sel.Name == "Helper" {
+			if ident, ok := selectorExpr.X.(*ast.Ident); ok {
+				if ident.Name == "t" || ident.Name == "tb" {
+					count++
+				}
+			}
+		}
+
+		return true
+	})
+	return count
 }
 
 // isTestHelperFunction checks if a function is a test helper based on naming patterns.
