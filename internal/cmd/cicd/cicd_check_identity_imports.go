@@ -74,7 +74,7 @@ func goCheckIdentityImports(logger *LogUtil) error {
 	if cache, err := loadIdentityImportsCache(cacheFile); err == nil {
 		// Check if cache is still valid
 		cacheAge := time.Since(cache.LastCheck)
-		isExpired := cacheAge > 5*time.Minute
+		isExpired := cacheAge > cryptoutilMagic.CacheDuration
 		goModChanged := cache.GoModModTime.Before(goModStat.ModTime())
 		identityChanged := cache.IdentityModTime.Before(identityModTime)
 

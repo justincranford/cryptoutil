@@ -49,6 +49,9 @@ const (
 	// Cache file permissions (owner read/write only).
 	CacheFilePermissions = 0o600
 
+	// CacheDuration is the duration after which cache entries expire.
+	CacheDuration = 5 * time.Minute
+
 	// Directory permissions (owner read/write/execute, group and others execute).
 	CICDOutputDirPermissions = 0o711
 
