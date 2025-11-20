@@ -88,6 +88,7 @@ func TestNewSQLRepository_PostgreSQL_InvalidURL(t *testing.T) {
 			name:        "Empty PostgreSQL URL",
 			databaseURL: "",
 			errorCheck: func(t *testing.T, err error) {
+				t.Helper()
 				testify.Error(t, err)
 				testify.ErrorContains(t, err, "database URL cannot be empty")
 			},
@@ -96,6 +97,7 @@ func TestNewSQLRepository_PostgreSQL_InvalidURL(t *testing.T) {
 			name:        "Invalid PostgreSQL URL format",
 			databaseURL: "not-a-valid-url",
 			errorCheck: func(t *testing.T, err error) {
+				t.Helper()
 				testify.Error(t, err)
 			},
 		},

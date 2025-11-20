@@ -61,7 +61,7 @@ func TestNewSQLRepository_NilInputs(t *testing.T) {
 	settings := cryptoutilConfig.RequireNewForTest("nil_inputs_test")
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
-	defer telemetryService.Shutdown()
+	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	tests := []struct {
 		name          string
@@ -94,7 +94,9 @@ func TestNewSQLRepository_NilInputs(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc // Capture range variable
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			repo, err := cryptoutilSQLRepository.NewSQLRepository(tc.ctx, tc.telemetry, tc.settings)
 			testify.Error(t, err)
 			testify.ErrorContains(t, err, tc.errorContains)

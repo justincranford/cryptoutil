@@ -209,6 +209,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 		{
 			name: "ErrContainerOptionNotExist - SQLite with container mode",
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
+				t.Helper()
 				settings := cryptoutilConfig.RequireNewForTest("error_container_not_exist")
 				settings.DevMode = true
 				settings.DatabaseContainer = "required"
@@ -219,12 +220,14 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			},
 			checkError: func(t *testing.T, err error) {
+				t.Helper()
 				testify.ErrorIs(t, err, cryptoutilSQLRepository.ErrContainerOptionNotExist)
 			},
 		},
 		{
 			name: "ErrContainerModeRequiredButContainerNotStarted",
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
+				t.Helper()
 				settings := cryptoutilConfig.RequireNewForTest("error_container_required")
 				settings.DevMode = false
 				settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
@@ -236,12 +239,14 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			},
 			checkError: func(t *testing.T, err error) {
+				t.Helper()
 				testify.ErrorIs(t, err, cryptoutilSQLRepository.ErrContainerModeRequiredButContainerNotStarted)
 			},
 		},
 		{
 			name: "ErrPingDatabaseFailed - PostgreSQL without server",
 			setup: func(t *testing.T) (*cryptoutilSQLRepository.SQLRepository, error) {
+				t.Helper()
 				settings := cryptoutilConfig.RequireNewForTest("error_ping_failed")
 				settings.DevMode = false
 				settings.DatabaseURL = "postgres://user:pass@localhost:5432/testdb?sslmode=disable"
@@ -253,6 +258,7 @@ func TestSQLRepository_ErrorWrapping_AllTypes(t *testing.T) {
 				return cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 			},
 			checkError: func(t *testing.T, err error) {
+				t.Helper()
 				testify.ErrorIs(t, err, cryptoutilSQLRepository.ErrPingDatabaseFailed)
 			},
 		},
@@ -281,13 +287,13 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 	settings.DatabaseContainer = "disabled"
 
 	telemetryService := cryptoutilTelemetry.RequireNewForTest(ctx, settings)
-	defer telemetryService.Shutdown()
+	t.Cleanup(func() { telemetryService.Shutdown() })
 
 	repo, err := cryptoutilSQLRepository.NewSQLRepository(ctx, telemetryService, settings)
 	testify.NoError(t, err)
 	testify.NotNil(t, repo)
 
-	defer repo.Shutdown()
+	t.Cleanup(func() { repo.Shutdown() })
 
 	tests := []struct {
 		name      string
@@ -311,7 +317,9 @@ func TestSQLTransaction_ErrorConditions(t *testing.T) {
 	}
 
 	for _, tc := range tests {
+		tc := tc // Capture range variable
 		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 			err := repo.WithTransaction(ctx, false, tc.fn)
 			if tc.wantError {
 				testify.Error(t, err)
