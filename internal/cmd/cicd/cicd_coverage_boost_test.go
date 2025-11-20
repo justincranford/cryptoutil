@@ -282,21 +282,10 @@ func TestGoCheckCircularPackageDeps_WithCache(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create valid cache
-	goModStat, err := os.Stat("go.mod")
 	require.NoError(t, err)
 
-	cache := cryptoutilMagic.CircularDepCache{
-		LastCheck:       time.Now().Add(-30 * time.Minute),
-		GoModModTime:    goModStat.ModTime(),
-		HasCircularDeps: false,
-		CircularDeps:    []string{},
-	}
-
-	cacheFile := filepath.Join(cicdDir, "circular-dep-cache.json")
-	err = saveCircularDepCache(cacheFile, cache)
-	require.NoError(t, err)
-
-	// Should use cache
+	// Note: Cache creation test removed - now covered by circulardeps package tests
+	// Test simply runs the check command
 	err = goCheckCircularPackageDeps(logger)
 	require.NoError(t, err)
 }
@@ -337,18 +326,7 @@ func TestLoadDepCache_ModeMismatch(t *testing.T) {
 	require.Contains(t, err.Error(), "cache mode mismatch")
 }
 
-// TestLoadCircularDepCache_InvalidJSON tests handling of corrupted circular dep cache.
-func TestLoadCircularDepCache_InvalidJSON(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	cacheFile := filepath.Join(tmpDir, "invalid-cache.json")
-	err := os.WriteFile(cacheFile, []byte("invalid json"), 0o600)
-	require.NoError(t, err)
-
-	_, err = loadCircularDepCache(cacheFile)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "failed to unmarshal")
-}
+// Note: TestLoadCircularDepCache_InvalidJSON removed - now covered by circulardeps package tests
 
 // TestGoEnforceAny_MultipleReplacements tests enforcement with multiple files.
 func TestGoEnforceAny_MultipleReplacements(t *testing.T) {

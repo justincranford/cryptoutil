@@ -208,57 +208,12 @@ func TestGoCheckCircularPackageDeps_ExpiredCache(t *testing.T) {
 	err = os.WriteFile("main.go", []byte(mainContent), 0o600)
 	require.NoError(t, err)
 
-	// Create .cicd directory
-	cicdDir := filepath.Join(tmpDir, cryptoutilMagic.CICDOutputDir)
-	err = os.MkdirAll(cicdDir, 0o755)
-	require.NoError(t, err)
-
-	// Create expired cache
-	goModStat, err := os.Stat("go.mod")
-	require.NoError(t, err)
-
-	expiredCache := cryptoutilMagic.CircularDepCache{
-		LastCheck:       time.Now().Add(-2 * time.Hour),
-		GoModModTime:    goModStat.ModTime(),
-		HasCircularDeps: false,
-		CircularDeps:    []string{},
-	}
-
-	cacheFile := filepath.Join(cicdDir, "circular-dep-cache.json")
-	err = saveCircularDepCache(cacheFile, expiredCache)
-	require.NoError(t, err)
-
-	// Should regenerate cache
+	// Note: Expired cache test removed - now covered by circulardeps package tests
 	err = goCheckCircularPackageDeps(logger)
 	require.NoError(t, err)
 }
 
-func TestSaveCircularDepCache_CreateDirectory(t *testing.T) {
-	tmpDir := t.TempDir()
-
-	// Don't create .cicd directory - let saveCircularDepCache do it
-	cacheFile := filepath.Join(tmpDir, cryptoutilMagic.CICDOutputDir, "test-cache.json")
-
-	cache := cryptoutilMagic.CircularDepCache{
-		LastCheck:       time.Now(),
-		GoModModTime:    time.Now(),
-		HasCircularDeps: false,
-		CircularDeps:    []string{},
-	}
-
-	err := saveCircularDepCache(cacheFile, cache)
-	require.NoError(t, err)
-
-	// Verify directory was created
-	cicdDir := filepath.Join(tmpDir, cryptoutilMagic.CICDOutputDir)
-	info, err := os.Stat(cicdDir)
-	require.NoError(t, err)
-	require.True(t, info.IsDir())
-
-	// Verify file was created
-	_, err = os.Stat(cacheFile)
-	require.NoError(t, err)
-}
+// Note: TestSaveCircularDepCache_CreateDirectory removed - now covered by circulardeps package tests
 
 func TestSaveDepCache_CreateDirectory(t *testing.T) {
 	tmpDir := t.TempDir()

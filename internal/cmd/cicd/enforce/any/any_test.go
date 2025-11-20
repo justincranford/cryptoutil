@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	testPackageMain        = "package main"
-	testImportFmt          = `import "fmt"`
-	testFuncMainStart      = "\nfunc main() {"
-	testFuncMainEnd        = "\n}\n"
+	testPackageMain           = "package main"
+	testImportFmt             = `import "fmt"`
+	testFuncMainStart         = "\nfunc main() {"
+	testFuncMainEnd           = "\n}\n"
 	testTypeMyStructInterface = `
 type MyStruct struct {
 	Data interface{}

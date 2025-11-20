@@ -3,8 +3,8 @@
 package cicd
 
 import (
-	enforceAny "cryptoutil/internal/cmd/cicd/enforce/any"
 	"cryptoutil/internal/cmd/cicd/common"
+	enforceAny "cryptoutil/internal/cmd/cicd/enforce/any"
 )
 
 // goEnforceAny enforces custom Go source code fixes across all Go files.
