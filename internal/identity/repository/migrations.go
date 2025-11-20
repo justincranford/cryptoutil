@@ -5,6 +5,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"embed"
 	"errors"
@@ -20,8 +21,10 @@ var migrationsFS embed.FS
 
 // Migrate applies SQL migrations from embedded files.
 func Migrate(db *sql.DB) error {
+	ctx := context.TODO() // Migration runs during startup, no request context available
+
 	// Enable SQLite pragmas for proper foreign key handling.
-	if _, err := db.Exec("PRAGMA foreign_keys = ON"); err != nil {
+	if _, err := db.ExecContext(ctx, "PRAGMA foreign_keys = ON"); err != nil {
 		return fmt.Errorf("failed to enable foreign keys: %w", err)
 	}
 
@@ -34,7 +37,7 @@ func Migrate(db *sql.DB) error {
 			dirty boolean not null
 		);
 	`
-	if _, err := db.Exec(createSchemaTable); err != nil {
+	if _, err := db.ExecContext(ctx, createSchemaTable); err != nil {
 		return fmt.Errorf("failed to create schema_migrations table: %w", err)
 	}
 

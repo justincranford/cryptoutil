@@ -6,6 +6,7 @@ package certificate
 
 import (
 	"bytes"
+	"context"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -104,9 +105,18 @@ func TestMutualTLS(t *testing.T) {
 				var err error
 				// Retry connection up to testTLSMaxRetries times with backoff to handle timing issues under load
 				for retry := 0; retry < testTLSMaxRetries; retry++ {
-					tlsClientConnection, err = tls.Dial("tcp", tlsListenerAddress, clientTLSConfig)
-					if err == nil {
-						break
+					conn, dialErr := (&tls.Dialer{Config: clientTLSConfig}).DialContext(context.Background(), "tcp", tlsListenerAddress)
+					if dialErr == nil {
+						var ok bool
+						tlsClientConnection, ok = conn.(*tls.Conn)
+						if !ok {
+							err = fmt.Errorf("connection is not a TLS connection")
+						} else {
+							err = nil
+							break
+						}
+					} else {
+						err = dialErr
 					}
 
 					time.Sleep(time.Duration(retry+1) * testTLSRetryBaseDelay)

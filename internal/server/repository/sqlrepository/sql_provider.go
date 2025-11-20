@@ -204,13 +204,13 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	if dbType == DBTypeSQLite {
 		sqlDB.SetMaxOpenConns(sqliteMaxOpenConnections) // SQLite doesn't support concurrent writers; workaround is to limit the pool connections size, but not good for read concurrency
 
-		if _, err := sqlDB.Exec("PRAGMA journal_mode=WAL;"); err != nil {
+		if _, err := sqlDB.ExecContext(ctx, "PRAGMA journal_mode=WAL;"); err != nil {
 			telemetryService.Slogger.Error("failed to enable WAL mode", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 
 			return nil, fmt.Errorf("failed to enable WAL mode: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
 		}
 
-		if _, err := sqlDB.Exec(fmt.Sprintf("PRAGMA busy_timeout = %d;", int(sqliteBusyTimeout.Milliseconds()))); err != nil { // 30 seconds for concurrent testing
+		if _, err := sqlDB.ExecContext(ctx, fmt.Sprintf("PRAGMA busy_timeout = %d;", int(sqliteBusyTimeout.Milliseconds()))); err != nil { // 30 seconds for concurrent testing
 			telemetryService.Slogger.Error("failed to set busy timeout", "containerMode", string(containerMode), "dbType", string(dbType), "error", errors.Join(ErrOpenDatabaseFailed, err))
 
 			return nil, fmt.Errorf("failed to set busy timeout: %w", errors.Join(ErrOpenDatabaseFailed, fmt.Errorf("dbType: %s, %w", string(dbType), err)))
@@ -222,7 +222,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 	sqlRepository.logConnectionPoolSettings()
 
 	for attempt, attemptsRemaining := 1, maxDBPingAttempts; attemptsRemaining > 0; attemptsRemaining-- {
-		err = sqlDB.Ping()
+		err = sqlDB.PingContext(ctx)
 		if err == nil {
 			telemetryService.Slogger.Debug("successfully pinged database", "attempt", attempt, "containerMode", string(containerMode), "dbType", string(dbType))
 
@@ -252,7 +252,7 @@ func NewSQLRepository(ctx context.Context, telemetryService *cryptoutilTelemetry
 		if schemaName := extractSchemaFromURL(databaseURL); schemaName != "" {
 			telemetryService.Slogger.Debug("creating test schema for PostgreSQL", "schema", schemaName)
 
-			if _, err := sqlDB.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName)); err != nil {
+			if _, err := sqlDB.ExecContext(ctx, fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schemaName)); err != nil {
 				return nil, fmt.Errorf("failed to create test schema %s: %w", schemaName, err)
 			}
 

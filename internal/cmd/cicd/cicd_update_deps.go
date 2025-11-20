@@ -5,6 +5,7 @@
 package cicd
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -65,7 +66,7 @@ func goUpdateDeps(logger *LogUtil, mode cryptoutilMagic.DepCheckMode) error {
 	logger.Log("Performing fresh dependency check")
 
 	// Run go list -u -m all to check for outdated dependencies
-	cmd := exec.Command("go", "list", "-u", "-m", "all")
+	cmd := exec.CommandContext(context.Background(), "go", "list", "-u", "-m", "all")
 
 	output, err := cmd.Output()
 	if err != nil {

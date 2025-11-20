@@ -6,6 +6,7 @@ package workflow
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -451,7 +452,7 @@ func executeWorkflow(wf WorkflowExecution, combinedLog *os.File, outputDir strin
 	}()
 
 	// Execute act command.
-	cmd := exec.Command(actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
+	cmd := exec.CommandContext(context.Background(), actPath, args...) //nolint:gosec // User-controlled input is intentional for local testing
 
 	// Setup stdout and stderr pipes for dual logging.
 	stdoutPipe, err := cmd.StdoutPipe()

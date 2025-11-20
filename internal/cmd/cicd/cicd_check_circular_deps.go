@@ -5,6 +5,7 @@
 package cicd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -77,7 +78,7 @@ func goCheckCircularPackageDeps(logger *LogUtil) error {
 	// Cache miss or expired, perform actual check
 	logger.Log("Running: go list -json ./...")
 
-	cmd := exec.Command("go", "list", "-json", "./...")
+	cmd := exec.CommandContext(context.Background(), "go", "list", "-json", "./...")
 
 	output, err := cmd.Output()
 	if err != nil {

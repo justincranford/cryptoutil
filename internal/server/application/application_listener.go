@@ -293,14 +293,14 @@ func StartServerListenerApplication(settings *cryptoutilConfig.Settings) (*Serve
 	privateBinding := fmt.Sprintf("%s:%d", settings.BindPrivateAddress, settings.BindPrivatePort)
 
 	// Create net listeners to get actual assigned ports (port 0 for tests, configured ports for production)
-	publicListener, err := net.Listen("tcp", publicBinding)
+	publicListener, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", publicBinding)
 	if err != nil {
 		serverApplicationCore.Shutdown()
 
 		return nil, fmt.Errorf("failed to create public listener: %w", err)
 	}
 
-	privateListener, err := net.Listen("tcp", privateBinding)
+	privateListener, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", privateBinding)
 	if err != nil {
 		if closeErr := publicListener.Close(); closeErr != nil {
 			fmt.Printf("Warning: failed to close public listener during cleanup: %v\n", closeErr)
