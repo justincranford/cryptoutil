@@ -162,15 +162,15 @@ func TestGoFixTHelper_OnlyHelperPrefixes(t *testing.T) {
 import "testing"
 
 func randomFunction(t *testing.T) {
-	// This should NOT get t.Helper() - doesn't match pattern
+	// Should not be modified - doesn't match helper pattern
 }
 
 func TestSomething(t *testing.T) {
-	// This should NOT get t.Helper() - it's a test function
+	// Should not be modified - it's a test function
 }
 
 func helperDoSomething(t *testing.T) {
-	// This SHOULD get t.Helper() - matches "helper" prefix
+	// Should get Helper() call - matches "helper" prefix
 }
 `
 	err := os.WriteFile(testFile, []byte(content), 0o600)
@@ -180,11 +180,11 @@ func helperDoSomething(t *testing.T) {
 	require.Error(t, err, "Should return error when fixes are made")
 	require.Contains(t, err.Error(), "added t.Helper() to 1 test helper functions")
 
-	// Verify only the helper function got t.Helper()
+	// Verify only the helper function got Helper() call added
 	modifiedContent, err := os.ReadFile(testFile)
 	require.NoError(t, err)
-	helperCount := strings.Count(string(modifiedContent), "t.Helper()")
-	require.Equal(t, 1, helperCount, "Should have exactly one t.Helper() call")
+	helperCount := strings.Count(string(modifiedContent), ".Helper()")
+	require.Equal(t, 1, helperCount, "Should have exactly one Helper() call")
 }
 
 func TestGoFixTHelper_ExcludesNonTestFiles(t *testing.T) {
@@ -198,7 +198,7 @@ func TestGoFixTHelper_ExcludesNonTestFiles(t *testing.T) {
 	content := `package main
 
 func setupDatabase(db *Database) {
-	// This should NOT get t.Helper() - not a test file
+	// Non-test file, should not be modified
 }
 
 type Database struct {
@@ -211,10 +211,11 @@ type Database struct {
 	err = goFixTHelper(logger, []string{regularFile})
 	require.NoError(t, err, "Should skip non-test files")
 
-	// Verify file was not modified
+	// Verify file was not modified - should contain original content
 	modifiedContent, err := os.ReadFile(regularFile)
 	require.NoError(t, err)
-	require.NotContains(t, string(modifiedContent), "t.Helper()", "Should not add t.Helper() to non-test files")
+	require.Equal(t, content, string(modifiedContent), "File content should be unchanged")
+	require.NotContains(t, string(modifiedContent), ".Helper()", "Should not add Helper() call to non-test files")
 }
 
 func TestGoFixTHelper_MultipleFiles(t *testing.T) {

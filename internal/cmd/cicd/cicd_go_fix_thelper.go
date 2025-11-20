@@ -1,11 +1,10 @@
 package cicd
 
 import (
-	"bytes"
 	"fmt"
 	"go/ast"
+	"go/format"
 	"go/parser"
-	"go/printer"
 	"go/token"
 	"os"
 	"strings"
@@ -58,64 +57,112 @@ func fixTHelperInFile(filePath string) (int, error) {
 		return 0, fmt.Errorf("failed to parse file: %w", err)
 	}
 
-	fixCount := 0
-	modified := false
+	// Read original file content
+	originalContent, err := os.ReadFile(filePath)
+	if err != nil {
+		return 0, fmt.Errorf("failed to read file: %w", err)
+	}
 
-	// Find all function declarations
+	modifiedContent := string(originalContent)
+	fixCount := 0
+
+	// Find all function declarations that need t.Helper()
+	var functionsToFix []struct {
+		name      string
+		paramName string
+		bodyStart token.Pos
+	}
+
 	for _, decl := range node.Decls {
 		funcDecl, ok := decl.(*ast.FuncDecl)
 		if !ok {
 			continue
 		}
 
+		funcName := funcDecl.Name.Name
+
 		// Check if this is a test helper function
-		if !isTestHelperFunction(funcDecl) {
+		isHelper := isTestHelperFunction(funcDecl)
+
+		if !isHelper {
 			continue
 		}
 
 		// Check if function already has t.Helper() call
-		if hasTHelperCall(funcDecl) {
+		hasHelper := hasTHelperCall(funcDecl)
+
+		if hasHelper {
 			continue
 		}
 
-		// Add t.Helper() as first statement
-		if addTHelperCall(funcDecl) {
-			fixCount++
-			modified = true
+		// Find the testing.T parameter name
+		tParamName := findTestingTParamName(funcDecl)
+		if tParamName == "" || funcDecl.Body == nil {
+			continue
 		}
+
+		functionsToFix = append(functionsToFix, struct {
+			name      string
+			paramName string
+			bodyStart token.Pos
+		}{
+			name:      funcName,
+			paramName: tParamName,
+			bodyStart: funcDecl.Body.Lbrace,
+		})
+	}
+
+	// Apply fixes in reverse order to preserve positions
+	for i := len(functionsToFix) - 1; i >= 0; i-- {
+		fix := functionsToFix[i]
+		bodyStartOffset := fset.Position(fix.bodyStart).Offset
+
+		// Find the position of '{' in the source
+		insertPos := bodyStartOffset + 1 // Right after '{'
+
+		// Extract the content after '{' to determine proper indentation
+		afterBrace := modifiedContent[insertPos:]
+
+		// Find the first non-whitespace character to determine indentation
+		indentation := "\t" // Default
+		firstLineEnd := strings.IndexAny(afterBrace, "\n\r")
+		if firstLineEnd != -1 && firstLineEnd+1 < len(afterBrace) {
+			// Look at the next line to get indentation
+			nextLineStart := firstLineEnd + 1
+			if afterBrace[firstLineEnd] == '\r' && nextLineStart < len(afterBrace) && afterBrace[nextLineStart] == '\n' {
+				nextLineStart++
+			}
+			indent := ""
+			for i := nextLineStart; i < len(afterBrace) && (afterBrace[i] == ' ' || afterBrace[i] == '\t'); i++ {
+				indent += string(afterBrace[i])
+			}
+			if indent != "" {
+				indentation = indent
+			}
+		}
+
+		// Insert t.Helper() call right after the opening brace
+		helperCall := fmt.Sprintf("\n%s%s.Helper()", indentation, fix.paramName)
+		modifiedContent = modifiedContent[:insertPos] + helperCall + modifiedContent[insertPos:]
+
+		fixCount++
 	}
 
 	// Write back to file if modified
-	if modified {
-		// Verify AST has the expected t.Helper() calls before formatting
-		actualHelperCount := countTHelperCalls(node)
-		if actualHelperCount != fixCount {
-			return 0, fmt.Errorf("AST modification verification failed: expected %d t.Helper() calls, found %d", fixCount, actualHelperCount)
+	if fixCount > 0 {
+		// Format the modified content
+		formatted, err := format.Source([]byte(modifiedContent))
+		if err != nil {
+			return 0, fmt.Errorf("failed to format modified code: %w", err)
 		}
 
-		var buf bytes.Buffer
-		cfg := &printer.Config{Mode: printer.UseSpaces | printer.TabIndent, Tabwidth: 8}
-		if err := cfg.Fprint(&buf, fset, node); err != nil {
-			return 0, fmt.Errorf("failed to format code: %w", err)
-		}
-
-		// Write formatted output
-		if err := os.WriteFile(filePath, buf.Bytes(), 0o600); err != nil {
+		if err := os.WriteFile(filePath, formatted, 0o600); err != nil {
 			return 0, fmt.Errorf("failed to write file: %w", err)
-		}
-
-		// Verify output file has expected t.Helper() calls
-		outputContent := buf.String()
-		outputHelperCount := strings.Count(outputContent, "t.Helper()")
-		if outputHelperCount != fixCount {
-			return 0, fmt.Errorf("output verification failed: expected %d t.Helper() calls in output, found %d", fixCount, outputHelperCount)
 		}
 	}
 
 	return fixCount, nil
-}
-
-// countTHelperCalls counts t.Helper() calls in the AST.
+}// countTHelperCalls counts t.Helper() calls in the AST.
 func countTHelperCalls(node *ast.File) int {
 	count := 0
 	ast.Inspect(node, func(n ast.Node) bool {
