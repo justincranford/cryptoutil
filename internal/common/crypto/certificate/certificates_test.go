@@ -108,11 +108,13 @@ func TestMutualTLS(t *testing.T) {
 					conn, dialErr := (&tls.Dialer{Config: clientTLSConfig}).DialContext(context.Background(), "tcp", tlsListenerAddress)
 					if dialErr == nil {
 						var ok bool
+
 						tlsClientConnection, ok = conn.(*tls.Conn)
 						if !ok {
 							err = fmt.Errorf("connection is not a TLS connection")
 						} else {
 							err = nil
+
 							break
 						}
 					} else {
