@@ -14,11 +14,11 @@ import (
 )
 
 // Enforce enforces custom Go source code fixes across all Go files.
-// It applies automated fixes like replacing interface{} with any.
+// It applies automated fixes like replacing any with any.
 // Files matching goEnforceAnyFileExcludePatterns are skipped to prevent self-modification.
 // Returns an error if any files were modified (to indicate changes were made).
 func Enforce(logger *common.Logger, allFiles []string) error {
-	logger.Log("Enforcing 'any' instead of 'interface{}' in Go files...")
+	logger.Log("Enforcing 'any' instead of 'any' in Go files...")
 
 	// Find all .go files
 	var goFiles []string
@@ -97,7 +97,7 @@ func Enforce(logger *common.Logger, allFiles []string) error {
 }
 
 // processGoFile applies custom Go source code fixes to a single file.
-// Currently replaces interface{} with any.
+// Currently replaces any with any.
 // This function is protected from self-modification by goEnforceAnyFileExcludePatterns.
 // Returns the number of replacements made and any error encountered.
 func processGoFile(filePath string) (int, error) {
@@ -109,16 +109,16 @@ func processGoFile(filePath string) (int, error) {
 
 	originalContent := string(content)
 
-	// IMPORTANT: Replace interface{} with any
-	// This regex matches the literal string "interface{}" in Go source code
+	// IMPORTANT: Replace any with any
+	// This regex matches the literal string "any" in Go source code
 	// The goEnforceAnyFileExcludePatterns above prevent this file from being processed
 	// to avoid self-modification of the enforce-any hook implementation
 	interfacePattern := `interface\{\}`
 	re := regexp.MustCompile(interfacePattern)
 	modifiedContent := re.ReplaceAllString(originalContent, "any")
 
-	// Count actual replacements by counting interface{} in original content
-	replacements := strings.Count(originalContent, "interface{}")
+	// Count actual replacements by counting any in original content
+	replacements := strings.Count(originalContent, "any")
 
 	// Only write if there were changes
 	if replacements > 0 {

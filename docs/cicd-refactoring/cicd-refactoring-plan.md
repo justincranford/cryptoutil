@@ -352,9 +352,9 @@ internal/cmd/cicd/
 │       └── testpatterns_integration_test.go
 │
 ├── check/                           # Analysis/checking commands
-│   ├── circuitdeps/
-│   │   ├── circuitdeps.go           # Circular dependency checker
-│   │   └── circuitdeps_test.go
+│   ├── circulardeps/
+│   │   ├── circulardeps.go           # Circular dependency checker
+│   │   └── circulardeps_test.go
 │   └── identityimports/
 │       ├── identityimports.go       # Identity domain isolation
 │       ├── identityimports_test.go

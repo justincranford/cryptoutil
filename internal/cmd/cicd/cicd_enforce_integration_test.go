@@ -95,18 +95,18 @@ func TestGoEnforceAny_NoFiles(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TestGoEnforceAny_InterfaceEmpty tests wrapper with interface{} usage.
+// TestGoEnforceAny_InterfaceEmpty tests wrapper with any usage.
 func TestGoEnforceAny_InterfaceEmpty(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
 	logger := cryptoutilCmd.NewLogger("test-any-interface-empty")
 
-	// Create Go file using interface{} (invalid - should use 'any').
+	// Create Go file using any (invalid - should use 'any').
 	invalidFile := filepath.Join(tmpDir, "invalid.go")
 	invalidContent := `package test
 
-func Process(data interface{}) {
+func Process(data any) {
 	_ = data
 }
 `

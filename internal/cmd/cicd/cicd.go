@@ -19,7 +19,7 @@ const (
 	// Command name for enforcing UTF-8 encoding on all files.
 	cmdAllEnforceUTF8 = "all-enforce-utf8"
 
-	// Command name for enforcing Go any usage instead of interface{}.
+	// Command name for enforcing Go any usage instead of any.
 	cmdGoEnforceAny = "go-enforce-any"
 
 	// Command name for enforcing test patterns in Go files.
