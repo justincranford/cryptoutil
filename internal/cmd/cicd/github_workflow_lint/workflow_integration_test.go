@@ -2,7 +2,7 @@
 //
 //
 
-package cicd
+package github_workflow_lint
 
 import (
 	"os"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"cryptoutil/internal/cmd/cicd/common"
+	go_update_direct_dependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 )
 
 func TestFilterWorkflowFiles(t *testing.T) {
@@ -78,28 +79,28 @@ func TestFilterWorkflowFiles(t *testing.T) {
 	}
 }
 
-func TestCheckWorkflowLintWithError_NoFiles(t *testing.T) {
-	logger := common.NewLogger("TestCheckWorkflowLintWithError_NoFiles")
+func TestLint_NoFiles(t *testing.T) {
+	logger := common.NewLogger("TestLint_NoFiles")
 	allFiles := []string{}
 
-	err := checkWorkflowLintWithError(logger, allFiles)
+	err := Lint(logger, allFiles)
 	require.NoError(t, err, "Should succeed with no files")
 }
 
-func TestCheckWorkflowLintWithError_NoWorkflowFiles(t *testing.T) {
-	logger := common.NewLogger("TestCheckWorkflowLintWithError_NoWorkflowFiles")
+func TestLint_NoWorkflowFiles(t *testing.T) {
+	logger := common.NewLogger("TestLint_NoWorkflowFiles")
 	allFiles := []string{
 		"README.md",
 		"main.go",
 		"config.yml",
 	}
 
-	err := checkWorkflowLintWithError(logger, allFiles)
+	err := Lint(logger, allFiles)
 	require.NoError(t, err, "Should succeed with no workflow files")
 }
 
-func TestCheckWorkflowLintWithError_ValidWorkflowFile(t *testing.T) {
-	logger := common.NewLogger("TestCheckWorkflowLintWithError_ValidWorkflowFile")
+func TestLint_ValidWorkflowFile(t *testing.T) {
+	logger := common.NewLogger("TestLint_ValidWorkflowFile")
 
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
@@ -125,12 +126,12 @@ jobs:
 	// The important thing is it doesn't panic
 	require.NotPanics(t, func() {
 		//nolint:errcheck // Testing workflow lint
-		_ = checkWorkflowLintWithError(logger, allFiles)
+		_ = Lint(logger, allFiles)
 	})
 }
 
-func TestCheckWorkflowLintWithError_MissingCIPrefix(t *testing.T) {
-	logger := common.NewLogger("TestCheckWorkflowLintWithError_MissingCIPrefix")
+func TestLint_MissingCIPrefix(t *testing.T) {
+	logger := common.NewLogger("TestLint_MissingCIPrefix")
 
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
@@ -150,13 +151,13 @@ jobs:
 	require.NoError(t, err)
 
 	allFiles := []string{workflowFile}
-	err = checkWorkflowLintWithError(logger, allFiles)
+	err = Lint(logger, allFiles)
 	require.Error(t, err, "Should fail for missing ci- prefix")
 	require.Contains(t, err.Error(), "validation errors")
 }
 
-func TestCheckWorkflowLintWithError_MissingWorkflowReference(t *testing.T) {
-	logger := common.NewLogger("TestCheckWorkflowLintWithError_MissingWorkflowReference")
+func TestLint_MissingWorkflowReference(t *testing.T) {
+	logger := common.NewLogger("TestLint_MissingWorkflowReference")
 
 	tmpDir := t.TempDir()
 	workflowDir := filepath.Join(tmpDir, ".github", "workflows")
@@ -176,7 +177,7 @@ jobs:
 	require.NoError(t, err)
 
 	allFiles := []string{workflowFile}
-	err = checkWorkflowLintWithError(logger, allFiles)
+	err = Lint(logger, allFiles)
 	require.Error(t, err, "Should fail for missing workflow reference")
 }
 
@@ -265,7 +266,7 @@ func TestGetLatestTag_ValidRepo(t *testing.T) {
 	logger := common.NewLogger("TestGetLatestTag_ValidRepo")
 
 	// Test with a known repository
-	tag, err := getLatestTag(logger, "actions/checkout")
+	tag, err := go_update_direct_dependencies.GetLatestTag(logger, "actions/checkout")
 
 	// Result depends on network/GitHub API state
 	// Just verify it doesn't panic and returns valid types
@@ -282,6 +283,6 @@ func TestGetLatestTag_InvalidRepo(t *testing.T) {
 	logger := common.NewLogger("TestGetLatestTag_InvalidRepo")
 
 	// Test with an invalid repository
-	_, err := getLatestTag(logger, "nonexistent/repository-that-does-not-exist")
+	_, err := go_update_direct_dependencies.GetLatestTag(logger, "nonexistent/repository-that-does-not-exist")
 	require.Error(t, err, "Should fail for nonexistent repository")
 }

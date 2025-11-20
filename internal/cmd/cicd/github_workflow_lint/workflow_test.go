@@ -2,7 +2,7 @@
 //
 //
 
-package cicd
+package github_workflow_lint
 
 import (
 	"encoding/json"
@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"cryptoutil/internal/cmd/cicd/common"
+	go_update_direct_dependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
@@ -428,7 +429,7 @@ func TestIsOutdated(t *testing.T) {
 	}
 }
 
-// Test the getLatestVersion function with a mock server.
+// Test the GetLatestVersion function with a mock server.
 func TestGetLatestVersion(t *testing.T) {
 	server := setupMockGitHubServer()
 	defer server.Close()
@@ -436,17 +437,17 @@ func TestGetLatestVersion(t *testing.T) {
 	// Create a logger for testing
 	logger := common.NewLogger("test")
 
-	// We can't easily mock the internal getLatestVersion function,
+	// We can't easily mock the internal GetLatestVersion function,
 	// so we'll test the logic indirectly by testing a simpler version
 	// For now, just test that the function exists and can be called
 	// In a real scenario, you might want to refactor the code to make it more testable
 
-	_, err := getLatestVersion(logger, "actions/checkout")
+	_, err := go_update_direct_dependencies.GetLatestVersion(logger, "actions/checkout")
 	// This will fail due to network call, but we can at least test it doesn't panic
 	if err == nil {
-		t.Log("getLatestVersion succeeded (network call worked)")
+		t.Log("GetLatestVersion succeeded (network call worked)")
 	} else {
-		t.Logf("getLatestVersion failed as expected (network issue): %v", err)
+		t.Logf("GetLatestVersion failed as expected (network issue): %v", err)
 	}
 }
 
@@ -454,7 +455,9 @@ func TestGetLatestVersion(t *testing.T) {
 func setupMockGitHubServer() *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "/releases/latest") {
-			response := GitHubRelease{TagName: "v5.0.0"}
+			response := struct {
+				TagName string `json:"tag_name"`
+			}{TagName: "v5.0.0"}
 			if err := json.NewEncoder(w).Encode(response); err != nil {
 				http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 

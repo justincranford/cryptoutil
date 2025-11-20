@@ -2,7 +2,7 @@
 //
 //
 
-package cicd
+package go_update_direct_dependencies
 
 import (
 	"encoding/json"

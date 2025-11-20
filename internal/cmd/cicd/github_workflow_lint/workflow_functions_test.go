@@ -2,7 +2,7 @@
 //
 //
 
-package cicd
+package github_workflow_lint
 
 import (
 	"os"

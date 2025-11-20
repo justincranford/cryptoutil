@@ -7,10 +7,22 @@ package cicd
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
+	"cryptoutil/internal/cmd/cicd/all_enforce_utf8"
 	"cryptoutil/internal/cmd/cicd/common"
+	"cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
+	"cryptoutil/internal/cmd/cicd/go_check_identity_imports"
+	"cryptoutil/internal/cmd/cicd/go_enforce_any"
+	"cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
+	"cryptoutil/internal/cmd/cicd/go_fix_all"
+	"cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
+	"cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
+	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
+	"cryptoutil/internal/cmd/cicd/github_workflow_lint"
+	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
 )
@@ -92,29 +104,29 @@ func Run(commands []string) error {
 
 		switch command {
 		case cmdAllEnforceUTF8:
-			cmdErr = allEnforceUtf8(logger, allFiles)
+			cmdErr = all_enforce_utf8.Enforce(logger, allFiles)
 		case cmdGoEnforceTestPatterns:
-			cmdErr = goEnforceTestPatterns(logger, allFiles)
+			cmdErr = go_enforce_test_patterns.Enforce(logger, allFiles)
 		case cmdGoEnforceAny:
-			cmdErr = goEnforceAny(logger, allFiles)
+			cmdErr = go_enforce_any.Enforce(logger, allFiles)
 		case "go-check-circular-package-dependencies":
-			cmdErr = goCheckCircularPackageDeps(logger)
+			cmdErr = go_check_circular_package_dependencies.Check(logger)
 		case "go-check-identity-imports":
-			cmdErr = goCheckIdentityImports(logger)
+			cmdErr = go_check_identity_imports.Check(logger)
 		case "go-update-direct-dependencies":
-			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckDirect)
+			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
 		case "go-update-all-dependencies":
-			cmdErr = goUpdateDeps(logger, cryptoutilMagic.DepCheckAll)
+			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckAll)
 		case cmdGitHubWorkflowLint:
-			cmdErr = checkWorkflowLintWithError(logger, allFiles)
+			cmdErr = github_workflow_lint.Lint(logger, allFiles)
 		case cmdGoFixStaticcheckErrorStrings:
-			cmdErr = goFixStaticcheckErrorStrings(logger, ".")
+			_, _, _, cmdErr = go_fix_staticcheck_error_strings.Fix(logger, ".")
 		case cmdGoFixCopyLoopVar:
-			cmdErr = goFixCopyLoopVar(logger, allFiles)
+			_, _, _, cmdErr = go_fix_copyloopvar.Fix(logger, ".", runtime.Version())
 		case cmdGoFixTHelper:
-			cmdErr = goFixTHelper(logger, allFiles)
+			_, _, _, cmdErr = go_fix_thelper.Fix(logger, ".")
 		case cmdGoFixAll:
-			cmdErr = goFixAll(logger, ".")
+			_, _, _, cmdErr = go_fix_all.Fix(logger, ".", runtime.Version())
 		}
 
 		cmdDuration := time.Since(cmdStart)

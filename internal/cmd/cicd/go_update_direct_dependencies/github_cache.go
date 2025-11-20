@@ -2,7 +2,7 @@
 //
 // This file contains the caching layer for GitHub API responses to improve
 // performance of workflow linting operations by reducing external API calls.
-package cicd
+package go_update_direct_dependencies
 
 import (
 	"context"
@@ -77,13 +77,13 @@ func (c *GitHubAPICache) Set(key, value string) {
 // Global GitHub API cache instance.
 var githubAPICache = NewGitHubAPICache()
 
-// getLatestVersion retrieves the latest version of a GitHub action.
+// GetLatestVersion retrieves the latest version of a GitHub action.
 // It uses caching to avoid repeated API calls for the same action.
-func getLatestVersion(logger *common.Logger, actionName string) (string, error) {
-	return getLatestVersionWithBaseURL(logger, actionName, "https://api.github.com")
+func GetLatestVersion(logger *common.Logger, actionName string) (string, error) {
+	return GetLatestVersionWithBaseURL(logger, actionName, "https://api.github.com")
 }
 
-func getLatestVersionWithBaseURL(logger *common.Logger, actionName string, baseURL string) (string, error) {
+func GetLatestVersionWithBaseURL(logger *common.Logger, actionName string, baseURL string) (string, error) {
 	// Check cache first
 	cacheKey := "release:" + actionName
 	if cachedVersion, found := githubAPICache.Get(cacheKey); found {
@@ -133,7 +133,7 @@ func getLatestVersionWithBaseURL(logger *common.Logger, actionName string, baseU
 
 	if resp.StatusCode == http.StatusNotFound {
 		// Some actions might not have releases, try tags
-		version, err := getLatestTag(logger, actionName)
+		version, err := GetLatestTag(logger, actionName)
 		if err != nil {
 			return "", err
 		}
@@ -175,9 +175,9 @@ func getLatestVersionWithBaseURL(logger *common.Logger, actionName string, baseU
 	return release.TagName, nil
 }
 
-// getLatestTag retrieves the latest tag for a GitHub repository.
+// GetLatestTag retrieves the latest tag for a GitHub repository.
 // Used as a fallback when releases are not available.
-func getLatestTag(logger *common.Logger, actionName string) (string, error) {
+func GetLatestTag(logger *common.Logger, actionName string) (string, error) {
 	// Check cache first
 	cacheKey := "tags:" + actionName
 	if cachedVersion, found := githubAPICache.Get(cacheKey); found {

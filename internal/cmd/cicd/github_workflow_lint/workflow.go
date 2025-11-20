@@ -2,7 +2,7 @@
 //
 //
 
-package cicd
+package github_workflow_lint
 
 import (
 	"encoding/json"
@@ -14,11 +14,13 @@ import (
 	"time"
 
 	"cryptoutil/internal/cmd/cicd/common"
+	go_update_direct_dependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
-// checkWorkflowLintWithError is a wrapper that returns an error instead of calling os.Exit.
-func checkWorkflowLintWithError(logger *common.Logger, allFiles []string) error {
+// Lint validates GitHub workflow files for outdated actions and other issues.
+// It returns an error if validation fails or outdated actions are found.
+func Lint(logger *common.Logger, allFiles []string) error {
 	workflowActionExceptions, err := loadWorkflowActionExceptions()
 	if err != nil {
 		logger.Log(fmt.Sprintf("Warning: Failed to load action exceptions: %v", err))
@@ -247,7 +249,7 @@ func checkActionVersionsConcurrently(logger *common.Logger, actionMap map[string
 				}
 			}
 
-			latest, err := getLatestVersion(logger, act.Name)
+			latest, err := go_update_direct_dependencies.GetLatestVersion(logger, act.Name)
 			results <- result{action: act, latest: latest, err: err, exempted: isExempted}
 		}(action)
 	}

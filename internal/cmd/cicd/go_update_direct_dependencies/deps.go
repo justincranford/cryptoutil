@@ -2,7 +2,7 @@
 //
 //
 
-package cicd
+package go_update_direct_dependencies
 
 import (
 	"context"
@@ -24,10 +24,10 @@ const (
 	cacheHitState = "cache_hit"
 )
 
-// goUpdateDeps checks for outdated Go dependencies and fails if any are found.
+// Update checks for outdated Go dependencies and fails if any are found.
 // It supports two modes: direct dependencies only (go-update-direct-dependencies) or all dependencies (go-update-all-dependencies).
 // This command uses caching to avoid repeated expensive checks and returns an error if outdated dependencies are found.
-func goUpdateDeps(logger *common.Logger, mode cryptoutilMagic.DepCheckMode) error {
+func Update(logger *common.Logger, mode cryptoutilMagic.DepCheckMode) error {
 	modeName := cryptoutilMagic.ModeNameDirect
 	if mode == cryptoutilMagic.DepCheckAll {
 		modeName = cryptoutilMagic.ModeNameAll

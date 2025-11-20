@@ -2,7 +2,7 @@
 //
 //
 
-package cicd
+package github_workflow_lint
 
 import (
 	"os"
@@ -15,7 +15,7 @@ import (
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
 
-func TestCheckWorkflowLintWithError_NoActions(t *testing.T) {
+func TestLint_NoActions(t *testing.T) {
 	t.Parallel()
 
 	logger := common.NewLogger("test_no_actions")
@@ -33,11 +33,11 @@ jobs:
 `
 	workflowPath := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-test.yml", workflowContent)
 
-	err := checkWorkflowLintWithError(logger, []string{workflowPath})
+	err := Lint(logger, []string{workflowPath})
 	require.NoError(t, err, "Expected no error when no actions are used")
 }
 
-func TestCheckWorkflowLintWithError_AllUpToDate(t *testing.T) {
+func TestLint_AllUpToDate(t *testing.T) {
 	t.Parallel()
 
 	logger := common.NewLogger("test_all_uptodate")
@@ -57,7 +57,7 @@ jobs:
 
 	// This test assumes GitHub API returns v4 and v5 as latest versions.
 	// In real scenarios, this might be outdated. We test the logic flow, not actual API responses.
-	err := checkWorkflowLintWithError(logger, []string{workflowPath})
+	err := Lint(logger, []string{workflowPath})
 
 	// We expect either no error (if versions are current) or an outdated error (if they're old).
 	// The test validates that the function completes without panicking.
@@ -66,7 +66,7 @@ jobs:
 	}
 }
 
-func TestCheckWorkflowLintWithError_ExemptedActions(t *testing.T) {
+func TestLint_ExemptedActions(t *testing.T) {
 	t.Parallel()
 
 	logger := common.NewLogger("test_exempted")
@@ -113,7 +113,7 @@ jobs:
 `
 	workflowPath := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-exempted.yml", workflowContent)
 
-	err = checkWorkflowLintWithError(logger, []string{workflowPath})
+	err = Lint(logger, []string{workflowPath})
 
 	// Exempted actions should not cause errors
 	// (though they may trigger warnings about exemptions)
@@ -122,7 +122,7 @@ jobs:
 	}
 }
 
-func TestCheckWorkflowLintWithError_InvalidWorkflowFile(t *testing.T) {
+func TestLint_InvalidWorkflowFile(t *testing.T) {
 	t.Parallel()
 
 	logger := common.NewLogger("test_invalid")
@@ -134,12 +134,12 @@ func TestCheckWorkflowLintWithError_InvalidWorkflowFile(t *testing.T) {
 	invalidPath := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-invalid.yml", invalidContent)
 
 	// Function logs validation issues but doesn't return error for malformed YAML
-	err := checkWorkflowLintWithError(logger, []string{invalidPath})
+	err := Lint(logger, []string{invalidPath})
 	// No error expected - function is lenient with malformed YAML (just logs warnings)
 	require.NoError(t, err, "Function should not error on malformed YAML, only log warnings")
 }
 
-func TestCheckWorkflowLintWithError_MissingFile(t *testing.T) {
+func TestLint_MissingFile(t *testing.T) {
 	t.Parallel()
 
 	logger := common.NewLogger("test_missing")
@@ -147,11 +147,11 @@ func TestCheckWorkflowLintWithError_MissingFile(t *testing.T) {
 	nonexistentPath := "/nonexistent/path/to/workflow.yml"
 
 	// Function filters workflow files and skips non-existent ones
-	err := checkWorkflowLintWithError(logger, []string{nonexistentPath})
+	err := Lint(logger, []string{nonexistentPath})
 	require.NoError(t, err, "Function should skip non-existent files, not error")
 }
 
-func TestCheckWorkflowLintWithError_MultipleFiles(t *testing.T) {
+func TestLint_MultipleFiles(t *testing.T) {
 	t.Parallel()
 
 	logger := common.NewLogger("test_multiple")
@@ -177,7 +177,7 @@ jobs:
 	path1 := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-workflow1.yml", workflow1)
 	path2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-workflow2.yml", workflow2)
 
-	err := checkWorkflowLintWithError(logger, []string{path1, path2})
+	err := Lint(logger, []string{path1, path2})
 
 	// Should process multiple files without panicking
 	if err != nil {
@@ -185,7 +185,7 @@ jobs:
 	}
 }
 
-func TestCheckWorkflowLintWithError_LoadExceptionsWarning(t *testing.T) {
+func TestLint_LoadExceptionsWarning(t *testing.T) {
 	t.Parallel()
 
 	logger := common.NewLogger("test_exceptions_warning")
@@ -224,6 +224,6 @@ jobs:
 	workflowPath := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-test.yml", workflowContent)
 
 	// Function should log warning about invalid exceptions file but continue
-	err = checkWorkflowLintWithError(logger, []string{workflowPath})
+	err = Lint(logger, []string{workflowPath})
 	require.NoError(t, err, "Should handle invalid exceptions file gracefully")
 }
