@@ -110,56 +110,6 @@ require invalid
 	}
 }
 
-// TestFilterTextFiles_EdgeCases tests edge cases in filterTextFiles.
-func TestFilterTextFiles_EdgeCases(t *testing.T) {
-	tests := []struct {
-		name      string
-		files     []string
-		wantCount int
-	}{
-		{
-			name:      "empty file list",
-			files:     []string{},
-			wantCount: 0,
-		},
-		{
-			name: "all excluded files",
-			files: []string{
-				"vendor/some/file.go",
-				".git/config",
-				"node_modules/package/index.js",
-			},
-			wantCount: 0,
-		},
-		{
-			name: "mixed included and excluded",
-			files: []string{
-				"main.go",
-				"vendor/dep.go",
-				"README.md",
-				".git/config",
-			},
-			wantCount: 2, // main.go and README.md
-		},
-		{
-			name: "generated files excluded",
-			files: []string{
-				"normal.go",
-				"generated_gen.go",
-				"proto.pb.go",
-			},
-			wantCount: 1, // Only normal.go
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := filterTextFiles(tt.files)
-			require.Equal(t, tt.wantCount, len(result), "Unexpected number of filtered files")
-		})
-	}
-}
-
 // TestProcessGoFile_EdgeCases tests edge cases in processGoFile.
 func TestProcessGoFile_EdgeCases(t *testing.T) {
 	tests := []struct {

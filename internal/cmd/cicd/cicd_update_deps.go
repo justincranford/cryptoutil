@@ -15,9 +15,9 @@ import (
 	"strings"
 	"time"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
-	"cryptoutil/internal/cmd/cicd/common"
 )
 
 const (

@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 	"cryptoutil/internal/cmd/cicd/common"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // GitHubRelease represents a GitHub release API response.

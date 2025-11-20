@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 	"cryptoutil/internal/cmd/cicd/common"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // checkWorkflowLintWithError is a wrapper that returns an error instead of calling os.Exit.

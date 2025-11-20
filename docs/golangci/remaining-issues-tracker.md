@@ -45,7 +45,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 - [ ] Check for missing identity-related package aliases
 - [ ] Add validation script to detect instruction/config drift
 
-**Files**: 
+**Files**:
 - `.golangci.yml` (importas section)
 - `.github/instructions/01-03.golang.instructions.md` (Import Alias Conventions)
 
@@ -164,7 +164,7 @@ This document tracks all remaining unresolved issues from the golangci-lint v2 m
 
 **Issue**: hadolint integration for Dockerfile linting
 
-**Current State**: 
+**Current State**:
 - ✅ hadolint configured in `.pre-commit-config.yaml`
 - ✅ Running on Dockerfile and Dockerfile.* files
 

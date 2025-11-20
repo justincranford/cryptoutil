@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 	"cryptoutil/internal/cmd/cicd/common"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // IdentityImportsCache represents cached identity imports check results.

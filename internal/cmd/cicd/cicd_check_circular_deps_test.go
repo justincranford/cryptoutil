@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 	"time"
+
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 
 	"github.com/stretchr/testify/require"

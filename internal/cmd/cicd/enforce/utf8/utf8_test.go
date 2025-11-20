@@ -1,8 +1,6 @@
 // Copyright (c) 2025 Justin Cranford
-//
-//
 
-package cicd
+package utf8
 
 import (
 	"os"
@@ -92,11 +90,11 @@ func TestCheckFileEncoding(t *testing.T) {
 	})
 }
 
-func TestAllEnforceUtf8(t *testing.T) {
+func TestEnforce(t *testing.T) {
 	t.Run("no files to check", func(t *testing.T) {
 		// Test with empty file list
 		logger := common.NewLogger("test")
-		err := allEnforceUtf8(logger, []string{})
+		err := Enforce(logger, []string{})
 		require.NoError(t, err, "Should not return error for no files")
 	})
 
@@ -116,9 +114,9 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		require.NoError(t, os.Chdir(tempDir))
 
-		// Test that allEnforceUtf8 returns an error for encoding violations
+		// Test that Enforce returns an error for encoding violations
 		logger := common.NewLogger("test")
-		err = allEnforceUtf8(logger, []string{invalidFile})
+		err = Enforce(logger, []string{invalidFile})
 		require.Error(t, err, "Should return error for encoding violations")
 		require.Contains(t, err.Error(), "file encoding violations found", "Error should mention encoding violations")
 	})
@@ -142,7 +140,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that the function completes without error for valid files
 		logger := common.NewLogger("test")
-		err = allEnforceUtf8(logger, []string{goFile, mdFile})
+		err = Enforce(logger, []string{goFile, mdFile})
 		require.NoError(t, err, "Should not return error for valid files")
 	})
 	t.Run("file filtering - include patterns", func(t *testing.T) {
@@ -165,7 +163,7 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that only .go and .txt files are checked (binary should be excluded)
 		logger := common.NewLogger("test")
-		err = allEnforceUtf8(logger, []string{goFile, txtFile, binaryFile})
+		err = Enforce(logger, []string{goFile, txtFile, binaryFile})
 		require.NoError(t, err, "Should not return error when only valid files are checked")
 	})
 	t.Run("file filtering - exclude patterns", func(t *testing.T) {
@@ -192,7 +190,57 @@ func TestAllEnforceUtf8(t *testing.T) {
 
 		// Test that generated and vendor files are excluded
 		logger := common.NewLogger("test")
-		err = allEnforceUtf8(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
+		err = Enforce(logger, []string{filepath.Join(".", "test.go"), filepath.Join(".", "generated_gen.go"), filepath.Join(".", "vendor", "lib.go")})
 		require.NoError(t, err, "Should not return error when excluded files are properly filtered")
 	})
+}
+
+// TestFilterTextFiles_EdgeCases tests edge cases in filterTextFiles helper function.
+func TestFilterTextFiles_EdgeCases(t *testing.T) {
+	tests := []struct {
+		name      string
+		files     []string
+		wantCount int
+	}{
+		{
+			name:      "empty file list",
+			files:     []string{},
+			wantCount: 0,
+		},
+		{
+			name: "all excluded files",
+			files: []string{
+				"vendor/some/file.go",
+				".git/config",
+				"node_modules/package/index.js",
+			},
+			wantCount: 0,
+		},
+		{
+			name: "mixed included and excluded",
+			files: []string{
+				"main.go",
+				"vendor/dep.go",
+				"README.md",
+				".git/config",
+			},
+			wantCount: 2, // main.go and README.md
+		},
+		{
+			name: "generated files excluded",
+			files: []string{
+				"normal.go",
+				"generated_gen.go",
+				"proto.pb.go",
+			},
+			wantCount: 1, // Only normal.go
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := filterTextFiles(tt.files)
+			require.Equal(t, tt.wantCount, len(result), "Unexpected number of filtered files")
+		})
+	}
 }

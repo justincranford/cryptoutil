@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"strings"
 
-	cryptoutilMagic "cryptoutil/internal/common/magic"
 	"cryptoutil/internal/cmd/cicd/common"
+	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
 // goEnforceTestPatterns enforces test patterns including UUIDv7 usage and testify assertions.

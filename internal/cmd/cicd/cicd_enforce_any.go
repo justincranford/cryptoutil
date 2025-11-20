@@ -10,9 +10,9 @@ import (
 	"regexp"
 	"strings"
 
+	"cryptoutil/internal/cmd/cicd/common"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"
-	"cryptoutil/internal/cmd/cicd/common"
 )
 
 // goEnforceAny enforces custom Go source code fixes across all Go files.

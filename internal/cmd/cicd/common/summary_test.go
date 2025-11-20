@@ -142,12 +142,12 @@ func TestCalculateStats(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name            string
-		results         []CommandResult
-		totalDuration   time.Duration
-		expectedTotal   int
-		expectedPassed  int
-		expectedFailed  int
+		name             string
+		results          []CommandResult
+		totalDuration    time.Duration
+		expectedTotal    int
+		expectedPassed   int
+		expectedFailed   int
 		expectedDuration time.Duration
 	}{
 		{
