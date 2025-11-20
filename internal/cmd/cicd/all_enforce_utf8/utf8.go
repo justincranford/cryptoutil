@@ -88,7 +88,7 @@ func filterTextFiles(allFiles []string) []string {
 
 		excluded := false
 
-		for _, pattern := range cryptoutilMagic.EnforceUtf8FileExcludePatterns {
+		for _, pattern := range cryptoutilMagic.AllEnforceUtf8FileExcludePatterns {
 			matched, err := regexp.MatchString(pattern, filePath)
 			if err != nil {
 				continue
