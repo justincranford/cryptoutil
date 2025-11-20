@@ -31,6 +31,9 @@ const (
 	// Command name for auto-fixing staticcheck error strings.
 	cmdGoFixStaticcheckErrorStrings = "go-fix-staticcheck-error-strings"
 
+	// Command name for auto-fixing copyloopvar issues.
+	cmdGoFixCopyLoopVar = "go-fix-copyloopvar"
+
 	// Command name for running all auto-fix commands.
 	cmdGoFixAll = "go-fix-all"
 )
@@ -110,6 +113,8 @@ func Run(commands []string) error {
 			cmdErr = checkWorkflowLintWithError(logger, allFiles)
 		case cmdGoFixStaticcheckErrorStrings:
 			cmdErr = goFixStaticcheckErrorStrings(logger, allFiles)
+		case cmdGoFixCopyLoopVar:
+			cmdErr = goFixCopyLoopVar(logger, allFiles)
 		case cmdGoFixAll:
 			cmdErr = goFixAll(logger, allFiles)
 		}

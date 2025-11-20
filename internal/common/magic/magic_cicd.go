@@ -102,6 +102,7 @@ const (
 	  go-update-all-dependencies             - Check all Go dependencies (direct + transitive)
 	  github-workflow-lint                   - Validate GitHub Actions workflow naming and structure, and check for outdated actions
 	  go-fix-staticcheck-error-strings       - Auto-fix: Lowercase error string first characters (staticcheck ST1005)
+	  go-fix-copyloopvar                     - Auto-fix: Remove unnecessary loop variable copies (Go 1.25+)
 	  go-fix-all                             - Auto-fix: Run all go-fix-* commands in sequence`
 )
 
@@ -116,6 +117,7 @@ var ValidCommands = map[string]bool{
 	"go-update-all-dependencies":             true,
 	"github-workflow-lint":                   true,
 	"go-fix-staticcheck-error-strings":       true,
+	"go-fix-copyloopvar":                     true,
 	"go-fix-all":                             true,
 }
 

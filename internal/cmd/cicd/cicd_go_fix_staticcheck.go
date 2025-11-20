@@ -85,8 +85,8 @@ func goFixAll(logger *LogUtil, files []string) error {
 		fn   func(*LogUtil, []string) error
 	}{
 		{"go-fix-staticcheck-error-strings", goFixStaticcheckErrorStrings},
+		{"go-fix-copyloopvar", goFixCopyLoopVar},
 		// Add more auto-fix commands here as they are implemented:
-		// {"go-fix-copyloopvar", goFixCopyLoopVar},
 		// {"go-fix-thelper", goFixTHelper},
 	}
 
