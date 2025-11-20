@@ -17,7 +17,7 @@ import (
 // TestCheck_NoViolations tests Check with valid identity module (no forbidden imports).
 func TestCheck_NoViolations(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, false) // false = no violations
 
 	// Create go.mod
@@ -39,7 +39,7 @@ tempDir := t.TempDir()
 // TestCheck_WithViolations tests Check detecting forbidden imports.
 func TestCheck_WithViolations(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, true) // true = with violations
 
 	// Create go.mod
@@ -62,7 +62,7 @@ tempDir := t.TempDir()
 // TestCheck_CacheHit_NoViolations tests Check using cached results (cache hit, no violations).
 func TestCheck_CacheHit_NoViolations(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, false)
 
 	// Create go.mod
@@ -109,7 +109,7 @@ tempDir := t.TempDir()
 // TestCheck_CacheHit_WithViolations tests Check using cached results with violations.
 func TestCheck_CacheHit_WithViolations(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, true) // true = with violations
 
 	// Create go.mod
@@ -157,7 +157,7 @@ tempDir := t.TempDir()
 // TestCheck_CacheExpired tests Check when cache is expired.
 func TestCheck_CacheExpired(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, false)
 
 	// Create go.mod
@@ -204,7 +204,7 @@ tempDir := t.TempDir()
 // TestCheck_GoModChanged tests Check when go.mod was modified after cache.
 func TestCheck_GoModChanged(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, false)
 
 	// Create go.mod with old timestamp
@@ -257,7 +257,7 @@ tempDir := t.TempDir()
 // TestCheck_IdentityModuleChanged tests Check when identity module files were modified.
 func TestCheck_IdentityModuleChanged(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, false)
 
 	// Create go.mod
@@ -294,7 +294,7 @@ tempDir := t.TempDir()
 	// Modify identity module file
 	time.Sleep(10 * time.Millisecond) // Ensure timestamp difference
 
-testFile := filepath.Join(identityDir, "test.go")
+	testFile := filepath.Join(identityDir, "test.go")
 	newContent := `package identity
 
 import (
@@ -324,7 +324,7 @@ func Test() {
 // TestCheck_CacheSaveError tests Check when cache save fails (non-writable directory).
 func TestCheck_CacheSaveError(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, false)
 
 	// Create go.mod
@@ -347,7 +347,7 @@ tempDir := t.TempDir()
 // TestCheck_MissingGoMod tests Check when go.mod doesn't exist.
 func TestCheck_MissingGoMod(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 	setupTestEnvironment(t, tempDir, false)
 
 	// Don't create go.mod
@@ -367,7 +367,7 @@ tempDir := t.TempDir()
 // TestCheck_MissingIdentityModule tests Check when internal/identity directory doesn't exist.
 func TestCheck_MissingIdentityModule(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
-tempDir := t.TempDir()
+	tempDir := t.TempDir()
 
 	// Don't create identity module
 
@@ -405,8 +405,9 @@ import (
 )
 
 func Test() {
-	fmt.Println("te
-} else {
+	fmt.Println("test")
+}`
+	} else {
 		content = `package identity
 
 import (
@@ -415,8 +416,9 @@ import (
 )
 
 func Test() {
-	fmt.Println("te
-}
+	fmt.Println("test")
+}`
+	}
 
 	testFile := filepath.Join(identityDir, "test.go")
 	err = os.WriteFile(testFile, []byte(content), cryptoutilMagic.CacheFilePermissions)

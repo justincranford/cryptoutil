@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
 	"cryptoutil/internal/cmd/cicd/common"
 	go_update_direct_dependencies "cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 )

@@ -58,7 +58,6 @@ jobs:
 	// This test assumes GitHub API returns v4 and v5 as latest versions.
 	// In real scenarios, this might be outdated. We test the logic flow, not actual API responses.
 	err := Lint(logger, []string{workflowPath})
-
 	// We expect either no error (if versions are current) or an outdated error (if they're old).
 	// The test validates that the function completes without panicking.
 	if err != nil {
@@ -114,7 +113,6 @@ jobs:
 	workflowPath := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-exempted.yml", workflowContent)
 
 	err = Lint(logger, []string{workflowPath})
-
 	// Exempted actions should not cause errors
 	// (though they may trigger warnings about exemptions)
 	if err != nil {
@@ -178,7 +176,6 @@ jobs:
 	path2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "ci-workflow2.yml", workflow2)
 
 	err := Lint(logger, []string{path1, path2})
-
 	// Should process multiple files without panicking
 	if err != nil {
 		require.Contains(t, err.Error(), "outdated", "Multi-file processing should work correctly")

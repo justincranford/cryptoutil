@@ -13,6 +13,7 @@ import (
 
 	"cryptoutil/internal/cmd/cicd/all_enforce_utf8"
 	"cryptoutil/internal/cmd/cicd/common"
+	"cryptoutil/internal/cmd/cicd/github_workflow_lint"
 	"cryptoutil/internal/cmd/cicd/go_check_circular_package_dependencies"
 	"cryptoutil/internal/cmd/cicd/go_check_identity_imports"
 	"cryptoutil/internal/cmd/cicd/go_enforce_any"
@@ -21,7 +22,6 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_fix_copyloopvar"
 	"cryptoutil/internal/cmd/cicd/go_fix_staticcheck_error_strings"
 	"cryptoutil/internal/cmd/cicd/go_fix_thelper"
-	"cryptoutil/internal/cmd/cicd/github_workflow_lint"
 	"cryptoutil/internal/cmd/cicd/go_update_direct_dependencies"
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 	cryptoutilFiles "cryptoutil/internal/common/util/files"

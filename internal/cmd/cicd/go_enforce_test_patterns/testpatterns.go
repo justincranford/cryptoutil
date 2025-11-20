@@ -27,7 +27,8 @@ func Enforce(logger *common.Logger, allFiles []string) error {
 				strings.HasSuffix(path, "cicd.go") ||
 				strings.HasSuffix(path, "cicd_enforce_test_patterns_test.go") ||
 				strings.HasSuffix(path, "cicd_enforce_test_patterns_integration_test.go") ||
-				strings.HasSuffix(path, "cicd_run_integration_test.go") {
+				strings.HasSuffix(path, "cicd_run_integration_test.go") ||
+				strings.Contains(path, "go_enforce_test_patterns") {
 				continue
 			}
 
