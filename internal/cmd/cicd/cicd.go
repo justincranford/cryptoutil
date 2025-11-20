@@ -108,13 +108,13 @@ func Run(commands []string) error {
 		case cmdGitHubWorkflowLint:
 			cmdErr = checkWorkflowLintWithError(logger, allFiles)
 		case cmdGoFixStaticcheckErrorStrings:
-			cmdErr = goFixStaticcheckErrorStrings(logger, allFiles)
+			cmdErr = goFixStaticcheckErrorStrings(logger, ".")
 		case cmdGoFixCopyLoopVar:
 			cmdErr = goFixCopyLoopVar(logger, allFiles)
 		case cmdGoFixTHelper:
 			cmdErr = goFixTHelper(logger, allFiles)
 		case cmdGoFixAll:
-			cmdErr = goFixAll(logger, allFiles)
+			cmdErr = goFixAll(logger, ".")
 		}
 
 		cmdDuration := time.Since(cmdStart)
