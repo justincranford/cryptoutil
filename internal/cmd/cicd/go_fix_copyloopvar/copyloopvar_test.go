@@ -26,7 +26,7 @@ func TestFix(t *testing.T) {
 		{
 			name:            "empty directory",
 			goVersion:       "1.25.4",
-			setupFiles:      func(t *testing.T, dir string) {},
+			setupFiles:      func(t *testing.T, dir string) { t.Helper() },
 			wantProcessed:   0,
 			wantModified:    0,
 			wantIssuesFixed: 0,
@@ -36,6 +36,7 @@ func TestFix(t *testing.T) {
 			name:      "old Go version below minimum",
 			goVersion: "1.21.0",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				content := `package test
 
 func Process(items []int) {
@@ -56,6 +57,7 @@ func Process(items []int) {
 			name:      "no loop variable copies",
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				content := `package test
 
 func Process(items []int) {
@@ -75,6 +77,7 @@ func Process(items []int) {
 			name:      "single loop variable copy",
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				content := `package test
 
 func Process(items []int) {
@@ -91,6 +94,7 @@ func Process(items []int) {
 			wantIssuesFixed: 1,
 			wantError:       false,
 			verifyFn: func(t *testing.T, dir string) {
+				t.Helper()
 				fixed, err := os.ReadFile(filepath.Join(dir, "loop.go"))
 				require.NoError(t, err)
 				require.NotContains(t, string(fixed), "item := item")
@@ -101,6 +105,7 @@ func Process(items []int) {
 			name:      "multiple loop variable copies",
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				content := `package test
 
 func Process(items []int, names []string) {
@@ -122,6 +127,7 @@ func Process(items []int, names []string) {
 			wantIssuesFixed: 2,
 			wantError:       false,
 			verifyFn: func(t *testing.T, dir string) {
+				t.Helper()
 				fixed, err := os.ReadFile(filepath.Join(dir, "loops.go"))
 				require.NoError(t, err)
 				require.NotContains(t, string(fixed), "item := item")
@@ -132,6 +138,7 @@ func Process(items []int, names []string) {
 			name:      "key and value copies",
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				content := `package test
 
 func Process(data map[string]int) {
@@ -149,6 +156,7 @@ func Process(data map[string]int) {
 			wantIssuesFixed: 1, // Only the first copy (key := key) removed
 			wantError:       false,
 			verifyFn: func(t *testing.T, dir string) {
+				t.Helper()
 				fixed, err := os.ReadFile(filepath.Join(dir, "map_loop.go"))
 				require.NoError(t, err)
 				require.NotContains(t, string(fixed), "key := key")
@@ -158,6 +166,7 @@ func Process(data map[string]int) {
 			name:      "test files skipped",
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				content := `package test
 
 func TestLoop(t *testing.T) {
@@ -180,6 +189,7 @@ func TestLoop(t *testing.T) {
 			name:      "generated files skipped",
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				content := `package model
 
 func Process(items []int) {
@@ -200,6 +210,7 @@ func Process(items []int) {
 			name:      "nested directories",
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
+				t.Helper()
 				subDir := filepath.Join(dir, "sub", "nested")
 				require.NoError(t, os.MkdirAll(subDir, 0o755))
 

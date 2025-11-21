@@ -14,6 +14,25 @@ import (
 	cryptoutilMagic "cryptoutil/internal/common/magic"
 )
 
+const (
+	testGoModContent = `module testproject
+
+go 1.25
+`
+	testPkgContentWithImports = `package pkg
+
+import "fmt"
+
+func Test() {
+	fmt.Println("test")
+}
+`
+	testPkgContentBasic = `package pkg
+
+func Test() {}
+`
+)
+
 // TestCheck_NoCycle tests Check function with no circular dependencies.
 func TestCheck_NoCycle(t *testing.T) {
 	// Note: Cannot use t.Parallel() because test changes working directory
@@ -21,11 +40,7 @@ func TestCheck_NoCycle(t *testing.T) {
 
 	// Create go.mod
 	goModPath := filepath.Join(tempDir, "go.mod")
-	goModContent := `module testproject
-
-go 1.25
-`
-	err := os.WriteFile(goModPath, []byte(goModContent), cryptoutilMagic.CacheFilePermissions)
+	err := os.WriteFile(goModPath, []byte(testGoModContent), cryptoutilMagic.CacheFilePermissions)
 	testify.NoError(t, err, "Create go.mod should succeed")
 
 	// Create simple package structure (no cycles)
@@ -63,11 +78,7 @@ func TestCheck_CacheHit_NoCycle(t *testing.T) {
 
 	// Create go.mod
 	goModPath := filepath.Join(tempDir, "go.mod")
-	goModContent := `module testproject
-
-go 1.25
-`
-	err := os.WriteFile(goModPath, []byte(goModContent), cryptoutilMagic.CacheFilePermissions)
+	err := os.WriteFile(goModPath, []byte(testGoModContent), cryptoutilMagic.CacheFilePermissions)
 	testify.NoError(t, err, "Create go.mod should succeed")
 
 	// Create package
@@ -76,15 +87,7 @@ go 1.25
 	testify.NoError(t, err, "Create pkg directory should succeed")
 
 	pkgFile := filepath.Join(pkgDir, "test.go")
-	pkgContent := `package pkg
-
-import "fmt"
-
-func Test() {
-	fmt.Println("test")
-}
-`
-	err = os.WriteFile(pkgFile, []byte(pkgContent), cryptoutilMagic.CacheFilePermissions)
+	err = os.WriteFile(pkgFile, []byte(testPkgContentWithImports), cryptoutilMagic.CacheFilePermissions)
 	testify.NoError(t, err, "Create test.go should succeed")
 
 	// Get go.mod stat
@@ -125,11 +128,7 @@ func TestCheck_CacheExpired(t *testing.T) {
 
 	// Create go.mod
 	goModPath := filepath.Join(tempDir, "go.mod")
-	goModContent := `module testproject
-
-go 1.25
-`
-	err := os.WriteFile(goModPath, []byte(goModContent), cryptoutilMagic.CacheFilePermissions)
+	err := os.WriteFile(goModPath, []byte(testGoModContent), cryptoutilMagic.CacheFilePermissions)
 	testify.NoError(t, err, "Create go.mod should succeed")
 
 	// Create package
@@ -138,11 +137,7 @@ go 1.25
 	testify.NoError(t, err, "Create pkg directory should succeed")
 
 	pkgFile := filepath.Join(pkgDir, "test.go")
-	pkgContent := `package pkg
-
-func Test() {}
-`
-	err = os.WriteFile(pkgFile, []byte(pkgContent), cryptoutilMagic.CacheFilePermissions)
+	err = os.WriteFile(pkgFile, []byte(testPkgContentBasic), cryptoutilMagic.CacheFilePermissions)
 	testify.NoError(t, err, "Create test.go should succeed")
 
 	// Get go.mod stat
@@ -183,11 +178,7 @@ func TestCheck_GoModChanged(t *testing.T) {
 
 	// Create go.mod with old timestamp
 	goModPath := filepath.Join(tempDir, "go.mod")
-	goModContent := `module testproject
-
-go 1.25
-`
-	err := os.WriteFile(goModPath, []byte(goModContent), cryptoutilMagic.CacheFilePermissions)
+	err := os.WriteFile(goModPath, []byte(testGoModContent), cryptoutilMagic.CacheFilePermissions)
 	testify.NoError(t, err, "Create go.mod should succeed")
 
 	oldTime := time.Now().Add(-2 * time.Hour)

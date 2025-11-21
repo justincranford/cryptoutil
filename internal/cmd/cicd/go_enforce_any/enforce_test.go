@@ -13,6 +13,13 @@ import (
 	cryptoutilTestutil "cryptoutil/internal/common/testutil"
 )
 
+const (
+	testInterfaceEmptyContent = `package test
+
+var x interface{}
+`
+)
+
 // TestEnforce_NoGoFiles tests Enforce with no Go files.
 func TestEnforce_NoGoFiles(t *testing.T) {
 	t.Parallel()
@@ -78,11 +85,7 @@ func enforceFn() {
 	testify.NoError(t, err, "Write excluded file should succeed")
 
 	// Create non-excluded file with interface{} to replace
-	normalContent := `package test
-
-var x interface{}
-`
-	normalFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "normal.go", normalContent)
+	normalFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "normal.go", testInterfaceEmptyContent)
 
 	logger := common.NewLogger("test-enforce-excluded")
 	err = Enforce(logger, []string{excludedFile, normalFile})

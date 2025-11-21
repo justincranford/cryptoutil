@@ -13,13 +13,8 @@ import (
 	"cryptoutil/internal/cmd/cicd/go_enforce_test_patterns"
 )
 
-func TestCheckTestFile_ValidTestFile(t *testing.T) {
-	t.Parallel()
-
-	// Create a valid test file
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "valid_test.go")
-	content := `package example_test
+const (
+	testValidTestFileContent = `package example_test
 
 import (
 	"testing"
@@ -32,7 +27,15 @@ func TestExample(t *testing.T) {
 	require.NotNil(t, id)
 }
 `
-	err := os.WriteFile(testFile, []byte(content), 0o600)
+)
+
+func TestCheckTestFile_ValidTestFile(t *testing.T) {
+	t.Parallel()
+
+	// Create a valid test file
+	tempDir := t.TempDir()
+	testFile := filepath.Join(tempDir, "valid_test.go")
+	err := os.WriteFile(testFile, []byte(testValidTestFileContent), 0o600)
 	require.NoError(t, err)
 
 	// Act

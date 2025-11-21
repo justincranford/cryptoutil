@@ -12,10 +12,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const testGoModMinimal3 = `module example.com/test
+const (
+	testGoModMinimal3 = `module example.com/test
 
 go 1.25.4
 `
+
+	testErrorPackageContent = `package test
+
+import "errors"
+
+var ErrFailed = errors.New("Failed to process")
+`
+)
 
 // TestRun_SingleCommand tests Run with a single command.
 func TestRun_SingleCommand(t *testing.T) {
@@ -271,13 +280,7 @@ func TestRun_GoFixStaticcheckErrorStrings(t *testing.T) {
 
 	// Create file with staticcheck error string issue.
 	errorFile := filepath.Join(tmpDir, "errors.go")
-	errorContent := `package test
-
-import "errors"
-
-var ErrFailed = errors.New("Failed to process")
-`
-	err = os.WriteFile(errorFile, []byte(errorContent), 0o600)
+	err = os.WriteFile(errorFile, []byte(testErrorPackageContent), 0o600)
 	require.NoError(t, err)
 
 	err = Run([]string{"go-fix-staticcheck-error-strings"})
