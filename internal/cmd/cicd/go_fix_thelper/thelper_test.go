@@ -1,6 +1,7 @@
 package go_fix_thelper
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,6 +13,15 @@ import (
 
 func TestFix(t *testing.T) {
 	t.Parallel()
+
+	const codeSampleForTestFix = `package test
+
+	import "testing"
+
+	func setupTest(t *testing.T) {
+		t.Log("setup")
+	}
+	`
 
 	tests := []struct {
 		name            string
@@ -25,6 +35,7 @@ func TestFix(t *testing.T) {
 			name: "empty directory",
 			setupFiles: func(t *testing.T, dir string) error {
 				t.Helper()
+
 				return nil
 			},
 			wantProcessed:   0,
@@ -75,14 +86,7 @@ func TestExample(t *testing.T) {
 				t.Helper()
 
 				testFile := filepath.Join(dir, "helpers_test.go")
-				content := `package test
-
-import "testing"
-
-func setupTest(t *testing.T) {
-	t.Log("setup")
-}
-`
+				content := codeSampleForTestFix
 
 				return os.WriteFile(testFile, []byte(content), 0o600)
 			},
@@ -190,27 +194,20 @@ func mockService(t *testing.T) {}
 
 				subDir := filepath.Join(dir, "sub", "nested")
 				if err := os.MkdirAll(subDir, 0o755); err != nil {
-					return err
+					return fmt.Errorf("failed to create nested directories: %w", err)
 				}
 
-				content := `package test
-
-import "testing"
-
-func setupTest(t *testing.T) {
-	t.Log("setup")
-}
-`
+				content := codeSampleForTestFix
 				file1 := filepath.Join(dir, "test1_test.go")
 				file2 := filepath.Join(dir, "sub", "test2_test.go")
 				file3 := filepath.Join(subDir, "test3_test.go")
 
 				if err := os.WriteFile(file1, []byte(content), 0o600); err != nil {
-					return err
+					return fmt.Errorf("failed to write file %q: %w", file1, err)
 				}
 
 				if err := os.WriteFile(file2, []byte(content), 0o600); err != nil {
-					return err
+					return fmt.Errorf("failed to write file %q: %w", file2, err)
 				}
 
 				return os.WriteFile(file3, []byte(content), 0o600)
@@ -241,7 +238,6 @@ func setupGlobal() {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

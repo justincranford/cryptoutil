@@ -16,13 +16,13 @@ func TestContains(t *testing.T) {
 	t.Parallel()
 
 	const (
-		testApple    = "apple"
-		testBanana   = "banana"
-		testCherry   = "cherry"
-		testFirst    = "first"
-		testSecond   = "second"
-		testLast     = "last"
-		testOnly     = "only"
+		testApple     = "apple"
+		testBanana    = "banana"
+		testCherry    = "cherry"
+		testFirst     = "first"
+		testSecond    = "second"
+		testLast      = "last"
+		testOnly      = "only"
 		testDuplicate = "duplicate"
 	)
 
@@ -157,7 +157,6 @@ func TestContains(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -167,9 +166,15 @@ func TestContains(t *testing.T) {
 
 			switch s := slice.(type) {
 			case []*string:
-				result = util.Contains(s, searchItem.(*string))
+				searchItemType, ok := searchItem.(*string)
+				require.True(t, ok, "Error asserting searchItem to *string")
+
+				result = util.Contains(s, searchItemType)
 			case []*int:
-				result = util.Contains(s, searchItem.(*int))
+				searchItemType, ok := searchItem.(*int)
+				require.True(t, ok, "Error asserting searchItem to *int")
+
+				result = util.Contains(s, searchItemType)
 			default:
 				t.Fatalf("Unsupported slice type: %T", slice)
 			}

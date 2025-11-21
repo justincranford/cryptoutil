@@ -65,7 +65,6 @@ func TestPolicyConstructors(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -114,6 +113,8 @@ func TestClientAuthPolicyManager(t *testing.T) {
 		{
 			name: "get_default_policy",
 			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				t.Helper()
+
 				policy, err := manager.GetPolicy("default")
 				require.NoError(t, err)
 				require.NotNil(t, policy)
@@ -122,6 +123,8 @@ func TestClientAuthPolicyManager(t *testing.T) {
 		{
 			name: "get_strict_policy",
 			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				t.Helper()
+
 				policy, err := manager.GetPolicy("strict")
 				require.NoError(t, err)
 				require.NotNil(t, policy)
@@ -130,6 +133,8 @@ func TestClientAuthPolicyManager(t *testing.T) {
 		{
 			name: "get_public_policy",
 			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				t.Helper()
+
 				policy, err := manager.GetPolicy("public")
 				require.NoError(t, err)
 				require.NotNil(t, policy)
@@ -138,6 +143,8 @@ func TestClientAuthPolicyManager(t *testing.T) {
 		{
 			name: "get_development_policy",
 			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				t.Helper()
+
 				policy, err := manager.GetPolicy("development")
 				require.NoError(t, err)
 				require.NotNil(t, policy)
@@ -146,6 +153,8 @@ func TestClientAuthPolicyManager(t *testing.T) {
 		{
 			name: "get_nonexistent_policy",
 			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				t.Helper()
+
 				_, err := manager.GetPolicy("nonexistent")
 				require.Error(t, err)
 			},
@@ -153,6 +162,8 @@ func TestClientAuthPolicyManager(t *testing.T) {
 		{
 			name: "register_custom_policy",
 			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				t.Helper()
+
 				customPolicy := &ClientAuthPolicy{
 					AllowedMethods: []cryptoutilIdentityDomain.ClientAuthMethod{
 						cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
@@ -170,7 +181,6 @@ func TestClientAuthPolicyManager(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -206,7 +216,6 @@ func TestClientAuthPolicy_ValidateClientAuthMethod(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -258,7 +267,6 @@ func TestClientAuthPolicy_ValidateJWTAlgorithm(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 

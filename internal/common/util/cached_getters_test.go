@@ -14,6 +14,7 @@ import (
 	"cryptoutil/internal/common/util"
 )
 
+//nolint:thelper // testFn inline functions are NOT test helpers - they're test implementations
 func TestGetCached(t *testing.T) {
 	t.Parallel()
 
@@ -107,7 +108,6 @@ func TestGetCached(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc.testFn(t)
@@ -125,6 +125,8 @@ func TestGetCachedWithError(t *testing.T) {
 		{
 			name: "cached_true_success",
 			testFn: func(t *testing.T) {
+				t.Helper()
+
 				callCount := 0
 				getter := func() (any, error) {
 					callCount++
@@ -148,6 +150,8 @@ func TestGetCachedWithError(t *testing.T) {
 		{
 			name: "cached_true_error",
 			testFn: func(t *testing.T) {
+				t.Helper()
+
 				callCount := 0
 				expectedErr := errors.New("getter error")
 
@@ -174,6 +178,8 @@ func TestGetCachedWithError(t *testing.T) {
 		{
 			name: "cached_false_success",
 			testFn: func(t *testing.T) {
+				t.Helper()
+
 				callCount := 0
 				getter := func() (any, error) {
 					callCount++
@@ -196,6 +202,8 @@ func TestGetCachedWithError(t *testing.T) {
 		{
 			name: "cached_false_error",
 			testFn: func(t *testing.T) {
+				t.Helper()
+
 				callCount := 0
 				getter := func() (any, error) {
 					callCount++
@@ -218,6 +226,8 @@ func TestGetCachedWithError(t *testing.T) {
 		{
 			name: "nil_return_with_no_error",
 			testFn: func(t *testing.T) {
+				t.Helper()
+
 				getter := func() (any, error) {
 					return nil, nil
 				}
@@ -232,6 +242,8 @@ func TestGetCachedWithError(t *testing.T) {
 		{
 			name: "complex_type_success",
 			testFn: func(t *testing.T) {
+				t.Helper()
+
 				type CustomData struct {
 					ID   int
 					Name string
@@ -257,7 +269,6 @@ func TestGetCachedWithError(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc.testFn(t)

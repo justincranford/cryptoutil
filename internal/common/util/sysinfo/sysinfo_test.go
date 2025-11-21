@@ -120,7 +120,6 @@ func TestSysInfo(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-
 		t.Run(tc.name, func(t *testing.T) {
 			for _, provider := range testSysInfoProviders {
 				tc.testFn(t, provider)
