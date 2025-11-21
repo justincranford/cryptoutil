@@ -285,6 +285,25 @@ jobs:
             else
               echo "⚠️ SARIF file format may be invalid, but proceeding with upload"
             fi
+
+            # Fix invalid SARIF coordinates (startLine/startColumn must be ≥1)
+            echo "🔧 Sanitizing SARIF coordinates..."
+            jq '
+              .runs[].results[].locations[]? |= (
+                if .physicalLocation.region.startLine? == 0 then
+                  .physicalLocation.region.startLine = 1
+                else
+                  .
+                end |
+                if .physicalLocation.region.startColumn? == 0 then
+                  .physicalLocation.region.startColumn = 1
+                else
+                  .
+                end
+              )
+            ' staticcheck.sarif > staticcheck-sanitized.sarif
+            mv staticcheck-sanitized.sarif staticcheck.sarif
+            echo "✅ SARIF coordinates sanitized"
           else
             echo "ℹ️ Staticcheck produced no issues, generating minimal SARIF for GitHub Security tab"
             cat > staticcheck.sarif << 'EOF'
