@@ -18,6 +18,10 @@ import (
 )
 
 func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []byte, error) {
+	return EncryptBytesWithContext(jwks, clearBytes, nil)
+}
+
+func EncryptBytesWithContext(jwks []joseJwk.Key, clearBytes []byte, context []byte) (*joseJwe.Message, []byte, error) {
 	if jwks == nil {
 		return nil, nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
 	} else if len(jwks) == 0 {
@@ -48,6 +52,12 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 	jweProtectedHeaders := joseJwe.NewHeaders()
 	if err := jweProtectedHeaders.Set("iat", time.Now().UTC().Unix()); err != nil {
 		return nil, nil, fmt.Errorf("failed to set iat header: %w", err)
+	}
+
+	if len(context) > 0 {
+		if err := jweProtectedHeaders.Set(joseJwe.AuthenticatedDataKey, context); err != nil {
+			return nil, nil, fmt.Errorf("failed to set aad header: %w", err)
+		}
 	}
 
 	jweEncryptOptions = append(jweEncryptOptions, joseJwe.WithProtectedHeaders(jweProtectedHeaders))
@@ -107,6 +117,10 @@ func EncryptBytes(jwks []joseJwk.Key, clearBytes []byte) (*joseJwe.Message, []by
 }
 
 func DecryptBytes(jwks []joseJwk.Key, jweMessageBytes []byte) ([]byte, error) {
+	return DecryptBytesWithContext(jwks, jweMessageBytes, nil)
+}
+
+func DecryptBytesWithContext(jwks []joseJwk.Key, jweMessageBytes []byte, context []byte) ([]byte, error) {
 	if jwks == nil {
 		return nil, fmt.Errorf("invalid JWKs: %w", cryptoutilAppErr.ErrCantBeNil)
 	} else if len(jwks) == 0 {

@@ -353,12 +353,20 @@ func (s *BusinessLogicService) PostEncryptByElasticKeyID(ctx context.Context, el
 	if elasticKey.ElasticKeyProvider != providerInternal {
 		return nil, fmt.Errorf("provider not supported yet; use Internal for now")
 	}
-	// TODO Use encryptParams.Context for encryption
-	var jweMessageBytes []byte
+	// Use encryptParams.Context for encryption
+	var (
+		jweMessageBytes []byte
+		contextBytes    []byte
+	)
+
+	if encryptParams.Context != nil {
+		contextBytes = []byte(*encryptParams.Context)
+	}
+
 	if clearMaterialKeyPublicJWEJWK != nil {
-		_, jweMessageBytes, err = cryptoutilJose.EncryptBytes([]joseJwk.Key{clearMaterialKeyPublicJWEJWK}, clearPayloadBytes) // asymmetric
+		_, jweMessageBytes, err = cryptoutilJose.EncryptBytesWithContext([]joseJwk.Key{clearMaterialKeyPublicJWEJWK}, clearPayloadBytes, contextBytes) // asymmetric
 	} else {
-		_, jweMessageBytes, err = cryptoutilJose.EncryptBytes([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, clearPayloadBytes) // symmetric
+		_, jweMessageBytes, err = cryptoutilJose.EncryptBytesWithContext([]joseJwk.Key{decryptedMaterialKeyNonPublicJWEJWK}, clearPayloadBytes, contextBytes) // symmetric
 	}
 
 	if err != nil {

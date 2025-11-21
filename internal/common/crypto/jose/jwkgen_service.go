@@ -48,7 +48,6 @@ type JWKGenService struct {
 }
 
 func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, verbose bool) (*JWKGenService, error) {
-
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")
 	} else if telemetryService == nil {
