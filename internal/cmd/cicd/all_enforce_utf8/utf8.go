@@ -28,7 +28,7 @@ func Enforce(logger *common.Logger, allFiles []string) error {
 		return nil
 	}
 
-	logger.Log(fmt.Sprintf("Found %d files to check for UTF-8 encoding", len(finalFiles)))
+	logger.Log(fmt.Sprintf("Found %d text files out of %d total files to check for UTF-8 encoding", len(finalFiles), len(allFiles)))
 
 	encodingViolations := checkFilesEncoding(finalFiles)
 

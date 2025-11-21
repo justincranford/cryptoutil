@@ -87,7 +87,7 @@ const (
 	TimeFormat = "2006-01-02T15:04:05.999999999Z07:00"
 
 	// Number of worker threads for concurrent file processing operations.
-	Utf8EnforceWorkerPoolSize = 4
+	Utf8EnforceWorkerPoolSize = 6
 
 	// Usage message for the cicd command.
 	UsageCICD = `Usage: cicd <command> [command...]

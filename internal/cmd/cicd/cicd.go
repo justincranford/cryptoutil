@@ -28,29 +28,18 @@ import (
 )
 
 const (
-	// Command name for enforcing UTF-8 encoding on all files.
 	cmdAllEnforceUTF8 = "all-enforce-utf8"
-
-	// Command name for enforcing Go any usage instead of any.
 	cmdGoEnforceAny = "go-enforce-any"
-
-	// Command name for enforcing test patterns in Go files.
 	cmdGoEnforceTestPatterns = "go-enforce-test-patterns"
-
-	// Command name for linting GitHub workflow files.
 	cmdGitHubWorkflowLint = "github-workflow-lint"
-
-	// Command name for auto-fixing staticcheck error strings.
 	cmdGoFixStaticcheckErrorStrings = "go-fix-staticcheck-error-strings"
-
-	// Command name for auto-fixing copyloopvar issues.
 	cmdGoFixCopyLoopVar = "go-fix-copyloopvar"
-
-	// Command name for auto-fixing thelper issues.
 	cmdGoFixTHelper = "go-fix-thelper"
-
-	// Command name for running all auto-fix commands.
 	cmdGoFixAll = "go-fix-all"
+	cmdGoCheckCircularPackageDependencies = "go-check-circular-package-dependencies"
+	cmdGoCheckIdentityImports = "go-check-identity-imports"
+	cmdGoUpdateDirectDependencies = "go-update-direct-dependencies"
+	cmdGoUpdateAllDependencies = "go-update-all-dependencies"
 )
 
 // Run executes the specified CI/CD check commands.
@@ -109,13 +98,13 @@ func Run(commands []string) error {
 			cmdErr = go_enforce_test_patterns.Enforce(logger, allFiles)
 		case cmdGoEnforceAny:
 			cmdErr = go_enforce_any.Enforce(logger, allFiles)
-		case "go-check-circular-package-dependencies":
+		case cmdGoCheckCircularPackageDependencies:
 			cmdErr = go_check_circular_package_dependencies.Check(logger)
-		case "go-check-identity-imports":
+		case cmdGoCheckIdentityImports:
 			cmdErr = go_check_identity_imports.Check(logger)
-		case "go-update-direct-dependencies":
+		case cmdGoUpdateDirectDependencies:
 			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckDirect)
-		case "go-update-all-dependencies":
+		case cmdGoUpdateAllDependencies:
 			cmdErr = go_update_direct_dependencies.Update(logger, cryptoutilMagic.DepCheckAll)
 		case cmdGitHubWorkflowLint:
 			cmdErr = github_workflow_lint.Lint(logger, allFiles)
@@ -189,8 +178,8 @@ func validateCommands(commands []string) error {
 	}
 
 	// Check for mutually exclusive commands
-	if commandCounts["go-update-direct-dependencies"] > 0 && commandCounts["go-update-all-dependencies"] > 0 {
-		errs = append(errs, fmt.Errorf("commands 'go-update-direct-dependencies' and 'go-update-all-dependencies' cannot be used together - choose one dependency update mode"))
+	if commandCounts[cmdGoUpdateDirectDependencies] > 0 && commandCounts[cmdGoUpdateAllDependencies] > 0 {
+		errs = append(errs, fmt.Errorf("commands '%s' and '%s' cannot be used together - choose one dependency update mode", cmdGoUpdateDirectDependencies, cmdGoUpdateAllDependencies))
 	}
 
 	if len(errs) > 0 {
