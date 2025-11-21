@@ -12,7 +12,7 @@ import (
 )
 
 func RequireNewForTest(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) *JWKGenService {
-	jwkGenService, err := NewJWKGenService(ctx, telemetryService)
+	jwkGenService, err := NewJWKGenService(ctx, telemetryService, false)
 	cryptoutilAppErr.RequireNoError(err, "failed to initialize jwkGenService")
 
 	return jwkGenService

@@ -40,7 +40,7 @@ func StartServerApplicationBasic(ctx context.Context, settings *cryptoutilConfig
 
 	serverApplicationBasic.UnsealKeysService = unsealKeysService
 
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService)
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, settings.VerboseMode)
 	if err != nil {
 		telemetryService.Slogger.Error("failed to create JWK Gen Service", "error", err)
 		serverApplicationBasic.Shutdown()

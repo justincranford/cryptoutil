@@ -96,13 +96,8 @@ func NewTelemetryService(ctx context.Context, settings *cryptoutilConfig.Setting
 	}
 
 	// logsProvider is initialized, now we can log the sidecar health checks done just before logsProvider initialization
-	// TODO Change DEBUG to INFO after confirming what works in GitHub Actions
 	if overallErr == nil {
-		if settings.VerboseMode {
-			slogger.Info("sidecar health check succeeded", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
-		} else {
-			slogger.Info("DEBUG sidecar health check succeeded", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
-		}
+		slogger.Info("sidecar health check succeeded", "attempts", len(retryErrors), "errors", errors.Join(retryErrors...))
 	} else {
 		// log the sidecar health check errors, and proceed anyway; if sidecar becomes healthy later, buffered telemetry exports can still go through later
 		if settings.VerboseMode {

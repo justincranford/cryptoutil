@@ -29,7 +29,7 @@ func TestNewBusinessLogicService(t *testing.T) {
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
 
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService)
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
 	testify.NoError(t, err)
 
 	tests := []struct {
@@ -136,7 +136,7 @@ func TestGenerateJWK(t *testing.T) {
 	telemetryService, err := cryptoutilTelemetry.NewTelemetryService(ctx, settings)
 	testify.NoError(t, err)
 
-	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService)
+	jwkGenService, err := cryptoutilJose.NewJWKGenService(ctx, telemetryService, false)
 	testify.NoError(t, err)
 
 	service := &BusinessLogicService{

@@ -47,8 +47,7 @@ type JWKGenService struct {
 	UUIDv7KeyGenPool      *cryptoutilPool.ValueGenPool[*googleUuid.UUID]
 }
 
-func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService) (*JWKGenService, error) {
-	verbose := false // TODO read from settings
+func NewJWKGenService(ctx context.Context, telemetryService *cryptoutilTelemetry.TelemetryService, verbose bool) (*JWKGenService, error) {
 
 	if ctx == nil {
 		return nil, fmt.Errorf("context must be non-nil")
