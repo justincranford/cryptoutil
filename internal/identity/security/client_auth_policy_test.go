@@ -13,144 +13,261 @@ import (
 	cryptoutilIdentityDomain "cryptoutil/internal/identity/domain"
 )
 
-func TestDefaultClientAuthPolicy(t *testing.T) {
+func TestPolicyConstructors(t *testing.T) {
 	t.Parallel()
 
-	policy := DefaultClientAuthPolicy()
-
-	require.NotNil(t, policy)
-	require.Len(t, policy.AllowedMethods, 5)
-	require.False(t, policy.RequireMTLS)
-	require.True(t, policy.RequireJWTSignature)
-	require.True(t, policy.RequireCertificateValidation)
-	require.False(t, policy.AllowSelfSignedCertificates)
-}
-
-func TestStrictClientAuthPolicy(t *testing.T) {
-	t.Parallel()
-
-	policy := StrictClientAuthPolicy()
-
-	require.NotNil(t, policy)
-	require.Len(t, policy.AllowedMethods, 2)
-	require.True(t, policy.RequireMTLS)
-	require.True(t, policy.RequireJWTSignature)
-	require.Len(t, policy.AllowedJWTAlgorithms, 2)
-	require.Contains(t, policy.AllowedJWTAlgorithms, "RS256")
-	require.Contains(t, policy.AllowedJWTAlgorithms, "ES256")
-}
-
-func TestPublicClientAuthPolicy(t *testing.T) {
-	t.Parallel()
-
-	policy := PublicClientAuthPolicy()
-
-	require.NotNil(t, policy)
-	require.Len(t, policy.AllowedMethods, 1)
-	require.Contains(t, policy.AllowedMethods, cryptoutilIdentityDomain.ClientAuthMethodNone)
-	require.False(t, policy.RequireMTLS)
-	require.False(t, policy.RequireJWTSignature)
-}
-
-func TestDevelopmentClientAuthPolicy(t *testing.T) {
-	t.Parallel()
-
-	policy := DevelopmentClientAuthPolicy()
-
-	require.NotNil(t, policy)
-	require.Len(t, policy.AllowedMethods, 7)
-	require.False(t, policy.RequireMTLS)
-	require.False(t, policy.RequireJWTSignature)
-	require.True(t, policy.AllowSelfSignedCertificates)
-}
-
-func TestClientAuthPolicyManager_GetPolicy(t *testing.T) {
-	t.Parallel()
-
-	manager := NewClientAuthPolicyManager()
-
-	// Test default policy.
-	policy, err := manager.GetPolicy("default")
-	require.NoError(t, err)
-	require.NotNil(t, policy)
-
-	// Test strict policy.
-	policy, err = manager.GetPolicy("strict")
-	require.NoError(t, err)
-	require.NotNil(t, policy)
-
-	// Test public policy.
-	policy, err = manager.GetPolicy("public")
-	require.NoError(t, err)
-	require.NotNil(t, policy)
-
-	// Test development policy.
-	policy, err = manager.GetPolicy("development")
-	require.NoError(t, err)
-	require.NotNil(t, policy)
-
-	// Test non-existent policy.
-	_, err = manager.GetPolicy("nonexistent")
-	require.Error(t, err)
-}
-
-func TestClientAuthPolicyManager_RegisterPolicy(t *testing.T) {
-	t.Parallel()
-
-	manager := NewClientAuthPolicyManager()
-
-	customPolicy := &ClientAuthPolicy{
-		AllowedMethods: []cryptoutilIdentityDomain.ClientAuthMethod{
-			cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
+	tests := []struct {
+		name                          string
+		constructor                   func() *ClientAuthPolicy
+		wantAllowedMethodsCount       int
+		wantRequireMTLS               bool
+		wantRequireJWTSignature       bool
+		wantRequireCertValidation     bool
+		wantAllowSelfSigned           bool
+		wantAllowedJWTAlgorithmsCount int
+		wantSpecificMethods           []cryptoutilIdentityDomain.ClientAuthMethod
+		wantSpecificAlgorithms        []string
+	}{
+		{
+			name:                      "default_policy",
+			constructor:               DefaultClientAuthPolicy,
+			wantAllowedMethodsCount:   5,
+			wantRequireMTLS:           false,
+			wantRequireJWTSignature:   true,
+			wantRequireCertValidation: true,
+			wantAllowSelfSigned:       false,
 		},
-		RequireMTLS: true,
+		{
+			name:                          "strict_policy",
+			constructor:                   StrictClientAuthPolicy,
+			wantAllowedMethodsCount:       2,
+			wantRequireMTLS:               true,
+			wantRequireJWTSignature:       true,
+			wantAllowedJWTAlgorithmsCount: 2,
+			wantSpecificAlgorithms:        []string{"RS256", "ES256"},
+		},
+		{
+			name:                    "public_client_policy",
+			constructor:             PublicClientAuthPolicy,
+			wantAllowedMethodsCount: 1,
+			wantRequireMTLS:         false,
+			wantRequireJWTSignature: false,
+			wantSpecificMethods:     []cryptoutilIdentityDomain.ClientAuthMethod{cryptoutilIdentityDomain.ClientAuthMethodNone},
+		},
+		{
+			name:                    "development_policy",
+			constructor:             DevelopmentClientAuthPolicy,
+			wantAllowedMethodsCount: 7,
+			wantRequireMTLS:         false,
+			wantRequireJWTSignature: false,
+			wantAllowSelfSigned:     true,
+		},
 	}
 
-	manager.RegisterPolicy("custom", customPolicy)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	retrievedPolicy, err := manager.GetPolicy("custom")
-	require.NoError(t, err)
-	require.Equal(t, customPolicy, retrievedPolicy)
+			policy := tc.constructor()
+			require.NotNil(t, policy)
+			require.Len(t, policy.AllowedMethods, tc.wantAllowedMethodsCount)
+
+			if tc.wantRequireMTLS {
+				require.True(t, policy.RequireMTLS)
+			}
+
+			if tc.wantRequireJWTSignature {
+				require.True(t, policy.RequireJWTSignature)
+			}
+
+			if tc.wantRequireCertValidation {
+				require.True(t, policy.RequireCertificateValidation)
+			}
+
+			if tc.wantAllowSelfSigned {
+				require.True(t, policy.AllowSelfSignedCertificates)
+			}
+
+			if tc.wantAllowedJWTAlgorithmsCount > 0 {
+				require.Len(t, policy.AllowedJWTAlgorithms, tc.wantAllowedJWTAlgorithmsCount)
+			}
+
+			for _, method := range tc.wantSpecificMethods {
+				require.Contains(t, policy.AllowedMethods, method)
+			}
+
+			for _, algo := range tc.wantSpecificAlgorithms {
+				require.Contains(t, policy.AllowedJWTAlgorithms, algo)
+			}
+		})
+	}
+}
+
+func TestClientAuthPolicyManager(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		testFn     func(t *testing.T, manager *ClientAuthPolicyManager)
+	}{
+		{
+			name: "get_default_policy",
+			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				policy, err := manager.GetPolicy("default")
+				require.NoError(t, err)
+				require.NotNil(t, policy)
+			},
+		},
+		{
+			name: "get_strict_policy",
+			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				policy, err := manager.GetPolicy("strict")
+				require.NoError(t, err)
+				require.NotNil(t, policy)
+			},
+		},
+		{
+			name: "get_public_policy",
+			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				policy, err := manager.GetPolicy("public")
+				require.NoError(t, err)
+				require.NotNil(t, policy)
+			},
+		},
+		{
+			name: "get_development_policy",
+			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				policy, err := manager.GetPolicy("development")
+				require.NoError(t, err)
+				require.NotNil(t, policy)
+			},
+		},
+		{
+			name: "get_nonexistent_policy",
+			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				_, err := manager.GetPolicy("nonexistent")
+				require.Error(t, err)
+			},
+		},
+		{
+			name: "register_custom_policy",
+			testFn: func(t *testing.T, manager *ClientAuthPolicyManager) {
+				customPolicy := &ClientAuthPolicy{
+					AllowedMethods: []cryptoutilIdentityDomain.ClientAuthMethod{
+						cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
+					},
+					RequireMTLS: true,
+				}
+
+				manager.RegisterPolicy("custom", customPolicy)
+
+				retrievedPolicy, err := manager.GetPolicy("custom")
+				require.NoError(t, err)
+				require.Equal(t, customPolicy, retrievedPolicy)
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			manager := NewClientAuthPolicyManager()
+			tc.testFn(t, manager)
+		})
+	}
 }
 
 func TestClientAuthPolicy_ValidateClientAuthMethod(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	policy := DefaultClientAuthPolicy()
 
-	// Test allowed method.
-	err := policy.ValidateClientAuthMethod(ctx, cryptoutilIdentityDomain.ClientAuthMethodSecretBasic)
-	require.NoError(t, err)
+	tests := []struct {
+		name    string
+		policy  *ClientAuthPolicy
+		method  cryptoutilIdentityDomain.ClientAuthMethod
+		wantErr bool
+	}{
+		{
+			name:    "allowed_method",
+			policy:  DefaultClientAuthPolicy(),
+			method:  cryptoutilIdentityDomain.ClientAuthMethodSecretBasic,
+			wantErr: false,
+		},
+		{
+			name:    "disallowed_method",
+			policy:  DefaultClientAuthPolicy(),
+			method:  cryptoutilIdentityDomain.ClientAuthMethodNone,
+			wantErr: true,
+		},
+	}
 
-	// Test disallowed method.
-	err = policy.ValidateClientAuthMethod(ctx, cryptoutilIdentityDomain.ClientAuthMethodNone)
-	require.Error(t, err)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tc.policy.ValidateClientAuthMethod(ctx, tc.method)
+
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
 
 func TestClientAuthPolicy_ValidateJWTAlgorithm(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
-	policy := StrictClientAuthPolicy()
 
-	// Test allowed algorithm.
-	err := policy.ValidateJWTAlgorithm(ctx, "RS256")
-	require.NoError(t, err)
+	tests := []struct {
+		name      string
+		policy    *ClientAuthPolicy
+		algorithm string
+		wantErr   bool
+	}{
+		{
+			name:      "allowed_algorithm",
+			policy:    StrictClientAuthPolicy(),
+			algorithm: "RS256",
+			wantErr:   false,
+		},
+		{
+			name:      "disallowed_algorithm",
+			policy:    StrictClientAuthPolicy(),
+			algorithm: "HS256",
+			wantErr:   true,
+		},
+		{
+			name: "no_requirement_any_algorithm_passes",
+			policy: func() *ClientAuthPolicy {
+				policy := DevelopmentClientAuthPolicy()
+				policy.RequireJWTSignature = false
+				return policy
+			}(),
+			algorithm: "HS256",
+			wantErr:   false,
+		},
+	}
 
-	// Test disallowed algorithm.
-	err = policy.ValidateJWTAlgorithm(ctx, "HS256")
-	require.Error(t, err)
-}
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-func TestClientAuthPolicy_ValidateJWTAlgorithm_NoRequirement(t *testing.T) {
-	t.Parallel()
+			err := tc.policy.ValidateJWTAlgorithm(ctx, tc.algorithm)
 
-	ctx := context.Background()
-	policy := DevelopmentClientAuthPolicy()
-	policy.RequireJWTSignature = false
-
-	// When JWT signature not required, any algorithm passes.
-	err := policy.ValidateJWTAlgorithm(ctx, "HS256")
-	require.NoError(t, err)
+			if tc.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
