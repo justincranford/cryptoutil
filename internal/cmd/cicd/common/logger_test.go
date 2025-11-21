@@ -2,6 +2,7 @@
 //
 //
 
+//nolint:errcheck // Test infrastructure uses os.Pipe/Close/ReadFrom without error checking
 package common
 
 import (
@@ -21,18 +22,18 @@ func TestNewLogger(t *testing.T) {
 
 	// Capture stderr
 	oldStderr := os.Stderr
-	r, w, _ := os.Pipe()
+	r, w, _ := os.Pipe() //nolint:errcheck // Test infrastructure
 	os.Stderr = w
 
 	logger := NewLogger("test-operation")
 
-	w.Close()
+	_ = w.Close() //nolint:errcheck // Test infrastructure
 
 	os.Stderr = oldStderr
 
 	var buf bytes.Buffer
 
-	_, _ = buf.ReadFrom(r)
+	_, _ = buf.ReadFrom(r) //nolint:errcheck // Test infrastructure
 	output := buf.String()
 
 	require.NotNil(t, logger, "Logger should not be nil")

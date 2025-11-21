@@ -107,7 +107,7 @@ func fixCopyLoopVarInFile(logger *cryptoutilCmd.Logger, filePath string) (bool, 
 		if err != nil {
 			return false, fixCount, fmt.Errorf("failed to create file: %w", err)
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck // Defer close is best-effort
 
 		if err := printer.Fprint(file, fset, node); err != nil {
 			return false, fixCount, fmt.Errorf("failed to write file: %w", err)
@@ -183,8 +183,8 @@ func isGoVersionSupported(version string) bool {
 
 	// Compare with minimum version (1.22)
 	minParts := strings.Split(minGoVersion, ".")
-	minMajor, _ := strconv.Atoi(minParts[0])
-	minMinor, _ := strconv.Atoi(minParts[1])
+	minMajor, _ := strconv.Atoi(minParts[0]) //nolint:errcheck // Hardcoded version string
+	minMinor, _ := strconv.Atoi(minParts[1]) //nolint:errcheck // Hardcoded version string
 
 	if major > minMajor {
 		return true

@@ -37,6 +37,7 @@ func TestFix(t *testing.T) {
 			goVersion: "1.21.0",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				content := `package test
 
 func Process(items []int) {
@@ -58,6 +59,7 @@ func Process(items []int) {
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				content := `package test
 
 func Process(items []int) {
@@ -78,6 +80,7 @@ func Process(items []int) {
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				content := `package test
 
 func Process(items []int) {
@@ -95,6 +98,7 @@ func Process(items []int) {
 			wantError:       false,
 			verifyFn: func(t *testing.T, dir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(dir, "loop.go"))
 				require.NoError(t, err)
 				require.NotContains(t, string(fixed), "item := item")
@@ -106,6 +110,7 @@ func Process(items []int) {
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				content := `package test
 
 func Process(items []int, names []string) {
@@ -128,6 +133,7 @@ func Process(items []int, names []string) {
 			wantError:       false,
 			verifyFn: func(t *testing.T, dir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(dir, "loops.go"))
 				require.NoError(t, err)
 				require.NotContains(t, string(fixed), "item := item")
@@ -139,6 +145,7 @@ func Process(items []int, names []string) {
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				content := `package test
 
 func Process(data map[string]int) {
@@ -157,6 +164,7 @@ func Process(data map[string]int) {
 			wantError:       false,
 			verifyFn: func(t *testing.T, dir string) {
 				t.Helper()
+
 				fixed, err := os.ReadFile(filepath.Join(dir, "map_loop.go"))
 				require.NoError(t, err)
 				require.NotContains(t, string(fixed), "key := key")
@@ -167,6 +175,7 @@ func Process(data map[string]int) {
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				content := `package test
 
 func TestLoop(t *testing.T) {
@@ -190,6 +199,7 @@ func TestLoop(t *testing.T) {
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				content := `package model
 
 func Process(items []int) {
@@ -211,6 +221,7 @@ func Process(items []int) {
 			goVersion: "1.25.4",
 			setupFiles: func(t *testing.T, dir string) {
 				t.Helper()
+
 				subDir := filepath.Join(dir, "sub", "nested")
 				require.NoError(t, os.MkdirAll(subDir, 0o755))
 
@@ -296,7 +307,7 @@ func TestIsGoVersionSupported(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc // Capture range variable
+		// Capture range variable
 		t.Run(tc.version, func(t *testing.T) {
 			t.Parallel()
 

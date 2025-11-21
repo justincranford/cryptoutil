@@ -2,6 +2,7 @@
 //
 //
 
+//nolint:errcheck // Test infrastructure uses os.Pipe/Close/ReadFrom without error checking
 package common
 
 import (

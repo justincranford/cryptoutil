@@ -118,7 +118,7 @@ func fixTHelperInFile(logger *cryptoutilCmd.Logger, filePath string) (bool, int,
 		if err != nil {
 			return false, fixCount, fmt.Errorf("failed to create file: %w", err)
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck // Defer close is best-effort
 
 		if err := printer.Fprint(file, fset, node); err != nil {
 			return false, fixCount, fmt.Errorf("failed to write file: %w", err)

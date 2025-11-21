@@ -84,11 +84,11 @@ func (m *MockGitHubServer) handleRequest(w http.ResponseWriter, r *http.Request)
 		// Return appropriate error JSON based on status code.
 		switch statusCode {
 		case http.StatusForbidden:
-			_, _ = w.Write([]byte(`{"message": "API rate limit exceeded"}`))
+			_, _ = w.Write([]byte(`{"message": "API rate limit exceeded"}`)) //nolint:errcheck // Test mock
 		case http.StatusNotFound:
-			_, _ = w.Write([]byte(`{"message": "Not Found"}`))
+			_, _ = w.Write([]byte(`{"message": "Not Found"}`)) //nolint:errcheck // Test mock
 		default:
-			_, _ = w.Write([]byte(`{"message": "Server error"}`))
+			_, _ = w.Write([]byte(`{"message": "Server error"}`)) //nolint:errcheck // Test mock
 		}
 
 		return
@@ -99,7 +99,7 @@ func (m *MockGitHubServer) handleRequest(w http.ResponseWriter, r *http.Request)
 		if data, ok := m.releaseData[ownerRepo]; ok {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(data))
+			_, _ = w.Write([]byte(data)) //nolint:errcheck // Test mock
 
 			return
 		}
@@ -114,7 +114,7 @@ func (m *MockGitHubServer) handleRequest(w http.ResponseWriter, r *http.Request)
 		if data, ok := m.tagData[ownerRepo]; ok {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(data))
+			_, _ = w.Write([]byte(data)) //nolint:errcheck // Test mock
 
 			return
 		}
