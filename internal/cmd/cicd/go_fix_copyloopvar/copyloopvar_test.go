@@ -10,28 +10,33 @@ import (
 	cryptoutilCmd "cryptoutil/internal/cmd/cicd/common"
 )
 
-func TestFix_EmptyDirectory(t *testing.T) {
+func TestFix(t *testing.T) {
 	t.Parallel()
 
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-empty")
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 0, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_OldGoVersion(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-old-version")
-
-	// Create a Go file with loop variable copy.
-	goFile := filepath.Join(tmpDir, "loop.go")
-	content := `package test
+	tests := []struct {
+		name            string
+		goVersion       string
+		setupFiles      func(t *testing.T, dir string)
+		wantProcessed   int
+		wantModified    int
+		wantIssuesFixed int
+		wantError       bool
+		verifyFn        func(t *testing.T, dir string)
+	}{
+		{
+			name:            "empty directory",
+			goVersion:       "1.25.4",
+			setupFiles:      func(t *testing.T, dir string) {},
+			wantProcessed:   0,
+			wantModified:    0,
+			wantIssuesFixed: 0,
+			wantError:       false,
+		},
+		{
+			name:      "old Go version below minimum",
+			goVersion: "1.21.0",
+			setupFiles: func(t *testing.T, dir string) {
+				content := `package test
 
 func Process(items []int) {
 	for _, item := range items {
@@ -40,24 +45,18 @@ func Process(items []int) {
 	}
 }
 `
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
-
-	// Test with Go 1.21 (below minimum).
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.21.0")
-	require.NoError(t, err)
-	require.Equal(t, 0, processed) // Should skip processing.
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_NoLoopVariableCopies(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-no-copies")
-
-	goFile := filepath.Join(tmpDir, "clean.go")
-	content := `package test
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "loop.go"), []byte(content), 0o600))
+			},
+			wantProcessed:   0, // Should skip processing
+			wantModified:    0,
+			wantIssuesFixed: 0,
+			wantError:       false,
+		},
+		{
+			name:      "no loop variable copies",
+			goVersion: "1.25.4",
+			setupFiles: func(t *testing.T, dir string) {
+				content := `package test
 
 func Process(items []int) {
 	for _, item := range items {
@@ -65,23 +64,18 @@ func Process(items []int) {
 	}
 }
 `
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_SingleLoopVariableCopy(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-single")
-
-	goFile := filepath.Join(tmpDir, "loop.go")
-	content := `package test
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "clean.go"), []byte(content), 0o600))
+			},
+			wantProcessed:   1,
+			wantModified:    0,
+			wantIssuesFixed: 0,
+			wantError:       false,
+		},
+		{
+			name:      "single loop variable copy",
+			goVersion: "1.25.4",
+			setupFiles: func(t *testing.T, dir string) {
+				content := `package test
 
 func Process(items []int) {
 	for _, item := range items {
@@ -90,29 +84,24 @@ func Process(items []int) {
 	}
 }
 `
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 1, modified)
-	require.Equal(t, 1, issuesFixed)
-
-	// Verify the fix.
-	fixed, err := os.ReadFile(goFile)
-	require.NoError(t, err)
-	require.NotContains(t, string(fixed), "item := item")
-	require.Contains(t, string(fixed), "println(item)")
-}
-
-func TestFix_MultipleLoopVariableCopies(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-multiple")
-
-	goFile := filepath.Join(tmpDir, "loops.go")
-	content := `package test
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "loop.go"), []byte(content), 0o600))
+			},
+			wantProcessed:   1,
+			wantModified:    1,
+			wantIssuesFixed: 1,
+			wantError:       false,
+			verifyFn: func(t *testing.T, dir string) {
+				fixed, err := os.ReadFile(filepath.Join(dir, "loop.go"))
+				require.NoError(t, err)
+				require.NotContains(t, string(fixed), "item := item")
+				require.Contains(t, string(fixed), "println(item)")
+			},
+		},
+		{
+			name:      "multiple loop variable copies",
+			goVersion: "1.25.4",
+			setupFiles: func(t *testing.T, dir string) {
+				content := `package test
 
 func Process(items []int, names []string) {
 	for _, item := range items {
@@ -126,29 +115,24 @@ func Process(items []int, names []string) {
 	}
 }
 `
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 1, modified)
-	require.Equal(t, 2, issuesFixed)
-
-	// Verify the fix.
-	fixed, err := os.ReadFile(goFile)
-	require.NoError(t, err)
-	require.NotContains(t, string(fixed), "item := item")
-	require.NotContains(t, string(fixed), "name := name")
-}
-
-func TestFix_KeyAndValueCopies(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-key-value")
-
-	goFile := filepath.Join(tmpDir, "map_loop.go")
-	content := `package test
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "loops.go"), []byte(content), 0o600))
+			},
+			wantProcessed:   1,
+			wantModified:    1,
+			wantIssuesFixed: 2,
+			wantError:       false,
+			verifyFn: func(t *testing.T, dir string) {
+				fixed, err := os.ReadFile(filepath.Join(dir, "loops.go"))
+				require.NoError(t, err)
+				require.NotContains(t, string(fixed), "item := item")
+				require.NotContains(t, string(fixed), "name := name")
+			},
+		},
+		{
+			name:      "key and value copies",
+			goVersion: "1.25.4",
+			setupFiles: func(t *testing.T, dir string) {
+				content := `package test
 
 func Process(data map[string]int) {
 	for key, val := range data {
@@ -158,28 +142,23 @@ func Process(data map[string]int) {
 	}
 }
 `
-	require.NoError(t, os.WriteFile(goFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 1, processed)
-	require.Equal(t, 1, modified)
-	require.Equal(t, 1, issuesFixed) // Only the first copy (key := key) removed.
-
-	// Verify the fix.
-	fixed, err := os.ReadFile(goFile)
-	require.NoError(t, err)
-	require.NotContains(t, string(fixed), "key := key")
-}
-
-func TestFix_TestFilesSkipped(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-skip-test")
-
-	testFile := filepath.Join(tmpDir, "loop_test.go")
-	content := `package test
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "map_loop.go"), []byte(content), 0o600))
+			},
+			wantProcessed:   1,
+			wantModified:    1,
+			wantIssuesFixed: 1, // Only the first copy (key := key) removed
+			wantError:       false,
+			verifyFn: func(t *testing.T, dir string) {
+				fixed, err := os.ReadFile(filepath.Join(dir, "map_loop.go"))
+				require.NoError(t, err)
+				require.NotContains(t, string(fixed), "key := key")
+			},
+		},
+		{
+			name:      "test files skipped",
+			goVersion: "1.25.4",
+			setupFiles: func(t *testing.T, dir string) {
+				content := `package test
 
 func TestLoop(t *testing.T) {
 	for _, tc := range testCases {
@@ -190,23 +169,18 @@ func TestLoop(t *testing.T) {
 	}
 }
 `
-	require.NoError(t, os.WriteFile(testFile, []byte(content), 0o600))
-
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 0, processed) // Test files should be skipped.
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_GeneratedFilesSkipped(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-skip-gen")
-
-	genFile := filepath.Join(tmpDir, "openapi_gen_model.go")
-	content := `package model
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "loop_test.go"), []byte(content), 0o600))
+			},
+			wantProcessed:   0, // Test files should be skipped
+			wantModified:    0,
+			wantIssuesFixed: 0,
+			wantError:       false,
+		},
+		{
+			name:      "generated files skipped",
+			goVersion: "1.25.4",
+			setupFiles: func(t *testing.T, dir string) {
+				content := `package model
 
 func Process(items []int) {
 	for _, item := range items {
@@ -215,26 +189,21 @@ func Process(items []int) {
 	}
 }
 `
-	require.NoError(t, os.WriteFile(genFile, []byte(content), 0o600))
+				require.NoError(t, os.WriteFile(filepath.Join(dir, "openapi_gen_model.go"), []byte(content), 0o600))
+			},
+			wantProcessed:   0, // Generated files should be skipped
+			wantModified:    0,
+			wantIssuesFixed: 0,
+			wantError:       false,
+		},
+		{
+			name:      "nested directories",
+			goVersion: "1.25.4",
+			setupFiles: func(t *testing.T, dir string) {
+				subDir := filepath.Join(dir, "sub", "nested")
+				require.NoError(t, os.MkdirAll(subDir, 0o755))
 
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 0, processed) // Generated files should be skipped.
-	require.Equal(t, 0, modified)
-	require.Equal(t, 0, issuesFixed)
-}
-
-func TestFix_NestedDirectories(t *testing.T) {
-	t.Parallel()
-
-	tmpDir := t.TempDir()
-	logger := cryptoutilCmd.NewLogger("test-copyloopvar-nested")
-
-	// Create nested directory structure.
-	subDir := filepath.Join(tmpDir, "sub", "nested")
-	require.NoError(t, os.MkdirAll(subDir, 0o755))
-
-	content := `package test
+				content := `package test
 func Process(items []int) {
 	for _, item := range items {
 		item := item
@@ -242,19 +211,48 @@ func Process(items []int) {
 	}
 }
 `
-	file1 := filepath.Join(tmpDir, "loop1.go")
-	file2 := filepath.Join(tmpDir, "sub", "loop2.go")
-	file3 := filepath.Join(subDir, "loop3.go")
+				file1 := filepath.Join(dir, "loop1.go")
+				file2 := filepath.Join(dir, "sub", "loop2.go")
+				file3 := filepath.Join(subDir, "loop3.go")
 
-	require.NoError(t, os.WriteFile(file1, []byte(content), 0o600))
-	require.NoError(t, os.WriteFile(file2, []byte(content), 0o600))
-	require.NoError(t, os.WriteFile(file3, []byte(content), 0o600))
+				require.NoError(t, os.WriteFile(file1, []byte(content), 0o600))
+				require.NoError(t, os.WriteFile(file2, []byte(content), 0o600))
+				require.NoError(t, os.WriteFile(file3, []byte(content), 0o600))
+			},
+			wantProcessed:   3,
+			wantModified:    3,
+			wantIssuesFixed: 3,
+			wantError:       false,
+		},
+	}
 
-	processed, modified, issuesFixed, err := Fix(logger, tmpDir, "1.25.4")
-	require.NoError(t, err)
-	require.Equal(t, 3, processed)
-	require.Equal(t, 3, modified)
-	require.Equal(t, 3, issuesFixed)
+	for _, tc := range tests {
+		tc := tc // Capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := t.TempDir()
+			logger := cryptoutilCmd.NewLogger("test-copyloopvar-" + tc.name)
+
+			tc.setupFiles(t, tmpDir)
+
+			processed, modified, issuesFixed, err := Fix(logger, tmpDir, tc.goVersion)
+
+			if tc.wantError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+
+			require.Equal(t, tc.wantProcessed, processed, "Unexpected processed count")
+			require.Equal(t, tc.wantModified, modified, "Unexpected modified count")
+			require.Equal(t, tc.wantIssuesFixed, issuesFixed, "Unexpected issues fixed count")
+
+			if tc.verifyFn != nil {
+				tc.verifyFn(t, tmpDir)
+			}
+		})
+	}
 }
 
 func TestFix_InvalidDirectory(t *testing.T) {
