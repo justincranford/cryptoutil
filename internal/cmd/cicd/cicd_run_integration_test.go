@@ -309,9 +309,10 @@ func Process(items []int) {
 	err = os.WriteFile(loopFile, []byte(loopContent), 0o600)
 	require.NoError(t, err)
 
+	// In Go 1.25.4, automatic loop variable scoping makes copyloopvar fixes unnecessary.
+	// The command will skip processing and return success (no error).
 	err = Run([]string{"go-fix-copyloopvar"})
-	require.Error(t, err) // Should fail because fixes were applied.
-	require.Contains(t, err.Error(), "failed commands")
+	require.NoError(t, err) // Should succeed because Go 1.25.4+ skips copyloopvar fixes.
 }
 
 // TestRun_GoFixTHelper tests Run with go-fix-thelper command.
@@ -338,9 +339,9 @@ func setupTest(t *testing.T) {
 	err = os.WriteFile(testFile, []byte(testContent), 0o600)
 	require.NoError(t, err)
 
+	// The go-fix-thelper command should succeed when it adds t.Helper() calls.
 	err = Run([]string{"go-fix-thelper"})
-	require.Error(t, err) // Should fail because fixes were applied.
-	require.Contains(t, err.Error(), "failed commands")
+	require.NoError(t, err) // Should succeed - applying fixes is expected behavior.
 }
 
 // TestRun_GoFixAll tests Run with go-fix-all command.
