@@ -4,6 +4,7 @@ package go_enforce_any
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,11 +28,18 @@ type MyStruct struct {
 )
 
 func TestProcessGoFile(t *testing.T) {
-	// Create a temporary directory for test files
-	tempDir := t.TempDir()
+	t.Parallel()
 
-	// Test case 1: File with interface{} that should be replaced
-	content1 := testPackageMain + `
+	tests := []struct {
+		name             string
+		content          string
+		wantReplacements int
+		wantError        bool
+		wantContains     string
+	}{
+		{
+			name: "file with interface{} that should be replaced",
+			content: testPackageMain + `
 
 ` + testImportFmt + `
 
@@ -42,19 +50,10 @@ func main() {
 func process(data interface{}) interface{} {
 	return data
 }
-`
-	testFile1 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test1.go", content1)
-
-	// Process the file
-	replacements1, err := processGoFile(testFile1)
-	require.NoError(t, err, "processGoFile failed")
-
-	require.Equal(t, 4, replacements1, "Expected 4 replacements")
-
-	// Verify the content was modified correctly
-	modifiedContent1 := cryptoutilTestutil.ReadTestFile(t, testFile1)
-
-	expectedContent1 := testPackageMain + `
+`,
+			wantReplacements: 4,
+			wantError:        false,
+			wantContains: testPackageMain + `
 
 ` + testImportFmt + `
 
@@ -69,53 +68,35 @@ type MyStruct struct {
 func process(data any) any {
 	return data
 }
-`
-	require.Equal(t, expectedContent1, string(modifiedContent1), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent1), expectedContent1)
-
-	// Test case 2: File with no interface{} (should not be modified)
-	content2 := testPackageMain + `
-
-` + testImportFmt + testFuncMainStart + `
-	var x int
-	fmt.Println(x)
-` + testFuncMainEnd
-	testFile2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test2.go", content2)
-
-	// Process the file
-	replacements2, err := processGoFile(testFile2)
-	require.NoError(t, err, "processGoFile failed")
-
-	require.Equal(t, 0, replacements2, "Expected 0 replacements")
-
-	// Verify the content was not modified
-	modifiedContent2 := cryptoutilTestutil.ReadTestFile(t, testFile2)
-
-	expectedContent2 := testPackageMain + `
+`,
+		},
+		{
+			name: "file with no interface{} unchanged",
+			content: testPackageMain + `
 
 ` + testImportFmt + testFuncMainStart + `
 	var x int
 	fmt.Println(x)
-` + testFuncMainEnd
-	require.Equal(t, expectedContent2, string(modifiedContent2), "File content was not modified as expected.\nGot:\n%s\nExpected:\n%s", string(modifiedContent2), expectedContent2)
+` + testFuncMainEnd,
+			wantReplacements: 0,
+			wantError:        false,
+			wantContains: testPackageMain + `
 
-	// Test case 3: File with interface{} in comments and strings (simple regex replaces everywhere - limitation)
-	content3 := testPackageMain + `
+` + testImportFmt + testFuncMainStart + `
+	var x int
+	fmt.Println(x)
+` + testFuncMainEnd,
+		},
+		{
+			name: "file with interface{} in comments and strings (regex limitation)",
+			content: testPackageMain + `
 // This is a comment with interface{} that will be replaced (regex limitation)` + testFuncMainStart + `
 	var x interface{}` + testStrAssignmentInterface + `
 	fmt.Println(x, str)
-` + testFuncMainEnd
-	testFile3 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test3.go", content3)
-
-	// Process the file
-	replacements3, err := processGoFile(testFile3)
-	require.NoError(t, err, "processGoFile failed")
-
-	require.Equal(t, 3, replacements3, "Expected 3 replacements (in comment, string, and code - regex limitation)")
-
-	// Verify the content was modified (simple regex replaces everywhere including comments/strings)
-	modifiedContent3 := cryptoutilTestutil.ReadTestFile(t, testFile3)
-
-	expectedContent3 := `package main
+` + testFuncMainEnd,
+			wantReplacements: 3,
+			wantError:        false,
+			wantContains: `package main
 // This is a comment with any that will be replaced (regex limitation)
 func main() {
 	var x any
@@ -123,75 +104,32 @@ func main() {
 	fmt.Println(x, str)
 
 }
-`
-	require.Equal(t, expectedContent3, string(modifiedContent3), "File content doesn't match expected output.\nGot:\n%s\nExpected:\n%s", string(modifiedContent3), expectedContent3)
-}
-
-func TestEnforce(t *testing.T) {
-	tempDir := t.TempDir()
-
-	// Create test Go files with interface{}
-	content1 := testPackageMain + `
-func main() {
-	var x interface{}
-}
-`
-	testFile1 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test1.go", content1)
-
-	content2 := testPackageMain + testTypeMyStructInterface + `
-`
-	testFile2 := cryptoutilTestutil.WriteTempFile(t, tempDir, "test2.go", content2)
-
-	// Change to temp directory
-	oldWd, err := os.Getwd()
-	require.NoError(t, err)
-
-	defer func() {
-		require.NoError(t, os.Chdir(oldWd))
-	}()
-
-	require.NoError(t, os.Chdir(tempDir))
-
-	// Test that Enforce returns an error when files are modified
-	logger := common.NewLogger("test")
-	err = Enforce(logger, []string{testFile1, testFile2})
-	require.Error(t, err, "Should return error when files are modified")
-	require.Contains(t, err.Error(), "modified", "Error should indicate files were modified")
-
-	// Verify files were actually modified
-	modifiedContent1 := cryptoutilTestutil.ReadTestFile(t, testFile1)
-	require.Contains(t, string(modifiedContent1), "var x any", "File 1 was not modified correctly")
-
-	modifiedContent2 := cryptoutilTestutil.ReadTestFile(t, testFile2)
-	require.Contains(t, string(modifiedContent2), "Data any", "File 2 was not modified correctly")
-}
-
-func TestProcessGoFile_EdgeCases(t *testing.T) {
-	tests := []struct {
-		name             string
-		content          string
-		wantModified     bool
-		wantReplacements int
-	}{
+`,
+		},
 		{
 			name:             "empty file",
 			content:          "",
-			wantModified:     false,
 			wantReplacements: 0,
+			wantError:        false,
+			wantContains:     "",
 		},
 		{
 			name:             "only comments",
 			content:          "// This is a comment\n/* Block comment */\n",
-			wantModified:     false,
 			wantReplacements: 0,
+			wantError:        false,
+			wantContains:     "// This is a comment\n/* Block comment */\n",
 		},
 		{
 			name: "already using any",
 			content: `package test
 var x any = 42
 `,
-			wantModified:     false,
 			wantReplacements: 0,
+			wantError:        false,
+			wantContains: `package test
+var x any = 42
+`,
 		},
 		{
 			name: "multiple any on same line",
@@ -200,25 +138,124 @@ func convert(a any, b any) (any, any) {
 	return a, b
 }
 `,
-			wantModified:     false, // Already using 'any', nothing to replace
 			wantReplacements: 0,
+			wantError:        false,
+			wantContains: `package test
+func convert(a any, b any) (any, any) {
+	return a, b
+}
+`,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tmpFile := cryptoutilTestutil.WriteTempFile(t, t.TempDir(), "test.go", tt.content)
+	for _, tc := range tests {
+		tc := tc // Capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-			replacements, err := processGoFile(tmpFile)
-			require.NoError(t, err)
+			tempDir := t.TempDir()
+			testFile := cryptoutilTestutil.WriteTempFile(t, tempDir, "test.go", tc.content)
 
-			if tt.wantModified {
-				require.Greater(t, replacements, 0, "Expected modifications")
+			replacements, err := processGoFile(testFile)
+
+			if tc.wantError {
+				require.Error(t, err)
 			} else {
-				require.Equal(t, 0, replacements, "Expected no modifications")
+				require.NoError(t, err, "processGoFile failed")
+				require.Equal(t, tc.wantReplacements, replacements, "Expected %d replacements", tc.wantReplacements)
+
+				// Verify the content matches expected
+				modifiedContent := cryptoutilTestutil.ReadTestFile(t, testFile)
+				require.Equal(t, tc.wantContains, string(modifiedContent), "File content doesn't match expected output")
+			}
+		})
+	}
+}
+
+func TestEnforce(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		files        map[string]string
+		wantError    bool
+		wantAnyStr   bool // expect "any" in at least one file
+	}{
+		{
+			name: "files with interface{} should return error after modification",
+			files: map[string]string{
+				"test1.go": testPackageMain + `
+func main() {
+	var x interface{}
+}
+`,
+				"test2.go": testPackageMain + testTypeMyStructInterface,
+			},
+			wantError:  true,
+			wantAnyStr: true,
+		},
+		{
+			name: "files without interface{} should not return error",
+			files: map[string]string{
+				"clean.go": testPackageMain + `
+func main() {
+	var x any
+}
+`,
+			},
+			wantError:  false,
+			wantAnyStr: true,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc // Capture range variable
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tempDir := t.TempDir()
+			var filePaths []string
+
+			// Create test files
+			for filename, content := range tc.files {
+				filePath := cryptoutilTestutil.WriteTempFile(t, tempDir, filename, content)
+				filePaths = append(filePaths, filePath)
 			}
 
-			require.Equal(t, tt.wantReplacements, replacements, "Unexpected replacement count")
+			// Change to temp directory
+			oldWd, err := os.Getwd()
+			require.NoError(t, err)
+
+			defer func() {
+				_ = os.Chdir(oldWd) // Best effort cleanup
+			}()
+
+			require.NoError(t, os.Chdir(tempDir))
+
+			// Test Enforce
+			logger := common.NewLogger("test")
+			err = Enforce(logger, filePaths)
+
+			if tc.wantError {
+				require.Error(t, err, "Should return error when files are modified")
+				require.Contains(t, err.Error(), "modified", "Error should indicate files were modified")
+			} else {
+				require.NoError(t, err, "Should not return error for clean files")
+			}
+
+			// Verify expected content in modified files
+			if tc.wantAnyStr {
+				foundAny := false
+				for _, filePath := range filePaths {
+					modifiedContent := cryptoutilTestutil.ReadTestFile(t, filePath)
+					if strings.Contains(string(modifiedContent), "any") {
+						foundAny = true
+
+						break
+					}
+				}
+				require.True(t, foundAny, "At least one file should contain 'any'")
+			}
 		})
 	}
 }
