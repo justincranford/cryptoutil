@@ -5,6 +5,7 @@ package go_enforce_test_patterns_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,404 +15,196 @@ import (
 )
 
 const (
-	testValidTestFileContent = `package example_test
-
-import (
-	"testing"
-	"github.com/stretchr/testify/require"
-	googleUuid "github.com/google/uuid"
+	testValidTestFileContent = "package example_test\n\nimport (\n\t\"testing\"\n\t\"github.com/stretchr/testify/require\"\n\tgoogleUuid \"github.com/google/uuid\"\n)\n\nfunc TestExample(t *testing.T) {\n\tid := googleUuid.NewV7()\n\trequire.NotNil(t, id)\n}\n"
 )
 
-func TestExample(t *testing.T) {
-	id := googleUuid.NewV7()
-	require.NotNil(t, id)
-}
-`
-)
-
-func TestCheckTestFile_ValidTestFile(t *testing.T) {
+func TestCheckTestFile(t *testing.T) {
 	t.Parallel()
 
-	// Create a valid test file
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "valid_test.go")
-	err := os.WriteFile(testFile, []byte(testValidTestFileContent), 0o600)
-	require.NoError(t, err)
-
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile(testFile)
-
-	// Assert
-	require.Empty(t, issues, "Valid test file should have no issues")
-}
-
-func TestCheckTestFile_UUIDNew(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "uuid_new_test.go")
-	content := `package example_test
-
-import (
-	"testing"
-	"github.com/google/uuid"
-)
-
-func TestExample(t *testing.T) {
-	id := uuid.New()
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile(testFile)
-
-	// Assert
-	require.Len(t, issues, 1)
-	require.Contains(t, issues[0], "uuid.New()")
-	require.Contains(t, issues[0], "uuid.NewV7()")
-}
-
-func TestCheckTestFile_HardcodedUUID(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "hardcoded_uuid_test.go")
-	content := `package example_test
-
-import "testing"
-
-func TestExample(t *testing.T) {
-	id := "550e8400-e29b-41d4-a716-446655440000"
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile(testFile)
-
-	// Assert
-	require.Len(t, issues, 1)
-	require.Contains(t, issues[0], "hardcoded UUID")
-	require.Contains(t, issues[0], "uuid.NewV7()")
-}
-
-func TestCheckTestFile_TErrorf(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "t_errorf_test.go")
-	content := `package example_test
-
-import "testing"
-
-func TestExample(t *testing.T) {
-	t.Errorf("expected %d, got %d", 1, 2)
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile(testFile)
-
-	// Assert
-	require.Len(t, issues, 1)
-	require.Contains(t, issues[0], "t.Errorf()")
-	require.Contains(t, issues[0], "require.Errorf()")
-}
-
-func TestCheckTestFile_TFatalf(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "t_fatalf_test.go")
-	content := `package example_test
-
-import "testing"
-
-func TestExample(t *testing.T) {
-	t.Fatalf("test failed: %v", err)
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile(testFile)
-
-	// Assert
-	require.Len(t, issues, 1)
-	require.Contains(t, issues[0], "t.Fatalf()")
-	require.Contains(t, issues[0], "require.Fatalf()")
-}
-
-func TestCheckTestFile_TestifyUsageWithoutImport(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "missing_import_test.go")
-	content := `package example_test
-
-import "testing"
-
-func TestExample(t *testing.T) {
-	require.Equal(t, 1, 1)
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile(testFile)
-
-	// Assert
-	require.Len(t, issues, 1)
-	require.Contains(t, issues[0], "testify assertions")
-	require.Contains(t, issues[0], "doesn't import testify")
-}
-
-func TestCheckTestFile_MultipleIssues(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "multiple_issues_test.go")
-	content := `package example_test
-
-import (
-	"testing"
-	"github.com/google/uuid"
-)
-
-func TestExample(t *testing.T) {
-	id1 := uuid.New()
-	id2 := "550e8400-e29b-41d4-a716-446655440000"
-	t.Errorf("error")
-	t.Fatalf("fatal")
-	require.Equal(t, 1, 1)
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile(testFile)
-
-	// Assert: Should have multiple issues
-	require.Greater(t, len(issues), 1, "Should detect multiple issues")
-	// Check for specific issues
-	hasUUIDNew := false
-	hasHardcodedUUID := false
-	hasTErrorf := false
-	hasTFatalf := false
-	hasMissingImport := false
-
-	for _, issue := range issues {
-		if contains(issue, "uuid.New()") {
-			hasUUIDNew = true
-		}
-
-		if contains(issue, "hardcoded UUID") {
-			hasHardcodedUUID = true
-		}
-
-		if contains(issue, "t.Errorf()") {
-			hasTErrorf = true
-		}
-
-		if contains(issue, "t.Fatalf()") {
-			hasTFatalf = true
-		}
-
-		if contains(issue, "doesn't import testify") {
-			hasMissingImport = true
-		}
+	tests := []struct {
+		name            string
+		content         string
+		wantIssueCount  int
+		wantContains    []string
+		nonExistentFile bool
+	}{
+		{
+			name:           "valid_test_file",
+			content:        testValidTestFileContent,
+			wantIssueCount: 0,
+		},
+		{
+			name:           "uuid_new",
+			content:        "package example_test\n\nimport (\n\t\"testing\"\n\t\"github.com/google/uuid\"\n)\n\nfunc TestExample(t *testing.T) {\n\tid := uuid.New()\n}\n",
+			wantIssueCount: 1,
+			wantContains:   []string{"uuid.New()", "uuid.NewV7()"},
+		},
+		{
+			name:           "hardcoded_uuid",
+			content:        "package example_test\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tid := \"550e8400-e29b-41d4-a716-446655440000\"\n}\n",
+			wantIssueCount: 1,
+			wantContains:   []string{"hardcoded UUID", "uuid.NewV7()"},
+		},
+		{
+			name:           "t_errorf",
+			content:        "package example_test\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tt.Errorf(\"expected %d, got %d\", 1, 2)\n}\n",
+			wantIssueCount: 1,
+			wantContains:   []string{"t.Errorf()", "require.Errorf()"},
+		},
+		{
+			name:           "t_fatalf",
+			content:        "package example_test\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tt.Fatalf(\"test failed: %v\", err)\n}\n",
+			wantIssueCount: 1,
+			wantContains:   []string{"t.Fatalf()", "require.Fatalf()"},
+		},
+		{
+			name:           "testify_usage_without_import",
+			content:        "package example_test\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\trequire.Equal(t, 1, 1)\n}\n",
+			wantIssueCount: 1,
+			wantContains:   []string{"testify assertions", "doesn't import testify"},
+		},
+		{
+			name:           "multiple_issues",
+			content:        "package example_test\n\nimport (\n\t\"testing\"\n\t\"github.com/google/uuid\"\n)\n\nfunc TestExample(t *testing.T) {\n\tid1 := uuid.New()\n\tid2 := \"550e8400-e29b-41d4-a716-446655440000\"\n\tt.Errorf(\"error\")\n\tt.Fatalf(\"fatal\")\n\trequire.Equal(t, 1, 1)\n}\n",
+			wantIssueCount: 5,
+			wantContains:   []string{"uuid.New()", "hardcoded UUID", "t.Errorf()", "t.Fatalf()", "doesn't import testify"},
+		},
+		{
+			name:            "non_existent_file",
+			nonExistentFile: true,
+			wantIssueCount:  1,
+			wantContains:    []string{"Error reading file"},
+		},
 	}
 
-	require.True(t, hasUUIDNew, "Should detect uuid.New() usage")
-	require.True(t, hasHardcodedUUID, "Should detect hardcoded UUID")
-	require.True(t, hasTErrorf, "Should detect t.Errorf() usage")
-	require.True(t, hasTFatalf, "Should detect t.Fatalf() usage")
-	require.True(t, hasMissingImport, "Should detect missing testify import")
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			var testFile string
+			if tc.nonExistentFile {
+				testFile = "/nonexistent/path/test.go"
+			} else {
+				tempDir := t.TempDir()
+				testFile = filepath.Join(tempDir, tc.name+"_test.go")
+				err := os.WriteFile(testFile, []byte(tc.content), 0o600)
+				require.NoError(t, err)
+			}
+
+			issues := go_enforce_test_patterns.CheckTestFile(testFile)
+
+			require.Len(t, issues, tc.wantIssueCount)
+
+			for _, want := range tc.wantContains {
+				found := false
+				for _, issue := range issues {
+					if strings.Contains(issue, want) {
+						found = true
+						break
+					}
+				}
+				require.True(t, found, "Expected to find %q in issues", want)
+			}
+		})
+	}
 }
 
-func TestCheckTestFile_NonExistentFile(t *testing.T) {
+func TestEnforce(t *testing.T) {
 	t.Parallel()
 
-	// Act
-	issues := go_enforce_test_patterns.CheckTestFile("/nonexistent/path/test.go")
+	tests := []struct {
+		name      string
+		setupFiles func(t *testing.T, tmpDir string) []string
+		wantError bool
+		wantContains string
+	}{
+		{
+			name: "no_test_files",
+			setupFiles: func(t *testing.T, tmpDir string) []string {
+				t.Helper()
+				return []string{"main.go", "util.go", "config.go"}
+			},
+			wantError: false,
+		},
+		{
+			name: "valid_test_files",
+			setupFiles: func(t *testing.T, tmpDir string) []string {
+				t.Helper()
+				testFile := filepath.Join(tmpDir, "valid_test.go")
+				err := os.WriteFile(testFile, []byte(testValidTestFileContent), 0o600)
+				require.NoError(t, err)
+				return []string{testFile}
+			},
+			wantError: false,
+		},
+		{
+			name: "invalid_test_file",
+			setupFiles: func(t *testing.T, tmpDir string) []string {
+				t.Helper()
+				testFile := filepath.Join(tmpDir, "invalid_test.go")
+				content := "package example_test\n\nimport (\n\t\"testing\"\n\tgoogleUuid \"github.com/google/uuid\"\n)\n\nfunc TestExample(t *testing.T) {\n\tid := googleUuid.New()\n\tt.Errorf(\"error\")\n}\n"
+				err := os.WriteFile(testFile, []byte(content), 0o600)
+				require.NoError(t, err)
+				return []string{testFile}
+			},
+			wantError: true,
+			wantContains: "test pattern violations",
+		},
+		{
+			name: "excluded_files",
+			setupFiles: func(t *testing.T, tmpDir string) []string {
+				t.Helper()
+				cicdTestFile := filepath.Join(tmpDir, "cicd_test.go")
+				cicdContent := "package cicd_test\n\nimport \"testing\"\n\nfunc TestExample(t *testing.T) {\n\tt.Errorf(\"deliberate violation\")\n}\n"
+				err := os.WriteFile(cicdTestFile, []byte(cicdContent), 0o600)
+				require.NoError(t, err)
+				return []string{cicdTestFile}
+			},
+			wantError: false,
+		},
+		{
+			name: "multiple_files_with_issues",
+			setupFiles: func(t *testing.T, tmpDir string) []string {
+				t.Helper()
 
-	// Assert
-	require.Len(t, issues, 1)
-	require.Contains(t, issues[0], "Error reading file")
-}
+				file1 := filepath.Join(tmpDir, "test1_test.go")
+				content1 := "package example_test\n\nimport (\n\t\"testing\"\n\t\"github.com/google/uuid\"\n)\n\nfunc TestExample1(t *testing.T) {\n\tid := uuid.New()\n}\n"
+				err := os.WriteFile(file1, []byte(content1), 0o600)
+				require.NoError(t, err)
 
-func TestEnforce_NoTestFiles(t *testing.T) {
-	t.Parallel()
+				file2 := filepath.Join(tmpDir, "test2_test.go")
+				content2 := "package test2_test\n\nimport \"testing\"\n\nfunc TestExample2(t *testing.T) {\n\tt.Errorf(\"error\")\n}\n"
+				err = os.WriteFile(file2, []byte(content2), 0o600)
+				require.NoError(t, err)
 
-	logger := common.NewLogger("test-enforce-no-files")
-	allFiles := []string{
-		"main.go",
-		"util.go",
-		"config.go",
+				return []string{file1, file2}
+			},
+			wantError: true,
+			wantContains: "2 files",
+		},
 	}
 
-	// Act
-	err := go_enforce_test_patterns.Enforce(logger, allFiles)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	// Assert
-	require.NoError(t, err, "Should not error when no test files present")
-}
+			tmpDir := t.TempDir()
+			logger := common.NewLogger("test-enforce-" + tc.name)
 
-func TestEnforce_ValidTestFiles(t *testing.T) {
-	t.Parallel()
+			allFiles := tc.setupFiles(t, tmpDir)
 
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "valid_test.go")
-	content := `package example_test
+			err := go_enforce_test_patterns.Enforce(logger, allFiles)
 
-import (
-	"testing"
-	"github.com/stretchr/testify/require"
-	googleUuid "github.com/google/uuid"
-)
-
-func TestExample(t *testing.T) {
-	id := googleUuid.NewV7()
-	require.NotNil(t, id)
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	logger := common.NewLogger("test-enforce-valid")
-	allFiles := []string{testFile}
-
-	// Act
-	err = go_enforce_test_patterns.Enforce(logger, allFiles)
-
-	// Assert
-	require.NoError(t, err, "Should not error when all test files are valid")
-}
-
-func TestEnforce_InvalidTestFile(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-	testFile := filepath.Join(tempDir, "invalid_test.go")
-	content := `package example_test
-
-import (
-	"testing"
-	googleUuid "github.com/google/uuid"
-)
-
-func TestExample(t *testing.T) {
-	id := googleUuid.New()
-	t.Errorf("error")
-}
-`
-	err := os.WriteFile(testFile, []byte(content), 0o600)
-	require.NoError(t, err)
-
-	logger := common.NewLogger("test-enforce-invalid")
-	allFiles := []string{testFile}
-
-	// Act
-	err = go_enforce_test_patterns.Enforce(logger, allFiles)
-
-	// Assert
-	require.Error(t, err, "Should error when test files have violations")
-	require.Contains(t, err.Error(), "test pattern violations")
-}
-
-func TestEnforce_ExcludedFiles(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-
-	// Create cicd_test.go with deliberate violations (should be excluded)
-	cicdTestFile := filepath.Join(tempDir, "cicd_test.go")
-	cicdContent := `package cicd_test
-
-import "testing"
-
-func TestExample(t *testing.T) {
-	t.Errorf("deliberate violation")
-}
-`
-	err := os.WriteFile(cicdTestFile, []byte(cicdContent), 0o600)
-	require.NoError(t, err)
-
-	logger := common.NewLogger("test-enforce-excluded")
-	allFiles := []string{cicdTestFile}
-
-	// Act
-	err = go_enforce_test_patterns.Enforce(logger, allFiles)
-
-	// Assert: Should not error because cicd_test.go is excluded
-	require.NoError(t, err, "Should not check excluded files like cicd_test.go")
-}
-
-func TestEnforce_MultipleFilesWithIssues(t *testing.T) {
-	t.Parallel()
-
-	tempDir := t.TempDir()
-
-	// Create first invalid file
-	file1 := filepath.Join(tempDir, "test1_test.go")
-	content1 := `package example_test
-
-import (
-	"testing"
-	"github.com/google/uuid"
-)
-
-func TestExample1(t *testing.T) {
-	id := uuid.New()
-}
-`
-	err := os.WriteFile(file1, []byte(content1), 0o600)
-	require.NoError(t, err)
-
-	// Create second invalid file
-	file2 := filepath.Join(tempDir, "test2_test.go")
-	content2 := `package test2_test
-
-import "testing"
-
-func TestExample2(t *testing.T) {
-	t.Errorf("error")
-}
-`
-	err = os.WriteFile(file2, []byte(content2), 0o600)
-	require.NoError(t, err)
-
-	logger := common.NewLogger("test-enforce-multiple")
-	allFiles := []string{file1, file2}
-
-	// Act
-	err = go_enforce_test_patterns.Enforce(logger, allFiles)
-
-	// Assert
-	require.Error(t, err, "Should error when multiple test files have violations")
-	require.Contains(t, err.Error(), "test pattern violations")
-	require.Contains(t, err.Error(), "2 files")
-}
-
-// Helper function to check if a string contains a substring (case-insensitive check not needed here).
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || (len(s) > 0 && len(substr) > 0 && findSubstring(s, substr)))
-}
-
-func findSubstring(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
+			if tc.wantError {
+				require.Error(t, err)
+				if tc.wantContains != "" {
+					require.Contains(t, err.Error(), tc.wantContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+		})
 	}
-
-	return false
 }
