@@ -229,7 +229,7 @@ func main() {
 
 			defer func() {
 				if err := os.Chdir(oldWd); err != nil {
-					t.Errorf("Failed to restore working directory: %v", err)
+					require.NoError(t, err, "Failed to restore working directory")
 				}
 			}()
 

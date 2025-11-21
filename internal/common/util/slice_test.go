@@ -176,7 +176,7 @@ func TestContains(t *testing.T) {
 
 				result = util.Contains(s, searchItemType)
 			default:
-				t.Fatalf("Unsupported slice type: %T", slice)
+				require.FailNow(t, "Unsupported slice type", "%T", slice)
 			}
 
 			require.Equal(t, tc.wantResult, result)
